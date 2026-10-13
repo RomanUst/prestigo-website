@@ -22,7 +22,7 @@ import {
   TRIP_TYPE_VALUES,
   VEHICLE_CLASS_VALUES,
 } from '../infra/espocrm/lib/booking-map.mjs'
-import { finalFieldName, runSync } from '../infra/espocrm/sync.mjs'
+import { finalFieldName, mergeLayout, runSync } from '../infra/espocrm/sync.mjs'
 import { createFakeEspoCRM, stockEspoMetadata } from './helpers/fake-espocrm'
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -412,5 +412,237 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     expect(second).toContain('entities: create=0 update=0 unchanged=1 skipped=0 removed=0')
     expect(second).toContain('links: create=0 update=0 unchanged=2 skipped=0 removed=0')
     expect(second).toContain('fields: create=0 update=0 unchanged=15 skipped=0 removed=0')
+  })
+})
+
+describe('mergeLayout', () => {
+  it('append: adds a missing relationship in the server item form and keeps the order of what exists', () => {
+    // string form
+    const strings = ['history', 'opportunities']
+    expect(mergeLayout('append', strings, ['cBookings'])).toEqual(['history', 'opportunities', 'cBookings'])
+    // {name} form
+    const objects = [{ name: 'history' }, { name: 'opportunities' }]
+    expect(mergeLayout('append', objects, ['cBookings'])).toEqual([...objects, { name: 'cBookings' }])
+    // mixed (the server may store either): the string form wins unless every item is an object
+    expect(mergeLayout('append', ['history', { name: 'opportunities' }], ['cBookings'])).toEqual([
+      'history',
+      { name: 'opportunities' },
+      'cBookings',
+    ])
+    // an empty list gets the plain name
+    expect(mergeLayout('append', [], ['cBookings'])).toEqual(['cBookings'])
+  })
+
+  it('append: returns the very same array when the item is present (string or {name} form)', () => {
+    const strings = ['cBookings', 'history']
+    expect(mergeLayout('append', strings, ['cBookings'])).toBe(strings)
+    const mixed = ['history', { name: 'cBookings', width: 10 }]
+    expect(mergeLayout('append', mixed, ['cBookings'])).toBe(mixed)
+  })
+
+  it('append: never reorders, removes or alters existing items', () => {
+    const current = ['tasks', 'cases', { name: 'opportunities', width: 30 }]
+    const merged = mergeLayout('append', current, ['opportunities', 'cases', 'cBookings'])
+    expect(merged.slice(0, 3)).toEqual(current)
+    expect(merged).toEqual([...current, 'cBookings'])
+    expect(current).toHaveLength(3) // input untouched
+  })
+
+  it('append: detail panels are added only when no panel with the same label exists, existing panels are never altered', () => {
+    const overview = { label: 'Overview', rows: [[{ name: 'owner' }, false]] }
+    const current = [overview]
+    const merged = mergeLayout('append', current, [
+      { label: 'Overview', rows: [[{ name: 'something-else' }]] },
+      { label: 'Commercial', rows: [[{ name: 'cVatId' }, false]] },
+    ])
+    expect(merged).toHaveLength(2)
+    expect(merged[0]).toBe(overview)
+    expect(merged[1].label).toBe('Commercial')
+    expect(mergeLayout('append', merged, [{ label: 'Commercial', rows: [] }])).toBe(merged)
+  })
+
+  it('append: keyed layouts (bottomPanelsDetail) get missing keys only', () => {
+    const current = { opportunities: { name: 'opportunities', index: 7 }, mine: { index: 1 } }
+    const merged = mergeLayout('append', current, {
+      opportunities: { name: 'opportunities', index: 5 },
+      cBookings: { name: 'cBookings', index: 5.5 },
+    })
+    expect(merged).toEqual({ ...current, cBookings: { name: 'cBookings', index: 5.5 } })
+    expect(merged.opportunities.index).toBe(7)
+    expect(mergeLayout('append', merged, { cBookings: { index: 9 } })).toBe(merged)
+  })
+
+  it('append: nothing live yet takes the desired layout; a shape mismatch is a config error', () => {
+    expect(mergeLayout('append', null, ['cBookings'])).toEqual(['cBookings'])
+    expect(() => mergeLayout('append', ['a'], { cBookings: {} })).toThrow(EspoConfigError)
+    expect(() => mergeLayout('upsert' as any, [], [])).toThrow(EspoConfigError)
+  })
+
+  it('replace: returns the desired layout', () => {
+    const desired = [{ name: 'name', link: true }]
+    expect(mergeLayout('replace', [{ name: 'other' }], desired)).toEqual(desired)
+    expect(mergeLayout('replace', null, desired)).toEqual(desired)
+  })
+})
+
+describe('runSync layouts', () => {
+  const STOCK_CONTACT_PANELS = {
+    opportunities: { name: 'opportunities', index: 5 },
+    cases: { name: 'cases', index: 5.001 },
+  }
+  const layoutsConfig = () => ({
+    'entities.json': { entities: [], links: [] },
+    'fields.json': { fields: {} },
+    'layouts.json': {
+      layouts: [
+        { scope: 'CBooking', name: 'list', mode: 'replace', layout: [{ name: 'name', link: true }, { name: 'status' }] },
+        { scope: 'Contact', name: 'bottomPanelsDetail', mode: 'append', layout: { cBookings: { name: 'cBookings', index: 5.5 } } },
+        { scope: 'Contact', name: 'relationships', mode: 'append', layout: ['cBookings'] },
+        { scope: 'Account', name: 'detail', mode: 'append', layout: [{ label: 'Bookings', rows: [] }] },
+      ],
+    },
+  })
+  const seeded = () =>
+    createFakeEspoCRM({
+      metadata: stockEspoMetadata(),
+      layouts: {
+        'CBooking/list': [{ name: 'name', link: true }],
+        'Contact/bottomPanelsDetail': structuredClone(STOCK_CONTACT_PANELS),
+        'Contact/relationships': ['cases', 'tasks', 'opportunities'], // reordered, owner-added `tasks`
+        'Account/detail': [{ label: 'Overview', rows: [[{ name: 'name' }, false]] }],
+      },
+    })
+  const onlyLayouts = ['layouts']
+
+  it('replace writes ours; append adds only what is missing; the second run is a no-op', async () => {
+    const fake = seeded()
+    const dir = configDir(layoutsConfig())
+    const first = await sync(fake, dir, { only: onlyLayouts })
+    expect(first).toContain('layouts: create=0 update=4 unchanged=0 skipped=0 removed=0')
+
+    const L = fake.state.layouts
+    expect(L['CBooking/list']).toEqual([{ name: 'name', link: true }, { name: 'status' }])
+    expect(L['Contact/bottomPanelsDetail']).toEqual({ ...STOCK_CONTACT_PANELS, cBookings: { name: 'cBookings', index: 5.5 } })
+    expect(L['Contact/relationships']).toEqual(['cases', 'tasks', 'opportunities', 'cBookings'])
+    expect(L['Account/detail']).toEqual([
+      { label: 'Overview', rows: [[{ name: 'name' }, false]] },
+      { label: 'Bookings', rows: [] },
+    ])
+
+    const puts = fake.requests.filter((r) => r.method === 'PUT').length
+    const second = await sync(fake, dir, { only: onlyLayouts })
+    expect(second).toContain('layouts: create=0 update=0 unchanged=4 skipped=0 removed=0')
+    expect(fake.requests.filter((r) => r.method === 'PUT')).toHaveLength(puts)
+  })
+
+  it('owner edits to stock scopes survive a re-run: an added panel, a reordered list, a moved Bookings panel', async () => {
+    const fake = seeded()
+    const dir = configDir(layoutsConfig())
+    await sync(fake, dir, { only: onlyLayouts })
+
+    // the owner adds a relationship, reorders another list and moves the Bookings panel
+    fake.state.layouts['Contact/relationships'] = ['tasks', 'cBookings', 'cases', 'opportunities', 'meetings']
+    fake.state.layouts['Contact/bottomPanelsDetail'].cBookings.index = 1
+    fake.state.layouts['Contact/bottomPanelsDetail'].meetings = { name: 'meetings', index: 9 }
+    fake.state.layouts['Account/detail'][0].rows.push([{ name: 'website' }, false])
+    const snapshot = structuredClone(fake.state.layouts)
+
+    const again = await sync(fake, dir, { only: onlyLayouts })
+    expect(again).toContain('layouts: create=0 update=0 unchanged=4 skipped=0 removed=0')
+    expect(fake.state.layouts).toEqual(snapshot)
+  })
+
+  it('replace mode restores a custom-entity layout that drifted', async () => {
+    const fake = seeded()
+    const dir = configDir(layoutsConfig())
+    await sync(fake, dir, { only: onlyLayouts })
+    fake.state.layouts['CBooking/list'] = [{ name: 'status' }, { name: 'name', link: true }]
+    const again = await sync(fake, dir, { only: onlyLayouts })
+    expect(again).toContain('layouts: create=0 update=1 unchanged=3 skipped=0 removed=0')
+    expect(fake.state.layouts['CBooking/list']).toEqual([{ name: 'name', link: true }, { name: 'status' }])
+  })
+
+  it('a layout that does not exist yet is created (null from the server)', async () => {
+    const fake = createFakeEspoCRM({ metadata: stockEspoMetadata() })
+    const lines = await sync(fake, configDir(layoutsConfig()), { only: onlyLayouts })
+    expect(lines).toContain('layouts: create=4 update=0 unchanged=0 skipped=0 removed=0')
+  })
+
+  it('--dry-run sends only GET requests and writes nothing', async () => {
+    const fake = seeded()
+    const before = structuredClone(fake.state.layouts)
+    const lines = await sync(fake, configDir(layoutsConfig()), { only: onlyLayouts, dryRun: true })
+    expect(mutations(fake)).toHaveLength(0)
+    expect(lines).toContain('layouts: create=0 update=4 unchanged=0 skipped=0 removed=0')
+    expect(fake.state.layouts).toEqual(before)
+  })
+
+  it('rejects a layout entry with an unknown mode or a missing scope', async () => {
+    const fake = seeded()
+    const bad = layoutsConfig()
+    bad['layouts.json'].layouts[0] = { scope: 'CBooking', name: 'list', mode: 'merge', layout: [] } as any
+    await expect(sync(fake, configDir(bad), { only: onlyLayouts })).rejects.toBeInstanceOf(EspoConfigError)
+    const noScope = layoutsConfig()
+    noScope['layouts.json'].layouts[0] = { name: 'list', mode: 'replace', layout: [] } as any
+    await expect(sync(fake, configDir(noScope), { only: onlyLayouts })).rejects.toBeInstanceOf(EspoConfigError)
+    expect(mutations(fake)).toHaveLength(0)
+  })
+})
+
+describe('shipped layouts.json (D-10)', () => {
+  const read = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
+  const layouts: any[] = read('layouts.json').layouts
+  const find = (scope: string, name: string) => layouts.find((l) => l.scope === scope && l.name === name)
+  const fieldNames = new Set<string>([...read('fields.json').fields.CBooking.map((f: any) => f.name), 'name', 'contact', 'account'])
+
+  const namesIn = (node: any): string[] => {
+    if (Array.isArray(node)) return node.flatMap(namesIn)
+    if (node && typeof node === 'object') return [...(typeof node.name === 'string' ? [node.name] : []), ...Object.values(node).flatMap(namesIn)]
+    return []
+  }
+
+  it('has five entries: three CBooking layouts (replace) and the Contact and Account panels (append)', () => {
+    expect(layouts).toHaveLength(5)
+    for (const name of ['list', 'listSmall', 'detail']) expect(find('CBooking', name)?.mode, name).toBe('replace')
+    for (const scope of ['Contact', 'Account']) {
+      const entry = find(scope, 'bottomPanelsDetail')
+      expect(entry?.mode, scope).toBe('append')
+      expect(Object.keys(entry.layout)).toEqual(['cBookings'])
+    }
+  })
+
+  it('every field named in a CBooking layout is declared (or built in / a link)', () => {
+    for (const name of ['list', 'listSmall', 'detail']) {
+      for (const used of namesIn(find('CBooking', name).layout)) expect(fieldNames.has(used), `${name}: ${used}`).toBe(true)
+    }
+  })
+
+  it('the detail layout shows every CBooking field exactly once in one "Booking" panel', () => {
+    const detail = find('CBooking', 'detail').layout
+    expect(detail).toHaveLength(1)
+    expect(detail[0].label).toBe('Booking')
+    const used = namesIn(detail[0].rows)
+    expect(used.sort()).toEqual([...fieldNames].sort())
+  })
+
+  it('the full shipped config applies to the fake and a second full run reports create=0 update=0 everywhere', async () => {
+    const fake = createFakeEspoCRM({
+      metadata: stockEspoMetadata(),
+      settings: { defaultCurrency: 'USD' },
+      layouts: {
+        'Contact/bottomPanelsDetail': { opportunities: { name: 'opportunities', index: 5 } },
+        'Account/bottomPanelsDetail': { contacts: { index: 3 } },
+      },
+    })
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    await sync(fake, dir)
+    const puts = fake.requests.filter((r) => r.method !== 'GET').length
+    const again = await sync(fake, dir)
+    for (const line of again.filter((l) => /^[a-z]+: create=/.test(l))) expect(line).toMatch(/create=0 update=0 /)
+    expect(again.map((l) => l.split(':')[0])).toEqual(expect.arrayContaining(['settings', 'entities', 'links', 'fields', 'layouts']))
+    expect(fake.requests.filter((r) => r.method !== 'GET')).toHaveLength(puts)
+    expect(fake.state.layouts['Contact/bottomPanelsDetail'].opportunities).toEqual({ name: 'opportunities', index: 5 })
+    expect(fake.state.layouts['Contact/bottomPanelsDetail'].cBookings).toBeDefined()
+    expect(fake.state.layouts['Account/bottomPanelsDetail'].cBookings).toBeDefined()
   })
 })
