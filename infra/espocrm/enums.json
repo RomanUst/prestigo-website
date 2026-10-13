@@ -4,41 +4,15 @@
       "scope": "Opportunity",
       "field": "stage",
       "values": [
-        {
-          "value": "New",
-          "label": "New"
-        },
-        {
-          "value": "First Contact",
-          "label": "First contact"
-        },
-        {
-          "value": "Meeting",
-          "label": "Meeting / call"
-        },
-        {
-          "value": "Rate Sent",
-          "label": "Rate sent"
-        },
-        {
-          "value": "Trial Ride",
-          "label": "Trial ride"
-        },
-        {
-          "value": "Closed Won",
-          "label": "Partner (Won)"
-        },
-        {
-          "value": "Closed Lost",
-          "label": "Lost"
-        }
+        { "value": "New", "label": "New" },
+        { "value": "First Contact", "label": "First contact" },
+        { "value": "Meeting", "label": "Meeting / call" },
+        { "value": "Rate Sent", "label": "Rate sent" },
+        { "value": "Trial Ride", "label": "Trial ride" },
+        { "value": "Closed Won", "label": "Partner (Won)" },
+        { "value": "Closed Lost", "label": "Lost" }
       ],
-      "retire": [
-        "Prospecting",
-        "Qualification",
-        "Proposal",
-        "Negotiation"
-      ],
+      "retire": ["Prospecting", "Qualification", "Proposal", "Negotiation"],
       "default": "New",
       "probabilityMap": {
         "New": 10,
@@ -54,6 +28,18 @@
         "Closed Won": "success",
         "Closed Lost": "info"
       }
+    },
+    {
+      "scope": "Account",
+      "field": "type",
+      "values": [
+        { "value": "Hotel", "label": "Hotel" },
+        { "value": "Agency", "label": "Travel agency / DMC" },
+        { "value": "Corporate", "label": "Corporate" },
+        { "value": "Embassy", "label": "Embassy / event agency" },
+        { "value": "Other", "label": "Other" }
+      ],
+      "retire": ["", "Customer", "Investor", "Partner", "Reseller"]
     }
   ]
 }

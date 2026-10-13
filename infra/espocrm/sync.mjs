@@ -359,14 +359,26 @@ async function syncFields(ctx) {
 // enums (merge-safe: the owner may add values and rename labels in the UI)
 // ---------------------------------------------------------------------------
 
-/** Number-of-records probe: does any record of `scope` carry `value` in `field` (admin sees all records, canary included)? */
-async function isValueInUse(ctx, scope, field, value) {
+/** One count probe: does any record of `scope` match a single where item on `field`? */
+async function countsAny(ctx, scope, type, field, value) {
   const params = new URLSearchParams({ select: 'id', maxSize: '1' })
-  params.set('where[0][type]', value === '' ? 'isEmpty' : 'equals')
+  params.set('where[0][type]', type)
   params.set('where[0][attribute]', field)
-  if (value !== '') params.set('where[0][value]', value)
+  if (value !== undefined) params.set('where[0][value]', value)
   const result = await ctx.get(`/${scope}?${params.toString()}`)
   return Number(result?.total ?? 0) > 0 || (Array.isArray(result?.list) && result.list.length > 0)
+}
+
+/**
+ * Does any record of `scope` carry `value` in `field`? Admin sees every record (the canary
+ * included). The empty option has no `isEmpty` where type on a plain column, so it is
+ * checked as "null or empty string" with two probes.
+ */
+async function isValueInUse(ctx, scope, field, value) {
+  if (value === '') {
+    return (await countsAny(ctx, scope, 'isNull', field)) || (await countsAny(ctx, scope, 'equals', field, ''))
+  }
+  return countsAny(ctx, scope, 'equals', field, value)
 }
 
 function validateEnumEntry(def) {

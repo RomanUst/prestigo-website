@@ -150,6 +150,8 @@ function matchesWhere(record: any, row: any): boolean {
   switch (row.type) {
     case 'equals':
       return have === row.value
+    case 'isNull':
+      return have == null
     case 'isEmpty':
       return have == null || have === ''
     case 'isNotEmpty':

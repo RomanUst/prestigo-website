@@ -12,6 +12,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createEspoClient, loadEspoConfig } from '../infra/espocrm/lib/client.mjs'
+import { ACCOUNT_TYPE_VALUES } from '../infra/espocrm/lib/candidates.mjs'
 import { mergeEnumOptions } from '../infra/espocrm/lib/enum-merge.mjs'
 import { RESOURCE_ORDER, runSync } from '../infra/espocrm/sync.mjs'
 import { createFakeEspoCRM, stockEspoMetadata } from './helpers/fake-espocrm'
@@ -47,7 +48,9 @@ async function sync(fake: Fake, dir: string, opts: { dryRun?: boolean } = {}) {
 const fresh = (records: Record<string, any[]> = {}) => createFakeEspoCRM({ metadata: stockEspoMetadata(), records })
 const mutations = (fake: Fake) => fake.requests.filter((r) => r.method !== 'GET')
 const stageField = (fake: Fake) => fake.state.metadata.entityDefs.Opportunity.fields.stage
+const typeField = (fake: Fake) => fake.state.metadata.entityDefs.Account.fields.type
 const stageLabels = (fake: Fake) => fake.state.i18n['Opportunity.stage']?.translatedOptions
+const typeLabels = (fake: Fake) => fake.state.i18n['Account.type']?.translatedOptions
 
 const STAGES = [
   { value: 'New', label: 'New' },
@@ -188,6 +191,25 @@ describe('enums resource against the fake', () => {
     expect(stageField(fake).default).toBe('Meeting')
   })
 
+  it('an owner-added value and an owner-renamed label survive every re-run', async () => {
+    const fake = fresh()
+    const dir = configDir({ 'enums.json': { enums: [...stageConfig()['enums.json'].enums, realEnums().enums.find((e: any) => e.scope === 'Account')] } })
+    await sync(fake, dir)
+
+    // The owner works in Entity Manager: a new Account type and a renamed stage label.
+    typeField(fake).options.push('Airline')
+    fake.state.i18n['Account.type'].translatedOptions.Airline = 'Airline partner'
+    fake.state.i18n['Opportunity.stage'].translatedOptions['Trial Ride'] = 'Test drive'
+
+    const second = await sync(fake, dir)
+    const third = await sync(fake, dir)
+    for (const lines of [second, third]) expect(lines).toContain('enums: create=0 update=0 unchanged=2 skipped=0 removed=0')
+    expect(typeField(fake).options).toEqual([...ACCOUNT_TYPE_VALUES, 'Airline'])
+    expect(typeLabels(fake).Airline).toBe('Airline partner')
+    expect(stageLabels(fake)['Trial Ride']).toBe('Test drive')
+    expect(stageField(fake).options).toEqual(STAGES.map((s) => s.value))
+  })
+
   it('a rename present at the very first run is kept (no label clobber)', async () => {
     const fake = fresh()
     fake.state.i18n['Opportunity.stage'] = { translatedOptions: { 'Closed Won': 'Signed partner' } }
@@ -195,6 +217,54 @@ describe('enums resource against the fake', () => {
     expect(stageLabels(fake)['Closed Won']).toBe('Signed partner')
     expect(stageLabels(fake)['Closed Lost']).toBe('Lost')
   })
+})
+
+describe('D-20 retire guard (account types)', () => {
+  const typeConfig = () => ({ 'enums.json': { enums: [realEnums().enums.find((e: any) => e.scope === 'Account')] } })
+
+  it('removes an unused stock type and keeps one that a record still uses', async () => {
+    const fake = fresh({ Account: [{ id: 'a1', name: 'Restore Drill Canary', type: 'Partner' }] })
+    const lines = await sync(fake, configDir(typeConfig()))
+    expect(typeField(fake).options).toEqual([...ACCOUNT_TYPE_VALUES, 'Partner'])
+    expect(typeField(fake).options).not.toContain('Customer')
+    // '' is unused (the only account has a type) and goes with Customer, Investor, Reseller.
+    expect(lines).toContain('enums: create=0 update=1 unchanged=0 skipped=0 removed=4')
+    // a record is never touched
+    expect(fake.state.records.Account).toEqual([{ id: 'a1', name: 'Restore Drill Canary', type: 'Partner' }])
+    expect(mutations(fake).every((r) => r.path.startsWith('/Admin/fieldManager/'))).toBe(true)
+  })
+
+  it('keeps the empty option while an account has no type', async () => {
+    const fake = fresh({ Account: [{ id: 'a1', name: 'Typeless', type: '' }] })
+    await sync(fake, configDir(typeConfig()))
+    expect(typeField(fake).options).toContain('')
+    expect(typeField(fake).options).not.toContain('Customer')
+  })
+
+  it('zero records: every listed stock type is removed and a repeat run is a no-op', async () => {
+    const fake = fresh()
+    const dir = configDir(typeConfig())
+    await sync(fake, dir)
+    expect(typeField(fake).options).toEqual(ACCOUNT_TYPE_VALUES)
+    expect(typeLabels(fake)['Agency']).toBe('Travel agency / DMC')
+    expect(typeLabels(fake)['Embassy']).toBe('Embassy / event agency')
+    const second = await sync(fake, dir)
+    expect(second).toContain('enums: create=0 update=0 unchanged=1 skipped=0 removed=0')
+  })
+
+  it('an in-use stage is kept as well, counted once as in use', async () => {
+    const fake = fresh({ Opportunity: [{ id: 'o1', name: 'Old deal', stage: 'Proposal' }] })
+    const dir = configDir(stageConfig())
+    const first = await sync(fake, dir)
+    expect(first).toContain('enums: create=0 update=1 unchanged=0 skipped=0 removed=3')
+    expect(stageField(fake).options).toEqual([...STAGES.map((s) => s.value), 'Proposal'])
+    const second = await sync(fake, dir)
+    expect(second).toContain('enums: create=0 update=0 unchanged=1 skipped=0 removed=0')
+  })
+
+  function stageConfig() {
+    return { 'enums.json': { enums: [realEnums().enums.find((e: any) => e.scope === 'Opportunity')] } }
+  }
 })
 
 describe('enums.json invariants', () => {
@@ -216,6 +286,19 @@ describe('enums.json invariants', () => {
     expect(values.filter((v: string) => /lost/i.test(v))).toEqual(['Closed Lost'])
     expect(entry('Opportunity', 'stage').retire).not.toContain('Closed Won')
     expect(entry('Opportunity', 'stage').retire).not.toContain('Closed Lost')
+  })
+
+  it('Account.type is exactly the 5 D-02 values, equal to ACCOUNT_TYPE_VALUES, with the D-02 labels', () => {
+    const type = entry('Account', 'type')
+    expect(type.values.map((v: any) => v.value)).toEqual(ACCOUNT_TYPE_VALUES)
+    expect(Object.fromEntries(type.values.map((v: any) => [v.value, v.label]))).toEqual({
+      Hotel: 'Hotel',
+      Agency: 'Travel agency / DMC',
+      Corporate: 'Corporate',
+      Embassy: 'Embassy / event agency',
+      Other: 'Other',
+    })
+    expect(type.retire).toEqual(['', 'Customer', 'Investor', 'Partner', 'Reseller'])
   })
 
   it('no retire list overlaps its desired values', () => {
