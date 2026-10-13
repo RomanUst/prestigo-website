@@ -83,9 +83,34 @@ export function stockEspoMetadata(): Record<string, any> {
     scopes: {
       Account: { entity: true, customizable: true },
       Contact: { entity: true, customizable: true },
-      Opportunity: { entity: true, customizable: true },
+      Opportunity: { entity: true, customizable: true, kanbanStatusIgnoreList: ['Closed Lost'] },
     },
-    entityDefs: { Account: { fields: {}, links: {} }, Contact: { fields: {}, links: {} } },
+    clientDefs: { Opportunity: { kanbanViewMode: true } },
+    // Stock enum fields as served by the live 10.0.8 instance (read-only probe, plan 80-05).
+    entityDefs: {
+      Account: {
+        fields: {
+          type: { type: 'enum', options: ['', 'Customer', 'Investor', 'Partner', 'Reseller'], audited: true },
+        },
+        links: {},
+      },
+      Contact: { fields: {}, links: {} },
+      Opportunity: {
+        fields: {
+          stage: {
+            type: 'enum',
+            options: ['Prospecting', 'Qualification', 'Proposal', 'Negotiation', 'Closed Won', 'Closed Lost'],
+            default: 'Prospecting',
+            audited: true,
+            probabilityMap: { Prospecting: 10, Qualification: 20, Proposal: 50, Negotiation: 80, 'Closed Won': 100, 'Closed Lost': 0 },
+            style: { Proposal: 'primary', Negotiation: 'warning', 'Closed Won': 'success', 'Closed Lost': 'info' },
+            fieldManagerAdditionalParamList: [{ name: 'probabilityMap' }],
+          },
+          lastStage: { type: 'enum', customizationOptionsDisabled: true },
+        },
+        links: {},
+      },
+    },
     fields: {
       varchar: {
         params: p('required', 'default', 'maxLength', 'options', 'pattern', 'copyToClipboard', 'audited', 'readOnly', 'readOnlyAfterCreate', 'noSpellCheck', 'optionsPath'),
@@ -125,6 +150,8 @@ function matchesWhere(record: any, row: any): boolean {
   switch (row.type) {
     case 'equals':
       return have === row.value
+    case 'isNull':
+      return have == null
     case 'isEmpty':
       return have == null || have === ''
     case 'isNotEmpty':
@@ -317,6 +344,22 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
         labels.translatedOptions = body.translatedOptions
       }
       return json(fieldCreate ? { ...stored, name } : stored)
+    }
+
+    // GET /I18n: stock labels are the identity for every enum option; labels written
+    // through FieldManager (state.i18n `Scope.field`.translatedOptions) override them.
+    if (req.method === 'GET' && req.path === '/I18n') {
+      const out: any = {}
+      for (const [scope, defs] of Object.entries<any>(md.entityDefs ?? {})) {
+        for (const [field, def] of Object.entries<any>(defs?.fields ?? {})) {
+          if (!Array.isArray(def?.options)) continue
+          const labels: Record<string, string> = {}
+          for (const v of def.options) if (v !== '') labels[v] = v
+          Object.assign(labels, state.i18n[`${scope}.${field}`]?.translatedOptions ?? {})
+          ;((out[scope] ??= {}).options ??= {})[field] = labels
+        }
+      }
+      return json(out)
     }
 
     const layoutMatch = req.path.match(/^\/([A-Za-z][A-Za-z0-9]*)\/layout\/([A-Za-z0-9]+)$/)
