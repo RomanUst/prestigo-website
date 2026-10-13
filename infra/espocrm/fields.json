@@ -158,6 +158,86 @@
         "type": "link",
         "required": true
       }
+    ],
+    "Account": [
+      {
+        "name": "otherTypeNote",
+        "type": "varchar",
+        "maxLength": 100,
+        "label": "Other type note",
+        "dynamicLogicVisible": {
+          "conditionGroup": [{ "type": "equals", "attribute": "type", "value": "Other" }]
+        }
+      },
+      {
+        "name": "commissionPercent",
+        "type": "float",
+        "min": 0,
+        "max": 100,
+        "label": "Commission %",
+        "commercial": true
+      },
+      {
+        "name": "paymentTerms",
+        "type": "enum",
+        "options": ["", "Card", "Invoice", "GroupStripeLink"],
+        "translatedOptions": {
+          "Card": "Card",
+          "Invoice": "Invoice with terms",
+          "GroupStripeLink": "Group Stripe link"
+        },
+        "label": "Payment terms",
+        "commercial": true
+      },
+      {
+        "name": "invoiceDueDays",
+        "type": "int",
+        "min": 0,
+        "max": 120,
+        "label": "Invoice due (days)",
+        "commercial": true,
+        "dynamicLogicVisible": {
+          "conditionGroup": [{ "type": "equals", "attribute": "cPaymentTerms", "value": "Invoice" }]
+        }
+      },
+      {
+        "name": "vatId",
+        "type": "varchar",
+        "maxLength": 30,
+        "label": "VAT ID",
+        "commercial": true
+      },
+      {
+        "name": "reverseCharge",
+        "type": "bool",
+        "label": "Reverse charge",
+        "commercial": true
+      },
+      {
+        "name": "contractDate",
+        "type": "date",
+        "label": "Contract date",
+        "commercial": true
+      },
+      {
+        "name": "contractValidUntil",
+        "type": "date",
+        "label": "Contract valid until",
+        "commercial": true
+      },
+      {
+        "name": "contractFile",
+        "type": "file",
+        "label": "Contract file",
+        "commercial": true
+      },
+      {
+        "name": "expectedRidesPerMonth",
+        "type": "int",
+        "min": 0,
+        "label": "Expected rides / month",
+        "commercial": true
+      }
     ]
   }
 }

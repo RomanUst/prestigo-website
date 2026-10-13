@@ -90,6 +90,23 @@
       ]
     },
     {
+      "scope": "Account",
+      "name": "detail",
+      "mode": "append",
+      "layout": [
+        {
+          "label": "Partner terms",
+          "rows": [
+            [{ "name": "cOtherTypeNote" }, { "name": "cExpectedRidesPerMonth" }],
+            [{ "name": "cCommissionPercent" }, { "name": "cPaymentTerms" }],
+            [{ "name": "cInvoiceDueDays" }, { "name": "cVatId" }],
+            [{ "name": "cReverseCharge" }, { "name": "cContractDate" }],
+            [{ "name": "cContractValidUntil" }, { "name": "cContractFile" }]
+          ]
+        }
+      ]
+    },
+    {
       "scope": "Contact",
       "name": "bottomPanelsDetail",
       "mode": "append",
