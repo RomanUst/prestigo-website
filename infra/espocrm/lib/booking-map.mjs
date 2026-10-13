@@ -145,13 +145,70 @@ function formatUtc(date) {
   )
 }
 
-/** pickup_utc when present, as 'YYYY-MM-DD HH:mm:ss' UTC; otherwise null (see Task 2). */
+const PRAGUE_PARTS = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/Prague',
+  hourCycle: 'h23',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+})
+
+/** Europe/Prague UTC offset in ms (local wall clock minus UTC) at the given instant. */
+function pragueOffsetMs(instantMs) {
+  const p = {}
+  for (const part of PRAGUE_PARTS.formatToParts(new Date(instantMs))) p[part.type] = part.value
+  const asUtc = Date.UTC(
+    Number(p.year),
+    Number(p.month) - 1,
+    Number(p.day),
+    Number(p.hour),
+    Number(p.minute),
+    Number(p.second),
+  )
+  return asUtc - Math.floor(instantMs / 1000) * 1000
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Convert a Europe/Prague wall-clock time to a UTC instant (ms), or null when the
+ * inputs are malformed. Handles DST without a date library: the possible offsets are
+ * sampled a day either side, and each candidate is kept only if it round-trips.
+ * Repeated hour (autumn switch): the EARLIER instant (summer time) is chosen.
+ * Skipped hour (spring switch): the pre-switch offset is applied, i.e. the time
+ * rolls forward by one hour.
+ */
+function pragueLocalToUtcMs(dateStr, timeStr) {
+  const d = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr ?? '').trim())
+  const t = /^(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(String(timeStr ?? '').trim())
+  if (!d || !t) return null
+  const [y, mo, da] = [Number(d[1]), Number(d[2]), Number(d[3])]
+  const [h, mi, s] = [Number(t[1]), Number(t[2]), Number(t[3] ?? 0)]
+  if (mo < 1 || mo > 12 || da < 1 || da > 31 || h > 23 || mi > 59 || s > 59) return null
+  const naive = Date.UTC(y, mo - 1, da, h, mi, s)
+  const check = new Date(naive)
+  if (check.getUTCMonth() !== mo - 1 || check.getUTCDate() !== da) return null
+  const offsets = [...new Set([pragueOffsetMs(naive - DAY_MS), pragueOffsetMs(naive + DAY_MS)])]
+  const valid = offsets.map((o) => naive - o).filter((c) => pragueOffsetMs(c) === naive - c)
+  if (valid.length > 0) return Math.min(...valid)
+  return naive - Math.min(...offsets)
+}
+
+/**
+ * Pickup instant as 'YYYY-MM-DD HH:mm:ss' UTC. pickup_utc wins when present;
+ * otherwise pickup_date + pickup_time are read as Europe/Prague local time.
+ * Null when neither is usable.
+ */
 export function pickupAtUtc(row) {
   if (!isBlank(row.pickup_utc)) {
     const d = new Date(row.pickup_utc)
     if (!Number.isNaN(d.getTime())) return formatUtc(d)
   }
-  return null
+  const ms = pragueLocalToUtcMs(row.pickup_date, row.pickup_time)
+  return ms === null ? null : formatUtc(new Date(ms))
 }
 
 /** D-18: admin deep link, reference is URL-encoded. */
