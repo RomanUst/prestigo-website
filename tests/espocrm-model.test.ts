@@ -22,7 +22,7 @@ import {
   TRIP_TYPE_VALUES,
   VEHICLE_CLASS_VALUES,
 } from '../infra/espocrm/lib/booking-map.mjs'
-import { finalFieldName, mergeLayout, runSync } from '../infra/espocrm/sync.mjs'
+import { RESOURCE_ORDER, finalFieldName, mergeLayout, runSync } from '../infra/espocrm/sync.mjs'
 import { createFakeEspoCRM, stockEspoMetadata } from './helpers/fake-espocrm'
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -48,7 +48,10 @@ function configDir(files: Record<string, unknown>): string {
 
 async function sync(fake: Fake, dir: string, opts: { only?: string[]; dryRun?: boolean } = {}) {
   const lines: string[] = []
-  await runSync({ client: adminClient(fake), configDir: dir, log: (l) => lines.push(l), ...opts })
+  // A "full" run here means the model resources; `mail` (plan 80-10) needs a live user, scheduler
+  // and mail folders, and has its own tests in espocrm-mail.test.ts.
+  const only = opts.only ?? (RESOURCE_ORDER as string[]).filter((r) => r !== 'mail')
+  await runSync({ client: adminClient(fake), configDir: dir, log: (l) => lines.push(l), ...opts, only })
   return lines
 }
 

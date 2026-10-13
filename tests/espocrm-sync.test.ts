@@ -280,7 +280,17 @@ describe('runSync settings (tracer)', () => {
   })
 
   it('--dry-run sends only GET requests but still reports the plan', async () => {
-    const fake = createFakeEspoCRM({ settings: { defaultCurrency: 'USD' }, metadata: stockEspoMetadata() })
+    // The mail resource (plan 80-10) refuses a stopped scheduler even in a dry run: seed the two jobs.
+    const fake = createFakeEspoCRM({
+      settings: { defaultCurrency: 'USD' },
+      metadata: stockEspoMetadata(),
+      records: {
+        ScheduledJob: [
+          { id: 'd00000000000000a1', job: 'CheckEmailAccounts', status: 'Active' },
+          { id: 'd00000000000000a2', job: 'SendEmailReminders', status: 'Active' },
+        ],
+      },
+    })
     const lines = await sync(fake, { dryRun: true })
     expect(fake.requests.length).toBeGreaterThan(0)
     expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)

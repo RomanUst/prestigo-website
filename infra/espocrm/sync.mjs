@@ -9,8 +9,7 @@
  *
  *   node infra/espocrm/sync.mjs [--dry-run] [--only settings,...]
  *
- * Resource order: settings, entities, links, fields, enums, layouts, roles. (A later plan
- * adds mail after roles.)
+ * Resource order: settings, entities, links, fields, enums, layouts, roles, mail.
  *
  * Handler contract: `async function syncX(ctx) -> { create, update, unchanged,
  * skipped, removed }`, where
@@ -38,7 +37,7 @@ import { mergeDefault, mergeEnumOptions, mergeValueMap } from './lib/enum-merge.
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
-export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields', 'enums', 'layouts', 'roles']
+export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields', 'enums', 'layouts', 'roles', 'mail']
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -754,6 +753,224 @@ async function syncRoles(ctx) {
   return counts
 }
 
+// ---------------------------------------------------------------------------
+// mail (Phase 80 plan 10: D-05 reminders, D-11..D-13 owner mailbox prerequisites)
+// ---------------------------------------------------------------------------
+
+const MAIL_FILTER_ACTION = 'Move to Folder'
+const REMINDER_TYPES = ['Popup', 'Email']
+
+/**
+ * Validates mail.json before the first request. A filter may only move mail to a folder: the
+ * "Skip" action would hide task reminders (they are fetched back into the owner's mailbox).
+ */
+export function validateMailConfig(cfg) {
+  const where = 'mail.json'
+  if (!isPlainObject(cfg)) throw new EspoConfigError(`${where} must be an object`)
+  requireKeys('mail', cfg.owner, ['userName', 'emailAddress'])
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cfg.owner.emailAddress)) throw new EspoConfigError(`${where}: owner.emailAddress is not an email address`)
+
+  const folders = cfg.folders ?? []
+  const filters = cfg.filters ?? []
+  const preferences = cfg.preferences ?? []
+  const requiredJobs = cfg.requiredJobs ?? []
+  for (const [name, list] of [['folders', folders], ['filters', filters], ['preferences', preferences], ['requiredJobs', requiredJobs]]) {
+    if (!Array.isArray(list)) throw new EspoConfigError(`${where}: ${name} must be a list`)
+  }
+  if (requiredJobs.some((j) => typeof j !== 'string' || !j)) throw new EspoConfigError(`${where}: requiredJobs must be a list of job names`)
+
+  for (const folder of folders) requireKeys('mail.folders', folder, ['name', 'user'])
+  for (const filter of filters) {
+    requireKeys('mail.filters', filter, ['name', 'user', 'from', 'action', 'folder'])
+    if (filter.action === 'Skip') {
+      throw new EspoConfigError(`${where}: filter "${filter.name}" uses Skip, which would hide reminders; use "${MAIL_FILTER_ACTION}"`)
+    }
+    if (filter.action !== MAIL_FILTER_ACTION) {
+      throw new EspoConfigError(`${where}: filter "${filter.name}" action must be "${MAIL_FILTER_ACTION}"`)
+    }
+    if (!folders.some((f) => f.name === filter.folder && f.user === filter.user)) {
+      throw new EspoConfigError(`${where}: filter "${filter.name}" targets folder "${filter.folder}" that is not declared for ${filter.user}`)
+    }
+  }
+  for (const pref of preferences) {
+    requireKeys('mail.preferences', pref, ['user'])
+    const reminders = pref.defaultRemindersTask
+    if (!Array.isArray(reminders)) throw new EspoConfigError(`${where}: preferences for ${pref.user} need a defaultRemindersTask list`)
+    for (const r of reminders) {
+      if (!REMINDER_TYPES.includes(r?.type) || !Number.isInteger(r?.seconds) || r.seconds < 0) {
+        throw new EspoConfigError(`${where}: reminder ${JSON.stringify(r)} must be { type: Popup|Email, seconds: integer >= 0 }`)
+      }
+    }
+  }
+}
+
+const normalizeReminders = (list) =>
+  (Array.isArray(list) ? list : [])
+    .map((r) => ({ type: r?.type, seconds: Number(r?.seconds) }))
+    .sort((a, b) => a.seconds - b.seconds || String(a.type).localeCompare(String(b.type)))
+
+/** Looks a user up by exact userName. Returns { id, emailAddress } or null. */
+async function findUserByName(ctx, userName) {
+  const params = new URLSearchParams({ select: 'id,userName,emailAddress', maxSize: '2' })
+  params.set('where[0][type]', 'equals')
+  params.set('where[0][attribute]', 'userName')
+  params.set('where[0][value]', userName)
+  const found = (await ctx.get(`/User?${params.toString()}`))?.list ?? []
+  const hit = found.find((u) => u.userName === userName)
+  return hit ? { id: hit.id, emailAddress: hit.emailAddress ?? '' } : null
+}
+
+/** GET a list by exact name (maxSize 200), the caller narrows further in code. */
+async function listByName(ctx, entity, name, select) {
+  const params = new URLSearchParams({ select, maxSize: '200' })
+  params.set('where[0][type]', 'equals')
+  params.set('where[0][attribute]', 'name')
+  params.set('where[0][value]', name)
+  return (await ctx.get(`/${entity}?${params.toString()}`))?.list ?? []
+}
+
+/**
+ * Reads scheduled-job statuses by their `job` attribute and requires every listed job to be Active.
+ * A stopped scheduler means no mail fetch and no reminder emails, so this fails the run (exit 2)
+ * before any write and names the job.
+ */
+export async function assertJobsActive(ctx, requiredJobs) {
+  const rows = (await ctx.get('/ScheduledJob?select=name,job,status&maxSize=200'))?.list ?? []
+  const status = new Map(rows.map((r) => [r.job, r.status]))
+  for (const job of requiredJobs) {
+    if (status.get(job) !== 'Active') {
+      throw new Error(`mail: scheduled job ${job} is ${status.get(job) ?? 'missing'}, expected Active`)
+    }
+  }
+  return requiredJobs.map((job) => `${job}=Active`)
+}
+
+/**
+ * mail.json: the owner user's address (a Personal Email Account must use the owner's own address),
+ * a personal filter that files system mail into the owner's "Reminders" folder instead of the sales
+ * inbox (D-05; never Skip), Task reminder defaults and the scheduler check. The mailbox itself
+ * (host, password) is created by the owner in the UI (D-12): no password ever passes through here.
+ *
+ * Folders are verified, never created (live finding, plan 80-10): POST /EmailFolder assigns the
+ * folder to the CALLING admin (prestigo-config) whatever assignedUserId says, so an admin identity
+ * cannot create a folder for the owner. The owner creates "Reminders" in Emails -> Folders; this
+ * resource then finds it (by name AND owner) and points the owner's filter at it. Until it exists,
+ * the folder and its filter are `skipped`, never created against a folder the owner cannot see.
+ */
+async function syncMail(ctx) {
+  const counts = emptyCounts()
+  const cfg = ctx.readConfig('mail.json')
+  validateMailConfig(cfg)
+  const { owner, folders = [], filters = [], preferences = [], requiredJobs = [] } = cfg
+
+  const jobLines = await assertJobsActive(ctx, requiredJobs)
+
+  const actionDef = await readMetadata(ctx, 'entityDefs.EmailFilter.fields.action')
+  const folderDefs = await readMetadata(ctx, 'entityDefs.EmailFolder.fields')
+  const prefDef = await readMetadata(ctx, 'entityDefs.Preferences.fields.defaultRemindersTask')
+  let folderIssue = null
+  if (!Array.isArray(actionDef?.options) || !actionDef.options.includes(MAIL_FILTER_ACTION)) {
+    folderIssue = `this EspoCRM has no "${MAIL_FILTER_ACTION}" filter action`
+  } else if (!folderDefs?.assignedUser) {
+    folderIssue = 'an EmailFolder cannot be assigned to another user'
+  }
+
+  const users = new Map()
+  const resolveUser = async (userName) => {
+    if (users.has(userName)) return users.get(userName)
+    const user = await findUserByName(ctx, userName)
+    if (!user && !ctx.dryRun) throw new EspoConfigError(`mail: user "${userName}" does not exist`)
+    users.set(userName, user)
+    return user
+  }
+
+  // 1. The owner user's email address (case-insensitive compare; the server's casing wins).
+  const ownerUser = await resolveUser(owner.userName)
+  if (!ownerUser) {
+    counts.skipped++
+  } else if (ownerUser.emailAddress.toLowerCase() === owner.emailAddress.toLowerCase()) {
+    counts.unchanged++
+  } else {
+    await ctx.mutate('PUT', `/User/${ownerUser.id}`, { emailAddress: owner.emailAddress }, `${owner.userName} (email address)`)
+    counts.update++
+  }
+
+  // 2. Folders (verified, owner-created), then 3. filters that point at them.
+  if (folderIssue && (folders.length || filters.length)) {
+    ctx.log(`mail: folders and filters skipped (${folderIssue}); the owner creates "Reminders" and its filter in the UI (never Skip)`)
+    counts.skipped += folders.length + filters.length
+  } else {
+    const folderIds = new Map()
+    for (const folder of folders) {
+      const user = await resolveUser(folder.user)
+      if (!user) {
+        counts.skipped++
+        continue
+      }
+      const existing = (await listByName(ctx, 'EmailFolder', folder.name, 'id,name,assignedUserId')).find((f) => f.name === folder.name && f.assignedUserId === user.id)
+      if (existing) {
+        folderIds.set(`${folder.user}/${folder.name}`, existing.id)
+        counts.unchanged++
+        continue
+      }
+      ctx.log(`mail: folder "${folder.name}" owned by ${folder.user} does not exist; the owner creates it in Emails -> Folders (an API-created folder would belong to the admin identity)`)
+      counts.skipped++
+    }
+
+    for (const filter of filters) {
+      const user = await resolveUser(filter.user)
+      const folderId = folderIds.get(`${filter.user}/${filter.folder}`)
+      if (!user || !folderId) {
+        counts.skipped++
+        continue
+      }
+      const body = {
+        name: filter.name,
+        from: filter.from,
+        action: filter.action,
+        emailFolderId: folderId,
+        parentType: 'User',
+        parentId: user.id,
+        isGlobal: false,
+      }
+      const existing = (await listByName(ctx, 'EmailFilter', filter.name, 'id,name,from,action,emailFolderId,parentId,isGlobal')).find((f) => f.parentId === user.id)
+      if (!existing) {
+        await ctx.mutate('POST', '/EmailFilter', body, `${filter.user}/${filter.name}`)
+        counts.create++
+      } else if (existing.from !== body.from || existing.action !== body.action || existing.emailFolderId !== body.emailFolderId) {
+        await ctx.mutate('PUT', `/EmailFilter/${existing.id}`, { from: body.from, action: body.action, emailFolderId: body.emailFolderId }, `${filter.user}/${filter.name}`)
+        counts.update++
+      } else {
+        counts.unchanged++
+      }
+    }
+  }
+
+  // 4. Reminder defaults per user (the Preferences record id is the user id).
+  for (const pref of preferences) {
+    const user = await resolveUser(pref.user)
+    if (!user || !prefDef) {
+      counts.skipped++
+      continue
+    }
+    let have = null
+    try {
+      have = await ctx.get(`/Preferences/${user.id}`)
+    } catch (err) {
+      if (!(err instanceof EspoApiError && err.status === 404)) throw err
+    }
+    if (sameJson(normalizeReminders(have?.defaultRemindersTask), normalizeReminders(pref.defaultRemindersTask))) {
+      counts.unchanged++
+      continue
+    }
+    await ctx.mutate('PUT', `/Preferences/${user.id}`, { defaultRemindersTask: pref.defaultRemindersTask }, `${pref.user} (defaultRemindersTask)`)
+    counts.update++
+  }
+
+  ctx.log(`jobs: ${jobLines.join(' ')}`)
+  return counts
+}
+
 const HANDLERS = {
   settings: syncSettings,
   entities: syncEntities,
@@ -762,6 +979,7 @@ const HANDLERS = {
   enums: syncEnums,
   layouts: syncLayouts,
   roles: syncRoles,
+  mail: syncMail,
 }
 
 // ---------------------------------------------------------------------------

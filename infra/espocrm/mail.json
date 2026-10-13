@@ -1,0 +1,23 @@
+{
+  "owner": { "userName": "prestigo-admin", "emailAddress": "roman@rideprestigo.com" },
+  "folders": [{ "name": "Reminders", "user": "prestigo-admin" }],
+  "filters": [
+    {
+      "name": "System notifications to Reminders",
+      "user": "prestigo-admin",
+      "from": "notifications@rideprestigo.com",
+      "action": "Move to Folder",
+      "folder": "Reminders"
+    }
+  ],
+  "preferences": [
+    {
+      "user": "prestigo-admin",
+      "defaultRemindersTask": [
+        { "type": "Popup", "seconds": 0 },
+        { "type": "Email", "seconds": 3600 }
+      ]
+    }
+  ],
+  "requiredJobs": ["CheckEmailAccounts", "SendEmailReminders"]
+}
