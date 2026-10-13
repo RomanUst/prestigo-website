@@ -253,7 +253,7 @@ Plans:
   4. Sales mail (sales@ or roman@) is connected to EspoCRM only; sent and received emails attach to the matching Account/Contact/Opportunity.
   5. Roles/ACL for 2-3 future operators exist in both Chatwoot (agent/admin, team assignment) and EspoCRM (role-based ACL), documented in a runbook.
 
-**Plans:** 3/13 plans executed
+**Plans:** 4/13 plans executed
 
 Plans:
 **Wave 1**
@@ -262,7 +262,7 @@ Plans:
 - [x] 80-03-PLAN.md — Pure transforms: booking row -> CRM payload (D-07..D-10, D-21) and account candidates (D-14)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 80-04-PLAN.md — CBooking entity, fields, Contact/Account links and booking panels (D-06, D-09, D-10)
+- [x] 80-04-PLAN.md — CBooking entity, fields, Contact/Account links and booking panels (D-06, D-09, D-10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 80-05-PLAN.md — Opportunity stages + Account types via merge-safe enum sync (D-01, D-02, D-20)
@@ -388,7 +388,7 @@ Plans:
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
 | 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
-| 80. EspoCRM Deployment + Core Entities | v4.0 | 3/13 | In Progress|  |
+| 80. EspoCRM Deployment + Core Entities | v4.0 | 4/13 | In Progress|  |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
