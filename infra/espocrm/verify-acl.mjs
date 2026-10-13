@@ -37,44 +37,124 @@ const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^
 
 /** Boolean-type scopes have no REST endpoint to probe. */
 const BOOLEAN_SCOPES = new Set(['EmailAccountScope'])
+/** A role that does not grant these (false or absent) must get exactly 403 on them. */
+const SENSITIVE_SCOPES = ['Opportunity', 'CPartnerRate', 'Email']
+/** Scopes whose writes the probe exercises, with the fixture a PUT/DELETE targets. */
+const WRITE_SCOPES = {
+  Account: { fixture: 'account', create: { name: 'ACL Probe {uid}' }, edit: { description: 'acl probe edit' } },
+  Contact: { fixture: 'contact', create: { lastName: 'ACL Probe {uid}' }, edit: { description: 'acl probe edit' } },
+  CBooking: {
+    fixture: 'booking',
+    create: { name: 'ACL Probe {uid}', supabaseBookingId: 'acl-probe-{uid}' },
+    edit: { name: 'ACL Probe edited' },
+  },
+}
+/** Order inside a role: reads first, deletes last (an unexpected delete must not hide later checks). */
+const PHASE = { read: 0, field: 1, attachment: 2, put: 3, post: 4, delete: 5 }
 
 /** Attributes a field occupies in a record payload (a file/link field adds Id and Name). */
 export const fieldAttributes = (finalName) => [finalName, `${finalName}Id`, `${finalName}Name`]
 
+const finalAccountField = (spec) => `c${ucFirst(spec.name)}`
+
 /**
  * Pure: the checks the live CRM must satisfy, derived from the role specs.
- * Each check: { role, label, expect, method, path, status?, fixture, attrs? } where
- * `expect` is forbidden (exactly 403) | allowed (2xx) | hidden (2xx and none of attrs in the
- * record) | visible (2xx and some attr present). `{id}` in a path is filled from `fixture`
- * (account | booking | attachment) by the runner.
+ * Each check: { role, label, expect, method, path, status?, statuses?, fixture, attrs?, body?, track? }
+ * where `expect` is forbidden (exactly 403, or one of `statuses`) | allowed (2xx) | hidden (2xx and
+ * none of attrs in the record) | visible (2xx and some attr present). `{id}` in a path is filled
+ * from `fixture` (account | contact | booking | attachment) by the runner; `{uid}` in a body is a
+ * per-run unique token; `track` names a scope whose created record the runner deletes afterwards.
  */
 export function buildAclExpectations(roleSpecs, fieldsJson) {
-  void fieldsJson
+  const commercial = (fieldsJson?.fields?.Account ?? []).filter((f) => f.commercial === true)
   const checks = []
   for (const spec of roleSpecs) {
     const role = spec.name
+    const add = (phase, check) => checks.push({ role, phase, ...check })
+
     for (const [scope, acl] of Object.entries(spec.data)) {
       if (BOOLEAN_SCOPES.has(scope)) continue
       if (acl === false) {
-        checks.push({ role, label: `GET /${scope} forbidden`, expect: 'forbidden', method: 'GET', path: `/${scope}?maxSize=1`, status: 403, fixture: null })
+        add('read', { label: `GET /${scope} forbidden`, expect: 'forbidden', method: 'GET', path: `/${scope}?maxSize=1`, status: 403, fixture: null })
+      } else if (isPlainObject(acl) && acl.read !== 'no') {
+        add('read', { label: `GET /${scope} allowed`, expect: 'allowed', method: 'GET', path: `/${scope}?maxSize=1`, fixture: null })
       }
     }
-    for (const [scope, rules] of Object.entries(spec.fieldData ?? {})) {
-      for (const [field, rule] of Object.entries(rules)) {
-        if (rule?.read !== 'no') continue
-        checks.push({
-          role,
-          label: `GET /${scope}/{id} hides ${field}`,
-          expect: 'hidden',
-          method: 'GET',
+    for (const scope of SENSITIVE_SCOPES) {
+      if (spec.data[scope] === undefined) {
+        add('read', { label: `GET /${scope} forbidden`, expect: 'forbidden', method: 'GET', path: `/${scope}?maxSize=1`, status: 403, fixture: null })
+      }
+    }
+
+    for (const [scope, write] of Object.entries(WRITE_SCOPES)) {
+      const acl = spec.data[scope]
+      if (!isPlainObject(acl)) continue
+      const created = acl.create === 'yes'
+      add('post', {
+        label: `POST /${scope} ${created ? 'allowed' : 'forbidden'}`,
+        expect: created ? 'allowed' : 'forbidden',
+        method: 'POST',
+        path: `/${scope}`,
+        body: write.create,
+        status: 403,
+        fixture: null,
+        ...(created ? { track: scope } : {}),
+      })
+      const edited = acl.edit !== 'no'
+      add('put', {
+        label: `PUT /${scope}/{id} ${edited ? 'allowed' : 'forbidden'}`,
+        expect: edited ? 'allowed' : 'forbidden',
+        method: 'PUT',
+        path: `/${scope}/{id}`,
+        body: write.edit,
+        status: 403,
+        fixture: write.fixture,
+      })
+      if (acl.delete === 'no') {
+        add('delete', {
+          label: `DELETE /${scope}/{id} forbidden`,
+          expect: 'forbidden',
+          method: 'DELETE',
           path: `/${scope}/{id}`,
-          fixture: scope.toLowerCase(),
-          attrs: fieldAttributes(field),
+          status: 403,
+          fixture: write.fixture,
         })
       }
     }
+
+    const account = spec.data.Account
+    if (isPlainObject(account) && account.read !== 'no') {
+      const rules = spec.fieldData?.Account ?? {}
+      for (const f of commercial) {
+        const name = finalAccountField(f)
+        const hidden = rules[name]?.read === 'no'
+        add('field', {
+          label: `GET /Account/{id} ${hidden ? 'hides' : 'shows'} ${name}`,
+          expect: hidden ? 'hidden' : 'visible',
+          method: 'GET',
+          path: '/Account/{id}',
+          fixture: 'account',
+          attrs: fieldAttributes(name),
+        })
+        if (f.type === 'file') {
+          add('attachment', {
+            label: `GET /Attachment/file/{id} ${hidden ? 'forbidden for the contract file' : 'allowed for the contract file'}`,
+            expect: hidden ? 'forbidden' : 'allowed',
+            method: 'GET',
+            path: '/Attachment/file/{id}',
+            statuses: [403, 404],
+            fixture: 'attachment',
+          })
+        }
+      }
+    }
   }
-  return checks
+  return checks.sort((a, b) => a.role.localeCompare(b.role) || PHASE[a.phase] - PHASE[b.phase])
+}
+
+/** True when any printed line contains one of the secrets (probe keys, the sync key). */
+export function scanForSecrets(lines, secrets) {
+  return secrets.filter(Boolean).some((secret) => lines.some((line) => String(line).includes(secret)))
 }
 
 // ---------------------------------------------------------------------------
@@ -118,14 +198,25 @@ function commercialValues(fieldsJson) {
 
 const statusOf = (err) => (err instanceof EspoApiError ? err.status : -1)
 
+/** Replace `{uid}` in every string of a body with the per-run token. */
+function fill(value, uid) {
+  if (typeof value === 'string') return value.replaceAll('{uid}', uid)
+  if (Array.isArray(value)) return value.map((v) => fill(v, uid))
+  if (isPlainObject(value)) return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, fill(v, uid)]))
+  return value
+}
+
 // ---------------------------------------------------------------------------
 // Runner
 // ---------------------------------------------------------------------------
 
 /**
  * @param {{ admin: any, makeClient: (apiKey: string) => any, roleSpecs: any[], fieldsJson: any,
- *           only?: string, now?: () => number, random?: () => string }} options
- * @returns {Promise<{ pass: number, fail: number, lines: string[] }>}
+ *           only?: string, syncClient?: any, extraSecrets?: string[],
+ *           now?: () => number, random?: () => string }} options
+ *   `syncClient`: a client built from the real prestigo-sync key; when given, the Sync writer
+ *   checks run with it instead of a temporary probe user.
+ * @returns {Promise<{ pass: number, fail: number, lines: string[], leaked: boolean }>}
  */
 export async function runAclProbe({
   admin,
@@ -133,6 +224,8 @@ export async function runAclProbe({
   roleSpecs,
   fieldsJson,
   only,
+  syncClient,
+  extraSecrets = [],
   now = () => Date.now(),
   random = () => Math.random().toString(36).slice(2, 8),
 }) {
@@ -140,9 +233,16 @@ export async function runAclProbe({
   if (selected.length === 0) throw new EspoConfigError(`verify-acl: no managed role named "${only}"`)
 
   const lines = []
+  const secrets = [...extraSecrets]
   let pass = 0
   let fail = 0
   const stamp = `${now()}-${random()}`
+  let counter = 0
+  const report = (ok, text) => {
+    lines.push(`${ok ? 'PASS' : 'FAIL'} ${text}`)
+    if (ok) pass++
+    else fail++
+  }
 
   const liveRoles = (await admin.request('GET', '/Role?select=id,name&maxSize=200'))?.list ?? []
   const roleId = (name) => {
@@ -152,85 +252,122 @@ export async function runAclProbe({
   }
   for (const spec of selected) roleId(spec.name)
 
-  const fixtures = { account: null }
+  const fixtures = { account: null, contact: null, booking: null, attachment: null }
   const cleanup = []
-  let tornDown = true
+  const removeLater = (scope, id) => cleanup.push(async () => void (await admin.request('DELETE', `/${scope}/${id}`)))
 
   try {
-    tornDown = false
+    // Fixtures (admin): an Account carrying every commercial value plus a contract file,
+    // a Contact and a Booking. All names/ids are unique per run.
     const account = await admin.request('POST', '/Account', { name: `ACL Probe ${stamp}`, ...commercialValues(fieldsJson) })
     fixtures.account = account.id
-    cleanup.push(async () => {
-      await admin.request('DELETE', `/Account/${fixtures.account}`)
-    })
+    removeLater('Account', account.id)
+
+    const fileField = commercialSpecs(fieldsJson).find((f) => f.type === 'file')
+    if (fileField) {
+      const attachment = await admin.request('POST', '/Attachment', {
+        name: `${PROBE_PREFIX}-contract.txt`,
+        type: 'text/plain',
+        role: 'Attachment',
+        relatedType: 'Account',
+        field: accountFinalName(fileField),
+        file: `data:text/plain;base64,${Buffer.from('acl probe contract').toString('base64')}`,
+      })
+      fixtures.attachment = attachment.id
+      removeLater('Attachment', attachment.id)
+      await admin.request('PUT', `/Account/${account.id}`, { [`${accountFinalName(fileField)}Id`]: attachment.id })
+    }
+
+    const contact = await admin.request('POST', '/Contact', { lastName: `ACL Probe ${stamp}` })
+    fixtures.contact = contact.id
+    removeLater('Contact', contact.id)
+
+    const booking = await admin.request('POST', '/CBooking', { name: `ACL Probe ${stamp}`, supabaseBookingId: `${PROBE_PREFIX}-${stamp}` })
+    fixtures.booking = booking.id
+    removeLater('CBooking', booking.id)
 
     const expectations = buildAclExpectations(selected, fieldsJson)
 
     for (const spec of selected) {
-      const probeUser = await admin.request('POST', '/User', {
-        type: 'api',
-        userName: `${PROBE_PREFIX}-${slug(spec.name)}-${stamp}`,
-        authMethod: 'ApiKey',
-        isActive: true,
-        rolesIds: [roleId(spec.name)],
-      })
-      cleanup.push(async () => {
-        await admin.request('DELETE', `/User/${probeUser.id}`)
-      })
-      let apiKey = probeUser.apiKey
-      if (!apiKey) apiKey = (await admin.request('GET', `/User/${probeUser.id}`))?.apiKey
-      if (!apiKey) throw new EspoApiError('POST', '/User', 200, 'API user was created without an api key')
-      const client = makeClient(apiKey)
+      let client
+      if (spec.name === 'Sync writer' && syncClient) {
+        client = syncClient
+      } else {
+        const probeUser = await admin.request('POST', '/User', {
+          type: 'api',
+          userName: `${PROBE_PREFIX}-${slug(spec.name)}-${stamp}`,
+          authMethod: 'ApiKey',
+          isActive: true,
+          rolesIds: [roleId(spec.name)],
+        })
+        cleanup.push(async () => void (await admin.request('DELETE', `/User/${probeUser.id}`)))
+        let apiKey = probeUser.apiKey
+        if (!apiKey) apiKey = (await admin.request('GET', `/User/${probeUser.id}`))?.apiKey
+        if (!apiKey) throw new EspoApiError('POST', '/User', 200, 'API user was created without an api key')
+        secrets.push(apiKey)
+        client = makeClient(apiKey)
+      }
+
+      // The identity the sync really uses must hold the role (admin-side proof, no key involved).
+      for (const userName of spec.assignTo ?? []) {
+        const params = new URLSearchParams({ select: 'id', maxSize: '2' })
+        params.set('where[0][type]', 'equals')
+        params.set('where[0][attribute]', 'userName')
+        params.set('where[0][value]', userName)
+        const hit = ((await admin.request('GET', `/User?${params.toString()}`))?.list ?? [])[0]
+        const rolesIds = hit ? ((await admin.request('GET', `/User/${hit.id}`))?.rolesIds ?? []) : []
+        report(rolesIds.includes(roleId(spec.name)), `${spec.name} is assigned to ${userName}`)
+      }
 
       for (const check of expectations.filter((c) => c.role === spec.name)) {
-        const outcome = await evaluate(client, check, fixtures)
-        lines.push(`${outcome.ok ? 'PASS' : 'FAIL'} ${check.role} ${check.label}${outcome.ok ? '' : ` (${outcome.detail})`}`)
-        if (outcome.ok) pass++
-        else fail++
+        const outcome = await evaluate(client, check, fixtures, (body) => fill(body, `${stamp}-${++counter}`))
+        if (outcome.createdId) removeLater(check.track, outcome.createdId)
+        report(outcome.ok, `${check.role} ${check.label}${outcome.ok ? '' : ` (${outcome.detail})`}`)
       }
     }
   } finally {
-    // Reverse order: probe users first, fixtures last. Every step is attempted.
-    const failures = []
+    // Reverse order: records created by checks and users first, fixtures last. Every step is attempted.
+    let failures = 0
     for (const step of cleanup.reverse()) {
       try {
         await step()
-      } catch (err) {
-        failures.push(err)
+      } catch {
+        failures++
       }
     }
-    tornDown = failures.length === 0
-    if (!tornDown) {
-      lines.push(`FAIL cleanup ${failures.length} probe object(s) could not be deleted`)
-      fail++
-    }
+    if (failures > 0) report(false, `cleanup ${failures} probe object(s) could not be deleted`)
   }
-  return { pass, fail, lines }
+
+  const leaked = scanForSecrets(lines, secrets)
+  return { pass, fail, lines, leaked }
 }
 
 /** Run one check with the role's client. Never throws for an HTTP error status. */
-async function evaluate(client, check, fixtures) {
+async function evaluate(client, check, fixtures, fillBody) {
   const target = check.fixture ? fixtures[check.fixture] : null
   if (check.fixture && !target) return { ok: false, detail: 'fixture missing' }
   const apiPath = check.path.replace('{id}', target ?? '')
   let status = 200
   let body = null
   try {
-    body = await client.request(check.method, apiPath, check.body)
+    body = await client.request(check.method, apiPath, check.body === undefined ? undefined : fillBody(check.body))
   } catch (err) {
     status = statusOf(err)
   }
-  const ok2xx = status === 200
+  const succeeded = status === 200
+  const createdId = check.track && succeeded && isPlainObject(body) && typeof body.id === 'string' ? body.id : undefined
   switch (check.expect) {
-    case 'forbidden':
-      return { ok: status === (check.status ?? 403), detail: `got ${status}` }
+    case 'forbidden': {
+      const accepted = check.statuses ?? [check.status ?? 403]
+      return { ok: accepted.includes(status), detail: `got ${status}` }
+    }
     case 'allowed':
-      return { ok: ok2xx, detail: `got ${status}` }
+      return { ok: succeeded, detail: `got ${status}`, createdId }
     case 'hidden':
-      if (!ok2xx || !isPlainObject(body)) return { ok: false, detail: `got ${status}` }
+      if (!succeeded || !isPlainObject(body)) return { ok: false, detail: `got ${status}` }
       return { ok: !check.attrs.some((a) => a in body), detail: 'field present' }
     case 'visible':
-      if (!ok2xx || !isPlainObject(body)) return { ok: false, detail: `got ${status}` }
+      if (!succeeded || !isPlainObject(body)) return { ok: false, detail: `got ${status}` }
       return { ok: check.attrs.some((a) => a in body), detail: 'field missing' }
     default:
       return { ok: false, detail: 'unknown expectation' }
@@ -266,8 +403,35 @@ async function main(argv) {
     const admin = createEspoClient({ config: loadEspoConfig({ identity: 'admin' }) })
     const makeClient = (apiKey) => createEspoClient({ config: { identity: 'apikey', baseUrl, apiKey } })
 
-    const { pass, fail, lines } = await runAclProbe({ admin, makeClient, roleSpecs, fieldsJson, only: opts.role })
-    for (const line of lines) console.log(line)
+    // The Sync writer checks use the real prestigo-sync key when it can be loaded (never printed).
+    const preface = []
+    let syncClient
+    const extraSecrets = []
+    try {
+      const syncConfig = loadEspoConfig({ identity: 'apikey' })
+      syncClient = createEspoClient({ config: syncConfig })
+      extraSecrets.push(syncConfig.apiKey)
+    } catch (err) {
+      if (!(err instanceof EspoConfigError)) throw err
+      preface.push(`WARN prestigo-sync key not usable (${err.message}); Sync writer checks use a temporary probe user`)
+    }
+
+    const { pass, fail, lines, leaked } = await runAclProbe({
+      admin,
+      makeClient,
+      roleSpecs,
+      fieldsJson,
+      only: opts.role,
+      syncClient,
+      extraSecrets,
+    })
+    const output = [...preface, ...lines]
+    if (leaked || scanForSecrets(output, extraSecrets)) {
+      // Self-check: a key reached the output. Print nothing of it.
+      console.error('FAIL output self-check: an API key appeared in the probe output; output suppressed')
+      process.exit(3)
+    }
+    for (const line of output) console.log(line)
     console.log(`acl: pass=${pass} fail=${fail}`)
     process.exit(fail > 0 ? 3 : 0)
   } catch (err) {

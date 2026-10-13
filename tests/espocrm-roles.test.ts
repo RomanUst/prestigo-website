@@ -13,7 +13,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { EspoConfigError, createEspoClient, loadEspoConfig } from '../infra/espocrm/lib/client.mjs'
 import { buildRoleSpecs, runSync } from '../infra/espocrm/sync.mjs'
-import { buildAclExpectations, runAclProbe } from '../infra/espocrm/verify-acl.mjs'
+import { buildAclExpectations, runAclProbe, scanForSecrets } from '../infra/espocrm/verify-acl.mjs'
 import { createFakeEspoCRM, stockEspoMetadata, type FakeReq } from './helpers/fake-espocrm'
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -24,6 +24,9 @@ const ROLE_COUNT = ROLES_JSON.roles.length
 const FIELDS_JSON = readJson('fields.json')
 
 type Fake = ReturnType<typeof createFakeEspoCRM>
+
+/** The .mjs return type is inferred narrowly; the assertions below index it loosely. */
+const specsOf = (): any[] => buildRoleSpecs(ROLES_JSON, FIELDS_JSON)
 
 const adminClient = (fake: Fake) =>
   createEspoClient({
@@ -82,7 +85,7 @@ const commercialFinalNames = () =>
 
 describe('buildRoleSpecs', () => {
   it('expands @commercialHidden into the 9 commercial Account fields under their final names, all hidden', () => {
-    const specs = buildRoleSpecs(ROLES_JSON, FIELDS_JSON)
+    const specs = specsOf()
     const dispatcher = specs.find((s: any) => s.name === 'Dispatcher')
     const hidden = dispatcher.fieldData.Account
     expect(Object.keys(hidden).sort()).toEqual(commercialFinalNames().sort())
@@ -147,7 +150,7 @@ describe('roles resource', () => {
   })
 })
 
-const spec = (name: string) => buildRoleSpecs(ROLES_JSON, FIELDS_JSON).find((s: any) => s.name === name)
+const spec = (name: string) => specsOf().find((s: any) => s.name === name)
 const noAccess = (acl: any) => acl === undefined || acl === false || acl.read === 'no'
 
 describe('role invariants (D-15, D-16, D-17, D-22)', () => {
@@ -171,7 +174,7 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
   })
 
   it('Sync writer is the only managed role that can create or edit a CBooking', () => {
-    const writers = buildRoleSpecs(ROLES_JSON, FIELDS_JSON)
+    const writers = specsOf()
       .filter((r: any) => r.data.CBooking && (r.data.CBooking.create !== 'no' || r.data.CBooking.edit !== 'no'))
       .map((r: any) => r.name)
     expect(writers).toEqual(['Sync writer'])
@@ -205,7 +208,7 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
   })
 
   it('only the Sync writer is assigned to a user, and it is prestigo-sync', () => {
-    const assigned = buildRoleSpecs(ROLES_JSON, FIELDS_JSON).filter((r: any) => r.assignTo)
+    const assigned = specsOf().filter((r: any) => r.assignTo)
     expect(assigned.map((r: any) => r.name)).toEqual(['Sync writer'])
     expect(JSON.stringify(ROLES_JSON).match(/"prestigo-sync"/g)).toHaveLength(1)
   })
@@ -254,11 +257,9 @@ describe('role assignment', () => {
 })
 
 describe('buildAclExpectations', () => {
-  const specs = buildRoleSpecs(ROLES_JSON, FIELDS_JSON)
-  const labels = (role: string) =>
-    buildAclExpectations(specs, FIELDS_JSON)
-      .filter((c: any) => c.role === role)
-      .map((c: any) => c.label)
+  const specs = specsOf()
+  const all = buildAclExpectations(specs, FIELDS_JSON)
+  const labels = (role: string) => all.filter((c: any) => c.role === role).map((c: any) => c.label)
 
   it('Dispatcher: Opportunity is forbidden and every commercial Account field is hidden', () => {
     const l = labels('Dispatcher')
@@ -267,76 +268,222 @@ describe('buildAclExpectations', () => {
     for (const name of commercialFinalNames()) expect(l).toContain(`GET /Account/{id} hides ${name}`)
   })
 
-  it('a forbidden check means 403, never "anything but 2xx"', () => {
-    for (const c of buildAclExpectations(specs, FIELDS_JSON)) {
-      if (c.expect === 'forbidden') expect(c.status).toBe(403)
+  it('Dispatcher: reads Contact, Account and CBooking; Opportunity, CPartnerRate and Email are forbidden', () => {
+    const l = labels('Dispatcher')
+    for (const scope of ['Contact', 'Account', 'CBooking']) expect(l).toContain(`GET /${scope} allowed`)
+    for (const scope of ['Opportunity', 'CPartnerRate', 'Email']) expect(l).toContain(`GET /${scope} forbidden`)
+  })
+
+  it('Dispatcher: CBooking POST, PUT and DELETE are forbidden, and so is the contract file download', () => {
+    const l = labels('Dispatcher')
+    expect(l).toContain('POST /CBooking forbidden')
+    expect(l).toContain('PUT /CBooking/{id} forbidden')
+    expect(l).toContain('DELETE /CBooking/{id} forbidden')
+    expect(l).toContain('GET /Attachment/file/{id} forbidden for the contract file')
+  })
+
+  it('Sales manager: reads Opportunity and CPartnerRate, sees every commercial field, cannot touch bookings or delete accounts', () => {
+    const l = labels('Sales manager')
+    expect(l).toContain('GET /Opportunity allowed')
+    expect(l).toContain('GET /CPartnerRate allowed')
+    for (const name of commercialFinalNames()) expect(l).toContain(`GET /Account/{id} shows ${name}`)
+    expect(l).toContain('GET /Attachment/file/{id} allowed for the contract file')
+    for (const verb of ['POST /CBooking', 'PUT /CBooking/{id}', 'DELETE /CBooking/{id}']) expect(l).toContain(`${verb} forbidden`)
+    expect(l).toContain('DELETE /Account/{id} forbidden')
+    expect(l).toContain('DELETE /Contact/{id} forbidden')
+    expect(l).toContain('PUT /Account/{id} allowed')
+  })
+
+  it('Sync writer: creates and edits CBooking, cannot delete it, cannot read Opportunity', () => {
+    const l = labels('Sync writer')
+    expect(l).toContain('POST /CBooking allowed')
+    expect(l).toContain('PUT /CBooking/{id} allowed')
+    expect(l).toContain('DELETE /CBooking/{id} forbidden')
+    expect(l).toContain('GET /Opportunity forbidden')
+    expect(l).toContain('GET /CPartnerRate forbidden')
+    expect(l).toContain('GET /Email forbidden')
+  })
+
+  it('a forbidden check means 403 (or 404 for the attachment), never "anything but 2xx"', () => {
+    for (const c of all) {
+      if (c.expect !== 'forbidden') continue
+      const accepted: number[] = c.statuses ?? [c.status]
+      expect(accepted.length).toBeGreaterThan(0)
+      for (const status of accepted) expect([403, 404]).toContain(status)
+    }
+  })
+
+  it('roles are probed in a stable order with deletes last for each role', () => {
+    for (const role of ['Dispatcher', 'Sales manager', 'Sync writer']) {
+      const methods = all.filter((c: any) => c.role === role).map((c: any) => c.method)
+      const firstDelete = methods.indexOf('DELETE')
+      if (firstDelete >= 0) expect(methods.slice(firstDelete).every((m: string) => m === 'DELETE')).toBe(true)
     }
   })
 })
 
+describe('output self-check', () => {
+  it('scanForSecrets flags a key that appears in any line and ignores empty secrets', () => {
+    expect(scanForSecrets(['PASS a', 'PASS b'], ['key_SECRET_zzz'])).toBe(false)
+    expect(scanForSecrets(['PASS a', 'FAIL b key_SECRET_zzz'], ['key_SECRET_zzz'])).toBe(true)
+    expect(scanForSecrets(['PASS a'], ['', undefined as any])).toBe(false)
+  })
+
+  it('the runner reports leaked=true when a secret turns up in what it prints, and leaked=false otherwise', async () => {
+    const clean = await probe(aclFake(), { only: 'Dispatcher' })
+    expect(clean.leaked).toBe(false)
+    const leaky = await probe(aclFake(), { only: 'Dispatcher', extraSecrets: ['GET /Opportunity forbidden'] })
+    expect(leaky.leaked).toBe(true)
+  })
+})
+
 // --------------------------------------------------------------------------------------------
-// runner against the fake, with a tiny role-enforcing hook (Dispatcher: no Opportunity, no money)
+// runner against the fake, with a role-enforcing hook that applies the stored Role record
 // --------------------------------------------------------------------------------------------
 
-function enforcingFake(options: { leak?: boolean } = {}) {
+const SYNC_KEY = 'key_SECRET_abcdef0123' // the fake's default prestigo-sync key
+
+/** Enforces the Role records stored by the roles resource like the live ACL would (absent scope = 403). */
+function aclFake() {
   return createFakeEspoCRM({
     metadata: roleMetadata(),
     records: { Role: [], User: [{ id: 'b00000000000000a1', userName: 'prestigo-sync', type: 'api', rolesIds: [] }] },
     extraRoutes: (req: FakeReq, state) => {
       const key = req.headers['x-api-key']
       if (!key) return undefined
-      const user = state.records.User.find((u: any) => u.apiKey === key)
-      if (!user || !String(user.userName).startsWith('acl-probe-')) return undefined
-      if (req.method === 'GET' && /^\/(Opportunity|CPartnerRate|Email)(\/|$)/.test(req.path)) return new Response('', { status: 403 })
-      const account = req.path.match(/^\/Account\/([0-9a-f]{17})$/)
-      if (req.method === 'GET' && account && !options.leak) {
-        const rec = state.records.Account.find((a: any) => a.id === account[1])
-        const copy = { ...rec }
-        for (const f of Object.keys(copy)) if (/^c[A-Z]/.test(f)) delete copy[f]
-        return new Response(JSON.stringify(copy), { status: 200 })
+      const user =
+        state.records.User.find((u: any) => u.apiKey === key) ??
+        (key === SYNC_KEY ? state.records.User.find((u: any) => u.userName === 'prestigo-sync') : undefined)
+      if (!user) return undefined
+      const role = state.records.Role.find((r: any) => r.id === (user.rolesIds ?? [])[0])
+      const deny = () => new Response('', { status: 403 })
+
+      if (/^\/Attachment\/file\//.test(req.path)) {
+        return role?.fieldData?.Account?.cContractFile?.read === 'no' ? deny() : new Response('acl probe contract', { status: 200 })
+      }
+      const m = req.path.match(/^\/([A-Za-z]+)(?:\/([0-9a-f]{17}))?$/)
+      if (!m) return undefined
+      const acl = role?.data?.[m[1]]
+      if (!acl) return deny()
+      const level =
+        req.method === 'GET' ? acl.read : req.method === 'POST' ? acl.create : req.method === 'PUT' ? acl.edit : acl.delete
+      if (level === 'no' || level === undefined) return deny()
+      if (req.method === 'GET' && m[1] === 'Account' && m[2]) {
+        const rec = { ...state.records.Account.find((a: any) => a.id === m[2]) }
+        for (const [field, rule] of Object.entries<any>(role?.fieldData?.Account ?? {})) {
+          if (rule.read === 'no') for (const k of [field, `${field}Id`, `${field}Name`]) delete rec[k]
+        }
+        return new Response(JSON.stringify(rec), { status: 200 })
       }
       return undefined
     },
   })
 }
 
-describe('runAclProbe (Dispatcher tracer)', () => {
-  const run = async (fake: Fake) => {
-    const roles = buildRoleSpecs(ROLES_JSON, FIELDS_JSON)
-    const admin = adminClient(fake)
-    // the managed role must exist live before the probe
+async function probe(fake: Fake, options: { only?: string; syncClient?: any; extraSecrets?: string[] } = {}) {
+  await syncRoles(fake)
+  return runAclProbe({
+    admin: adminClient(fake),
+    makeClient: (apiKey: string) => apiClient(fake, apiKey),
+    roleSpecs: specsOf(),
+    fieldsJson: FIELDS_JSON,
+    ...options,
+  })
+}
+
+const noProbeLeftovers = (fake: Fake) => {
+  const r = fake.state.records
+  expect((r.User ?? []).filter((u: any) => String(u.userName).startsWith('acl-probe'))).toHaveLength(0)
+  for (const scope of ['Account', 'Contact', 'CBooking', 'Attachment']) expect(r[scope] ?? []).toHaveLength(0)
+}
+
+describe('runAclProbe (all roles)', () => {
+  it('passes for the shipped roles and leaves no probe user, Account, Contact, Booking or attachment', async () => {
+    const fake = aclFake()
+    const result = await probe(fake)
+    expect(result.lines.filter((l: string) => l.startsWith('FAIL'))).toEqual([])
+    expect(result.fail).toBe(0)
+    expect(result.pass).toBeGreaterThan(40)
+    expect(result.leaked).toBe(false)
+    noProbeLeftovers(fake)
+    for (const role of ['Dispatcher', 'Sales manager', 'Sync writer']) {
+      expect(result.lines.some((l: string) => l.startsWith(`PASS ${role} `))).toBe(true)
+    }
+  })
+
+  it('the Sync writer checks use the real prestigo-sync client when given, and then create no probe user for it', async () => {
+    const fake = aclFake()
+    const result = await probe(fake, { syncClient: apiClient(fake, SYNC_KEY), only: 'Sync writer' })
+    expect(result.fail).toBe(0)
+    expect(result.lines).toContain('PASS Sync writer is assigned to prestigo-sync')
+    expect(fake.requests.filter((r) => r.method === 'POST' && r.path === '/User')).toHaveLength(0)
+    noProbeLeftovers(fake)
+  })
+
+  it('FAILs when a commercial field leaks to the Dispatcher, and still cleans up', async () => {
+    const fake = aclFake()
+    // The probe runs after the roles resource: drift the live role between the sync and the probe.
     await syncRoles(fake)
-    return runAclProbe({
-      admin,
+    const dispatcher = fake.state.records.Role.find((r: any) => r.name === 'Dispatcher')
+    delete dispatcher.fieldData.Account.cCommissionPercent
+    const result = await runAclProbe({
+      admin: adminClient(fake),
       makeClient: (apiKey: string) => apiClient(fake, apiKey),
-      roleSpecs: roles,
+      roleSpecs: specsOf(),
       fieldsJson: FIELDS_JSON,
       only: 'Dispatcher',
     })
-  }
-
-  it('passes, and deletes the probe user and the Account fixture', async () => {
-    const fake = enforcingFake()
-    const result = await run(fake)
-    expect(result.fail).toBe(0)
-    expect(result.pass).toBeGreaterThanOrEqual(2)
-    expect(result.lines.some((l: string) => l === 'PASS Dispatcher GET /Opportunity forbidden')).toBe(true)
-    expect(fake.state.records.User.filter((u: any) => String(u.userName).startsWith('acl-probe'))).toHaveLength(0)
-    expect(fake.state.records.Account ?? []).toHaveLength(0)
-  })
-
-  it('reports FAIL (not a pass) when a commercial field leaks to the probe user, and still cleans up', async () => {
-    const fake = enforcingFake({ leak: true })
-    const result = await run(fake)
-    expect(result.fail).toBeGreaterThan(0)
     expect(result.lines.some((l: string) => l.startsWith('FAIL Dispatcher GET /Account/{id} hides cCommissionPercent'))).toBe(true)
-    expect(fake.state.records.User.filter((u: any) => String(u.userName).startsWith('acl-probe'))).toHaveLength(0)
-    expect(fake.state.records.Account ?? []).toHaveLength(0)
+    expect(result.fail).toBe(1)
+    noProbeLeftovers(fake)
   })
 
-  it('never prints the generated api key', async () => {
-    const fake = enforcingFake()
-    const result = await run(fake)
-    expect(result.lines.join('\n')).not.toMatch(/key_GEN_/)
+  it('FAILs when the Dispatcher can read Opportunity, and when a human role can write bookings', async () => {
+    const fake = aclFake()
+    await syncRoles(fake)
+    const dispatcher = fake.state.records.Role.find((r: any) => r.name === 'Dispatcher')
+    dispatcher.data.Opportunity = { create: 'no', read: 'all', edit: 'no', delete: 'no' }
+    dispatcher.data.CBooking.edit = 'all'
+    const result = await runAclProbe({
+      admin: adminClient(fake),
+      makeClient: (apiKey: string) => apiClient(fake, apiKey),
+      roleSpecs: specsOf(),
+      fieldsJson: FIELDS_JSON,
+      only: 'Dispatcher',
+    })
+    expect(result.lines).toContain('FAIL Dispatcher GET /Opportunity forbidden (got 200)')
+    expect(result.lines).toContain('FAIL Dispatcher PUT /CBooking/{id} forbidden (got 200)')
+    expect(result.fail).toBe(2)
+    noProbeLeftovers(fake)
+  })
+
+  it('FAILs when the contract file can be downloaded by the Dispatcher (A6)', async () => {
+    const fake = aclFake()
+    await syncRoles(fake)
+    const dispatcher = fake.state.records.Role.find((r: any) => r.name === 'Dispatcher')
+    delete dispatcher.fieldData.Account.cContractFile
+    const result = await runAclProbe({
+      admin: adminClient(fake),
+      makeClient: (apiKey: string) => apiClient(fake, apiKey),
+      roleSpecs: specsOf(),
+      fieldsJson: FIELDS_JSON,
+      only: 'Dispatcher',
+    })
+    expect(result.lines.some((l: string) => l.startsWith('FAIL Dispatcher GET /Attachment/file/{id} forbidden for the contract file (got 200)'))).toBe(true)
+  })
+
+  it('never prints a generated api key', async () => {
+    const result = await probe(aclFake())
+    expect(result.lines.join('\n')).not.toMatch(/key_GEN_|key_SECRET_/)
+  })
+
+  it('the output lines carry no record data: only role, check label and a status', async () => {
+    const result = await probe(aclFake())
+    for (const line of result.lines) expect(line).toMatch(/^(PASS|FAIL) (Dispatcher|Sales manager|Sync writer) [A-Za-z /{}]+/)
+    expect(result.lines.join('\n')).not.toMatch(/PROBE|@|acl-probe/)
+  })
+
+  it('rejects an unknown role name', async () => {
+    await expect(probe(aclFake(), { only: 'Nobody' })).rejects.toBeInstanceOf(EspoConfigError)
   })
 })
