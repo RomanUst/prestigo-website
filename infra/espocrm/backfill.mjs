@@ -337,8 +337,126 @@ export async function runBackfill({
   const bookings = await fetchAll(client, 'CBooking', BOOKING_SELECT)
   const plan = planBackfill({ rows: exp.rows, contacts, bookings, limit })
   printCounts(log, exp, plan, limit)
-  if (dryRun) log('dry-run: nothing written')
-  return { counts: plan.counts, plan }
+  if (dryRun) {
+    log('dry-run: nothing written')
+    return { counts: plan.counts, plan }
+  }
+  const applied = await applyPlan({ client, plan, contacts, delayMs })
+  if (applied.conflicts > 0) log(`contacts: duplicate_resolved=${applied.conflicts}`)
+  log(`applied: contacts=${applied.contactWrites} bookings=${applied.bookingWrites}`)
+  return { counts: plan.counts, plan, applied }
+}
+
+/** Sequential writes with a pause between them (the app container is memory capped). */
+function makeWriter(delayMs) {
+  let first = true
+  return async () => {
+    if (!first) await sleep(delayMs)
+    first = false
+  }
+}
+
+async function lookupContactByEmail(client, email) {
+  const qs =
+    'select=id,emailAddress,accountId,phoneNumber&maxSize=2' +
+    `&where[0][type]=equals&where[0][attribute]=emailAddress&where[0][value]=${encodeURIComponent(email)}`
+  const res = await client.request('GET', `/Contact?${qs}`)
+  return Array.isArray(res?.list) && res.list.length > 0 ? res.list[0] : null
+}
+
+async function applyPlan({ client, plan, contacts, delayMs }) {
+  const pause = makeWriter(delayMs)
+  // email key -> { id, accountId } for every Contact a booking may link to.
+  const contactMap = new Map()
+  for (const c of contacts) {
+    const key = normalizeEmail(c.emailAddress)
+    if (key && !contactMap.has(key)) contactMap.set(key, { id: c.id, accountId: c.accountId ?? null })
+  }
+  let contactWrites = 0
+  let bookingWrites = 0
+  let conflicts = 0
+
+  for (const op of plan.contactOps) {
+    if (op.kind === 'create') {
+      await pause()
+      try {
+        const created = await client.request('POST', '/Contact', op.payload)
+        contactWrites++
+        contactMap.set(op.key, { id: created.id, accountId: created.accountId ?? null })
+      } catch (err) {
+        // 409 = EspoCRM duplicate check on the email: the Contact exists, reuse it.
+        if (!(err instanceof EspoApiError) || err.status !== 409) throw err
+        const found = await lookupContactByEmail(client, op.key)
+        if (!found) throw err
+        conflicts++
+        contactMap.set(op.key, { id: found.id, accountId: found.accountId ?? null })
+      }
+    } else {
+      await pause()
+      await client.request('PUT', `/Contact/${op.id}`, op.data)
+      contactWrites++
+    }
+  }
+
+  for (const op of plan.bookingOps) {
+    const data = { ...op.data }
+    const contact = op.contactKey ? contactMap.get(op.contactKey) : null
+    if (contact) {
+      data.contactId = contact.id
+      if (contact.accountId) data.accountId = contact.accountId
+      else if (op.kind === 'create') delete data.accountId
+    }
+    await pause()
+    if (op.kind === 'create') await client.request('POST', '/CBooking', data)
+    else await client.request('PUT', `/CBooking/${op.id}`, data)
+    bookingWrites++
+  }
+  return { contactWrites, bookingWrites, conflicts }
+}
+
+/**
+ * D-10 re-link pass: re-copy accountId from each booking's Contact wherever it drifted
+ * (the owner attaches Contacts to Accounts after the first run). Idempotent.
+ */
+export async function runRelink({ client: rawClient, dryRun = false, delayMs = DEFAULT_DELAY_MS, log = console.log }) {
+  const client = dryRun ? readOnlyClient(rawClient) : rawClient
+  const contacts = await fetchAll(client, 'Contact', ['id', 'accountId'])
+  const bookings = await fetchAll(client, 'CBooking', ['id', 'contactId', 'accountId'])
+  const accountOf = new Map(contacts.map((c) => [c.id, c.accountId ?? null]))
+  const pause = makeWriter(delayMs)
+  let update = 0
+  let unchanged = 0
+  for (const b of bookings) {
+    if (!b.contactId || !accountOf.has(b.contactId)) continue
+    const desired = accountOf.get(b.contactId)
+    if (sameValue(b.accountId, desired)) {
+      unchanged++
+      continue
+    }
+    update++
+    if (!dryRun) {
+      await pause()
+      await client.request('PUT', `/CBooking/${b.id}`, { accountId: desired })
+    }
+  }
+  log(`relink: update=${update} unchanged=${unchanged}`)
+  return { update, unchanged }
+}
+
+/** Reports supabaseBookingId values held by more than one CBooking (read-only). */
+export async function runAudit({ client, log = console.log }) {
+  const bookings = await fetchAll(client, 'CBooking', ['id', 'supabaseBookingId'])
+  const groups = new Map()
+  for (const b of bookings) {
+    if (isNil(b.supabaseBookingId) || b.supabaseBookingId === '') continue
+    const ids = groups.get(b.supabaseBookingId) ?? []
+    ids.push(b.id)
+    groups.set(b.supabaseBookingId, ids)
+  }
+  const duplicates = [...groups.entries()].filter(([, ids]) => ids.length > 1)
+  log(`audit: records=${bookings.length} duplicates=${duplicates.length}`)
+  for (const [sid, ids] of duplicates) log(`duplicate: supabaseBookingId=${sid} records=${ids.join(',')}`)
+  return { records: bookings.length, duplicates: duplicates.length, groups: duplicates }
 }
 
 // ---------------------------------------------------------------------------
@@ -375,7 +493,11 @@ function describeApiError(err) {
   return `${err.method} ${String(err.apiPath).split('?')[0]} -> ${err.status}`
 }
 
-/** @returns {Promise<number>} the process exit code */
+/**
+ * @param {string[]} argv
+ * @param {{ client?: { request: Function }, log?: (line: string) => void, error?: (line: string) => void }} [deps]
+ * @returns {Promise<number>} the process exit code
+ */
 export async function runCli(argv, { client, log = console.log, error = console.error } = {}) {
   try {
     const opts = parseArgs(argv)
@@ -384,6 +506,14 @@ export async function runCli(argv, { client, log = console.log, error = console.
       loadExport(opts.input)
     }
     const api = client ?? createEspoClient({ config: loadEspoConfig({ identity: 'apikey' }) })
+    if (opts.audit) {
+      const audit = await runAudit({ client: api, log })
+      return audit.duplicates > 0 ? 3 : 0
+    }
+    if (opts.relink) {
+      await runRelink({ client: api, dryRun: opts.dryRun, delayMs: opts.delayMs, log })
+      return 0
+    }
     await runBackfill({ client: api, ...opts, log })
     return 0
   } catch (err) {
