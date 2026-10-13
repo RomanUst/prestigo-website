@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "defaultCurrency": "EUR",
+    "baseCurrency": "EUR",
+    "currencyList": ["EUR"],
+    "timeZone": "Europe/Prague",
+    "weekStart": 1,
+    "b2cMode": false
+  }
+}
