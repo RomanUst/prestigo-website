@@ -6,6 +6,7 @@
  * or reads a real credential.
  */
 import { describe, expect, it } from 'vitest'
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -322,5 +323,41 @@ describe('parseArgs', () => {
     expect(() => parseArgs(['--force'])).toThrow(EspoConfigError)
     expect(() => parseArgs(['--only', 'nope'])).toThrow(EspoConfigError)
     expect(() => parseArgs(['--only'])).toThrow(EspoConfigError)
+  })
+})
+
+describe('ignore rules and README (Task 3)', () => {
+  const isIgnored = (path: string) => {
+    try {
+      execFileSync('git', ['check-ignore', '-q', path], { cwd: REPO_ROOT, stdio: 'ignore' })
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  it('ignores the PII working dir and env files but keeps config tracked', () => {
+    expect(isIgnored('infra/espocrm/.work/export.json')).toBe(true)
+    expect(isIgnored('infra/espocrm/espocrm-sync.env')).toBe(true)
+    expect(isIgnored('infra/espocrm/settings.json')).toBe(false)
+  })
+
+  it('README documents identities, naming interface, ownership matrix and PII rule', () => {
+    const readme = readFileSync(join(REPO_ROOT, 'infra/espocrm/README.md'), 'utf8')
+    for (const needle of [
+      'espocrm-config.env',
+      'espocrm-sync.env',
+      'prestigo-config',
+      'prestigo-sync',
+      'CBooking',
+      'CPartnerRate',
+      'supabaseBookingId',
+      'cBookings',
+      'cPartnerRates',
+      'Field ownership matrix',
+      'infra/espocrm/.work/',
+    ]) {
+      expect(readme, needle).toContain(needle)
+    }
   })
 })
