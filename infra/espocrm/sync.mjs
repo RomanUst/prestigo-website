@@ -9,8 +9,8 @@
  *
  *   node infra/espocrm/sync.mjs [--dry-run] [--only settings,...]
  *
- * Resource order: settings, entities, links, fields, enums, layouts. (Later plans add
- * roles and mail after layouts.)
+ * Resource order: settings, entities, links, fields, enums, layouts, roles. (A later plan
+ * adds mail after roles.)
  *
  * Handler contract: `async function syncX(ctx) -> { create, update, unchanged,
  * skipped, removed }`, where
@@ -38,7 +38,7 @@ import { mergeDefault, mergeEnumOptions, mergeValueMap } from './lib/enum-merge.
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
-export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields', 'enums', 'layouts']
+export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields', 'enums', 'layouts', 'roles']
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -586,6 +586,174 @@ async function syncLayouts(ctx) {
   return counts
 }
 
+// ---------------------------------------------------------------------------
+// roles (Phase 80 plan 07: D-15/D-16/D-17/D-22, least-privilege ACL as code)
+// ---------------------------------------------------------------------------
+
+/** Role permission fields whose allowed values are read from entityDefs.Role.fields.{name}.options. */
+const ROLE_PERMISSION_FIELDS = [
+  'exportPermission',
+  'massUpdatePermission',
+  'assignmentPermission',
+  'userPermission',
+  'portalPermission',
+  'groupEmailAccountPermission',
+  'dataPrivacyPermission',
+]
+const ROLE_LOCAL_KEYS = ['name', 'data', 'fieldData', 'assignTo']
+const ROLE_LEVELS = ['all', 'team', 'own', 'no']
+const ROLE_ACTIONS = ['read', 'edit', 'delete', 'stream']
+const COMMERCIAL_HIDDEN = '@commercialHidden'
+
+function validateRoleScope(roleName, scope, acl) {
+  const where = `roles: ${roleName}.data.${scope}`
+  if (acl === false || acl === true) return
+  if (!isPlainObject(acl)) throw new EspoConfigError(`${where} must be false, true or an action object`)
+  if (acl.create !== undefined && acl.create !== 'yes' && acl.create !== 'no') {
+    throw new EspoConfigError(`${where}.create must be "yes" or "no" (got ${JSON.stringify(acl.create)})`)
+  }
+  for (const action of ROLE_ACTIONS) {
+    if (acl[action] !== undefined && !ROLE_LEVELS.includes(acl[action])) {
+      throw new EspoConfigError(`${where}.${action} must be one of ${ROLE_LEVELS.join(', ')} (got ${JSON.stringify(acl[action])})`)
+    }
+  }
+}
+
+/**
+ * roles.json -> role specs ready to write: validates the shapes and expands the
+ * `@commercialHidden` marker of a fieldData scope into { finalName: { read: 'no', edit: 'no' } }
+ * for every fields.json entry of that scope tagged `commercial: true` (D-16/D-22), so a new
+ * commercial field can never be forgotten in the Dispatcher role. `assignTo` (user names) is kept
+ * on the spec and stripped before the role body is sent.
+ */
+export function buildRoleSpecs(rolesJson, fieldsJson) {
+  const roles = rolesJson?.roles
+  if (!Array.isArray(roles) || roles.length === 0) throw new EspoConfigError('roles.json needs a non-empty "roles" list')
+  const names = new Set()
+  return roles.map((role) => {
+    requireKeys('roles', role, ['name'])
+    if (names.has(role.name)) throw new EspoConfigError(`roles: "${role.name}" is declared twice`)
+    names.add(role.name)
+    if (!isPlainObject(role.data)) throw new EspoConfigError(`roles: ${role.name} needs a "data" object`)
+    for (const [scope, acl] of Object.entries(role.data)) validateRoleScope(role.name, scope, acl)
+
+    const fieldData = {}
+    for (const [scope, rules] of Object.entries(role.fieldData ?? {})) {
+      if (rules === COMMERCIAL_HIDDEN) {
+        const customScopes = /^C[A-Z]/.test(scope) ? [scope] : []
+        const commercial = (fieldsJson?.fields?.[scope] ?? []).filter((f) => f.commercial === true)
+        if (commercial.length === 0) throw new EspoConfigError(`roles: ${role.name} uses ${COMMERCIAL_HIDDEN} on ${scope} but fields.json tags no commercial field there`)
+        fieldData[scope] = Object.fromEntries(
+          commercial.map((f) => [finalFieldName(scope, f.name, customScopes), { read: 'no', edit: 'no' }]),
+        )
+      } else if (isPlainObject(rules)) {
+        fieldData[scope] = rules
+      } else {
+        throw new EspoConfigError(`roles: ${role.name}.fieldData.${scope} must be an object or "${COMMERCIAL_HIDDEN}"`)
+      }
+    }
+
+    const unknown = Object.keys(role).filter((k) => !ROLE_LOCAL_KEYS.includes(k) && !ROLE_PERMISSION_FIELDS.includes(k))
+    if (unknown.length) throw new EspoConfigError(`roles: ${role.name} has unknown keys: ${unknown.join(', ')}`)
+
+    const spec = { name: role.name, data: role.data, fieldData }
+    for (const field of ROLE_PERMISSION_FIELDS) if (role[field] !== undefined) spec[field] = role[field]
+    if (role.assignTo !== undefined) {
+      if (!Array.isArray(role.assignTo) || role.assignTo.some((u) => typeof u !== 'string' || !u)) {
+        throw new EspoConfigError(`roles: ${role.name}.assignTo must be a list of user names`)
+      }
+      spec.assignTo = role.assignTo
+    }
+    return spec
+  })
+}
+
+/** Permission values must be offered by the live Role metadata (not-set / yes / no / all / team). */
+async function validateRolePermissions(ctx, specs) {
+  for (const spec of specs) {
+    for (const field of ROLE_PERMISSION_FIELDS) {
+      if (spec[field] === undefined) continue
+      const defs = await readMetadata(ctx, `entityDefs.Role.fields.${field}`)
+      const options = Array.isArray(defs?.options) ? defs.options : null
+      if (options && !options.includes(spec[field])) {
+        throw new EspoConfigError(`roles: ${spec.name}.${field} "${spec[field]}" is not one of ${options.join(', ')}`)
+      }
+    }
+  }
+}
+
+const sameKeys = (a, b) => {
+  const left = Object.keys(a ?? {}).sort()
+  const right = Object.keys(b ?? {}).sort()
+  return left.length === right.length && left.every((k, i) => k === right[i])
+}
+
+/** Declared role vs live role: the declared values are a subset AND no scope was added behind our back. */
+function roleDiffers(body, have) {
+  if (!subsetEqual(body, have)) return true
+  if (!sameKeys(body.data, have.data)) return true
+  if (!sameKeys(body.fieldData, have.fieldData)) return true
+  return Object.keys(body.fieldData).some((scope) => !sameKeys(body.fieldData[scope], have.fieldData?.[scope]))
+}
+
+/** Adds `roleId` to the user's roles (merge: an existing role is never removed). Returns true when it wrote. */
+async function assignRole(ctx, userName, roleId) {
+  const params = new URLSearchParams({ select: 'id,userName', maxSize: '2' })
+  params.set('where[0][type]', 'equals')
+  params.set('where[0][attribute]', 'userName')
+  params.set('where[0][value]', userName)
+  const found = (await ctx.get(`/User?${params.toString()}`))?.list ?? []
+  const hit = found.find((u) => u.userName === userName)
+  if (!hit) {
+    if (ctx.dryRun) return false
+    throw new EspoConfigError(`roles: assignTo user "${userName}" does not exist`)
+  }
+  const user = await ctx.get(`/User/${hit.id}`)
+  const existing = Array.isArray(user?.rolesIds) ? user.rolesIds : []
+  if (roleId && existing.includes(roleId)) return false
+  await ctx.mutate('PUT', `/User/${hit.id}`, { rolesIds: [...existing, roleId ?? 'pending'] }, `${userName} (assign role)`)
+  return true
+}
+
+/**
+ * roles.json: { "roles": [ { name, data, fieldData?, <permission>?, assignTo? } ] }. Roles are matched
+ * by exact name; git wins for the managed names and nothing else is read for update or written
+ * (the restore-drill canary role stays untouched). `assignTo` merges the role into the listed users.
+ */
+async function syncRoles(ctx) {
+  const counts = emptyCounts()
+  const specs = buildRoleSpecs(ctx.readConfig('roles.json'), ctx.readConfig('fields.json'))
+  await validateRolePermissions(ctx, specs)
+
+  const live = (await ctx.get('/Role?select=id,name&maxSize=200'))?.list ?? []
+
+  for (const spec of specs) {
+    const { assignTo = [], ...body } = spec
+    const matches = live.filter((r) => r.name === spec.name)
+    if (matches.length > 1) throw new EspoConfigError(`roles: more than one live role is named "${spec.name}"`)
+
+    let roleId = matches[0]?.id
+    if (!roleId) {
+      const created = await ctx.mutate('POST', '/Role', body, spec.name)
+      roleId = created?.id
+      counts.create++
+    } else {
+      const have = await ctx.get(`/Role/${roleId}`)
+      if (roleDiffers(body, have ?? {})) {
+        await ctx.mutate('PUT', `/Role/${roleId}`, body, spec.name)
+        counts.update++
+      } else {
+        counts.unchanged++
+      }
+    }
+
+    for (const userName of assignTo) {
+      if (await assignRole(ctx, userName, roleId)) counts.update++
+    }
+  }
+  return counts
+}
+
 const HANDLERS = {
   settings: syncSettings,
   entities: syncEntities,
@@ -593,6 +761,7 @@ const HANDLERS = {
   fields: syncFields,
   enums: syncEnums,
   layouts: syncLayouts,
+  roles: syncRoles,
 }
 
 // ---------------------------------------------------------------------------

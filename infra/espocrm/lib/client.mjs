@@ -135,6 +135,13 @@ export function loadEspoConfig({ identity, env = process.env, filePath, readFile
       password: values.ESPOCRM_ADMIN_PASSWORD,
     }
   }
+  // A header value must be plain printable ASCII. A stray character (e.g. one typed on a
+  // non-Latin keyboard layout while pasting) otherwise surfaces as a cryptic ByteString fetch error.
+  if (!/^[\x21-\x7e]+$/.test(values.ESPOCRM_API_KEY)) {
+    throw new EspoConfigError(
+      `ESPOCRM_API_KEY contains a character outside printable ASCII (check ${file.replace(os.homedir(), '~')})`,
+    )
+  }
   return { identity, baseUrl: url.origin, apiKey: values.ESPOCRM_API_KEY }
 }
 

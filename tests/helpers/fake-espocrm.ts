@@ -199,11 +199,14 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
     tokens: new Map(),
     logins: 0,
   }
+  // The live instance always has the data identity; the roles resource assigns a role to it (plan 80-07).
+  state.records.User ??= [{ id: 'e00000000000000a1', userName: 'prestigo-sync', type: 'api', rolesIds: [] }]
   const requests: FakeReq[] = []
   let inFlight = 0
   let maxSeen = 0
   let idCounter = 0x1000
   let tokenCounter = 0
+  let apiKeyCounter = 0
 
   const nextId = () => `f${(idCounter++).toString(16).padStart(16, '0')}`
 
@@ -424,7 +427,14 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
       if (req.method === 'POST') {
         const attr = options.duplicateCheck?.[entity]
         if (attr && req.body?.[attr] != null && list.some((r) => r[attr] === req.body[attr])) return empty(409)
-        const record = { ...(req.body ?? {}), id: nextId() }
+        const record: any = { ...(req.body ?? {}), id: nextId() }
+        // POST /User {type:'api'} returns a generated apiKey (plan 80-07): the key authenticates
+        // as the new user from then on, like the live API-key login.
+        if (entity === 'User' && req.body?.type === 'api') {
+          const key = `key_GEN_${String(++apiKeyCounter).padStart(8, '0')}`
+          apiKeys[key] = String(req.body.userName)
+          record.apiKey = key
+        }
         list.push(record)
         return json(record)
       }
@@ -439,7 +449,8 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
       return json(list[index])
     }
     if (req.method === 'DELETE') {
-      list.splice(index, 1)
+      const [gone] = list.splice(index, 1)
+      if (entity === 'User' && gone?.apiKey) delete apiKeys[gone.apiKey]
       return json(true)
     }
     return empty(405)
