@@ -199,6 +199,8 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
     tokens: new Map(),
     logins: 0,
   }
+  // The live instance always has the data identity; the roles resource assigns a role to it (plan 80-07).
+  state.records.User ??= [{ id: 'e00000000000000a1', userName: 'prestigo-sync', type: 'api', rolesIds: [] }]
   const requests: FakeReq[] = []
   let inFlight = 0
   let maxSeen = 0

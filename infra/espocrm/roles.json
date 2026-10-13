@@ -15,6 +15,30 @@
       "fieldData": { "Account": "@commercialHidden" },
       "exportPermission": "no",
       "massUpdatePermission": "no"
+    },
+    {
+      "name": "Sales manager",
+      "data": {
+        "Account": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
+        "Contact": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
+        "Opportunity": { "create": "yes", "read": "all", "edit": "all", "delete": "own" },
+        "CPartnerRate": { "create": "yes", "read": "all", "edit": "all", "delete": "own" },
+        "CBooking": { "create": "no", "read": "all", "edit": "no", "delete": "no" },
+        "Task": { "create": "yes", "read": "own", "edit": "own", "delete": "own" },
+        "Email": { "create": "yes", "read": "own", "edit": "own", "delete": "own" },
+        "EmailAccountScope": true
+      },
+      "exportPermission": "no",
+      "massUpdatePermission": "no"
+    },
+    {
+      "name": "Sync writer",
+      "data": {
+        "Account": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
+        "Contact": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
+        "CBooking": { "create": "yes", "read": "all", "edit": "all", "delete": "no" }
+      },
+      "assignTo": ["prestigo-sync"]
     }
   ]
 }

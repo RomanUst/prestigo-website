@@ -20,6 +20,7 @@ const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const BASE = 'https://crm.example.test'
 const readJson = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
 const ROLES_JSON = readJson('roles.json')
+const ROLE_COUNT = ROLES_JSON.roles.length
 const FIELDS_JSON = readJson('fields.json')
 
 type Fake = ReturnType<typeof createFakeEspoCRM>
@@ -56,7 +57,11 @@ const roleMetadata = () => {
 const freshFake = (extra: Record<string, any> = {}) =>
   createFakeEspoCRM({
     metadata: roleMetadata(),
-    records: { Role: [{ id: 'a00000000000000c1', name: 'Restore drill canary', data: { Account: { read: 'own' } } }], User: [], ...extra },
+    records: {
+      Role: [{ id: 'a00000000000000c1', name: 'Restore drill canary', data: { Account: { read: 'own' } } }],
+      User: [{ id: 'b00000000000000a1', userName: 'prestigo-sync', type: 'api', rolesIds: ['a00000000000000c1'] }],
+      ...extra,
+    },
   })
 
 async function syncRoles(fake: Fake, rolesJson: unknown = ROLES_JSON, fieldsJson: unknown = FIELDS_JSON) {
@@ -99,12 +104,13 @@ describe('roles resource', () => {
   it('creates the managed role once, then reports unchanged; the canary role is never touched', async () => {
     const fake = freshFake()
     const first = await syncRoles(fake)
-    expect(first).toContain('roles: create=1 update=0 unchanged=0 skipped=0 removed=0')
+    // one update: the Sync writer role is assigned to prestigo-sync
+    expect(first).toContain(`roles: create=${ROLE_COUNT} update=1 unchanged=0 skipped=0 removed=0`)
     const second = await syncRoles(fake)
-    expect(second).toContain('roles: create=0 update=0 unchanged=1 skipped=0 removed=0')
+    expect(second).toContain(`roles: create=0 update=0 unchanged=${ROLE_COUNT} skipped=0 removed=0`)
 
     const stored = fake.state.records.Role
-    expect(stored.map((r: any) => r.name).sort()).toEqual(['Dispatcher', 'Restore drill canary'])
+    expect(stored.map((r: any) => r.name).sort()).toEqual(['Dispatcher', 'Restore drill canary', 'Sales manager', 'Sync writer'])
     expect(stored.find((r: any) => r.name === 'Restore drill canary').data).toEqual({ Account: { read: 'own' } })
 
     const canaryWrites = fake.requests.filter(
@@ -129,7 +135,7 @@ describe('roles resource', () => {
     const dispatcher = fake.state.records.Role.find((r: any) => r.name === 'Dispatcher')
     dispatcher.data.Opportunity = { create: 'yes', read: 'all', edit: 'all', delete: 'all' }
     const lines = await syncRoles(fake)
-    expect(lines).toContain('roles: create=0 update=1 unchanged=0 skipped=0 removed=0')
+    expect(lines).toContain(`roles: create=0 update=1 unchanged=${ROLE_COUNT - 1} skipped=0 removed=0`)
     expect(fake.state.records.Role.find((r: any) => r.name === 'Dispatcher').data.Opportunity).toBe(false)
   })
 
@@ -138,6 +144,112 @@ describe('roles resource', () => {
     const rolesJson = { roles: [{ ...ROLES_JSON.roles[0], exportPermission: 'sometimes' }] }
     await expect(syncRoles(fake, rolesJson)).rejects.toBeInstanceOf(EspoConfigError)
     expect(fake.requests.filter((r) => r.method !== 'GET')).toHaveLength(0)
+  })
+})
+
+const spec = (name: string) => buildRoleSpecs(ROLES_JSON, FIELDS_JSON).find((s: any) => s.name === name)
+const noAccess = (acl: any) => acl === undefined || acl === false || acl.read === 'no'
+
+describe('role invariants (D-15, D-16, D-17, D-22)', () => {
+  it('Dispatcher: no Opportunity, CPartnerRate or Email; every commercial Account field is hidden', () => {
+    const d = spec('Dispatcher')
+    expect(d.data.Opportunity).toBe(false)
+    expect(d.data.CPartnerRate).toBe(false)
+    expect(d.data.Email).toBe(false)
+    const hidden = Object.keys(d.fieldData.Account)
+    for (const name of commercialFinalNames()) expect(hidden).toContain(name)
+    expect(hidden).toHaveLength(commercialFinalNames().length)
+  })
+
+  it('both human roles: CBooking is read-only and Contact/Account/CBooking are readable at level all', () => {
+    for (const role of ['Dispatcher', 'Sales manager']) {
+      const r = spec(role)
+      expect(r.data.CBooking).toEqual({ create: 'no', read: 'all', edit: 'no', delete: 'no' })
+      expect(r.data.Contact.read).toBe('all')
+      expect(r.data.Account.read).toBe('all')
+    }
+  })
+
+  it('Sync writer is the only managed role that can create or edit a CBooking', () => {
+    const writers = buildRoleSpecs(ROLES_JSON, FIELDS_JSON)
+      .filter((r: any) => r.data.CBooking && (r.data.CBooking.create !== 'no' || r.data.CBooking.edit !== 'no'))
+      .map((r: any) => r.name)
+    expect(writers).toEqual(['Sync writer'])
+  })
+
+  it('Sync writer: Account, Contact, CBooking only; no Opportunity, CPartnerRate or Email; no delete anywhere', () => {
+    const w = spec('Sync writer')
+    expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact'])
+    for (const scope of ['Opportunity', 'CPartnerRate', 'Email']) expect(noAccess(w.data[scope])).toBe(true)
+    for (const acl of Object.values<any>(w.data)) if (acl && typeof acl === 'object') expect(acl.delete).toBe('no')
+    expect(w.data.CBooking).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'no' })
+    expect(w.assignTo).toEqual(['prestigo-sync'])
+  })
+
+  it('Sales manager: writes Accounts, Contacts, Opportunities and CPartnerRate, never deletes Accounts or Contacts', () => {
+    const s = spec('Sales manager')
+    for (const scope of ['Account', 'Contact', 'Opportunity', 'CPartnerRate']) {
+      expect(s.data[scope].create).toBe('yes')
+      expect(s.data[scope].edit).toBe('all')
+    }
+    expect(s.data.Account.delete).toBe('no')
+    expect(s.data.Contact.delete).toBe('no')
+    expect(s.fieldData).toEqual({})
+  })
+
+  it('the human roles forbid export and mass update', () => {
+    for (const role of ['Dispatcher', 'Sales manager']) {
+      expect(spec(role).exportPermission).toBe('no')
+      expect(spec(role).massUpdatePermission).toBe('no')
+    }
+  })
+
+  it('only the Sync writer is assigned to a user, and it is prestigo-sync', () => {
+    const assigned = buildRoleSpecs(ROLES_JSON, FIELDS_JSON).filter((r: any) => r.assignTo)
+    expect(assigned.map((r: any) => r.name)).toEqual(['Sync writer'])
+    expect(JSON.stringify(ROLES_JSON).match(/"prestigo-sync"/g)).toHaveLength(1)
+  })
+})
+
+describe('api key hygiene', () => {
+  const load = (key: string) => loadEspoConfig({ identity: 'apikey', env: { ESPOCRM_BASE_URL: BASE, ESPOCRM_API_KEY: key } })
+
+  it('rejects a key with a stray non-ASCII character (clear config error, key never echoed)', () => {
+    const bad = `\u0433${'a'.repeat(32)}`
+    let message = ''
+    try {
+      load(bad)
+    } catch (e) {
+      expect(e).toBeInstanceOf(EspoConfigError)
+      message = (e as Error).message
+    }
+    expect(message).toContain('ESPOCRM_API_KEY')
+    expect(message).not.toContain('aaaa')
+  })
+
+  it('accepts a plain hex key', () => {
+    expect(load('0123456789abcdef0123456789abcdef').apiKey).toHaveLength(32)
+  })
+})
+
+describe('role assignment', () => {
+  const syncUser = (fake: Fake) => fake.state.records.User.find((u: any) => u.userName === 'prestigo-sync')
+
+  it('adds the Sync writer role to prestigo-sync, keeps the existing role id, and a second run writes no /User', async () => {
+    const fake = freshFake()
+    await syncRoles(fake)
+    const writerId = fake.state.records.Role.find((r: any) => r.name === 'Sync writer').id
+    expect(syncUser(fake).rolesIds).toEqual(['a00000000000000c1', writerId])
+
+    const before = fake.requests.length
+    const lines = await syncRoles(fake)
+    expect(lines).toContain(`roles: create=0 update=0 unchanged=${ROLE_COUNT} skipped=0 removed=0`)
+    expect(fake.requests.slice(before).filter((r) => r.method !== 'GET')).toHaveLength(0)
+  })
+
+  it('refuses to guess when the user to assign does not exist', async () => {
+    const fake = freshFake({ User: [] })
+    await expect(syncRoles(fake)).rejects.toBeInstanceOf(EspoConfigError)
   })
 })
 
@@ -169,7 +281,7 @@ describe('buildAclExpectations', () => {
 function enforcingFake(options: { leak?: boolean } = {}) {
   return createFakeEspoCRM({
     metadata: roleMetadata(),
-    records: { Role: [], User: [] },
+    records: { Role: [], User: [{ id: 'b00000000000000a1', userName: 'prestigo-sync', type: 'api', rolesIds: [] }] },
     extraRoutes: (req: FakeReq, state) => {
       const key = req.headers['x-api-key']
       if (!key) return undefined
