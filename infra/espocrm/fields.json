@@ -116,6 +116,128 @@
         "type": "url",
         "label": "Admin link"
       }
+    ],
+    "CPartnerRate": [
+      {
+        "name": "vehicleClass",
+        "type": "enum",
+        "options": ["business", "first_class", "business_van"],
+        "translatedOptions": {
+          "business": "E-Class",
+          "first_class": "S-Class",
+          "business_van": "V-Class"
+        },
+        "required": true,
+        "label": "Vehicle class"
+      },
+      {
+        "name": "price",
+        "type": "currency",
+        "onlyDefaultCurrency": true,
+        "required": true,
+        "label": "Price"
+      },
+      {
+        "name": "validFrom",
+        "type": "date",
+        "label": "Valid from"
+      },
+      {
+        "name": "validTo",
+        "type": "date",
+        "afterOrEqual": "validFrom",
+        "label": "Valid to"
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "label": "Note"
+      },
+      {
+        "name": "account",
+        "type": "link",
+        "required": true
+      }
+    ],
+    "Account": [
+      {
+        "name": "otherTypeNote",
+        "type": "varchar",
+        "maxLength": 100,
+        "label": "Other type note",
+        "dynamicLogicVisible": {
+          "conditionGroup": [{ "type": "equals", "attribute": "type", "value": "Other" }]
+        }
+      },
+      {
+        "name": "commissionPercent",
+        "type": "float",
+        "min": 0,
+        "max": 100,
+        "label": "Commission %",
+        "commercial": true
+      },
+      {
+        "name": "paymentTerms",
+        "type": "enum",
+        "options": ["", "Card", "Invoice", "GroupStripeLink"],
+        "translatedOptions": {
+          "Card": "Card",
+          "Invoice": "Invoice with terms",
+          "GroupStripeLink": "Group Stripe link"
+        },
+        "label": "Payment terms",
+        "commercial": true
+      },
+      {
+        "name": "invoiceDueDays",
+        "type": "int",
+        "min": 0,
+        "max": 120,
+        "label": "Invoice due (days)",
+        "commercial": true,
+        "dynamicLogicVisible": {
+          "conditionGroup": [{ "type": "equals", "attribute": "cPaymentTerms", "value": "Invoice" }]
+        }
+      },
+      {
+        "name": "vatId",
+        "type": "varchar",
+        "maxLength": 30,
+        "label": "VAT ID",
+        "commercial": true
+      },
+      {
+        "name": "reverseCharge",
+        "type": "bool",
+        "label": "Reverse charge",
+        "commercial": true
+      },
+      {
+        "name": "contractDate",
+        "type": "date",
+        "label": "Contract date",
+        "commercial": true
+      },
+      {
+        "name": "contractValidUntil",
+        "type": "date",
+        "label": "Contract valid until",
+        "commercial": true
+      },
+      {
+        "name": "contractFile",
+        "type": "file",
+        "label": "Contract file",
+        "commercial": true
+      },
+      {
+        "name": "expectedRidesPerMonth",
+        "type": "int",
+        "min": 0,
+        "label": "Expected rides / month",
+        "commercial": true
+      }
     ]
   }
 }
