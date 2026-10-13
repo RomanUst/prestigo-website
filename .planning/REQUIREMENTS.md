@@ -41,7 +41,7 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 - [ ] **CRM-01**: Owner can manage Accounts (hotels, agencies, corporates) and Contacts in EspoCRM, with each Contact linked to its Account
 - [ ] **CRM-02**: Owner can move B2B Opportunities through a Kanban pipeline with Prestigo-specific stages and set follow-up tasks/reminders
-- [x] **CRM-03**: Each Contact/Account in EspoCRM shows its full booking history (read-only Booking entity synced from Supabase: date, route, vehicle, status, amount, link to admin booking)
+- [ ] **CRM-03**: Each Contact/Account in EspoCRM shows its full booking history (read-only Booking entity synced from Supabase: date, route, vehicle, status, amount, link to admin booking)
 - [ ] **CRM-04**: Sales mail (sales@ or roman@) is connected to EspoCRM only; sent and received emails attach to the matching Account/Contact/Opportunity
 - [ ] **CRM-05**: Roles and permissions for 2–3 future operators exist in both Chatwoot (agent/admin, team assignment) and EspoCRM (role-based ACL), documented in a runbook
 
@@ -135,7 +135,7 @@ Deferred — tracked, not in this roadmap.
 | SOC-02 | Phase 79 | Pending |
 | CRM-01 | Phase 80 | Pending |
 | CRM-02 | Phase 80 | Pending |
-| CRM-03 | Phase 80 | Complete |
+| CRM-03 | Phase 80 | Pending |
 | CRM-04 | Phase 80 | Pending |
 | CRM-05 | Phase 80 | Pending |
 | LEAD-01 | Phase 81 | Pending |
