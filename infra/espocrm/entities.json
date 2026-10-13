@@ -1,0 +1,22 @@
+{
+  "entities": [
+    {
+      "name": "Booking",
+      "type": "Base",
+      "labelSingular": "Booking",
+      "labelPlural": "Bookings",
+      "stream": false
+    }
+  ],
+  "links": [
+    {
+      "entity": "CBooking",
+      "link": "contact",
+      "linkType": "manyToOne",
+      "entityForeign": "Contact",
+      "linkForeign": "bookings",
+      "label": "Contact",
+      "labelForeign": "Bookings"
+    }
+  ]
+}

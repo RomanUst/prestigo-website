@@ -9,8 +9,8 @@
  *
  *   node infra/espocrm/sync.mjs [--dry-run] [--only settings,...]
  *
- * Resource order: settings. (Later plans insert entities, links, fields, enums,
- * layouts, roles and mail after it, in that order.)
+ * Resource order: settings, entities, links, fields. (Later plans insert layouts,
+ * enums, roles and mail in the order fixed by the plans: fields, enums, layouts, ...)
  *
  * Handler contract: `async function syncX(ctx) -> { create, update, unchanged,
  * skipped, removed }`, where
@@ -37,7 +37,7 @@ import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from 
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
-export const RESOURCE_ORDER = ['settings']
+export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields']
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -155,8 +155,210 @@ async function syncSettings(ctx) {
   return counts
 }
 
+// ---------------------------------------------------------------------------
+// Metadata helpers (entities, links, fields)
+// ---------------------------------------------------------------------------
+
+const ucFirst = (value) => value.charAt(0).toUpperCase() + value.slice(1)
+
+/** GET /Metadata/action/get?key=<dot.path>: the merged metadata value, or null when absent (admin only). */
+const readMetadata = (ctx, key) => ctx.get(`/Metadata/action/get?key=${encodeURIComponent(key)}`)
+
+/** EntityManager::create gives a custom entity the `C` prefix: Booking -> CBooking. */
+export const customEntityName = (name) => `C${ucFirst(name)}`
+
+/**
+ * Final field name after FieldManager::create: fields on a custom scope (CBooking,
+ * CPartnerRate) keep their name, fields on a stock scope (Account, Contact,
+ * Opportunity) get `c` + Ucfirst (commissionPercent -> cCommissionPercent).
+ * `customScopes` (Set or array of scope names) overrides the `C<Upper>...` name
+ * heuristic; the sync passes the live `scopes.{scope}.isCustom` answer.
+ */
+export function finalFieldName(scope, name, customScopes) {
+  const isCustom = customScopes ? new Set(customScopes).has(scope) : /^C[A-Z]/.test(scope)
+  return isCustom ? name : `c${ucFirst(name)}`
+}
+
+const requireKeys = (resource, item, keys) => {
+  const missing = keys.filter((k) => typeof item?.[k] !== 'string' || !item[k])
+  if (missing.length) {
+    throw new EspoConfigError(`${resource}: ${JSON.stringify(item?.name ?? item?.link ?? item)} is missing ${missing.join(', ')}`)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// entities (create only: labels and tabs are owner-editable afterwards)
+// ---------------------------------------------------------------------------
+
+async function syncEntities(ctx) {
+  const counts = emptyCounts()
+  const { entities = [] } = ctx.readConfig('entities.json')
+  for (const def of entities) {
+    requireKeys('entities', def, ['name', 'type', 'labelSingular', 'labelPlural'])
+    if (!/^[A-Z][A-Za-z0-9]*$/.test(def.name)) {
+      throw new EspoConfigError(`entities: "${def.name}" must be UpperCamelCase letters and digits`)
+    }
+    const finalName = customEntityName(def.name)
+    if (await readMetadata(ctx, `scopes.${finalName}`)) {
+      counts.unchanged++
+      continue
+    }
+    await ctx.mutate('POST', '/EntityManager/action/createEntity', def, finalName)
+    counts.create++
+  }
+  return counts
+}
+
+// ---------------------------------------------------------------------------
+// links (create only)
+// ---------------------------------------------------------------------------
+
+async function syncLinks(ctx) {
+  const counts = emptyCounts()
+  const { links = [] } = ctx.readConfig('entities.json')
+  for (const def of links) {
+    requireKeys('links', def, ['entity', 'link', 'linkType', 'entityForeign', 'linkForeign'])
+    if (await readMetadata(ctx, `entityDefs.${def.entity}.links.${def.link}`)) {
+      counts.unchanged++
+      continue
+    }
+    await ctx.mutate('POST', '/EntityManager/action/createLink', def, `${def.entity}.${def.link}`)
+    counts.create++
+  }
+  return counts
+}
+
+// ---------------------------------------------------------------------------
+// fields
+// ---------------------------------------------------------------------------
+
+/**
+ * Params FieldManager accepts for every type, confirmed against
+ * application/Espo/Tools/FieldManager/FieldManager.php at tag 10.0.8:
+ *   prepareFieldDefs: type, isCustom, isPersonalData, tooltip, inlineEditDisabled,
+ *                     defaultAttributes (and notLockable on lockable scopes)
+ *   write():          label, tooltipText, translatedOptions (only for types whose
+ *                     metadata has `translatedOptions`), dynamicLogicVisible /
+ *                     Required / ReadOnly / Options / Invalid / ReadOnlySaved /
+ *                     Cascading (stored in logic defs, not in entityDefs)
+ * Anything else must be in `fields.{type}.params` (read live) or in a
+ * `fieldManagerAdditionalParamList`.
+ */
+export const UNIVERSAL_FIELD_PARAMS = [
+  'type',
+  'isCustom',
+  'isPersonalData',
+  'tooltip',
+  'inlineEditDisabled',
+  'defaultAttributes',
+  'notLockable',
+  'label',
+  'tooltipText',
+  'translatedOptions',
+  'dynamicLogicVisible',
+  'dynamicLogicRequired',
+  'dynamicLogicReadOnly',
+  'dynamicLogicOptions',
+  'dynamicLogicInvalid',
+  'dynamicLogicReadOnlySaved',
+  'dynamicLogicCascading',
+]
+
+/** Local-only config keys: never sent to the CRM (`commercial` is consumed by plan 80-06). */
+const LOCAL_FIELD_KEYS = ['name', 'commercial']
+/** Sent on create, never on update, never diffed: the owner may relabel in the UI. */
+const CREATE_ONLY_FIELD_KEYS = ['label', 'translatedOptions', 'tooltipText']
+const isLogicKey = (key) => key.startsWith('dynamicLogic')
+
+const paramNames = (list) =>
+  (Array.isArray(list) ? list : []).map((p) => (typeof p === 'string' ? p : p?.name)).filter(Boolean)
+
+/** Declared value `false` equals an absent server value (EspoCRM stores only non-default params). */
+function dropFalseDefaults(want, have) {
+  return Object.fromEntries(Object.entries(want).filter(([k, v]) => !(v === false && have[k] == null)))
+}
+
+/**
+ * Reads, validates and applies the field specs in fields.json:
+ * { "fields": { "<Scope>": [ { name, type, ...params } ] } }. Every spec is
+ * validated against the live field-type metadata before the first write.
+ */
+async function syncFields(ctx) {
+  const counts = emptyCounts()
+  const declared = ctx.readConfig('fields.json').fields ?? {}
+  const typeCache = new Map()
+  const readType = async (type) => {
+    if (!typeCache.has(type)) typeCache.set(type, await readMetadata(ctx, `fields.${type}`))
+    return typeCache.get(type)
+  }
+
+  // Pass 1: read-only. Resolve names, validate every param, compute the diff.
+  const work = []
+  for (const [scope, specs] of Object.entries(declared)) {
+    const scopeDefs = await readMetadata(ctx, `scopes.${scope}`)
+    if (!scopeDefs && !ctx.dryRun) {
+      throw new EspoConfigError(`fields: scope ${scope} does not exist (sync "entities" first)`)
+    }
+    const customScopes = (scopeDefs ? scopeDefs.isCustom : /^C[A-Z]/.test(scope)) ? [scope] : []
+
+    for (const spec of specs) {
+      requireKeys('fields', spec, ['name', 'type'])
+      const typeDefs = await readType(spec.type)
+      if (!typeDefs) throw new EspoConfigError(`fields: ${scope}.${spec.name} has unknown field type "${spec.type}"`)
+
+      const finalName = finalFieldName(scope, spec.name, customScopes)
+      const have = await readMetadata(ctx, `entityDefs.${scope}.fields.${finalName}`)
+
+      const additional = have?.fieldManagerAdditionalParamList ?? typeDefs.fieldManagerAdditionalParamList ?? []
+      const allowed = new Set([
+        ...LOCAL_FIELD_KEYS,
+        ...UNIVERSAL_FIELD_PARAMS,
+        ...paramNames(typeDefs.params),
+        ...paramNames(additional),
+      ])
+      const rejected = Object.keys(spec).filter((k) => !allowed.has(k))
+      if (rejected.length) {
+        throw new EspoConfigError(
+          `fields: ${scope}.${spec.name} (${spec.type}) has params not permitted for the type: ${rejected.join(', ')}`,
+        )
+      }
+      if (spec.translatedOptions && !typeDefs.translatedOptions) {
+        throw new EspoConfigError(`fields: ${scope}.${spec.name} (${spec.type}) does not support translatedOptions`)
+      }
+
+      const body = Object.fromEntries(Object.entries(spec).filter(([k]) => !LOCAL_FIELD_KEYS.includes(k)))
+      if (paramNames(additional).length) body.fieldManagerAdditionalParamList = additional
+      work.push({ scope, name: spec.name, finalName, spec, body, have })
+    }
+  }
+
+  // Pass 2: writes, strictly one after the other.
+  for (const { scope, name, finalName, body, have } of work) {
+    const key = `${scope}.${finalName}`
+    if (!have) {
+      await ctx.mutate('POST', `/Admin/fieldManager/${scope}`, { name, ...body }, key)
+      counts.create++
+      continue
+    }
+    const diffable = Object.fromEntries(
+      Object.entries(body).filter(([k]) => !CREATE_ONLY_FIELD_KEYS.includes(k) && !isLogicKey(k) && k !== 'fieldManagerAdditionalParamList'),
+    )
+    if (subsetEqual(dropFalseDefaults(diffable, have), have)) {
+      counts.unchanged++
+      continue
+    }
+    const update = Object.fromEntries(Object.entries(body).filter(([k]) => !CREATE_ONLY_FIELD_KEYS.includes(k)))
+    await ctx.mutate('PUT', `/Admin/fieldManager/${scope}/${finalName}`, update, key)
+    counts.update++
+  }
+  return counts
+}
+
 const HANDLERS = {
   settings: syncSettings,
+  entities: syncEntities,
+  links: syncLinks,
+  fields: syncFields,
 }
 
 // ---------------------------------------------------------------------------

@@ -1,0 +1,13 @@
+{
+  "fields": {
+    "CBooking": [
+      {
+        "name": "supabaseBookingId",
+        "type": "varchar",
+        "maxLength": 36,
+        "required": true,
+        "label": "Supabase Booking ID"
+      }
+    ]
+  }
+}
