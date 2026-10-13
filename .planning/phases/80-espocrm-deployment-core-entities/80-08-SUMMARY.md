@@ -2,61 +2,97 @@
 phase: 80-espocrm-deployment-core-entities
 plan: 08
 subsystem: infra
-tags: [espocrm, unique-index, metadata-overlay, vps, checkpoint]
-status: blocked
+tags: [espocrm, unique-index, metadata-overlay, vps, idempotency]
+status: complete
 requirements: [CRM-03]
 requires: ["80-07"]
-provides: []
+provides:
+  - "Live unique index supabaseBookingIdDeleteId on CBooking (supabaseBookingId + deleteId), proven by a rejected duplicate"
+  - "infra/espocrm/overlay.mjs (mergeOverlay, hasOverlay; CLI merge/check/precheck/rebuild/probe-unique)"
+affects: [80-09, 80-10, 80-12, 82]
 key-files:
-  created: []
+  created:
+    - infra/espocrm/overlay/CBooking.entityDefs.json
+    - infra/espocrm/overlay.mjs
+    - tests/espocrm-overlay.test.ts
   modified: []
-decisions: []
+decisions:
+  - "Unique index is created only by EspoCRM's own rebuild from a metadata overlay (core User.userName pattern); no SQL touched MariaDB"
+  - "probe-unique treats any non-2xx API answer except 401/403/transport failure as 'enforced', then confirms exactly one row holds the key"
 metrics:
-  duration: ~5min
+  duration: ~25min
   completed: 2026-10-13
 actuals:
-  tokens: 0
-  tasks: 0
-  commits: 0
-plan_head_before: 6f89a434d64c30c27290bba84d8b3b2ca98a8bc9
-plan_head_after: 6f89a434d64c30c27290bba84d8b3b2ca98a8bc9
+  tokens: 6500
+  tasks: 2
+  commits: 1
+plan_head_before: c787efe8e2cef905ab4cd99931916d401cc65a3d
+plan_head_after: c20ebddebd5fc17037fccdc04db76a6e6c859b05
 ---
 
-# Phase 80 Plan 08: CBooking unique index via metadata overlay Summary (PARTIAL, blocked at Task 1)
+# Phase 80 Plan 08: CBooking unique index via metadata overlay Summary
 
-Status: blocked at Task 1 (`checkpoint:human-action`, `gate="blocking-human"`). No code was written and no VPS command was run. The plan's first task is the D-19 owner approval of the four VPS commands; Task 2 (the tracer) carries the precondition "owner replied `vps approved`", which is unmet, so Task 2 was not started and not partially committed.
+The CRM itself now refuses a second CBooking with the same `supabaseBookingId`: a metadata overlay (`indexes.supabaseBookingIdDeleteId` unique on `supabaseBookingId` + `deleteId`, plus `deleteId: true`) was merged into the FieldManager-written custom file on the VPS and EspoCRM's own rebuild created the index.
 
 ## Tasks
 
 | Task | Name | Status | Commit |
 | ---- | ---- | ------ | ------ |
-| 1 | Owner approves the four VPS commands (D-19) | awaiting owner | none |
-| 2 (tracer) | Overlay tool + live apply (backup, fetch, merge, install, rebuild, duplicate rejected) | not started (precondition unmet) | none |
+| 1 | Owner approves the four VPS commands (D-19) | done, owner replied "vps approved" (allow rules for `ssh *prestigo-vps*` / `scp *prestigo-vps*`) | none (checkpoint) |
+| 2 (tracer) | Overlay tool + live apply | done | c20ebdde |
 
-## What is prepared for the owner
+`commits: 1` is measured from the continuation base c787efe8 (the earlier partial-summary commit 3e91404a and its merge are in that base); the final SUMMARY commit follows this one.
 
-Exact command set (from the plan, unchanged) that the continuation executor will run, in this order, only after approval:
+## Live run (in the planned order, one command at a time)
 
-- Local prep (no VPS): `mkdir -p infra/espocrm/.work` (the directory is git-ignored).
-- S1 backup: `ssh prestigo-vps 'sudo systemctl start prestigo-backup.service && systemctl show -p Result prestigo-backup.service'` (must end `Result=success`; first and only VPS command before the rest).
-- S2 fetch: `ssh prestigo-vps 'cd /opt/prestigo/espocrm && sudo docker compose exec -T app cat custom/Espo/Custom/Resources/metadata/entityDefs/CBooking.json' > infra/espocrm/.work/CBooking.current.json`
-- S3 upload: `scp infra/espocrm/.work/CBooking.merged.json prestigo-vps:/tmp/CBooking.merged.json`
-- S4 install: `ssh prestigo-vps 'cd /opt/prestigo/espocrm && sudo docker compose cp /tmp/CBooking.merged.json app:/var/www/html/custom/Espo/Custom/Resources/metadata/entityDefs/CBooking.json && sudo docker compose exec -T app chown www-data:www-data custom/Espo/Custom/Resources/metadata/entityDefs/CBooking.json && rm /tmp/CBooking.merged.json'`
-- Rollback (only if rebuild fails): S3/S4 with `infra/espocrm/.work/CBooking.current.json`, then `node infra/espocrm/overlay.mjs rebuild`.
-- S2 is run a second time (output to `CBooking.after.json`) after the rebuild to check that the overlay keys persisted.
+1. `precheck`: `cbooking_total=0`, exit 0 (soft-deleted acl-probe rows from 80-07 are invisible to the list API and carry unique values).
+2. S1 backup: `Result=success` (restic snapshot taken before the overlay).
+3. S2 fetch: 5374 bytes saved to `infra/espocrm/.work/CBooking.current.json` (rollback copy, git-ignored). `check` on it: `overlay missing`, exit 3 as expected.
+4. `merge`: `merge: added=indexes.supabaseBookingIdDeleteId,deleteId`. Fields and links verified identical between current and merged; the current file already had an `indexes` key, which was extended, not replaced.
+5. S3 upload and S4 install: both exit 0, file copied into the app container and chowned to www-data.
+6. `rebuild`: `rebuild: done`, exit 0 (rollback not needed).
+7. `probe-unique` run 1: `unique=enforced`. Run 2: `unique=enforced` (fresh key each run, probe records deleted, so deleteId frees keys and no leftovers remain; follow-up `precheck` shows `cbooking_total=0`).
+8. S2 again into `CBooking.after.json`: `check` -> `overlay present`, exit 0.
+9. `node infra/espocrm/sync.mjs --dry-run`: `summary: create=0 update=0 removed=0` (every resource unchanged; the overlay did not disturb the declared model).
+
+Only the four owner-approved VPS commands (S1, S2 twice, S3, S4) were run on the host. The "Restore Drill Canary" Account was not touched. No credentials were printed.
+
+## Verification
+
+- `npx vitest run tests/espocrm-overlay.test.ts`: 21 tests pass (merge correctness, key order, idempotency byte-for-byte, wrong-file guard, unrelated index kept, probe enforced / 500 / absent / 403 surfaced, precheck duplicate detection without printing keys, rebuild).
+- `npx eslint --quiet` on the new files: clean. `npx tsc --noEmit`: no errors in the new files (the 8 baseline errors are in older tests).
 
 ## Deviations from Plan
 
-None - plan executed exactly as written up to the checkpoint.
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] mergeOverlay aliased overlay objects into its result**
+- **Found during:** Task 2 (RED/GREEN, a test mutating the merged output changed the shared overlay constant)
+- **Issue:** `indexes[name] = def` shared the overlay's index object with the result.
+- **Fix:** `structuredClone(def)`.
+- **Files modified:** infra/espocrm/overlay.mjs
+- **Commit:** c20ebdde
+
+**2. [Rule 3 - Blocking] tsc rejected the option-object calls to the .mjs functions in the test**
+- **Found during:** Task 2 (type check)
+- **Issue:** `= {}` parameter defaults made the inferred option type empty.
+- **Fix:** JSDoc `@param` types, removed the `= {}` defaults.
+- **Files modified:** infra/espocrm/overlay.mjs
+- **Commit:** c20ebdde
 
 ## Known Stubs
 
 None.
 
+## Threat Flags
+
+None. T-80-23 (broken file): merge guard + restic snapshot + rollback copy, rebuild succeeded so rollback unused. T-80-24: only the four listed commands ran. T-80-25: precheck found no duplicates.
+
 ## Next step
 
-Owner replies "vps approved" (after adding allow-rules for S1-S4 and the rollback pair, or switching to Ask mode, and making sure nobody edits EspoCRM Entity Manager for about 10 minutes). Then a continuation executor runs Task 2: tests and overlay tool first (RED/GREEN), then the live sequence precheck, S1, S2, check (expect exit 3), merge, S3, S4, rebuild, probe-unique twice, S2 again, check (exit 0), `sync.mjs --dry-run` (create=0 update=0), commit, final SUMMARY.
+Plan 80-09 / 80-10 (parallel) and the orchestrator merge; the unique index is now available for the 80-12 backfill and the Phase 82 outbox.
 
 ## Self-Check: PASSED
 
-No files or commits are claimed beyond this SUMMARY.
+- FOUND: infra/espocrm/overlay.mjs, infra/espocrm/overlay/CBooking.entityDefs.json, tests/espocrm-overlay.test.ts
+- FOUND commit: c20ebdde
