@@ -29,6 +29,8 @@ export interface FakeEspoOptions {
   metadata?: Record<string, any>
   /** entityType -> records. */
   records?: Record<string, any[]>
+  /** `Scope/layoutName` -> layout JSON served by GET/PUT /{scope}/layout/{name}. */
+  layouts?: Record<string, any>
   /** entityType -> attribute; POST with an existing value of it returns 409. */
   duplicateCheck?: Record<string, string>
   /** Request paths (exact, relative to /api/v1) that never answer. */
@@ -41,6 +43,10 @@ export interface FakeEspoState {
   settings: Record<string, any>
   metadata: Record<string, any>
   records: Record<string, any[]>
+  /** `Scope/layoutName` -> layout JSON. */
+  layouts: Record<string, any>
+  /** `Scope.field` -> labels written through FieldManager (label, translatedOptions, tooltipText). */
+  i18n: Record<string, any>
   /** token -> user name. */
   tokens: Map<string, string>
   /** Number of password exchanges answered with a token. */
@@ -55,6 +61,51 @@ const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } })
 
 const empty = (status: number) => new Response('', { status })
+
+const ucFirst = (value: string) => value.charAt(0).toUpperCase() + value.slice(1)
+
+/** Params FieldManager accepts for every field type (FieldManager::prepareFieldDefs, 10.0.8). */
+const UNIVERSAL_FIELD_PARAMS = ['type', 'isCustom', 'isPersonalData', 'tooltip', 'inlineEditDisabled', 'defaultAttributes']
+/** Keys FieldManager::write routes to i18n / logic files instead of entityDefs. */
+const NON_ENTITYDEFS_PARAMS = ['label', 'translatedOptions', 'tooltipText', 'name']
+
+const paramNames = (list: any): string[] =>
+  (Array.isArray(list) ? list : []).map((p: any) => (typeof p === 'string' ? p : p?.name)).filter(Boolean)
+
+/**
+ * Field-type metadata as served by the live 10.0.8 instance (`fields.{type}.params`,
+ * read-only probe, plan 80-04). Tests that exercise FieldManager seed it with
+ * `metadata: stockEspoMetadata()`.
+ */
+export function stockEspoMetadata(): Record<string, any> {
+  const p = (...names: string[]) => names.map((name) => ({ name }))
+  return {
+    scopes: {
+      Account: { entity: true, customizable: true },
+      Contact: { entity: true, customizable: true },
+      Opportunity: { entity: true, customizable: true },
+    },
+    entityDefs: { Account: { fields: {}, links: {} }, Contact: { fields: {}, links: {} } },
+    fields: {
+      varchar: {
+        params: p('required', 'default', 'maxLength', 'options', 'pattern', 'copyToClipboard', 'audited', 'readOnly', 'readOnlyAfterCreate', 'noSpellCheck', 'optionsPath'),
+      },
+      enum: {
+        translatedOptions: true,
+        params: p('required', 'options', 'default', 'optionsReference', 'isSorted', 'translation', 'optionsPath', 'style', 'displayAsLabel', 'labelType', 'audited', 'readOnly', 'readOnlyAfterCreate'),
+      },
+      currency: {
+        params: p('required', 'default', 'min', 'max', 'onlyDefaultCurrency', 'conversionDisabled', 'decimal', 'audited', 'readOnly', 'readOnlyAfterCreate', 'precision', 'scale'),
+      },
+      datetime: {
+        params: p('required', 'default', 'after', 'before', 'afterOrEqual', 'useNumericFormat', 'hasSeconds', 'minuteStep', 'audited', 'readOnly', 'readOnlyAfterCreate'),
+      },
+      url: {
+        params: p('required', 'default', 'maxLength', 'strip', 'protocolRequired', 'copyToClipboard', 'audited', 'readOnly', 'readOnlyAfterCreate'),
+      },
+    },
+  }
+}
 
 /** Parse `where[0][type]=equals&where[0][attribute]=x&where[0][value][0]=a` into a list. */
 function parseWhere(params: URLSearchParams): any[] {
@@ -94,6 +145,8 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
     settings: { ...(options.settings ?? {}) },
     metadata: options.metadata ?? {},
     records: Object.fromEntries(Object.entries(options.records ?? {}).map(([k, v]) => [k, [...v]])),
+    layouts: { ...(options.layouts ?? {}) },
+    i18n: {},
     tokens: new Map(),
     logins: 0,
   }
@@ -174,6 +227,106 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
         node = node[part]
       }
       return json(node ?? null)
+    }
+
+    // ---- EntityManager / FieldManager / Layout (admin only, enforced above) ----
+    const md = state.metadata
+    const mdAt = (...keys: string[]) => {
+      let node: any = md
+      for (const k of keys) {
+        node = node?.[k]
+        if (node == null) return undefined
+      }
+      return node
+    }
+    const ensure = (...keys: string[]) => {
+      let node: any = md
+      for (const k of keys) node = node[k] ??= {}
+      return node
+    }
+    const isCustomScope = (scope: string) => Boolean(mdAt('scopes', scope)?.isCustom)
+
+    if (req.method === 'POST' && req.path === '/EntityManager/action/createEntity') {
+      const raw = String(req.body?.name ?? '')
+      if (!/^[A-Za-z][A-Za-z0-9]*$/.test(raw)) return empty(400)
+      const name = `C${ucFirst(raw)}`
+      if (mdAt('scopes', name)) return empty(409)
+      ensure('scopes')[name] = { entity: true, customizable: true, isCustom: true, type: req.body?.type ?? 'Base', stream: Boolean(req.body?.stream), tab: true }
+      ensure('entityDefs')[name] = { fields: { name: { type: 'varchar', required: true } }, links: {} }
+      state.i18n[`${name}.scope`] = { labelSingular: req.body?.labelSingular, labelPlural: req.body?.labelPlural }
+      return json({ name })
+    }
+
+    if (req.method === 'POST' && req.path === '/EntityManager/action/createLink') {
+      const { linkType, entity, link, entityForeign, linkForeign } = req.body ?? {}
+      if (linkType !== 'manyToOne' || !mdAt('scopes', entity) || !mdAt('scopes', entityForeign)) return empty(400)
+      const own = ensure('entityDefs', entity)
+      own.fields ??= {}
+      own.links ??= {}
+      if (own.links[link]) return empty(409)
+      // The stock-scope side of a custom link gets a `c` prefix (NameUtil::addCustomPrefix).
+      const foreignName = isCustomScope(entityForeign) ? linkForeign : `c${ucFirst(linkForeign)}`
+      own.links[link] = { type: 'belongsTo', entity: entityForeign, foreign: foreignName }
+      own.fields[link] = { type: 'link' }
+      const other = ensure('entityDefs', entityForeign)
+      other.fields ??= {}
+      other.links ??= {}
+      other.links[foreignName] = { type: 'hasMany', entity, foreign: link }
+      return json(true)
+    }
+
+    const fieldCreate = req.path.match(/^\/Admin\/fieldManager\/([A-Za-z0-9]+)$/)
+    const fieldUpdate = req.path.match(/^\/Admin\/fieldManager\/([A-Za-z0-9]+)\/([A-Za-z0-9]+)$/)
+    if ((req.method === 'POST' && fieldCreate) || (req.method === 'PUT' && fieldUpdate)) {
+      const scope = (fieldCreate ?? fieldUpdate)![1]
+      if (!mdAt('scopes', scope)) return empty(404)
+      const body = { ...(req.body ?? {}) }
+      let name: string
+      let existing: any
+      if (fieldCreate) {
+        const raw = String(body.name ?? '')
+        if (!/^[a-z][A-Za-z0-9]*$/.test(raw)) return empty(400)
+        name = isCustomScope(scope) ? raw : `c${ucFirst(raw)}`
+        if (mdAt('entityDefs', scope, 'fields', name) || mdAt('entityDefs', scope, 'links', name)) return empty(409)
+        existing = {}
+      } else {
+        name = fieldUpdate![2]
+        existing = mdAt('entityDefs', scope, 'fields', name)
+        if (!existing) return empty(404)
+        delete body.type // FieldManager::update ignores a type change
+      }
+      const type = body.type ?? existing.type
+      if (!type || !mdAt('fields', type)) return empty(400)
+      // Only params permitted for the type persist (FieldManager::prepareFieldDefs).
+      const permitted = new Set([
+        ...UNIVERSAL_FIELD_PARAMS,
+        ...paramNames(mdAt('fields', type)?.params),
+        ...paramNames(body.fieldManagerAdditionalParamList),
+      ])
+      const stored: any = { ...existing, type, isCustom: true }
+      for (const [k, v] of Object.entries(body)) {
+        if (NON_ENTITYDEFS_PARAMS.includes(k) || k === 'fieldManagerAdditionalParamList') continue
+        if (permitted.has(k)) stored[k] = v
+      }
+      ensure('entityDefs', scope).fields ??= {}
+      md.entityDefs[scope].fields[name] = stored
+      const labels: any = (state.i18n[`${scope}.${name}`] ??= {})
+      if (body.label !== undefined) labels.label = body.label
+      if (body.tooltipText !== undefined) labels.tooltipText = body.tooltipText
+      if (body.translatedOptions !== undefined && mdAt('fields', type)?.translatedOptions) {
+        labels.translatedOptions = body.translatedOptions
+      }
+      return json(fieldCreate ? { ...stored, name } : stored)
+    }
+
+    const layoutMatch = req.path.match(/^\/([A-Za-z][A-Za-z0-9]*)\/layout\/([A-Za-z0-9]+)$/)
+    if (layoutMatch) {
+      const key = `${layoutMatch[1]}/${layoutMatch[2]}`
+      if (req.method === 'GET') return json(state.layouts[key] ?? null)
+      if (req.method === 'PUT') {
+        state.layouts[key] = req.body
+        return json(req.body)
+      }
     }
 
     const m = req.path.match(ENTITY)

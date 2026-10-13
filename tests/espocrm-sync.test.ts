@@ -17,7 +17,7 @@ import {
   loadEspoConfig,
 } from '../infra/espocrm/lib/client.mjs'
 import { parseArgs, runSync } from '../infra/espocrm/sync.mjs'
-import { createFakeEspoCRM } from './helpers/fake-espocrm'
+import { createFakeEspoCRM, stockEspoMetadata } from './helpers/fake-espocrm'
 
 const PASSWORD = 'pw_SECRET_0123456789'
 const API_KEY = 'key_SECRET_abcdef0123'
@@ -280,7 +280,7 @@ describe('runSync settings (tracer)', () => {
   })
 
   it('--dry-run sends only GET requests but still reports the plan', async () => {
-    const fake = createFakeEspoCRM({ settings: { defaultCurrency: 'USD' } })
+    const fake = createFakeEspoCRM({ settings: { defaultCurrency: 'USD' }, metadata: stockEspoMetadata() })
     const lines = await sync(fake, { dryRun: true })
     expect(fake.requests.length).toBeGreaterThan(0)
     expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)

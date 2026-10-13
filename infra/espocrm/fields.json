@@ -1,0 +1,121 @@
+{
+  "fields": {
+    "CBooking": [
+      {
+        "name": "supabaseBookingId",
+        "type": "varchar",
+        "maxLength": 36,
+        "required": true,
+        "label": "Supabase Booking ID"
+      },
+      {
+        "name": "leg",
+        "type": "enum",
+        "options": ["", "outbound", "return"],
+        "translatedOptions": { "outbound": "Outbound", "return": "Return" },
+        "label": "Leg"
+      },
+      {
+        "name": "pickupAt",
+        "type": "datetime",
+        "label": "Pickup time"
+      },
+      {
+        "name": "pickup",
+        "type": "varchar",
+        "maxLength": 255,
+        "label": "Pickup"
+      },
+      {
+        "name": "dropoff",
+        "type": "varchar",
+        "maxLength": 255,
+        "label": "Drop-off"
+      },
+      {
+        "name": "tripType",
+        "type": "enum",
+        "options": ["transfer", "hourly", "daily", "round_trip"],
+        "translatedOptions": {
+          "transfer": "Transfer",
+          "hourly": "Hourly",
+          "daily": "Daily",
+          "round_trip": "Round Trip"
+        },
+        "label": "Trip type"
+      },
+      {
+        "name": "vehicleClass",
+        "type": "enum",
+        "options": ["business", "first_class", "business_van"],
+        "translatedOptions": {
+          "business": "E-Class",
+          "first_class": "S-Class",
+          "business_van": "V-Class"
+        },
+        "label": "Vehicle class"
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "options": ["unpaid", "pending", "confirmed", "completed", "cancelled", "assigned", "en_route", "on_location"],
+        "translatedOptions": {
+          "unpaid": "Unpaid",
+          "pending": "Pending",
+          "confirmed": "Confirmed",
+          "completed": "Completed",
+          "cancelled": "Cancelled",
+          "assigned": "Assigned",
+          "en_route": "En Route",
+          "on_location": "On Location"
+        },
+        "label": "Status"
+      },
+      {
+        "name": "amount",
+        "type": "currency",
+        "onlyDefaultCurrency": true,
+        "label": "Amount"
+      },
+      {
+        "name": "paymentMethod",
+        "type": "enum",
+        "options": ["Stripe", "Invoice", "Cash", "Other"],
+        "translatedOptions": { "Stripe": "Stripe", "Invoice": "Invoice", "Cash": "Cash", "Other": "Other" },
+        "label": "Payment method"
+      },
+      {
+        "name": "passengerName",
+        "type": "varchar",
+        "maxLength": 150,
+        "isPersonalData": true,
+        "label": "Passenger"
+      },
+      {
+        "name": "flightNumber",
+        "type": "varchar",
+        "maxLength": 20,
+        "isPersonalData": true,
+        "label": "Flight number"
+      },
+      {
+        "name": "driverName",
+        "type": "varchar",
+        "maxLength": 100,
+        "label": "Driver"
+      },
+      {
+        "name": "source",
+        "type": "enum",
+        "options": ["online", "manual", "gnet"],
+        "translatedOptions": { "online": "Website", "manual": "Admin-created", "gnet": "GNet" },
+        "label": "Source"
+      },
+      {
+        "name": "adminLink",
+        "type": "url",
+        "label": "Admin link"
+      }
+    ]
+  }
+}

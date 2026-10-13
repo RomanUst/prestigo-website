@@ -9,8 +9,8 @@
  *
  *   node infra/espocrm/sync.mjs [--dry-run] [--only settings,...]
  *
- * Resource order: settings. (Later plans insert entities, links, fields, enums,
- * layouts, roles and mail after it, in that order.)
+ * Resource order: settings, entities, links, fields, layouts. (Later plans insert
+ * enums between fields and layouts, then roles and mail after layouts.)
  *
  * Handler contract: `async function syncX(ctx) -> { create, update, unchanged,
  * skipped, removed }`, where
@@ -37,7 +37,7 @@ import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from 
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
-export const RESOURCE_ORDER = ['settings']
+export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields', 'layouts']
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -155,8 +155,316 @@ async function syncSettings(ctx) {
   return counts
 }
 
+// ---------------------------------------------------------------------------
+// Metadata helpers (entities, links, fields)
+// ---------------------------------------------------------------------------
+
+const ucFirst = (value) => value.charAt(0).toUpperCase() + value.slice(1)
+
+/** GET /Metadata/action/get?key=<dot.path>: the merged metadata value, or null when absent (admin only). */
+const readMetadata = (ctx, key) => ctx.get(`/Metadata/action/get?key=${encodeURIComponent(key)}`)
+
+/** EntityManager::create gives a custom entity the `C` prefix: Booking -> CBooking. */
+export const customEntityName = (name) => `C${ucFirst(name)}`
+
+/**
+ * Final field name after FieldManager::create: fields on a custom scope (CBooking,
+ * CPartnerRate) keep their name, fields on a stock scope (Account, Contact,
+ * Opportunity) get `c` + Ucfirst (commissionPercent -> cCommissionPercent).
+ * `customScopes` (Set or array of scope names) overrides the `C<Upper>...` name
+ * heuristic; the sync passes the live `scopes.{scope}.isCustom` answer.
+ */
+export function finalFieldName(scope, name, customScopes) {
+  const isCustom = customScopes ? new Set(customScopes).has(scope) : /^C[A-Z]/.test(scope)
+  return isCustom ? name : `c${ucFirst(name)}`
+}
+
+const requireKeys = (resource, item, keys) => {
+  const missing = keys.filter((k) => typeof item?.[k] !== 'string' || !item[k])
+  if (missing.length) {
+    throw new EspoConfigError(`${resource}: ${JSON.stringify(item?.name ?? item?.link ?? item)} is missing ${missing.join(', ')}`)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// entities (create only: labels and tabs are owner-editable afterwards)
+// ---------------------------------------------------------------------------
+
+async function syncEntities(ctx) {
+  const counts = emptyCounts()
+  const { entities = [] } = ctx.readConfig('entities.json')
+  for (const def of entities) {
+    requireKeys('entities', def, ['name', 'type', 'labelSingular', 'labelPlural'])
+    if (!/^[A-Z][A-Za-z0-9]*$/.test(def.name)) {
+      throw new EspoConfigError(`entities: "${def.name}" must be UpperCamelCase letters and digits`)
+    }
+    const finalName = customEntityName(def.name)
+    if (await readMetadata(ctx, `scopes.${finalName}`)) {
+      counts.unchanged++
+      continue
+    }
+    await ctx.mutate('POST', '/EntityManager/action/createEntity', def, finalName)
+    counts.create++
+  }
+  return counts
+}
+
+// ---------------------------------------------------------------------------
+// links (create only)
+// ---------------------------------------------------------------------------
+
+async function syncLinks(ctx) {
+  const counts = emptyCounts()
+  const { links = [] } = ctx.readConfig('entities.json')
+  for (const def of links) {
+    requireKeys('links', def, ['entity', 'link', 'linkType', 'entityForeign', 'linkForeign'])
+    if (await readMetadata(ctx, `entityDefs.${def.entity}.links.${def.link}`)) {
+      counts.unchanged++
+      continue
+    }
+    await ctx.mutate('POST', '/EntityManager/action/createLink', def, `${def.entity}.${def.link}`)
+    counts.create++
+  }
+  return counts
+}
+
+// ---------------------------------------------------------------------------
+// fields
+// ---------------------------------------------------------------------------
+
+/**
+ * Params FieldManager accepts for every type, confirmed against
+ * application/Espo/Tools/FieldManager/FieldManager.php at tag 10.0.8:
+ *   prepareFieldDefs: type, isCustom, isPersonalData, tooltip, inlineEditDisabled,
+ *                     defaultAttributes (and notLockable on lockable scopes)
+ *   write():          label, tooltipText, translatedOptions (only for types whose
+ *                     metadata has `translatedOptions`), dynamicLogicVisible /
+ *                     Required / ReadOnly / Options / Invalid / ReadOnlySaved /
+ *                     Cascading (stored in logic defs, not in entityDefs)
+ * Anything else must be in `fields.{type}.params` (read live) or in a
+ * `fieldManagerAdditionalParamList`.
+ */
+export const UNIVERSAL_FIELD_PARAMS = [
+  'type',
+  'isCustom',
+  'isPersonalData',
+  'tooltip',
+  'inlineEditDisabled',
+  'defaultAttributes',
+  'notLockable',
+  'label',
+  'tooltipText',
+  'translatedOptions',
+  'dynamicLogicVisible',
+  'dynamicLogicRequired',
+  'dynamicLogicReadOnly',
+  'dynamicLogicOptions',
+  'dynamicLogicInvalid',
+  'dynamicLogicReadOnlySaved',
+  'dynamicLogicCascading',
+]
+
+/** Local-only config keys: never sent to the CRM (`commercial` is consumed by plan 80-06). */
+const LOCAL_FIELD_KEYS = ['name', 'commercial']
+/** Sent on create, never on update, never diffed: the owner may relabel in the UI. */
+const CREATE_ONLY_FIELD_KEYS = ['label', 'translatedOptions', 'tooltipText']
+const isLogicKey = (key) => key.startsWith('dynamicLogic')
+
+const paramNames = (list) =>
+  (Array.isArray(list) ? list : []).map((p) => (typeof p === 'string' ? p : p?.name)).filter(Boolean)
+
+/** Declared value `false` equals an absent server value (EspoCRM stores only non-default params). */
+function dropFalseDefaults(want, have) {
+  return Object.fromEntries(Object.entries(want).filter(([k, v]) => !(v === false && have[k] == null)))
+}
+
+/**
+ * Reads, validates and applies the field specs in fields.json:
+ * { "fields": { "<Scope>": [ { name, type, ...params } ] } }. Every spec is
+ * validated against the live field-type metadata before the first write.
+ */
+async function syncFields(ctx) {
+  const counts = emptyCounts()
+  const declared = ctx.readConfig('fields.json').fields ?? {}
+  const typeCache = new Map()
+  const readType = async (type) => {
+    if (!typeCache.has(type)) typeCache.set(type, await readMetadata(ctx, `fields.${type}`))
+    return typeCache.get(type)
+  }
+
+  // Pass 1: read-only. Resolve names, validate every param, compute the diff.
+  const work = []
+  for (const [scope, specs] of Object.entries(declared)) {
+    const scopeDefs = await readMetadata(ctx, `scopes.${scope}`)
+    if (!scopeDefs && !ctx.dryRun) {
+      throw new EspoConfigError(`fields: scope ${scope} does not exist (sync "entities" first)`)
+    }
+    const customScopes = (scopeDefs ? scopeDefs.isCustom : /^C[A-Z]/.test(scope)) ? [scope] : []
+
+    for (const spec of specs) {
+      requireKeys('fields', spec, ['name', 'type'])
+      const typeDefs = await readType(spec.type)
+      if (!typeDefs) throw new EspoConfigError(`fields: ${scope}.${spec.name} has unknown field type "${spec.type}"`)
+
+      const finalName = finalFieldName(scope, spec.name, customScopes)
+      const have = await readMetadata(ctx, `entityDefs.${scope}.fields.${finalName}`)
+
+      const additional = have?.fieldManagerAdditionalParamList ?? typeDefs.fieldManagerAdditionalParamList ?? []
+      const allowed = new Set([
+        ...LOCAL_FIELD_KEYS,
+        ...UNIVERSAL_FIELD_PARAMS,
+        ...paramNames(typeDefs.params),
+        ...paramNames(additional),
+      ])
+      const rejected = Object.keys(spec).filter((k) => !allowed.has(k))
+      if (rejected.length) {
+        throw new EspoConfigError(
+          `fields: ${scope}.${spec.name} (${spec.type}) has params not permitted for the type: ${rejected.join(', ')}`,
+        )
+      }
+      if (spec.translatedOptions && !typeDefs.translatedOptions) {
+        throw new EspoConfigError(`fields: ${scope}.${spec.name} (${spec.type}) does not support translatedOptions`)
+      }
+
+      const body = Object.fromEntries(Object.entries(spec).filter(([k]) => !LOCAL_FIELD_KEYS.includes(k)))
+      if (paramNames(additional).length) body.fieldManagerAdditionalParamList = additional
+      work.push({ scope, name: spec.name, finalName, spec, body, have })
+    }
+  }
+
+  // Pass 2: writes, strictly one after the other.
+  for (const { scope, name, finalName, body, have } of work) {
+    const key = `${scope}.${finalName}`
+    if (!have) {
+      await ctx.mutate('POST', `/Admin/fieldManager/${scope}`, { name, ...body }, key)
+      counts.create++
+      continue
+    }
+    const diffable = Object.fromEntries(
+      Object.entries(body).filter(([k]) => !CREATE_ONLY_FIELD_KEYS.includes(k) && !isLogicKey(k) && k !== 'fieldManagerAdditionalParamList'),
+    )
+    if (subsetEqual(dropFalseDefaults(diffable, have), have)) {
+      counts.unchanged++
+      continue
+    }
+    const update = Object.fromEntries(Object.entries(body).filter(([k]) => !CREATE_ONLY_FIELD_KEYS.includes(k)))
+    await ctx.mutate('PUT', `/Admin/fieldManager/${scope}/${finalName}`, update, key)
+    counts.update++
+  }
+  return counts
+}
+
+// ---------------------------------------------------------------------------
+// layouts
+// ---------------------------------------------------------------------------
+
+const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
+const isPanel = (item) => isPlainObject(item) && typeof item.label === 'string' && Array.isArray(item.rows)
+const itemName = (item) => (typeof item === 'string' ? item : isPlainObject(item) ? item.name : undefined)
+
+/** Order-insensitive-for-keys, order-sensitive-for-arrays JSON equality. */
+function sameJson(a, b) {
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => sameJson(x, b[i]))
+  }
+  if (isPlainObject(a) && isPlainObject(b)) {
+    const keys = Object.keys(a)
+    return keys.length === Object.keys(b).length && keys.every((k) => k in b && sameJson(a[k], b[k]))
+  }
+  return a === b
+}
+
+/**
+ * Compute the layout to PUT.
+ *   replace  our layout wins (custom entities such as CBooking).
+ *   append   stock scopes (Contact, Account): add what is missing, never remove,
+ *            reorder or alter anything that exists, so owner edits survive.
+ *              - list of names (`relationships`, list columns): a desired name that is
+ *                absent is appended in the server's item form (plain strings, or
+ *                {name} objects only when every existing item is such an object);
+ *              - list of panels (`detail`): a desired panel is added when no panel
+ *                with the same label exists;
+ *              - keyed object (`bottomPanelsDetail`): missing keys are added.
+ * Returns `current` itself (same reference) when nothing needs adding.
+ */
+export function mergeLayout(mode, current, desired) {
+  if (mode === 'replace') return desired
+  if (mode !== 'append') throw new EspoConfigError(`layouts: unknown mode "${mode}" (expected replace or append)`)
+  if (current === null || current === undefined) return desired
+
+  if (Array.isArray(current) && Array.isArray(desired)) {
+    const additions = []
+    const objectForm = current.length > 0 && current.every((x) => isPlainObject(x) && typeof x.name === 'string')
+    for (const want of desired) {
+      if (isPanel(want)) {
+        const exists = [...current, ...additions].some((x) => isPanel(x) && x.label === want.label)
+        if (!exists) additions.push(want)
+        continue
+      }
+      const name = itemName(want)
+      if (!name) throw new EspoConfigError(`layouts: cannot append ${JSON.stringify(want)} (no name or label)`)
+      const exists = [...current, ...additions].some((x) => itemName(x) === name)
+      if (exists) continue
+      additions.push(isPlainObject(want) ? want : objectForm ? { name } : name)
+    }
+    return additions.length ? [...current, ...additions] : current
+  }
+
+  if (isPlainObject(current) && isPlainObject(desired)) {
+    const missing = Object.keys(desired).filter((k) => !(k in current))
+    return missing.length ? { ...current, ...Object.fromEntries(missing.map((k) => [k, desired[k]])) } : current
+  }
+
+  throw new EspoConfigError('layouts: append needs the live and the declared layout to have the same shape (list or keyed object)')
+}
+
+/** GET a layout; a missing scope or layout (404) reads as null instead of failing a dry run. */
+async function readLayout(ctx, scope, name) {
+  try {
+    return await ctx.get(`/${scope}/layout/${name}`)
+  } catch (err) {
+    if (err instanceof EspoApiError && err.status === 404) return null
+    throw err
+  }
+}
+
+/**
+ * layouts.json: { "layouts": [ { scope, name, mode: "replace" | "append", layout } ] }.
+ * PUT only when the merged layout differs from the live one.
+ */
+async function syncLayouts(ctx) {
+  const counts = emptyCounts()
+  const { layouts = [] } = ctx.readConfig('layouts.json')
+  for (const def of layouts) {
+    requireKeys('layouts', def, ['scope', 'name', 'mode'])
+    if (def.mode !== 'replace' && def.mode !== 'append') {
+      throw new EspoConfigError(`layouts: ${def.scope}/${def.name} has unknown mode "${def.mode}" (expected replace or append)`)
+    }
+    if (typeof def.layout !== 'object' || def.layout === null) {
+      throw new EspoConfigError(`layouts: ${def.scope}/${def.name} needs a layout array or object`)
+    }
+  }
+
+  for (const def of layouts) {
+    const current = await readLayout(ctx, def.scope, def.name)
+    const merged = mergeLayout(def.mode, current, def.layout)
+    if (current !== null && current !== undefined && (merged === current || sameJson(merged, current))) {
+      counts.unchanged++
+      continue
+    }
+    await ctx.mutate('PUT', `/${def.scope}/layout/${def.name}`, merged, `${def.scope}/${def.name}`)
+    if (current === null || current === undefined) counts.create++
+    else counts.update++
+  }
+  return counts
+}
+
 const HANDLERS = {
   settings: syncSettings,
+  entities: syncEntities,
+  links: syncLinks,
+  fields: syncFields,
+  layouts: syncLayouts,
 }
 
 // ---------------------------------------------------------------------------

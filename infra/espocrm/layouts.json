@@ -1,0 +1,69 @@
+{
+  "layouts": [
+    {
+      "scope": "CBooking",
+      "name": "list",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true },
+        { "name": "pickupAt" },
+        { "name": "pickup" },
+        { "name": "dropoff" },
+        { "name": "vehicleClass" },
+        { "name": "status" },
+        { "name": "amount" },
+        { "name": "paymentMethod" },
+        { "name": "source" }
+      ]
+    },
+    {
+      "scope": "CBooking",
+      "name": "listSmall",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true },
+        { "name": "pickupAt" },
+        { "name": "vehicleClass" },
+        { "name": "status" },
+        { "name": "amount" }
+      ]
+    },
+    {
+      "scope": "CBooking",
+      "name": "detail",
+      "mode": "replace",
+      "layout": [
+        {
+          "label": "Booking",
+          "rows": [
+            [{ "name": "name" }, { "name": "status" }],
+            [{ "name": "pickupAt" }, { "name": "tripType" }],
+            [{ "name": "pickup" }, { "name": "dropoff" }],
+            [{ "name": "vehicleClass" }, { "name": "leg" }],
+            [{ "name": "amount" }, { "name": "paymentMethod" }],
+            [{ "name": "passengerName" }, { "name": "flightNumber" }],
+            [{ "name": "driverName" }, { "name": "source" }],
+            [{ "name": "contact" }, { "name": "account" }],
+            [{ "name": "adminLink" }, { "name": "supabaseBookingId" }]
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "Contact",
+      "name": "bottomPanelsDetail",
+      "mode": "append",
+      "layout": {
+        "cBookings": { "name": "cBookings", "index": 5.003 }
+      }
+    },
+    {
+      "scope": "Account",
+      "name": "bottomPanelsDetail",
+      "mode": "append",
+      "layout": {
+        "cBookings": { "index": 5.5 }
+      }
+    }
+  ]
+}
