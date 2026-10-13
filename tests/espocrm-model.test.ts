@@ -12,6 +12,16 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { EspoConfigError, createEspoClient, loadEspoConfig } from '../infra/espocrm/lib/client.mjs'
+import {
+  BOOKING_SOURCE_VALUES,
+  BOOKING_STATUS_VALUES,
+  FIELD_MAX_LENGTH,
+  LEG_VALUES,
+  PAYMENT_METHOD_VALUES,
+  SYNCED_BOOKING_FIELDS,
+  TRIP_TYPE_VALUES,
+  VEHICLE_CLASS_VALUES,
+} from '../infra/espocrm/lib/booking-map.mjs'
 import { finalFieldName, runSync } from '../infra/espocrm/sync.mjs'
 import { createFakeEspoCRM, stockEspoMetadata } from './helpers/fake-espocrm'
 
@@ -281,5 +291,126 @@ describe('shipped config files (tracer)', () => {
     const again = await sync(fake, dir, { only })
     for (const resource of only) expect(again.find((l) => l.startsWith(`${resource}:`))).toMatch(/create=0 update=0 /)
     expect(mutations(fake)).toHaveLength(before)
+  })
+})
+
+describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
+  const read = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
+  const specs: any[] = read('fields.json').fields.CBooking
+  const byName = (name: string) => specs.find((f) => f.name === name)
+
+  // payload keys of booking-map minus the built-in `name` and the currency attribute `amountCurrency`
+  const CONTRACT_FIELDS = SYNCED_BOOKING_FIELDS.filter((k: string) => k !== 'name' && k !== 'amountCurrency')
+
+  it('declares exactly the 80-03 payload fields (15 specs), no more, no fewer', () => {
+    expect(specs).toHaveLength(15)
+    expect(specs.map((f) => f.name).sort()).toEqual([...CONTRACT_FIELDS].sort())
+    expect(new Set(specs.map((f) => f.name)).size).toBe(specs.length)
+  })
+
+  it('uses the contract type for every field', () => {
+    const expected: Record<string, string> = {
+      supabaseBookingId: 'varchar',
+      leg: 'enum',
+      pickupAt: 'datetime',
+      pickup: 'varchar',
+      dropoff: 'varchar',
+      tripType: 'enum',
+      vehicleClass: 'enum',
+      status: 'enum',
+      amount: 'currency',
+      paymentMethod: 'enum',
+      passengerName: 'varchar',
+      flightNumber: 'varchar',
+      driverName: 'varchar',
+      source: 'enum',
+      adminLink: 'url',
+    }
+    for (const [name, type] of Object.entries(expected)) expect(byName(name)?.type, name).toBe(type)
+  })
+
+  it('enum options deep-equal the booking-map constants (same order, same values)', () => {
+    expect(byName('status').options).toEqual(BOOKING_STATUS_VALUES)
+    expect(byName('source').options).toEqual(BOOKING_SOURCE_VALUES)
+    expect(byName('vehicleClass').options).toEqual(VEHICLE_CLASS_VALUES)
+    expect(byName('tripType').options).toEqual(TRIP_TYPE_VALUES)
+    expect(byName('leg').options).toEqual(LEG_VALUES)
+    expect(byName('paymentMethod').options).toEqual(PAYMENT_METHOD_VALUES)
+  })
+
+  it('every non-empty enum option has a seeded label and no label is orphaned', () => {
+    for (const spec of specs.filter((f) => f.type === 'enum')) {
+      const optionKeys = (spec.options as string[]).filter((o) => o !== '').sort()
+      expect(Object.keys(spec.translatedOptions).sort(), spec.name).toEqual(optionKeys)
+    }
+    expect(byName('vehicleClass').translatedOptions).toEqual({
+      business: 'E-Class',
+      first_class: 'S-Class',
+      business_van: 'V-Class',
+    })
+    expect(byName('source').translatedOptions).toEqual({ online: 'Website', manual: 'Admin-created', gnet: 'GNet' })
+    expect(byName('status').translatedOptions.en_route).toBe('En Route')
+  })
+
+  it('varchar maxLength equals FIELD_MAX_LENGTH for every limited field; each limited field is declared', () => {
+    for (const [name, max] of Object.entries(FIELD_MAX_LENGTH)) expect(byName(name).maxLength, name).toBe(max)
+    for (const spec of specs.filter((f) => f.type === 'varchar')) {
+      expect(spec.maxLength, `${spec.name} has a FIELD_MAX_LENGTH`).toBe((FIELD_MAX_LENGTH as Record<string, number>)[spec.name])
+    }
+  })
+
+  it('no CBooking field is read-only: read-only is role ACL (80-07); a field flag would also strip the sync writer', () => {
+    for (const spec of specs) {
+      expect(spec, spec.name).not.toHaveProperty('readOnly')
+      expect(spec, spec.name).not.toHaveProperty('readOnlyAfterCreate')
+      expect(spec, spec.name).not.toHaveProperty('dynamicLogicReadOnly')
+    }
+  })
+
+  it('passengerName and flightNumber are personal data; amount is EUR-only currency', () => {
+    expect(byName('passengerName').isPersonalData).toBe(true)
+    expect(byName('flightNumber').isPersonalData).toBe(true)
+    expect(byName('amount').onlyDefaultCurrency).toBe(true)
+    expect(byName('supabaseBookingId')).toMatchObject({ required: true, maxLength: 36 })
+  })
+
+  it('entities.json links CBooking.contact -> Contact and CBooking.account -> Account (manyToOne, linkForeign bookings)', () => {
+    const links = read('entities.json').links
+    for (const [link, foreign] of [
+      ['contact', 'Contact'],
+      ['account', 'Account'],
+    ]) {
+      expect(links).toContainEqual(
+        expect.objectContaining({
+          entity: 'CBooking',
+          link,
+          linkType: 'manyToOne',
+          entityForeign: foreign,
+          linkForeign: 'bookings',
+        }),
+      )
+    }
+    expect(read('entities.json').entities).toHaveLength(1)
+  })
+
+  it('applies to the fake: all fields and both links on the first run, nothing on the second', async () => {
+    const fake = fresh()
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    const first = await sync(fake, dir, { only })
+    expect(first).toContain('entities: create=1 update=0 unchanged=0 skipped=0 removed=0')
+    expect(first).toContain('links: create=2 update=0 unchanged=0 skipped=0 removed=0')
+    expect(first).toContain('fields: create=15 update=0 unchanged=0 skipped=0 removed=0')
+
+    const md = fake.state.metadata
+    expect(md.entityDefs.Contact.links.cBookings).toMatchObject({ entity: 'CBooking', foreign: 'contact' })
+    expect(md.entityDefs.Account.links.cBookings).toMatchObject({ entity: 'CBooking', foreign: 'account' })
+    expect(md.entityDefs.CBooking.fields.passengerName.isPersonalData).toBe(true)
+    expect(md.entityDefs.CBooking.fields.status.options).toEqual(BOOKING_STATUS_VALUES)
+    expect(fake.state.i18n['CBooking.vehicleClass'].translatedOptions.first_class).toBe('S-Class')
+
+    const second = await sync(fake, dir, { only })
+    expect(second).toContain('entities: create=0 update=0 unchanged=1 skipped=0 removed=0')
+    expect(second).toContain('links: create=0 update=0 unchanged=2 skipped=0 removed=0')
+    expect(second).toContain('fields: create=0 update=0 unchanged=15 skipped=0 removed=0')
   })
 })

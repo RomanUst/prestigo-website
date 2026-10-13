@@ -17,6 +17,15 @@
       "linkForeign": "bookings",
       "label": "Contact",
       "labelForeign": "Bookings"
+    },
+    {
+      "entity": "CBooking",
+      "link": "account",
+      "linkType": "manyToOne",
+      "entityForeign": "Account",
+      "linkForeign": "bookings",
+      "label": "Account",
+      "labelForeign": "Bookings"
     }
   ]
 }
