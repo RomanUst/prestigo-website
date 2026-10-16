@@ -3,7 +3,7 @@ phase: 80-espocrm-deployment-core-entities
 plan: 09
 subsystem: infra
 tags: [espocrm, backfill, supabase-export, idempotency, crm]
-status: blocked
+status: complete
 requirements: [CRM-03]
 requires: ["80-03", "80-07"]
 provides:
@@ -67,6 +67,19 @@ Run 1 creates / run 2 `create=0 update=0`; owner-edited Contact keeps accountId 
 **3. [Rule 2] Error output hardening.** API errors print method, path without query and status only (a lookup URL contains an email); a malformed export file names the file only (JSON parse errors can quote content).
 
 The columns of `public.bookings`, `public.drivers`, `public.customer_profiles` were NOT confirmed by an information_schema query (no DB access), so no SQL adaptation was recorded. The owner should run the check query first.
+
+## D-21 decision (Task 3) — approved by owner 2026-10-16
+
+Export taken by the orchestrator via the Supabase MCP (json_agg, result kept in a tool-results file, never printed; written to the git-ignored infra/espocrm/.work/export/page-01.json, mode 600; columns check: all present).
+Live dry-run (`node infra/espocrm/backfill.mjs --dry-run`, prestigo-sync key):
+- export: rows=56 eligible=56 excluded_abandoned=0 invalid=0 duplicate_rows=0 (Supabase total 57, abandoned 1 excluded by the export SQL)
+- by_status: cancelled=19 completed=24 confirmed=10 unpaid=3
+- by_source: gnet=6 manual=23 online=27
+- by_payment_method: Stripe=35 Invoice=4 Cash=8 Other=9
+- contacts: create=29 update=0 unchanged=0; bookings: create=56 update=0 unchanged=0 without_contact=0
+- dry-run: nothing written
+Payment-method rule approved as-is: payment_intent_id -> Stripe; payment_link_id -> Stripe; invoice_number -> Invoice; source gnet -> Other; source manual -> Cash; otherwise Other.
+Owner reply: "загрузить все брони" (approve). The live write runs in plan 80-12.
 
 ## Export instructions (needed to continue; SQL contains no customer data)
 
