@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import * as cand from '../infra/espocrm/lib/candidates.mjs'
+import { parseArgs, runCandidates } from '../infra/espocrm/account-candidates.mjs'
 
 // Synthetic rows only (example/test domains, fake companies) - T-80-07.
 let n = 0
@@ -254,5 +258,76 @@ describe('constants', () => {
     expect(cand.emailDomain(' A@Hotel.CZ ')).toBe('hotel.cz')
     expect(cand.emailDomain('nope')).toBeNull()
     expect(cand.emailDomain(null)).toBeNull()
+  })
+})
+
+describe('account-candidates CLI (runCandidates)', () => {
+  function setup() {
+    const work = mkdtempSync(join(tmpdir(), 'cand-cli-'))
+    const input = join(work, 'export')
+    mkdirSync(input)
+    const rows = [
+      r({ client_email: 'a@travelexpress.test', company_name: 'TravelExpress' }),
+      r({ client_email: 'b@travelexpress.test', company_name: 'TravelExpress' }),
+      r({ client_email: 'p@example.test', company_name: 'Restore Drill Canary' }),
+      r({ client_email: 'q@gmail.com' }),
+    ]
+    writeFileSync(join(input, 'page-01.json'), JSON.stringify(rows))
+    return { work, input }
+  }
+  const capture = () => {
+    const out: string[] = []
+    const err: string[] = []
+    return { out, err, log: (l: string) => out.push(l), error: (l: string) => err.push(l) }
+  }
+
+  it('writes candidates.json with confirm false and type null, prints candidates: N', async () => {
+    const { work, input } = setup()
+    const io = capture()
+    const outFile = join(work, 'candidates.json')
+    const code = await runCandidates({ input, out: outFile, workDir: work, log: io.log, error: io.error })
+    expect(code).toBe(0)
+    const parsed = JSON.parse(readFileSync(outFile, 'utf8'))
+    expect(typeof parsed.generatedAt).toBe('string')
+    expect(parsed.candidates).toHaveLength(1)
+    for (const c of parsed.candidates) {
+      expect(c.confirm).toBe(false)
+      expect(c.type).toBeNull()
+    }
+    expect(io.out.join('\n')).toContain('candidates: 1')
+  })
+
+  it('stdout holds names but no email address and not the canary', async () => {
+    const { work, input } = setup()
+    const io = capture()
+    await runCandidates({ input, out: join(work, 'c.json'), workDir: work, log: io.log, error: io.error })
+    const text = io.out.join('\n')
+    expect(text).toContain('TravelExpress')
+    expect(text).not.toMatch(EMAIL_PATTERN)
+    expect(text).not.toContain('Canary')
+  })
+
+  it('refuses an --out path outside the work dir and writes nothing', async () => {
+    const { work, input } = setup()
+    const elsewhere = mkdtempSync(join(tmpdir(), 'cand-elsewhere-'))
+    const target = join(elsewhere, 'candidates.json')
+    const io = capture()
+    const code = await runCandidates({ input, out: target, workDir: work, log: io.log, error: io.error })
+    expect(code).toBe(1)
+    expect(existsSync(target)).toBe(false)
+  })
+
+  it('a missing input exits 1 and names only the path', async () => {
+    const { work } = setup()
+    const io = capture()
+    const missing = join(work, 'nope')
+    const code = await runCandidates({ input: missing, out: join(work, 'c.json'), workDir: work, log: io.log, error: io.error })
+    expect(code).toBe(1)
+    expect(io.err.join('\n')).toContain(missing)
+  })
+
+  it('parseArgs reads --input and --out, rejects unknown flags', () => {
+    expect(parseArgs(['--input', 'x', '--out=y'])).toMatchObject({ input: 'x', out: 'y' })
+    expect(() => parseArgs(['--nope'])).toThrow()
   })
 })
