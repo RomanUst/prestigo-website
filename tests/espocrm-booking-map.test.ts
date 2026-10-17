@@ -203,6 +203,14 @@ describe('normalizeContactPhone (Contact only; synthetic numbers)', () => {
     expect(map.normalizeContactPhone('+49 (151) 234-567.89')).toEqual({ phone: '+4915123456789', kind: 'kept' })
   })
 
+  it('drops the bracketed national trunk digit "(0)"', () => {
+    expect(map.normalizeContactPhone('+44 (0) 20 7946 0958')).toEqual({ phone: '+442079460958', kind: 'kept' })
+    expect(map.normalizeContactPhone('+49(0)151 2345 6789')).toEqual({ phone: '+4915123456789', kind: 'kept' })
+    expect(map.normalizeContactPhone('0044 ( 0 ) 20 7946 0958')).toEqual({ phone: '+442079460958', kind: 'kept' })
+    // Other bracketed groups are untouched.
+    expect(map.normalizeContactPhone('+49 (151) 234-567.89')).toEqual({ phone: '+4915123456789', kind: 'kept' })
+  })
+
   it('leading 00 becomes +', () => {
     expect(map.normalizeContactPhone('00420 700 000 003')).toEqual({ phone: '+420700000003', kind: 'kept' })
     expect(map.normalizeContactPhone('0049 151 2345 6789')).toEqual({ phone: '+4915123456789', kind: 'kept' })
