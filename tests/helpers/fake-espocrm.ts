@@ -33,6 +33,11 @@ export interface FakeEspoOptions {
   layouts?: Record<string, any>
   /** entityType -> attribute; POST with an existing value of it returns 409. */
   duplicateCheck?: Record<string, string>
+  /**
+   * entityType -> rule(candidate, existing): POST returns 409 when it is true for any existing
+   * record. Models EspoCRM's Contact check, which matches on email OR first + last name.
+   */
+  duplicateMatch?: Record<string, (candidate: any, existing: any) => boolean>
   /** Request paths (exact, relative to /api/v1) that never answer. */
   stallPaths?: string[]
   /** Return a Response to handle a request before the built-in routes. */
@@ -427,6 +432,8 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
       if (req.method === 'POST') {
         const attr = options.duplicateCheck?.[entity]
         if (attr && req.body?.[attr] != null && list.some((r) => r[attr] === req.body[attr])) return empty(409)
+        const rule = options.duplicateMatch?.[entity]
+        if (rule && list.some((r) => rule(req.body ?? {}, r))) return empty(409)
         const record: any = { ...(req.body ?? {}), id: nextId() }
         // POST /User {type:'api'} returns a generated apiKey (plan 80-07): the key authenticates
         // as the new user from then on, like the live API-key login.

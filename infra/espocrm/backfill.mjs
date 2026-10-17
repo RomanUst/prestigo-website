@@ -19,7 +19,9 @@
  *   - field ownership: an existing Contact keeps its names, accountId, title and
  *     description; phoneNumber is filled only when empty. Bookings are sync-owned;
  *   - a 409 on Contact create is resolved by looking the Contact up by email (no
- *     duplicate-check bypass header is ever sent);
+ *     duplicate-check bypass header is ever sent). A 409 that no Contact with that email
+ *     explains (EspoCRM also matches first + last name) is counted as duplicate_unresolved:
+ *     the run continues and those bookings are written without a Contact link;
  *   - output is counts only: no email, name or phone number is ever printed.
  */
 
@@ -271,6 +273,9 @@ export async function runBackfill({
   }
   const applied = await applyPlan({ client, plan, contacts, delayMs })
   if (applied.conflicts > 0) log(`contacts: duplicate_resolved=${applied.conflicts}`)
+  if (applied.duplicateUnresolved > 0) {
+    log(`contacts: duplicate_unresolved=${applied.duplicateUnresolved} bookings_unlinked=${applied.unlinkedBookings}`)
+  }
   log(`contacts: phone_dropped=${applied.phoneDropped}`)
   log(`applied: contacts=${applied.contactWrites} bookings=${applied.bookingWrites}`)
   return { counts: plan.counts, plan, applied }
@@ -305,6 +310,9 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
   let bookingWrites = 0
   let conflicts = 0
   let phoneDropped = 0
+  // Contact keys (emails) whose create hit a 409 that no Contact with that email explains.
+  const unresolved = new Set()
+  let unlinkedBookings = 0
 
   for (const op of plan.contactOps) {
     if (op.kind === 'create') {
@@ -324,10 +332,17 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
         contactWrites++
         contactMap.set(op.key, { id: created.id, accountId: created.accountId ?? null })
       } catch (err) {
-        // 409 = EspoCRM duplicate check on the email: the Contact exists, reuse it.
+        // 409 = EspoCRM duplicate check: the Contact exists, reuse it.
         if (!(err instanceof EspoApiError) || err.status !== 409) throw err
         const found = await lookupContactByEmail(client, op.key)
-        if (!found) throw err
+        if (!found) {
+          // The check also matches on first + last name, so a 409 can come from a DIFFERENT
+          // Contact that merely shares the name (another email). That is not resolvable here:
+          // leave this email without a Contact, keep going, and let the owner decide in the CRM.
+          // Counts only are reported. Re-running repeats the same 409 harmlessly.
+          unresolved.add(op.key)
+          continue
+        }
         conflicts++
         contactMap.set(op.key, { id: found.id, accountId: found.accountId ?? null })
       }
@@ -351,13 +366,18 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
       data.contactId = contact.id
       if (contact.accountId) data.accountId = contact.accountId
       else if (op.kind === 'create') delete data.accountId
+    } else if (op.contactKey && unresolved.has(op.contactKey)) {
+      // No usable Contact for this email: write the booking without touching its Contact link.
+      delete data.contactId
+      delete data.accountId
+      unlinkedBookings++
     }
     await pause()
     if (op.kind === 'create') await client.request('POST', '/CBooking', data)
     else await client.request('PUT', `/CBooking/${op.id}`, data)
     bookingWrites++
   }
-  return { contactWrites, bookingWrites, conflicts, phoneDropped }
+  return { contactWrites, bookingWrites, conflicts, phoneDropped, duplicateUnresolved: unresolved.size, unlinkedBookings }
 }
 
 /**
