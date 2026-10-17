@@ -193,6 +193,73 @@ describe('round trip adjacency', () => {
   })
 })
 
+describe('normalizeContactPhone (Contact only; synthetic numbers)', () => {
+  it('keeps an E.164 number unchanged', () => {
+    expect(map.normalizeContactPhone('+420700000001')).toEqual({ phone: '+420700000001', kind: 'kept' })
+    expect(map.normalizeContactPhone('+420 700 000 002')).toEqual({ phone: '+420700000002', kind: 'kept' })
+  })
+
+  it('strips spaces, dashes, dots and parentheses', () => {
+    expect(map.normalizeContactPhone('+49 (151) 234-567.89')).toEqual({ phone: '+4915123456789', kind: 'kept' })
+  })
+
+  it('leading 00 becomes +', () => {
+    expect(map.normalizeContactPhone('00420 700 000 003')).toEqual({ phone: '+420700000003', kind: 'kept' })
+    expect(map.normalizeContactPhone('0049 151 2345 6789')).toEqual({ phone: '+4915123456789', kind: 'kept' })
+  })
+
+  it('a "+" number that is not E.164 is omitted', () => {
+    expect(map.normalizeContactPhone('+12345').phone).toBeNull() // too short
+    expect(map.normalizeContactPhone('+0123456789').phone).toBeNull() // leading zero country code
+    expect(map.normalizeContactPhone('+4207000abc01').phone).toBeNull() // letters
+    expect(map.normalizeContactPhone('+1234567890123456').phone).toBeNull() // 16 digits
+  })
+
+  it('exactly 9 digits gets +420', () => {
+    expect(map.normalizeContactPhone('700000004')).toEqual({ phone: '+420700000004', kind: 'prefixed' })
+    expect(map.normalizeContactPhone('700 000 005')).toEqual({ phone: '+420700000005', kind: 'prefixed' })
+  })
+
+  it.each(map.KNOWN_CALLING_CODES)('11-12 digits starting with calling code %s get a +', (cc) => {
+    const digits = (cc + '555123456789').slice(0, 12)
+    const out = map.normalizeContactPhone(digits)
+    expect(out).toEqual({ phone: `+${digits}`, kind: 'prefixed' })
+    const eleven = (cc + '55512345678').slice(0, 11)
+    expect(map.normalizeContactPhone(eleven)).toEqual({ phone: `+${eleven}`, kind: 'prefixed' })
+  })
+
+  it('11-12 digits with an unknown calling code are omitted', () => {
+    expect(map.normalizeContactPhone('99912345678')).toMatchObject({ phone: null, kind: 'omitted' })
+    expect(map.normalizeContactPhone('999123456789')).toMatchObject({ phone: null, kind: 'omitted' })
+  })
+
+  it('10 digits, 13+ bare digits, other lengths and text are omitted', () => {
+    for (const v of ['7000000006', '1234567', '12345678', '4207000000071', 'call me', '700-ABC-000']) {
+      expect(map.normalizeContactPhone(v).phone).toBeNull()
+    }
+  })
+
+  it('empty / null / blank are omitted with reason empty', () => {
+    for (const v of [null, undefined, '', '   ']) {
+      expect(map.normalizeContactPhone(v)).toEqual({ phone: null, kind: 'omitted', reason: 'empty' })
+    }
+  })
+
+  it('rowToContact uses the normalised phone and omits the key when unusable', () => {
+    expect((map.rowToContact(row({ client_phone: '700000007' })) as Record<string, unknown>).phoneNumber).toBe('+420700000007')
+    expect((map.rowToContact(row({ client_phone: '00420700000008' })) as Record<string, unknown>).phoneNumber).toBe('+420700000008')
+    for (const v of ['7000000009', '', null]) {
+      const c = map.rowToContact(row({ client_phone: v }))
+      expect(c).not.toBeNull()
+      expect(Object.keys(c as object)).not.toContain('phoneNumber')
+    }
+  })
+
+  it('rowToBooking never carries the phone (booking keeps its original on the source row)', () => {
+    expect(Object.keys(map.rowToBooking(row({ client_phone: '700000007' })))).not.toContain('phoneNumber')
+  })
+})
+
 describe('empties and sanitising', () => {
   it.each([[null], [''], ['   '], ['not-an-email']])('rowToContact(%j email) -> null', (email) => {
     expect(map.rowToContact(row({ client_email: email }))).toBeNull()

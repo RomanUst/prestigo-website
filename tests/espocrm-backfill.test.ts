@@ -445,3 +445,51 @@ describe('PII-free logs', () => {
     for (const value of pii) expect(blob.toLowerCase()).not.toContain(value.toLowerCase())
   })
 })
+
+describe('phone normalisation and rejected-phone retry', () => {
+  it('contact_phones line counts kept / prefixed / omitted; omitted Contacts are created without a phone', async () => {
+    const rows = [
+      row({ client_phone: '+420700000001' }),
+      row({ client_phone: '700000002' }),
+      row({ client_phone: '7000000003' }),
+      row({ client_phone: '' }),
+    ]
+    const dir = writePages([rows])
+    const fake = createFakeEspoCRM()
+    const { text } = await run(fake, dir)
+    expect(text).toMatch(/^contact_phones: kept=1 prefixed=1 omitted=2$/m)
+    const phones = (fake.state.records.Contact ?? []).map((c: any) => c.phoneNumber ?? '').sort()
+    expect(phones).toEqual(['', '', '+420700000001', '+420700000002'])
+    const posts = fake.requests.filter((r) => r.method === 'POST' && r.path === '/Contact')
+    expect(posts.filter((r) => 'phoneNumber' in ((r.body as any) ?? {}))).toHaveLength(2)
+  })
+
+  it('a Contact whose normalised phone is still rejected (400) is retried once without it (phone_dropped)', async () => {
+    const rows = [row({ client_phone: '+420700000011' }), row({ client_phone: '+420700000012' })]
+    const dir = writePages([rows])
+    const fake = createFakeEspoCRM({
+      extraRoutes: (req: any) => {
+        if (req.method === 'POST' && req.path === '/Contact' && req.body?.phoneNumber === '+420700000011') {
+          return new Response('', { status: 400 })
+        }
+        return undefined
+      },
+    })
+    const { text } = await run(fake, dir)
+    expect(text).toMatch(/^contacts: phone_dropped=1$/m)
+    expect(text).toMatch(/^applied: contacts=2 bookings=2$/m)
+    expect(fake.state.records.Contact).toHaveLength(2)
+    expect(fake.state.records.CBooking).toHaveLength(2)
+    const posts = fake.requests.filter((r) => r.method === 'POST' && r.path === '/Contact')
+    expect(posts).toHaveLength(3) // 1 rejected + 1 retry without phone + 1 normal
+  })
+
+  it('a 400 that persists without the phone still fails the run', async () => {
+    const dir = writePages([[row()]])
+    const fake = createFakeEspoCRM({
+      extraRoutes: (req: any) =>
+        req.method === 'POST' && req.path === '/Contact' ? new Response('', { status: 400 }) : undefined,
+    })
+    await expect(run(fake, dir)).rejects.toThrow()
+  })
+})

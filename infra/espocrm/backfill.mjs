@@ -32,6 +32,7 @@ import {
   PAYMENT_METHOD_VALUES,
   SYNCED_BOOKING_FIELDS,
   isAbandonedCheckout,
+  normalizeContactPhone,
   normalizeEmail,
   rowToBooking,
   rowToContact,
@@ -204,19 +205,32 @@ export function planBackfill({ rows, contacts, bookings, limit }) {
     contactOf.set(booking.supabaseBookingId, key)
     let plan = contactPlans.get(key)
     if (!plan) {
-      plan = { key, existing: existingContacts.get(key) ?? null, payload, phone: payload.phoneNumber }
+      plan = {
+        key,
+        existing: existingContacts.get(key) ?? null,
+        payload,
+        phone: payload.phoneNumber,
+        phoneKind: payload.phoneNumber ? normalizeContactPhone(row.client_phone).kind : 'omitted',
+      }
       contactPlans.set(key, plan)
     } else if (!plan.phone && payload.phoneNumber) {
       plan.phone = payload.phoneNumber
+      plan.phoneKind = normalizeContactPhone(row.client_phone).kind
     }
   }
 
   const contactOps = []
   const contactCounts = { create: 0, update: 0, unchanged: 0 }
+  // Phone handling per Contact (aggregate only): kept / prefixed / omitted.
+  const phoneCounts = { kept: 0, prefixed: 0, omitted: 0 }
+  for (const plan of contactPlans.values()) phoneCounts[plan.phoneKind]++
   for (const plan of contactPlans.values()) {
     if (!plan.existing) {
       contactCounts.create++
-      contactOps.push({ kind: 'create', key: plan.key, payload: { ...plan.payload, phoneNumber: plan.phone } })
+      const payload = { ...plan.payload }
+      if (plan.phone) payload.phoneNumber = plan.phone
+      else delete payload.phoneNumber
+      contactOps.push({ kind: 'create', key: plan.key, payload })
     } else if (isNil(plan.existing.phoneNumber) || plan.existing.phoneNumber === '') {
       if (plan.phone) {
         contactCounts.update++
@@ -262,6 +276,7 @@ export function planBackfill({ rows, contacts, bookings, limit }) {
       bySource: countBy(valid, (v) => v.booking.source),
       byPaymentMethod: methods,
       contacts: contactCounts,
+      phones: phoneCounts,
       bookings: bookingCounts,
     },
   }
@@ -313,6 +328,7 @@ function printCounts(log, exp, plan, limit) {
   log(`by_source: ${fmtCounts(c.bySource)}`)
   log(`by_payment_method: ${PAYMENT_METHOD_VALUES.map((m) => `${m}=${c.byPaymentMethod[m]}`).join(' ')}`)
   log(`contacts: create=${c.contacts.create} update=${c.contacts.update} unchanged=${c.contacts.unchanged}`)
+  log(`contact_phones: kept=${c.phones.kept} prefixed=${c.phones.prefixed} omitted=${c.phones.omitted}`)
   log(
     `bookings: create=${c.bookings.create} update=${c.bookings.update} unchanged=${c.bookings.unchanged} ` +
       `without_contact=${c.bookings.without_contact}`,
@@ -343,6 +359,7 @@ export async function runBackfill({
   }
   const applied = await applyPlan({ client, plan, contacts, delayMs })
   if (applied.conflicts > 0) log(`contacts: duplicate_resolved=${applied.conflicts}`)
+  log(`contacts: phone_dropped=${applied.phoneDropped}`)
   log(`applied: contacts=${applied.contactWrites} bookings=${applied.bookingWrites}`)
   return { counts: plan.counts, plan, applied }
 }
@@ -375,12 +392,23 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
   let contactWrites = 0
   let bookingWrites = 0
   let conflicts = 0
+  let phoneDropped = 0
 
   for (const op of plan.contactOps) {
     if (op.kind === 'create') {
       await pause()
       try {
-        const created = await client.request('POST', '/Contact', op.payload)
+        let created
+        try {
+          created = await client.request('POST', '/Contact', op.payload)
+        } catch (err) {
+          // EspoCRM still rejects the normalised phone: retry this one Contact once without it.
+          if (!(err instanceof EspoApiError) || err.status !== 400 || !op.payload.phoneNumber) throw err
+          const { phoneNumber: _dropped, ...withoutPhone } = op.payload
+          await pause()
+          created = await client.request('POST', '/Contact', withoutPhone)
+          phoneDropped++
+        }
         contactWrites++
         contactMap.set(op.key, { id: created.id, accountId: created.accountId ?? null })
       } catch (err) {
@@ -393,8 +421,14 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
       }
     } else {
       await pause()
-      await client.request('PUT', `/Contact/${op.id}`, op.data)
-      contactWrites++
+      try {
+        await client.request('PUT', `/Contact/${op.id}`, op.data)
+        contactWrites++
+      } catch (err) {
+        // A phone EspoCRM rejects is skipped: the Contact keeps no phone, the run continues.
+        if (!(err instanceof EspoApiError) || err.status !== 400) throw err
+        phoneDropped++
+      }
     }
   }
 
@@ -411,7 +445,7 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
     else await client.request('PUT', `/CBooking/${op.id}`, data)
     bookingWrites++
   }
-  return { contactWrites, bookingWrites, conflicts }
+  return { contactWrites, bookingWrites, conflicts, phoneDropped }
 }
 
 /**
