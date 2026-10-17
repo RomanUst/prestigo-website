@@ -75,6 +75,7 @@ const { storeRef } = vi.hoisted(() => {
       setPromoDiscount: vi.fn(),
       attemptId: 'attempt-test-1',
       setAttemptId: vi.fn(),
+      goToStep: vi.fn(),
     },
   }
   return { storeRef }
@@ -253,6 +254,25 @@ describe('D-07: Step6Payment shows translated errors keyed by the server code, n
       expect(screen.getByText(expected)).toBeTruthy()
     })
     expect(screen.queryByText('A brand new server error string.')).toBeNull()
+  })
+})
+
+describe('WR-07: Step6Payment maps a server INVALID_PHONE (422) back to the phone field', () => {
+  it('INVALID_PHONE under ru -> goes back to step 5 and never shows the generic init failure', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 422,
+      json: () => Promise.resolve({ error: 'Phone must include the country code', code: 'INVALID_PHONE' }),
+    } as Response)
+
+    render(<Step6Payment />, { locale: 'ru', messages: ruMessages })
+
+    await waitFor(() => {
+      expect(storeRef.current.goToStep).toHaveBeenCalledWith(5)
+    })
+    const generic = (ruMessagesRaw as { Booking: { step6: { paymentInitFailed: string } } })
+      .Booking.step6.paymentInitFailed
+    expect(screen.queryByText(generic)).toBeNull()
   })
 })
 

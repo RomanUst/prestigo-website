@@ -99,6 +99,7 @@ export default function Step5Passenger() {
     register,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(passengerSchema),
@@ -115,6 +116,13 @@ export default function Step5Passenger() {
   })
 
   const { firstName, lastName, email, phone, flightNumber, terminal, specialRequests } = watch()
+
+  // A phone restored from the session (or sent back from Step 6 after the server
+  // refused it) is validated straight away so the field error is visible.
+  useEffect(() => {
+    if (passengerDetails?.phone) void trigger('phone')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Pre-fill from customer_profiles if user is authenticated and fields are empty
   useEffect(() => {
