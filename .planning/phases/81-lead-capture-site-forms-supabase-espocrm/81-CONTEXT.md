@@ -87,6 +87,17 @@ webhooks (Phase 83), stats (Phase 85).
   insert, QStash or the VPS. A storage failure is logged and the submission still returns success with emails
   sent. With the VPS offline, events queue in the outbox and are delivered exactly once when it is back.
 
+### Owner answers to research open questions (plan-phase, 2026-10-18)
+- **D-19:** A round trip (two `bookings` rows, outbound + return leg) ordered by one person is ONE Lead, keyed by
+  the outbound leg; the return leg never creates its own Lead, and the Lead mentions both booking references.
+  This refines D-05 for linked legs.
+- **D-20:** The D-15 90-day deletion applies only to online-checkout bookings (`booking_source='online'`). Manual
+  and payment-link unpaid bookings go Dead per D-03 but their Leads are kept.
+- **D-21:** Strictly forward-only: bookings created before the lead-capture deploy never become Leads, even if
+  their status changes (e.g. paid) after deploy.
+- **D-22:** EspoCRM Lead ACL: Dispatcher role has no Lead access; Sales manager has full Lead access; Sync writer
+  gets the Lead scope it needs (incl. delete for D-15/D-20).
+
 ### Claude's Discretion
 - Outbox schema, dispatcher and sweep design (research `.planning/research/ARCHITECTURE.md` Pattern 1 is the
   starting point: explicit insert via `lib/outbox.ts`, `after()` QStash publish, idempotency key unique index,
