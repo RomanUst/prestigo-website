@@ -853,6 +853,32 @@ describe('D-07: create-payment-intent error responses carry a stable machine cod
     expect(stripeMock.paymentIntents.create).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['whitespace-only', { phone: '   ' }],
+    ['empty', { phone: '' }],
+  ])('%s phone (422) -> code INVALID_PHONE, no PaymentIntent', async (_label, overrides) => {
+    const res = await POST(makePostRequest({ bookingData: makeBookingData(overrides) }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).code).toBe('INVALID_PHONE')
+    expect(stripeMock.paymentIntents.create).not.toHaveBeenCalled()
+  })
+
+  it('missing phone (422) -> code INVALID_PHONE, no PaymentIntent', async () => {
+    const bookingData = makeBookingData()
+    delete (bookingData as Record<string, string | undefined>).phone
+    const res = await POST(makePostRequest({ bookingData }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).code).toBe('INVALID_PHONE')
+    expect(stripeMock.paymentIntents.create).not.toHaveBeenCalled()
+  })
+
+  it('trunk-digit phone is normalised before it is stored', async () => {
+    const res = await POST(makePostRequest({ bookingData: makeBookingData({ phone: '+44 (0) 20 7946 0958' }) }))
+    expect(res.status).toBe(200)
+    expect(stripeMock.paymentIntents.create).toHaveBeenCalled()
+    expect(saveBookingMock.mock.calls[0][0].client_phone).toBe('+442079460958')
+  })
+
   it('pricing config load failure (503) -> code PRICING_UNAVAILABLE', async () => {
     pricingConfigMock.mockRejectedValueOnce(new Error('config down'))
     const res = await POST(makePostRequest({ bookingData: makeBookingData() }))
