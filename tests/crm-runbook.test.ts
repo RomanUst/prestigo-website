@@ -166,7 +166,11 @@ describe('CRM runbook: role table is pinned to roles.json', () => {
 describe('CRM runbook: Dispatcher hidden Account fields', () => {
   const rows = parseTable('| Hidden Account field |')
   const listed = rows.slice(1).map((r) => r[0])
-  const dispatcher = buildRoleSpecs(rolesJson, fieldsJson).find((s: { name: string }) => s.name === 'Dispatcher')
+  const specs = buildRoleSpecs(rolesJson, fieldsJson) as unknown as Array<{
+    name: string
+    fieldData: Record<string, Record<string, unknown>>
+  }>
+  const dispatcher = specs.find((s) => s.name === 'Dispatcher')
   const hidden = Object.keys(dispatcher?.fieldData?.Account ?? {})
 
   it('hides at least one commercial field (guards against an empty comparison)', () => {
@@ -188,5 +192,153 @@ describe('CRM runbook: Chatwoot teams come from teams.json', () => {
   it.each(['Bookings', 'B2B'])('"Chatwoot role mirror" names team %s', (team) => {
     const body = sectionBody('## Chatwoot role mirror').join('\n')
     expect(body).toContain(team)
+  })
+})
+
+describe('CRM runbook: tools, files and facts the phase added', () => {
+  it('has enough content to be a runbook (at least 150 lines)', () => {
+    expect(lines.length).toBeGreaterThanOrEqual(150)
+  })
+
+  it('names every tool, flag, file, identity and fact', () => {
+    for (const needle of [
+      'sync.mjs',
+      'overlay.mjs',
+      'verify-acl.mjs',
+      'inspect.mjs',
+      'backfill.mjs',
+      '--dry-run',
+      '--relink',
+      '--audit',
+      'account-candidates.mjs',
+      'seed-accounts.mjs',
+      'espocrm-config.env',
+      'espocrm-sync.env',
+      'prestigo-config',
+      'prestigo-sync',
+      'prestigo-admin',
+      'Personal Email Account',
+      'roman@rideprestigo.com',
+      'Fetch Since',
+      'Reminders',
+      'notifications@rideprestigo.com',
+      'Dispatcher',
+      'Sales manager',
+      'Sync writer',
+      'agent',
+      'administrator',
+      'chatwoot-channels.md',
+      'backup-restore.md',
+      'Restore Drill Canary',
+      'CBooking',
+      'supabaseBookingId',
+      'authApiUserLogDisabled',
+    ]) {
+      expect(text, `runbook must mention ${needle}`).toContain(needle)
+    }
+  })
+})
+
+describe('CRM runbook: operator steps (D-23)', () => {
+  const adding = sectionBody('## Adding an operator').join('\n')
+  const removing = sectionBody('## Removing an operator').join('\n')
+  const mirror = sectionBody('## Chatwoot role mirror').join('\n')
+
+  it('states that Chatwoot CE has only agent and administrator and that no agents exist yet', () => {
+    expect(mirror).toContain('agent')
+    expect(mirror).toContain('administrator')
+    expect(mirror).toMatch(/no agents? (exist|has been created|have been created)/i)
+  })
+
+  it('"Adding an operator" covers both systems and ends with verify-acl.mjs', () => {
+    expect(adding).toContain('EspoCRM')
+    expect(adding).toContain('Chatwoot')
+    expect(adding).toContain('verify-acl.mjs')
+    expect(adding).toContain('inspect.mjs --status')
+  })
+
+  it('"Removing an operator" covers both systems and the reassignment of open work', () => {
+    expect(removing).toContain('EspoCRM')
+    expect(removing).toContain('Chatwoot')
+    expect(removing).toMatch(/reassign/i)
+    expect(removing).toContain('Task')
+    expect(removing).toContain('Opportunit')
+  })
+})
+
+describe('CRM runbook: mailbox rules (D-11, D-24)', () => {
+  const mailbox = sectionBody('## Sales mailbox (roman@)').join('\n')
+
+  it('says roman@ is a Personal Email Account and cites chatwoot-channels.md', () => {
+    expect(mailbox).toContain('Personal Email Account')
+    expect(text).toContain('chatwoot-channels.md')
+  })
+
+  it('tells sales users to send partner mail from the Opportunity (D-24)', () => {
+    expect(mailbox).toMatch(/from the Opportunity/)
+  })
+
+  it('every line naming "Group Email Account" also says never or not', () => {
+    const hits = lines.filter((l) => l.includes('Group Email Account'))
+    for (const l of hits) expect(l, l).toMatch(/\b(never|not)\b/i)
+  })
+
+  it('every line naming roman@ together with Chatwoot says never or not', () => {
+    const hits = lines.filter((l) => /roman@/i.test(l) && /chatwoot/i.test(l))
+    expect(hits.length).toBeGreaterThan(0)
+    for (const l of hits) expect(l, l).toMatch(/\b(never|not|no)\b/i)
+  })
+
+  it('every line pairing a connected mailbox address with an agent or Chatwoot says never, not or no (T-80-36)', () => {
+    const hits = lines.filter((l) => /\b(roman|info|bookings)@/i.test(l) && /(agent|chatwoot)/i.test(l))
+    expect(hits.length).toBeGreaterThan(0)
+    for (const l of hits) expect(l, l).toMatch(/\b(never|not|no)\b/i)
+  })
+})
+
+describe('CRM runbook: booking mirror and admin exception', () => {
+  const mirror = sectionBody('## Booking history mirror').join('\n')
+
+  it('documents the admin exception and the overwrite on the next backfill', () => {
+    expect(mirror).toMatch(/owner can edit/i)
+    expect(mirror).toMatch(/overwrit/i)
+    expect(mirror).toContain('--relink')
+    expect(mirror).toContain('--audit')
+  })
+
+  it('documents the phone rules operators need to know', () => {
+    expect(mirror).toContain('E.164')
+  })
+})
+
+describe('CRM runbook: no secrets and no customer data (T-80-35)', () => {
+  const ALLOWED_LOCAL_PARTS = new Set(['roman', 'info', 'bookings', 'notifications'])
+  const emails = text.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g) ?? []
+
+  it('mentions only the rideprestigo.com role addresses', () => {
+    expect(emails.length).toBeGreaterThan(0)
+    for (const e of emails) {
+      const [local, domain] = e.split('@')
+      expect(domain.toLowerCase(), e).toBe('rideprestigo.com')
+      expect(ALLOWED_LOCAL_PARTS.has(local.toLowerCase()), e).toBe(true)
+    }
+  })
+
+  it.each([
+    ['an ESPOCRM_ key followed by = and a value', /ESPOCRM_[A-Z_]+\s*=\s*\S+/],
+    ['a 32+ character hex run', /\b[0-9a-fA-F]{32,}\b/],
+    ['a 32+ character base64-like run', /[A-Za-z0-9+]{32,}/],
+    ['the word password followed by : or = and a value', /password\s*[:=]\s*\S+/i],
+    ['a smtp password assignment', /(RESEND|SMTP)_[A-Z_]*(PASSWORD|KEY)\s*=\s*\S+/],
+    ['an API key header value', /X-Api-Key:\s*\S+/i],
+  ])('has no %s', (_label, re) => {
+    for (const l of lines) expect(l, l).not.toMatch(re)
+  })
+
+  it('has no phone number', () => {
+    for (const l of lines) {
+      expect(l, l).not.toMatch(/\+\d{7,}/)
+      expect(l, l).not.toMatch(/\b\d{9,}\b/)
+    }
   })
 })
