@@ -216,19 +216,60 @@ export function buildAdminLink(reference) {
   return `${ADMIN_BOOKINGS_URL}?search=${encodeURIComponent(String(reference))}`
 }
 
-/** Contact payload, or null when the row has no valid email. */
+const E164_RE = /^\+[1-9]\d{7,14}$/
+const DEFAULT_COUNTRY_PREFIX = '+420'
+
+// Known country calling codes for bare 11-12 digit numbers ("4915123456789" -> "+4915123456789").
+export const KNOWN_CALLING_CODES = [
+  '420', '421', '43', '44', '49', '48', '36', '33', '39', '34', '31', '32', '41',
+  '1', '7', '380', '972', '971', '90', '86', '81', '82', '91',
+]
+
+/**
+ * Contact-only phone normaliser (EspoCRM rejects numbers without an international
+ * prefix with {"field":"phoneNumber","type":"valid"}). The booking keeps the original.
+ *
+ * Returns { phone, kind }:
+ *   kept     - already international (E.164, or 00-prefixed converted to +); phone is the cleaned value
+ *   prefixed - bare digits made international (9 digits -> +420, 11-12 digits with a known calling code -> +)
+ *   omitted  - no usable number (kind 'empty' when blank, 'unrecognized' otherwise); phone is null
+ */
+export function normalizeContactPhone(value) {
+  const raw = sanitizeText(value, 50)
+  if (raw === '') return { phone: null, kind: 'omitted', reason: 'empty' }
+  // Strip spaces, dashes, dots and parentheses; leading 00 means "+".
+  let s = raw.replace(/[\s\-.()]/g, '')
+  if (s.startsWith('00')) s = `+${s.slice(2)}`
+  if (s.startsWith('+')) {
+    return E164_RE.test(s)
+      ? { phone: s, kind: 'kept' }
+      : { phone: null, kind: 'omitted', reason: 'unrecognized' }
+  }
+  if (!/^\d+$/.test(s)) return { phone: null, kind: 'omitted', reason: 'unrecognized' }
+  if (s.length === 9) {
+    const phone = `${DEFAULT_COUNTRY_PREFIX}${s}`
+    if (E164_RE.test(phone)) return { phone, kind: 'prefixed' }
+  } else if (s.length >= 11 && s.length <= 12 && KNOWN_CALLING_CODES.some((cc) => s.startsWith(cc))) {
+    const phone = `+${s}`
+    if (E164_RE.test(phone)) return { phone, kind: 'prefixed' }
+  }
+  return { phone: null, kind: 'omitted', reason: 'unrecognized' }
+}
+
+/**
+ * Contact payload, or null when the row has no valid email. phoneNumber is the
+ * normalised number and is OMITTED when no usable number exists.
+ */
 export function rowToContact(row) {
   const email = normalizeEmail(row.client_email)
   if (!EMAIL_RE.test(email)) return null
   const firstName = sanitizeText(row.client_first_name, 100)
   const lastNameRaw = sanitizeText(row.client_last_name, 100)
   const lastName = lastNameRaw || firstName || email.split('@')[0]
-  return {
-    firstName,
-    lastName,
-    emailAddress: email,
-    phoneNumber: sanitizeText(row.client_phone, 50),
-  }
+  const payload = { firstName, lastName, emailAddress: email }
+  const { phone } = normalizeContactPhone(row.client_phone)
+  if (phone) payload.phoneNumber = phone
+  return payload
 }
 
 /** CBooking payload. Throws BookingMapError for values outside the pinned enums. */
