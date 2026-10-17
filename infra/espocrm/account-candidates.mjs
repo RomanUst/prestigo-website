@@ -19,7 +19,7 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { EspoConfigError } from './lib/client.mjs'
 import { buildCandidates, formatCandidateTable } from './lib/candidates.mjs'
-import { loadExport } from './backfill.mjs'
+import { loadExport } from './lib/export-loader.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const WORK_DIR = path.join(HERE, '.work')

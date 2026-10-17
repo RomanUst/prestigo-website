@@ -33,17 +33,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
 import { normalizeEmail } from './lib/booking-map.mjs'
 import { FREE_MAIL_DOMAINS, emailDomain, selectConfirmed } from './lib/candidates.mjs'
-import { loadExport } from './backfill.mjs'
+import { describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
+import { loadExport } from './lib/export-loader.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const WORK_DIR = path.join(HERE, '.work')
 export const DEFAULT_CANDIDATES = path.join(WORK_DIR, 'candidates.json')
 export const DEFAULT_INPUT = path.join(WORK_DIR, 'export')
-const PAGE_SIZE = 200
 const DEFAULT_DELAY_MS = 50
 const FREE_MAIL = new Set(FREE_MAIL_DOMAINS)
 
-const sleep = (ms) => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve())
 const collapse = (s) => String(s ?? '').replace(/\s+/g, ' ').trim()
 const nameKey = (s) => collapse(s).toLowerCase()
 const isBlank = (v) => v === null || v === undefined || v === ''
@@ -145,30 +144,6 @@ export function planSeed({ candidates, accounts, contacts, rows }) {
 // CRM preload and run
 // ---------------------------------------------------------------------------
 
-/** Page through a collection (server cap 200); de-duplicates by id against unstable paging. */
-async function fetchAll(client, entity, select) {
-  const out = new Map()
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const qs = `select=${select.join(',')}&maxSize=${PAGE_SIZE}&offset=${offset}&orderBy=createdAt&order=asc`
-    const res = await client.request('GET', `/${entity}?${qs}`)
-    const list = Array.isArray(res?.list) ? res.list : []
-    for (const rec of list) if (rec?.id && !out.has(rec.id)) out.set(rec.id, rec)
-    if (list.length < PAGE_SIZE) break
-    if (typeof res?.total === 'number' && res.total >= 0 && offset + PAGE_SIZE >= res.total) break
-  }
-  return [...out.values()]
-}
-
-function readOnlyClient(client) {
-  return {
-    ...client,
-    request(method, apiPath, body) {
-      if (method !== 'GET') throw new Error(`dry-run refused ${method} ${apiPath.split('?')[0]}`)
-      return client.request(method, apiPath, body)
-    },
-  }
-}
-
 /**
  * @param {{ client: { request: Function }, candidates: object[], rows?: object[], dryRun?: boolean,
  *           delayMs?: number, log?: (line: string) => void }} options
@@ -257,11 +232,6 @@ function readCandidates(file) {
   const list = Array.isArray(parsed) ? parsed : parsed?.candidates
   if (!Array.isArray(list)) throw new EspoConfigError(`Candidates file has no candidates array: ${file}`)
   return list
-}
-
-/** API failure line without query string or body. */
-function describeApiError(err) {
-  return `${err.method} ${String(err.apiPath).split('?')[0]} -> ${err.status}`
 }
 
 /**

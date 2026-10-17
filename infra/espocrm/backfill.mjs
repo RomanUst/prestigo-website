@@ -23,15 +23,15 @@
  *   - output is counts only: no email, name or phone number is ever printed.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
+import { describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
+import { byExportOrder, loadExport } from './lib/export-loader.mjs'
 import {
   BookingMapError,
   PAYMENT_METHOD_VALUES,
   SYNCED_BOOKING_FIELDS,
-  isAbandonedCheckout,
   normalizeContactPhone,
   normalizeEmail,
   rowToBooking,
@@ -40,7 +40,6 @@ import {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const DEFAULT_INPUT = path.join(HERE, '.work', 'export')
-const PAGE_SIZE = 200
 const DEFAULT_DELAY_MS = 50
 
 // ---------------------------------------------------------------------------
@@ -48,7 +47,6 @@ const DEFAULT_DELAY_MS = 50
 // ---------------------------------------------------------------------------
 
 const isNil = (v) => v === null || v === undefined
-const sleep = (ms) => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve())
 
 /** null and '' are equal; numbers compare numerically (a numeric string equals its number). */
 function sameValue(a, b) {
@@ -78,70 +76,8 @@ const fmtCounts = (obj) =>
     .map((k) => `${k}=${obj[k]}`)
     .join(' ')
 
-const byExportOrder = (a, b) => {
-  const ca = String(a.created_at ?? '')
-  const cb = String(b.created_at ?? '')
-  if (ca !== cb) return ca < cb ? -1 : 1
-  const ia = String(a.id)
-  const ib = String(b.id)
-  return ia < ib ? -1 : ia > ib ? 1 : 0
-}
-
-// ---------------------------------------------------------------------------
-// Export loading
-// ---------------------------------------------------------------------------
-
-/**
- * Load the Supabase export: a single .json file or a directory of page-*.json files.
- * De-duplicates by id (duplicate_rows) and re-applies the abandoned-checkout rule
- * (excluded_abandoned). Rows come back in export order (created_at, id).
- * Error messages name only the path: file contents never reach an error message.
- */
-export function loadExport(input) {
-  if (!input || !existsSync(input)) {
-    throw new EspoConfigError(`Export input not found: ${input}`)
-  }
-  let files
-  if (statSync(input).isDirectory()) {
-    files = readdirSync(input)
-      .filter((f) => /^page-.*\.json$/.test(f))
-      .sort()
-      .map((f) => path.join(input, f))
-    if (files.length === 0) throw new EspoConfigError(`No page-*.json files in: ${input}`)
-  } else {
-    files = [input]
-  }
-
-  const seen = new Map()
-  let duplicateRows = 0
-  for (const file of files) {
-    let parsed
-    try {
-      parsed = JSON.parse(readFileSync(file, 'utf8'))
-    } catch {
-      throw new EspoConfigError(`Export file is not valid JSON: ${file}`)
-    }
-    if (!Array.isArray(parsed)) throw new EspoConfigError(`Export file is not a JSON array: ${file}`)
-    for (const row of parsed) {
-      if (!row || typeof row !== 'object' || isNil(row.id) || row.id === '') {
-        throw new EspoConfigError(`Export file holds a row without id: ${file}`)
-      }
-      if (seen.has(row.id)) duplicateRows++
-      else seen.set(row.id, row)
-    }
-  }
-
-  const all = [...seen.values()]
-  const rows = all.filter((r) => !isAbandonedCheckout(r)).sort(byExportOrder)
-  return {
-    rows,
-    counts: {
-      rows: all.length,
-      excluded_abandoned: all.length - rows.length,
-      duplicate_rows: duplicateRows,
-    },
-  }
-}
+// Re-exported: the export reader lives in lib/export-loader.mjs and is shared with seed-accounts.
+export { loadExport }
 
 // ---------------------------------------------------------------------------
 // Plan (pure)
@@ -286,32 +222,8 @@ export function planBackfill({ rows, contacts, bookings, limit }) {
 // CRM preload
 // ---------------------------------------------------------------------------
 
-/** Page through a collection (server cap 200); de-duplicates by id against unstable paging. */
-async function fetchAll(client, entity, select) {
-  const out = new Map()
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const qs = `select=${select.join(',')}&maxSize=${PAGE_SIZE}&offset=${offset}&orderBy=createdAt&order=asc`
-    const res = await client.request('GET', `/${entity}?${qs}`)
-    const list = Array.isArray(res?.list) ? res.list : []
-    for (const rec of list) if (rec?.id && !out.has(rec.id)) out.set(rec.id, rec)
-    if (list.length < PAGE_SIZE) break
-    if (typeof res?.total === 'number' && res.total >= 0 && offset + PAGE_SIZE >= res.total) break
-  }
-  return [...out.values()]
-}
-
 const CONTACT_SELECT = ['id', 'emailAddress', 'accountId', 'phoneNumber']
 const BOOKING_SELECT = ['id', ...SYNCED_BOOKING_FIELDS, 'contactId', 'accountId']
-
-function readOnlyClient(client) {
-  return {
-    ...client,
-    request(method, apiPath, body) {
-      if (method !== 'GET') throw new Error(`dry-run refused ${method} ${apiPath.split('?')[0]}`)
-      return client.request(method, apiPath, body)
-    },
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Run
@@ -520,11 +432,6 @@ export function parseArgs(argv) {
     else throw new EspoConfigError(`Unknown argument: ${arg}`)
   }
   return opts
-}
-
-/** API failure line without query string or body: a lookup URL can carry an email address. */
-function describeApiError(err) {
-  return `${err.method} ${String(err.apiPath).split('?')[0]} -> ${err.status}`
 }
 
 /**
