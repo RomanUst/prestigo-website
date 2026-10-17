@@ -220,6 +220,18 @@ describe('selectConfirmed', () => {
     ).toThrow(/canary/i)
   })
 
+  it.each([['true'], ['yes'], [1], ['']])('rejects a non-boolean confirm %j instead of ignoring it', (confirm) => {
+    expect(() => cand.selectConfirmed([{ ...base, confirm, type: 'Hotel' }])).toThrow(/non-boolean confirm/)
+  })
+
+  it('treats a missing confirm as not confirmed', () => {
+    expect(cand.selectConfirmed([{ ...base, type: 'Hotel' }])).toEqual([])
+  })
+
+  it.each([[''], ['   '], [null], [undefined]])('rejects a confirmed candidate with a blank name %j', (name) => {
+    expect(() => cand.selectConfirmed([{ ...base, name, confirm: true, type: 'Hotel' }])).toThrow(/blank name/)
+  })
+
   it('does not validate unconfirmed entries', () => {
     expect(cand.selectConfirmed([{ ...base, confirm: false, type: 'Partner' }])).toEqual([])
   })

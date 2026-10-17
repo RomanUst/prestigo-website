@@ -327,3 +327,82 @@ describe('CLI', () => {
     expect(errors.join('\n')).toMatch(/API error: GET \/Account -> 401/)
   })
 })
+
+describe('WR-01: two confirmed candidates that resolve to one Account', () => {
+  const twins = [
+    candidate({ key: 'domain:hotel-one.test', name: 'Grand Hotel', domain: 'hotel-one.test', companyNames: ['Grand Hotel'], confirm: true, type: 'Hotel' }),
+    candidate({ key: 'domain:hotel-two.test', name: 'grand hotel', domain: 'hotel-two.test', companyNames: [], confirm: true, type: 'Hotel' }),
+  ]
+  const twinContacts = [
+    contact(1, 'a@hotel-one.test'), // first candidate only
+    contact(2, 'b@hotel-two.test'), // second candidate only
+    contact(3, 'both@hotel-one.test'), // first by domain, second through the booking company name
+  ]
+  const twinRows = [exportRow('both@hotel-one.test', 'grand hotel')]
+
+  it('plans one create and one alias, and does not call a contact on both candidates ambiguous', () => {
+    const plan = planSeed({ candidates: twins, accounts: [], contacts: twinContacts, rows: twinRows })
+    expect(plan.accountOps.map((o: any) => o.kind)).toEqual(['create', 'alias'])
+    expect(plan.accountOps[1]).toMatchObject({ key: 'domain:hotel-two.test', of: 'domain:hotel-one.test' })
+    expect(plan.counts.accounts).toEqual({ create: 1, existing: 0, merged: 1 })
+    expect(plan.counts.contacts).toEqual({ link: 3, already_linked: 0, ambiguous: 0 })
+  })
+
+  it('links every contact to the created Account id, never to null', async () => {
+    const fake = newFake({ Account: [], Contact: twinContacts })
+    const lines: string[] = []
+    await runSeed({ client: apiKeyClient(fake), candidates: twins, rows: twinRows, delayMs: 0, log: (l: string) => lines.push(l) })
+
+    expect(fake.state.records.Account).toHaveLength(1)
+    const accountId = fake.state.records.Account[0].id
+    const contactWrites = writes(fake).filter((r) => r.path.startsWith('/Contact/'))
+    expect(contactWrites).toHaveLength(3)
+    for (const w of contactWrites) expect(w.body).toEqual({ accountId })
+    expect(fake.state.records.Contact.map((c: any) => c.accountId)).toEqual([accountId, accountId, accountId])
+    expect(lines).toContain('accounts: create=1 existing=0 merged=1')
+    expect(lines.join('\n')).not.toMatch(/\bnull\b/)
+  })
+
+  it('a second run converges: nothing to create or link', async () => {
+    const fake = newFake({ Account: [], Contact: twinContacts })
+    await runSeed({ client: apiKeyClient(fake), candidates: twins, rows: twinRows, delayMs: 0, log: () => {} })
+    const before = writes(fake).length
+    const lines: string[] = []
+    await runSeed({ client: apiKeyClient(fake), candidates: twins, rows: twinRows, delayMs: 0, log: (l: string) => lines.push(l) })
+    expect(writes(fake).length).toBe(before)
+    expect(lines).toContain('accounts: create=0 existing=2')
+    expect(lines).toContain('contacts: link=0 already_linked=3 ambiguous=0')
+  })
+
+  it('dry-run prints no null id and writes nothing', async () => {
+    const fake = newFake({ Account: [], Contact: twinContacts })
+    const lines: string[] = []
+    await runSeed({ client: apiKeyClient(fake), candidates: twins, rows: twinRows, dryRun: true, delayMs: 0, log: (l: string) => lines.push(l) })
+    expect(writes(fake)).toEqual([])
+    expect(lines.join('\n')).not.toMatch(/\bnull\b/)
+  })
+})
+
+describe('IN-08: free-mail domains and blank names in a confirmed candidate', () => {
+  it('does not write a free-mail domain as the website or use it to match an Account', () => {
+    const plan = planSeed({
+      candidates: [candidate({ key: 'k1', name: 'Private Person Co', domain: 'gmail.com', confirm: true, type: 'Other' })],
+      accounts: [{ id: hid(5), name: 'Someone Else', website: 'https://gmail.com', type: 'Other' }],
+      contacts: [],
+      rows: [],
+    })
+    expect(plan.counts.accounts).toEqual({ create: 1, existing: 0 })
+    expect(plan.accountOps[0].payload).not.toHaveProperty('website')
+  })
+
+  it('refuses a blank-name or string-confirm candidate before any request', async () => {
+    const fake = newFake()
+    await expect(
+      runSeed({ client: apiKeyClient(fake), candidates: [candidate({ key: 'k', name: '  ', confirm: true, type: 'Other' })], delayMs: 0, log: () => {} }),
+    ).rejects.toThrow(/blank name/)
+    await expect(
+      runSeed({ client: apiKeyClient(fake), candidates: [candidate({ key: 'k', name: 'Real', confirm: 'yes', type: 'Other' })], delayMs: 0, log: () => {} }),
+    ).rejects.toThrow(/non-boolean confirm/)
+    expect(fake.requests).toEqual([])
+  })
+})

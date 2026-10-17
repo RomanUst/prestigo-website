@@ -69,24 +69,34 @@ export function planSeed({ candidates, accounts, contacts, rows }) {
   const confirmed = selectConfirmed(candidates)
 
   // Working copy of the Accounts so two candidates with one name cannot create it twice.
-  const known = (accounts ?? []).map((a) => ({ id: a.id, nameKey: nameKey(a.name), host: websiteHost(a.website) }))
+  // `ownerKey` is set on an entry that stands for an Account this run is about to create: a
+  // later candidate that matches it becomes an alias of that candidate (its Account id only
+  // exists once the create has run), never an "existing" Account with an unknown id.
+  const known = (accounts ?? []).map((a) => ({ id: a.id, ownerKey: null, nameKey: nameKey(a.name), host: websiteHost(a.website) }))
   const accountOps = []
   let created = 0
   let existing = 0
+  let merged = 0
   confirmed.forEach((c, index) => {
     const key = c.key ?? `#${index}`
-    const domain = isBlank(c.domain) ? null : String(c.domain).toLowerCase()
+    // A free-mail domain (hand-edited candidate) is neither written as a website nor used to match.
+    const domain = isBlank(c.domain) || FREE_MAIL.has(String(c.domain).toLowerCase()) ? null : String(c.domain).toLowerCase()
     const match = known.find((a) => a.nameKey === nameKey(c.name) || (domain !== null && a.host === domain))
     if (match) {
-      existing++
-      accountOps.push({ kind: 'existing', key, id: match.id })
+      if (match.ownerKey !== null) {
+        merged++
+        accountOps.push({ kind: 'alias', key, of: match.ownerKey })
+      } else {
+        existing++
+        accountOps.push({ kind: 'existing', key, id: match.id })
+      }
       return
     }
     const payload = { name: collapse(c.name), type: c.type }
     if (domain) payload.website = `https://${domain}`
     if (c.type === 'Other' && !isBlank(c.note)) payload.cOtherTypeNote = collapse(c.note)
     created++
-    known.push({ id: null, nameKey: nameKey(c.name), host: domain })
+    known.push({ id: null, ownerKey: key, nameKey: nameKey(c.name), host: domain })
     accountOps.push({ kind: 'create', key, payload })
   })
 
@@ -121,10 +131,10 @@ export function planSeed({ candidates, accounts, contacts, rows }) {
       contactCounts.already_linked++
       continue
     }
-    // Two candidates that resolve to one Account are not a conflict.
-    const targets = new Set(
-      hits.map((h) => accountOps.find((op) => op.key === h.key)).map((op) => (op.kind === 'existing' ? `id:${op.id}` : `new:${op.key}`)),
-    )
+    // Two candidates that resolve to one Account (the same existing id, or an alias of a
+    // candidate that is being created) are not a conflict.
+    const targetOf = (op) => (op.kind === 'existing' ? `id:${op.id}` : op.kind === 'alias' ? `new:${op.of}` : `new:${op.key}`)
+    const targets = new Set(hits.map((h) => accountOps.find((op) => op.key === h.key)).map(targetOf))
     if (targets.size > 1) {
       contactCounts.ambiguous++
       continue
@@ -136,7 +146,7 @@ export function planSeed({ candidates, accounts, contacts, rows }) {
   return {
     accountOps,
     links,
-    counts: { accounts: { create: created, existing }, contacts: contactCounts },
+    counts: { accounts: { create: created, existing, ...(merged > 0 ? { merged } : {}) }, contacts: contactCounts },
   }
 }
 
@@ -171,6 +181,11 @@ export async function runSeed({ client: rawClient, candidates, rows = [], dryRun
     if (op.kind === 'existing') {
       accountIdOf.set(op.key, op.id)
       log(`account ${op.id} existing`)
+    } else if (op.kind === 'alias') {
+      // Same Account as an earlier candidate of this run: reuse the id its create returned.
+      const id = accountIdOf.get(op.of) ?? null
+      accountIdOf.set(op.key, id)
+      log(`account ${id ?? '-'} shared`)
     } else if (dryRun) {
       log('account - would-create')
     } else {
@@ -180,12 +195,16 @@ export async function runSeed({ client: rawClient, candidates, rows = [], dryRun
       log(`account ${created.id} created`)
     }
   }
-  log(`accounts: create=${plan.counts.accounts.create} existing=${plan.counts.accounts.existing}`)
+  const a = plan.counts.accounts
+  log(`accounts: create=${a.create} existing=${a.existing}${a.merged ? ` merged=${a.merged}` : ''}`)
 
   if (!dryRun) {
     for (const link of plan.links) {
+      const accountId = accountIdOf.get(link.candidateKey)
+      // Never send accountId: null (it would be counted as a link but leave the Contact unlinked).
+      if (!accountId) throw new Error(`internal: no Account id for candidate ${link.candidateKey}`)
       await pause()
-      await client.request('PUT', `/Contact/${link.contactId}`, { accountId: accountIdOf.get(link.candidateKey) })
+      await client.request('PUT', `/Contact/${link.contactId}`, { accountId })
     }
   }
   const c = plan.counts.contacts
