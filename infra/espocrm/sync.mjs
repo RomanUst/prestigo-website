@@ -913,7 +913,10 @@ async function syncSystemSmtp(ctx, want, counts) {
   const key = 'system SMTP group account'
   const password = () => {
     if (!ctx.getSmtpPassword) throw new EspoConfigError('mail: no SMTP password source configured')
-    return ctx.getSmtpPassword()
+    const value = ctx.getSmtpPassword()
+    // Mask it in any error text an InboundEmail POST/PUT could echo back.
+    ctx.client.addSecret?.(value)
+    return value
   }
 
   if (matches.length === 0) {

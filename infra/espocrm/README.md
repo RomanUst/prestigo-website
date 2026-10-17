@@ -15,6 +15,8 @@ or `lib/` imports from here.
 Two service identities, both created by the owner (D-17). Claude never sees,
 prints or passes on a command line any password, token or API key. Secrets reach
 the workstation through the clipboard into mode-600 files that are never committed.
+The tools refuse to read a credential file that group or others can read
+(`chmod 600 <file>` fixes it); values from the environment are not affected.
 
 | Identity | Type | File | Used for |
 |----------|------|------|----------|
