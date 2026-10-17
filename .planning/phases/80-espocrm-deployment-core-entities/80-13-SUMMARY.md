@@ -3,7 +3,7 @@ phase: 80-espocrm-deployment-core-entities
 plan: 13
 subsystem: infra
 tags: [espocrm, accounts, seed, crm, pii-cleanup]
-status: blocked
+status: complete
 requires:
   - phase: 80-12
     provides: owner-confirmed candidates, 56 CBookings and 29 Contacts in the CRM
@@ -116,3 +116,15 @@ Pending. Checklist handed to the owner:
 
 - infra/espocrm/seed-accounts.mjs, tests/espocrm-seed.test.ts: present
 - commits bc31ece8, 90ddb801: present
+
+## Task 3 — phase walk-through (owner, 2026-10-17): APPROVED
+
+- Accounts list with the 5 seeded companies and types: pass
+- Account → Contacts and Bookings panels: pass
+- Contact → Bookings panel: pass
+- Opportunity Kanban stages: pass
+- Partner terms (commission, Invoice → due days) and Partner rates: pass
+- Roles and mail: pass
+- Admin deep link (80-02): pending deploy (shipped with the phase-80 PR)
+
+Finding during the walk-through: the 4 Travel Express bookings showed amount 0. Root cause in the SOURCE (Supabase): admin-created bookings paid by one group Stripe payment link (plink_1UJwW3FoizgdF9t9Hcrj08bE, metadata.groupBookingIds = these 4 ids) had amount_eur NULL / amount_czk 0. Stripe: 1 paid session, 1852.50 EUR. Owner chose an even split; amount_eur/amount_czk are integer columns, so each booking was set to 463 EUR / 11575 CZK (sum 1852, 0.50 EUR rounding). Supabase updated (guarded UPDATE on those 4 ids + payment link + NULL/0), CRM CBooking amounts updated to 463 EUR via the Sync writer key. Follow-up for Phase 82: group-link bookings should carry their share of the link amount at creation time.
