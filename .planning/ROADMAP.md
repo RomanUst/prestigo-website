@@ -299,8 +299,30 @@ Plans:
   6. Every site booking (paid or not) also appears as a Lead in EspoCRM with source "Website booking", and its status follows the booking (paid → Converted, cancelled/abandoned → Dead).
   7. With the VPS offline, submitted leads queue in the outbox and reach EspoCRM once it is back, exactly once (idempotent retries).
 
-**Plans**: TBD
+**Plans**: 11 plans
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+- [ ] 81-01-PLAN.md — Outbox core (064) + inquiries table (065) + all three forms store submissions best-effort (contact tracer)
+- [ ] 81-02-PLAN.md — Pure Lead mapping (TDD): status D-06/D-03, sources D-08, round trip D-19, purge eligibility D-20
+- [ ] 81-03-PLAN.md — EspoCRM Lead fields + Lead ACL (D-22) + inspect user-id/notify-settings/contact-match
+- [ ] 81-04-PLAN.md — Admin booking Channel field (D-08) + bookings.lead_channel (066)
+- [ ] 81-05-PLAN.md — D-16 storage notice on the three forms in 7 locales
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 81-06-PLAN.md — EspoCRM Lead source enum, Lead->Contact link, Lead layouts, lead smoke tool
+- [ ] 81-07-PLAN.md — Site EspoCRM client + QStash-signed dispatcher for inquiry Leads + VPS-down backoff/breaker
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 81-08-PLAN.md — Lead.cSupabaseRef unique index via metadata overlay (owner-approved VPS step)
+- [ ] 81-09-PLAN.md — Bookings trigger -> outbox (067) + pg_net kick + booking Lead branch (all sources, round trips, forward-only)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 81-10-PLAN.md — Daily outbox sweep (068): Dead after pickup, 90-day purge, re-arm; LEAD-04 wording (D-01)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 81-11-PLAN.md — Go-live: owner secrets + ship, capture start, live smokes, VPS-down drill, runbook
 
 ### Phase 82: Site ↔ CRM/Chatwoot Sync Foundation
 
