@@ -114,9 +114,9 @@ describe('writers stop before the first write on a partial preload', () => {
     const base = pagedClient({ Contact: all, CBooking: [] }, (entity, offset, list) => (entity === 'Contact' && offset === 200 ? list.slice(1) : list))
     const writes: string[] = []
     const client = {
-      async request(method: string, apiPath: string, body?: unknown) {
+      async request(method: string, apiPath: string) {
         if (method !== 'GET') writes.push(`${method} ${apiPath}`)
-        return base.request(method, apiPath, body as never)
+        return base.request(method, apiPath)
       },
     }
     const dir = mkdtempSync(join(tmpdir(), 'espocrm-preload-'))
