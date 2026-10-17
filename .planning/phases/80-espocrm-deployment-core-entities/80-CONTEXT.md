@@ -45,6 +45,18 @@ de-dup across systems (Phase 82, SYNC-03), Chatwoot→CRM webhooks (Phase 83), s
 - **D-15:** Roles: **Dispatcher** — Contacts + Booking history (read), own Tasks; no Opportunities, no PartnerRate, no commission/contract fields. **Sales manager** — Accounts, Contacts, Opportunities, PartnerRate, Tasks, emails. **Admin** — owner only. Chatwoot mirror: agents in teams `bookings` (dispatcher) and `b2b` (sales); admin = owner.
 - **D-16:** Money visibility: booking amounts visible to every role; negotiated rates, commission and contract terms only to Sales manager and Admin (field-level ACL).
 
+### Owner decisions after research (2026-10-11)
+- **D-17:** Two service identities, created once by the owner (checkpoint:human-action): `prestigo-config` — admin-type user WITHOUT 2FA, used only by the config sync for metadata/roles/settings; `prestigo-sync` — API user (API key) with a least-privilege "Sync writer" role for data writes (backfill, account seeding, later Phases 81/82). Credentials go into `~/.config/prestigo/espocrm-*.env` (mode 600) by the owner; Claude never sees them. `prestigo-admin` keeps TOTP. Never retry on 401 (EspoCRM IP ban).
+- **D-18:** Admin deep link: extend the site admin bookings table to read `?search=<booking ref>` and use horizon `all` when present, so the CRM Booking link opens that booking directly (small tested change in the site). — **Reversibility:** reversible.
+- **D-19:** Unique index on the Supabase booking id in `CBooking`: one metadata overlay file in the `app_custom` volume + `rebuild` on the VPS (owner-approved SSH step; commands prepared by Claude, run with owner allow-rules). The script still looks up before writing. — **Reversibility:** costly — removing it needs another overlay + rebuild.
+- **D-20:** Retire unused stock enum values: `Account.type` keeps only D-02 values (+ owner-added); `Opportunity.stage` keeps only D-01 stages, with stored values `Closed Won` / `Closed Lost` relabelled "Partner (Won)" / "Lost" (hard-wired in EspoCRM code). Only values not in use are removed (in-use guard).
+- **D-21 (default):** Backfill includes `pending` quote rows; excludes abandoned checkout = `status='unpaid' AND booking_source='online' AND payment_link_id IS NULL`. The payment-method inference rule is shown to the owner with dry-run counts before the first real write.
+- **D-22 (default):** Dispatcher gets read-only Account access with commercial fields (commission, payment terms, contract, expected volume) hidden via field-level ACL, and no access to CPartnerRate/Opportunity.
+- **D-23 (default):** Chatwoot mirror = existing teams `Bookings` / `B2B` + inbox membership, documented in the runbook; Chatwoot CE has only agent/administrator roles. No agents are created now (no hires yet).
+- **D-24 (default):** Emails attach natively (Contact → Account; replies to mail sent from an Opportunity thread to it). Documented practice: send partner mail from the Opportunity. Optional formula auto-attach is out of scope.
+- Keep the "Restore Drill Canary" Account untouched and out of every seed list.
+- Nothing from this phase goes under `app/`, `components/`, `lib/`, `i18n/` except the D-18 admin change; all EspoCRM code lives in `infra/espocrm/` and `tests/` (isolation guard `tests/infra-vps-isolation-guard.test.ts`).
+
 ### Claude's Discretion
 - Config-as-code layout for EspoCRM (mirroring `infra/chatwoot/sync.mjs` + JSON: idempotent, `create=0 update=0` on second run), API auth method (API user with key/HMAC), entity/field naming, layouts, list views, Kanban setup.
 - Backfill implementation (run from repo with service credentials read inside the script; batch size; dry-run that prints counts without writing to EspoCRM).
@@ -61,6 +73,7 @@ de-dup across systems (Phase 82, SYNC-03), Chatwoot→CRM webhooks (Phase 83), s
 ### Milestone scope
 - `.planning/ROADMAP.md` §"Phase 80: EspoCRM Deployment + Core Entities" — goal and success criteria
 - `.planning/REQUIREMENTS.md` — CRM-01..05; SYNC-01..05 and LEAD-04/06 (boundaries with Phases 81/82); out-of-scope table (no Advanced Pack, no mailbox in both systems)
+- `.planning/phases/80-espocrm-deployment-core-entities/80-RESEARCH.md` — EspoCRM 10.0.8 source-verified mechanics, API quirks, backfill SQL, ACL format, proposed infra/espocrm layout
 - `.planning/PROJECT.md` §Constraints ("v4.0 VPS independence", "Secrets") and §Key Decisions (EspoCRM choice, separate mailboxes)
 
 ### Prior phase decisions

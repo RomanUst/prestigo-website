@@ -22,3 +22,7 @@ infra/vps/**/.env.*
 infra/vps/**/*.dump
 infra/vps/**/*.sql
 !infra/vps/**/*.env.example
+
+# Phase 80 infra/espocrm: working files hold customer PII (exports, candidates); env files hold secrets.
+infra/espocrm/.work/
+infra/espocrm/**/*.env

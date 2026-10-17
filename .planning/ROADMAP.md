@@ -253,7 +253,37 @@ Plans:
   4. Sales mail (sales@ or roman@) is connected to EspoCRM only; sent and received emails attach to the matching Account/Contact/Opportunity.
   5. Roles/ACL for 2-3 future operators exist in both Chatwoot (agent/admin, team assignment) and EspoCRM (role-based ACL), documented in a runbook.
 
-**Plans**: TBD
+**Plans:** 13/13 plans executed
+
+Plans:
+**Wave 1**
+- [x] 80-01-PLAN.md — Service identities (D-17), hardened EspoCRM client + config sync engine, settings (EUR, Europe/Prague) live
+- [x] 80-02-PLAN.md — Site admin `?search=` deep link with horizon all (D-18)
+- [x] 80-03-PLAN.md — Pure transforms: booking row -> CRM payload (D-07..D-10, D-21) and account candidates (D-14)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 80-04-PLAN.md — CBooking entity, fields, Contact/Account links and booking panels (D-06, D-09, D-10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 80-05-PLAN.md — Opportunity stages + Account types via merge-safe enum sync (D-01, D-02, D-20)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 80-06-PLAN.md — Account commercial terms + CPartnerRate child entity (D-03, D-04)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 80-07-PLAN.md — Roles/ACL as code (Dispatcher, Sales manager, Sync writer) + live ACL probe (D-15, D-16, D-22)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [x] 80-08-PLAN.md — Unique index on CBooking.supabaseBookingId via owner-approved metadata overlay (D-19)
+- [x] 80-09-PLAN.md — Idempotent booking backfill, Supabase MCP export, dry run + owner approval (D-06, D-21)
+- [x] 80-10-PLAN.md — roman@ Personal Email Account, reminders, inspect tool, mail UAT (D-05, D-11..D-13, D-24)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [x] 80-11-PLAN.md — CRM operator runbook pinned to roles.json, Chatwoot role mirror (D-23, CRM-05)
+- [x] 80-12-PLAN.md — Live backfill (one, then all, audit) + account candidate scan + owner confirmation (D-14)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [x] 80-13-PLAN.md — Seed confirmed Accounts, link Contacts, relink bookings, PII cleanup, phase walk-through
 
 ### Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)
 
@@ -358,7 +388,7 @@ Plans:
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
 | 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
-| 80. EspoCRM Deployment + Core Entities | v4.0 | 0/0 | Not started | - |
+| 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | In Progress|  |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |

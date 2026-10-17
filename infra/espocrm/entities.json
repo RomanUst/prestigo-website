@@ -1,0 +1,47 @@
+{
+  "entities": [
+    {
+      "name": "Booking",
+      "type": "Base",
+      "labelSingular": "Booking",
+      "labelPlural": "Bookings",
+      "stream": false
+    },
+    {
+      "name": "PartnerRate",
+      "type": "Base",
+      "labelSingular": "Partner rate",
+      "labelPlural": "Partner rates",
+      "stream": false
+    }
+  ],
+  "links": [
+    {
+      "entity": "CBooking",
+      "link": "contact",
+      "linkType": "manyToOne",
+      "entityForeign": "Contact",
+      "linkForeign": "bookings",
+      "label": "Contact",
+      "labelForeign": "Bookings"
+    },
+    {
+      "entity": "CBooking",
+      "link": "account",
+      "linkType": "manyToOne",
+      "entityForeign": "Account",
+      "linkForeign": "bookings",
+      "label": "Account",
+      "labelForeign": "Bookings"
+    },
+    {
+      "entity": "CPartnerRate",
+      "link": "account",
+      "linkType": "manyToOne",
+      "entityForeign": "Account",
+      "linkForeign": "partnerRates",
+      "label": "Account",
+      "labelForeign": "Partner rates"
+    }
+  ]
+}

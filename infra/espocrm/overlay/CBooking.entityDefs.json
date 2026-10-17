@@ -1,0 +1,9 @@
+{
+    "indexes": {
+        "supabaseBookingIdDeleteId": {
+            "type": "unique",
+            "columns": ["supabaseBookingId", "deleteId"]
+        }
+    },
+    "deleteId": true
+}

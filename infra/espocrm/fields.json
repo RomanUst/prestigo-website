@@ -1,0 +1,243 @@
+{
+  "fields": {
+    "CBooking": [
+      {
+        "name": "supabaseBookingId",
+        "type": "varchar",
+        "maxLength": 36,
+        "required": true,
+        "label": "Supabase Booking ID"
+      },
+      {
+        "name": "leg",
+        "type": "enum",
+        "options": ["", "outbound", "return"],
+        "translatedOptions": { "outbound": "Outbound", "return": "Return" },
+        "label": "Leg"
+      },
+      {
+        "name": "pickupAt",
+        "type": "datetime",
+        "label": "Pickup time"
+      },
+      {
+        "name": "pickup",
+        "type": "varchar",
+        "maxLength": 255,
+        "label": "Pickup"
+      },
+      {
+        "name": "dropoff",
+        "type": "varchar",
+        "maxLength": 255,
+        "label": "Drop-off"
+      },
+      {
+        "name": "tripType",
+        "type": "enum",
+        "options": ["transfer", "hourly", "daily", "round_trip"],
+        "translatedOptions": {
+          "transfer": "Transfer",
+          "hourly": "Hourly",
+          "daily": "Daily",
+          "round_trip": "Round Trip"
+        },
+        "label": "Trip type"
+      },
+      {
+        "name": "vehicleClass",
+        "type": "enum",
+        "options": ["business", "first_class", "business_van"],
+        "translatedOptions": {
+          "business": "E-Class",
+          "first_class": "S-Class",
+          "business_van": "V-Class"
+        },
+        "label": "Vehicle class"
+      },
+      {
+        "name": "status",
+        "type": "enum",
+        "options": ["unpaid", "pending", "confirmed", "completed", "cancelled", "assigned", "en_route", "on_location"],
+        "translatedOptions": {
+          "unpaid": "Unpaid",
+          "pending": "Pending",
+          "confirmed": "Confirmed",
+          "completed": "Completed",
+          "cancelled": "Cancelled",
+          "assigned": "Assigned",
+          "en_route": "En Route",
+          "on_location": "On Location"
+        },
+        "label": "Status"
+      },
+      {
+        "name": "amount",
+        "type": "currency",
+        "onlyDefaultCurrency": true,
+        "label": "Amount"
+      },
+      {
+        "name": "paymentMethod",
+        "type": "enum",
+        "options": ["Stripe", "Invoice", "Cash", "Other"],
+        "translatedOptions": { "Stripe": "Stripe", "Invoice": "Invoice", "Cash": "Cash", "Other": "Other" },
+        "label": "Payment method"
+      },
+      {
+        "name": "passengerName",
+        "type": "varchar",
+        "maxLength": 150,
+        "isPersonalData": true,
+        "label": "Passenger"
+      },
+      {
+        "name": "flightNumber",
+        "type": "varchar",
+        "maxLength": 20,
+        "isPersonalData": true,
+        "label": "Flight number"
+      },
+      {
+        "name": "driverName",
+        "type": "varchar",
+        "maxLength": 100,
+        "label": "Driver"
+      },
+      {
+        "name": "source",
+        "type": "enum",
+        "options": ["online", "manual", "gnet"],
+        "translatedOptions": { "online": "Website", "manual": "Admin-created", "gnet": "GNet" },
+        "label": "Source"
+      },
+      {
+        "name": "adminLink",
+        "type": "url",
+        "label": "Admin link"
+      }
+    ],
+    "CPartnerRate": [
+      {
+        "name": "vehicleClass",
+        "type": "enum",
+        "options": ["business", "first_class", "business_van"],
+        "translatedOptions": {
+          "business": "E-Class",
+          "first_class": "S-Class",
+          "business_van": "V-Class"
+        },
+        "required": true,
+        "label": "Vehicle class"
+      },
+      {
+        "name": "price",
+        "type": "currency",
+        "onlyDefaultCurrency": true,
+        "required": true,
+        "label": "Price"
+      },
+      {
+        "name": "validFrom",
+        "type": "date",
+        "label": "Valid from"
+      },
+      {
+        "name": "validTo",
+        "type": "date",
+        "afterOrEqual": "validFrom",
+        "label": "Valid to"
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "label": "Note"
+      },
+      {
+        "name": "account",
+        "type": "link",
+        "required": true
+      }
+    ],
+    "Account": [
+      {
+        "name": "otherTypeNote",
+        "type": "varchar",
+        "maxLength": 100,
+        "label": "Other type note",
+        "dynamicLogicVisible": {
+          "conditionGroup": [{ "type": "equals", "attribute": "type", "value": "Other" }]
+        }
+      },
+      {
+        "name": "commissionPercent",
+        "type": "float",
+        "min": 0,
+        "max": 100,
+        "label": "Commission %",
+        "commercial": true
+      },
+      {
+        "name": "paymentTerms",
+        "type": "enum",
+        "options": ["", "Card", "Invoice", "GroupStripeLink"],
+        "translatedOptions": {
+          "Card": "Card",
+          "Invoice": "Invoice with terms",
+          "GroupStripeLink": "Group Stripe link"
+        },
+        "label": "Payment terms",
+        "commercial": true
+      },
+      {
+        "name": "invoiceDueDays",
+        "type": "int",
+        "min": 0,
+        "max": 120,
+        "label": "Invoice due (days)",
+        "commercial": true,
+        "dynamicLogicVisible": {
+          "conditionGroup": [{ "type": "equals", "attribute": "cPaymentTerms", "value": "Invoice" }]
+        }
+      },
+      {
+        "name": "vatId",
+        "type": "varchar",
+        "maxLength": 30,
+        "label": "VAT ID",
+        "commercial": true
+      },
+      {
+        "name": "reverseCharge",
+        "type": "bool",
+        "label": "Reverse charge",
+        "commercial": true
+      },
+      {
+        "name": "contractDate",
+        "type": "date",
+        "label": "Contract date",
+        "commercial": true
+      },
+      {
+        "name": "contractValidUntil",
+        "type": "date",
+        "label": "Contract valid until",
+        "commercial": true
+      },
+      {
+        "name": "contractFile",
+        "type": "file",
+        "label": "Contract file",
+        "commercial": true
+      },
+      {
+        "name": "expectedRidesPerMonth",
+        "type": "int",
+        "min": 0,
+        "label": "Expected rides / month",
+        "commercial": true
+      }
+    ]
+  }
+}

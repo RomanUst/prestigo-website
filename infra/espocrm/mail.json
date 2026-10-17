@@ -1,0 +1,40 @@
+{
+  "owner": { "userName": "prestigo-admin", "emailAddress": "roman@rideprestigo.com" },
+  "folders": [{ "name": "Reminders", "user": "prestigo-admin" }],
+  "filters": [
+    {
+      "name": "System notifications to Reminders",
+      "user": "prestigo-admin",
+      "from": "notifications@rideprestigo.com",
+      "action": "Move to Folder",
+      "folder": "Reminders"
+    }
+  ],
+  "preferences": [
+    {
+      "user": "prestigo-admin",
+      "defaultRemindersTask": [
+        { "type": "Popup", "seconds": 0 },
+        { "type": "Email", "seconds": 3600 }
+      ]
+    }
+  ],
+  "systemSmtp": {
+    "name": "Prestigo system mail (Resend)",
+    "emailAddress": "notifications@rideprestigo.com",
+    "status": "Active",
+    "useImap": false,
+    "useSmtp": true,
+    "smtpIsShared": true,
+    "smtpIsForMassEmail": false,
+    "smtpHost": "smtp.resend.com",
+    "smtpPort": 587,
+    "smtpAuth": true,
+    "smtpSecurity": "TLS",
+    "smtpUsername": "resend",
+    "smtpAuthMechanism": "login",
+    "fromName": "Prestigo",
+    "excludeFromReply": true
+  },
+  "requiredJobs": ["CheckEmailAccounts", "SendEmailReminders"]
+}

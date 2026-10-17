@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 
 // Mock @tanstack/react-table (passthrough)
@@ -717,6 +717,114 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
     await waitFor(() => {
       expect(futureSegment.style.background).toContain('rgba(191, 160, 106, 0.09)')
       expect(futureSegment.style.border).toContain('var(--copper)')
+    })
+  })
+})
+
+describe('BookingsTable deep link (Phase 80 D-18)', () => {
+  const REF = 'PRG-20260928-D8E6DC'
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  afterEach(() => {
+    window.history.replaceState({}, '', '/')
+  })
+
+  function stubFetchTracking() {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ bookings: [], total: 0, page: 0, limit: 20 }),
+        })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  function firstBookingsParams(fetchMock: ReturnType<typeof stubFetchTracking>): URLSearchParams {
+    const call = fetchMock.mock.calls.find(
+      ([url]) => typeof url === 'string' && url.includes('/api/admin/bookings'),
+    )
+    expect(call).toBeDefined()
+    return new URLSearchParams((call![0] as string).split('?')[1])
+  }
+
+  async function waitForBookingsFetch(fetchMock: ReturnType<typeof stubFetchTracking>) {
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('/api/admin/bookings')),
+      ).toBe(true)
+    })
+  }
+
+  it('?search=<ref> seeds the first fetch with search + horizon=all and fills the search box, with no settings PATCH', async () => {
+    window.history.replaceState({}, '', `/admin/bookings?search=${REF}`)
+    const fetchMock = stubFetchTracking()
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitForBookingsFetch(fetchMock)
+    const params = firstBookingsParams(fetchMock)
+    expect(params.get('search')).toBe(REF)
+    expect(params.get('horizon')).toBe('all')
+
+    const input = screen.getByPlaceholderText('Search client or reference...') as HTMLInputElement
+    expect(input.value).toBe(REF)
+
+    expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('/api/admin/settings'))).toBe(false)
+  })
+
+  it.each([
+    ['empty value', '?search='],
+    ['whitespace only', '?search=%20%20'],
+    ['41 characters', `?search=${'A'.repeat(41)}`],
+    ['script-like characters', '?search=PRG%3Cscript%3E'],
+    ['underscore and space inside', '?search=PRG_2026%200928'],
+  ])('ignores an invalid search param (%s): first fetch keeps horizon=future and sends no search', async (_label, query) => {
+    window.history.replaceState({}, '', `/admin/bookings${query}`)
+    const fetchMock = stubFetchTracking()
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitForBookingsFetch(fetchMock)
+    const params = firstBookingsParams(fetchMock)
+    expect(params.get('horizon')).toBe('future')
+    expect(params.has('search')).toBe(false)
+    expect((screen.getByPlaceholderText('Search client or reference...') as HTMLInputElement).value).toBe('')
+  })
+
+  it('no query string: first fetch has horizon=future and no search (unchanged behaviour)', async () => {
+    const fetchMock = stubFetchTracking()
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitForBookingsFetch(fetchMock)
+    const params = firstBookingsParams(fetchMock)
+    expect(params.get('horizon')).toBe('future')
+    expect(params.has('search')).toBe(false)
+  })
+
+  it('clearing the search box after a deep link refetches without search and keeps horizon=all', async () => {
+    window.history.replaceState({}, '', `/admin/bookings?search=${REF}`)
+    const fetchMock = stubFetchTracking()
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitForBookingsFetch(fetchMock)
+    const input = screen.getByPlaceholderText('Search client or reference...') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '' } })
+
+    await waitFor(() => {
+      const last = fetchMock.mock.calls[fetchMock.mock.calls.length - 1][0] as string
+      const p = new URLSearchParams(last.split('?')[1])
+      expect(p.has('search')).toBe(false)
+      expect(p.get('horizon')).toBe('all')
     })
   })
 })

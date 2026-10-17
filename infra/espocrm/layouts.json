@@ -1,0 +1,127 @@
+{
+  "layouts": [
+    {
+      "scope": "CBooking",
+      "name": "list",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true },
+        { "name": "pickupAt" },
+        { "name": "pickup" },
+        { "name": "dropoff" },
+        { "name": "vehicleClass" },
+        { "name": "status" },
+        { "name": "amount" },
+        { "name": "paymentMethod" },
+        { "name": "source" }
+      ]
+    },
+    {
+      "scope": "CBooking",
+      "name": "listSmall",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true },
+        { "name": "pickupAt" },
+        { "name": "vehicleClass" },
+        { "name": "status" },
+        { "name": "amount" }
+      ]
+    },
+    {
+      "scope": "CBooking",
+      "name": "detail",
+      "mode": "replace",
+      "layout": [
+        {
+          "label": "Booking",
+          "rows": [
+            [{ "name": "name" }, { "name": "status" }],
+            [{ "name": "pickupAt" }, { "name": "tripType" }],
+            [{ "name": "pickup" }, { "name": "dropoff" }],
+            [{ "name": "vehicleClass" }, { "name": "leg" }],
+            [{ "name": "amount" }, { "name": "paymentMethod" }],
+            [{ "name": "passengerName" }, { "name": "flightNumber" }],
+            [{ "name": "driverName" }, { "name": "source" }],
+            [{ "name": "contact" }, { "name": "account" }],
+            [{ "name": "adminLink" }, { "name": "supabaseBookingId" }]
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "CPartnerRate",
+      "name": "list",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true, "customLabel": "Route" },
+        { "name": "vehicleClass" },
+        { "name": "price" },
+        { "name": "validFrom" },
+        { "name": "validTo" },
+        { "name": "account" }
+      ]
+    },
+    {
+      "scope": "CPartnerRate",
+      "name": "listSmall",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true, "customLabel": "Route" },
+        { "name": "vehicleClass" },
+        { "name": "price" },
+        { "name": "validTo" }
+      ]
+    },
+    {
+      "scope": "CPartnerRate",
+      "name": "detail",
+      "mode": "replace",
+      "layout": [
+        {
+          "label": "Partner rate",
+          "rows": [
+            [{ "name": "name", "customLabel": "Route" }, { "name": "vehicleClass" }],
+            [{ "name": "price" }, { "name": "account" }],
+            [{ "name": "validFrom" }, { "name": "validTo" }],
+            [{ "name": "note" }]
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "Account",
+      "name": "detail",
+      "mode": "append",
+      "layout": [
+        {
+          "label": "Partner terms",
+          "rows": [
+            [{ "name": "cOtherTypeNote" }, { "name": "cExpectedRidesPerMonth" }],
+            [{ "name": "cCommissionPercent" }, { "name": "cPaymentTerms" }],
+            [{ "name": "cInvoiceDueDays" }, { "name": "cVatId" }],
+            [{ "name": "cReverseCharge" }, { "name": "cContractDate" }],
+            [{ "name": "cContractValidUntil" }, { "name": "cContractFile" }]
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "Contact",
+      "name": "bottomPanelsDetail",
+      "mode": "append",
+      "layout": {
+        "cBookings": { "name": "cBookings", "index": 5.003 }
+      }
+    },
+    {
+      "scope": "Account",
+      "name": "bottomPanelsDetail",
+      "mode": "append",
+      "layout": {
+        "cBookings": { "index": 5.5 },
+        "cPartnerRates": { "index": 5.6 }
+      }
+    }
+  ]
+}

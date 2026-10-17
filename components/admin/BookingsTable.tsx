@@ -1049,7 +1049,19 @@ interface BookingsTableProps {
   horizonDays?: number
 }
 
+// Phase 80 D-18: the CRM Booking "Admin link" opens /admin/bookings?search={ref}.
+// Read once on mount; only a well-formed booking reference is accepted
+// (letters, digits, hyphens, max 40) — anything else is ignored.
+function readBookingDeepLink(): string {
+  if (typeof window === 'undefined') return ''
+  const raw = new URLSearchParams(window.location.search).get('search')
+  if (!raw) return ''
+  const value = raw.trim()
+  return /^[A-Za-z0-9-]{1,40}$/.test(value) ? value : ''
+}
+
 export default function BookingsTable({ defaultHorizon = 'future', horizonDays: horizonDaysProp = 7 }: BookingsTableProps) {
+  const [deepLinkSearch] = useState(readBookingDeepLink)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
@@ -1058,7 +1070,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   // D-08: a SEPARATE status dimension from tripType — the 'Unpaid' chip
   // coexists with the trip-type chips rather than replacing them.
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(deepLinkSearch)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showDateFilter, setShowDateFilter] = useState(false)
@@ -1070,7 +1082,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   //    control only ever calls setHorizon — it NEVER PATCHes
   //    /api/admin/settings. A remount (fresh props) re-seeds from the
   //    persisted default, not from whatever was last clicked (D-04).
-  const [horizon, setHorizon] = useState<string>(defaultHorizon)
+  //    A Phase 80 D-18 deep link (?search={ref}) starts the session on 'all'
+  //    so past bookings are found; still never written back.
+  const [horizon, setHorizon] = useState<string>(deepLinkSearch ? 'all' : defaultHorizon)
   const [horizonDays] = useState<number>(horizonDaysProp)
   // D-05 refetch-error state (E2 backstop): distinct from "zero rows" so a
   // legitimately-empty Future view is never confused with a silent failure.
@@ -1078,7 +1092,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [loading, setLoading] = useState(true)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState(deepLinkSearch)
   const limit = 20
 
   const [localNotes, setLocalNotes] = useState<Record<string, string>>({})
