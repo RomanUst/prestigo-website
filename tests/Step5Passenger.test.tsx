@@ -167,7 +167,18 @@ describe('Step5Passenger', () => {
     it.todo('shows "First name is required" after blur on empty First Name')
     it.todo('shows "Last name is required" after blur on empty Last Name')
     it.todo('shows "Enter a valid email address" after blur on invalid email')
-    it.todo('shows "Enter a valid phone number" after blur on short phone')
+    it('rejects a phone without the country code and normalises a valid one on blur', async () => {
+      render(<Step5Passenger />)
+      const input = screen.getByPlaceholderText('+420 123 456 789') as HTMLInputElement
+      fireEvent.change(input, { target: { value: '725123456' } })
+      fireEvent.blur(input)
+      expect(await screen.findByText(/country code/i)).toBeInTheDocument()
+
+      fireEvent.change(input, { target: { value: '00420 725 123 456' } })
+      fireEvent.blur(input)
+      await waitFor(() => expect(input.value).toBe('+420725123456'))
+      await waitFor(() => expect(screen.queryByText(/country code/i)).not.toBeInTheDocument())
+    })
     it.todo('shows "Flight number is required for airport rides" after blur on empty Flight Number for airport ride')
     it.todo('clears error message when valid value entered and field blurred again')
   })

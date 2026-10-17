@@ -33,7 +33,7 @@
       "firstNameRequired": "El nombre es obligatorio",
       "lastNameRequired": "Los apellidos son obligatorios",
       "invalidEmail": "Introduzca una dirección de correo electrónico válida",
-      "invalidPhone": "Introduzca un número de teléfono válido",
+      "invalidPhone": "Introduzca el número con el prefijo del país, p. ej. +420 123 456 789",
       "invalidFlightFormat": "Formato IATA no válido: p. ej., BA256 u OK123",
       "maxCharacters": "Máximo 500 caracteres"
     },
@@ -349,7 +349,7 @@
       "firstNameRequired": "El nombre es obligatorio.",
       "lastNameRequired": "Los apellidos son obligatorios.",
       "validEmailRequired": "Se requiere un correo electrónico válido.",
-      "validPhoneRequired": "Se requiere un número de teléfono válido.",
+      "validPhoneRequired": "Introduzca un número de teléfono con el prefijo del país, p. ej. +420 123 456 789.",
       "tooManyRequests": "Demasiadas solicitudes. Espere un minuto e inténtelo de nuevo.",
       "submitError": "No hemos podido enviar su solicitud. Compruebe los datos introducidos e inténtelo de nuevo.",
       "networkError": "Error de red. Compruebe su conexión e inténtelo de nuevo."
