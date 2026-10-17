@@ -132,8 +132,19 @@ export async function runRebuild({ client, log = console.log }) {
 }
 
 /**
+ * Statuses that can be the database refusing a duplicate key: 409 and 400 when EspoCRM maps the
+ * constraint violation, 500 for the unmapped PDOException. Anything else (401/403 auth, 404, 429
+ * rate limit, 502/503/504 gateway or upstream trouble, status 0 transport) says nothing about the
+ * index and is surfaced instead of being reported as "enforced". A 500 is still ambiguous on its
+ * own, so a refusal is only accepted after the control create below succeeds.
+ */
+export const UNIQUE_REFUSAL_STATUSES = new Set([400, 409, 500])
+
+/**
  * Create one CBooking, try to create the same key again, delete whatever was created.
- * A failing second create means the database refuses duplicates (unique=enforced).
+ * A failing second create means the database refuses duplicates (unique=enforced), provided a
+ * control record with a different key can still be created right afterwards (the refusal was
+ * about the key, not a general server fault).
  */
 /** @param {{ client: { request: (method: string, path: string, body?: unknown) => Promise<any> }, log?: (line: string) => void }} options */
 export async function runProbeUnique({ client, log = console.log }) {
@@ -146,16 +157,21 @@ export async function runProbeUnique({ client, log = console.log }) {
     if (!first?.id) throw new EspoApiError('POST', '/CBooking', 200, 'probe record was created without an id')
     created.push(first.id)
 
+    let refused = false
     try {
       const second = await client.request('POST', '/CBooking', body)
       if (second?.id) created.push(second.id)
     } catch (err) {
-      // Auth failures and transport problems say nothing about the index: surface them.
-      if (!(err instanceof EspoApiError) || err.status === 401 || err.status === 403 || err.status === 0) throw err
-      enforced = true
+      if (!(err instanceof EspoApiError) || !UNIQUE_REFUSAL_STATUSES.has(err.status)) throw err
+      refused = true
     }
 
-    if (enforced) {
+    if (refused) {
+      // Control: another key must still be creatable, or the failure proves nothing about the index.
+      const control = await client.request('POST', '/CBooking', { name: 'unique-probe', [KEY_FIELD]: `${key}-control` })
+      if (!control?.id) throw new EspoApiError('POST', '/CBooking', 200, 'control record was created without an id')
+      created.push(control.id)
+      enforced = true
       // The first record must be the only one with this key.
       const found = await client.request('GET', `/CBooking?select=id&where[0][type]=equals&where[0][attribute]=${KEY_FIELD}&where[0][value]=${encodeURIComponent(key)}`)
       if (Number(found?.total ?? 0) !== 1) enforced = false
