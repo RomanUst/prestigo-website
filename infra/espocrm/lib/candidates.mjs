@@ -195,11 +195,21 @@ export function buildCandidates(rows, options = {}) {
   )
 }
 
-/** Only owner-confirmed entries; a confirmed entry needs a D-02 type and must not be the canary. */
+/**
+ * Only owner-confirmed entries; a confirmed entry needs a D-02 type, a non-blank name and must
+ * not be the canary. `confirm` must be the boolean true: a hand-edited "true" / "yes" / 1 is
+ * rejected loudly instead of being silently treated as not confirmed.
+ */
 export function selectConfirmed(candidates) {
   const out = []
   for (const c of candidates ?? []) {
+    if (c.confirm !== undefined && c.confirm !== null && typeof c.confirm !== 'boolean') {
+      throw new Error(`candidate "${String(c.name ?? '').trim() || c.key || '?'}" has a non-boolean confirm ${JSON.stringify(c.confirm)}; use true or false`)
+    }
     if (c.confirm !== true) continue
+    if (typeof c.name !== 'string' || c.name.trim() === '') {
+      throw new Error(`candidate ${c.key ? `"${c.key}"` : '(no key)'} is confirmed with a blank name`)
+    }
     if (isCanary(c.name)) throw new Error(`candidate "${c.name}" is the restore-drill canary and cannot be seeded`)
     if (!ACCOUNT_TYPE_VALUES.includes(c.type)) {
       throw new Error(`candidate "${c.name}" is confirmed with invalid type ${JSON.stringify(c.type)}`)

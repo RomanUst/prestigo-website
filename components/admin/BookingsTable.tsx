@@ -1051,7 +1051,10 @@ interface BookingsTableProps {
 
 // Phase 80 D-18: the CRM Booking "Admin link" opens /admin/bookings?search={ref}.
 // Read once on mount; only a well-formed booking reference is accepted
-// (letters, digits, hyphens, max 40) — anything else is ignored.
+// (letters, digits, hyphens, max 40) — anything else is ignored. The parameter
+// is stripped from the address bar right after it is applied (see
+// clearBookingDeepLink) so a later remount of the table — e.g. after a manual
+// booking is created — starts from the operator's defaults, not the old link.
 function readBookingDeepLink(): string {
   if (typeof window === 'undefined') return ''
   const raw = new URLSearchParams(window.location.search).get('search')
@@ -1060,8 +1063,23 @@ function readBookingDeepLink(): string {
   return /^[A-Za-z0-9-]{1,40}$/.test(value) ? value : ''
 }
 
+function clearBookingDeepLink(): void {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has('search')) return
+  url.searchParams.delete('search')
+  // Keep history.state: the Next.js router stores its own bookkeeping in it.
+  window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
+}
+
 export default function BookingsTable({ defaultHorizon = 'future', horizonDays: horizonDaysProp = 7 }: BookingsTableProps) {
   const [deepLinkSearch] = useState(readBookingDeepLink)
+  // Apply the deep link once: drop it from the URL after the first render has
+  // consumed it. Impure work stays out of the useState initializer (StrictMode
+  // calls initializers twice).
+  useEffect(() => {
+    if (deepLinkSearch) clearBookingDeepLink()
+  }, [deepLinkSearch])
   const [bookings, setBookings] = useState<Booking[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)

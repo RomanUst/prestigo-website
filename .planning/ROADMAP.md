@@ -17,7 +17,7 @@
 - [x] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation (completed 2026-09-29)
 - [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
-- [ ] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL
+- [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
 - [ ] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails
 - [ ] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure
 - [ ] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops
@@ -253,7 +253,7 @@ Plans:
   4. Sales mail (sales@ or roman@) is connected to EspoCRM only; sent and received emails attach to the matching Account/Contact/Opportunity.
   5. Roles/ACL for 2-3 future operators exist in both Chatwoot (agent/admin, team assignment) and EspoCRM (role-based ACL), documented in a runbook.
 
-**Plans:** 13/13 plans executed
+**Plans:** 13/13 plans complete
 
 Plans:
 **Wave 1**
@@ -388,7 +388,7 @@ Plans:
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
 | 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
-| 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | In Progress|  |
+| 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |

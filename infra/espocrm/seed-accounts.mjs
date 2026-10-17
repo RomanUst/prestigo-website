@@ -33,17 +33,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
 import { normalizeEmail } from './lib/booking-map.mjs'
 import { FREE_MAIL_DOMAINS, emailDomain, selectConfirmed } from './lib/candidates.mjs'
-import { loadExport } from './backfill.mjs'
+import { PartialPreloadError, describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
+import { loadExport } from './lib/export-loader.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const WORK_DIR = path.join(HERE, '.work')
 export const DEFAULT_CANDIDATES = path.join(WORK_DIR, 'candidates.json')
 export const DEFAULT_INPUT = path.join(WORK_DIR, 'export')
-const PAGE_SIZE = 200
 const DEFAULT_DELAY_MS = 50
 const FREE_MAIL = new Set(FREE_MAIL_DOMAINS)
 
-const sleep = (ms) => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve())
 const collapse = (s) => String(s ?? '').replace(/\s+/g, ' ').trim()
 const nameKey = (s) => collapse(s).toLowerCase()
 const isBlank = (v) => v === null || v === undefined || v === ''
@@ -70,24 +69,34 @@ export function planSeed({ candidates, accounts, contacts, rows }) {
   const confirmed = selectConfirmed(candidates)
 
   // Working copy of the Accounts so two candidates with one name cannot create it twice.
-  const known = (accounts ?? []).map((a) => ({ id: a.id, nameKey: nameKey(a.name), host: websiteHost(a.website) }))
+  // `ownerKey` is set on an entry that stands for an Account this run is about to create: a
+  // later candidate that matches it becomes an alias of that candidate (its Account id only
+  // exists once the create has run), never an "existing" Account with an unknown id.
+  const known = (accounts ?? []).map((a) => ({ id: a.id, ownerKey: null, nameKey: nameKey(a.name), host: websiteHost(a.website) }))
   const accountOps = []
   let created = 0
   let existing = 0
+  let merged = 0
   confirmed.forEach((c, index) => {
     const key = c.key ?? `#${index}`
-    const domain = isBlank(c.domain) ? null : String(c.domain).toLowerCase()
+    // A free-mail domain (hand-edited candidate) is neither written as a website nor used to match.
+    const domain = isBlank(c.domain) || FREE_MAIL.has(String(c.domain).toLowerCase()) ? null : String(c.domain).toLowerCase()
     const match = known.find((a) => a.nameKey === nameKey(c.name) || (domain !== null && a.host === domain))
     if (match) {
-      existing++
-      accountOps.push({ kind: 'existing', key, id: match.id })
+      if (match.ownerKey !== null) {
+        merged++
+        accountOps.push({ kind: 'alias', key, of: match.ownerKey })
+      } else {
+        existing++
+        accountOps.push({ kind: 'existing', key, id: match.id })
+      }
       return
     }
     const payload = { name: collapse(c.name), type: c.type }
     if (domain) payload.website = `https://${domain}`
     if (c.type === 'Other' && !isBlank(c.note)) payload.cOtherTypeNote = collapse(c.note)
     created++
-    known.push({ id: null, nameKey: nameKey(c.name), host: domain })
+    known.push({ id: null, ownerKey: key, nameKey: nameKey(c.name), host: domain })
     accountOps.push({ kind: 'create', key, payload })
   })
 
@@ -122,10 +131,10 @@ export function planSeed({ candidates, accounts, contacts, rows }) {
       contactCounts.already_linked++
       continue
     }
-    // Two candidates that resolve to one Account are not a conflict.
-    const targets = new Set(
-      hits.map((h) => accountOps.find((op) => op.key === h.key)).map((op) => (op.kind === 'existing' ? `id:${op.id}` : `new:${op.key}`)),
-    )
+    // Two candidates that resolve to one Account (the same existing id, or an alias of a
+    // candidate that is being created) are not a conflict.
+    const targetOf = (op) => (op.kind === 'existing' ? `id:${op.id}` : op.kind === 'alias' ? `new:${op.of}` : `new:${op.key}`)
+    const targets = new Set(hits.map((h) => accountOps.find((op) => op.key === h.key)).map(targetOf))
     if (targets.size > 1) {
       contactCounts.ambiguous++
       continue
@@ -137,37 +146,13 @@ export function planSeed({ candidates, accounts, contacts, rows }) {
   return {
     accountOps,
     links,
-    counts: { accounts: { create: created, existing }, contacts: contactCounts },
+    counts: { accounts: { create: created, existing, ...(merged > 0 ? { merged } : {}) }, contacts: contactCounts },
   }
 }
 
 // ---------------------------------------------------------------------------
 // CRM preload and run
 // ---------------------------------------------------------------------------
-
-/** Page through a collection (server cap 200); de-duplicates by id against unstable paging. */
-async function fetchAll(client, entity, select) {
-  const out = new Map()
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const qs = `select=${select.join(',')}&maxSize=${PAGE_SIZE}&offset=${offset}&orderBy=createdAt&order=asc`
-    const res = await client.request('GET', `/${entity}?${qs}`)
-    const list = Array.isArray(res?.list) ? res.list : []
-    for (const rec of list) if (rec?.id && !out.has(rec.id)) out.set(rec.id, rec)
-    if (list.length < PAGE_SIZE) break
-    if (typeof res?.total === 'number' && res.total >= 0 && offset + PAGE_SIZE >= res.total) break
-  }
-  return [...out.values()]
-}
-
-function readOnlyClient(client) {
-  return {
-    ...client,
-    request(method, apiPath, body) {
-      if (method !== 'GET') throw new Error(`dry-run refused ${method} ${apiPath.split('?')[0]}`)
-      return client.request(method, apiPath, body)
-    },
-  }
-}
 
 /**
  * @param {{ client: { request: Function }, candidates: object[], rows?: object[], dryRun?: boolean,
@@ -196,6 +181,11 @@ export async function runSeed({ client: rawClient, candidates, rows = [], dryRun
     if (op.kind === 'existing') {
       accountIdOf.set(op.key, op.id)
       log(`account ${op.id} existing`)
+    } else if (op.kind === 'alias') {
+      // Same Account as an earlier candidate of this run: reuse the id its create returned.
+      const id = accountIdOf.get(op.of) ?? null
+      accountIdOf.set(op.key, id)
+      log(`account ${id ?? '-'} shared`)
     } else if (dryRun) {
       log('account - would-create')
     } else {
@@ -205,12 +195,16 @@ export async function runSeed({ client: rawClient, candidates, rows = [], dryRun
       log(`account ${created.id} created`)
     }
   }
-  log(`accounts: create=${plan.counts.accounts.create} existing=${plan.counts.accounts.existing}`)
+  const a = plan.counts.accounts
+  log(`accounts: create=${a.create} existing=${a.existing}${a.merged ? ` merged=${a.merged}` : ''}`)
 
   if (!dryRun) {
     for (const link of plan.links) {
+      const accountId = accountIdOf.get(link.candidateKey)
+      // Never send accountId: null (it would be counted as a link but leave the Contact unlinked).
+      if (!accountId) throw new Error(`internal: no Account id for candidate ${link.candidateKey}`)
       await pause()
-      await client.request('PUT', `/Contact/${link.contactId}`, { accountId: accountIdOf.get(link.candidateKey) })
+      await client.request('PUT', `/Contact/${link.contactId}`, { accountId })
     }
   }
   const c = plan.counts.contacts
@@ -259,11 +253,6 @@ function readCandidates(file) {
   return list
 }
 
-/** API failure line without query string or body. */
-function describeApiError(err) {
-  return `${err.method} ${String(err.apiPath).split('?')[0]} -> ${err.status}`
-}
-
 /**
  * @param {string[]} argv
  * @param {{ client?: { request: Function }, log?: (line: string) => void, error?: (line: string) => void }} [deps]
@@ -291,6 +280,11 @@ export async function runCli(argv, { client, log = console.log, error = console.
     if (err instanceof EspoConfigError) {
       error(`Config error: ${err.message}`)
       return 1
+    }
+    if (err instanceof PartialPreloadError) {
+      // Entity name and counts only: safe to print.
+      error(`Preload incomplete: ${err.message}`)
+      return 2
     }
     error(`Seed failed: ${err instanceof Error ? err.name : 'unknown error'}`)
     return 2

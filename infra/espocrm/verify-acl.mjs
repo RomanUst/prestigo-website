@@ -210,10 +210,18 @@ function fill(value, uid) {
 // Runner
 // ---------------------------------------------------------------------------
 
+/** The operator pressed Ctrl-C (or the process got SIGTERM); cleanup has run by the time this surfaces. */
+export class AclInterruptedError extends Error {
+  constructor() {
+    super('verify-acl interrupted; probe objects were cleaned up')
+    this.name = 'AclInterruptedError'
+  }
+}
+
 /**
  * @param {{ admin: any, makeClient: (apiKey: string) => any, roleSpecs: any[], fieldsJson: any,
  *           only?: string, syncClient?: any, extraSecrets?: string[],
- *           now?: () => number, random?: () => string }} options
+ *           now?: () => number, random?: () => string, interruptSource?: { once: Function, off: Function } }} options
  *   `syncClient`: a client built from the real prestigo-sync key; when given, the Sync writer
  *   checks run with it instead of a temporary probe user.
  * @returns {Promise<{ pass: number, fail: number, lines: string[], leaked: boolean }>}
@@ -228,6 +236,7 @@ export async function runAclProbe({
   extraSecrets = [],
   now = () => Date.now(),
   random = () => Math.random().toString(36).slice(2, 8),
+  interruptSource = process,
 }) {
   const selected = only ? roleSpecs.filter((s) => s.name.toLowerCase() === only.toLowerCase()) : roleSpecs
   if (selected.length === 0) throw new EspoConfigError(`verify-acl: no managed role named "${only}"`)
@@ -253,12 +262,27 @@ export async function runAclProbe({
   for (const spec of selected) roleId(spec.name)
 
   const fixtures = { account: null, contact: null, booking: null, attachment: null }
+  // Every created object is registered with a label (scope/id: no PII) so a failed cleanup can say what is left.
   const cleanup = []
-  const removeLater = (scope, id) => cleanup.push(async () => void (await admin.request('DELETE', `/${scope}/${id}`)))
+  const removeLater = (scope, id) =>
+    cleanup.push({ label: `${scope}/${id}`, run: async () => void (await admin.request('DELETE', `/${scope}/${id}`)) })
+
+  // Ctrl-C / SIGTERM stop the probe at the next step instead of killing the process: the finally
+  // block below still deletes every probe user and record (a second signal kills at once).
+  let interrupted = false
+  const onInterrupt = () => {
+    interrupted = true
+  }
+  const signals = ['SIGINT', 'SIGTERM']
+  for (const name of signals) interruptSource.once(name, onInterrupt)
+  const guard = () => {
+    if (interrupted) throw new AclInterruptedError()
+  }
 
   try {
     // Fixtures (admin): an Account carrying every commercial value plus a contract file,
     // a Contact and a Booking. All names/ids are unique per run.
+    guard()
     const account = await admin.request('POST', '/Account', { name: `ACL Probe ${stamp}`, ...commercialValues(fieldsJson) })
     fixtures.account = account.id
     removeLater('Account', account.id)
@@ -278,10 +302,12 @@ export async function runAclProbe({
       await admin.request('PUT', `/Account/${account.id}`, { [`${accountFinalName(fileField)}Id`]: attachment.id })
     }
 
+    guard()
     const contact = await admin.request('POST', '/Contact', { lastName: `ACL Probe ${stamp}` })
     fixtures.contact = contact.id
     removeLater('Contact', contact.id)
 
+    guard()
     const booking = await admin.request('POST', '/CBooking', { name: `ACL Probe ${stamp}`, supabaseBookingId: `${PROBE_PREFIX}-${stamp}` })
     fixtures.booking = booking.id
     removeLater('CBooking', booking.id)
@@ -289,6 +315,7 @@ export async function runAclProbe({
     const expectations = buildAclExpectations(selected, fieldsJson)
 
     for (const spec of selected) {
+      guard()
       let client
       if (spec.name === 'Sync writer' && syncClient) {
         client = syncClient
@@ -300,7 +327,7 @@ export async function runAclProbe({
           isActive: true,
           rolesIds: [roleId(spec.name)],
         })
-        cleanup.push(async () => void (await admin.request('DELETE', `/User/${probeUser.id}`)))
+        cleanup.push({ label: `User/${probeUser.id}`, run: async () => void (await admin.request('DELETE', `/User/${probeUser.id}`)) })
         let apiKey = probeUser.apiKey
         if (!apiKey) apiKey = (await admin.request('GET', `/User/${probeUser.id}`))?.apiKey
         if (!apiKey) throw new EspoApiError('POST', '/User', 200, 'API user was created without an api key')
@@ -320,6 +347,7 @@ export async function runAclProbe({
       }
 
       for (const check of expectations.filter((c) => c.role === spec.name)) {
+        guard()
         const outcome = await evaluate(client, check, fixtures, (body) => fill(body, `${stamp}-${++counter}`))
         if (outcome.createdId) removeLater(check.track, outcome.createdId)
         report(outcome.ok, `${check.role} ${check.label}${outcome.ok ? '' : ` (${outcome.detail})`}`)
@@ -327,15 +355,19 @@ export async function runAclProbe({
     }
   } finally {
     // Reverse order: records created by checks and users first, fixtures last. Every step is attempted.
-    let failures = 0
+    for (const name of signals) interruptSource.off(name, onInterrupt)
+    const left = []
     for (const step of cleanup.reverse()) {
       try {
-        await step()
+        await step.run()
       } catch {
-        failures++
+        left.push(step.label)
       }
     }
-    if (failures > 0) report(false, `cleanup ${failures} probe object(s) could not be deleted`)
+    if (left.length > 0) {
+      // Labels are scope/id pairs, never names or values: safe to print, and enough to find them.
+      report(false, `cleanup ${left.length} probe object(s) could not be deleted: ${left.join(', ')} (probe names start with "${PROBE_PREFIX}" or "ACL Probe", run ${stamp})`)
+    }
   }
 
   const leaked = scanForSecrets(lines, secrets)
@@ -435,6 +467,10 @@ async function main(argv) {
     console.log(`acl: pass=${pass} fail=${fail}`)
     process.exit(fail > 0 ? 3 : 0)
   } catch (err) {
+    if (err instanceof AclInterruptedError) {
+      console.error(err.message)
+      process.exit(130)
+    }
     if (err instanceof EspoApiError) {
       console.error(`API error: ${err.message}`)
       process.exit(2)

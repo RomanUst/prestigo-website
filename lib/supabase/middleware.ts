@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getPathname } from '@/i18n/routing'
 import { siteLocaleFromPathname } from '@/i18n/locales'
+import { safeAdminNext } from '@/lib/admin-next'
 
 /**
  * @param baseResponse Optional response object to mutate/return instead of
@@ -81,7 +82,13 @@ export async function updateSession(
   // Unauthenticated → redirect to login (exclude /admin/login to prevent infinite loop)
   if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !user) {
     const url = request.nextUrl.clone()
+    // Carry the requested admin path (e.g. the CRM "Admin link"
+    // /admin/bookings?search=PRG-...) through the login so the operator lands
+    // there after signing in. safeAdminNext keeps only same-origin /admin paths;
+    // the login action validates it again before redirecting.
+    const next = safeAdminNext(pathname + request.nextUrl.search)
     url.pathname = '/admin/login'
+    url.search = next && next !== '/admin' ? `?next=${encodeURIComponent(next)}` : ''
     return NextResponse.redirect(url)
   }
 

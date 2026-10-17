@@ -179,6 +179,14 @@ describe('Step5Passenger', () => {
       await waitFor(() => expect(input.value).toBe('+420725123456'))
       await waitFor(() => expect(screen.queryByText(/country code/i)).not.toBeInTheDocument())
     })
+    it('validates a phone restored from the session on mount, without waiting for blur', async () => {
+      storeRef.current.passengerDetails = {
+        firstName: 'Ada', lastName: 'L', email: 'ada@example.com', phone: '725123456',
+        flightNumber: '', terminal: '', specialRequests: '',
+      } as never
+      render(<Step5Passenger />)
+      expect(await screen.findByText(/country code/i)).toBeInTheDocument()
+    })
     it.todo('shows "Flight number is required for airport rides" after blur on empty Flight Number for airport ride')
     it.todo('clears error message when valid value entered and field blurred again')
   })

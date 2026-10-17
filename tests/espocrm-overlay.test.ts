@@ -168,7 +168,9 @@ describe('probe-unique', () => {
     expect(await runProbeUnique({ client, log: out.log })).toBe(0)
     expect(out.lines).toEqual(['unique=enforced'])
     expect(fake.state.records.CBooking ?? []).toEqual([])
-    expect(fake.requests.filter((r) => r.method === 'POST' && r.path === '/CBooking')).toHaveLength(2)
+    // first record, rejected duplicate, control record with another key (all deleted afterwards)
+    expect(fake.requests.filter((r) => r.method === 'POST' && r.path === '/CBooking')).toHaveLength(3)
+    expect(fake.requests.filter((r) => r.method === 'DELETE')).toHaveLength(2)
   })
 
   it('treats a 500 from the database as enforced too', async () => {
@@ -182,6 +184,44 @@ describe('probe-unique', () => {
     const out = collect()
     expect(await runProbeUnique({ client, log: out.log })).toBe(0)
     expect(out.lines).toEqual(['unique=enforced'])
+    expect(fake.state.records.CBooking ?? []).toEqual([])
+  })
+
+  it.each([400, 409, 500])('counts a %i on the duplicate as the database refusing it', async (status) => {
+    let posts = 0
+    const { client, fake } = adminClient({
+      extraRoutes: (req) => {
+        if (req.method === 'POST' && req.path === '/CBooking' && ++posts === 2) return new Response('', { status })
+        return undefined
+      },
+    })
+    const out = collect()
+    expect(await runProbeUnique({ client, log: out.log })).toBe(0)
+    expect(out.lines).toEqual(['unique=enforced'])
+    expect(fake.state.records.CBooking ?? []).toEqual([])
+  })
+
+  it.each([404, 429, 502, 503, 504])('surfaces a %i on the duplicate instead of calling it enforced', async (status) => {
+    let posts = 0
+    const { client, fake } = adminClient({
+      extraRoutes: (req) => {
+        if (req.method === 'POST' && req.path === '/CBooking' && ++posts === 2) return new Response('', { status })
+        return undefined
+      },
+    })
+    await expect(runProbeUnique({ client, log: () => {} })).rejects.toMatchObject({ status })
+    expect(fake.state.records.CBooking ?? []).toEqual([])
+  })
+
+  it('does not call a 500 enforced when a control record with another key fails too', async () => {
+    let posts = 0
+    const { client, fake } = adminClient({
+      extraRoutes: (req) => {
+        if (req.method === 'POST' && req.path === '/CBooking' && ++posts >= 2) return new Response('', { status: 500 })
+        return undefined
+      },
+    })
+    await expect(runProbeUnique({ client, log: () => {} })).rejects.toMatchObject({ status: 500 })
     expect(fake.state.records.CBooking ?? []).toEqual([])
   })
 
@@ -199,7 +239,10 @@ describe('probe-unique', () => {
     const out = collect()
     await runProbeUnique({ client, log: out.log })
     await runProbeUnique({ client, log: out.log })
-    const keys = fake.requests.filter((r) => r.method === 'POST').map((r) => r.body.supabaseBookingId)
+    const keys = fake.requests
+      .filter((r) => r.method === 'POST')
+      .map((r) => r.body.supabaseBookingId as string)
+      .filter((k) => !k.endsWith('-control'))
     expect(new Set(keys).size).toBe(2)
     expect(keys[0]).toMatch(/^unique-probe-\d+-[0-9a-f]{8}$/)
     expect(out.lines.join('\n')).not.toContain('unique-probe-')

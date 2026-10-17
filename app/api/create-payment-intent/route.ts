@@ -109,15 +109,15 @@ export async function POST(req: Request) {
     // SEC-16: use inferred Zod type directly — no cast to Record<string,string>
     const bookingData = parsed.data.bookingData
 
-    // Business rule: a phone, when given, must carry a country code (E.164);
-    // the normalised form is what gets stored and sent to drivers.
-    if (bookingData.phone && bookingData.phone.trim() !== '') {
-      const phoneE164 = normalizePhone(bookingData.phone)
-      if (!phoneE164) {
-        return NextResponse.json({ error: 'Phone must include the country code', code: 'INVALID_PHONE' }, { status: 422 })
-      }
-      bookingData.phone = phoneE164
+    // Business rule: every booking needs a contact phone with a country code
+    // (E.164). The wizard always collects one (step 5 requires it), so a missing,
+    // empty or whitespace-only value is a crafted request and is refused like any
+    // other invalid number. The normalised form is what gets stored and sent to drivers.
+    const phoneE164 = normalizePhone(bookingData.phone)
+    if (!phoneE164) {
+      return NextResponse.json({ error: 'Phone must include the country code', code: 'INVALID_PHONE' }, { status: 422 })
     }
+    bookingData.phone = phoneE164
 
     // Resolve authenticated user server-side — never trust client-supplied userId
     const supabaseUser = await createClient()
