@@ -18,10 +18,12 @@ key-files:
 decisions:
   - "Task 1 live write NOT performed: the CRM already holds the UAT Test Contact, and its email is a customer in the export (12 of 56 bookings)"
   - "runCandidates takes a workDir option so tests can use a temp folder; default is infra/espocrm/.work"
+  - "D-14 (owner): confirm rows 1 Corporate, 2 Agency, 3 Agency, 5 Corporate, 6 Corporate; row 4 (Gnet) NOT confirmed. 5 confirmed, no Account created in this plan (80-13)"
+  - "Continuation: UAT records deleted by orchestrator, dry-run now equals approved numbers; --limit 1 live write failed with POST /Contact -> 400 (empty reason). Held at the first unexpected result, nothing written"
 actuals:
-  tokens: 25000
-  tasks: 1
-  commits: 2
+  tokens: 40000
+  tasks: 2
+  commits: 4
 plan_head_before: 786d6458ec8897022667490a19f80a7e16acb84d
 ---
 
@@ -33,9 +35,24 @@ plan_head_before: 786d6458ec8897022667490a19f80a7e16acb84d
 
 | Task | State |
 | ---- | ----- |
-| 1 live backfill | HELD, no CRM write done. CBooking count is still 0 |
+| 1 live backfill | BLOCKED (continuation): dry-run matches approved numbers, but `--limit 1` failed at `POST /Contact -> 400`. CBooking=0, Contact=0 (nothing written) |
 | 2 account-candidates CLI | done, commit 9275aea5, 44/44 tests, eslint clean |
-| 3 D-14 owner decision | awaiting owner (candidate list below) |
+| 3 D-14 owner decision | DONE: owner confirmed 5 of 6 (see below); candidates.json verified |
+
+## Continuation run (2026-10-17)
+
+UAT records were deleted by the orchestrator (CRM: Contact=0, Opportunity=0, Account=1 canary). Results:
+
+- Dry-run (`--input` main-checkout export): rows=56 eligible=56 excluded_abandoned=0 invalid=0 duplicate_rows=0; by_status cancelled=19 completed=24 confirmed=10 unpaid=3; by_source gnet=6 manual=23 online=27; by_payment_method Stripe=35 Invoice=4 Cash=8 Other=9; contacts create=29 update=0 unchanged=0; bookings create=56 update=0 unchanged=0 without_contact=0. **Equal to the approved D-21 lines.**
+- `backfill.mjs --limit 1`: plan was contacts create=1, bookings create=1; the first write `POST /Contact` returned **400** with an empty body and empty X-Status-Reason (exit 2). Not a 401/403 (no auth problem, no ban risk).
+- After the failure: `inspect.mjs count CBooking` = 0, `count Contact` = 0. Nothing was written, no partial state; the full run, repeat run and audit were NOT executed.
+- Cause not yet established. The first Contact payload has 4 fields (firstName 5 chars, lastName 8 chars, emailAddress, phoneNumber = 9 bare digits with no country prefix). Most likely suspect: EspoCRM phone-number validation rejecting a number without an international prefix (the 400 is a validation-type response); other suspects: a required Contact field added by an earlier plan's metadata, or an email-address validation rule. A further diagnostic that replays the real payload to capture response headers was blocked by the auto-mode PII classifier, so it was not worked around.
+- Suggested next step (needs a decision/permission, and a fix in `infra/espocrm/lib/booking-map.mjs` rowToContact with tests if phone is the cause): capture the 400's X-Status-Reason via the client with a PII-masked logger, then either normalise phones to E.164 (needs a default country, e.g. +420 for 9-digit CZ numbers, which may be wrong for other customers) or send the Contact without phoneNumber when it does not validate (phone stays only on the booking). Then repeat: dry-run, `--limit 1`, full run, repeat run, `--audit`, `count CBooking` = 56, `count CBooking contactId=` = 0.
+
+## Task 3: D-14 owner decision (done, answered by owner)
+
+Owner reply: "1 Corporate, 2 Agency, 3 Agency, 5 Corporate, 6 Corporate" (row 4 Gnet not confirmed; it is the `gnet.local` placeholder source, not a real partner).
+`infra/espocrm/.work/candidates.json` (git-ignored) verified: rows 1, 5, 6 = Corporate confirm:true; rows 2, 3 = Agency confirm:true; row 4 confirm:false, type null. `selectConfirmed` returns **confirmed=5**. No Account was created, renamed or deleted in this plan; seeding is plan 80-13.
 
 ## Task 1: why the live write was not run
 
