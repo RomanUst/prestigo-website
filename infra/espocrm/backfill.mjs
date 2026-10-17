@@ -26,7 +26,7 @@
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
-import { describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
+import { PartialPreloadError, describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
 import { byExportOrder, loadExport } from './lib/export-loader.mjs'
 import {
   BookingMapError,
@@ -465,6 +465,11 @@ export async function runCli(argv, { client, log = console.log, error = console.
     if (err instanceof EspoConfigError) {
       error(`Config error: ${err.message}`)
       return 1
+    }
+    if (err instanceof PartialPreloadError) {
+      // Entity name and counts only: safe to print.
+      error(`Preload incomplete: ${err.message}`)
+      return 2
     }
     error(`Backfill failed: ${err instanceof Error ? err.name : 'unknown error'}`)
     return 2

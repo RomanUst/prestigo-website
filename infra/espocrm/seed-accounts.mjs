@@ -33,7 +33,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
 import { normalizeEmail } from './lib/booking-map.mjs'
 import { FREE_MAIL_DOMAINS, emailDomain, selectConfirmed } from './lib/candidates.mjs'
-import { describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
+import { PartialPreloadError, describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
 import { loadExport } from './lib/export-loader.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -261,6 +261,11 @@ export async function runCli(argv, { client, log = console.log, error = console.
     if (err instanceof EspoConfigError) {
       error(`Config error: ${err.message}`)
       return 1
+    }
+    if (err instanceof PartialPreloadError) {
+      // Entity name and counts only: safe to print.
+      error(`Preload incomplete: ${err.message}`)
+      return 2
     }
     error(`Seed failed: ${err instanceof Error ? err.name : 'unknown error'}`)
     return 2
