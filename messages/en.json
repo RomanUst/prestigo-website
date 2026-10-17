@@ -33,7 +33,7 @@
       "firstNameRequired": "First name is required",
       "lastNameRequired": "Last name is required",
       "invalidEmail": "Enter a valid email address",
-      "invalidPhone": "Enter a valid phone number",
+      "invalidPhone": "Enter the number with the country code, e.g. +420 123 456 789",
       "invalidFlightFormat": "Invalid IATA format — e.g. BA256 or OK123",
       "maxCharacters": "Maximum 500 characters"
     },
@@ -339,7 +339,7 @@
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
       "validEmailRequired": "Valid email is required.",
-      "validPhoneRequired": "Valid phone number is required.",
+      "validPhoneRequired": "Enter a phone number with the country code, e.g. +420 123 456 789.",
       "tooManyRequests": "Too many requests. Please wait a minute and try again.",
       "submitError": "We could not submit your request. Please check your entries and try again.",
       "networkError": "Network error. Please check your connection and try again."

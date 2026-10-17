@@ -24,6 +24,7 @@ import {
 } from '@/lib/server-pricing'
 import type { TripType, VehicleClass } from '@/types/booking'
 import { VEHICLE_CONFIG } from '@/types/booking'
+import { normalizePhone } from '@/lib/phone'
 
 // Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
 let _stripe: Stripe | null = null
@@ -107,6 +108,16 @@ export async function POST(req: Request) {
     }
     // SEC-16: use inferred Zod type directly — no cast to Record<string,string>
     const bookingData = parsed.data.bookingData
+
+    // Business rule: a phone, when given, must carry a country code (E.164);
+    // the normalised form is what gets stored and sent to drivers.
+    if (bookingData.phone && bookingData.phone.trim() !== '') {
+      const phoneE164 = normalizePhone(bookingData.phone)
+      if (!phoneE164) {
+        return NextResponse.json({ error: 'Phone must include the country code', code: 'INVALID_PHONE' }, { status: 422 })
+      }
+      bookingData.phone = phoneE164
+    }
 
     // Resolve authenticated user server-side — never trust client-supplied userId
     const supabaseUser = await createClient()

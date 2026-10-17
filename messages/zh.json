@@ -33,7 +33,7 @@
       "firstNameRequired": "请填写名字",
       "lastNameRequired": "请填写姓氏",
       "invalidEmail": "请输入有效的电子邮箱地址",
-      "invalidPhone": "请输入有效的电话号码",
+      "invalidPhone": "请输入带国家代码的号码，例如 +420 123 456 789",
       "invalidFlightFormat": "IATA 格式无效 — 例如 BA256 或 OK123",
       "maxCharacters": "最多 500 个字符"
     },
@@ -349,7 +349,7 @@
       "firstNameRequired": "请填写名字。",
       "lastNameRequired": "请填写姓氏。",
       "validEmailRequired": "请填写有效的电子邮箱。",
-      "validPhoneRequired": "请填写有效的电话号码。",
+      "validPhoneRequired": "请输入带国家代码的电话号码，例如 +420 123 456 789。",
       "tooManyRequests": "请求过于频繁。请稍等一分钟后重试。",
       "submitError": "我们无法提交您的请求。请检查您填写的内容后重试。",
       "networkError": "网络错误。请检查您的网络连接后重试。"
