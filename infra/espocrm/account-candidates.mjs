@@ -14,7 +14,7 @@
  * Every candidate starts as confirm:false, type:null. The owner confirms by editing the file.
  */
 
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { chmodSync, mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { EspoConfigError } from './lib/client.mjs'
@@ -63,10 +63,15 @@ export function runCandidates({
     }
     const { rows } = loadExport(input)
     const candidates = buildCandidates(rows)
-    mkdirSync(path.dirname(path.resolve(out)), { recursive: true })
+    // The file holds customer company names and counts: owner-only. `mode` applies only when
+    // a file or folder is created, so a pre-existing looser one is tightened explicitly.
+    const outDir = path.dirname(path.resolve(out))
+    mkdirSync(outDir, { recursive: true, mode: 0o700 })
+    chmodSync(outDir, 0o700)
     writeFileSync(out, JSON.stringify({ generatedAt: new Date().toISOString(), candidates }, null, 2) + '\n', {
       mode: 0o600,
     })
+    chmodSync(out, 0o600)
     log(formatCandidateTable(candidates))
     log(`candidates: ${candidates.length}`)
     return 0

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, statSync, chmodSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import * as cand from '../infra/espocrm/lib/candidates.mjs'
@@ -307,6 +307,23 @@ describe('account-candidates CLI (runCandidates)', () => {
       expect(c.type).toBeNull()
     }
     expect(io.out.join('\n')).toContain('candidates: 1')
+  })
+
+  it.skipIf(process.platform === 'win32')('IN-06: creates the folder 700 and the file 600, and tightens looser pre-existing ones', async () => {
+    const { work, input } = setup()
+    const io = capture()
+    const outDir = join(work, 'out')
+    const outFile = join(outDir, 'candidates.json')
+    await runCandidates({ input, out: outFile, workDir: work, log: io.log, error: io.error })
+    expect(statSync(outDir).mode & 0o777).toBe(0o700)
+    expect(statSync(outFile).mode & 0o777).toBe(0o600)
+
+    // A looser file / folder left by an earlier run is tightened on the next write.
+    chmodSync(outDir, 0o755)
+    chmodSync(outFile, 0o644)
+    await runCandidates({ input, out: outFile, workDir: work, log: io.log, error: io.error })
+    expect(statSync(outDir).mode & 0o777).toBe(0o700)
+    expect(statSync(outFile).mode & 0o777).toBe(0o600)
   })
 
   it('stdout holds names but no email address and not the canary', async () => {
