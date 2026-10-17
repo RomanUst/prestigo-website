@@ -38,6 +38,8 @@ import os from 'node:os'
 const CONFIG_DIR = path.join(os.homedir(), '.config', 'prestigo')
 export const CONFIG_ENV_FILE = path.join(CONFIG_DIR, 'espocrm-config.env')
 export const SYNC_ENV_FILE = path.join(CONFIG_DIR, 'espocrm-sync.env')
+/** Holds RESEND_SMTP_PASSWORD only: the password of the system mail (Resend SMTP) group account. */
+export const SMTP_ENV_FILE = path.join(CONFIG_DIR, 'espocrm-smtp.env')
 
 /** Metadata rebuilds can take long; the admin identity does schema work. */
 export const ADMIN_TIMEOUT_MS = 120_000
@@ -143,6 +145,26 @@ export function loadEspoConfig({ identity, env = process.env, filePath, readFile
     )
   }
   return { identity, baseUrl: url.origin, apiKey: values.ESPOCRM_API_KEY }
+}
+
+/**
+ * Reads RESEND_SMTP_PASSWORD from the mode-600 smtp env file (never from the environment and never
+ * from a command line). The value is returned to the caller and must go into a request body only:
+ * it is never logged and never part of an error message.
+ *
+ * @param {{ filePath?: string, readFile?: (p: string) => string | null }} [options]
+ * @returns {string}
+ */
+export function loadSmtpPassword({ filePath = SMTP_ENV_FILE, readFile } = {}) {
+  const shown = filePath.replace(os.homedir(), '~')
+  const reader = readFile ?? ((p) => (existsSync(p) ? readFileSync(p, 'utf8') : null))
+  const text = reader(filePath)
+  const value = text ? parseEnvFile(text).RESEND_SMTP_PASSWORD : undefined
+  if (!value) throw new EspoConfigError(`Missing RESEND_SMTP_PASSWORD - add it to ${shown} (mode 600)`)
+  if (!/^[\x21-\x7e]+$/.test(value)) {
+    throw new EspoConfigError(`RESEND_SMTP_PASSWORD contains a character outside printable ASCII (check ${shown})`)
+  }
+  return value
 }
 
 const MAX_BODY_CHARS = 300

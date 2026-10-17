@@ -7,7 +7,7 @@
  * workstation, never by the site at runtime. Mirrors infra/chatwoot/sync.mjs:
  * read the live state, diff against the declared state, write only the delta.
  *
- *   node infra/espocrm/sync.mjs [--dry-run] [--only settings,...]
+ *   node infra/espocrm/sync.mjs [--dry-run] [--only settings,...] [--set-smtp-password]
  *
  * Resource order: settings, entities, links, fields, enums, layouts, roles, mail.
  *
@@ -32,7 +32,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
+import { createEspoClient, loadEspoConfig, loadSmtpPassword, EspoApiError, EspoConfigError } from './lib/client.mjs'
 import { mergeDefault, mergeEnumOptions, mergeValueMap } from './lib/enum-merge.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -106,7 +106,7 @@ function readOnlyClient(client) {
 
 const VERB = { POST: 'create', PUT: 'update', PATCH: 'update', DELETE: 'remove' }
 
-function makeContext({ client: rawClient, dryRun, log, configDir }) {
+function makeContext({ client: rawClient, dryRun, log, configDir, getSmtpPassword, setSmtpPassword }) {
   const client = dryRun ? readOnlyClient(rawClient) : rawClient
 
   return {
@@ -117,6 +117,9 @@ function makeContext({ client: rawClient, dryRun, log, configDir }) {
         log,
         configDir,
         resource,
+        /** Lazy: the secret is read from its file only when a request body needs it. */
+        getSmtpPassword,
+        setSmtpPassword,
         readConfig: (file) => JSON.parse(readFileSync(path.join(configDir, file), 'utf8')),
         get: (apiPath) => client.request('GET', apiPath),
         async mutate(method, apiPath, body, key = apiPath) {
@@ -761,6 +764,42 @@ const MAIL_FILTER_ACTION = 'Move to Folder'
 const REMINDER_TYPES = ['Popup', 'Email']
 
 /**
+ * The non-secret fields of the system mail group account (InboundEmail). A whitelist, so a password
+ * (smtpPassword) can never be declared in the committed file.
+ */
+const SYSTEM_SMTP_FIELDS = {
+  name: 'string',
+  emailAddress: 'string',
+  status: 'string',
+  useImap: 'boolean',
+  useSmtp: 'boolean',
+  smtpIsShared: 'boolean',
+  smtpIsForMassEmail: 'boolean',
+  smtpHost: 'string',
+  smtpPort: 'number',
+  smtpAuth: 'boolean',
+  smtpSecurity: 'string',
+  smtpUsername: 'string',
+  smtpAuthMechanism: 'string',
+  fromName: 'string',
+  excludeFromReply: 'boolean',
+}
+
+function validateSystemSmtp(cfg) {
+  const where = 'mail.json: systemSmtp'
+  if (!isPlainObject(cfg)) throw new EspoConfigError(`${where} must be an object`)
+  const unknown = Object.keys(cfg).filter((k) => !(k in SYSTEM_SMTP_FIELDS))
+  if (unknown.length) {
+    throw new EspoConfigError(`${where} has unsupported keys: ${unknown.join(', ')} (secrets never go into mail.json)`)
+  }
+  for (const [key, type] of Object.entries(SYSTEM_SMTP_FIELDS)) {
+    if (typeof cfg[key] !== type || cfg[key] === '') throw new EspoConfigError(`${where}.${key} must be a${type === 'boolean' ? ' boolean' : type === 'number' ? ' number' : ' non-empty string'}`)
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cfg.emailAddress)) throw new EspoConfigError(`${where}.emailAddress is not an email address`)
+  if (!cfg.useSmtp) throw new EspoConfigError(`${where}.useSmtp must be true (this account exists to send system mail)`)
+}
+
+/**
  * Validates mail.json before the first request. A filter may only move mail to a folder: the
  * "Skip" action would hide task reminders (they are fetched back into the owner's mailbox).
  */
@@ -778,6 +817,8 @@ export function validateMailConfig(cfg) {
     if (!Array.isArray(list)) throw new EspoConfigError(`${where}: ${name} must be a list`)
   }
   if (requiredJobs.some((j) => typeof j !== 'string' || !j)) throw new EspoConfigError(`${where}: requiredJobs must be a list of job names`)
+
+  if (cfg.systemSmtp !== undefined) validateSystemSmtp(cfg.systemSmtp)
 
   for (const folder of folders) requireKeys('mail.folders', folder, ['name', 'user'])
   for (const filter of filters) {
@@ -845,6 +886,67 @@ export async function assertJobsActive(ctx, requiredJobs) {
   return requiredJobs.map((job) => `${job}=Active`)
 }
 
+const SYSTEM_SMTP_SELECT = ['id', ...Object.keys(SYSTEM_SMTP_FIELDS)].join(',')
+
+const systemSmtpDiffers = (want, have) =>
+  Object.entries(want)
+    .filter(([key, value]) => {
+      if (typeof value === 'boolean') return Boolean(have[key]) !== value
+      if (typeof value === 'number') return Number(have[key]) !== value
+      return (have[key] ?? '') !== value
+    })
+    .map(([key]) => key)
+
+/**
+ * System mail (EspoCRM 10.0.8: Core/Mail/Sender applyGlobal -> SendingAccountProvider::getSystem):
+ * the system SMTP account is an ACTIVE group email account (InboundEmail) with useSmtp whose
+ * emailAddress equals Settings.outboundEmailFromAddress. The legacy Settings smtp* fields are not
+ * read, so without this record every system mail (task reminders) fails with "No system SMTP settings".
+ *
+ * Exactly one InboundEmail with the declared address must exist: it is created, or updated with
+ * only the non-secret fields that drifted. The password comes from ~/.config/prestigo/espocrm-smtp.env
+ * and goes into the request body in two cases only: on create, and on update when the run was started
+ * with --set-smtp-password (the API never returns it, so it cannot be diffed). It is never logged.
+ */
+async function syncSystemSmtp(ctx, want, counts) {
+  const params = new URLSearchParams({ select: SYSTEM_SMTP_SELECT, maxSize: '10' })
+  params.set('where[0][type]', 'equals')
+  params.set('where[0][attribute]', 'emailAddress')
+  params.set('where[0][value]', want.emailAddress)
+  const matches = ((await ctx.get(`/InboundEmail?${params.toString()}`))?.list ?? []).filter(
+    (a) => String(a.emailAddress ?? '').toLowerCase() === want.emailAddress.toLowerCase(),
+  )
+  if (matches.length > 1) {
+    throw new EspoConfigError(`mail: ${matches.length} group email accounts use the system address; keep exactly one (resolve it in the CRM, then rerun)`)
+  }
+
+  const key = 'system SMTP group account'
+  const password = () => {
+    if (!ctx.getSmtpPassword) throw new EspoConfigError('mail: no SMTP password source configured')
+    return ctx.getSmtpPassword()
+  }
+
+  if (matches.length === 0) {
+    await ctx.mutate('POST', '/InboundEmail', { ...want, ...(ctx.dryRun ? {} : { smtpPassword: password() }) }, key)
+    counts.create++
+    return
+  }
+
+  const [have] = matches
+  const drift = systemSmtpDiffers(want, have)
+  const body = Object.fromEntries(drift.map((k) => [k, want[k]]))
+  if (ctx.setSmtpPassword) {
+    if (!ctx.dryRun) body.smtpPassword = password()
+    await ctx.mutate('PUT', `/InboundEmail/${have.id}`, body, `${key} (${[...drift, 'smtpPassword'].join(', ')})`)
+    counts.update++
+  } else if (drift.length) {
+    await ctx.mutate('PUT', `/InboundEmail/${have.id}`, body, `${key} (${drift.join(', ')})`)
+    counts.update++
+  } else {
+    counts.unchanged++
+  }
+}
+
 /**
  * mail.json: the owner user's address (a Personal Email Account must use the owner's own address),
  * a personal filter that files system mail into the owner's "Reminders" folder instead of the sales
@@ -883,6 +985,9 @@ async function syncMail(ctx) {
     users.set(userName, user)
     return user
   }
+
+  // 0. The system mail group account (before any other write, so a missing password aborts cleanly).
+  if (cfg.systemSmtp) await syncSystemSmtp(ctx, cfg.systemSmtp, counts)
 
   // 1. The owner user's email address (case-insensitive compare; the server's casing wins).
   const ownerUser = await resolveUser(owner.userName)
@@ -987,14 +1092,22 @@ const HANDLERS = {
 // ---------------------------------------------------------------------------
 
 /**
- * @param {{ client?: any, only?: string[], dryRun?: boolean, log?: (line: string) => void, configDir?: string }} [options]
+ * @param {{ client?: any, only?: string[], dryRun?: boolean, log?: (line: string) => void, configDir?: string, getSmtpPassword?: () => string, setSmtpPassword?: boolean }} [options]
  */
-export async function runSync({ client, only, dryRun = false, log = console.log, configDir = HERE } = {}) {
+export async function runSync({
+  client,
+  only,
+  dryRun = false,
+  log = console.log,
+  configDir = HERE,
+  getSmtpPassword = () => loadSmtpPassword(),
+  setSmtpPassword = false,
+} = {}) {
   const selected = only && only.length ? only : RESOURCE_ORDER
   const unknown = selected.filter((r) => !RESOURCE_ORDER.includes(r))
   if (unknown.length) throw new EspoConfigError(`Unknown resource for --only: ${unknown.join(', ')}`)
 
-  const context = makeContext({ client, dryRun, log, configDir })
+  const context = makeContext({ client, dryRun, log, configDir, getSmtpPassword, setSmtpPassword })
   const totals = { create: 0, update: 0, removed: 0 }
   const results = {}
 
@@ -1026,13 +1139,14 @@ function parseOnly(value) {
   return names
 }
 
-/** @returns {{ dryRun: boolean, only: string[] }} */
+/** @returns {{ dryRun: boolean, only: string[], setSmtpPassword?: boolean }} */
 export function parseArgs(argv) {
-  /** @type {{ dryRun: boolean, only: string[] }} */
+  /** @type {{ dryRun: boolean, only: string[], setSmtpPassword?: boolean }} */
   const opts = { dryRun: false, only: [] }
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
     if (arg === '--dry-run') opts.dryRun = true
+    else if (arg === '--set-smtp-password') opts.setSmtpPassword = true
     else if (arg === '--only') opts.only = parseOnly(argv[++i])
     else if (arg.startsWith('--only=')) opts.only = parseOnly(arg.slice('--only='.length))
     else throw new EspoConfigError(`Unknown argument: ${arg}`)
@@ -1044,7 +1158,7 @@ async function main(argv) {
   try {
     const opts = parseArgs(argv)
     const client = createEspoClient({ config: loadEspoConfig({ identity: 'admin' }) })
-    await runSync({ client, only: opts.only, dryRun: opts.dryRun })
+    await runSync({ client, only: opts.only, dryRun: opts.dryRun, setSmtpPassword: Boolean(opts.setSmtpPassword) })
   } catch (err) {
     if (err instanceof EspoApiError) {
       console.error(`API error: ${err.message}`)

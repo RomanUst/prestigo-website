@@ -10,12 +10,15 @@
  *   node infra/espocrm/inspect.mjs jobs
  *   node infra/espocrm/inspect.mjs mailbox [--expect-active]
  *   node infra/espocrm/inspect.mjs email-parent --since <ISO datetime>
+ *   node infra/espocrm/inspect.mjs system-mail [--expect-active]
  *
  *   count         -> count=N            (attr= means "empty": null or empty string)
  *   jobs          -> {job}={status}     one line per requiredJobs entry of mail.json
  *   mailbox       -> email_account=active|inactive|missing imap=on|off smtp=on|off
  *                    store_sent=on|off chatwoot_inboxes_with_roman=N
  *   email-parent  -> emails=N Account=N Contact=N Opportunity=N none=N [other=N]
+ *   system-mail   -> system_smtp=present|missing active=on|off use_smtp=on|off
+ *                    from_matches_settings=on|off   (the system SMTP group account, no password)
  *
  * Exit codes: 0 ok, 1 expectation failed (a job not Active; mailbox --expect-active not met) or
  * a usage/config error, 2 API error. Every request is a GET with the admin identity
@@ -34,7 +37,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 
 const ENTITY_RE = /^[A-Z][A-Za-z0-9]*$/
 const ATTR_RE = /^[A-Za-z][A-Za-z0-9]*$/
-const COMMANDS = ['count', 'jobs', 'mailbox', 'email-parent']
+const COMMANDS = ['count', 'jobs', 'mailbox', 'email-parent', 'system-mail']
 const PAGE = 200
 const MAX_PAGES = 50
 
@@ -71,7 +74,7 @@ export function parseInspectArgs(argv) {
     return { command, since }
   }
 
-  if (command === 'mailbox') {
+  if (command === 'mailbox' || command === 'system-mail') {
     const unknown = rest.filter((a) => a !== '--expect-active')
     if (unknown.length) throw new EspoConfigError(`Unknown argument: ${unknown[0]}`)
     return { command, expectActive: rest.includes('--expect-active') }
@@ -146,6 +149,27 @@ async function runMailbox(args, { client, log, configDir, getChatwootClient }) {
   return 0
 }
 
+/**
+ * The system SMTP group account (mail.json systemSmtp). Booleans only: it exists, it is Active, it
+ * sends over SMTP, and its address is the one Settings.outboundEmailFromAddress points at (EspoCRM
+ * only treats the account as the system sender when the two addresses are equal).
+ */
+async function runSystemMail(args, { client, log, configDir }) {
+  const { systemSmtp } = readMailConfig(configDir)
+  if (!systemSmtp?.emailAddress) throw new EspoConfigError('mail.json has no systemSmtp entry')
+  const want = systemSmtp.emailAddress.toLowerCase()
+
+  const accounts = (await client.request('GET', '/InboundEmail?select=id,emailAddress,status,useSmtp&maxSize=200'))?.list ?? []
+  const account = accounts.find((a) => String(a.emailAddress ?? '').toLowerCase() === want)
+  const settings = (await client.request('GET', '/Settings')) ?? {}
+  const active = account?.status === 'Active'
+  const smtp = Boolean(account?.useSmtp)
+  const fromMatches = String(settings.outboundEmailFromAddress ?? '').toLowerCase() === want
+
+  log(`system_smtp=${account ? 'present' : 'missing'} active=${onOff(active)} use_smtp=${onOff(smtp)} from_matches_settings=${onOff(fromMatches)}`)
+  return args.expectActive && !(account && active && smtp && fromMatches) ? 1 : 0
+}
+
 /** EspoCRM stores UTC as `YYYY-MM-DD HH:MM:SS`. */
 const parseEspoDate = (text) => Date.parse(`${String(text).replace(' ', 'T')}${/[zZ]|[+-]\d\d:?\d\d$/.test(String(text)) ? '' : 'Z'}`)
 
@@ -188,6 +212,8 @@ export async function runInspect({ argv, client, getChatwootClient, configDir = 
       return runJobs(env)
     case 'mailbox':
       return runMailbox(args, env)
+    case 'system-mail':
+      return runSystemMail(args, env)
     default:
       return runEmailParent(args, env)
   }
