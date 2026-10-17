@@ -133,8 +133,8 @@ describe('planSeed (pure)', () => {
     expect(plan.counts.contacts).toEqual({ link: 2, already_linked: 1, ambiguous: 1 })
     const linkedIds = plan.links.map((l: any) => l.contactId).sort()
     expect(linkedIds).toEqual([hid(1), hid(3)])
-    expect(plan.links.find((l: any) => l.contactId === hid(1)).candidateKey).toBe('domain:acme-corp.test')
-    expect(plan.links.find((l: any) => l.contactId === hid(3)).candidateKey).toBe('company:tltgo')
+    expect(plan.links.find((l: any) => l.contactId === hid(1))?.candidateKey).toBe('domain:acme-corp.test')
+    expect(plan.links.find((l: any) => l.contactId === hid(3))?.candidateKey).toBe('company:tltgo')
   })
 
   it('creates and links nothing without confirmed candidates', () => {
@@ -238,7 +238,7 @@ describe('runSeed against the fake', () => {
     expect(lines).toContain('accounts: create=1 existing=1')
     expect(fake.state.records.Account.find((a: any) => a.id === hid(600))).toEqual({ id: hid(600), name: 'tltgo', type: 'Agency', website: null, cMarker: 'keep' })
     expect(writes(fake).some((w) => w.path === `/Account/${hid(600)}`)).toBe(false)
-    expect(fake.state.records.Contact[0].accountId).toBe(hid(600))
+    expect((fake.state.records.Contact[0] as any).accountId).toBe(hid(600))
   })
 
   it('zero confirmed candidates writes nothing', async () => {
