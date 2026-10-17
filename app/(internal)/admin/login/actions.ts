@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
+import { safeAdminNext } from '@/lib/admin-next'
 
 export async function signIn(prevState: { error: string } | null, formData: FormData) {
   const headersList = await headers()
@@ -36,7 +37,9 @@ export async function signIn(prevState: { error: string } | null, formData: Form
     return { error: 'Invalid email or password.' }
   }
 
-  redirect('/admin')
+  // `next` is attacker-controllable (query string -> hidden field): only a
+  // same-origin /admin path is followed, anything else lands on /admin.
+  redirect(safeAdminNext(formData.get('next')) ?? '/admin')
 }
 
 export async function signOut() {

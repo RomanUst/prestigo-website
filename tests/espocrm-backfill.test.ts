@@ -268,6 +268,38 @@ describe('runBackfill write path', () => {
     expect(fake.state.records.CBooking[0].accountId).toBe('accD')
   })
 
+  it('WR-02: a name-based 409 whose email matches no Contact does not abort the run', async () => {
+    const same = { client_first_name: 'Sam', client_last_name: 'Same' }
+    const work = row({ ...same, client_email: 'sam.work@example.test' })
+    const home = row({ ...same, client_email: 'sam.home@example.test' })
+    const other = row({ client_email: 'other@example.test' })
+    const dir = writePages([[work, home, other]])
+    const fake = createFakeEspoCRM({
+      // EspoCRM's Contact duplicate check matches the email OR first + last name.
+      duplicateMatch: {
+        Contact: (c, e) =>
+          (c.emailAddress && c.emailAddress === e.emailAddress) ||
+          (c.firstName && c.lastName && c.firstName === e.firstName && c.lastName === e.lastName),
+      },
+    })
+    const first = await run(fake, dir)
+    // The second Sam is not created, the run finishes, the other booker and all bookings are written.
+    expect(first.text).toMatch(/^contacts: duplicate_unresolved=1 bookings_unlinked=1$/m)
+    expect(fake.state.records.Contact.filter((c: any) => c.lastName === 'Same')).toHaveLength(1)
+    expect(fake.state.records.Contact.filter((c: any) => c.emailAddress === 'other@example.test')).toHaveLength(1)
+    expect(fake.state.records.CBooking).toHaveLength(3)
+    const homeBooking = fake.state.records.CBooking.find((b: any) => b.supabaseBookingId === home.id)
+    expect(homeBooking.contactId ?? null).toBeNull()
+    // Output stays counts only.
+    expect(first.text).not.toMatch(/sam\.|example\.test|Same/)
+
+    // Re-running repeats the same 409 harmlessly and creates nothing new.
+    const bookingsBefore = fake.state.records.CBooking.length
+    const again = await run(fake, dir)
+    expect(again.text).toMatch(/^contacts: duplicate_unresolved=1 bookings_unlinked=1$/m)
+    expect(fake.state.records.CBooking).toHaveLength(bookingsBefore)
+  })
+
   it('450 bookings over 3 pages and a shuffled copy give the same plan; the second run is a no-op (paging > 200)', async () => {
     const rows = Array.from({ length: 450 }, () => row())
     const pages = [rows.slice(0, 150), rows.slice(150, 300), rows.slice(300)]

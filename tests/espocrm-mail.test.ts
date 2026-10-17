@@ -54,8 +54,9 @@ const jobs = (status = 'Active') => [
   { id: 'd00000000000000a3', name: 'Cleanup', job: 'Cleanup', status: 'Active' },
 ]
 
-const freshFake = (over: { metadata?: any; records?: Record<string, any[]> } = {}) =>
+const freshFake = (over: { metadata?: any; records?: Record<string, any[]>; extraRoutes?: any } = {}) =>
   createFakeEspoCRM({
+    extraRoutes: over.extraRoutes,
     metadata: over.metadata ?? mailMetadata(),
     records: {
       User: [
@@ -313,6 +314,24 @@ describe('system SMTP group account', () => {
     expect(puts[0].body).toEqual({ smtpPassword: SMTP_SECRET })
     expect(lines.join('\n')).not.toContain(SMTP_SECRET)
     expect(lines).toContain('mail: create=1 update=3 unchanged=1 skipped=0 removed=0')
+  })
+
+  it('masks the SMTP password in an API error that echoes the request field (IN-04)', async () => {
+    const fake = freshFake({
+      records: { EmailFolder: [OWNER_FOLDER] },
+      extraRoutes: (req: any) =>
+        req.method === 'PUT' && req.path.startsWith('/InboundEmail/') && req.body?.smtpPassword
+          ? new Response(`{"message":"bad smtpPassword ${req.body.smtpPassword}"}`, { status: 400 })
+          : undefined,
+    })
+    const failure = await syncMail(fake, { setSmtpPassword: true }).then(
+      () => null,
+      (err: Error) => err,
+    )
+    expect(failure).toBeInstanceOf(Error)
+    expect(failure!.message).toContain('400')
+    expect(failure!.message).not.toContain(SMTP_SECRET)
+    expect(failure!.message).toContain('[redacted]')
   })
 
   it('a missing password source aborts the create before any write', async () => {

@@ -1,10 +1,17 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { signIn } from './actions'
 
 export default function AdminLoginPage() {
   const [state, formAction, pending] = useActionState(signIn, null)
+  // Where the operator was heading before the middleware sent them here. Read
+  // after mount (no useSearchParams, so the page needs no Suspense boundary and
+  // stays prerenderable). Untrusted: signIn validates it with safeAdminNext.
+  const [next, setNext] = useState('')
+  useEffect(() => {
+    setNext(new URLSearchParams(window.location.search).get('next') ?? '')
+  }, [])
 
   return (
     <div
@@ -54,6 +61,7 @@ export default function AdminLoginPage() {
         </p>
 
         <form action={formAction}>
+          <input type="hidden" name="next" value={next} />
           <label
             htmlFor="email"
             style={{

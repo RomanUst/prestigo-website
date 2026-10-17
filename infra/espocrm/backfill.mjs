@@ -19,19 +19,21 @@
  *   - field ownership: an existing Contact keeps its names, accountId, title and
  *     description; phoneNumber is filled only when empty. Bookings are sync-owned;
  *   - a 409 on Contact create is resolved by looking the Contact up by email (no
- *     duplicate-check bypass header is ever sent);
+ *     duplicate-check bypass header is ever sent). A 409 that no Contact with that email
+ *     explains (EspoCRM also matches first + last name) is counted as duplicate_unresolved:
+ *     the run continues and those bookings are written without a Contact link;
  *   - output is counts only: no email, name or phone number is ever printed.
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
+import { PartialPreloadError, describeApiError, fetchAll, readOnlyClient, sleep } from './lib/crm-read.mjs'
+import { byExportOrder, loadExport } from './lib/export-loader.mjs'
 import {
   BookingMapError,
   PAYMENT_METHOD_VALUES,
   SYNCED_BOOKING_FIELDS,
-  isAbandonedCheckout,
   normalizeContactPhone,
   normalizeEmail,
   rowToBooking,
@@ -40,7 +42,6 @@ import {
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const DEFAULT_INPUT = path.join(HERE, '.work', 'export')
-const PAGE_SIZE = 200
 const DEFAULT_DELAY_MS = 50
 
 // ---------------------------------------------------------------------------
@@ -48,7 +49,6 @@ const DEFAULT_DELAY_MS = 50
 // ---------------------------------------------------------------------------
 
 const isNil = (v) => v === null || v === undefined
-const sleep = (ms) => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve())
 
 /** null and '' are equal; numbers compare numerically (a numeric string equals its number). */
 function sameValue(a, b) {
@@ -78,70 +78,8 @@ const fmtCounts = (obj) =>
     .map((k) => `${k}=${obj[k]}`)
     .join(' ')
 
-const byExportOrder = (a, b) => {
-  const ca = String(a.created_at ?? '')
-  const cb = String(b.created_at ?? '')
-  if (ca !== cb) return ca < cb ? -1 : 1
-  const ia = String(a.id)
-  const ib = String(b.id)
-  return ia < ib ? -1 : ia > ib ? 1 : 0
-}
-
-// ---------------------------------------------------------------------------
-// Export loading
-// ---------------------------------------------------------------------------
-
-/**
- * Load the Supabase export: a single .json file or a directory of page-*.json files.
- * De-duplicates by id (duplicate_rows) and re-applies the abandoned-checkout rule
- * (excluded_abandoned). Rows come back in export order (created_at, id).
- * Error messages name only the path: file contents never reach an error message.
- */
-export function loadExport(input) {
-  if (!input || !existsSync(input)) {
-    throw new EspoConfigError(`Export input not found: ${input}`)
-  }
-  let files
-  if (statSync(input).isDirectory()) {
-    files = readdirSync(input)
-      .filter((f) => /^page-.*\.json$/.test(f))
-      .sort()
-      .map((f) => path.join(input, f))
-    if (files.length === 0) throw new EspoConfigError(`No page-*.json files in: ${input}`)
-  } else {
-    files = [input]
-  }
-
-  const seen = new Map()
-  let duplicateRows = 0
-  for (const file of files) {
-    let parsed
-    try {
-      parsed = JSON.parse(readFileSync(file, 'utf8'))
-    } catch {
-      throw new EspoConfigError(`Export file is not valid JSON: ${file}`)
-    }
-    if (!Array.isArray(parsed)) throw new EspoConfigError(`Export file is not a JSON array: ${file}`)
-    for (const row of parsed) {
-      if (!row || typeof row !== 'object' || isNil(row.id) || row.id === '') {
-        throw new EspoConfigError(`Export file holds a row without id: ${file}`)
-      }
-      if (seen.has(row.id)) duplicateRows++
-      else seen.set(row.id, row)
-    }
-  }
-
-  const all = [...seen.values()]
-  const rows = all.filter((r) => !isAbandonedCheckout(r)).sort(byExportOrder)
-  return {
-    rows,
-    counts: {
-      rows: all.length,
-      excluded_abandoned: all.length - rows.length,
-      duplicate_rows: duplicateRows,
-    },
-  }
-}
+// Re-exported: the export reader lives in lib/export-loader.mjs and is shared with seed-accounts.
+export { loadExport }
 
 // ---------------------------------------------------------------------------
 // Plan (pure)
@@ -286,32 +224,8 @@ export function planBackfill({ rows, contacts, bookings, limit }) {
 // CRM preload
 // ---------------------------------------------------------------------------
 
-/** Page through a collection (server cap 200); de-duplicates by id against unstable paging. */
-async function fetchAll(client, entity, select) {
-  const out = new Map()
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const qs = `select=${select.join(',')}&maxSize=${PAGE_SIZE}&offset=${offset}&orderBy=createdAt&order=asc`
-    const res = await client.request('GET', `/${entity}?${qs}`)
-    const list = Array.isArray(res?.list) ? res.list : []
-    for (const rec of list) if (rec?.id && !out.has(rec.id)) out.set(rec.id, rec)
-    if (list.length < PAGE_SIZE) break
-    if (typeof res?.total === 'number' && res.total >= 0 && offset + PAGE_SIZE >= res.total) break
-  }
-  return [...out.values()]
-}
-
 const CONTACT_SELECT = ['id', 'emailAddress', 'accountId', 'phoneNumber']
 const BOOKING_SELECT = ['id', ...SYNCED_BOOKING_FIELDS, 'contactId', 'accountId']
-
-function readOnlyClient(client) {
-  return {
-    ...client,
-    request(method, apiPath, body) {
-      if (method !== 'GET') throw new Error(`dry-run refused ${method} ${apiPath.split('?')[0]}`)
-      return client.request(method, apiPath, body)
-    },
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Run
@@ -359,6 +273,9 @@ export async function runBackfill({
   }
   const applied = await applyPlan({ client, plan, contacts, delayMs })
   if (applied.conflicts > 0) log(`contacts: duplicate_resolved=${applied.conflicts}`)
+  if (applied.duplicateUnresolved > 0) {
+    log(`contacts: duplicate_unresolved=${applied.duplicateUnresolved} bookings_unlinked=${applied.unlinkedBookings}`)
+  }
   log(`contacts: phone_dropped=${applied.phoneDropped}`)
   log(`applied: contacts=${applied.contactWrites} bookings=${applied.bookingWrites}`)
   return { counts: plan.counts, plan, applied }
@@ -393,6 +310,9 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
   let bookingWrites = 0
   let conflicts = 0
   let phoneDropped = 0
+  // Contact keys (emails) whose create hit a 409 that no Contact with that email explains.
+  const unresolved = new Set()
+  let unlinkedBookings = 0
 
   for (const op of plan.contactOps) {
     if (op.kind === 'create') {
@@ -412,10 +332,17 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
         contactWrites++
         contactMap.set(op.key, { id: created.id, accountId: created.accountId ?? null })
       } catch (err) {
-        // 409 = EspoCRM duplicate check on the email: the Contact exists, reuse it.
+        // 409 = EspoCRM duplicate check: the Contact exists, reuse it.
         if (!(err instanceof EspoApiError) || err.status !== 409) throw err
         const found = await lookupContactByEmail(client, op.key)
-        if (!found) throw err
+        if (!found) {
+          // The check also matches on first + last name, so a 409 can come from a DIFFERENT
+          // Contact that merely shares the name (another email). That is not resolvable here:
+          // leave this email without a Contact, keep going, and let the owner decide in the CRM.
+          // Counts only are reported. Re-running repeats the same 409 harmlessly.
+          unresolved.add(op.key)
+          continue
+        }
         conflicts++
         contactMap.set(op.key, { id: found.id, accountId: found.accountId ?? null })
       }
@@ -439,13 +366,18 @@ async function applyPlan({ client, plan, contacts, delayMs }) {
       data.contactId = contact.id
       if (contact.accountId) data.accountId = contact.accountId
       else if (op.kind === 'create') delete data.accountId
+    } else if (op.contactKey && unresolved.has(op.contactKey)) {
+      // No usable Contact for this email: write the booking without touching its Contact link.
+      delete data.contactId
+      delete data.accountId
+      unlinkedBookings++
     }
     await pause()
     if (op.kind === 'create') await client.request('POST', '/CBooking', data)
     else await client.request('PUT', `/CBooking/${op.id}`, data)
     bookingWrites++
   }
-  return { contactWrites, bookingWrites, conflicts, phoneDropped }
+  return { contactWrites, bookingWrites, conflicts, phoneDropped, duplicateUnresolved: unresolved.size, unlinkedBookings }
 }
 
 /**
@@ -522,11 +454,6 @@ export function parseArgs(argv) {
   return opts
 }
 
-/** API failure line without query string or body: a lookup URL can carry an email address. */
-function describeApiError(err) {
-  return `${err.method} ${String(err.apiPath).split('?')[0]} -> ${err.status}`
-}
-
 /**
  * @param {string[]} argv
  * @param {{ client?: { request: Function }, log?: (line: string) => void, error?: (line: string) => void }} [deps]
@@ -558,6 +485,11 @@ export async function runCli(argv, { client, log = console.log, error = console.
     if (err instanceof EspoConfigError) {
       error(`Config error: ${err.message}`)
       return 1
+    }
+    if (err instanceof PartialPreloadError) {
+      // Entity name and counts only: safe to print.
+      error(`Preload incomplete: ${err.message}`)
+      return 2
     }
     error(`Backfill failed: ${err instanceof Error ? err.name : 'unknown error'}`)
     return 2

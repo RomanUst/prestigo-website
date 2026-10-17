@@ -31,7 +31,7 @@
  *   - every request has a timeout; messages and bodies are redacted.
  */
 
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, statSync } from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
 
@@ -75,22 +75,44 @@ export class EspoApiError extends Error {
   }
 }
 
-/** Parse KEY=value lines (optional quotes, # comments). Never logs values. */
+/**
+ * Parse KEY=value lines (optional `export ` prefix, optional quotes, # comments). A comment
+ * after the value ("KEY=abc # note", "KEY='abc' # note") is dropped; a "#" that is not
+ * preceded by whitespace is part of the value. Never logs values.
+ */
 export function parseEnvFile(text) {
   const out = {}
   for (const rawLine of String(text).split(/\r?\n/)) {
-    const line = rawLine.trim()
+    let line = rawLine.trim()
     if (!line || line.startsWith('#')) continue
+    line = line.replace(/^export\s+/, '')
     const eq = line.indexOf('=')
     if (eq < 1) continue
     const key = line.slice(0, eq).trim()
     let value = line.slice(eq + 1).trim()
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1)
-    }
+    const quoted = value.match(/^(["'])(.*?)\1(?:\s+#.*)?$/)
+    if (quoted) value = quoted[2]
+    else if (!/^["']/.test(value)) value = value.replace(/\s+#.*$/, '')
     out[key] = value
   }
   return out
+}
+
+/**
+ * Default reader for a credential file: null when it does not exist, an EspoConfigError when it
+ * is readable by group or others (the README requires mode 600). Skipped on Windows, where POSIX
+ * modes do not apply.
+ */
+export function readSecretFile(file) {
+  if (!existsSync(file)) return null
+  if (process.platform !== 'win32') {
+    const mode = statSync(file).mode
+    if (mode & 0o077) {
+      const shown = file.replace(os.homedir(), '~')
+      throw new EspoConfigError(`${shown} is readable by other users (mode ${(mode & 0o777).toString(8)}); run: chmod 600 ${shown}`)
+    }
+  }
+  return readFileSync(file, 'utf8')
 }
 
 /**
@@ -106,7 +128,7 @@ export function loadEspoConfig({ identity, env = process.env, filePath, readFile
   for (const key of spec.keys) if (env[key]) values[key] = env[key]
 
   if (spec.keys.some((k) => !values[k])) {
-    const reader = readFile ?? ((p) => (existsSync(p) ? readFileSync(p, 'utf8') : null))
+    const reader = readFile ?? readSecretFile
     const text = reader(file)
     if (text) {
       const parsed = parseEnvFile(text)
@@ -157,7 +179,7 @@ export function loadEspoConfig({ identity, env = process.env, filePath, readFile
  */
 export function loadSmtpPassword({ filePath = SMTP_ENV_FILE, readFile } = {}) {
   const shown = filePath.replace(os.homedir(), '~')
-  const reader = readFile ?? ((p) => (existsSync(p) ? readFileSync(p, 'utf8') : null))
+  const reader = readFile ?? readSecretFile
   const text = reader(filePath)
   const value = text ? parseEnvFile(text).RESEND_SMTP_PASSWORD : undefined
   if (!value) throw new EspoConfigError(`Missing RESEND_SMTP_PASSWORD - add it to ${shown} (mode 600)`)
@@ -233,7 +255,20 @@ export function createEspoClient({ config, fetchImpl = globalThis.fetch, timeout
         timedOut ? `request timed out after ${effectiveTimeout} ms` : redact(err instanceof Error ? err.message : String(err)),
       )
     }
-    const text = await res.text()
+    // A timeout or reset while the body streams is a transport problem too: map it to the same
+    // status-0 EspoApiError so callers that branch on EspoApiError classify it correctly.
+    let text
+    try {
+      text = await res.text()
+    } catch (err) {
+      const timedOut = err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError')
+      throw new EspoApiError(
+        method,
+        apiPath,
+        0,
+        timedOut ? `response timed out after ${effectiveTimeout} ms` : redact(err instanceof Error ? err.message : String(err)),
+      )
+    }
     if (!res.ok) {
       // EspoCRM often explains an error in X-Status-Reason rather than the body.
       const reason = res.headers?.get?.('X-Status-Reason')
@@ -308,6 +343,10 @@ export function createEspoClient({ config, fetchImpl = globalThis.fetch, timeout
 
   return {
     identity,
+    /** Registers a secret (e.g. the SMTP password) so error bodies and messages mask it. */
+    addSecret(...values) {
+      redact.add(...values)
+    },
     request(method, apiPath, body) {
       const run = chain.then(() => send(method, apiPath, body))
       chain = run.catch(() => {})

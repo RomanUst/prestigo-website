@@ -34,6 +34,7 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, loadSmtpPassword, EspoApiError, EspoConfigError } from './lib/client.mjs'
 import { mergeDefault, mergeEnumOptions, mergeValueMap } from './lib/enum-merge.mjs'
+import { readOnlyClient } from './lib/crm-read.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
@@ -92,17 +93,6 @@ const emptyCounts = () => ({ create: 0, update: 0, unchanged: 0, skipped: 0, rem
 // ---------------------------------------------------------------------------
 // Engine
 // ---------------------------------------------------------------------------
-
-/** In dry-run mode the client is wrapped so any non-GET request throws. */
-function readOnlyClient(client) {
-  return {
-    ...client,
-    request(method, apiPath, body) {
-      if (method !== 'GET') throw new Error(`dry-run refused ${method} ${apiPath}`)
-      return client.request(method, apiPath, body)
-    },
-  }
-}
 
 const VERB = { POST: 'create', PUT: 'update', PATCH: 'update', DELETE: 'remove' }
 
@@ -923,7 +913,10 @@ async function syncSystemSmtp(ctx, want, counts) {
   const key = 'system SMTP group account'
   const password = () => {
     if (!ctx.getSmtpPassword) throw new EspoConfigError('mail: no SMTP password source configured')
-    return ctx.getSmtpPassword()
+    const value = ctx.getSmtpPassword()
+    // Mask it in any error text an InboundEmail POST/PUT could echo back.
+    ctx.client.addSecret?.(value)
+    return value
   }
 
   if (matches.length === 0) {

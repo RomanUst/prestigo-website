@@ -219,6 +219,15 @@ export default function MultiDayForm() {
         setStatus({ kind: 'error', message: t('tooManyRequests') })
         return
       }
+      if (res.status === 422) {
+        // INVALID_PHONE: the server refused a number without a valid country code
+        // that slipped past client validation. Show the same message as the field check.
+        const body = (await res.json().catch(() => null)) as { code?: string } | null
+        if (body?.code === 'INVALID_PHONE') {
+          setStatus({ kind: 'error', message: t('validPhoneRequired') })
+          return
+        }
+      }
       if (!res.ok) {
         setStatus({
           kind: 'error',

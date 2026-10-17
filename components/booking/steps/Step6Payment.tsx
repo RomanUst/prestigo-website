@@ -234,6 +234,7 @@ export default function Step6Payment() {
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
   const distanceKm = useBookingStore((s) => s.distanceKm)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
+  const goToStep = useBookingStore((s) => s.goToStep)
 
   const promoCode = useBookingStore((s) => s.promoCode)
   const promoDiscount = useBookingStore((s) => s.promoDiscount)
@@ -388,6 +389,15 @@ export default function Step6Payment() {
         if (!res.ok || data.error) {
           console.error('create-payment-intent error:', data.error)
           const errCode = data.code as string | undefined
+          if (errCode === 'INVALID_PHONE') {
+            // The phone saved in the session (e.g. entered before the country-code
+            // rule shipped) is not a valid international number. Reuse the Step 5
+            // field message and send the customer back to fix it; Step 5 re-validates
+            // a pre-filled phone on mount, so the error shows under the field.
+            setPaymentError(tb('validation.invalidPhone'))
+            goToStep?.(5)
+            return
+          }
           setPaymentError(
             errCode && KNOWN_STEP6_ERROR_CODES.has(errCode)
               ? t(`errors.${errCode}`)

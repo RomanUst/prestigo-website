@@ -229,6 +229,16 @@ export const KNOWN_CALLING_CODES = [
  * Contact-only phone normaliser (EspoCRM rejects numbers without an international
  * prefix with {"field":"phoneNumber","type":"valid"}). The booking keeps the original.
  *
+ * DELIBERATE DIVERGENCE from lib/phone.ts (owner decision, Phase 80 review WR-08): the site
+ * form rejects a number without a country code ("rejected rather than guessed"), but legacy
+ * bookings pre-date that rule and the CRM backfill must still give the owner a callable Contact.
+ * So this one-time tool DOES guess for legacy rows: a bare 9-digit number becomes +420 and a bare
+ * 11-12 digit number that starts with a known calling code gets a "+". The owner approved this
+ * for the backfill only; do not copy it into lib/phone.ts or the live booking flow, and see
+ * infra/espocrm/README.md ("Contact phone numbers"). Prefixed numbers are counted in the
+ * contact_phones line (prefixed=N) so the owner can review them. A phone is written to a
+ * Contact only while its phoneNumber is empty, so a wrong guess is fixed by editing the Contact.
+ *
  * Returns { phone, kind }:
  *   kept     - already international (E.164, or 00-prefixed converted to +); phone is the cleaned value
  *   prefixed - bare digits made international (9 digits -> +420, 11-12 digits with a known calling code -> +)
@@ -237,8 +247,9 @@ export const KNOWN_CALLING_CODES = [
 export function normalizeContactPhone(value) {
   const raw = sanitizeText(value, 50)
   if (raw === '') return { phone: null, kind: 'omitted', reason: 'empty' }
-  // Strip spaces, dashes, dots and parentheses; leading 00 means "+".
-  let s = raw.replace(/[\s\-.()]/g, '')
+  // "(0)" is the optional national trunk digit ("+44 (0) 20 ..."): drop it, or the 0 stays in the number.
+  // Then strip spaces, dashes, dots and parentheses; leading 00 means "+".
+  let s = raw.replace(/\(\s*0\s*\)/g, '').replace(/[\s\-.()]/g, '')
   if (s.startsWith('00')) s = `+${s.slice(2)}`
   if (s.startsWith('+')) {
     return E164_RE.test(s)

@@ -810,6 +810,28 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     expect(params.has('search')).toBe(false)
   })
 
+  it('applies the deep link once: strips ?search= from the URL (keeping other params) and a remount starts from the defaults', async () => {
+    window.history.replaceState({}, '', `/admin/bookings?search=${REF}&tab=all#top`)
+    const fetchMock = stubFetchTracking()
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    const first = render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitForBookingsFetch(fetchMock)
+    expect(firstBookingsParams(fetchMock).get('search')).toBe(REF)
+    await waitFor(() => expect(window.location.search).toBe('?tab=all'))
+    expect(window.location.pathname).toBe('/admin/bookings')
+    expect(window.location.hash).toBe('#top')
+
+    first.unmount()
+    fetchMock.mockClear()
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    await waitForBookingsFetch(fetchMock)
+    const params = firstBookingsParams(fetchMock)
+    expect(params.get('horizon')).toBe('future')
+    expect(params.has('search')).toBe(false)
+    expect((screen.getByPlaceholderText('Search client or reference...') as HTMLInputElement).value).toBe('')
+  })
+
   it('clearing the search box after a deep link refetches without search and keeps horizon=all', async () => {
     window.history.replaceState({}, '', `/admin/bookings?search=${REF}`)
     const fetchMock = stubFetchTracking()

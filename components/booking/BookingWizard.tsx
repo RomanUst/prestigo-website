@@ -7,6 +7,7 @@ import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace, VEHICLE_CLASS_KEY } from '@/types/booking'
 import type { TripType, VehicleClass } from '@/types/booking'
 import { computeExtrasTotal } from '@/lib/extras'
+import { isValidIntlPhone } from '@/lib/phone'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import ProgressBar from './ProgressBar'
 import EntryBar from './EntryBar'
@@ -220,7 +221,7 @@ export default function BookingWizard() {
           !!passengerDetails?.firstName &&
           !!passengerDetails?.lastName &&
           !!passengerDetails?.email &&
-          !!passengerDetails?.phone
+          isValidIntlPhone(passengerDetails?.phone)
         )
       default:
         return true // step 6 (payment) and beyond

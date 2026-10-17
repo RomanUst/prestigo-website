@@ -7,13 +7,14 @@
  * in-memory fake. No test here makes a network call or reads a real credential.
  */
 import { describe, expect, it } from 'vitest'
+import { EventEmitter } from 'node:events'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { EspoConfigError, createEspoClient, loadEspoConfig } from '../infra/espocrm/lib/client.mjs'
 import { buildRoleSpecs, runSync } from '../infra/espocrm/sync.mjs'
-import { buildAclExpectations, runAclProbe, scanForSecrets } from '../infra/espocrm/verify-acl.mjs'
+import { AclInterruptedError, buildAclExpectations, runAclProbe, scanForSecrets } from '../infra/espocrm/verify-acl.mjs'
 import { createFakeEspoCRM, stockEspoMetadata, type FakeReq } from './helpers/fake-espocrm'
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -481,6 +482,58 @@ describe('runAclProbe (all roles)', () => {
     const result = await probe(aclFake())
     for (const line of result.lines) expect(line).toMatch(/^(PASS|FAIL) (Dispatcher|Sales manager|Sync writer) [A-Za-z /{}]+/)
     expect(result.lines.join('\n')).not.toMatch(/PROBE|@|acl-probe/)
+  })
+
+  it('IN-05: SIGINT stops at the next step and still deletes every probe object', async () => {
+    const fake = aclFake()
+    await syncRoles(fake)
+    const base = adminClient(fake)
+    const signals = new EventEmitter()
+    const admin = {
+      async request(method: string, apiPath: string, body?: unknown) {
+        const out = await base.request(method, apiPath, body)
+        if (method === 'POST' && apiPath === '/Contact') signals.emit('SIGINT')
+        return out
+      },
+    }
+    await expect(
+      runAclProbe({
+        admin,
+        makeClient: (apiKey: string) => apiClient(fake, apiKey),
+        roleSpecs: specsOf(),
+        fieldsJson: FIELDS_JSON,
+        interruptSource: signals,
+      }),
+    ).rejects.toBeInstanceOf(AclInterruptedError)
+    noProbeLeftovers(fake)
+    expect(signals.listenerCount('SIGINT')).toBe(0)
+    expect(signals.listenerCount('SIGTERM')).toBe(0)
+  })
+
+  it('IN-05: a failed cleanup names the leftover objects (scope/id) and the probe prefix', async () => {
+    const fake = aclFake()
+    await syncRoles(fake)
+    const base = adminClient(fake)
+    const admin = {
+      async request(method: string, apiPath: string, body?: unknown) {
+        if (method === 'DELETE' && apiPath.startsWith('/Contact/')) throw new Error('delete refused')
+        return base.request(method, apiPath, body)
+      },
+    }
+    const result = await runAclProbe({
+      admin,
+      makeClient: (apiKey: string) => apiClient(fake, apiKey),
+      roleSpecs: specsOf(),
+      fieldsJson: FIELDS_JSON,
+      only: 'Dispatcher',
+      interruptSource: new EventEmitter(),
+    })
+    const contactId = fake.state.records.Contact[0].id
+    const line = result.lines.find((l: string) => l.startsWith('FAIL cleanup'))
+    expect(line).toContain('1 probe object(s) could not be deleted')
+    expect(line).toContain(`Contact/${contactId}`)
+    expect(line).toContain('acl-probe')
+    expect(result.fail).toBe(1)
   })
 
   it('rejects an unknown role name', async () => {
