@@ -114,6 +114,25 @@ describe('POST /api/submit-multiday-quote (MULTIDAY-05)', () => {
     })
   })
 
+  describe('Phone must include the country code (422)', () => {
+    it('returns 422 INVALID_PHONE for a local number and sends nothing', async () => {
+      const body = { ...validBody, passengerDetails: { ...validBody.passengerDetails, phone: '725123456' } }
+      const res = await POST(makeRequest(body))
+      expect(res.status).toBe(422)
+      expect((await res.json()).code).toBe('INVALID_PHONE')
+      expect(sendMultidayOperatorAlert).not.toHaveBeenCalled()
+      expect(sendMultidayClientAck).not.toHaveBeenCalled()
+    })
+
+    it('normalises a spaced / 00-prefixed number before emailing', async () => {
+      const body = { ...validBody, passengerDetails: { ...validBody.passengerDetails, phone: '00420 725 123 456' } }
+      const res = await POST(makeRequest(body))
+      expect(res.status).toBe(200)
+      const data = (sendMultidayOperatorAlert as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(data.phone).toBe('+420725123456')
+    })
+  })
+
   describe('Validation errors (400)', () => {
     it('returns 400 when days array is missing', async () => {
       const body = { ...validBody, days: undefined }

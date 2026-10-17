@@ -846,6 +846,13 @@ describe('D-07: create-payment-intent error responses carry a stable machine cod
     expect(json.error).toBe('Bookings must be made at least 12 hours in advance.')
   })
 
+  it('phone without country code (422) -> code INVALID_PHONE, no PaymentIntent', async () => {
+    const res = await POST(makePostRequest({ bookingData: makeBookingData({ phone: '725123456' }) }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).code).toBe('INVALID_PHONE')
+    expect(stripeMock.paymentIntents.create).not.toHaveBeenCalled()
+  })
+
   it('pricing config load failure (503) -> code PRICING_UNAVAILABLE', async () => {
     pricingConfigMock.mockRejectedValueOnce(new Error('config down'))
     const res = await POST(makePostRequest({ bookingData: makeBookingData() }))

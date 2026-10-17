@@ -10,6 +10,7 @@ import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace, VEHICLE_CONFIG } from '@/types/booking'
 import Stepper from '@/components/booking/Stepper'
 import type { FlightStatus } from '@/types/booking'
+import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
 
 // Mirrors IATA_RE from lib/flight-status.ts (server-only module — cannot be imported client-side)
 const IATA_RE = /^([A-Z]{2,3}|[A-Z][0-9]|[0-9][A-Z])\d{1,4}$/i
@@ -83,7 +84,7 @@ export default function Step5Passenger() {
       firstName: z.string().min(1, tv('firstNameRequired')),
       lastName: z.string().min(1, tv('lastNameRequired')),
       email: z.string().email(tv('invalidEmail')),
-      phone: z.string().min(7, tv('invalidPhone')),
+      phone: z.string().refine((val) => isValidIntlPhone(val), tv('invalidPhone')),
       flightNumber: z.string().optional().refine(
         (val) => !val || IATA_RE.test(val),
         tv('invalidFlightFormat')
@@ -314,7 +315,18 @@ export default function Step5Passenger() {
         <input
           id="phone"
           type="tel"
-          {...register('phone')}
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder={PHONE_PLACEHOLDER}
+          {...register('phone', {
+            // Show the stored E.164 form once the field is left.
+            onBlur: (e) => {
+              const normalized = normalizePhone(e.target.value)
+              if (normalized && normalized !== e.target.value) {
+                setValue('phone', normalized, { shouldValidate: true, shouldDirty: true })
+              }
+            },
+          })}
           aria-required="true"
           aria-describedby={errors.phone ? 'phone-error' : undefined}
           onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}

@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { normalizePhone } from '@/lib/phone'
 import { enforceMaxBody, safeEmail, safeString } from '@/lib/request-guards'
 import {
   sendMultidayOperatorAlert,
@@ -145,6 +146,14 @@ export async function POST(req: Request) {
       )
     }
     const body = parsed.data
+
+    // Business rule: the phone must carry a country code (E.164). Valid shape
+    // but unusable number -> 422, and the stored value is the normalised one.
+    const phoneE164 = normalizePhone(body.passengerDetails.phone)
+    if (!phoneE164) {
+      return NextResponse.json({ error: 'Phone must include the country code', code: 'INVALID_PHONE' }, { status: 422 })
+    }
+    body.passengerDetails.phone = phoneE164
 
     // (4) Business logic — generate reference and dispatch emails (no Supabase)
     const quoteReference = generateMultidayQuoteRef()

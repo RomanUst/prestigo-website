@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import DayCard, { createDay, type Day } from '@/components/booking/DayCard'
+import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
 
 type MultiDayTranslator = (key: string, values?: Record<string, string | number>) => string
 
@@ -79,7 +80,7 @@ function validatePassenger(p: PassengerState, t: MultiDayTranslator): string | n
   if (!p.firstName.trim()) return t('firstNameRequired')
   if (!p.lastName.trim()) return t('lastNameRequired')
   if (!p.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)) return t('validEmailRequired')
-  if (!p.phone.trim() || p.phone.trim().length < 5) return t('validPhoneRequired')
+  if (!isValidIntlPhone(p.phone)) return t('validPhoneRequired')
   return null
 }
 
@@ -112,7 +113,7 @@ function buildPayload(days: Day[], passenger: PassengerState, startDate: string)
       firstName: passenger.firstName.trim(),
       lastName: passenger.lastName.trim(),
       email: passenger.email.trim(),
-      phone: passenger.phone.trim(),
+      phone: normalizePhone(passenger.phone) ?? passenger.phone.trim(),
       specialRequests: passenger.specialRequests.trim() || undefined,
     },
   }
@@ -447,8 +448,15 @@ export default function MultiDayForm() {
           <input
             name="phone"
             type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder={PHONE_PLACEHOLDER}
             value={passenger.phone}
             onChange={(e) => setPassenger({ ...passenger, phone: e.target.value })}
+            onBlur={(e) => {
+              const normalized = normalizePhone(e.target.value)
+              if (normalized && normalized !== e.target.value) setPassenger({ ...passenger, phone: normalized })
+            }}
             style={inputStyle}
             required
           />
