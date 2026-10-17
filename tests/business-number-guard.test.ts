@@ -52,6 +52,11 @@ const THIRD_PARTY_NUMBERS: { file: string; digits: string; reason: string }[] = 
     digits: '420220111220',
     reason: 'Prague airport assistance line quoted as reference in an editorial blog post',
   },
+  {
+    file: 'lib/phone.ts',
+    digits: '420123456789',
+    reason: 'PHONE_PLACEHOLDER: a dummy +420 123 456 789 format hint in booking phone inputs, not a real number',
+  },
 ]
 
 // Code files (app/, components/, lib/) may not hold the business number at all
