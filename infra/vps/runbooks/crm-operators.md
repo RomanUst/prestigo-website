@@ -296,8 +296,9 @@ Accounts are created from owner-confirmed candidates only (D-14); nothing is cre
 1. `node infra/espocrm/account-candidates.mjs` reads the booking export (no network), proposes partner Accounts from corporate email domains and company names, and writes
    `infra/espocrm/.work/candidates.json` with every entry `confirm: false`. Its output shows names, domains and counts, never an email.
 2. The owner confirms by editing the file: `confirm: true` and a type (Hotel, Agency, Corporate, Embassy, Other). Result of the first round: 5 of 6 confirmed; a placeholder source was rejected.
-3. `node infra/espocrm/seed-accounts.mjs --dry-run`, check the counts against the confirmed list, then run it without the flag. It creates only the confirmed Accounts and links the matching Contacts
-   (added by plan 80-13 of Phase 80). A second run must report `accounts: create=0`.
+3. `node infra/espocrm/seed-accounts.mjs --dry-run`, check the counts against the confirmed list, then run it without the flag. Flags: `--dry-run` (GET requests only), `--candidates <file>` and `--input <export folder>` (defaults: `infra/espocrm/.work/candidates.json` and `infra/espocrm/.work/export`), `--delay-ms N`.
+   It creates only the confirmed Accounts (an existing Account with the same name or website is reused, never changed) and links the Contacts that have no Account yet, by email domain or booking company name; a Contact matching two candidates is left alone and counted as ambiguous.
+   Output is ids and counts only: `accounts: create=N existing=N` and `contacts: link=N already_linked=N ambiguous=N`. A second run must report `accounts: create=0` and `contacts: link=0`. First round: 5 Accounts, 5 Contacts linked.
 4. `node infra/espocrm/backfill.mjs --relink` so the bookings show up on the new Accounts; a second `--relink` must report update=0.
 5. Delete the working files (`infra/espocrm/.work/export`, `candidates.json`). A Dispatcher sees the Accounts but none of their commercial fields.
 
