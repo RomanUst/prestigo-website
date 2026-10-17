@@ -19,5 +19,22 @@
       ]
     }
   ],
+  "systemSmtp": {
+    "name": "Prestigo system mail (Resend)",
+    "emailAddress": "notifications@rideprestigo.com",
+    "status": "Active",
+    "useImap": false,
+    "useSmtp": true,
+    "smtpIsShared": true,
+    "smtpIsForMassEmail": false,
+    "smtpHost": "smtp.resend.com",
+    "smtpPort": 587,
+    "smtpAuth": true,
+    "smtpSecurity": "TLS",
+    "smtpUsername": "resend",
+    "smtpAuthMechanism": "login",
+    "fromName": "Prestigo",
+    "excludeFromReply": true
+  },
   "requiredJobs": ["CheckEmailAccounts", "SendEmailReminders"]
 }

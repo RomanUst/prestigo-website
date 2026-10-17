@@ -21,6 +21,7 @@ the workstation through the clipboard into mode-600 files that are never committ
 | `prestigo-config` | Admin, no 2FA | `~/.config/prestigo/espocrm-config.env` | metadata, roles, settings, mail config (admin-only endpoints) |
 | `prestigo-sync` | API user, API Key | `~/.config/prestigo/espocrm-sync.env` | data writes: Contacts, Accounts, CBooking records |
 | `prestigo-admin` | Admin, TOTP | (browser only) | the owner's own login; keeps its TOTP |
+| system mail | Resend SMTP password | `~/.config/prestigo/espocrm-smtp.env` | `RESEND_SMTP_PASSWORD`, read only by the `mail` resource |
 
 `espocrm-config.env` keys: `ESPOCRM_BASE_URL` (must be https), `ESPOCRM_ADMIN_USER`,
 `ESPOCRM_ADMIN_PASSWORD`. `espocrm-sync.env` keys: `ESPOCRM_BASE_URL`,
@@ -41,6 +42,33 @@ Token header semantics (EspoCRM 10.0.8): first call sends
 `Espo-Authorization: base64(user:password)`; every later call sends
 `Espo-Authorization: base64(user:token)` plus `Espo-Authorization-By-Token: true`.
 API key calls send `X-Api-Key`.
+
+## System mail (task reminders, notifications)
+
+EspoCRM 10.0.8 sends system mail (Task reminders, password resets) through the **system SMTP
+account**, and that is not the legacy `smtp*` block in Settings. `Core/Mail/Sender::applyGlobal`
+asks `SendingAccountProvider::getSystem()`, which returns an **active group email account**
+(Administration -> Group Email Accounts, entity `InboundEmail`) with `useSmtp` on whose
+`emailAddress` equals `Settings.outboundEmailFromAddress`. Without it every system mail fails with
+"No system SMTP settings." (this silently held from Phase 76 until plan 80-10 found it).
+
+`mail.json` -> `systemSmtp` declares that account (Resend: `smtp.resend.com:587`, TLS, user
+`resend`, address `notifications@rideprestigo.com`, `excludeFromReply`). `sync.mjs --only mail`
+ensures exactly one such account exists (create, or update only the drifted non-secret fields) and
+refuses to run when two share the address. The secret handling:
+
+- The password is never in `mail.json` (the file is a whitelist: a `smtpPassword` key is refused).
+  It lives in `~/.config/prestigo/espocrm-smtp.env` (mode 600, `RESEND_SMTP_PASSWORD=...`, owner-entered).
+- It is sent only when the account is created, or on an existing account with
+  `node infra/espocrm/sync.mjs --only mail --set-smtp-password` (the API never returns it, so it
+  cannot be diffed; use the flag after rotating the Resend key). It is never logged and a dry run
+  never reads it.
+- Check without any secret: `node infra/espocrm/inspect.mjs system-mail [--expect-active]` prints
+  `system_smtp=present|missing active=on|off use_smtp=on|off from_matches_settings=on|off`.
+  `Settings.outboundEmailFromAddress` is owned by Phase 76 and only compared here, never written.
+
+Task reminders reach the owner as email from that address; a personal filter files them into the
+owner's "Reminders" folder (never `Skip`, which would hide them).
 
 ## Run order
 
