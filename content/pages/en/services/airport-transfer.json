@@ -47,6 +47,24 @@
     ],
     "moreLink": "More about Prague Airport meet & greet →"
   },
+  "terminals": {
+    "label": "Terminal 1 & 2 pickup",
+    "heading": "Prague Airport pickup at Terminal 1 and Terminal 2",
+    "intro": "Václav Havel Airport (PRG) has two passenger terminals, and your Arrivals hall depends on where you fly from. You do not need to know which one is yours — enter your flight number when you book and your chauffeur is waiting at the right exit.",
+    "items": [
+      {
+        "name": "Terminal 1",
+        "flights": "Non-Schengen arrivals — UK, USA, Middle East, long-haul",
+        "body": "You clear passport control, collect your luggage and walk out into the Terminal 1 Arrivals hall. Your chauffeur stands just past the customs exit with a name board."
+      },
+      {
+        "name": "Terminal 2",
+        "flights": "Schengen arrivals — Germany, Austria, France, Italy and most EU routes",
+        "body": "No passport check on arrival. Collect your luggage and exit into the Terminal 2 public Arrivals hall on the ground floor — your chauffeur is waiting just past the customs doors with a name board."
+      }
+    ],
+    "note": "Up to 60 minutes of free waiting after landing is included at both terminals. If your flight is diverted or moved to another terminal, flight tracking flags it and your driver repositions."
+  },
   "howItWorksHeading": "How it works",
   "howItWorks": [
     { "step": "01", "title": "Book online", "body": "Enter your flight number, destination address, and passenger details. Select your vehicle class — E-Class, V-Class, or S-Class. Fixed price confirmed in seconds." },

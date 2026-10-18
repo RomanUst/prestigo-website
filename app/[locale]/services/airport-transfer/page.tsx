@@ -33,6 +33,7 @@ type AirportTransferContent = {
   featuresHeading: string
   features: { title: string; body: string }[]
   meetGreet: { label: string; heading: string; paragraph1: string; paragraph2: string; items: string[]; moreLink: string }
+  terminals: { label: string; heading: string; intro: string; items: { name: string; flights: string; body: string }[]; note: string }
   howItWorksHeading: string
   howItWorks: { step: string; title: string; body: string }[]
   journeyTimesHeading: string
@@ -224,6 +225,35 @@ export default async function AirportTransferPage({ params }: { params: Promise<
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Terminal 1 & 2 pickup */}
+      <section id="terminals" className="bg-anthracite py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">{content.terminals.label}</p>
+          <span className="copper-line mb-10 block" />
+          <h2 className="font-display font-light text-[26px] md:text-[30px] text-offwhite mb-5 max-w-3xl">
+            {content.terminals.heading}
+          </h2>
+          <p className="body-text text-[13px] max-w-3xl" style={{ lineHeight: '1.9' }}>
+            {content.terminals.intro}
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+            {content.terminals.items.map((t) => (
+              <div key={t.name} className="border border-anthracite-light p-8">
+                <span className="copper-line mb-6 block" />
+                <h3 className="font-display font-light text-[22px] text-offwhite mb-2">{t.name}</h3>
+                <p className="font-body font-light text-[11px] tracking-wide mb-4" style={{ color: 'var(--copper)' }}>{t.flights}</p>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{t.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[12px] mt-8 max-w-3xl" style={{ lineHeight: '1.9' }}>
+            {content.terminals.note}
+          </p>
         </div>
       </section>
 

@@ -47,6 +47,24 @@
     ],
     "moreLink": "Más sobre el servicio de bienvenida en el aeropuerto de Praga →"
   },
+  "terminals": {
+    "label": "Recogida en Terminal 1 y 2",
+    "heading": "Recogida en el aeropuerto de Praga: Terminal 1 y Terminal 2",
+    "intro": "El aeropuerto Václav Havel (PRG) tiene dos terminales de pasajeros, y la sala de llegadas depende del origen de su vuelo. No necesita saber cuál es la suya: indique su número de vuelo al reservar y su chófer le esperará en la salida correcta.",
+    "items": [
+      {
+        "name": "Terminal 1",
+        "flights": "Llegadas no Schengen: Reino Unido, EE. UU., Oriente Medio y largo radio",
+        "body": "Pasa el control de pasaportes, recoge su equipaje y sale a la sala de llegadas de la Terminal 1. Su chófer le espera justo después de la salida de aduanas con un cartel con su nombre."
+      },
+      {
+        "name": "Terminal 2",
+        "flights": "Llegadas Schengen: Alemania, Austria, Francia, Italia y la mayoría de rutas de la UE",
+        "body": "Sin control de pasaportes a la llegada. Recoja su equipaje y salga a la sala pública de llegadas de la Terminal 2, en la planta baja: su chófer le espera justo después de las puertas de aduanas con un cartel con su nombre."
+      }
+    ],
+    "note": "En ambas terminales se incluyen hasta 60 minutos de espera gratuita tras el aterrizaje. Si su vuelo se desvía o cambia de terminal, el seguimiento del vuelo lo detecta y su chófer se reubica."
+  },
   "howItWorksHeading": "Cómo funciona",
   "howItWorks": [
     {

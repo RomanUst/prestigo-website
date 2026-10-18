@@ -47,6 +47,24 @@
     ],
     "moreLink": "En savoir plus sur l’accueil à l’aéroport de Prague →"
   },
+  "terminals": {
+    "label": "Prise en charge Terminal 1 et 2",
+    "heading": "Prise en charge à l'aéroport de Prague : Terminal 1 et Terminal 2",
+    "intro": "L'aéroport Václav-Havel (PRG) compte deux terminaux passagers, et votre hall d'arrivée dépend de votre provenance. Inutile de savoir lequel est le vôtre : indiquez votre numéro de vol lors de la réservation et votre chauffeur vous attend à la bonne sortie.",
+    "items": [
+      {
+        "name": "Terminal 1",
+        "flights": "Arrivées hors Schengen : Royaume-Uni, États-Unis, Moyen-Orient, long-courrier",
+        "body": "Vous passez le contrôle des passeports, récupérez vos bagages et sortez dans le hall des arrivées du Terminal 1. Votre chauffeur vous attend juste après la sortie de la douane, avec une pancarte à votre nom."
+      },
+      {
+        "name": "Terminal 2",
+        "flights": "Arrivées Schengen : Allemagne, Autriche, France, Italie et la plupart des liaisons européennes",
+        "body": "Pas de contrôle des passeports à l'arrivée. Récupérez vos bagages et sortez dans le hall public des arrivées du Terminal 2, au rez-de-chaussée : votre chauffeur vous attend juste après les portes de la douane, avec une pancarte à votre nom."
+      }
+    ],
+    "note": "Jusqu'à 60 minutes d'attente gratuite après l'atterrissage sont incluses dans les deux terminaux. Si votre vol est dérouté ou change de terminal, le suivi du vol le signale et votre chauffeur se repositionne."
+  },
   "howItWorksHeading": "Comment ça fonctionne",
   "howItWorks": [
     {
