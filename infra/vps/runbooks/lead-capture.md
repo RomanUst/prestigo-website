@@ -161,6 +161,7 @@ recovery. It needs the owner's approval for exactly these two commands; nothing 
 
 | Date (UTC) | CRM stopped | Form submitted | First failure code | CRM started | Delivered | Leads per ref |
 |------------|-------------|----------------|--------------------|-------------|-----------|---------------|
+| 2026-10-18 | 15:20:00 (probe 502) | 15:20:13 `{"ok":true}`; booking inserted 15:20:18 | `crm_502` (form: 2 attempts, booking: 1 attempt while down) | 15:23:01 (probe 401 at 15:23:13) | form 15:26:26, booking 15:28:03 (3rd attempt each) | 1 and 1 |
 
 ## Go-live record (2026-10-18)
 
