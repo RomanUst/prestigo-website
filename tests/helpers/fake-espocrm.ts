@@ -188,6 +188,8 @@ function matchesWhere(record: any, row: any): boolean {
       return have === row.value
     case 'isNull':
       return have == null
+    case 'isNotNull':
+      return have != null
     case 'isEmpty':
       return have == null || have === ''
     case 'isNotEmpty':
