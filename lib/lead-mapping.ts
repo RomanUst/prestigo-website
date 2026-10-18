@@ -247,6 +247,64 @@ function contactDescription(payload: Record<string, unknown>): string {
   return lines.join('\n')
 }
 
+function corporateDescription(payload: Record<string, unknown>): string {
+  const lines: string[] = []
+  const trips = str(payload.trips)
+  const notes = str(payload.notes)
+  if (trips) lines.push(`Trips: ${trips}`)
+  if (notes) lines.push(`Notes: ${notes}`)
+  return lines.join('\n')
+}
+
+export interface MultidayDay {
+  type: 'transfer' | 'hourly'
+  date?: string
+  time?: string
+  from?: string
+  to?: string
+  stops?: { address: string }[]
+  city?: string
+  hours?: number
+}
+
+/**
+ * LEAD-03: one readable line per day, in submitted order.
+ * transfer: date, time, from -> to, stops; hourly: date, time, city, hours.
+ * A day without a date shows 'date not set' (the trip startDate is not used as a fallback).
+ * When startDate is given it is listed first as its own non-day line.
+ */
+export function itineraryText(days: ReadonlyArray<MultidayDay>, startDate: string | null): string {
+  const lines: string[] = []
+  if (startDate) lines.push(`Start date: ${startDate}`)
+  days.forEach((day, i) => {
+    const parts: string[] = [day.date ? day.date : 'date not set']
+    if (day.time) parts.push(day.time)
+    if (day.type === 'hourly') {
+      parts.push(`Hourly in ${day.city ?? '?'}`)
+      if (day.hours != null) parts.push(`${day.hours} h`)
+    } else {
+      parts.push(`${day.from ?? '?'} -> ${day.to ?? '?'}`)
+      const stops = (day.stops ?? []).map((s) => s.address).filter(Boolean)
+      if (stops.length > 0) parts.push(`stops: ${stops.join(', ')}`)
+    }
+    lines.push(`Day ${i + 1}: ${parts.join(', ')}`)
+  })
+  return lines.join('\n')
+}
+
+function multidayDescription(payload: Record<string, unknown>): string {
+  const lines: string[] = []
+  const reference = str(payload.quoteReference)
+  if (reference) lines.push(`Quote reference: ${reference}`)
+  const days = Array.isArray(payload.days) ? (payload.days as MultidayDay[]) : []
+  const startDate = str(payload.startDate) || null
+  const itinerary = itineraryText(days, startDate)
+  if (itinerary) lines.push(itinerary)
+  const special = str(payload.specialRequests)
+  if (special) lines.push(`Special requests: ${special}`)
+  return lines.join('\n')
+}
+
 function bookingDescription(row: BookingRow, returnRef: string | null): string {
   const lines: string[] = []
   if (row.booking_reference) lines.push(`Booking reference: ${row.booking_reference}`)
@@ -269,17 +327,35 @@ export function buildLeadFromInquiry(row: InquiryRow): LeadDraft {
   const ref = leadRefForInquiry(row.id)
   const email = normalizeLeadEmail(row.email)
   const phone = leadPhone(row.phone)
-  const { firstName, lastName } = splitName(row.name, email)
+  const payload = row.payload ?? {}
+
+  let name: { firstName: string | null; lastName: string }
+  let description: string
+  if (row.kind === 'multiday_quote') {
+    name = bookingName(str(payload.firstName), str(payload.lastName), email)
+    if (clean(str(payload.firstName)) === '' && clean(str(payload.lastName)) === '') {
+      name = splitName(row.name, email)
+    }
+    description = multidayDescription(payload)
+  } else {
+    name = splitName(row.name, email)
+    description = row.kind === 'corporate' ? corporateDescription(payload) : contactDescription(payload)
+  }
+
+  // D-10: each submission is its own Lead; status is set on create only.
   const create: Record<string, unknown> = {
     [LEAD_ATTR.supabaseRef]: ref,
     status: LEAD_STATUS_VALUE.new,
     source: leadSourceForInquiry(row.kind),
-    firstName,
-    lastName,
-    description: contactDescription(row.payload ?? {}),
+    firstName: name.firstName,
+    lastName: name.lastName,
+    description,
   }
   if (email) create.emailAddress = email
   if (phone) create.phoneNumber = phone
+  // D-12: the company is plain text only; no Account is created or linked.
+  const company = clean(row.company)
+  if (row.kind === 'corporate' && company !== '') create.accountName = company.slice(0, 255)
   return { ref, email, create, syncOwned: {} }
 }
 
@@ -315,4 +391,45 @@ export function buildLeadFromBooking(row: BookingRow, returnLeg: ReturnLegInfo, 
   if (email) create.emailAddress = email
   if (phone) create.phoneNumber = phone
   return { ref, email, create, syncOwned }
+}
+
+// ── Retention and sync diff ────────────────────────────────────────────────
+
+const PURGE_AFTER_MS = 90 * 24 * 60 * 60 * 1000
+
+/**
+ * D-15 / D-20 (T-81-06): an abandoned website booking. ALL five conditions must hold:
+ * unpaid, online, no payment link, not a return leg, pickup strictly older than 90 days.
+ */
+export function isPurgeEligible(row: BookingRow, now: Date): boolean {
+  if (row.status !== 'unpaid') return false
+  if (row.booking_source !== 'online') return false
+  if (row.payment_link_id != null) return false
+  if (row.leg === 'return') return false
+  if (!row.pickup_utc) return false
+  const pickup = Date.parse(row.pickup_utc)
+  if (Number.isNaN(pickup)) return false
+  return pickup < now.getTime() - PURGE_AFTER_MS
+}
+
+function sameValue(live: unknown, desired: unknown): boolean {
+  if (live === desired) return true
+  const numeric = (v: unknown): boolean =>
+    typeof v === 'number' || (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v)))
+  if ((typeof live === 'number' || typeof desired === 'number') && numeric(live) && numeric(desired)) {
+    return Number(live) === Number(desired)
+  }
+  return false
+}
+
+/** Keys of `desired` whose value differs from `live`; an empty object means no PUT. */
+export function diffSyncOwned(
+  live: Record<string, unknown>,
+  desired: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const key of Object.keys(desired)) {
+    if (!sameValue(live[key], desired[key])) out[key] = desired[key]
+  }
+  return out
 }
