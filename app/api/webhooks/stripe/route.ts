@@ -26,6 +26,7 @@ import { buildIcs, type IcsEvent } from '@/lib/ics'
 import { safePiiSummary } from '@/lib/request-guards'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { sendGa4Purchase } from '@/lib/analytics-server'
+import { logEmail } from '@/lib/email-log'
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -443,14 +444,22 @@ async function handlePaymentLinkSucceeded(
  * Group payment link (one Stripe Payment Link covering several manual B2B
  * bookings — e.g. a multi-day itinerary billed as a single total). Metadata
  * carries `groupBookingIds` (comma-separated booking UUIDs). Each row is
- * flipped unpaid → confirmed and stamped paid_at, status-gated so Stripe
- * retries / the second of payment_intent.succeeded + checkout.session.completed
- * are no-ops. payment_intent_id is NOT written: the (payment_intent_id, leg)
- * unique index would reject it on the 2nd row; the PI id goes to operator_notes.
+ * flipped unpaid → confirmed and stamped paid_at. payment_intent_id is NOT
+ * written: the (payment_intent_id, leg) unique index would reject it on the
+ * 2nd row; the PI id goes to operator_notes.
  *
- * Side effects fire ONCE per payment and only for rows THIS call flipped:
- * one combined client confirmation listing every leg, one manager alert, one
- * GA4 purchase, and a QStash reminder per leg. Per-row amounts are 0 on these
+ * Exactly-once across BOTH events: payment_intent.succeeded and
+ * checkout.session.completed arrive concurrently for the same payment. The
+ * flip is ONE status-gated UPDATE over every id, so Postgres row locks make
+ * the group all-or-nothing per statement: the second handler blocks on the
+ * first row, re-checks `status = 'unpaid'` after the first commits and flips
+ * nothing. (Incident 2026-10-18: the old per-row loop let the two handlers
+ * split 7 legs 5/2 and send two partial confirmations.)
+ *
+ * Side effects fire ONCE per payment, only in the handler whose UPDATE
+ * flipped rows: one combined client confirmation + one manager alert built
+ * from ALL legs of the group (re-selected by id), one GA4 purchase, and a
+ * QStash reminder per newly-flipped leg. Per-row amounts are 0 on these
  * bookings, so `amountEur` is the total Stripe actually captured.
  */
 async function handleGroupPaymentSucceeded(
@@ -464,36 +473,40 @@ async function handleGroupPaymentSucceeded(
     .filter((s) => /^[0-9a-f-]{36}$/i.test(s))
   if (ids.length === 0) return
   const supabase = createSupabaseServiceClient()
-  const { data: rows, error: readErr } = await supabase
+  const paidAt = new Date().toISOString()
+  const { data: flipped, error: flipErr } = await supabase
     .from('bookings')
-    .select('id, operator_notes')
+    .update({ status: 'confirmed', paid_at: paidAt })
     .in('id', ids)
     .eq('status', 'unpaid')
-  if (readErr) {
-    console.error('[webhook] group payment read failed:', readErr.message)
+    .select('id, operator_notes, pickup_utc')
+  if (flipErr) {
+    console.error('[webhook] group payment update failed:', { paymentIntentId, message: flipErr.message })
     return
   }
-  const paidAt = new Date().toISOString()
-  const reconciled: PaymentLinkReconciledRow[] = []
-  for (const r of rows ?? []) {
-    const note = `Paid via group payment link (PI ${paymentIntentId}).`
-    const { data: updated, error } = await supabase
+  const flippedRows = (flipped ?? []) as Array<{ id: string; operator_notes: string | null; pickup_utc: string | null }>
+  console.log('[webhook] group payment reconciled', { paymentIntentId, count: flippedRows.length })
+  if (flippedRows.length === 0) return
+
+  // Audit note per leg — not a gate (rows are already confirmed above).
+  const note = `Paid via group payment link (PI ${paymentIntentId}).`
+  for (const r of flippedRows) {
+    const { error } = await supabase
       .from('bookings')
-      .update({
-        status: 'confirmed',
-        paid_at: paidAt,
-        operator_notes: r.operator_notes ? `${r.operator_notes}\n${note}` : note,
-      })
+      .update({ operator_notes: r.operator_notes ? `${r.operator_notes}\n${note}` : note })
       .eq('id', r.id)
-      .eq('status', 'unpaid')
-      .select('*')
-    if (error) {
-      console.error('[webhook] group payment update failed:', { bookingId: r.id, message: error.message })
-      continue
-    }
-    reconciled.push(...((updated ?? []) as PaymentLinkReconciledRow[]))
+    if (error) console.error('[webhook] group payment note failed:', { bookingId: r.id, message: error.message })
   }
-  console.log('[webhook] group payment reconciled', { paymentIntentId, count: reconciled.length })
+
+  // The emails list EVERY leg of the group, not only the rows this call
+  // flipped (a leg confirmed earlier by an operator still belongs to the trip).
+  const { data: groupRows, error: groupErr } = await supabase
+    .from('bookings')
+    .select('*')
+    .in('id', ids)
+  if (groupErr) console.error('[webhook] group payment re-select failed:', groupErr.message)
+  const reconciled = ((groupRows ?? []) as Array<PaymentLinkReconciledRow & { status?: string | null }>)
+    .filter((r) => r.status !== 'cancelled')
   if (reconciled.length === 0) return
 
   reconciled.sort((a, b) =>
@@ -520,7 +533,10 @@ async function handleGroupPaymentSucceeded(
     })),
   }
 
-  if (emailData.clientEmail) {
+  // Secondary guard against a duplicate delivery of the client email, keyed
+  // on the group (smallest leg id) rather than a single booking.
+  const groupKey = [...ids].sort()[0]
+  if (emailData.clientEmail && await logEmail({ bookingId: groupKey, emailType: 'group_confirmed', recipient: emailData.clientEmail })) {
     try { await sendGroupClientConfirmation(emailData) } catch (err) {
       console.error('sendGroupClientConfirmation unexpected error:', err)
     }
@@ -529,7 +545,7 @@ async function handleGroupPaymentSucceeded(
     console.error('sendGroupManagerAlert unexpected error:', err)
   }
 
-  for (const r of reconciled) {
+  for (const r of flippedRows) {
     if (r.pickup_utc) {
       const legId = r.id
       const pickupUtc = r.pickup_utc
