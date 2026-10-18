@@ -51,6 +51,40 @@ const BOOKING_COLUMNS =
   'payment_link_id,pickup_utc,pickup_date,pickup_time,origin_address,destination_address,vehicle_class,' +
   'passengers,hours,amount_eur,client_first_name,client_last_name,client_email,client_phone,created_at'
 
+// ── Daily sweep RPCs (migration 068) ────────────────────────────────────────
+// Plain functions, not OutboxStore members: only the sweep route calls them, and the
+// dispatcher's store double does not need to grow. Each throws OutboxStoreError('db_error').
+
+async function sweepRpc(fn: string, args?: Record<string, unknown>): Promise<unknown> {
+  try {
+    const { data, error } = await createSupabaseServiceClient().rpc(fn, args)
+    if (error) throw new Error('rpc')
+    return data
+  } catch {
+    throw new OutboxStoreError('db_error')
+  }
+}
+
+function toCount(data: unknown): number {
+  return typeof data === 'number' && Number.isFinite(data) ? data : 0
+}
+
+/** D-03: enqueue `lead.booking:<id>:dead` for unpaid bookings past pickup. Returns rows inserted. */
+export async function enqueueExpiredUnpaid(): Promise<number> {
+  return toCount(await sweepRpc('outbox_enqueue_expired_unpaid'))
+}
+
+/** D-15 / D-20: enqueue `lead.purge:<id>` for abandoned online checkouts > 90 days past pickup. */
+export async function enqueueAbandonedPurge(): Promise<number> {
+  return toCount(await sweepRpc('outbox_enqueue_abandoned_purge'))
+}
+
+/** Keys of pending-and-due rows and of processing rows whose lease expired (max 500). */
+export async function dueKeys(limit: number): Promise<string[]> {
+  const data = await sweepRpc('outbox_due_keys', { p_limit: limit })
+  return Array.isArray(data) ? data.filter((k): k is string => typeof k === 'string') : []
+}
+
 export function createOutboxStore(client?: SupabaseClient): OutboxStore {
   // Built lazily inside each method's try so a missing env var surfaces as db_error, not a crash.
   const db = (): SupabaseClient => client ?? createSupabaseServiceClient()
