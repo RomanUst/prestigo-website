@@ -99,6 +99,23 @@ describe('publishOutboxDispatch', () => {
     expect(errorSpy.mock.calls.join(' ')).not.toContain(ID)
   })
 
+  it('logs the HTTP status and error class of a QStash failure, never its message', async () => {
+    class QstashError extends Error {
+      status: number
+      constructor(message: string, status: number) {
+        super(message)
+        this.name = 'QstashError'
+        this.status = status
+      }
+    }
+    publishJSONMock.mockRejectedValue(new QstashError(`unauthorized lead.inquiry:${ID}`, 401))
+    expect(await publishOutboxDispatch(`lead.inquiry:${ID}`)).toBe(false)
+    const logged = errorSpy.mock.calls.join(' ')
+    expect(logged).toContain('code=publish_error status=401 error=QstashError')
+    expect(logged).not.toContain(ID)
+    expect(logged).not.toContain('unauthorized')
+  })
+
   it('builds a sanitised deduplicationId from dedupSuffix', async () => {
     await publishOutboxDispatch(`lead.inquiry:${ID}`, { dedupSuffix: 'p' })
     const arg = publishJSONMock.mock.calls[0][0]
