@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import type { InquiryRow } from '@/lib/lead-mapping'
+import type { BookingRow, InquiryRow, ReturnLegInfo } from '@/lib/lead-mapping'
 
 // Supabase access for the outbox domain (Phase 81). Reads of integration_outbox
 // use select; every write goes through the SECURITY DEFINER RPCs of migration
@@ -18,6 +18,9 @@ export interface OutboxRow {
   last_error: string | null
 }
 
+/** A bookings row as the dispatcher reads it (ids and mapper inputs only). */
+export type BookingRecord = BookingRow & { payment_intent_id: string | null; attempt_id: string | null }
+
 export class OutboxStoreError extends Error {
   code: string
   constructor(code = 'db_error') {
@@ -33,11 +36,20 @@ export interface OutboxStore {
   complete(key: string, status: 'sent' | 'skipped' | 'failed', code: string | null): Promise<boolean>
   reschedule(key: string, availableAt: Date, code: string): Promise<boolean>
   readInquiry(id: string): Promise<InquiryRow | null>
+  readBooking(id: string): Promise<BookingRecord | null>
+  /** The return leg of a round trip (shared payment intent, else shared attempt), or null. */
+  readReturnLeg(outbound: BookingRecord): Promise<ReturnLegInfo>
+  /** integration_config `lead_capture_start`; null when absent or unparsable (capture off). */
+  readCaptureStart(): Promise<Date | null>
 }
 
 const OUTBOX_COLUMNS =
   'idempotency_key,event_type,aggregate_type,aggregate_id,status,attempts,available_at,lease_until,last_error'
 const INQUIRY_COLUMNS = 'id,kind,email,name,phone,company,payload,created_at'
+const BOOKING_COLUMNS =
+  'id,booking_reference,status,booking_source,lead_channel,leg,trip_type,payment_intent_id,attempt_id,' +
+  'payment_link_id,pickup_utc,pickup_date,pickup_time,origin_address,destination_address,vehicle_class,' +
+  'passengers,hours,amount_eur,client_first_name,client_last_name,client_email,client_phone,created_at'
 
 export function createOutboxStore(client?: SupabaseClient): OutboxStore {
   // Built lazily inside each method's try so a missing env var surfaces as db_error, not a crash.
@@ -102,6 +114,53 @@ export function createOutboxStore(client?: SupabaseClient): OutboxStore {
         const { data, error } = await db().from('inquiries').select(INQUIRY_COLUMNS).eq('id', id).maybeSingle()
         if (error) throw new Error('select')
         return (data as InquiryRow | null) ?? null
+      } catch {
+        throw new OutboxStoreError('db_error')
+      }
+    },
+
+    async readBooking(id) {
+      try {
+        const { data, error } = await db().from('bookings').select(BOOKING_COLUMNS).eq('id', id).maybeSingle()
+        if (error) throw new Error('select')
+        return (data as unknown as BookingRecord | null) ?? null
+      } catch {
+        throw new OutboxStoreError('db_error')
+      }
+    },
+
+    async readReturnLeg(outbound) {
+      // Both legs share payment_intent_id (and attempt_id on captured unpaid rows).
+      const column = outbound.payment_intent_id ? 'payment_intent_id' : outbound.attempt_id ? 'attempt_id' : null
+      const value = outbound.payment_intent_id ?? outbound.attempt_id
+      if (!column || !value) return null
+      try {
+        const { data, error } = await db()
+          .from('bookings')
+          .select('id,booking_reference')
+          .eq(column, value)
+          .eq('leg', 'return')
+          .limit(1)
+          .maybeSingle()
+        if (error) throw new Error('select')
+        return (data as ReturnLegInfo) ?? null
+      } catch {
+        throw new OutboxStoreError('db_error')
+      }
+    },
+
+    async readCaptureStart() {
+      try {
+        const { data, error } = await db()
+          .from('integration_config')
+          .select('value')
+          .eq('key', 'lead_capture_start')
+          .maybeSingle()
+        if (error) throw new Error('select')
+        const raw = (data as { value?: unknown } | null)?.value
+        if (typeof raw !== 'string') return null
+        const parsed = new Date(raw)
+        return Number.isNaN(parsed.getTime()) ? null : parsed
       } catch {
         throw new OutboxStoreError('db_error')
       }

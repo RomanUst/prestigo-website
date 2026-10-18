@@ -13,7 +13,13 @@ import {
   isTerminalAttempt,
   nextAttemptDelaySeconds,
 } from '@/lib/outbox-backoff'
-import { buildLeadFromInquiry, diffSyncOwned, LEAD_ATTR, type LeadDraft } from '@/lib/lead-mapping'
+import {
+  buildLeadFromBooking,
+  buildLeadFromInquiry,
+  diffSyncOwned,
+  LEAD_ATTR,
+  type LeadDraft,
+} from '@/lib/lead-mapping'
 
 /**
  * Outbox dispatcher (Phase 81): claim -> read source -> map -> upsert Lead -> complete.
@@ -104,19 +110,58 @@ async function deliver(
 ): Promise<DispatchResult> {
   const key = row.idempotency_key
 
-  if (row.event_type !== 'lead.inquiry') {
-    await d.store.complete(key, 'failed', 'unsupported_event')
-    return { outcome: 'failed', code: 'unsupported_event' }
-  }
+  if (row.event_type === 'lead.inquiry') return deliverInquiry(row, d, crm, config)
+  if (row.event_type === 'lead.booking') return deliverBooking(row, d, crm, config)
 
+  await d.store.complete(key, 'failed', 'unsupported_event')
+  return { outcome: 'failed', code: 'unsupported_event' }
+}
+
+async function skip(row: OutboxRow, d: DispatchDeps, code: string): Promise<DispatchResult> {
+  await d.store.complete(row.idempotency_key, 'skipped', code)
+  return { outcome: 'skipped', code }
+}
+
+async function deliverInquiry(
+  row: OutboxRow,
+  d: DispatchDeps,
+  crm: SiteEspoClient,
+  config: SiteEspoConfig,
+): Promise<DispatchResult> {
   const inquiry = await d.store.readInquiry(row.aggregate_id)
-  if (!inquiry) {
-    await d.store.complete(key, 'skipped', 'source_missing')
-    return { outcome: 'skipped', code: 'source_missing' }
-  }
+  if (!inquiry) return skip(row, d, 'source_missing')
 
   await upsertLead(crm, config, buildLeadFromInquiry(inquiry))
-  await d.store.complete(key, 'sent', null)
+  await d.store.complete(row.idempotency_key, 'sent', null)
+  return { outcome: 'sent' }
+}
+
+/**
+ * Booking Lead (D-05..D-09, D-19, D-21). The event key only says "something changed": the Lead is
+ * built from the CURRENT booking row, so late, duplicated or out-of-order events converge on the
+ * same Lead. No Contact, CBooking or Account is written and no Lead is converted (D-09).
+ */
+async function deliverBooking(
+  row: OutboxRow,
+  d: DispatchDeps,
+  crm: SiteEspoClient,
+  config: SiteEspoConfig,
+): Promise<DispatchResult> {
+  const booking = await d.store.readBooking(row.aggregate_id)
+  // GNet inserts a booking and deletes it again on a duplicate transaction: no ghost Lead.
+  if (!booking) return skip(row, d, 'source_missing')
+  if (booking.leg === 'return') return skip(row, d, 'return_leg')
+
+  // D-21: capture is forward-only; no start instant means capture is off.
+  const start = await d.store.readCaptureStart()
+  if (!start || Date.parse(booking.created_at) < start.getTime()) return skip(row, d, 'before_capture_start')
+
+  const returnLeg = booking.trip_type === 'round_trip' ? await d.store.readReturnLeg(booking) : null
+  const draft = buildLeadFromBooking(booking, returnLeg, d.now())
+  if (!draft) return skip(row, d, 'unmapped_status')
+
+  await upsertLead(crm, config, draft)
+  await d.store.complete(row.idempotency_key, 'sent', null)
   return { outcome: 'sent' }
 }
 

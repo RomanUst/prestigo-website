@@ -98,6 +98,16 @@ function makeStore(opts: { rows?: OutboxRow[]; inquiries?: InquiryRow[]; now?: (
       calls.readInquiry.push(id)
       return inquiries.get(id) ?? null
     },
+    // Booking reads belong to tests/lead-sync-booking.test.ts; inquiry tests never reach them.
+    async readBooking() {
+      return null
+    },
+    async readReturnLeg() {
+      return null
+    },
+    async readCaptureStart() {
+      return null
+    },
   }
   return { store, rows, inquiries, calls }
 }
