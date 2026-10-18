@@ -96,7 +96,7 @@ describe('RTL backstop — static blog CTA bdi scope narrowing (WR-05)', () => {
       // each <bdi> to isolate only the price/duration numeral run.
       expect(src).not.toMatch(/<bdi[^>]*className="display-italic"/)
       // Confirm at least one narrowed, DNT-token-only bdi is still present.
-      expect(src).toMatch(/<bdi[^>]*>\s*(?:€\d|3h)/)
+      expect(src).toMatch(/<bdi[^>]*>\s*(?:€(?:\d|\{)|3h)/)
     })
   }
 })

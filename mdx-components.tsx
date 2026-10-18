@@ -1,6 +1,7 @@
 import type { MDXComponents } from 'mdx/types'
 import type { ReactNode } from 'react'
 import { Link } from '@/i18n/routing'
+import LivePrice from '@/components/LivePrice'
 
 /**
  * 75-27 (GAP-4c): true only for first-party page paths that should keep the
@@ -88,5 +89,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </blockquote>
     ),
     hr: () => <hr className="border-0 border-t border-anthracite-light my-12" />,
+    // Live Prestigo fare from the admin prices: <Price route="prague-vienna" car="v" />
+    Price: LivePrice,
   }
 }

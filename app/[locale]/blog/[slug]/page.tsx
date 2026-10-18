@@ -17,6 +17,8 @@ import { getNotFoundMetadata } from '@/lib/site-metadata'
 import { locales } from '@/i18n/locales'
 
 export const dynamic = 'force-static'
+// ISR: live prices from the admin (lib/live-prices.ts) refresh hourly, like the route pages.
+export const revalidate = 3600
 // Untranslated {locale, slug} combinations (no localized MDX yet, all of
 // them until Phase 72/73 land) render on-demand via the EN fallback below
 // rather than 404 — RESEARCH.md Open Question 2.

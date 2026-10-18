@@ -5,8 +5,7 @@
  * generateMetadata() strings. Falls back to the English file when the
  * localized file doesn't exist yet (Phase 72 populates ru/es/fr/ar/hi/zh).
  *
- * Locale-invariant route data (prices, distance, duration, tier,
- * metadataTitle) stays in lib/routes.ts — this loader only ever returns
+ * Locale-invariant route data (distance, duration, tier) stays in lib/routes.ts — this loader only ever returns
  * locale-varying prose/structured content (D-02).
  *
  * Build-time only — uses node:fs. Never import in a client component.

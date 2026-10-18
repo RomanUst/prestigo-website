@@ -303,7 +303,7 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
                       </div>
                       <div>
                         <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.price}</p>
-                        <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>€<bdi>{liveFrom[r.slug] ?? r.prices.eClass}</bdi></p>
+                        <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>{liveFrom[r.slug] != null ? <>€<bdi>{liveFrom[r.slug]}</bdi></> : '—'}</p>
                       </div>
                     </div>
                     {r.notes.length > 0 && (
