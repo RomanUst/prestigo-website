@@ -41,7 +41,8 @@ export async function POST(request: Request) {
   if (!signature) return new Response('Unauthorized', { status: 401 })
 
   // The signed subject is the URL QStash was asked to call (lib/outbox.ts publishes to this one).
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  // Must match lib/outbox.ts exactly (trimmed) or every signature fails.
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
   const url = siteUrl ? `${siteUrl}/api/integrations/dispatch` : undefined
   const valid = await getReceiver()
     .verify({ signature, body: rawBody, ...(url ? { url } : {}) })

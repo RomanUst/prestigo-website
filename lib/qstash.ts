@@ -34,7 +34,7 @@ export async function scheduleQStashReminder(
   }
 
   const delaySeconds = Math.floor((twoHoursBefore - now) / 1000)
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
   if (!siteUrl) {
     console.error('[qstash] NEXT_PUBLIC_SITE_URL not set — cannot schedule reminder')
     return
