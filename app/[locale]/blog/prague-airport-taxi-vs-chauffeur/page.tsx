@@ -69,7 +69,7 @@ function buildArticle(p: Fares) {
       name: 'PRESTIGO private chauffeur',
       tag: 'Premium',
       fare: `€${p.e} (E-Class) / €${p.s} (S-Class) / €${p.v} (V-Class, up to 6 pax)`,
-      night: 'Night tariff (23:00–06:00): +20 %',
+      night: `Night tariff (23:00–06:00): +${p.nightPercent} %`,
       time: '25–35 min door-to-door',
       meetGreet: 'Inside Arrivals, named sign, luggage loaded',
       bookingLead: 'Same-day up to 2 h before arrival',
@@ -135,7 +135,7 @@ function buildArticle(p: Fares) {
   const tableRows: Array<{ label: string; prestigo: string; uber: string; bolt: string; public: string }> = [
     { label: 'Typical fare, PRG → Old Town (2026)', prestigo: `€${p.e} fixed (E-Class)`, uber: 'CZK 650–800 (€26–32)', bolt: 'CZK 450–650 (€18–26)', public: '46 CZK (€1.80)' },
     { label: 'Peak surge applied?', prestigo: 'No — same price 24/7', uber: 'No — Uber Airport is a fixed tier', bolt: 'Yes — 1.5–2× at weekend nights', public: 'No' },
-    { label: 'Night tariff (23:00–06:00)', prestigo: '+20 %', uber: 'Same fixed rate', bolt: 'Often surge-priced', public: 'Only via night bus 910' },
+    { label: 'Night tariff (23:00–06:00)', prestigo: `+${p.nightPercent} %`, uber: 'Same fixed rate', bolt: 'Often surge-priced', public: 'Only via night bus 910' },
     { label: 'Fare predictability', prestigo: 'Fixed at booking', uber: 'Fixed at kiosk', bolt: 'Variable, app shows estimate', public: 'Fixed by PID tariff' },
     { label: 'Wait time after you exit Arrivals', prestigo: '0 — driver waits for you', uber: '5–15 min queue at peak', bolt: '2–10 min app wait + walk', public: '3–8 min trolleybus wait' },
     { label: 'Meet & greet inside Arrivals', prestigo: 'Yes, named sign', uber: 'No', bolt: 'No', public: 'N/A' },
@@ -181,7 +181,7 @@ function buildArticle(p: Fares) {
       profile: 'Late-night 02:20 arrival, hotel in Vinohrady',
       winner: 'PRESTIGO or Uber Airport',
       cost: `PRESTIGO €${p.night.e} (with night surcharge) / Uber CZK 650–800`,
-      rationale: `The 02:20 scenario eliminates every public option — bus 910 stopped at 03:54 (so it\u2019s running, but the tight window means you might miss the last one) and trolleybus 59 doesn\u2019t resume until 04:22. Bolt surge pricing at that hour can be 2× to 2.5×. The choice collapses to Uber Airport at its fixed rate, or PRESTIGO at €${p.night.e} (€${p.e} base + 20 % night surcharge). PRESTIGO wins if you\u2019re exhausted and want a driver already inside the terminal; Uber wins if you\u2019re comfortable with a short walk to the designated lot and you are solo or a couple with a smartphone and roaming data.`,
+      rationale: `The 02:20 scenario eliminates every public option — bus 910 stopped at 03:54 (so it\u2019s running, but the tight window means you might miss the last one) and trolleybus 59 doesn\u2019t resume until 04:22. Bolt surge pricing at that hour can be 2× to 2.5×. The choice collapses to Uber Airport at its fixed rate, or PRESTIGO at €${p.night.e} (€${p.e} base + ${p.nightPercent} % night surcharge). PRESTIGO wins if you\u2019re exhausted and want a driver already inside the terminal; Uber wins if you\u2019re comfortable with a short walk to the designated lot and you are solo or a couple with a smartphone and roaming data.`,
     },
     {
       profile: 'Senior couple, 10:00 Sunday arrival, first time in Prague, no Czech, no data roaming',
@@ -218,7 +218,7 @@ function buildArticle(p: Fares) {
     },
     {
       q: 'What if I arrive between 03:54 and 04:22 — the public transit dead zone?',
-      a: 'This twenty-eight minute window is the one period of the day when Prague airport has no running public transport at all. Night bus 910 finishes its last run at 03:54 and trolleybus 59 doesn\u2019t start until 04:22. If you arrive inside that window you have exactly two choices: an Uber Airport ride (which runs 24/7 at the fixed rate and is available from the kiosk or app immediately), or a pre-booked private chauffeur (PRESTIGO dispatches against your flight regardless of landing time and does not charge extra for this window, though the 23:00–06:00 night tariff of +20 % does apply). Bolt and Liftago are theoretically available but both tend to surge aggressively at this hour and you may wait ten to twenty minutes for a driver to accept the ride. The practical rule: if your landing is scheduled between about 03:30 and 04:30, pre-book a transfer before you fly and don\u2019t rely on walk-up options. It is the one arrival window where "I\u2019ll figure it out at the airport" will cost you an hour of standing in a deserted terminal.',
+      a: `This twenty-eight minute window is the one period of the day when Prague airport has no running public transport at all. Night bus 910 finishes its last run at 03:54 and trolleybus 59 doesn\u2019t start until 04:22. If you arrive inside that window you have exactly two choices: an Uber Airport ride (which runs 24/7 at the fixed rate and is available from the kiosk or app immediately), or a pre-booked private chauffeur (PRESTIGO dispatches against your flight regardless of landing time and does not charge extra for this window, though the 23:00–06:00 night tariff of +${p.nightPercent} % does apply). Bolt and Liftago are theoretically available but both tend to surge aggressively at this hour and you may wait ten to twenty minutes for a driver to accept the ride. The practical rule: if your landing is scheduled between about 03:30 and 04:30, pre-book a transfer before you fly and don\u2019t rely on walk-up options. It is the one arrival window where "I\u2019ll figure it out at the airport" will cost you an hour of standing in a deserted terminal.`,
     },
     {
       q: 'How does Terminal 1 vs Terminal 2 affect the choice?',
@@ -339,7 +339,7 @@ export default async function CompareAirportTaxiPage({ params }: { params: Promi
               <strong>Book a PRESTIGO chauffeur</strong> (€{fares.e} E-Class / €{fares.s} S-Class / €{fares.v} V-Class for six) if
               you\u2019re a family, group, business traveller, first-time visitor, late-night arrival, VIP, or
               anyone with real luggage. The driver waits inside Arrivals with your name, flight tracking is free,
-              and delayed flights never cost extra. Night tariff (23:00–06:00) +20 %.
+              and delayed flights never cost extra. Night tariff (23:00–06:00) +{fares.nightPercent} %.
             </p>
             <p className="body-text text-[14px] pt-2" style={{ lineHeight: '1.9', color: 'var(--copper-light)' }}>
               Do NOT accept rides from anyone who approaches you inside Arrivals without a red Uber vest or a
@@ -417,7 +417,7 @@ export default async function CompareAirportTaxiPage({ params }: { params: Promi
           </div>
           <p className="body-text text-[11px] mt-4" style={{ lineHeight: '1.7' }}>
             PRESTIGO fares from rideprestigo.com: E-Class €{fares.e}, S-Class €{fares.s}, V-Class €{fares.v} fixed, night tariff
-            (23:00–06:00) +20 %. Uber fares from airport kiosk posted pricing. Bolt from app estimates,
+            (23:00–06:00) +{fares.nightPercent} %. Uber fares from airport kiosk posted pricing. Bolt from app estimates,
             surge-dependent. PID tariff from pidlitacka.cz effective 1 January 2026.
           </p>
         </div>

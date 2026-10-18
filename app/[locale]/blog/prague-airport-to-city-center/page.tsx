@@ -173,7 +173,7 @@ function buildArticle(p: Fares) {
       name: 'Pre-booked private chauffeur (PRESTIGO)',
       cost: `€${p.e} E-Class, €${p.s} S-Class, €${p.v} V-Class (up to 6)`,
       time: '25–35 min door-to-door',
-      hours: '24 / 7; night tariff (23:00–06:00) +20 %',
+      hours: `24 / 7; night tariff (23:00–06:00) +${p.nightPercent} %`,
       pros: [
         'Meet-and-greet inside arrivals with a named sign',
         'Free flight tracking — driver waits without extra charge if you\u2019re late',
@@ -247,7 +247,7 @@ function buildArticle(p: Fares) {
     {
       title: 'Late-night 02:40 arrival, Airbnb in Vinohrady',
       pick: 'Uber Airport or pre-booked PRESTIGO',
-      cost: `Uber CZK 650–800 / PRESTIGO €${p.night.e} (with 20 % night surcharge)`,
+      cost: `Uber CZK 650–800 / PRESTIGO €${p.night.e} (with ${p.nightPercent} % night surcharge)`,
       steps: [
         'Night bus 910 runs 23:47–03:54, but trolleybus 59 doesn\u2019t start until 04:22, leaving the 03:54–04:22 dead zone. 02:40 is inside the 910 window — technically viable but tight.',
         'Bolt surge is common at this hour (1.5–2×) and driver cancellations are frequent.',
@@ -302,7 +302,7 @@ function buildArticle(p: Fares) {
     },
     {
       q: 'What do I do if I arrive between 03:54 and 04:22 when nothing runs?',
-      a: `This twenty-eight minute window is the only period of the day when Prague Airport has no running public transport at all. Night bus 910 finishes its last run at 03:54 and trolleybus 59 does not start until 04:22. If you arrive inside that window you have exactly three options. First, walk to the Uber Airport kiosk or counter — Uber runs 24/7 at the fixed rate (CZK 650–800 to central Prague) and availability at this hour is typically good because the fleet pre-positions for dawn arrivals. Second, use Bolt or Liftago via their apps, though expect surge pricing at 1.5–2× the normal rate and occasional driver cancellations. Third, pre-book a PRESTIGO transfer before you fly — a chauffeur is dispatched against your flight number, waits inside arrivals with a sign regardless of landing time, and the €${p.e} E-Class fare plus 20 % night surcharge gives you a locked-in €${p.night.e} total with zero uncertainty. If your landing is scheduled between roughly 03:30 and 04:30, pre-booking is the only approach that takes the airport guesswork out of the arrival.`,
+      a: `This twenty-eight minute window is the only period of the day when Prague Airport has no running public transport at all. Night bus 910 finishes its last run at 03:54 and trolleybus 59 does not start until 04:22. If you arrive inside that window you have exactly three options. First, walk to the Uber Airport kiosk or counter — Uber runs 24/7 at the fixed rate (CZK 650–800 to central Prague) and availability at this hour is typically good because the fleet pre-positions for dawn arrivals. Second, use Bolt or Liftago via their apps, though expect surge pricing at 1.5–2× the normal rate and occasional driver cancellations. Third, pre-book a PRESTIGO transfer before you fly — a chauffeur is dispatched against your flight number, waits inside arrivals with a sign regardless of landing time, and the €${p.e} E-Class fare plus ${p.nightPercent} % night surcharge gives you a locked-in €${p.night.e} total with zero uncertainty. If your landing is scheduled between roughly 03:30 and 04:30, pre-booking is the only approach that takes the airport guesswork out of the arrival.`,
     },
     {
       q: 'How do I buy a Prague public transport ticket at the airport?',

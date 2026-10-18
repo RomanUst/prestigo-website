@@ -48,7 +48,7 @@ export const getPriceTable = cache(async (): Promise<PriceTable> => {
   }
 })
 
-export type Fares = ClassPrices & { night: ClassPrices }
+export type Fares = ClassPrices & { night: ClassPrices; nightPercent: number }
 
 /**
  * All three fares of one route for JSX articles that build prose and JSON-LD
@@ -61,6 +61,7 @@ export async function getFares(route: string): Promise<Fares> {
   return {
     e: fare('e'), s: fare('s'), v: fare('v'),
     night: { e: night('e'), s: night('s'), v: night('v') },
+    nightPercent: Math.round((table.nightCoefficient - 1) * 100),
   }
 }
 
