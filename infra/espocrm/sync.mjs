@@ -211,7 +211,12 @@ async function syncLinks(ctx) {
   const { links = [] } = ctx.readConfig('entities.json')
   for (const def of links) {
     requireKeys('links', def, ['entity', 'link', 'linkType', 'entityForeign', 'linkForeign'])
-    if (await readMetadata(ctx, `entityDefs.${def.entity}.links.${def.link}`)) {
+    // EntityManager adds the `c` prefix to a link on a stock scope (Lead.existingContact ->
+    // cExistingContact), so the existence check uses the final name; POST still sends the raw one.
+    const scopeDefs = await readMetadata(ctx, `scopes.${def.entity}`)
+    const customScopes = (scopeDefs ? scopeDefs.isCustom : /^C[A-Z]/.test(def.entity)) ? [def.entity] : []
+    const finalLink = finalFieldName(def.entity, def.link, customScopes)
+    if (await readMetadata(ctx, `entityDefs.${def.entity}.links.${finalLink}`)) {
       counts.unchanged++
       continue
     }

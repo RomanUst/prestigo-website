@@ -388,6 +388,111 @@ describe('Lead config (plan 81-03, D-09/D-11/D-19)', () => {
   })
 })
 
+describe('Lead existing-contact link and Lead layouts (plan 81-06, D-11)', () => {
+  const read = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
+  const shipped = join(REPO_ROOT, 'infra/espocrm')
+  const createLinkPosts = (fake: Fake) => fake.requests.filter((r) => r.method === 'POST' && r.path === '/EntityManager/action/createLink')
+
+  it('entities.json declares Lead.existingContact -> Contact.existingLeads (manyToOne)', () => {
+    expect(read('entities.json').links).toContainEqual({
+      entity: 'Lead',
+      link: 'existingContact',
+      linkType: 'manyToOne',
+      entityForeign: 'Contact',
+      linkForeign: 'existingLeads',
+      label: 'Existing contact',
+      labelForeign: 'Leads (existing customer)',
+    })
+  })
+
+  it('creates Lead.cExistingContact and Contact.cExistingLeads; a second run creates nothing and posts no createLink', async () => {
+    const fake = fresh()
+    const first = await sync(fake, shipped, { only: ['entities', 'links'] })
+    expect(first).toContain('links: create=4 update=0 unchanged=0 skipped=0 removed=0')
+    const defs = fake.state.metadata.entityDefs
+    expect(defs.Lead.links.cExistingContact).toMatchObject({ type: 'belongsTo', entity: 'Contact', foreign: 'cExistingLeads' })
+    expect(defs.Contact.links.cExistingLeads).toMatchObject({ type: 'hasMany', entity: 'Lead', foreign: 'cExistingContact' })
+    const posts = createLinkPosts(fake).length
+    expect(createLinkPosts(fake).some((r) => r.body?.link === 'existingContact')).toBe(true) // the raw name is sent
+    const second = await sync(fake, shipped, { only: ['entities', 'links'] })
+    expect(second).toContain('links: create=0 update=0 unchanged=4 skipped=0 removed=0')
+    expect(createLinkPosts(fake)).toHaveLength(posts)
+  })
+
+  it('CBooking links keep their raw names and are still checked under them', async () => {
+    const fake = fresh()
+    await sync(fake, shipped, { only: ['entities', 'links'] })
+    const defs = fake.state.metadata.entityDefs
+    expect(defs.CBooking.links.contact).toBeDefined()
+    expect(defs.CBooking.links.cContact).toBeUndefined()
+    expect(defs.CPartnerRate.links.account).toBeDefined()
+  })
+
+  it('a dry run on a fresh instance plans the link without writing', async () => {
+    const fake = fresh()
+    await sync(fake, shipped, { only: ['entities', 'links'], dryRun: true })
+    expect(mutations(fake)).toHaveLength(0)
+  })
+
+  describe('layouts', () => {
+    const leadLayoutsConfig = () => ({
+      'layouts.json': { layouts: read('layouts.json').layouts.filter((l: any) => l.scope === 'Lead') },
+    })
+    const STOCK_LEAD_DETAIL = [{ label: 'Overview', rows: [[{ name: 'name' }, { name: 'status' }]] }]
+    const STOCK_LEAD_LIST = [{ name: 'name', link: true }, { name: 'status' }]
+    const seeded = () =>
+      createFakeEspoCRM({
+        metadata: stockEspoMetadata(),
+        layouts: { 'Lead/detail': structuredClone(STOCK_LEAD_DETAIL), 'Lead/list': structuredClone(STOCK_LEAD_LIST) },
+      })
+
+    it('appends the Website panel and the list column once; a second run sends no PUT', async () => {
+      const fake = seeded()
+      const dir = configDir(leadLayoutsConfig())
+      const first = await sync(fake, dir, { only: ['layouts'] })
+      expect(first).toContain('layouts: create=0 update=2 unchanged=0 skipped=0 removed=0')
+      const detail = fake.state.layouts['Lead/detail']
+      expect(detail[0]).toEqual(STOCK_LEAD_DETAIL[0])
+      expect(detail).toHaveLength(2)
+      expect(detail[1].label).toBe('Website')
+      expect(fake.state.layouts['Lead/list']).toEqual([...STOCK_LEAD_LIST, { name: 'cExistingCustomer' }])
+      const puts = fake.requests.filter((r) => r.method === 'PUT').length
+      const second = await sync(fake, dir, { only: ['layouts'] })
+      expect(second).toContain('layouts: create=0 update=0 unchanged=2 skipped=0 removed=0')
+      expect(fake.requests.filter((r) => r.method === 'PUT')).toHaveLength(puts)
+    })
+
+    it('does not duplicate an existing panel with the same label (owner edits survive)', async () => {
+      const fake = seeded()
+      const ownerPanel = { label: 'Website', rows: [[{ name: 'cAdminLink' }, false]] }
+      fake.state.layouts['Lead/detail'].push(ownerPanel)
+      await sync(fake, configDir(leadLayoutsConfig()), { only: ['layouts'] })
+      expect(fake.state.layouts['Lead/detail']).toEqual([...STOCK_LEAD_DETAIL, ownerPanel])
+    })
+  })
+
+  it('shipped Lead detail panel names only c-prefixed attributes that fields.json or the link declares', () => {
+    const layouts: any[] = read('layouts.json').layouts
+    const detail = layouts.find((l) => l.scope === 'Lead' && l.name === 'detail')
+    const list = layouts.find((l) => l.scope === 'Lead' && l.name === 'list')
+    expect(detail.mode).toBe('append')
+    expect(list.mode).toBe('append')
+    expect(detail.layout.map((p: any) => p.label)).toEqual(['Website'])
+    const declared = new Set<string>([
+      ...read('fields.json').fields.Lead.map((f: any) => finalFieldName('Lead', f.name, [])),
+      ...read('entities.json').links.filter((l: any) => l.entity === 'Lead').map((l: any) => finalFieldName('Lead', l.link, [])),
+    ])
+    const used: string[] = detail.layout[0].rows.flat().map((c: any) => c.name)
+    expect(used.sort()).toEqual(
+      ['cAdminLink', 'cBookingReference', 'cExistingContact', 'cExistingCustomer', 'cReturnBookingReference', 'cSupabaseRef'].sort(),
+    )
+    for (const name of [...used, ...list.layout.map((c: any) => c.name)]) {
+      expect(name.startsWith('c'), name).toBe(true)
+      expect(declared.has(name), name).toBe(true)
+    }
+  })
+})
+
 describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
   const read = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
   const specs: any[] = read('fields.json').fields.CBooking
@@ -494,7 +599,7 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     // CBooking (80-04) + CPartnerRate (80-06): 2 entities, 3 links, 15 + 5 created fields and the
     // required flag on CPartnerRate.account (one update on a link field the link already created).
     expect(first).toContain('entities: create=2 update=0 unchanged=0 skipped=0 removed=0')
-    expect(first).toContain('links: create=3 update=0 unchanged=0 skipped=0 removed=0')
+    expect(first).toContain('links: create=4 update=0 unchanged=0 skipped=0 removed=0') // + Lead.existingContact (81-06)
     // + the 10 Account commercial fields of plan 80-06 task 2, + the 5 Lead fields of plan 81-03
     expect(first).toContain('fields: create=35 update=1 unchanged=0 skipped=0 removed=0')
 
@@ -507,7 +612,7 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
 
     const second = await sync(fake, dir, { only })
     expect(second).toContain('entities: create=0 update=0 unchanged=2 skipped=0 removed=0')
-    expect(second).toContain('links: create=0 update=0 unchanged=3 skipped=0 removed=0')
+    expect(second).toContain('links: create=0 update=0 unchanged=4 skipped=0 removed=0')
     expect(second).toContain('fields: create=0 update=0 unchanged=36 skipped=0 removed=0')
   })
 })
