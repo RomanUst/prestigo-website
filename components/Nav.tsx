@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/routing'
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserSupabase } from '@/lib/supabase/browser'
 import type { User } from '@supabase/supabase-js'
 import { customerSignOut } from '@/app/[locale]/login/actions'
 import LocaleSwitcher from '@/components/LocaleSwitcher'
@@ -43,16 +43,6 @@ export default function Nav() {
   const pathname = usePathname()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Memoize so the browser client isn't re-instantiated on every render.
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  )
-
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', onScroll)
@@ -64,7 +54,10 @@ export default function Nav() {
   // users — onAuthStateChange fires asynchronously after mount, so without
   // the initial getUser() call an authenticated user sees the guest button
   // for one or more frames before the subscription fires.
+  // The browser client is created in the effect, not during render: Nav is
+  // prerendered on every static page (see lib/supabase/browser.ts).
   useEffect(() => {
+    const supabase = createBrowserSupabase()
     let active = true
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (active) setUser(user)
@@ -77,7 +70,7 @@ export default function Nav() {
       active = false
       sub.subscription.unsubscribe()
     }
-  }, [supabase])
+  }, [])
 
   // Close dropdown on navigation
   useEffect(() => {

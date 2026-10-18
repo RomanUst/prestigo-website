@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocale, useTranslations } from 'next-intl'
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserSupabase } from '@/lib/supabase/browser'
 import { useBookingStore } from '@/lib/booking-store'
 import OAuthButtons from '@/components/auth/OAuthButtons'
 import { getPathname } from '@/i18n/routing'
@@ -131,10 +131,7 @@ export default function Step3Auth() {
 
   const supabase = useMemo(
     () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
+      createBrowserSupabase(),
     []
   )
 
