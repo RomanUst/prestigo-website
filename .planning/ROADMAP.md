@@ -294,7 +294,7 @@ Plans:
   1. Every contact-form submission is stored in Supabase (`inquiries`) in addition to the existing email, and appears as a Lead in EspoCRM.
   2. Every corporate-form submission is stored and appears as a Lead with its company in EspoCRM.
   3. Every multi-day quote request is stored and appears as a Lead with its itinerary details in EspoCRM.
-  4. Abandoned/unpaid checkouts and calculator email captures are also captured as Leads, with consent-appropriate retention.
+  4. Abandoned/unpaid checkouts and calculator email captures are also captured as Leads, with consent-appropriate retention. (calculator capture struck — page removed 2026-05-04, D-01)
   5. If inquiry storage fails, the customer's submission still succeeds and the existing email path still fires — no regression of today's behaviour.
   6. Every site booking (paid or not) also appears as a Lead in EspoCRM with source "Website booking", and its status follows the booking (paid → Converted, cancelled/abandoned → Dead).
   7. With the VPS offline, submitted leads queue in the outbox and reach EspoCRM once it is back, exactly once (idempotent retries).

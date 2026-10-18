@@ -206,3 +206,79 @@ describe('067_bookings_lead_outbox.sql', () => {
     expect(fn).toMatch(/ELSE NULL/)
   })
 })
+
+const m068 = load('068_outbox_sweep.sql')
+
+describe('068_outbox_sweep.sql', () => {
+  const expired = fnBody(m068, 'outbox_enqueue_expired_unpaid')
+  const purge = fnBody(m068, 'outbox_enqueue_abandoned_purge')
+  const due = fnBody(m068, 'outbox_due_keys')
+
+  it.each(['outbox_enqueue_expired_unpaid()', 'outbox_enqueue_abandoned_purge()', 'outbox_due_keys(integer)'])(
+    'revokes EXECUTE on %s from PUBLIC, anon, authenticated and grants service_role',
+    (sig) => {
+      const revoke = m068
+        .split('\n')
+        .find((l) => l.includes('REVOKE EXECUTE ON FUNCTION') && l.includes(`public.${sig}`))
+      expect(revoke, `no REVOKE line for ${sig}`).toBeDefined()
+      expect(revoke).toContain('FROM PUBLIC, anon, authenticated')
+      expect(m068).toContain(`GRANT EXECUTE ON FUNCTION public.${sig} TO service_role;`)
+    },
+  )
+
+  it('grants only service_role', () => {
+    const grants = m068.split('\n').filter((l) => /^\s*GRANT\b/.test(l))
+    expect(grants).toHaveLength(3)
+    for (const g of grants) expect(g).toMatch(/TO service_role;\s*$/)
+  })
+
+  it('every function is SECURITY DEFINER with a pinned search_path', () => {
+    const fnCount = (m068.match(/CREATE OR REPLACE FUNCTION/g) ?? []).length
+    expect(fnCount).toBe(3)
+    expect((m068.match(/SET search_path = ''/g) ?? []).length).toBe(fnCount)
+    expect((m068.match(/SECURITY DEFINER/g) ?? []).length).toBe(fnCount)
+  })
+
+  it('expired predicate: unpaid, pickup strictly in the past, outbound, created after the capture start (D-03)', () => {
+    expect(expired).toContain("b.status = 'unpaid'")
+    expect(expired).toContain('b.pickup_utc < now()')
+    expect(expired).not.toContain('b.pickup_utc <= now()')
+    expect(expired).toContain("b.leg IS DISTINCT FROM 'return'")
+    expect(expired).toContain('b.created_at >= v_start')
+    expect(expired).toContain("'lead.booking:' || b.id::text || ':dead'")
+    expect(expired).toContain('ON CONFLICT (idempotency_key) DO NOTHING')
+    expect(expired).toMatch(/v_start IS NULL THEN\s+RETURN 0/)
+    expect(expired).toContain('GET DIAGNOSTICS v_n = ROW_COUNT')
+  })
+
+  it('purge predicate: online, unpaid, no payment link, outbound, > 90 days past pickup (D-15 / D-20)', () => {
+    expect(purge).toContain("b.booking_source = 'online'")
+    expect(purge).toContain("b.status = 'unpaid'")
+    expect(purge).toContain('b.payment_link_id IS NULL')
+    expect(purge).toContain("b.leg IS DISTINCT FROM 'return'")
+    expect(purge).toContain('b.created_at >= v_start')
+    expect(purge).toContain("b.pickup_utc < now() - interval '90 days'")
+    expect(purge).not.toContain("b.pickup_utc <= now() - interval '90 days'")
+    expect(purge).toContain("'lead.purge:' || b.id::text")
+    expect(purge).toContain('ON CONFLICT (idempotency_key) DO NOTHING')
+    expect(purge).toMatch(/v_start IS NULL THEN\s+RETURN 0/)
+  })
+
+  it('due keys: pending and due, or processing with an expired lease; capped and ordered', () => {
+    expect(due).toContain("o.status = 'pending' AND o.available_at <= now()")
+    expect(due).toContain("o.status = 'processing' AND o.lease_until < now()")
+    expect(due).toContain('ORDER BY o.available_at')
+    expect(due).toContain('LIMIT least(greatest(p_limit, 1), 500)')
+  })
+
+  it('never writes to bookings and never seeds integration_config', () => {
+    expect(m068).not.toMatch(/\b(UPDATE|DELETE\s+FROM)\s+public\.bookings/i)
+    expect(m068).not.toMatch(/INSERT INTO public\.bookings/i)
+    expect(m068).not.toMatch(/INSERT INTO public\.integration_config/i)
+  })
+
+  it('only inserts into integration_outbox', () => {
+    const inserts = [...m068.matchAll(/INSERT INTO ([a-z_.]+)/g)].map((m) => m[1])
+    expect(inserts).toEqual(['public.integration_outbox', 'public.integration_outbox'])
+  })
+})
