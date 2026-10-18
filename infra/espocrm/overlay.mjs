@@ -6,13 +6,20 @@
  * file (same mechanism as core entityDefs/User.json `userNameDeleteId`) and EspoCRM's own
  * rebuild creates the index. No raw SQL is ever run.
  *
- * Commands (exit 0 ok, 1 config/usage, 2 API, 3 check failed):
- *   merge {current} {overlay} --out {file}   prints `merge: added=...` or `merge: unchanged`
- *   check {file}                             exit 0 when the overlay keys are present
- *   precheck                                 (admin API) cbooking_total=N; exit 3 on duplicate keys
+ * Phase 81, plan 08 (D-05): the same mechanism for Lead.cSupabaseRef. Every entity-specific
+ * command takes `--entity CBooking|Lead` (default CBooking; see ENTITY_SPECS).
+ *
+ * Commands (exit 0 ok, 1 config/usage, 2 API, 3 check failed). `[--entity E]` is optional everywhere
+ * except rebuild, which is entity-independent:
+ *   merge {current} {overlay} --out {file} [--entity E]
+ *                                            prints `merge: added=...` or `merge: unchanged`
+ *   check {file} [--entity E]                exit 0 when the entity's overlay keys are present
+ *   precheck [--entity E]                    (admin API) <entity>_total=N; exit 3 on duplicate keys
  *   rebuild                                  (admin API) POST /Admin/rebuild
- *   probe-unique                             (admin API) duplicate create must fail:
- *                                            unique=enforced (0) or unique=absent (3)
+ *   probe-unique [--entity E]                (admin API) duplicate create must fail:
+ *                                            unique=enforced (0) or unique=absent (3). Lead also
+ *                                            proves Leads without a key stay creatable:
+ *                                            empty_keys=allowed (0) or empty_keys=blocked (3)
  *
  * Output never contains credentials, record ids or key values.
  */
@@ -27,7 +34,33 @@ import { fetchAll } from './lib/crm-read.mjs'
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const DEFAULT_OVERLAY_FILE = path.join(HERE, 'overlay', 'CBooking.entityDefs.json')
 
-const KEY_FIELD = 'supabaseBookingId'
+/**
+ * Per-entity overlay settings. `probeBody(key)` is the minimal valid create body carrying the key
+ * (`key` undefined -> a record without the key). `emptyKeyProbe` additionally proves that records
+ * without the key stay creatable (manual Leads created in the UI have no cSupabaseRef).
+ */
+export const ENTITY_SPECS = {
+  CBooking: {
+    keyField: 'supabaseBookingId',
+    overlayFile: DEFAULT_OVERLAY_FILE,
+    probeBody: (key) => ({ name: 'unique-probe', supabaseBookingId: key }),
+    emptyKeyProbe: false,
+  },
+  Lead: {
+    keyField: 'cSupabaseRef',
+    overlayFile: path.join(HERE, 'overlay', 'Lead.entityDefs.json'),
+    probeBody: (key) => (key === undefined ? { lastName: 'unique-probe' } : { lastName: 'unique-probe', cSupabaseRef: key }),
+    emptyKeyProbe: true,
+  },
+}
+const DEFAULT_ENTITY = 'CBooking'
+
+function entitySpec(entity = DEFAULT_ENTITY) {
+  const spec = Object.hasOwn(ENTITY_SPECS, entity) ? ENTITY_SPECS[entity] : undefined
+  if (!spec) throw new EspoConfigError(`Unknown entity: ${entity} (expected ${Object.keys(ENTITY_SPECS).join('|')})`)
+  return spec
+}
+
 const MAX_SCAN = 20_000
 
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v)
@@ -41,12 +74,18 @@ export function loadOverlay(file = DEFAULT_OVERLAY_FILE) {
 }
 
 /**
- * Merge the overlay into the CBooking entityDefs FieldManager wrote. Fields and links are untouched.
+ * Merge the overlay into the entityDefs FieldManager wrote. Fields and links are untouched.
+ * `keyField` (default: the CBooking key) must exist in `fields`, or the file is not the expected
+ * entity's definition and the merge refuses.
+ * @param {any} current
+ * @param {any} overlay
+ * @param {{ keyField?: string }} [options]
  * @returns {{ result: Record<string, any>, added: string[] }}
  */
-export function mergeOverlay(current, overlay) {
-  if (!isPlainObject(current) || !isPlainObject(current.fields) || !current.fields[KEY_FIELD]) {
-    throw new EspoConfigError(`Refusing to merge: the file is not the CBooking definition (no fields.${KEY_FIELD})`)
+export function mergeOverlay(current, overlay, { keyField = ENTITY_SPECS[DEFAULT_ENTITY].keyField } = {}) {
+  if (!isPlainObject(current) || !isPlainObject(current.fields) || !current.fields[keyField]) {
+    const name = Object.entries(ENTITY_SPECS).find(([, s]) => s.keyField === keyField)?.[0] ?? 'expected entity'
+    throw new EspoConfigError(`Refusing to merge: the file is not the ${name} definition (no fields.${keyField})`)
   }
   if (!isPlainObject(overlay)) throw new EspoConfigError('Overlay must be a JSON object')
 
@@ -68,7 +107,7 @@ export function mergeOverlay(current, overlay) {
   return { result, added }
 }
 
-/** True when every overlay key is already present in the given CBooking entityDefs. */
+/** True when every overlay key is already present in the given entityDefs. */
 export function hasOverlay(json, overlay = loadOverlay()) {
   if (!isPlainObject(json)) return false
   for (const [name, def] of Object.entries(overlay.indexes ?? {})) {
@@ -78,30 +117,33 @@ export function hasOverlay(json, overlay = loadOverlay()) {
   return true
 }
 
-/** @param {{ currentFile: string, overlayFile?: string, outFile: string, log?: (line: string) => void }} options */
-export async function runMerge({ currentFile, overlayFile, outFile, log = console.log }) {
+/** @param {{ currentFile: string, overlayFile?: string, outFile: string, entity?: string, log?: (line: string) => void }} options */
+export async function runMerge({ currentFile, overlayFile, outFile, entity, log = console.log }) {
+  const spec = entitySpec(entity)
   const current = JSON.parse(readFileSync(currentFile, 'utf8'))
-  const overlay = loadOverlay(overlayFile)
-  const { result, added } = mergeOverlay(current, overlay)
+  const overlay = loadOverlay(overlayFile ?? spec.overlayFile)
+  const { result, added } = mergeOverlay(current, overlay, { keyField: spec.keyField })
   writeFileSync(outFile, serialize(result))
   log(added.length ? `merge: added=${added.join(',')}` : 'merge: unchanged')
   return 0
 }
 
-/** @param {{ file: string, overlayFile?: string, log?: (line: string) => void }} options */
-export function runCheck({ file, overlayFile, log = console.log }) {
+/** @param {{ file: string, overlayFile?: string, entity?: string, log?: (line: string) => void }} options */
+export function runCheck({ file, overlayFile, entity, log = console.log }) {
+  const spec = entitySpec(entity)
   const json = JSON.parse(readFileSync(file, 'utf8'))
-  const ok = hasOverlay(json, loadOverlay(overlayFile))
+  const ok = hasOverlay(json, loadOverlay(overlayFile ?? spec.overlayFile))
   log(ok ? 'check: overlay present' : 'check: overlay missing')
   return ok ? 0 : 3
 }
 
-/** Count CBooking rows and look for repeated supabaseBookingId values (index creation would fail). */
-/** @param {{ client: { request: (method: string, path: string, body?: unknown) => Promise<any> }, log?: (line: string) => void }} options */
-export async function runPrecheck({ client, log = console.log }) {
-  const first = await client.request('GET', '/CBooking?maxSize=1&select=id')
+/** Count the entity's rows and look for repeated key values (index creation would fail). */
+/** @param {{ client: { request: (method: string, path: string, body?: unknown) => Promise<any> }, entity?: string, log?: (line: string) => void }} options */
+export async function runPrecheck({ client, entity = DEFAULT_ENTITY, log = console.log }) {
+  const { keyField: KEY_FIELD } = entitySpec(entity)
+  const first = await client.request('GET', `/${entity}?maxSize=1&select=id`)
   const total = Number(first?.total ?? 0)
-  log(`cbooking_total=${total}`)
+  log(`${entity.toLowerCase()}_total=${total}`)
   if (total === 0) return 0
   if (total > MAX_SCAN) {
     log(`precheck: more than ${MAX_SCAN} rows, scan skipped`)
@@ -111,7 +153,7 @@ export async function runPrecheck({ client, log = console.log }) {
   // fetchAll orders by the unique id, de-duplicates repeated ids and fails closed when it
   // loaded fewer rows than the server reports: a row repeated by unstable paging is not a
   // duplicate key, and a skipped row must not give a false pass.
-  const rows = await fetchAll(client, 'CBooking', ['id', KEY_FIELD])
+  const rows = await fetchAll(client, entity, ['id', KEY_FIELD])
   const seen = new Set()
   let duplicates = 0
   for (const row of rows) {
@@ -141,25 +183,33 @@ export async function runRebuild({ client, log = console.log }) {
 export const UNIQUE_REFUSAL_STATUSES = new Set([400, 409, 500])
 
 /**
- * Create one CBooking, try to create the same key again, delete whatever was created.
+ * Create one record of the entity, try to create the same key again, delete whatever was created.
  * A failing second create means the database refuses duplicates (unique=enforced), provided a
  * control record with a different key can still be created right afterwards (the refusal was
  * about the key, not a general server fault).
+ *
+ * For entities with `emptyKeyProbe` (Lead) it then creates two records WITHOUT the key: both must
+ * succeed (empty_keys=allowed), because the owner creates Leads by hand in the CRM and those have no
+ * site reference. A refused unkeyed create prints empty_keys=blocked and exits 3 (caller rolls back).
  */
-/** @param {{ client: { request: (method: string, path: string, body?: unknown) => Promise<any> }, log?: (line: string) => void }} options */
-export async function runProbeUnique({ client, log = console.log }) {
+/** @param {{ client: { request: (method: string, path: string, body?: unknown) => Promise<any> }, entity?: string, log?: (line: string) => void }} options */
+export async function runProbeUnique({ client, entity = DEFAULT_ENTITY, log = console.log }) {
+  const spec = entitySpec(entity)
+  const keyField = spec.keyField
+  const route = `/${entity}`
   const key = `unique-probe-${Date.now()}-${randomBytes(4).toString('hex')}`
-  const body = { name: 'unique-probe', [KEY_FIELD]: key }
+  const body = spec.probeBody(key)
   const created = []
   let enforced = false
+  let emptyKeys // undefined = not probed, true = allowed, false = blocked
   try {
-    const first = await client.request('POST', '/CBooking', body)
-    if (!first?.id) throw new EspoApiError('POST', '/CBooking', 200, 'probe record was created without an id')
+    const first = await client.request('POST', route, body)
+    if (!first?.id) throw new EspoApiError('POST', route, 200, 'probe record was created without an id')
     created.push(first.id)
 
     let refused = false
     try {
-      const second = await client.request('POST', '/CBooking', body)
+      const second = await client.request('POST', route, body)
       if (second?.id) created.push(second.id)
     } catch (err) {
       if (!(err instanceof EspoApiError) || !UNIQUE_REFUSAL_STATUSES.has(err.status)) throw err
@@ -168,66 +218,86 @@ export async function runProbeUnique({ client, log = console.log }) {
 
     if (refused) {
       // Control: another key must still be creatable, or the failure proves nothing about the index.
-      const control = await client.request('POST', '/CBooking', { name: 'unique-probe', [KEY_FIELD]: `${key}-control` })
-      if (!control?.id) throw new EspoApiError('POST', '/CBooking', 200, 'control record was created without an id')
+      const control = await client.request('POST', route, spec.probeBody(`${key}-control`))
+      if (!control?.id) throw new EspoApiError('POST', route, 200, 'control record was created without an id')
       created.push(control.id)
       enforced = true
       // The first record must be the only one with this key.
-      const found = await client.request('GET', `/CBooking?select=id&where[0][type]=equals&where[0][attribute]=${KEY_FIELD}&where[0][value]=${encodeURIComponent(key)}`)
+      const found = await client.request('GET', `${route}?select=id&where[0][type]=equals&where[0][attribute]=${keyField}&where[0][value]=${encodeURIComponent(key)}`)
       if (Number(found?.total ?? 0) !== 1) enforced = false
+    }
+
+    if (enforced && spec.emptyKeyProbe) {
+      emptyKeys = true
+      for (let i = 0; i < 2 && emptyKeys; i++) {
+        try {
+          const row = await client.request('POST', route, spec.probeBody(undefined))
+          if (!row?.id) throw new EspoApiError('POST', route, 200, 'probe record without a key was created without an id')
+          created.push(row.id)
+        } catch (err) {
+          if (!(err instanceof EspoApiError) || !UNIQUE_REFUSAL_STATUSES.has(err.status)) throw err
+          emptyKeys = false
+        }
+      }
     }
   } finally {
     for (const id of created) {
       try {
-        await client.request('DELETE', `/CBooking/${id}`)
+        await client.request('DELETE', `${route}/${id}`)
       } catch (err) {
         log(`probe cleanup: delete failed (${err instanceof EspoApiError ? err.status : 'error'})`)
       }
     }
   }
   log(enforced ? 'unique=enforced' : 'unique=absent')
-  return enforced ? 0 : 3
+  if (emptyKeys !== undefined) log(emptyKeys ? 'empty_keys=allowed' : 'empty_keys=blocked')
+  return enforced && emptyKeys !== false ? 0 : 3
 }
 
-/** @returns {{ command: string, positional: string[], out?: string }} */
+/** @returns {{ command: string, positional: string[], out?: string, entity?: string }} */
 export function parseArgs(argv) {
   const [command, ...rest] = argv
   const positional = []
   let out
+  let entity
   for (let i = 0; i < rest.length; i++) {
     const arg = rest[i]
     if (arg === '--out') out = rest[++i]
     else if (arg.startsWith('--out=')) out = arg.slice('--out='.length)
+    else if (arg === '--entity') entity = rest[++i] ?? ''
+    else if (arg.startsWith('--entity=')) entity = arg.slice('--entity='.length)
     else if (arg.startsWith('--')) throw new EspoConfigError(`Unknown argument: ${arg}`)
     else positional.push(arg)
   }
-  return { command, positional, out }
+  if (entity !== undefined) entitySpec(entity) // unknown or missing value -> EspoConfigError
+  return { command, positional, out, entity }
 }
 
-const USAGE = 'Usage: overlay.mjs merge {current} {overlay} --out {file} | check {file} | precheck | rebuild | probe-unique'
+const USAGE =
+  'Usage: overlay.mjs merge {current} {overlay} --out {file} [--entity CBooking|Lead] | check {file} [--entity E] | precheck [--entity E] | rebuild | probe-unique [--entity E]'
 
 async function main(argv) {
   try {
-    const { command, positional, out } = parseArgs(argv)
+    const { command, positional, out, entity } = parseArgs(argv)
     const adminClient = () => createEspoClient({ config: loadEspoConfig({ identity: 'admin' }) })
     let code
     switch (command) {
       case 'merge':
         if (positional.length !== 2 || !out) throw new EspoConfigError(USAGE)
-        code = await runMerge({ currentFile: positional[0], overlayFile: positional[1], outFile: out })
+        code = await runMerge({ currentFile: positional[0], overlayFile: positional[1], outFile: out, entity })
         break
       case 'check':
         if (positional.length !== 1) throw new EspoConfigError(USAGE)
-        code = runCheck({ file: positional[0] })
+        code = runCheck({ file: positional[0], entity })
         break
       case 'precheck':
-        code = await runPrecheck({ client: adminClient() })
+        code = await runPrecheck({ client: adminClient(), entity })
         break
       case 'rebuild':
         code = await runRebuild({ client: adminClient() })
         break
       case 'probe-unique':
-        code = await runProbeUnique({ client: adminClient() })
+        code = await runProbeUnique({ client: adminClient(), entity })
         break
       default:
         throw new EspoConfigError(USAGE)

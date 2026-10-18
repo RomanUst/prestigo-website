@@ -1,0 +1,9 @@
+{
+    "indexes": {
+        "cSupabaseRefDeleteId": {
+            "type": "unique",
+            "columns": ["cSupabaseRef", "deleteId"]
+        }
+    },
+    "deleteId": true
+}
