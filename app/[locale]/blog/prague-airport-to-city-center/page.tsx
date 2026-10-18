@@ -21,7 +21,7 @@ const ARTICLE_MODIFIED = '2026-04-09'
 // renaming in March 2024), prg.aero signage, and PRESTIGO's own dispatch data.
 // Structure: not "6 options" but passenger profiles + neighbourhood routing.
 
-const DESCRIPTION = 'Prague Airport PRG to city centre 2026: every option with verified fares after the Jan 2026 PID hike, by neighbourhood and late-night protocol.'
+const DESCRIPTION = 'Prague Airport to city centre: 25–35 min by taxi or chauffeur, 35–45 min by AE bus, 45–55 min by trolleybus 59 + metro A. Best option by area and arrival time.'
 
 // CR-01: converted from a static `metadata` export to generateMetadata() so
 // the current locale is available. EN-only legacy JSX article (D-08) — no
