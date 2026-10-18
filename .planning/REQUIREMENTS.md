@@ -47,12 +47,12 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Lead Capture (LEAD)
 
-- [ ] **LEAD-01**: Every contact-form submission is stored in Supabase (`inquiries`) in addition to the existing email, and appears as a Lead in EspoCRM
-- [ ] **LEAD-02**: Every corporate-form submission is stored and appears as a Lead (with company) in EspoCRM
-- [ ] **LEAD-03**: Every multi-day quote request is stored and appears as a Lead in EspoCRM with its itinerary details
-- [ ] **LEAD-04**: Abandoned/unpaid checkouts are captured as Leads (Dead once pickup passes unpaid; abandoned online checkouts deleted from the CRM 90 days later). Calculator email capture struck: /calculator was removed 2026-05-04 (Phase 81 D-01).
-- [ ] **LEAD-06**: Every booking made on the site (paid or not, incl. round-trip and multi-day) also creates/updates a Lead in EspoCRM with source "Website booking"; the Lead status follows the booking (paid → Converted, cancelled/abandoned → Dead)
-- [ ] **LEAD-05**: If inquiry storage fails, the customer submission still succeeds and the existing email path still fires (no regression of today's behaviour)
+- [x] **LEAD-01**: Every contact-form submission is stored in Supabase (`inquiries`) in addition to the existing email, and appears as a Lead in EspoCRM
+- [x] **LEAD-02**: Every corporate-form submission is stored and appears as a Lead (with company) in EspoCRM
+- [x] **LEAD-03**: Every multi-day quote request is stored and appears as a Lead in EspoCRM with its itinerary details
+- [x] **LEAD-04**: Abandoned/unpaid checkouts are captured as Leads (Dead once pickup passes unpaid; abandoned online checkouts deleted from the CRM 90 days later). Calculator email capture struck: /calculator was removed 2026-05-04 (Phase 81 D-01).
+- [x] **LEAD-06**: Every booking made on the site (paid or not, incl. round-trip and multi-day) also creates/updates a Lead in EspoCRM with source "Website booking"; the Lead status follows the booking (paid → Converted, cancelled/abandoned → Dead)
+- [x] **LEAD-05**: If inquiry storage fails, the customer submission still succeeds and the existing email path still fires (no regression of today's behaviour)
 
 ### Site → CRM/Chatwoot Sync (SYNC)
 
@@ -138,12 +138,12 @@ Deferred — tracked, not in this roadmap.
 | CRM-03 | Phase 80 | Complete |
 | CRM-04 | Phase 80 | Complete |
 | CRM-05 | Phase 80 | Complete |
-| LEAD-01 | Phase 81 | Pending |
-| LEAD-02 | Phase 81 | Pending |
-| LEAD-03 | Phase 81 | Pending |
-| LEAD-04 | Phase 81 | Pending |
-| LEAD-05 | Phase 81 | Pending |
-| LEAD-06 | Phase 81 | Pending |
+| LEAD-01 | Phase 81 | Complete |
+| LEAD-02 | Phase 81 | Complete |
+| LEAD-03 | Phase 81 | Complete |
+| LEAD-04 | Phase 81 | Complete |
+| LEAD-05 | Phase 81 | Complete |
+| LEAD-06 | Phase 81 | Complete |
 | SYNC-01 | Phase 82 | Pending |
 | SYNC-02 | Phase 82 | Pending |
 | SYNC-03 | Phase 82 | Pending |
