@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { createFakeEspoCRM, type FakeEspoOptions } from './helpers/fake-espocrm'
 import { dispatchOutboxKey, type DispatchDeps } from '@/lib/lead-sync'
 import { createSiteEspoClient } from '@/lib/espocrm-client'
-import type { OutboxRow, OutboxStore } from '@/lib/outbox-store'
+import { OutboxStoreError, type OutboxRow, type OutboxStore } from '@/lib/outbox-store'
 import type { InquiryRow } from '@/lib/lead-mapping'
 
 // ── Fixtures ────────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ function makeCrm(options: FakeEspoOptions = {}, config = CONFIG) {
       return options.extraRoutes?.(req, state)
     },
   })
-  const crm = createSiteEspoClient({ config, fetchImpl: fake.fetchImpl as unknown as typeof fetch, timeoutMs: 1000 })
+  const crm = createSiteEspoClient({ config, fetchImpl: fake.fetchImpl as unknown as typeof fetch, timeoutMs: 200 })
   return { fake, crm, config }
 }
 
@@ -222,5 +222,235 @@ describe('dispatchOutboxKey - tracer (inquiry -> Lead)', () => {
 
     expect(result).toEqual({ outcome: 'failed', code: 'unsupported_event' })
     expect(h.fake.requests).toHaveLength(0)
+  })
+})
+
+// ── Task 2: VPS-down resilience ─────────────────────────────────────────────
+
+const status = (code: number) => (req: { path: string }) =>
+  req.path.startsWith('/Lead') ? new Response('', { status: code }) : undefined
+
+const rejectingFetch = (async () => {
+  throw new TypeError('fetch failed')
+}) as unknown as typeof fetch
+
+describe('dispatchOutboxKey - vps down', () => {
+  it('reschedules with backoff when the CRM does not answer, then delivers exactly one Lead once it is back', async () => {
+    const clock = { t: NOW }
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)], now: () => clock.t }, { stallPaths: ['/Lead'] })
+
+    const down = await dispatchOutboxKey(keyOf(ID_A), deps(h, { now: () => clock.t }))
+
+    expect(down).toEqual({ outcome: 'rescheduled', code: 'crm_unreachable' })
+    expect(h.calls.reschedule).toHaveLength(1)
+    expect(h.calls.reschedule[0].availableAt.getTime()).toBe(NOW.getTime() + 60_000)
+    expect(h.calls.reschedule[0].code).toMatch(/^crm_/)
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 60, dedupSuffix: 'a1' })
+    expect(h.rows.get(keyOf(ID_A))?.status).toBe('pending')
+    expect(h.fake.state.records.Lead).toHaveLength(0)
+
+    // The VPS is back and the row is due again.
+    clock.t = new Date(NOW.getTime() + 61_000)
+    const healthy = makeCrm()
+    const up = await dispatchOutboxKey(keyOf(ID_A), deps(h, { crm: healthy.crm, now: () => clock.t }))
+
+    expect(up).toEqual({ outcome: 'sent' })
+    expect(healthy.fake.state.records.Lead).toHaveLength(1)
+    expect(h.rows.get(keyOf(ID_A))?.status).toBe('sent')
+  })
+
+  it('a network error reschedules and a repeat grows the delay', async () => {
+    const clock = { t: NOW }
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)], now: () => clock.t })
+    const crm = createSiteEspoClient({ config: CONFIG, fetchImpl: rejectingFetch })
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h, { crm, now: () => clock.t }))
+    const secondRun = new Date(NOW.getTime() + 61_000)
+    clock.t = secondRun
+    await dispatchOutboxKey(keyOf(ID_A), deps(h, { crm, now: () => clock.t }))
+
+    expect(h.calls.reschedule[0].availableAt.getTime() - NOW.getTime()).toBe(60_000)
+    expect(h.calls.reschedule[1].availableAt.getTime() - secondRun.getTime()).toBe(300_000)
+    expect(h.publish).toHaveBeenNthCalledWith(2, keyOf(ID_A), { delaySeconds: 300, dedupSuffix: 'a2' })
+  })
+
+  it('503 and 429 reschedule', async () => {
+    for (const code of [503, 429]) {
+      const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] }, { extraRoutes: status(code) })
+      const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+      expect(result).toEqual({ outcome: 'rescheduled', code: `crm_${code}` })
+      expect(h.rows.get(keyOf(ID_A))?.status).toBe('pending')
+    }
+  })
+
+  it('the 30th failed attempt becomes failed crm_unreachable_exhausted', async () => {
+    const h = harness({ rows: [outboxRow(ID_A, { attempts: 29 })], inquiries: [inquiry(ID_A)] })
+    const crm = createSiteEspoClient({ config: CONFIG, fetchImpl: rejectingFetch })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h, { crm }))
+
+    expect(result).toEqual({ outcome: 'failed', code: 'crm_unreachable_exhausted' })
+    expect(result.code!.length).toBeLessThanOrEqual(40)
+    expect(h.rows.get(keyOf(ID_A))?.status).toBe('failed')
+    expect(h.publish).not.toHaveBeenCalled()
+  })
+})
+
+describe('dispatchOutboxKey - auth', () => {
+  it('a 401 makes one request, reschedules 6 h later with crm_auth and is a breaker', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] }, {}, { ...CONFIG, apiKey: 'wrong_key_0000' })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'breaker', code: 'crm_auth' })
+    expect(h.fake.requests).toHaveLength(1)
+    expect(h.calls.reschedule[0].availableAt.getTime()).toBe(NOW.getTime() + 21_600_000)
+    expect(h.calls.reschedule[0].code).toBe('crm_auth')
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 21600, dedupSuffix: 'a1' })
+    expect(h.rows.get(keyOf(ID_A))?.status).toBe('pending')
+  })
+
+  it('a 403 is also a breaker with one request', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] }, { extraRoutes: status(403) })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'breaker', code: 'crm_auth' })
+    expect(h.fake.requests).toHaveLength(1)
+  })
+})
+
+describe('dispatchOutboxKey - unconfigured', () => {
+  it('without CRM config it makes zero requests and reschedules 6 h later with crm_unconfigured', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h, { config: null, crm: null }))
+
+    expect(result).toEqual({ outcome: 'breaker', code: 'crm_unconfigured' })
+    expect(h.fake.requests).toHaveLength(0)
+    expect(h.calls.reschedule[0].availableAt.getTime()).toBe(NOW.getTime() + 21_600_000)
+    expect(h.calls.reschedule[0].code).toBe('crm_unconfigured')
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 21600, dedupSuffix: 'a1' })
+  })
+})
+
+describe('dispatchOutboxKey - permanent errors and internal failures', () => {
+  it('a 400 on create without a phone number is failed crm_400', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A, { phone: null })] },
+      { extraRoutes: (req) => (req.method === 'POST' && req.path === '/Lead' ? new Response('', { status: 400 }) : undefined) },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'failed', code: 'crm_400' })
+    expect(h.rows.get(keyOf(ID_A))?.status).toBe('failed')
+    expect(h.publish).not.toHaveBeenCalled()
+  })
+
+  it('a store error while reading the source reschedules with db_error', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+    h.store.readInquiry = async () => {
+      throw new OutboxStoreError('db_error')
+    }
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'rescheduled', code: 'db_error' })
+    expect(h.calls.reschedule[0].code).toBe('db_error')
+  })
+
+  it('an unexpected exception reschedules with internal_error', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+    h.store.readInquiry = async () => {
+      throw new Error('kaboom anna@example.com')
+    }
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'rescheduled', code: 'internal_error' })
+    expect(h.calls.reschedule[0].code).toBe('internal_error')
+  })
+
+  it('throws only when even the reschedule cannot reach the store', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+    h.store.readInquiry = async () => {
+      throw new Error('x')
+    }
+    h.store.reschedule = async () => {
+      throw new OutboxStoreError('db_error')
+    }
+
+    await expect(dispatchOutboxKey(keyOf(ID_A), deps(h))).rejects.toBeInstanceOf(OutboxStoreError)
+  })
+
+  it('a claim that cannot reach the store throws so QStash retries', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+    h.store.claim = async () => {
+      throw new OutboxStoreError('db_error')
+    }
+
+    await expect(dispatchOutboxKey(keyOf(ID_A), deps(h))).rejects.toBeInstanceOf(OutboxStoreError)
+  })
+})
+
+describe('dispatchOutboxKey - logging', () => {
+  it('writes no email, name, phone, message or API key to the console in any outcome', async () => {
+    const lines: string[] = []
+    const capture = (...args: unknown[]) => void lines.push(args.map((a) => String(a)).join(' '))
+    const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) =>
+      vi.spyOn(console, m).mockImplementation(capture),
+    )
+
+    try {
+      const scenarios: Array<() => Promise<unknown>> = [
+        async () => {
+          const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+          return dispatchOutboxKey(keyOf(ID_A), deps(h))
+        },
+        async () => {
+          const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] }, { extraRoutes: status(503) })
+          return dispatchOutboxKey(keyOf(ID_A), deps(h))
+        },
+        async () => {
+          const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] }, {}, { ...CONFIG, apiKey: 'wrong_key_0000' })
+          return dispatchOutboxKey(keyOf(ID_A), deps(h))
+        },
+        async () => {
+          const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+          return dispatchOutboxKey(keyOf(ID_A), deps(h, { config: null, crm: null }))
+        },
+        async () => {
+          const h = harness(
+            { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+            {
+              extraRoutes: (req) =>
+                req.method === 'POST' ? new Response('anna@example.com Anna Novak Hello there', { status: 400 }) : undefined,
+            },
+          )
+          return dispatchOutboxKey(keyOf(ID_A), deps(h))
+        },
+        async () => {
+          const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+          h.store.readInquiry = async () => {
+            throw new Error('boom anna@example.com')
+          }
+          return dispatchOutboxKey(keyOf(ID_A), deps(h))
+        },
+      ]
+      for (const run of scenarios) await run()
+    } finally {
+      spies.forEach((s) => s.mockRestore())
+    }
+
+    expect(lines.length).toBeGreaterThanOrEqual(6)
+    const all = lines.join('\n')
+    expect(all).not.toContain('@')
+    expect(all).not.toContain(API_KEY)
+    expect(all).not.toContain('wrong_key')
+    expect(all).not.toMatch(/anna|novak|hello|\+420/i)
+    for (const line of lines) {
+      expect(line).toMatch(/^\[lead-sync\] key=lead\.inquiry:[0-9a-f-]{36} outcome=[a-z_]+ code=[a-z0-9_-]+$/)
+    }
   })
 })

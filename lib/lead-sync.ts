@@ -1,11 +1,18 @@
 import { parseOutboxKey, publishOutboxDispatch } from '@/lib/outbox'
-import { createOutboxStore, type OutboxRow, type OutboxStore } from '@/lib/outbox-store'
+import { createOutboxStore, OutboxStoreError, type OutboxRow, type OutboxStore } from '@/lib/outbox-store'
 import {
+  classifyEspoError,
   createSiteEspoClient,
   loadSiteEspoConfig,
+  SiteEspoError,
   type SiteEspoClient,
   type SiteEspoConfig,
 } from '@/lib/espocrm-client'
+import {
+  AUTH_BREAKER_SECONDS,
+  isTerminalAttempt,
+  nextAttemptDelaySeconds,
+} from '@/lib/outbox-backoff'
 import { buildLeadFromInquiry, diffSyncOwned, LEAD_ATTR, type LeadDraft } from '@/lib/lead-mapping'
 
 /**
@@ -58,7 +65,7 @@ async function run(key: string, partial: Partial<DispatchDeps>): Promise<Dispatc
   const row = await d.store.claim(key, LEASE_SECONDS)
   if (!row) return deferOrFinish(key, d)
 
-  return process(row, d)
+  return handleClaimed(row, d)
 }
 
 /** The claim returned nothing: decide between unknown, already done and a deferral. */
@@ -78,7 +85,23 @@ async function deferOrFinish(key: string, d: DispatchDeps): Promise<DispatchResu
   return { outcome: 'deferred' }
 }
 
-async function process(row: OutboxRow, d: DispatchDeps): Promise<DispatchResult> {
+async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchResult> {
+  // Missing config: zero requests, long wait. Every other branch needs the CRM.
+  if (!d.crm || !d.config) return breaker(row, 'crm_unconfigured', d)
+
+  try {
+    return await deliver(row, d, d.crm, d.config)
+  } catch (err) {
+    return handleFailure(row, err, d)
+  }
+}
+
+async function deliver(
+  row: OutboxRow,
+  d: DispatchDeps,
+  crm: SiteEspoClient,
+  config: SiteEspoConfig,
+): Promise<DispatchResult> {
   const key = row.idempotency_key
 
   if (row.event_type !== 'lead.inquiry') {
@@ -92,13 +115,50 @@ async function process(row: OutboxRow, d: DispatchDeps): Promise<DispatchResult>
     return { outcome: 'skipped', code: 'source_missing' }
   }
 
-  if (!d.crm || !d.config) {
-    // Replaced by the unconfigured breaker in the resilience task.
-    throw new Error('crm not configured')
-  }
-  await upsertLead(d.crm, d.config, buildLeadFromInquiry(inquiry))
+  await upsertLead(crm, config, buildLeadFromInquiry(inquiry))
   await d.store.complete(key, 'sent', null)
   return { outcome: 'sent' }
+}
+
+// ── Failure handling ────────────────────────────────────────────────────────
+
+/** Re-arm after AUTH_BREAKER_SECONDS: bad credentials or no config must never be retried quickly. */
+async function breaker(row: OutboxRow, code: string, d: DispatchDeps): Promise<DispatchResult> {
+  const key = row.idempotency_key
+  await d.store.reschedule(key, new Date(d.now().getTime() + AUTH_BREAKER_SECONDS * 1000), code)
+  await d.publish(key, { delaySeconds: AUTH_BREAKER_SECONDS, dedupSuffix: `a${row.attempts}` })
+  return { outcome: 'breaker', code }
+}
+
+/** Transient failure: growing delay, terminal after OUTBOX_MAX_ATTEMPTS. */
+async function retryLater(row: OutboxRow, code: string, d: DispatchDeps): Promise<DispatchResult> {
+  const key = row.idempotency_key
+  if (isTerminalAttempt(row.attempts)) {
+    const finalCode = `${code}_exhausted`.slice(0, 40)
+    await d.store.complete(key, 'failed', finalCode)
+    return { outcome: 'failed', code: finalCode }
+  }
+  const delay = nextAttemptDelaySeconds(row.attempts)
+  await d.store.reschedule(key, new Date(d.now().getTime() + delay * 1000), code)
+  await d.publish(key, { delaySeconds: delay, dedupSuffix: `a${row.attempts}` })
+  return { outcome: 'rescheduled', code }
+}
+
+/**
+ * Anything thrown while delivering. Only a store that is unreachable even for the
+ * reschedule makes this throw (the route then answers 500 and QStash retries).
+ */
+async function handleFailure(row: OutboxRow, err: unknown, d: DispatchDeps): Promise<DispatchResult> {
+  if (err instanceof SiteEspoError) {
+    const kind = classifyEspoError(err)
+    if (kind === 'transient') return retryLater(row, err.code, d)
+    if (kind === 'auth') return breaker(row, 'crm_auth', d)
+    // permanent / not_found / conflict: retrying the same request cannot help.
+    await d.store.complete(row.idempotency_key, 'failed', err.code)
+    return { outcome: 'failed', code: err.code }
+  }
+  if (err instanceof OutboxStoreError) return retryLater(row, 'db_error', d)
+  return retryLater(row, 'internal_error', d)
 }
 
 // ── EspoCRM upsert ──────────────────────────────────────────────────────────
