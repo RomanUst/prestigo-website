@@ -39,6 +39,20 @@ describe('CorporateForm (en)', () => {
     expect(screen.getByRole('button', { name: enMessages.Corporate.form.submit })).toBeTruthy()
   })
 
+  it('shows the D-16 storage notice with a privacy link; honeypot stays hidden; no checkbox', () => {
+    const { container } = renderWithIntl(<CorporateForm />)
+    expect(container.textContent).toContain('We store your request to reply to it')
+    const link = screen.getByRole('link', { name: 'Privacy Policy' })
+    expect(link.getAttribute('href')).toMatch(/\/privacy$/)
+    const honeypot = container.querySelector('input[name="website"]')
+    expect(honeypot).not.toBeNull()
+    expect(honeypot?.getAttribute('aria-hidden')).toBe('true')
+    expect(container.querySelector('input[type="checkbox"]')).toBeNull()
+    // Notice sits after the submit button (informational, does not gate submit).
+    const submit = screen.getByRole('button', { name: enMessages.Corporate.form.submit })
+    expect(submit.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('sends the raw range value (unchanged) to the API, not the translated label', async () => {
     ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: true })
     renderWithIntl(<CorporateForm />)

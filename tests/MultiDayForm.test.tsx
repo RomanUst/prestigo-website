@@ -86,6 +86,16 @@ describe('MultiDayForm (MULTIDAY-03, MULTIDAY-04, MULTIDAY-05 client)', () => {
     expect(screen.getByTestId('day-0-type')).toHaveTextContent('transfer')
   })
 
+  it('shows the D-16 storage notice with a privacy link after the submit button', () => {
+    const { container } = render(<MultiDayForm />)
+    expect(container.textContent).toContain('We store your request to reply to it')
+    const link = screen.getByRole('link', { name: 'Privacy Policy' })
+    expect(link.getAttribute('href')).toMatch(/\/privacy$/)
+    const submit = screen.getByRole('button', { name: /Request quote|Request a quote/i })
+    expect(submit.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(container.querySelector('input[type="checkbox"]')).toBeNull()
+  })
+
   it('fetches /api/hourly-config exactly once on mount', async () => {
     render(<MultiDayForm />)
     await waitFor(() => {

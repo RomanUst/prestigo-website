@@ -91,6 +91,21 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
     reason:
       'on-demand identity endpoint fetched only by the chat launcher\'s click handler after the visitor clicks "Chat on site"; reads env and computes an HMAC locally, makes no network call to the VPS, and never runs on page render',
   },
+  {
+    path: 'lib/espocrm-client.ts',
+    reason:
+      'API-key EspoCRM client imported only by the QStash-invoked outbox dispatcher (lib/lead-sync.ts); runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path',
+  },
+  {
+    path: 'lib/lead-sync.ts',
+    reason:
+      'QStash-invoked outbox dispatcher logic: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from the dispatch route',
+  },
+  {
+    path: 'app/api/integrations/dispatch/route.ts',
+    reason:
+      'QStash-invoked outbox dispatcher: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; unsigned calls get 401',
+  },
 ]
 
 /** Recursive fs.readdirSync walk — no glob dependency, matches the repo's

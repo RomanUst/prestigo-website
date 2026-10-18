@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserSupabase } from '@/lib/supabase/browser'
 import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace, VEHICLE_CONFIG } from '@/types/booking'
 import Stepper from '@/components/booking/Stepper'
@@ -68,10 +68,7 @@ export default function Step5Passenger() {
   }, [passengers, maxPassengers, setPassengers])
 
   const supabase = useMemo(
-    () => createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    ), []
+    () => createBrowserSupabase(), []
   )
 
   const isAirportRide = isAirportPlace(origin) || isAirportPlace(destination)

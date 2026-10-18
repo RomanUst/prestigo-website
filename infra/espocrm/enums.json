@@ -40,6 +40,23 @@
         { "value": "Other", "label": "Other" }
       ],
       "retire": ["", "Customer", "Investor", "Partner", "Reseller"]
+    },
+    {
+      "scope": "Lead",
+      "field": "source",
+      "values": [
+        { "value": "Website booking", "label": "Website booking" },
+        { "value": "GNet", "label": "GNet" },
+        { "value": "Contact form", "label": "Contact form" },
+        { "value": "Corporate form", "label": "Corporate form" },
+        { "value": "Multi-day quote", "label": "Multi-day quote" },
+        { "value": "WhatsApp", "label": "WhatsApp" },
+        { "value": "Phone", "label": "Phone" },
+        { "value": "Email", "label": "Email" },
+        { "value": "Partner", "label": "Partner" },
+        { "value": "Other", "label": "Other" }
+      ],
+      "retire": []
     }
   ]
 }

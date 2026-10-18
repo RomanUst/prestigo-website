@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserSupabase } from '@/lib/supabase/browser'
 import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import Nav from '@/components/Nav'
@@ -24,10 +24,7 @@ export default function ResetPasswordPage() {
   // (which would drop in-flight auth listeners and waste connections).
   const supabase = useMemo(
     () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
+      createBrowserSupabase(),
     []
   )
 

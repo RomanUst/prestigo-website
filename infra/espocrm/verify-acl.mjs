@@ -48,6 +48,13 @@ const WRITE_SCOPES = {
     create: { name: 'ACL Probe {uid}', supabaseBookingId: 'acl-probe-{uid}' },
     edit: { name: 'ACL Probe edited' },
   },
+  // Lead (Phase 81, D-22): cSupabaseRef is the c-prefixed site-reference field from fields.json.
+  Lead: {
+    fixture: 'lead',
+    create: { lastName: 'ACL Probe {uid}', cSupabaseRef: 'acl-probe:{uid}' },
+    edit: { description: 'acl probe edit' },
+    deletable: true,
+  },
 }
 /** Order inside a role: reads first, deletes last (an unexpected delete must not hide later checks). */
 const PHASE = { read: 0, field: 1, attachment: 2, put: 3, post: 4, delete: 5 }
@@ -62,7 +69,8 @@ const finalAccountField = (spec) => `c${ucFirst(spec.name)}`
  * Each check: { role, label, expect, method, path, status?, statuses?, fixture, attrs?, body?, track? }
  * where `expect` is forbidden (exactly 403, or one of `statuses`) | allowed (2xx) | hidden (2xx and
  * none of attrs in the record) | visible (2xx and some attr present). `{id}` in a path is filled
- * from `fixture` (account | contact | booking | attachment) by the runner; `{uid}` in a body is a
+ * from `fixture` (account | contact | booking | lead | attachment | disposable) by the runner;
+ * `disposable` is a record of the scope named in `disposable`, created by the admin right before the check; `{uid}` in a body is a
  * per-run unique token; `track` names a scope whose created record the runner deletes afterwards.
  */
 export function buildAclExpectations(roleSpecs, fieldsJson) {
@@ -118,6 +126,17 @@ export function buildAclExpectations(roleSpecs, fieldsJson) {
           path: `/${scope}/{id}`,
           status: 403,
           fixture: write.fixture,
+        })
+      } else if (write.deletable && acl.delete === 'all') {
+        // An allowed delete consumes its target, so it runs on a throw-away record the runner creates
+        // right before the check (the shared fixture must survive for the next role's PUT).
+        add('delete', {
+          label: `DELETE /${scope}/{id} allowed`,
+          expect: 'allowed',
+          method: 'DELETE',
+          path: `/${scope}/{id}`,
+          fixture: 'disposable',
+          disposable: scope,
         })
       }
     }
@@ -261,11 +280,23 @@ export async function runAclProbe({
   }
   for (const spec of selected) roleId(spec.name)
 
-  const fixtures = { account: null, contact: null, booking: null, attachment: null }
+  const fixtures = { account: null, contact: null, booking: null, lead: null, attachment: null, disposable: null }
   // Every created object is registered with a label (scope/id: no PII) so a failed cleanup can say what is left.
   const cleanup = []
   const removeLater = (scope, id) =>
     cleanup.push({ label: `${scope}/${id}`, run: async () => void (await admin.request('DELETE', `/${scope}/${id}`)) })
+  // A record the probe itself may already have deleted (the allowed-delete checks): gone counts as clean.
+  const removeLaterIfPresent = (scope, id) =>
+    cleanup.push({
+      label: `${scope}/${id}`,
+      run: async () => {
+        try {
+          await admin.request('DELETE', `/${scope}/${id}`)
+        } catch (err) {
+          if (statusOf(err) !== 404) throw err
+        }
+      },
+    })
 
   // Ctrl-C / SIGTERM stop the probe at the next step instead of killing the process: the finally
   // block below still deletes every probe user and record (a second signal kills at once).
@@ -312,6 +343,11 @@ export async function runAclProbe({
     fixtures.booking = booking.id
     removeLater('CBooking', booking.id)
 
+    guard()
+    const lead = await admin.request('POST', '/Lead', fill(WRITE_SCOPES.Lead.create, stamp))
+    fixtures.lead = lead.id
+    removeLater('Lead', lead.id)
+
     const expectations = buildAclExpectations(selected, fieldsJson)
 
     for (const spec of selected) {
@@ -348,6 +384,11 @@ export async function runAclProbe({
 
       for (const check of expectations.filter((c) => c.role === spec.name)) {
         guard()
+        if (check.disposable) {
+          const made = await admin.request('POST', `/${check.disposable}`, fill(WRITE_SCOPES[check.disposable].create, `${stamp}-${++counter}`))
+          fixtures.disposable = made.id
+          removeLaterIfPresent(check.disposable, made.id)
+        }
         const outcome = await evaluate(client, check, fixtures, (body) => fill(body, `${stamp}-${++counter}`))
         if (outcome.createdId) removeLater(check.track, outcome.createdId)
         report(outcome.ok, `${check.role} ${check.label}${outcome.ok ? '' : ` (${outcome.detail})`}`)

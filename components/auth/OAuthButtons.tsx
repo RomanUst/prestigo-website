@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useLocale } from 'next-intl'
-import { createBrowserClient } from '@supabase/ssr'
+import { createBrowserSupabase } from '@/lib/supabase/browser'
 import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
 import { safeReturnTo } from '@/app/[locale]/login/auth-helpers'
@@ -25,10 +25,7 @@ export default function OAuthButtons({ returnTo, onSignedIn, oneTap, googleTheme
   // Memoize so the browser client isn't re-instantiated on every render.
   const supabase = useMemo(
     () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
+      createBrowserSupabase(),
     []
   )
 

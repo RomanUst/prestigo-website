@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
+import { Link } from '@/i18n/routing'
 
 // Values posted to /api/contact and used as the GA4 `service` param stay the
 // English identifier (matches CorporateForm's trips-value pattern) — only the
@@ -38,6 +39,7 @@ function pushGA4Event(eventName: string, params: Record<string, unknown>): void 
 
 export default function ContactForm() {
   const t = useTranslations('ContactForm')
+  const tn = useTranslations('InquiryNotice')
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
   const [state, setState] = useState<FormState>('idle')
   const [formStartFired, setFormStartFired] = useState(false)
@@ -246,6 +248,15 @@ export default function ContactForm() {
           {t('responseNote')}
         </p>
       </div>
+      <p className="font-body font-light text-[10px] tracking-wide text-warmgrey/70 -mt-2">
+        {tn.rich('stored', {
+          privacy: (chunks) => (
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-offwhite transition-colors">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </form>
   )
 }

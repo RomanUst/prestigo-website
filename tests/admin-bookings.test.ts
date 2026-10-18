@@ -266,6 +266,7 @@ const validPostPayload = {
   client_last_name: 'Novak',
   client_email: 'jan@example.com',
   client_phone: '+420600123456',
+  channel: 'phone',
 }
 
 beforeEach(() => {
@@ -1549,6 +1550,41 @@ describe('POST /api/admin/bookings', () => {
     )
     expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
     expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
+  })
+
+  it('Test 5a (D-08): stores the chosen channel as lead_channel on the inserted row', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
+      error: null,
+    })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    const res = await POST(makePostRequest({ ...validPostPayload, channel: 'whatsapp' }))
+    expect(res.status).toBe(201)
+    expect(insertFn).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ lead_channel: 'whatsapp' })])
+    )
+  })
+
+  it('Test 5c (D-08): returns 400 and inserts nothing when channel is missing', async () => {
+    const insertFn = vi.fn()
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+    const { channel: _omitted, ...payloadWithoutChannel } = validPostPayload
+
+    const res = await POST(makePostRequest(payloadWithoutChannel))
+    expect(res.status).toBe(400)
+    expect(insertFn).not.toHaveBeenCalled()
+  })
+
+  it('Test 5d (D-08): returns 400 for a channel outside the whitelist', async () => {
+    const insertFn = vi.fn()
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    const res = await POST(makePostRequest({ ...validPostPayload, channel: 'telegram' }))
+    expect(res.status).toBe(400)
+    expect(insertFn).not.toHaveBeenCalled()
   })
 
   it('Test 5b (WR-02): distance_km implausibly small for the submitted coordinates -> 422, requires override_price', async () => {

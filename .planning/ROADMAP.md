@@ -294,13 +294,35 @@ Plans:
   1. Every contact-form submission is stored in Supabase (`inquiries`) in addition to the existing email, and appears as a Lead in EspoCRM.
   2. Every corporate-form submission is stored and appears as a Lead with its company in EspoCRM.
   3. Every multi-day quote request is stored and appears as a Lead with its itinerary details in EspoCRM.
-  4. Abandoned/unpaid checkouts and calculator email captures are also captured as Leads, with consent-appropriate retention.
+  4. Abandoned/unpaid checkouts and calculator email captures are also captured as Leads, with consent-appropriate retention. (calculator capture struck — page removed 2026-05-04, D-01)
   5. If inquiry storage fails, the customer's submission still succeeds and the existing email path still fires — no regression of today's behaviour.
   6. Every site booking (paid or not) also appears as a Lead in EspoCRM with source "Website booking", and its status follows the booking (paid → Converted, cancelled/abandoned → Dead).
   7. With the VPS offline, submitted leads queue in the outbox and reach EspoCRM once it is back, exactly once (idempotent retries).
 
-**Plans**: TBD
+**Plans**: 10/11 plans executed
 **UI hint**: yes
+
+Plans:
+**Wave 1**
+- [x] 81-01-PLAN.md — Outbox core (064) + inquiries table (065) + all three forms store submissions best-effort (contact tracer)
+- [x] 81-02-PLAN.md — Pure Lead mapping (TDD): status D-06/D-03, sources D-08, round trip D-19, purge eligibility D-20
+- [x] 81-03-PLAN.md — EspoCRM Lead fields + Lead ACL (D-22) + inspect user-id/notify-settings/contact-match
+- [x] 81-04-PLAN.md — Admin booking Channel field (D-08) + bookings.lead_channel (066)
+- [x] 81-05-PLAN.md — D-16 storage notice on the three forms in 7 locales
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 81-06-PLAN.md — EspoCRM Lead source enum, Lead->Contact link, Lead layouts, lead smoke tool
+- [x] 81-07-PLAN.md — Site EspoCRM client + QStash-signed dispatcher for inquiry Leads + VPS-down backoff/breaker
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 81-08-PLAN.md — Lead.cSupabaseRef unique index via metadata overlay (owner-approved VPS step)
+- [x] 81-09-PLAN.md — Bookings trigger -> outbox (067) + pg_net kick + booking Lead branch (all sources, round trips, forward-only)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 81-10-PLAN.md — Daily outbox sweep (068): Dead after pickup, 90-day purge, re-arm; LEAD-04 wording (D-01)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 81-11-PLAN.md — Go-live: owner secrets + ship, capture start, live smokes, VPS-down drill, runbook
 
 ### Phase 82: Site ↔ CRM/Chatwoot Sync Foundation
 
@@ -389,7 +411,7 @@ Plans:
 | 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
-| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
+| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 10/11 | In Progress|  |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |

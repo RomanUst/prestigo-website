@@ -267,6 +267,48 @@ describe('D-20 retire guard (account types)', () => {
   }
 })
 
+describe('Lead.source (D-08, plan 81-06)', () => {
+  const LEAD_SOURCES = ['Website booking', 'GNet', 'Contact form', 'Corporate form', 'Multi-day quote', 'WhatsApp', 'Phone', 'Email', 'Partner', 'Other']
+  const STOCK_LEAD_SOURCES = ['', 'Call', 'Email', 'Existing Customer', 'Partner', 'Public Relations', 'Web Site', 'Campaign', 'Other']
+  const leadConfig = () => ({ 'enums.json': { enums: [realEnums().enums.find((e: any) => e.scope === 'Lead' && e.field === 'source')] } })
+  const sourceField = (fake: Fake) => fake.state.metadata.entityDefs.Lead.fields.source
+
+  it('shipped entry has the 10 values in order, label = value, and an empty retire list', () => {
+    const entry = realEnums().enums.find((e: any) => e.scope === 'Lead' && e.field === 'source')
+    expect(entry.values.map((v: any) => v.value)).toEqual(LEAD_SOURCES)
+    expect(entry.values.every((v: any) => v.label === v.value)).toBe(true)
+    expect(entry.retire).toEqual([])
+  })
+
+  it('keeps all 9 stock options, adds the 7 new ones, and a second run is a no-op', async () => {
+    const fake = fresh()
+    const dir = configDir(leadConfig())
+    expect(sourceField(fake).options).toEqual(STOCK_LEAD_SOURCES)
+    const first = await sync(fake, dir)
+    expect(first).toContain('enums: create=0 update=1 unchanged=0 skipped=0 removed=0')
+    const options = sourceField(fake).options as string[]
+    for (const v of STOCK_LEAD_SOURCES) expect(options).toContain(v)
+    for (const v of LEAD_SOURCES) expect(options).toContain(v)
+    expect(options.slice(0, LEAD_SOURCES.length)).toEqual(LEAD_SOURCES)
+    expect(options).toHaveLength(new Set([...STOCK_LEAD_SOURCES, ...LEAD_SOURCES]).size)
+    const before = mutations(fake).length
+    const second = await sync(fake, dir)
+    expect(second).toContain('enums: create=0 update=0 unchanged=1 skipped=0 removed=0')
+    expect(mutations(fake).length).toBe(before)
+  })
+
+  it('an owner-added live value survives the merge', async () => {
+    const fake = fresh()
+    sourceField(fake).options = [...STOCK_LEAD_SOURCES, 'Fair']
+    const dir = configDir(leadConfig())
+    await sync(fake, dir)
+    expect(sourceField(fake).options).toContain('Fair')
+    expect(sourceField(fake).options).toContain('Web Site')
+    const second = await sync(fake, dir)
+    expect(second).toContain('enums: create=0 update=0 unchanged=1 skipped=0 removed=0')
+  })
+})
+
 describe('enums.json invariants', () => {
   const enums = realEnums().enums as any[]
   const entry = (scope: string, field: string) => enums.find((e) => e.scope === scope && e.field === field)

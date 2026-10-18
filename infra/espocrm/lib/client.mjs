@@ -303,7 +303,7 @@ export function createEspoClient({ config, fetchImpl = globalThis.fetch, timeout
     redact.add(token, b64(`${config.user}:${token}`))
   }
 
-  async function send(method, apiPath, body) {
+  async function send(method, apiPath, body, extraHeaders) {
     if (poisoned) throw new EspoApiError(method, apiPath, 401, 'aborted after earlier 401')
     if (typeof apiPath !== 'string' || !apiPath.startsWith('/')) {
       throw new EspoConfigError('apiPath must start with "/" and be relative to /api/v1')
@@ -319,6 +319,9 @@ export function createEspoClient({ config, fetchImpl = globalThis.fetch, timeout
         'Espo-Authorization-By-Token': 'true',
       }
     }
+
+    // Caller headers (e.g. X-Skip-Duplicate-Check) never override the auth headers set above.
+    if (extraHeaders) headers = { ...extraHeaders, ...headers }
 
     let payload
     if (body !== undefined) {
@@ -347,8 +350,8 @@ export function createEspoClient({ config, fetchImpl = globalThis.fetch, timeout
     addSecret(...values) {
       redact.add(...values)
     },
-    request(method, apiPath, body) {
-      const run = chain.then(() => send(method, apiPath, body))
+    request(method, apiPath, body, extraHeaders) {
+      const run = chain.then(() => send(method, apiPath, body, extraHeaders))
       chain = run.catch(() => {})
       return run
     },

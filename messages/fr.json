@@ -999,5 +999,8 @@
     "defaultTitle": "PRESTIGO — Service de chauffeur privé haut de gamme à Prague",
     "defaultDescription": "Service de chauffeur privé haut de gamme à Prague. Transferts aéroport, trajets interurbains, comptes entreprises. Prix fixes, suivi des vols, accueil personnalisé.",
     "keywords": "chauffeur privé Prague,transfert aéroport Prague,VTC Prague,transfert de luxe Prague,taxi Prague,transfert affaires Prague"
+  },
+  "InquiryNotice": {
+    "stored": "Nous conservons votre demande afin d'y répondre — <privacy>Politique de confidentialité</privacy>"
   }
 }
