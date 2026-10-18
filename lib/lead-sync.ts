@@ -17,7 +17,10 @@ import {
   buildLeadFromBooking,
   buildLeadFromInquiry,
   diffSyncOwned,
+  isPurgeEligible,
   LEAD_ATTR,
+  LEAD_STATUS_VALUE,
+  leadRefForBooking,
   type LeadDraft,
 } from '@/lib/lead-mapping'
 
@@ -112,6 +115,7 @@ async function deliver(
 
   if (row.event_type === 'lead.inquiry') return deliverInquiry(row, d, crm, config)
   if (row.event_type === 'lead.booking') return deliverBooking(row, d, crm, config)
+  if (row.event_type === 'lead.purge') return deliverPurge(row, d, crm)
 
   await d.store.complete(key, 'failed', 'unsupported_event')
   return { outcome: 'failed', code: 'unsupported_event' }
@@ -161,6 +165,45 @@ async function deliverBooking(
   if (!draft) return skip(row, d, 'unmapped_status')
 
   await upsertLead(crm, config, draft)
+  await d.store.complete(row.idempotency_key, 'sent', null)
+  return { outcome: 'sent' }
+}
+
+/**
+ * D-15 / D-20 (T-81-31): delete the Lead of an abandoned ONLINE checkout 90 days after pickup.
+ * The key only says "consider purging": eligibility is re-checked on the LIVE booking row, and the
+ * Lead is deleted only while it is still Dead (a Lead the owner re-opened is kept). The Supabase
+ * booking row is never written (the store has no booking write method): the admin recovery queue
+ * stays as it is today. No Task, reminder or notification is created (D-04).
+ */
+async function deliverPurge(row: OutboxRow, d: DispatchDeps, crm: SiteEspoClient): Promise<DispatchResult> {
+  const booking = await d.store.readBooking(row.aggregate_id)
+  if (!booking) return skip(row, d, 'source_missing')
+  if (!isPurgeEligible(booking, d.now())) return skip(row, d, 'purge_not_eligible')
+
+  const res = (await crm.get(
+    `/Lead?select=id,status&maxSize=2&where[0][type]=equals&where[0][attribute]=${LEAD_ATTR.supabaseRef}&where[0][value]=${q(leadRefForBooking(booking.id))}`,
+  )) as { list?: Array<{ id?: unknown; status?: unknown }> } | null
+  const found = (Array.isArray(res?.list) ? res.list : []).filter(
+    (lead): lead is { id: string; status?: unknown } => typeof lead.id === 'string' && lead.id !== '',
+  )
+
+  // Nothing to delete (never created, or already purged): the work is done.
+  if (found.length === 0) {
+    await d.store.complete(row.idempotency_key, 'sent', null)
+    return { outcome: 'sent' }
+  }
+  // The owner re-opened it: keep it. Any non-Dead Lead for this reference blocks the purge.
+  if (found.some((lead) => lead.status !== LEAD_STATUS_VALUE.dead)) return skip(row, d, 'purge_lead_not_dead')
+
+  for (const lead of found) {
+    try {
+      await crm.del(`/Lead/${lead.id}`)
+    } catch (err) {
+      // 404 = already gone = success; every other error follows the shared classification.
+      if (!(err instanceof SiteEspoError && err.status === 404)) throw err
+    }
+  }
   await d.store.complete(row.idempotency_key, 'sent', null)
   return { outcome: 'sent' }
 }

@@ -223,9 +223,10 @@ describe('dispatchOutboxKey - tracer (inquiry -> Lead)', () => {
   })
 
   it('an unsupported event type is failed unsupported_event', async () => {
-    const key = `lead.purge:${ID_A}`
+    // lead.purge became a supported event in 81-10; the row's event_type is what the dispatcher switches on.
+    const key = keyOf(ID_A)
     const h = harness({
-      rows: [outboxRow(ID_A, { idempotency_key: key, event_type: 'lead.purge', aggregate_type: 'booking' })],
+      rows: [outboxRow(ID_A, { idempotency_key: key, event_type: 'lead.something_else', aggregate_type: 'booking' })],
     })
 
     const result = await dispatchOutboxKey(key, deps(h))
