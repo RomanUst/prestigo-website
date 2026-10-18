@@ -61,9 +61,9 @@ Every contact, corporate and multi-day-quote submission is now stored in a new `
 |------|------|--------|--------|
 | 1 | Tracer: contact form -> inquiries -> outbox -> publish after response | done | c3862283 |
 | 2 | Corporate + multi-day join the same path; outbox helper tests | done | 7e8ac1d4 |
-| 3 | [BLOCKING] Apply 064/065 to live Supabase + rolled-back smoke | PENDING - orchestrator applies via MCP | - |
+| 3 | [BLOCKING] Apply 064/065 to live Supabase + rolled-back smoke | DONE - orchestrator applied via Supabase MCP | - |
 
-## Task 3: PENDING - orchestrator applies via MCP
+## Task 3: DONE - orchestrator applied via Supabase MCP (2026-10-18)
 
 The executor has no Supabase MCP tools and did not improvise (no psql, no CLI against prod).
 The orchestrator must, in order:
@@ -84,7 +84,7 @@ The orchestrator must, in order:
 
 If a file must change to apply cleanly, fix it, re-run `npx vitest run tests/outbox-migrations.test.ts`, and commit as `security(81-01): fix migration for live apply`. Both migrations are idempotent (IF NOT EXISTS / CREATE OR REPLACE / DROP ... IF EXISTS).
 
-MCP results (to be filled in by the orchestrator): apply 064 = ?, apply 065 = ?, list_tables = ?, smoke = ?, advisors = ?
+MCP results (project enakcryrtxlnjvjutfpv, 2026-10-18): apply 064 = success, apply 065 = success, RLS = true on integration_outbox / integration_config / inquiries, smoke = error exactly `SMOKE_OK_81_01` (all asserts passed: one pending outbox row, first claim -> processing/attempts 1, second claim -> no row, complete sent -> true, anon has no EXECUTE on outbox_claim and no SELECT on inquiries; rolled back, 0 leftover rows), advisors (security) = no ERROR/WARN naming any 064/065 object (only pre-existing INFO rls_enabled_no_policy on other tables + Auth leaked-password WARN).
 
 ## What was built
 
@@ -127,7 +127,7 @@ None beyond the plan's threat model (T-81-01..04 mitigations are implemented in 
 - Edge LEAD-05: any failure mode other than the five covered (PostgREST error, thrown client, missing env, 3 s timeout, `after()` throwing) is untested.
 - The `integration_config.lead_capture_start` key is intentionally not seeded (plan 81-11 writes it at go-live).
 
-## Self-Check: PASSED (code), Task 3 PENDING
+## Self-Check: PASSED (code + live apply)
 
 - FOUND: supabase/migrations/064_integration_outbox.sql, supabase/migrations/065_inquiries.sql, lib/outbox.ts, lib/inquiries.ts, tests/inquiry-routes.test.ts, tests/outbox.test.ts, tests/outbox-migrations.test.ts
 - FOUND commits: c3862283, 7e8ac1d4
