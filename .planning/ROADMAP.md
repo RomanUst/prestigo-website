@@ -18,7 +18,7 @@
 - [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
-- [ ] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails
+- [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
 - [ ] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure
 - [ ] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops
 - [ ] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245-patched Chatwoot
@@ -299,7 +299,7 @@ Plans:
   6. Every site booking (paid or not) also appears as a Lead in EspoCRM with source "Website booking", and its status follows the booking (paid → Converted, cancelled/abandoned → Dead).
   7. With the VPS offline, submitted leads queue in the outbox and reach EspoCRM once it is back, exactly once (idempotent retries).
 
-**Plans**: 10/11 plans executed
+**Plans**: 11/11 plans complete
 **UI hint**: yes
 
 Plans:
@@ -322,7 +322,7 @@ Plans:
 - [x] 81-10-PLAN.md — Daily outbox sweep (068): Dead after pickup, 90-day purge, re-arm; LEAD-04 wording (D-01)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 81-11-PLAN.md — Go-live: owner secrets + ship, capture start, live smokes, VPS-down drill, runbook
+- [x] 81-11-PLAN.md — Go-live: owner secrets + ship, capture start, live smokes, VPS-down drill, runbook
 
 ### Phase 82: Site ↔ CRM/Chatwoot Sync Foundation
 
@@ -411,7 +411,7 @@ Plans:
 | 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
-| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 10/11 | In Progress|  |
+| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
