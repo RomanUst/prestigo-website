@@ -5,7 +5,8 @@ process.env.CRON_SECRET = 'test-cron-secret'
 
 // ── vi.hoisted stubs (declared before the vi.mock factories) ────────────────
 
-const { mockExpired, mockPurge, mockDue, mockPublish } = vi.hoisted(() => ({
+const { mockExpired, mockPurge, mockDue, mockFailed, mockPublish } = vi.hoisted(() => ({
+  mockFailed: vi.fn(),
   mockExpired: vi.fn(),
   mockPurge: vi.fn(),
   mockDue: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock('@/lib/outbox-store', async (importOriginal) => {
     enqueueExpiredUnpaid: mockExpired,
     enqueueAbandonedPurge: mockPurge,
     dueKeys: mockDue,
+    recentFailedCount: mockFailed,
   }
 })
 
@@ -50,6 +52,7 @@ beforeEach(() => {
   mockExpired.mockResolvedValue(0)
   mockPurge.mockResolvedValue(0)
   mockDue.mockResolvedValue([])
+  mockFailed.mockResolvedValue(0)
   mockPublish.mockResolvedValue(true)
 })
 
@@ -99,7 +102,7 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body).toEqual({ ok: true, expired: 3, purge: 1, due: 2, published: 2, errors: [] })
+      expect(body).toEqual({ ok: true, expired: 3, purge: 1, due: 2, published: 2, failed: 0, errors: [] })
       expect(mockDue).toHaveBeenCalledWith(200)
       expect(mockPublish).toHaveBeenCalledTimes(2)
       expect(mockPublish).toHaveBeenCalledWith('lead.inquiry:a', { dedupSuffix: 's20261018' })
@@ -139,6 +142,7 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
     mockExpired.mockRejectedValue(new Error('secret-detail-1'))
     mockPurge.mockRejectedValue(new Error('secret-detail-2'))
     mockDue.mockRejectedValue(new Error('secret-detail-3'))
+    mockFailed.mockRejectedValue(new Error('secret-detail-4'))
 
     const res = await GET(ok())
     const text = await res.text()
@@ -151,10 +155,35 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
       purge: null,
       due: null,
       published: null,
-      errors: ['expired_failed', 'purge_failed', 'due_failed'],
+      failed: null,
+      errors: ['expired_failed', 'purge_failed', 'due_failed', 'failed_count_failed'],
     })
     expect(text).not.toContain('secret-detail')
     expect(mockPublish).not.toHaveBeenCalled()
+  })
+
+  it('reports rows that turned failed in the last 25 h and logs one ALERT line (WR-02)', async () => {
+    mockFailed.mockResolvedValue(2)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const body = await (await GET(ok())).json()
+      expect(body.failed).toBe(2)
+      expect(mockFailed).toHaveBeenCalledWith(25)
+      expect(errors.mock.calls.map((c) => String(c[0]))).toEqual(['[outbox-sweep] ALERT failed_last_25h=2'])
+    } finally {
+      errors.mockRestore()
+    }
+  })
+
+  it('no failed rows: failed is 0 and nothing is logged', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const body = await (await GET(ok())).json()
+      expect(body.failed).toBe(0)
+      expect(errors).not.toHaveBeenCalled()
+    } finally {
+      errors.mockRestore()
+    }
   })
 
   it('publishes in batches of at most 10 in flight', async () => {

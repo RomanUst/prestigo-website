@@ -360,6 +360,69 @@ describe('dispatchOutboxKey - permanent errors and internal failures', () => {
     expect(h.publish).not.toHaveBeenCalled()
   })
 
+  it('a 400 to every body variant ends failed crm_400 after four POSTs and logs one ALERT line (WR-02)', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { extraRoutes: (req) => (req.method === 'POST' && req.path === '/Lead' ? new Response('', { status: 400 }) : undefined) },
+    )
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const logs = vi.spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+      expect(result).toEqual({ outcome: 'failed', code: 'crm_400' })
+      const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+      expect(posts).toHaveLength(4)
+      expect(errors.mock.calls.map((c) => String(c[0]))).toEqual([
+        `[lead-sync] ALERT lead_delivery_failed key=${keyOf(ID_A)} code=crm_400`,
+      ])
+    } finally {
+      errors.mockRestore()
+      logs.mockRestore()
+    }
+  })
+
+  it('a 400 caused by the email retries without it and keeps the address in the description (WR-02)', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      {
+        extraRoutes: (req) =>
+          req.method === 'POST' && req.path === '/Lead' && req.body?.emailAddress ? new Response('', { status: 400 }) : undefined,
+      },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(posts).toHaveLength(3) // full, without phone, without email
+    expect(posts[2].body).not.toHaveProperty('emailAddress')
+    expect(posts[2].body).not.toHaveProperty('phoneNumber')
+    const lead = h.fake.state.records.Lead[0]
+    expect(String(lead.description)).toContain('Email: anna@example.com')
+    expect(lead.cSupabaseRef).toBe(`inquiry:${ID_A}`)
+  })
+
+  it('a 400 to every rich body falls back to the minimal body: no assignee, ref and description kept (WR-02)', async () => {
+    const config = { ...CONFIG, leadAssigneeId: 'a1b2c3d4e5f6a7b8c' }
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      {
+        extraRoutes: (req) =>
+          req.method === 'POST' && req.path === '/Lead' && req.body?.assignedUserId ? new Response('', { status: 400 }) : undefined,
+      },
+      config,
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(posts).toHaveLength(4)
+    expect(Object.keys(posts[3].body).sort()).toEqual(['cSupabaseRef', 'description', 'firstName', 'lastName', 'source', 'status'])
+    expect(String(posts[3].body.description)).toContain('Email: anna@example.com')
+  })
+
   it('a store error while reading the source reschedules with db_error', async () => {
     const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
     h.store.readInquiry = async () => {
@@ -462,7 +525,9 @@ describe('dispatchOutboxKey - logging', () => {
     expect(all).not.toContain('wrong_key')
     expect(all).not.toMatch(/anna|novak|hello|\+420/i)
     for (const line of lines) {
-      expect(line).toMatch(/^\[lead-sync\] key=lead\.inquiry:[0-9a-f-]{36} outcome=[a-z_]+ code=[a-z0-9_-]+$/)
+      expect(line).toMatch(
+        /^\[lead-sync\] (key=lead\.inquiry:[0-9a-f-]{36} outcome=[a-z_]+|ALERT lead_delivery_failed key=lead\.inquiry:[0-9a-f-]{36}) code=[a-z0-9_-]+$/,
+      )
     }
   })
 })

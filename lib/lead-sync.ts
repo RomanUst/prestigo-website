@@ -254,8 +254,10 @@ async function handleFailure(row: OutboxRow, err: unknown, d: DispatchDeps): Pro
     const kind = classifyEspoError(err)
     if (kind === 'transient') return retryLater(row, err.code, d)
     if (kind === 'auth') return breaker(row, 'crm_auth', d)
-    // permanent / not_found / conflict: retrying the same request cannot help.
+    // permanent / not_found / conflict: retrying the same request cannot help. `failed` is terminal
+    // and the visitor was told it worked, so leave one loud, payload-free line for the Vercel logs.
     await d.store.complete(row.idempotency_key, 'failed', err.code)
+    console.error(`[lead-sync] ALERT lead_delivery_failed key=${row.idempotency_key} code=${err.code}`)
     return { outcome: 'failed', code: err.code }
   }
   if (err instanceof OutboxStoreError) return retryLater(row, 'db_error', d)
@@ -315,17 +317,40 @@ async function updateLead(crm: SiteEspoClient, draft: LeadDraft, live: LiveLead)
 
 const SKIP_DUPLICATE_CHECK = { 'X-Skip-Duplicate-Check': 'true' }
 
-/** POST /Lead; a 400 on a body with a phone number is retried once without it (Phase 80 precedent). */
+/**
+ * POST /Lead. WR-02: a 400 means EspoCRM rejected a field, and `failed` is terminal (the sweep never
+ * re-publishes it), so the body is relaxed step by step before giving up:
+ *   1. without the phone number (Phase 80 precedent)
+ *   2. without the email address, which moves into the description so the owner still sees it
+ *   3. a minimal body: reference, status, source, name, description (no assignee, no custom marks)
+ * Every other status is thrown at once and follows the shared classification.
+ */
 async function createLead(crm: SiteEspoClient, body: Record<string, unknown>): Promise<void> {
-  try {
-    await crm.post('/Lead', body, SKIP_DUPLICATE_CHECK)
-  } catch (err) {
-    if (err instanceof SiteEspoError && err.status === 400 && body.phoneNumber !== undefined) {
-      const { phoneNumber: _dropped, ...withoutPhone } = body
-      await crm.post('/Lead', withoutPhone, SKIP_DUPLICATE_CHECK)
+  const attempts: Array<Record<string, unknown>> = [body]
+  const { phoneNumber: _phone, ...withoutPhone } = body
+  if (body.phoneNumber !== undefined) attempts.push(withoutPhone)
+  if (typeof body.emailAddress === 'string' && body.emailAddress !== '') {
+    const { emailAddress, ...withoutEmail } = withoutPhone
+    const description = [typeof body.description === 'string' ? body.description : '', `Email: ${emailAddress}`]
+      .filter((line) => line !== '')
+      .join('\n')
+    attempts.push({ ...withoutEmail, description })
+  }
+  const minimal: Record<string, unknown> = {}
+  for (const attr of [LEAD_ATTR.supabaseRef, 'status', 'source', 'firstName', 'lastName']) {
+    if (body[attr] !== undefined) minimal[attr] = body[attr]
+  }
+  minimal.description = attempts[attempts.length - 1].description ?? body.description
+  attempts.push(minimal)
+
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      await crm.post('/Lead', attempts[i], SKIP_DUPLICATE_CHECK)
       return
+    } catch (err) {
+      const isLast = i === attempts.length - 1
+      if (isLast || !(err instanceof SiteEspoError) || err.status !== 400) throw err
     }
-    throw err
   }
 }
 

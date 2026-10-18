@@ -85,6 +85,25 @@ export async function dueKeys(limit: number): Promise<string[]> {
   return Array.isArray(data) ? data.filter((k): k is string => typeof k === 'string') : []
 }
 
+/**
+ * WR-02: rows that became `failed` (terminal, never swept) in the last `hours`. Ids and counts only:
+ * the sweep reports it so a lost Lead is visible instead of silent.
+ */
+export async function recentFailedCount(hours: number): Promise<number> {
+  try {
+    const since = new Date(Date.now() - hours * 3600_000).toISOString()
+    const { count, error } = await createSupabaseServiceClient()
+      .from('integration_outbox')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'failed')
+      .gte('updated_at', since)
+    if (error) throw new Error('select')
+    return typeof count === 'number' ? count : 0
+  } catch {
+    throw new OutboxStoreError('db_error')
+  }
+}
+
 export function createOutboxStore(client?: SupabaseClient): OutboxStore {
   // Built lazily inside each method's try so a missing env var surfaces as db_error, not a crash.
   const db = (): SupabaseClient => client ?? createSupabaseServiceClient()
