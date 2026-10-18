@@ -299,16 +299,16 @@ Plans:
   6. Every site booking (paid or not) also appears as a Lead in EspoCRM with source "Website booking", and its status follows the booking (paid → Converted, cancelled/abandoned → Dead).
   7. With the VPS offline, submitted leads queue in the outbox and reach EspoCRM once it is back, exactly once (idempotent retries).
 
-**Plans**: 11 plans
+**Plans**: 5/11 plans executed
 **UI hint**: yes
 
 Plans:
 **Wave 1**
-- [ ] 81-01-PLAN.md — Outbox core (064) + inquiries table (065) + all three forms store submissions best-effort (contact tracer)
-- [ ] 81-02-PLAN.md — Pure Lead mapping (TDD): status D-06/D-03, sources D-08, round trip D-19, purge eligibility D-20
-- [ ] 81-03-PLAN.md — EspoCRM Lead fields + Lead ACL (D-22) + inspect user-id/notify-settings/contact-match
-- [ ] 81-04-PLAN.md — Admin booking Channel field (D-08) + bookings.lead_channel (066)
-- [ ] 81-05-PLAN.md — D-16 storage notice on the three forms in 7 locales
+- [x] 81-01-PLAN.md — Outbox core (064) + inquiries table (065) + all three forms store submissions best-effort (contact tracer)
+- [x] 81-02-PLAN.md — Pure Lead mapping (TDD): status D-06/D-03, sources D-08, round trip D-19, purge eligibility D-20
+- [x] 81-03-PLAN.md — EspoCRM Lead fields + Lead ACL (D-22) + inspect user-id/notify-settings/contact-match
+- [x] 81-04-PLAN.md — Admin booking Channel field (D-08) + bookings.lead_channel (066)
+- [x] 81-05-PLAN.md — D-16 storage notice on the three forms in 7 locales
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 81-06-PLAN.md — EspoCRM Lead source enum, Lead->Contact link, Lead layouts, lead smoke tool
@@ -411,7 +411,7 @@ Plans:
 | 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
-| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
+| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 5/11 | In Progress|  |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
