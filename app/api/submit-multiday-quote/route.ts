@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { normalizePhone } from '@/lib/phone'
 import { enforceMaxBody, safeEmail, safeString } from '@/lib/request-guards'
+import { storeInquiry } from '@/lib/inquiries'
+import { dispatchAfterResponse, inquiryOutboxKey } from '@/lib/outbox'
 import {
   sendMultidayOperatorAlert,
   sendMultidayClientAck,
@@ -107,7 +109,7 @@ function toEmailData(
 //   1. enforceMaxBody (50 KB)
 //   2. checkRateLimit (5/min per IP)
 //   3. Zod parse (400 on failure)
-//   4. Business logic (email dispatch, no DB)
+//   4. Business logic (email dispatch + best-effort inquiry store)
 //   5. Response
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -155,9 +157,26 @@ export async function POST(req: Request) {
     }
     body.passengerDetails.phone = phoneE164
 
-    // (4) Business logic — generate reference and dispatch emails (no Supabase)
+    // (4) Business logic — generate reference, dispatch emails, and store the
+    // quote best-effort in `inquiries` (Phase 81; storeInquiry never throws).
     const quoteReference = generateMultidayQuoteRef()
     const emailData = toEmailData(body, quoteReference)
+    const { firstName, lastName, email, specialRequests } = body.passengerDetails
+
+    const stored = storeInquiry('multiday_quote', {
+      email,
+      name: `${firstName} ${lastName}`,
+      phone: phoneE164,
+      company: null,
+      payload: {
+        quoteReference,
+        startDate: body.startDate ?? null,
+        days: body.days,
+        firstName,
+        lastName,
+        specialRequests: specialRequests ?? null,
+      },
+    })
 
     // Both email calls are non-fatal by design (see lib/email.ts implementation).
     // We still await them so Resend errors are logged before the response returns.
@@ -165,6 +184,9 @@ export async function POST(req: Request) {
       sendMultidayOperatorAlert(emailData),
       sendMultidayClientAck(emailData),
     ])
+
+    const inquiryId = await stored
+    if (inquiryId) dispatchAfterResponse(inquiryOutboxKey(inquiryId))
 
     // (5) Response
     return NextResponse.json(

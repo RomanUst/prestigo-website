@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { sendContactInquiry } from '@/lib/email'
 import { enforceMaxBody, safeEmail, safeString } from '@/lib/request-guards'
+import { storeInquiry } from '@/lib/inquiries'
+import { dispatchAfterResponse, inquiryOutboxKey } from '@/lib/outbox'
 
 // All user-facing string fields use safeString / safeEmail which reject
 // embedded \r\n to prevent header injection downstream (email subjects,
@@ -47,7 +49,21 @@ export async function POST(req: Request) {
       )
     }
 
+    // Best-effort capture (Phase 81): never throws, never changes the response.
+    // Started before the email so both run in parallel; awaited after it.
+    const { name, email, phone, service, message } = parsed.data
+    const stored = storeInquiry('contact', {
+      email,
+      name,
+      phone: phone ?? null,
+      company: null,
+      payload: { service: service ?? null, message },
+    })
+
     await sendContactInquiry(parsed.data)
+
+    const inquiryId = await stored
+    if (inquiryId) dispatchAfterResponse(inquiryOutboxKey(inquiryId))
 
     return NextResponse.json({ ok: true })
   } catch (error) {
