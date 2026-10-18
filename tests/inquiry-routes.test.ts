@@ -138,6 +138,31 @@ describe('contact', () => {
     expect(res.status).toBe(400)
     expect(storeInquiryMock).not.toHaveBeenCalled()
   })
+
+  it('honeypot filled: answers { ok: true } but stores, emails and dispatches nothing (WR-04)', async () => {
+    const res = await contactPOST(
+      makeRequest('/api/contact', { ...contactPayload, website: 'http://spam.example' }),
+    )
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(storeInquiryMock).not.toHaveBeenCalled()
+    expect(sendContactInquiryMock).not.toHaveBeenCalled()
+    expect(dispatchAfterResponseMock).not.toHaveBeenCalled()
+  })
+
+  it('an empty honeypot is a normal submission and is not passed to the email (WR-04)', async () => {
+    storeInquiryMock.mockResolvedValue('33333333-3333-4333-8333-333333333333')
+    const res = await contactPOST(makeRequest('/api/contact', { ...contactPayload, website: '' }))
+    expect(res.status).toBe(200)
+    expect(storeInquiryMock).toHaveBeenCalledTimes(1)
+    expect(sendContactInquiryMock).toHaveBeenCalledWith({
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      phone: '+420123456789',
+      service: 'airport',
+      message: 'Need a transfer',
+    })
+  })
 })
 
 describe('contact failure', () => {
