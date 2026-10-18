@@ -77,8 +77,12 @@ export async function publishOutboxDispatch(
         : {}),
     })
     return true
-  } catch {
-    console.error('[outbox] publish failed code=publish_error')
+  } catch (err) {
+    // Status and error class only (QstashError carries the HTTP status); never
+    // the message, which can echo the request body or the key.
+    const status = typeof (err as { status?: unknown })?.status === 'number' ? (err as { status: number }).status : 'none'
+    const name = err instanceof Error ? err.name.replace(/[^A-Za-z]/g, '').slice(0, 40) : 'unknown'
+    console.error(`[outbox] publish failed code=publish_error status=${status} error=${name}`)
     return false
   }
 }
