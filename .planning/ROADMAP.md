@@ -338,7 +338,24 @@ Plans:
   4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
   5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
 
-**Plans**: TBD
+**Plans:** 15 plans
+
+Plans:
+- [ ] 82-01-PLAN.md — Identity core + booking/signup capture triggers + resolver hop and fan-out (migration 069)
+- [ ] 82-02-PLAN.md — Outbox health admin page with retry one / retry all (migration 070)
+- [ ] 82-03-PLAN.md — Admin bookings search by email + Chatwoot contact attribute definitions (migration 071, D-02)
+- [ ] 82-04-PLAN.md — Privacy policy + data-deletion page in 7 locales (GDPR-02, D-13/D-14)
+- [ ] 82-05-PLAN.md — Phone matching: merge-once-then-shared, manual shared, guards (migration 072)
+- [ ] 82-06-PLAN.md — Daily owner digest of failed/stuck sync events (D-11)
+- [ ] 82-07-PLAN.md — EspoCRM person sync: Contact + CBookings, convergent (sync.espo)
+- [ ] 82-08-PLAN.md — Identities admin API: list, mark shared, split via outbox (migration 073)
+- [ ] 82-09-PLAN.md — Backfill SQL: identity pass, report, staggered enqueue (migration 074)
+- [ ] 82-10-PLAN.md — Chatwoot contact sync with D-02 attributes (sync.chatwoot)
+- [ ] 82-11-PLAN.md — Identities admin page (merged by phone, shared numbers, split)
+- [ ] 82-12-PLAN.md — GDPR erasure saga across Chatwoot, EspoCRM, Supabase (migration 075)
+- [ ] 82-13-PLAN.md — Erasure admin page: preview, typed-email confirmation, log
+- [ ] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
+- [ ] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
 **UI hint**: yes
 **Security note**: yes — identity resolution, outbox event integrity and GDPR erasure propagation are security/privacy-relevant; commit with `security:` prefix per CLAUDE.md where the work touches identity matching or erasure.
 
