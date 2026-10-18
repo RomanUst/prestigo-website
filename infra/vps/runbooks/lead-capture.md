@@ -85,7 +85,7 @@ A change to any Vercel variable takes effect only on the next deployment: run
 | `crm_unreachable` | Network error or timeout talking to the CRM | Nothing: it retries with backoff (60 s, 300 s, 900 s, 1 h, 3 h, 6 h, 12 h, 24 h) |
 | `crm_auth` | CRM answered 401 or 403 | Check the API key and the Sync writer role; the 6 h breaker holds further calls |
 | `crm_unconfigured` | `ESPOCRM_*` missing in Vercel | Set them and redeploy |
-| `crm_<status>` | Any other CRM 4xx (for example `crm_400`) | The row is failed; look at the Lead mapping for that source |
+| `crm_<status>` | Any other CRM 4xx (for example `crm_400`) | The row is failed; look at the Lead mapping for that source. A 400 is only final after the body was retried without the phone, without the email (moved into the description) and as a minimal body |
 | `db_error` | Supabase read or RPC failed | Retries; check Supabase status |
 | `source_missing` | The inquiry or booking no longer exists | Nothing (skipped) |
 | `return_leg` | Return leg of a round trip | Nothing (the outbound row owns the Lead) |
@@ -95,6 +95,9 @@ A change to any Vercel variable takes effect only on the next deployment: run
 | `unsupported_event` | Unknown event type | Code bug: report it |
 
 A row that fails 30 times stops (`failed`). Log lines carry only the key, the outcome and the code.
+Every terminal failure also logs `[lead-sync] ALERT lead_delivery_failed key=<key> code=<code>`, and the daily
+sweep answers `failed: <n>` and logs `[outbox-sweep] ALERT failed_last_25h=<n>` when rows turned `failed` since
+the previous run. Search the Vercel logs for `ALERT` to find lost Leads.
 `[outbox] publish failed code=publish_error status=<n>` means QStash refused the publish: `status=401` is a
 wrong `QSTASH_TOKEN` or the wrong region in `QSTASH_URL`.
 
@@ -117,6 +120,19 @@ select value from public.integration_config where key = 'lead_capture_start';
 
 Check a Lead without printing personal data: `node infra/espocrm/lead-smoke.mjs show inquiry:<uuid>` or
 `show booking:<uuid>`. It prints counts, status, source and booleans only.
+
+## Known limitation: booking edits do not refresh the Lead
+
+The bookings trigger (migration 067) enqueues only on `INSERT` and on `UPDATE OF status`, and the booking key
+is one-shot per Lead status group (`lead.booking:<id>:<group>`). An admin edit of the price, the client name,
+the email or the phone therefore does not reach the Lead: `opportunityAmount`, `cBookingReference` and the
+contact fields keep the values of the last status change. The next status change (for example confirmed, or
+expired to Dead) re-reads the current booking row and writes the current values.
+
+If the owner needs the edit in the CRM now, update the Lead by hand in EspoCRM. A proper fix (not applied) would
+widen the trigger to `UPDATE OF status, amount_eur, client_email, client_phone, client_first_name,
+client_last_name` with a versioned key such as `lead.booking:<id>:upd:<updated_at epoch>`, which also needs
+`parseOutboxKey` to accept that key shape; that is a new migration to plan and apply through the orchestrator.
 
 ## Re-arming stuck rows
 

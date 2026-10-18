@@ -49,7 +49,7 @@ const INQUIRY_COLUMNS = 'id,kind,email,name,phone,company,payload,created_at'
 const BOOKING_COLUMNS =
   'id,booking_reference,status,booking_source,lead_channel,leg,trip_type,payment_intent_id,attempt_id,' +
   'payment_link_id,pickup_utc,pickup_date,pickup_time,origin_address,destination_address,vehicle_class,' +
-  'passengers,hours,amount_eur,client_first_name,client_last_name,client_email,client_phone,created_at'
+  'passengers,hours,amount_eur,outbound_amount_czk,return_amount_czk,client_first_name,client_last_name,client_email,client_phone,created_at'
 
 // ── Daily sweep RPCs (migration 068) ────────────────────────────────────────
 // Plain functions, not OutboxStore members: only the sweep route calls them, and the
@@ -83,6 +83,25 @@ export async function enqueueAbandonedPurge(): Promise<number> {
 export async function dueKeys(limit: number): Promise<string[]> {
   const data = await sweepRpc('outbox_due_keys', { p_limit: limit })
   return Array.isArray(data) ? data.filter((k): k is string => typeof k === 'string') : []
+}
+
+/**
+ * WR-02: rows that became `failed` (terminal, never swept) in the last `hours`. Ids and counts only:
+ * the sweep reports it so a lost Lead is visible instead of silent.
+ */
+export async function recentFailedCount(hours: number): Promise<number> {
+  try {
+    const since = new Date(Date.now() - hours * 3600_000).toISOString()
+    const { count, error } = await createSupabaseServiceClient()
+      .from('integration_outbox')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'failed')
+      .gte('updated_at', since)
+    if (error) throw new Error('select')
+    return typeof count === 'number' ? count : 0
+  } catch {
+    throw new OutboxStoreError('db_error')
+  }
 }
 
 export function createOutboxStore(client?: SupabaseClient): OutboxStore {

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest'
 import { createFakeEspoCRM, type FakeEspoOptions } from './helpers/fake-espocrm'
-import { dispatchOutboxKey, type DispatchDeps } from '@/lib/lead-sync'
+import { deferDedupSuffix, dispatchOutboxKey, type DispatchDeps } from '@/lib/lead-sync'
 import { createSiteEspoClient } from '@/lib/espocrm-client'
 import { OutboxStoreError, type OutboxRow, type OutboxStore } from '@/lib/outbox-store'
 import type { InquiryRow } from '@/lib/lead-mapping'
@@ -13,6 +13,7 @@ const NOW = new Date('2026-10-18T12:00:00.000Z')
 const ID_A = '0b9f2c1e-5d3a-4e8b-9c7d-1a2b3c4d5e6f'
 const ID_B = '1c0a3d2f-6e4b-4f9c-8d8e-2b3c4d5e6f70'
 const keyOf = (id: string) => `lead.inquiry:${id}`
+const deferId = (attempts: number, delay: number) => `d${attempts}_${NOW.getTime() / 1000 + delay}`
 
 const CONFIG = { baseUrl: 'https://crm.example.test', apiKey: API_KEY, leadAssigneeId: null as string | null }
 
@@ -359,6 +360,69 @@ describe('dispatchOutboxKey - permanent errors and internal failures', () => {
     expect(h.publish).not.toHaveBeenCalled()
   })
 
+  it('a 400 to every body variant ends failed crm_400 after four POSTs and logs one ALERT line (WR-02)', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { extraRoutes: (req) => (req.method === 'POST' && req.path === '/Lead' ? new Response('', { status: 400 }) : undefined) },
+    )
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const logs = vi.spyOn(console, 'log').mockImplementation(() => {})
+    try {
+      const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+      expect(result).toEqual({ outcome: 'failed', code: 'crm_400' })
+      const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+      expect(posts).toHaveLength(4)
+      expect(errors.mock.calls.map((c) => String(c[0]))).toEqual([
+        `[lead-sync] ALERT lead_delivery_failed key=${keyOf(ID_A)} code=crm_400`,
+      ])
+    } finally {
+      errors.mockRestore()
+      logs.mockRestore()
+    }
+  })
+
+  it('a 400 caused by the email retries without it and keeps the address in the description (WR-02)', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      {
+        extraRoutes: (req) =>
+          req.method === 'POST' && req.path === '/Lead' && req.body?.emailAddress ? new Response('', { status: 400 }) : undefined,
+      },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(posts).toHaveLength(3) // full, without phone, without email
+    expect(posts[2].body).not.toHaveProperty('emailAddress')
+    expect(posts[2].body).not.toHaveProperty('phoneNumber')
+    const lead = h.fake.state.records.Lead[0]
+    expect(String(lead.description)).toContain('Email: anna@example.com')
+    expect(lead.cSupabaseRef).toBe(`inquiry:${ID_A}`)
+  })
+
+  it('a 400 to every rich body falls back to the minimal body: no assignee, ref and description kept (WR-02)', async () => {
+    const config = { ...CONFIG, leadAssigneeId: 'a1b2c3d4e5f6a7b8c' }
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      {
+        extraRoutes: (req) =>
+          req.method === 'POST' && req.path === '/Lead' && req.body?.assignedUserId ? new Response('', { status: 400 }) : undefined,
+      },
+      config,
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(posts).toHaveLength(4)
+    expect(Object.keys(posts[3].body).sort()).toEqual(['cSupabaseRef', 'description', 'firstName', 'lastName', 'source', 'status'])
+    expect(String(posts[3].body.description)).toContain('Email: anna@example.com')
+  })
+
   it('a store error while reading the source reschedules with db_error', async () => {
     const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
     h.store.readInquiry = async () => {
@@ -461,7 +525,9 @@ describe('dispatchOutboxKey - logging', () => {
     expect(all).not.toContain('wrong_key')
     expect(all).not.toMatch(/anna|novak|hello|\+420/i)
     for (const line of lines) {
-      expect(line).toMatch(/^\[lead-sync\] key=lead\.inquiry:[0-9a-f-]{36} outcome=[a-z_]+ code=[a-z0-9_-]+$/)
+      expect(line).toMatch(
+        /^\[lead-sync\] (key=lead\.inquiry:[0-9a-f-]{36} outcome=[a-z_]+|ALERT lead_delivery_failed key=lead\.inquiry:[0-9a-f-]{36}) code=[a-z0-9_-]+$/,
+      )
     }
   })
 })
@@ -704,7 +770,7 @@ describe('dispatchOutboxKey - duplicate submissions and deliveries', () => {
     expect([r1.outcome, r2.outcome].sort()).toEqual(['deferred', 'sent'])
     expect(h.fake.state.records.Lead).toHaveLength(1)
     expect(h.publish).toHaveBeenCalledTimes(1)
-    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 30, dedupSuffix: 'd1' })
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 30, dedupSuffix: deferId(1, 30) })
   })
 
   it('a pending row that is not due yet is re-published with the remaining delay', async () => {
@@ -714,7 +780,7 @@ describe('dispatchOutboxKey - duplicate submissions and deliveries', () => {
     const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
 
     expect(result).toEqual({ outcome: 'deferred' })
-    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 120, dedupSuffix: 'd2' })
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 120, dedupSuffix: deferId(2, 120) })
     expect(h.fake.requests).toHaveLength(0)
     expect(h.rows.get(keyOf(ID_A))?.status).toBe('pending')
   })
@@ -726,7 +792,31 @@ describe('dispatchOutboxKey - duplicate submissions and deliveries', () => {
     const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
 
     expect(result).toEqual({ outcome: 'deferred' })
-    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 30, dedupSuffix: 'd0' })
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 30, dedupSuffix: deferId(0, 30) })
+  })
+
+  it('two consecutive deferrals of a blocked row publish two different dedup ids (WR-01)', async () => {
+    // A crashed worker holds the lease, so attempts stays 1 across both deferrals.
+    const lease = new Date(NOW.getTime() + 90_000).toISOString()
+    const h = harness({ rows: [outboxRow(ID_A, { status: 'processing', attempts: 1, lease_until: lease })], inquiries: [inquiry(ID_A)] })
+    let t = NOW.getTime()
+
+    const first = await dispatchOutboxKey(keyOf(ID_A), deps(h, { now: () => new Date(t) }))
+    t += 30_000 // the first deferred message arrives; the row is still blocked
+    const second = await dispatchOutboxKey(keyOf(ID_A), deps(h, { now: () => new Date(t) }))
+
+    expect([first.outcome, second.outcome]).toEqual(['deferred', 'deferred'])
+    const ids = h.publish.mock.calls.map((c) => (c as unknown as [string, { dedupSuffix: string }])[1].dedupSuffix)
+    expect(ids).toHaveLength(2)
+    expect(ids[0]).not.toBe(ids[1])
+    expect(h.rows.get(keyOf(ID_A))?.attempts).toBe(1)
+  })
+
+  it('deferDedupSuffix: same target instant collapses, a later target is a new id (WR-01)', () => {
+    const t0 = NOW.getTime()
+    expect(deferDedupSuffix(1, t0, 30)).toBe(deferDedupSuffix(1, t0 + 10_000, 20))
+    expect(deferDedupSuffix(1, t0, 30)).not.toBe(deferDedupSuffix(1, t0 + 30_000, 30))
+    expect(deferDedupSuffix(1, t0, 30)).toMatch(/^d1_\d+$/)
   })
 
   it('dispatching B then A yields the same Leads as A then B', async () => {

@@ -10,6 +10,8 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/admin',
   '/api/submit-quote',
   '/api/contact',
+  '/api/corporate-contact',
+  '/api/submit-multiday-quote',
   '/api/create-payment-intent',
   '/api/calculate-price',
   '/api/driver/respond',

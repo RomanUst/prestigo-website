@@ -17,6 +17,7 @@ const contactSchema = z.object({
   // message is free-form multi-line, so we keep newlines allowed here
   // but cap length — this field is NEVER used in a header context.
   message: z.string().min(1).max(2000),
+  website: z.string().max(200).optional(), // honeypot (same pattern as /api/corporate-contact)
 }).strict()
 
 export async function POST(req: Request) {
@@ -49,6 +50,9 @@ export async function POST(req: Request) {
       )
     }
 
+    // Honeypot filled: answer like a success, but store, email and dispatch nothing.
+    if (parsed.data.website) return NextResponse.json({ ok: true })
+
     // Best-effort capture (Phase 81): never throws, never changes the response.
     // Started before the email so both run in parallel; awaited after it.
     const { name, email, phone, service, message } = parsed.data
@@ -60,7 +64,7 @@ export async function POST(req: Request) {
       payload: { service: service ?? null, message },
     })
 
-    await sendContactInquiry(parsed.data)
+    await sendContactInquiry({ name, email, phone, service, message })
 
     const inquiryId = await stored
     if (inquiryId) dispatchAfterResponse(inquiryOutboxKey(inquiryId))

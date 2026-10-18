@@ -1,12 +1,13 @@
 import { timingSafeEqual } from 'crypto'
 import { NextResponse } from 'next/server'
 import { publishOutboxDispatch } from '@/lib/outbox'
-import { dueKeys, enqueueAbandonedPurge, enqueueExpiredUnpaid } from '@/lib/outbox-store'
+import { dueKeys, enqueueAbandonedPurge, enqueueExpiredUnpaid, recentFailedCount } from '@/lib/outbox-store'
 
 // Daily outbox sweep (Phase 81, plan 81-10). Three independent steps:
 //   1. D-03   unpaid bookings past pickup   -> enqueue 'lead.booking:<id>:dead'
 //   2. D-15/20 abandoned online checkouts    -> enqueue 'lead.purge:<id>' (90 days past pickup)
 //   3. safety net: re-publish every due or lease-expired row (success criterion 7)
+//   4. WR-02: count rows that turned `failed` since the last run (terminal, never re-published)
 // Deliberately imports no CRM code: the CRM is only ever called from the QStash-signed
 // dispatcher (VPS isolation guard). Responses carry counts and short codes, never payload text.
 
@@ -14,6 +15,8 @@ export const maxDuration = 300
 
 const DUE_LIMIT = 200
 const PUBLISH_BATCH = 10
+// The sweep runs daily; a 25 h window overlaps runs so no failure falls between two reports.
+const FAILED_WINDOW_HOURS = 25
 
 function yyyymmddUtc(d: Date): string {
   return d.toISOString().slice(0, 10).replace(/-/g, '')
@@ -60,12 +63,16 @@ export async function GET(request: Request) {
     }
   }
 
+  const failed = await step('failed_count_failed', errors, () => recentFailedCount(FAILED_WINDOW_HOURS))
+  if (failed) console.error(`[outbox-sweep] ALERT failed_last_${FAILED_WINDOW_HOURS}h=${failed}`)
+
   return NextResponse.json({
     ok: true,
     expired,
     purge,
     due: keys ? keys.length : null,
     published,
+    failed,
     errors,
   })
 }

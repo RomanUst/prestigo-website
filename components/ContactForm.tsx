@@ -40,7 +40,7 @@ function pushGA4Event(eventName: string, params: Record<string, unknown>): void 
 export default function ContactForm() {
   const t = useTranslations('ContactForm')
   const tn = useTranslations('InquiryNotice')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '', website: '' })
   const [state, setState] = useState<FormState>('idle')
   const [formStartFired, setFormStartFired] = useState(false)
 
@@ -83,6 +83,8 @@ export default function ContactForm() {
           phone: form.phone || undefined,
           service: form.service || undefined,
           message: form.message,
+          // Honeypot: hidden from people, filled by bots; the API drops such submissions.
+          website: form.website || undefined,
         }),
       })
 
@@ -100,7 +102,7 @@ export default function ContactForm() {
       })
 
       setState('success')
-      setForm({ name: '', email: '', phone: '', service: '', message: '' })
+      setForm({ name: '', email: '', phone: '', service: '', message: '', website: '' })
       setFormStartFired(false)
     } catch {
       setState('error')
@@ -234,6 +236,8 @@ export default function ContactForm() {
           className={`${inputClass} resize-none`}
         />
       </div>
+
+      <input type="text" name="website" value={form.website} onChange={set('website')} tabIndex={-1} autoComplete="off" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap', border: 0, opacity: 0 }} aria-hidden="true" />
 
       {/* Submit */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">

@@ -7,6 +7,7 @@ import {
   LEAD_STATUS_VALUE,
   adminLink,
   bookingLeadStatus,
+  bookingLeadAmountEur,
   buildLeadFromBooking,
   buildLeadFromInquiry,
   diffSyncOwned,
@@ -447,6 +448,26 @@ describe('amount (LEAD-06 precision)', () => {
     expect(d.syncOwned).not.toHaveProperty('opportunityAmount')
     expect(d.syncOwned).not.toHaveProperty('opportunityAmountCurrency')
     expect(d.create).not.toHaveProperty('opportunityAmount')
+  })
+
+  it('round trip: the outbound amount_eur is the combined checkout total and is not added to (WR-03)', () => {
+    const row = booking({ trip_type: 'round_trip', amount_eur: '280', outbound_amount_czk: 3750, return_amount_czk: 3375 })
+    const d = buildLeadFromBooking(row, { id: 'r', booking_reference: 'PRG-R1' }, NOW)!
+    expect(d.syncOwned.opportunityAmount).toBe(280)
+  })
+
+  it('round trip saved without amount_eur: value is both legs, from the per-leg columns (WR-03)', () => {
+    // The two real production rows of 2026-08-18 have exactly this shape (amount_eur null on both legs).
+    const row = booking({ trip_type: 'round_trip', amount_eur: null, outbound_amount_czk: 1475, return_amount_czk: 1325 })
+    const d = buildLeadFromBooking(row, { id: 'r', booking_reference: 'PRG-R1' }, NOW)!
+    expect(d.syncOwned.opportunityAmount).toBe(112) // round(2800 CZK * 0.04)
+    expect(d.syncOwned.opportunityAmountCurrency).toBe('EUR')
+    expect(bookingLeadAmountEur({ ...row, return_amount_czk: null })).toBe(59)
+  })
+
+  it('a one-way booking never falls back to the per-leg columns (WR-03)', () => {
+    expect(bookingLeadAmountEur(booking({ amount_eur: null, outbound_amount_czk: 1000 }))).toBeNull()
+    expect(bookingLeadAmountEur(booking({ trip_type: 'round_trip', amount_eur: null }))).toBeNull()
   })
 
   it('the description never contains an amount', () => {
