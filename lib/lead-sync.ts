@@ -77,6 +77,16 @@ async function run(key: string, partial: Partial<DispatchDeps>): Promise<Dispatc
   return handleClaimed(row, d)
 }
 
+/**
+ * WR-01: a blocked row does not change `attempts`, so a dedup id of `d<attempts>` repeats on the
+ * second deferral and QStash silently drops it (the row then waits for the daily sweep). The id
+ * carries the target delivery second instead: every deferral to a new time is a new message, while
+ * two deferrals aimed at the same instant (a duplicate delivery) still collapse into one.
+ */
+export function deferDedupSuffix(attempts: number, nowMs: number, delaySeconds: number): string {
+  return `d${attempts}_${Math.floor(nowMs / 1000) + delaySeconds}`
+}
+
 /** The claim returned nothing: decide between unknown, already done and a deferral. */
 async function deferOrFinish(key: string, d: DispatchDeps): Promise<DispatchResult> {
   const current = await d.store.getByKey(key)
@@ -85,12 +95,15 @@ async function deferOrFinish(key: string, d: DispatchDeps): Promise<DispatchResu
     return { outcome: 'already_done' }
   }
 
+  const nowMs = d.now().getTime()
   let delay = BUSY_DEFER_SECONDS
   if (current.status === 'pending') {
-    const remainingMs = Date.parse(current.available_at) - d.now().getTime()
+    const remainingMs = Date.parse(current.available_at) - nowMs
     if (remainingMs > 0) delay = Math.max(1, Math.ceil(remainingMs / 1000))
   }
-  await d.publish(key, { delaySeconds: delay, dedupSuffix: `d${current.attempts}` })
+  // A row held by another (possibly crashed) worker keeps the fixed 30 s step: with a fresh dedup
+  // id per deferral the chain re-checks every 30 s and claims as soon as the 120 s lease expires.
+  await d.publish(key, { delaySeconds: delay, dedupSuffix: deferDedupSuffix(current.attempts, nowMs, delay) })
   return { outcome: 'deferred' }
 }
 
