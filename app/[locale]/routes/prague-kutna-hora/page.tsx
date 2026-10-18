@@ -17,6 +17,8 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import ReverseRouteLink from '@/components/ReverseRouteLink'
+import HeroRating from '@/components/HeroRating'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
@@ -79,12 +81,15 @@ export default async function PragueKutnaHoraPage({ params }: { params: Promise<
 
   const relatedRoutes = content.relatedRoutes
 
+  const rating = getStaticAggregateRating()
+
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
       ...(route
         ? buildRouteJsonLd(route, 'prague-kutna-hora', {
             locale,
+            rating,
             name: interpolate(content.metadata.title, prices),
             description: interpolate(content.metadata.description, prices),
           })['@graph']
@@ -134,6 +139,7 @@ export default async function PragueKutnaHoraPage({ params }: { params: Promise<
             <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('heroCtaPrimary')}</a>
             <a href={getPathname({ locale, href: '/contact' })} className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 

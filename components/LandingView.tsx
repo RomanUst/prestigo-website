@@ -3,7 +3,8 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
-import { businessNodeDoc } from '@/lib/jsonld'
+import HeroRating from '@/components/HeroRating'
+import { businessNodeDoc, type AggregateRatingInput } from '@/lib/jsonld'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { localizedHref } from '@/lib/localized-href'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
@@ -22,11 +23,14 @@ export default function LandingView({
   content,
   locale,
   prices,
+  rating = null,
 }: {
   page: LandingPageConfig
   content: LandingContent
   locale: string
   prices: Record<string, number>
+  /** Google rating — when set, shown as a badge in the hero and added to the business JSON-LD. */
+  rating?: AggregateRatingInput | null
 }) {
   const path = `/${page.section}/${page.slug}`
   const sectionName = page.section === 'faq' ? 'FAQ' : 'Services'
@@ -69,7 +73,7 @@ export default function LandingView({
         : []),
     ],
   }
-  const businessDoc = businessNodeDoc()
+  const businessDoc = businessNodeDoc(rating)
 
   return (
     <main id="main-content">
@@ -82,13 +86,13 @@ export default function LandingView({
         <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
           <div className="absolute inset-0"><Image src={page.heroImage} alt={content.hero.imageAlt} fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
           <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-            <HeroBody content={content} locale={locale} ctaHref={page.ctaHref} bidi={bidi} />
+            <HeroBody content={content} locale={locale} ctaHref={page.ctaHref} bidi={bidi} rating={rating} />
           </div>
         </section>
       ) : (
         <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <HeroBody content={content} locale={locale} ctaHref={page.ctaHref} bidi={bidi} />
+            <HeroBody content={content} locale={locale} ctaHref={page.ctaHref} bidi={bidi} rating={rating} />
           </div>
         </section>
       )}
@@ -222,11 +226,13 @@ function HeroBody({
   locale,
   ctaHref,
   bidi,
+  rating,
 }: {
   content: LandingContent
   locale: string
   ctaHref: string
   bidi: (s: string) => React.ReactNode
+  rating: AggregateRatingInput | null
 }) {
   return (
     <>
@@ -238,6 +244,7 @@ function HeroBody({
         <a href={localizedHref(locale, ctaHref)} className="btn-primary">{content.hero.ctaPrimary}</a>
         <a href={localizedHref(locale, '/contact')} className="btn-ghost">{content.hero.ctaSecondary}</a>
       </div>
+      {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
     </>
   )
 }

@@ -11,6 +11,8 @@ import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 import { localizedHref } from '@/lib/localized-href'
+import HeroRating from '@/components/HeroRating'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 type GroupTransfersContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -56,7 +58,8 @@ const breadcrumbSchema = {
 export default async function GroupTransfersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const content = getPageContent('services/group-transfers', locale) as GroupTransfersContent
-  const businessDoc = businessNodeDoc()
+  const rating = getStaticAggregateRating()
+  const businessDoc = businessNodeDoc(rating)
 
   const serviceSchema = {
     '@context': 'https://schema.org',
@@ -110,6 +113,7 @@ export default async function GroupTransfersPage({ params }: { params: Promise<{
             <a href={localizedHref(locale, '/contact')} className="btn-primary">{content.hero.ctaPrimary}</a>
             <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 

@@ -21,6 +21,8 @@ import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
 import { MIRROR_ROUTES, MIRROR_ROUTES_BY_SLUG } from '@/lib/routes'
+import HeroRating from '@/components/HeroRating'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 type Params = Promise<{ locale: string; slug: string }>
 
@@ -97,12 +99,15 @@ export default async function MirrorRoutePage({ params }: { params: Params }) {
 
   const vehicles = content.vehicles.map((v) => ({ ...v, price: interpolate(v.price, prices) }))
 
+  const rating = getStaticAggregateRating()
+
   const pageSchema = {
     '@context': 'https://schema.org',
     '@graph': [
       ...(route
         ? buildRouteJsonLd(route, slug, {
             locale,
+            rating,
             name: interpolate(content.metadata.title, prices),
             description: interpolate(content.metadata.description, prices),
           })['@graph']
@@ -145,6 +150,7 @@ export default async function MirrorRoutePage({ params }: { params: Params }) {
             <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('heroCtaPrimary')}</a>
             <a href={getPathname({ locale, href: '/contact' })} className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 

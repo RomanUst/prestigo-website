@@ -12,6 +12,8 @@ import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import HeroRating from '@/components/HeroRating'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 type ConciergeContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -94,7 +96,8 @@ export default async function ConciergePage({ params }: { params: Promise<{ loca
     url: 'https://rideprestigo.com/services/concierge',
   }
 
-  const businessDoc = businessNodeDoc()
+  const rating = getStaticAggregateRating()
+  const businessDoc = businessNodeDoc(rating)
 
   return (
     <main id="main-content">
@@ -123,6 +126,7 @@ export default async function ConciergePage({ params }: { params: Promise<{ loca
             <a href={localizedHref(locale, '/book')} className="btn-primary">{content.hero.ctaPrimary}</a>
             <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 

@@ -3,6 +3,10 @@ import { useTranslations } from 'next-intl'
 type Props = {
   ratingValue: number
   reviewCount: number
+  /** Wrapper classes; defaults to the Hero's load-animated placement. */
+  className?: string
+  /** Render the review count next to the label (route/service pages). */
+  showCount?: boolean
 }
 
 /**
@@ -10,7 +14,12 @@ type Props = {
  * Server component — static render, no client JS.
  * Uses copper unicode stars to match TestimonialsCarousel.
  */
-export default function HeroRating({ ratingValue, reviewCount }: Props) {
+export default function HeroRating({
+  ratingValue,
+  reviewCount,
+  className = 'animate-on-load delay-700 mt-6 inline-flex items-center gap-3',
+  showCount = false,
+}: Props) {
   const t = useTranslations('Hero')
   const full = Math.floor(ratingValue)
   const hasHalf = ratingValue - full >= 0.25 && ratingValue - full < 0.75
@@ -18,7 +27,7 @@ export default function HeroRating({ ratingValue, reviewCount }: Props) {
 
   return (
     <div
-      className="animate-on-load delay-700 mt-6 inline-flex items-center gap-3"
+      className={className}
       aria-label={t('ratingAria', { rating: ratingValue, count: reviewCount })}
     >
       <span className="inline-flex items-center gap-0.5" aria-hidden="true">
@@ -50,6 +59,7 @@ export default function HeroRating({ ratingValue, reviewCount }: Props) {
         }}
       >
         {t('googleReviews')}
+        {showCount && <> (<bdi>{reviewCount}</bdi>)</>}
       </span>
     </div>
   )

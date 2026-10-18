@@ -24,12 +24,12 @@ export function futureIsoDate(daysFromNow: number): string {
 
 // Schema.org business entity node for the canonical #business @id, so pages
 // whose Service nodes reference the provider by @id resolve it on-page.
-// Deliberately carries NO aggregateRating: the rating is Google-sourced and
-// not visible on these pages, which violates Google's review snippet
-// guidelines (self-serving LocalBusiness ratings are ignored anyway).
-// The home page — where the rating badge is actually displayed — composes
-// its own schema with the live rating.
-export function businessNode(): Record<string, unknown> {
+// aggregateRating is attached ONLY when the caller passes a rating — i.e. a
+// page that also renders the visible Google rating badge (HeroRating), as
+// Google's review snippet guidelines require the rating to be shown on-page.
+export type AggregateRatingInput = { ratingValue: number; reviewCount: number }
+
+export function businessNode(rating?: AggregateRatingInput | null): Record<string, unknown> {
   return {
     '@type': ['LocalBusiness', 'TaxiService'],
     '@id': `${BASE_URL}/#business`,
@@ -52,19 +52,30 @@ export function businessNode(): Record<string, unknown> {
       addressRegion: 'Central Bohemian Region',
       addressCountry: 'CZ',
     },
+    ...(rating
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: rating.ratingValue.toFixed(1),
+            reviewCount: rating.reviewCount,
+            bestRating: '5',
+            worstRating: '1',
+          },
+        }
+      : {}),
   }
 }
 
 // Wraps businessNode() in a complete JSON-LD document so service-style
 // pages can drop in a single <script> tag without composing their own @graph.
-export function businessNodeDoc(): JsonLdDocument {
-  return { '@context': 'https://schema.org', '@graph': [businessNode()] }
+export function businessNodeDoc(rating?: AggregateRatingInput | null): JsonLdDocument {
+  return { '@context': 'https://schema.org', '@graph': [businessNode(rating)] }
 }
 
 export function buildRouteJsonLd(
   route: RoutePrice,
   slug: string,
-  opts?: { locale: string; name: string; description: string }
+  opts?: { locale: string; name: string; description: string; rating?: AggregateRatingInput | null }
 ): JsonLdDocument {
   const priceValidUntil = futureIsoDate(365)
   // EN template stays byte-for-byte the pre-phase hardcoded string (Pitfall
@@ -83,7 +94,7 @@ export function buildRouteJsonLd(
   return {
     '@context': 'https://schema.org',
     '@graph': [
-      businessNode(),
+      businessNode(opts?.rating),
       {
         '@type': 'Service',
         '@id': `${BASE_URL}/routes/${slug}#service`,

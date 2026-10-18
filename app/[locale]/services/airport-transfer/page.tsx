@@ -17,6 +17,7 @@ import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
 import { getAllPosts } from '@/lib/blog'
+import HeroRating from '@/components/HeroRating'
 
 // Blog posts linked from the "Airport guides" block, in display order. A slug
 // with no post in the current locale is simply skipped.
@@ -172,6 +173,7 @@ export default async function AirportTransferPage({ params }: { params: Promise<
             <a href={localizedHref(locale, '/book')} className="btn-primary">{content.hero.ctaPrimary}</a>
             <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 

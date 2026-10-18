@@ -5,6 +5,7 @@ import LandingView from '@/components/LandingView'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 import { findLandingPage, getLandingPrices, landingPagesFor, type LandingContent } from '@/lib/landing-pages'
 
 export const revalidate = 3600
@@ -47,5 +48,5 @@ export default async function LandingPage({ params }: { params: Params }) {
   setRequestLocale(locale)
   const content = getPageContent(`services/${slug}`, locale) as LandingContent
   const prices = await getLandingPrices()
-  return <LandingView page={page} content={content} locale={locale} prices={prices} />
+  return <LandingView page={page} content={content} locale={locale} prices={prices} rating={getStaticAggregateRating()} />
 }

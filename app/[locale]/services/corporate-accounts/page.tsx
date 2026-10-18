@@ -11,6 +11,8 @@ import { getPageContent } from '@/lib/page-content'
 import { getAlternates } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 import { localizedHref } from '@/lib/localized-href'
+import HeroRating from '@/components/HeroRating'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 type CorporateAccountsContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -59,7 +61,8 @@ const breadcrumbSchema = {
 export default async function CorporateAccountsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const content = getPageContent('services/corporate-accounts', locale) as CorporateAccountsContent
-  const businessDoc = businessNodeDoc()
+  const rating = getStaticAggregateRating()
+  const businessDoc = businessNodeDoc(rating)
 
   const serviceSchema = {
     '@context': 'https://schema.org',
@@ -102,6 +105,7 @@ export default async function CorporateAccountsPage({ params }: { params: Promis
             <a href={localizedHref(locale, '/corporate')} className="btn-primary">{content.hero.ctaPrimary}</a>
             <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 
