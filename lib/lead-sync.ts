@@ -180,13 +180,78 @@ async function findLeadByRef(crm: SiteEspoClient, draft: LeadDraft): Promise<Liv
   return list.length > 0 ? list[0] : null
 }
 
-async function upsertLead(crm: SiteEspoClient, _config: SiteEspoConfig, draft: LeadDraft): Promise<void> {
+/**
+ * D-11: id of a Contact with this (already normalized) email, or null. A failed lookup never blocks
+ * the Lead; an auth error is propagated so the breaker stops all further requests.
+ */
+async function matchContact(crm: SiteEspoClient, email: string | null): Promise<string | null> {
+  if (!email) return null
+  try {
+    const res = (await crm.get(
+      `/Contact?select=id&maxSize=1&where[0][type]=equals&where[0][attribute]=emailAddress&where[0][value]=${q(email)}`,
+    )) as { list?: Array<{ id?: unknown }> } | null
+    const id = Array.isArray(res?.list) && res.list.length > 0 ? res.list[0].id : null
+    return typeof id === 'string' && id !== '' ? id : null
+  } catch (err) {
+    if (err instanceof SiteEspoError && classifyEspoError(err) === 'auth') throw err
+    return null
+  }
+}
+
+/** Sync-owned attributes only (+ the existing-customer mark); create-only fields are never written. */
+async function updateLead(crm: SiteEspoClient, draft: LeadDraft, live: LiveLead): Promise<void> {
+  const desired: Record<string, unknown> = { ...draft.syncOwned }
+  if (live[LEAD_ATTR.existingCustomer] !== true) {
+    const contactId = await matchContact(crm, draft.email)
+    if (contactId) {
+      desired[LEAD_ATTR.existingCustomer] = true
+      desired[LEAD_ATTR.existingContactId] = contactId
+    }
+  }
+  const changes = diffSyncOwned(live, desired)
+  if (Object.keys(changes).length > 0) await crm.put(`/Lead/${live.id}`, changes)
+}
+
+const SKIP_DUPLICATE_CHECK = { 'X-Skip-Duplicate-Check': 'true' }
+
+/** POST /Lead; a 400 on a body with a phone number is retried once without it (Phase 80 precedent). */
+async function createLead(crm: SiteEspoClient, body: Record<string, unknown>): Promise<void> {
+  try {
+    await crm.post('/Lead', body, SKIP_DUPLICATE_CHECK)
+  } catch (err) {
+    if (err instanceof SiteEspoError && err.status === 400 && body.phoneNumber !== undefined) {
+      const { phoneNumber: _dropped, ...withoutPhone } = body
+      await crm.post('/Lead', withoutPhone, SKIP_DUPLICATE_CHECK)
+      return
+    }
+    throw err
+  }
+}
+
+async function upsertLead(crm: SiteEspoClient, config: SiteEspoConfig, draft: LeadDraft): Promise<void> {
   const live = await findLeadByRef(crm, draft)
   if (live) {
-    const changes = diffSyncOwned(live, draft.syncOwned)
-    if (Object.keys(changes).length > 0) await crm.put(`/Lead/${live.id}`, changes)
+    await updateLead(crm, draft, live)
     return
   }
-  // D-10: a second submission from the same email is a second Lead, so the duplicate check is skipped.
-  await crm.post('/Lead', { ...draft.create }, { 'X-Skip-Duplicate-Check': 'true' })
+
+  const body: Record<string, unknown> = { ...draft.create }
+  // D-13: the assignee is set on create only; the owner may reassign afterwards.
+  if (config.leadAssigneeId) body.assignedUserId = config.leadAssigneeId
+  const contactId = await matchContact(crm, draft.email)
+  if (contactId) {
+    body[LEAD_ATTR.existingCustomer] = true
+    body[LEAD_ATTR.existingContactId] = contactId
+  }
+
+  try {
+    // D-10: a second submission from the same email is a second Lead, so the duplicate check is skipped.
+    await createLead(crm, body)
+  } catch (err) {
+    if (!(err instanceof SiteEspoError) || err.status !== 409) throw err
+    // Another delivery created it between our lookup and the POST: converge on that Lead.
+    const raced = await findLeadByRef(crm, draft)
+    if (!raced) throw err
+    await updateLead(crm, draft, raced)
+  }
 }

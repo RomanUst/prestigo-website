@@ -454,3 +454,305 @@ describe('dispatchOutboxKey - logging', () => {
     }
   })
 })
+
+// ── Task 3: existing customer, assignee, idempotent update, phone retry, duplicates ──
+
+const CONTACT_ID = 'c00000000000000a1'
+const ASSIGNEE = 'a1b2c3d4e5f6a7b8c'
+const writes = (h: Harness) => h.fake.requests.filter((r) => r.method !== 'GET')
+
+describe('dispatchOutboxKey - existing customer (D-11)', () => {
+  it('marks a new Lead when a Contact with the same normalized email exists', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A, { email: ' Anna@Example.com ' })] },
+      { records: { Contact: [{ id: CONTACT_ID, emailAddress: 'anna@example.com' }], Lead: [] } },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result.outcome).toBe('sent')
+    const lead = h.fake.state.records.Lead[0]
+    expect(lead.cExistingCustomer).toBe(true)
+    expect(lead.cExistingContactId).toBe(CONTACT_ID)
+  })
+
+  it('creates the Lead without the mark when the Contact lookup fails', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { extraRoutes: (req) => (req.path === '/Contact' ? new Response('', { status: 500 }) : undefined) },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const lead = h.fake.state.records.Lead[0]
+    expect(lead.cExistingCustomer).toBeUndefined()
+    expect(lead.cExistingContactId).toBeUndefined()
+  })
+
+  it('an auth error on the Contact lookup propagates as a breaker with one request', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { extraRoutes: (req) => (req.path === '/Contact' ? new Response('', { status: 401 }) : undefined) },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'breaker', code: 'crm_auth' })
+    expect(h.fake.state.records.Lead).toHaveLength(0)
+    expect(h.fake.requests.filter((r) => r.path === '/Contact')).toHaveLength(1)
+  })
+
+  it('looks the Contact up by the lower-cased email and never creates a Contact', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A, { email: ' Anna@Example.com ' })] })
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    const lookup = h.fake.requests.find((r) => r.path === '/Contact')
+    expect(lookup?.method).toBe('GET')
+    expect(decodeURIComponent(lookup!.query)).toContain('where[0][value]=anna@example.com')
+    expect(h.fake.requests.some((r) => r.method !== 'GET' && r.path.startsWith('/Contact'))).toBe(false)
+  })
+})
+
+describe('dispatchOutboxKey - assignee (D-13)', () => {
+  it('sends assignedUserId on create when configured', async () => {
+    const config = { ...CONFIG, leadAssigneeId: ASSIGNEE }
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] }, {}, config)
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    const post = h.fake.requests.find((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(post?.body.assignedUserId).toBe(ASSIGNEE)
+  })
+
+  it('omits assignedUserId when not configured', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    const post = h.fake.requests.find((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(post?.body).not.toHaveProperty('assignedUserId')
+  })
+
+  it('never sends assignedUserId on an update', async () => {
+    const config = { ...CONFIG, leadAssigneeId: ASSIGNEE }
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      {
+        records: {
+          Lead: [{ id: 'f00000000000000a1', cSupabaseRef: `inquiry:${ID_A}`, status: 'New' }],
+          Contact: [{ id: CONTACT_ID, emailAddress: 'anna@example.com' }],
+        },
+      },
+      config,
+    )
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    const puts = h.fake.requests.filter((r) => r.method === 'PUT')
+    expect(puts).toHaveLength(1)
+    expect(puts[0].body).not.toHaveProperty('assignedUserId')
+  })
+})
+
+describe('dispatchOutboxKey - idempotent update', () => {
+  const LEAD_ID = 'f00000000000000a1'
+  const existingLead = (over: Record<string, unknown> = {}) => ({
+    id: LEAD_ID,
+    cSupabaseRef: `inquiry:${ID_A}`,
+    status: 'In Process',
+    description: 'owner edited',
+    lastName: 'Edited',
+    source: 'Other',
+    assignedUserId: 'owner0000000000a1',
+    ...over,
+  })
+
+  it('an existing Lead with no matching Contact gets no POST and no write at all', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] }, { records: { Lead: [existingLead()], Contact: [] } })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(writes(h)).toHaveLength(0)
+    expect(h.fake.state.records.Lead).toHaveLength(1)
+  })
+
+  it('adds only the existing-customer mark when a Contact matches, leaving owner-edited fields alone', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { records: { Lead: [existingLead()], Contact: [{ id: CONTACT_ID, emailAddress: 'anna@example.com' }] } },
+    )
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    const ws = writes(h)
+    expect(ws).toHaveLength(1)
+    expect(ws[0].method).toBe('PUT')
+    expect(ws[0].path).toBe(`/Lead/${LEAD_ID}`)
+    expect(ws[0].body).toEqual({ cExistingCustomer: true, cExistingContactId: CONTACT_ID })
+    const lead = h.fake.state.records.Lead[0]
+    expect(lead.description).toBe('owner edited')
+    expect(lead.lastName).toBe('Edited')
+    expect(lead.assignedUserId).toBe('owner0000000000a1')
+  })
+
+  it('does not look up the Contact again when the mark is already set', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { records: { Lead: [existingLead({ cExistingCustomer: true, cExistingContactId: CONTACT_ID })], Contact: [] } },
+    )
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(h.fake.requests.filter((r) => r.path === '/Contact')).toHaveLength(0)
+    expect(writes(h)).toHaveLength(0)
+  })
+
+  it('a 409 on create because another worker just created the Lead converges without a second Lead', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      {
+        extraRoutes: (req, state) => {
+          if (req.method === 'POST' && req.path === '/Lead') {
+            state.records.Lead.push({ id: LEAD_ID, cSupabaseRef: `inquiry:${ID_A}`, status: 'New' })
+            return new Response('', { status: 409 })
+          }
+          return undefined
+        },
+      },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(h.fake.state.records.Lead).toHaveLength(1)
+    expect(h.fake.requests.filter((r) => r.method === 'POST')).toHaveLength(1)
+  })
+
+  it('a 409 with no Lead found afterwards is failed crm_409', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { extraRoutes: (req) => (req.method === 'POST' && req.path === '/Lead' ? new Response('', { status: 409 }) : undefined) },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'failed', code: 'crm_409' })
+  })
+})
+
+describe('dispatchOutboxKey - phone retry', () => {
+  it('retries once without the phone number when the CRM answers 400 to it', async () => {
+    const h = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      {
+        extraRoutes: (req) =>
+          req.method === 'POST' && req.path === '/Lead' && req.body?.phoneNumber ? new Response('', { status: 400 }) : undefined,
+      },
+    )
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(posts).toHaveLength(2)
+    expect(posts[0].body.phoneNumber).toBeTruthy()
+    expect(posts[1].body).not.toHaveProperty('phoneNumber')
+    expect(posts[1].headers['x-skip-duplicate-check']).toBe('true')
+    expect(h.fake.state.records.Lead).toHaveLength(1)
+    expect(h.fake.state.records.Lead[0]).not.toHaveProperty('phoneNumber')
+  })
+})
+
+describe('dispatchOutboxKey - duplicate submissions and deliveries', () => {
+  it('two inquiries from the same email become two Leads (D-10)', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A), outboxRow(ID_B)],
+      inquiries: [inquiry(ID_A), inquiry(ID_B)],
+    })
+
+    const a = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+    const b = await dispatchOutboxKey(keyOf(ID_B), deps(h))
+
+    expect([a.outcome, b.outcome]).toEqual(['sent', 'sent'])
+    expect(h.fake.state.records.Lead.map((l) => l.cSupabaseRef).sort()).toEqual([`inquiry:${ID_A}`, `inquiry:${ID_B}`].sort())
+    // Without the header the fake would have answered 409 for the second one.
+    expect(h.fake.requests.filter((r) => r.method === 'POST').every((r) => r.headers['x-skip-duplicate-check'] === 'true')).toBe(true)
+  })
+
+  it('two concurrent dispatches of one key produce one Lead; the loser defers 30 s', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+
+    const [r1, r2] = await Promise.all([
+      dispatchOutboxKey(keyOf(ID_A), deps(h)),
+      dispatchOutboxKey(keyOf(ID_A), deps(h)),
+    ])
+
+    expect([r1.outcome, r2.outcome].sort()).toEqual(['deferred', 'sent'])
+    expect(h.fake.state.records.Lead).toHaveLength(1)
+    expect(h.publish).toHaveBeenCalledTimes(1)
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 30, dedupSuffix: 'd1' })
+  })
+
+  it('a pending row that is not due yet is re-published with the remaining delay', async () => {
+    const due = new Date(NOW.getTime() + 120_000).toISOString()
+    const h = harness({ rows: [outboxRow(ID_A, { available_at: due, attempts: 2 })], inquiries: [inquiry(ID_A)] })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'deferred' })
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 120, dedupSuffix: 'd2' })
+    expect(h.fake.requests).toHaveLength(0)
+    expect(h.rows.get(keyOf(ID_A))?.status).toBe('pending')
+  })
+
+  it('an aggregate that is busy elsewhere defers 30 s', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] })
+    h.store.claim = async () => null
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'deferred' })
+    expect(h.publish).toHaveBeenCalledWith(keyOf(ID_A), { delaySeconds: 30, dedupSuffix: 'd0' })
+  })
+
+  it('dispatching B then A yields the same Leads as A then B', async () => {
+    const run = async (order: string[]) => {
+      const h = harness({ rows: [outboxRow(ID_A), outboxRow(ID_B)], inquiries: [inquiry(ID_A), inquiry(ID_B, { email: 'b@example.com', name: 'Bob Stone' })] })
+      for (const id of order) await dispatchOutboxKey(keyOf(id), deps(h))
+      return h.fake.state.records.Lead.map(({ id: _id, ...rest }) => rest).sort((x, y) => String(x.cSupabaseRef).localeCompare(String(y.cSupabaseRef)))
+    }
+
+    const forward = await run([ID_A, ID_B])
+    const reverse = await run([ID_B, ID_A])
+
+    expect(reverse).toEqual(forward)
+    expect(forward).toHaveLength(2)
+  })
+})
+
+describe('dispatchOutboxKey - CRM scope (D-09, D-12)', () => {
+  it('never touches Account or CBooking and never converts, across create, update and mark paths', async () => {
+    const h1 = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A, { kind: 'corporate', company: 'Acme s.r.o.' })] },
+      { records: { Contact: [{ id: CONTACT_ID, emailAddress: 'anna@example.com' }], Lead: [] } },
+    )
+    await dispatchOutboxKey(keyOf(ID_A), deps(h1))
+    const h2 = harness(
+      { rows: [outboxRow(ID_A)], inquiries: [inquiry(ID_A)] },
+      { records: { Lead: [{ id: 'f00000000000000a1', cSupabaseRef: `inquiry:${ID_A}` }], Contact: [{ id: CONTACT_ID, emailAddress: 'anna@example.com' }] } },
+    )
+    await dispatchOutboxKey(keyOf(ID_A), deps(h2))
+
+    for (const h of [h1, h2]) {
+      for (const r of h.fake.requests) {
+        expect(r.path).not.toMatch(/^\/(Account|CBooking)/)
+        expect(r.path.toLowerCase()).not.toContain('convert')
+        if (r.method !== 'GET') expect(r.path).toMatch(/^\/Lead/)
+      }
+    }
+    expect(h1.fake.state.records.Lead[0].accountName).toBe('Acme s.r.o.')
+  })
+})
