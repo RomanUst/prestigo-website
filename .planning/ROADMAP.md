@@ -341,22 +341,36 @@ Plans:
 **Plans:** 16 plans
 
 Plans:
+**Wave 1**
 - [ ] 82-01-PLAN.md — Identity core + booking/signup capture triggers + resolver hop and fan-out (migration 069)
 - [ ] 82-02-PLAN.md — Outbox health admin page with retry one / retry all (migration 070)
 - [ ] 82-03-PLAN.md — Admin bookings search by email + Chatwoot contact attribute definitions (migration 071, D-02)
 - [ ] 82-04-PLAN.md — Privacy policy in 7 locales + freeze (GDPR-02, D-13/D-14)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 82-05-PLAN.md — Phone matching: merge-once-then-shared, manual shared, guards (migration 072)
 - [ ] 82-06-PLAN.md — Daily owner digest of failed/stuck sync events (D-11)
 - [ ] 82-07-PLAN.md — EspoCRM person sync: Contact + CBookings, convergent (sync.espo)
 - [ ] 82-08-PLAN.md — Identities admin API: list, mark shared, split via outbox (migration 073)
+- [ ] 82-16-PLAN.md — Data-deletion page retention alignment in 7 locales + freeze (GDPR-02, D-13)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 82-09-PLAN.md — Backfill SQL: identity pass, report, staggered enqueue (migration 074)
 - [ ] 82-10-PLAN.md — Chatwoot contact sync with D-02 attributes (sync.chatwoot)
 - [ ] 82-11-PLAN.md — Identities admin page (merged by phone, shared numbers, split)
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 82-12-PLAN.md — GDPR erasure saga across Chatwoot, EspoCRM, Supabase (migration 075)
+
+**Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 82-13-PLAN.md — Erasure admin page: preview, typed-email confirmation, log
+
+**Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
+
+**Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
-- [ ] 82-16-PLAN.md — Data-deletion page retention alignment in 7 locales + freeze (GDPR-02, D-13)
+
 **UI hint**: yes
 **Security note**: yes — identity resolution, outbox event integrity and GDPR erasure propagation are security/privacy-relevant; commit with `security:` prefix per CLAUDE.md where the work touches identity matching or erasure.
 
