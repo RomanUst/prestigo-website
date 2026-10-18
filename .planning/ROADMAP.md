@@ -299,7 +299,7 @@ Plans:
   6. Every site booking (paid or not) also appears as a Lead in EspoCRM with source "Website booking", and its status follows the booking (paid → Converted, cancelled/abandoned → Dead).
   7. With the VPS offline, submitted leads queue in the outbox and reach EspoCRM once it is back, exactly once (idempotent retries).
 
-**Plans**: 7/11 plans executed
+**Plans**: 8/11 plans executed
 **UI hint**: yes
 
 Plans:
@@ -316,7 +316,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 81-08-PLAN.md — Lead.cSupabaseRef unique index via metadata overlay (owner-approved VPS step)
-- [ ] 81-09-PLAN.md — Bookings trigger -> outbox (067) + pg_net kick + booking Lead branch (all sources, round trips, forward-only)
+- [x] 81-09-PLAN.md — Bookings trigger -> outbox (067) + pg_net kick + booking Lead branch (all sources, round trips, forward-only)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 81-10-PLAN.md — Daily outbox sweep (068): Dead after pickup, 90-day purge, re-arm; LEAD-04 wording (D-01)
@@ -411,7 +411,7 @@ Plans:
 | 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
-| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 7/11 | In Progress|  |
+| 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 8/11 | In Progress|  |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
