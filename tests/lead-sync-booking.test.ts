@@ -211,3 +211,311 @@ describe('dispatchOutboxKey - booking tracer (unpaid website booking -> Lead New
     expect(h.fake.requests.length).toBe(before)
   })
 })
+
+// ── Task 2: status follows the booking ──────────────────────────────────────
+
+/** Re-point the booking at a new status and arm the outbox row the trigger would have enqueued. */
+function change(h: Harness, id: string, status: string, leadStatus: LeadStatusKey) {
+  h.bookings.set(id, { ...h.bookings.get(id)!, status })
+  h.rows.set(keyOf(id, leadStatus), outboxRow(id, leadStatus))
+}
+
+const writes = (h: Harness) => h.fake.requests.filter((r) => r.method === 'POST' || r.method === 'PUT')
+
+describe('dispatchOutboxKey - booking status follows the booking (D-06)', () => {
+  it('New -> Converted on payment, then Dead on cancellation: one Lead, PUTs only', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], bookings: [booking(ID_A)] })
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+    expect(leads(h)[0].status).toBe('New')
+
+    change(h, ID_A, 'confirmed', 'converted')
+    const paid = await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+    expect(paid).toEqual({ outcome: 'sent' })
+    expect(leads(h)).toHaveLength(1)
+    expect(leads(h)[0].status).toBe('Converted')
+    expect(h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')).toHaveLength(1)
+
+    change(h, ID_A, 'cancelled', 'dead')
+    const cancelled = await dispatchOutboxKey(keyOf(ID_A, 'dead'), deps(h))
+    expect(cancelled).toEqual({ outcome: 'sent' })
+    expect(leads(h)).toHaveLength(1)
+    expect(leads(h)[0].status).toBe('Dead')
+  })
+
+  it('a pending quote booking is In Process', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A, 'in_process')],
+      bookings: [booking(ID_A, { status: 'pending', amount_eur: null })],
+    })
+
+    await dispatchOutboxKey(keyOf(ID_A, 'in_process'), deps(h))
+
+    expect(leads(h)[0].status).toBe('In Process')
+    expect(leads(h)[0].opportunityAmount).toBeUndefined()
+  })
+
+  it('an unpaid booking whose pickup already passed is Dead (D-03)', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A)],
+      bookings: [booking(ID_A, { pickup_utc: '2026-10-18T09:00:00.000Z' })],
+    })
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(leads(h)[0].status).toBe('Dead')
+  })
+
+  it('a status that maps to nothing is skipped unmapped_status', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], bookings: [booking(ID_A, { status: 'weird' })] })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'skipped', code: 'unmapped_status' })
+    expect(h.fake.requests).toHaveLength(0)
+  })
+
+  it('the Lead update carries references and amount, and nothing else is sent when nothing changed', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], bookings: [booking(ID_A)] })
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+    h.rows.set(keyOf(ID_A, 'converted'), outboxRow(ID_A, 'converted'))
+
+    // Same status group, same data: the second event is a no-op.
+    const before = writes(h).length
+    await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+    expect(writes(h).length).toBe(before)
+  })
+})
+
+describe('dispatchOutboxKey - round trip (D-19)', () => {
+  const outbound = (over: Partial<BookingRecord> = {}) =>
+    booking(ID_A, { trip_type: 'round_trip', payment_intent_id: PI, ...over })
+  const returnLeg = (over: Partial<BookingRecord> = {}) =>
+    booking(ID_A_RETURN, {
+      leg: 'return',
+      trip_type: 'round_trip',
+      payment_intent_id: PI,
+      booking_reference: 'PRG-20261018-0002',
+      amount_eur: null,
+      ...over,
+    })
+
+  it('round trip: two rows of one trip give one Lead carrying the return reference', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A), outboxRow(ID_A_RETURN)],
+      bookings: [outbound(), returnLeg()],
+    })
+
+    const out = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+    // Even if the trigger had enqueued the return row, the dispatcher skips it.
+    const ret = await dispatchOutboxKey(keyOf(ID_A_RETURN), deps(h))
+
+    expect(out).toEqual({ outcome: 'sent' })
+    expect(ret).toEqual({ outcome: 'skipped', code: 'return_leg' })
+    expect(leads(h)).toHaveLength(1)
+    expect(leads(h)[0].cSupabaseRef).toBe(`booking:${ID_A}`)
+    expect(leads(h)[0].cReturnBookingReference).toBe('PRG-20261018-0002')
+    expect(leads(h)[0].opportunityAmount).toBe(45)
+  })
+
+  it('round trip: the return leg is found through attempt_id when there is no payment intent yet', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A)],
+      bookings: [
+        outbound({ payment_intent_id: null, attempt_id: ATTEMPT }),
+        returnLeg({ payment_intent_id: null, attempt_id: ATTEMPT }),
+      ],
+    })
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(leads(h)[0].cReturnBookingReference).toBe('PRG-20261018-0002')
+  })
+
+  it('round trip: a one-way booking never looks for a return leg', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], bookings: [booking(ID_A, { payment_intent_id: PI })] })
+    const lookups = vi.spyOn(h.store, 'readReturnLeg')
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(lookups).not.toHaveBeenCalled()
+    expect(leads(h)[0].cReturnBookingReference).toBeUndefined()
+  })
+
+  it('two bookings of one customer are two Leads (D-05)', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A), outboxRow(ID_B)],
+      bookings: [booking(ID_A), booking(ID_B, { booking_reference: 'PRG-20261018-0003' })],
+    })
+
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+    await dispatchOutboxKey(keyOf(ID_B), deps(h))
+
+    expect(leads(h)).toHaveLength(2)
+    expect(leads(h).map((l) => l.cSupabaseRef).sort()).toEqual([`booking:${ID_A}`, `booking:${ID_B}`].sort())
+  })
+})
+
+describe('dispatchOutboxKey - sources (D-08) and gnet ghosts', () => {
+  it.each([
+    ['whatsapp', 'WhatsApp'],
+    ['phone', 'Phone'],
+    ['email', 'Email'],
+    ['partner', 'Partner'],
+    [null, 'Other'],
+  ] as const)('manual booking channel %s becomes source %s', async (channel, source) => {
+    const h = harness({
+      rows: [outboxRow(ID_A, 'converted')],
+      bookings: [booking(ID_A, { booking_source: 'manual', lead_channel: channel, status: 'confirmed' })],
+    })
+
+    await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+
+    expect(leads(h)[0].source).toBe(source)
+    expect(leads(h)[0].status).toBe('Converted')
+  })
+
+  it('gnet booking: source GNet, placeholder email/phone never reach the Lead, no Contact lookup', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A, 'converted')],
+      bookings: [
+        booking(ID_A, {
+          booking_source: 'gnet',
+          status: 'confirmed',
+          client_email: 'noreply@gnet.local',
+          client_phone: 'unknown',
+          client_first_name: 'John',
+          client_last_name: 'Smith',
+        }),
+      ],
+    })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const lead = leads(h)[0]
+    expect(lead.source).toBe('GNet')
+    expect(lead).not.toHaveProperty('emailAddress')
+    expect(lead).not.toHaveProperty('phoneNumber')
+    expect(JSON.stringify(h.fake.requests.map((r) => r.body))).not.toContain('gnet.local')
+    expect(h.fake.requests.some((r) => r.path.startsWith('/Contact'))).toBe(false)
+  })
+
+  it('gnet ghost: a booking deleted before dispatch is skipped source_missing with zero CRM requests', async () => {
+    const h = harness({ rows: [outboxRow(ID_A, 'converted')], bookings: [] })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+
+    expect(result).toEqual({ outcome: 'skipped', code: 'source_missing' })
+    expect(h.fake.requests).toHaveLength(0)
+    expect(h.rows.get(keyOf(ID_A, 'converted'))?.status).toBe('skipped')
+  })
+})
+
+describe('dispatchOutboxKey - forward-only capture (D-21)', () => {
+  it('forward-only: no capture start means skipped before_capture_start and zero CRM requests', async () => {
+    const h = harness({ rows: [outboxRow(ID_A)], bookings: [booking(ID_A)], captureStart: null })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'skipped', code: 'before_capture_start' })
+    expect(h.fake.requests).toHaveLength(0)
+  })
+
+  it('forward-only: a booking created one millisecond before the start is skipped, even if its status changed later', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A, 'converted')],
+      bookings: [booking(ID_A, { status: 'confirmed', created_at: new Date(CAPTURE_START.getTime() - 1).toISOString() })],
+    })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+
+    expect(result).toEqual({ outcome: 'skipped', code: 'before_capture_start' })
+    expect(h.fake.requests).toHaveLength(0)
+  })
+
+  it('forward-only: a booking created exactly at the start is captured (boundary is >=)', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A)],
+      bookings: [booking(ID_A, { created_at: CAPTURE_START.toISOString() })],
+    })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(leads(h)).toHaveLength(1)
+  })
+
+  it('forward-only: microsecond timestamps from the database are compared by instant', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A)],
+      bookings: [booking(ID_A, { created_at: '2026-10-18T08:00:00.123456+00:00' })],
+    })
+
+    const result = await dispatchOutboxKey(keyOf(ID_A), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+  })
+})
+
+describe('dispatchOutboxKey - racing and out-of-order events', () => {
+  it('concurrent: new and converted for one booking dispatched together create exactly one Lead, the loser is deferred', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A, 'new'), outboxRow(ID_A, 'converted')],
+      bookings: [booking(ID_A, { status: 'confirmed' })],
+    })
+
+    const [first, second] = await Promise.all([
+      dispatchOutboxKey(keyOf(ID_A, 'new'), deps(h)),
+      dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h)),
+    ])
+
+    expect([first.outcome, second.outcome].sort()).toEqual(['deferred', 'sent'])
+    expect(h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')).toHaveLength(1)
+    expect(h.publish).toHaveBeenCalledTimes(1)
+
+    const deferredKey = first.outcome === 'deferred' ? keyOf(ID_A, 'new') : keyOf(ID_A, 'converted')
+    const rerun = await dispatchOutboxKey(deferredKey, deps(h))
+
+    expect(rerun).toEqual({ outcome: 'sent' })
+    expect(leads(h)).toHaveLength(1)
+    expect(leads(h)[0].status).toBe('Converted')
+    expect(h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')).toHaveLength(1)
+  })
+
+  it('out of order: converted first, new afterwards: the Lead stays Converted and the second run writes nothing', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A, 'converted'), outboxRow(ID_A, 'new')],
+      bookings: [booking(ID_A, { status: 'confirmed' })],
+    })
+
+    await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+    const writesBefore = writes(h).length
+    const late = await dispatchOutboxKey(keyOf(ID_A, 'new'), deps(h))
+
+    expect(late).toEqual({ outcome: 'sent' })
+    expect(leads(h)).toHaveLength(1)
+    expect(leads(h)[0].status).toBe('Converted')
+    expect(writes(h).length).toBe(writesBefore)
+  })
+})
+
+describe('dispatchOutboxKey - booking CRM scope (D-09)', () => {
+  it('a full lifecycle never writes a Contact, CBooking, Account or convert action', async () => {
+    const h = harness({
+      rows: [outboxRow(ID_A)],
+      bookings: [booking(ID_A, { trip_type: 'round_trip', payment_intent_id: PI }), booking(ID_A_RETURN, { leg: 'return', trip_type: 'round_trip', payment_intent_id: PI })],
+    })
+    await dispatchOutboxKey(keyOf(ID_A), deps(h))
+    change(h, ID_A, 'confirmed', 'converted')
+    await dispatchOutboxKey(keyOf(ID_A, 'converted'), deps(h))
+    change(h, ID_A, 'cancelled', 'dead')
+    await dispatchOutboxKey(keyOf(ID_A, 'dead'), deps(h))
+
+    for (const r of h.fake.requests) {
+      expect(r.path).not.toMatch(/^\/(CBooking|Account)/)
+      expect(r.path).not.toMatch(/convert/i)
+      if (r.path.startsWith('/Contact')) expect(r.method).toBe('GET')
+    }
+    expect(h.fake.state.records.Contact).toHaveLength(0)
+  })
+})
