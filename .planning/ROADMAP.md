@@ -15,7 +15,7 @@
 
 - [x] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down (completed 2026-09-28)
 - [x] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation (completed 2026-09-29)
-- [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
+- [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** — DEFERRED to backlog 999.9 (owner, 2026-10-18; 10/17 plans done) - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
 - [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
@@ -186,6 +186,8 @@ Plans:
 **UI hint**: yes
 
 ### Phase 78: WhatsApp Cloud API Channel (Dedicated Number)
+
+**Status**: DEFERRED to Backlog 999.9 by owner decision 2026-10-18 — parked at 78-11 Task 2 (owner Meta onboarding). Site keeps the personal number. Resume with `/gsd-execute-phase 78` when the owner brings it back.
 
 **Goal**: WhatsApp conversations with Prestigo run on a new dedicated business number connected to Chatwoot through the WhatsApp Cloud API, and the site stops publishing the owner's personal number +420 725 986 855 (which returns to personal use after a transition period). Replanned 2026-09-29: Coexistence on the personal number was dropped by owner decision.
 **Depends on**: Phase 77
@@ -429,3 +431,4 @@ v3.0 tech debt, deferred by owner decision 2026-09-27 until Anthropic API credit
 - [ ] **999.6 SEO/share polish** — og:locale on openGraph overrides, mirror custom og:image to twitter:image, page-specific share titles; IN-01 MDX locale double-prefix guard; IN-02 per-field `t.has`; GSC hreflang report check
 - [ ] **999.7 Meta/CAPI robustness** — WR-06 warn-once on malformed pixel ID/CAPI token; IN-03 encode CAPI token via `URL.searchParams`
 - [ ] **999.8 Test/QA infra** — fix worktree `next-intl/server` relative-path import in 5 test files (WINDOWS #17–19); QA-script fixes (share_meta asymmetric check, en_leak icon-child skip, IN-04 route.abort); close stale WINDOWS #8; Nyquist `/gsd-validate-phase` for 68–75; Playwright E2E in CI once Vercel Preview works. IN-05 (raw 404 without `lang`) = Next.js framework behaviour, won't-fix
+- [ ] **999.9 Phase 78 WhatsApp dedicated number (resume)** — 10/17 plans done; resume at 78-11 Task 2: new SIM, "Prestigo Messaging" app Live, number + display name, own PIN, token, EUR card, business verification; then 78-12..78-17 (go-live, submit 56 templates, site number switch, acceptance). Deferred by owner 2026-10-18

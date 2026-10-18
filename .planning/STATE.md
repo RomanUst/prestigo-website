@@ -2,13 +2,13 @@
 gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
-current_phase: 78
-current_phase_name: WhatsApp Cloud API Channel (Dedicated Number)
+current_phase: 82
+current_phase_name: Site ↔ CRM/Chatwoot Sync Foundation
 status: planning
-stopped_at: Phase 81 complete, ready to plan Phase 78
-last_updated: "2026-10-18T15:39:42.409Z"
+stopped_at: Phase 81 UAT complete; Phase 78 deferred to backlog 999.9; ready to discuss/plan Phase 82
+last_updated: "2026-10-18T19:10:00.000Z"
 last_activity: 2026-10-18
-last_activity_desc: Phase 81 complete, transitioned to Phase 78
+last_activity_desc: Phase 81 UAT 8/8; Phase 78 deferred to backlog; next Phase 82
 state_head: 1a17696ba3551a64f5d64588c133f9f2ffb86e36
 progress:
   total_phases: 10
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-27)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 81 — Lead Capture (Site Forms → Supabase + EspoCRM)
+**Current focus:** Phase 82 — Site ↔ CRM/Chatwoot Sync Foundation
 
 ## Current Position
 
-Phase: 78 — WhatsApp Cloud API Channel (Dedicated Number)
+Phase: 82 — Site ↔ CRM/Chatwoot Sync Foundation
 Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-18 — Phase 81 complete, transitioned to Phase 78
+Status: Ready to discuss/plan
+Last activity: 2026-10-18 — Phase 81 UAT 8/8 passed; Phase 78 deferred to backlog 999.9 (owner)
 
 ## Accumulated Context
 
