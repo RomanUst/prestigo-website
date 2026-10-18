@@ -49,7 +49,7 @@ const INQUIRY_COLUMNS = 'id,kind,email,name,phone,company,payload,created_at'
 const BOOKING_COLUMNS =
   'id,booking_reference,status,booking_source,lead_channel,leg,trip_type,payment_intent_id,attempt_id,' +
   'payment_link_id,pickup_utc,pickup_date,pickup_time,origin_address,destination_address,vehicle_class,' +
-  'passengers,hours,amount_eur,client_first_name,client_last_name,client_email,client_phone,created_at'
+  'passengers,hours,amount_eur,outbound_amount_czk,return_amount_czk,client_first_name,client_last_name,client_email,client_phone,created_at'
 
 // ── Daily sweep RPCs (migration 068) ────────────────────────────────────────
 // Plain functions, not OutboxStore members: only the sweep route calls them, and the

@@ -9,6 +9,7 @@
  *   inquiry:<inquiry uuid>  |  booking:<outbound booking uuid>
  */
 
+import { czkToEur } from '@/lib/currency'
 import { normalizePhone } from '@/lib/phone'
 
 // ── Fixed CRM names ────────────────────────────────────────────────────────
@@ -87,6 +88,9 @@ export interface BookingRow {
   passengers: number | null
   hours: number | null
   amount_eur: number | string | null
+  /** Round trips: both legs carry the per-leg pre-promo amounts (Phase 27 buildBookingRows). */
+  outbound_amount_czk?: number | string | null
+  return_amount_czk?: number | string | null
   client_first_name: string | null
   client_last_name: string | null
   client_email: string | null
@@ -359,6 +363,29 @@ export function buildLeadFromInquiry(row: InquiryRow): LeadDraft {
   return { ref, email, create, syncOwned: {} }
 }
 
+function finiteNumber(v: unknown): number | null {
+  if (v == null || String(v).trim() === '') return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+/**
+ * WR-03: the Lead value is the whole trip. `amount_eur` of the outbound row is the checkout total
+ * (for a round trip the combined, post-promo price: buildBookingRows keeps meta.amountEur on the
+ * outbound row and writes null on the return row), so it is used as is and never added to. A round
+ * trip saved by the create_round_trip_bookings fallback has no `amount_eur` on either leg; its value
+ * is then the sum of both legs' pre-promo amounts, which every round-trip outbound row carries.
+ */
+export function bookingLeadAmountEur(row: BookingRow): number | null {
+  const eur = finiteNumber(row.amount_eur)
+  if (eur !== null) return eur
+  if (row.trip_type !== 'round_trip') return null
+  const outbound = finiteNumber(row.outbound_amount_czk)
+  const back = finiteNumber(row.return_amount_czk)
+  if (outbound === null && back === null) return null
+  return czkToEur((outbound ?? 0) + (back ?? 0))
+}
+
 export function buildLeadFromBooking(row: BookingRow, returnLeg: ReturnLegInfo, now: Date): LeadDraft | null {
   if (row.leg === 'return') return null
   const statusKey = bookingLeadStatus(row.status, row.pickup_utc, now)
@@ -371,8 +398,9 @@ export function buildLeadFromBooking(row: BookingRow, returnLeg: ReturnLegInfo, 
   const returnRef = returnLeg?.booking_reference ?? null
 
   const syncOwned: Record<string, unknown> = { status: LEAD_STATUS_VALUE[statusKey] }
-  if (row.amount_eur != null && String(row.amount_eur).trim() !== '' && Number.isFinite(Number(row.amount_eur))) {
-    syncOwned.opportunityAmount = Number(row.amount_eur)
+  const amount = bookingLeadAmountEur(row)
+  if (amount !== null) {
+    syncOwned.opportunityAmount = amount
     syncOwned.opportunityAmountCurrency = 'EUR'
   }
   if (row.booking_reference) syncOwned[LEAD_ATTR.bookingReference] = row.booking_reference
