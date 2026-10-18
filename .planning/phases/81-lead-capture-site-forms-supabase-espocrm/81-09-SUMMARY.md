@@ -3,7 +3,7 @@ phase: 81-lead-capture-site-forms-supabase-espocrm
 plan: 09
 subsystem: lead-capture
 tags: [supabase, trigger, outbox, pg_net, espocrm, security]
-status: partial-pending-mcp
+status: complete
 requires: ["81-01", "81-04", "81-07"]
 provides:
   - "supabase/migrations/067_bookings_lead_outbox.sql: booking_lead_status(), outbox_kick(), enqueue_booking_lead() + trigger bookings_lead_outbox (NOT yet applied live)"
@@ -46,7 +46,7 @@ completed: 2026-10-18
 
 # Phase 81 Plan 09: Booking -> Lead capture Summary
 
-Every booking write, from any source, is captured by one exception-safe trigger into the ids-only outbox; a Bearer-protected kick route wakes the dispatcher, and the dispatcher builds the Lead from the current booking row (New / In Process / Converted / Dead) without touching any booking write path. Tasks 1 and 2 are done and tested; Task 3 (apply migration 067 live + rolled-back smoke) is PENDING and must be run by the orchestrator through the Supabase MCP.
+Every booking write, from any source, is captured by one exception-safe trigger into the ids-only outbox; a Bearer-protected kick route wakes the dispatcher, and the dispatcher builds the Lead from the current booking row (New / In Process / Converted / Dead) without touching any booking write path. Tasks 1 and 2 are done and tested; Task 3 (apply migration 067 live + rolled-back smoke) was run by the orchestrator through the Supabase MCP and passed.
 
 ## Task status
 
@@ -54,7 +54,7 @@ Every booking write, from any source, is captured by one exception-safe trigger 
 |------|------|--------|--------|
 | 1 | Tracer: unpaid website booking -> trigger -> outbox -> kick -> dispatch -> Lead New 'Website booking' | done | 3b50bbd0 |
 | 2 | Status follows the booking for every source (round trips, quotes, manual channel, GNet, forward-only, concurrency) | done | 2c80268c |
-| 3 | [BLOCKING] apply migration 067 live + rolled-back trigger smoke | PENDING - orchestrator applies via MCP | d07fb060 (smoke SQL) |
+| 3 | [BLOCKING] apply migration 067 live + rolled-back trigger smoke | DONE - orchestrator applied via Supabase MCP | d07fb060 (smoke SQL) |
 
 ## What was built
 
@@ -71,12 +71,13 @@ Every booking write, from any source, is captured by one exception-safe trigger 
 - Acceptance greps: `AFTER INSERT OR UPDATE OF status` count 1; non-comment `booking_source` count 0; `espocrm|ESPOCRM_|lead-sync` in the kick route 0; `linked_booking_id` 0 in both lib files; `git diff --name-only 2b7f3ff5..HEAD -- app/api/webhooks app/api/create-payment-intent app/api/admin app/api/gnet app/api/submit-quote lib/supabase.ts` is empty (no booking write path touched).
 - Not run in this worktree: the full suite (known next-intl symlink artifact); the orchestrator should re-run it on the main checkout.
 
-## Task 3 - PENDING, orchestrator applies via MCP
+## Task 3 - DONE, orchestrator applied via Supabase MCP (2026-10-18)
 
 - Migration file: `supabase/migrations/067_bookings_lead_outbox.sql`, MCP `apply_migration` name `067_bookings_lead_outbox`.
 - Smoke SQL: `.planning/phases/81-lead-capture-site-forms-supabase-espocrm/81-09-smoke.sql` (one DO block ending in `RAISE EXCEPTION 'SMOKE_OK_81_09'`; only that message is success).
 - Expectations: apply succeeds; smoke returns exactly `SMOKE_OK_81_09`; afterwards `select count(*) from public.integration_config where key='lead_capture_start'` = 0; no bookings left with `client_email = 'smoke+81-09@rideprestigo.com'`; `get_advisors` security shows no ERROR naming `booking_lead_status`, `outbox_kick` or `enqueue_booking_lead`.
-- MCP results: not yet recorded (apply / smoke / advisors to be filled in by the orchestrator).
+- Pre-apply schema check: bookings has id uuid, created_at timestamptz, status text, leg text; extensions pg_net + supabase_vault present; only pre-existing trigger was bookings_gcal_sync.
+- MCP results (project enakcryrtxlnjvjutfpv): apply 067 = success; smoke = error exactly `SMOKE_OK_81_09` (all of pre, a, b, b2, b3, c, d, e, f, g passed; the INSERT column lists needed no extra NOT NULL columns); after the smoke lead_capture_start rows = 0, smoke bookings = 0, `lead.booking:%` outbox rows = 0; advisors (security) = no ERROR/WARN naming booking_lead_status, outbox_kick or enqueue_booking_lead (only pre-existing INFO rls_enabled_no_policy on unrelated tables + Auth leaked-password WARN).
 - Caveat: the base `bookings` table is not in the repo's migrations, so the smoke fills exactly the columns `buildBookingRow` writes. If the live schema requires another NOT NULL column without a default, add it to the INSERT lists (the assertions do not depend on it).
 
 ## Deviations from Plan
