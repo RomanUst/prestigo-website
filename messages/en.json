@@ -949,5 +949,8 @@
     "defaultTitle": "PRESTIGO — Premium Chauffeur Service Prague",
     "defaultDescription": "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.",
     "keywords": "chauffeur Prague,airport transfer Prague,private driver Prague,luxury transfer Prague,Prague taxi service,executive transfer Prague"
+  },
+  "InquiryNotice": {
+    "stored": "We store your request to reply to it — <privacy>Privacy Policy</privacy>"
   }
 }

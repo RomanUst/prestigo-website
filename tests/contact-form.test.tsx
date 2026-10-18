@@ -41,6 +41,14 @@ describe('ContactForm (en)', () => {
     expect(screen.getByLabelText(/^Service/).outerHTML).toBeTruthy()
   })
 
+  it('shows the D-16 storage notice with a locale-aware privacy link and no checkbox', () => {
+    const { container } = renderWithIntl(<ContactForm />)
+    expect(container.textContent).toContain('We store your request to reply to it')
+    const link = screen.getByRole('link', { name: 'Privacy Policy' })
+    expect(link.getAttribute('href')).toMatch(/\/privacy$/)
+    expect(container.querySelector('input[type="checkbox"]')).toBeNull()
+  })
+
   it('sends the English service value (unchanged) to the API, not the translated label', async () => {
     ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: true })
     renderWithIntl(<ContactForm />)
@@ -72,6 +80,13 @@ describe('ContactForm (ru) — no English leakage, GA4 identifiers untouched', (
     expect(screen.queryByText(enMessages.ContactForm.heading)).toBeNull()
     expect(screen.queryByText(enMessages.ContactForm.submit)).toBeNull()
     expect(screen.queryByPlaceholderText(enMessages.ContactForm.messagePlaceholder)).toBeNull()
+  })
+
+  it('shows the ru storage notice with the /ru-prefixed privacy link', () => {
+    renderWithIntl(<ContactForm />, { locale: 'ru', messages: ruMessagesTyped })
+    const link = screen.getByRole('link', { name: 'Политика конфиденциальности' })
+    expect(link.getAttribute('href')).toBe('/ru/privacy')
+    expect(link.parentElement?.textContent).toContain('Мы сохраняем ваш запрос')
   })
 
   it('shows the ru success heading/body/link after a successful submit', async () => {

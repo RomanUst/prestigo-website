@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 
 type FormState = 'idle' | 'sending' | 'success' | 'error'
 
@@ -11,6 +12,7 @@ const TRIPS_OPTIONS = ['1–5', '6–15', '16–30', '30+'] as const
 
 export default function CorporateForm() {
   const t = useTranslations('Corporate.form')
+  const tn = useTranslations('InquiryNotice')
   const [form, setForm] = useState({ company: '', name: '', email: '', trips: '', notes: '', website: '' })
   const [state, setState] = useState<FormState>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -109,6 +111,15 @@ export default function CorporateForm() {
       <button type="submit" disabled={state === 'sending'} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed self-start">
         {state === 'sending' ? t('sending') : t('submit')}
       </button>
+      <p className="font-body font-light text-[10px] tracking-wide text-warmgrey/70 -mt-2">
+        {tn.rich('stored', {
+          privacy: (chunks) => (
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-offwhite transition-colors">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </form>
   )
 }
