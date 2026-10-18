@@ -181,16 +181,25 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
     expect(writers).toEqual(['Sync writer'])
   })
 
-  it('Sync writer: Account, Contact, CBooking, Lead only; no Opportunity, CPartnerRate, Email or Task; delete only on Lead (D-22)', () => {
+  it('Sync writer: Account, Contact, CBooking, Lead (+ User read for assignment); no Opportunity, CPartnerRate, Email or Task; delete only on Lead (D-22)', () => {
     const w = spec('Sync writer')
-    expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact', 'Lead'])
+    expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact', 'Lead', 'User'])
+    // User is read-only: needed to relate assignedUser (EspoCRM 403 cannotRelateForbidden otherwise)
+    expect(w.data.User).toEqual({ read: 'all' })
     for (const scope of ['Opportunity', 'CPartnerRate', 'Email', 'Task']) expect(noAccess(w.data[scope])).toBe(true)
     for (const [scope, acl] of Object.entries<any>(w.data)) {
-      if (acl && typeof acl === 'object') expect(acl.delete, scope).toBe(scope === 'Lead' ? 'all' : 'no')
+      if (acl && typeof acl === 'object' && scope !== 'User') expect(acl.delete, scope).toBe(scope === 'Lead' ? 'all' : 'no')
     }
     expect(w.data.CBooking).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'no' })
     expect(w.data.Lead).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all' })
     expect(w.assignTo).toEqual(['prestigo-sync'])
+  })
+
+  it('Sync writer may assign records to other users (D-13: site Leads go to the owner); no other role is widened', () => {
+    // Without it EspoCRM answers 403 "Assignment failure" on every Lead create with assignedUserId.
+    expect(spec('Sync writer').assignmentPermission).toBe('all')
+    expect(spec('Dispatcher').assignmentPermission).toBeUndefined()
+    expect(spec('Sales manager').assignmentPermission).toBeUndefined()
   })
 
   it('Sales manager: writes Accounts, Contacts, Opportunities and CPartnerRate, never deletes Accounts or Contacts', () => {

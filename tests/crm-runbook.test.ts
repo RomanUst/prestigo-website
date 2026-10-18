@@ -99,7 +99,11 @@ function cellFor(rule: ScopeRule): string {
   if (rule === undefined) return '-'
   if (rule === false) return 'no access'
   if (rule === true) return 'yes'
-  return `create ${rule.create}, read ${rule.read}, edit ${rule.edit}, delete ${rule.delete}`
+  // Only the actions the rule sets (User has read only); full rules keep the create/read/edit/delete order.
+  return (['create', 'read', 'edit', 'delete'] as const)
+    .filter((a) => (rule as Record<string, unknown>)[a] !== undefined)
+    .map((a) => `${a} ${(rule as Record<string, unknown>)[a]}`)
+    .join(', ')
 }
 
 const ROLE_COLUMNS = ['Dispatcher', 'Sales manager', 'Sync writer']

@@ -39,8 +39,10 @@
         "Account": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
         "Contact": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
         "CBooking": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
-        "Lead": { "create": "yes", "read": "all", "edit": "all", "delete": "all" }
+        "Lead": { "create": "yes", "read": "all", "edit": "all", "delete": "all" },
+        "User": { "read": "all" }
       },
+      "assignmentPermission": "all",
       "assignTo": ["prestigo-sync"]
     }
   ]
