@@ -5,7 +5,7 @@ subsystem: admin-bookings
 tags: [lead-capture, admin, supabase-migration, zod]
 requires: []
 provides:
-  - "bookings.lead_channel column + bookings_lead_channel_check (migration 066, file written, live apply PENDING)"
+  - "bookings.lead_channel column + bookings_lead_channel_check (migration 066, applied live 2026-10-18)"
   - "POST /api/admin/bookings requires channel and stores lead_channel"
   - "Required CHANNEL select in ManualBookingForm and AdminStep6Create"
 affects: [81-09 booking-to-Lead mapper, Phase 85 conversion-by-channel stats]
@@ -48,7 +48,7 @@ Manual bookings now require a Channel (WhatsApp / Phone / Email / Partner / Othe
 | Task | Name | Status | Commit |
 | ---- | ---- | ------ | ------ |
 | 1 (tracer) | admin picks channel -> API validates -> lead_channel stored | DONE | 6033b558 |
-| 2 | [BLOCKING] apply migration 066 to live Supabase | PENDING - orchestrator applies via MCP | n/a |
+| 2 | [BLOCKING] apply migration 066 to live Supabase | DONE - orchestrator applied via Supabase MCP | n/a |
 
 ### Task 1 details
 - `supabase/migrations/066_bookings_lead_channel.sql`: `ADD COLUMN IF NOT EXISTS lead_channel text NULL`; `DROP CONSTRAINT IF EXISTS` + `ADD CONSTRAINT bookings_lead_channel_check CHECK (lead_channel IS NULL OR lead_channel IN ('whatsapp','phone','email','partner','other'))`; no backfill (existing rows stay NULL = unknown).
@@ -57,8 +57,12 @@ Manual bookings now require a Channel (WhatsApp / Phone / Email / Partner / Othe
 - `AdminStep6Create.tsx`: same select above the create button, same error text, `channel` in payload.
 - Tests: fixtures in `admin-bookings.test.ts` and `admin-bookings-payment-link.test.ts` gained `channel: 'phone'`; new tests 5a/5c/5d (stored value, missing -> 400 and no insert, 'telegram' -> 400); new `manual-booking-channel.test.tsx` (options + placeholder, blocked submit with no fetch, POST body carries `email`); new `lead-channel-migration.test.ts` (idempotent column, CHECK values, no UPDATE).
 
-### Task 2: PENDING (Supabase MCP tools not available to this executor)
-Not improvised (no psql / supabase CLI against prod). Orchestrator must apply via Supabase MCP, see ORCHESTRATOR_MCP_REQUIRED in the return message. Until applied, deploying this code would make every admin manual-booking insert fail on an unknown column (T-81-11): do not merge to main before it is applied.
+### Task 2: DONE (applied by orchestrator via Supabase MCP, 2026-10-18)
+- `apply_migration` `066_bookings_lead_channel` on project enakcryrtxlnjvjutfpv: success.
+- `information_schema.columns`: one row `lead_channel | text | YES`.
+- `pg_get_constraintdef(bookings_lead_channel_check)`: `CHECK (((lead_channel IS NULL) OR (lead_channel = ANY (ARRAY['whatsapp','phone','email','partner','other']))))`, contains 'whatsapp' and 'other'.
+- `count(*) where lead_channel is not null`: 0.
+T-81-11 closed: the column exists live before the admin route that writes it ships.
 
 ## Verification (run in worktree)
 - `npx vitest run` on the 5 plan test files: 5 files, 121 tests passed. Also ran `gnet-status-push`, `admin-bookings-kpi-decoupling`, `BookingsTable` tests: 52 passed.
@@ -73,7 +77,7 @@ None to the code plan. Note: `tests/manual-booking-form-send-confirmation.test.t
 None.
 
 ## Threat Flags
-None. T-81-10 mitigated (zod enum + DB CHECK). T-81-11 mitigation requires Task 2 (live apply) before ship.
+None. T-81-10 mitigated (zod enum + DB CHECK). T-81-11 mitigated (live apply done before ship).
 
 ## Self-Check: PASSED
 - supabase/migrations/066_bookings_lead_channel.sql, tests/manual-booking-channel.test.tsx, tests/lead-channel-migration.test.ts exist.
