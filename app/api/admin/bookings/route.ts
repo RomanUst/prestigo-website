@@ -921,6 +921,9 @@ const manualBookingSchema = z.object({
   // gets the standard booking-confirmed email right after the insert. An
   // explicit operator choice, so it is not gated by notification_flags.
   send_confirmation:   z.boolean().optional(),
+  // Phase 81 D-08: how the lead reached the owner. Required for every new
+  // manual booking; stored as bookings.lead_channel (Lead source in CRM).
+  channel:             z.enum(['whatsapp', 'phone', 'email', 'partner', 'other']),
 })
 
 // ADMIN_PRICE_TOLERANCE_CZK is declared once, near the top of the file
@@ -1096,6 +1099,7 @@ export async function POST(request: Request) {
     distance_km:         d.distance_km ?? null,
     booking_reference:   bookingReference,
     booking_source:      'manual',
+    lead_channel:        d.channel,
     booking_type:        'confirmed',
     payment_intent_id:   null,
     // D-01/D-02: collect_payment routes the row into the Phase 62 'unpaid'

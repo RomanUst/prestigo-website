@@ -120,6 +120,8 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
   const [lastName, setLastName] = useState(prefill?.lastName ?? '')
   const [email, setEmail] = useState(prefill?.email ?? '')
   const [phone, setPhone] = useState(prefill?.phone ?? '')
+  // Phase 81 D-08: how the lead reached the owner. '' = not chosen yet (submit blocked).
+  const [channel, setChannel] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [priceLoading, setPriceLoading] = useState(false)
@@ -270,6 +272,12 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
     setLoading(true)
     setError(null)
 
+    if (channel === '') {
+      setError('Please choose the booking channel.')
+      setLoading(false)
+      return
+    }
+
     if (!originPlace?.address) {
       setError('Please enter a pickup address.')
       setLoading(false)
@@ -296,6 +304,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
       client_last_name: lastName,
       client_email: email,
       client_phone: phone,
+      channel,
       // D-01/D-02/D-03: collect_payment routes the booking into the 'unpaid'
       // recovery queue + generates/emails a Stripe payment link; otherwise
       // the operator's explicit status choice applies (default 'confirmed').
@@ -864,6 +873,21 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
             <div style={sectionLabelStyle}>PASSENGER DETAILS</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <Field label="CHANNEL">
+                <select
+                  value={channel}
+                  onChange={(e) => setChannel(e.target.value)}
+                  style={inputStyle}
+                >
+                  <option value="" disabled>Select channel…</option>
+                  <option value="whatsapp">WhatsApp</option>
+                  <option value="phone">Phone</option>
+                  <option value="email">Email</option>
+                  <option value="partner">Partner</option>
+                  <option value="other">Other</option>
+                </select>
+              </Field>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <Field label="FIRST NAME">
                   <input
