@@ -116,6 +116,17 @@ describe('publishOutboxDispatch', () => {
     expect(logged).not.toContain('unauthorized')
   })
 
+  it('trims a stray newline from NEXT_PUBLIC_SITE_URL so the signed URL matches the receiver', async () => {
+    const prev = process.env.NEXT_PUBLIC_SITE_URL
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://rideprestigo.com\n'
+    try {
+      await publishOutboxDispatch(`lead.inquiry:${ID}`)
+      expect(publishJSONMock.mock.calls[0][0].url).toBe('https://rideprestigo.com/api/integrations/dispatch')
+    } finally {
+      process.env.NEXT_PUBLIC_SITE_URL = prev
+    }
+  })
+
   it('builds a sanitised deduplicationId from dedupSuffix', async () => {
     await publishOutboxDispatch(`lead.inquiry:${ID}`, { dedupSuffix: 'p' })
     const arg = publishJSONMock.mock.calls[0][0]

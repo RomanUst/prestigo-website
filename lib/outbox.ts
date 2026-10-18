@@ -56,7 +56,8 @@ export async function publishOutboxDispatch(
   key: string,
   opts: { delaySeconds?: number; dedupSuffix?: string } = {},
 ): Promise<boolean> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+  // trim(): a stray newline in the env value changes the signed URL (QStash 401).
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim()
   if (!siteUrl) {
     console.error('[outbox] publish skipped code=no_site_url')
     return false
