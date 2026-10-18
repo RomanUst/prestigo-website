@@ -999,5 +999,8 @@
     "defaultTitle": "PRESTIGO — 布拉格高端专车司机服务",
     "defaultDescription": "布拉格高端专车司机服务。机场接送、城际线路、企业账户。固定价格、航班跟踪、接机举牌服务。",
     "keywords": "布拉格专车,布拉格机场接送,布拉格私人司机,布拉格豪华接送,布拉格出租车服务,布拉格商务接送"
+  },
+  "InquiryNotice": {
+    "stored": "我们会保存您的请求以便回复您 — <privacy>隐私政策</privacy>"
   }
 }

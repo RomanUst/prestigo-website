@@ -999,5 +999,8 @@
     "defaultTitle": "PRESTIGO — Servicio de chófer premium en Praga",
     "defaultDescription": "Servicio de chófer premium en Praga. Traslados al aeropuerto, rutas interurbanas y cuentas corporativas. Precios fijos, seguimiento de vuelos y recepción personalizada.",
     "keywords": "chófer Praga,traslado aeropuerto Praga,conductor privado Praga,traslado de lujo Praga,servicio de taxi Praga,traslado ejecutivo Praga"
+  },
+  "InquiryNotice": {
+    "stored": "Guardamos su solicitud para poder responderle — <privacy>Política de privacidad</privacy>"
   }
 }
