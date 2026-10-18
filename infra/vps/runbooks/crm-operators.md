@@ -71,10 +71,12 @@ changes in the file, the test fails until this table is updated.
 | Lead | no access | create yes, read all, edit all, delete all | create yes, read all, edit all, delete all |
 | Email | no access | create yes, read own, edit own, delete own | - |
 | EmailAccountScope | no access | yes | - |
+| User | - | - | read all |
 
 Reading the table: `no access` means the scope is switched off for the role; `-` means the role file does not
 mention the scope (the live CRM then answers 403 for the Sync writer; `verify-acl.mjs` proves it). `CBooking` is the
-booking history record (the custom entity the CRM calls Booking).
+booking history record (the custom entity the CRM calls Booking). The Sync writer reads `User` and has assignment
+permission `all` only so the website can assign each new Lead to the owner (D-13); without both EspoCRM answers 403.
 
 The Dispatcher can read Accounts but not their commercial terms. These nine Account fields are hidden from the
 Dispatcher (read and edit both `no`); the list is generated from the `commercial: true` flags in `fields.json`, so a new

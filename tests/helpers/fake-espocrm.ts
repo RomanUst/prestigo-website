@@ -267,8 +267,11 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
       return json({ token, user: { userName: caller.name, type: 'admin' } })
     }
 
+    // GET /User is role-governed in EspoCRM (User scope read ACL), not admin-only; the
+    // role-enforcing extraRoutes hook in the ACL tests decides it.
+    const roleGovernedRead = req.method === 'GET' && /^\/User(?:\/[0-9a-f]{17})?$/.test(req.path)
     const adminOnly =
-      ADMIN_ONLY.test(req.path) || SCOPE_LAYOUT.test(req.path) || (req.method === 'PUT' && req.path === '/Settings')
+      (ADMIN_ONLY.test(req.path) && !roleGovernedRead) || SCOPE_LAYOUT.test(req.path) || (req.method === 'PUT' && req.path === '/Settings')
     if (adminOnly && caller.api) return empty(403)
 
     if (options.extraRoutes) {
