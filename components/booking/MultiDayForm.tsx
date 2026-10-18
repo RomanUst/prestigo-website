@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import DayCard, { createDay, type Day } from '@/components/booking/DayCard'
 import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
+import { Link } from '@/i18n/routing'
 
 type MultiDayTranslator = (key: string, values?: Record<string, string | number>) => string
 
@@ -121,6 +122,7 @@ function buildPayload(days: Day[], passenger: PassengerState, startDate: string)
 
 export default function MultiDayForm() {
   const t = useTranslations('Booking.multiDayForm')
+  const tn = useTranslations('InquiryNotice')
   const [hourlyRange, setHourlyRange] = useState<HourlyRange>({ min: 2, max: 8 })
   const [days, setDays] = useState<Day[]>(() => [createDay(2)])
   const [passenger, setPassenger] = useState<PassengerState>(INITIAL_PASSENGER)
@@ -514,6 +516,22 @@ export default function MultiDayForm() {
       >
         {status.kind === 'submitting' ? t('sending') : t('requestQuote')}
       </button>
+      <p
+        style={{
+          fontFamily: 'var(--font-montserrat)',
+          fontSize: '11px',
+          color: 'var(--warmgrey)',
+          margin: 0,
+        }}
+      >
+        {tn.rich('stored', {
+          privacy: (chunks) => (
+            <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'underline' }}>
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </form>
   )
 }
