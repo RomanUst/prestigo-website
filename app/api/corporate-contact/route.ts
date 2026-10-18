@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { enforceMaxBody, safeEmail, safeString } from '@/lib/request-guards'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { sendCorporateContactEmails, type CorporateContactPayload } from '@/lib/email-corporate'
+import { storeInquiry } from '@/lib/inquiries'
+import { dispatchAfterResponse, inquiryOutboxKey } from '@/lib/outbox'
 
 const corporateSchema = z.object({
   company: safeString(200),
@@ -38,12 +40,25 @@ export async function POST(req: Request) {
     source: 'corporate',  // server-side tag, never trust client
   }
 
+  // Best-effort capture (Phase 81), after the honeypot so spam is never stored.
+  // Never throws; runs in parallel with the email and is awaited after it.
+  const stored = storeInquiry('corporate', {
+    email: payload.email,
+    name: payload.name,
+    company: payload.company,
+    phone: null,
+    payload: { trips: payload.trips, notes: payload.notes },
+  })
+
   try {
     await sendCorporateContactEmails(payload)
   } catch (e) {
     console.error('[corporate-contact] resend failed', (e as Error).message)
     return NextResponse.json({ error: 'Email send failed' }, { status: 502 })
   }
+
+  const inquiryId = await stored
+  if (inquiryId) dispatchAfterResponse(inquiryOutboxKey(inquiryId))
 
   return NextResponse.json({ ok: true })
 }

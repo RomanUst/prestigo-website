@@ -40,6 +40,8 @@ vi.mock('@/lib/outbox', () => ({
 }))
 
 import { POST as contactPOST } from '@/app/api/contact/route'
+import { POST as corporatePOST } from '@/app/api/corporate-contact/route'
+import { POST as multidayPOST } from '@/app/api/submit-multiday-quote/route'
 
 function makeRequest(url: string, body: unknown): Request {
   const serialised = JSON.stringify(body)
@@ -154,6 +156,171 @@ describe('contact failure', () => {
     const res = await contactPOST(makeRequest('/api/contact', contactPayload))
     expect(res.status).toBe(500)
     expect(await res.json()).toEqual({ error: 'Failed to send message' })
+  })
+})
+
+// ── corporate ─────────────────────────────────────────────────────────────────
+const corporatePayload = {
+  company: 'ACME Corp',
+  name: 'John Smith',
+  email: 'john@acme.com',
+  trips: '6–15',
+  notes: 'Mon morning runs',
+}
+
+describe('corporate', () => {
+  it('stores one inquiry and schedules the dispatch', async () => {
+    storeInquiryMock.mockResolvedValue('44444444-4444-4444-8444-444444444444')
+    const res = await corporatePOST(makeRequest('/api/corporate-contact', corporatePayload))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(storeInquiryMock).toHaveBeenCalledTimes(1)
+    expect(storeInquiryMock).toHaveBeenCalledWith('corporate', {
+      email: 'john@acme.com',
+      name: 'John Smith',
+      company: 'ACME Corp',
+      phone: null,
+      payload: { trips: '6–15', notes: 'Mon morning runs' },
+    })
+    expect(sendCorporateMock).toHaveBeenCalledTimes(1)
+    expect(dispatchAfterResponseMock).toHaveBeenCalledWith(
+      'lead.inquiry:44444444-4444-4444-8444-444444444444',
+    )
+  })
+
+  it('stores absent trips/notes as null', async () => {
+    storeInquiryMock.mockResolvedValue('55555555-5555-4555-8555-555555555555')
+    await corporatePOST(
+      makeRequest('/api/corporate-contact', {
+        company: 'X',
+        name: 'Y',
+        email: 'y@x.co',
+      }),
+    )
+    expect(storeInquiryMock.mock.calls[0][1].payload).toEqual({ trips: null, notes: null })
+  })
+
+  it('honeypot hit: 200 {ok:true}, nothing stored, no email', async () => {
+    const res = await corporatePOST(
+      makeRequest('/api/corporate-contact', { ...corporatePayload, website: 'http://spam.com' }),
+    )
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(storeInquiryMock).not.toHaveBeenCalled()
+    expect(sendCorporateMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('corporate failure', () => {
+  it('email throwing: 502 unchanged', async () => {
+    storeInquiryMock.mockResolvedValue('66666666-6666-4666-8666-666666666666')
+    sendCorporateMock.mockRejectedValue(new Error('smtp'))
+    const res = await corporatePOST(makeRequest('/api/corporate-contact', corporatePayload))
+    expect(res.status).toBe(502)
+    expect(await res.json()).toEqual({ error: 'Email send failed' })
+  })
+
+  it('storage returning null: still 200 and email sent once', async () => {
+    storeInquiryMock.mockResolvedValue(null)
+    const res = await corporatePOST(makeRequest('/api/corporate-contact', corporatePayload))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(sendCorporateMock).toHaveBeenCalledTimes(1)
+    expect(dispatchAfterResponseMock).not.toHaveBeenCalled()
+  })
+})
+
+// ── multiday ──────────────────────────────────────────────────────────────────
+const multidayPayload = {
+  startDate: '2026-12-01',
+  days: [
+    { type: 'transfer', date: '2026-12-01', time: '09:00', from: 'Prague', to: 'Vienna', stops: [] },
+    { type: 'hourly', date: '2026-12-02', time: '10:00', city: 'Vienna', hours: 6 },
+  ],
+  passengerDetails: {
+    firstName: 'Anna',
+    lastName: 'Novak',
+    email: 'anna@example.com',
+    phone: '+420 777 123 456',
+    specialRequests: 'Child seat',
+  },
+}
+
+describe('multiday', () => {
+  it('stores one multiday_quote inquiry with the full payload', async () => {
+    storeInquiryMock.mockResolvedValue('77777777-7777-4777-8777-777777777777')
+    const res = await multidayPOST(makeRequest('/api/submit-multiday-quote', multidayPayload))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.quoteReference).toMatch(/^MQ-\d{8}-[0-9A-F]{6}$/)
+    expect(res.headers.get('X-RateLimit-Limit')).toBe('5')
+    expect(storeInquiryMock).toHaveBeenCalledTimes(1)
+    const [kind, input] = storeInquiryMock.mock.calls[0]
+    expect(kind).toBe('multiday_quote')
+    expect(input).toMatchObject({
+      email: 'anna@example.com',
+      name: 'Anna Novak',
+      phone: '+420777123456',
+      company: null,
+    })
+    expect(input.payload).toEqual({
+      quoteReference: json.quoteReference,
+      startDate: '2026-12-01',
+      days: multidayPayload.days,
+      firstName: 'Anna',
+      lastName: 'Novak',
+      specialRequests: 'Child seat',
+    })
+    expect(sendOperatorAlertMock).toHaveBeenCalledTimes(1)
+    expect(sendClientAckMock).toHaveBeenCalledTimes(1)
+    expect(dispatchAfterResponseMock).toHaveBeenCalledWith(
+      'lead.inquiry:77777777-7777-4777-8777-777777777777',
+    )
+  })
+
+  it('a quote with one day and no startDate stores fine', async () => {
+    storeInquiryMock.mockResolvedValue('88888888-8888-4888-8888-888888888888')
+    const body = {
+      days: [multidayPayload.days[0]],
+      passengerDetails: { ...multidayPayload.passengerDetails, specialRequests: undefined },
+    }
+    const res = await multidayPOST(makeRequest('/api/submit-multiday-quote', body))
+    expect(res.status).toBe(200)
+    expect(storeInquiryMock.mock.calls[0][1].payload).toMatchObject({
+      startDate: null,
+      specialRequests: null,
+    })
+  })
+
+  it('two identical submissions get two different references and two stores', async () => {
+    storeInquiryMock.mockResolvedValue(null)
+    const a = await (await multidayPOST(makeRequest('/api/submit-multiday-quote', multidayPayload))).json()
+    const b = await (await multidayPOST(makeRequest('/api/submit-multiday-quote', multidayPayload))).json()
+    expect(a.quoteReference).not.toBe(b.quoteReference)
+    expect(storeInquiryMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('invalid phone: 422 and nothing stored', async () => {
+    const res = await multidayPOST(
+      makeRequest('/api/submit-multiday-quote', {
+        ...multidayPayload,
+        passengerDetails: { ...multidayPayload.passengerDetails, phone: '12345' },
+      }),
+    )
+    expect(res.status).toBe(422)
+    expect(storeInquiryMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('multiday failure', () => {
+  it('storage returning null: response identical, both emails once', async () => {
+    storeInquiryMock.mockResolvedValue(null)
+    const res = await multidayPOST(makeRequest('/api/submit-multiday-quote', multidayPayload))
+    expect(res.status).toBe(200)
+    expect(Object.keys(await res.json())).toEqual(['quoteReference'])
+    expect(sendOperatorAlertMock).toHaveBeenCalledTimes(1)
+    expect(sendClientAckMock).toHaveBeenCalledTimes(1)
+    expect(dispatchAfterResponseMock).not.toHaveBeenCalled()
   })
 })
 
