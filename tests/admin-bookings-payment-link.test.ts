@@ -439,6 +439,7 @@ describe('POST /api/admin/bookings — ANEW-05 no-link invariant', () => {
     client_last_name: 'Svoboda',
     client_email: 'petr@example.com',
     client_phone: '+420600111222',
+    channel: 'phone',
   }
 
   it('a no-collect_payment POST inserts one row with payment_intent_id NULL and no payment_link_url set', async () => {
@@ -486,6 +487,7 @@ describe('POST /api/admin/bookings — send_confirmation', () => {
     client_last_name: 'Svoboda',
     client_email: 'petr@example.com',
     client_phone: '+420600111222',
+    channel: 'phone',
   }
 
   function stubInsert(status: string) {

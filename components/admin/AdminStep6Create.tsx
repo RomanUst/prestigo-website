@@ -81,6 +81,8 @@ export default function AdminStep6Create({ onClose: _onClose, onCreated }: Props
   const calculatedCzk = calculatedEur !== null ? eurToCzk(calculatedEur) : null
 
   const [amountCzk, setAmountCzk] = useState(calculatedCzk !== null ? String(calculatedCzk) : '')
+  // Phase 81 D-08: how the lead reached the owner. '' = not chosen yet (create blocked).
+  const [channel, setChannel] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -94,6 +96,10 @@ export default function AdminStep6Create({ onClose: _onClose, onCreated }: Props
     const parsed = Number(amountCzk)
     if (!amountCzk || isNaN(parsed) || parsed <= 0) {
       setError('Enter a valid amount in CZK.')
+      return
+    }
+    if (channel === '') {
+      setError('Please choose the booking channel.')
       return
     }
     setLoading(true)
@@ -114,6 +120,7 @@ export default function AdminStep6Create({ onClose: _onClose, onCreated }: Props
         client_last_name: passengerDetails!.lastName,
         client_email: passengerDetails!.email,
         client_phone: passengerDetails!.phone,
+        channel,
         // Extras
         extra_child_seat: extras.childSeat,
         extra_meet_greet: extras.meetAndGreet,
@@ -260,6 +267,49 @@ export default function AdminStep6Create({ onClose: _onClose, onCreated }: Props
             boxSizing: 'border-box',
           }}
         />
+      </div>
+
+      {/* Channel (D-08) */}
+      <div style={{ marginBottom: 24 }}>
+        <label
+          style={{
+            display: 'block',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '9px',
+            fontWeight: 400,
+            letterSpacing: '0.4em',
+            textTransform: 'uppercase',
+            color: 'var(--copper)',
+            marginBottom: 6,
+          }}
+        >
+          Channel
+        </label>
+        <select
+          value={channel}
+          onChange={e => setChannel(e.target.value)}
+          aria-label="Channel"
+          style={{
+            width: '100%',
+            background: 'var(--anthracite-mid)',
+            border: '1px solid var(--anthracite-light)',
+            color: 'var(--offwhite)',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '16px',
+            fontWeight: 300,
+            padding: '10px 14px',
+            outline: 'none',
+            borderRadius: 2,
+            boxSizing: 'border-box',
+          }}
+        >
+          <option value="" disabled>Select channel…</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="phone">Phone</option>
+          <option value="email">Email</option>
+          <option value="partner">Partner</option>
+          <option value="other">Other</option>
+        </select>
       </div>
 
       {error && (
