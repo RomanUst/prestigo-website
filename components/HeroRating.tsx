@@ -5,8 +5,6 @@ type Props = {
   reviewCount: number
   /** Wrapper classes; defaults to the Hero's load-animated placement. */
   className?: string
-  /** Render the review count next to the label (route/service pages). */
-  showCount?: boolean
 }
 
 /**
@@ -18,7 +16,6 @@ export default function HeroRating({
   ratingValue,
   reviewCount,
   className = 'animate-on-load delay-700 mt-6 inline-flex items-center gap-3',
-  showCount = false,
 }: Props) {
   const t = useTranslations('Hero')
   const full = Math.floor(ratingValue)
@@ -59,7 +56,6 @@ export default function HeroRating({
         }}
       >
         {t('googleReviews')}
-        {showCount && <> (<bdi>{reviewCount}</bdi>)</>}
       </span>
     </div>
   )

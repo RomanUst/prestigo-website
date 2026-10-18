@@ -126,7 +126,7 @@ export default async function PragueWarsawPage({ params }: { params: Promise<{ l
             <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('heroCtaPrimary')}</a>
             <a href={getPathname({ locale, href: '/contact' })} className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
-          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 

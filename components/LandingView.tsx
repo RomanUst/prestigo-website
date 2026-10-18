@@ -244,7 +244,7 @@ function HeroBody({
         <a href={localizedHref(locale, ctaHref)} className="btn-primary">{content.hero.ctaPrimary}</a>
         <a href={localizedHref(locale, '/contact')} className="btn-ghost">{content.hero.ctaSecondary}</a>
       </div>
-      {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
+      {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} className="mt-8 inline-flex items-center gap-3" />}
     </>
   )
 }

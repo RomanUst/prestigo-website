@@ -113,7 +113,7 @@ export default async function VipEventsPage({ params }: { params: Promise<{ loca
             <a href={localizedHref(locale, '/contact')} className="btn-primary">{content.hero.ctaPrimary}</a>
             <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
-          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} showCount className="mt-8 inline-flex items-center gap-3" />}
+          {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} className="mt-8 inline-flex items-center gap-3" />}
         </div>
       </section>
 
