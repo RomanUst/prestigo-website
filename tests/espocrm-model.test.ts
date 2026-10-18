@@ -297,6 +297,97 @@ describe('shipped config files (tracer)', () => {
   })
 })
 
+describe('Lead config (plan 81-03, D-09/D-11/D-19)', () => {
+  const read = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
+  const leadSpecs = () => read('fields.json').fields.Lead as any[]
+
+  it('fields.json declares the Lead supabaseRef key as an optional varchar(80)', () => {
+    const ref = leadSpecs().find((f) => f.name === 'supabaseRef')
+    expect(ref).toMatchObject({ type: 'varchar', maxLength: 80, label: 'Site reference' })
+    expect(ref.required).not.toBe(true)
+  })
+
+  it('fields.json Lead declares exactly the five site attributes, none required (the owner may create Leads by hand)', () => {
+    const specs = leadSpecs()
+    expect(specs.map((f) => f.name).sort()).toEqual(['adminLink', 'bookingReference', 'existingCustomer', 'returnBookingReference', 'supabaseRef'])
+    const by = (name: string) => specs.find((f) => f.name === name)
+    expect(by('supabaseRef')).toMatchObject({ type: 'varchar', maxLength: 80 })
+    expect(by('bookingReference')).toMatchObject({ type: 'varchar', maxLength: 40, label: 'Reference' })
+    expect(by('returnBookingReference')).toMatchObject({ type: 'varchar', maxLength: 40, label: 'Return leg reference' })
+    expect(by('adminLink')).toMatchObject({ type: 'url', label: 'Admin link' })
+    expect(by('existingCustomer')).toMatchObject({ type: 'bool', label: 'Existing customer' })
+    for (const spec of specs) expect(spec.required, spec.name).not.toBe(true)
+  })
+
+  it('finalFieldName turns the five Lead specs into the names lib/lead-mapping.ts LEAD_ATTR uses', () => {
+    expect(leadSpecs().map((f) => finalFieldName('Lead', f.name, [])).sort()).toEqual([
+      'cAdminLink',
+      'cBookingReference',
+      'cExistingCustomer',
+      'cReturnBookingReference',
+      'cSupabaseRef',
+    ])
+  })
+
+  it('creates all five Lead fields on a fresh fake, then a second run is a no-op', async () => {
+    const fake = fresh()
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    await sync(fake, dir, { only: ['entities', 'links', 'fields'] })
+    const lead = fake.state.metadata.entityDefs.Lead.fields
+    for (const name of ['cSupabaseRef', 'cBookingReference', 'cReturnBookingReference', 'cAdminLink', 'cExistingCustomer']) {
+      expect(lead[name], name).toBeDefined()
+    }
+    expect(lead.cAdminLink.type).toBe('url')
+    expect(lead.cExistingCustomer.type).toBe('bool')
+    const again = await sync(fake, dir, { only: ['entities', 'links', 'fields'] })
+    expect(again.find((l) => l.startsWith('fields:'))).toMatch(/create=0 update=0 /)
+  })
+
+  it('the stock metadata models the Lead scope with its stock status and source enums', () => {
+    const md = stockEspoMetadata()
+    expect(md.scopes.Lead).toMatchObject({ entity: true, customizable: true })
+    expect(md.entityDefs.Lead.fields.status.options).toEqual(['New', 'Assigned', 'In Process', 'Converted', 'Recycled', 'Dead'])
+    expect(md.entityDefs.Lead.fields.source.options).toContain('Web Site')
+  })
+
+  it('creates Lead fields under the c-prefixed name and a second run is a no-op', async () => {
+    const fake = fresh()
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    await sync(fake, dir, { only: ['entities', 'links', 'fields'] })
+    expect(fake.state.metadata.entityDefs.Lead.fields.cSupabaseRef).toMatchObject({ type: 'varchar', maxLength: 80 })
+    expect(fake.state.metadata.entityDefs.Lead.fields.supabaseRef).toBeUndefined()
+    const writes = mutations(fake).length
+    const again = await sync(fake, dir, { only: ['entities', 'links', 'fields'] })
+    expect(again.find((l) => l.startsWith('fields:'))).toMatch(/create=0 update=0 /)
+    expect(mutations(fake)).toHaveLength(writes)
+  })
+
+  it('the fake gives BOTH sides of a link on a stock scope the c prefix (own: cExistingContact, foreign: cExistingLeads)', async () => {
+    const fake = fresh()
+    await adminClient(fake).request('POST', '/EntityManager/action/createLink', {
+      linkType: 'manyToOne',
+      entity: 'Lead',
+      link: 'existingContact',
+      entityForeign: 'Contact',
+      linkForeign: 'existingLeads',
+    })
+    const defs = fake.state.metadata.entityDefs
+    expect(defs.Lead.links.cExistingContact).toMatchObject({ type: 'belongsTo', entity: 'Contact', foreign: 'cExistingLeads' })
+    expect(defs.Lead.fields.cExistingContact).toBeDefined()
+    expect(defs.Contact.links.cExistingLeads).toMatchObject({ type: 'hasMany', entity: 'Lead', foreign: 'cExistingContact' })
+    expect(defs.Lead.links.existingContact).toBeUndefined()
+  })
+
+  it('links between custom scopes keep their plain names (CBooking.contact -> Contact.cBookings unchanged)', async () => {
+    const fake = fresh()
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    await sync(fake, dir, { only: ['entities', 'links'] })
+    const defs = fake.state.metadata.entityDefs
+    expect(defs.CBooking.links.contact).toMatchObject({ foreign: 'cBookings' })
+    expect(defs.Contact.links.cBookings).toMatchObject({ foreign: 'contact' })
+  })
+})
+
 describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
   const read = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
   const specs: any[] = read('fields.json').fields.CBooking
@@ -404,8 +495,8 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     // required flag on CPartnerRate.account (one update on a link field the link already created).
     expect(first).toContain('entities: create=2 update=0 unchanged=0 skipped=0 removed=0')
     expect(first).toContain('links: create=3 update=0 unchanged=0 skipped=0 removed=0')
-    // + the 10 Account commercial fields of plan 80-06 task 2
-    expect(first).toContain('fields: create=30 update=1 unchanged=0 skipped=0 removed=0')
+    // + the 10 Account commercial fields of plan 80-06 task 2, + the 5 Lead fields of plan 81-03
+    expect(first).toContain('fields: create=35 update=1 unchanged=0 skipped=0 removed=0')
 
     const md = fake.state.metadata
     expect(md.entityDefs.Contact.links.cBookings).toMatchObject({ entity: 'CBooking', foreign: 'contact' })
@@ -417,7 +508,7 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     const second = await sync(fake, dir, { only })
     expect(second).toContain('entities: create=0 update=0 unchanged=2 skipped=0 removed=0')
     expect(second).toContain('links: create=0 update=0 unchanged=3 skipped=0 removed=0')
-    expect(second).toContain('fields: create=0 update=0 unchanged=31 skipped=0 removed=0')
+    expect(second).toContain('fields: create=0 update=0 unchanged=36 skipped=0 removed=0')
   })
 })
 

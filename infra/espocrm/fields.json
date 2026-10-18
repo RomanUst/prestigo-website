@@ -238,6 +238,37 @@
         "label": "Expected rides / month",
         "commercial": true
       }
+    ],
+    "Lead": [
+      {
+        "name": "supabaseRef",
+        "type": "varchar",
+        "maxLength": 80,
+        "label": "Site reference",
+        "tooltipText": "Set by the website: inquiry:<id> or booking:<id>. Do not edit."
+      },
+      {
+        "name": "bookingReference",
+        "type": "varchar",
+        "maxLength": 40,
+        "label": "Reference"
+      },
+      {
+        "name": "returnBookingReference",
+        "type": "varchar",
+        "maxLength": 40,
+        "label": "Return leg reference"
+      },
+      {
+        "name": "adminLink",
+        "type": "url",
+        "label": "Admin link"
+      },
+      {
+        "name": "existingCustomer",
+        "type": "bool",
+        "label": "Existing customer"
+      }
     ]
   }
 }

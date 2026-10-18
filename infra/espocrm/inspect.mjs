@@ -11,6 +11,10 @@
  *   node infra/espocrm/inspect.mjs mailbox [--expect-active]
  *   node infra/espocrm/inspect.mjs email-parent --since <ISO datetime>
  *   node infra/espocrm/inspect.mjs system-mail [--expect-active]
+ *   node infra/espocrm/inspect.mjs user-id {userName}
+ *   node infra/espocrm/inspect.mjs notify-settings
+ *   node infra/espocrm/inspect.mjs contact-match
+ *   node infra/espocrm/inspect.mjs links {Entity}
  *
  *   count         -> count=N            (attr= means "empty": null or empty string)
  *   jobs          -> {job}={status}     one line per requiredJobs entry of mail.json
@@ -19,6 +23,14 @@
  *   email-parent  -> emails=N Account=N Contact=N Opportunity=N none=N [other=N]
  *   system-mail   -> system_smtp=present|missing active=on|off use_smtp=on|off
  *                    from_matches_settings=on|off   (the system SMTP group account, no password)
+ *   user-id       -> user_id=<17-hex id>   (Phase 81 D-13: the owner's user id Leads are assigned to;
+ *                    exit 1 when the name matches no user or more than one)
+ *   notify-settings -> assignment_email=on|off lead_in_assignment_email_list=yes|no
+ *                    assignment_email_entities=<comma list of entity names>   (Phase 81 D-04)
+ *   contact-match -> contact_match=ok|no_contacts|missing   (Phase 81 D-11: the exact-email query
+ *                    `where[0][type]=equals&where[0][attribute]=emailAddress` finds a Contact; the
+ *                    address is held in memory only; exit 1 on `missing`)
+ *   links         -> links=<sorted comma list of link names of the entity>
  *
  * Exit codes: 0 ok, 1 expectation failed (a job not Active; mailbox --expect-active not met) or
  * a usage/config error, 2 API error. Every request is a GET with the admin identity
@@ -37,13 +49,14 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 
 const ENTITY_RE = /^[A-Z][A-Za-z0-9]*$/
 const ATTR_RE = /^[A-Za-z][A-Za-z0-9]*$/
-const COMMANDS = ['count', 'jobs', 'mailbox', 'email-parent', 'system-mail']
+const COMMANDS = ['count', 'jobs', 'mailbox', 'email-parent', 'system-mail', 'user-id', 'notify-settings', 'contact-match', 'links']
+const USER_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._@-]{0,63}$/
 const PAGE = 200
 const MAX_PAGES = 50
 
 /**
  * @param {string[]} argv
- * @returns {{ command: string, entity?: string, attr?: string, value?: string, empty?: boolean, since?: string, expectActive?: boolean }}
+ * @returns {{ command: string, entity?: string, attr?: string, value?: string, empty?: boolean, since?: string, expectActive?: boolean, userName?: string }}
  */
 export function parseInspectArgs(argv) {
   const [command, ...rest] = argv
@@ -78,6 +91,20 @@ export function parseInspectArgs(argv) {
     const unknown = rest.filter((a) => a !== '--expect-active')
     if (unknown.length) throw new EspoConfigError(`Unknown argument: ${unknown[0]}`)
     return { command, expectActive: rest.includes('--expect-active') }
+  }
+
+  if (command === 'user-id') {
+    const [userName, ...extra] = rest
+    if (!userName || !USER_NAME_RE.test(userName)) throw new EspoConfigError('user-id needs a user name such as prestigo-admin')
+    if (extra.length) throw new EspoConfigError(`Unknown argument: ${extra[0]}`)
+    return { command, userName }
+  }
+
+  if (command === 'links') {
+    const [entity, ...extra] = rest
+    if (!entity || !ENTITY_RE.test(entity)) throw new EspoConfigError('links needs an entity name such as Lead (UpperCamelCase)')
+    if (extra.length) throw new EspoConfigError(`Unknown argument: ${extra[0]}`)
+    return { command, entity }
   }
 
   if (rest.length) throw new EspoConfigError(`Unknown argument: ${rest[0]}`)
@@ -170,6 +197,68 @@ async function runSystemMail(args, { client, log, configDir }) {
   return args.expectActive && !(account && active && smtp && fromMatches) ? 1 : 0
 }
 
+/**
+ * The user id Leads are assigned to (D-13). One GET on /User by exact userName; the id is not a secret.
+ * Zero or several matches exit 1 so a typo can never yield a wrong assignee.
+ */
+async function runUserId(args, { client, log }) {
+  const params = new URLSearchParams({ select: 'id', maxSize: '2' })
+  params.set('where[0][type]', 'equals')
+  params.set('where[0][attribute]', 'userName')
+  params.set('where[0][value]', args.userName)
+  const list = (await client.request('GET', `/User?${params.toString()}`))?.list ?? []
+  if (list.length !== 1 || typeof list[0]?.id !== 'string' || !list[0].id) {
+    log(`user_id=${list.length === 0 ? 'missing' : 'ambiguous'}`)
+    return 1
+  }
+  log(`user_id=${list[0].id}`)
+  return 0
+}
+
+/** D-04: does assigning a Lead send an email to the assignee? Flags and entity names only. */
+async function runNotifySettings({ client, log }) {
+  const settings = (await client.request('GET', '/Settings')) ?? {}
+  const entities = Array.isArray(settings.assignmentEmailNotificationsEntityList) ? settings.assignmentEmailNotificationsEntityList.map(String) : []
+  const inList = entities.includes('Lead')
+  log(`assignment_email=${onOff(settings.assignmentEmailNotifications)} lead_in_assignment_email_list=${inList ? 'yes' : 'no'} assignment_email_entities=${entities.join(',')}`)
+  return 0
+}
+
+/**
+ * RESEARCH A2 / D-11: prove that the exact-email query the dispatcher uses finds an existing Contact.
+ * Takes any Contact that has an address, queries by that address, and prints only the verdict.
+ */
+async function runContactMatch({ client, log }) {
+  const probe = new URLSearchParams({ select: 'id,emailAddress', maxSize: '1' })
+  probe.set('where[0][type]', 'isNotNull')
+  probe.set('where[0][attribute]', 'emailAddress')
+  const first = ((await client.request('GET', `/Contact?${probe.toString()}`))?.list ?? [])[0]
+  const address = typeof first?.emailAddress === 'string' ? first.emailAddress : ''
+  if (!first || !address) {
+    log('contact_match=no_contacts')
+    return 0
+  }
+  const match = new URLSearchParams({ select: 'id', maxSize: '2' })
+  match.set('where[0][type]', 'equals')
+  match.set('where[0][attribute]', 'emailAddress')
+  match.set('where[0][value]', address)
+  const found = (await client.request('GET', `/Contact?${match.toString()}`))?.list ?? []
+  if (found.some((row) => row.id === first.id)) {
+    log('contact_match=ok')
+    return 0
+  }
+  log('contact_match=missing')
+  return 1
+}
+
+/** Link names of an entity, sorted (e.g. to see whether plan 81-06's existing-contact link is there yet). */
+async function runLinks(args, { client, log }) {
+  const links = await client.request('GET', `/Metadata/action/get?key=${encodeURIComponent(`entityDefs.${args.entity}.links`)}`)
+  const names = links && typeof links === 'object' ? Object.keys(links).sort() : []
+  log(`links=${names.join(',')}`)
+  return 0
+}
+
 /** EspoCRM stores UTC as `YYYY-MM-DD HH:MM:SS`. */
 const parseEspoDate = (text) => Date.parse(`${String(text).replace(' ', 'T')}${/[zZ]|[+-]\d\d:?\d\d$/.test(String(text)) ? '' : 'Z'}`)
 
@@ -214,6 +303,14 @@ export async function runInspect({ argv, client, getChatwootClient, configDir = 
       return runMailbox(args, env)
     case 'system-mail':
       return runSystemMail(args, env)
+    case 'user-id':
+      return runUserId(args, env)
+    case 'notify-settings':
+      return runNotifySettings(env)
+    case 'contact-match':
+      return runContactMatch(env)
+    case 'links':
+      return runLinks(args, env)
     default:
       return runEmailParent(args, env)
   }

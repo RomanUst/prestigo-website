@@ -89,6 +89,7 @@ export function stockEspoMetadata(): Record<string, any> {
       Account: { entity: true, customizable: true },
       Contact: { entity: true, customizable: true },
       Opportunity: { entity: true, customizable: true, kanbanStatusIgnoreList: ['Closed Lost'] },
+      Lead: { entity: true, customizable: true },
     },
     clientDefs: { Opportunity: { kanbanViewMode: true } },
     // Stock enum fields as served by the live 10.0.8 instance (read-only probe, plan 80-05).
@@ -100,6 +101,14 @@ export function stockEspoMetadata(): Record<string, any> {
         links: {},
       },
       Contact: { fields: {}, links: {} },
+      // Stock Lead scope (espocrm 10.0.8 Lead.json, plan 81-03).
+      Lead: {
+        fields: {
+          status: { type: 'enum', options: ['New', 'Assigned', 'In Process', 'Converted', 'Recycled', 'Dead'], default: 'New' },
+          source: { type: 'enum', options: ['', 'Call', 'Email', 'Existing Customer', 'Partner', 'Public Relations', 'Web Site', 'Campaign', 'Other'] },
+        },
+        links: {},
+      },
       Opportunity: {
         fields: {
           stage: {
@@ -179,6 +188,8 @@ function matchesWhere(record: any, row: any): boolean {
       return have === row.value
     case 'isNull':
       return have == null
+    case 'isNotNull':
+      return have != null
     case 'isEmpty':
       return have == null || have === ''
     case 'isNotEmpty':
@@ -320,15 +331,17 @@ export function createFakeEspoCRM(options: FakeEspoOptions = {}) {
       const own = ensure('entityDefs', entity)
       own.fields ??= {}
       own.links ??= {}
-      if (own.links[link]) return empty(409)
-      // The stock-scope side of a custom link gets a `c` prefix (NameUtil::addCustomPrefix).
+      // The side of a custom link that sits on a stock scope gets a `c` prefix (NameUtil::addCustomPrefix),
+      // on either end: Lead.existingContact -> cExistingContact, Contact.existingLeads -> cExistingLeads.
       const foreignName = isCustomScope(entityForeign) ? linkForeign : `c${ucFirst(linkForeign)}`
-      own.links[link] = { type: 'belongsTo', entity: entityForeign, foreign: foreignName }
-      own.fields[link] = { type: 'link' }
+      const ownName = isCustomScope(entity) ? link : `c${ucFirst(link)}`
+      if (own.links[ownName]) return empty(409)
+      own.links[ownName] = { type: 'belongsTo', entity: entityForeign, foreign: foreignName }
+      own.fields[ownName] = { type: 'link' }
       const other = ensure('entityDefs', entityForeign)
       other.fields ??= {}
       other.links ??= {}
-      other.links[foreignName] = { type: 'hasMany', entity, foreign: link }
+      other.links[foreignName] = { type: 'hasMany', entity, foreign: ownName }
       return json(true)
     }
 

@@ -181,12 +181,15 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
     expect(writers).toEqual(['Sync writer'])
   })
 
-  it('Sync writer: Account, Contact, CBooking only; no Opportunity, CPartnerRate or Email; no delete anywhere', () => {
+  it('Sync writer: Account, Contact, CBooking, Lead only; no Opportunity, CPartnerRate, Email or Task; delete only on Lead (D-22)', () => {
     const w = spec('Sync writer')
-    expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact'])
-    for (const scope of ['Opportunity', 'CPartnerRate', 'Email']) expect(noAccess(w.data[scope])).toBe(true)
-    for (const acl of Object.values<any>(w.data)) if (acl && typeof acl === 'object') expect(acl.delete).toBe('no')
+    expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact', 'Lead'])
+    for (const scope of ['Opportunity', 'CPartnerRate', 'Email', 'Task']) expect(noAccess(w.data[scope])).toBe(true)
+    for (const [scope, acl] of Object.entries<any>(w.data)) {
+      if (acl && typeof acl === 'object') expect(acl.delete, scope).toBe(scope === 'Lead' ? 'all' : 'no')
+    }
     expect(w.data.CBooking).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'no' })
+    expect(w.data.Lead).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all' })
     expect(w.assignTo).toEqual(['prestigo-sync'])
   })
 
@@ -199,6 +202,11 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
     expect(s.data.Account.delete).toBe('no')
     expect(s.data.Contact.delete).toBe('no')
     expect(s.fieldData).toEqual({})
+  })
+
+  it('D-22: Dispatcher has no Lead access at all, Sales manager has full Lead access', () => {
+    expect(spec('Dispatcher').data.Lead).toBe(false)
+    expect(spec('Sales manager').data.Lead).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all' })
   })
 
   it('the human roles forbid export and mass update', () => {
@@ -305,6 +313,25 @@ describe('buildAclExpectations', () => {
     expect(l).toContain('GET /Email forbidden')
   })
 
+  it('D-22 Lead: Dispatcher GET is forbidden; Sales manager and Sync writer create, edit and delete a Lead', () => {
+    expect(labels('Dispatcher')).toContain('GET /Lead forbidden')
+    expect(labels('Dispatcher').filter((l: string) => l.includes('/Lead') && !l.startsWith('GET'))).toEqual([])
+    for (const role of ['Sales manager', 'Sync writer']) {
+      const l = labels(role)
+      for (const verb of ['GET /Lead', 'POST /Lead', 'PUT /Lead/{id}', 'DELETE /Lead/{id}']) expect(l, role).toContain(`${verb} allowed`)
+    }
+  })
+
+  it('the allowed Lead DELETE removes a throw-away record, never the shared Lead fixture', () => {
+    const del = all.filter((c: any) => c.label === 'DELETE /Lead/{id} allowed')
+    expect(del).toHaveLength(2)
+    for (const c of del) {
+      expect(c.fixture).toBe('disposable')
+      expect(c.disposable).toBe('Lead')
+    }
+    expect(all.find((c: any) => c.label === 'PUT /Lead/{id} allowed').fixture).toBe('lead')
+  })
+
   it('a forbidden check means 403 (or 404 for the attachment), never "anything but 2xx"', () => {
     for (const c of all) {
       if (c.expect !== 'forbidden') continue
@@ -395,7 +422,7 @@ async function probe(fake: Fake, options: { only?: string; syncClient?: any; ext
 const noProbeLeftovers = (fake: Fake) => {
   const r = fake.state.records
   expect((r.User ?? []).filter((u: any) => String(u.userName).startsWith('acl-probe'))).toHaveLength(0)
-  for (const scope of ['Account', 'Contact', 'CBooking', 'Attachment']) expect(r[scope] ?? []).toHaveLength(0)
+  for (const scope of ['Account', 'Contact', 'CBooking', 'Attachment', 'Lead']) expect(r[scope] ?? []).toHaveLength(0)
 }
 
 describe('runAclProbe (all roles)', () => {

@@ -15,7 +15,7 @@ import { createEspoClient, EspoConfigError, loadEspoConfig, loadSmtpPassword } f
 import { createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
 import { parseArgs, RESOURCE_ORDER, runSync, validateMailConfig } from '../infra/espocrm/sync.mjs'
 import { parseInspectArgs, runInspect } from '../infra/espocrm/inspect.mjs'
-import { createFakeEspoCRM, stockEspoMetadata } from './helpers/fake-espocrm'
+import { createFakeEspoCRM, stockEspoMetadata, type FakeReq } from './helpers/fake-espocrm'
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const BASE = 'https://crm.example.test'
@@ -552,5 +552,135 @@ describe('inspect commands', () => {
     expect(text).not.toContain('Secret subject')
     expect(text).not.toContain('Jane')
     expect(text).not.toContain('SECRET')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Phase 81 plan 03: user-id, notify-settings, contact-match, links
+// ---------------------------------------------------------------------------
+
+describe('parseInspectArgs (Phase 81 commands)', () => {
+  it('parses user-id, notify-settings, contact-match and links', () => {
+    expect(parseInspectArgs(['user-id', 'prestigo-admin'])).toMatchObject({ command: 'user-id', userName: 'prestigo-admin' })
+    expect(parseInspectArgs(['notify-settings'])).toEqual({ command: 'notify-settings' })
+    expect(parseInspectArgs(['contact-match'])).toEqual({ command: 'contact-match' })
+    expect(parseInspectArgs(['links', 'Lead'])).toMatchObject({ command: 'links', entity: 'Lead' })
+  })
+
+  it('rejects user-id without a name and links with a non-UpperCamelCase entity', () => {
+    expect(() => parseInspectArgs(['user-id'])).toThrow(/user name/)
+    expect(() => parseInspectArgs(['user-id', 'a b'])).toThrow(/user name/)
+    expect(() => parseInspectArgs(['user-id', 'prestigo-admin', 'extra'])).toThrow(/Unknown argument/)
+    expect(() => parseInspectArgs(['links'])).toThrow(/entity/i)
+    expect(() => parseInspectArgs(['links', 'lead'])).toThrow(/entity/i)
+    expect(() => parseInspectArgs(['links', '../Lead'])).toThrow(/entity/i)
+    expect(() => parseInspectArgs(['notify-settings', 'x'])).toThrow(/Unknown argument/)
+  })
+})
+
+describe('inspect user-id (D-13)', () => {
+  it('prints user_id=<17-hex id> and never the user name', async () => {
+    const w = inspectWorld()
+    const res = await w.run(['user-id', 'prestigo-admin'])
+    expect(res.code).toBe(0)
+    expect(res.out).toEqual([`user_id=${ADMIN_ID}`])
+    expect(res.out[0]).toMatch(/^user_id=[0-9a-f]{17}$/)
+    expect(res.out.join('\n')).not.toContain('prestigo-admin')
+  })
+
+  it('exits 1 for an unknown name and for an ambiguous one, printing no id', async () => {
+    const none = await inspectWorld().run(['user-id', 'nobody'])
+    expect(none.code).toBe(1)
+    expect(none.out).toEqual(['user_id=missing'])
+
+    const twice = inspectWorld({
+      User: [
+        { id: ADMIN_ID, userName: 'prestigo-admin', type: 'admin' },
+        { id: 'e00000000000000b2', userName: 'prestigo-admin', type: 'admin' },
+      ],
+    })
+    const dup = await twice.run(['user-id', 'prestigo-admin'])
+    expect(dup.code).toBe(1)
+    expect(dup.out).toEqual(['user_id=ambiguous'])
+  })
+
+  it('is read-only: only GET requests', async () => {
+    const w = inspectWorld()
+    await w.run(['user-id', 'prestigo-admin'])
+    expect(w.fake.requests.every((r) => r.method === 'GET')).toBe(true)
+  })
+})
+
+describe('inspect notify-settings (D-04)', () => {
+  it('reports assignment emails off', async () => {
+    const w = inspectWorld()
+    w.fake.state.settings.assignmentEmailNotifications = false
+    const res = await w.run(['notify-settings'])
+    expect(res.code).toBe(0)
+    expect(res.out).toEqual(['assignment_email=off lead_in_assignment_email_list=no assignment_email_entities='])
+  })
+
+  it('reports Lead in the assignment email list when emails are on', async () => {
+    const w = inspectWorld()
+    w.fake.state.settings.assignmentEmailNotifications = true
+    w.fake.state.settings.assignmentEmailNotificationsEntityList = ['Lead', 'Task']
+    const res = await w.run(['notify-settings'])
+    expect(res.out).toEqual(['assignment_email=on lead_in_assignment_email_list=yes assignment_email_entities=Lead,Task'])
+  })
+
+  it('treats a missing setting as off and an empty list', async () => {
+    const res = await inspectWorld().run(['notify-settings'])
+    expect(res.out).toEqual(['assignment_email=off lead_in_assignment_email_list=no assignment_email_entities='])
+  })
+})
+
+describe('inspect contact-match (D-11, RESEARCH A2)', () => {
+  it('prints contact_match=ok for an existing Contact, sends an exact-match query and prints no address', async () => {
+    const w = inspectWorld()
+    const res = await w.run(['contact-match'])
+    expect(res.code).toBe(0)
+    expect(res.out).toEqual(['contact_match=ok'])
+    expect(res.out.join('\n')).not.toContain('@')
+    const exact = w.fake.requests.find((r) => r.path === '/Contact' && new URLSearchParams(r.query).get('where[0][type]') === 'equals')
+    expect(exact, 'an exact-match query on emailAddress was sent').toBeDefined()
+    expect(new URLSearchParams(exact!.query).get('where[0][attribute]')).toBe('emailAddress')
+    expect(w.fake.requests.every((r) => r.method === 'GET')).toBe(true)
+  })
+
+  it('prints contact_match=no_contacts when no Contact has an address', async () => {
+    const res = await inspectWorld({ Contact: [{ id: 'a00000000000000b9', firstName: 'Bare' }] }).run(['contact-match'])
+    expect(res.code).toBe(0)
+    expect(res.out).toEqual(['contact_match=no_contacts'])
+    const none = await inspectWorld({ Contact: [] }).run(['contact-match'])
+    expect(none.out).toEqual(['contact_match=no_contacts'])
+  })
+
+  it('exits 1 with contact_match=missing when the exact query does not return the Contact', async () => {
+    const lines: string[] = []
+    const broken = freshFake({
+      records: { Contact: [{ id: 'a00000000000000b1', firstName: 'Jane', emailAddress: KNOWN_CONTACT_ADDRESS }] },
+      extraRoutes: (req: FakeReq) =>
+        req.path === '/Contact' && new URLSearchParams(req.query).get('where[0][type]') === 'equals'
+          ? new Response(JSON.stringify({ total: 0, list: [] }), { status: 200 })
+          : undefined,
+    })
+    const code = await runInspect({
+      argv: ['contact-match'],
+      client: adminClient(broken),
+      configDir: join(REPO_ROOT, 'infra/espocrm'),
+      log: (l: string) => lines.push(l),
+    })
+    expect(code).toBe(1)
+    expect(lines).toEqual(['contact_match=missing'])
+  })
+})
+
+describe('inspect links', () => {
+  it('prints the sorted link names of the entity, or an empty list', async () => {
+    const w = inspectWorld()
+    w.fake.state.metadata.entityDefs.Lead.links = { cExistingContact: { type: 'belongsTo' }, assignedUser: { type: 'belongsTo' } }
+    expect((await w.run(['links', 'Lead'])).out).toEqual(['links=assignedUser,cExistingContact'])
+    w.out.length = 0
+    expect((await w.run(['links', 'Nope'])).out).toEqual(['links='])
   })
 })
