@@ -42,6 +42,15 @@
       "linkForeign": "partnerRates",
       "label": "Account",
       "labelForeign": "Partner rates"
+    },
+    {
+      "entity": "Lead",
+      "link": "existingContact",
+      "linkType": "manyToOne",
+      "entityForeign": "Contact",
+      "linkForeign": "existingLeads",
+      "label": "Existing contact",
+      "labelForeign": "Leads (existing customer)"
     }
   ]
 }

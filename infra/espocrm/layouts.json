@@ -122,6 +122,27 @@
         "cBookings": { "index": 5.5 },
         "cPartnerRates": { "index": 5.6 }
       }
+    },
+    {
+      "scope": "Lead",
+      "name": "detail",
+      "mode": "append",
+      "layout": [
+        {
+          "label": "Website",
+          "rows": [
+            [{ "name": "cBookingReference" }, { "name": "cReturnBookingReference" }],
+            [{ "name": "cAdminLink" }, { "name": "cExistingCustomer" }],
+            [{ "name": "cExistingContact" }, { "name": "cSupabaseRef" }]
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "Lead",
+      "name": "list",
+      "mode": "append",
+      "layout": [{ "name": "cExistingCustomer" }]
     }
   ]
 }
