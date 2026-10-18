@@ -59,7 +59,7 @@ One daily Vercel cron enqueues `lead.booking:<id>:dead` for unpaid outbound book
 |------|------|--------|--------|
 | 1 | Tracer: daily cron -> expired unpaid enqueued -> published -> dispatched -> Lead Dead | done | 7870734d |
 | 2 | 90-day purge of abandoned online checkouts (D-15/D-20) + LEAD-04 wording (D-01) | done | dad89d0d |
-| 3 | [BLOCKING] apply migration 068 live + rolled-back sweep smoke | PENDING - orchestrator applies via MCP | 11ab6c2d (smoke SQL) |
+| 3 | [BLOCKING] apply migration 068 live + rolled-back sweep smoke | DONE - orchestrator applied via Supabase MCP | 11ab6c2d (smoke SQL) |
 
 ## What was built
 
@@ -81,9 +81,10 @@ One daily Vercel cron enqueues `lead.booking:<id>:dead` for unpaid outbound book
 - Acceptance greps: cron list check exits 0 (4 paths); `lead-sync|espocrm` in the route = 0; `git diff afebb336..HEAD -- lib/purge-quote-leads.ts app/api/cron/reminder-24h/route.ts` is empty (D-01); `isPurgeEligible` in lead-sync = 2; `purge_lead_not_dead` = 1; `from('bookings').update|delete` in outbox-store/lead-sync = 0; `calculator was removed 2026-05-04` = 1; `LEAD-04.*Phase 81 D-01` = 1; `calculator capture struck` in ROADMAP = 1.
 - Not run in this worktree: the full suite (known next-intl symlink artifact); the orchestrator should re-run it on the main checkout.
 
-## Task 3 - PENDING, orchestrator applies via Supabase MCP
+## Task 3 - DONE, orchestrator applied via Supabase MCP (2026-10-18)
 
-The executor has no Supabase MCP tools. Everything else is done; the live step is handed back.
+- Pre-apply schema check: bookings has created_at, status, booking_source, leg, pickup_utc (timestamptz), payment_link_id (text).
+- MCP results (project enakcryrtxlnjvjutfpv): apply 068 = success; smoke = error exactly `SMOKE_OK_81_10` (every assertion below passed, rolled back); after the smoke lead_capture_start rows = 0, smoke bookings = 0, `lead.purge:%`/`lead.booking:%` outbox rows = 0, all three functions SECURITY DEFINER; advisors (security) = no ERROR/WARN naming any 068 function (only pre-existing INFO rls_enabled_no_policy on unrelated tables + Auth leaked-password WARN).
 
 - Migration file: `supabase/migrations/068_outbox_sweep.sql`, MCP `apply_migration` name `068_outbox_sweep`.
 - Smoke SQL: `.planning/phases/81-lead-capture-site-forms-supabase-espocrm/81-10-smoke.sql` (one DO block ending in `RAISE EXCEPTION 'SMOKE_OK_81_10'`; only that message is success). It inserts its own `lead_capture_start` row inside the transaction (the live DB has none) and the rollback removes it; it aborts up front if the key already exists. Insert column lists are the ones proven live by 81-09-smoke.sql; past pickups are set through `pickup_date` / `pickup_time`.
