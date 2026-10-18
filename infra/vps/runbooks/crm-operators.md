@@ -68,6 +68,7 @@ changes in the file, the test fails until this table is updated.
 | Task | create yes, read own, edit own, delete own | create yes, read own, edit own, delete own | - |
 | Opportunity | no access | create yes, read all, edit all, delete own | - |
 | CPartnerRate | no access | create yes, read all, edit all, delete own | - |
+| Lead | no access | create yes, read all, edit all, delete all | create yes, read all, edit all, delete all |
 | Email | no access | create yes, read own, edit own, delete own | - |
 | EmailAccountScope | no access | yes | - |
 
@@ -102,9 +103,12 @@ Rules behind the table:
 - **Money visibility (D-16, D-22).** Booking amounts are visible to both roles. Negotiated rates (CPartnerRate),
   Opportunities, commission, payment terms and contract data are visible only to the Sales manager and the owner.
   The contract file cannot be downloaded by a Dispatcher even through the attachment URL (proven live, 403).
-- **Leads are deliberately unset.** Neither role mentions Lead; Phase 81 decides who may see leads.
-- **Sync writer** is a service role for the `prestigo-sync` API user: create and edit Account, Contact and CBooking,
-  never delete, and 403 on everything else.
+- **Leads come from the website (Phase 81, D-22).** Contact forms, partner and corporate inquiries and bookings
+  create Leads through the `prestigo-sync` API user. The Dispatcher has no Lead access at all (403), the Sales manager
+  has full Lead access (create, read, edit, delete), and the Sync writer has full Lead access including delete, which
+  the 90-day purge of abandoned-checkout Leads needs.
+- **Sync writer** is a service role for the `prestigo-sync` API user: create and edit Account, Contact and CBooking
+  (never delete them), full access to Lead including delete, and 403 on everything else.
 - **One role per person.** EspoCRM combines several roles into the widest access, so give an operator exactly one.
   Roles use `all` and `own`, not `team`, so no EspoCRM team is needed.
 

@@ -238,6 +238,15 @@
         "label": "Expected rides / month",
         "commercial": true
       }
+    ],
+    "Lead": [
+      {
+        "name": "supabaseRef",
+        "type": "varchar",
+        "maxLength": 80,
+        "label": "Site reference",
+        "tooltipText": "Set by the website: inquiry:<id> or booking:<id>. Do not edit."
+      }
     ]
   }
 }
