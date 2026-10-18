@@ -87,7 +87,7 @@ right after a real run must show `create=0 update=0`.
 Tools added by this phase, in the order they are used:
 
 1. `sync.mjs` - settings, then entities, links, fields, enums, layouts, roles, mail
-2. `overlay.mjs` - one-time unique-index overlay for `CBooking.supabaseBookingId`
+2. `overlay.mjs` - one-time unique-index overlay for `CBooking.supabaseBookingId` (default) and `Lead.cSupabaseRef` (`--entity Lead`)
 3. `verify-acl.mjs` - proves the role matrix against the live CRM
 4. `backfill.mjs` - Supabase bookings into CBooking (`--dry-run`, `--audit`, `--relink`)
 5. `account-candidates.mjs` - proposes Accounts from booking history (writes under `.work/`)
