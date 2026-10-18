@@ -201,7 +201,9 @@ export async function runProbeUnique({ client, entity = DEFAULT_ENTITY, log = co
   const spec = entitySpec(entity)
   const keyField = spec.keyField
   const route = `/${entity}`
-  const key = `unique-probe-${Date.now()}-${randomBytes(4).toString('hex')}`
+  // CBooking.supabaseBookingId is varchar(36): the key plus the '-control' suffix must fit, so the
+  // timestamp is base36 and the random part 3 bytes (13 + 8 + 1 + 6 = 28 chars, 36 with '-control').
+  const key = `unique-probe-${Date.now().toString(36)}-${randomBytes(3).toString('hex')}`
   const body = spec.probeBody(key)
   const created = []
   let enforced = false

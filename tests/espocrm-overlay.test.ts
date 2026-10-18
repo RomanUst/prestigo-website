@@ -249,7 +249,11 @@ describe('probe-unique', () => {
       .map((r) => r.body.supabaseBookingId as string)
       .filter((k) => !k.endsWith('-control'))
     expect(new Set(keys).size).toBe(2)
-    expect(keys[0]).toMatch(/^unique-probe-\d+-[0-9a-f]{8}$/)
+    expect(keys[0]).toMatch(/^unique-probe-[0-9a-z]+-[0-9a-f]{6}$/)
+    // supabaseBookingId is varchar(36): the control key must fit too
+    const all = fake.requests.filter((r) => r.method === 'POST').map((r) => r.body.supabaseBookingId as string)
+    expect(all.some((k) => k.endsWith('-control'))).toBe(true)
+    for (const k of all) expect(k.length).toBeLessThanOrEqual(36)
     expect(out.lines.join('\n')).not.toContain('unique-probe-')
   })
 
@@ -450,7 +454,7 @@ describe('probe-unique --entity Lead', () => {
     const posts = leadPosts(fake)
     expect(posts).toHaveLength(5)
     expect(posts[0].body).toMatchObject({ lastName: 'unique-probe' })
-    expect(posts[0].body.cSupabaseRef).toMatch(/^unique-probe-\d+-[0-9a-f]{8}$/)
+    expect(posts[0].body.cSupabaseRef).toMatch(/^unique-probe-[0-9a-z]+-[0-9a-f]{6}$/)
     expect(posts[3].body.cSupabaseRef).toBeUndefined()
     expect(posts[4].body.cSupabaseRef).toBeUndefined()
     expect(out.lines.join('\n')).not.toContain('unique-probe-')
