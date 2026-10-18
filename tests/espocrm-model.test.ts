@@ -307,6 +307,42 @@ describe('Lead config (plan 81-03, D-09/D-11/D-19)', () => {
     expect(ref.required).not.toBe(true)
   })
 
+  it('fields.json Lead declares exactly the five site attributes, none required (the owner may create Leads by hand)', () => {
+    const specs = leadSpecs()
+    expect(specs.map((f) => f.name).sort()).toEqual(['adminLink', 'bookingReference', 'existingCustomer', 'returnBookingReference', 'supabaseRef'])
+    const by = (name: string) => specs.find((f) => f.name === name)
+    expect(by('supabaseRef')).toMatchObject({ type: 'varchar', maxLength: 80 })
+    expect(by('bookingReference')).toMatchObject({ type: 'varchar', maxLength: 40, label: 'Reference' })
+    expect(by('returnBookingReference')).toMatchObject({ type: 'varchar', maxLength: 40, label: 'Return leg reference' })
+    expect(by('adminLink')).toMatchObject({ type: 'url', label: 'Admin link' })
+    expect(by('existingCustomer')).toMatchObject({ type: 'bool', label: 'Existing customer' })
+    for (const spec of specs) expect(spec.required, spec.name).not.toBe(true)
+  })
+
+  it('finalFieldName turns the five Lead specs into the names lib/lead-mapping.ts LEAD_ATTR uses', () => {
+    expect(leadSpecs().map((f) => finalFieldName('Lead', f.name, [])).sort()).toEqual([
+      'cAdminLink',
+      'cBookingReference',
+      'cExistingCustomer',
+      'cReturnBookingReference',
+      'cSupabaseRef',
+    ])
+  })
+
+  it('creates all five Lead fields on a fresh fake, then a second run is a no-op', async () => {
+    const fake = fresh()
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    await sync(fake, dir, { only: ['entities', 'links', 'fields'] })
+    const lead = fake.state.metadata.entityDefs.Lead.fields
+    for (const name of ['cSupabaseRef', 'cBookingReference', 'cReturnBookingReference', 'cAdminLink', 'cExistingCustomer']) {
+      expect(lead[name], name).toBeDefined()
+    }
+    expect(lead.cAdminLink.type).toBe('url')
+    expect(lead.cExistingCustomer.type).toBe('bool')
+    const again = await sync(fake, dir, { only: ['entities', 'links', 'fields'] })
+    expect(again.find((l) => l.startsWith('fields:'))).toMatch(/create=0 update=0 /)
+  })
+
   it('the stock metadata models the Lead scope with its stock status and source enums', () => {
     const md = stockEspoMetadata()
     expect(md.scopes.Lead).toMatchObject({ entity: true, customizable: true })
@@ -459,8 +495,8 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     // required flag on CPartnerRate.account (one update on a link field the link already created).
     expect(first).toContain('entities: create=2 update=0 unchanged=0 skipped=0 removed=0')
     expect(first).toContain('links: create=3 update=0 unchanged=0 skipped=0 removed=0')
-    // + the 10 Account commercial fields of plan 80-06 task 2, + Lead.supabaseRef of plan 81-03
-    expect(first).toContain('fields: create=31 update=1 unchanged=0 skipped=0 removed=0')
+    // + the 10 Account commercial fields of plan 80-06 task 2, + the 5 Lead fields of plan 81-03
+    expect(first).toContain('fields: create=35 update=1 unchanged=0 skipped=0 removed=0')
 
     const md = fake.state.metadata
     expect(md.entityDefs.Contact.links.cBookings).toMatchObject({ entity: 'CBooking', foreign: 'contact' })
@@ -472,7 +508,7 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     const second = await sync(fake, dir, { only })
     expect(second).toContain('entities: create=0 update=0 unchanged=2 skipped=0 removed=0')
     expect(second).toContain('links: create=0 update=0 unchanged=3 skipped=0 removed=0')
-    expect(second).toContain('fields: create=0 update=0 unchanged=32 skipped=0 removed=0')
+    expect(second).toContain('fields: create=0 update=0 unchanged=36 skipped=0 removed=0')
   })
 })
 
