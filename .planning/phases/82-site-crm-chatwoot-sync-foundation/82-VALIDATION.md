@@ -41,12 +41,13 @@ created: "2026-10-18"
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
+| 82-01-00 | 01 | 1 | SYNC-01/02, GDPR-01 (prerequisite) | T-82-48 | live schema snapshot holds catalog metadata only, no row values; committed before any wave-1 executor | live (MCP catalog queries) + file check | `test -s .planning/phases/82-site-crm-chatwoot-sync-foundation/82-LIVE-SCHEMA.md && grep -q '^## PII Inventory' .planning/phases/82-site-crm-chatwoot-sync-foundation/82-LIVE-SCHEMA.md` + email-leak grep | orchestrator ([BLOCKING][ORCHESTRATOR] Task 0) | ⬜ pending |
 | 82-01-01 | 01 | 1 | SYNC-01 | T-82-01/04/05 | trigger never aborts a booking; one identity per email under the global lock | unit + SQL text | `npx vitest run tests/sync-resolve.test.ts tests/crm-sync-migrations.test.ts tests/outbox.test.ts` | ❌ W0 (created in task) | ⬜ pending |
 | 82-01-02 | 01 | 1 | SYNC-02 | T-82-02 | signup capture; kick accepts only capture keys | unit + SQL text | `npx vitest run tests/sync-resolve.test.ts tests/integrations-kick.test.ts` | ✅ extend | ⬜ pending |
 | 82-01-03 | 01 | 1 | SYNC-01/02 | T-82-02/03 | RLS + REVOKE live | live smoke (MCP) | `SMOKE_OK_82_01` | orchestrator | ⬜ pending |
 | 82-02-01..03 | 02 | 1 | SYNC-05 | T-82-06..09 | admin-only retry, ids-only rows | unit + page + live smoke | `npx vitest run tests/outbox-admin.test.ts tests/outbox-admin-migration.test.ts tests/outbox-admin-page.test.tsx` / `SMOKE_OK_82_02` | ❌ W0 | ⬜ pending |
 | 82-03-01..03 | 03 | 1 | SYNC-01 (D-02) | T-82-10 | search function keeps service-role-only EXECUTE | SQL text + config + live smoke | `npx vitest run tests/admin-search-bookings-email.test.ts tests/chatwoot-config.test.ts` / `SMOKE_OK_82_03` | ❌ W0 / ✅ | ⬜ pending |
-| 82-04-01..03 | 04 | 1 | GDPR-02 | T-82-12/13 | policy matches real processing; frozen translations | content + freeze | `npx vitest run tests/privacy-content.test.ts tests/static-pages-locale.test.tsx` / freeze `--verify` | ❌ W0 | ⬜ pending |
+| 82-04-01..03 | 04 | 1 | GDPR-02 | T-82-12/13 | privacy policy matches real processing; frozen translations | content + freeze | `npx vitest run tests/privacy-content.test.ts tests/static-pages-locale.test.tsx` / freeze `--verify` (82 + 77 dirs) | ❌ W0 | ⬜ pending |
 | 82-05-01..03 | 05 | 2 | SYNC-03 | T-82-14..16 | merge once then shared; TS/SQL phone parity | unit + fixture-driven live smoke | `npx vitest run tests/identity.test.ts tests/phone.test.ts` / `SMOKE_OK_82_05` | ❌ W0 | ⬜ pending |
 | 82-06-01..02 | 06 | 2 | SYNC-05 | T-82-17/18 | digest has no PII, never blocks the sweep | unit | `npx vitest run tests/outbox-digest.test.ts tests/outbox-sweep.test.ts` | ❌ W0 / ✅ extend | ⬜ pending |
 | 82-07-01..03 | 07 | 2 | SYNC-01/02/03 | T-82-19..22 | no duplicates, operator fields untouched | unit (fake EspoCRM) + parity | `npx vitest run tests/crm-sync.test.ts tests/customer-mapping-parity.test.ts` | ❌ W0 | ⬜ pending |
@@ -58,6 +59,7 @@ created: "2026-10-18"
 | 82-13-01..03 | 13 | 5 | GDPR-01 | T-82-39..41 | server-side typed-email HMAC gate | unit + page tests + human-check | `npx vitest run tests/admin-erasure.test.ts tests/erasure-page.test.tsx` | ❌ W0 | ⬜ pending |
 | 82-14-01..03 | 14 | 6 | SYNC-01/02/03, GDPR-02 | T-82-42..44 | secrets never in the session | live (owner + MCP + infra tools) | `node infra/espocrm/verify-acl.mjs --role "Sync writer"`, `node infra/chatwoot/sync.mjs --dry-run --only attributes` | ✅ | ⬜ pending |
 | 82-15-01..03 | 15 | 7 | SYNC-04/05, GDPR-01 | T-82-45..47 | no real customer touched | live + runbook guard | `npx vitest run tests/crm-sync-runbook.test.ts`, `node infra/espocrm/backfill.mjs --audit` | ❌ W0 | ⬜ pending |
+| 82-16-01..02 | 16 | 2 | GDPR-02 | T-82-49/50 | data-deletion page states the same retention as the privacy policy; frozen translations | content + freeze | `npx vitest run tests/data-deletion-content.test.ts tests/static-pages-locale.test.tsx` / freeze `--verify` (82 + 77 dirs) | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -69,7 +71,7 @@ No separate Wave 0 plan: every new test file is written RED first inside the tas
 - [ ] `tests/fixtures/identity-cases.json` — shared normaliser + resolution fixtures (82-05; also drives the SQL smoke)
 - [ ] `tests/helpers/fake-chatwoot.ts` — in-memory Chatwoot contacts API (82-10)
 - [ ] `tests/helpers/fake-espocrm.ts` — reused unchanged through its `extraRoutes` hook (82-07, 82-12)
-- [ ] Orchestrator pre-step: `82-LIVE-SCHEMA.md` (live columns, constraints, PII inventory) before 82-01 / 82-03 / 82-12 execute
+- [ ] `82-LIVE-SCHEMA.md` (live columns, constraints, triggers, functions, PII inventory) — produced and committed by 82-01 Task 0 ([BLOCKING][ORCHESTRATOR], Supabase MCP catalog queries) before any wave-1 executor is dispatched; read by 82-01 Tasks 1/3, 82-03 Task 1, 82-12 and 82-14
 
 ---
 
@@ -82,7 +84,7 @@ No separate Wave 0 plan: every new test file is written RED first inside the tas
 | Backfill completeness | SYNC-04 | real history, three systems | 82-15 Task 1 counts + backfill.mjs --audit |
 | EspoCRM outage drill | SYNC-01 | stops a VPS container (owner-approved D1/D2) | 82-15 Task 2 |
 | Live erasure of a synthetic person | GDPR-01 | owner-only admin action (D-07) | 82-15 Task 3 |
-| Privacy page RTL/phone-width check, admin page a11y | GDPR-02, SYNC-03/05, GDPR-01 | visual / browser behaviour | `<human-check>` items harvested at end of phase |
+| Privacy and data-deletion page RTL/phone-width check, admin page a11y | GDPR-02, SYNC-03/05, GDPR-01 | visual / browser behaviour | `<human-check>` items harvested at end of phase |
 
 ---
 
