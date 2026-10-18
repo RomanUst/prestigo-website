@@ -38,6 +38,9 @@ export const DEFAULT_OVERLAY_FILE = path.join(HERE, 'overlay', 'CBooking.entityD
  * Per-entity overlay settings. `probeBody(key)` is the minimal valid create body carrying the key
  * (`key` undefined -> a record without the key). `emptyKeyProbe` additionally proves that records
  * without the key stay creatable (manual Leads created in the UI have no cSupabaseRef).
+ * `createHeaders` go on every probe create: stock Lead runs EspoCRM duplicate detection (by name),
+ * which answers 409 with a duplicate list before the database is reached, so without
+ * X-Skip-Duplicate-Check a refusal would say nothing about the unique index.
  */
 export const ENTITY_SPECS = {
   CBooking: {
@@ -51,6 +54,7 @@ export const ENTITY_SPECS = {
     overlayFile: path.join(HERE, 'overlay', 'Lead.entityDefs.json'),
     probeBody: (key) => (key === undefined ? { lastName: 'unique-probe' } : { lastName: 'unique-probe', cSupabaseRef: key }),
     emptyKeyProbe: true,
+    createHeaders: { 'X-Skip-Duplicate-Check': 'true' },
   },
 }
 const DEFAULT_ENTITY = 'CBooking'
@@ -192,7 +196,7 @@ export const UNIQUE_REFUSAL_STATUSES = new Set([400, 409, 500])
  * succeed (empty_keys=allowed), because the owner creates Leads by hand in the CRM and those have no
  * site reference. A refused unkeyed create prints empty_keys=blocked and exits 3 (caller rolls back).
  */
-/** @param {{ client: { request: (method: string, path: string, body?: unknown) => Promise<any> }, entity?: string, log?: (line: string) => void }} options */
+/** @param {{ client: { request: (method: string, path: string, body?: unknown, headers?: Record<string, string>) => Promise<any> }, entity?: string, log?: (line: string) => void }} options */
 export async function runProbeUnique({ client, entity = DEFAULT_ENTITY, log = console.log }) {
   const spec = entitySpec(entity)
   const keyField = spec.keyField
@@ -203,13 +207,13 @@ export async function runProbeUnique({ client, entity = DEFAULT_ENTITY, log = co
   let enforced = false
   let emptyKeys // undefined = not probed, true = allowed, false = blocked
   try {
-    const first = await client.request('POST', route, body)
+    const first = await client.request('POST', route, body, spec.createHeaders)
     if (!first?.id) throw new EspoApiError('POST', route, 200, 'probe record was created without an id')
     created.push(first.id)
 
     let refused = false
     try {
-      const second = await client.request('POST', route, body)
+      const second = await client.request('POST', route, body, spec.createHeaders)
       if (second?.id) created.push(second.id)
     } catch (err) {
       if (!(err instanceof EspoApiError) || !UNIQUE_REFUSAL_STATUSES.has(err.status)) throw err
@@ -218,7 +222,7 @@ export async function runProbeUnique({ client, entity = DEFAULT_ENTITY, log = co
 
     if (refused) {
       // Control: another key must still be creatable, or the failure proves nothing about the index.
-      const control = await client.request('POST', route, spec.probeBody(`${key}-control`))
+      const control = await client.request('POST', route, spec.probeBody(`${key}-control`), spec.createHeaders)
       if (!control?.id) throw new EspoApiError('POST', route, 200, 'control record was created without an id')
       created.push(control.id)
       enforced = true
@@ -231,7 +235,7 @@ export async function runProbeUnique({ client, entity = DEFAULT_ENTITY, log = co
       emptyKeys = true
       for (let i = 0; i < 2 && emptyKeys; i++) {
         try {
-          const row = await client.request('POST', route, spec.probeBody(undefined))
+          const row = await client.request('POST', route, spec.probeBody(undefined), spec.createHeaders)
           if (!row?.id) throw new EspoApiError('POST', route, 200, 'probe record without a key was created without an id')
           created.push(row.id)
         } catch (err) {

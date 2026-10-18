@@ -253,6 +253,24 @@ describe('probe-unique', () => {
     expect(out.lines.join('\n')).not.toContain('unique-probe-')
   })
 
+  it('sends X-Skip-Duplicate-Check on every Lead probe create (stock duplicate detection must not mask the index)', async () => {
+    const { client, fake } = adminClient({ duplicateCheck: { Lead: 'cSupabaseRef' } })
+    expect(await runProbeUnique({ client, entity: 'Lead', log: () => {} })).toBe(0)
+    const posts = fake.requests.filter((r) => r.method === 'POST' && r.path === '/Lead')
+    expect(posts).toHaveLength(5)
+    for (const p of posts) expect(p.headers['x-skip-duplicate-check']).toBe('true')
+    // auth headers are untouched
+    for (const p of posts) expect(p.headers['x-api-key'] ?? p.headers['espo-authorization']).toBeTruthy()
+  })
+
+  it('does not send X-Skip-Duplicate-Check for CBooking probes', async () => {
+    const { client, fake } = adminClient({ duplicateCheck: { CBooking: 'supabaseBookingId' } })
+    expect(await runProbeUnique({ client, log: () => {} })).toBe(0)
+    for (const p of fake.requests.filter((r) => r.method === 'POST' && r.path === '/CBooking')) {
+      expect(p.headers['x-skip-duplicate-check']).toBeUndefined()
+    }
+  })
+
   it('surfaces a 403 on the duplicate instead of calling it enforced', async () => {
     let posts = 0
     const { client, fake } = adminClient({
