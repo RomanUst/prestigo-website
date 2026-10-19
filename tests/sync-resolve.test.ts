@@ -320,10 +320,12 @@ describe('dispatcher gating', () => {
     expect(await dispatchOutboxKey(key, h.deps)).toEqual({ outcome: 'breaker', code: 'crm_unconfigured' })
   })
 
-  it('sync.chatwoot is failed unsupported_event until its handler plan lands', async () => {
+  // sync.chatwoot has its handler since plan 82-10 (tests/chatwoot-contact-sync.test.ts); here it only proves its own gate.
+  it('sync.chatwoot needs the Chatwoot config (chatwoot_unconfigured breaker, never unsupported_event)', async () => {
     const key = `sync.chatwoot:${IDENT_I}:12345`
     const h = harness(key, 'sync.chatwoot', 'person', IDENT_I)
-    expect(await dispatchOutboxKey(key, h.deps)).toEqual({ outcome: 'failed', code: 'unsupported_event' })
+    const deps = { ...h.deps, chatwoot: null, chatwootAdmin: null, chatwootConfig: null }
+    expect(await dispatchOutboxKey(key, deps)).toEqual({ outcome: 'breaker', code: 'chatwoot_unconfigured' })
   })
 
   it('erase.person is failed unsupported_event until plan 82-12', async () => {

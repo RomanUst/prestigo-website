@@ -8,10 +8,19 @@ import {
   type SiteEspoClient,
   type SiteEspoConfig,
 } from '@/lib/espocrm-client'
+import {
+  classifyChatwootError,
+  createSiteChatwootClient,
+  loadSiteChatwootConfig,
+  SiteChatwootError,
+  type SiteChatwootClient,
+  type SiteChatwootConfig,
+} from '@/lib/chatwoot-client'
 import { breaker, retryLater, skip, type DispatchResult } from '@/lib/dispatch-outcomes'
 import { createIdentityStore, type IdentityStore } from '@/lib/identity-store'
 import { deliverResolve } from '@/lib/sync-resolve'
 import { deliverEspoSync } from '@/lib/crm-sync'
+import { deliverChatwootSync } from '@/lib/chatwoot-sync'
 import {
   buildLeadFromBooking,
   buildLeadFromInquiry,
@@ -40,6 +49,11 @@ export interface DispatchDeps {
   now: () => Date
   /** Phase 82: identity resolver store (Supabase only, no CRM). */
   identity: IdentityStore
+  /** Phase 82: Chatwoot contact sync. Its own config gate, independent of the EspoCRM one. */
+  chatwoot: SiteChatwootClient | null
+  /** Administrator client; used only for contact_merge (null when no admin token is configured). */
+  chatwootAdmin: SiteChatwootClient | null
+  chatwootConfig: SiteChatwootConfig | null
 }
 
 const LEASE_SECONDS = 120
@@ -48,6 +62,15 @@ const BUSY_DEFER_SECONDS = 30
 function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
   const config = 'config' in deps ? (deps.config ?? null) : loadSiteEspoConfig()
   const crm = 'crm' in deps ? (deps.crm ?? null) : config ? createSiteEspoClient({ config }) : null
+  const chatwootConfig = 'chatwootConfig' in deps ? (deps.chatwootConfig ?? null) : loadSiteChatwootConfig()
+  const chatwoot =
+    'chatwoot' in deps ? (deps.chatwoot ?? null) : chatwootConfig ? createSiteChatwootClient({ config: chatwootConfig }) : null
+  const chatwootAdmin =
+    'chatwootAdmin' in deps
+      ? (deps.chatwootAdmin ?? null)
+      : chatwootConfig
+        ? createSiteChatwootClient({ config: chatwootConfig, admin: true })
+        : null
   return {
     store: deps.store ?? createOutboxStore(),
     crm,
@@ -55,6 +78,9 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     publish: deps.publish ?? publishOutboxDispatch,
     now: deps.now ?? (() => new Date()),
     identity: deps.identity ?? createIdentityStore(),
+    chatwoot,
+    chatwootAdmin,
+    chatwootConfig,
   }
 }
 
@@ -124,8 +150,18 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
       return handleFailure(row, err, d)
     }
   }
-  // Handlers arrive with plans 82-10 (sync.chatwoot) and 82-12 (erase.person).
-  if (row.event_type === 'sync.chatwoot' || row.event_type === 'erase.person') {
+  // Phase 82 per-person Chatwoot sync (plan 82-10): its own gate, so a missing EspoCRM config never
+  // blocks Chatwoot (and the other way round).
+  if (row.event_type === 'sync.chatwoot') {
+    if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
+    try {
+      return await deliverChatwootSync(row, d, d.chatwoot, d.chatwootAdmin)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+  // The handler arrives with plan 82-12 (erase.person).
+  if (row.event_type === 'erase.person') {
     await d.store.complete(row.idempotency_key, 'failed', 'unsupported_event')
     return { outcome: 'failed', code: 'unsupported_event' }
   }
@@ -253,6 +289,15 @@ async function handleFailure(row: OutboxRow, err: unknown, d: DispatchDeps): Pro
     // and the visitor was told it worked, so leave one loud, payload-free line for the Vercel logs.
     await d.store.complete(row.idempotency_key, 'failed', err.code)
     console.error(`[lead-sync] ALERT lead_delivery_failed key=${row.idempotency_key} code=${err.code}`)
+    return { outcome: 'failed', code: err.code }
+  }
+  if (err instanceof SiteChatwootError) {
+    const kind = classifyChatwootError(err)
+    if (kind === 'transient') return retryLater(row, err.code, d)
+    if (kind === 'auth') return breaker(row, 'chatwoot_auth', d)
+    // not_found / unprocessable / permanent: the same request cannot succeed later.
+    await d.store.complete(row.idempotency_key, 'failed', err.code)
+    console.error(`[lead-sync] ALERT chatwoot_delivery_failed key=${row.idempotency_key} code=${err.code}`)
     return { outcome: 'failed', code: err.code }
   }
   if (err instanceof OutboxStoreError) return retryLater(row, 'db_error', d)
