@@ -338,7 +338,7 @@ Plans:
   4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
   5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
 
-**Plans:** 4/16 plans executed
+**Plans:** 9/16 plans executed
 
 Plans:
 **Wave 1**
@@ -348,11 +348,11 @@ Plans:
 - [x] 82-04-PLAN.md — Privacy policy in 7 locales + freeze (GDPR-02, D-13/D-14)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 82-05-PLAN.md — Phone matching: merge-once-then-shared, manual shared, guards (migration 072)
-- [ ] 82-06-PLAN.md — Daily owner digest of failed/stuck sync events (D-11)
-- [ ] 82-07-PLAN.md — EspoCRM person sync: Contact + CBookings, convergent (sync.espo)
-- [ ] 82-08-PLAN.md — Identities admin API: list, mark shared, split via outbox (migration 073)
-- [ ] 82-16-PLAN.md — Data-deletion page retention alignment in 7 locales + freeze (GDPR-02, D-13)
+- [x] 82-05-PLAN.md — Phone matching: merge-once-then-shared, manual shared, guards (migration 072)
+- [x] 82-06-PLAN.md — Daily owner digest of failed/stuck sync events (D-11)
+- [x] 82-07-PLAN.md — EspoCRM person sync: Contact + CBookings, convergent (sync.espo)
+- [x] 82-08-PLAN.md — Identities admin API: list, mark shared, split via outbox (migration 073)
+- [x] 82-16-PLAN.md — Data-deletion page retention alignment in 7 locales + freeze (GDPR-02, D-13)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 82-09-PLAN.md — Backfill SQL: identity pass, report, staggered enqueue (migration 074)
@@ -446,7 +446,7 @@ Plans:
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
-| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 4/16 | In Progress|  |
+| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 9/16 | In Progress|  |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
