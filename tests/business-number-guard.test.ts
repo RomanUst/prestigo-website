@@ -57,6 +57,11 @@ const THIRD_PARTY_NUMBERS: { file: string; digits: string; reason: string }[] = 
     digits: '420123456789',
     reason: 'PHONE_PLACEHOLDER: a dummy +420 123 456 789 format hint in booking phone inputs, not a real number',
   },
+  {
+    file: 'app/api/admin/identities/shared/route.ts',
+    digits: '420777123456',
+    reason: 'A dummy +420 777 123 456 format hint in the admin mark-shared validation message (82-UI-SPEC), not a real number',
+  },
 ]
 
 // Code files (app/, components/, lib/) may not hold the business number at all
