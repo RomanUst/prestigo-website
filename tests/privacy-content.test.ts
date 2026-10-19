@@ -15,7 +15,7 @@ vi.mock("next-intl/server", () => ({
 vi.mock("@/components/Nav", () => ({ default: () => null }));
 vi.mock("@/components/Footer", () => ({ default: () => null }));
 
-const LOCALES = ["en"] as const;
+const LOCALES = ["en", "ru", "es", "fr", "ar", "hi", "zh"] as const;
 
 type Privacy = {
   hero: { lastUpdated: string };
@@ -105,6 +105,17 @@ describe("privacy page render", () => {
     expect(outro).toBeGreaterThan(note);
     // messagingData follows locationData
     expect(html.indexOf("Messages and customer record")).toBeGreaterThan(html.indexOf("Location data"));
+  });
+});
+
+describe.each(LOCALES)("privacy page renders the new blocks (%s)", (locale) => {
+  it("shows messagingData heading and erasureNote", async () => {
+    const { default: PrivacyPage } = await import("@/app/[locale]/privacy/page");
+    const el = await PrivacyPage({ params: Promise.resolve({ locale }) });
+    const html = renderToStaticMarkup(el);
+    const p = load(locale);
+    expect(html).toContain(p.section2.messagingData.heading);
+    expect(html).toContain(p.section8.erasureNote);
   });
 });
 

@@ -31,7 +31,7 @@ type PrivacyContent = {
     corporateEnquiry: { heading: string; text: string }
     automaticallyCollected: { heading: string; text: string }
     locationData: { heading: string; text: string }
-    messagingData?: { heading: string; text: string }
+    messagingData: { heading: string; text: string }
   }
   section3: {
     title: string
@@ -58,7 +58,7 @@ type PrivacyContent = {
     title: string
     intro: string
     rights: { right: string; article: string; desc: string }[]
-    erasureNote?: string
+    erasureNote: string
     outroPrefix: string
     outroEmailLabel: string
     outroSuffix: string
@@ -156,23 +156,16 @@ function buildSections(content: PrivacyContent) {
           <h4 className="font-body font-medium text-[11px] tracking-[0.08em] uppercase text-offwhite mb-2">
             {content.section2.locationData.heading}
           </h4>
-          <p
-            className={`body-text text-[13px]${content.section2.messagingData ? ' mb-5' : ''}`}
-            style={{ lineHeight: '1.9' }}
-          >
+          <p className="body-text text-[13px] mb-5" style={{ lineHeight: '1.9' }}>
             {content.section2.locationData.text}
           </p>
 
-          {content.section2.messagingData && (
-            <>
-              <h4 className="font-body font-medium text-[11px] tracking-[0.08em] uppercase text-offwhite mb-2">
-                {content.section2.messagingData.heading}
-              </h4>
-              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-                {content.section2.messagingData.text}
-              </p>
-            </>
-          )}
+          <h4 className="font-body font-medium text-[11px] tracking-[0.08em] uppercase text-offwhite mb-2">
+            {content.section2.messagingData.heading}
+          </h4>
+          <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+            {content.section2.messagingData.text}
+          </p>
         </>
       ),
     },
@@ -309,11 +302,9 @@ function buildSections(content: PrivacyContent) {
               </li>
             ))}
           </ul>
-          {content.section8.erasureNote && (
-            <p className="body-text text-[13px] mb-5" style={{ lineHeight: '1.9' }}>
-              {content.section8.erasureNote}
-            </p>
-          )}
+          <p className="body-text text-[13px] mb-5" style={{ lineHeight: '1.9' }}>
+            {content.section8.erasureNote}
+          </p>
           <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
             {content.section8.outroPrefix}
             <a href="mailto:info@rideprestigo.com" className="text-offwhite hover:text-copper transition-colors">

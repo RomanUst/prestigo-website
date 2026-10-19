@@ -8,7 +8,7 @@
     "label": "隐私政策",
     "headlineLine1": "您的数据，受到保护。",
     "headlineItalic": "始于设计之初。",
-    "lastUpdated": "最后更新：2026年4月6日"
+    "lastUpdated": "最后更新：2026年10月19日"
   },
   "section1": {
     "title": "数据控制者",
@@ -43,6 +43,10 @@
     "locationData": {
       "heading": "位置数据",
       "text": "您输入的上车地址与目的地地址将通过 Google Maps API 进行处理，用于路线计算与地址自动补全。我们不会追踪您的实时位置。"
+    },
+    "messagingData": {
+      "heading": "消息与客户记录",
+      "text": "您通过网站聊天、电子邮件、Telegram 或 WhatsApp 发送给我们的消息、您的账户资料，以及我们在 CRM 中保存的客户记录：姓名、电子邮件、电话、行程历史和我们团队的备注。"
     }
   },
   "section3": {
@@ -54,7 +58,7 @@
     },
     "legitimateInterest": {
       "heading": "合法利益 — 第 6(1)(f) 条",
-      "text": "用于改进服务的网站分析、防范欺诈，以及通过联系表单回复您的咨询。"
+      "text": "用于改进服务的网站分析、防范欺诈、通过联系表单回复您的咨询，以及在我们各系统中保留唯一的客户记录，以便我们对照您的行程历史答复您。"
     },
     "legalObligation": {
       "heading": "法律义务 — 第 6(1)(c) 条",
@@ -103,35 +107,45 @@
       },
       {
         "name": "Hostinger",
-        "purpose": "我们自有消息服务器在德国（欧盟）的托管服务。",
+        "purpose": "我们自有消息与客户记录服务器在德国（欧盟）的托管服务。",
         "url": "https://www.hostinger.com/legal/privacy-policy"
       },
       {
         "name": "Backblaze",
-        "purpose": "我们消息服务器的每夜加密备份，存储于美国。",
+        "purpose": "我们消息与客户记录服务器的每夜加密备份，存储于美国。",
         "url": "https://www.backblaze.com/company/privacy.html"
       },
       {
         "name": "Telegram",
         "purpose": "仅在您选择通过 Telegram 与我们联系时适用。",
         "url": "https://telegram.org/privacy"
+      },
+      {
+        "name": "EspoCRM (self-hosted)",
+        "purpose": "我们的客户记录系统（CRM），运行在我们位于德国的自有服务器上，保存您的联系方式和行程历史。",
+        "url": "https://www.espocrm.com/privacy-policy/"
+      },
+      {
+        "name": "WhatsApp (Meta)",
+        "purpose": "仅在您选择通过 WhatsApp 与我们联系时适用。",
+        "url": "https://www.whatsapp.com/legal/privacy-policy-eea"
       }
     ]
   },
   "section5": {
     "title": "跨境数据传输",
-    "text": "您的预订数据存储于欧盟境内（Supabase 欧盟区域）。我们的部分服务提供商 — 包括 Google、Stripe、Resend 和 Vercel — 可能在美国处理数据。此类传输受《欧盟—美国数据隐私框架》保护，并在适用情况下受欧盟委员会批准的标准合同条款保护。通过网站聊天、电子邮件或 Telegram 发送的消息存储在我们位于德国的自有服务器上；该服务器的加密备份由 Backblaze 依据《欧盟—美国数据隐私框架》存储于美国。"
+    "text": "您的预订数据存储于欧盟境内（Supabase 欧盟区域）。我们的部分服务提供商 — 包括 Google、Stripe、Resend 和 Vercel — 可能在美国处理数据。此类传输受《欧盟—美国数据隐私框架》保护，并在适用情况下受欧盟委员会批准的标准合同条款保护。通过网站聊天、电子邮件、Telegram 或 WhatsApp 发送的消息以及我们的客户记录，存储在我们位于德国的自有服务器上；该服务器的加密备份由 Backblaze 依据《欧盟—美国数据隐私框架》存储于美国。"
   },
   "section6": {
     "title": "数据保存期限",
     "items": [
       {
         "type": "预订记录",
-        "period": "自接送服务之日起 5 年，依据捷克税务与会计法规的要求。"
+        "period": "自接送服务之日起最长 10 年，依据捷克税务与会计法规的要求。如果您要求我们删除您的数据，该预订将在去除您的姓名、电子邮件、电话、备注和地址后保留。"
       },
       {
         "type": "联系表单提交内容",
-        "period": "在您的咨询处理完毕后保存 12 个月。"
+        "period": "保存至您要求我们删除为止。"
       },
       {
         "type": "分析数据",
@@ -140,6 +154,18 @@
       {
         "type": "付款记录",
         "period": "PRESTIGO 仅存储交易参考编号。完整付款数据由 Stripe 依据其保存政策留存。"
+      },
+      {
+        "type": "消息与对话",
+        "period": "保存至您要求我们删除为止。"
+      },
+      {
+        "type": "未完成的在线预订",
+        "period": "预订在未付款的情况下关闭后 90 天删除。"
+      },
+      {
+        "type": "备份",
+        "period": "已删除的数据可能保留在加密备份中，直至备份轮换淘汰，最长 6 个月。"
       }
     ]
   },
@@ -202,6 +228,7 @@
         "desc": "随时撤回同意，且不影响此前已进行的处理。"
       }
     ],
+    "erasureNote": "当您要求我们删除您的数据时，我们会先确认确实是您本人。随后我们会从系统中删除您的消息和客户记录，并从过往预订中移除您的姓名、电子邮件、电话、备注和地址。我们会保留税法要求的日期、金额、车型等级、预订编号和发票数据。",
     "outroPrefix": "如需行使上述任一权利，请发送邮件至 ",
     "outroEmailLabel": "info@rideprestigo.com",
     "outroSuffix": "。我们将在 30 天内答复。"
