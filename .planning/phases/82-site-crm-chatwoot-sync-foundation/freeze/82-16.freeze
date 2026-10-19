@@ -1,0 +1,5 @@
+# 82-16: data-deletion retention and held-data alignment (D-13 up to 10 years,
+# D-14 message channels + CRM customer record) — hand-translated in-session
+# into ru/es/fr/ar/hi/zh (i18n GH workflow disabled, empty Anthropic API credit).
+content/pages/en/data-deletion.json::section1.text
+content/pages/en/data-deletion.json::section2.paragraph2

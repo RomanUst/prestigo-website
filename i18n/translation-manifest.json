@@ -7222,8 +7222,8 @@
       "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
     },
     "content/pages/en/data-deletion.json::section1.text": {
-      "enHash": "sha256:eed04db919546f454f05fe9be4be1db2b02a87acebc435e407f4b4192fa827e5",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "enHash": "sha256:71ee096ec640d9f78cdd89d12b8bf520dd9f6596179167ae050a8ac6738a180a",
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/data-deletion.json::section2.title": {
       "enHash": "sha256:0bf30da4c87b5de52b8cf44645c0494e214eec771b09ddcb859fa41e438b330a",
@@ -7242,8 +7242,8 @@
       "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
     },
     "content/pages/en/data-deletion.json::section2.paragraph2": {
-      "enHash": "sha256:af9229427120637d3a9b89db24231a35fafbde9864205b42c0a3129038754e2c",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "enHash": "sha256:67bb9e3428c1f6d78f8a9c242dc20c4cf50d141164ee9a144768a0b8d7952c5f",
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/data-deletion.json::section3.title": {
       "enHash": "sha256:7df0f3aabc6b31cb8e8efcbee6b5b11dbc37bd55589a2382cb5f6a3ead7df29f",
@@ -7371,7 +7371,7 @@
     },
     "content/pages/en/privacy.json::hero.lastUpdated": {
       "enHash": "sha256:ac984970578705b3fb7731eeb55baed22e2d93ba3bab9c61c7d3e597745d8ca0",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/privacy.json::section1.title": {
       "enHash": "sha256:aae34017dad2b5e72f188b8e605ef17374effeb5052787e50cbd88012c905345",
@@ -7479,7 +7479,7 @@
     },
     "content/pages/en/privacy.json::section3.legitimateInterest.text": {
       "enHash": "sha256:2a7d258a2355b127db1715b79909b9bcc9f93a60832867e52c5de6b530ac3206",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/privacy.json::section3.legalObligation.heading": {
       "enHash": "sha256:51bb164382df41921bf1923cdc4fa8dfe3936a3e9d62acd005948a58b3a7d9c1",
@@ -7503,7 +7503,7 @@
     },
     "content/pages/en/privacy.json::section4.providers": {
       "enHash": "sha256:bdf92b18556ee817f96853a696764768966d64f38975c7b3b0cf0ea7512b4955",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/privacy.json::section5.title": {
       "enHash": "sha256:61b68033eeac3edaec6dce5d22e979d6f0111accc5b4851348014d6fa06586b9",
@@ -7511,7 +7511,7 @@
     },
     "content/pages/en/privacy.json::section5.text": {
       "enHash": "sha256:915170d4f77057b6c9eda09973d4979040d834edbe6abe208e29da61b3b9b6cc",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/privacy.json::section6.title": {
       "enHash": "sha256:6c5a4be839b4874bb1dfe878c75ea979efa82cacbb1414842dc3ff9591198838",
@@ -7519,7 +7519,7 @@
     },
     "content/pages/en/privacy.json::section6.items": {
       "enHash": "sha256:0675eb8af0480b25be10a1f8deb6fd58348219dc271db5fc547e2678ad0ade7b",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/privacy.json::section7.title": {
       "enHash": "sha256:141395eb35564fe50baa1839eb43315ec1880ae19f53b926611a483029a5a603",
@@ -10275,15 +10275,15 @@
     },
     "content/pages/en/privacy.json::section2.messagingData.heading": {
       "enHash": "sha256:cbad07aa9d28ef61d3f0b0aedc269e28e196db554ace8ea5c1dbed88cea26c0b",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/privacy.json::section2.messagingData.text": {
       "enHash": "sha256:3fa27e8d36e02af6855b8e11ca6a21435da8103188db23b4fed2da67c1e227a7",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     },
     "content/pages/en/privacy.json::section8.erasureNote": {
       "enHash": "sha256:374b93d5341b648abe69419c54b400152e541e831349f111c9321afd8d8aa811",
-      "lastTranslatedAt": "2026-10-19T19:28:50.657Z"
+      "lastTranslatedAt": "2026-10-19T19:52:29.431Z"
     }
   }
 }

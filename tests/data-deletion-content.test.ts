@@ -15,7 +15,8 @@ vi.mock("next-intl/server", () => ({
 vi.mock("@/components/Nav", () => ({ default: () => null }));
 vi.mock("@/components/Footer", () => ({ default: () => null }));
 
-const LOCALES = ["en"] as const;
+const LOCALES = ["en", "ru", "es", "fr", "ar", "hi", "zh"] as const;
+const TRANSLATED = ["ru", "es", "fr", "ar", "hi", "zh"] as const;
 
 type DataDeletion = {
   section1: { text: string };
@@ -94,6 +95,43 @@ describe("data-deletion content (EN source of truth)", () => {
 
   it("keeps the key set unchanged (copy only)", () => {
     expect(leafPaths(en)).toEqual(EXPECTED_KEYS);
+  });
+});
+
+describe.each(LOCALES)("data-deletion.json integrity (%s)", (locale) => {
+  const dd = loadJson<DataDeletion>(locale, "data-deletion.json");
+
+  it("has the same deep key set as en", () => {
+    expect(leafPaths(dd)).toEqual(EXPECTED_KEYS);
+  });
+
+  it("keeps WhatsApp and Telegram in Latin script in section1.text", () => {
+    expect(dd.section1.text).toContain("WhatsApp");
+    expect(dd.section1.text).toContain("Telegram");
+  });
+
+  it("keeps the 3 business day and 30 day commitments and no standalone 5", () => {
+    const p = dd.section2.paragraph2;
+    expect(p).toMatch(/(^|\D)3(\D|$)/);
+    expect(p).toMatch(/(^|\D)30(\D|$)/);
+    expect(p).toMatch(/(^|\D)10(\D|$)/);
+    expect(p).not.toMatch(STANDALONE_FIVE);
+  });
+});
+
+describe.each(TRANSLATED)("data-deletion.json translation (%s)", (locale) => {
+  const en = loadJson<DataDeletion>("en", "data-deletion.json");
+  const dd = loadJson<DataDeletion>(locale, "data-deletion.json");
+
+  it("section1.text and section2.paragraph2 are non-empty and differ from en", () => {
+    expect(dd.section1.text.trim().length).toBeGreaterThan(0);
+    expect(dd.section2.paragraph2.trim().length).toBeGreaterThan(0);
+    expect(dd.section1.text).not.toBe(en.section1.text);
+    expect(dd.section2.paragraph2).not.toBe(en.section2.paragraph2);
+  });
+
+  it("mentions CRM in section1.text", () => {
+    expect(dd.section1.text).toContain("CRM");
   });
 });
 

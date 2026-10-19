@@ -17,14 +17,14 @@
   },
   "section1": {
     "title": "Les données détenues par PRESTIGO",
-    "text": "Si vous avez réservé un transfert ou soumis une demande, nous conservons votre nom, votre adresse e-mail, votre numéro de téléphone et les détails de votre réservation. Nous traitons également des données analytiques anonymisées relatives au site web via Google Analytics et le Meta Pixel. Nous ne conservons pas votre identifiant d'utilisateur Facebook — le Meta Pixel transmet uniquement des données comportementales hachées à des fins de mesure publicitaire."
+    "text": "Si vous avez réservé un transfert ou soumis une demande, nous conservons votre nom, votre adresse e-mail, votre numéro de téléphone, les détails de votre réservation, les messages que vous nous avez envoyés via le chat, l'e-mail, Telegram ou WhatsApp, ainsi que la fiche client de notre CRM. Nous traitons également des données analytiques anonymisées relatives au site web via Google Analytics et le Meta Pixel. Nous ne conservons pas votre identifiant d'utilisateur Facebook — le Meta Pixel transmet uniquement des données comportementales hachées à des fins de mesure publicitaire."
   },
   "section2": {
     "title": "Comment demander la suppression",
     "paragraph1Prefix": "Envoyez un e-mail à ",
     "paragraph1EmailLabel": "info@rideprestigo.com",
     "paragraph1Suffix": " avec pour objet « Demande de suppression de données ». Veuillez indiquer l'adresse e-mail associée à votre réservation ou à votre demande.",
-    "paragraph2": "Nous confirmerons la réception dans un délai de 3 jours ouvrés et procéderons à la suppression dans un délai de 30 jours, sauf si la loi nous oblige à conserver certains documents (par exemple les factures à des fins fiscales — conservées pendant 5 ans conformément au droit tchèque)."
+    "paragraph2": "Nous confirmerons la réception dans un délai de 3 jours ouvrés et procéderons à la suppression dans un délai de 30 jours, sauf si la loi nous oblige à conserver certains documents : les justificatifs de réservation et les factures sont conservés jusqu'à 10 ans, conformément au droit tchèque, sans votre nom, e-mail, téléphone, notes ni adresses."
   },
   "section3": {
     "title": "Suppression via Facebook",
