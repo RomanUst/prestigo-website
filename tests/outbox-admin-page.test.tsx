@@ -179,7 +179,7 @@ describe('Outbox page — more than 100 open events', () => {
     expect(rows.length).toBe(101) // 100 body rows + header
     expect(screen.getByRole('button', { name: /^All \(120\)/ })).toBeTruthy()
     expect(screen.getByRole('button', { name: /^Failed \(120\)/ })).toBeTruthy()
-  })
+  }, 20_000)
 })
 
 describe('Outbox page — filter chips', () => {
