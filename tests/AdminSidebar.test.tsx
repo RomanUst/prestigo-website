@@ -42,6 +42,15 @@ describe('AdminSidebar', () => {
     expect(screen.getByText('Identities').closest('a')?.getAttribute('href')).toBe('/admin/identities')
   })
 
+  it('renders Erasure nav item linking to /admin/erasure directly after Identities', () => {
+    render(<AdminSidebar />)
+    const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'))
+    const identities = hrefs.indexOf('/admin/identities')
+    expect(identities).toBeGreaterThanOrEqual(0)
+    expect(hrefs[identities + 1]).toBe('/admin/erasure')
+    expect(screen.getByText('Erasure').closest('a')?.getAttribute('href')).toBe('/admin/erasure')
+  })
+
   it('all nav links have 44px minimum touch target', () => {
     render(<AdminSidebar />)
     const links = screen.getAllByRole('link')

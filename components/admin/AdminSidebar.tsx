@@ -17,6 +17,7 @@ const navItems = [
   { href: '/admin/stats', label: 'Stats' },
   { href: '/admin/outbox', label: 'Outbox' },
   { href: '/admin/identities', label: 'Identities' },
+  { href: '/admin/erasure', label: 'Erasure' },
 ]
 
 export default function AdminSidebar() {
