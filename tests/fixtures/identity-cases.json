@@ -1,0 +1,859 @@
+{
+  "_comment": "Shared by tests/identity.test.ts (TS) and 82-05-smoke.sql (live SQL). Phones: expected = lib/phone.ts normalizePhone / public.identity_normalize_phone. Emails: expected = normalizeIdentityEmail / public.identity_normalize_email. Scenario step emails are labels (the smoke maps them to smoke+82-05-<scenario>-<label>@rideprestigo.com); steps with \"op\" are setup actions (flag-manual: owner marks phone shared; erase: set erasing_at on the identity of step N). expect.stepIdentity is the 0-based creation order of the identity a step resolved to (null: none), phoneRows counts identity_phones rows, personPhones lists what identity_person(identity N).phones returns, identityUsers maps account labels to identity index.",
+  "emails": [
+    {
+      "raw": "A@B.com",
+      "expected": "a@b.com"
+    },
+    {
+      "raw": "  Mixed.Case@Example.CZ \n",
+      "expected": "mixed.case@example.cz"
+    },
+    {
+      "raw": "\tx@y.cz\r\n",
+      "expected": "x@y.cz"
+    },
+    {
+      "raw": "smoke+82-05-x@rideprestigo.com",
+      "expected": "smoke+82-05-x@rideprestigo.com"
+    },
+    {
+      "raw": "no-at-sign",
+      "expected": null
+    },
+    {
+      "raw": "@nolocal.com",
+      "expected": null
+    },
+    {
+      "raw": "",
+      "expected": null
+    },
+    {
+      "raw": "   ",
+      "expected": null
+    },
+    {
+      "raw": null,
+      "expected": null
+    },
+    {
+      "raw": "guest@gnet.local",
+      "expected": null
+    },
+    {
+      "raw": "Gone@Erased.Invalid",
+      "expected": null
+    },
+    {
+      "raw": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@b.cz",
+      "expected": null
+    }
+  ],
+  "phones": [
+    {
+      "raw": "+420 725 123 456",
+      "expected": "+420725123456"
+    },
+    {
+      "raw": "+420-725-123-456",
+      "expected": "+420725123456"
+    },
+    {
+      "raw": "(+44) 20 7946 0958",
+      "expected": "+442079460958"
+    },
+    {
+      "raw": "00420725123456",
+      "expected": "+420725123456"
+    },
+    {
+      "raw": "  +1 (415) 555-2671 ",
+      "expected": "+14155552671"
+    },
+    {
+      "raw": "+4.9.30.1234567",
+      "expected": "+49301234567"
+    },
+    {
+      "raw": "00 420 777 900 101",
+      "expected": "+420777900101"
+    },
+    {
+      "raw": "\t+420\t777 900 101\n",
+      "expected": "+420777900101"
+    },
+    {
+      "raw": "725123456",
+      "expected": null
+    },
+    {
+      "raw": "420725123456",
+      "expected": null
+    },
+    {
+      "raw": "+0725123456",
+      "expected": null
+    },
+    {
+      "raw": "+1234567",
+      "expected": null
+    },
+    {
+      "raw": "+1234567890123456",
+      "expected": null
+    },
+    {
+      "raw": "+420 72a 123 456",
+      "expected": null
+    },
+    {
+      "raw": "+1 415 555 2671 ext 5",
+      "expected": null
+    },
+    {
+      "raw": "++420777900101",
+      "expected": null
+    },
+    {
+      "raw": "",
+      "expected": null
+    },
+    {
+      "raw": "   ",
+      "expected": null
+    },
+    {
+      "raw": "unknown",
+      "expected": null
+    },
+    {
+      "raw": null,
+      "expected": null
+    },
+    {
+      "raw": "+44 (0) 20 7946 0958",
+      "expected": "+442079460958"
+    },
+    {
+      "raw": "0049 030 1234567",
+      "expected": "+49301234567"
+    },
+    {
+      "raw": "+49 (0)30 1234567",
+      "expected": "+49301234567"
+    },
+    {
+      "raw": "+44 020 7946 0958",
+      "expected": "+442079460958"
+    },
+    {
+      "raw": "+43 01 234 5678",
+      "expected": "+4312345678"
+    },
+    {
+      "raw": "+41 (0)44 668 18 00",
+      "expected": "+41446681800"
+    },
+    {
+      "raw": "+31 06 12345678",
+      "expected": "+31612345678"
+    },
+    {
+      "raw": "+48 022 123 45 67",
+      "expected": "+48221234567"
+    },
+    {
+      "raw": "+39 06 1234 5678",
+      "expected": "+390612345678"
+    },
+    {
+      "raw": "+44 20 7046 0958",
+      "expected": "+442070460958"
+    },
+    {
+      "raw": "+420 (0) 725 986 855",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "+420 ( 0 ) 777 900 103",
+      "expected": "+420777900103"
+    },
+    {
+      "raw": "+420 0725 986 855",
+      "expected": null
+    },
+    {
+      "raw": "+4200725986855",
+      "expected": null
+    },
+    {
+      "raw": "00420 0725 986 855",
+      "expected": null
+    },
+    {
+      "raw": "+421 0905 123 456",
+      "expected": null
+    },
+    {
+      "raw": "+\u0664\u0662\u0660 \u0667\u0662\u0665 \u0669\u0668\u0666 \u0668\u0665\u0665",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "+\u06f4\u06f2\u06f0 \u06f7\u06f2\u06f5 \u06f9\u06f8\u06f6 \u06f8\u06f5\u06f5",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "+\u096a\u0968\u0966 \u096d\u0968\u096b \u096f\u096e\u096c \u096e\u096b\u096b",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "+\uff14\uff12\uff10\uff17\uff12\uff15\uff19\uff18\uff16\uff18\uff15\uff15",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\uff0b420725986855",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\uff0b\uff14\uff12\uff10\uff08\uff10\uff09\uff17\uff17\uff17 \uff19\uff10\uff10 \uff11\uff10\uff12",
+      "expected": "+420777900102"
+    },
+    {
+      "raw": "+420\u2013725\u2014986\u2011855",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "+420\u2212725\u2212986\u2212855",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\uff08+420\uff09725\uff0d986\uff0d855",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\u0660\u0660\u0664\u0662\u0660\u0667\u0662\u0665\u0669\u0668\u0666\u0668\u0665\u0665",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "+420 \u246625 986 855",
+      "expected": null
+    },
+    {
+      "raw": "+\u0664\u0662\u0660 \u0667\u0662a \u0669\u0668\u0666 \u0668\u0665\u0665",
+      "expected": null
+    },
+    {
+      "raw": "\u0667\u0662\u0665\u0669\u0668\u0666\u0668\u0665\u0665",
+      "expected": null
+    },
+    {
+      "raw": "+420\u00a0725\u3000986\u2009855",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "+420\u1680777900101",
+      "expected": "+420777900101"
+    },
+    {
+      "raw": "+420\u2028777\u2029900\u202f101\u205f",
+      "expected": "+420777900101"
+    },
+    {
+      "raw": "\u200e+420 725 986 855\u200f",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\u202a+420 725 986 855\u202c",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\u2066+420 725 986 855\u2069",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\ufeff\u061c+420 725 986 855",
+      "expected": "+420725986855"
+    },
+    {
+      "raw": "\u200f+\u0664\u0662\u0660\u00a0\u0667\u0662\u0665\u200f\u0669\u0668\u0666\u200f\u0668\u0665\u0665",
+      "expected": "+420725986855"
+    }
+  ],
+  "scenarios": [
+    {
+      "name": "email-merge",
+      "note": "The same email always lands on the same person; every phone it brings is stored.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901101",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "a",
+          "phone": "+420777901102",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 1,
+        "phoneMerges": 0,
+        "sharedPhones": [],
+        "phoneRows": 2,
+        "stepIdentity": [
+          0,
+          0
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved"
+        ]
+      }
+    },
+    {
+      "name": "phone-merge-then-shared",
+      "note": "D-04 + D-05: a new email with a known un-shared phone joins its owner, and the number is shared from then on.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901201",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "b",
+          "phone": "+420777901201",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 1,
+        "phoneMerges": 1,
+        "sharedPhones": [
+          {
+            "phone": "+420777901201",
+            "source": "auto"
+          }
+        ],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          0
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved"
+        ],
+        "personPhones": {
+          "0": []
+        }
+      }
+    },
+    {
+      "name": "third-email-new-identity",
+      "note": "After the one allowed phone merge the number is shared: a third email gets its own identity.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901301",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "b",
+          "phone": "+420777901301",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "c",
+          "phone": "+420777901301",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 2,
+        "phoneMerges": 1,
+        "sharedPhones": [
+          {
+            "phone": "+420777901301",
+            "source": "auto"
+          }
+        ],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          0,
+          1
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved",
+          "resolved"
+        ]
+      }
+    },
+    {
+      "name": "adjacency-single-not-shared",
+      "note": "A phone seen with exactly one email is not shared, however often that email returns.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901401",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "a",
+          "phone": "+420777901401",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "a",
+          "phone": "+420777901401",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 1,
+        "phoneMerges": 0,
+        "sharedPhones": [],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          0,
+          0
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved",
+          "resolved"
+        ],
+        "personPhones": {
+          "0": [
+            "+420777901401"
+          ]
+        }
+      }
+    },
+    {
+      "name": "collision-shared",
+      "note": "An email-matched person brings a phone another person owns: flag it shared, merge nothing.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901501",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "b",
+          "phone": "+420777901502",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "b",
+          "phone": "+420777901501",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "c",
+          "phone": "+420777901501",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 3,
+        "phoneMerges": 0,
+        "sharedPhones": [
+          {
+            "phone": "+420777901501",
+            "source": "auto"
+          }
+        ],
+        "phoneRows": 2,
+        "stepIdentity": [
+          0,
+          1,
+          1,
+          2
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved",
+          "resolved",
+          "resolved"
+        ],
+        "personPhones": {
+          "0": [],
+          "1": [
+            "+420777901502"
+          ]
+        }
+      }
+    },
+    {
+      "name": "manual-shared",
+      "note": "A number the owner marked shared is never used for matching and is never stored.",
+      "steps": [
+        {
+          "op": "flag-manual",
+          "phone": "+420777901601"
+        },
+        {
+          "email": "a",
+          "phone": "+420777901601",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "b",
+          "phone": "+420777901601",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 2,
+        "phoneMerges": 0,
+        "sharedPhones": [
+          {
+            "phone": "+420777901601",
+            "source": "manual"
+          }
+        ],
+        "phoneRows": 0,
+        "stepIdentity": [
+          null,
+          0,
+          1
+        ],
+        "stepOutcome": [
+          null,
+          "resolved",
+          "resolved"
+        ]
+      }
+    },
+    {
+      "name": "manual-shared-after-owner",
+      "note": "Marking a stored number shared afterwards hides it from identity_person and stops every merge.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901701",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "op": "flag-manual",
+          "phone": "+420777901701"
+        },
+        {
+          "email": "b",
+          "phone": "+420777901701",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 2,
+        "phoneMerges": 0,
+        "sharedPhones": [
+          {
+            "phone": "+420777901701",
+            "source": "manual"
+          }
+        ],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          null,
+          1
+        ],
+        "stepOutcome": [
+          "resolved",
+          null,
+          "resolved"
+        ],
+        "personPhones": {
+          "0": [],
+          "1": []
+        }
+      }
+    },
+    {
+      "name": "signup-guard",
+      "note": "A signup is never phone-merged into an identity that belongs to another account.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901801",
+          "basis": "signup",
+          "user": "U1"
+        },
+        {
+          "email": "b",
+          "phone": "+420777901801",
+          "basis": "signup",
+          "user": "U2"
+        }
+      ],
+      "expect": {
+        "identities": 2,
+        "phoneMerges": 0,
+        "sharedPhones": [
+          {
+            "phone": "+420777901801",
+            "source": "auto"
+          }
+        ],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          1
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved"
+        ],
+        "identityUsers": {
+          "U1": 0,
+          "U2": 1
+        }
+      }
+    },
+    {
+      "name": "signup-phone-merge",
+      "note": "A signup whose phone belongs to a guest (no account yet) joins that guest and claims it.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777901901",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "b",
+          "phone": "+420777901901",
+          "basis": "signup",
+          "user": "U1"
+        }
+      ],
+      "expect": {
+        "identities": 1,
+        "phoneMerges": 1,
+        "sharedPhones": [
+          {
+            "phone": "+420777901901",
+            "source": "auto"
+          }
+        ],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          0
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved"
+        ],
+        "identityUsers": {
+          "U1": 0
+        }
+      }
+    },
+    {
+      "name": "signup-existing-account",
+      "note": "A signed-in user with a new email joins their own identity (basis signup); the phone is not used to merge elsewhere.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777902001",
+          "basis": "signup",
+          "user": "U1"
+        },
+        {
+          "email": "b",
+          "phone": "+420777902002",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "c",
+          "phone": "+420777902002",
+          "basis": "signup",
+          "user": "U1"
+        }
+      ],
+      "expect": {
+        "identities": 2,
+        "phoneMerges": 0,
+        "sharedPhones": [
+          {
+            "phone": "+420777902002",
+            "source": "auto"
+          }
+        ],
+        "phoneRows": 2,
+        "stepIdentity": [
+          0,
+          1,
+          0
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved",
+          "resolved"
+        ],
+        "identityUsers": {
+          "U1": 0
+        }
+      }
+    },
+    {
+      "name": "erasing-owner",
+      "note": "A number owned only by an identity being erased is ignored: no merge, no shared flag.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777902101",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "op": "erase",
+          "step": 0
+        },
+        {
+          "email": "b",
+          "phone": "+420777902101",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "a",
+          "phone": "+420777902101",
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 2,
+        "phoneMerges": 0,
+        "sharedPhones": [],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          null,
+          1,
+          0
+        ],
+        "stepOutcome": [
+          "resolved",
+          null,
+          "resolved",
+          "erasing"
+        ]
+      }
+    },
+    {
+      "name": "phone-without-email",
+      "note": "A phone alone never creates or extends an identity.",
+      "steps": [
+        {
+          "email": null,
+          "phone": "+420777902201",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": null,
+          "phone": "+420777902201",
+          "basis": "signup",
+          "user": "U1"
+        }
+      ],
+      "expect": {
+        "identities": 0,
+        "phoneMerges": 0,
+        "sharedPhones": [],
+        "phoneRows": 0,
+        "stepIdentity": [
+          null,
+          null
+        ],
+        "stepOutcome": [
+          "no_identity",
+          "no_identity"
+        ]
+      }
+    },
+    {
+      "name": "unusable-phone",
+      "note": "A phone without a country code, empty or \"unknown\" never matches and is never stored.",
+      "steps": [
+        {
+          "email": "a",
+          "phone": "+420777902301",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "b",
+          "phone": "0777 902 301",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "c",
+          "phone": "unknown",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "d",
+          "phone": "",
+          "basis": "email",
+          "user": null
+        },
+        {
+          "email": "e",
+          "phone": null,
+          "basis": "email",
+          "user": null
+        }
+      ],
+      "expect": {
+        "identities": 5,
+        "phoneMerges": 0,
+        "sharedPhones": [],
+        "phoneRows": 1,
+        "stepIdentity": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "stepOutcome": [
+          "resolved",
+          "resolved",
+          "resolved",
+          "resolved",
+          "resolved"
+        ]
+      }
+    }
+  ]
+}
