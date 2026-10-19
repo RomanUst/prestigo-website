@@ -59,13 +59,13 @@ Owner-facing `/admin/outbox` page: live pending/processing/failed/stuck counts, 
 |------|------|--------|--------|
 | 1 | Tracer: health + open events -> GET route -> page | Done | 357fc8bd |
 | 2 | Retry one / retry all, HealthBanner, OutboxTable, all page states | Done | b95544c7 |
-| 3 | Apply migration 070 live + rolled-back smoke `SMOKE_OK_82_02` | **PENDING (orchestrator, Supabase MCP)** | 6d924e75 (smoke SQL only) |
+| 3 | Apply migration 070 live + rolled-back smoke `SMOKE_OK_82_02` | DONE (orchestrator, Supabase MCP, 2026-10-19) | 6d924e75 (smoke SQL) |
 
 `commits: 3` is measured over the three code/smoke commits before this SUMMARY commit (`plan_head_after` is the smoke commit).
 
 ## What was built
 
-- **Migration 070** (not yet applied live): four SECURITY DEFINER functions with `SET search_path = ''`, REVOKE from PUBLIC/anon/authenticated, GRANT to service_role. Retries set status pending, attempts 0, available_at now, clear the lease, keep `last_error`; they only touch `failed`/`pending` rows (`failed` only for retry-all), never `processing`, so the claim lease and per-aggregate mutex stay authoritative. `outbox_open_events` caps at 100 and joins `bookings` only for `booking_reference`.
+- **Migration 070** (live since 2026-10-19): four SECURITY DEFINER functions with `SET search_path = ''`, REVOKE from PUBLIC/anon/authenticated, GRANT to service_role. Retries set status pending, attempts 0, available_at now, clear the lease, keep `last_error`; they only touch `failed`/`pending` rows (`failed` only for retry-all), never `processing`, so the claim lease and per-aggregate mutex stay authoritative. `outbox_open_events` caps at 100 and joins `bookings` only for `booking_reference`.
 - **Routes**: guard order body-size -> `getAdminUser` 401/403 -> JSON 400 -> zod strict 400 -> key shape 422 `invalid_key` (`parseOutboxKey`) -> RPC; `false` from `outbox_retry` -> 422 `not_retryable`; store errors -> 500 `Database error` with a payload-free `console.error('[admin/outbox.<METHOD>] code=db_error')`. Publish uses dedup suffix `r<epoch>`; retry-all publishes in batches of 10. No CRM or Chatwoot import (isolation guard test passes).
 - **UI** per 82-UI-SPEC: KPI row, health banner (healthy / problem with zero clause omitted), filter chips with totals, refresh with "Updated HH:MM:SS", inline "Retry N failed events?" confirm, aria-live success text that clears after 4 s, per-row "Retry event" -> "Queued" with the old error code kept visible, 100-row cap with caption, error-code hint lines, ellipsis at 280px with `title`, `overflowX: auto` wrapper with table `min-width: 720px`, weights 400/500 only (none 300/700 in new files), double-submit guard via ref.
 - Sidebar: `Outbox` entry after Stats.
@@ -102,3 +102,10 @@ None beyond the plan's threat model (T-82-06..09 mitigated: admin guard before b
 
 - Files exist: migration 070, both lib files, three routes, page, two components, three test files, smoke SQL.
 - Commits exist: 357fc8bd, b95544c7, 6d924e75.
+
+## Orchestrator: live apply (Task 3)
+
+Recorded 2026-10-19 ~19:33 UTC via Supabase MCP:
+1. `apply_migration 070_outbox_admin` → success.
+2. Smoke `82-02-smoke.sql` → `ERROR: P0001: SMOKE_OK_82_02` (every assertion passed; block rolled back). Leftover check: 0 synthetic inquiry rows; live `outbox_health()` after rollback = open_total 0, sent_last_24h 2.
+3. `get_advisors` (security): 0 ERROR items; nothing names outbox_health / outbox_open_events / outbox_retry / outbox_retry_failed (only pre-existing INFO rls_enabled_no_policy x10, WARN leaked-password-protection).
