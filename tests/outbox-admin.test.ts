@@ -22,6 +22,8 @@ vi.mock('@/lib/outbox', async () => {
 })
 
 import { GET } from '@/app/api/admin/outbox/route'
+import { POST as retryPost } from '@/app/api/admin/outbox/retry/route'
+import { POST as retryAllPost } from '@/app/api/admin/outbox/retry-all/route'
 import { outboxEventLabel, outboxErrorHint } from '@/lib/outbox-labels'
 
 const UUID = '3f1c2d4e-5a6b-4c7d-8e9f-0a1b2c3d4e5f'
@@ -134,6 +136,115 @@ describe('SYNC-05 GET /api/admin/outbox', () => {
     )
     const res = await GET(getReq())
     expect(JSON.stringify(await res.json())).not.toMatch(PII)
+  })
+})
+
+describe('D-12 POST /api/admin/outbox/retry', () => {
+  const KEY = `lead.booking:${UUID}:new`
+
+  it('401 / 403 before the body is read', async () => {
+    getAdminUserMock.mockResolvedValue({ user: null, error: '401' })
+    expect((await retryPost(postReq('/api/admin/outbox/retry', 'not json', true))).status).toBe(401)
+    getAdminUserMock.mockResolvedValue({ user: null, error: '403' })
+    expect((await retryPost(postReq('/api/admin/outbox/retry', 'not json', true))).status).toBe(403)
+    expect(rpcMock).not.toHaveBeenCalled()
+    expect(publishMock).not.toHaveBeenCalled()
+  })
+
+  it('400 for malformed JSON', async () => {
+    const res = await retryPost(postReq('/api/admin/outbox/retry', '{nope', true))
+    expect(res.status).toBe(400)
+  })
+
+  it('400 for an extra field (strict) and for a missing key', async () => {
+    expect((await retryPost(postReq('/api/admin/outbox/retry', { key: KEY, extra: 1 }))).status).toBe(400)
+    expect((await retryPost(postReq('/api/admin/outbox/retry', {}))).status).toBe(400)
+    expect((await retryPost(postReq('/api/admin/outbox/retry', { key: 'x'.repeat(121) }))).status).toBe(400)
+    expect(rpcMock).not.toHaveBeenCalled()
+  })
+
+  it('422 invalid_key for a key that is not a known outbox key shape', async () => {
+    const res = await retryPost(postReq('/api/admin/outbox/retry', { key: 'lead.booking:not-a-uuid:new' }))
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'invalid_key' })
+    expect(rpcMock).not.toHaveBeenCalled()
+  })
+
+  it('200 and publishes once with an r<epoch> dedup suffix when the RPC retried the row', async () => {
+    rpcMock.mockResolvedValue({ data: true, error: null })
+    const res = await retryPost(postReq('/api/admin/outbox/retry', { key: KEY }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true, queued: true, published: true })
+    expect(rpcMock).toHaveBeenCalledWith('outbox_retry', { p_key: KEY })
+    expect(publishMock).toHaveBeenCalledTimes(1)
+    const [key, opts] = publishMock.mock.calls[0]
+    expect(key).toBe(KEY)
+    expect(opts.dedupSuffix).toMatch(/^r\d+$/)
+  })
+
+  it('422 not_retryable and no publish when the RPC changed nothing', async () => {
+    rpcMock.mockResolvedValue({ data: false, error: null })
+    const res = await retryPost(postReq('/api/admin/outbox/retry', { key: KEY }))
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'not_retryable' })
+    expect(publishMock).not.toHaveBeenCalled()
+  })
+
+  it('500 on an RPC error with a payload-free log line', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'x' } })
+    const res = await retryPost(postReq('/api/admin/outbox/retry', { key: KEY }))
+    expect(res.status).toBe(500)
+    expect(errSpy.mock.calls.map((c) => c.join(' ')).join('\n')).toContain('[admin/outbox.POST] code=db_error')
+  })
+})
+
+describe('D-12 POST /api/admin/outbox/retry-all', () => {
+  it('401 / 403 before the body is read', async () => {
+    getAdminUserMock.mockResolvedValue({ user: null, error: '401' })
+    expect((await retryAllPost(postReq('/api/admin/outbox/retry-all', 'x', true))).status).toBe(401)
+    getAdminUserMock.mockResolvedValue({ user: null, error: '403' })
+    expect((await retryAllPost(postReq('/api/admin/outbox/retry-all', 'x', true))).status).toBe(403)
+    expect(rpcMock).not.toHaveBeenCalled()
+  })
+
+  it('400 for malformed JSON and for an extra field', async () => {
+    expect((await retryAllPost(postReq('/api/admin/outbox/retry-all', '{nope', true))).status).toBe(400)
+    expect((await retryAllPost(postReq('/api/admin/outbox/retry-all', { all: true }))).status).toBe(400)
+  })
+
+  it('publishes every returned key in batches of 10 and reports the counts', async () => {
+    const keys = Array.from({ length: 23 }, (_, i) => `lead.inquiry:${UUID.slice(0, -2)}${String(i).padStart(2, '0')}`)
+    rpcMock.mockResolvedValue({ data: keys, error: null })
+    let inFlight = 0
+    let maxInFlight = 0
+    publishMock.mockImplementation(async (key: string) => {
+      inFlight++
+      maxInFlight = Math.max(maxInFlight, inFlight)
+      await Promise.resolve()
+      inFlight--
+      return !key.endsWith('00')
+    })
+    const res = await retryAllPost(postReq('/api/admin/outbox/retry-all', {}))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true, queued: 23, published: 22 })
+    expect(rpcMock).toHaveBeenCalledWith('outbox_retry_failed', { p_limit: 500 })
+    expect(publishMock).toHaveBeenCalledTimes(23)
+    expect(maxInFlight).toBeLessThanOrEqual(10)
+    for (const call of publishMock.mock.calls) expect(call[1].dedupSuffix).toMatch(/^r\d+$/)
+  })
+
+  it('200 with zero queued when nothing is failed', async () => {
+    rpcMock.mockResolvedValue({ data: [], error: null })
+    const res = await retryAllPost(postReq('/api/admin/outbox/retry-all', {}))
+    expect(await res.json()).toEqual({ ok: true, queued: 0, published: 0 })
+    expect(publishMock).not.toHaveBeenCalled()
+  })
+
+  it('500 on an RPC error', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    rpcMock.mockResolvedValue({ data: null, error: { message: 'x' } })
+    expect((await retryAllPost(postReq('/api/admin/outbox/retry-all', {}))).status).toBe(500)
   })
 })
 
