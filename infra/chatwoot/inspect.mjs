@@ -11,6 +11,8 @@
  *   node infra/chatwoot/inspect.mjs --activity [--since ISO] [--limit N]
  *   node infra/chatwoot/inspect.mjs --report --since ISO [--until ISO]
  *   node infra/chatwoot/inspect.mjs --contact <email> --expect-identifier <uuid>
+ *   node infra/chatwoot/inspect.mjs --contact <email>        (prints contact_found=<bool> only, exit 0)
+ *   node infra/chatwoot/inspect.mjs --contacts-count          (prints contacts=<N>, exit 0)
  *   node infra/chatwoot/inspect.mjs --whatsapp [--expect-connected]
  *   node infra/chatwoot/inspect.mjs --print website-token|hmac-token | <consumer>
  *
@@ -19,7 +21,11 @@
  *
  * Every request is a GET. The API token is read by lib/client.mjs (env or file,
  * never argv). --print is the only path that emits a secret and it refuses to
- * write to a terminal: the value can only flow into a pipe (T-77-21). --contact
+ * write to a terminal: the value can only flow into a pipe (T-77-21). --contacts-count
+ * (Phase 82 plan 09) prints one integer for the post-backfill comparison with Supabase;
+ * --contact without --expect-identifier prints only contact_found=<bool> (guests without
+ * an account in the go-live and erasure smokes). An API failure prints the HTTP status
+ * only, never the response body or the request path (which can carry an email). --contact
  * prints booleans only and --activity prints ids, labels and statuses only,
  * never names, emails or message bodies (T-77-23).
  *
@@ -426,6 +432,30 @@ export async function gatherReport(client, { since, until, log = () => {} }) {
   return lines
 }
 
+/** Total number of contacts: GET /contacts?page=1 answers { meta: { count }, payload }. */
+export async function countContacts(client) {
+  const res = await client.request('GET', '/contacts?page=1')
+  const count = res?.meta?.count
+  if (!Number.isInteger(count) || count < 0) {
+    throw new ChatwootConfigError('Unexpected contacts response (meta.count missing)')
+  }
+  return count
+}
+
+export function formatContactsCount(count) {
+  return `contacts=${count}`
+}
+
+/** Identifier-less contact check: existence only. */
+export function formatContactFound(found) {
+  return `contact_found=${Boolean(found)}`
+}
+
+/** API failures are reported by status only: no body, no path (a path can hold an email). */
+export function formatApiError(error) {
+  return `API error: status=${error.status}`
+}
+
 export async function checkContact(client, { email, expectIdentifier }) {
   const res = await client.request('GET', `/contacts/search?q=${encodeURIComponent(email)}`)
   const contacts = unwrapList(res, 'contacts')
@@ -447,7 +477,7 @@ export function parseArgs(argv) {
     return v
   }
   const setMode = (mode) => {
-    if (opts.mode && opts.mode !== mode) throw new ChatwootConfigError('Use exactly one of --status, --activity, --report, --contact, --whatsapp, --print')
+    if (opts.mode && opts.mode !== mode) throw new ChatwootConfigError('Use exactly one of --status, --activity, --report, --contact, --contacts-count, --whatsapp, --print')
     opts.mode = mode
   }
   for (let i = 0; i < argv.length; i++) {
@@ -456,6 +486,7 @@ export function parseArgs(argv) {
     else if (arg === '--activity') setMode('activity')
     else if (arg === '--report') setMode('report')
     else if (arg === '--whatsapp') setMode('whatsapp')
+    else if (arg === '--contacts-count') setMode('contacts-count')
     else if (arg === '--expect-connected') opts.expectConnected = true
     else if (arg === '--contact') {
       setMode('contact')
@@ -472,10 +503,9 @@ export function parseArgs(argv) {
     } else if (arg === '--expect-identifier') opts.expectIdentifier = takeValue(i++, '--expect-identifier')
     else throw new ChatwootConfigError(`Unknown argument: ${arg}`)
   }
-  if (!opts.mode) throw new ChatwootConfigError('Use one of --status, --activity, --report, --contact, --whatsapp, --print')
+  if (!opts.mode) throw new ChatwootConfigError('Use one of --status, --activity, --report, --contact, --contacts-count, --whatsapp, --print')
   if (opts.expectConnected && opts.mode !== 'whatsapp') throw new ChatwootConfigError('--expect-connected only works with --whatsapp')
   if (opts.mode === 'report' && !opts.since) throw new ChatwootConfigError('--report needs --since ISO')
-  if (opts.mode === 'contact' && !opts.expectIdentifier) throw new ChatwootConfigError('--contact needs --expect-identifier <uuid>')
   return opts
 }
 
@@ -500,8 +530,17 @@ export async function runInspect(opts, { client, out = console.log, err = consol
     for (const line of await gatherReport(client, { since, until, log: err })) out(line)
     return 0
   }
+  if (opts.mode === 'contacts-count') {
+    out(formatContactsCount(await countContacts(client)))
+    return 0
+  }
   if (opts.mode === 'contact') {
     const result = await checkContact(client, { email: opts.contact, expectIdentifier: opts.expectIdentifier })
+    if (!opts.expectIdentifier) {
+      // Existence probe only (no identifier to compare): report, never fail.
+      out(formatContactFound(result.found))
+      return 0
+    }
     out(formatContact(result))
     return result.found && result.matches ? 0 : 1
   }
@@ -538,7 +577,7 @@ async function main(argv) {
     process.exitCode = code
   } catch (error) {
     if (error instanceof ChatwootApiError) {
-      console.error(`API error: ${error.message}`)
+      console.error(formatApiError(error))
       process.exitCode = 2
       return
     }
