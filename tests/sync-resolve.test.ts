@@ -313,12 +313,16 @@ describe('dispatcher gating', () => {
     expect(i.identity.resolveBooking).not.toHaveBeenCalled()
   })
 
-  it.each([
-    ['sync.espo', 'person'],
-    ['sync.chatwoot', 'person'],
-  ])('%s is failed unsupported_event until its handler plan lands', async (eventType, aggregateType) => {
-    const key = `${eventType}:${IDENT_I}:12345`
-    const h = harness(key, eventType, aggregateType, IDENT_I)
+  // sync.espo has its handler since plan 82-07 (tests/crm-sync.test.ts); here it only proves the CRM gate.
+  it('sync.espo needs the CRM (crm_unconfigured breaker, never unsupported_event)', async () => {
+    const key = `sync.espo:${IDENT_I}:12345`
+    const h = harness(key, 'sync.espo', 'person', IDENT_I)
+    expect(await dispatchOutboxKey(key, h.deps)).toEqual({ outcome: 'breaker', code: 'crm_unconfigured' })
+  })
+
+  it('sync.chatwoot is failed unsupported_event until its handler plan lands', async () => {
+    const key = `sync.chatwoot:${IDENT_I}:12345`
+    const h = harness(key, 'sync.chatwoot', 'person', IDENT_I)
     expect(await dispatchOutboxKey(key, h.deps)).toEqual({ outcome: 'failed', code: 'unsupported_event' })
   })
 
