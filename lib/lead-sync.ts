@@ -8,11 +8,9 @@ import {
   type SiteEspoClient,
   type SiteEspoConfig,
 } from '@/lib/espocrm-client'
-import {
-  AUTH_BREAKER_SECONDS,
-  isTerminalAttempt,
-  nextAttemptDelaySeconds,
-} from '@/lib/outbox-backoff'
+import { breaker, retryLater, skip, type DispatchResult } from '@/lib/dispatch-outcomes'
+import { createIdentityStore, type IdentityStore } from '@/lib/identity-store'
+import { deliverResolve } from '@/lib/sync-resolve'
 import {
   buildLeadFromBooking,
   buildLeadFromInquiry,
@@ -31,10 +29,7 @@ import {
  * No Account, Contact or CBooking is ever written and no Lead is converted (D-09, D-11, D-12).
  */
 
-export type DispatchResult = {
-  outcome: 'sent' | 'skipped' | 'deferred' | 'rescheduled' | 'failed' | 'already_done' | 'unknown_key' | 'breaker'
-  code?: string
-}
+export type { DispatchResult }
 
 export interface DispatchDeps {
   store: OutboxStore
@@ -42,6 +37,8 @@ export interface DispatchDeps {
   config: SiteEspoConfig | null
   publish: typeof publishOutboxDispatch
   now: () => Date
+  /** Phase 82: identity resolver store (Supabase only, no CRM). */
+  identity: IdentityStore
 }
 
 const LEASE_SECONDS = 120
@@ -56,6 +53,7 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     config,
     publish: deps.publish ?? publishOutboxDispatch,
     now: deps.now ?? (() => new Date()),
+    identity: deps.identity ?? createIdentityStore(),
   }
 }
 
@@ -108,6 +106,20 @@ async function deferOrFinish(key: string, d: DispatchDeps): Promise<DispatchResu
 }
 
 async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchResult> {
+  // Phase 82 resolver hop: Supabase only, so it runs WITHOUT the EspoCRM gate below.
+  if (row.event_type === 'sync.booking' || row.event_type === 'sync.signup') {
+    try {
+      return await deliverResolve(row, d)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+  // Handlers arrive with plans 82-07 (sync.espo), 82-10 (sync.chatwoot) and 82-12 (erase.person).
+  if (row.event_type === 'sync.espo' || row.event_type === 'sync.chatwoot' || row.event_type === 'erase.person') {
+    await d.store.complete(row.idempotency_key, 'failed', 'unsupported_event')
+    return { outcome: 'failed', code: 'unsupported_event' }
+  }
+
   // Missing config: zero requests, long wait. Every other branch needs the CRM.
   if (!d.crm || !d.config) return breaker(row, 'crm_unconfigured', d)
 
@@ -132,11 +144,6 @@ async function deliver(
 
   await d.store.complete(key, 'failed', 'unsupported_event')
   return { outcome: 'failed', code: 'unsupported_event' }
-}
-
-async function skip(row: OutboxRow, d: DispatchDeps, code: string): Promise<DispatchResult> {
-  await d.store.complete(row.idempotency_key, 'skipped', code)
-  return { outcome: 'skipped', code }
 }
 
 async function deliverInquiry(
@@ -222,28 +229,6 @@ async function deliverPurge(row: OutboxRow, d: DispatchDeps, crm: SiteEspoClient
 }
 
 // ── Failure handling ────────────────────────────────────────────────────────
-
-/** Re-arm after AUTH_BREAKER_SECONDS: bad credentials or no config must never be retried quickly. */
-async function breaker(row: OutboxRow, code: string, d: DispatchDeps): Promise<DispatchResult> {
-  const key = row.idempotency_key
-  await d.store.reschedule(key, new Date(d.now().getTime() + AUTH_BREAKER_SECONDS * 1000), code)
-  await d.publish(key, { delaySeconds: AUTH_BREAKER_SECONDS, dedupSuffix: `a${row.attempts}` })
-  return { outcome: 'breaker', code }
-}
-
-/** Transient failure: growing delay, terminal after OUTBOX_MAX_ATTEMPTS. */
-async function retryLater(row: OutboxRow, code: string, d: DispatchDeps): Promise<DispatchResult> {
-  const key = row.idempotency_key
-  if (isTerminalAttempt(row.attempts)) {
-    const finalCode = `${code}_exhausted`.slice(0, 40)
-    await d.store.complete(key, 'failed', finalCode)
-    return { outcome: 'failed', code: finalCode }
-  }
-  const delay = nextAttemptDelaySeconds(row.attempts)
-  await d.store.reschedule(key, new Date(d.now().getTime() + delay * 1000), code)
-  await d.publish(key, { delaySeconds: delay, dedupSuffix: `a${row.attempts}` })
-  return { outcome: 'rescheduled', code }
-}
 
 /**
  * Anything thrown while delivering. Only a store that is unreachable even for the

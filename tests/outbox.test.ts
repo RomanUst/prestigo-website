@@ -22,6 +22,7 @@ import {
   publishOutboxDispatch,
   dispatchAfterResponse,
   enqueueOutboxEvent,
+  syncBucketKey,
 } from '@/lib/outbox'
 
 const ID = '0b9f2c1e-5d3a-4e8b-9c7d-1a2b3c4d5e6f'
@@ -61,6 +62,73 @@ describe('parseOutboxKey', () => {
 
   it('inquiryOutboxKey round-trips through parseOutboxKey', () => {
     expect(parseOutboxKey(inquiryOutboxKey(ID))?.aggregateId).toBe(ID)
+  })
+})
+
+describe('parseOutboxKey: Phase 82 sync keys', () => {
+  it.each(['sync.booking', 'sync.signup', 'sync.espo', 'sync.chatwoot'] as const)(
+    'round-trips %s with its bucket tag',
+    (eventType) => {
+      expect(parseOutboxKey(`${eventType}:${ID}:19650`)).toEqual({
+        eventType,
+        aggregateId: ID,
+        leadStatus: null,
+        tag: '19650',
+      })
+    },
+  )
+
+  it('accepts erase.person with no tag', () => {
+    expect(parseOutboxKey(`erase.person:${ID}`)).toEqual({
+      eventType: 'erase.person',
+      aggregateId: ID,
+      leadStatus: null,
+      tag: null,
+    })
+  })
+
+  it('leaves lead.* results without a tag property', () => {
+    expect(parseOutboxKey(`lead.inquiry:${ID}`)).not.toHaveProperty('tag')
+    expect(parseOutboxKey(`lead.booking:${ID}:new`)).not.toHaveProperty('tag')
+  })
+
+  it('rejects a sync key without a tag, with a bad tag, or with extra segments', () => {
+    expect(parseOutboxKey(`sync.booking:${ID}`)).toBeNull()
+    expect(parseOutboxKey(`sync.booking:${ID}:`)).toBeNull()
+    expect(parseOutboxKey(`sync.booking:${ID}:UPPER`)).toBeNull()
+    expect(parseOutboxKey(`sync.booking:${ID}:12:34`)).toBeNull()
+    expect(parseOutboxKey(`sync.booking:${ID}:${'9'.repeat(25)}`)).toBeNull()
+    expect(parseOutboxKey(`sync.other:${ID}:12`)).toBeNull()
+    expect(parseOutboxKey(`sync.booking:${ID.toUpperCase()}:12`)).toBeNull()
+    expect(parseOutboxKey(`erase.person:${ID}:12`)).toBeNull()
+  })
+})
+
+describe('syncBucketKey', () => {
+  it('tags by 30 s bucket and is available only when the bucket has closed', () => {
+    const { key, availableAt } = syncBucketKey('sync.espo', ID, 30_000 * 7 + 5)
+    expect(key).toBe(`sync.espo:${ID}:7`)
+    expect(availableAt.getTime()).toBe(240_000)
+  })
+
+  it('honours a custom bucket size', () => {
+    const { key, availableAt } = syncBucketKey('sync.chatwoot', ID, 90_000 * 3 + 89_999, 90)
+    expect(key).toBe(`sync.chatwoot:${ID}:3`)
+    expect(availableAt.getTime()).toBe(90_000 * 4)
+  })
+
+  it('two instants in one bucket share a key, the next bucket gets a new one', () => {
+    const a = syncBucketKey('sync.espo', ID, 60_000)
+    const b = syncBucketKey('sync.espo', ID, 89_999)
+    const c = syncBucketKey('sync.espo', ID, 90_000)
+    expect(a.key).toBe(b.key)
+    expect(c.key).not.toBe(a.key)
+  })
+
+  it('produces a key that parseOutboxKey accepts and that fits the 120-character column check', () => {
+    const { key } = syncBucketKey('sync.chatwoot', ID, Date.now())
+    expect(key.length).toBeLessThanOrEqual(120)
+    expect(parseOutboxKey(key)?.eventType).toBe('sync.chatwoot')
   })
 })
 
