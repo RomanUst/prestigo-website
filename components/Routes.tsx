@@ -4,47 +4,58 @@ import Reveal from '@/components/Reveal'
 import RoutesMap, { type MapCity } from '@/components/RoutesMap'
 import RoutesBento, { type BentoTile } from '@/components/RoutesBento'
 import type { RoutePrice } from '@/lib/route-prices'
+import { ROUTES_BY_SLUG } from '@/lib/routes'
+
+// Door-to-door time from lib/routes.ts ('~5.5 hours' → '5h 30m') so the home
+// page never disagrees with the route pages.
+function routeTime(slug: string): string {
+  const m = ROUTES_BY_SLUG[slug]?.duration.match(/(\d+(?:\.\d+)?)\s*hour/)
+  if (!m) return ''
+  const mins = Math.round(parseFloat(m[1]) * 60)
+  return `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m`
+}
 
 // Real geographic coordinates (same positions the booking map uses) + real
-// door-to-door times. Ordered clockwise so the animated dots sweep the map.
+// door-to-door times (lib/routes.ts where a route page exists). Ordered
+// clockwise so the animated dots sweep the map.
 const PRAGUE: MapCity = { name: 'Prague', lat: 50.0755, lng: 14.4378 }
 
 const CITIES: MapCity[] = [
-  { name: 'Berlin', lat: 52.52, lng: 13.405, time: '4h 10m' },
-  { name: 'Leipzig', lat: 51.3397, lng: 12.3731, time: '2h 50m', dx: -10 },
-  { name: 'Dresden', lat: 51.0504, lng: 13.7373, time: '2h 10m' },
-  { name: 'Wrocław', lat: 51.1079, lng: 17.0385, time: '3h 00m' },
-  { name: 'Warsaw', lat: 52.2297, lng: 21.0122, time: '6h 50m' },
-  { name: 'Kraków', lat: 50.0647, lng: 19.945, time: '5h 00m', dx: -6 },
+  { name: 'Berlin', lat: 52.52, lng: 13.405, time: routeTime('prague-berlin') },
+  { name: 'Leipzig', lat: 51.3397, lng: 12.3731, time: routeTime('prague-leipzig'), dx: -10 },
+  { name: 'Dresden', lat: 51.0504, lng: 13.7373, time: routeTime('prague-dresden') },
+  { name: 'Wrocław', lat: 51.1079, lng: 17.0385, time: routeTime('prague-wroclaw') },
+  { name: 'Warsaw', lat: 52.2297, lng: 21.0122, time: routeTime('prague-warsaw') },
+  { name: 'Kraków', lat: 50.0647, lng: 19.945, time: routeTime('prague-krakow'), dx: -6 },
   { name: 'Zakopane', lat: 49.2992, lng: 19.9496, time: '5h 30m', dx: 42, dy: 4 },
-  { name: 'Budapest', lat: 47.4979, lng: 19.0402, time: '6h 30m' },
-  { name: 'Bratislava', lat: 48.1486, lng: 17.1077, time: '4h 00m', dx: 48, dy: 10 },
-  { name: 'Vienna', lat: 48.2082, lng: 16.3738, time: '3h 30m', dx: -36, dy: -2 },
+  { name: 'Budapest', lat: 47.4979, lng: 19.0402, time: routeTime('prague-budapest') },
+  { name: 'Bratislava', lat: 48.1486, lng: 17.1077, time: routeTime('prague-bratislava'), dx: 48, dy: 10 },
+  { name: 'Vienna', lat: 48.2082, lng: 16.3738, time: routeTime('prague-vienna'), dx: -36, dy: -2 },
   { name: 'Frankfurt', lat: 50.1109, lng: 8.6821, time: '4h 50m' },
-  { name: 'Nuremberg', lat: 49.4521, lng: 11.0767, time: '2h 50m' },
-  { name: 'Munich', lat: 48.1351, lng: 11.582, time: '3h 30m', dx: -24 },
-  { name: 'Salzburg', lat: 47.8095, lng: 13.055, time: '3h 40m' },
+  { name: 'Nuremberg', lat: 49.4521, lng: 11.0767, time: routeTime('prague-nuremberg') },
+  { name: 'Munich', lat: 48.1351, lng: 11.582, time: routeTime('prague-munich'), dx: -24 },
+  { name: 'Salzburg', lat: 47.8095, lng: 13.055, time: routeTime('prague-salzburg') },
   { name: 'Innsbruck', lat: 47.2692, lng: 11.4041, time: '5h 00m', dy: 6 },
 ]
 
 // Pool of routes the bento cards rotate through (all have live route pages, so
 // links never 404). Prices are resolved live by slug; times are door-to-door.
 const POOL: Array<{ slug: string; to: string; time: string }> = [
-  { slug: 'prague-vienna', to: 'Vienna', time: '3h 30m' },
-  { slug: 'prague-berlin', to: 'Berlin', time: '4h 10m' },
-  { slug: 'prague-munich', to: 'Munich', time: '3h 30m' },
-  { slug: 'prague-budapest', to: 'Budapest', time: '6h 30m' },
-  { slug: 'prague-dresden', to: 'Dresden', time: '2h 10m' },
-  { slug: 'prague-krakow', to: 'Kraków', time: '5h 00m' },
-  { slug: 'prague-bratislava', to: 'Bratislava', time: '4h 00m' },
-  { slug: 'prague-salzburg', to: 'Salzburg', time: '3h 40m' },
-  { slug: 'prague-nuremberg', to: 'Nuremberg', time: '2h 50m' },
-  { slug: 'prague-leipzig', to: 'Leipzig', time: '2h 50m' },
-  { slug: 'prague-wroclaw', to: 'Wrocław', time: '3h 00m' },
-  { slug: 'prague-warsaw', to: 'Warsaw', time: '6h 50m' },
-  { slug: 'prague-brno', to: 'Brno', time: '2h 00m' },
-  { slug: 'prague-karlovy-vary', to: 'Karlovy Vary', time: '1h 30m' },
-  { slug: 'prague-linz', to: 'Linz', time: '2h 40m' },
+  { slug: 'prague-vienna', to: 'Vienna', time: routeTime('prague-vienna') },
+  { slug: 'prague-berlin', to: 'Berlin', time: routeTime('prague-berlin') },
+  { slug: 'prague-munich', to: 'Munich', time: routeTime('prague-munich') },
+  { slug: 'prague-budapest', to: 'Budapest', time: routeTime('prague-budapest') },
+  { slug: 'prague-dresden', to: 'Dresden', time: routeTime('prague-dresden') },
+  { slug: 'prague-krakow', to: 'Kraków', time: routeTime('prague-krakow') },
+  { slug: 'prague-bratislava', to: 'Bratislava', time: routeTime('prague-bratislava') },
+  { slug: 'prague-salzburg', to: 'Salzburg', time: routeTime('prague-salzburg') },
+  { slug: 'prague-nuremberg', to: 'Nuremberg', time: routeTime('prague-nuremberg') },
+  { slug: 'prague-leipzig', to: 'Leipzig', time: routeTime('prague-leipzig') },
+  { slug: 'prague-wroclaw', to: 'Wrocław', time: routeTime('prague-wroclaw') },
+  { slug: 'prague-warsaw', to: 'Warsaw', time: routeTime('prague-warsaw') },
+  { slug: 'prague-brno', to: 'Brno', time: routeTime('prague-brno') },
+  { slug: 'prague-karlovy-vary', to: 'Karlovy Vary', time: routeTime('prague-karlovy-vary') },
+  { slug: 'prague-linz', to: 'Linz', time: routeTime('prague-linz') },
 ]
 
 // Bento mosaic layout — one photo feature tile (2×2) + wide (2×1) + square (1×1).
