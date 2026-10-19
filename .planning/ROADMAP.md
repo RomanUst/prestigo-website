@@ -338,7 +338,7 @@ Plans:
   4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
   5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
 
-**Plans:** 12/16 plans executed
+**Plans:** 13/16 plans executed
 
 Plans:
 **Wave 1**
@@ -360,7 +360,7 @@ Plans:
 - [x] 82-11-PLAN.md — Identities admin page (merged by phone, shared numbers, split)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 82-12-PLAN.md — GDPR erasure saga across Chatwoot, EspoCRM, Supabase (migration 075)
+- [x] 82-12-PLAN.md — GDPR erasure saga across Chatwoot, EspoCRM, Supabase (migration 075)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 82-13-PLAN.md — Erasure admin page: preview, typed-email confirmation, log
@@ -446,7 +446,7 @@ Plans:
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
-| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 12/16 | In Progress|  |
+| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 13/16 | In Progress|  |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
