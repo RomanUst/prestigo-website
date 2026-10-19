@@ -297,3 +297,659 @@ describe('sync.chatwoot tracer: new person -> exact filters find nothing -> cont
     }
   })
 })
+
+// ── Task 3: find, adopt, merge and the 422 ladders ──────────────────────────
+
+const allBodies = (h: Harness) => JSON.stringify(h.fake.requests.map((r) => [r.path, r.query, r.body]))
+const puts = (h: Harness) => h.fake.requests.filter((r) => r.method === 'PUT')
+const emptyFilter = () => new Response(JSON.stringify({ payload: [], meta: { count: 0 } }), { status: 200 })
+
+describe('sync.chatwoot adopt: D-03 fill-only-when-empty', () => {
+  it('D-03: an operator-set name and phone are never overwritten; only the owned attributes are sent', async () => {
+    const linked = person()
+    linked.identity.espo_contact_id = 'c00000000000000a1'
+    const h = harness(
+      { rows: [personRow()], persons: [linked] },
+      {
+        contacts: [
+          {
+            id: 4,
+            name: 'VIP Jan',
+            email: 'a@x.test',
+            phone_number: '+420602111222',
+            custom_attributes: { site_locale: 'ru', operator_note: 'keep' },
+          },
+        ],
+      },
+    )
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(h.fake.writes()).toHaveLength(1)
+    const body = puts(h)[0].body as Record<string, unknown>
+    expect(Object.keys(body)).toEqual(['custom_attributes'])
+    expect(Object.keys(body.custom_attributes as object).sort()).toEqual([...CHATWOOT_SYNCED_ATTRIBUTE_KEYS].sort())
+    const contact = contacts(h)[0]
+    expect(contact).toMatchObject({ name: 'VIP Jan', phone_number: '+420602111222', email: 'a@x.test' })
+    // Attributes the site does not own survive (shallow merge, owned keys only).
+    expect(contact.custom_attributes).toMatchObject({ site_locale: 'ru', operator_note: 'keep', trip_count: '1' })
+    expect(h.ids.calls.setChatwootContact).toEqual([{ id: IDENTITY, contactId: 4 }])
+  })
+
+  it('D-03: an empty name is filled, an existing email and phone are kept', async () => {
+    // Found through its phone; its own (different) email stays.
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 6, name: '', email: 'operator-set@x.test', phone_number: '+420777900010' }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    const contact = contacts(h)[0]
+    expect(contact.name).toBe('Anna Novak')
+    expect(contact.email).toBe('operator-set@x.test')
+    expect(contact.phone_number).toBe('+420777900010')
+  })
+
+  it('D-03: an empty phone is filled from the person; an existing name is kept', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 2, name: 'Anna', email: 'a@x.test', phone_number: null }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(contacts(h)[0].phone_number).toBe('+420777900010')
+    expect(contacts(h)[0].name).toBe('Anna')
+  })
+
+  it('sends only the attribute keys whose value changed', async () => {
+    const first = harness({ rows: [personRow()], persons: [person()] })
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(first))
+    const attrs = { ...contacts(first)[0].custom_attributes, trip_count: '99' }
+
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 1, name: 'Anna Novak', email: 'a@x.test', phone_number: '+420777900010', custom_attributes: attrs }] },
+    )
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(puts(h)).toHaveLength(1)
+    expect(puts(h)[0].body).toEqual({ custom_attributes: { trip_count: '1' } })
+  })
+})
+
+describe('sync.chatwoot idempotency and cached id', () => {
+  it('idempotent: a second dispatch of an unchanged person creates one contact and sends no write', async () => {
+    const h = harness({ rows: [personRow(IDENTITY, '100'), personRow(IDENTITY, '101')], persons: [person()] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY, '100'), deps(h))
+    const writesAfterFirst = h.fake.writes().length
+    const again = await dispatchOutboxKey(cwKey(IDENTITY, '101'), deps(h))
+
+    expect(again).toEqual({ outcome: 'sent' })
+    expect(contacts(h)).toHaveLength(1)
+    expect(writesAfterFirst).toBe(1)
+    expect(h.fake.writes()).toHaveLength(1)
+    // The repeat run is a single GET of the cached contact (no filter scan).
+    expect(h.fake.requests.slice(-1)).toMatchObject([{ method: 'GET', path: `/contacts/${contacts(h)[0].id}` }])
+    expect(h.ids.calls.setChatwootContact).toHaveLength(1)
+  })
+
+  it('idempotent after an adopt: the second run sends no write either', async () => {
+    const h = harness(
+      { rows: [personRow(IDENTITY, '100'), personRow(IDENTITY, '101')], persons: [person()] },
+      { contacts: [{ id: 3, name: 'Anna', email: 'a@x.test', phone_number: '+420777900010' }] },
+    )
+    await dispatchOutboxKey(cwKey(IDENTITY, '100'), deps(h))
+    const writes = h.fake.writes().length
+
+    await dispatchOutboxKey(cwKey(IDENTITY, '101'), deps(h))
+
+    expect(h.fake.writes()).toHaveLength(writes)
+  })
+
+  it('a cached id that answers 404 is forgotten, then the contact is found by email', async () => {
+    const p = person()
+    p.identity.chatwoot_contact_id = 999
+    const h = harness({ rows: [personRow()], persons: [p] }, { contacts: [{ id: 5, name: 'Anna', email: 'a@x.test' }] })
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(h.ids.calls.setChatwootContact).toEqual([
+      { id: IDENTITY, contactId: null },
+      { id: IDENTITY, contactId: 5 },
+    ])
+    expect(contacts(h)).toHaveLength(1)
+  })
+
+  it('a deleted contact with a stale cached id and no other match is re-created', async () => {
+    const p = person()
+    p.identity.chatwoot_contact_id = 999
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(contacts(h)).toHaveLength(1)
+    expect(h.ids.calls.setChatwootContact.map((c) => c.contactId)).toEqual([null, contacts(h)[0].id])
+  })
+})
+
+describe('sync.chatwoot identifier adoption (SYNC-02)', () => {
+  const account = () => {
+    const p = person()
+    p.identity.user_id = USER_ID
+    return p
+  }
+
+  it('identifier: a contact pre-created by email is adopted on signup and gets identifier = user id once', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [account()] },
+      { contacts: [{ id: 8, name: 'Anna', email: 'a@x.test', phone_number: '+420777900010' }] },
+    )
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(contacts(h)).toHaveLength(1)
+    expect(contacts(h)[0].identifier).toBe(USER_ID)
+    expect((puts(h)[0].body as Record<string, unknown>).identifier).toBe(USER_ID)
+  })
+
+  it('identifier: the user id is looked up first', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [account()] },
+      { contacts: [{ id: 8, name: 'Anna', email: 'a@x.test', identifier: USER_ID, phone_number: '+420777900010' }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    const filters = h.fake.requests.filter((r) => r.path === '/contacts/filter')
+    expect(filters[0].body.payload[0].attribute_key).toBe('identifier')
+    expect(contacts(h)[0].identifier).toBe(USER_ID)
+    expect(contacts(h)).toHaveLength(1)
+  })
+
+  it('identifier: a contact whose identifier is already set is never changed', async () => {
+    const p = account()
+    p.identity.chatwoot_contact_id = 8
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      { contacts: [{ id: 8, name: 'Anna', email: 'a@x.test', identifier: USER_ID, phone_number: '+420777900010' }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    for (const req of puts(h)) expect(req.body).not.toHaveProperty('identifier')
+    expect(contacts(h)[0].identifier).toBe(USER_ID)
+  })
+
+  it('identifier: a contact signed in as somebody else is ambiguous, nothing is written', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [account()] },
+      { contacts: [{ id: 8, name: 'Other', email: 'a@x.test', identifier: 'someone-else-id' }] },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+      expect(result).toEqual({ outcome: 'failed', code: 'cw_ambiguous' })
+      expect(h.fake.writes()).toHaveLength(0)
+      expect(contacts(h)[0].identifier).toBe('someone-else-id')
+    } finally {
+      err.mockRestore()
+    }
+  })
+
+  it('identifier: a person without an account never gets one invented', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] }, { contacts: [{ id: 8, name: 'Anna', email: 'a@x.test' }] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(contacts(h)[0].identifier).toBeNull()
+  })
+})
+
+describe('sync.chatwoot merge and ambiguous', () => {
+  const account = () => {
+    const p = person()
+    p.identity.user_id = USER_ID
+    return p
+  }
+
+  it('merge: two candidates (identifier + email) merge through the admin client into the identifier contact', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [account()] },
+      {
+        contacts: [
+          { id: 1, name: 'Signed In', email: 'old@x.test', identifier: USER_ID, custom_attributes: { site_locale: 'fr' }, conversations: 2 },
+          { id: 2, name: 'From Booking', email: 'a@x.test', conversations: 1 },
+        ],
+      },
+    )
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(h.fake.merges).toEqual([{ base: 1, mergee: 2 }])
+    expect(contacts(h)).toHaveLength(1)
+    expect(contacts(h)[0]).toMatchObject({ id: 1, conversations: 3 })
+    expect(contacts(h)[0].custom_attributes).toMatchObject({ site_locale: 'fr', trip_count: '1' })
+    expect(h.ids.calls.setChatwootContact).toEqual([{ id: IDENTITY, contactId: 1 }])
+    // The merge itself used the administrator token, everything else the normal one.
+    const mergeReq = h.fake.requests.find((r) => r.path === '/actions/contact_merge')
+    expect(mergeReq?.headers['api-access-token']).toBe(FAKE_ADMIN_TOKEN)
+    expect(h.fake.requests.filter((r) => r !== mergeReq).every((r) => r.headers['api-access-token'] === FAKE_AGENT_TOKEN)).toBe(true)
+  })
+
+  it('merge: without identifiers the contact holding the primary email is the base, even if the other is older', async () => {
+    const p = person({
+      emails: [
+        { email: 'a@x.test', basis: 'booking', via_phone: null },
+        { email: 'b@x.test', basis: 'booking', via_phone: null },
+      ],
+    })
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      {
+        contacts: [
+          { id: 2, name: 'Older', email: 'b@x.test' },
+          { id: 7, name: 'Primary', email: 'a@x.test' },
+        ],
+      },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(h.fake.merges).toEqual([{ base: 7, mergee: 2 }])
+  })
+
+  it('merge: with no preference the older contact (smaller id) is the base', async () => {
+    // Both are found through the person's own non-primary keys (second email, phone), so they rank equal.
+    const p = person({
+      emails: [
+        { email: 'a@x.test', basis: 'booking', via_phone: null },
+        { email: 'b@x.test', basis: 'booking', via_phone: null },
+      ],
+    })
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      {
+        contacts: [
+          { id: 9, name: 'Newer', email: 'other@x.test', phone_number: '+420777900010' },
+          { id: 3, name: 'Older', email: 'b@x.test' },
+        ],
+      },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(h.fake.merges).toEqual([{ base: 3, mergee: 9 }])
+  })
+
+  it('ambiguous: two candidates without an admin client -> failed cw_ambiguous, nothing is written', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [account()] },
+      {
+        contacts: [
+          { id: 1, name: 'Signed In', email: 'old@x.test', identifier: USER_ID },
+          { id: 2, name: 'From Booking', email: 'a@x.test' },
+        ],
+      },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h, { chatwootAdmin: null }))
+
+      expect(result).toEqual({ outcome: 'failed', code: 'cw_ambiguous' })
+      expect(h.fake.writes()).toHaveLength(0)
+      expect(contacts(h)).toHaveLength(2)
+      expect(h.rows.get(cwKey(IDENTITY))).toMatchObject({ status: 'failed', last_error: 'cw_ambiguous' })
+      expect(err.mock.calls.map((c) => String(c[0])).join('\n')).toContain('code=cw_ambiguous')
+    } finally {
+      err.mockRestore()
+    }
+  })
+
+  it('ambiguous: three candidates -> failed cw_ambiguous even with an admin client', async () => {
+    const p = person({
+      emails: [
+        { email: 'a@x.test', basis: 'booking', via_phone: null },
+        { email: 'b@x.test', basis: 'booking', via_phone: null },
+        { email: 'c@x.test', basis: 'booking', via_phone: null },
+      ],
+    })
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      {
+        contacts: [
+          { id: 1, email: 'a@x.test' },
+          { id: 2, email: 'b@x.test' },
+          { id: 3, email: 'c@x.test' },
+        ],
+      },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+      expect(result).toEqual({ outcome: 'failed', code: 'cw_ambiguous' })
+      expect(h.fake.merges).toHaveLength(0)
+      expect(contacts(h)).toHaveLength(3)
+    } finally {
+      err.mockRestore()
+    }
+  })
+
+  it('ambiguous: two contacts signed in as different accounts are never merged', async () => {
+    const p = person({
+      emails: [
+        { email: 'a@x.test', basis: 'booking', via_phone: null },
+        { email: 'b@x.test', basis: 'booking', via_phone: null },
+      ],
+    })
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      {
+        contacts: [
+          { id: 1, email: 'a@x.test', identifier: 'user-one' },
+          { id: 2, email: 'b@x.test', identifier: 'user-two' },
+        ],
+      },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'failed', code: 'cw_ambiguous' })
+      expect(h.fake.merges).toHaveLength(0)
+    } finally {
+      err.mockRestore()
+    }
+  })
+
+  it('ambiguous: an administrator token that is refused does not trip the breaker for every sync', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [account()] },
+      {
+        contacts: [
+          { id: 1, email: 'old@x.test', identifier: USER_ID },
+          { id: 2, email: 'a@x.test' },
+        ],
+        tokens: { [FAKE_AGENT_TOKEN]: 'agent', [FAKE_ADMIN_TOKEN]: 'agent' },
+      },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'failed', code: 'cw_ambiguous' })
+      expect(contacts(h)).toHaveLength(2)
+    } finally {
+      err.mockRestore()
+    }
+  })
+})
+
+describe('sync.chatwoot 422 ladders and shared phones', () => {
+  /** The phone filter sees nothing (a number normalised differently), so uniqueness is only found by the write. */
+  const blindPhoneFilter: FakeChatwootOptions['intercept'] = (req) =>
+    req.path === '/contacts/filter' && req.body?.payload?.[0]?.attribute_key === 'phone_number' ? emptyFilter() : undefined
+
+  it('422: a create refused for a taken phone is retried once without phone_number', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 50, name: 'Hotel Desk', email: 'desk@x.test', phone_number: '+420777900010' }], intercept: blindPhoneFilter },
+    )
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const posts = h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/contacts')
+    expect(posts).toHaveLength(2)
+    expect(posts[0].body).toHaveProperty('phone_number')
+    expect(posts[1].body).not.toHaveProperty('phone_number')
+    expect(contacts(h)).toHaveLength(2)
+    expect(contacts(h)[0].phone_number).toBe('+420777900010') // the desk contact keeps its number
+    expect(contacts(h)[1].phone_number).toBeNull()
+  })
+
+  it('422: a create refused because the contact appeared meanwhile re-finds it and adopts', async () => {
+    let first = true
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      {
+        contacts: [{ id: 60, name: 'Raced', email: 'a@x.test' }],
+        // The first email filter does not see the contact yet; the create then hits the email uniqueness.
+        intercept: (req) => {
+          if (first && req.path === '/contacts/filter' && req.body?.payload?.[0]?.attribute_key === 'email') {
+            first = false
+            return emptyFilter()
+          }
+          return undefined
+        },
+      },
+    )
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(contacts(h)).toHaveLength(1)
+    expect(h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/contacts')).toHaveLength(1)
+    expect(h.ids.calls.setChatwootContact).toEqual([{ id: IDENTITY, contactId: 60 }])
+  })
+
+  it('422: a create that stays refused is failed cw_unprocessable', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { intercept: (req) => (req.method === 'POST' && req.path === '/contacts' ? new Response('{}', { status: 422 }) : undefined) },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'failed', code: 'cw_unprocessable' })
+      expect(h.rows.get(cwKey(IDENTITY))).toMatchObject({ status: 'failed', last_error: 'cw_unprocessable' })
+    } finally {
+      err.mockRestore()
+    }
+  })
+
+  it('422: with no phone to drop, a refused create fails at once', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person({ phones: [] })] },
+      { intercept: (req) => (req.method === 'POST' && req.path === '/contacts' ? new Response('{}', { status: 422 }) : undefined) },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'failed', code: 'cw_unprocessable' })
+      expect(h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/contacts')).toHaveLength(1)
+    } finally {
+      err.mockRestore()
+    }
+  })
+
+  it('422: an adopted contact whose phone update is refused drops the phone and the sync still succeeds', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      {
+        contacts: [
+          { id: 70, name: 'Anna', email: 'a@x.test', phone_number: null },
+          { id: 71, name: 'Hotel Desk', email: 'desk@x.test', phone_number: '+420777900010' },
+        ],
+        intercept: blindPhoneFilter,
+      },
+    )
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(puts(h)).toHaveLength(2)
+    expect(puts(h)[0].body).toHaveProperty('phone_number')
+    expect(puts(h)[1].body).not.toHaveProperty('phone_number')
+    expect(contacts(h).find((c) => c.id === 70)?.phone_number).toBeNull()
+    expect(contacts(h).find((c) => c.id === 70)?.custom_attributes).toMatchObject({ trip_count: '1' })
+  })
+
+  it('shared phone: a number the identity excluded never appears in any request', async () => {
+    const SHARED = '+420777900099'
+    const p = person({
+      phones: [], // identity_person excluded the shared desk number
+      profile: { email: 'a@x.test', full_name: 'Anna Profile', phone: SHARED },
+      bookings: [booking(BOOKING_1, { client_phone: SHARED })],
+    })
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(h.fake.requests.length).toBeGreaterThan(0)
+    expect(allBodies(h)).not.toContain(SHARED)
+    expect(allBodies(h)).not.toContain('900099')
+    expect(contacts(h)[0].phone_number).toBeNull()
+  })
+
+  it('shared phone: a contact that only holds the desk number is not found through it', async () => {
+    const SHARED = '+420777900099'
+    const h = harness(
+      { rows: [personRow()], persons: [person({ phones: [] })] },
+      { contacts: [{ id: 80, name: 'Hotel Desk', email: 'desk@x.test', phone_number: SHARED }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(contacts(h)).toHaveLength(2)
+    expect(contacts(h).find((c) => c.id === 80)?.custom_attributes).toEqual({})
+  })
+})
+
+describe('sync.chatwoot guards, failures and the contact-only prohibition', () => {
+  it('an erasing person is skipped identity_erasing with zero requests', async () => {
+    const p = person()
+    p.identity.erasing_at = '2026-10-19T11:00:00.000Z'
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'skipped', code: 'identity_erasing' })
+    expect(h.fake.requests).toHaveLength(0)
+  })
+
+  it('a person without a usable email is skipped no_email', async () => {
+    const h = harness({ rows: [personRow()], persons: [person({ emails: [] })] })
+
+    expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'skipped', code: 'no_email' })
+    expect(h.fake.requests).toHaveLength(0)
+  })
+
+  it('Chatwoot 503 -> rescheduled cw_http_503 (retry with backoff)', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] }, { intercept: () => new Response('{}', { status: 503 }) })
+
+    expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'rescheduled', code: 'cw_http_503' })
+    expect(h.rows.get(cwKey(IDENTITY))?.status).toBe('pending')
+    expect(h.publish).toHaveBeenCalledTimes(1)
+  })
+
+  it('Chatwoot 429 -> rescheduled cw_http_429', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] }, { intercept: () => new Response('{}', { status: 429 }) })
+
+    expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'rescheduled', code: 'cw_http_429' })
+  })
+
+  it('a network failure -> rescheduled cw_network', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] })
+    const broken = createSiteChatwootClient({
+      config: CW_CONFIG,
+      fetchImpl: (async () => {
+        throw new TypeError('fetch failed')
+      }) as unknown as typeof fetch,
+    })
+
+    expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h, { chatwoot: broken }))).toEqual({
+      outcome: 'rescheduled',
+      code: 'cw_network',
+    })
+  })
+
+  it('Chatwoot 401 -> 6 h breaker chatwoot_auth', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] })
+    const rejected = createSiteChatwootClient({
+      config: { ...CW_CONFIG, token: 'wrong_token_value' },
+      fetchImpl: h.fake.fetchImpl as unknown as typeof fetch,
+    })
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h, { chatwoot: rejected }))
+
+    expect(result).toEqual({ outcome: 'breaker', code: 'chatwoot_auth' })
+    expect(h.calls.reschedule[0].availableAt.getTime() - NOW.getTime()).toBe(21_600_000)
+  })
+
+  it('the 45 s deadline passes before the write -> rescheduled with code deadline', async () => {
+    let late = false
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      {
+        intercept: (req) => {
+          if (req.path === '/contacts/filter') late = true
+          return undefined
+        },
+      },
+    )
+    const now = () => (late ? new Date(NOW.getTime() + 46_000) : NOW)
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h, { now }))
+
+    expect(result).toEqual({ outcome: 'rescheduled', code: 'deadline' })
+    expect(contacts(h)).toHaveLength(0)
+    expect(h.calls.reschedule[0].code).toBe('deadline')
+    expect(h.publish).toHaveBeenCalledWith(cwKey(IDENTITY), expect.objectContaining({ delaySeconds: 5, dedupSuffix: 'dl1' }))
+  })
+
+  it('a refused update that is not a 422 is failed with its cw_http code', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      {
+        contacts: [{ id: 3, name: 'Anna', email: 'a@x.test', phone_number: '+420777900010' }],
+        intercept: (req) => (req.method === 'PUT' ? new Response('{}', { status: 400 }) : undefined),
+      },
+    )
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      expect(await dispatchOutboxKey(cwKey(IDENTITY), deps(h))).toEqual({ outcome: 'failed', code: 'cw_http_400' })
+    } finally {
+      err.mockRestore()
+    }
+  })
+
+  it('only contact records are touched: no message, conversation or automation endpoint is ever called', async () => {
+    const p = person()
+    p.identity.user_id = USER_ID
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      {
+        contacts: [
+          { id: 1, email: 'old@x.test', identifier: USER_ID },
+          { id: 2, email: 'a@x.test' },
+        ],
+      },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(h.fake.requests.length).toBeGreaterThan(0)
+    for (const req of h.fake.requests) {
+      expect(req.path).toMatch(/^\/(contacts(\/filter|\/\d+)?|actions\/contact_merge)$/)
+    }
+  })
+
+  it('no currency symbol reaches any request body', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    // lifetime_value carries a plain "<amount> EUR" total by design (D-02); no symbol.
+    expect(allBodies(h)).not.toContain('€')
+  })
+
+  it('a second booking for the same person is reflected in repeat_customer on the next sync', async () => {
+    const p = person({ bookings: [booking(BOOKING_1), booking(BOOKING_2, { pickup_utc: '2026-12-10T09:00:00.000Z', pickup_date: '2026-12-10' })] })
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(contacts(h)[0].custom_attributes).toMatchObject({ trip_count: '2', repeat_customer: 'yes', lifetime_value: '90.00 EUR' })
+  })
+})
