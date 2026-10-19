@@ -3,7 +3,7 @@ phase: 82-site-crm-chatwoot-sync-foundation
 plan: 09
 subsystem: sync / backfill
 tags: [supabase, identity, backfill, outbox, chatwoot, tdd]
-status: partial
+status: complete
 requires:
   - phase: 82-01 (identity tables, resolvers, outbox_enqueue, outbox_kick)
   - phase: 82-05 (phone rules in identity_resolve_core)
@@ -27,7 +27,7 @@ decisions:
   - "--contact without --expect-identifier exits 0 with contact_found=<bool> (existence probe); with --expect-identifier behaviour is unchanged"
 metrics:
   tasks_total: 3
-  tasks_done: 2 (Task 3 PENDING: orchestrator, Supabase MCP)
+  tasks_done: 3 (Task 3 by orchestrator via Supabase MCP)
   plan_head_before: 2732e874340e31b910c4d77935c5715f57a98296
   commits: 4
   completed: 2026-10-19
@@ -43,7 +43,7 @@ Migration 074 adds three service-role-only functions that replay all history thr
 
 ## Status
 
-Code, tests and the smoke SQL are complete and committed. **Task 3 is PENDING** (needs the Supabase MCP; executors do not have it): apply migration 074 live and run `82-09-smoke.sql` (rolled back, ends in `SMOKE_OK_82_09`). Live dry-run counts are NOT yet recorded here; the orchestrator must add them.
+Code, tests and the smoke SQL are complete and committed. Task 3 was done by the orchestrator on 2026-10-19 ~20:16 UTC; the live dry-run counts are recorded below.
 
 ## What was built
 
@@ -68,7 +68,7 @@ Code, tests and the smoke SQL are complete and committed. **Task 3 is PENDING** 
 - `npx tsc --noEmit`: no errors in the new/changed test files; eslint clean on changed files.
 - Acceptance greps: 3 `CREATE OR REPLACE FUNCTION public.crm_` in 074; at least 3 `ORDER BY ...created_at`; `contacts-count` appears 6 times in inspect.mjs.
 
-## Task 3 (PENDING, orchestrator)
+## Task 3 (DONE by orchestrator — original handoff notes)
 
 1. MCP `apply_migration` name `074_crm_backfill` with the file contents.
 2. MCP `execute_sql` with `82-09-smoke.sql` (single DO block). Expected result: an error whose message starts `SMOKE_OK_82_09 pass={...} report={...} enqueued=N` (rolls back). The smoke asserts: all bad tags raise `invalid_tag`; second identity pass and report are identical; report adds up (linked + no_identity + abandoned = total); pass and report agree; report/pass contain no `@` or `+`; first enqueue returns exactly `(total - abandoned) + profiles`; same-tag re-run returns 0; rows are tagged `:bf`, event types are only `sync.booking` / `sync.signup`; spread of `available_at` equals `(n-1) * 5 s`; `bf2` (stagger 0) and `bf3` (stagger 9999) enqueue the same count; anon/authenticated lack EXECUTE, service_role has it.
@@ -103,3 +103,25 @@ None. The new functions are service-role only (REVOKE from PUBLIC, anon, authent
 
 - supabase/migrations/074_crm_backfill.sql, tests/crm-backfill.test.ts, 82-09-smoke.sql, infra/chatwoot/inspect.mjs: present.
 - Commits 6fdc0536, 08b5a68e, e8dea8e2 exist on the worktree branch.
+
+## Orchestrator: live apply + dry run on real data (2026-10-19)
+
+- `apply_migration 074_crm_backfill` → success.
+- `82-09-smoke.sql` → `SMOKE_OK_82_09` (all asserts passed, rolled back). Counts only:
+
+| measure | value |
+|---|---|
+| bookings total / abandoned skipped | 69 / 1 |
+| bookings linked to an identity | 66 |
+| bookings without identity (GNet placeholder emails) | 2 |
+| profiles seen / linked | 18 / 18 |
+| identities that would be created | 40 (18 with an account) |
+| identity emails by basis | email 31, signup 9, phone 0, split 0 |
+| phone merges | **0** |
+| shared numbers (auto / manual / split) | 0 / 0 / 0 |
+| bookings with an unparseable phone | 17 |
+| outbox rows the backfill would enqueue per tag | 86 (= 68 bookings + 18 profiles; stagger 5 s → ~7 min) |
+
+- Unparseable phones, by shape only (no values): 13 start with a digit 1-9 and have 9-12 digits (mostly 9 = Czech national format without +420), 3 start with 0, 1 `+` number rejected by the trunk-zero rule, 1 GNet placeholder. By design (D-04) no country code is guessed, so these never drive a phone merge; the phone is still kept on the booking itself. Owner decision for 82-14 if wanted: accept as is (recommended — merges stay email-safe) or add a +420 default for 9-digit national numbers in a later change.
+- Leftovers after rollback: 0 `:bf*` outbox rows, 0 contact_identities, 0 booking_identity links.
+- `get_advisors` (security): 0 ERROR; nothing names crm_backfill_identity_pass / crm_identity_report / crm_backfill_enqueue.
