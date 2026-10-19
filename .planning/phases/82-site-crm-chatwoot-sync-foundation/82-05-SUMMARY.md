@@ -3,7 +3,7 @@ phase: 82-site-crm-chatwoot-sync-foundation
 plan: 05
 subsystem: sync / identity
 tags: [supabase, identity, phone-matching, security, tdd]
-status: partial
+status: complete
 requires:
   - phase: 82-01 (migration 069 live: identity tables, identity_resolve_core email rules, identity_person shared-phone filter)
 provides:
@@ -28,7 +28,7 @@ decisions:
   - "normalizeIdentityEmail does not import lib/lead-mapping (no currency/CRM chain); it mirrors identity_normalize_email, so it also rejects a missing local part and addresses over 254 characters"
 metrics:
   tasks_total: 3
-  tasks_done: 2 (Tasks 1 and 2 by the executor; Task 3 PENDING for the orchestrator)
+  tasks_done: 3 (Tasks 1-2 executor; Task 3 orchestrator via Supabase MCP)
   commits: 3
   plan_head_before: c7ab2f3fe2d25f16e1be293b798a025cbf3d38e2
   plan_head_after: 81d1890a6cdfcf53e17f71249f1753e8dd39ea4d
@@ -45,7 +45,7 @@ Identity resolution now matches by phone exactly as D-04 and D-05 say: a new ema
 
 ## Status
 
-Code, fixtures and tests (Tasks 1 and 2) are complete and committed. Task 3 (apply 072 live, run the rolled-back smoke, advisor check) is **PENDING for the orchestrator**: the executor has no Supabase MCP. The smoke SQL is committed at `.planning/phases/82-site-crm-chatwoot-sync-foundation/82-05-smoke.sql`.
+Code, fixtures and tests (Tasks 1 and 2) are complete and committed. Task 3 (apply 072 live, rolled-back smoke, advisor check) was done by the orchestrator on 2026-10-19 ~20:05 UTC (see below). The smoke SQL is committed at `.planning/phases/82-site-crm-chatwoot-sync-foundation/82-05-smoke.sql`.
 
 ## Tasks
 
@@ -53,7 +53,7 @@ Code, fixtures and tests (Tasks 1 and 2) are complete and committed. Task 3 (app
 |------|------|--------|--------|
 | 1 | Tracer: new email + known un-shared phone -> merged (basis phone) -> number shared | done | 9c1e67a4 |
 | 2 | Shared-number protections: collision, manual flag, signup guard, erasing owner, phone-only rows | done | 89a25a15 |
-| 3 | Apply 072 live + SMOKE_OK_82_05 + advisors (orchestrator, Supabase MCP) | PENDING (orchestrator) | smoke SQL 81d1890a |
+| 3 | Apply 072 live + SMOKE_OK_82_05 + advisors (orchestrator, Supabase MCP) | DONE (orchestrator) | smoke SQL 81d1890a |
 
 Task 1's resolver branches were all written in the tracer commit (the five rules are one function); Task 2's commit adds the drift guards on top (the SQL normaliser executed in JS from the migration's own code-point constants, and rule-branch contract tests).
 
@@ -124,3 +124,15 @@ None. No new endpoints or trust boundaries; the two functions are REVOKEd from a
 - FOUND: supabase/migrations/072_identity_phone_rules.sql, lib/identity.ts, tests/identity.test.ts, tests/fixtures/identity-cases.json, .planning/phases/82-site-crm-chatwoot-sync-foundation/82-05-smoke.sql
 - FOUND commits: 9c1e67a4, 89a25a15, 81d1890a
 - STATE.md and ROADMAP.md untouched.
+
+## Orchestrator: live apply (Task 3)
+
+- `apply_migration 072_identity_phone_rules` → success (live 2026-10-19).
+- The generated 80 KB smoke is too large for one MCP `execute_sql` payload, so it was run as four rolled-back DO blocks with identical assertions (the per-step blocks folded into VALUES loops; post-checks verbatim):
+  - fixtures: 57 phone + 12 email normaliser cases → `SMOKE_OK_82_05_fixtures` (69 assertions) — the Postgres regex / chr() classes match the TS normaliser on every fixture.
+  - part 1 (shape + scenarios 1-5) → `SMOKE_OK_82_05_part1` (64)
+  - part 2 (scenarios 6-9) → `SMOKE_OK_82_05_part2` (45)
+  - part 3 (scenarios 10-13 + booking resolver path + privileges) → `SMOKE_OK_82_05_part3` (57)
+  - total 235 assertions = the generated smoke's DETAIL count.
+- Leftovers after all runs: 0 identities, 0 identity_emails, 0 phone_flags, 0 smoke auth users, 0 SMK-82-05 bookings, 0 new outbox rows; crm_sync_start absent.
+- `get_advisors` (security): 0 ERROR; nothing names identity_normalize_phone / identity_resolve_core.
