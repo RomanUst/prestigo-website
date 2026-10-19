@@ -318,6 +318,57 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.identity_resolve_user(p_user_id uuid)
+RETURNS TABLE (identity_id uuid, previous_identity_id uuid, outcome text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+#variable_conflict use_column
+DECLARE
+  r       record;
+  v_email text;
+  v_phone text;
+  v_prev  uuid;
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended('identity', 0));
+
+  -- The profile row is the source (password signup, OAuth/magic-link callback and
+  -- admin-created accounts all write it); the address lives in auth.users.
+  SELECT cp.phone INTO v_phone
+    FROM public.customer_profiles cp
+   WHERE cp.user_id = p_user_id;
+  IF NOT FOUND THEN
+    RETURN QUERY SELECT NULL::uuid, NULL::uuid, 'source_missing'::text;
+    RETURN;
+  END IF;
+
+  SELECT u.email INTO v_email FROM auth.users u WHERE u.id = p_user_id;
+
+  SELECT c.id INTO v_prev
+    FROM public.contact_identities c
+   WHERE c.user_id = p_user_id;
+
+  SELECT * INTO r
+    FROM public.identity_resolve_core(v_email, v_phone, 'signup', p_user_id);
+
+  IF r.outcome = 'resolved' THEN
+    RETURN QUERY SELECT
+      r.identity_id,
+      CASE WHEN v_prev IS DISTINCT FROM r.identity_id THEN v_prev ELSE NULL END,
+      'resolved'::text;
+    RETURN;
+  END IF;
+
+  IF r.outcome = 'erasing' THEN
+    RETURN QUERY SELECT r.identity_id, NULL::uuid, 'erasing'::text;
+    RETURN;
+  END IF;
+
+  RETURN QUERY SELECT NULL::uuid, v_prev, 'no_identity'::text;
+END;
+$$;
+
 -- ── Read contracts for the CRM / chat mappers ───────────────────────────────
 
 -- One booking as the CRM mapper reads it. Columns absent from the live schema
@@ -549,6 +600,60 @@ BEGIN
 END;
 $$;
 
+-- ── Signup / profile capture trigger ────────────────────────────────────────
+-- customer_profiles has no email column (the address lives in auth.users), so
+-- only full_name / phone changes fire it; a changed auth email converges on the
+-- next booking or profile edit.
+CREATE OR REPLACE FUNCTION public.enqueue_profile_sync()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_start timestamptz;
+  v_key   text;
+BEGIN
+  BEGIN
+    IF TG_OP = 'UPDATE' THEN
+      IF ROW(NEW.full_name, NEW.phone) IS NOT DISTINCT FROM ROW(OLD.full_name, OLD.phone) THEN
+        RETURN NEW;
+      END IF;
+    END IF;
+
+    -- Go-live switch (same gate as the booking trigger).
+    v_start := (
+      SELECT c.value FROM public.integration_config c WHERE c.key = 'crm_sync_start'
+    )::timestamptz;
+    IF v_start IS NULL THEN
+      RETURN NEW;
+    END IF;
+
+    v_key := 'sync.signup:' || NEW.user_id::text || ':'
+             || (floor(extract(epoch FROM now()) / 90))::bigint::text;
+
+    PERFORM public.outbox_enqueue(
+      'sync.signup',
+      'user',
+      NEW.user_id,
+      v_key,
+      now() + interval '90 seconds'
+    );
+
+    -- The kick must never undo the enqueue above.
+    BEGIN
+      PERFORM public.outbox_kick(v_key);
+    EXCEPTION WHEN OTHERS THEN
+      RAISE WARNING 'enqueue_profile_sync kick failed: %', SQLERRM;
+    END;
+  EXCEPTION WHEN OTHERS THEN
+    -- NEVER let sync trouble abort a signup or a profile edit.
+    RAISE WARNING 'enqueue_profile_sync failed: %', SQLERRM;
+  END;
+  RETURN NEW;
+END;
+$$;
+
 -- SECURITY DEFINER functions get PUBLIC EXECUTE by default: revoke it, then
 -- grant to service_role only (the core is internal: callers must hold the lock;
 -- the trigger functions are only ever fired by their triggers).
@@ -556,16 +661,19 @@ REVOKE EXECUTE ON FUNCTION public.identity_normalize_email(text) FROM PUBLIC, an
 REVOKE EXECUTE ON FUNCTION public.identity_is_abandoned(text, text, text) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.identity_resolve_core(text, text, text, uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.identity_resolve_booking(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.identity_resolve_user(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.crm_booking(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.identity_person(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.identity_email_owners(text[]) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.identity_set_espo_contact(uuid, text) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.identity_set_chatwoot_contact(uuid, bigint) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.enqueue_booking_sync() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.enqueue_profile_sync() FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION public.identity_normalize_email(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.identity_is_abandoned(text, text, text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.identity_resolve_booking(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.identity_resolve_user(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.crm_booking(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.identity_person(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.identity_email_owners(text[]) TO service_role;
@@ -585,3 +693,10 @@ CREATE TRIGGER bookings_crm_sync
   ON public.bookings
   FOR EACH ROW
   EXECUTE FUNCTION public.enqueue_booking_sync();
+
+DROP TRIGGER IF EXISTS customer_profiles_crm_sync ON public.customer_profiles;
+CREATE TRIGGER customer_profiles_crm_sync
+  AFTER INSERT OR UPDATE OF full_name, phone
+  ON public.customer_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION public.enqueue_profile_sync();

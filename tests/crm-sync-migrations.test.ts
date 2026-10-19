@@ -29,12 +29,14 @@ const FUNCTION_SIGNATURES = [
   'identity_is_abandoned(text, text, text)',
   'identity_resolve_core(text, text, text, uuid)',
   'identity_resolve_booking(uuid)',
+  'identity_resolve_user(uuid)',
   'crm_booking(uuid)',
   'identity_person(uuid)',
   'identity_email_owners(text[])',
   'identity_set_espo_contact(uuid, text)',
   'identity_set_chatwoot_contact(uuid, bigint)',
   'enqueue_booking_sync()',
+  'enqueue_profile_sync()',
 ]
 
 describe('069 booking capture trigger', () => {
@@ -85,6 +87,39 @@ describe('069 booking capture trigger', () => {
 
   it('adds bookings.anonymised_at', () => {
     expect(m069).toMatch(/ALTER TABLE public\.bookings ADD COLUMN IF NOT EXISTS anonymised_at timestamptz/)
+  })
+})
+
+describe('069 signup capture trigger', () => {
+  it('customer_profiles_crm_sync is AFTER INSERT OR UPDATE OF full_name, phone', () => {
+    const trig = m069.slice(m069.indexOf('CREATE TRIGGER customer_profiles_crm_sync'))
+    expect(trig).toMatch(/AFTER INSERT OR UPDATE OF full_name, phone/)
+    expect(trig).toMatch(/ON public\.customer_profiles/)
+    expect(trig).toMatch(/EXECUTE FUNCTION public\.enqueue_profile_sync\(\)/)
+    expect((m069.match(/CREATE TRIGGER customer_profiles_crm_sync/g) ?? []).length).toBe(1)
+  })
+
+  it('enqueue_profile_sync uses the user aggregate, the sync.signup key, the gate and two exception guards', () => {
+    const body = fnBody('enqueue_profile_sync')
+    expect((body.match(/EXCEPTION WHEN OTHERS/g) ?? []).length).toBe(2)
+    expect(body).toContain("'sync.signup'")
+    expect(body).toContain("'user'")
+    expect(body).toContain('crm_sync_start')
+    expect(body).toContain('/ 90')
+    expect(body).toContain("interval '90 seconds'")
+    expect(body).toMatch(/outbox_kick\(v_key\)/)
+    expect(body).toContain('NEW.user_id')
+  })
+
+  it('identity_resolve_user takes the same global lock, reads auth.users and uses the signup basis', () => {
+    const body = fnBody('identity_resolve_user')
+    expect(body).toContain("pg_advisory_xact_lock(hashtextextended('identity', 0))")
+    expect(body).toContain('auth.users')
+    expect(body).toContain('public.customer_profiles')
+    expect(body).toContain("'signup'")
+    expect(body).toContain("'source_missing'")
+    expect(body).toContain("'erasing'")
+    expect((m069.match(/hashtextextended\('identity', 0\)/g) ?? []).length).toBeGreaterThanOrEqual(2)
   })
 })
 

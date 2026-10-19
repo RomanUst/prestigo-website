@@ -328,3 +328,172 @@ describe('dispatcher gating', () => {
     expect(await dispatchOutboxKey(key, h.deps)).toEqual({ outcome: 'failed', code: 'unsupported_event' })
   })
 })
+
+describe('sync.signup resolver hop', () => {
+  it('resolves the user and fans out two person rows', async () => {
+    const h = signupHarness({ user: () => result('resolved', IDENT_I) })
+    expect(await dispatchOutboxKey(signupKey, h.deps)).toEqual({ outcome: 'sent' })
+    expect(h.identity.resolveUser).toHaveBeenCalledWith(USER)
+    expect(h.identity.resolveBooking).not.toHaveBeenCalled()
+
+    const created = newRows(h.rows, signupKey)
+    expect(created.map((r) => r.event_type).sort()).toEqual(['sync.chatwoot', 'sync.espo'])
+    expect(created.every((r) => r.aggregate_type === 'person' && r.aggregate_id === IDENT_I)).toBe(true)
+    expect(h.publish).toHaveBeenCalledTimes(2)
+  })
+
+  it('also fans out the previously linked identity', async () => {
+    const h = signupHarness({ user: () => result('resolved', IDENT_I, IDENT_P) })
+    expect(await dispatchOutboxKey(signupKey, h.deps)).toEqual({ outcome: 'sent' })
+    expect(newRows(h.rows, signupKey)).toHaveLength(4)
+  })
+
+  it('an unusable auth email: skipped no_email, nothing fanned out', async () => {
+    const h = signupHarness({ user: () => result('no_identity') })
+    expect(await dispatchOutboxKey(signupKey, h.deps)).toEqual({ outcome: 'skipped', code: 'no_email' })
+    expect(newRows(h.rows, signupKey)).toHaveLength(0)
+  })
+
+  it('erasing identity: rescheduled identity_erasing', async () => {
+    const h = signupHarness({ user: () => result('erasing', IDENT_I) })
+    expect(await dispatchOutboxKey(signupKey, h.deps)).toEqual({ outcome: 'rescheduled', code: 'identity_erasing' })
+    expect(newRows(h.rows, signupKey)).toHaveLength(0)
+  })
+
+  it('the profile is gone (user deleted): skipped source_missing', async () => {
+    const h = signupHarness({ user: () => result('source_missing') })
+    expect(await dispatchOutboxKey(signupKey, h.deps)).toEqual({ outcome: 'skipped', code: 'source_missing' })
+  })
+
+  it('an enqueue RPC error reschedules with db_error', async () => {
+    const h = signupHarness({ enqueueError: true })
+    expect(await dispatchOutboxKey(signupKey, h.deps)).toEqual({ outcome: 'rescheduled', code: 'db_error' })
+  })
+
+  it('resolves without any CRM configured', async () => {
+    const h = signupHarness()
+    expect(h.deps.crm).toBeNull()
+    expect((await dispatchOutboxKey(signupKey, h.deps)).outcome).toBe('sent')
+  })
+})
+
+/**
+ * Store double that models the 069 core rules (email rule only): an address belongs to one identity,
+ * a signup claims the identity that owns its address (or joins the user's own identity), a new
+ * address creates a new identity. Used to prove the ordering edge: either order ends with ONE identity.
+ */
+function makeIdentityModel() {
+  const identities = new Map<string, { userId: string | null; emails: Set<string> }>()
+  const owner = new Map<string, string>()
+  const bookingEmail = new Map<string, string>()
+  const userEmail = new Map<string, string>()
+  const bookingLink = new Map<string, string>()
+  let seq = 0
+
+  const norm = (raw: string): string | null => {
+    const e = raw.trim().toLowerCase()
+    return e.includes('@') && !e.endsWith('@gnet.local') ? e : null
+  }
+  const identityOfUser = (userId: string): string | null =>
+    [...identities.entries()].find(([, v]) => v.userId === userId)?.[0] ?? null
+
+  function core(raw: string, userId: string | null): ResolveResult {
+    const email = norm(raw)
+    if (!email) return result('no_identity')
+    const existing = owner.get(email)
+    if (existing) {
+      const ident = identities.get(existing)!
+      if (userId && ident.userId === null && !identityOfUser(userId)) ident.userId = userId
+      return result('resolved', existing)
+    }
+    const own = userId ? identityOfUser(userId) : null
+    if (own) {
+      identities.get(own)!.emails.add(email)
+      owner.set(email, own)
+      return result('resolved', own)
+    }
+    const id = `ident-${++seq}`
+    identities.set(id, { userId, emails: new Set([email]) })
+    owner.set(email, id)
+    return result('resolved', id)
+  }
+
+  const resolveBooking = (bookingId: string): ResolveResult => {
+    const raw = bookingEmail.get(bookingId)
+    if (raw === undefined) return result('source_missing')
+    const prev = bookingLink.get(bookingId) ?? null
+    const r = core(raw, null)
+    if (r.outcome === 'resolved') bookingLink.set(bookingId, r.identityId!)
+    return { ...r, previousIdentityId: prev && prev !== r.identityId ? prev : null }
+  }
+  const resolveUser = (userId: string): ResolveResult => {
+    const raw = userEmail.get(userId)
+    if (raw === undefined) return result('source_missing')
+    const prev = identityOfUser(userId)
+    const r = core(raw, userId)
+    return { ...r, previousIdentityId: prev && prev !== r.identityId ? prev : null }
+  }
+
+  return {
+    identities,
+    addBooking: (id: string, email: string) => bookingEmail.set(id, email),
+    addUser: (id: string, email: string) => userEmail.set(id, email),
+    resolveBooking,
+    resolveUser,
+  }
+}
+
+describe('ordering: signup and booking with one email end with one identity', () => {
+  const B2 = '5a4e7163-a28f-4d30-81c2-6f708192a3b4'
+  const bKey = (id: string) => `sync.booking:${id}:${BUCKET_TAG}`
+
+  async function runBoth(order: Array<'booking' | 'signup'>) {
+    const model = makeIdentityModel()
+    model.addBooking(B2, '  Anna@Example.COM ')
+    model.addUser(USER, 'anna@example.com')
+
+    const s = makeStore([
+      outboxRow(bKey(B2), 'sync.booking', 'booking', B2),
+      outboxRow(signupKey, 'sync.signup', 'user', USER),
+    ])
+    const i = makeIdentity(s.rows, {})
+    i.identity.resolveBooking = vi.fn(async (id: string) => model.resolveBooking(id))
+    i.identity.resolveUser = vi.fn(async (id: string) => model.resolveUser(id))
+    const publish = vi.fn(async () => true)
+    const deps: Partial<DispatchDeps> = {
+      store: s.store,
+      crm: null,
+      config: null,
+      identity: i.identity,
+      publish: publish as unknown as DispatchDeps['publish'],
+      now: () => NOW,
+    }
+    for (const step of order) {
+      const key = step === 'booking' ? bKey(B2) : signupKey
+      expect((await dispatchOutboxKey(key, deps)).outcome).toBe('sent')
+    }
+    return model
+  }
+
+  it.each([
+    ['booking then signup', ['booking', 'signup'] as const],
+    ['signup then booking', ['signup', 'booking'] as const],
+  ])('%s', async (_name, order) => {
+    const model = await runBoth([...order])
+    expect(model.identities.size).toBe(1)
+    const only = [...model.identities.values()][0]
+    expect([...only.emails]).toEqual(['anna@example.com'])
+    expect(only.userId).toBe(USER)
+  })
+
+  it('a signup whose email changed joins the user identity instead of creating a second one', () => {
+    const model = makeIdentityModel()
+    model.addUser(USER, 'a@example.com')
+    model.resolveUser(USER)
+    model.addUser(USER, 'a-new@example.com')
+    const r = model.resolveUser(USER)
+    expect(r.outcome).toBe('resolved')
+    expect(model.identities.size).toBe(1)
+    expect([...[...model.identities.values()][0].emails].sort()).toEqual(['a-new@example.com', 'a@example.com'])
+  })
+})
