@@ -398,7 +398,6 @@
     "scroll": "Scroll",
     "ratingAria": "Rated {rating} out of 5 from {count} Google reviews",
     "googleReviews": "Google reviews",
-    "googleReviewsCount": "{count, plural, one {# Google review} other {# Google reviews}}",
     "googleReviewsLink": "See our reviews on Google (opens in a new tab)",
     "words": ["Chauffeur Service", "Airport Transfer", "Private Driver", "Luxury Transport", "Business Travel"],
     "bookViaWhatsapp": "Book via WhatsApp",

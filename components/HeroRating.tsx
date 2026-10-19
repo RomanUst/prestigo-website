@@ -12,8 +12,9 @@ type Props = {
  * Compact Google rating trust signal for the Hero.
  * Server component — static render, no client JS.
  * Uses copper unicode stars to match TestimonialsCarousel.
- * Shows the visible review count and links to the Google Business Profile,
- * so readers (and AI assistants) can verify the rating at its source.
+ * Links to the Google Business Profile so the rating can be verified at its
+ * source. The review count is deliberately not shown on screen (owner's
+ * choice); it stays machine-readable in aria-label, JSON-LD and llms.txt.
  */
 export default function HeroRating({
   ratingValue,
@@ -61,7 +62,7 @@ export default function HeroRating({
           color: 'var(--warmgrey)',
         }}
       >
-        {t('googleReviewsCount', { count: reviewCount })}
+        {t('googleReviews')}
       </span>
     </a>
   )

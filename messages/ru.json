@@ -415,7 +415,6 @@
     "scroll": "Прокрутите",
     "ratingAria": "Оценка {rating} из 5 на основе {count} отзывов в Google",
     "googleReviews": "Отзывы в Google",
-    "googleReviewsCount": "{count, plural, one {# отзыв в Google} few {# отзыва в Google} many {# отзывов в Google} other {# отзыва в Google}}",
     "googleReviewsLink": "Посмотреть наши отзывы в Google (откроется в новой вкладке)",
     "words": [
       "Сервис с водителем",

@@ -415,7 +415,6 @@
     "scroll": "Faire défiler",
     "ratingAria": "Noté {rating} sur 5 d'après {count} avis Google",
     "googleReviews": "Avis Google",
-    "googleReviewsCount": "{count, plural, one {# avis Google} other {# avis Google}}",
     "googleReviewsLink": "Voir nos avis sur Google (s'ouvre dans un nouvel onglet)",
     "words": [
       "Service de chauffeur",

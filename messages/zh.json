@@ -415,7 +415,6 @@
     "scroll": "向下滚动",
     "ratingAria": "根据 {count} 条 Google 评价，评分为 {rating} 分（满分 5 分）",
     "googleReviews": "Google 评价",
-    "googleReviewsCount": "{count, plural, other {# 条 Google 评价}}",
     "googleReviewsLink": "在 Google 上查看我们的评价（在新标签页中打开）",
     "words": [
       "专车司机服务",
