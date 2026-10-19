@@ -33,6 +33,15 @@ describe('AdminSidebar', () => {
     expect(promosLink.closest('a')?.getAttribute('href')).toBe('/admin/promo-codes')
   })
 
+  it('renders Identities nav item linking to /admin/identities directly after Outbox', () => {
+    render(<AdminSidebar />)
+    const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'))
+    const outbox = hrefs.indexOf('/admin/outbox')
+    expect(outbox).toBeGreaterThanOrEqual(0)
+    expect(hrefs[outbox + 1]).toBe('/admin/identities')
+    expect(screen.getByText('Identities').closest('a')?.getAttribute('href')).toBe('/admin/identities')
+  })
+
   it('all nav links have 44px minimum touch target', () => {
     render(<AdminSidebar />)
     const links = screen.getAllByRole('link')
