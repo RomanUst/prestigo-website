@@ -495,3 +495,89 @@ describe('072 identity_resolve_core', () => {
     expect(m072).not.toMatch(/FUNCTION public\.identity_person/)
   })
 })
+
+// ── 4. The SQL normaliser, executed in JS from the migration's own constants ─
+// There is no Postgres in the test run, so the code-point tables of identity_normalize_phone are
+// parsed out of the 072 text and a line-by-line JS port of the SQL steps is run over the shared
+// fixtures. A wrong code point or a mistyped class in the migration fails here before it is applied;
+// the live smoke (82-05-smoke.sql) then proves the real function against the same fixtures.
+
+function sqlConstant(name: string): string {
+  const m = m072.match(new RegExp(`${name}\\s+constant text :=([^;]+);`))
+  if (!m) throw new Error(`constant ${name} not found in 072`)
+  let out = ''
+  for (const t of m[1].matchAll(/chr\((\d+)\)|'([^']*)'/g)) {
+    out += t[1] !== undefined ? String.fromCodePoint(Number(t[1])) : t[2]
+  }
+  return out
+}
+
+function sqlNormalizePhone(raw: string | null): string | null {
+  if (raw === null) return null
+  const ws = sqlConstant('c_ws')
+  const invisible = sqlConstant('c_invisible')
+  const dashes = sqlConstant('c_dashes')
+  const zeros = (m072.match(/FOREACH v_zero IN ARRAY ARRAY\[([^\]]+)\]/) as RegExpMatchArray)[1]
+    .split(',')
+    .map(Number)
+  let s = raw.replace(new RegExp(`[${invisible}]`, 'g'), '')
+  for (const z of zeros) {
+    for (let i = 0; i <= 9; i++) s = s.split(String.fromCodePoint(z + i)).join(String(i))
+  }
+  for (const m of m072.matchAll(/v_s := replace\(v_s, chr\((\d+)\), '(.)'\);/g)) {
+    s = s.split(String.fromCodePoint(Number(m[1]))).join(m[2])
+  }
+  s = s.replace(new RegExp(`[${dashes}]`, 'g'), '-')
+  s = s.replace(new RegExp(`\\([${ws}]*0[${ws}]*\\)`, 'g'), '')
+  s = s.replace(new RegExp(`[${ws}.()-]`, 'g'), '')
+  if (s.startsWith('00')) s = `+${s.slice(2)}`
+  if (!s.startsWith('+')) return null
+  const digits = s.slice(1)
+  if (/^(4200|4210)/.test(digits)) return null
+  const list = (m072.match(/FOREACH v_cc IN ARRAY ARRAY\[([^\]]+)\]/) as RegExpMatchArray)[1].match(/\d+/g) as string[]
+  for (const cc of list) {
+    if (digits.startsWith(`${cc}0`)) {
+      s = `+${cc}${digits.slice(3)}`
+      break
+    }
+  }
+  return /^\+[1-9][0-9]{7,14}$/.test(s) ? s : null
+}
+
+describe('072 identity_normalize_phone, run from the migration constants', () => {
+  it.each(fixtures.phones.map((c) => [JSON.stringify(c.raw), c] as const))('fixture %s', (_label, c) => {
+    expect(sqlNormalizePhone(c.raw)).toBe(c.expected)
+  })
+
+  it('parses the same character classes lib/phone.ts documents', () => {
+    expect(sqlConstant('c_invisible')).toContain('​-‏')
+    expect(sqlConstant('c_invisible')).toContain('‪-‮')
+    expect(sqlConstant('c_invisible')).toContain('⁦-⁩')
+    expect(sqlConstant('c_dashes')).toContain('‐-―')
+    expect(sqlConstant('c_ws')).toContain(' - ')
+    expect(sqlConstant('c_ws')).toContain(' ')
+    expect(sqlConstant('c_ws')).toContain('　')
+  })
+})
+
+describe('072 shared-number protections (rule branches present in the SQL)', () => {
+  const body = fnBody(m072, 'identity_resolve_core')
+
+  it('collision: an email match that brings a phone a different live person owns flags it shared, no merge', () => {
+    expect(body).toMatch(/p\.identity_id <> v_id AND o\.erasing_at IS NULL/)
+  })
+
+  it('erasing: only live (erasing_at IS NULL) owners count as a collision; erasing owners are skipped', () => {
+    expect((body.match(/o\.erasing_at IS NULL/g) ?? []).length).toBe(3)
+    expect(body).toMatch(/v_erasing IS NULL/)
+  })
+
+  it('signup guard: a different account blocks the phone merge and the signup gets its own identity', () => {
+    expect(body).toMatch(/NOT \(p_user_id IS NOT NULL AND v_uid IS NOT NULL AND v_uid <> p_user_id\)/)
+  })
+
+  it('manual flags: shared numbers are dropped before any matching and auto flags never overwrite a row', () => {
+    expect(body.indexOf('f.shared')).toBeLessThan(body.indexOf('FROM public.identity_emails e'))
+    expect(body).not.toMatch(/ON CONFLICT[^;]*DO UPDATE/)
+  })
+})
