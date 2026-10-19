@@ -293,3 +293,269 @@ describe('sync.espo tracer: person with one booking -> Contact -> linked CBookin
     expect(h.fake.requests).toHaveLength(0)
   })
 })
+
+// ── Task 2: Contact convergence ─────────────────────────────────────────────
+
+const CONTACT_ID = 'c00000000000000a1'
+
+function seededContact(over: Record<string, unknown> = {}) {
+  return {
+    id: CONTACT_ID,
+    firstName: 'Operator',
+    lastName: 'Edited',
+    title: 'Dr',
+    description: 'VIP note',
+    accountId: null,
+    emailAddress: 'a@x.test',
+    emailAddressData: [{ emailAddress: 'a@x.test', primary: true, optOut: false, invalid: false }],
+    phoneNumber: null,
+    ...over,
+  }
+}
+
+describe('sync.espo Contact convergence', () => {
+  it('links to a Phase 80 Contact found by email: no Contact POST, operator fields untouched', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] }, { records: { Contact: [seededContact({ accountId: 'ac00000000000001' })] } })
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(posts(h, '/Contact')).toHaveLength(0)
+    expect(contacts(h)).toHaveLength(1)
+    expect(contacts(h)[0]).toMatchObject({ firstName: 'Operator', lastName: 'Edited', title: 'Dr', description: 'VIP note', accountId: 'ac00000000000001' })
+    expect(puts(h, '/Contact')).toHaveLength(0)
+    expect(cbookings(h)).toHaveLength(1)
+    expect(cbookings(h)[0].contactId).toBe(CONTACT_ID)
+    // The Contact has an account: the CBooking carries it.
+    expect(cbookings(h)[0].accountId).toBe('ac00000000000001')
+    expect(h.ids.calls.setEspoContact).toEqual([{ id: IDENTITY, contactId: CONTACT_ID }])
+  })
+
+  it('cached Contact id answering 404 is forgotten and the Contact re-created; outcome sent', async () => {
+    const stale = person()
+    stale.identity.espo_contact_id = 'dead0000000000001'
+    const h = harness({ rows: [personRow()], persons: [stale] })
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(h.ids.calls.setEspoContact[0]).toEqual({ id: IDENTITY, contactId: null })
+    expect(contacts(h)).toHaveLength(1)
+    expect(h.ids.calls.setEspoContact[1]).toEqual({ id: IDENTITY, contactId: contacts(h)[0].id })
+    expect(cbookings(h)[0].contactId).toBe(contacts(h)[0].id)
+  })
+
+  it('cached Contact id answering 404 re-finds the Contact by email when it exists', async () => {
+    const stale = person()
+    stale.identity.espo_contact_id = 'dead0000000000001'
+    const h = harness({ rows: [personRow()], persons: [stale] }, { records: { Contact: [seededContact()] } })
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(posts(h, '/Contact')).toHaveLength(0)
+    expect(h.ids.calls.setEspoContact.map((c) => c.contactId)).toEqual([null, CONTACT_ID])
+  })
+
+  it('a Contact found through a secondary identity email is reused (primary tried first)', async () => {
+    const p = person({
+      emails: [
+        { email: 'a@x.test', basis: 'booking', via_phone: null },
+        { email: 'b@x.test', basis: 'phone', via_phone: '+420777900001' },
+      ],
+    })
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      { records: { Contact: [seededContact({ emailAddress: 'b@x.test', emailAddressData: [{ emailAddress: 'b@x.test', primary: true, optOut: false, invalid: false }] })] } },
+    )
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(posts(h, '/Contact')).toHaveLength(0)
+    expect(h.ids.calls.setEspoContact).toEqual([{ id: IDENTITY, contactId: CONTACT_ID }])
+  })
+
+  it('POST /Contact 400 is retried once without the phone number', async () => {
+    const p = person({ phones: ['+420777900001'] })
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      { extraRoutes: (req) => (req.method === 'POST' && req.path === '/Contact' && req.body?.phoneNumber ? new Response('', { status: 400 }) : undefined) },
+    )
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const sent = posts(h, '/Contact')
+    expect(sent).toHaveLength(2)
+    expect(sent[0].body.phoneNumber).toBe('+420777900001')
+    expect(sent[1].body.phoneNumber).toBeUndefined()
+    expect(contacts(h)).toHaveLength(1)
+  })
+
+  it('POST /Contact 409 re-finds the Contact by email and converges (no third POST)', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      {
+        extraRoutes: (req, state) => {
+          if (req.method === 'POST' && req.path === '/Contact') {
+            // A racing delivery created it between our lookup and the POST.
+            state.records.Contact.push(seededContact())
+            return new Response('', { status: 409 })
+          }
+          return undefined
+        },
+      },
+    )
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(posts(h, '/Contact')).toHaveLength(1)
+    expect(contacts(h)).toHaveLength(1)
+    expect(cbookings(h)[0].contactId).toBe(CONTACT_ID)
+  })
+
+  it('a persistent 400 on POST /Contact (not the phone) fails permanently with crm_400', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { extraRoutes: (req) => (req.method === 'POST' && req.path === '/Contact' ? new Response('', { status: 400 }) : undefined) },
+    )
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'failed', code: 'crm_400' })
+    expect(posts(h, '/Contact')).toHaveLength(1)
+  })
+
+  it('phone only when empty: an empty Contact phone gets exactly one phone PUT', async () => {
+    const p = person({ phones: ['+420777900001'] })
+    const h = harness({ rows: [personRow()], persons: [p] }, { records: { Contact: [seededContact()] } })
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    const phonePuts = puts(h, '/Contact').filter((r) => r.body.phoneNumber !== undefined)
+    expect(phonePuts).toHaveLength(1)
+    expect(phonePuts[0].body).toEqual({ phoneNumber: '+420777900001' })
+    expect(contacts(h)[0].phoneNumber).toBe('+420777900001')
+  })
+
+  it('phone only when empty: a Contact that already has a phone is never overwritten', async () => {
+    const p = person({ phones: ['+420777900001'] })
+    const h = harness({ rows: [personRow()], persons: [p] }, { records: { Contact: [seededContact({ phoneNumber: '+420111222333' })] } })
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(puts(h, '/Contact')).toHaveLength(0)
+    expect(contacts(h)[0].phoneNumber).toBe('+420111222333')
+  })
+
+  it('phone only when empty: a refused phone PUT (400) does not stop the sync', async () => {
+    const p = person({ phones: ['+420777900001'] })
+    const h = harness(
+      { rows: [personRow()], persons: [p] },
+      {
+        records: { Contact: [seededContact()] },
+        extraRoutes: (req) => (req.method === 'PUT' && req.path.startsWith('/Contact/') && req.body?.phoneNumber ? new Response('', { status: 400 }) : undefined),
+      },
+    )
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(cbookings(h)).toHaveLength(1)
+  })
+
+  it('emails: identity emails are merged into the Contact list, operator-added addresses stay', async () => {
+    const p = person({
+      emails: [
+        { email: 'a@x.test', basis: 'booking', via_phone: null },
+        { email: 'b@x.test', basis: 'phone', via_phone: '+420777900001' },
+      ],
+    })
+    const operatorList = [
+      { emailAddress: 'a@x.test', primary: true, optOut: false, invalid: false },
+      { emailAddress: 'c@x.test', primary: false, optOut: true, invalid: false },
+    ]
+    const h = harness({ rows: [personRow()], persons: [p] }, { records: { Contact: [seededContact({ emailAddressData: operatorList })] } })
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    const list = contacts(h)[0].emailAddressData as Array<{ emailAddress: string; primary: boolean; optOut: boolean }>
+    expect(list.map((e) => e.emailAddress).sort()).toEqual(['a@x.test', 'b@x.test', 'c@x.test'])
+    expect(list.filter((e) => e.primary).map((e) => e.emailAddress)).toEqual(['a@x.test'])
+    expect(list.find((e) => e.emailAddress === 'c@x.test')?.optOut).toBe(true)
+  })
+
+  it('split: an address another identity now owns is removed, operator-added and own addresses stay', async () => {
+    const p = person({
+      emails: [{ email: 'a@x.test', basis: 'booking', via_phone: null }],
+    })
+    const list = [
+      { emailAddress: 'a@x.test', primary: true, optOut: false, invalid: false },
+      { emailAddress: 'b@x.test', primary: false, optOut: false, invalid: false },
+      { emailAddress: 'c@x.test', primary: false, optOut: false, invalid: false },
+    ]
+    const h = harness(
+      { rows: [personRow()], persons: [p], owners: { 'a@x.test': IDENTITY, 'b@x.test': IDENTITY_2 } },
+      { records: { Contact: [seededContact({ emailAddressData: list })] } },
+    )
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    const after = contacts(h)[0].emailAddressData as Array<{ emailAddress: string }>
+    expect(after.map((e) => e.emailAddress).sort()).toEqual(['a@x.test', 'c@x.test'])
+  })
+
+  it('split: when the removed address was the primary, one of the remaining addresses becomes primary', async () => {
+    const p = person({ emails: [{ email: 'a@x.test', basis: 'booking', via_phone: null }] })
+    const list = [
+      { emailAddress: 'b@x.test', primary: true, optOut: false, invalid: false },
+      { emailAddress: 'a@x.test', primary: false, optOut: false, invalid: false },
+    ]
+    const h = harness(
+      { rows: [personRow()], persons: [p], owners: { 'b@x.test': IDENTITY_2 } },
+      { records: { Contact: [seededContact({ emailAddress: 'a@x.test', emailAddressData: list })] } },
+    )
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    const after = contacts(h)[0].emailAddressData as Array<{ emailAddress: string; primary: boolean }>
+    expect(after).toHaveLength(1)
+    expect(after[0]).toMatchObject({ emailAddress: 'a@x.test', primary: true })
+  })
+
+  it('signup: a person with no booking gets a Contact named from the profile and no CBooking requests', async () => {
+    const p = person({
+      bookings: [],
+      profile: { email: 'a@x.test', full_name: 'Jana Nováková', phone: null },
+    })
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(contacts(h)).toHaveLength(1)
+    expect(contacts(h)[0]).toMatchObject({ firstName: 'Jana', lastName: 'Nováková', emailAddress: 'a@x.test' })
+    expect(h.fake.requests.filter((r) => r.path.startsWith('/CBooking'))).toHaveLength(0)
+  })
+
+  it('signup: a single-token name, no profile and no booking falls back to the email local part', async () => {
+    const p = person({ bookings: [], emails: [{ email: 'zed.q@x.test', basis: 'signup', via_phone: null }] })
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(contacts(h)[0].lastName).toBe('zed.q')
+    expect(contacts(h)[0].firstName).toBeUndefined()
+  })
+
+  it('an erasing person is skipped identity_erasing with zero requests', async () => {
+    const p = person()
+    p.identity.erasing_at = '2026-10-19T11:00:00.000Z'
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'skipped', code: 'identity_erasing' })
+    expect(h.fake.requests).toHaveLength(0)
+  })
+})
