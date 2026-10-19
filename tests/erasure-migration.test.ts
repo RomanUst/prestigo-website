@@ -22,11 +22,14 @@ function fnBody(name: string): string {
 }
 
 const PUBLIC_FUNCTIONS = [
+  'erasure_scope(text, text)',
+  'erasure_preview_create(uuid, text, jsonb, integer)',
   'erasure_confirm(uuid, uuid)',
   'erasure_load(uuid)',
   'erasure_record_step(uuid, text, jsonb)',
   'erasure_anonymise_person(uuid)',
   'erasure_complete(uuid, boolean, jsonb, text)',
+  'erasure_log(integer)',
 ]
 const INTERNAL_FUNCTIONS = ['erasure_booking_ids(uuid, uuid, text[])', 'erasure_inquiry_ids(text[])']
 
@@ -235,5 +238,70 @@ describe('075 erasure_record_step and erasure_load', () => {
     for (const key of ['espo_contact_id', 'chatwoot_contact_id', 'user_id', 'booking_ids', 'inquiry_ids', 'steps', 'email_hmac', 'expires_at']) {
       expect(body, key).toContain(`'${key}'`)
     }
+  })
+})
+
+describe('075 erasure_scope', () => {
+  const body = fnBody('erasure_scope')
+
+  it('answers every outcome', () => {
+    for (const outcome of ['invalid', 'shared_phone', 'not_found', 'already_in_progress', 'ok']) {
+      expect(body, outcome).toContain(`'${outcome}'`)
+    }
+  })
+
+  it('returns shared_phone for a flagged or doubly held number, with the identities count', () => {
+    expect(body).toMatch(/f\.phone = v_phone AND f\.shared/)
+    expect(body).toMatch(/cardinality\(v_owners\) > 1/)
+    expect(body).toMatch(/'identities', cardinality\(v_owners\)/)
+  })
+
+  it('returns already_in_progress when an active request holds the identity or an email', () => {
+    expect(body).toMatch(/e\.status IN \('confirmed', 'running'\)/)
+    expect(body).toMatch(/e\.identity_id = v_identity/)
+    expect(body).toMatch(/e\.subject_emails && v_emails/)
+  })
+
+  it('lists only non-shared phones, counts upcoming non-cancelled trips and is read-only', () => {
+    expect(body).toMatch(/f\.phone IS NULL OR f\.shared = false/)
+    expect(body).toMatch(/b\.pickup_utc >= now\(\)/)
+    expect(body).toMatch(/b\.status <> 'cancelled'/)
+    expect(body).not.toMatch(/\b(INSERT|UPDATE|DELETE)\b/)
+  })
+
+  it('reuses the scope helpers (bookings by identity, email and account; inquiries and quote requests by email)', () => {
+    expect(body).toContain('public.erasure_booking_ids(')
+    expect(body).toContain('public.erasure_inquiry_ids(')
+    expect(body).toMatch(/FROM public\.quote_leads/)
+    for (const key of ['bookings', 'upcoming', 'inquiries', 'quote_leads', 'has_account']) expect(body).toContain(`'${key}'`)
+  })
+})
+
+describe('075 erasure_preview_create', () => {
+  const body = fnBody('erasure_preview_create')
+
+  it('caps the TTL between 60 s and 3600 s', () => {
+    expect(body).toMatch(/least\(greatest\(COALESCE\(p_ttl_seconds, 60\), 60\), 3600\)/)
+  })
+
+  it('stores a previewed row from an ok scope only, with the preview counts', () => {
+    expect(body).toMatch(/p_scope ->> 'outcome' IS DISTINCT FROM 'ok'/)
+    expect(body).toContain("'previewed'")
+    expect(body).toMatch(/p_scope -> 'counts'/)
+  })
+
+  it('drops expired unconfirmed previews so plaintext scope does not linger', () => {
+    expect(body).toMatch(/DELETE FROM public\.erasure_requests e\s+WHERE e\.status = 'previewed' AND e\.expires_at < now\(\)/)
+  })
+})
+
+describe('075 erasure_log', () => {
+  const body = fnBody('erasure_log')
+
+  it('exposes only the first 10 hex characters of the hash, newest first, capped at 100', () => {
+    expect(body).toMatch(/left\(e\.email_hmac, 10\)/)
+    expect(body).toMatch(/ORDER BY e\.requested_at DESC/)
+    expect(body).toMatch(/least\(greatest\(COALESCE\(p_limit, 20\), 1\), 100\)/)
+    expect(body).not.toMatch(/subject_emails|subject_phones|identity_id|user_id|booking_ids/)
   })
 })

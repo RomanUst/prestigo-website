@@ -62,7 +62,7 @@ changes in the file, the test fails until this table is updated.
 
 | Scope | Dispatcher | Sales manager | Sync writer |
 |-------|------------|---------------|-------------|
-| Contact | create no, read all, edit no, delete no | create yes, read all, edit all, delete no | create yes, read all, edit all, delete no |
+| Contact | create no, read all, edit no, delete no | create yes, read all, edit all, delete no | create yes, read all, edit all, delete all |
 | Account | create no, read all, edit no, delete no | create yes, read all, edit all, delete no | create yes, read all, edit all, delete no |
 | CBooking | create no, read all, edit no, delete no | create no, read all, edit no, delete no | create yes, read all, edit all, delete no |
 | Task | create yes, read own, edit own, delete own | create yes, read own, edit own, delete own | - |
@@ -110,7 +110,9 @@ Rules behind the table:
   has full Lead access (create, read, edit, delete), and the Sync writer has full Lead access including delete, which
   the 90-day purge of abandoned-checkout Leads needs.
 - **Sync writer** is a service role for the `prestigo-sync` API user: create and edit Account, Contact and CBooking
-  (never delete them), full access to Lead including delete, and 403 on everything else.
+  (never delete an Account or a CBooking), full access to Lead including delete, delete on Contact for the GDPR
+  erasure saga (Phase 82, plan 82-12: the person's Contact is overwritten with blank fields and then deleted), and
+  403 on everything else.
 - **One role per person.** EspoCRM combines several roles into the widest access, so give an operator exactly one.
   Roles use `all` and `own`, not `team`, so no EspoCRM team is needed.
 

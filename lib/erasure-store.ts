@@ -220,6 +220,145 @@ export async function confirmErasure(
   return data as ConfirmOutcome
 }
 
+// ── Admin preview / confirm / log (plan 82-13 calls these; Supabase only) ───
+
+export interface ErasureScopeOk {
+  outcome: 'ok'
+  primaryEmail: string
+  emails: string[]
+  /** Non-shared numbers only. */
+  phones: string[]
+  identityId: string | null
+  userId: string | null
+  bookingIds: string[]
+  inquiryIds: string[]
+  counts: { bookings: number; upcoming: number; inquiries: number; quoteLeads: number; hasAccount: boolean }
+}
+
+export type ErasureScope =
+  | ErasureScopeOk
+  | { outcome: 'invalid' }
+  | { outcome: 'not_found' }
+  | { outcome: 'already_in_progress' }
+  | { outcome: 'shared_phone'; identities: number }
+
+function count(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
+}
+
+/** Supabase-only preview data for an email or (non-shared) phone. */
+export async function erasureScope(
+  email: string | null,
+  phone: string | null,
+  client?: SupabaseClient,
+): Promise<ErasureScope> {
+  const data = await rpc('erasure_scope', { p_email: email, p_phone: phone }, client)
+  if (!isRecord(data) || typeof data.outcome !== 'string') throw new OutboxStoreError('db_error')
+  switch (data.outcome) {
+    case 'invalid':
+    case 'not_found':
+    case 'already_in_progress':
+      return { outcome: data.outcome }
+    case 'shared_phone':
+      return { outcome: 'shared_phone', identities: count(data.identities) }
+    case 'ok': {
+      const counts = isRecord(data.counts) ? data.counts : {}
+      const primaryEmail = asString(data.primary_email)
+      if (!primaryEmail) throw new OutboxStoreError('db_error')
+      return {
+        outcome: 'ok',
+        primaryEmail,
+        emails: stringList(data.emails),
+        phones: stringList(data.phones),
+        identityId: asString(data.identity_id),
+        userId: asString(data.user_id),
+        bookingIds: stringList(data.booking_ids),
+        inquiryIds: stringList(data.inquiry_ids),
+        counts: {
+          bookings: count(counts.bookings),
+          upcoming: count(counts.upcoming),
+          inquiries: count(counts.inquiries),
+          quoteLeads: count(counts.quote_leads),
+          hasAccount: counts.has_account === true,
+        },
+      }
+    }
+    default:
+      throw new OutboxStoreError('db_error')
+  }
+}
+
+/** Stores the scope as a 'previewed' request (TTL capped at one hour in the database). */
+export async function createErasurePreview(
+  input: { actor: string; emailHmac: string; scope: ErasureScopeOk; ttlSeconds: number },
+  client?: SupabaseClient,
+): Promise<string> {
+  const { scope } = input
+  const data = await rpc(
+    'erasure_preview_create',
+    {
+      p_actor: input.actor,
+      p_email_hmac: input.emailHmac,
+      p_scope: {
+        outcome: 'ok',
+        primary_email: scope.primaryEmail,
+        emails: scope.emails,
+        phones: scope.phones,
+        identity_id: scope.identityId,
+        user_id: scope.userId,
+        booking_ids: scope.bookingIds,
+        inquiry_ids: scope.inquiryIds,
+        counts: {
+          bookings: scope.counts.bookings,
+          upcoming: scope.counts.upcoming,
+          inquiries: scope.counts.inquiries,
+          quote_leads: scope.counts.quoteLeads,
+          has_account: scope.counts.hasAccount,
+        },
+      },
+      p_ttl_seconds: input.ttlSeconds,
+    },
+    client,
+  )
+  const id = asString(data)
+  if (!id) throw new OutboxStoreError('db_error')
+  return id
+}
+
+export interface ErasureLogRow {
+  id: string
+  /** First 10 hex characters of the keyed email hash: the only handle an operator sees. */
+  reference: string
+  status: ErasureStatus
+  requestedAt: string
+  completedAt: string | null
+  steps: ErasureSteps
+  verified: boolean | null
+}
+
+export async function erasureLog(limit = 20, client?: SupabaseClient): Promise<ErasureLogRow[]> {
+  const data = await rpc('erasure_log', { p_limit: limit }, client)
+  if (!Array.isArray(data)) throw new OutboxStoreError('db_error')
+  const rows: ErasureLogRow[] = []
+  for (const row of data) {
+    if (!isRecord(row)) continue
+    const id = asString(row.id)
+    const reference = asString(row.reference)
+    const requestedAt = asString(row.requested_at)
+    if (!id || !reference || !requestedAt || typeof row.status !== 'string' || !STATUSES.has(row.status)) continue
+    rows.push({
+      id,
+      reference,
+      status: row.status as ErasureStatus,
+      requestedAt,
+      completedAt: asString(row.completed_at),
+      steps: isRecord(row.steps) ? (row.steps as ErasureSteps) : {},
+      verified: typeof row.verified === 'boolean' ? row.verified : null,
+    })
+  }
+  return rows
+}
+
 /** The default store the dispatcher uses. */
 export const supabaseErasureStore: ErasureStore = {
   loadErasure: (requestId) => loadErasure(requestId),

@@ -496,19 +496,224 @@ BEGIN
 END;
 $$;
 
+-- ── erasure_scope: Supabase-only preview data ──────────────────────────────
+-- Outcomes: 'invalid' | 'shared_phone' (with the identities count) | 'not_found' |
+-- 'already_in_progress' | 'ok'. An email search covers the identity's emails (phone-merged ones
+-- included, D-10), its account, its bookings, inquiries and quote requests; a person who never got an
+-- identity (inquiry-only, or before the backfill) is found through the email alone. A phone search
+-- resolves ONLY through a non-shared identity phone: a desk / hotel number never picks a person.
+-- When both an email and a phone are given the email wins. Read-only; nothing is locked.
+CREATE OR REPLACE FUNCTION public.erasure_scope(p_email text, p_phone text)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+#variable_conflict use_column
+DECLARE
+  v_email     text;
+  v_phone     text;
+  v_identity  uuid;
+  v_user      uuid;
+  v_emails    text[];
+  v_phones    text[];
+  v_owners    uuid[];
+  v_shared    boolean;
+  v_bookings  uuid[];
+  v_inquiries uuid[];
+  v_quote     integer;
+  v_upcoming  integer;
+  v_primary   text;
+BEGIN
+  v_email := public.identity_normalize_email(p_email);
+  v_phone := public.identity_normalize_phone(p_phone);
+  IF v_email IS NULL AND v_phone IS NULL THEN
+    RETURN jsonb_build_object('outcome', 'invalid');
+  END IF;
+
+  IF v_email IS NOT NULL THEN
+    SELECT ie.identity_id INTO v_identity FROM public.identity_emails ie WHERE ie.email = v_email;
+  ELSE
+    SELECT COALESCE(array_agg(DISTINCT p.identity_id), '{}'::uuid[])
+      INTO v_owners
+      FROM public.identity_phones p
+     WHERE p.phone = v_phone;
+    SELECT EXISTS (SELECT 1 FROM public.phone_flags f WHERE f.phone = v_phone AND f.shared)
+      INTO v_shared;
+    IF v_shared OR cardinality(v_owners) > 1 THEN
+      RETURN jsonb_build_object('outcome', 'shared_phone', 'identities', cardinality(v_owners));
+    END IF;
+    IF cardinality(v_owners) = 0 THEN
+      RETURN jsonb_build_object('outcome', 'not_found');
+    END IF;
+    v_identity := v_owners[1];
+  END IF;
+
+  v_emails := ARRAY(
+    SELECT DISTINCT x
+      FROM unnest(
+             CASE WHEN v_email IS NULL THEN '{}'::text[] ELSE ARRAY[v_email] END
+             || ARRAY(SELECT ie.email FROM public.identity_emails ie WHERE ie.identity_id = v_identity)
+           ) AS x
+     ORDER BY x
+  );
+  SELECT ie.email INTO v_primary
+    FROM public.identity_emails ie
+   WHERE ie.identity_id = v_identity
+   ORDER BY ie.created_at, ie.email
+   LIMIT 1;
+  v_primary := COALESCE(v_primary, v_email);
+
+  v_user := COALESCE(
+    (SELECT c.user_id FROM public.contact_identities c WHERE c.id = v_identity),
+    (SELECT u.id FROM auth.users u WHERE public.identity_normalize_email(u.email) = ANY (v_emails) LIMIT 1)
+  );
+
+  v_phones := ARRAY(
+    SELECT p.phone
+      FROM public.identity_phones p
+      LEFT JOIN public.phone_flags f ON f.phone = p.phone
+     WHERE p.identity_id = v_identity
+       AND (f.phone IS NULL OR f.shared = false)
+     ORDER BY p.first_seen, p.phone
+  );
+
+  v_bookings := public.erasure_booking_ids(v_identity, v_user, v_emails);
+  v_inquiries := public.erasure_inquiry_ids(v_emails);
+  SELECT count(*)::integer INTO v_quote
+    FROM public.quote_leads q
+   WHERE public.identity_normalize_email(q.email) = ANY (v_emails);
+  SELECT count(*)::integer INTO v_upcoming
+    FROM public.bookings b
+   WHERE b.id = ANY (v_bookings)
+     AND b.pickup_utc >= now()
+     AND b.status <> 'cancelled';
+
+  IF v_identity IS NULL AND v_user IS NULL
+     AND cardinality(v_bookings) = 0 AND cardinality(v_inquiries) = 0 AND v_quote = 0 THEN
+    RETURN jsonb_build_object('outcome', 'not_found');
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+      FROM public.erasure_requests e
+     WHERE e.status IN ('confirmed', 'running')
+       AND ((v_identity IS NOT NULL AND e.identity_id = v_identity) OR e.subject_emails && v_emails)
+  ) THEN
+    RETURN jsonb_build_object('outcome', 'already_in_progress');
+  END IF;
+
+  RETURN jsonb_build_object(
+    'outcome', 'ok',
+    'primary_email', v_primary,
+    'emails', to_jsonb(v_emails),
+    'phones', to_jsonb(v_phones),
+    'identity_id', v_identity,
+    'user_id', v_user,
+    'booking_ids', to_jsonb(v_bookings),
+    'inquiry_ids', to_jsonb(v_inquiries),
+    'counts', jsonb_build_object(
+      'bookings', cardinality(v_bookings),
+      'upcoming', v_upcoming,
+      'inquiries', cardinality(v_inquiries),
+      'quote_leads', v_quote,
+      'has_account', v_user IS NOT NULL
+    )
+  );
+END;
+$$;
+
+-- ── erasure_preview_create: the preview row the admin confirms ──────────────
+-- Stores the scope as shown; expires_at = now() + the TTL, capped at one hour. A preview holds
+-- plaintext scope, so expired unconfirmed previews are deleted on every new preview.
+CREATE OR REPLACE FUNCTION public.erasure_preview_create(
+  p_actor       uuid,
+  p_email_hmac  text,
+  p_scope       jsonb,
+  p_ttl_seconds integer
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_id uuid;
+BEGIN
+  IF p_scope IS NULL OR p_scope ->> 'outcome' IS DISTINCT FROM 'ok' THEN
+    RAISE EXCEPTION 'erasure_preview_create: scope is not ok';
+  END IF;
+
+  DELETE FROM public.erasure_requests e
+   WHERE e.status = 'previewed' AND e.expires_at < now();
+
+  INSERT INTO public.erasure_requests (
+    requested_by, email_hmac, identity_id, user_id, booking_ids, inquiry_ids,
+    subject_emails, subject_phones, status, expires_at, counts
+  )
+  VALUES (
+    p_actor,
+    p_email_hmac,
+    (p_scope ->> 'identity_id')::uuid,
+    (p_scope ->> 'user_id')::uuid,
+    ARRAY(SELECT x::uuid FROM jsonb_array_elements_text(COALESCE(p_scope -> 'booking_ids', '[]'::jsonb)) AS x),
+    ARRAY(SELECT x::uuid FROM jsonb_array_elements_text(COALESCE(p_scope -> 'inquiry_ids', '[]'::jsonb)) AS x),
+    ARRAY(SELECT x FROM jsonb_array_elements_text(COALESCE(p_scope -> 'emails', '[]'::jsonb)) AS x),
+    ARRAY(SELECT x FROM jsonb_array_elements_text(COALESCE(p_scope -> 'phones', '[]'::jsonb)) AS x),
+    'previewed',
+    now() + make_interval(secs => least(greatest(COALESCE(p_ttl_seconds, 60), 60), 3600)),
+    COALESCE(p_scope -> 'counts', '{}'::jsonb)
+  )
+  RETURNING id INTO v_id;
+
+  RETURN v_id;
+END;
+$$;
+
+-- ── erasure_log: the PII-free list for the admin page ───────────────────────
+-- reference = the first 10 hex characters of the keyed email hash; previews are not erasures.
+CREATE OR REPLACE FUNCTION public.erasure_log(p_limit integer)
+RETURNS TABLE (
+  id           uuid,
+  reference    text,
+  status       text,
+  requested_at timestamptz,
+  completed_at timestamptz,
+  steps        jsonb,
+  verified     boolean
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT e.id, left(e.email_hmac, 10), e.status, e.requested_at, e.completed_at, e.steps, e.verified
+    FROM public.erasure_requests e
+   WHERE e.status <> 'previewed'
+   ORDER BY e.requested_at DESC
+   LIMIT least(greatest(COALESCE(p_limit, 20), 1), 100);
+$$;
+
 -- ── Grants ──────────────────────────────────────────────────────────────────
 -- SECURITY DEFINER functions get PUBLIC EXECUTE by default: revoke it, then grant to service_role
 -- only. The two scope helpers are internal (called by the definer functions above): not granted.
 REVOKE EXECUTE ON FUNCTION public.erasure_booking_ids(uuid, uuid, text[]) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_inquiry_ids(text[]) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_scope(text, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_preview_create(uuid, text, jsonb, integer) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_confirm(uuid, uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_load(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_record_step(uuid, text, jsonb) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_anonymise_person(uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_complete(uuid, boolean, jsonb, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_log(integer) FROM PUBLIC, anon, authenticated;
 
+GRANT EXECUTE ON FUNCTION public.erasure_scope(text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.erasure_preview_create(uuid, text, jsonb, integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.erasure_confirm(uuid, uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.erasure_load(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.erasure_record_step(uuid, text, jsonb) TO service_role;
 GRANT EXECUTE ON FUNCTION public.erasure_anonymise_person(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.erasure_complete(uuid, boolean, jsonb, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.erasure_log(integer) TO service_role;
