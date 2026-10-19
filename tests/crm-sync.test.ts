@@ -5,6 +5,7 @@ import { dispatchOutboxKey, type DispatchDeps } from '@/lib/lead-sync'
 import { createSiteEspoClient } from '@/lib/espocrm-client'
 import type { OutboxRow, OutboxStore } from '@/lib/outbox-store'
 import type { CrmBookingRecord, IdentityStore, PersonRecord } from '@/lib/identity-store'
+import { buildCBookingDraft } from '@/lib/customer-mapping'
 
 // Synthetic fixtures only (example/x.test domains, fake names).
 
@@ -557,5 +558,233 @@ describe('sync.espo Contact convergence', () => {
 
     expect(result).toEqual({ outcome: 'skipped', code: 'identity_erasing' })
     expect(h.fake.requests).toHaveLength(0)
+  })
+})
+
+// ── Task 3: CBooking convergence ────────────────────────────────────────────
+
+const writes = (h: Harness) => h.fake.requests.filter((r) => r.method !== 'GET')
+
+describe('sync.espo CBooking convergence', () => {
+  it('idempotent: a status change is exactly one PUT with only the changed key, an unchanged run writes nothing', async () => {
+    const p = person()
+    const h = harness({ rows: [personRow(IDENTITY, '100'), personRow(IDENTITY, '101'), personRow(IDENTITY, '102')], persons: [p] })
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+    expect(cbookings(h)[0].status).toBe('confirmed')
+
+    p.bookings = [booking(BOOKING_1, { status: 'completed' })]
+    const changed = await dispatchOutboxKey(espoKey(IDENTITY, '101'), deps(h))
+
+    expect(changed).toEqual({ outcome: 'sent' })
+    const cbPuts = puts(h, '/CBooking')
+    expect(cbPuts).toHaveLength(1)
+    expect(cbPuts[0].body).toEqual({ status: 'completed' })
+
+    const before = writes(h).length
+    await dispatchOutboxKey(espoKey(IDENTITY, '102'), deps(h))
+    expect(writes(h)).toHaveLength(before)
+    expect(cbookings(h)).toHaveLength(1)
+    expect(contacts(h)).toHaveLength(1)
+  })
+
+  it('order: payment, cancellation and address-edit events delivered in reverse end with the current rows', async () => {
+    const current = booking(BOOKING_1, { status: 'cancelled', destination_address: 'Hotel Example, Praha 1', payment_intent_id: 'pi_paid' })
+    const second = booking(BOOKING_2, { status: 'confirmed', client_last_name: 'Novak' })
+    const p = person({ bookings: [current, second] })
+    const h = harness({ rows: [personRow(IDENTITY, '102'), personRow(IDENTITY, '101'), personRow(IDENTITY, '100')], persons: [p] })
+
+    for (const tag of ['102', '101', '100']) await dispatchOutboxKey(espoKey(IDENTITY, tag), deps(h))
+
+    expect(cbookings(h)).toHaveLength(2)
+    const byId = new Map(cbookings(h).map((c) => [c.supabaseBookingId, c]))
+    expect(byId.get(BOOKING_1)).toMatchObject({ status: 'cancelled', dropoff: 'Hotel Example, Praha 1', paymentMethod: 'Stripe', contactId: contacts(h)[0].id })
+    expect(byId.get(BOOKING_2)).toMatchObject({ status: 'confirmed' })
+    // One writing run, two silent ones; one list call per run for both bookings.
+    expect(posts(h, '/CBooking')).toHaveLength(2)
+    expect(puts(h, '/CBooking')).toHaveLength(0)
+    expect(h.fake.requests.filter((r) => r.method === 'GET' && r.path === '/CBooking')).toHaveLength(3)
+  })
+
+  it('concurrent: two sync.espo keys of one person create one Contact; the loser is deferred and then converges silently', async () => {
+    const h = harness({ rows: [personRow(IDENTITY, '100'), personRow(IDENTITY, '101')], persons: [person()] })
+
+    const [first, second] = await Promise.all([
+      dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h)),
+      dispatchOutboxKey(espoKey(IDENTITY, '101'), deps(h)),
+    ])
+
+    expect([first.outcome, second.outcome].sort()).toEqual(['deferred', 'sent'])
+    expect(posts(h, '/Contact')).toHaveLength(1)
+    // One deferral publish for the loser, one Chatwoot refresh publish from the winner.
+    const published = h.publish.mock.calls as unknown as Array<[string]>
+    expect(published.filter(([key]) => key.startsWith('sync.espo:'))).toHaveLength(1)
+
+    const deferredKey = first.outcome === 'deferred' ? espoKey(IDENTITY, '100') : espoKey(IDENTITY, '101')
+    const before = writes(h).length
+    const rerun = await dispatchOutboxKey(deferredKey, deps(h))
+
+    expect(rerun).toEqual({ outcome: 'sent' })
+    expect(writes(h)).toHaveLength(before)
+    expect(contacts(h)).toHaveLength(1)
+    expect(cbookings(h)).toHaveLength(1)
+  })
+
+  it('the "in" lookup answered 400 falls back to one equals lookup per booking with the same result', async () => {
+    const p = person({ bookings: [booking(BOOKING_1), booking(BOOKING_2)] })
+    const h = harness(
+      { rows: [personRow(IDENTITY, '100'), personRow(IDENTITY, '101')], persons: [p] },
+      { extraRoutes: (req) => (req.method === 'GET' && req.path === '/CBooking' && req.query.includes('[type]=in') ? new Response('', { status: 400 }) : undefined) },
+    )
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+    expect(cbookings(h)).toHaveLength(2)
+
+    const before = writes(h).length
+    const again = await dispatchOutboxKey(espoKey(IDENTITY, '101'), deps(h))
+
+    expect(again).toEqual({ outcome: 'sent' })
+    expect(writes(h)).toHaveLength(before)
+    expect(cbookings(h)).toHaveLength(2)
+    expect(h.fake.requests.some((r) => r.path === '/CBooking' && r.query.includes('[type]=equals'))).toBe(true)
+  })
+
+  it('anonymised booking: PII fields and the Contact link are blanked, reference and amount stay', async () => {
+    const live = booking(BOOKING_1)
+    const draft = buildCBookingDraft(live)
+    if (!draft.ok) throw new Error('fixture must map')
+    const h = harness(
+      { rows: [personRow()], persons: [person({ bookings: [{ ...live, anonymised_at: '2026-10-19T08:00:00.000Z' }] })] },
+      { records: { Contact: [seededContact()], CBooking: [{ id: 'cb0000000000000a1', ...draft.draft, contactId: CONTACT_ID }] } },
+    )
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const cbPuts = puts(h, '/CBooking')
+    expect(cbPuts).toHaveLength(1)
+    expect(cbPuts[0].body).toEqual({ passengerName: '', flightNumber: '', pickup: '', dropoff: '', contactId: null })
+    expect(cbookings(h)[0]).toMatchObject({ name: live.booking_reference, amount: 45, status: 'confirmed', contactId: null, passengerName: '' })
+  })
+
+  it('anonymised booking that does not exist yet is created without PII and without a Contact link', async () => {
+    const live = { ...booking(BOOKING_1), anonymised_at: '2026-10-19T08:00:00.000Z' }
+    const h = harness({ rows: [personRow()], persons: [person({ bookings: [live] })] })
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(cbookings(h)).toHaveLength(1)
+    expect(cbookings(h)[0]).toMatchObject({ passengerName: '', flightNumber: '', pickup: '', dropoff: '', amount: 45 })
+    expect(cbookings(h)[0].contactId).toBeUndefined()
+  })
+
+  it('orphan: a GNet placeholder booking writes the CBooking with no Contact and creates no Contact', async () => {
+    const gnet = booking(BOOKING_1, { booking_source: 'gnet', client_email: 'guest@gnet.local', payment_intent_id: null })
+    const row = outboxRow(espoKey(BOOKING_1), { type: 'booking', id: BOOKING_1 })
+    const h = harness({ rows: [row], bookings: [gnet] })
+
+    const result = await dispatchOutboxKey(espoKey(BOOKING_1), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(h.fake.requests.filter((r) => r.path.startsWith('/Contact'))).toHaveLength(0)
+    expect(cbookings(h)).toHaveLength(1)
+    expect(cbookings(h)[0].contactId ?? null).toBeNull()
+    expect(cbookings(h)[0]).toMatchObject({ source: 'gnet', paymentMethod: 'Other', supabaseBookingId: BOOKING_1 })
+    expect(h.ids.calls.setEspoContact).toHaveLength(0)
+  })
+
+  it('orphan: an existing Contact link on the CBooking (Phase 80 backfill) is kept', async () => {
+    const gnet = booking(BOOKING_1, { booking_source: 'gnet', client_email: 'guest@gnet.local', payment_intent_id: null })
+    const built = buildCBookingDraft(gnet)
+    if (!built.ok) throw new Error('fixture must map')
+    const row = outboxRow(espoKey(BOOKING_1), { type: 'booking', id: BOOKING_1 })
+    const h = harness({ rows: [row], bookings: [gnet] }, { records: { CBooking: [{ id: 'cb0000000000000a1', ...built.draft, contactId: CONTACT_ID }] } })
+
+    await dispatchOutboxKey(espoKey(BOOKING_1), deps(h))
+
+    expect(writes(h)).toHaveLength(0)
+    expect(cbookings(h)[0].contactId).toBe(CONTACT_ID)
+  })
+
+  it('orphan: a missing booking is skipped source_missing, an abandoned one abandoned_checkout', async () => {
+    const abandoned = booking(BOOKING_2, { status: 'unpaid', abandoned: true })
+    const rows = [outboxRow(espoKey(BOOKING_1), { type: 'booking', id: BOOKING_1 }), outboxRow(espoKey(BOOKING_2), { type: 'booking', id: BOOKING_2 })]
+    const h = harness({ rows, bookings: [abandoned] })
+
+    expect(await dispatchOutboxKey(espoKey(BOOKING_1), deps(h))).toEqual({ outcome: 'skipped', code: 'source_missing' })
+    expect(await dispatchOutboxKey(espoKey(BOOKING_2), deps(h))).toEqual({ outcome: 'skipped', code: 'abandoned_checkout' })
+    expect(h.fake.requests).toHaveLength(0)
+  })
+
+  it('unmapped: an unknown vehicle class skips that booking, writes the other and fails booking_unmapped loudly', async () => {
+    const alert = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const p = person({ bookings: [booking(BOOKING_1), booking(BOOKING_2, { vehicle_class: 'limousine' })] })
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'failed', code: 'booking_unmapped' })
+    expect(cbookings(h)).toHaveLength(1)
+    expect(cbookings(h)[0].supabaseBookingId).toBe(BOOKING_1)
+    const lines = alert.mock.calls.map((c) => String(c[0]))
+    expect(lines.filter((l) => l.startsWith('[crm-sync] ALERT booking_unmapped'))).toHaveLength(1)
+    // ids only in the log, never a name, email or address
+    expect(lines.join('\n')).not.toMatch(/a@x\.test|Anna|Novak|Prague/)
+    alert.mockRestore()
+  })
+
+  it('account: a new CBooking carries the accountId of its Contact', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] }, { records: { Contact: [seededContact({ accountId: 'ac00000000000009' })] } })
+
+    await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(posts(h, '/CBooking')[0].body).toMatchObject({ contactId: CONTACT_ID, accountId: 'ac00000000000009' })
+  })
+
+  it('EspoCRM 503 reschedules with a crm_ code; 401 trips the crm_auth breaker', async () => {
+    const down = harness(
+      { rows: [personRow()], persons: [person()] },
+      { extraRoutes: (req) => (req.method === 'GET' && req.path === '/Contact' ? new Response('', { status: 503 }) : undefined) },
+    )
+    expect(await dispatchOutboxKey(espoKey(IDENTITY), deps(down))).toEqual({ outcome: 'rescheduled', code: 'crm_503' })
+    expect(down.publish).toHaveBeenCalledTimes(1)
+
+    const denied = harness(
+      { rows: [personRow()], persons: [person()] },
+      { extraRoutes: (req) => (req.method === 'GET' && req.path === '/Contact' ? new Response('', { status: 401 }) : undefined) },
+    )
+    expect(await dispatchOutboxKey(espoKey(IDENTITY), deps(denied))).toEqual({ outcome: 'breaker', code: 'crm_auth' })
+  })
+
+  it('deadline: an invocation past 45 s reschedules itself before the next write and finishes on the rerun', async () => {
+    let clock = new Date(NOW)
+    const p = person({ bookings: [booking(BOOKING_1), booking(BOOKING_2)] })
+    let firstCBooking = true
+    const h = harness(
+      { rows: [personRow()], persons: [p], now: () => clock },
+      {
+        extraRoutes: (req) => {
+          if (req.method === 'POST' && req.path === '/CBooking' && firstCBooking) {
+            firstCBooking = false
+            clock = new Date(clock.getTime() + 46_000)
+          }
+          return undefined
+        },
+      },
+    )
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'rescheduled', code: 'deadline' })
+    expect(cbookings(h)).toHaveLength(1)
+    expect(h.publish).toHaveBeenCalledWith(espoKey(IDENTITY), { delaySeconds: 5, dedupSuffix: expect.stringMatching(/^dl\d+$/) })
+    expect(h.rows.get(espoKey(IDENTITY))).toMatchObject({ status: 'pending', last_error: 'deadline' })
+
+    clock = new Date(clock.getTime() + 6_000)
+    const rerun = await dispatchOutboxKey(espoKey(IDENTITY), deps(h))
+
+    expect(rerun).toEqual({ outcome: 'sent' })
+    expect(cbookings(h)).toHaveLength(2)
+    expect(contacts(h)).toHaveLength(1)
+    expect(posts(h, '/CBooking')).toHaveLength(2)
   })
 })
