@@ -415,6 +415,8 @@
     "scroll": "مرّر للأسفل",
     "ratingAria": "تقييم {rating} من 5 بناءً على {count} من مراجعات Google",
     "googleReviews": "مراجعات Google",
+    "googleReviewsCount": "{count, plural, zero {لا توجد مراجعات على Google} one {مراجعة واحدة على Google} two {مراجعتان على Google} few {# مراجعات على Google} many {# مراجعة على Google} other {# مراجعة على Google}}",
+    "googleReviewsLink": "اطّلع على مراجعاتنا على Google (يُفتح في علامة تبويب جديدة)",
     "words": [
       "خدمة سيارات مع سائق",
       "النقل من المطار",

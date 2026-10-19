@@ -11,6 +11,7 @@ import type { RoutePrice } from '@/lib/route-prices'
 import type { PricingRates } from '@/lib/pricing-config'
 import type { BlogPost } from '@/lib/blog'
 import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
+import { GOOGLE_MAPS_URL } from '@/lib/google-maps-url'
 
 const BASE = 'https://rideprestigo.com'
 
@@ -18,6 +19,16 @@ export type LlmsData = {
   routes: RoutePrice[]
   pricing: PricingRates
   posts: BlogPost[]
+  rating?: { ratingValue: number; reviewCount: number } | null
+}
+
+// Rating line with the visible review count and the Google profile link, so
+// AI assistants can verify the score at its source. Omitted when unknown.
+function ratingLine(data: LlmsData): string {
+  const r = data.rating
+  if (!r || r.reviewCount <= 0) return ''
+  const noun = r.reviewCount === 1 ? 'review' : 'reviews'
+  return `- **Google rating:** ${r.ratingValue.toFixed(1)} out of 5 from ${r.reviewCount} Google ${noun} — [Google Business Profile](${GOOGLE_MAPS_URL})\n`
 }
 
 export function airportFromPrice(pricing: PricingRates): number {
@@ -51,6 +62,7 @@ export function buildLlmsTxt(data: LlmsData): string {
 
 > Premium chauffeur service in Prague, Czech Republic. Airport transfers, intercity routes across Central Europe, corporate accounts. All-Mercedes fleet, fixed pricing, 24/7.
 
+${ratingLine(data)}
 ## Key Pages
 
 - [Prague Airport Transfer](${BASE}/services/airport-transfer): From ${eur(airport)}, meet-and-greet, 60-min free wait, flight tracking.
@@ -111,7 +123,7 @@ export function buildLlmsFullTxt(data: LlmsData): string {
 - **Languages:** English, Czech
 - **Founded:** 2016
 - **Legal entity:** chelautotrans s.r.o. (trading as PRESTIGO), IČO 05650801, Spojovací 685, Vysoký Újezd, Czech Republic
-
+${ratingLine(data)}
 ---
 
 ## Founder

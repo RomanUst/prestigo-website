@@ -4,6 +4,7 @@ export const revalidate = 3600
 
 import { setRequestLocale } from 'next-intl/server'
 import { getCachedAggregateRating } from '@/lib/google-reviews'
+import { GOOGLE_MAPS_URL } from '@/lib/google-maps-url'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
@@ -62,13 +63,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   }
 }
 
-// Canonical Google Maps place URL built from the public Place ID (a Place ID
-// is public data — every Maps link exposes it — so it is safe to embed in
-// JSON-LD). Falls back to the share link only when GOOGLE_PLACE_ID is unset
-// (local dev); on Vercel the env var is always present at build.
-const MAPS_URL = process.env.GOOGLE_PLACE_ID
-  ? `https://www.google.com/maps/place/?q=place_id:${process.env.GOOGLE_PLACE_ID}`
-  : 'https://share.google/dPIa4HI97jeLPidw9'
 
 // Schema name/description are content-sourced (single source with
 // generateMetadata above) — see buildLocalBusinessSchema/buildWebsiteSchema.
@@ -135,7 +129,7 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
   ],
   foundingDate: '2016',
   slogan: 'The first person in Prague who is already on your side.',
-  hasMap: MAPS_URL,
+  hasMap: GOOGLE_MAPS_URL,
   serviceArea: {
     '@type': 'GeoCircle',
     geoMidpoint: {
@@ -146,7 +140,7 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
     geoRadius: '1000000',
   },
   sameAs: [
-    MAPS_URL,
+    GOOGLE_MAPS_URL,
     'https://www.instagram.com/rideprestigo/',
     'https://www.facebook.com/profile.php?id=61574283117859',
   ],

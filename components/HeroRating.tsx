@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl'
+import { GOOGLE_MAPS_URL } from '@/lib/google-maps-url'
 
 type Props = {
   ratingValue: number
@@ -11,6 +12,8 @@ type Props = {
  * Compact Google rating trust signal for the Hero.
  * Server component — static render, no client JS.
  * Uses copper unicode stars to match TestimonialsCarousel.
+ * Shows the visible review count and links to the Google Business Profile,
+ * so readers (and AI assistants) can verify the rating at its source.
  */
 export default function HeroRating({
   ratingValue,
@@ -23,9 +26,12 @@ export default function HeroRating({
   const filled = hasHalf ? full : Math.round(ratingValue)
 
   return (
-    <div
-      className={className}
-      aria-label={t('ratingAria', { rating: ratingValue, count: reviewCount })}
+    <a
+      href={GOOGLE_MAPS_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${className} hover:opacity-80 transition-opacity`}
+      aria-label={`${t('ratingAria', { rating: ratingValue, count: reviewCount })}. ${t('googleReviewsLink')}`}
     >
       <span className="inline-flex items-center gap-0.5" aria-hidden="true">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -55,8 +61,8 @@ export default function HeroRating({
           color: 'var(--warmgrey)',
         }}
       >
-        {t('googleReviews')}
+        {t('googleReviewsCount', { count: reviewCount })}
       </span>
-    </div>
+    </a>
   )
 }
