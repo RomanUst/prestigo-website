@@ -8,7 +8,7 @@
     "label": "Privacy Policy",
     "headlineLine1": "Your data, protected.",
     "headlineItalic": "By design.",
-    "lastUpdated": "Last updated: 6 April 2026"
+    "lastUpdated": "Last updated: 19 October 2026"
   },
   "section1": {
     "title": "Data Controller",
@@ -43,6 +43,10 @@
     "locationData": {
       "heading": "Location data",
       "text": "Pickup and destination addresses you enter are processed via the Google Maps API for route calculation and autocomplete. We do not track your real-time location."
+    },
+    "messagingData": {
+      "heading": "Messages and customer record",
+      "text": "Messages you send us through website chat, email, Telegram or WhatsApp, your account profile, and the customer record we keep in our CRM: name, email, phone, trip history and notes made by our team."
     }
   },
   "section3": {
@@ -54,7 +58,7 @@
     },
     "legitimateInterest": {
       "heading": "Legitimate interest — Art. 6(1)(f)",
-      "text": "Website analytics to improve our service, fraud prevention, and responding to your enquiries via the contact form."
+      "text": "Website analytics to improve our service, fraud prevention, responding to your enquiries via the contact form, and keeping one customer record across our systems so we can answer you with your trip history in front of us."
     },
     "legalObligation": {
       "heading": "Legal obligation — Art. 6(1)(c)",
@@ -103,35 +107,45 @@
       },
       {
         "name": "Hostinger",
-        "purpose": "Hosting of our own messaging server in Germany (EU).",
+        "purpose": "Hosting of our own messaging and customer-records server in Germany (EU).",
         "url": "https://www.hostinger.com/legal/privacy-policy"
       },
       {
         "name": "Backblaze",
-        "purpose": "Encrypted nightly backups of our messaging server, stored in the United States.",
+        "purpose": "Encrypted nightly backups of our messaging and customer-records server, stored in the United States.",
         "url": "https://www.backblaze.com/company/privacy.html"
       },
       {
         "name": "Telegram",
         "purpose": "Only if you choose to message us on Telegram.",
         "url": "https://telegram.org/privacy"
+      },
+      {
+        "name": "EspoCRM (self-hosted)",
+        "purpose": "Our customer records system (CRM), run on our own server in Germany. It holds your contact details and trip history.",
+        "url": "https://www.espocrm.com/privacy-policy/"
+      },
+      {
+        "name": "WhatsApp (Meta)",
+        "purpose": "Only if you choose to message us on WhatsApp.",
+        "url": "https://www.whatsapp.com/legal/privacy-policy-eea"
       }
     ]
   },
   "section5": {
     "title": "International Data Transfers",
-    "text": "Your booking data is stored within the European Union (Supabase EU region). Some of our service providers — including Google, Stripe, Resend, and Vercel — may process data in the United States. These transfers are protected by the EU–US Data Privacy Framework and, where applicable, Standard Contractual Clauses approved by the European Commission. Messages sent through the website chat, email or Telegram are stored on our own server in Germany; encrypted backups of that server are kept by Backblaze in the United States under the EU–US Data Privacy Framework."
+    "text": "Your booking data is stored within the European Union (Supabase EU region). Some of our service providers — including Google, Stripe, Resend, and Vercel — may process data in the United States. These transfers are protected by the EU–US Data Privacy Framework and, where applicable, Standard Contractual Clauses approved by the European Commission. Messages sent through the website chat, email, Telegram or WhatsApp, and our customer records, are stored on our own server in Germany; encrypted backups of that server are kept by Backblaze in the United States under the EU–US Data Privacy Framework."
   },
   "section6": {
     "title": "Data Retention",
     "items": [
       {
         "type": "Booking records",
-        "period": "5 years from the date of the transfer, as required by Czech tax and accounting regulations."
+        "period": "Up to 10 years from the date of the transfer, as required by Czech tax and accounting regulations. If you ask us to erase your data, the booking is kept without your name, email, phone, notes or addresses."
       },
       {
         "type": "Contact form submissions",
-        "period": "12 months after your enquiry has been resolved."
+        "period": "Kept until you ask us to erase them."
       },
       {
         "type": "Analytics data",
@@ -140,6 +154,18 @@
       {
         "type": "Payment records",
         "period": "PRESTIGO stores only the transaction reference ID. Full payment data is retained by Stripe in accordance with their retention policy."
+      },
+      {
+        "type": "Messages and conversations",
+        "period": "Kept until you ask us to erase them."
+      },
+      {
+        "type": "Unfinished online bookings",
+        "period": "Deleted 90 days after the booking is closed without payment."
+      },
+      {
+        "type": "Backups",
+        "period": "Erased data can remain in encrypted backups until they rotate out, up to 6 months."
       }
     ]
   },
@@ -202,6 +228,7 @@
         "desc": "Withdraw consent at any time, without affecting prior processing."
       }
     ],
+    "erasureNote": "When you ask us to erase your data, we first confirm that it is really you. We then delete your messages and customer record from our systems and remove your name, email, phone, notes and addresses from past bookings. We keep the date, amount, vehicle class, booking reference and invoice data that tax law requires.",
     "outroPrefix": "To exercise any of these rights, email ",
     "outroEmailLabel": "info@rideprestigo.com",
     "outroSuffix": ". We will respond within 30 days."
