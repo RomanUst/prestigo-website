@@ -80,9 +80,64 @@ describe('073 identity_split', () => {
   })
 })
 
+describe('073 identity_phone_merges', () => {
+  const body = fnBody('identity_phone_merges')
+
+  it('lists only phone-based emails, newest first, with the contact email and booking count', () => {
+    expect(body).toMatch(/WHERE m\.basis = 'phone'/)
+    expect(body).toMatch(/c\.basis <> 'phone'/)
+    expect(body).toMatch(/ORDER BY m\.created_at DESC/)
+    expect(body).toMatch(/booking_identity/)
+    expect(body).toMatch(/identity_normalize_email\(b\.client_email\) = m\.email/)
+  })
+})
+
+describe('073 identity_shared_phones', () => {
+  const body = fnBody('identity_shared_phones')
+
+  it('lists only shared flags with the emails holding the number or merged through it', () => {
+    expect(body).toMatch(/WHERE f\.shared = true/)
+    expect(body).toMatch(/identity_phones/)
+    expect(body).toMatch(/e2\.via_phone = f\.phone/)
+    expect(body).toMatch(/ORDER BY f\.created_at DESC/)
+  })
+})
+
+describe('073 identity_mark_shared', () => {
+  const body = fnBody('identity_mark_shared')
+
+  it('checks the E.164 regex, answers invalid / already_shared / marked', () => {
+    expect(body).toContain("'^\\+[1-9][0-9]{7,14}$'")
+    expect(body).toContain("'invalid'")
+    expect(body).toContain("'already_shared'")
+    expect(body).toContain("'marked'")
+  })
+
+  it('inserts a manual flag capped at 80 characters, with the actor, and logs it', () => {
+    expect(body).toMatch(/'manual'/)
+    expect(body).toMatch(/left\(btrim\(p_note\), 80\)/)
+    expect(body).toMatch(/INSERT INTO public\.identity_admin_log/)
+  })
+
+  it('has no unmark path', () => {
+    expect(body).not.toMatch(/DELETE FROM public\.phone_flags|shared = false/)
+  })
+})
+
+describe('073 no phone normaliser dependency', () => {
+  it('no function body calls identity_normalize_phone (it arrives with 072)', () => {
+    expect(m073).not.toMatch(/identity_normalize_phone/)
+  })
+})
+
 describe('073 privileges', () => {
   // Full signatures (argument types only) of every function 073 creates.
-  const SIGNATURES = ['public.identity_split(text, uuid)']
+  const SIGNATURES = [
+    'public.identity_phone_merges()',
+    'public.identity_shared_phones()',
+    'public.identity_mark_shared(text, text, uuid)',
+    'public.identity_split(text, uuid)',
+  ]
   const created = [...m073.matchAll(/CREATE OR REPLACE FUNCTION (public\.[a-z_]+)\(/g)].map((m) => m[1])
 
   it('every function has one REVOKE line from PUBLIC, anon, authenticated and a GRANT to service_role', () => {

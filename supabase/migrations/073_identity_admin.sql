@@ -163,7 +163,133 @@ BEGIN
 END;
 $$;
 
+-- ── identity_phone_merges ───────────────────────────────────────────────────
+-- One row per email that joined an identity because of a shared phone number. A split
+-- email has basis 'split' and drops out of this list.
+CREATE OR REPLACE FUNCTION public.identity_phone_merges()
+RETURNS TABLE (
+  identity_id   uuid,
+  contact_email text,
+  merged_email  text,
+  phone         text,
+  bookings      integer,
+  merged_at     timestamptz
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT m.identity_id,
+         (SELECT c.email
+            FROM public.identity_emails c
+           WHERE c.identity_id = m.identity_id
+             AND c.basis <> 'phone'
+           ORDER BY c.created_at, c.email
+           LIMIT 1) AS contact_email,
+         m.email AS merged_email,
+         m.via_phone AS phone,
+         (SELECT count(*)::integer
+            FROM public.booking_identity bi
+            JOIN public.bookings b ON b.id = bi.booking_id
+           WHERE bi.identity_id = m.identity_id
+             AND public.identity_normalize_email(b.client_email) = m.email) AS bookings,
+         m.created_at AS merged_at
+    FROM public.identity_emails m
+   WHERE m.basis = 'phone'
+   ORDER BY m.created_at DESC, m.email;
+$$;
+
+-- ── identity_shared_phones ──────────────────────────────────────────────────
+-- Numbers flagged as shared (auto, manual or split) with the emails that use them.
+CREATE OR REPLACE FUNCTION public.identity_shared_phones()
+RETURNS TABLE (
+  phone     text,
+  source    text,
+  note      text,
+  marked_at timestamptz,
+  emails    text[]
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT f.phone,
+         f.source,
+         f.note,
+         f.created_at AS marked_at,
+         COALESCE(
+           (SELECT array_agg(DISTINCT x.email ORDER BY x.email)
+              FROM (
+                SELECT e.email
+                  FROM public.identity_phones p
+                  JOIN public.identity_emails e ON e.identity_id = p.identity_id
+                 WHERE p.phone = f.phone
+                UNION
+                SELECT e2.email
+                  FROM public.identity_emails e2
+                 WHERE e2.via_phone = f.phone
+              ) x),
+           ARRAY[]::text[]
+         ) AS emails
+    FROM public.phone_flags f
+   WHERE f.shared = true
+   ORDER BY f.created_at DESC, f.phone;
+$$;
+
+-- ── identity_mark_shared ────────────────────────────────────────────────────
+-- D-05 manual mark. There is no unmark operation. Returns 'marked' | 'already_shared' | 'invalid'.
+CREATE OR REPLACE FUNCTION public.identity_mark_shared(p_phone text, p_note text, p_actor uuid)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+#variable_conflict use_column
+DECLARE
+  v_shared boolean;
+  v_found  boolean;
+  v_note   text;
+BEGIN
+  IF p_phone IS NULL OR p_phone !~ '^\+[1-9][0-9]{7,14}$' THEN
+    RETURN 'invalid';
+  END IF;
+
+  PERFORM pg_advisory_xact_lock(hashtextextended('identity', 0));
+
+  v_note := NULLIF(left(btrim(p_note), 80), '');
+
+  SELECT f.shared INTO v_shared FROM public.phone_flags f WHERE f.phone = p_phone;
+  v_found := FOUND;
+
+  IF v_found AND v_shared THEN
+    RETURN 'already_shared';
+  END IF;
+
+  IF v_found THEN
+    UPDATE public.phone_flags
+       SET shared = true, source = 'manual', note = v_note, created_by = p_actor
+     WHERE phone = p_phone;
+  ELSE
+    INSERT INTO public.phone_flags (phone, shared, source, note, created_by)
+    VALUES (p_phone, true, 'manual', v_note, p_actor);
+  END IF;
+
+  INSERT INTO public.identity_admin_log (action, actor, identity_id)
+  VALUES ('mark_shared', p_actor, NULL);
+
+  RETURN 'marked';
+END;
+$$;
+
 -- ── Privileges ──────────────────────────────────────────────────────────────
+REVOKE EXECUTE ON FUNCTION public.identity_phone_merges() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.identity_shared_phones() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.identity_mark_shared(text, text, uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.identity_split(text, uuid) FROM PUBLIC, anon, authenticated;
 
+GRANT EXECUTE ON FUNCTION public.identity_phone_merges() TO service_role;
+GRANT EXECUTE ON FUNCTION public.identity_shared_phones() TO service_role;
+GRANT EXECUTE ON FUNCTION public.identity_mark_shared(text, text, uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.identity_split(text, uuid) TO service_role;
