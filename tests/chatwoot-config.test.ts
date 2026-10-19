@@ -358,8 +358,38 @@ describe('infra/chatwoot/custom-attributes.json (D-06)', () => {
     expect(data.conversation.map((a) => a.key)).toEqual([...CONVERSATION_ATTR_KEYS])
   })
 
-  it('contact keys equal ["site_locale"]', () => {
-    expect(data.contact.map((a) => a.key)).toEqual(['site_locale'])
+  it('contact keys are site_locale plus the seven synced D-02 fields, in order', () => {
+    expect(data.contact.map((a) => a.key)).toEqual([
+      'site_locale',
+      'next_trip',
+      'trip_count',
+      'last_trip_date',
+      'repeat_customer',
+      'lifetime_value',
+      'crm_contact_url',
+      'admin_bookings_url',
+    ])
+  })
+
+  it('crm_contact_url and admin_bookings_url are links, the other synced contact fields are text', () => {
+    const type = Object.fromEntries(data.contact.map((a) => [a.key, a.display_type]))
+    expect(type.crm_contact_url).toBe('link')
+    expect(type.admin_bookings_url).toBe('link')
+    for (const k of ['site_locale', 'next_trip', 'trip_count', 'last_trip_date', 'repeat_customer', 'lifetime_value']) {
+      expect(type[k]).toBe('text')
+    }
+  })
+
+  it('no contact attribute display name or description carries a currency word or symbol', () => {
+    const full = readInfraJson<{
+      contact: { key: string; display_name: string; description: string }[]
+    }>('custom-attributes.json')
+    for (const attr of full.contact) {
+      expect(hasCurrencyToken(attr.display_name), `${attr.key} display_name`).toBe(false)
+      expect(hasCurrencyToken(attr.description), `${attr.key} description`).toBe(false)
+    }
+    const ltv = full.contact.find((a) => a.key === 'lifetime_value')
+    expect(ltv?.display_name).toBe('Lifetime value')
   })
 
   it('every display_type is "text" or "link"', () => {

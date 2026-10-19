@@ -17,6 +17,13 @@
     { "key": "chat_consent", "display_name": "Chat consent recorded", "display_type": "text", "description": "Whether opening the widget was recorded as a consent event" }
   ],
   "contact": [
-    { "key": "site_locale", "display_name": "Site language", "display_type": "text", "description": "The locale of the site the contact most recently visited" }
+    { "key": "site_locale", "display_name": "Site language", "display_type": "text", "description": "The locale of the site the contact most recently visited" },
+    { "key": "next_trip", "display_name": "Next trip", "display_type": "text", "description": "Date, route, booking reference and status of the next upcoming trip (synced from the site)" },
+    { "key": "trip_count", "display_name": "Trips", "display_type": "text", "description": "Number of trips booked on the site, cancelled trips excluded (synced from the site)" },
+    { "key": "last_trip_date", "display_name": "Last trip", "display_type": "text", "description": "Date of the most recent past trip (synced from the site)" },
+    { "key": "repeat_customer", "display_name": "Repeat customer", "display_type": "text", "description": "yes when the customer has two or more trips (synced from the site)" },
+    { "key": "lifetime_value", "display_name": "Lifetime value", "display_type": "text", "description": "Total of paid and active trips (synced from the site)" },
+    { "key": "crm_contact_url", "display_name": "CRM contact", "display_type": "link", "description": "The matching contact in the CRM" },
+    { "key": "admin_bookings_url", "display_name": "Site bookings", "display_type": "link", "description": "This customer's bookings in the site admin" }
   ]
 }
