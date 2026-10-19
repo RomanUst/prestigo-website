@@ -102,6 +102,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'QStash-invoked outbox dispatcher logic: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from the dispatch route',
   },
   {
+    path: 'lib/crm-sync.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (sync.espo): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
+  },
+  {
     path: 'app/api/integrations/dispatch/route.ts',
     reason:
       'QStash-invoked outbox dispatcher: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; unsigned calls get 401',

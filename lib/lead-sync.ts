@@ -11,6 +11,7 @@ import {
 import { breaker, retryLater, skip, type DispatchResult } from '@/lib/dispatch-outcomes'
 import { createIdentityStore, type IdentityStore } from '@/lib/identity-store'
 import { deliverResolve } from '@/lib/sync-resolve'
+import { deliverEspoSync } from '@/lib/crm-sync'
 import {
   buildLeadFromBooking,
   buildLeadFromInquiry,
@@ -114,8 +115,17 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
       return handleFailure(row, err, d)
     }
   }
-  // Handlers arrive with plans 82-07 (sync.espo), 82-10 (sync.chatwoot) and 82-12 (erase.person).
-  if (row.event_type === 'sync.espo' || row.event_type === 'sync.chatwoot' || row.event_type === 'erase.person') {
+  // Phase 82 per-person EspoCRM sync (plan 82-07): needs the CRM, so it sits behind the same gate.
+  if (row.event_type === 'sync.espo') {
+    if (!d.crm || !d.config) return breaker(row, 'crm_unconfigured', d)
+    try {
+      return await deliverEspoSync(row, d, d.crm)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+  // Handlers arrive with plans 82-10 (sync.chatwoot) and 82-12 (erase.person).
+  if (row.event_type === 'sync.chatwoot' || row.event_type === 'erase.person') {
     await d.store.complete(row.idempotency_key, 'failed', 'unsupported_event')
     return { outcome: 'failed', code: 'unsupported_event' }
   }
