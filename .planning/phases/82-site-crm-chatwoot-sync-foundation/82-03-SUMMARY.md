@@ -26,9 +26,9 @@ decisions:
   - "Kept the live search_path (SET search_path TO 'public', 'pg_temp') instead of the plan text's search_path = '' - the contract says copy the live definition verbatim and only add the email clause"
 metrics:
   tasks_completed: 2
-  tasks_pending: 1
+  tasks_pending: 0
   files: 5
-status: complete-pending-orchestrator
+status: complete
 commits: 3
 plan_head_before: e8f6657b7b0a2fb8e71421be9af7dae9b31bbd4e
 plan_head_after: 5b6c28696a72b06d0a9090751bddba131d3c6c48
@@ -48,7 +48,7 @@ The site admin bookings list now finds a customer by email (`/admin/bookings?sea
 |------|------|--------|--------|
 | 1 (tracer) | Migration 071 + SQL-text and route tests | Done | 9620a742 |
 | 2 | Seven Chatwoot contact attributes + config tests | Done | 1c464bc7 |
-| 3 | Apply 071 live + rolled-back smoke `SMOKE_OK_82_03` | PENDING (orchestrator, Supabase MCP) | 5b6c2869 (smoke SQL only) |
+| 3 | Apply 071 live + rolled-back smoke `SMOKE_OK_82_03` | DONE (orchestrator, Supabase MCP, 2026-10-19) | 5b6c2869 (smoke SQL) |
 
 ## What was built
 
@@ -73,7 +73,10 @@ The site admin bookings list now finds a customer by email (`/admin/bookings?sea
 3. `get_advisors` (security): no new ERROR naming `admin_search_bookings`.
 4. Record the apply result, smoke message and advisor ERROR count here.
 
-Results: not yet recorded.
+Results (orchestrator, 2026-10-19 ~19:27 UTC):
+1. `apply_migration 071_admin_search_bookings_email` → success (live).
+2. Smoke → `ERROR: P0001: SMOKE_OK_82_03` (all 7 asserts passed, block rolled back). Leftover check: 0 bookings with reference SMK82030001, 0 outbox rows created.
+3. `get_advisors` (security): no ERROR items; nothing names `admin_search_bookings` (only pre-existing INFO rls_enabled_no_policy x10 and WARN leaked-password-protection).
 
 ## Deviations from Plan
 
