@@ -338,14 +338,14 @@ Plans:
   4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
   5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
 
-**Plans:** 16 plans
+**Plans:** 4/16 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 82-01-PLAN.md — Identity core + booking/signup capture triggers + resolver hop and fan-out (migration 069)
-- [ ] 82-02-PLAN.md — Outbox health admin page with retry one / retry all (migration 070)
-- [ ] 82-03-PLAN.md — Admin bookings search by email + Chatwoot contact attribute definitions (migration 071, D-02)
-- [ ] 82-04-PLAN.md — Privacy policy in 7 locales + freeze (GDPR-02, D-13/D-14)
+- [x] 82-01-PLAN.md — Identity core + booking/signup capture triggers + resolver hop and fan-out (migration 069)
+- [x] 82-02-PLAN.md — Outbox health admin page with retry one / retry all (migration 070)
+- [x] 82-03-PLAN.md — Admin bookings search by email + Chatwoot contact attribute definitions (migration 071, D-02)
+- [x] 82-04-PLAN.md — Privacy policy in 7 locales + freeze (GDPR-02, D-13/D-14)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 82-05-PLAN.md — Phone matching: merge-once-then-shared, manual shared, guards (migration 072)
@@ -446,7 +446,7 @@ Plans:
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
-| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
+| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 4/16 | In Progress|  |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
