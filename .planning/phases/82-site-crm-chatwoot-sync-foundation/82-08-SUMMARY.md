@@ -3,7 +3,7 @@ phase: 82-site-crm-chatwoot-sync-foundation
 plan: 08
 subsystem: sync / identity admin
 tags: [supabase, identity, admin-api, outbox, split, shared-phones, tdd]
-status: complete-pending-orchestrator
+status: complete
 requires:
   - phase: 82-01 (identity tables, global identity lock, outbox_enqueue, publishOutboxDispatch)
 provides:
@@ -29,7 +29,7 @@ decisions:
   - "The route normalises the phone with lib/phone.ts normalizePhone (never guesses a country code); 073 only checks the E.164 regex and does not call identity_normalize_phone (arrives with 072)"
 metrics:
   tasks_total: 3
-  tasks_done: 2 (Task 3 PENDING, orchestrator Supabase MCP)
+  tasks_done: 3 (Task 3 by orchestrator via Supabase MCP)
   plan_head_before: c7ab2f3fe2d25f16e1be293b798a025cbf3d38e2
   plan_head_after: 54d27bed84936d0502f8a15969e00463f99db1e7
   commits: 3
@@ -46,7 +46,7 @@ Migration 073 plus three admin routes let the owner list phone-based merges and 
 
 ## Status
 
-Code, tests and the smoke SQL are complete and committed. **Task 3 is PENDING**: migration 073 is not applied live and `SMOKE_OK_82_08` has not been run (this executor has no Supabase MCP).
+Code, tests and the smoke SQL are complete and committed. Task 3 was done by the orchestrator on 2026-10-19 ~19:58 UTC (results below).
 
 ## Tasks
 
@@ -54,7 +54,7 @@ Code, tests and the smoke SQL are complete and committed. **Task 3 is PENDING**:
 |------|------|--------|--------|
 | 1 | Tracer: split route -> identity_split RPC -> new identity + enqueued sync rows -> keys published | done | a0589b2a |
 | 2 | List merges and shared numbers + mark a number as shared | done | 3b8f8092 |
-| 3 | Apply 073 live + rolled-back smoke SMOKE_OK_82_08 (orchestrator, Supabase MCP) | PENDING | smoke SQL 54d27bed |
+| 3 | Apply 073 live + rolled-back smoke SMOKE_OK_82_08 (orchestrator, Supabase MCP) | DONE (orchestrator) | smoke SQL 54d27bed |
 
 ## What was built
 
@@ -88,9 +88,9 @@ No other deviations.
 
 | Item | Result |
 |------|--------|
-| apply_migration 073 | PENDING |
-| smoke message | PENDING |
-| advisor ERRORs on 073 objects | PENDING |
+| apply_migration 073 | success (live 2026-10-19) |
+| smoke message | `ERROR: P0001: SMOKE_OK_82_08`; leftovers 0 (identities, phone_flags, admin log, SMK-82-08 bookings, outbox rows); crm_sync_start 0 |
+| advisor ERRORs on 073 objects | 0 (only pre-existing INFO x10 + WARN leaked-password) |
 
 ## Auth gates
 
