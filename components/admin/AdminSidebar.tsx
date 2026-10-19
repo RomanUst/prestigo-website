@@ -16,6 +16,7 @@ const navItems = [
   { href: '/admin/settings', label: 'Settings' },
   { href: '/admin/stats', label: 'Stats' },
   { href: '/admin/outbox', label: 'Outbox' },
+  { href: '/admin/identities', label: 'Identities' },
 ]
 
 export default function AdminSidebar() {
