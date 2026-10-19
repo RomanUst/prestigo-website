@@ -328,10 +328,16 @@ describe('dispatcher gating', () => {
     expect(await dispatchOutboxKey(key, deps)).toEqual({ outcome: 'breaker', code: 'chatwoot_unconfigured' })
   })
 
-  it('erase.person is failed unsupported_event until plan 82-12', async () => {
+  // erase.person has its handler since plan 82-12 (tests/erasure.test.ts); here it only proves that a
+  // key without a confirmed erasure request is skipped, never failed unsupported_event.
+  it('erase.person without a confirmed erasure request is skipped erasure_not_confirmed', async () => {
     const key = `erase.person:${IDENT_I}`
     const h = harness(key, 'erase.person', 'person', IDENT_I)
-    expect(await dispatchOutboxKey(key, h.deps)).toEqual({ outcome: 'failed', code: 'unsupported_event' })
+    const erasure = { loadErasure: vi.fn(async () => null) } as unknown as NonNullable<DispatchDeps['erasure']>
+    expect(await dispatchOutboxKey(key, { ...h.deps, erasure })).toEqual({
+      outcome: 'skipped',
+      code: 'erasure_not_confirmed',
+    })
   })
 })
 

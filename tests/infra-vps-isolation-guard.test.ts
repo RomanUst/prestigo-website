@@ -122,6 +122,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'pure person -> Chatwoot contact mapping (no env, no I/O; only the exported CHATWOOT_SYNCED_ATTRIBUTE_KEYS constant name trips the env-var pattern); imported only by the QStash-invoked sync.chatwoot handler lib/chatwoot-sync.ts, never on a page render or a booking/payment/contact request path',
   },
   {
+    path: 'lib/erasure.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (erase.person, GDPR erasure saga): runs only when Upstash calls /api/integrations/dispatch with a signed message for an admin-confirmed erasure_requests row, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
+  },
+  {
     path: 'app/api/integrations/dispatch/route.ts',
     reason:
       'QStash-invoked outbox dispatcher: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; unsigned calls get 401',
