@@ -8,9 +8,10 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ChatwootConfigError, createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
+import { ChatwootApiError, ChatwootConfigError, createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
 import {
   formatActivity,
+  formatApiError,
   formatContact,
   formatReport,
   formatStatus,
@@ -42,6 +43,8 @@ interface FakeState {
   conversations: any[]
   messages: Map<number, any[]>
   contacts: any[]
+  /** Total returned by GET /contacts?page=1 (meta.count); defaults to contacts.length. */
+  contactsCount?: number
   reports: { summary?: Map<string, any>; legacy?: Map<string, any>; summary404?: boolean }
   /** Account payload returned by GET '' (feature flags). */
   account?: any
@@ -124,6 +127,9 @@ function createFake(partial: Partial<FakeState> = {}) {
       return json({ data: { payload: state.conversations.filter((c) => c.inbox_id === inboxId) } })
     }
     if ((m = base.match(/^\/conversations\/(\d+)\/messages$/))) return json({ payload: state.messages.get(Number(m[1])) ?? [] })
+    if (base === '/contacts') {
+      return json({ meta: { count: state.contactsCount ?? state.contacts.length }, payload: [] })
+    }
     if (base === '/contacts/search') {
       const q = (parsed.searchParams.get('q') ?? '').toLowerCase()
       return json({ payload: state.contacts.filter((c) => String(c.email).toLowerCase() === q) })
@@ -648,7 +654,72 @@ describe('--contact (INBOX-03, T-77-23: booleans only)', () => {
     expect(cap.out).toEqual(['contact_found=false identifier_matches=false'])
   })
 
-  it('requires --expect-identifier', () => {
-    expect(() => parseArgs(['--contact', 'a@b.test'])).toThrow()
+  it('without --expect-identifier prints only contact_found=true and exits 0', async () => {
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--contact', 'guest@example.test']), { client: makeClient(createFake({ contacts: [contact] })), ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out).toEqual(['contact_found=true'])
+    expect(cap.out.join('')).not.toContain('Guest Person')
+    expect(cap.out.join('')).not.toContain('uuid-123')
+  })
+
+  it('without --expect-identifier prints contact_found=false and still exits 0 for an unknown guest', async () => {
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--contact', 'nobody@example.test']), { client: makeClient(createFake()), ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out).toEqual(['contact_found=false'])
+  })
+
+  it('parseArgs accepts --contact alone and keeps --expect-identifier optional', () => {
+    expect(parseArgs(['--contact', 'a@b.test']).expectIdentifier).toBeNull()
+    expect(parseArgs(['--contact', 'a@b.test', '--expect-identifier', 'x']).expectIdentifier).toBe('x')
+    expect(() => parseArgs(['--contact'])).toThrow()
+  })
+})
+
+describe('--contacts-count (Phase 82 plan 09: post-backfill verification)', () => {
+  it('prints exactly contacts=<meta.count> and exits 0', async () => {
+    const fake = createFake({ contactsCount: 42 })
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--contacts-count']), { client: makeClient(fake), ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out).toEqual(['contacts=42'])
+    expect(cap.err).toEqual([])
+    expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
+    expect(fake.requests.some((r) => r.path.endsWith('/contacts?page=1'))).toBe(true)
+  })
+
+  it('prints contacts=0 for an empty account', async () => {
+    const cap = capture()
+    expect(await runInspect(parseArgs(['--contacts-count']), { client: makeClient(createFake()), ...cap.io })).toBe(0)
+    expect(cap.out).toEqual(['contacts=0'])
+  })
+
+  it('a non-2xx answer throws an API error whose report is the status only (no body echo)', async () => {
+    const fetchImpl = async () => new Response(JSON.stringify({ error: 'secret-ish body with a@b.test' }), { status: 500 })
+    const client = createChatwootClient({ baseUrl: BASE, token: FAKE_TOKEN, accountId: '1', fetchImpl: fetchImpl as any })
+    const cap = capture()
+    const failure = await runInspect(parseArgs(['--contacts-count']), { client, ...cap.io }).then(
+      () => null,
+      (e) => e,
+    )
+    expect(failure).toBeInstanceOf(ChatwootApiError)
+    expect(failure.status).toBe(500)
+    const line = formatApiError(failure)
+    expect(line).toBe('API error: status=500')
+    expect(line).not.toContain('secret-ish')
+    expect(cap.out).toEqual([])
+  })
+
+  it('a response without meta.count is a config error, not a number', async () => {
+    const fetchImpl = async () => new Response(JSON.stringify({ payload: [] }), { status: 200 })
+    const client = createChatwootClient({ baseUrl: BASE, token: FAKE_TOKEN, accountId: '1', fetchImpl: fetchImpl as any })
+    await expect(runInspect(parseArgs(['--contacts-count']), { client, ...capture().io })).rejects.toThrow(ChatwootConfigError)
+  })
+
+  it('stays exclusive with the other modes and takes no value', () => {
+    expect(parseArgs(['--contacts-count']).mode).toBe('contacts-count')
+    expect(() => parseArgs(['--contacts-count', '--status'])).toThrow(/exactly one/)
+    expect(() => parseArgs(['--contacts-count', '--bogus'])).toThrow(/Unknown argument/)
   })
 })
