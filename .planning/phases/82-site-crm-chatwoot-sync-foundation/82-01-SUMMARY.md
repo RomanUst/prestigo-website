@@ -3,7 +3,7 @@ phase: 82-site-crm-chatwoot-sync-foundation
 plan: 01
 subsystem: sync / identity
 tags: [supabase, outbox, identity, triggers, qstash, tdd]
-status: partial
+status: complete
 requires:
   - phase: 81 (integration_outbox 064, outbox_kick 067, lead dispatcher)
 provides:
@@ -37,7 +37,7 @@ decisions:
   - "sync.espo / sync.chatwoot / erase.person complete failed unsupported_event until plans 82-07, 82-10, 82-12 add their handlers"
 metrics:
   tasks_total: 4
-  tasks_done: 3 (Task 0 by orchestrator, Tasks 1 and 2 by this executor); Task 3 PENDING (orchestrator MCP)
+  tasks_done: 4 (Tasks 0 and 3 by orchestrator, Tasks 1 and 2 by the executor)
   commits: 3
   plan_head_before: e8f6657b7b0a2fb8e71421be9af7dae9b31bbd4e
   plan_head_after: 5b7503bd9cfa690bdda07a7b533099073e3604b9
@@ -54,7 +54,7 @@ Booking and signup writes are captured by exception-safe, bucketed triggers into
 
 ## Status
 
-Code and tests for Tasks 1 and 2 are complete and committed. **Task 3 (apply migration 069 live, run the rolled-back smoke, advisor check) is PENDING** - gsd-executors have no Supabase MCP. The orchestrator must apply it and fill in the results below.
+Code and tests for Tasks 1 and 2 are complete and committed. Task 3 (apply migration 069 live, rolled-back smoke, advisor check) was done by the orchestrator on 2026-10-19 ~19:37 UTC; results below.
 
 ## Tasks
 
@@ -63,7 +63,7 @@ Code and tests for Tasks 1 and 2 are complete and committed. **Task 3 (apply mig
 | 0 | Live schema snapshot 82-LIVE-SCHEMA.md (orchestrator) | done | e8f6657b |
 | 1 | Tracer: booking trigger -> sync.booking -> resolver hop -> identity -> fan-out | done | a21cf7fa |
 | 2 | Signup capture, user resolver, person/booking read contract, kick allow-set | done | 73e46aa8 |
-| 3 | Apply 069 live + smoke SMOKE_OK_82_01 (orchestrator, Supabase MCP) | **PENDING** | smoke SQL committed in 5b7503bd |
+| 3 | Apply 069 live + smoke SMOKE_OK_82_01 (orchestrator, Supabase MCP) | DONE (orchestrator) | smoke SQL 5b7503bd |
 
 ## What was built
 
@@ -107,10 +107,10 @@ None beyond the plan's register (T-82-01..05, 48). No new endpoint or customer-r
 
 | Item | Result |
 |------|--------|
-| apply_migration 069 | _PENDING_ |
-| smoke message | _PENDING_ (expect `SMOKE_OK_82_01`) |
-| advisor ERRORs on 069 objects | _PENDING_ (expect 0) |
-| crm_sync_start count after smoke | _PENDING_ (expect 0) |
+| apply_migration 069 | success (live 2026-10-19) |
+| smoke message | `ERROR: P0001: SMOKE_OK_82_01` (steps a-j passed; auth.users insert allowed) |
+| advisor ERRORs on 069 objects | 0 (only pre-existing INFO x10 + WARN leaked-password) |
+| crm_sync_start count after smoke | 0 (also 0 leftover SMK-82-01 bookings, 0 identities, 0 smoke users, 0 new outbox rows) |
 
 Test-environment note: tests ran through the symlinked main-checkout `node_modules`; no next-intl failures were seen, but the orchestrator should still re-run the verify command on the main checkout.
 
