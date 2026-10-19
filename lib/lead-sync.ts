@@ -21,6 +21,8 @@ import { createIdentityStore, type IdentityStore } from '@/lib/identity-store'
 import { deliverResolve } from '@/lib/sync-resolve'
 import { deliverEspoSync } from '@/lib/crm-sync'
 import { deliverChatwootSync } from '@/lib/chatwoot-sync'
+import { deliverErasure } from '@/lib/erasure'
+import type { ErasureStore } from '@/lib/erasure-store'
 import {
   buildLeadFromBooking,
   buildLeadFromInquiry,
@@ -54,6 +56,8 @@ export interface DispatchDeps {
   /** Administrator client; used only for contact_merge (null when no admin token is configured). */
   chatwootAdmin: SiteChatwootClient | null
   chatwootConfig: SiteChatwootConfig | null
+  /** Phase 82 (plan 82-12): erasure saga store; undefined = the Supabase RPC store. Tests inject a double. */
+  erasure?: ErasureStore
 }
 
 const LEASE_SECONDS = 120
@@ -81,6 +85,7 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     chatwoot,
     chatwootAdmin,
     chatwootConfig,
+    erasure: deps.erasure,
   }
 }
 
@@ -160,10 +165,15 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
       return handleFailure(row, err, d)
     }
   }
-  // The handler arrives with plan 82-12 (erase.person).
+  // GDPR erasure saga (plan 82-12). It re-reads the admin-confirmed erasure_requests row and gates on
+  // the Chatwoot administrator client and the CRM per step itself, so a request that is not confirmed
+  // is skipped without any configuration and without touching a system.
   if (row.event_type === 'erase.person') {
-    await d.store.complete(row.idempotency_key, 'failed', 'unsupported_event')
-    return { outcome: 'failed', code: 'unsupported_event' }
+    try {
+      return await deliverErasure(row, d, { erasure: d.erasure })
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
   }
 
   // Missing config: zero requests, long wait. Every other branch needs the CRM.
