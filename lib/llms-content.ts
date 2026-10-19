@@ -10,7 +10,7 @@
 import type { RoutePrice } from '@/lib/route-prices'
 import type { PricingRates } from '@/lib/pricing-config'
 import type { BlogPost } from '@/lib/blog'
-import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
+import { BUSINESS_PHONE_DISPLAY, TRIPADVISOR_URL } from '@/lib/contact-channels'
 import { GOOGLE_MAPS_URL } from '@/lib/google-maps-url'
 
 const BASE = 'https://rideprestigo.com'
@@ -287,6 +287,7 @@ ${posts.map((p) => `- ${p.title}: ${BASE}/blog/${p.slug}`).join('\n')}
 - **Contact form:** ${BASE}/contact
 - **Instagram:** https://www.instagram.com/rideprestigo/
 - **Facebook:** https://www.facebook.com/profile.php?id=61574283117859
+- **Tripadvisor:** ${TRIPADVISOR_URL}
 
 ---
 
