@@ -9,7 +9,7 @@ interface MergedByPhoneTableProps {
   loading: boolean
   onSplit: (merge: PhoneMergeRow) => void
   /** Shown instead of rows when there is nothing to list. */
-  empty: { heading: string; body: string }
+  empty: { heading?: string; body: string }
 }
 
 const COLUMNS = ['CONTACT', 'MERGED EMAIL', 'PHONE', 'BOOKINGS', 'MERGED']
@@ -61,10 +61,12 @@ export function MergedByPhoneTable({ merges, loading, onSplit, empty }: MergedBy
           ) : merges.length === 0 ? (
             <tr>
               <td colSpan={COL_COUNT} style={emptyCellStyle}>
-                <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '20px', color: 'var(--offwhite)', lineHeight: 1.25 }}>
-                  {empty.heading}
-                </div>
-                <div style={{ margin: '8px 0 0' }}>{empty.body}</div>
+                {empty.heading && (
+                  <div style={{ fontFamily: 'var(--font-cormorant)', fontSize: '20px', color: 'var(--offwhite)', lineHeight: 1.25 }}>
+                    {empty.heading}
+                  </div>
+                )}
+                <div style={{ margin: empty.heading ? '8px 0 0' : 0 }}>{empty.body}</div>
               </td>
             </tr>
           ) : (
