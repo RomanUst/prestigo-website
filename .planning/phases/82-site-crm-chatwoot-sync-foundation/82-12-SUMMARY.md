@@ -3,7 +3,7 @@ phase: 82-site-crm-chatwoot-sync-foundation
 plan: 12
 subsystem: GDPR erasure / outbox saga
 tags: [gdpr, erasure, outbox, chatwoot, espocrm, supabase, security, tdd]
-status: partial
+status: complete
 requires:
   - phase: 82-01 (identity tables, erasing_at freeze, anonymised_at column, resolver answers 'erasing')
   - phase: 82-05 (phone rules: shared numbers excluded from identity_person)
@@ -43,7 +43,7 @@ decisions:
   - "DispatchDeps gained an optional 'erasure' store (default: the Supabase RPC store) so tests inject a double"
 metrics:
   tasks_total: 3
-  tasks_done: 2
+  tasks_done: 3
   tasks_pending: 1
   commits: 3
   plan_head_before: f7210122ec95f2163500d5cb5a7026bffb82d55e
@@ -76,15 +76,17 @@ Key behaviours, all test-pinned:
 |------|------|--------|
 | 1 | Tracer: confirm -> erase.person -> Chatwoot -> EspoCRM -> verify -> Supabase -> auth -> audit; router branch; isolation allowlist | c7dfe265 |
 | 2 | Leads, CBookings, residual tables, scope/preview/log, resume, verify re-delete, Sync writer Contact delete | a8bf13f0 |
-| 3 | [ORCHESTRATOR] apply 075 live + rolled-back smoke SMOKE_OK_82_12 | PENDING (smoke script committed in 74fb3b53) |
+| 3 | [ORCHESTRATOR] apply 075 live + rolled-back smoke SMOKE_OK_82_12 | DONE by orchestrator 2026-10-19 (smoke 74fb3b53 + fix below) |
 
-## Task 3: PENDING (needs the Supabase MCP, orchestrator)
+## Task 3: DONE (orchestrator, Supabase MCP)
 
 1. `apply_migration` name `075_erasure` with `supabase/migrations/075_erasure.sql`.
 2. `execute_sql` with the whole of `.planning/phases/82-site-crm-chatwoot-sync-foundation/82-12-smoke.sql` (11.6 KB, one DO block, precondition `crm_sync_start` absent). Expected message: exactly `SMOKE_OK_82_12`; any other message is `FAIL <label>`. I could not run it (no Postgres and no MCP in this session), so the SQL is statically reviewed only: if it fails, the label names the assertion; a failure inside a migration function is a defect in 075 to fix before go-live.
 3. `get_advisors` (security): no new ERROR naming 075 objects. `select count(*) from public.integration_config where key = 'crm_sync_start'` must be 0.
 
-Results to record by the orchestrator: apply result `__`, smoke message `__`, advisor ERROR count `__`, crm_sync_start count `__`.
+Results (2026-10-19 ~20:55 UTC): apply result `success`, smoke message `SMOKE_OK_82_12`, advisor ERROR count `0` (nothing names 075 objects), crm_sync_start count `0`. Leftovers after rollback: 0 erasure_requests, 0 SMK-82-12 bookings / gnet rows, 0 smoke users, 0 new outbox rows, 0 identities.
+
+First run failed on the smoke itself, not the migration: `bookings.pickup_utc` is a GENERATED column (computed from pickup_date/pickup_time), so the INSERT may not set it. The smoke now omits it (the 2030 pickup date still makes the booking upcoming); fixed in the committed `82-12-smoke.sql`.
 
 ## Deviations from Plan
 

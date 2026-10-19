@@ -24,11 +24,11 @@ BEGIN
   VALUES (uid, 'authenticated', 'authenticated', e, '', '', '', '');
   INSERT INTO public.customer_profiles (user_id, full_name) VALUES (uid, 'Smoke Erase');
   INSERT INTO public.bookings (booking_reference, leg, booking_type, status, booking_source, trip_type, origin_address,
-    destination_address, origin_lat, origin_lng, passengers, luggage, pickup_date, pickup_time, pickup_utc, vehicle_class,
+    destination_address, origin_lat, origin_lng, passengers, luggage, pickup_date, pickup_time, vehicle_class,
     amount_czk, amount_eur, client_first_name, client_last_name, client_email, client_phone, flight_number,
     special_requests, operator_notes, user_id)
   VALUES ('SMK-82-12', 'outbound', 'confirmed', 'pending', 'online', 'one_way', 'Smoke street 1', 'Smoke street 2',
-    50.1, 14.4, 1, 0, '2030-01-15', '10:00', now() + interval '30 days', 'business', 1000, 40, 'Smoke', 'Erase',
+    50.1, 14.4, 1, 0, '2030-01-15', '10:00', 'business', 1000, 40, 'Smoke', 'Erase',
     e, ph, 'OK123', 'wheelchair', 'calls twice', uid) RETURNING id INTO bk;
   INSERT INTO public.inquiries (kind, email, name, phone, payload) VALUES ('contact', e, 'Smoke Erase', ph, '{"m":"hi"}');
   INSERT INTO public.quote_leads (email, quote_payload) VALUES (e, '{"x":1}');
