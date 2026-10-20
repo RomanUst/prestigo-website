@@ -50,3 +50,6 @@ export const TELEGRAM_CHAT_URL = `https://t.me/${TELEGRAM_BOT_USERNAME}`
 // Tripadvisor listing — linked from the footer, homepage JSON-LD sameAs and llms-full.txt.
 export const TRIPADVISOR_URL =
   'https://www.tripadvisor.com/Attraction_Review-g274707-d34419337-Reviews-PRESTIGO_Premium_Chauffeur_Private_Transfer_Service_Prague-Prague_Bohemia.html'
+
+// Trustpilot profile — footer, homepage JSON-LD sameAs, llms-full.txt, post-trip email.
+export const TRUSTPILOT_URL = 'https://www.trustpilot.com/review/rideprestigo.com'

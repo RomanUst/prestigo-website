@@ -262,6 +262,17 @@ describe('lib/email — D-11 full classification (Phase 77-02, Task 2)', () => {
       expect(sendStub.mock.calls[0][0].replyTo).toBe(CUSTOMER_REPLY_TO)
     })
 
+    it('sendPostTripEmail — offers Google, Tripadvisor and Trustpilot reviews', async () => {
+      await sendPostTripEmail(BASE_STATUS_BOOKING)
+      const html: string = sendStub.mock.calls[0][0].html
+      expect(html).toContain('REVIEW US ON GOOGLE')
+      expect(html).toContain('REVIEW US ON TRIPADVISOR')
+      expect(html).toContain('REVIEW US ON TRUSTPILOT')
+      expect(html).toContain('https://www.tripadvisor.com/Attraction_Review-g274707-d34419337')
+      expect(html).toContain('https://www.trustpilot.com/review/rideprestigo.com')
+      expect(html).toContain('/brand/email-icon-google.png')
+    })
+
     it('sendCorporateContactEmails — client ack (first send call)', async () => {
       await sendCorporateContactEmails(BASE_CORPORATE)
       expect(sendStub.mock.calls[0][0].replyTo).toBe(CUSTOMER_REPLY_TO)

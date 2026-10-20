@@ -238,10 +238,12 @@ describe('Task 2: remaining four canned topics', () => {
     }
   })
 
-  it('review-request contains the Google review link in every locale', () => {
+  it('review-request contains the Google, Tripadvisor and Trustpilot links in every locale', () => {
     const data = readCannedTopic('review-request')
     for (const loc of LOCALES) {
       expect(data.responses[loc]).toContain('https://g.page/r/CdQIkiuHQ1UOEBM/review')
+      expect(data.responses[loc]).toContain('https://www.tripadvisor.com/Attraction_Review-g274707-d34419337')
+      expect(data.responses[loc]).toContain('https://www.trustpilot.com/review/rideprestigo.com')
     }
   })
 
