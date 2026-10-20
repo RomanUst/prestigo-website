@@ -99,9 +99,9 @@ export const JSX_POSTS: BlogPost[] = [
   },
   {
     slug: "prague-airport-taxi-vs-chauffeur",
-    title: "Prague Airport Taxi 2026: Official Rank, Fares & Scams to Avoid",
+    title: "Prague Airport Taxi vs Chauffeur 2026: Fares & Which to Pick",
     description:
-      "Taking a taxi from Prague Airport in 2026? Who runs the official rank now, what the ride into town really costs, the scams to avoid, and when a pre-booked chauffeur is worth it.",
+      "Prague Airport taxi vs chauffeur: what the official rank really costs, when a fixed-price pre-booked chauffeur pays off, and the airport taxi scams to avoid.",
     date: "2026-04-09",
     coverImage: "/hero-airport-transfer.webp",
     category: "Airport Transfer",

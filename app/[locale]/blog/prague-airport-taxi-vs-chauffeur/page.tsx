@@ -24,8 +24,14 @@ const ARTICLE_MODIFIED = '2026-04-09'
 // fare updates (1 Jan 2026), Honest Guide scam reporting, and PRESTIGO's own
 // published pricing in the Notion ledger. Every number is cross-checked.
 
-const TITLE = 'Prague Airport Taxi 2026: Official Rank, Fares & Scams to Avoid'
-const DESCRIPTION = 'Taking a taxi from Prague Airport in 2026? Who runs the official rank now, what the ride into town really costs, the scams to avoid, and when a pre-booked chauffeur is worth it.'
+const TITLE = 'Prague Airport Taxi vs Chauffeur 2026: Fares & Which to Pick'
+
+// The snippet answers the query directly: the rank fare (a third-party price,
+// whitelisted in tests/blog-live-prices.test.ts) next to the live Prestigo fare.
+function describe(p: Fares): string {
+  const chauffeur = p.e > 0 ? `a fixed-price chauffeur from €${p.e}` : 'a fixed-price chauffeur'
+  return `Prague Airport taxi vs chauffeur: the official rank costs €26–32 to the centre, ${chauffeur} with meet & greet. Which pays off and when.`
+}
 
 // CR-01: converted from a static `metadata` export to generateMetadata() so
 // the current locale is available. EN-only legacy JSX article (D-08) — no
@@ -34,6 +40,7 @@ const DESCRIPTION = 'Taking a taxi from Prague Airport in 2026? Who runs the off
 // of locale — canonical/og:url stay pinned to the EN URL for every locale.
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
+  const description = describe(await getFares('airport'))
   const alternates = getAlternates(CANONICAL_PATH, {
     indexable: true,
     content: { kind: 'blog', key: 'prague-airport-taxi-vs-chauffeur' },
@@ -41,12 +48,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   })
   return {
     title: TITLE,
-    description: DESCRIPTION,
+    description,
     alternates,
     openGraph: {
       url: toAbsoluteUrl(alternates.canonical),
       title: TITLE,
-      description: DESCRIPTION,
+      description,
       images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
     },
   }
@@ -246,7 +253,7 @@ function buildArticle(p: Fares) {
         '@type': 'BlogPosting',
         '@id': `${CANONICAL_ABS}#article`,
         headline: TITLE,
-        description: DESCRIPTION,
+        description: describe(p),
         image: {
           '@type': 'ImageObject',
           url: 'https://rideprestigo.com/hero-airport-transfer.webp',
