@@ -1,7 +1,7 @@
 ---
 phase: 82-site-crm-chatwoot-sync-foundation
 plan: 14
-status: complete-pending-owner-decision
+status: complete
 requirements: [SYNC-01, SYNC-02, SYNC-03, GDPR-02]
 completed: 2026-10-20
 ---
@@ -46,7 +46,7 @@ Sync is live in production. Ids, counts and codes only; no PII, no secrets.
 
 ## Task 3: backfill decision
 
-Pending owner decision. With 0 phone merges there is nothing to split first. Backfill would enqueue ~86 rows (68 bookings + 19 profiles, minus the smoke booking already synced), staggered 5 s → about 7 minutes.
+Owner chose **approve** (2026-10-20). With 0 phone merges there was nothing to split first. Executed in 82-15. Backfill would enqueue ~86 rows (68 bookings + 19 profiles, minus the smoke booking already synced), staggered 5 s → about 7 minutes.
 
 ## Security note
 

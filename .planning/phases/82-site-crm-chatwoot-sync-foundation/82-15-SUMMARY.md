@@ -1,7 +1,7 @@
 ---
 phase: 82-site-crm-chatwoot-sync-foundation
 plan: 15
-status: partial
+status: complete
 requirements: [SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05, GDPR-01]
 ---
 
@@ -34,6 +34,15 @@ Counts and codes only.
 - `sync.espo` sent 23:29:08 (attempt 2). `count CBooking supabaseBookingId=<smoke id>` = 1 (exactly once), `count CBooking flightNumber=DRILL1` = 1 (change arrived).
 - Drill row appended to `infra/vps/runbooks/crm-sync.md`.
 
-## Task 3: erasure smoke — PENDING (owner)
+## Task 3: erasure smoke — DONE (owner erased from /admin/erasure)
 
-Owner erases `crm-smoke+82-14@…` from /admin/erasure after the drill; Claude then verifies every system.
+First "erased" reply: no request had reached the database (0 erasure_requests, 0 erase.person rows) — the owner had not completed the preview/confirm yet; the second attempt succeeded.
+
+- `erasure_requests` (newest): status **completed**, verified **true**, booking_ids and subject_emails cleared, email_hmac present; requested 23:32:52, completed 23:33:21 UTC (29 s). Steps: chatwoot, espocrm, verify, supabase, auth.
+- Counts: chatwoot_contacts_deleted 1, espo_contacts_deleted 1, espo_leads_deleted 1, espo_cbookings_anonymised 1, bookings_anonymised 1, identity_deleted 1, verify_remaining 0, account_deleted 0 (no account).
+- `erase.person` outbox row: sent, attempts 1, no error.
+- Supabase booking SMK-82-14: anonymised_at set, client_email `erased-…@erased.invalid`, first name blank; booking_reference and amounts unchanged. identity_emails rows for the marker: 0.
+- EspoCRM: Contact for the marker 0; Lead `booking:<id>` 0; CBooking for the booking 1 with Contact link removed and passengerName / flightNumber / pickup / dropoff blank.
+- Chatwoot: `contact_found=false`.
+
+The anonymised CBooking stays in EspoCRM (accounting); the owner may delete it by hand if preferred.
