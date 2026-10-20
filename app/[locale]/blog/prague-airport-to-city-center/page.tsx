@@ -17,7 +17,7 @@ const CANONICAL_PATH = '/blog/prague-airport-to-city-center'
 const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
 
 const ARTICLE_PUBLISHED = '2026-04-09'
-const ARTICLE_MODIFIED = '2026-04-09'
+const ARTICLE_MODIFIED = '2026-10-20'
 
 // Exhaustive Prague Airport → city guide, verified against PID Lítačka 2026
 // tariff (effective 1 Jan 2026), DPP network changes (bus 119 → trolleybus 59
@@ -289,6 +289,14 @@ function buildArticle(p: Fares) {
       a: 'Door-to-door time depends heavily on your transport mode and final destination. A private chauffeur or taxi covers the 20 km from Václav Havel Airport (PRG) to central Prague in 25 to 35 minutes off-peak (10:00–15:30, after 19:00), or 35 to 50 minutes during the two rush-hour windows (07:30–09:30 and 16:00–18:30 on weekdays). The Airport Express (AE) bus runs 35 to 45 minutes direct to Praha hl.n. but you still need to transfer onward. Trolleybus 59 plus metro A takes 45 to 55 minutes to Staroměstská with one change at Nádraží Veleslavín. In rush hour, public transit is often faster than a taxi because the trolleybus has dedicated priority lanes and the metro is immune to surface traffic. At 02:00 AM nothing runs except taxis and pre-booked transfers; expect 25 minutes. The honest rule of thumb: executive travellers should assume 30 minutes, budget travellers 60 minutes, and everyone should add 15 minutes at weekday rush hour.',
     },
     {
+      q: 'How far is Prague Airport from the city centre?',
+      a: 'Václav Havel Airport (PRG) is about 20 km west-northwest of Prague city centre. By car that is 25 to 35 minutes off-peak and 35 to 50 minutes in the weekday rush hours (07:30–09:30 and 16:00–18:30). Old Town Square sits at the far end of that distance: allow 30 to 40 minutes by taxi or chauffeur, or 45 to 55 minutes by trolleybus 59 and metro A to Staroměstská. Dejvice (Prague 6) is the closest city district to the airport at 15 to 25 minutes by car.',
+    },
+    {
+      q: 'How do I get from Prague Airport to Old Town?',
+      a: 'Two practical ways. By public transport: trolleybus 59 from outside either arrivals hall to Nádraží Veleslavín, then metro A to Staroměstská — 45 to 55 minutes on a single 90-minute PID ticket, plus a 5-minute walk to Old Town Square. By car: a taxi, ride-hail or pre-booked chauffeur takes 30 to 40 minutes. Old Town (Staré Město) is pedestrian-restricted, so cars stop at the nearest permitted point and the last 100 to 200 metres to hotels in the inner lanes are usually on foot. With heavy luggage or a late-night arrival, a pre-booked door-to-door transfer saves the metro change and the walk over cobblestones.',
+    },
+    {
       q: 'What is the cheapest way from Prague Airport to the city centre in 2026?',
       a: `Trolleybus 59 plus metro A is the cheapest legitimate option at 46 CZK (about €1.80) for a 90-minute PID ticket that covers the entire journey to anywhere in central Prague with unlimited transfers. The ticket is cheapest in the PID Lítačka mobile app, marginally more expensive on paper at the yellow ticket machine (50 CZK) or at the DPP Visitor Centre inside the terminal. A 24-hour PID pass is 120 CZK and worth it if you plan to use Prague public transport at all during your visit. The next cheapest is the Airport Express (AE) bus at 200 CZK — note this doubled from 100 CZK on 1 January 2026, making it significantly less attractive than before. Ride-hail (Bolt, Liftago) runs €18–€26 off-peak, Uber Airport is a fixed €26–€32, and a PRESTIGO chauffeur is €${p.e} in an E-Class. The cheapest option is viable only for travellers with light luggage, confidence navigating a transfer, and a destination near a metro stop — for everyone else the minor extra cost of a taxi is justified.`,
     },
@@ -446,7 +454,7 @@ export default async function GuidePragueAirportPage({ params }: { params: Promi
         <div className="max-w-5xl mx-auto px-6 md:px-12">
           <p className="label mb-6">All six options</p>
           <span className="copper-line mb-6 block" />
-          <h2 className="display text-[28px] md:text-[36px] mb-14">Every route from PRG to the centre, <span className="display-italic">with current 2026 fares.</span></h2>
+          <h2 className="display text-[28px] md:text-[36px] mb-14">Every route from PRG to the city centre and Old Town, <span className="display-italic">with current 2026 fares.</span></h2>
           <div className="flex flex-col gap-10">
             {options.map((opt, i) => (
               <div key={opt.name} className={`py-10 ${i < options.length - 1 ? 'border-b border-anthracite-light' : ''}`}>
