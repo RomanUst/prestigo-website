@@ -17,14 +17,14 @@
   },
   "section1": {
     "title": "What data PRESTIGO holds",
-    "text": "If you booked a transfer or submitted an enquiry, we hold your name, email address, phone number, and booking details. We also process anonymised website analytics data via Google Analytics and Meta Pixel. We do not store your Facebook user ID — the Meta Pixel only sends hashed behavioural data for ad measurement purposes."
+    "text": "If you booked a transfer or submitted an enquiry, we hold your name, email address, phone number, booking details, the messages you sent us through chat, email, Telegram or WhatsApp, and the customer record in our CRM. We also process anonymised website analytics data via Google Analytics and Meta Pixel. We do not store your Facebook user ID — the Meta Pixel only sends hashed behavioural data for ad measurement purposes."
   },
   "section2": {
     "title": "How to request deletion",
     "paragraph1Prefix": "Send an email to ",
     "paragraph1EmailLabel": "info@rideprestigo.com",
     "paragraph1Suffix": " with the subject line “Data Deletion Request”. Include the email address associated with your booking or enquiry.",
-    "paragraph2": "We will confirm receipt within 3 business days and complete the deletion within 30 days, unless we are required by law to retain certain records (e.g. invoices for tax purposes — retained for 5 years as required by Czech law)."
+    "paragraph2": "We will confirm receipt within 3 business days and complete the deletion within 30 days, unless we are required by law to retain certain records: booking and invoice records are kept for up to 10 years as required by Czech law, without your name, email, phone, notes or addresses."
   },
   "section3": {
     "title": "Deletion via Facebook",

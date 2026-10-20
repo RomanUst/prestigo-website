@@ -8,7 +8,7 @@
     "label": "Politique de confidentialité",
     "headlineLine1": "Vos données, protégées.",
     "headlineItalic": "Par conception.",
-    "lastUpdated": "Dernière mise à jour : 6 avril 2026"
+    "lastUpdated": "Dernière mise à jour : 19 octobre 2026"
   },
   "section1": {
     "title": "Responsable du traitement",
@@ -43,6 +43,10 @@
     "locationData": {
       "heading": "Données de localisation",
       "text": "Les adresses de prise en charge et de destination que vous saisissez sont traitées via l’API Google Maps pour le calcul d’itinéraire et la saisie semi-automatique. Nous ne suivons pas votre position en temps réel."
+    },
+    "messagingData": {
+      "heading": "Messages et fiche client",
+      "text": "Les messages que vous nous envoyez via le chat du site, l’e-mail, Telegram ou WhatsApp, le profil de votre compte et la fiche client que nous tenons dans notre CRM : nom, e-mail, téléphone, historique des trajets et notes de notre équipe."
     }
   },
   "section3": {
@@ -54,7 +58,7 @@
     },
     "legitimateInterest": {
       "heading": "Intérêt légitime — art. 6, § 1, f)",
-      "text": "Analyse de la fréquentation du site afin d’améliorer notre service, prévention de la fraude et réponse à vos demandes transmises via le formulaire de contact."
+      "text": "Analyse de la fréquentation du site afin d’améliorer notre service, prévention de la fraude, réponse à vos demandes transmises via le formulaire de contact, et tenue d’une fiche client unique dans l’ensemble de nos systèmes afin de pouvoir vous répondre avec l’historique de vos trajets sous les yeux."
     },
     "legalObligation": {
       "heading": "Obligation légale — art. 6, § 1, c)",
@@ -103,35 +107,45 @@
       },
       {
         "name": "Hostinger",
-        "purpose": "Hébergement de notre propre serveur de messagerie en Allemagne (UE).",
+        "purpose": "Hébergement de notre propre serveur de messagerie et de fiches clients en Allemagne (UE).",
         "url": "https://www.hostinger.com/legal/privacy-policy"
       },
       {
         "name": "Backblaze",
-        "purpose": "Sauvegardes nocturnes chiffrées de notre serveur de messagerie, stockées aux États-Unis.",
+        "purpose": "Sauvegardes nocturnes chiffrées de notre serveur de messagerie et de fiches clients, stockées aux États-Unis.",
         "url": "https://www.backblaze.com/company/privacy.html"
       },
       {
         "name": "Telegram",
         "purpose": "Uniquement si vous choisissez de nous écrire sur Telegram.",
         "url": "https://telegram.org/privacy"
+      },
+      {
+        "name": "EspoCRM (self-hosted)",
+        "purpose": "Notre système de fiches clients (CRM), exploité sur notre propre serveur en Allemagne. Il contient vos coordonnées et l’historique de vos trajets.",
+        "url": "https://www.espocrm.com/privacy-policy/"
+      },
+      {
+        "name": "WhatsApp (Meta)",
+        "purpose": "Uniquement si vous choisissez de nous écrire sur WhatsApp.",
+        "url": "https://www.whatsapp.com/legal/privacy-policy-eea"
       }
     ]
   },
   "section5": {
     "title": "Transferts internationaux de données",
-    "text": "Les données de vos réservations sont stockées au sein de l’Union européenne (région UE de Supabase). Certains de nos prestataires — notamment Google, Stripe, Resend et Vercel — peuvent traiter des données aux États-Unis. Ces transferts sont encadrés par le cadre de protection des données UE–États-Unis et, le cas échéant, par les clauses contractuelles types approuvées par la Commission européenne. Les messages envoyés via le chat du site, l’e-mail ou Telegram sont stockés sur notre propre serveur en Allemagne ; les sauvegardes chiffrées de ce serveur sont conservées par Backblaze aux États-Unis dans le cadre du dispositif de protection des données UE–États-Unis."
+    "text": "Les données de vos réservations sont stockées au sein de l’Union européenne (région UE de Supabase). Certains de nos prestataires — notamment Google, Stripe, Resend et Vercel — peuvent traiter des données aux États-Unis. Ces transferts sont encadrés par le cadre de protection des données UE–États-Unis et, le cas échéant, par les clauses contractuelles types approuvées par la Commission européenne. Les messages envoyés via le chat du site, l’e-mail, Telegram ou WhatsApp, ainsi que nos fiches clients, sont stockés sur notre propre serveur en Allemagne ; les sauvegardes chiffrées de ce serveur sont conservées par Backblaze aux États-Unis dans le cadre du dispositif de protection des données UE–États-Unis."
   },
   "section6": {
     "title": "Durées de conservation",
     "items": [
       {
         "type": "Justificatifs de réservation",
-        "period": "5 ans à compter de la date du transfert, conformément à la réglementation fiscale et comptable tchèque."
+        "period": "Jusqu’à 10 ans à compter de la date du transfert, conformément à la réglementation fiscale et comptable tchèque. Si vous nous demandez d’effacer vos données, la réservation est conservée sans votre nom, e-mail, téléphone, notes ni adresses."
       },
       {
         "type": "Messages envoyés via le formulaire de contact",
-        "period": "12 mois après le traitement de votre demande."
+        "period": "Conservés jusqu’à ce que vous nous demandiez de les effacer."
       },
       {
         "type": "Données analytiques",
@@ -140,6 +154,18 @@
       {
         "type": "Justificatifs de paiement",
         "period": "PRESTIGO ne conserve que l’identifiant de référence de la transaction. L’intégralité des données de paiement est conservée par Stripe conformément à sa politique de conservation."
+      },
+      {
+        "type": "Messages et conversations",
+        "period": "Conservés jusqu’à ce que vous nous demandiez de les effacer."
+      },
+      {
+        "type": "Réservations en ligne non finalisées",
+        "period": "Supprimées 90 jours après la clôture de la réservation sans paiement."
+      },
+      {
+        "type": "Sauvegardes",
+        "period": "Les données effacées peuvent subsister dans les sauvegardes chiffrées jusqu’à leur renouvellement, pendant 6 mois au maximum."
       }
     ]
   },
@@ -202,6 +228,7 @@
         "desc": "Retirer votre consentement à tout moment, sans que cela remette en cause les traitements antérieurs."
       }
     ],
+    "erasureNote": "Lorsque vous nous demandez d’effacer vos données, nous vérifions d’abord qu’il s’agit bien de vous. Nous supprimons ensuite vos messages et votre fiche client de nos systèmes et retirons vos nom, e-mail, téléphone, notes et adresses des réservations passées. Nous conservons la date, le montant, la catégorie de véhicule, la référence de réservation et les données de facture que la loi fiscale impose.",
     "outroPrefix": "Pour exercer l’un de ces droits, écrivez à ",
     "outroEmailLabel": "info@rideprestigo.com",
     "outroSuffix": ". Nous vous répondrons sous 30 jours."

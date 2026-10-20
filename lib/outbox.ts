@@ -6,7 +6,15 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 // CRM happens in the QStash-invoked dispatcher; this module only schedules the
 // push and is the single TypeScript write path into the outbox.
 
-export type OutboxEventType = 'lead.inquiry' | 'lead.booking' | 'lead.purge'
+export type OutboxEventType =
+  | 'lead.inquiry'
+  | 'lead.booking'
+  | 'lead.purge'
+  | 'sync.booking'
+  | 'sync.signup'
+  | 'sync.espo'
+  | 'sync.chatwoot'
+  | 'erase.person'
 export type OutboxLeadStatus = 'new' | 'in_process' | 'converted' | 'dead'
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -14,11 +22,21 @@ const INQUIRY_KEY = new RegExp(`^lead\\.inquiry:(${UUID})$`)
 const PURGE_KEY = new RegExp(`^lead\\.purge:(${UUID})$`)
 const BOOKING_KEY = new RegExp(`^lead\\.booking:(${UUID}):(new|in_process|converted|dead)$`)
 
+// Phase 82: 'sync.<kind>:<uuid>:<bucket tag>' (the tag keeps a later change from colliding with an earlier row).
+const SYNC_KEY = new RegExp(`^(sync\\.(?:booking|signup|espo|chatwoot)):(${UUID}):([a-z0-9]{1,24})$`)
+const ERASE_KEY = new RegExp(`^erase\\.person:(${UUID})$`)
+
 const MAX_DELAY_SECONDS = 604_800 // QStash free plan max delay: 7 days
 
-export function parseOutboxKey(
-  key: string,
-): { eventType: OutboxEventType; aggregateId: string; leadStatus: OutboxLeadStatus | null } | null {
+export interface ParsedOutboxKey {
+  eventType: OutboxEventType
+  aggregateId: string
+  leadStatus: OutboxLeadStatus | null
+  /** Phase 82 sync keys only: the bucket tag (null for erase.person). Absent on lead.* keys. */
+  tag?: string | null
+}
+
+export function parseOutboxKey(key: string): ParsedOutboxKey | null {
   if (typeof key !== 'string') return null
   let m = INQUIRY_KEY.exec(key)
   if (m) return { eventType: 'lead.inquiry', aggregateId: m[1], leadStatus: null }
@@ -32,7 +50,29 @@ export function parseOutboxKey(
       leadStatus: m[2] as OutboxLeadStatus,
     }
   }
+  m = SYNC_KEY.exec(key)
+  if (m) return { eventType: m[1] as OutboxEventType, aggregateId: m[2], leadStatus: null, tag: m[3] }
+  m = ERASE_KEY.exec(key)
+  if (m) return { eventType: 'erase.person', aggregateId: m[1], leadStatus: null, tag: null }
   return null
+}
+
+/**
+ * Bucketed key for a per-person / per-booking sync row. The row only becomes available when its
+ * bucket has closed, so every change made inside the bucket is read by the one delivery, and a
+ * change in the next bucket gets a row of its own (a plain key would swallow it).
+ */
+export function syncBucketKey(
+  eventType: 'sync.espo' | 'sync.chatwoot',
+  id: string,
+  nowMs: number,
+  bucketSeconds = 30,
+): { key: string; availableAt: Date } {
+  const tag = Math.floor(nowMs / 1000 / bucketSeconds)
+  return {
+    key: `${eventType}:${id}:${tag}`,
+    availableAt: new Date((tag + 1) * bucketSeconds * 1000),
+  }
 }
 
 export function inquiryOutboxKey(inquiryId: string): string {

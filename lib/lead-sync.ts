@@ -9,10 +9,20 @@ import {
   type SiteEspoConfig,
 } from '@/lib/espocrm-client'
 import {
-  AUTH_BREAKER_SECONDS,
-  isTerminalAttempt,
-  nextAttemptDelaySeconds,
-} from '@/lib/outbox-backoff'
+  classifyChatwootError,
+  createSiteChatwootClient,
+  loadSiteChatwootConfig,
+  SiteChatwootError,
+  type SiteChatwootClient,
+  type SiteChatwootConfig,
+} from '@/lib/chatwoot-client'
+import { breaker, retryLater, skip, type DispatchResult } from '@/lib/dispatch-outcomes'
+import { createIdentityStore, type IdentityStore } from '@/lib/identity-store'
+import { deliverResolve } from '@/lib/sync-resolve'
+import { deliverEspoSync } from '@/lib/crm-sync'
+import { deliverChatwootSync } from '@/lib/chatwoot-sync'
+import { deliverErasure } from '@/lib/erasure'
+import type { ErasureStore } from '@/lib/erasure-store'
 import {
   buildLeadFromBooking,
   buildLeadFromInquiry,
@@ -31,10 +41,7 @@ import {
  * No Account, Contact or CBooking is ever written and no Lead is converted (D-09, D-11, D-12).
  */
 
-export type DispatchResult = {
-  outcome: 'sent' | 'skipped' | 'deferred' | 'rescheduled' | 'failed' | 'already_done' | 'unknown_key' | 'breaker'
-  code?: string
-}
+export type { DispatchResult }
 
 export interface DispatchDeps {
   store: OutboxStore
@@ -42,6 +49,15 @@ export interface DispatchDeps {
   config: SiteEspoConfig | null
   publish: typeof publishOutboxDispatch
   now: () => Date
+  /** Phase 82: identity resolver store (Supabase only, no CRM). */
+  identity: IdentityStore
+  /** Phase 82: Chatwoot contact sync. Its own config gate, independent of the EspoCRM one. */
+  chatwoot: SiteChatwootClient | null
+  /** Administrator client; used only for contact_merge (null when no admin token is configured). */
+  chatwootAdmin: SiteChatwootClient | null
+  chatwootConfig: SiteChatwootConfig | null
+  /** Phase 82 (plan 82-12): erasure saga store; undefined = the Supabase RPC store. Tests inject a double. */
+  erasure?: ErasureStore
 }
 
 const LEASE_SECONDS = 120
@@ -50,12 +66,26 @@ const BUSY_DEFER_SECONDS = 30
 function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
   const config = 'config' in deps ? (deps.config ?? null) : loadSiteEspoConfig()
   const crm = 'crm' in deps ? (deps.crm ?? null) : config ? createSiteEspoClient({ config }) : null
+  const chatwootConfig = 'chatwootConfig' in deps ? (deps.chatwootConfig ?? null) : loadSiteChatwootConfig()
+  const chatwoot =
+    'chatwoot' in deps ? (deps.chatwoot ?? null) : chatwootConfig ? createSiteChatwootClient({ config: chatwootConfig }) : null
+  const chatwootAdmin =
+    'chatwootAdmin' in deps
+      ? (deps.chatwootAdmin ?? null)
+      : chatwootConfig
+        ? createSiteChatwootClient({ config: chatwootConfig, admin: true })
+        : null
   return {
     store: deps.store ?? createOutboxStore(),
     crm,
     config,
     publish: deps.publish ?? publishOutboxDispatch,
     now: deps.now ?? (() => new Date()),
+    identity: deps.identity ?? createIdentityStore(),
+    chatwoot,
+    chatwootAdmin,
+    chatwootConfig,
+    erasure: deps.erasure,
   }
 }
 
@@ -108,6 +138,44 @@ async function deferOrFinish(key: string, d: DispatchDeps): Promise<DispatchResu
 }
 
 async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchResult> {
+  // Phase 82 resolver hop: Supabase only, so it runs WITHOUT the EspoCRM gate below.
+  if (row.event_type === 'sync.booking' || row.event_type === 'sync.signup') {
+    try {
+      return await deliverResolve(row, d)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+  // Phase 82 per-person EspoCRM sync (plan 82-07): needs the CRM, so it sits behind the same gate.
+  if (row.event_type === 'sync.espo') {
+    if (!d.crm || !d.config) return breaker(row, 'crm_unconfigured', d)
+    try {
+      return await deliverEspoSync(row, d, d.crm)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+  // Phase 82 per-person Chatwoot sync (plan 82-10): its own gate, so a missing EspoCRM config never
+  // blocks Chatwoot (and the other way round).
+  if (row.event_type === 'sync.chatwoot') {
+    if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
+    try {
+      return await deliverChatwootSync(row, d, d.chatwoot, d.chatwootAdmin)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+  // GDPR erasure saga (plan 82-12). It re-reads the admin-confirmed erasure_requests row and gates on
+  // the Chatwoot administrator client and the CRM per step itself, so a request that is not confirmed
+  // is skipped without any configuration and without touching a system.
+  if (row.event_type === 'erase.person') {
+    try {
+      return await deliverErasure(row, d, { erasure: d.erasure })
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+
   // Missing config: zero requests, long wait. Every other branch needs the CRM.
   if (!d.crm || !d.config) return breaker(row, 'crm_unconfigured', d)
 
@@ -132,11 +200,6 @@ async function deliver(
 
   await d.store.complete(key, 'failed', 'unsupported_event')
   return { outcome: 'failed', code: 'unsupported_event' }
-}
-
-async function skip(row: OutboxRow, d: DispatchDeps, code: string): Promise<DispatchResult> {
-  await d.store.complete(row.idempotency_key, 'skipped', code)
-  return { outcome: 'skipped', code }
 }
 
 async function deliverInquiry(
@@ -223,28 +286,6 @@ async function deliverPurge(row: OutboxRow, d: DispatchDeps, crm: SiteEspoClient
 
 // ── Failure handling ────────────────────────────────────────────────────────
 
-/** Re-arm after AUTH_BREAKER_SECONDS: bad credentials or no config must never be retried quickly. */
-async function breaker(row: OutboxRow, code: string, d: DispatchDeps): Promise<DispatchResult> {
-  const key = row.idempotency_key
-  await d.store.reschedule(key, new Date(d.now().getTime() + AUTH_BREAKER_SECONDS * 1000), code)
-  await d.publish(key, { delaySeconds: AUTH_BREAKER_SECONDS, dedupSuffix: `a${row.attempts}` })
-  return { outcome: 'breaker', code }
-}
-
-/** Transient failure: growing delay, terminal after OUTBOX_MAX_ATTEMPTS. */
-async function retryLater(row: OutboxRow, code: string, d: DispatchDeps): Promise<DispatchResult> {
-  const key = row.idempotency_key
-  if (isTerminalAttempt(row.attempts)) {
-    const finalCode = `${code}_exhausted`.slice(0, 40)
-    await d.store.complete(key, 'failed', finalCode)
-    return { outcome: 'failed', code: finalCode }
-  }
-  const delay = nextAttemptDelaySeconds(row.attempts)
-  await d.store.reschedule(key, new Date(d.now().getTime() + delay * 1000), code)
-  await d.publish(key, { delaySeconds: delay, dedupSuffix: `a${row.attempts}` })
-  return { outcome: 'rescheduled', code }
-}
-
 /**
  * Anything thrown while delivering. Only a store that is unreachable even for the
  * reschedule makes this throw (the route then answers 500 and QStash retries).
@@ -258,6 +299,15 @@ async function handleFailure(row: OutboxRow, err: unknown, d: DispatchDeps): Pro
     // and the visitor was told it worked, so leave one loud, payload-free line for the Vercel logs.
     await d.store.complete(row.idempotency_key, 'failed', err.code)
     console.error(`[lead-sync] ALERT lead_delivery_failed key=${row.idempotency_key} code=${err.code}`)
+    return { outcome: 'failed', code: err.code }
+  }
+  if (err instanceof SiteChatwootError) {
+    const kind = classifyChatwootError(err)
+    if (kind === 'transient') return retryLater(row, err.code, d)
+    if (kind === 'auth') return breaker(row, 'chatwoot_auth', d)
+    // not_found / unprocessable / permanent: the same request cannot succeed later.
+    await d.store.complete(row.idempotency_key, 'failed', err.code)
+    console.error(`[lead-sync] ALERT chatwoot_delivery_failed key=${row.idempotency_key} code=${err.code}`)
     return { outcome: 'failed', code: err.code }
   }
   if (err instanceof OutboxStoreError) return retryLater(row, 'db_error', d)

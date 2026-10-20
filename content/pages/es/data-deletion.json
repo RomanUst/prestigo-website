@@ -17,14 +17,14 @@
   },
   "section1": {
     "title": "Qué datos conserva PRESTIGO",
-    "text": "Si ha reservado un traslado o nos ha enviado una consulta, conservamos su nombre, dirección de correo electrónico, número de teléfono y los datos de la reserva. También tratamos datos analíticos anonimizados del sitio web a través de Google Analytics y Meta Pixel. No almacenamos su identificador de usuario de Facebook: el Meta Pixel únicamente envía datos de comportamiento cifrados mediante hash con fines de medición publicitaria."
+    "text": "Si ha reservado un traslado o nos ha enviado una consulta, conservamos su nombre, dirección de correo electrónico, número de teléfono, los datos de la reserva, los mensajes que nos ha enviado por el chat, el correo electrónico, Telegram o WhatsApp y la ficha de cliente que mantenemos en nuestro CRM. También tratamos datos analíticos anonimizados del sitio web a través de Google Analytics y Meta Pixel. No almacenamos su identificador de usuario de Facebook: el Meta Pixel únicamente envía datos de comportamiento cifrados mediante hash con fines de medición publicitaria."
   },
   "section2": {
     "title": "Cómo solicitar la eliminación",
     "paragraph1Prefix": "Envíe un correo electrónico a ",
     "paragraph1EmailLabel": "info@rideprestigo.com",
     "paragraph1Suffix": " con el asunto «Solicitud de eliminación de datos». Incluya la dirección de correo electrónico asociada a su reserva o consulta.",
-    "paragraph2": "Confirmaremos la recepción en un plazo de 3 días laborables y completaremos la eliminación en un plazo de 30 días, salvo que la ley nos obligue a conservar determinados registros (por ejemplo, las facturas con fines fiscales, que se conservan durante 5 años conforme a la legislación checa)."
+    "paragraph2": "Confirmaremos la recepción en un plazo de 3 días laborables y completaremos la eliminación en un plazo de 30 días, salvo que la ley nos obligue a conservar determinados registros: los registros de reservas y facturas se conservan hasta 10 años, conforme a la legislación checa, sin su nombre, correo electrónico, teléfono, notas ni direcciones."
   },
   "section3": {
     "title": "Eliminación a través de Facebook",

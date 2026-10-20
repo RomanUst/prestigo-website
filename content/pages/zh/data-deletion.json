@@ -17,14 +17,14 @@
   },
   "section1": {
     "title": "PRESTIGO 持有哪些数据",
-    "text": "如果您曾预订接送服务或提交过咨询,我们会保存您的姓名、电子邮箱地址、电话号码及预订详情。我们还会通过 Google Analytics 和 Meta Pixel 处理匿名化的网站分析数据。我们不会存储您的 Facebook 用户 ID —— Meta Pixel 仅发送经过哈希处理的行为数据,用于广告效果衡量。"
+    "text": "如果您曾预订接送服务或提交过咨询,我们会保存您的姓名、电子邮箱地址、电话号码、预订详情、您通过聊天、电子邮件、Telegram 或 WhatsApp 发送给我们的消息,以及我们 CRM 中的客户记录。我们还会通过 Google Analytics 和 Meta Pixel 处理匿名化的网站分析数据。我们不会存储您的 Facebook 用户 ID —— Meta Pixel 仅发送经过哈希处理的行为数据,用于广告效果衡量。"
   },
   "section2": {
     "title": "如何申请删除",
     "paragraph1Prefix": "请发送邮件至 ",
     "paragraph1EmailLabel": "info@rideprestigo.com",
     "paragraph1Suffix": ",主题注明“数据删除申请”。请在邮件中提供与您的预订或咨询相关联的电子邮箱地址。",
-    "paragraph2": "我们将在 3 个工作日内确认收到您的申请,并在 30 天内完成删除,除非法律要求我们保留某些记录(例如出于税务目的的发票 —— 根据捷克法律须保留 5 年)。"
+    "paragraph2": "我们将在 3 个工作日内确认收到您的申请,并在 30 天内完成删除,除非法律要求我们保留某些记录:预订和发票记录依据捷克法律最长保留 10 年,且不含您的姓名、电子邮件、电话、备注和地址。"
   },
   "section3": {
     "title": "通过 Facebook 删除",

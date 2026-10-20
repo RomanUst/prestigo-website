@@ -111,7 +111,7 @@ describe("getPageContent('data-deletion')", () => {
       "Data Deletion — PRESTIGO Premium Chauffeur Prague"
     );
     expect(content.section1.text).toBe(
-      "If you booked a transfer or submitted an enquiry, we hold your name, email address, phone number, and booking details. We also process anonymised website analytics data via Google Analytics and Meta Pixel. We do not store your Facebook user ID — the Meta Pixel only sends hashed behavioural data for ad measurement purposes."
+      "If you booked a transfer or submitted an enquiry, we hold your name, email address, phone number, booking details, the messages you sent us through chat, email, Telegram or WhatsApp, and the customer record in our CRM. We also process anonymised website analytics data via Google Analytics and Meta Pixel. We do not store your Facebook user ID — the Meta Pixel only sends hashed behavioural data for ad measurement purposes."
     );
     expect(content.section3.facebookLinkLabel).toBe(
       "Facebook Settings → Apps and Websites"

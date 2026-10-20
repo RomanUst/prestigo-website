@@ -4,14 +4,19 @@ import { z } from 'zod'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { parseOutboxKey, publishOutboxDispatch } from '@/lib/outbox'
 
-// pg_net -> QStash bridge (Phase 81, migration 067). The bookings trigger POSTs the outbox key with a
-// Bearer secret; this route publishes a delayed dispatch. The daily sweep is the safety net, so a lost
-// or rejected kick only costs latency. Importing nothing CRM-related keeps it off the VPS allowlist.
+// pg_net -> QStash bridge (Phase 81 migration 067, Phase 82 migration 069). The bookings and
+// customer_profiles triggers POST the outbox key with a Bearer secret; this route publishes a delayed
+// dispatch. The daily sweep is the safety net, so a lost or rejected kick only costs latency. Importing nothing CRM-related keeps it off the VPS allowlist.
 
 export const maxDuration = 10
 
 const MAX_BODY_BYTES = 512
 const KICK_DELAY_SECONDS = 90
+
+// Only the capture keys written by the database triggers are ever kicked; every other event type
+// (the per-person sync.espo / sync.chatwoot rows, erase.person, lead.inquiry, lead.purge) is
+// published by the TypeScript code that creates it or by the sweep.
+const KICKABLE_EVENT_TYPES: ReadonlySet<string> = new Set(['lead.booking', 'sync.booking', 'sync.signup'])
 
 const bodySchema = z.object({ key: z.string().min(1).max(120) }).strict()
 
@@ -45,8 +50,8 @@ export async function POST(request: Request) {
   const parsed = bodySchema.safeParse(json)
   if (!parsed.success) return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
 
-  // Only booking keys are ever kicked; every other event type is delivered by the sweep.
-  if (parseOutboxKey(parsed.data.key)?.eventType !== 'lead.booking') {
+  const eventType = parseOutboxKey(parsed.data.key)?.eventType
+  if (!eventType || !KICKABLE_EVENT_TYPES.has(eventType)) {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
 

@@ -1,11 +1,14 @@
 import { timingSafeEqual } from 'crypto'
 import { NextResponse } from 'next/server'
 import { publishOutboxDispatch } from '@/lib/outbox'
+import { outboxHealth } from '@/lib/outbox-admin-store'
+import { sendOutboxDigest } from '@/lib/outbox-digest'
 import { dueKeys, enqueueAbandonedPurge, enqueueExpiredUnpaid, recentFailedCount } from '@/lib/outbox-store'
 
 // Daily outbox sweep (Phase 81, plan 81-10). Three independent steps:
 //   1. D-03   unpaid bookings past pickup   -> enqueue 'lead.booking:<id>:dead'
 //   2. D-15/20 abandoned online checkouts    -> enqueue 'lead.purge:<id>' (90 days past pickup)
+//   2b. D-11  owner digest email when sync events failed or are stuck (isolated: never blocks 3)
 //   3. safety net: re-publish every due or lease-expired row (success criterion 7)
 //   4. WR-02: count rows that turned `failed` since the last run (terminal, never re-published)
 // Deliberately imports no CRM code: the CRM is only ever called from the QStash-signed
@@ -47,6 +50,9 @@ export async function GET(request: Request) {
 
   const expired = await step('expired_failed', errors, () => enqueueExpiredUnpaid())
   const purge = await step('purge_failed', errors, () => enqueueAbandonedPurge())
+  // D-11: one email to the owner, only when something failed or is stuck. Runs before the re-publish
+  // so the counts describe last night's state; isolated so a digest problem never stops the safety net.
+  const digest = await step('digest_failed', errors, async () => sendOutboxDigest(await outboxHealth()))
   // Read the due keys AFTER the enqueue steps so today's new rows are published today.
   const keys = await step('due_failed', errors, () => dueKeys(DUE_LIMIT))
 
@@ -70,6 +76,7 @@ export async function GET(request: Request) {
     ok: true,
     expired,
     purge,
+    digest,
     due: keys ? keys.length : null,
     published,
     failed,

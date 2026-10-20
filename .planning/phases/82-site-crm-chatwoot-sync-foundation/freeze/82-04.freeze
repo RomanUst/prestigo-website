@@ -1,0 +1,11 @@
+# 82-04: privacy CRM/inbox disclosure (EspoCRM/WhatsApp providers, messaging
+# data block, D-13 retention items, erasure note) — hand-translated in-session
+# into ru/es/fr/ar/hi/zh (i18n GH workflow disabled, empty Anthropic API credit).
+# Also re-freezes the 77-05 provider and section5 units this plan changed.
+content/pages/en/privacy.json::hero.lastUpdated
+content/pages/en/privacy.json::section2.messagingData
+content/pages/en/privacy.json::section3.legitimateInterest.text
+content/pages/en/privacy.json::section4.providers
+content/pages/en/privacy.json::section5.text
+content/pages/en/privacy.json::section6.items
+content/pages/en/privacy.json::section8.erasureNote

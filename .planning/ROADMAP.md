@@ -15,7 +15,7 @@
 
 - [x] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down (completed 2026-09-28)
 - [x] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation (completed 2026-09-29)
-- [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
+- [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** — DEFERRED to backlog 999.9 (owner, 2026-10-18; 10/17 plans done) - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
 - [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
@@ -187,6 +187,8 @@ Plans:
 
 ### Phase 78: WhatsApp Cloud API Channel (Dedicated Number)
 
+**Status**: DEFERRED to Backlog 999.9 by owner decision 2026-10-18 — parked at 78-11 Task 2 (owner Meta onboarding). Site keeps the personal number. Resume with `/gsd-execute-phase 78` when the owner brings it back.
+
 **Goal**: WhatsApp conversations with Prestigo run on a new dedicated business number connected to Chatwoot through the WhatsApp Cloud API, and the site stops publishing the owner's personal number +420 725 986 855 (which returns to personal use after a transition period). Replanned 2026-09-29: Coexistence on the personal number was dropped by owner decision.
 **Depends on**: Phase 77
 **Requirements**: WA-01, WA-02, WA-03, WA-04
@@ -336,7 +338,39 @@ Plans:
   4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
   5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
 
-**Plans**: TBD
+**Plans:** 14/16 plans executed
+
+Plans:
+**Wave 1**
+- [x] 82-01-PLAN.md — Identity core + booking/signup capture triggers + resolver hop and fan-out (migration 069)
+- [x] 82-02-PLAN.md — Outbox health admin page with retry one / retry all (migration 070)
+- [x] 82-03-PLAN.md — Admin bookings search by email + Chatwoot contact attribute definitions (migration 071, D-02)
+- [x] 82-04-PLAN.md — Privacy policy in 7 locales + freeze (GDPR-02, D-13/D-14)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 82-05-PLAN.md — Phone matching: merge-once-then-shared, manual shared, guards (migration 072)
+- [x] 82-06-PLAN.md — Daily owner digest of failed/stuck sync events (D-11)
+- [x] 82-07-PLAN.md — EspoCRM person sync: Contact + CBookings, convergent (sync.espo)
+- [x] 82-08-PLAN.md — Identities admin API: list, mark shared, split via outbox (migration 073)
+- [x] 82-16-PLAN.md — Data-deletion page retention alignment in 7 locales + freeze (GDPR-02, D-13)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 82-09-PLAN.md — Backfill SQL: identity pass, report, staggered enqueue (migration 074)
+- [x] 82-10-PLAN.md — Chatwoot contact sync with D-02 attributes (sync.chatwoot)
+- [x] 82-11-PLAN.md — Identities admin page (merged by phone, shared numbers, split)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 82-12-PLAN.md — GDPR erasure saga across Chatwoot, EspoCRM, Supabase (migration 075)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 82-13-PLAN.md — Erasure admin page: preview, typed-email confirmation, log
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
+
 **UI hint**: yes
 **Security note**: yes — identity resolution, outbox event integrity and GDPR erasure propagation are security/privacy-relevant; commit with `security:` prefix per CLAUDE.md where the work touches identity matching or erasure.
 
@@ -412,7 +446,7 @@ Plans:
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
-| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 0/0 | Not started | - |
+| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 14/16 | In Progress|  |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
@@ -429,3 +463,4 @@ v3.0 tech debt, deferred by owner decision 2026-09-27 until Anthropic API credit
 - [ ] **999.6 SEO/share polish** — og:locale on openGraph overrides, mirror custom og:image to twitter:image, page-specific share titles; IN-01 MDX locale double-prefix guard; IN-02 per-field `t.has`; GSC hreflang report check
 - [ ] **999.7 Meta/CAPI robustness** — WR-06 warn-once on malformed pixel ID/CAPI token; IN-03 encode CAPI token via `URL.searchParams`
 - [ ] **999.8 Test/QA infra** — fix worktree `next-intl/server` relative-path import in 5 test files (WINDOWS #17–19); QA-script fixes (share_meta asymmetric check, en_leak icon-child skip, IN-04 route.abort); close stale WINDOWS #8; Nyquist `/gsd-validate-phase` for 68–75; Playwright E2E in CI once Vercel Preview works. IN-05 (raw 404 without `lang`) = Next.js framework behaviour, won't-fix
+- [ ] **999.9 Phase 78 WhatsApp dedicated number (resume)** — 10/17 plans done; resume at 78-11 Task 2: new SIM, "Prestigo Messaging" app Live, number + display name, own PIN, token, EUR card, business verification; then 78-12..78-17 (go-live, submit 56 templates, site number switch, acceptance). Deferred by owner 2026-10-18

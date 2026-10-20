@@ -5,7 +5,9 @@ process.env.CRON_SECRET = 'test-cron-secret'
 
 // ── vi.hoisted stubs (declared before the vi.mock factories) ────────────────
 
-const { mockExpired, mockPurge, mockDue, mockFailed, mockPublish } = vi.hoisted(() => ({
+const { mockExpired, mockPurge, mockDue, mockFailed, mockPublish, mockHealth, mockDigest } = vi.hoisted(() => ({
+  mockHealth: vi.fn(),
+  mockDigest: vi.fn(),
   mockFailed: vi.fn(),
   mockExpired: vi.fn(),
   mockPurge: vi.fn(),
@@ -23,6 +25,9 @@ vi.mock('@/lib/outbox-store', async (importOriginal) => {
     recentFailedCount: mockFailed,
   }
 })
+
+vi.mock('@/lib/outbox-admin-store', () => ({ outboxHealth: mockHealth }))
+vi.mock('@/lib/outbox-digest', () => ({ sendOutboxDigest: mockDigest }))
 
 vi.mock('@/lib/outbox', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/outbox')>()
@@ -45,6 +50,16 @@ const req = (auth?: string) =>
     headers: auth === undefined ? {} : { authorization: auth },
   })
 const ok = () => req(`Bearer ${SECRET}`)
+const ZERO_HEALTH = {
+  pending: 0,
+  processing: 0,
+  failed: 0,
+  stuck: 0,
+  open_total: 0,
+  oldest_pending_seconds: null,
+  sent_last_24h: 0,
+  by_type: [],
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -54,6 +69,8 @@ beforeEach(() => {
   mockDue.mockResolvedValue([])
   mockFailed.mockResolvedValue(0)
   mockPublish.mockResolvedValue(true)
+  mockHealth.mockResolvedValue(ZERO_HEALTH)
+  mockDigest.mockResolvedValue('no_problems')
 })
 
 // ── Auth guard (T-81-30) ────────────────────────────────────────────────────
@@ -102,7 +119,7 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body).toEqual({ ok: true, expired: 3, purge: 1, due: 2, published: 2, failed: 0, errors: [] })
+      expect(body).toEqual({ ok: true, expired: 3, purge: 1, digest: 'no_problems', due: 2, published: 2, failed: 0, errors: [] })
       expect(mockDue).toHaveBeenCalledWith(200)
       expect(mockPublish).toHaveBeenCalledTimes(2)
       expect(mockPublish).toHaveBeenCalledWith('lead.inquiry:a', { dedupSuffix: 's20261018' })
@@ -119,6 +136,63 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
     mockDue.mockImplementation(async () => (order.push('due'), []))
     await GET(ok())
     expect(order).toEqual(['expired', 'purge', 'due'])
+  })
+
+  it('digest: with problems the owner email is sent once, BEFORE the first re-publish, and the JSON reports it', async () => {
+    const order: string[] = []
+    const problems = { ...ZERO_HEALTH, failed: 3, stuck: 1, open_total: 4 }
+    mockHealth.mockResolvedValue(problems)
+    mockDigest.mockImplementation(async () => (order.push('digest'), 'sent'))
+    mockDue.mockResolvedValue(['lead.inquiry:a'])
+    mockPublish.mockImplementation(async () => (order.push('publish'), true))
+
+    const body = await (await GET(ok())).json()
+
+    expect(mockDigest).toHaveBeenCalledTimes(1)
+    expect(mockDigest).toHaveBeenCalledWith(problems)
+    expect(order).toEqual(['digest', 'publish'])
+    expect(body.digest).toBe('sent')
+    expect(body.errors).toEqual([])
+  })
+
+  it('digest: zero failed and stuck counts report no_problems and the sweep result is otherwise unchanged', async () => {
+    mockDigest.mockResolvedValue('no_problems')
+    const body = await (await GET(ok())).json()
+    expect(body.digest).toBe('no_problems')
+    expect(mockDigest).toHaveBeenCalledWith(ZERO_HEALTH)
+  })
+
+  it('digest: a sender that throws adds digest_failed and publishing still runs for every due key', async () => {
+    mockHealth.mockResolvedValue({ ...ZERO_HEALTH, failed: 2 })
+    mockDigest.mockRejectedValue(new Error('resend-down-secret'))
+    mockDue.mockResolvedValue(['lead.inquiry:a', 'lead.inquiry:b', 'lead.inquiry:c'])
+    mockFailed.mockResolvedValue(2)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const res = await GET(ok())
+      const text = await res.text()
+      const body = JSON.parse(text)
+
+      expect(res.status).toBe(200)
+      expect(body.errors).toEqual(['digest_failed'])
+      expect(body.digest).toBeNull()
+      expect(body.due).toBe(3)
+      expect(body.published).toBe(3)
+      expect(body.failed).toBe(2)
+      expect(mockPublish).toHaveBeenCalledTimes(3)
+      expect(text).not.toContain('resend-down-secret')
+    } finally {
+      errors.mockRestore()
+    }
+  })
+
+  it('digest: a failing health read adds digest_failed, sends nothing and the sweep carries on', async () => {
+    mockHealth.mockRejectedValue(new Error('db'))
+    mockDue.mockResolvedValue(['lead.inquiry:a'])
+    const body = await (await GET(ok())).json()
+    expect(body.errors).toEqual(['digest_failed'])
+    expect(mockDigest).not.toHaveBeenCalled()
+    expect(body.published).toBe(1)
   })
 
   it('a failing step reports null + a code and the other steps still run', async () => {
@@ -143,6 +217,7 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
     mockPurge.mockRejectedValue(new Error('secret-detail-2'))
     mockDue.mockRejectedValue(new Error('secret-detail-3'))
     mockFailed.mockRejectedValue(new Error('secret-detail-4'))
+    mockHealth.mockRejectedValue(new Error('secret-detail-5'))
 
     const res = await GET(ok())
     const text = await res.text()
@@ -153,10 +228,11 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
       ok: true,
       expired: null,
       purge: null,
+      digest: null,
       due: null,
       published: null,
       failed: null,
-      errors: ['expired_failed', 'purge_failed', 'due_failed', 'failed_count_failed'],
+      errors: ['expired_failed', 'purge_failed', 'digest_failed', 'due_failed', 'failed_count_failed'],
     })
     expect(text).not.toContain('secret-detail')
     expect(mockPublish).not.toHaveBeenCalled()

@@ -66,6 +66,30 @@ describe('POST /api/integrations/kick', () => {
     expect(mockPublish).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['sync.booking', `sync.booking:${ID}:19650`],
+    ['sync.signup', `sync.signup:${ID}:19650`],
+  ])('200 and a 90 s delayed, deduplicated dispatch for a valid %s key', async (_name, key) => {
+    const res = await POST(req(JSON.stringify({ key })))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true, published: true })
+    expect(mockPublish).toHaveBeenCalledTimes(1)
+    expect(mockPublish).toHaveBeenCalledWith(key, { delaySeconds: 90, dedupSuffix: 'k' })
+  })
+
+  it.each([
+    ['sync.espo', `sync.espo:${ID}:19650`],
+    ['sync.chatwoot', `sync.chatwoot:${ID}:19650`],
+    ['erase.person', `erase.person:${ID}`],
+    ['lead.inquiry', `lead.inquiry:${ID}`],
+    ['lead.purge', `lead.purge:${ID}`],
+    ['a sync.booking key without a tag', `sync.booking:${ID}`],
+  ])('400 for %s (not a capture key)', async (_name, key) => {
+    const res = await POST(req(JSON.stringify({ key })))
+    expect(res.status).toBe(400)
+    expect(mockPublish).not.toHaveBeenCalled()
+  })
+
   it('400 for a lead.booking key with an unknown status suffix', async () => {
     const res = await POST(req(JSON.stringify({ key: `lead.booking:${ID}:bogus` })))
     expect(res.status).toBe(400)

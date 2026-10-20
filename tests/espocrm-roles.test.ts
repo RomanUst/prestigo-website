@@ -181,16 +181,19 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
     expect(writers).toEqual(['Sync writer'])
   })
 
-  it('Sync writer: Account, Contact, CBooking, Lead (+ User read for assignment); no Opportunity, CPartnerRate, Email or Task; delete only on Lead (D-22)', () => {
+  it('Sync writer: Account, Contact, CBooking, Lead (+ User read for assignment); no Opportunity, CPartnerRate, Email or Task; delete only on Lead (D-22) and Contact (GDPR erasure, plan 82-12)', () => {
     const w = spec('Sync writer')
     expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact', 'Lead', 'User'])
     // User is read-only: needed to relate assignedUser (EspoCRM 403 cannotRelateForbidden otherwise)
     expect(w.data.User).toEqual({ read: 'all' })
     for (const scope of ['Opportunity', 'CPartnerRate', 'Email', 'Task']) expect(noAccess(w.data[scope])).toBe(true)
     for (const [scope, acl] of Object.entries<any>(w.data)) {
-      if (acl && typeof acl === 'object' && scope !== 'User') expect(acl.delete, scope).toBe(scope === 'Lead' ? 'all' : 'no')
+      if (acl && typeof acl === 'object' && scope !== 'User') expect(acl.delete, scope).toBe(scope === 'Lead' || scope === 'Contact' ? 'all' : 'no')
     }
     expect(w.data.CBooking).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'no' })
+    // Plan 82-12 (D-09): the erasure saga scrubs then deletes the person's Contacts; Account and CBooking stay undeletable.
+    expect(w.data.Contact).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all' })
+    expect(w.data.Account.delete).toBe('no')
     expect(w.data.Lead).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all' })
     expect(w.assignTo).toEqual(['prestigo-sync'])
   })

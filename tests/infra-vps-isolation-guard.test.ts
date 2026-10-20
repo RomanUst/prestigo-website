@@ -102,6 +102,31 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'QStash-invoked outbox dispatcher logic: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from the dispatch route',
   },
   {
+    path: 'lib/crm-sync.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (sync.espo): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
+  },
+  {
+    path: 'lib/chatwoot-client.ts',
+    reason:
+      'token-based Chatwoot client imported only by the QStash-invoked outbox dispatcher (lib/lead-sync.ts via lib/chatwoot-sync.ts); runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path',
+  },
+  {
+    path: 'lib/chatwoot-sync.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (sync.chatwoot): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
+  },
+  {
+    path: 'lib/chatwoot-mapping.ts',
+    reason:
+      'pure person -> Chatwoot contact mapping (no env, no I/O; only the exported CHATWOOT_SYNCED_ATTRIBUTE_KEYS constant name trips the env-var pattern); imported only by the QStash-invoked sync.chatwoot handler lib/chatwoot-sync.ts, never on a page render or a booking/payment/contact request path',
+  },
+  {
+    path: 'lib/erasure.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (erase.person, GDPR erasure saga): runs only when Upstash calls /api/integrations/dispatch with a signed message for an admin-confirmed erasure_requests row, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
+  },
+  {
     path: 'app/api/integrations/dispatch/route.ts',
     reason:
       'QStash-invoked outbox dispatcher: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; unsigned calls get 401',
