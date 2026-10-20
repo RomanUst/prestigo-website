@@ -68,6 +68,9 @@ export type RouteContent = {
   faqsHeading: string;
   faqs: Array<{ q: string; a: string }>;
   relatedRoutesIntro: string;
+  // Optional pointer to a companion blog article (e.g. transfer vs train),
+  // rendered under the related-routes intro.
+  trainArticle?: { text: string; linkLabel: string };
   relatedHeading: { line1: string; italic: string };
   relatedRoutes: Array<{
     slug: string;

@@ -244,10 +244,11 @@
     "headingLine1": "De Praga a Viena.",
     "headingItalic": "Desde {ePrice} €, tarifa fija."
   },
+  "trainArticle": {"text": "¿Dudas entre el RailJet y el coche? Nuestra guía compara tren, autobús y traslado privado por tiempo total, coste por persona y equipaje.", "linkLabel": "Praga a Viena: traslado o tren"},
   "metadata": {
-    "title": "Chófer de Praga a Viena — Desde {ePrice} €",
-    "description": "Traslado privado con chófer de Praga a Viena: 330 km de puerta a puerta en un Mercedes E-Class, S-Class o V-Class. Precio fijo desde {ePrice} €, paradas en ruta y horarios flexibles.",
-    "ogTitle": "Traslado privado con chófer de Praga a Viena — Desde {ePrice} €",
-    "ogDescription": "Traslado privado con chófer de Praga a Viena: 330 km de puerta a puerta en un Mercedes E-Class, S-Class o V-Class. Precio fijo desde {ePrice} €, paradas en ruta y horarios flexibles."
+    "title": "Praga a Viena: 3,5 h puerta a puerta, desde {ePrice} €",
+    "description": "Traslado privado de Praga a Viena: unas 3,5 horas puerta a puerta en un Mercedes E, S o V-Class. Precio fijo desde {ePrice} €, peajes incluidos y paradas en ruta.",
+    "ogTitle": "Traslado privado de Praga a Viena: 3,5 h puerta a puerta, desde {ePrice} €",
+    "ogDescription": "Traslado privado de Praga a Viena: unas 3,5 horas puerta a puerta en un Mercedes E, S o V-Class. Precio fijo desde {ePrice} €, peajes incluidos y paradas en ruta."
   }
 }

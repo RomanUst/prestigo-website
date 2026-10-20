@@ -244,10 +244,11 @@
     "headingLine1": "प्राग से वियना।",
     "headingItalic": "€{ePrice} से, निर्धारित।"
   },
+  "trainArticle": {"text": "RailJet ट्रेन और कार के बीच तय कर रहे हैं? हमारी गाइड ट्रेन, बस और निजी ट्रांसफर की तुलना कुल समय, प्रति व्यक्ति लागत और सामान के आधार पर करती है।", "linkLabel": "प्राग से वियना: ट्रांसफर या ट्रेन"},
   "metadata": {
-    "title": "प्राग से वियना Chauffeur — €{ePrice} से",
-    "description": "प्राग से वियना निजी chauffeur ट्रांसफर — Mercedes E, S अथवा V-Class में 330 किमी door-to-door। €{ePrice} से निर्धारित मूल्य, मार्ग में ठहराव, लचीला समय।",
-    "ogTitle": "प्राग से वियना निजी Chauffeur ट्रांसफर — €{ePrice} से",
-    "ogDescription": "प्राग से वियना निजी chauffeur ट्रांसफर — Mercedes E, S अथवा V-Class में 330 किमी door-to-door। €{ePrice} से निर्धारित मूल्य, मार्ग में ठहराव, लचीला समय।"
+    "title": "प्राग से वियना: 3.5 घंटे door-to-door, €{ePrice} से",
+    "description": "प्राग से वियना निजी ट्रांसफर: Mercedes E, S अथवा V-Class में लगभग 3.5 घंटे door-to-door। €{ePrice} से निर्धारित मूल्य, टोल शामिल, मार्ग में ठहराव संभव।",
+    "ogTitle": "प्राग से वियना निजी ट्रांसफर: 3.5 घंटे door-to-door, €{ePrice} से",
+    "ogDescription": "प्राग से वियना निजी ट्रांसफर: Mercedes E, S अथवा V-Class में लगभग 3.5 घंटे door-to-door। €{ePrice} से निर्धारित मूल्य, टोल शामिल, मार्ग में ठहराव संभव।"
   }
 }
