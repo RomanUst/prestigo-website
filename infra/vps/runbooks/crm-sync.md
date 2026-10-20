@@ -135,3 +135,4 @@ D1/D2 commands are in [lead-capture.md](lead-capture.md) (EspoCRM app container 
 
 | Date (UTC) | Drill | Stop | Change | First code | Start | Delivered | Counts |
 |---|---|---|---|---|---|---|---|
+| 2026-10-20 | EspoCRM outage (D1/D2), smoke booking flight_number → DRILL1 | 23:26:04 (probe 502) | 23:26:11 | `crm_502` on sync.espo (attempt 1); sync.chatwoot sent 23:28:34 during the outage | 23:29:05 (probe 401) | sync.espo sent 23:29:08 (attempt 2) | CBooking for the booking = 1, flightNumber=DRILL1 = 1 |

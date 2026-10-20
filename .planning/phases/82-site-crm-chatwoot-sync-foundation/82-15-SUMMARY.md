@@ -26,9 +26,13 @@ Counts and codes only.
 
 - Runbook `infra/vps/runbooks/crm-sync.md` + guard `tests/crm-sync-runbook.test.ts` (25 tests pass).
 
-## Task 2: EspoCRM outage drill — PENDING
+## Task 2: EspoCRM outage drill — DONE (owner allowed D1/D2)
 
-Needs SSH to the VPS (D1/D2 in lead-capture.md), which runs only in the main session after the owner allows those two commands.
+- D1 stop 23:26:04 UTC, probe 502. Smoke booking `flight_number` → `DRILL1` at 23:26:11.
+- During the outage: `sync.espo` pending, attempts 1, last_error `crm_502`; `sync.chatwoot` sent 23:28:34 (Chatwoot independent of EspoCRM).
+- D2 start 23:28:58, probe 401 at 23:29:05.
+- `sync.espo` sent 23:29:08 (attempt 2). `count CBooking supabaseBookingId=<smoke id>` = 1 (exactly once), `count CBooking flightNumber=DRILL1` = 1 (change arrived).
+- Drill row appended to `infra/vps/runbooks/crm-sync.md`.
 
 ## Task 3: erasure smoke — PENDING (owner)
 
