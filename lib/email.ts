@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
-import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
+import { BUSINESS_PHONE_DISPLAY, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 
 // D-11 (Phase 77-02): every customer-facing transactional email replies to the
 // bookings@ Chatwoot inbox, so a customer reply becomes an operator-visible
@@ -2061,6 +2061,13 @@ export async function sendDriverReminderEmail(
 // POST-TRIP THANK-YOU + REVIEW REQUEST EMAIL
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Platform icon for the post-trip review buttons. PNG (not SVG) because Gmail
+// and Outlook strip inline SVG; files live in public/brand/email-icon-*.png.
+function reviewIcon(platform: 'google' | 'tripadvisor' | 'trustpilot'): string {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
+  return `<img src="${base}/brand/email-icon-${platform}.png" alt="" width="16" height="16" style="display: inline-block; vertical-align: middle; margin: -2px 10px 0 0; border: 0;" />`
+}
+
 function buildPostTripHtml(booking: StatusEmailBooking): string {
   const formattedDate = formatPickupDate(booking.pickup_date)
   const route = booking.destination_address
@@ -2121,10 +2128,18 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
       <!-- Review request -->
       <div style="background-color: #17293B; margin: 0 32px 32px; padding: 32px; text-align: center;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 16px;">SHARE YOUR EXPERIENCE</div>
-        <p style="font-size: 14px; color: #A9AEB0; margin: 0 0 24px; line-height: 1.7;">Your feedback means the world to us. If you enjoyed the service, a quick review helps other travellers discover Prestigo.</p>
+        <p style="font-size: 14px; color: #A9AEB0; margin: 0 0 24px; line-height: 1.7;">Your feedback means the world to us. If you enjoyed the service, a quick review on any of these sites helps other travellers discover Prestigo.</p>
         <a href="${escapeHtml(reviewUrl)}"
-           style="display: inline-block; background-color: #BFA06A; color: #F3EEE3; padding: 16px 36px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
-          LEAVE A REVIEW
+           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: #BFA06A; color: #0F1D2C; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
+          ${reviewIcon('google')}REVIEW US ON GOOGLE
+        </a>
+        <a href="${escapeHtml(TRIPADVISOR_URL)}"
+           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: transparent; color: #F3EEE3; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
+          ${reviewIcon('tripadvisor')}REVIEW US ON TRIPADVISOR
+        </a>
+        <a href="${escapeHtml(TRUSTPILOT_URL)}"
+           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: transparent; color: #F3EEE3; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
+          ${reviewIcon('trustpilot')}REVIEW US ON TRUSTPILOT
         </a>
       </div>
 

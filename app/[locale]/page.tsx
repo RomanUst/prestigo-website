@@ -11,7 +11,7 @@ import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
-import { BUSINESS_PHONE_E164, BUSINESS_PHONE_SCHEMA_HYPHEN, TRIPADVISOR_URL } from '@/lib/contact-channels'
+import { BUSINESS_PHONE_E164, BUSINESS_PHONE_SCHEMA_HYPHEN, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import FeatureStrip from '@/components/FeatureStrip'
@@ -144,6 +144,7 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
     'https://www.instagram.com/rideprestigo/',
     'https://www.facebook.com/profile.php?id=61574283117859',
     TRIPADVISOR_URL,
+    TRUSTPILOT_URL,
   ],
   contactPoint: {
     '@type': 'ContactPoint',

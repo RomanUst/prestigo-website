@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import { GOOGLE_MAPS_URL } from '@/lib/google-maps-url'
-import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, WHATSAPP_CHAT_URL, TRIPADVISOR_URL } from '@/lib/contact-channels'
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, WHATSAPP_CHAT_URL, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 
 export default function Footer() {
   const t = useTranslations('Footer')
@@ -33,6 +33,7 @@ export default function Footer() {
   const profiles = [
     { name: 'Google', caption: t('googleCaption'), aria: t('googleAria'), href: GOOGLE_MAPS_URL, icon: (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" /></svg>) },
     { name: 'Tripadvisor', caption: t('reviewsCaption'), aria: t('tripadvisorAria'), href: TRIPADVISOR_URL, icon: (<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"> <path d="M12.006 4.295c-2.67 0-5.338.784-7.645 2.353H0l1.963 2.135a5.997 5.997 0 0 0 4.04 10.43 5.976 5.976 0 0 0 4.075-1.6L12 19.705l1.922-2.09a5.972 5.972 0 0 0 4.072 1.598 6 6 0 0 0 6-5.998 5.982 5.982 0 0 0-1.957-4.432L24 6.648h-4.35a13.573 13.573 0 0 0-7.644-2.353zM12 6.255c1.531 0 3.063.303 4.504.903C13.943 8.138 12 10.43 12 13.1c0-2.671-1.942-4.962-4.504-5.942A11.72 11.72 0 0 1 12 6.256zM6.002 9.157a4.059 4.059 0 1 1 0 8.118 4.059 4.059 0 0 1 0-8.118zm11.992.002a4.057 4.057 0 1 1 .003 8.115 4.057 4.057 0 0 1-.003-8.115zm-11.992 1.93a2.128 2.128 0 0 0 0 4.256 2.128 2.128 0 0 0 0-4.256zm11.992 0a2.128 2.128 0 0 0 0 4.256 2.128 2.128 0 0 0 0-4.256z" /> </svg>) },
+    { name: 'Trustpilot', caption: t('reviewsCaption'), aria: t('trustpilotAria'), href: TRUSTPILOT_URL, icon: (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17.964l5.214-1.321 2.179 6.714L12 17.964zM24 9.286h-9.179L12 .643 9.179 9.286H0l7.429 5.357-2.821 8.643 7.429-5.357 4.571-3.286L24 9.286z" /></svg>) },
     { name: 'Instagram', caption: t('followCaption'), aria: t('instagramAria'), href: 'https://www.instagram.com/rideprestigo/', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"> <rect x="2" y="2" width="20" height="20" rx="5" ry="5" /> <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /> <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /> </svg>) },
     { name: 'Facebook', caption: t('followCaption'), aria: t('facebookAria'), href: 'https://www.facebook.com/profile.php?id=61574283117859&locale=cs_CZ', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"> <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /> </svg>) },
   ]
@@ -172,7 +173,7 @@ export default function Footer() {
         {/* Reviews & social */}
         <div className="mt-12 pt-10 border-t border-anthracite-light">
           <p className="label mb-6">{t('profilesHeading')}</p>
-          <ul className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl">
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-5xl">
             {profiles.map((p) => (
               <li key={p.name}>
                 <a
