@@ -17,14 +17,15 @@ const CANONICAL_PATH = '/blog/prague-vienna-transfer-vs-train'
 const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
 
 const ARTICLE_PUBLISHED = '2026-04-09'
-const ARTICLE_MODIFIED = '2026-07-19'
+const ARTICLE_MODIFIED = '2026-10-20'
 
 // Long-form comparison built from real 2026 ÖBB/RegioJet/FlixBus fare data
 // and PRESTIGO's published intercity pricing (see Notion pricing ledger).
 // Every number on this page is cross-checked against operator websites,
 // Seat61, Rome2Rio and our own dispatch data — no marketing claims.
 
-const DESCRIPTION = 'Prague to Vienna 2026: private chauffeur vs RailJet vs FlixBus vs rental car — honest cost per person by group size, timing, and luggage.'
+const DESCRIPTION = 'Prague to Vienna 2026: train 4h platform-to-platform (5h+ door-to-door) vs private car 3h 15min door-to-door. Honest cost by group size, luggage, FAQ.'
+const TITLE = 'Prague to Vienna 2026: Train 4h vs Car 3h15 Door-to-Door'
 
 // CR-01: converted from a static `metadata` export to generateMetadata() so
 // the current locale is available. EN-only legacy JSX article (D-08) — no
@@ -39,12 +40,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     locale,
   })
   return {
-    title: 'Prague to Vienna 2026: Chauffeur vs Train vs Bus',
+    title: TITLE,
     description: DESCRIPTION,
     alternates,
     openGraph: {
       url: toAbsoluteUrl(alternates.canonical),
-      title: 'Prague to Vienna 2026: Chauffeur vs Train vs Bus',
+      title: TITLE,
       description: DESCRIPTION,
       images: [{ url: 'https://rideprestigo.com/vienna.png', width: 1200, height: 630 }],
     },
@@ -206,6 +207,10 @@ function buildArticle(p: Fares) {
 
   const faqs = [
     {
+      q: 'How long does Prague to Vienna take by train vs car?',
+      a: 'The ÖBB RailJet is scheduled at 4h 00min platform-to-platform (RegioJet 4h 15min). Add the trip to Praha hl.n., platform time and the onward ride from Wien Hbf, and the train is 5h 15min – 5h 45min door-to-door. A private car takes about 3h 15min from your Prague address to your Vienna address, with no changes. FlixBus is 4h 10min station-to-station, 5h 30min – 6h door-to-door.',
+    },
+    {
       q: 'What\u2019s the fastest realistic way from Prague to Vienna in 2026?',
       a: 'A private chauffeur transfer is the fastest door-to-door option at around 3h 15min from your Prague address to your Vienna address. The ÖBB RailJet scheduled time is 4h 00min platform-to-platform, which sounds competitive but grows to 5h 15min – 5h 45min once you add a Prague taxi or metro to Praha hl.n. (20–30 min), waiting time on the platform (15 min), and a Vienna U-Bahn or taxi from Wien Hbf to your actual destination (15–25 min). FlixBus adds another 30 minutes on top because the bus stations are further from the centres. The direct LH or OS flight is scheduled at 50 minutes airborne, but check-in, security, boarding, and two airport transfers push total travel time to 3h 30min – 4h 30min — rarely faster than the car in practice, unless you are continuing onward by air.',
     },
@@ -254,7 +259,7 @@ function buildArticle(p: Fares) {
       {
         '@type': 'BlogPosting',
         '@id': `${CANONICAL_ABS}#article`,
-        headline: 'Prague to Vienna 2026: Chauffeur vs Train vs Bus',
+        headline: TITLE,
         description: DESCRIPTION,
         image: {
           '@type': 'ImageObject',
@@ -305,7 +310,7 @@ export default async function ComparePragueViennaPage({ params }: { params: Prom
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Comparison guide · Updated July 2026</p>
+          <p className="label mb-6">Comparison guide · Updated October 2026</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px]">
             Prague to Vienna: <br />

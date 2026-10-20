@@ -415,6 +415,7 @@
     "scroll": "مرّر للأسفل",
     "ratingAria": "تقييم {rating} من 5 بناءً على {count} من مراجعات Google",
     "googleReviews": "مراجعات Google",
+    "googleReviewsLink": "اطّلع على مراجعاتنا على Google (يُفتح في علامة تبويب جديدة)",
     "words": [
       "خدمة سيارات مع سائق",
       "النقل من المطار",
@@ -467,6 +468,12 @@
     "terms": "الشروط",
     "instagramAria": "إنستغرام",
     "facebookAria": "فيسبوك",
+    "tripadvisorAria": "تريب أدفايزر",
+    "profilesHeading": "التقييمات ووسائل التواصل",
+    "googleCaption": "المراجعات",
+    "reviewsCaption": "المراجعات",
+    "followCaption": "تابعنا",
+    "googleAria": "مراجعاتنا على Google",
     "tagline": "رقيٌّ في كل ميل.",
     "new": "جديد"
   },

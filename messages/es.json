@@ -415,6 +415,7 @@
     "scroll": "Desplácese",
     "ratingAria": "Valoración de {rating} sobre 5 a partir de {count} reseñas de Google",
     "googleReviews": "Reseñas de Google",
+    "googleReviewsLink": "Ver nuestras reseñas en Google (se abre en una pestaña nueva)",
     "words": [
       "Servicio de chófer",
       "Traslado al aeropuerto",
@@ -467,6 +468,12 @@
     "terms": "Términos y condiciones",
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
+    "tripadvisorAria": "Tripadvisor",
+    "profilesHeading": "Reseñas y redes sociales",
+    "googleCaption": "Reseñas",
+    "reviewsCaption": "Reseñas",
+    "followCaption": "Seguir",
+    "googleAria": "Nuestras reseñas en Google",
     "tagline": "Prestigio en cada kilómetro.",
     "new": "NUEVO"
   },

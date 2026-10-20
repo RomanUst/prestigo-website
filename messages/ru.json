@@ -415,6 +415,7 @@
     "scroll": "Прокрутите",
     "ratingAria": "Оценка {rating} из 5 на основе {count} отзывов в Google",
     "googleReviews": "Отзывы в Google",
+    "googleReviewsLink": "Посмотреть наши отзывы в Google (откроется в новой вкладке)",
     "words": [
       "Сервис с водителем",
       "Трансфер в аэропорт",
@@ -467,6 +468,12 @@
     "terms": "Условия",
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
+    "tripadvisorAria": "Tripadvisor",
+    "profilesHeading": "Отзывы и соцсети",
+    "googleCaption": "Отзывы",
+    "reviewsCaption": "Отзывы",
+    "followCaption": "Подписаться",
+    "googleAria": "Наши отзывы в Google",
     "tagline": "Престиж на каждой миле.",
     "new": "НОВОЕ"
   },

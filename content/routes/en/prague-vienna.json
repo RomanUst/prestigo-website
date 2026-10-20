@@ -104,10 +104,11 @@
     "headingLine1": "Prague to Vienna.",
     "headingItalic": "From €{ePrice}, fixed."
   },
+  "trainArticle": {"text": "Weighing the RailJet against a car? Our guide compares train, bus and private transfer by total time, cost per person and luggage.", "linkLabel": "Prague to Vienna: transfer vs train"},
   "metadata": {
-    "title": "Prague to Vienna Chauffeur — From €{ePrice}",
-    "description": "Private Prague to Vienna chauffeur transfer — 330 km door-to-door in a Mercedes E, S or V-Class. Fixed price from €{ePrice}, stops en route, flexible timing.",
-    "ogTitle": "Prague to Vienna Private Chauffeur Transfer — From €{ePrice}",
-    "ogDescription": "Private Prague to Vienna chauffeur transfer — 330 km door-to-door in a Mercedes E, S or V-Class. Fixed price from €{ePrice}, stops en route, flexible timing."
+    "title": "Prague to Vienna: 3.5h Door-to-Door, From €{ePrice}",
+    "description": "Prague to Vienna private transfer: about 3.5 hours door-to-door in a Mercedes E, S or V-Class. Fixed price from €{ePrice}, tolls included, stops en route.",
+    "ogTitle": "Prague to Vienna Private Transfer: 3.5h Door-to-Door, From €{ePrice}",
+    "ogDescription": "Prague to Vienna private transfer: about 3.5 hours door-to-door in a Mercedes E, S or V-Class. Fixed price from €{ePrice}, tolls included, stops en route."
   }
 }

@@ -415,6 +415,7 @@
     "scroll": "向下滚动",
     "ratingAria": "根据 {count} 条 Google 评价，评分为 {rating} 分（满分 5 分）",
     "googleReviews": "Google 评价",
+    "googleReviewsLink": "在 Google 上查看我们的评价（在新标签页中打开）",
     "words": [
       "专车司机服务",
       "机场接送",
@@ -467,6 +468,12 @@
     "terms": "条款",
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
+    "tripadvisorAria": "Tripadvisor",
+    "profilesHeading": "评价与社交媒体",
+    "googleCaption": "评价",
+    "reviewsCaption": "评价",
+    "followCaption": "关注",
+    "googleAria": "我们在 Google 上的评价",
     "tagline": "每一英里，皆显尊贵。",
     "new": "全新"
   },

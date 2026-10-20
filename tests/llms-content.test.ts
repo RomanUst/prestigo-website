@@ -135,3 +135,17 @@ describe('buildLlmsFullTxt', () => {
     expect(txt).toContain(`*Last updated: ${new Date().toISOString().slice(0, 10)}*`)
   })
 })
+
+describe('Google rating line', () => {
+  it('shows rating, review count and profile link when known', () => {
+    const withRating: LlmsData = { ...data, rating: { ratingValue: 5, reviewCount: 6 } }
+    for (const out of [buildLlmsTxt(withRating), buildLlmsFullTxt(withRating)]) {
+      expect(out).toContain('**Google rating:** 5.0 out of 5 from 6 Google reviews')
+      expect(out).toMatch(/\[Google Business Profile\]\(https:\/\/(www\.google\.com\/maps|share\.google)/)
+    }
+  })
+
+  it('is omitted when the rating is unknown', () => {
+    expect(buildLlmsTxt({ ...data, rating: null })).not.toContain('Google rating')
+  })
+})

@@ -7,6 +7,7 @@ import { getAllRoutes } from '@/lib/route-prices'
 import { getPricingConfig, type PricingRates } from '@/lib/pricing-config'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import { getAllPosts } from '@/lib/blog'
+import { getCachedAggregateRating, getStaticAggregateRating } from '@/lib/google-reviews'
 import type { LlmsData } from '@/lib/llms-content'
 
 const PRICING_FALLBACK: PricingRates = {
@@ -26,9 +27,10 @@ const PRICING_FALLBACK: PricingRates = {
 }
 
 export async function loadLlmsData(): Promise<LlmsData> {
-  const [routes, pricing] = await Promise.all([
+  const [routes, pricing, rating] = await Promise.all([
     getAllRoutes('display_order').catch(() => []),
     getPricingConfig().catch(() => PRICING_FALLBACK),
+    getCachedAggregateRating().catch(() => getStaticAggregateRating()),
   ])
-  return { routes, pricing, posts: getAllPosts() }
+  return { routes, pricing, posts: getAllPosts(), rating: rating ?? null }
 }

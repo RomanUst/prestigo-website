@@ -398,6 +398,7 @@
     "scroll": "Scroll",
     "ratingAria": "Rated {rating} out of 5 from {count} Google reviews",
     "googleReviews": "Google reviews",
+    "googleReviewsLink": "See our reviews on Google (opens in a new tab)",
     "words": ["Chauffeur Service", "Airport Transfer", "Private Driver", "Luxury Transport", "Business Travel"],
     "bookViaWhatsapp": "Book via WhatsApp",
     "heroAlt": "Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset"
@@ -444,6 +445,12 @@
     "terms": "Terms",
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
+    "tripadvisorAria": "Tripadvisor",
+    "profilesHeading": "Reviews & social",
+    "googleCaption": "Reviews",
+    "reviewsCaption": "Reviews",
+    "followCaption": "Follow",
+    "googleAria": "Our reviews on Google",
     "tagline": "Prestige in every mile.",
     "new": "NEW"
   },

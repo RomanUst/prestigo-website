@@ -415,6 +415,7 @@
     "scroll": "स्क्रॉल करें",
     "ratingAria": "{count} Google समीक्षाओं के आधार पर 5 में से {rating} रेटिंग",
     "googleReviews": "Google समीक्षाएँ",
+    "googleReviewsLink": "Google पर हमारी समीक्षाएँ देखें (नए टैब में खुलता है)",
     "words": [
       "शॉफ़र सेवा",
       "एयरपोर्ट ट्रांसफ़र",
@@ -467,6 +468,12 @@
     "terms": "नियम व शर्तें",
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
+    "tripadvisorAria": "Tripadvisor",
+    "profilesHeading": "समीक्षाएँ और सोशल मीडिया",
+    "googleCaption": "समीक्षाएँ",
+    "reviewsCaption": "समीक्षाएँ",
+    "followCaption": "फ़ॉलो करें",
+    "googleAria": "Google पर हमारी समीक्षाएँ",
     "tagline": "हर मील में प्रतिष्ठा।",
     "new": "नया"
   },

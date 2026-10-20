@@ -415,6 +415,7 @@
     "scroll": "Faire défiler",
     "ratingAria": "Noté {rating} sur 5 d'après {count} avis Google",
     "googleReviews": "Avis Google",
+    "googleReviewsLink": "Voir nos avis sur Google (s'ouvre dans un nouvel onglet)",
     "words": [
       "Service de chauffeur",
       "Transfert aéroport",
@@ -467,6 +468,12 @@
     "terms": "Conditions",
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
+    "tripadvisorAria": "Tripadvisor",
+    "profilesHeading": "Avis et réseaux sociaux",
+    "googleCaption": "Avis",
+    "reviewsCaption": "Avis",
+    "followCaption": "Suivre",
+    "googleAria": "Nos avis sur Google",
     "tagline": "Le prestige à chaque kilomètre.",
     "new": "NOUVEAU"
   },

@@ -244,10 +244,11 @@
     "headingLine1": "布拉格至维也纳。",
     "headingItalic": "€{ePrice} 起，固定价格。"
   },
+  "trainArticle": {"text": "在 RailJet 火车和专车之间犹豫？我们的指南从总耗时、人均费用和行李三方面比较火车、大巴与私人专车。", "linkLabel": "布拉格至维也纳：专车还是火车"},
   "metadata": {
-    "title": "布拉格至维也纳专车司机 — €{ePrice} 起",
-    "description": "布拉格至维也纳私人专车接送 — 乘 Mercedes E-Class、S-Class 或 V-Class 门到门直达 330 公里。固定价格 €{ePrice} 起，可途中停靠，时间灵活。",
-    "ogTitle": "布拉格至维也纳私人专车接送 — €{ePrice} 起",
-    "ogDescription": "布拉格至维也纳私人专车接送 — 乘 Mercedes E-Class、S-Class 或 V-Class 门到门直达 330 公里。固定价格 €{ePrice} 起，可途中停靠，时间灵活。"
+    "title": "布拉格至维也纳：门到门约 3.5 小时，€{ePrice} 起",
+    "description": "布拉格至维也纳私人专车接送：乘 Mercedes E、S 或 V-Class 门到门约 3.5 小时。固定价格 €{ePrice} 起，含过路费，可途中停靠。",
+    "ogTitle": "布拉格至维也纳私人专车：门到门约 3.5 小时，€{ePrice} 起",
+    "ogDescription": "布拉格至维也纳私人专车接送：乘 Mercedes E、S 或 V-Class 门到门约 3.5 小时。固定价格 €{ePrice} 起，含过路费，可途中停靠。"
   }
 }

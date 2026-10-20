@@ -244,10 +244,11 @@
     "headingLine1": "De Prague à Vienne.",
     "headingItalic": "À partir de {ePrice} €, tarif fixe."
   },
+  "trainArticle": {"text": "Vous hésitez entre le RailJet et la voiture ? Notre guide compare train, bus et transfert privé : durée totale, coût par personne et bagages.", "linkLabel": "Prague – Vienne : transfert ou train"},
   "metadata": {
-    "title": "Chauffeur Prague – Vienne — à partir de {ePrice} €",
-    "description": "Transfert privé avec chauffeur de Prague à Vienne — 330 km de porte à porte en Mercedes E-Class, S-Class ou V-Class. Prix fixe à partir de {ePrice} €, arrêts en route, horaires flexibles.",
-    "ogTitle": "Transfert privé avec chauffeur de Prague à Vienne — à partir de {ePrice} €",
-    "ogDescription": "Transfert privé avec chauffeur de Prague à Vienne — 330 km de porte à porte en Mercedes E-Class, S-Class ou V-Class. Prix fixe à partir de {ePrice} €, arrêts en route, horaires flexibles."
+    "title": "Prague – Vienne : 3h30 porte à porte, dès {ePrice} €",
+    "description": "Transfert privé de Prague à Vienne : environ 3h30 de porte à porte en Mercedes E, S ou V-Class. Prix fixe dès {ePrice} €, péages inclus, arrêts en route possibles.",
+    "ogTitle": "Transfert privé Prague – Vienne : 3h30 porte à porte, dès {ePrice} €",
+    "ogDescription": "Transfert privé de Prague à Vienne : environ 3h30 de porte à porte en Mercedes E, S ou V-Class. Prix fixe dès {ePrice} €, péages inclus, arrêts en route possibles."
   }
 }
