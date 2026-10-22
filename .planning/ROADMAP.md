@@ -338,7 +338,7 @@ Plans:
   4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
   5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
 
-**Plans:** 14/16 plans executed
+**Plans:** 16/16 plans executed
 
 Plans:
 **Wave 1**
@@ -366,10 +366,10 @@ Plans:
 - [x] 82-13-PLAN.md — Erasure admin page: preview, typed-email confirmation, log
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
+- [x] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
+- [x] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
 
 **UI hint**: yes
 **Security note**: yes — identity resolution, outbox event integrity and GDPR erasure propagation are security/privacy-relevant; commit with `security:` prefix per CLAUDE.md where the work touches identity matching or erasure.
@@ -446,7 +446,7 @@ Plans:
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
-| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 14/16 | In Progress|  |
+| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | In Progress|  |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
