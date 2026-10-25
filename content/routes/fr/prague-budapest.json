@@ -70,6 +70,12 @@
       "custom": false
     },
     {
+      "city": "Brno (en option)",
+      "note": "La capitale de la Moravie, à deux heures de Prague — une pause naturelle pour un café ou un déjeuner, ou un rendez-vous d'affaires en route.",
+      "anchor": false,
+      "custom": false
+    },
+    {
       "city": "Bratislava (en option)",
       "note": "La capitale slovaque se trouve directement sur l'itinéraire — possible comme arrêt en route avant la dernière portion vers la Hongrie.",
       "anchor": false,
@@ -103,7 +109,7 @@
     },
     {
       "label": "Liaison avec Vienne",
-      "value": "Vienne se situe à environ 60 km au nord-ouest de Budapest, sur le même corridor. Prestigo peut intégrer un arrêt à Vienne ou prolonger votre trajet au sein d'une seule réservation."
+      "value": "Vienne se situe à environ 60 km à l'ouest de Bratislava, tout près de ce corridor. Prestigo peut intégrer un arrêt à Vienne ou prolonger votre trajet au sein d'une seule réservation."
     }
   ],
   "dayTripLabel": "Excursions à la journée depuis Prague",
@@ -170,6 +176,18 @@
     {
       "q": "Combien de frontières compte cet itinéraire ?",
       "a": "Deux. La frontière Schengen tchéco-slovaque à Břeclav/Brodské après Brno, et la frontière Schengen slovaco-hongroise à Rajka/Čunovo, à l'ouest de Budapest. Les deux sont invisibles au sein de l'espace Schengen — aucun arrêt, aucun contrôle de passeport pour les citoyens de l'UE. Les passagers hors UE doivent être munis de documents de voyage valides."
+    },
+    {
+      "q": "Peut-on s'arrêter à Brno ou à Bratislava en route vers Budapest ?",
+      "a": "Oui. Les deux villes se trouvent directement sur l'itinéraire : Brno à environ deux heures de Prague, Bratislava à environ trois heures et demie. Une pause café, un déjeuner ou une courte promenade dans la vieille ville se convient à la réservation et sont compris dans le tarif fixe. Dites-nous combien de temps vous souhaitez rester et nous organisons la journée en conséquence."
+    },
+    {
+      "q": "Les vignettes autoroutières et les frais de frontière sont-ils inclus ?",
+      "a": "Oui. Les vignettes autoroutières tchèque, slovaque et hongroise, tous les péages et le carburant sont inclus dans le tarif fixe. Il n'existe aucun frais de frontière au sein de l'espace Schengen, et rien n'est ajouté à l'arrivée."
+    },
+    {
+      "q": "Pouvez-vous nous conduire directement de l'aéroport de Prague à Budapest ?",
+      "a": "Oui. Votre chauffeur vous accueille dans le hall des arrivées de l'aéroport Václav-Havel (PRG) et vous conduit directement à n'importe quelle adresse de Budapest ou à l'aéroport Ferenc-Liszt (BUD). À l'aéroport, le chauffeur attend jusqu'à 60 minutes."
     },
     {
       "q": "Un siège enfant est-il disponible ?",
@@ -239,9 +257,9 @@
     "headingItalic": "À partir de {ePrice} €, prix fixe."
   },
   "metadata": {
-    "title": "Chauffeur Prague–Budapest — à partir de {ePrice} €",
-    "description": "Réservez un chauffeur privé de Prague à Budapest. 535 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la perle du Danube.",
-    "ogTitle": "Transfert privé Prague–Budapest — à partir de {ePrice} €",
-    "ogDescription": "Réservez un chauffeur privé de Prague à Budapest. 535 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la perle du Danube."
+    "title": "Transfert privé Prague–Budapest — dès {ePrice} €",
+    "description": "Transfert privé de Prague à Budapest : 535 km porte à porte en 5 h 30 environ, en Mercedes. Arrêt possible à Brno ou Bratislava, vignettes incluses. Dès {ePrice} €.",
+    "ogTitle": "Transfert privé Prague–Budapest — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Prague à Budapest : 535 km porte à porte en 5 h 30 environ, en Mercedes. Arrêt possible à Brno ou Bratislava, vignettes incluses. Dès {ePrice} €."
   }
 }

@@ -70,6 +70,12 @@
       "custom": false
     },
     {
+      "city": "Brno (opcional)",
+      "note": "La capital de Moravia, a dos horas de Praga: una pausa natural para un café o el almuerzo, o una reunión de negocios en camino.",
+      "anchor": false,
+      "custom": false
+    },
+    {
       "city": "Bratislava (opcional)",
       "note": "La capital eslovaca se encuentra directamente en la ruta: disponible como parada en camino antes del último tramo hacia Hungría.",
       "anchor": false,
@@ -103,7 +109,7 @@
     },
     {
       "label": "Conexión con Viena",
-      "value": "Viena se encuentra a unos 60 km al noroeste de Budapest en el mismo corredor. Prestigo puede incorporar una parada en Viena o prolongar su viaje como una única reserva."
+      "value": "Viena se encuentra a unos 60 km al oeste de Bratislava, muy cerca de este corredor. Prestigo puede incorporar una parada en Viena o prolongar su viaje como una única reserva."
     }
   ],
   "dayTripLabel": "Excursiones de un día desde Praga",
@@ -170,6 +176,18 @@
     {
       "q": "¿Cuántos cruces de frontera hay en esta ruta?",
       "a": "Dos. La frontera Schengen checo-eslovaca en Břeclav/Brodské después de Brno y la frontera Schengen eslovaco-húngara en Rajka/Čunovo, al oeste de Budapest. Ambas son invisibles dentro del espacio Schengen: sin paradas ni controles de pasaporte para ciudadanos de la UE. Los pasajeros no comunitarios deben llevar documentación de viaje en vigor."
+    },
+    {
+      "q": "¿Podemos parar en Brno o Bratislava de camino a Budapest?",
+      "a": "Sí. Ambas ciudades están directamente en la ruta: Brno a unas dos horas de Praga y Bratislava a unas tres horas y media. Una pausa para un café, el almuerzo o un breve paseo por el casco antiguo se acuerda al reservar y está incluida en la tarifa fija. Díganos cuánto tiempo desea quedarse y planificamos el día en torno a ello."
+    },
+    {
+      "q": "¿Las viñetas de autopista y las tasas fronterizas están incluidas en la tarifa?",
+      "a": "Sí. Las viñetas de autopista checa, eslovaca y húngara, todos los peajes y el combustible están incluidos en la tarifa fija. Dentro del espacio Schengen no hay tasas fronterizas, y no se añade nada a la llegada."
+    },
+    {
+      "q": "¿Pueden llevarnos directamente del aeropuerto de Praga a Budapest?",
+      "a": "Sí. Su chófer le recibe en la sala de llegadas del aeropuerto Václav Havel (PRG) y le lleva directamente a cualquier dirección de Budapest o al aeropuerto Ferenc Liszt (BUD). En el aeropuerto, el chófer espera hasta 60 minutos."
     },
     {
       "q": "¿Hay sillas infantiles disponibles?",
@@ -239,9 +257,9 @@
     "headingItalic": "Desde {ePrice} €, precio fijo."
   },
   "metadata": {
-    "title": "Chófer de Praga a Budapest — desde {ePrice} €",
-    "description": "Reserve un chófer privado de Praga a Budapest. 535 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la perla del Danubio.",
-    "ogTitle": "Traslado privado de Praga a Budapest — desde {ePrice} €",
-    "ogDescription": "Reserve un chófer privado de Praga a Budapest. 535 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la perla del Danubio."
+    "title": "Traslado privado Praga–Budapest — desde {ePrice} €",
+    "description": "Traslado de Praga a Budapest: 535 km puerta a puerta en unas 5,5 horas en Mercedes. Parada opcional en Brno o Bratislava, viñetas incluidas. Desde {ePrice} €.",
+    "ogTitle": "Traslado privado Praga–Budapest — desde {ePrice} €",
+    "ogDescription": "Traslado de Praga a Budapest: 535 km puerta a puerta en unas 5,5 horas en Mercedes. Parada opcional en Brno o Bratislava, viñetas incluidas. Desde {ePrice} €."
   }
 }

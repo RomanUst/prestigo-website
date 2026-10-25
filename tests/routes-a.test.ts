@@ -94,7 +94,7 @@ describe("Group A route content (71-02)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, all three motorway vignettes, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Budapest Chauffeur — From €485",
+      "metadata.title": "Prague to Budapest Private Transfer — From €485",
     });
   });
 
