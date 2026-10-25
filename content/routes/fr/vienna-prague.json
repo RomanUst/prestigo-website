@@ -82,12 +82,15 @@
   "faqs": [
     { "q": "Combien de temps dure un transfert privé de Vienne à Prague ?", "a": "Environ 3 heures 30 de porte à porte : l'A5 vers le nord jusqu'à la frontière de Drasenhofen–Mikulov, la D52 jusqu'à Brno et la D1 jusqu'à Prague. Le trafic du vendredi après-midi à l'entrée de Prague peut ajouter 20 à 30 minutes." },
     { "q": "Combien coûte un taxi ou un chauffeur de Vienne à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, tous les péages, les vignettes autrichienne et tchèque et le temps du chauffeur — il s'entend par voiture, et non par personne." },
+    { "q": "Combien coûte une voiture exécutive de Vienne à Prague, et peut-on réserver en ligne ?", "a": "Une Mercedes Classe S exécutive de Vienne à Prague coûte un prix fixe de {sPrice} € par véhicule ; la berline affaires Classe E démarre à {ePrice} € et le Classe V jusqu'à 6 passagers à {vPrice} €. Aucune application nécessaire : réservez en ligne sur rideprestigo.com en quelques minutes, voyez le prix fixe avant de payer et recevez la confirmation par e-mail." },
     { "q": "Pouvez-vous me prendre en charge à l'aéroport de Vienne et me conduire directement à Prague ?", "a": "Oui. Indiquez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de l'aéroport international de Vienne avec votre nom et vous conduit directement à votre adresse à Prague — inutile de passer d'abord par Vienne." },
     { "q": "Un transfert privé est-il préférable au train de Vienne à Prague ?", "a": "Le train direct met environ quatre heures de gare à gare, sans compter le trajet jusqu'à Wien Hauptbahnhof et un taxi à l'arrivée à Prague. Un transfert privé se fait de porte à porte, part quand vous le souhaitez, emporte tous vos bagages et coûte le même prix pour un passager ou pour trois — le train reste moins cher pour un voyageur seul avec peu de bagages." },
     { "q": "Peut-on s'arrêter en route entre Vienne et Prague ?", "a": "Oui. Mikulov, Brno et Telč sont les arrêts les plus demandés. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
-    { "q": "Ai-je besoin de mon passeport entre l'Autriche et la République tchèque ?", "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc aucun contrôle frontalier systématique à Drasenhofen–Mikulov. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux." }
+    { "q": "Ai-je besoin de mon passeport entre l'Autriche et la République tchèque ?", "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc aucun contrôle frontalier systématique à Drasenhofen–Mikulov. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux." },
+    { "q": "Assurez-vous aussi le trajet de Prague à Vienne ?", "a": "Oui. Le transfert de Prague à Vienne suit les mêmes 330 km dans l'autre sens, aux mêmes prix fixes, avec prise en charge à n'importe quelle adresse de Prague ou à l'aéroport Václav-Havel (PRG). En réservant les deux sens pour le même jour, le trajet retour bénéficie de 10 % de réduction." }
   ],
   "relatedRoutesIntro": "Le trajet Vienne–Prague n'est souvent qu'une étape d'un voyage plus long à travers l'Europe centrale. Les clients qui arrivent de Budapest, Bratislava ou Salzbourg réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "trainArticle": { "text": "Vous hésitez entre le RailJet et la voiture ? Notre guide compare train, bus et transfert privé entre Vienne et Prague : durée totale, coût par personne et bagages.", "linkLabel": "Prague – Vienne : transfert ou train" },
   "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
   "relatedRoutes": [
     { "slug": "bratislava-prague", "city": "Bratislava", "label": "Bratislava → Prague", "distance": "330 km", "duration": "3 h 30" },
@@ -106,9 +109,9 @@
     "headingItalic": "À partir de {ePrice} €, tarif fixe."
   },
   "metadata": {
-    "title": "Chauffeur Vienne – Prague — à partir de {ePrice} €",
-    "description": "Transfert privé de Vienne à Prague — 330 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Vienne ou à l'aéroport VIE. Prix fixe dès {ePrice} €.",
-    "ogTitle": "Transfert privé avec chauffeur de Vienne à Prague — à partir de {ePrice} €",
-    "ogDescription": "Transfert privé de Vienne à Prague — 330 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Vienne ou à l'aéroport VIE. Prix fixe dès {ePrice} €."
+    "title": "Transfert privé Vienne – Prague — dès {ePrice} €",
+    "description": "Transfert privé de Vienne à Prague : 330 km de porte à porte en 3 h 30 environ en Mercedes. Réservation en ligne, vignettes et péages inclus. Dès {ePrice} €.",
+    "ogTitle": "Transfert privé Vienne – Prague en Mercedes — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Vienne à Prague : 330 km de porte à porte en 3 h 30 environ en Mercedes. Réservation en ligne, vignettes et péages inclus. Dès {ePrice} €."
   }
 }

@@ -342,7 +342,15 @@ export default async function MirrorRoutePage({ params }: { params: Params }) {
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
             {content.relatedRoutesIntro}
-          </p></Reveal>
+          </p>
+          {content.trainArticle && (
+            <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+              {content.trainArticle.text}{' '}
+              <a href={getPathname({ locale, href: '/blog/prague-vienna-transfer-vs-train' })} className="underline hover:text-[var(--copper)] transition-colors">
+                {content.trainArticle.linkLabel} →
+              </a>
+            </p>
+          )}</Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {relatedRoutes.map((r, i) => (
               <Reveal key={r.slug} variant="up" delay={i * 100}><a href={getPathname({ locale, href: `/routes/${r.slug}` })} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">

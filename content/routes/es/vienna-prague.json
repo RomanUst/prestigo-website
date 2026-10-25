@@ -171,6 +171,10 @@
       "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye el combustible, todos los peajes, las viñetas austriaca y checa y el tiempo del chófer; es por coche, no por persona."
     },
     {
+      "q": "¿Cuánto cuesta un coche ejecutivo de Viena a Praga y puedo reservarlo online?",
+      "a": "Un Mercedes Clase S ejecutivo de Viena a Praga cuesta un precio fijo de {sPrice} € por coche; la berlina business Clase E parte de {ePrice} € y la Clase V para hasta 6 personas, de {vPrice} €. No necesita ninguna app: reserve online en rideprestigo.com en pocos minutos, vea el precio fijo antes de pagar y reciba la confirmación por correo electrónico."
+    },
+    {
       "q": "¿Pueden recogerme en el aeropuerto de Viena y llevarme directamente a Praga?",
       "a": "Sí. Indíquenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del Aeropuerto Internacional de Viena con su nombre y le lleva directamente a su dirección en Praga, sin necesidad de pasar antes por Viena."
     },
@@ -185,9 +189,14 @@
     {
       "q": "¿Necesito el pasaporte entre Austria y la República Checa?",
       "a": "Ambos países pertenecen al espacio Schengen, por lo que no hay control fronterizo rutinario en Drasenhofen–Mikulov. Lleve de todos modos su pasaporte o documento de identidad de la UE: se hacen controles aleatorios, y los viajeros de fuera de la UE deben llevar consigo su documentación."
+    },
+    {
+      "q": "¿También hacen el trayecto de Praga a Viena?",
+      "a": "Sí. El traslado de Praga a Viena recorre los mismos 330 km en sentido contrario con las mismas tarifas fijas, con recogida en cualquier dirección de Praga o en el aeropuerto Václav Havel (PRG). Si reserva ambos sentidos para el mismo día, el trayecto de vuelta tiene un 10 % de descuento."
     }
   ],
   "relatedRoutesIntro": "El trayecto de Viena a Praga suele ser una etapa de un viaje más largo por Europa Central. Los clientes que llegan desde Budapest, Bratislava o Salzburgo reservan del mismo modo: un solo coche, una tarifa fija y llegada a la puerta en Praga.",
+  "trainArticle": { "text": "¿Dudas entre el RailJet y el coche? Nuestra guía compara tren, autobús y traslado privado entre Viena y Praga por tiempo total, coste por persona y equipaje.", "linkLabel": "Praga a Viena: traslado o tren" },
   "relatedHeading": {
     "line1": "Más formas",
     "italic": "de llegar a Praga."
@@ -250,9 +259,9 @@
     "headingItalic": "Desde {ePrice} €, tarifa fija."
   },
   "metadata": {
-    "title": "Chófer de Viena a Praga — Desde {ePrice} €",
-    "description": "Traslado privado de Viena a Praga: 330 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Viena o en el aeropuerto VIE. Precio fijo desde {ePrice} €.",
-    "ogTitle": "Traslado privado con chófer de Viena a Praga — Desde {ePrice} €",
-    "ogDescription": "Traslado privado de Viena a Praga: 330 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Viena o en el aeropuerto VIE. Precio fijo desde {ePrice} €."
+    "title": "Traslado privado de Viena a Praga — Desde {ePrice} €",
+    "description": "Traslado privado de Viena a Praga: 330 km puerta a puerta en unas 3,5 horas en Mercedes. Reserva online en minutos, viñetas y peajes incluidos. Desde {ePrice} €.",
+    "ogTitle": "Traslado privado de Viena a Praga en Mercedes — Desde {ePrice} €",
+    "ogDescription": "Traslado privado de Viena a Praga: 330 km puerta a puerta en unas 3,5 horas en Mercedes. Reserva online en minutos, viñetas y peajes incluidos. Desde {ePrice} €."
   }
 }
