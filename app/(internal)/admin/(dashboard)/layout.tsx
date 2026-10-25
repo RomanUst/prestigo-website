@@ -25,7 +25,11 @@ export default async function AdminDashboardLayout({
         className="md:ml-[280px] pt-16 md:pt-8"
         style={{
           flex: 1,
-          padding: '0 32px 32px',
+          // Longhands only: a `padding` shorthand would reset the pt-16/md:pt-8 top
+          // padding that keeps content clear of the fixed mobile menu button.
+          paddingLeft: '32px',
+          paddingRight: '32px',
+          paddingBottom: '32px',
           backgroundColor: 'var(--anthracite-mid)',
           fontFamily: 'var(--font-montserrat)',
           color: 'var(--offwhite)',

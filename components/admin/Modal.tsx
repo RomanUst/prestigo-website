@@ -49,6 +49,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        padding: '16px',
       }}
       onClick={onClose}
     >
@@ -58,9 +59,13 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           border: '1px solid #4E4E56',
           borderRadius: '8px',
           padding: '24px',
-          minWidth: '480px',
+          // min() keeps the 480px floor on desktop but lets the panel shrink to the
+          // screen on phones instead of overflowing both edges.
+          minWidth: 'min(480px, 100%)',
           maxWidth: '560px',
           width: '100%',
+          maxHeight: '100%',
+          overflowY: 'auto',
         }}
         onClick={e => e.stopPropagation()}
       >
