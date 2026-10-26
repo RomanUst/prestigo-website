@@ -24,6 +24,26 @@ export function contactFingerprint(c: FingerprintFields): string {
     .slice(0, 16)
 }
 
+/**
+ * The fingerprint of a Chatwoot / EspoCRM contact AFTER a site write: each identity field is the value
+ * the write sends when its key is present in `body`, else the value the contact has now (`live`, null
+ * for a create). The single helper behind every `site_sync_fp` stamp (lib/chatwoot-sync.ts here and
+ * lib/espo-contact-hook.ts), so the receiver's isSiteEcho recomputation matches what was sent.
+ */
+export function postWriteFingerprint(
+  live: { name?: string | null; email?: string | null; phone?: string | null; identifier?: string | null } | null,
+  body: { name?: string | null; email?: string | null; phone_number?: string | null; identifier?: string | null },
+): string {
+  const sent = <K extends keyof typeof body>(key: K): boolean =>
+    Object.prototype.hasOwnProperty.call(body, key) && body[key] !== undefined
+  return contactFingerprint({
+    name: sent('name') ? body.name : live?.name,
+    email: sent('email') ? body.email : live?.email,
+    phone_number: sent('phone_number') ? body.phone_number : live?.phone,
+    identifier: sent('identifier') ? body.identifier : live?.identifier,
+  })
+}
+
 /** True when the contact carries the site's own fingerprint and its fields still match it. */
 export function isSiteEcho(
   contact: (FingerprintFields & { custom_attributes?: Record<string, unknown> | null }) | null | undefined,

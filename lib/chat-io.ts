@@ -206,6 +206,34 @@ export async function readMessages(
   return (await readMessagePages(cw, conversationId, opts)).messages
 }
 
+/**
+ * GET /contacts/<id>/conversations: ids of the contact's conversations, newest page only, at most
+ * `max`. 404 -> empty (the contact is gone). The shape (`{ payload: [{ id, ... }] }`) is the
+ * documented one; anything else reads as "no conversations" and the caller falls back to the
+ * registry lookups that need no Chatwoot read.
+ */
+export async function readContactConversationIds(
+  cw: SiteChatwootClient,
+  contactId: number,
+  max: number,
+): Promise<number[]> {
+  let res: unknown
+  try {
+    res = await cw.get(`/contacts/${contactId}/conversations`)
+  } catch (err) {
+    if (is404(err)) return []
+    throw err
+  }
+  const list = isRecord(res) && Array.isArray(res.payload) ? res.payload : []
+  const ids: number[] = []
+  for (const item of list) {
+    const id = isRecord(item) ? posInt(item.id) : null
+    if (id !== null && !ids.includes(id)) ids.push(id)
+    if (ids.length >= max) break
+  }
+  return ids
+}
+
 /** GET /inboxes/<id> name. The name is cosmetic: every error but an auth failure yields null. */
 export async function readInboxName(cw: SiteChatwootClient, inboxId: number): Promise<string | null> {
   try {
@@ -255,6 +283,20 @@ export async function findContactIdsByPhone(crm: SiteEspoClient, phone: string):
   return listOf(res)
     .map((r) => espoStr(r.id))
     .filter((id): id is string => id !== null)
+}
+
+/**
+ * The single Contact carrying this phone that has NO email yet (the phone-keyed Contact the intake
+ * creates for a phone-only person, D-04), or null. A Contact that already has an email belongs to
+ * somebody else as far as this lookup is concerned, and two Contacts with the phone are ambiguous.
+ */
+export async function findEmaillessContactIdByPhone(crm: SiteEspoClient, phone: string): Promise<string | null> {
+  const res = await crm.get(
+    `/Contact?select=id,emailAddress&maxSize=2&where[0][type]=equals&where[0][attribute]=phoneNumber&where[0][value]=${q(phone)}`,
+  )
+  const list = listOf(res)
+  if (list.length !== 1) return null
+  return espoStr(list[0].emailAddress) ? null : espoStr(list[0].id)
 }
 
 /**
@@ -369,9 +411,11 @@ export interface LeadBrief {
   /** cExistingContactId as stored on the Lead. */
   existingContactId: string | null
   createdAt: string | null
+  /** Primary email of the Lead (D-12 fills it only while empty). */
+  emailAddress: string | null
 }
 
-const LEAD_SELECT = ['id', 'status', LEAD_ATTR.existingContactId, 'createdAt'].join(',')
+const LEAD_SELECT = ['id', 'status', LEAD_ATTR.existingContactId, 'createdAt', 'emailAddress'].join(',')
 
 function toLeadBrief(rec: Record<string, unknown> | undefined): LeadBrief | null {
   if (!rec) return null
@@ -382,6 +426,7 @@ function toLeadBrief(rec: Record<string, unknown> | undefined): LeadBrief | null
     status: espoStr(rec.status),
     existingContactId: espoStr(rec[LEAD_ATTR.existingContactId]),
     createdAt: espoStr(rec.createdAt),
+    emailAddress: espoStr(rec.emailAddress),
   }
 }
 

@@ -4,6 +4,7 @@ import { createFakeChatwoot, FAKE_ADMIN_TOKEN, FAKE_AGENT_TOKEN, type FakeChatwo
 import { dispatchOutboxKey, type DispatchDeps } from '@/lib/lead-sync'
 import { createSiteChatwootClient, type SiteChatwootConfig } from '@/lib/chatwoot-client'
 import { CHATWOOT_SYNCED_ATTRIBUTE_KEYS } from '@/lib/chatwoot-mapping'
+import { contactFingerprint, isSiteEcho, SITE_SYNC_FP_ATTRIBUTE } from '@/lib/sync-origin'
 import type { OutboxRow, OutboxStore } from '@/lib/outbox-store'
 import type { CrmBookingRecord, IdentityStore, PersonRecord } from '@/lib/identity-store'
 
@@ -220,7 +221,8 @@ describe('sync.chatwoot tracer: new person -> exact filters find nothing -> cont
     expect(contact.phone_number).toBe('+420777900010')
     expect(contact.identifier).toBeNull()
     expect(contact.name).toBe('Anna Novak')
-    expect(Object.keys(contact.custom_attributes).sort()).toEqual([...CHATWOOT_SYNCED_ATTRIBUTE_KEYS].sort())
+    // The seven owned attributes plus the HOOK-04 origin tag (not an owned attribute).
+    expect(Object.keys(contact.custom_attributes).sort()).toEqual([...CHATWOOT_SYNCED_ATTRIBUTE_KEYS, 'site_sync_fp'].sort())
     expect(contact.custom_attributes).toMatchObject({
       trip_count: '1',
       repeat_customer: 'no',
@@ -329,7 +331,7 @@ describe('sync.chatwoot adopt: D-03 fill-only-when-empty', () => {
     expect(h.fake.writes()).toHaveLength(1)
     const body = puts(h)[0].body as Record<string, unknown>
     expect(Object.keys(body)).toEqual(['custom_attributes'])
-    expect(Object.keys(body.custom_attributes as object).sort()).toEqual([...CHATWOOT_SYNCED_ATTRIBUTE_KEYS].sort())
+    expect(Object.keys(body.custom_attributes as object).sort()).toEqual([...CHATWOOT_SYNCED_ATTRIBUTE_KEYS, 'site_sync_fp'].sort())
     const contact = contacts(h)[0]
     expect(contact).toMatchObject({ name: 'VIP Jan', phone_number: '+420602111222', email: 'a@x.test' })
     // Attributes the site does not own survive (shallow merge, owned keys only).
@@ -376,7 +378,18 @@ describe('sync.chatwoot adopt: D-03 fill-only-when-empty', () => {
     await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
 
     expect(puts(h)).toHaveLength(1)
-    expect(puts(h)[0].body).toEqual({ custom_attributes: { trip_count: '1' } })
+    // Only the changed attribute plus the origin tag of the unchanged identity fields.
+    expect(puts(h)[0].body).toEqual({
+      custom_attributes: {
+        trip_count: '1',
+        site_sync_fp: contactFingerprint({
+          name: 'Anna Novak',
+          email: 'a@x.test',
+          phone_number: '+420777900010',
+          identifier: null,
+        }),
+      },
+    })
   })
 })
 
@@ -951,5 +964,165 @@ describe('sync.chatwoot guards, failures and the contact-only prohibition', () =
     await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
 
     expect(contacts(h)[0].custom_attributes).toMatchObject({ trip_count: '2', repeat_customer: 'yes', lifetime_value: '90.00 EUR' })
+  })
+})
+
+// ── HOOK-04: origin fingerprint on every site write ─────────────────────────
+
+describe('sync.chatwoot HOOK-04 origin fingerprint (site_sync_fp)', () => {
+  const posts = (h: Harness) => h.fake.requests.filter((r) => r.method === 'POST' && r.path === '/contacts')
+  const attrsOf = (req: { body?: unknown }) =>
+    ((req.body as { custom_attributes?: Record<string, unknown> }).custom_attributes ?? {}) as Record<string, unknown>
+  const fpOf = (fields: { name?: string | null; email?: string | null; phone_number?: string | null; identifier?: string | null }) =>
+    contactFingerprint(fields)
+  const blindPhoneFilter: FakeChatwootOptions['intercept'] = (req) =>
+    req.path === '/contacts/filter' && req.body?.payload?.[0]?.attribute_key === 'phone_number' ? emptyFilter() : undefined
+
+  /** A contact whose owned attributes are all current (so only identity fields can cause a write). */
+  async function currentAttrs() {
+    const first = harness({ rows: [personRow()], persons: [person()] })
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(first))
+    const attrs: Record<string, unknown> = { ...contacts(first)[0].custom_attributes }
+    delete attrs[SITE_SYNC_FP_ATTRIBUTE]
+    return attrs
+  }
+
+  it('create: the POST body carries the fingerprint of its own name, email, phone and identifier, and the round trip is an echo', async () => {
+    const h = harness({ rows: [personRow()], persons: [person()] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(posts(h)).toHaveLength(1)
+    expect(attrsOf(posts(h)[0])[SITE_SYNC_FP_ATTRIBUTE]).toBe(
+      fpOf({ name: 'Anna Novak', email: 'a@x.test', phone_number: '+420777900010', identifier: null }),
+    )
+    // echo round trip: what Chatwoot sends back in contact_updated is recognised by the receiver predicate.
+    expect(isSiteEcho(contacts(h)[0])).toBe(true)
+  })
+
+  it('create for a signed-in person: the identifier is part of the fingerprint (echo round trip)', async () => {
+    const p = person()
+    p.identity.user_id = USER_ID
+    const h = harness({ rows: [personRow()], persons: [p] })
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(contacts(h)[0].identifier).toBe(USER_ID)
+    expect(attrsOf(posts(h)[0])[SITE_SYNC_FP_ATTRIBUTE]).toBe(
+      fpOf({ name: 'Anna Novak', email: 'a@x.test', phone_number: '+420777900010', identifier: USER_ID }),
+    )
+    expect(isSiteEcho(contacts(h)[0])).toBe(true)
+  })
+
+  it('create refused for a taken phone: the retried POST carries the fingerprint without the phone (echo round trip)', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 50, name: 'Hotel Desk', email: 'desk@x.test', phone_number: '+420777900010' }], intercept: blindPhoneFilter },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(posts(h)).toHaveLength(2)
+    expect(attrsOf(posts(h)[0])[SITE_SYNC_FP_ATTRIBUTE]).toBe(
+      fpOf({ name: 'Anna Novak', email: 'a@x.test', phone_number: '+420777900010', identifier: null }),
+    )
+    expect(attrsOf(posts(h)[1])[SITE_SYNC_FP_ATTRIBUTE]).toBe(fpOf({ name: 'Anna Novak', email: 'a@x.test', identifier: null }))
+    const created = contacts(h).find((c) => c.email === 'a@x.test')!
+    expect(created.phone_number).toBeNull()
+    expect(isSiteEcho(created)).toBe(true)
+  })
+
+  it('update that fills an empty name only: the PUT carries the fingerprint of the new name and the live email, phone, identifier', async () => {
+    const attrs = await currentAttrs()
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 2, name: '', email: 'a@x.test', phone_number: '+420777900010', custom_attributes: attrs as Record<string, string> }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(puts(h)).toHaveLength(1)
+    expect(puts(h)[0].body).toEqual({
+      name: 'Anna Novak',
+      custom_attributes: {
+        [SITE_SYNC_FP_ATTRIBUTE]: fpOf({ name: 'Anna Novak', email: 'a@x.test', phone_number: '+420777900010', identifier: null }),
+      },
+    })
+    expect(isSiteEcho(contacts(h)[0])).toBe(true)
+  })
+
+  it('update whose only change is an attribute still carries the fingerprint of the unchanged live fields (echo round trip)', async () => {
+    const attrs = await currentAttrs()
+    attrs.trip_count = '99'
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 2, name: 'Operator Name', email: 'a@x.test', phone_number: '+420777900010', custom_attributes: attrs as Record<string, string> }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(puts(h)).toHaveLength(1)
+    expect(puts(h)[0].body).toEqual({
+      custom_attributes: {
+        trip_count: '1',
+        [SITE_SYNC_FP_ATTRIBUTE]: fpOf({ name: 'Operator Name', email: 'a@x.test', phone_number: '+420777900010', identifier: null }),
+      },
+    })
+    expect(isSiteEcho(contacts(h)[0])).toBe(true)
+  })
+
+  it('update refused for a taken phone: the retried PUT carries a fingerprint computed with the live (unchanged) phone', async () => {
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      {
+        contacts: [
+          { id: 70, name: 'Anna', email: 'a@x.test', phone_number: null },
+          { id: 71, name: 'Hotel Desk', email: 'desk@x.test', phone_number: '+420777900010' },
+        ],
+        intercept: blindPhoneFilter,
+      },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(puts(h)).toHaveLength(2)
+    expect(attrsOf(puts(h)[0])[SITE_SYNC_FP_ATTRIBUTE]).toBe(
+      fpOf({ name: 'Anna', email: 'a@x.test', phone_number: '+420777900010', identifier: null }),
+    )
+    expect(puts(h)[1].body).not.toHaveProperty('phone_number')
+    expect(attrsOf(puts(h)[1])[SITE_SYNC_FP_ATTRIBUTE]).toBe(fpOf({ name: 'Anna', email: 'a@x.test', phone_number: null, identifier: null }))
+    const adopted = contacts(h).find((c) => c.id === 70)!
+    expect(adopted.phone_number).toBeNull()
+    expect(isSiteEcho(adopted)).toBe(true)
+  })
+
+  it('an up-to-date contact gets no write at all: no fingerprint-only PUT, even when its stored tag is stale', async () => {
+    const attrs = await currentAttrs()
+    attrs[SITE_SYNC_FP_ATTRIBUTE] = 'stale-from-an-old-edit'
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 2, name: 'Anna Novak', email: 'a@x.test', phone_number: '+420777900010', custom_attributes: attrs as Record<string, string> }] },
+    )
+
+    const result = await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(h.fake.writes()).toEqual([])
+  })
+
+  it("the operator's other attributes survive the stamp (shallow merge) and the tag is not an owned attribute", async () => {
+    const attrs = await currentAttrs()
+    attrs.trip_count = '99'
+    attrs.operator_note = 'keep'
+    const h = harness(
+      { rows: [personRow()], persons: [person()] },
+      { contacts: [{ id: 2, name: 'Anna Novak', email: 'a@x.test', phone_number: '+420777900010', custom_attributes: attrs as Record<string, string> }] },
+    )
+
+    await dispatchOutboxKey(cwKey(IDENTITY), deps(h))
+
+    expect(contacts(h)[0].custom_attributes).toMatchObject({ operator_note: 'keep', trip_count: '1' })
+    expect(CHATWOOT_SYNCED_ATTRIBUTE_KEYS).toHaveLength(7)
+    expect(CHATWOOT_SYNCED_ATTRIBUTE_KEYS as readonly string[]).not.toContain(SITE_SYNC_FP_ATTRIBUTE)
   })
 })

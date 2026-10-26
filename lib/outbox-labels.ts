@@ -31,6 +31,9 @@ export function outboxErrorHint(code: string | null): string | null {
   if (code === 'cw_ambiguous') {
     return 'Chatwoot has several matching contacts. Merge them by hand, then retry.'
   }
+  if (code === 'email_owned_elsewhere') {
+    return 'This email already belongs to another person. Nothing was changed; merge or split them by hand on /admin/identities.'
+  }
   if (code === 'unsupported_event') {
     return 'This event type is not handled. Ask for a code fix.'
   }

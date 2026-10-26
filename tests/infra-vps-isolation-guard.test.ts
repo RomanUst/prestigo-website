@@ -132,6 +132,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'QStash-invoked outbox dispatcher handler (hook.chat_resolve): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/hook-dispatch.ts via lib/lead-sync.ts',
   },
   {
+    path: 'lib/chat-contact.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (hook.chat_contact, hook.chat_label): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/hook-dispatch.ts via lib/lead-sync.ts',
+  },
+  {
     path: 'lib/chat-intake.ts',
     reason:
       'QStash-invoked outbox dispatcher handler (hook.chat_intake): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts via lib/hook-dispatch.ts',

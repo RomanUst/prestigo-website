@@ -9,6 +9,7 @@ import {
   CHATWOOT_SYNCED_ATTRIBUTE_KEYS,
   type ChatwootContactDraft,
 } from '@/lib/chatwoot-mapping'
+import { postWriteFingerprint, SITE_SYNC_FP_ATTRIBUTE } from '@/lib/sync-origin'
 
 /**
  * sync.chatwoot handler (Phase 82, plan 82-10). Runs only inside the QStash-invoked dispatcher.
@@ -183,7 +184,7 @@ async function syncPerson(ctx: Ctx): Promise<DispatchResult> {
 
     let created: LiveContact | null = null
     try {
-      created = await createContact(ctx, body)
+      created = await createContact(ctx, stamped(body, null))
     } catch (err) {
       if (!is422(err)) throw err
       // Somebody created it in the meantime, or a phone/identifier is taken: one re-find first.
@@ -192,7 +193,8 @@ async function syncPerson(ctx: Ctx): Promise<DispatchResult> {
         if (body.phone_number === undefined) return fail(ctx, 'cw_unprocessable')
         delete body.phone_number
         try {
-          created = await createContact(ctx, body)
+          // The phone is gone from the body, so the tag is recomputed without it.
+          created = await createContact(ctx, stamped(body, null))
         } catch (retryErr) {
           if (!is422(retryErr)) throw retryErr
           return fail(ctx, 'cw_unprocessable')
@@ -327,6 +329,31 @@ async function createContact(ctx: Ctx, body: Record<string, unknown>): Promise<L
   return created
 }
 
+function sentText(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined
+}
+
+/**
+ * HOOK-04 origin tag: a copy of the request body whose custom_attributes also carry site_sync_fp, the
+ * fingerprint of the contact's name, email, phone and identifier AFTER this very write (the value the
+ * body sends where it sends one, else what the contact has now). The receiver and the hook.chat_contact
+ * handler recompute it from the contact_updated payload; equal means "the site wrote this", so the
+ * event is dropped. Chatwoot merges custom_attributes shallowly, so nothing else is touched. Only ever
+ * added to a write that happens anyway (never a write of its own).
+ */
+function stamped(body: Record<string, unknown>, live: LiveContact | null): Record<string, unknown> {
+  const sent: { name?: string; email?: string; phone_number?: string; identifier?: string } = {}
+  for (const key of ['name', 'email', 'phone_number', 'identifier'] as const) {
+    const value = sentText(body[key])
+    if (value !== undefined) sent[key] = value
+  }
+  const own = (typeof body.custom_attributes === 'object' && body.custom_attributes !== null ? body.custom_attributes : {}) as Record<string, unknown>
+  return {
+    ...body,
+    custom_attributes: { ...own, [SITE_SYNC_FP_ATTRIBUTE]: postWriteFingerprint(live, sent) },
+  }
+}
+
 function currentValue(contact: LiveContact, key: string): string {
   const v = contact.attributes[key]
   if (v === null || v === undefined) return ''
@@ -356,11 +383,13 @@ async function updateContact(
     if (currentValue(contact, key) !== attributes[key]) changed[key] = attributes[key]
   }
   if (Object.keys(changed).length > 0) body.custom_attributes = changed
+  // Nothing differs -> no request. The origin tag is never a reason to write on its own (HOOK-04).
   if (Object.keys(body).length === 0) return null
 
   for (;;) {
     try {
-      await ctx.client.put(`/contacts/${contact.id}`, body)
+      // Re-stamped on every attempt: a phone dropped by the 422 ladder changes the post-write state.
+      await ctx.client.put(`/contacts/${contact.id}`, stamped(body, contact))
       return null
     } catch (err) {
       if (!is422(err)) throw err
