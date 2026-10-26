@@ -106,6 +106,11 @@ function makeIdentity(
     emailOwners: vi.fn(async () => new Map<string, string>()),
     setEspoContact: vi.fn(async () => true),
     setChatwootContact: vi.fn(async () => true),
+    chatLookup: vi.fn(async () => null),
+    byChatwootContact: vi.fn(async () => []),
+    resolveChat: vi.fn(async () => { throw new Error('not used by sync-resolve') }),
+    attachChatContact: vi.fn(async () => { throw new Error('not used by sync-resolve') }),
+    phoneUsable: vi.fn(async () => null),
     async enqueueSync(input) {
       if (opts.enqueueError) throw new OutboxStoreError('db_error')
       enqueued.push(input)
