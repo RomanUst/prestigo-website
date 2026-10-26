@@ -3,12 +3,15 @@ import { NextResponse } from 'next/server'
 import { publishOutboxDispatch } from '@/lib/outbox'
 import { outboxHealth } from '@/lib/outbox-admin-store'
 import { sendOutboxDigest } from '@/lib/outbox-digest'
+import { createWebhookStore } from '@/lib/webhook-store'
 import { dueKeys, enqueueAbandonedPurge, enqueueExpiredUnpaid, recentFailedCount } from '@/lib/outbox-store'
 
 // Daily outbox sweep (Phase 81, plan 81-10). Three independent steps:
 //   1. D-03   unpaid bookings past pickup   -> enqueue 'lead.booking:<id>:dead'
 //   2. D-15/20 abandoned online checkouts    -> enqueue 'lead.purge:<id>' (90 days past pickup)
 //   2b. D-11  owner digest email when sync events failed or are stuck (isolated: never blocks 3)
+//   2c. D-19  webhook_deliveries retention (Phase 83): Chatwoot rows 7 days, CRM-side rows 30 days
+//       (isolated: a purge problem never stops the steps after it)
 //   3. safety net: re-publish every due or lease-expired row (success criterion 7)
 //   4. WR-02: count rows that turned `failed` since the last run (terminal, never re-published)
 // Deliberately imports no CRM code: the CRM is only ever called from the QStash-signed
@@ -20,6 +23,8 @@ const DUE_LIMIT = 200
 const PUBLISH_BATCH = 10
 // The sweep runs daily; a 25 h window overlaps runs so no failure falls between two reports.
 const FAILED_WINDOW_HOURS = 25
+// D-19: Chatwoot replays older than the 300 s window are stale anyway; CRM-side content-hash dedup rows live 30 days.
+const WEBHOOK_RETENTION = { chatwootDays: 7, espoDays: 30 } as const
 
 function yyyymmddUtc(d: Date): string {
   return d.toISOString().slice(0, 10).replace(/-/g, '')
@@ -50,6 +55,7 @@ export async function GET(request: Request) {
 
   const expired = await step('expired_failed', errors, () => enqueueExpiredUnpaid())
   const purge = await step('purge_failed', errors, () => enqueueAbandonedPurge())
+  const webhookPurged = await step('webhook_purge_failed', errors, () => createWebhookStore().purge({ ...WEBHOOK_RETENTION }))
   // D-11: one email to the owner, only when something failed or is stuck. Runs before the re-publish
   // so the counts describe last night's state; isolated so a digest problem never stops the safety net.
   const digest = await step('digest_failed', errors, async () => sendOutboxDigest(await outboxHealth()))
@@ -76,6 +82,7 @@ export async function GET(request: Request) {
     ok: true,
     expired,
     purge,
+    webhook_purged: webhookPurged,
     digest,
     due: keys ? keys.length : null,
     published,
