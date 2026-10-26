@@ -104,6 +104,20 @@ channels (Phases 78/79, backlog).
   `customer_profiles` or `auth.users` — enforced structurally (receivers/handlers cannot import booking/profile
   write helpers; guard test like the Phase 76 isolation guard).
 
+### Planning-time decisions (2026-10-26, after 83-RESEARCH.md open questions)
+- **D-18:** D-07 header filter replaced: Chatwoot drops `Precedence`/`List-Unsubscribe`, so spam skip = Chatwoot
+  `auto_reply` flag + no-reply sender pattern + own-domain sender pattern + manual `no-lead` label. Record the
+  deviation from D-07 in the plan and the runbook.
+- **D-19:** EspoCRM webhooks carry no timestamp/delivery id; HOOK-03's replay window is "N/A by protocol,
+  compensated" for EspoCRM: HMAC `Signature` + per-item content-hash dedup (30 days) + handlers re-read current
+  state + narrow event surface + `skipOwn`. Chatwoot keeps the real timestamp window + `X-Chatwoot-Delivery` dedup.
+- **D-20:** Duplicate guard vs Phase 81 Leads: skip own-domain senders; if the email already has an open non-chat
+  Lead created in the last 7 days, append the conversation reference to that Lead instead of creating a chat Lead
+  (deliberate deviation from D-02's "chat Lead only" wording). Also subscribe `conversation_updated` (needed for
+  the `no-lead` label), filtered in the receiver.
+- **D-21:** No reconcile job in Phase 83: Chatwoot account webhooks are at-most-once; document the limitation and
+  manual recovery in the runbook and add a backlog item for a reconcile job.
+
 ### Claude's Discretion
 - Exact header names, HMAC scheme per system (Chatwoot v4.18.0-ce signature support must be confirmed against the
   pinned version; EspoCRM 10.0.8 `X-Signature`), replay window length, dedup storage and its retention.
