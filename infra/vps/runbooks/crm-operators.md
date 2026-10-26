@@ -72,6 +72,7 @@ changes in the file, the test fails until this table is updated.
 | Email | no access | create yes, read own, edit own, delete own | - |
 | EmailAccountScope | no access | yes | - |
 | User | - | - | read all |
+| Webhook | - | - | yes |
 
 Reading the table: `no access` means the scope is switched off for the role; `-` means the role file does not
 mention the scope (the live CRM then answers 403 for the Sync writer; `verify-acl.mjs` proves it). `CBooking` is the
