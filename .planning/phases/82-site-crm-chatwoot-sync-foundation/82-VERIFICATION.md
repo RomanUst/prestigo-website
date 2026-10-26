@@ -1,48 +1,99 @@
 ---
 phase: 82-site-crm-chatwoot-sync-foundation
-verified: 2026-10-21T01:40:00Z
-status: human_needed
+verified: 2026-10-26T10:40:00Z
+status: passed
 score: 5/5 must-haves verified
 covered_files:
-  - content/pages/en/privacy.json
-  - lib/chatwoot-sync.ts
-  - lib/crm-sync.ts
-  - lib/erasure.ts
-  - lib/identity-store.ts
-  - lib/lead-sync.ts
-  - lib/outbox.ts
-  - lib/sync-resolve.ts
-  - supabase/migrations/069_identity_core_sync_triggers.sql
-  - supabase/migrations/070_outbox_admin.sql
-  - supabase/migrations/072_identity_phone_rules.sql
-  - supabase/migrations/073_identity_admin.sql
-  - supabase/migrations/074_crm_backfill.sql
-  - supabase/migrations/075_erasure.sql
-covered_digest: "v2:sha256:50424bf28437f307ae67f1de977faa166f3fc504698f25e43f31cf7cbfb5c312"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-01-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-01-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-02-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-02-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-03-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-03-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-04-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-04-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-05-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-05-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-06-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-06-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-07-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-07-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-08-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-08-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-09-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-09-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-10-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-10-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-11-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-11-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-12-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-12-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-13-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-13-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-14-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-14-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-15-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-15-SUMMARY.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-16-PLAN.md"
+  - ".planning/phases/82-site-crm-chatwoot-sync-foundation/82-16-SUMMARY.md"
+  - "app/(internal)/admin/(dashboard)/erasure/page.tsx"
+  - "app/(internal)/admin/(dashboard)/identities/page.tsx"
+  - "app/(internal)/admin/(dashboard)/outbox/page.tsx"
+  - "app/api/admin/erasure/confirm/route.ts"
+  - "app/api/admin/erasure/route.ts"
+  - "app/api/admin/identities/route.ts"
+  - "app/api/admin/outbox/route.ts"
+  - "app/api/integrations/dispatch/route.ts"
+  - "content/pages/en/data-deletion.json"
+  - "content/pages/en/privacy.json"
+  - "infra/vps/runbooks/crm-sync.md"
+  - "lib/chatwoot-client.ts"
+  - "lib/chatwoot-identity.ts"
+  - "lib/chatwoot-sync.ts"
+  - "lib/crm-sync.ts"
+  - "lib/erasure-hash.ts"
+  - "lib/erasure-store.ts"
+  - "lib/erasure.ts"
+  - "lib/identity-admin-store.ts"
+  - "lib/identity-store.ts"
+  - "lib/lead-sync.ts"
+  - "lib/outbox-admin-store.ts"
+  - "lib/outbox-digest.ts"
+  - "lib/outbox.ts"
+  - "lib/sync-resolve.ts"
+  - "supabase/migrations/069_identity_core_sync_triggers.sql"
+  - "supabase/migrations/070_outbox_admin.sql"
+  - "supabase/migrations/072_identity_phone_rules.sql"
+  - "supabase/migrations/073_identity_admin.sql"
+  - "supabase/migrations/074_crm_backfill.sql"
+  - "supabase/migrations/075_erasure.sql"
+covered_digest: "v2:sha256:82d1e226729e025383db62cdfced85d836d29d9d323d504fe27f2f9dcd2b2d9c"
 behavior_unverified: 0
 overrides_applied: 0
-re_verification: false
-human_verification:
-  - test: "Open /admin/outbox at 375 px (logged in as admin)"
-    expected: "Health KPIs, filter chips and the open-events table fit without horizontal page scroll; Retry and Retry all buttons are reachable and queue a retry"
-    why_human: "Responsive layout and interaction feel cannot be verified by grep or unit tests"
-  - test: "Open /admin/identities at 375 px"
-    expected: "Phone-merge list, shared-number list, Split and Mark-shared forms are usable and unclipped"
-    why_human: "Visual and responsive check; split/mark-shared forms were not driven in a browser"
-  - test: "Open /admin/erasure at 375 px (search, preview, confirm, audit log)"
-    expected: "Preview counts, confirm step and audit table render without clipping; no horizontal scroll"
-    why_human: "Visual and responsive check; the live erasure was run, but the UI was not reviewed at phone width"
-  - test: "Open /ar/privacy and /ar/data-deletion at 375 px"
-    expected: "New Chatwoot/EspoCRM/Hostinger/Backblaze rows, retention table and changed paragraphs read right-to-left with no clipping or horizontal scroll"
-    why_human: "RTL layout is a visual property; 7-locale content is covered by tests, rendering is not"
+re_verification:
+  previous_status: human_needed
+  previous_score: 5/5
+  gaps_closed:
+    - "Human verification: /admin/outbox at 375 px (UAT test 1 pass after PR #74, G-82-1 resolved)"
+    - "Human verification: /admin/identities at 375 px (UAT test 2 pass after PR #74, G-82-2 resolved)"
+    - "Human verification: /admin/erasure at 375 px (UAT test 3 pass after PR #74, G-82-3 resolved)"
+    - "Human verification: /ar/privacy and /ar/data-deletion at 375 px (UAT test 4 pass)"
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 82: Site to CRM and Chatwoot Sync Foundation Verification Report
 
 **Phase Goal:** Extending the Phase 81 outbox, every booking and customer event on the site reaches EspoCRM and Chatwoot reliably, contacts stay de-duplicated across all three systems, a one-time backfill closes the historical gap, an admin page exposes outbox health, and a single erasure request reaches every system.
-**Verified:** 2026-10-21
-**Status:** human_needed (all code-level and recorded-live must-haves verified; only the browser UAT at 375 px is outstanding)
-**Re-verification:** No, initial verification
+**Verified:** 2026-10-26
+**Status:** passed
+**Re-verification:** Yes. This follows the 2026-10-21 report (human_needed, 5/5). The 4 human items were closed by UAT on 2026-10-25 after PR #74.
+
+## Re-verification Scope
+
+- The earlier report listed no `gaps:`. Its only open items were the 4 human-verification checks at 375 px. All 5 truths got a regression check here: the files exist, the wiring is intact, the phase-scoped tests were re-run, and the old source digest was recomputed.
+- **Source regression:** I recomputed the digest over the original 14 covered source files. It matches the earlier report (`v2:sha256:50424bf2...c312`). `git diff 963e967e HEAD -- lib app components supabase content tests` is empty. Since the last verification, only `82-UAT.md` has changed on this branch.
+- **Why it was stale:** the earlier `covered_files` left out the phase PLAN/SUMMARY files. This report adds all 32 PLAN/SUMMARY files, plus the phase's stores, admin pages, admin APIs, the dispatch route, the EN data-deletion content and the runbook.
 
 ## Goal Achievement
 
@@ -50,85 +101,90 @@ human_verification:
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | Booking create/payment/status/admin edit and signup reach EspoCRM (Contact + Booking) and the Chatwoot contact within minutes via outbox + QStash, with retries and no duplicates | VERIFIED | Trigger `bookings_crm_sync` (069:685) fires AFTER INSERT/UPDATE OF status, amounts, payment_intent_id, payment_link_id, client_*, pickup/address fields, flight_number, driver_id, etc. (covers create, payment, status change, admin edit); `customer_profiles_crm_sync` (069:698) covers signup. Both gated by `crm_sync_start`. `lib/lead-sync.ts` `handleClaimed` routes `sync.booking`/`sync.signup` to resolver hop, `sync.espo` to `deliverEspoSync` (lib/crm-sync.ts 484 lines), `sync.chatwoot` to `deliverChatwootSync` (lib/chatwoot-sync.ts 372 lines), each with `handleFailure` retry/backoff. Deliveries are convergent upserts rebuilt from current rows, with unique idempotency keys. Live (82-14 SUMMARY): smoke booking reached Espo Contact + CBooking and Chatwoot within ~2 min, all attempts=1; status change to cancelled converged. 82-15: outage drill, Espo down gave `crm_502`, retried on restore, CBooking count exactly 1 and change arrived; Chatwoot independent. |
-| 2 | Contacts de-duplicated by normalized email OR E.164 phone; shared phones flagged and excluded from auto-merge; admin can split a wrong merge | VERIFIED | Migration 069/072: `identity_normalize_email`, `identity_normalize_phone` (E.164), `identity_resolve_core` under a global advisory lock; `phone_flags` shared numbers are never used for matching (072:166-169), a colliding phone is auto-flagged shared and not merged (072:204-205), a phone merge flags the number shared (072:283). `identity_split` (073:58) with `identity_admin_log` audit; `identity_mark_shared`, `identity_phone_merges`, `identity_shared_phones`; API `app/api/admin/identities/{route,split,shared}`; page `/admin/identities`. Chatwoot/Espo dedup via `lib/chatwoot-identity.ts` and find-or-create with cached ids. Live: 43 identities, every one has espo_contact_id and chatwoot_contact_id; backfill audit duplicates=0. Caveat: live data had 0 phone merges and 0 shared numbers, so phone-merge and split paths are exercised only by tests (identity.test.ts, identity-admin.test.ts, migration tests, rolled-back smoke SQL), not by production data. |
-| 3 | One-time backfill imports every past customer and booking into EspoCRM and Chatwoot | VERIFIED | Migration 074 `crm_backfill_identity_pass`, `crm_identity_report`, `crm_backfill_enqueue(tag, stagger)`; replays live handlers via the outbox. Live (82-15): enqueue n=90 (71 bookings + 19 profiles); all delivered, 0 errors, 0 open rows afterwards. CBooking 57 to 71 (= non-abandoned bookings), Contact 30 to 45, Chatwoot 66 to 98; `backfill.mjs --audit` duplicates=0. Noted gaps are by design: 2 GNet placeholder bookings have no Contact; 17 bookings with unparseable phone are matched by email only. |
-| 4 | Admin sees outbox health on a dedicated page and can retry a failed event | VERIFIED | Migration 070 `outbox_health`, `outbox_open_events`, `outbox_retry`, `outbox_retry_failed` (service_role only). API `app/api/admin/outbox` (GET) plus `retry` and `retry-all`, all behind `getAdminUser()`. Page `app/(internal)/admin/(dashboard)/outbox/page.tsx` (333 lines, KPI cards, HealthBanner, OutboxTable, retry handlers); linked in AdminSidebar (Outbox, Identities, Erasure). Owner digest wired into the daily sweep (`lib/outbox-digest.ts`). Live: `/api/admin/outbox` answers 401 unauthenticated. Tests outbox-admin, outbox-admin-page, outbox-digest pass. |
-| 5 | Single erasure request removes/anonymises the person in Supabase, Chatwoot, EspoCRM via the outbox with audit; privacy policy (all locales) names Chatwoot/EspoCRM, VPS host/region, channels, retention, chat widget | VERIFIED | Migration 075: `erasure_requests` (audit table, HMAC email hash, one active request per identity/person, RLS deny-all), `erasure_scope/preview_create/confirm/load/record_step/anonymise_person/complete/log`. `lib/erasure.ts` (509 lines) saga reached from `lead-sync.ts` for `erase.person`; steps chatwoot, espocrm, verify, supabase, auth. UI: `/admin/erasure` with preview then confirm and audit table; API `app/api/admin/erasure/{route,preview,confirm}`. Live (82-15): request completed, verified=true in 29 s; Chatwoot contact_found=false, Espo Contact 0 and Lead 0, booking anonymised (reference and amounts kept), identity_emails 0. Privacy: all 7 locale files name Chatwoot and EspoCRM (5 mentions each), Hostinger Germany (EU), Backblaze US backups, website chat/email/Telegram/WhatsApp channels, retention table (10 years bookings, messages until erasure, backups up to 6 months); `tests/privacy-content.test.ts` and `tests/data-deletion-content.test.ts` pass for 7 locales; data-deletion page aligned (82-16). |
+| 1 | Booking create/payment/status/admin edit and signup reach EspoCRM (Contact + Booking) and the Chatwoot contact within minutes via outbox + QStash, with retries and no duplicates | VERIFIED | The triggers `bookings_crm_sync` (069:685) and `customer_profiles_crm_sync` (069:698) are still in place. `lib/lead-sync.ts` dispatches `sync.booking`/`sync.signup` (l.142), `sync.espo` (l.150), `sync.chatwoot` (l.160) and `erase.person` (l.171). The sizes of `lib/crm-sync.ts` (484 lines) and `lib/chatwoot-sync.ts` (372) have not changed. `tests/lead-sync-booking`, `crm-sync`, `chatwoot-sync`, `outbox-backoff`, `integrations-dispatch` pass. Live go-live smoke and the outage drill are recorded in 82-14/82-15 (as before). |
+| 2 | Contacts de-duplicated by normalized email OR E.164 phone; shared phones flagged and excluded from auto-merge; admin can split a wrong merge | VERIFIED | Migrations 069/072/073 are unchanged (digest matches). `app/api/admin/identities/{route,split,shared}` and the `/admin/identities` page (329 lines) are present. `identity`, `identity-store`, `identity-admin`, `identity-admin-migration`, `sync-resolve`, `chatwoot-identity` tests pass. UAT test 2 confirmed on prod that the Mark-shared modal is usable at 375 px. |
+| 3 | One-time backfill imports every past customer and booking into EspoCRM and Chatwoot | VERIFIED | Migration 074 is unchanged. `tests/crm-backfill.test.ts` passes. The live backfill (n=90, 0 errors, duplicates=0) is recorded in 82-15. |
+| 4 | Admin sees outbox health on a dedicated page and can retry a failed event | VERIFIED | Migration 070 is unchanged. `app/api/admin/outbox/{route,retry,retry-all}` are behind `getAdminUser()` (18 guard references across the outbox, identities and erasure admin routes). The page (333 lines) is linked from `AdminSidebar` (l.18-20). `vercel.json` holds the `/api/cron/outbox-sweep` cron. `outbox-admin`, `outbox-admin-page`, `outbox-digest`, `outbox-sweep` tests pass. UAT test 1 passed on prod at 375 px. |
+| 5 | Single erasure request removes/anonymises the person in Supabase, Chatwoot, EspoCRM via the outbox with audit; privacy policy (all locales) names Chatwoot/EspoCRM, VPS host/region, channels, retention, chat widget | VERIFIED | Migration 075 and `lib/erasure.ts` (509 lines) are unchanged. `app/api/admin/erasure/{route,preview,confirm}` and the page (181 lines) are present. All 7 `content/pages/*/privacy.json` files mention Chatwoot. `erasure`, `erasure-migration`, `erasure-page`, `admin-erasure`, `privacy-content`, `data-deletion-content` tests pass. The live erasure smoke is recorded in 82-15. UAT tests 3 and 4 passed (erasure page at 375 px; /ar/privacy and /ar/data-deletion RTL, scrollWidth = clientWidth). |
 
 **Score:** 5/5 truths verified (0 present-but-behavior-unverified)
 
-### Required Artifacts
+### Human UAT (82-UAT.md, status complete, 2026-10-25)
+
+| # | Item | Result | Notes |
+|---|------|--------|-------|
+| 1 | /admin/outbox at 375 px | pass | Before the fix, the mobile menu button covered the h1 (G-82-1, cosmetic). PR #74 fixed `layout.tsx` to use padding longhands so `pt-16` applies. Re-test on prod: h1 at 65 px, scrollWidth 375. |
+| 2 | /admin/identities at 375 px | pass | The Mark-shared modal overflowed the screen (G-82-2, major). PR #74 fixed `components/admin/Modal.tsx`: `minWidth: min(480px, 100%)`, overlay padding 16px, `maxHeight` plus `overflowY: auto`. Re-test: panel at 16..359 px. |
+| 3 | /admin/erasure at 375 px | pass | G-82-3 had the same root cause and is fixed by the same shared Modal change. The confirm modal was not opened on prod because a preview would write a request for a real person. |
+| 4 | /ar/privacy, /ar/data-deletion at 375 px | pass | RTL, no overflow. |
+
+I inspected PR #74 with `git diff 4647b43b~1 4647b43b`. It changes only `components/admin/Modal.tsx` (+7/-1) and `app/(internal)/admin/(dashboard)/layout.tsx` (+5/-1), and the diff matches the fixes described in the UAT. PR #74 is on `origin/main`. It is not in the local branch `docs/82-14-go-live`, so these two files are left out of `covered_files`: their local copies are the pre-fix versions, and the digest would go stale as soon as main is merged. Both files were shared admin components before Phase 82; the fix is a layout fix, not phase-82 sync logic.
+
+### Required Artifacts (regression check)
 
 | Artifact | Status | Details |
 |----------|--------|---------|
-| supabase/migrations/069-075 | VERIFIED | All present; live application recorded as SMOKE_OK in SUMMARY files; REVOKE PUBLIC/anon/authenticated + GRANT service_role on every SECURITY DEFINER function |
-| lib/sync-resolve.ts, identity-store.ts, identity-admin-store.ts, outbox-admin-store.ts, erasure-store.ts, erasure-hash.ts | VERIFIED | Substantive, wired from dispatcher and admin routes |
-| lib/crm-sync.ts, chatwoot-sync.ts, chatwoot-client.ts, erasure.ts | VERIFIED | Substantive and dispatched in `lib/lead-sync.ts` |
-| app/api/admin/{outbox,identities,erasure}/** | VERIFIED | Admin-auth guarded |
-| app/(internal)/admin/(dashboard)/{outbox,identities,erasure}/page.tsx + sidebar links | VERIFIED | Present, wired to the APIs |
-| content/pages/{7 locales}/privacy.json, data-deletion.json | VERIFIED | Content tests green |
-| infra/vps/runbooks/crm-sync.md + tests/crm-sync-runbook.test.ts | VERIFIED | Guard test passes |
+| supabase/migrations/069, 070, 072-075 | VERIFIED | Present. The digest over the original covered set is unchanged. |
+| lib/sync-resolve, identity-store, identity-admin-store, outbox-admin-store, erasure-store, erasure-hash, crm-sync, chatwoot-sync, chatwoot-client, chatwoot-identity, erasure, outbox-digest, lead-sync | VERIFIED | Present and substantive (34-509 lines); wired from the dispatcher and admin routes. |
+| app/api/admin/{outbox,identities,erasure}/** | VERIFIED | Present; admin-auth guarded. |
+| app/(internal)/admin/(dashboard)/{outbox,identities,erasure}/page.tsx | VERIFIED | Present; linked from the sidebar. |
+| content/pages/{7 locales}/privacy.json, data-deletion.json | VERIFIED | Content tests pass for 7 locales. |
+| infra/vps/runbooks/crm-sync.md | VERIFIED | 139 lines; `crm-sync-runbook.test.ts` passes. |
 
 ### Key Link Verification
 
 | From | To | Status | Details |
 |------|----|--------|---------|
-| bookings / customer_profiles triggers | integration_outbox + outbox_kick | WIRED | `enqueue_booking_sync`, `enqueue_profile_sync`; kick route allow-set includes sync.* |
-| Dispatch route (QStash-signed) | `dispatchOutboxKey` to resolver / Espo / Chatwoot / erasure handlers | WIRED | `app/api/integrations/dispatch/route.ts`, `lib/lead-sync.ts` |
-| Resolver hop | fan-out `sync.espo` / `sync.chatwoot` rows | WIRED | Live smoke shows fan-out plus refresh rows |
-| Admin pages | admin APIs | WIRED | fetch handlers in page components |
-| Erasure confirm | `erase.person` outbox row | WIRED | Live: row sent attempts=1 |
-| Daily cron `/api/cron/outbox-sweep` | sweep + digest | WIRED | vercel.json |
+| bookings / customer_profiles triggers | integration_outbox | WIRED | 069:685, 069:698 |
+| `app/api/integrations/dispatch/route.ts` | `lib/lead-sync.ts` handlers | WIRED | Event routing at l.142-171; `integrations-dispatch.test.ts` passes |
+| Admin pages | admin APIs | WIRED | Unchanged since the earlier report; page tests pass |
+| Erasure confirm | `erase.person` outbox row | WIRED | `lead-sync.ts` l.171; live run recorded |
+| Cron `/api/cron/outbox-sweep` | sweep + digest | WIRED | `vercel.json` l.18 |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 |----------|---------|--------|--------|
-| Phase-82 test scope (29 files: identity, sync, chatwoot, erasure, outbox admin, backfill, dispatcher, migrations, privacy, runbook) | `npx vitest run <29 phase-82 files>` | 29 files, 937 tests passed | PASS |
-| Full suite (orchestrator report) | `npx vitest run` | 6295 passed | PASS (reported, not re-run) |
+| Phase-82 test scope (29 files) | `npx vitest run tests/{admin-erasure,chatwoot-*,crm-*,data-deletion-content,erasure*,identity*,integrations-dispatch,lead-sync*,outbox*,privacy-content,sync-resolve}...` | 29 files passed, 942 tests passed (15 s) | PASS |
+| Source regression | `verification.fingerprint` over the earlier 14-file set | `v2:sha256:50424bf2...c312`, same as the earlier report | PASS |
 
 ### Probe Execution
 
-No phase-declared `probe-*.sh` scripts. SKIPPED.
+The phase declares no `probe-*.sh` scripts. SKIPPED.
 
 ### Requirements Coverage
 
 | Requirement | Source Plans | Status | Evidence |
 |-------------|--------------|--------|----------|
 | SYNC-01 | 82-01, 82-03, 82-07, 82-10, 82-14, 82-15 | SATISFIED | Truth 1 |
-| SYNC-02 | 82-01, 82-07, 82-10, 82-14 | SATISFIED | Profile trigger and signup resolver `identity_resolve_user`; 19 profiles linked live; `sync.signup` rows sent in backfill |
+| SYNC-02 | 82-01, 82-07, 82-10, 82-14 | SATISFIED | Profile trigger plus signup resolver (Truth 1) |
 | SYNC-03 | 82-01, 82-05, 82-07, 82-08, 82-09, 82-10, 82-11, 82-14, 82-15 | SATISFIED | Truth 2 |
 | SYNC-04 | 82-09, 82-15 | SATISFIED | Truth 3 |
 | SYNC-05 | 82-02, 82-06, 82-15 | SATISFIED | Truth 4 |
 | GDPR-01 | 82-12, 82-13, 82-15 | SATISFIED | Truth 5 |
-| GDPR-02 | 82-04, 82-14, 82-16 | SATISFIED | Truth 5 (privacy and data-deletion in 7 locales) |
+| GDPR-02 | 82-04, 82-14, 82-16 | SATISFIED | Truth 5 |
 
-All 7 phase requirement IDs appear in plan frontmatter and map to REQUIREMENTS.md. No orphaned requirements. Note: the REQUIREMENTS.md checkboxes and traceability table still read "Pending" for these 7 IDs; update to Complete during phase transition.
+No orphaned requirements. The REQUIREMENTS.md checkboxes and traceability table should be set to Complete at phase transition.
 
 ### Anti-Patterns Found
 
-No TBD/FIXME/XXX markers in phase-82 library, API, component or migration files. No stubs found (all artifacts substantive and wired). No blockers.
+No TBD/FIXME/XXX markers in the phase-82 lib, migration or admin page files. No stubs. No blockers.
 
 ### Advisories (non-blocking)
 
-- Live phone-merge, shared-number and split paths had no production data (0/0/0); covered by unit tests, migration tests and rolled-back smoke SQL only. Consider a one-off admin exercise of Split and Mark-shared in the browser UAT.
-- 82-14 SUMMARY security note: a string resembling a token was typed at a shell prompt during the env script run; owner advised to rotate if it was a real secret and clear shell history. Confirm done.
-- The anonymised CBooking for the smoke booking remains in EspoCRM by design (accounting); owner may delete by hand.
-- Privacy policy states backups are stored with Backblaze in the US (owner choice, Phase 76); covered under EU-US DPF wording.
+- Deferred follow-up from the UAT: the MarkSharedForm modal does not return focus to its trigger on close, because the mount-effect autofocus runs before Modal records `document.activeElement`. Fix: defer the autofocus with `setTimeout(..., 0)`, as ErasureConfirmForm does.
+- PR #74 is not yet merged into `docs/82-14-go-live`. Merge `origin/main` before shipping this branch so the local Modal/layout match prod.
+- Advisories carried from the earlier report still apply. Phone-merge and split paths have been exercised only by tests, because prod has 0 merges. Confirm that the 82-14 shell-history token was rotated. The anonymised smoke CBooking was kept in EspoCRM on purpose.
 
 ### Human Verification Required
 
-1. **/admin/outbox at 375 px** - Expected: no horizontal scroll, KPI/chips/table usable, Retry and Retry all reachable. Why human: responsive layout.
-2. **/admin/identities at 375 px** - Expected: merge/shared lists and Split / Mark-shared forms usable. Why human: responsive layout and unexercised forms.
-3. **/admin/erasure at 375 px** - Expected: preview, confirm and audit table fit. Why human: responsive layout.
-4. **/ar/privacy and /ar/data-deletion at 375 px** - Expected: RTL rendering without clipping. Why human: visual RTL check.
+None. All 4 items from the earlier report passed UAT on 2026-10-25.
 
 ### Gaps Summary
 
-No gaps. All five ROADMAP success criteria and all seven requirement IDs are supported by code in the repository (migrations 069-075, dispatcher wiring, admin APIs and pages, 7-locale content), by 937 passing phase-scoped tests, and by recorded live evidence (go-live smoke, backfill counts, outage drill, erasure smoke). Status is human_needed solely because the browser UAT at 375 px has not been run.
+No gaps. All 5 ROADMAP success criteria and all 7 requirement IDs still check out against the code: the phase-82 sources are unchanged and 942 phase-scoped tests pass. The live evidence recorded in 82-14/82-15 still applies. The human UAT is complete (4/4 pass), and its 3 layout issues were fixed in PR #74 and re-tested on prod.
 
 ---
 
-_Verified: 2026-10-21_
+_Verified: 2026-10-26_
 _Verifier: Claude (gsd-verifier)_
