@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { hookConversationKey } from '@/lib/sync-origin'
+import { hookConversationKey, hookContactKey, isSiteEcho } from '@/lib/sync-origin'
 
 // Pure classification of a verified Chatwoot account-webhook payload into what the receiver does
 // with it (Phase 83). No I/O, no env access. The payload is only a hint: the outbox row carries
 // ids, and the dispatcher re-reads Chatwoot when it runs the handler (RESEARCH Pattern 2).
 //
-// This plan handles message_created (D-03 tracer). Plan 83-16 adds conversation_status_changed,
-// conversation_updated and contact_updated (D-10, D-12, D-20) and the site-echo drop.
+// Four subscribed events: message_created (D-03), conversation_status_changed (D-10),
+// conversation_updated (D-20) and contact_updated (D-12, with the HOOK-04 site-echo drop).
 
 export interface ChatwootIngestPlan {
   eventType: 'hook.chat_intake' | 'hook.chat_resolve' | 'hook.chat_label' | 'hook.chat_contact'
@@ -49,6 +49,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/** Contact deliveries per entity in 10 minutes before webhook_ingest answers fused. */
+const CONTACT_FUSE_LIMIT = 20
+
 const displayId = z.number().int().positive().max(2_000_000_000)
 
 const messageCreatedSchema = z.object({
@@ -60,6 +63,37 @@ const messageCreatedSchema = z.object({
 })
 
 const eventShape = z.object({ event: z.string().min(1).max(64) })
+
+const contactUpdatedSchema = z.object({
+  event: z.literal('contact_updated'),
+  id: displayId,
+  name: z.string().nullish(),
+  email: z.string().nullish(),
+  phone_number: z.string().nullish(),
+  identifier: z.string().nullish(),
+  custom_attributes: z.record(z.string(), z.unknown()).nullish(),
+})
+
+/** Contact changes the site cares about (D-12); everything else (activity stamps, ...) is noise. */
+const RELEVANT_CONTACT_CHANGES: readonly string[] = ['email', 'phone_number']
+
+/**
+ * changed_attributes is an array of single-key objects or one object depending on the Chatwoot
+ * build. An unreadable shape counts as relevant: the handler converges on current state anyway.
+ */
+function contactChangeRelevant(changed: unknown): boolean {
+  let names: string[]
+  if (Array.isArray(changed)) {
+    names = changed.flatMap((entry) => (isRecord(entry) ? Object.keys(entry) : []))
+    if (names.length === 0 && changed.length > 0) return true
+  } else if (isRecord(changed)) {
+    names = Object.keys(changed)
+  } else {
+    return true
+  }
+  if (names.length === 0) return true
+  return names.some((n) => RELEVANT_CONTACT_CHANGES.includes(n))
+}
 
 function invalid(json: unknown): ChatwootClassification {
   return { kind: 'invalid', keys: isRecord(json) ? Object.keys(json).slice(0, 20) : [] }
@@ -91,6 +125,32 @@ export function classifyChatwootEvent(json: unknown, ctx: ClassifyContext): Chat
         entityKey: `cw:conv:${conversation.id}`,
         fuseLimit: null,
         availableAt: new Date(ctx.nowMs),
+      },
+    }
+  }
+
+  if (event === 'contact_updated') {
+    const parsed = contactUpdatedSchema.safeParse(json)
+    if (!parsed.success) return invalid(json)
+    const contact = parsed.data
+    // HOOK-04 receiver layer: the site's own write carries a fingerprint that still matches.
+    if (isSiteEcho(contact)) return { kind: 'echo' }
+    if (!contactChangeRelevant((json as { changed_attributes?: unknown }).changed_attributes)) {
+      return { kind: 'ignore', reason: 'irrelevant_change' }
+    }
+
+    const { key, aggregateId, availableAt } = hookContactKey(contact.id, ctx.nowMs)
+    return {
+      kind: 'ingest',
+      plan: {
+        eventType: 'hook.chat_contact',
+        aggregateType: 'chat_contact',
+        aggregateId,
+        key,
+        entityKey: `cw:contact:${contact.id}`,
+        // Contact events are the only loop-prone ones; message/conversation events carry no limit.
+        fuseLimit: CONTACT_FUSE_LIMIT,
+        availableAt,
       },
     }
   }

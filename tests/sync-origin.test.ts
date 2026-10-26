@@ -70,7 +70,18 @@ describe('contactFingerprint / isSiteEcho', () => {
     expect(contactFingerprint({ ...contact, name: 'ada lovelace', email: 'ada@example.com' })).toBe(fp)
   })
 
+  it('treats null, undefined and an empty string alike', () => {
+    const base = { name: 'Ada', email: 'ada@example.com' }
+    const fp = contactFingerprint({ ...base, phone_number: null, identifier: null })
+    expect(contactFingerprint({ ...base, phone_number: undefined, identifier: '' })).toBe(fp)
+    expect(contactFingerprint({ ...base, phone_number: '', identifier: undefined })).toBe(fp)
+    expect(contactFingerprint(base)).toBe(fp)
+    expect(contactFingerprint({ ...base, phone_number: '   ' })).toBe(fp)
+  })
+
   it('changes when any of the four fields changes', () => {
+    expect(contactFingerprint({ ...contact, name: 'Someone Else' })).not.toBe(contactFingerprint(contact))
+    expect(contactFingerprint({ ...contact, email: 'else@example.com' })).not.toBe(contactFingerprint(contact))
     const fp = contactFingerprint(contact)
     expect(contactFingerprint({ ...contact, phone_number: '+420999999999' })).not.toBe(fp)
     expect(contactFingerprint({ ...contact, identifier: 'x' })).not.toBe(fp)
@@ -88,5 +99,13 @@ describe('contactFingerprint / isSiteEcho', () => {
     expect(isSiteEcho({ ...contact, custom_attributes: { [SITE_SYNC_FP_ATTRIBUTE]: 42 } })).toBe(false)
     expect(isSiteEcho({ ...contact, custom_attributes: null })).toBe(false)
     expect(isSiteEcho(null)).toBe(false)
+  })
+
+  it('isSiteEcho is false when site_sync_fp is absent, not a string, or custom_attributes is not an object', () => {
+    expect(isSiteEcho(contact)).toBe(false)
+    expect(isSiteEcho({ ...contact, custom_attributes: { other: 'x' } })).toBe(false)
+    expect(isSiteEcho({ ...contact, custom_attributes: { [SITE_SYNC_FP_ATTRIBUTE]: null } })).toBe(false)
+    expect(isSiteEcho({ ...contact, custom_attributes: { [SITE_SYNC_FP_ATTRIBUTE]: ['x'] } })).toBe(false)
+    expect(isSiteEcho(undefined)).toBe(false)
   })
 })

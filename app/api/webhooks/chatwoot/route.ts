@@ -118,6 +118,11 @@ export async function POST(request: Request) {
     })
   }
 
+  if (outcome === 'fused') {
+    // One ALERT line per fused delivery, ids only (never a name, email or phone).
+    console.error(`[webhook] ALERT webhook_loop_fused source=chatwoot entity=${plan.entityKey}`)
+  }
+
   log(event, outcome, 'ok')
   return NextResponse.json({ received: true })
 }

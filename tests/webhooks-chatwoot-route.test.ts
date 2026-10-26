@@ -29,7 +29,7 @@ vi.mock('@/lib/webhook-store', () => ({
 
 import { POST } from '@/app/api/webhooks/chatwoot/route'
 import { OutboxStoreError } from '@/lib/outbox-store'
-import { aggregateUuid } from '@/lib/sync-origin'
+import { aggregateUuid, contactFingerprint } from '@/lib/sync-origin'
 
 // Obviously fake secrets, carried as object properties.
 const SECRETS = { current: 'unit-test-fake-secret-current', previous: 'unit-test-fake-secret-previous', wrong: 'unit-test-fake-secret-wrong' }
@@ -130,6 +130,95 @@ describe('POST /api/webhooks/chatwoot: tracer', () => {
     const res = await POST(build(incoming(), { secret: SECRETS.previous }))
     expect(res.status).toBe(200)
     expect(ingestMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+const CONTACT_FIELDS = { name: 'Grace Hopper', email: 'grace@example.com', phone_number: '+420777888999', identifier: null }
+
+function contactUpdated(overrides: Record<string, unknown> = {}) {
+  return {
+    event: 'contact_updated',
+    id: 7,
+    ...CONTACT_FIELDS,
+    custom_attributes: {},
+    changed_attributes: [{ email: { previous_value: null, current_value: 'grace@example.com' } }],
+    ...overrides,
+  }
+}
+
+describe('POST /api/webhooks/chatwoot: contact_updated (tracer, HOOK-04 receiver layer)', () => {
+  it('an operator email edit becomes one bucketed hook.chat_contact row with fuse limit 20', async () => {
+    const res = await POST(build(contactUpdated()))
+    expect(res.status).toBe(200)
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+    const input = ingestMock.mock.calls[0][0]
+    const bucket = Math.floor(NOW_SEC / 30)
+    expect(input).toMatchObject({
+      source: 'chatwoot',
+      eventType: 'hook.chat_contact',
+      aggregateType: 'chat_contact',
+      aggregateId: aggregateUuid('contact', 7),
+      entityKey: 'cw:contact:7',
+      fuseLimit: 20,
+    })
+    expect(input.key.endsWith(`:c7b${bucket}`)).toBe(true)
+
+    await Promise.resolve()
+    expect(publishJSONMock).toHaveBeenCalledTimes(1)
+    const call = publishJSONMock.mock.calls[0][0]
+    expect(call.body).toEqual({ key: input.key })
+    expect(call.delay ?? 0).toBeGreaterThanOrEqual(0)
+    expect(call.delay ?? 0).toBeLessThanOrEqual(30)
+    expect(call.deduplicationId.endsWith('_w')).toBe(true)
+  })
+
+  it('the site\'s own fingerprinted write is dropped as echo before the database', async () => {
+    const echo = contactUpdated({ custom_attributes: { site_sync_fp: contactFingerprint(CONTACT_FIELDS) } })
+    const res = await POST(build(echo))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+    await Promise.resolve()
+    expect(publishJSONMock).not.toHaveBeenCalled()
+    const logged = vi.mocked(console.log).mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(logged).toContain('outcome=ignored code=echo')
+  })
+
+  it('the same fingerprinted payload with a changed email is ingested', async () => {
+    const edited = contactUpdated({
+      email: 'grace.new@example.com',
+      custom_attributes: { site_sync_fp: contactFingerprint(CONTACT_FIELDS) },
+    })
+    await POST(build(edited))
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('an irrelevant contact change is ignored without a database call', async () => {
+    const res = await POST(build(contactUpdated({ changed_attributes: [{ last_activity_at: {} }] })))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('a fused outcome answers 200, publishes nothing and logs exactly one ALERT line with ids only', async () => {
+    ingestMock.mockResolvedValue('fused')
+    const res = await POST(build(contactUpdated()))
+    expect(res.status).toBe(200)
+    await Promise.resolve()
+    expect(publishJSONMock).not.toHaveBeenCalled()
+
+    expect(console.error).toHaveBeenCalledTimes(1)
+    const line = String(vi.mocked(console.error).mock.calls[0].join(' '))
+    expect(line).toContain('ALERT webhook_loop_fused')
+    expect(line).toContain('source=chatwoot')
+    expect(line).toContain('entity=cw:contact:7')
+    for (const secretValue of ['Grace', 'grace@example.com', '+420777888999']) {
+      expect(line).not.toContain(secretValue)
+    }
+  })
+
+  it('message events send no fuse limit and raise no ALERT line', async () => {
+    await POST(build(incoming()))
+    expect(ingestMock.mock.calls[0][0].fuseLimit).toBeNull()
+    expect(console.error).not.toHaveBeenCalled()
   })
 })
 
