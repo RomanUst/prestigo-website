@@ -5,7 +5,8 @@ process.env.CRON_SECRET = 'test-cron-secret'
 
 // ── vi.hoisted stubs (declared before the vi.mock factories) ────────────────
 
-const { mockExpired, mockPurge, mockDue, mockFailed, mockPublish, mockHealth, mockDigest } = vi.hoisted(() => ({
+const { mockExpired, mockPurge, mockDue, mockFailed, mockPublish, mockHealth, mockDigest, mockWebhookPurge } = vi.hoisted(() => ({
+  mockWebhookPurge: vi.fn(),
   mockHealth: vi.fn(),
   mockDigest: vi.fn(),
   mockFailed: vi.fn(),
@@ -26,6 +27,7 @@ vi.mock('@/lib/outbox-store', async (importOriginal) => {
   }
 })
 
+vi.mock('@/lib/webhook-store', () => ({ createWebhookStore: () => ({ purge: mockWebhookPurge }) }))
 vi.mock('@/lib/outbox-admin-store', () => ({ outboxHealth: mockHealth }))
 vi.mock('@/lib/outbox-digest', () => ({ sendOutboxDigest: mockDigest }))
 
@@ -66,6 +68,7 @@ beforeEach(() => {
   process.env.CRON_SECRET = SECRET
   mockExpired.mockResolvedValue(0)
   mockPurge.mockResolvedValue(0)
+  mockWebhookPurge.mockResolvedValue(0)
   mockDue.mockResolvedValue([])
   mockFailed.mockResolvedValue(0)
   mockPublish.mockResolvedValue(true)
@@ -119,7 +122,7 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
       const body = await res.json()
 
       expect(res.status).toBe(200)
-      expect(body).toEqual({ ok: true, expired: 3, purge: 1, digest: 'no_problems', due: 2, published: 2, failed: 0, errors: [] })
+      expect(body).toEqual({ ok: true, expired: 3, purge: 1, webhook_purged: 0, digest: 'no_problems', due: 2, published: 2, failed: 0, errors: [] })
       expect(mockDue).toHaveBeenCalledWith(200)
       expect(mockPublish).toHaveBeenCalledTimes(2)
       expect(mockPublish).toHaveBeenCalledWith('lead.inquiry:a', { dedupSuffix: 's20261018' })
@@ -215,6 +218,7 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
   it('every step failing still answers 200 with all three codes and no payload text', async () => {
     mockExpired.mockRejectedValue(new Error('secret-detail-1'))
     mockPurge.mockRejectedValue(new Error('secret-detail-2'))
+    mockWebhookPurge.mockRejectedValue(new Error('secret-detail-2b'))
     mockDue.mockRejectedValue(new Error('secret-detail-3'))
     mockFailed.mockRejectedValue(new Error('secret-detail-4'))
     mockHealth.mockRejectedValue(new Error('secret-detail-5'))
@@ -228,11 +232,12 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
       ok: true,
       expired: null,
       purge: null,
+      webhook_purged: null,
       digest: null,
       due: null,
       published: null,
       failed: null,
-      errors: ['expired_failed', 'purge_failed', 'digest_failed', 'due_failed', 'failed_count_failed'],
+      errors: ['expired_failed', 'purge_failed', 'webhook_purge_failed', 'digest_failed', 'due_failed', 'failed_count_failed'],
     })
     expect(text).not.toContain('secret-detail')
     expect(mockPublish).not.toHaveBeenCalled()
@@ -292,6 +297,40 @@ describe('GET /api/cron/outbox-sweep - steps', () => {
     expect(body.due).toBe(3)
     expect(body.published).toBe(1)
     expect(mockPublish).toHaveBeenCalledTimes(3)
+  })
+})
+
+// ── Webhook delivery retention (Phase 83, D-19) ─────────────────────────────
+
+describe('GET /api/cron/outbox-sweep - webhook purge', () => {
+  it('webhook purge: an authorised sweep purges once with 7 / 30 days and reports the count', async () => {
+    mockWebhookPurge.mockResolvedValue(12)
+    const res = await GET(ok())
+    const body = await res.json()
+    expect(res.status).toBe(200)
+    expect(mockWebhookPurge).toHaveBeenCalledTimes(1)
+    expect(mockWebhookPurge).toHaveBeenCalledWith({ chatwootDays: 7, espoDays: 30 })
+    expect(body.webhook_purged).toBe(12)
+    expect(body.errors).toEqual([])
+  })
+
+  it('webhook purge: a failure is recorded as webhook_purge_failed and every other step still runs', async () => {
+    mockWebhookPurge.mockRejectedValue(new Error('boom-detail'))
+    mockDue.mockResolvedValue(['lead.inquiry:a'])
+    const res = await GET(ok())
+    const text = await res.text()
+    const body = JSON.parse(text)
+    expect(res.status).toBe(200)
+    expect(body.webhook_purged).toBeNull()
+    expect(body.errors).toEqual(['webhook_purge_failed'])
+    expect(body.published).toBe(1)
+    expect(mockDigest).toHaveBeenCalled()
+    expect(text).not.toContain('boom-detail')
+  })
+
+  it('webhook purge: not run without a valid cron secret', async () => {
+    await GET(req('Bearer wrong'))
+    expect(mockWebhookPurge).not.toHaveBeenCalled()
   })
 })
 
