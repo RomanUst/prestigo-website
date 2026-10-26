@@ -67,6 +67,7 @@ v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin li
 - ✓ RTL-01, FONT-01: Arabic RTL via logical properties + bidi-isolated prices; Noto Arabic/Devanagari/SC per locale — v3.0 (Phase 73)
 - ✓ VER-01: Cross-locale production E2E (render, switcher, guest booking incl. RTL, analytics `site_locale`, no CSP regression, 0 EN leaks); RU/AR signed-in path accepted as unverified — v3.0 (Phase 75)
 - ✓ SEO-01..04, UX-01/02: Multilingual SEO — centralized translation/index-aware `getAlternates()` (hreflang incl. `zh-Hans`, self-referencing canonical + og:url per locale), sitemap cluster, localized metadata, JSON-LD `inLanguage`, header LocaleSwitcher, language suggestion inside the consent modal; prod-verified 417 localized URLs, 0 hreflang problems — v3.0 (Phase 74)
+- ✓ SYNC-01..05, GDPR-01/02: Site → EspoCRM/Chatwoot sync via Supabase outbox + QStash (bookings, payments, status changes, admin edits, signups), cross-system contact de-dup by email/E.164 with shared-number flag and admin split, one-time backfill, /admin/outbox health + retry, single erasure request across Supabase/Chatwoot/EspoCRM with audit, privacy policy in all locales — v4.0 (Phase 82, live 2026-10-20, UAT 4/4 + verification 5/5 on 2026-10-26)
 
 ### Active
 
@@ -181,4 +182,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-27 after starting milestone v4.0 (Helpdesk + CRM).*
+*Last updated: 2026-10-26 after Phase 82 (Site ↔ CRM/Chatwoot Sync Foundation).*
