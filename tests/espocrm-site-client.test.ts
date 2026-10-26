@@ -154,6 +154,32 @@ describe('createSiteEspoClient', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(1)
   })
 
+  it('a 403 on a Note write is crm_auth for that call only and does not poison the client (D-16)', async () => {
+    const fetchImpl = vi.fn(async (url: string | URL) =>
+      String(url).includes('/Note/') ? new Response('', { status: 403 }) : new Response('{"id":"x"}', { status: 200 }),
+    )
+    const client = createSiteEspoClient({ config: CONFIG, fetchImpl: fetchImpl as unknown as typeof fetch })
+
+    const put = await catchErr(client.put('/Note/d00000000000000001', { post: '' }))
+    const del = await catchErr(client.del('/Note/d00000000000000001'))
+    const later = await client.get('/Lead')
+
+    expect(put.code).toBe('crm_auth')
+    expect(del.code).toBe('crm_auth')
+    expect(later).toEqual({ id: 'x' })
+    expect(fetchImpl).toHaveBeenCalledTimes(3)
+  })
+
+  it('a 403 on a Note READ or on any other write still poisons the client', async () => {
+    const fetchImpl = vi.fn(async () => new Response('', { status: 403 }))
+    const client = createSiteEspoClient({ config: CONFIG, fetchImpl: fetchImpl as unknown as typeof fetch })
+
+    await catchErr(client.put('/Lead/d00000000000000001', {}))
+    await catchErr(client.put('/Note/d00000000000000001', {}))
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
   it('a non-JSON 2xx is treated as unreachable', async () => {
     const fetchImpl = vi.fn(async () => new Response('<html>bad gateway</html>', { status: 200 }))
     const client = createSiteEspoClient({ config: CONFIG, fetchImpl: fetchImpl as unknown as typeof fetch })

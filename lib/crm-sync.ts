@@ -2,9 +2,18 @@ import { syncBucketKey } from '@/lib/outbox'
 import type { OutboxRow } from '@/lib/outbox-store'
 import { skip, type DispatchResult } from '@/lib/dispatch-outcomes'
 import { SiteEspoError, type SiteEspoClient } from '@/lib/espocrm-client'
-import type { CrmBookingRecord } from '@/lib/identity-store'
+import type { CrmBookingRecord, PersonRecord } from '@/lib/identity-store'
 import type { DispatchDeps } from '@/lib/lead-sync'
-import { diffSyncOwned } from '@/lib/lead-mapping'
+import {
+  adminLink,
+  BOOKING_LEAD_STATUS,
+  diffSyncOwned,
+  LEAD_ATTR,
+  LEAD_STATUS_VALUE,
+} from '@/lib/lead-mapping'
+import { createChatStore } from '@/lib/chat-store'
+import { formatConversionNote, isOpenLeadStatus } from '@/lib/chat-classify'
+import { postNote, readLeadStatus, updateLead } from '@/lib/chat-io'
 import {
   buildCBookingDraft,
   buildContactDraft,
@@ -25,6 +34,12 @@ import {
  * description are never written; phoneNumber only while the Contact's phone is empty; the email list
  * is merged (identity emails added, only addresses another identity owns removed); no Account is ever
  * written. Every CBooking field is sync-owned. No phone is ever guessed.
+ *
+ * One write outside Contacts and CBookings (Phase 83, D-05): when the person has an open chat Lead
+ * and a paid site booking created after it, the Lead becomes Converted, carries the booking
+ * reference and admin link, gets one conversion Note, and its registry row is closed. The booking's
+ * own Phase 81 Lead is never touched, and a Lead the owner already closed in EspoCRM is only closed
+ * in the registry.
  *
  * Logs carry the key (ids only), outcome and code; never a name, email, phone or response body.
  */
@@ -124,7 +139,69 @@ async function syncPerson(ctx: Ctx): Promise<DispatchResult> {
   }
 
   const unmapped = await upsertBookings(ctx, person.bookings, contact)
+  await convertChatLeads(ctx, person)
   return finish(ctx, unmapped)
+}
+
+// ── D-05: paid booking converts the open chat Lead ──────────────────────────
+
+/**
+ * Paid = a real site booking: not an abandoned checkout, not a return leg (the outbound leg carries
+ * the trip), not anonymised (no reference left), status mapped to Converted (D-06 table).
+ */
+function paidBookings(bookings: CrmBookingRecord[]): Array<{ booking: CrmBookingRecord; at: number }> {
+  const out: Array<{ booking: CrmBookingRecord; at: number }> = []
+  for (const booking of bookings) {
+    if (booking.abandoned || booking.leg === 'return' || booking.anonymised_at) continue
+    if (BOOKING_LEAD_STATUS[booking.status] !== 'converted') continue
+    if (typeof booking.booking_reference !== 'string' || booking.booking_reference === '') continue
+    const at = Date.parse(booking.created_at)
+    if (Number.isNaN(at)) continue
+    out.push({ booking, at })
+  }
+  return out.sort((a, b) => a.at - b.at)
+}
+
+/**
+ * Converges the person's open chat Leads (registry: identity or a non-shared identity phone) with
+ * their paid bookings. The booking must be newer than the Lead (T-83-32); the Lead status is re-read
+ * right before writing; a Lead that is no longer open in the CRM is only closed in the registry.
+ * Write order: Lead PUT, conversion Note, registry close; a failure anywhere propagates and the
+ * sync.espo row retries (a re-run finds no open registry row once it was closed).
+ */
+async function convertChatLeads(ctx: Ctx, person: PersonRecord): Promise<void> {
+  const { d, crm } = ctx
+  const paid = paidBookings(person.bookings)
+  if (paid.length === 0) return
+
+  const chat = d.chat ?? createChatStore()
+  const leads = await chat.openLeadsForPerson(person.identity.id, person.phones)
+  for (const lead of leads) {
+    if (!lead.espoLeadId) continue
+    const leadAt = Date.parse(lead.createdAt)
+    if (Number.isNaN(leadAt)) continue
+    const match = paid.find((p) => p.at >= leadAt)
+    if (!match) continue
+
+    const live = await readLeadStatus(crm, lead.espoLeadId)
+    if (!live || !isOpenLeadStatus(live.status)) {
+      await chat.closeLead(lead.chatLeadId, 'closed_in_crm')
+      continue
+    }
+
+    const reference = match.booking.booking_reference
+    const link = adminLink(reference)
+    const fields: Record<string, unknown> = {
+      status: LEAD_STATUS_VALUE.converted,
+      [LEAD_ATTR.bookingReference]: reference,
+    }
+    if (link) fields[LEAD_ATTR.adminLink] = link
+    ctx.guard()
+    await updateLead(crm, lead.espoLeadId, fields)
+    ctx.guard()
+    await postNote(crm, 'Lead', lead.espoLeadId, formatConversionNote({ bookingReference: reference, adminLink: link }))
+    await chat.closeLead(lead.chatLeadId, 'converted', match.booking.id)
+  }
 }
 
 async function enqueueChatwootRefresh(ctx: Ctx, identityId: string): Promise<void> {
