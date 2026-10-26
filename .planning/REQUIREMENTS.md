@@ -72,7 +72,7 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 ### Dashboard App (PANEL)
 
 - [ ] **PANEL-01**: Inside a Chatwoot conversation the operator sees the customer's bookings from the site (upcoming + past, status, payment, link into /admin) in the sidebar
-- [ ] **PANEL-02**: The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and runs on a Chatwoot version patched for CVE-2025-12245
+- [ ] **PANEL-02**: The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and has CVE-2025-12245 scoped with evidence (no upstream fix exists; the flaw is in the website widget SDK) plus a compensating message-origin guard shipped in the site widget loader
 
 ### Operations (OPS)
 

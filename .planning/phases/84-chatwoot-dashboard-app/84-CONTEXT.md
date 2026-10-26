@@ -28,6 +28,7 @@ cookie, and runs on a Chatwoot version confirmed patched for CVE-2025-12245 (PAN
 - Chatwoot is pinned at `chatwoot/chatwoot:v4.18.0-ce` (`infra/vps/chatwoot/compose.yml`). Per
   `.planning/research/PITFALLS.md` Pitfall 16, CVE-2025-12245 affects Chatwoot ≤ 4.7.0 — research must confirm
   the fix against the advisory/changelog and record the evidence; it is a PANEL-02 gate, not an assumption.
+  **Superseded by D-13** (research 2026-10-26: no upstream fix exists).
 - `app/embed/` (or equivalent) route outside `app/[locale]/`, no next-intl, own narrow CSP with
   `frame-ancestors https://chat.rideprestigo.com` (research ARCHITECTURE.md). Middleware matcher rules from
   CLAUDE.md still apply.
@@ -40,10 +41,13 @@ cookie, and runs on a Chatwoot version confirmed patched for CVE-2025-12245 (PAN
   separate panel login. Removing an agent in Chatwoot revokes panel access immediately. —
   **Reversibility:** costly — the token handshake, API contract and runbook are built around Chatwoot-issued
   identity.
-- **D-02:** The token is pasted once per browser into the panel and kept in the iframe's `localStorage`
-  (partitioned storage is acceptable; re-paste if it is lost). It travels only as a request header to our own
-  API. The server never persists it; at most a short-lived cache of the validation result keyed by a hash of
-  the token.
+- **D-02 (revised 2026-10-26 after research):** The token is pasted into the panel and kept in the iframe's
+  **`sessionStorage`** (lives until the tab closes; re-paste in each new browser session). `localStorage` was
+  rejected: `rideprestigo.com` and `chat.rideprestigo.com` are same-site, so the iframe's storage is shared with
+  the marketing site's origin and third-party scripts (GTM, GA, Meta Pixel, Clarity) could read it. A dedicated
+  `panel.` subdomain and an encrypted HttpOnly cookie were also considered and not chosen. The token travels only
+  as a request header (`api-access-token`, hyphenated) to our own API. The server never persists it; at most a
+  short-lived cache of the validation result keyed by a hash of the token.
 - **D-03:** The iframe sends only the **conversation id** (from Chatwoot's `postMessage` context, after
   `event.origin` is checked against the exact Chatwoot origin). The server fetches the conversation from the
   Chatwoot API with the operator's token and takes the contact's email/phone from that response. Contact data
@@ -83,6 +87,15 @@ cookie, and runs on a Chatwoot version confirmed patched for CVE-2025-12245 (PAN
 - **D-12:** A contact with no email and no phone (e.g. Telegram name only) shows a hint: "Add an email or phone
   to this contact in Chatwoot to see bookings". The panel refreshes after the operator adds one. No name search
   and no manual search box: the panel is not a general booking search for any agent.
+
+### CVE-2025-12245 gate (PANEL-02)
+- **D-13 (2026-10-26, after research):** CVE-2025-12245 is in the Chatwoot **website widget SDK**
+  (`IFrameHelper.js` postMessage handling), not in the Dashboard App, and GHSA-hgg8-54gw-8v33 lists no patched
+  version — the vulnerable code is identical in v4.7.0, v4.18.0 and the latest release. The PANEL-02 gate is
+  re-worded to "scoped with evidence, no upstream fix, compensating control shipped": a capture-phase `message`
+  origin guard in `components/chat/load-chat-widget.ts`, registered before the SDK loads, that drops
+  `chatwoot-widget:` messages from any origin other than the Chatwoot origin. The advisory evidence and a
+  re-check recipe go into the runbook. Chatwoot stays pinned at v4.18.0 (no upgrade for this reason).
 
 ### Claude's Discretion
 - Exact route paths (`app/embed/chatwoot-dashboard`, `app/api/chatwoot/dashboard-app` or similar), handshake

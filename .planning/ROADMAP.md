@@ -21,7 +21,7 @@
 - [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
 - [x] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure (completed 2026-10-26)
 - [x] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops (completed 2026-10-26)
-- [ ] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245-patched Chatwoot
+- [ ] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245 scoped + compensating control
 - [ ] **Phase 85: Statistics** - `/admin/stats` shows inquiry→booking conversion, repeat-customer rate, and B2B revenue per Account
 
 <details>
@@ -424,12 +424,12 @@ Plans:
 
 ### Phase 84: Chatwoot Dashboard App
 
-**Goal**: An operator handling a Chatwoot conversation can see that customer's booking history without leaving Chatwoot or exposing admin credentials. Sequenced last among the integration phases — after Chatwoot/EspoCRM sync is stable and the deployed Chatwoot version is confirmed patched for CVE-2025-12245.
+**Goal**: An operator handling a Chatwoot conversation can see that customer's booking history without leaving Chatwoot or exposing admin credentials. Sequenced last among the integration phases — after Chatwoot/EspoCRM sync is stable and CVE-2025-12245 exposure is scoped with evidence and mitigated on our side (no upstream fix exists).
 **Depends on**: Phase 77, Phase 83
 **Requirements**: PANEL-01, PANEL-02
 **Success Criteria** (what must be TRUE):
   1. Inside a Chatwoot conversation, the operator sees the customer's bookings from the site (upcoming + past, status, payment, link into /admin) in the sidebar.
-  2. The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and runs on a Chatwoot version confirmed patched for CVE-2025-12245.
+  2. The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and CVE-2025-12245 is scoped with recorded evidence (no upstream fix; flaw is in the widget SDK, not the Dashboard App) with a compensating message-origin guard shipped in the site widget loader.
 
 **Plans**: TBD
 **UI hint**: yes
