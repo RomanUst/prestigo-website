@@ -103,3 +103,45 @@ describe('identity store', () => {
     expect(chat.rpc).toHaveBeenCalledWith('identity_set_chatwoot_contact', { p_identity_id: ID, p_contact_id: 42 })
   })
 })
+
+describe('identity store: chat identity (Phase 83)', () => {
+  it('resolveChat() sends email and phone and maps the result row', async () => {
+    const { store, rpc } = client([{ identity_id: ID, outcome: 'resolved', customer: false }])
+    expect(await store.resolveChat('A@x.example ', null)).toEqual({ identityId: ID, outcome: 'resolved', customer: false })
+    expect(rpc).toHaveBeenCalledWith('identity_resolve_chat', { p_email_raw: 'A@x.example ', p_phone_raw: null })
+  })
+
+  it('resolveChat() maps no_identity to a null id and customer false', async () => {
+    const { store } = client([{ identity_id: null, outcome: 'no_identity', customer: null }])
+    expect(await store.resolveChat(null, '+420725986855')).toEqual({ identityId: null, outcome: 'no_identity', customer: false })
+  })
+
+  it('resolveChat() rejects an unknown outcome and an RPC error with db_error', async () => {
+    await expect(client([{ identity_id: ID, outcome: 'bogus', customer: false }]).store.resolveChat('a@x.example', null)).rejects.toMatchObject({
+      name: 'OutboxStoreError',
+      code: 'db_error',
+    })
+    await expect(client([]).store.resolveChat('a@x.example', null)).rejects.toMatchObject({ code: 'db_error' })
+    await expect(client(null, { message: 'boom' }).store.resolveChat('a@x.example', null)).rejects.toMatchObject({ code: 'db_error' })
+  })
+
+  it('chatLookup() maps one row to ChatIdentity and zero rows to null', async () => {
+    const { store, rpc } = client([
+      { identity_id: ID, customer: true, erasing: false, espo_contact_id: '0123456789abcdef0', chatwoot_contact_id: 77 },
+    ])
+    expect(await store.chatLookup('a@x.example')).toEqual({
+      identityId: ID,
+      customer: true,
+      erasing: false,
+      espoContactId: '0123456789abcdef0',
+      chatwootContactId: 77,
+    })
+    expect(rpc).toHaveBeenCalledWith('identity_chat_lookup', { p_email_raw: 'a@x.example' })
+    expect(await client([]).store.chatLookup('a@x.example')).toBeNull()
+    expect(await client(null).store.chatLookup('a@x.example')).toBeNull()
+  })
+
+  it('chatLookup() treats a malformed row as db_error', async () => {
+    await expect(client([{ nope: 1 }]).store.chatLookup('a@x.example')).rejects.toMatchObject({ code: 'db_error' })
+  })
+})

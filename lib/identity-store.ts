@@ -67,6 +67,26 @@ export interface PersonRecord {
   bookings: CrmBookingRecord[]
 }
 
+/** Phase 83 chat identity: who is behind an email / a Chatwoot contact (read-only classification). */
+export interface ChatIdentity {
+  identityId: string
+  /** Account (user_id) OR at least one booking. A chat stranger with neither is not a customer. */
+  customer: boolean
+  erasing: boolean
+  espoContactId: string | null
+  chatwootContactId: number | null
+  /** Only filled by byChatwootContact. */
+  emails?: string[]
+}
+
+export type ChatResolveOutcome = 'resolved' | 'no_identity' | 'erasing'
+
+export interface ChatResolveResult {
+  identityId: string | null
+  outcome: ChatResolveOutcome
+  customer: boolean
+}
+
 export interface IdentityStore {
   resolveBooking(bookingId: string): Promise<ResolveResult>
   resolveUser(userId: string): Promise<ResolveResult>
@@ -76,6 +96,12 @@ export interface IdentityStore {
   emailOwners(emails: string[]): Promise<Map<string, string>>
   setEspoContact(identityId: string, contactId: string | null): Promise<boolean>
   setChatwootContact(identityId: string, contactId: number | null): Promise<boolean>
+  /** identity_chat_lookup: the identity owning this email, or null. Writes nothing. */
+  chatLookup(email: string): Promise<ChatIdentity | null>
+  /** Identities carrying this Chatwoot contact id: at most 2 (2 = ambiguous for the caller). */
+  byChatwootContact(contactId: number): Promise<ChatIdentity[]>
+  /** identity_resolve_chat: register / resolve a chat person under the global lock (basis 'chat'). */
+  resolveChat(email: string | null, phone: string | null): Promise<ChatResolveResult>
   /** outbox_enqueue: true when a row was inserted, false only on a key conflict; THROWS on an RPC error. */
   enqueueSync(input: {
     eventType: string
@@ -94,6 +120,34 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function asString(value: unknown): string | null {
   return typeof value === 'string' && value !== '' ? value : null
+}
+
+const CHAT_OUTCOMES: ReadonlySet<string> = new Set(['resolved', 'no_identity', 'erasing'])
+
+function toChatResolveResult(data: unknown): ChatResolveResult {
+  const row = Array.isArray(data) ? data[0] : data
+  if (!isRecord(row) || typeof row.outcome !== 'string' || !CHAT_OUTCOMES.has(row.outcome)) {
+    throw new Error('shape')
+  }
+  return {
+    identityId: asString(row.identity_id),
+    outcome: row.outcome as ChatResolveOutcome,
+    customer: row.customer === true,
+  }
+}
+
+function toChatIdentity(row: unknown): ChatIdentity {
+  if (!isRecord(row) || typeof row.identity_id !== 'string' || row.identity_id === '') {
+    throw new Error('shape')
+  }
+  const contact = row.chatwoot_contact_id
+  return {
+    identityId: row.identity_id,
+    customer: row.customer === true,
+    erasing: row.erasing === true,
+    espoContactId: asString(row.espo_contact_id),
+    chatwootContactId: typeof contact === 'number' ? contact : null,
+  }
 }
 
 function toResolveResult(data: unknown): ResolveResult {
@@ -171,6 +225,36 @@ export function createIdentityStore(client?: SupabaseClient): IdentityStore {
     async setChatwootContact(identityId, contactId) {
       const data = await rpc('identity_set_chatwoot_contact', { p_identity_id: identityId, p_contact_id: contactId })
       return data === true
+    },
+
+    async chatLookup(email) {
+      const data = await rpc('identity_chat_lookup', { p_email_raw: email })
+      const row = Array.isArray(data) ? data[0] : null
+      if (row === undefined || row === null) return null
+      try {
+        return toChatIdentity(row)
+      } catch {
+        throw new OutboxStoreError('db_error')
+      }
+    },
+
+    async byChatwootContact(contactId) {
+      const data = await rpc('identity_by_chatwoot_contact', { p_contact_id: contactId })
+      if (!Array.isArray(data)) return []
+      try {
+        return data.map(toChatIdentity)
+      } catch {
+        throw new OutboxStoreError('db_error')
+      }
+    },
+
+    async resolveChat(email, phone) {
+      const data = await rpc('identity_resolve_chat', { p_email_raw: email, p_phone_raw: phone })
+      try {
+        return toChatResolveResult(data)
+      } catch {
+        throw new OutboxStoreError('db_error')
+      }
     },
 
     async enqueueSync(input) {
