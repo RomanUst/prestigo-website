@@ -268,19 +268,19 @@ describe('D-20 retire guard (account types)', () => {
 })
 
 describe('Lead.source (D-08, plan 81-06)', () => {
-  const LEAD_SOURCES = ['Website booking', 'GNet', 'Contact form', 'Corporate form', 'Multi-day quote', 'WhatsApp', 'Phone', 'Email', 'Partner', 'Other']
+  const LEAD_SOURCES = ['Website booking', 'GNet', 'Contact form', 'Corporate form', 'Multi-day quote', 'WhatsApp', 'Phone', 'Email', 'Partner', 'Other', 'Website chat', 'Telegram']
   const STOCK_LEAD_SOURCES = ['', 'Call', 'Email', 'Existing Customer', 'Partner', 'Public Relations', 'Web Site', 'Campaign', 'Other']
   const leadConfig = () => ({ 'enums.json': { enums: [realEnums().enums.find((e: any) => e.scope === 'Lead' && e.field === 'source')] } })
   const sourceField = (fake: Fake) => fake.state.metadata.entityDefs.Lead.fields.source
 
-  it('shipped entry has the 10 values in order, label = value, and an empty retire list', () => {
+  it('shipped entry has the 12 values in order, label = value, and an empty retire list', () => {
     const entry = realEnums().enums.find((e: any) => e.scope === 'Lead' && e.field === 'source')
     expect(entry.values.map((v: any) => v.value)).toEqual(LEAD_SOURCES)
     expect(entry.values.every((v: any) => v.label === v.value)).toBe(true)
     expect(entry.retire).toEqual([])
   })
 
-  it('keeps all 9 stock options, adds the 7 new ones, and a second run is a no-op', async () => {
+  it('keeps all 9 stock options, adds the 9 new ones, and a second run is a no-op', async () => {
     const fake = fresh()
     const dir = configDir(leadConfig())
     expect(sourceField(fake).options).toEqual(STOCK_LEAD_SOURCES)

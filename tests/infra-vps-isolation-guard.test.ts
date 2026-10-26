@@ -122,9 +122,49 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'pure person -> Chatwoot contact mapping (no env, no I/O; only the exported CHATWOOT_SYNCED_ATTRIBUTE_KEYS constant name trips the env-var pattern); imported only by the QStash-invoked sync.chatwoot handler lib/chatwoot-sync.ts, never on a page render or a booking/payment/contact request path',
   },
   {
+    path: 'lib/chat-io.ts',
+    reason:
+      'Chatwoot reads and EspoCRM chat helpers (Contact, Lead, Note) used by the hook.chat_* handlers; imports only the site clients\' types and error classes; runs only inside the QStash-invoked outbox dispatcher (reachable only from lib/lead-sync.ts via lib/hook-dispatch.ts), never on a page render or a booking/payment/contact request path',
+  },
+  {
+    path: 'lib/chat-resolve.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (hook.chat_resolve): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/hook-dispatch.ts via lib/lead-sync.ts',
+  },
+  {
+    path: 'lib/chat-contact.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (hook.chat_contact, hook.chat_label): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/hook-dispatch.ts via lib/lead-sync.ts',
+  },
+  {
+    path: 'app/api/webhooks/espocrm/route.ts',
+    reason:
+      'server-to-server EspoCRM webhook receiver called only by the EspoCRM server with a signed batch; verifies the HMAC and enqueues an ids-only outbox row through one RPC, makes no call to the VPS, and never runs on a page render or a booking/payment/contact request path',
+  },
+  {
+    path: 'lib/espo-contact-hook.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (hook.espo_contact): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/hook-dispatch.ts via lib/lead-sync.ts',
+  },
+  {
+    path: 'lib/chat-intake.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (hook.chat_intake): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts via lib/hook-dispatch.ts',
+  },
+  {
+    path: 'lib/hook-dispatch.ts',
+    reason:
+      'QStash-invoked outbox dispatcher router for hook.* rows (both config gates, then the handler switch): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
+  },
+  {
     path: 'lib/erasure.ts',
     reason:
       'QStash-invoked outbox dispatcher handler (erase.person, GDPR erasure saga): runs only when Upstash calls /api/integrations/dispatch with a signed message for an admin-confirmed erasure_requests row, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
+  },
+  {
+    path: 'app/api/webhooks/chatwoot/route.ts',
+    reason:
+      'server-to-server receiver called only by the Chatwoot server with an HMAC-signed request; reads its signing secret from env, verifies and enqueues one outbox row through a single RPC; makes no network call to the VPS and never runs on a page render or a booking/payment/contact request path',
   },
   {
     path: 'app/api/integrations/dispatch/route.ts',

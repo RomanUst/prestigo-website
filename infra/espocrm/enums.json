@@ -54,7 +54,9 @@
         { "value": "Phone", "label": "Phone" },
         { "value": "Email", "label": "Email" },
         { "value": "Partner", "label": "Partner" },
-        { "value": "Other", "label": "Other" }
+        { "value": "Other", "label": "Other" },
+        { "value": "Website chat", "label": "Website chat" },
+        { "value": "Telegram", "label": "Telegram" }
       ],
       "retire": []
     }

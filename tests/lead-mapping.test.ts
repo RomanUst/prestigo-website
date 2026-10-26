@@ -224,7 +224,7 @@ describe('lead sources (D-08)', () => {
       existingContactId: 'cExistingContactId',
     })
     expect([...Object.values(LEAD_SOURCE)].sort()).toEqual(
-      ['Contact form', 'Corporate form', 'Email', 'GNet', 'Multi-day quote', 'Other', 'Partner', 'Phone', 'WhatsApp', 'Website booking'].sort(),
+      ['Contact form', 'Corporate form', 'Email', 'GNet', 'Multi-day quote', 'Other', 'Partner', 'Phone', 'Telegram', 'WhatsApp', 'Website booking', 'Website chat'].sort(),
     )
   })
 })

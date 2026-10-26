@@ -13,7 +13,19 @@
  *    merge moves conversations and destroys the mergee (base wins on attribute conflicts);
  *    DELETE of an online contact answers 422
  *  - the token must arrive in the hyphenated `api-access-token` header
+ *
+ * Phase 83 (plan 83-06) extension - THE ONLY plan of Phase 83 that edits this helper (wave rule:
+ * later plans use the `intercept` / `onWrite` hooks and seed options instead of editing it):
+ *  - conversations: GET /conversations/:id (meta.channel, meta.sender = contact view; 404 unknown)
+ *    and GET /conversations/:id/messages?after=<id> (ascending, 100 per page, integer message_type)
+ *  - GET /inboxes/:id
+ *  - contacts carry additional_attributes (default {}), merged shallowly on PUT, returned by show
+ *  - webhooks: GET/POST/PATCH/DELETE /webhooks, administrator token only (401 otherwise); the secret
+ *    is generated on create and returned in list and create answers; a duplicate url answers 422
+ *  - `onWrite(req, state)` runs after every successful contact create and update
  */
+
+import { randomBytes } from 'node:crypto'
 
 export interface FakeCwReq {
   method: string
@@ -32,9 +44,65 @@ export interface FakeContact {
   phone_number: string | null
   identifier: string | null
   custom_attributes: Record<string, any>
+  additional_attributes: Record<string, any>
   /** Number of conversations that move on merge. */
   conversations: number
   online: boolean
+}
+
+export interface FakeMessage {
+  id: number
+  content: string
+  /** Chatwoot integer enum: 0 incoming, 1 outgoing, 2 activity, 3 template. */
+  message_type: 0 | 1 | 2 | 3
+  private: boolean
+  content_attributes: Record<string, any>
+  sender: any
+  created_at: number
+}
+
+export interface FakeConversation {
+  id: number
+  inbox_id: number
+  status: string
+  labels: string[]
+  created_at: number
+  contact_id: number | null
+  channel: string
+  messages: FakeMessage[]
+}
+
+export interface FakeInbox {
+  id: number
+  name: string
+  channel_type: string
+}
+
+export interface FakeWebhook {
+  id: number
+  name: string
+  url: string
+  subscriptions: string[]
+  secret: string
+}
+
+export interface FakeConversationSeed {
+  id: number
+  inbox_id: number
+  status?: string
+  labels?: string[]
+  created_at?: number
+  contact_id?: number | null
+  channel?: string
+  messages?: Array<{
+    id?: number
+    content: string
+    message_type: 0 | 1 | 2 | 3
+    private?: boolean
+    content_attributes?: Record<string, any>
+    sender?: any
+    created_at?: number
+  }>
 }
 
 export interface FakeChatwootOptions {
@@ -42,6 +110,11 @@ export interface FakeChatwootOptions {
   /** token -> role. */
   tokens?: Record<string, 'agent' | 'administrator'>
   contacts?: Array<Partial<FakeContact>>
+  inboxes?: FakeInbox[]
+  conversations?: FakeConversationSeed[]
+  webhooks?: Array<{ id?: number; name: string; url: string; subscriptions: string[]; secret?: string }>
+  /** Called after every successful contact create and update (the plan-83 sync-echo hook). */
+  onWrite?: (req: FakeCwReq, state: FakeChatwootState) => void
   /** Return a Response to handle a request before the built-in routes (rate limits, 5xx, stalls). */
   intercept?: (req: FakeCwReq, state: FakeChatwootState) => Response | undefined | Promise<Response | undefined>
 }
@@ -49,6 +122,11 @@ export interface FakeChatwootOptions {
 export interface FakeChatwootState {
   contacts: FakeContact[]
   nextId: number
+  conversations: FakeConversation[]
+  inboxes: FakeInbox[]
+  webhooks: FakeWebhook[]
+  nextMessageId: number
+  nextWebhookId: number
 }
 
 export const FAKE_AGENT_TOKEN = 'cw_agent_SECRET_0123456789'
@@ -70,9 +148,15 @@ function view(c: FakeContact) {
     phone_number: c.phone_number,
     identifier: c.identifier,
     custom_attributes: c.custom_attributes,
-    additional_attributes: {},
+    additional_attributes: c.additional_attributes,
   }
 }
+
+function webhookView(w: FakeWebhook) {
+  return { id: w.id, name: w.name, url: w.url, subscriptions: w.subscriptions, secret: w.secret, account_id: 1 }
+}
+
+const MESSAGES_PAGE_SIZE = 100
 
 function lower(v: unknown): string {
   return typeof v === 'string' ? v.toLowerCase() : ''
@@ -81,7 +165,15 @@ function lower(v: unknown): string {
 export function createFakeChatwoot(options: FakeChatwootOptions = {}) {
   const accountId = options.accountId ?? '1'
   const tokens = options.tokens ?? { [FAKE_AGENT_TOKEN]: 'agent', [FAKE_ADMIN_TOKEN]: 'administrator' }
-  const state: FakeChatwootState = { contacts: [], nextId: 1 }
+  const state: FakeChatwootState = {
+    contacts: [],
+    nextId: 1,
+    conversations: [],
+    inboxes: [...(options.inboxes ?? [])],
+    webhooks: [],
+    nextMessageId: 1,
+    nextWebhookId: 1,
+  }
   const requests: FakeCwReq[] = []
   const merges: Array<{ base: number; mergee: number }> = []
 
@@ -95,6 +187,7 @@ export function createFakeChatwoot(options: FakeChatwootOptions = {}) {
       phone_number: partial.phone_number ?? null,
       identifier: partial.identifier ?? null,
       custom_attributes: { ...(partial.custom_attributes ?? {}) },
+      additional_attributes: { ...(partial.additional_attributes ?? {}) },
       conversations: partial.conversations ?? 0,
       online: partial.online ?? false,
     }
@@ -102,6 +195,50 @@ export function createFakeChatwoot(options: FakeChatwootOptions = {}) {
     return contact
   }
   for (const c of options.contacts ?? []) seed(c)
+
+  function seedConversation(partial: FakeConversationSeed): FakeConversation {
+    const conversation: FakeConversation = {
+      id: partial.id,
+      inbox_id: partial.inbox_id,
+      status: partial.status ?? 'open',
+      labels: [...(partial.labels ?? [])],
+      created_at: partial.created_at ?? 1_729_900_000,
+      contact_id: partial.contact_id ?? null,
+      channel: partial.channel ?? 'Channel::WebWidget',
+      messages: [],
+    }
+    for (const m of partial.messages ?? []) {
+      const id = m.id ?? state.nextMessageId
+      state.nextMessageId = Math.max(state.nextMessageId, id + 1)
+      conversation.messages.push({
+        id,
+        content: m.content,
+        message_type: m.message_type,
+        private: m.private ?? false,
+        content_attributes: { ...(m.content_attributes ?? {}) },
+        sender: m.sender ?? null,
+        created_at: m.created_at ?? conversation.created_at,
+      })
+    }
+    state.conversations.push(conversation)
+    return conversation
+  }
+  for (const c of options.conversations ?? []) seedConversation(c)
+
+  function seedWebhook(partial: { id?: number; name: string; url: string; subscriptions: string[]; secret?: string }): FakeWebhook {
+    const id = partial.id ?? state.nextWebhookId
+    state.nextWebhookId = Math.max(state.nextWebhookId, id + 1)
+    const webhook: FakeWebhook = {
+      id,
+      name: partial.name,
+      url: partial.url,
+      subscriptions: [...partial.subscriptions],
+      secret: partial.secret ?? `fake_whsec_${randomBytes(12).toString('hex')}`,
+    }
+    state.webhooks.push(webhook)
+    return webhook
+  }
+  for (const w of options.webhooks ?? []) seedWebhook(w)
 
   /** The uniqueness rules; `self` is excluded on update. Returns the violated attribute or null. */
   function conflict(next: { email?: string | null; phone_number?: string | null; identifier?: string | null }, self?: number) {
@@ -138,6 +275,69 @@ export function createFakeChatwoot(options: FakeChatwootOptions = {}) {
     const isAdmin = role === 'administrator'
     const { method, path, body } = req
 
+    const conv = /^\/conversations\/(\d+)(\/messages)?$/.exec(path)
+    if (method === 'GET' && conv) {
+      const conversation = state.conversations.find((c) => c.id === Number(conv[1]))
+      if (!conversation) return json({ error: 'Resource could not be found' }, 404)
+      if (conv[2]) {
+        const after = Number(new URLSearchParams(req.query).get('after') ?? 0)
+        const page = conversation.messages
+          .filter((m) => m.id > (Number.isFinite(after) ? after : 0))
+          .sort((a, b) => a.id - b.id)
+          .slice(0, MESSAGES_PAGE_SIZE)
+        return json({ payload: page })
+      }
+      const sender = state.contacts.find((c) => c.id === conversation.contact_id)
+      return json({
+        id: conversation.id,
+        inbox_id: conversation.inbox_id,
+        status: conversation.status,
+        labels: conversation.labels,
+        created_at: conversation.created_at,
+        meta: { channel: conversation.channel, sender: sender ? view(sender) : null },
+      })
+    }
+
+    const inboxMatch = /^\/inboxes\/(\d+)$/.exec(path)
+    if (method === 'GET' && inboxMatch) {
+      const inbox = state.inboxes.find((i) => i.id === Number(inboxMatch[1]))
+      if (!inbox) return json({ error: 'Resource could not be found' }, 404)
+      return json({ id: inbox.id, name: inbox.name, channel_type: inbox.channel_type })
+    }
+
+    if (path === '/webhooks' || /^\/webhooks\/\d+$/.test(path)) {
+      if (!isAdmin) return json({ error: 'You are not authorized to do this action' }, 401)
+      if (path === '/webhooks') {
+        if (method === 'GET') return json({ payload: { webhooks: state.webhooks.map(webhookView) } })
+        if (method === 'POST') {
+          const w = body?.webhook
+          if (typeof w?.url !== 'string' || w.url === '') return json({ message: 'Url is invalid', attributes: ['url'] }, 422)
+          if (state.webhooks.some((x) => x.url === w.url)) return unprocessable('url')
+          const created = seedWebhook({
+            name: typeof w.name === 'string' ? w.name : '',
+            url: w.url,
+            subscriptions: Array.isArray(w.subscriptions) ? w.subscriptions : [],
+          })
+          return json({ payload: { webhook: webhookView(created) } })
+        }
+      } else {
+        const id = Number(path.split('/')[2])
+        const webhook = state.webhooks.find((x) => x.id === id)
+        if (!webhook) return json({ error: 'Resource could not be found' }, 404)
+        if (method === 'PATCH') {
+          const w = body?.webhook ?? {}
+          if (typeof w.name === 'string') webhook.name = w.name
+          if (typeof w.url === 'string' && w.url !== '') webhook.url = w.url
+          if (Array.isArray(w.subscriptions)) webhook.subscriptions = [...w.subscriptions]
+          return json({ payload: { webhook: webhookView(webhook) } })
+        }
+        if (method === 'DELETE') {
+          state.webhooks = state.webhooks.filter((x) => x.id !== id)
+          return new Response('', { status: 200 })
+        }
+      }
+    }
+
     if (method === 'POST' && path === '/contacts/filter') {
       const conds = body?.payload
       const valid =
@@ -169,7 +369,9 @@ export function createFakeChatwoot(options: FakeChatwootOptions = {}) {
         phone_number: phone,
         identifier,
         custom_attributes: body?.custom_attributes ?? {},
+        additional_attributes: body?.additional_attributes ?? {},
       })
+      options.onWrite?.(req, state)
       return json({ payload: { contact: view(created), contact_inbox: null } })
     }
 
@@ -210,6 +412,10 @@ export function createFakeChatwoot(options: FakeChatwootOptions = {}) {
         if (body?.custom_attributes && typeof body.custom_attributes === 'object') {
           contact.custom_attributes = { ...contact.custom_attributes, ...body.custom_attributes }
         }
+        if (body?.additional_attributes && typeof body.additional_attributes === 'object') {
+          contact.additional_attributes = { ...contact.additional_attributes, ...body.additional_attributes }
+        }
+        options.onWrite?.(req, state)
         return json({ payload: view(contact) })
       }
 
@@ -247,7 +453,7 @@ export function createFakeChatwoot(options: FakeChatwootOptions = {}) {
   /** Requests that changed Chatwoot: everything except GET and the read-only filter lookup. */
   const writes = () => requests.filter((r) => r.method !== 'GET' && r.path !== '/contacts/filter')
 
-  return { fetchImpl, state, requests, merges, writes, seed }
+  return { fetchImpl, state, requests, merges, writes, seed, seedConversation, seedWebhook }
 }
 
 export type FakeChatwoot = ReturnType<typeof createFakeChatwoot>

@@ -274,6 +274,7 @@ const D20_LABELS = [
   'lost-item',
   'review',
   'other',
+  'no-lead',
 ] as const
 const CHANNEL_LABELS = new Set(['ch-email', 'ch-web', 'ch-telegram', 'ch-whatsapp'])
 const CONVERSATION_ATTR_KEYS = [
@@ -303,8 +304,15 @@ describe('infra/chatwoot/labels.json (D-20)', () => {
     labels: { title: string; description: string; color: string; show_on_sidebar: boolean }[]
   }>('labels.json')
 
-  it('titles equal exactly the D-20 labels plus ch-whatsapp and wa-window-closing (13)', () => {
+  it('titles equal exactly the D-20 labels plus ch-whatsapp, wa-window-closing and the D-07 no-lead control label (14)', () => {
     expect(data.labels.map((l) => l.title).sort()).toEqual([...D20_LABELS].sort())
+  })
+
+  it('no-lead (D-07) is a topic-colored, sidebar-visible, price-free control label', () => {
+    const l = data.labels.find((x) => x.title === 'no-lead')
+    expect(l?.color).toBe('#BFA06A')
+    expect(l?.show_on_sidebar).toBe(true)
+    expect(l?.description).not.toMatch(/[€$]|\d/)
   })
 
   it('ch-whatsapp uses the channel color like every other ch-* label (D-17)', () => {

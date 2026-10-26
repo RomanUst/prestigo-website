@@ -18,6 +18,8 @@ import {
 } from '@/lib/chatwoot-client'
 import { breaker, retryLater, skip, type DispatchResult } from '@/lib/dispatch-outcomes'
 import { createIdentityStore, type IdentityStore } from '@/lib/identity-store'
+import type { ChatStore } from '@/lib/chat-store'
+import { deliverHook } from '@/lib/hook-dispatch'
 import { deliverResolve } from '@/lib/sync-resolve'
 import { deliverEspoSync } from '@/lib/crm-sync'
 import { deliverChatwootSync } from '@/lib/chatwoot-sync'
@@ -58,6 +60,8 @@ export interface DispatchDeps {
   chatwootConfig: SiteChatwootConfig | null
   /** Phase 82 (plan 82-12): erasure saga store; undefined = the Supabase RPC store. Tests inject a double. */
   erasure?: ErasureStore
+  /** Phase 83 (plan 83-07): chat registry store; undefined = the Supabase RPC store. Tests inject a double. */
+  chat?: ChatStore
 }
 
 const LEASE_SECONDS = 120
@@ -86,6 +90,7 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     chatwootAdmin,
     chatwootConfig,
     erasure: deps.erasure,
+    chat: deps.chat,
   }
 }
 
@@ -171,6 +176,16 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
   if (row.event_type === 'erase.person') {
     try {
       return await deliverErasure(row, d, { erasure: d.erasure })
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+
+  // Phase 83 inbound webhook handlers (hook.*): they hold both config gates themselves (Chatwoot first,
+  // then the CRM), so the generic CRM gate below must not pre-empt them.
+  if (row.event_type.startsWith('hook.')) {
+    try {
+      return await deliverHook(row, d)
     } catch (err) {
       return handleFailure(row, err, d)
     }
