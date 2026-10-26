@@ -385,16 +385,16 @@ Plans:
   3. Inbound webhooks (Chatwoot, EspoCRM) are verified — HMAC signature over the raw body, timestamp replay window, delivery dedup — and structurally cannot write to `bookings` / `customer_profiles`.
   4. A site → CRM → webhook → site round trip cannot re-trigger itself, proven by origin tagging/fingerprinting on outbound writes.
 
-**Plans:** 16 plans
+**Plans:** 6/16 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 83-01-PLAN.md — Signed Chatwoot receiver tracer -> webhook_ingest -> hook.* outbox row, EspoCRM ingest groundwork + loop fuse (migration 076)
-- [ ] 83-02-PLAN.md — Chat identity layer: basis 'chat', resolve/lookup/attach RPCs (migration 077, D-16)
-- [ ] 83-03-PLAN.md — Chat registry: one open chat Lead per person, erasure scope (migration 078) + import-closure isolation guard
-- [ ] 83-04-PLAN.md — Chat policy (lead sources, D-18 filter, note formats) + Lead.source values + no-lead label
-- [ ] 83-05-PLAN.md — EspoCRM webhook as prestigo-sync with skipOwn, Sync writer Webhook/stream scopes, signed probe
-- [ ] 83-06-PLAN.md — Chatwoot account webhook as config-as-code, secret custody/rotation, signed probe, fake-chatwoot conversations
+- [x] 83-01-PLAN.md — Signed Chatwoot receiver tracer -> webhook_ingest -> hook.* outbox row, EspoCRM ingest groundwork + loop fuse (migration 076)
+- [x] 83-02-PLAN.md — Chat identity layer: basis 'chat', resolve/lookup/attach RPCs (migration 077, D-16)
+- [x] 83-03-PLAN.md — Chat registry: one open chat Lead per person, erasure scope (migration 078) + import-closure isolation guard
+- [x] 83-04-PLAN.md — Chat policy (lead sources, D-18 filter, note formats) + Lead.source values + no-lead label
+- [x] 83-05-PLAN.md — EspoCRM webhook as prestigo-sync with skipOwn, Sync writer Webhook/stream scopes, signed probe
+- [x] 83-06-PLAN.md — Chatwoot account webhook as config-as-code, secret custody/rotation, signed probe, fake-chatwoot conversations
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 83-07-PLAN.md — Intake handler: stranger -> identity + Contact + chat Lead with channel source (HOOK-01)
@@ -481,7 +481,7 @@ Plans:
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
-| 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
+| 83. CRM/Chatwoot → Site Webhooks | v4.0 | 6/16 | In Progress|  |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
 
