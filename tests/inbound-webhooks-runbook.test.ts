@@ -115,6 +115,20 @@ describe('inbound-webhooks runbook: structure', () => {
   })
 })
 
+describe('inbound-webhooks runbook: live contract', () => {
+  it('has exactly one "## Live contract" section, after the erasure checklist', () => {
+    expect(runbook.match(/^## Live contract$/gm) ?? []).toHaveLength(1)
+    expect(runbook.indexOf('## Live contract')).toBeGreaterThan(runbook.indexOf('## 11. Erasure checklist addition'))
+  })
+
+  it('records the confirmed facts (capture switch, fingerprint, skipOwn owner check, no-lead, no loop)', () => {
+    const live = section('Live contract')
+    for (const fact of ['chat_hooks_start', 'site_sync_fp', 'skipOwn', 'createdById', 'no-lead', 'webhook_loop_fused']) {
+      expect(live).toContain(fact)
+    }
+  })
+})
+
 describe('inbound-webhooks runbook: names, commands and codes', () => {
   it.each(NAMES)('mentions %s', (name) => {
     expect(runbook).toContain(name)

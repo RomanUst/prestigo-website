@@ -263,3 +263,30 @@ Notes and registry rows. The EspoCRM step of the audit row reports `notes_delete
   EspoCRM until deleted by hand: open the erased person's former record in EspoCRM as an administrator (or search the
   Notes list), delete those Notes, and note it in the erasure log. A non-zero `notes_skipped` means the erasure is not
   complete until this is done.
+
+## Live contract
+
+What the live systems actually do, confirmed at go-live on 2026-10-26 (plans 83-14 and 83-15). If a later Chatwoot or
+EspoCRM upgrade breaks one of these facts, the matching handler degrades and this list is the place to look first.
+
+- **Capture switch.** `chat_hooks_start` was set at 2026-10-26 15:38 UTC. Events older than that are ignored.
+- **Receiver latency.** Both receivers answer in well under a second (0.2–0.7 s) on `https://rideprestigo.com`, with
+  no redirect. Chatwoot's limit is 5 seconds.
+- **Chatwoot payloads.** An incoming visitor message arrives as `message_created` and is queued; a private agent note
+  arrives as `message_created` and is ignored with code `private`. Resolving a conversation arrives as
+  `conversation_status_changed` and produces the history Note with the right resolved minute. Adding the `no-lead`
+  label arrives as `conversation_updated`; label-free updates are ignored with code `no_label`.
+- **Website-chat visitors give their email after the first message.** The first message creates the Lead and Contact
+  as soon as the email is known; a later `contact_updated` with the email is handled as `hook.chat_contact`.
+- **Fingerprint attribute.** Chatwoot accepts and keeps the custom attribute `site_sync_fp` on contacts. Our own
+  contact writes come back as `contact_updated` and are ignored (`irrelevant_change` or `echo`).
+- **History Note.** The Sync writer can post a Note on a Contact and read the stream, so the duplicate-marker check
+  works. The Note's Chatwoot link opens the conversation in the Chatwoot app (account 1, conversation id).
+- **EspoCRM webhook.** EspoCRM 10.0.8 sends only the changed attributes of a Contact (an owner name edit produced the
+  name-only change mask). The webhook is owned by the Sync writer with `skipOwn` on, so the site's own EspoCRM writes
+  never come back. The Sync writer cannot see `userId` on its webhook; `webhook.mjs` checks the owner through
+  `createdById`.
+- **EspoCRM delivery delay.** The owner's edit reached the site within about a minute.
+- **no-lead label.** One label click moved the chat Lead to Dead in EspoCRM and closed the registry row as `dead`.
+- **No loop.** In the go-live window every `hook.*` row was sent on the first attempt, no entity had more than two
+  deliveries, and there was no `ALERT webhook_loop_fused` line.
