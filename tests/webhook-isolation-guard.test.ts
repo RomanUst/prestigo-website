@@ -6,8 +6,8 @@ import path from 'path'
 /**
  * Phase 83, D-17 / HOOK-03 — import-closure layer of the structural barrier: the inbound webhook
  * path (both receiver routes and the handlers behind them) must not be able to reach a booking or
- * customer-profile write. Source-reading assertion only. The behavioural layer (a runtime tripwire)
- * is plan 83-12.
+ * customer-profile write. Source-reading assertion only. The behavioural layer (a runtime tripwire over
+ * the real stores) is tests/webhook-isolation-runtime.test.ts (plan 83-12).
  *
  * For every entry module that exists, the guard computes the runtime import closure (type-only
  * imports are erased by the compiler and are ignored) and enforces four rules:
@@ -19,7 +19,7 @@ import path from 'path'
  *
  * lib/supabase.ts is the module boundary: it is not traversed (rule 1 limits what may come out of it).
  * Scope is computed from the files that exist, so routes and handlers added by later plans are
- * covered automatically; plan 83-12 raises the floor to every entry module.
+ * covered automatically, and SCOPE_FLOOR names the ten entry modules that must always be in it.
  */
 
 const REPO_ROOT = path.resolve(__dirname, '..')
@@ -36,8 +36,22 @@ const WRITE_VERBS: ReadonlySet<string> = new Set(['insert', 'update', 'upsert', 
 const ENTRY_ROUTES = ['app/api/webhooks/chatwoot/route.ts', 'app/api/webhooks/espocrm/route.ts']
 const ENTRY_LIB_FILES = ['lib/hook-dispatch.ts', 'lib/espo-contact-hook.ts', 'lib/sync-origin.ts']
 const ENTRY_LIB_PATTERNS = [/^lib\/chat-[^/]+\.tsx?$/, /^lib\/webhook-[^/]+\.tsx?$/]
-/** The chat registry is this plan's floor: the guard is never vacuous. */
-const SCOPE_FLOOR = ['lib/chat-store.ts']
+/**
+ * The floor of the guard's scope (plan 83-12): these ten entry modules must always be in it, whatever the
+ * patterns above match, so the guard can never silently shrink to a subset of the inbound path.
+ */
+const SCOPE_FLOOR = [
+  'app/api/webhooks/chatwoot/route.ts',
+  'app/api/webhooks/espocrm/route.ts',
+  'lib/hook-dispatch.ts',
+  'lib/chat-io.ts',
+  'lib/chat-intake.ts',
+  'lib/chat-resolve.ts',
+  'lib/chat-contact.ts',
+  'lib/espo-contact-hook.ts',
+  'lib/chat-store.ts',
+  'lib/webhook-store.ts',
+]
 
 interface Violation {
   path: string
@@ -288,6 +302,12 @@ function computeEntries(allFiles: string[]): string[] {
   return [...entries].sort()
 }
 
+/** The floor modules that are not in the computed scope (empty = the guard covers every one of them). */
+function missingFromFloor(entries: readonly string[], floor: readonly string[]): string[] {
+  const set = new Set(entries)
+  return floor.filter((f) => !set.has(f))
+}
+
 // ── fixtures ────────────────────────────────────────────────────────────────────────────────────
 const SUPABASE_STUB = `export function createSupabaseServiceClient() { return {} }\nexport async function saveBooking() {}`
 
@@ -398,6 +418,27 @@ describe('findIsolationViolations: fixtures', () => {
   })
 })
 
+describe('scope floor: fixtures', () => {
+  const present = [...SCOPE_FLOOR, 'lib/chat-payload.ts', 'lib/sync-origin.ts']
+
+  it('names exactly the ten inbound entry modules', () => {
+    expect(SCOPE_FLOOR).toHaveLength(10)
+    expect(new Set(SCOPE_FLOOR).size).toBe(10)
+    expect(SCOPE_FLOOR).toEqual(expect.arrayContaining(['app/api/webhooks/chatwoot/route.ts', 'app/api/webhooks/espocrm/route.ts', 'lib/espo-contact-hook.ts', 'lib/webhook-store.ts']))
+  })
+
+  it('is satisfied by a scope holding every floor module', () => {
+    expect(missingFromFloor(present, SCOPE_FLOOR)).toEqual([])
+  })
+
+  it('fails when any single floor module is removed from the scope', () => {
+    for (const removed of SCOPE_FLOOR) {
+      const shrunk = present.filter((f) => f !== removed)
+      expect(missingFromFloor(shrunk, SCOPE_FLOOR), removed).toEqual([removed])
+    }
+  })
+})
+
 describe('deriveForbiddenRpcs: fixtures', () => {
   const sql = `
     CREATE OR REPLACE FUNCTION public.writes_bookings(p uuid) RETURNS void LANGUAGE plpgsql AS $$
@@ -437,8 +478,9 @@ describe('webhook isolation guard: real tree', () => {
     expect([...forbidden].filter((n) => n.startsWith('chat_'))).toEqual([])
   })
 
-  it('scope covers lib/chat-store.ts and every entry module that exists', () => {
-    for (const floor of SCOPE_FLOOR) expect(entries).toContain(floor)
+  it('scope covers the ten floor modules and every entry module that exists', () => {
+    expect(missingFromFloor(entries, SCOPE_FLOOR)).toEqual([])
+    for (const floor of SCOPE_FLOOR) expect(fs.existsSync(path.join(REPO_ROOT, floor)), floor).toBe(true)
     for (const f of [...ENTRY_ROUTES, ...ENTRY_LIB_FILES]) {
       if (fs.existsSync(path.join(REPO_ROOT, f))) expect(entries, f).toContain(f)
     }
