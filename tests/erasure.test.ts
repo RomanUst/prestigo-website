@@ -14,6 +14,8 @@ import type {
   ErasureStore,
 } from '@/lib/erasure-store'
 import { OutboxStoreError } from '@/lib/outbox-store'
+import type { ChatStore, ErasureScopeInput } from '@/lib/chat-store'
+import { makeChatStoreDouble } from './helpers/chat-world'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   anonymisePerson,
@@ -215,6 +217,8 @@ interface HarnessOptions {
   rows?: OutboxRow[]
   anonymiseFails?: boolean
   onRecord?: (step: ErasureStepName) => void
+  /** Phase 83: the chat registry double; default = an empty one (the sync never reaches Supabase). */
+  chat?: ReturnType<typeof makeChatStoreDouble>
 }
 
 function harness(o: HarnessOptions = {}) {
@@ -238,6 +242,23 @@ function harness(o: HarnessOptions = {}) {
   const crm = createSiteEspoClient({ config: ESPO_CONFIG, fetchImpl: fakeEspo.fetchImpl as unknown as typeof fetch, timeoutMs: 200 })
   const publish = vi.fn(async () => true)
   const now = o.now ?? (() => NOW)
+  // Phase 83 (83-09): chat.erase and anonymisePerson append to one event list (call-order assertion).
+  const chat = o.chat ?? makeChatStoreDouble()
+  const events: string[] = []
+  const eraseInputs: ErasureScopeInput[] = []
+  const chatStore: ChatStore = {
+    ...chat.store,
+    async erase(input) {
+      events.push('chat_erase')
+      eraseInputs.push(input)
+      return chat.store.erase(input)
+    },
+  }
+  const realAnonymise = erasure.store.anonymisePerson
+  erasure.store.anonymisePerson = async (id) => {
+    events.push('anonymise')
+    return realAnonymise(id)
+  }
   const deps: Partial<DispatchDeps> = {
     store: outbox.store,
     crm,
@@ -248,8 +269,9 @@ function harness(o: HarnessOptions = {}) {
     chatwootAdmin,
     chatwootConfig: CW_CONFIG,
     erasure: erasure.store,
+    chat: chatStore,
   }
-  return { outbox, erasure, fakeCw, fakeEspo, publish, deps, now }
+  return { outbox, erasure, fakeCw, fakeEspo, publish, deps, now, chat, events, eraseInputs }
 }
 type Harness = ReturnType<typeof harness>
 
@@ -851,5 +873,218 @@ describe('erasure store wrappers', () => {
         verified: true,
       },
     ])
+  })
+})
+
+// ── Phase 83 D-16: erasure covers chat Leads, chat Contacts, history Notes and registry rows ──
+
+const CHAT_LEAD_1 = 'e00000000000000a1'
+const CHAT_LEAD_3 = 'e00000000000000a3'
+const CHAT_CONTACT_2 = 'c00000000000000b2'
+const OTHER_LEAD = 'e00000000000000f9'
+const OTHER_EMAIL = 'other.person@x.test'
+const noteId = (n: number) => `d${String(n).padStart(16, '0')}`
+const NOTE_LEAD_1 = noteId(1)
+const NOTE_CONTACT_2 = noteId(2)
+const NOTE_OWN_CONTACT = noteId(3)
+const NOTE_OTHER = noteId(4)
+const NOTE_SYSTEM = noteId(5)
+const CHAT_PHONE = '+420777900077'
+
+/** GET /<Lead|Contact>/<id>/stream over the fake's Note records (the fake has no stream route). */
+function streamRoute(extra?: FakeEspoOptions['extraRoutes']): NonNullable<FakeEspoOptions['extraRoutes']> {
+  return async (req, state) => {
+    const stream = /^\/(Lead|Contact)\/([0-9a-f]{17})\/stream$/.exec(req.path)
+    if (req.method === 'GET' && stream) {
+      const size = Number(new URLSearchParams(req.query).get('maxSize') ?? 20)
+      const list = (state.records.Note ?? []).filter((n) => n.parentType === stream[1] && n.parentId === stream[2])
+      return new Response(JSON.stringify({ total: list.length, list: [...list].reverse().slice(0, size) }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    return extra?.(req, state)
+  }
+}
+
+function chatEspo(over: { extraRoutes?: FakeEspoOptions['extraRoutes']; extraRecords?: Record<string, Array<Record<string, unknown>>> } = {}): FakeEspoOptions {
+  return {
+    records: {
+      Contact: [
+        { id: CONTACT_ID, firstName: 'Anna', lastName: 'Novak', emailAddress: EMAIL, phoneNumber: PHONE },
+        { id: CHAT_CONTACT_2, firstName: '', lastName: 'Chat visitor', phoneNumber: CHAT_PHONE },
+      ],
+      Lead: [
+        { id: CHAT_LEAD_1, firstName: 'Anna', lastName: 'Novak', cSupabaseRef: 'chat:conv-1', description: 'Chat: I need a ride on the 5th' },
+        { id: CHAT_LEAD_3, lastName: 'Chat visitor', cSupabaseRef: 'chat:conv-3' },
+        { id: OTHER_LEAD, lastName: 'Other', emailAddress: OTHER_EMAIL, cSupabaseRef: 'chat:conv-9' },
+      ],
+      Note: [
+        { id: NOTE_LEAD_1, type: 'Post', parentType: 'Lead', parentId: CHAT_LEAD_1, post: 'first message: I am Anna' },
+        { id: NOTE_CONTACT_2, type: 'Post', parentType: 'Contact', parentId: CHAT_CONTACT_2, post: 'phone chat history' },
+        { id: NOTE_OWN_CONTACT, type: 'Post', parentType: 'Contact', parentId: CONTACT_ID, post: 'history on the customer Contact' },
+        { id: NOTE_OTHER, type: 'Post', parentType: 'Lead', parentId: OTHER_LEAD, post: 'somebody else' },
+        { id: NOTE_SYSTEM, type: 'Create', parentType: 'Lead', parentId: CHAT_LEAD_1, post: null },
+      ],
+      ...(over.extraRecords ?? {}),
+    },
+    extraRoutes: streamRoute(over.extraRoutes),
+  }
+}
+
+/** Registry: a closed chat Lead of the identity, one phone-only row (chat Contact), one Lead found only by ref, another person. */
+async function seedRegistry(chat: ReturnType<typeof makeChatStoreDouble>) {
+  const l1 = await chat.store.reserveLead({ personKey: `i:${IDENTITY}`, identityId: IDENTITY, chatwootContactId: null, phone: null, leadRef: 'chat:conv-1' })
+  await chat.store.setLeadEspo(l1.chatLeadId, CHAT_LEAD_1, null)
+  await chat.store.closeLead(l1.chatLeadId, 'converted', BOOKING_1)
+
+  const phoneOnly = await chat.store.reserveLead({ personKey: 'c:900', identityId: null, chatwootContactId: 900, phone: CHAT_PHONE, leadRef: 'chat:conv-2' })
+  await chat.store.setLeadEspo(phoneOnly.chatLeadId, null, CHAT_CONTACT_2)
+
+  // Registered by the person's Chatwoot contact id, its EspoCRM Lead is only reachable through cSupabaseRef.
+  await chat.store.reserveLead({ personKey: 'c:1', identityId: null, chatwootContactId: 1, phone: null, leadRef: 'chat:conv-3' })
+
+  await chat.store.reserveLead({ personKey: 'i:other-identity', identityId: 'other-identity', chatwootContactId: null, phone: null, leadRef: 'chat:conv-9' })
+}
+
+async function chatHarness(o: Partial<HarnessOptions> & { espo?: FakeEspoOptions } = {}) {
+  const chat = makeChatStoreDouble()
+  await seedRegistry(chat)
+  const h = harness({
+    req: request({ phones: [CHAT_PHONE] }),
+    espo: chatEspo(),
+    chat,
+    ...o,
+  })
+  return h
+}
+
+describe('D-16 erasure: chat Leads, chat-created Contacts, history Notes and registry rows', () => {
+  it('chat Lead and chat Contact found through the registry are scrubbed then deleted, their Notes blanked then deleted', async () => {
+    const h = await chatHarness()
+
+    const result = await dispatchOutboxKey(KEY, h.deps)
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(espoRecords(h, 'Lead').map((r) => r.id)).toEqual([OTHER_LEAD])
+    expect(espoRecords(h, 'Contact')).toHaveLength(0)
+
+    // Scrub before delete, for the Lead, the Contact and every Note.
+    const idx = (method: string, path: string) => h.fakeEspo.requests.findIndex((r) => r.method === method && r.path === path)
+    for (const [entity, id] of [['Lead', CHAT_LEAD_1], ['Contact', CHAT_CONTACT_2], ['Lead', CHAT_LEAD_3]] as const) {
+      expect(idx('PUT', `/${entity}/${id}`)).toBeGreaterThan(-1)
+      expect(idx('DELETE', `/${entity}/${id}`)).toBeGreaterThan(idx('PUT', `/${entity}/${id}`))
+    }
+    for (const id of [NOTE_LEAD_1, NOTE_CONTACT_2, NOTE_OWN_CONTACT]) {
+      const put = idx('PUT', `/Note/${id}`)
+      expect(put).toBeGreaterThan(-1)
+      expect(h.fakeEspo.requests[put].body).toEqual({ post: '' })
+      expect(idx('DELETE', `/Note/${id}`)).toBeGreaterThan(put)
+    }
+    // A Post of another person's Lead and a system (non-Post) Note are never touched.
+    expect(espoRecords(h, 'Note').map((n) => n.id).sort()).toEqual([NOTE_OTHER, NOTE_SYSTEM].sort())
+    expect(espoReqs(h, 'PUT', `/Lead/${OTHER_LEAD}`)).toHaveLength(0)
+    expect(espoReqs(h, 'DELETE', `/Lead/${OTHER_LEAD}`)).toHaveLength(0)
+
+    const counts = h.erasure.calls.complete[0].counts
+    expect(counts.espo_leads_deleted).toBeGreaterThanOrEqual(2)
+    expect(counts.espo_contacts_deleted).toBeGreaterThanOrEqual(2)
+    expect(counts.notes_deleted).toBeGreaterThanOrEqual(3)
+    expect(counts.notes_skipped).toBe(0)
+    expect(counts.verify_remaining).toBe(0)
+    expect(h.erasure.calls.complete[0]).toMatchObject({ verified: true, status: 'completed' })
+  })
+
+  it('an owner-written Note that answers 403 is notes_skipped and never blocks the erasure', async () => {
+    const h = await chatHarness({
+      espo: chatEspo({
+        extraRoutes: (req) =>
+          req.method === 'PUT' && req.path === `/Note/${NOTE_LEAD_1}` ? new Response('', { status: 403 }) : undefined,
+      }),
+    })
+
+    const result = await dispatchOutboxKey(KEY, h.deps)
+
+    expect(result).toEqual({ outcome: 'sent' })
+    const counts = h.erasure.calls.complete[0].counts
+    expect(counts.notes_skipped).toBe(1)
+    expect(counts.notes_deleted).toBeGreaterThanOrEqual(2)
+    expect(espoRecords(h, 'Note').map((n) => n.id)).toContain(NOTE_LEAD_1)
+    expect(espoReqs(h, 'DELETE', `/Note/${NOTE_LEAD_1}`)).toHaveLength(0)
+    expect(h.erasure.calls.complete[0]).toMatchObject({ verified: true, status: 'completed' })
+    expect(h.outbox.rows.get(KEY)?.status).toBe('sent')
+  })
+
+  it('a Note that is already gone (404) counts as done', async () => {
+    const h = await chatHarness({
+      espo: chatEspo({
+        extraRoutes: (req) =>
+          req.method === 'PUT' && req.path === `/Note/${NOTE_CONTACT_2}` ? new Response('', { status: 404 }) : undefined,
+      }),
+    })
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+    expect(h.erasure.calls.complete[0].counts.notes_skipped).toBe(0)
+  })
+
+  it('chat.erase is called once with the person scope, before anonymisePerson, and chat_rows_deleted is in the counts', async () => {
+    const h = await chatHarness()
+
+    await dispatchOutboxKey(KEY, h.deps)
+
+    expect(h.events).toEqual(['chat_erase', 'anonymise'])
+    expect(h.eraseInputs).toEqual([{ identityId: IDENTITY, chatwootContactIds: [1], phones: [CHAT_PHONE] }])
+    expect(h.erasure.calls.complete[0].counts.chat_rows_deleted).toBe(3)
+    // The other person's registry row survives.
+    expect(h.chat.state.leads.map((l) => l.leadRef)).toEqual(['chat:conv-9'])
+  })
+
+  it('the Lead of ANOTHER person (not in the registry scope, other email) is never touched', async () => {
+    const h = await chatHarness()
+
+    await dispatchOutboxKey(KEY, h.deps)
+
+    expect(espoRecords(h, 'Lead').find((r) => r.id === OTHER_LEAD)).toMatchObject({ emailAddress: OTHER_EMAIL, lastName: 'Other' })
+    expect(h.fakeEspo.requests.filter((r) => r.method !== 'GET' && r.path.includes(OTHER_LEAD))).toHaveLength(0)
+    expect(h.fakeEspo.requests.filter((r) => r.path.includes(`/Lead/${OTHER_LEAD}/stream`))).toHaveLength(0)
+  })
+
+  it('a Lead found only through the registry cSupabaseRef (no stored espo id) is deleted', async () => {
+    const h = await chatHarness()
+
+    await dispatchOutboxKey(KEY, h.deps)
+
+    expect(espoRecords(h, 'Lead').some((r) => r.id === CHAT_LEAD_3)).toBe(false)
+  })
+
+  it('the step results and every log line carry counts only: no id, email or phone', async () => {
+    const lines: string[] = []
+    vi.spyOn(console, 'log').mockImplementation((...a) => void lines.push(a.join(' ')))
+    vi.spyOn(console, 'error').mockImplementation((...a) => void lines.push(a.join(' ')))
+    const h = await chatHarness()
+
+    await dispatchOutboxKey(KEY, h.deps)
+
+    const dump = JSON.stringify(h.erasure.req?.steps ?? {}) + JSON.stringify(h.erasure.calls.complete) + lines.join('\n')
+    for (const secret of [CHAT_LEAD_1, CHAT_LEAD_3, CHAT_CONTACT_2, NOTE_LEAD_1, EMAIL, CHAT_PHONE, PHONE, 'chat:conv-1', 'chat:conv-3']) {
+      expect(dump).not.toContain(secret)
+    }
+    expect(h.erasure.req?.steps.espocrm).toMatchObject({ notes_deleted: expect.any(Number), notes_skipped: expect.any(Number) })
+  })
+
+  it('a registry or Note failure retries the row and leaves Supabase untouched', async () => {
+    const h = await chatHarness({
+      espo: chatEspo({
+        extraRoutes: (req) =>
+          req.method === 'DELETE' && req.path === `/Note/${NOTE_LEAD_1}` ? new Response('', { status: 500 }) : undefined,
+      }),
+    })
+
+    const result = await dispatchOutboxKey(KEY, h.deps)
+
+    expect(result.outcome).toBe('rescheduled')
+    expect(h.erasure.calls.anonymise).toBe(0)
+    expect(h.events).toEqual([])
+    expect(h.chat.state.leads).toHaveLength(4)
   })
 })

@@ -63,6 +63,11 @@ export class SiteEspoError extends Error {
   }
 }
 
+/** PUT / DELETE of one stream Note: `/Note/<id>`. */
+function isNoteWrite(method: string, path: string): boolean {
+  return (method === 'PUT' || method === 'DELETE') && /^\/Note\/[A-Za-z0-9]+(?:\?.*)?$/.test(path)
+}
+
 export type EspoErrorClass = 'transient' | 'auth' | 'not_found' | 'conflict' | 'permanent'
 
 export function classifyEspoError(err: unknown): EspoErrorClass {
@@ -143,7 +148,10 @@ export function createSiteEspoClient({
     }
 
     if (status < 200 || status >= 300) {
-      if (status === 401 || status === 403) poisoned = true
+      // A 403 on one Note write is a per-record refusal (the Note was written by another user), not a
+      // credential failure: the same invocation already authenticated. It must not stop the erasure
+      // saga that skips such a Note (Phase 83 D-16). Every other 401/403 still poisons the client.
+      if (status === 401 || (status === 403 && !isNoteWrite(method, path))) poisoned = true
       throw new SiteEspoError(method, path, status)
     }
     if (text.trim() === '') return null
