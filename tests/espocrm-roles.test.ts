@@ -181,9 +181,9 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
     expect(writers).toEqual(['Sync writer'])
   })
 
-  it('Sync writer: Account, Contact, CBooking, Lead (+ User read for assignment); no Opportunity, CPartnerRate, Email or Task; delete only on Lead (D-22) and Contact (GDPR erasure, plan 82-12)', () => {
+  it('Sync writer: Account, Contact, CBooking, Lead (+ User read for assignment, + Webhook ownership, plan 83-05); no Opportunity, CPartnerRate, Email or Task; delete only on Lead (D-22) and Contact (GDPR erasure, plan 82-12)', () => {
     const w = spec('Sync writer')
-    expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact', 'Lead', 'User'])
+    expect(Object.keys(w.data).filter((k) => w.data[k] !== false).sort()).toEqual(['Account', 'CBooking', 'Contact', 'Lead', 'User', 'Webhook'])
     // User is read-only: needed to relate assignedUser (EspoCRM 403 cannotRelateForbidden otherwise)
     expect(w.data.User).toEqual({ read: 'all' })
     for (const scope of ['Opportunity', 'CPartnerRate', 'Email', 'Task']) expect(noAccess(w.data[scope])).toBe(true)
@@ -192,10 +192,24 @@ describe('role invariants (D-15, D-16, D-17, D-22)', () => {
     }
     expect(w.data.CBooking).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'no' })
     // Plan 82-12 (D-09): the erasure saga scrubs then deletes the person's Contacts; Account and CBooking stay undeletable.
-    expect(w.data.Contact).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all' })
+    // Plan 83-05 (D-08/D-11): stream 'all' lets the sync user post and read history Notes on Contact and Lead.
+    expect(w.data.Contact).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all', stream: 'all' })
     expect(w.data.Account.delete).toBe('no')
-    expect(w.data.Lead).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all' })
+    expect(w.data.Lead).toEqual({ create: 'yes', read: 'all', edit: 'all', delete: 'all', stream: 'all' })
     expect(w.assignTo).toEqual(['prestigo-sync'])
+  })
+
+  it('Webhook scope (plan 83-05, HOOK-04): only the Sync writer may own a webhook, and stream is widened only on Contact and Lead', () => {
+    // skipOwn only sticks for an API-user owner; the owner needs the Webhook scope to create one.
+    expect(spec('Sync writer').data.Webhook).toBe(true)
+    expect(specsOf().filter((r: any) => r.data.Webhook).map((r: any) => r.name)).toEqual(['Sync writer'])
+    for (const r of specsOf()) {
+      for (const [scope, acl] of Object.entries<any>(r.data)) {
+        if (acl && typeof acl === 'object' && acl.stream !== undefined) {
+          expect([r.name, scope], 'stream widened outside plan 83-05').toEqual(['Sync writer', expect.stringMatching(/^(Contact|Lead)$/)])
+        }
+      }
+    }
   })
 
   it('Sync writer may assign records to other users (D-13: site Leads go to the owner); no other role is widened', () => {
@@ -325,6 +339,15 @@ describe('buildAclExpectations', () => {
     expect(l).toContain('GET /Email forbidden')
   })
 
+  it('Webhook (plan 83-05): GET /Webhook is allowed for the Sync writer and exactly 403 for every other managed role', () => {
+    expect(labels('Sync writer')).toContain('GET /Webhook allowed')
+    for (const role of ['Dispatcher', 'Sales manager']) expect(labels(role)).toContain('GET /Webhook forbidden')
+    const forbidden = all.find((c: any) => c.role === 'Dispatcher' && c.label === 'GET /Webhook forbidden')
+    expect(forbidden.status).toBe(403)
+    // the canary role is not a managed role in roles.json; the check set covers every managed one
+    expect(all.filter((c: any) => c.label === 'GET /Webhook allowed').map((c: any) => c.role)).toEqual(['Sync writer'])
+  })
+
   it('D-22 Lead: Dispatcher GET is forbidden; Sales manager and Sync writer create, edit and delete a Lead', () => {
     expect(labels('Dispatcher')).toContain('GET /Lead forbidden')
     expect(labels('Dispatcher').filter((l: string) => l.includes('/Lead') && !l.startsWith('GET'))).toEqual([])
@@ -405,6 +428,8 @@ function aclFake() {
       if (!m) return undefined
       const acl = role?.data?.[m[1]]
       if (!acl) return deny()
+      // Boolean scope (Webhook): granted or not, no level per action.
+      if (acl === true) return req.method === 'GET' ? new Response(JSON.stringify({ total: 0, list: [] }), { status: 200 }) : undefined
       const level =
         req.method === 'GET' ? acl.read : req.method === 'POST' ? acl.create : req.method === 'PUT' ? acl.edit : acl.delete
       if (level === 'no' || level === undefined) return deny()
