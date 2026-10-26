@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "title": "Accueil personnalisé à l'aéroport de Prague — PRG",
+    "title": "Accueil à l'aéroport de Prague — VIP et fast track",
     "description": "Accueil personnalisé à l'aéroport de Prague : chauffeur aux arrivées de PRG avec pancarte, 60 min d'attente offertes, suivi du vol. Mercedes dès {businessPrice} €.",
-    "ogTitle": "Accueil personnalisé à l'aéroport de Prague — pancarte nominative aux arrivées de PRG"
+    "ogTitle": "Accueil personnalisé à l'aéroport de Prague — Réservez VIP et fast track"
   },
   "breadcrumbName": "Accueil personnalisé à l'aéroport",
   "hero": {
@@ -19,7 +19,7 @@
     "items": [
       { "label": "Où", "value": "Dans le hall des arrivées du terminal 1 (hors Schengen) et du terminal 2 (Schengen)" },
       { "label": "Attente", "value": "Jusqu'à 60 minutes offertes après l'atterrissage, vol suivi en temps réel" },
-      { "label": "Prix", "value": "Inclus dans le tarif — Mercedes E-Class à partir de {businessPrice} € par voiture" },
+      { "label": "Prix et fast track", "value": "Inclus dans le tarif — Mercedes E-Class à partir de {businessPrice} € par voiture. Fast track VIP au contrôle des passeports sur demande" },
       { "label": "Horaires", "value": "24h/24, 7j/7, toute l'année — réservez au moins 12 heures à l'avance" }
     ]
   },

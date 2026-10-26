@@ -1,13 +1,13 @@
 {
   "metadata": {
-    "title": "Prague Airport Meet & Greet Service — PRG Arrivals",
+    "title": "Prague Airport Meet and Greet — VIP & Fast Track",
     "description": "Book a Prague Airport meet & greet: your chauffeur waits inside PRG Arrivals with a name board, 60 min free waiting, flight tracking. Mercedes from €{businessPrice}.",
-    "ogTitle": "Prague Airport Meet & Greet Service — Name Board at PRG Arrivals"
+    "ogTitle": "Airport Meet and Greet at Prague Airport — Book VIP & Fast Track"
   },
   "breadcrumbName": "Airport Meet & Greet",
   "hero": {
     "label": "Meet & Greet · Prague Airport",
-    "headlineLine1": "Prague Airport meet & greet.",
+    "headlineLine1": "Airport meet and greet at Prague Airport.",
     "headlineItalic": "Collected, not found.",
     "intro": "A Prestigo meet & greet means your chauffeur is standing inside the Arrivals hall at Prague Václav Havel Airport (PRG) with your name on a board before you walk out of baggage reclaim. They take your luggage, walk you to a Mercedes parked a short distance away and drive you to any address in Prague. Included on every airport transfer, from €{businessPrice} per car.",
     "ctaPrimary": "Book Meet & Greet",
@@ -19,7 +19,7 @@
     "items": [
       { "label": "Where", "value": "Inside Arrivals at Terminal 1 (non-Schengen) and Terminal 2 (Schengen)" },
       { "label": "Waiting", "value": "Up to 60 minutes free after landing, flight tracked live" },
-      { "label": "Price", "value": "Included in the fare — Mercedes E-Class from €{businessPrice} per car" },
+      { "label": "Price & fast track", "value": "Included in the fare — Mercedes E-Class from €{businessPrice} per car. VIP fast-track through passport control on request" },
       { "label": "Hours", "value": "24/7, every day of the year — book at least 12 hours ahead" }
     ]
   },

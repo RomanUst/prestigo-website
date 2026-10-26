@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "title": "Recepción personalizada en el aeropuerto de Praga — PRG",
+    "title": "Recepción en el aeropuerto de Praga — VIP y fast track",
     "description": "Recepción personalizada en el aeropuerto de Praga: su chófer le espera en Llegadas de PRG con su nombre, 60 min de espera gratis. Mercedes desde €{businessPrice}.",
-    "ogTitle": "Recepción personalizada en el aeropuerto de Praga — Cartel con su nombre en Llegadas de PRG"
+    "ogTitle": "Recepción personalizada en el aeropuerto de Praga — Reserve VIP y fast track"
   },
   "breadcrumbName": "Recepción en el aeropuerto",
   "hero": {
@@ -26,8 +26,8 @@
         "value": "Hasta 60 minutos gratuitos tras el aterrizaje, con seguimiento del vuelo en directo"
       },
       {
-        "label": "Precio",
-        "value": "Incluida en la tarifa: Mercedes E-Class desde €{businessPrice} por vehículo"
+        "label": "Precio y fast track",
+        "value": "Incluida en la tarifa: Mercedes E-Class desde €{businessPrice} por vehículo. Fast track VIP en el control de pasaportes, bajo petición"
       },
       {
         "label": "Horario",

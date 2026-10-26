@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "title": "布拉格机场举牌接机服务 — PRG 抵达大厅",
+    "title": "布拉格机场举牌接机 — VIP 与快速通道",
     "description": "预订布拉格机场举牌接机：司机在 PRG 抵达大厅内举牌等候，落地后免费等候 60 分钟，航班实时追踪。Mercedes 专车 €{businessPrice} 起。",
-    "ogTitle": "布拉格机场举牌接机服务 — PRG 抵达大厅举牌迎接"
+    "ogTitle": "布拉格机场举牌接机服务 — 预订 VIP 与快速通道"
   },
   "breadcrumbName": "机场举牌接机",
   "hero": {
@@ -26,8 +26,8 @@
         "value": "落地后最长 60 分钟免费等候，航班实时追踪"
       },
       {
-        "label": "价格",
-        "value": "已含在车费中——Mercedes E-Class €{businessPrice} 起（按车计价）"
+        "label": "价格与快速通道",
+        "value": "已含在车费中——Mercedes E-Class €{businessPrice} 起（按车计价）；可应要求安排 VIP 快速通道过边检"
       },
       {
         "label": "服务时间",
