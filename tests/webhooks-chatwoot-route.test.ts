@@ -398,6 +398,137 @@ describe('POST /api/webhooks/chatwoot: filtering and outcomes', () => {
   })
 })
 
+describe('POST /api/webhooks/chatwoot: secret rotation (HOOK-03)', () => {
+  it('a request signed with the previous secret passes while it is set and fails once it is unset', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', SECRETS.previous)
+    const body = Buffer.from(JSON.stringify(incoming()))
+    const passing = await POST(build(body, { secret: SECRETS.previous }))
+    expect(passing.status).toBe(200)
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '')
+    ingestMock.mockClear()
+    const failing = await POST(build(body, { secret: SECRETS.previous }))
+    expect(failing.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('the current secret keeps working while the previous one is set', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', SECRETS.previous)
+    const res = await POST(build(incoming(), { secret: SECRETS.current }))
+    expect(res.status).toBe(200)
+  })
+
+  it('an empty-string previous secret is never used as a key', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '')
+    const res = await POST(build(incoming(), { secret: '' }))
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '   ')
+    const blank = await POST(build(incoming(), { secret: '' }))
+    expect(blank.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('a timestamp 301 s in the future is rejected and 300 s ahead passes', async () => {
+    const ahead = await POST(build(incoming(), { tsOffset: 301 }))
+    expect(ahead.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+    const edge = await POST(build(incoming(), { tsOffset: 300 }))
+    expect(edge.status).toBe(200)
+  })
+
+  it('a non-numeric timestamp fails closed with 401', async () => {
+    const body = Buffer.from(JSON.stringify(incoming()))
+    const req = new Request('http://localhost/api/webhooks/chatwoot', {
+      method: 'POST',
+      headers: { 'X-Chatwoot-Timestamp': 'abc', 'X-Chatwoot-Signature': sign(SECRETS.current, 'abc', body) },
+      body: new Uint8Array(body),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: delivery id', () => {
+  const expectedBodyHash = (payload: unknown) =>
+    'b' + createHash('sha256').update(Buffer.from(JSON.stringify(payload))).digest('hex')
+
+  it('a missing X-Chatwoot-Delivery header yields a 65-char body-hash id starting with b', async () => {
+    await POST(build(incoming(), { delivery: null }))
+    const id = ingestMock.mock.calls[0][0].deliveryId as string
+    expect(id).toHaveLength(65)
+    expect(id.startsWith('b')).toBe(true)
+    expect(id).toBe(expectedBodyHash(incoming()))
+  })
+
+  it.each(['has spaces in it', 'semi;colon-1234', 'short', 'x'.repeat(65), 'unicode-ééééé'])(
+    'a delivery header %j outside [A-Za-z0-9-]{8,64} falls back to the same body-hash id',
+    async (delivery) => {
+      await POST(build(incoming(), { delivery }))
+      expect(ingestMock.mock.calls[0][0].deliveryId).toBe(expectedBodyHash(incoming()))
+    },
+  )
+
+  it('a well-formed delivery header is used as is', async () => {
+    await POST(build(incoming(), { delivery: 'Abc-1234-XYZ' }))
+    expect(ingestMock.mock.calls[0][0].deliveryId).toBe('Abc-1234-XYZ')
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: log hygiene (T-83-55)', () => {
+  const PRIVATE_VALUES = ['Grace Hopper', 'grace@example.com', '+420777888999', 'Ada', 'ada@example.com', 'hello', 'secret customer sentence']
+
+  it('no log line from an intake, contact, invalid and fused request carries payload data', async () => {
+    await POST(build(incoming({ content: 'secret customer sentence' })))
+
+    await POST(build(contactUpdated()))
+
+    // invalid: valid HMAC, wrong shape; key names only
+    await POST(build({ event: 'message_created', content: 'secret customer sentence', sender: { email: 'grace@example.com' } }))
+
+    ingestMock.mockResolvedValue('fused')
+    await POST(build(contactUpdated()))
+
+    const lines = [...vi.mocked(console.log).mock.calls, ...vi.mocked(console.error).mock.calls, ...vi.mocked(console.warn).mock.calls]
+      .map((c) => c.map(String).join(' '))
+    expect(lines.length).toBeGreaterThanOrEqual(4)
+    for (const line of lines) {
+      for (const value of PRIVATE_VALUES) expect(line).not.toContain(value)
+    }
+  })
+
+  it('an invalid payload logs its top-level key names only', async () => {
+    await POST(build({ event: 'message_created', content: 'secret customer sentence', sender: { email: 'grace@example.com' } }))
+    const lines = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' '))
+    expect(lines).toEqual([
+      '[webhook] source=chatwoot event=message_created outcome=ignored code=invalid_payload keys=event,content,sender',
+    ])
+  })
+
+  it('key names outside a safe charset are dropped from the log line', async () => {
+    await POST(build({ event: 'message_created', 'grace@example.com': 1, 'a b': 2, ok_key: 3 }))
+    const logged = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' ')).join('\n')
+    expect(logged).toContain('keys=event,ok_key')
+    expect(logged).not.toContain('grace@example.com')
+  })
+
+  it('the unauthorized path logs a code only', async () => {
+    await POST(build(incoming(), { secret: SECRETS.wrong }))
+    const lines = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' '))
+    expect(lines).toEqual(['[webhook] source=chatwoot event=none outcome=rejected code=bad_signature'])
+  })
+
+  it('an event name that is not on the allowlist is logged as other', async () => {
+    await POST(build({ event: 'grace@example.com', id: 1 }))
+    const logged = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' ')).join('\n')
+    expect(logged).toContain('event=other')
+    expect(logged).not.toContain('grace@example.com')
+  })
+})
+
 describe('receiver isolation (D-15)', () => {
   it('imports no CRM client, dispatcher or handler module', async () => {
     const { readFileSync } = await import('node:fs')
