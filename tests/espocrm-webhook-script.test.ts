@@ -40,7 +40,7 @@ afterEach(() => {
  * Webhook rules of EspoCRM 10.0.8 (RESEARCH Pattern 4, Pitfall 3/4).
  * `ignoreSkipOwn` models a build that drops skipOwn even for an API owner.
  */
-function webhookRules(options: { ignoreSkipOwn?: boolean; secret?: string } = {}) {
+function webhookRules(options: { ignoreSkipOwn?: boolean; secret?: string; ownerAsCreatedBy?: boolean } = {}) {
   let counter = 0
   return (req: FakeReq, state: any) => {
     if (!/^\/Webhook(?:\/[0-9a-f]{17})?$/.test(req.path)) return undefined
@@ -63,7 +63,9 @@ function webhookRules(options: { ignoreSkipOwn?: boolean; secret?: string } = {}
         url: req.body.url,
         isActive: req.body.isActive ?? true,
         skipOwn: viaApiKey && !options.ignoreSkipOwn ? Boolean(req.body.skipOwn) : false,
-        userId: viaApiKey ? SYNC_USER_ID : null,
+        ...(options.ownerAsCreatedBy
+          ? { createdById: viaApiKey ? SYNC_USER_ID : null }
+          : { userId: viaApiKey ? SYNC_USER_ID : null }),
         secretKey: options.secret ?? FAKE_SECRET,
       }
       list.push(record)
@@ -139,6 +141,14 @@ describe('webhook create (tracer, HOOK-04 / D-14 echo guard at the source)', () 
     const id = w.fake.state.records.Webhook[0].id
     expect(text).toContain(`ESPOCRM_WEBHOOK_ID=${id}`)
     expect(text).toContain(`ESPOCRM_WEBHOOK_SECRET=${FAKE_SECRET}`)
+  })
+
+  it('accepts the live EspoCRM 10 API-user shape: owner only as createdById (no userId) still counts as skipOwn effective', async () => {
+    const w = world({ ownerAsCreatedBy: true })
+    const { code, stdout } = await w.run(['create'])
+    expect(code).toBe(0)
+    expect(stdout).toMatch(/^webhook=created id=c[0-9a-f]{16} skipOwn=true$/m)
+    expect(w.fake.state.records.Webhook).toHaveLength(1)
   })
 
   it('a second create registers nothing: webhook=exists and zero further POSTs (idempotence)', async () => {

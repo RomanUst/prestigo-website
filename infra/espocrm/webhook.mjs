@@ -138,7 +138,10 @@ function readWebhookEnv(configDir) {
 // ---------------------------------------------------------------------------
 
 const asList = (response) => (Array.isArray(response?.list) ? response.list : [])
-const hasOwner = (webhook) => typeof webhook?.userId === 'string' && webhook.userId !== ''
+// skipOwn needs an owner. Admin reads show userId; the prestigo-sync API user (EspoCRM 10.0.8) only
+// sees createdById, which for an API-user-created webhook is that same user (verified live 2026-10-26).
+const nonEmpty = (v) => typeof v === 'string' && v !== ''
+const hasOwner = (webhook) => nonEmpty(webhook?.userId) || nonEmpty(webhook?.createdById)
 
 async function listWebhooks(client) {
   return asList(await client.request('GET', '/Webhook?maxSize=200'))
