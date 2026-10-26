@@ -260,6 +260,8 @@ export function formatResolveNote(i: {
   openedAt: Date
   resolvedAt: Date
   messageCount: number
+  /** The count stopped at a read cap: rendered as `N+`. */
+  messageCountCapped?: boolean
   topics: string[]
   firstMessage: string | null
   summary: string | null
@@ -272,7 +274,7 @@ export function formatResolveNote(i: {
     `Channel: ${channelLine(i.channel, i.inboxName)}`,
     `Opened: ${fmtUtc(i.openedAt)}`,
     `Resolved: ${fmtUtc(i.resolvedAt)}`,
-    `Messages: ${count}`,
+    `Messages: ${count}${i.messageCountCapped === true ? '+' : ''}`,
   ]
   const topics = i.topics.map((t) => plainLine(t, TOPIC_MAX)).filter(Boolean)
   if (topics.length > 0) lines.push(`Topics: ${topics.join(', ')}`)
