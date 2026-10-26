@@ -26,7 +26,8 @@ function fnBody(name: string): string {
 
 const FUNCTION_SIGNATURES = [
   'webhook_ingest(text, text, text, integer, text, text, uuid, text, timestamptz)',
-  // Task 2 appends webhook_ingest_espo and webhook_purge; their signatures are added there.
+  'webhook_ingest_espo(text, text, integer, integer, text)',
+  'webhook_purge(integer, integer)',
 ]
 
 describe('076 webhook_deliveries', () => {
@@ -78,6 +79,63 @@ describe('076 webhook_ingest', () => {
   it('checks the gate before it writes anything', () => {
     expect(body.indexOf("RETURN 'off'")).toBeLessThan(body.indexOf('INSERT INTO public.webhook_deliveries'))
     expect(body.indexOf('webhook_ingest_bad_event')).toBeLessThan(body.indexOf("c.key = 'chat_hooks_start'"))
+  })
+})
+
+describe('076 webhook_ingest_espo (D-19)', () => {
+  const body = fnBody('webhook_ingest_espo')
+
+  it('validates its inputs and raises on anything malformed', () => {
+    expect(body).toContain("p_espo_contact_id !~ '^[0-9a-f]{17}$'")
+    expect(body).toContain("p_tag_suffix !~ '^m[1-7]$'")
+    expect(body).toMatch(/p_bucket_seconds NOT BETWEEN 10 AND 300/)
+    expect(body).toMatch(/RAISE EXCEPTION 'webhook_ingest_espo_bad_input'/)
+  })
+
+  it('reads the gate inside a nested exception block and returns off before writing', () => {
+    expect(body).toContain("c.key = 'chat_hooks_start'")
+    expect(body).toMatch(/BEGIN\s+SELECT c\.value::timestamptz INTO v_start[\s\S]*?EXCEPTION WHEN OTHERS THEN\s+v_start := NULL;\s+END;/)
+    expect(body.indexOf("'off'")).toBeLessThan(body.indexOf('INSERT INTO public.webhook_deliveries'))
+  })
+
+  it('dedups per content-hash delivery id with source espocrm', () => {
+    expect(body).toMatch(/VALUES \('espocrm', p_delivery_id, 'espo:contact:' \|\| p_espo_contact_id\)/)
+    expect(body).toContain('ON CONFLICT DO NOTHING')
+    expect(body).toContain("'duplicate'")
+  })
+
+  it('resolves the person inside the RPC and reports unlinked / erasing', () => {
+    expect(body).toMatch(/FROM public\.contact_identities c\s+WHERE c\.espo_contact_id = p_espo_contact_id\s+ORDER BY c\.created_at\s+LIMIT 1/)
+    expect(body).toContain("'unlinked'")
+    expect(body).toMatch(/v_erasing IS NOT NULL/)
+    expect(body).toContain("'erasing'")
+  })
+
+  it('fuses, then enqueues a bucketed hook.espo_contact row on the person aggregate', () => {
+    expect(body).toContain("'fused'")
+    expect(body).toMatch(/p_fuse_limit IS NOT NULL/)
+    expect(body).toContain("'hook.espo_contact:' || v_person::text || ':b' || v_bucket::text || p_tag_suffix")
+    expect(body).toMatch(/public\.outbox_enqueue\(\s*'hook\.espo_contact',\s*'person',\s*v_person/)
+    expect(body).toContain('to_timestamp((v_bucket + 1) * p_bucket_seconds)')
+    expect(body).toContain("'queued'")
+    expect(body).toContain("'exists'")
+  })
+
+  it('returns outcome, idempotency_key and available_at', () => {
+    expect(body).toMatch(/RETURNS TABLE\(outcome text, idempotency_key text, available_at timestamptz\)/)
+  })
+})
+
+describe('076 webhook_purge', () => {
+  const body = fnBody('webhook_purge')
+
+  it('clamps both day arguments to 1..365 and deletes per source', () => {
+    expect(body).toMatch(/GREATEST\(1, LEAST\(365, [^)]*p_chatwoot_days/)
+    expect(body).toMatch(/GREATEST\(1, LEAST\(365, [^)]*p_espo_days/)
+    expect(body).toMatch(/d\.source = 'chatwoot'/)
+    expect(body).toMatch(/d\.source = 'espocrm'/)
+    expect(body).toMatch(/DELETE FROM public\.webhook_deliveries d/)
+    expect(body).toMatch(/RETURNS integer/)
   })
 })
 
