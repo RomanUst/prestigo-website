@@ -115,6 +115,20 @@ describe('inbound-webhooks runbook: structure', () => {
   })
 })
 
+describe('inbound-webhooks runbook: live contract', () => {
+  it('has exactly one "## Live contract" section, after the erasure checklist', () => {
+    expect(runbook.match(/^## Live contract$/gm) ?? []).toHaveLength(1)
+    expect(runbook.indexOf('## Live contract')).toBeGreaterThan(runbook.indexOf('## 11. Erasure checklist addition'))
+  })
+
+  it('records the confirmed facts (capture switch, fingerprint, skipOwn owner check, no-lead, no loop)', () => {
+    const live = section('Live contract')
+    for (const fact of ['chat_hooks_start', 'site_sync_fp', 'skipOwn', 'createdById', 'no-lead', 'webhook_loop_fused']) {
+      expect(live).toContain(fact)
+    }
+  })
+})
+
 describe('inbound-webhooks runbook: names, commands and codes', () => {
   it.each(NAMES)('mentions %s', (name) => {
     expect(runbook).toContain(name)
@@ -155,7 +169,7 @@ describe('inbound-webhooks runbook: names, commands and codes', () => {
   it('records the operational caveats from the earlier plans', () => {
     expect(runbook).toContain('?v=2') // 83-05 rotation URL
     expect(runbook).toMatch(/401/) // 83-06 residual rotation window
-    expect(section('9. Known limitation: same-value re-edit')).toContain('30 days') // 83-11 dedup trade-off
+    expect(section('9. Known limitation: same-value re-edit')).toContain('1 hour') // 83-11 dedup trade-off, narrowed by 079 (CR-02)
   })
 
   it('names every handler code in the code base (no drift)', () => {

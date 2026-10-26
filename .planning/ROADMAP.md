@@ -20,7 +20,7 @@
 - [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
 - [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
 - [x] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure (completed 2026-10-26)
-- [ ] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops
+- [x] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops (completed 2026-10-26)
 - [ ] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245-patched Chatwoot
 - [ ] **Phase 85: Statistics** - `/admin/stats` shows inquiry→booking conversion, repeat-customer rate, and B2B revenue per Account
 
@@ -385,7 +385,7 @@ Plans:
   3. Inbound webhooks (Chatwoot, EspoCRM) are verified — HMAC signature over the raw body, timestamp replay window, delivery dedup — and structurally cannot write to `bookings` / `customer_profiles`.
   4. A site → CRM → webhook → site round trip cannot re-trigger itself, proven by origin tagging/fingerprinting on outbound writes.
 
-**Plans:** 14/16 plans executed
+**Plans:** 16/16 plans complete
 
 Plans:
 **Wave 1**
@@ -415,10 +415,10 @@ Plans:
 - [x] 83-13-PLAN.md — Delivery purge, outbox labels, inbound-webhooks runbook, backlog 999.10 (D-21)
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 83-14-PLAN.md — Go-live A: owner config + webhook registration + ship, switch on, live UAT
+- [x] 83-14-PLAN.md — Go-live A: owner config + webhook registration + ship, switch on, live UAT
 
 **Wave 8** *(blocked on Wave 7 completion)*
-- [ ] 83-15-PLAN.md — Go-live B: no-lead live check, echo audit, live erasure, runbook live contract
+- [x] 83-15-PLAN.md — Go-live B: no-lead live check, echo audit, live erasure, runbook live contract
 
 **Security note**: yes — inbound webhook verification and echo-loop prevention; commit with `security:` prefix per CLAUDE.md.
 
@@ -481,7 +481,7 @@ Plans:
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
-| 83. CRM/Chatwoot → Site Webhooks | v4.0 | 14/16 | In Progress|  |
+| 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
 
@@ -499,3 +499,4 @@ v3.0 tech debt, deferred by owner decision 2026-09-27 until Anthropic API credit
 - [ ] **999.8 Test/QA infra** — fix worktree `next-intl/server` relative-path import in 5 test files (WINDOWS #17–19); QA-script fixes (share_meta asymmetric check, en_leak icon-child skip, IN-04 route.abort); close stale WINDOWS #8; Nyquist `/gsd-validate-phase` for 68–75; Playwright E2E in CI once Vercel Preview works. IN-05 (raw 404 without `lang`) = Next.js framework behaviour, won't-fix
 - [ ] **999.9 Phase 78 WhatsApp dedicated number (resume)** — 10/17 plans done; resume at 78-11 Task 2: new SIM, "Prestigo Messaging" app Live, number + display name, own PIN, token, EUR card, business verification; then 78-12..78-17 (go-live, submit 56 templates, site number switch, acceptance). Deferred by owner 2026-10-18
 - [ ] **999.10 Chatwoot webhook reconcile job (D-21)** — periodic job that lists recently created and resolved Chatwoot conversations and re-enqueues hook.chat_intake / hook.chat_resolve rows for events Chatwoot's at-most-once account webhook lost; manual recovery is in infra/vps/runbooks/inbound-webhooks.md until then
+- [ ] **999.11 Phase 83 review follow-ups** — open warnings from 83-REVIEW.md / 83-REVIEW-DISPOSITION.md: first WR-06 (erasure treats a Note-stream 403 as "no notes", uncounted) and WR-02 (concurrent intake/contact/sync can create a duplicate EspoCRM Contact outside the registry — erasure would miss it); then WR-01 (label between intake retries leaves an orphan Lead), WR-03 (lost conversion Note → Phase 85 counts), WR-04 (Chatwoot rotate loses events until redeploy), WR-05 (visitor Markdown in CRM fields), WR-07 (no cap on deadline reschedules), IN-01..05; plus the D-01 edge: a widget visitor whose email belongs to a site login account is classed as a stranger (identity not linked to user_id)

@@ -64,10 +64,10 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Chatwoot → CRM (HOOK)
 
-- [ ] **HOOK-01**: A new Chatwoot conversation from an unknown person creates/updates a Contact and Lead in EspoCRM (with channel as lead source)
-- [ ] **HOOK-02**: When a conversation is resolved, its summary/transcript link is written to the Contact's history in EspoCRM
-- [ ] **HOOK-03**: Inbound webhooks (Chatwoot, EspoCRM) are verified (HMAC signature over raw body, timestamp replay window, delivery dedup) and structurally cannot write to `bookings` / `customer_profiles`
-- [ ] **HOOK-04**: Site → CRM → webhook → site echo loops cannot occur (origin tagging / fingerprinting on outbound writes)
+- [x] **HOOK-01**: A new Chatwoot conversation from an unknown person creates/updates a Contact and Lead in EspoCRM (with channel as lead source)
+- [x] **HOOK-02**: When a conversation is resolved, its summary/transcript link is written to the Contact's history in EspoCRM
+- [x] **HOOK-03**: Inbound webhooks (Chatwoot, EspoCRM) are verified (HMAC signature over raw body, timestamp replay window, delivery dedup) and structurally cannot write to `bookings` / `customer_profiles`
+- [x] **HOOK-04**: Site → CRM → webhook → site echo loops cannot occur (origin tagging / fingerprinting on outbound writes)
 
 ### Dashboard App (PANEL)
 
@@ -149,10 +149,10 @@ Deferred — tracked, not in this roadmap.
 | SYNC-03 | Phase 82 | Complete |
 | SYNC-04 | Phase 82 | Complete |
 | SYNC-05 | Phase 82 | Complete |
-| HOOK-01 | Phase 83 | Pending |
-| HOOK-02 | Phase 83 | Pending |
-| HOOK-03 | Phase 83 | Pending |
-| HOOK-04 | Phase 83 | Pending |
+| HOOK-01 | Phase 83 | Complete |
+| HOOK-02 | Phase 83 | Complete |
+| HOOK-03 | Phase 83 | Complete |
+| HOOK-04 | Phase 83 | Complete |
 | PANEL-01 | Phase 84 | Pending |
 | PANEL-02 | Phase 84 | Pending |
 | OPS-01 | Phase 77 | Complete |
