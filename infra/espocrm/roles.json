@@ -37,10 +37,11 @@
       "name": "Sync writer",
       "data": {
         "Account": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
-        "Contact": { "create": "yes", "read": "all", "edit": "all", "delete": "all" },
+        "Contact": { "create": "yes", "read": "all", "edit": "all", "delete": "all", "stream": "all" },
         "CBooking": { "create": "yes", "read": "all", "edit": "all", "delete": "no" },
-        "Lead": { "create": "yes", "read": "all", "edit": "all", "delete": "all" },
-        "User": { "read": "all" }
+        "Lead": { "create": "yes", "read": "all", "edit": "all", "delete": "all", "stream": "all" },
+        "User": { "read": "all" },
+        "Webhook": true
       },
       "assignmentPermission": "all",
       "assignTo": ["prestigo-sync"]

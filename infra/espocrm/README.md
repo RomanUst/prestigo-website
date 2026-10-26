@@ -138,6 +138,64 @@ When a create is refused with 409 and no Contact with that email exists, the bac
 a Contact link. The owner resolves such pairs in the CRM (merge, or give one of them another name);
 a re-run repeats the same 409 harmlessly.
 
+## Inbound webhook (Phase 83)
+
+One EspoCRM webhook tells the site about human edits of a Contact. `webhook.mjs` registers and
+manages it; nothing here is applied automatically, the owner runs it during go-live (plan 83-14).
+
+```
+node infra/espocrm/webhook.mjs create             # register, as prestigo-sync, with skipOwn
+node infra/espocrm/webhook.mjs list               # id, event, active, skipOwn, owner (no secret)
+node infra/espocrm/webhook.mjs delete <id>        # remove one webhook (17 lowercase hex id)
+node infra/espocrm/webhook.mjs --print secret     # only to a pipe, refused on a terminal
+node infra/espocrm/webhook.mjs probe              # signed round trip against the live receiver
+```
+
+- **Event: `Contact.update` only.** Contact edits are the only inbound trigger (D-13). Creating a
+  second webhook for another event needs a new decision.
+- **Owner: `prestigo-sync`, with `skipOwn`.** EspoCRM skips an event when the user who caused it is
+  the webhook owner and `skipOwn` is on, so a write made by the sync never comes back as an event
+  (the echo guard at the source, HOOK-04 / D-14). An admin-created webhook silently has `skipOwn`
+  forced off and would echo every sync write, so `create` always uses the `prestigo-sync` key, needs
+  the `Webhook` scope of the Sync writer role, re-reads the webhook and fails with
+  `skipown_not_effective` unless `skipOwn` is true and the webhook has an owner (the broken webhook
+  is deleted again). A second `create` prints `webhook=exists` and registers nothing.
+- **Role widening (Sync writer only):** the `Webhook` scope and `stream: all` on Contact and Lead
+  (needed to post and read history Notes). `verify-acl.mjs` expects `GET /Webhook` to be allowed
+  for the Sync writer and exactly 403 for every other managed role.
+- **Receiver:** `https://rideprestigo.com/api/webhooks/espocrm` (the canonical host; another host or
+  a non-https URL is refused). EspoCRM disables a webhook after repeated failures and deletes it when
+  the receiver answers HTTP gone, so the receiver must never answer that status.
+
+### Secret custody
+
+The webhook secret is returned once, when the webhook is created. `create` writes it with the id to
+`~/.config/prestigo/espocrm-webhook.env` (mode 600, directory 700; keys `ESPOCRM_WEBHOOK_ID` and
+`ESPOCRM_WEBHOOK_SECRET`) and prints neither. Hand both to Vercel through a pipe, never through the
+screen or a command line:
+
+```
+node infra/espocrm/webhook.mjs --print id     | vercel env add ESPOCRM_WEBHOOK_ID production --yes
+node infra/espocrm/webhook.mjs --print secret | vercel env add ESPOCRM_WEBHOOK_SECRET production --sensitive --yes
+```
+
+`--print` writes the bare value (no newline) and exits 1 without output when stdout is a terminal.
+
+### Live check and rotation
+
+After the Vercel deploy that carries the receiver, `node infra/espocrm/webhook.mjs probe` signs a
+synthetic `Contact.update` batch for a random unlinked contact id exactly like EspoCRM (`Signature` =
+base64 of the webhook id, a colon and the hex HMAC-SHA256 of the body), posts it to the receiver and
+posts a tampered copy. `verdict=ok` means the receiver answered 200 and then 401; anything else is
+`verdict=fail` (exit 1) and the receiver does not verify the signature the way EspoCRM signs it.
+
+Rotation without a gap: `create` treats an existing webhook for the same event and URL as done, so
+register the new one under a marked URL (the receiver ignores the query string):
+`node infra/espocrm/webhook.mjs create --url "https://rideprestigo.com/api/webhooks/espocrm?v=2"`
+(this overwrites the stored env file, whose old value Vercel still holds). Then in Vercel copy the old
+`ESPOCRM_WEBHOOK_SECRET` to `ESPOCRM_WEBHOOK_SECRET_PREVIOUS`, set the new id and secret through the
+pipes above, deploy, run `probe`, and finally `delete <old id>`.
+
 ## PII rules
 
 Export and candidate files contain customer names, emails and phone numbers.

@@ -37,6 +37,11 @@ const slug = (name) => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^
 
 /** Boolean-type scopes have no REST endpoint to probe. */
 const BOOLEAN_SCOPES = new Set(['EmailAccountScope'])
+/**
+ * Boolean scopes that do have a list endpoint: a role holding `true` must get a 2xx on GET, every other
+ * role exactly 403. Webhook (Phase 83): only the Sync writer owns the webhook that carries skipOwn.
+ */
+const PROBED_BOOLEAN_SCOPES = ['Webhook']
 /** A role that does not grant these (false or absent) must get exactly 403 on them. */
 const SENSITIVE_SCOPES = ['Opportunity', 'CPartnerRate', 'Email']
 /** Scopes whose writes the probe exercises, with the fixture a PUT/DELETE targets. */
@@ -81,11 +86,18 @@ export function buildAclExpectations(roleSpecs, fieldsJson) {
     const add = (phase, check) => checks.push({ role, phase, ...check })
 
     for (const [scope, acl] of Object.entries(spec.data)) {
-      if (BOOLEAN_SCOPES.has(scope)) continue
+      if (BOOLEAN_SCOPES.has(scope) || PROBED_BOOLEAN_SCOPES.includes(scope)) continue
       if (acl === false) {
         add('read', { label: `GET /${scope} forbidden`, expect: 'forbidden', method: 'GET', path: `/${scope}?maxSize=1`, status: 403, fixture: null })
       } else if (isPlainObject(acl) && acl.read !== 'no') {
         add('read', { label: `GET /${scope} allowed`, expect: 'allowed', method: 'GET', path: `/${scope}?maxSize=1`, fixture: null })
+      }
+    }
+    for (const scope of PROBED_BOOLEAN_SCOPES) {
+      if (spec.data[scope] === true) {
+        add('read', { label: `GET /${scope} allowed`, expect: 'allowed', method: 'GET', path: `/${scope}?maxSize=1`, fixture: null })
+      } else {
+        add('read', { label: `GET /${scope} forbidden`, expect: 'forbidden', method: 'GET', path: `/${scope}?maxSize=1`, status: 403, fixture: null })
       }
     }
     for (const scope of SENSITIVE_SCOPES) {
