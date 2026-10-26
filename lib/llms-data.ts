@@ -4,6 +4,7 @@
 // static price fallbacks instead of failing the build.
 
 import { getAllRoutes } from '@/lib/route-prices'
+import { ROUTES_BY_SLUG } from '@/lib/routes'
 import { getPricingConfig, type PricingRates } from '@/lib/pricing-config'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import { getAllPosts } from '@/lib/blog'
@@ -32,5 +33,8 @@ export async function loadLlmsData(): Promise<LlmsData> {
     getPricingConfig().catch(() => PRICING_FALLBACK),
     getCachedAggregateRating().catch(() => getStaticAggregateRating()),
   ])
-  return { routes, pricing, posts: getAllPosts(), rating: rating ?? null }
+  // route_prices still holds rows for the 20 routes removed 2026-04-09 (they
+  // 308 to /routes, see next.config.ts) — list only routes with a live page.
+  const liveRoutes = routes.filter((r) => r.slug in ROUTES_BY_SLUG)
+  return { routes: liveRoutes, pricing, posts: getAllPosts(), rating: rating ?? null }
 }
