@@ -45,3 +45,24 @@ describe('CSRF Origin check on the lead form endpoints (WR-04)', () => {
     expect(res.status).not.toBe(403)
   })
 })
+
+// Phase 83 (HOOK-03): server-to-server senders (Chatwoot, EspoCRM) carry no Origin or a foreign one.
+// They authenticate by HMAC in the route, so the Origin check must never apply to them.
+const WEBHOOK_ROUTES = ['/api/webhooks/chatwoot', '/api/webhooks/espocrm']
+
+describe('Webhook receivers stay outside the CSRF Origin check (Phase 83)', () => {
+  it.each(WEBHOOK_ROUTES)('%s: a foreign Origin is not answered 403 by the middleware', async (path) => {
+    const res = await middleware(post(path, 'https://evil.example'))
+    expect(res.status).not.toBe(403)
+  })
+
+  it.each(WEBHOOK_ROUTES)('%s: no Origin is not answered 403 by the middleware', async (path) => {
+    const res = await middleware(post(path, null))
+    expect(res.status).not.toBe(403)
+  })
+
+  it.each(WEBHOOK_ROUTES)('%s: stays a non-localized /api path (no locale redirect)', async (path) => {
+    const res = await middleware(post(path, null))
+    expect(res.headers.get('location')).toBeNull()
+  })
+})
