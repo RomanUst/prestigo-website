@@ -385,7 +385,7 @@ Plans:
   3. Inbound webhooks (Chatwoot, EspoCRM) are verified — HMAC signature over the raw body, timestamp replay window, delivery dedup — and structurally cannot write to `bookings` / `customer_profiles`.
   4. A site → CRM → webhook → site round trip cannot re-trigger itself, proven by origin tagging/fingerprinting on outbound writes.
 
-**Plans:** 6/16 plans executed
+**Plans:** 8/16 plans executed
 
 Plans:
 **Wave 1**
@@ -397,8 +397,8 @@ Plans:
 - [x] 83-06-PLAN.md — Chatwoot account webhook as config-as-code, secret custody/rotation, signed probe, fake-chatwoot conversations
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 83-07-PLAN.md — Intake handler: stranger -> identity + Contact + chat Lead with channel source (HOOK-01)
-- [ ] 83-16-PLAN.md — Chatwoot receiver completion: resolve/label/contact filters, fingerprint echo drop, contact fuse ALERT, verify matrix + rotation
+- [x] 83-07-PLAN.md — Intake handler: stranger -> identity + Contact + chat Lead with channel source (HOOK-01)
+- [x] 83-16-PLAN.md — Chatwoot receiver completion: resolve/label/contact filters, fingerprint echo drop, contact fuse ALERT, verify matrix + rotation
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 83-08-PLAN.md — Resolve handler: one history Note per resolve with Итог summary and link (HOOK-02)
@@ -481,7 +481,7 @@ Plans:
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
-| 83. CRM/Chatwoot → Site Webhooks | v4.0 | 6/16 | In Progress|  |
+| 83. CRM/Chatwoot → Site Webhooks | v4.0 | 8/16 | In Progress|  |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
 
