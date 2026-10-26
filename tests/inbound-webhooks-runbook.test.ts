@@ -169,7 +169,7 @@ describe('inbound-webhooks runbook: names, commands and codes', () => {
   it('records the operational caveats from the earlier plans', () => {
     expect(runbook).toContain('?v=2') // 83-05 rotation URL
     expect(runbook).toMatch(/401/) // 83-06 residual rotation window
-    expect(section('9. Known limitation: same-value re-edit')).toContain('30 days') // 83-11 dedup trade-off
+    expect(section('9. Known limitation: same-value re-edit')).toContain('1 hour') // 83-11 dedup trade-off, narrowed by 079 (CR-02)
   })
 
   it('names every handler code in the code base (no drift)', () => {

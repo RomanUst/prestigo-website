@@ -34,7 +34,7 @@ EspoCRM Contact.update   ──► /api/webhooks/espocrm  ─┤   record the de
   rows as `webhook_purged` and every other sweep step still runs.
 - Verification (HMAC) differs per system. Chatwoot: signature over timestamp plus body, timestamp window 300 s, delivery
   id dedup. EspoCRM carries no timestamp and no delivery id, so the replay protection is a content-hash dedup of each
-  item (30 days), the handlers re-reading current state, a narrow event surface (Contact edits only) and `skipOwn`
+  item (1 hour, EspoCRM's retry horizon; migration 079), the handlers re-reading current state, a narrow event surface (Contact edits only) and `skipOwn`
   (D-19).
 
 ## 2. When a chat becomes a Lead
@@ -208,10 +208,11 @@ action; repeated ALERTs for one entity do.
 
 ## 9. Known limitation: same-value re-edit
 
-EspoCRM deliveries are deduplicated by a content hash for 30 days (D-19). An EspoCRM edit that produces the same item
-as one seen in the last 30 days, for example name X changed to Y and then back to X, is dropped as `duplicate`, and
-Chatwoot keeps the middle value. Any other edit of that Contact (or waiting 30 days) recovers it. This is a deliberate
-trade-off against replays; it does not apply to Chatwoot deliveries (they carry a delivery id).
+EspoCRM deliveries are deduplicated by a content hash for 1 hour (migration 079; it was 30 days at go-live). An
+EspoCRM edit that produces the same item as one seen in the last hour, for example name X changed to Y and then back to
+X within the hour, is dropped as `duplicate`, and Chatwoot keeps the middle value. Any other edit of that Contact (or
+repeating the edit after an hour) recovers it. The delivery records themselves are still kept 30 days for the audit;
+only the dedup decision looks at the last hour. This does not apply to Chatwoot deliveries (they carry a delivery id).
 
 ## 10. Outbox codes
 
