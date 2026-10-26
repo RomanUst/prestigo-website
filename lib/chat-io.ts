@@ -167,15 +167,22 @@ function parseMessage(raw: unknown): ChatMessage | null {
   }
 }
 
+export interface MessagePages {
+  messages: ChatMessage[]
+  /** True when the page cap ended the loop while messages were still arriving (more may exist). */
+  truncated: boolean
+}
+
 /**
  * GET /conversations/<id>/messages?after=<last id>, ascending, at most `maxPages` requests.
- * A page that brings no new message ends the loop.
+ * A page that brings no new message ends the loop; running out of pages with a non-empty last
+ * page is reported as `truncated` so a caller can say "N+" instead of a wrong exact count.
  */
-export async function readMessages(
+export async function readMessagePages(
   cw: SiteChatwootClient,
   conversationId: number,
   opts: { maxPages: number },
-): Promise<ChatMessage[]> {
+): Promise<MessagePages> {
   const out: ChatMessage[] = []
   const pages = Math.max(1, Math.min(opts.maxPages, MESSAGES_PAGE_GUARD))
   let after = 0
@@ -183,11 +190,20 @@ export async function readMessages(
     const res = await cw.get(`/conversations/${conversationId}/messages?after=${after}`)
     const payload = isRecord(res) && Array.isArray(res.payload) ? res.payload : []
     const parsed = payload.map(parseMessage).filter((m): m is ChatMessage => m !== null && m.id > after)
-    if (parsed.length === 0) break
+    if (parsed.length === 0) return { messages: out, truncated: false }
     out.push(...parsed)
     after = Math.max(...parsed.map((m) => m.id))
   }
-  return out
+  return { messages: out, truncated: true }
+}
+
+/** Same as readMessagePages, messages only. */
+export async function readMessages(
+  cw: SiteChatwootClient,
+  conversationId: number,
+  opts: { maxPages: number },
+): Promise<ChatMessage[]> {
+  return (await readMessagePages(cw, conversationId, opts)).messages
 }
 
 /** GET /inboxes/<id> name. The name is cosmetic: every error but an auth failure yields null. */
