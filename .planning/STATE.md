@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
-current_phase: 83
-current_phase_name: CRM/Chatwoot → Site Webhooks
-status: executing
-stopped_at: Phase 83 context gathered
-last_updated: "2026-10-26T13:50:47.943Z"
+current_phase: 84
+current_phase_name: Chatwoot Dashboard App
+status: planning
+stopped_at: Phase 83 complete, ready to discuss Phase 84
+last_updated: "2026-10-26T19:07:33.414Z"
 last_activity: 2026-10-26
-last_activity_desc: Phase 83 execution started
-state_head: d2ca1218616a65d0d9c91186e6a512d2d9d7df37
+last_activity_desc: Phase 83 complete (live, review CR-01..03 fixed in 079), next Phase 84 (78 deferred to backlog 999.9)
+state_head: de17a7c951009ecce48fab24f26df54104248ead
 progress:
   total_phases: 10
-  completed_phases: 27
+  completed_phases: 28
   total_plans: 95
-  completed_plans: 72
-  percent: 76
+  completed_plans: 88
+  percent: 88
 ---
 
 # Project State
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-26)
 
 ## Current Position
 
-Phase: 83 (CRM/Chatwoot → Site Webhooks) — EXECUTING
-Plan: 1 of 16
-Status: Executing Phase 83
-Last activity: 2026-10-26 — Phase 83 execution started
+Phase: 78 — WhatsApp Cloud API Channel (Dedicated Number)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-26 — Phase 83 complete (live; review CR-01..03 fixed in migration 079), next Phase 84
 
 ## Accumulated Context
 
@@ -329,7 +329,7 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 ## Session Continuity
 
 Last session: 2026-10-26T11:37:32.238Z
-Stopped at: Phase 83 context gathered
+Stopped at: Phase 83 complete, ready to discuss Phase 84
 Resume file: .planning/phases/83-crm-chatwoot-site-webhooks/83-CONTEXT.md
 
 ## Performance Metrics
