@@ -29,7 +29,7 @@ vi.mock('@/lib/webhook-store', () => ({
 
 import { POST } from '@/app/api/webhooks/chatwoot/route'
 import { OutboxStoreError } from '@/lib/outbox-store'
-import { aggregateUuid } from '@/lib/sync-origin'
+import { aggregateUuid, contactFingerprint } from '@/lib/sync-origin'
 
 // Obviously fake secrets, carried as object properties.
 const SECRETS = { current: 'unit-test-fake-secret-current', previous: 'unit-test-fake-secret-previous', wrong: 'unit-test-fake-secret-wrong' }
@@ -130,6 +130,131 @@ describe('POST /api/webhooks/chatwoot: tracer', () => {
     const res = await POST(build(incoming(), { secret: SECRETS.previous }))
     expect(res.status).toBe(200)
     expect(ingestMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+const CONTACT_FIELDS = { name: 'Grace Hopper', email: 'grace@example.com', phone_number: '+420777888999', identifier: null }
+
+function contactUpdated(overrides: Record<string, unknown> = {}) {
+  return {
+    event: 'contact_updated',
+    id: 7,
+    ...CONTACT_FIELDS,
+    custom_attributes: {},
+    changed_attributes: [{ email: { previous_value: null, current_value: 'grace@example.com' } }],
+    ...overrides,
+  }
+}
+
+describe('POST /api/webhooks/chatwoot: contact_updated (tracer, HOOK-04 receiver layer)', () => {
+  it('an operator email edit becomes one bucketed hook.chat_contact row with fuse limit 20', async () => {
+    const res = await POST(build(contactUpdated()))
+    expect(res.status).toBe(200)
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+    const input = ingestMock.mock.calls[0][0]
+    const bucket = Math.floor(NOW_SEC / 30)
+    expect(input).toMatchObject({
+      source: 'chatwoot',
+      eventType: 'hook.chat_contact',
+      aggregateType: 'chat_contact',
+      aggregateId: aggregateUuid('contact', 7),
+      entityKey: 'cw:contact:7',
+      fuseLimit: 20,
+    })
+    expect(input.key.endsWith(`:c7b${bucket}`)).toBe(true)
+
+    await Promise.resolve()
+    expect(publishJSONMock).toHaveBeenCalledTimes(1)
+    const call = publishJSONMock.mock.calls[0][0]
+    expect(call.body).toEqual({ key: input.key })
+    expect(call.delay ?? 0).toBeGreaterThanOrEqual(0)
+    expect(call.delay ?? 0).toBeLessThanOrEqual(30)
+    expect(call.deduplicationId.endsWith('_w')).toBe(true)
+  })
+
+  it('the site\'s own fingerprinted write is dropped as echo before the database', async () => {
+    const echo = contactUpdated({ custom_attributes: { site_sync_fp: contactFingerprint(CONTACT_FIELDS) } })
+    const res = await POST(build(echo))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+    await Promise.resolve()
+    expect(publishJSONMock).not.toHaveBeenCalled()
+    const logged = vi.mocked(console.log).mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(logged).toContain('outcome=ignored code=echo')
+  })
+
+  it('the same fingerprinted payload with a changed email is ingested', async () => {
+    const edited = contactUpdated({
+      email: 'grace.new@example.com',
+      custom_attributes: { site_sync_fp: contactFingerprint(CONTACT_FIELDS) },
+    })
+    await POST(build(edited))
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('an irrelevant contact change is ignored without a database call', async () => {
+    const res = await POST(build(contactUpdated({ changed_attributes: [{ last_activity_at: {} }] })))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('a fused outcome answers 200, publishes nothing and logs exactly one ALERT line with ids only', async () => {
+    ingestMock.mockResolvedValue('fused')
+    const res = await POST(build(contactUpdated()))
+    expect(res.status).toBe(200)
+    await Promise.resolve()
+    expect(publishJSONMock).not.toHaveBeenCalled()
+
+    expect(console.error).toHaveBeenCalledTimes(1)
+    const line = String(vi.mocked(console.error).mock.calls[0].join(' '))
+    expect(line).toContain('ALERT webhook_loop_fused')
+    expect(line).toContain('source=chatwoot')
+    expect(line).toContain('entity=cw:contact:7')
+    for (const secretValue of ['Grace', 'grace@example.com', '+420777888999']) {
+      expect(line).not.toContain(secretValue)
+    }
+  })
+
+  it('message events send no fuse limit and raise no ALERT line', async () => {
+    await POST(build(incoming()))
+    expect(ingestMock.mock.calls[0][0].fuseLimit).toBeNull()
+    expect(console.error).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: conversation events', () => {
+  it('a signed resolved status event becomes one hook.chat_resolve row keyed by the resolve moment', async () => {
+    const res = await POST(
+      build({ event: 'conversation_status_changed', id: 42, status: 'resolved', updated_at: NOW_SEC - 5 + 0.4 }),
+    )
+    expect(res.status).toBe(200)
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+    const input = ingestMock.mock.calls[0][0]
+    expect(input).toMatchObject({
+      eventType: 'hook.chat_resolve',
+      aggregateType: 'chat_conversation',
+      aggregateId: aggregateUuid('conversation', 42),
+      entityKey: 'cw:conv:42',
+      fuseLimit: null,
+    })
+    expect(input.key.endsWith(`:c42r${NOW_SEC - 5}`)).toBe(true)
+  })
+
+  it('a no-lead label update becomes one hook.chat_label row', async () => {
+    await POST(build({ event: 'conversation_updated', id: 42, labels: ['no-lead'] }))
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+    expect(ingestMock.mock.calls[0][0]).toMatchObject({ eventType: 'hook.chat_label', fuseLimit: null })
+  })
+
+  it.each([
+    ['an open status event', { event: 'conversation_status_changed', id: 42, status: 'open' }],
+    ['a conversation_updated without the no-lead label', { event: 'conversation_updated', id: 42, labels: ['vip'] }],
+    ['an unsubscribed event', { event: 'webwidget_triggered', id: 42 }],
+  ])('%s answers 200 and never calls the database', async (_name, payload) => {
+    const res = await POST(build(payload))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+    expect(publishJSONMock).not.toHaveBeenCalled()
   })
 })
 
@@ -270,6 +395,137 @@ describe('POST /api/webhooks/chatwoot: filtering and outcomes', () => {
     expect(ingestMock.mock.calls[0][0].deliveryId).not.toBe(ingestMock.mock.calls[1][0].deliveryId)
     await Promise.resolve()
     expect(publishJSONMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: secret rotation (HOOK-03)', () => {
+  it('a request signed with the previous secret passes while it is set and fails once it is unset', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', SECRETS.previous)
+    const body = Buffer.from(JSON.stringify(incoming()))
+    const passing = await POST(build(body, { secret: SECRETS.previous }))
+    expect(passing.status).toBe(200)
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '')
+    ingestMock.mockClear()
+    const failing = await POST(build(body, { secret: SECRETS.previous }))
+    expect(failing.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('the current secret keeps working while the previous one is set', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', SECRETS.previous)
+    const res = await POST(build(incoming(), { secret: SECRETS.current }))
+    expect(res.status).toBe(200)
+  })
+
+  it('an empty-string previous secret is never used as a key', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '')
+    const res = await POST(build(incoming(), { secret: '' }))
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '   ')
+    const blank = await POST(build(incoming(), { secret: '' }))
+    expect(blank.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('a timestamp 301 s in the future is rejected and 300 s ahead passes', async () => {
+    const ahead = await POST(build(incoming(), { tsOffset: 301 }))
+    expect(ahead.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+    const edge = await POST(build(incoming(), { tsOffset: 300 }))
+    expect(edge.status).toBe(200)
+  })
+
+  it('a non-numeric timestamp fails closed with 401', async () => {
+    const body = Buffer.from(JSON.stringify(incoming()))
+    const req = new Request('http://localhost/api/webhooks/chatwoot', {
+      method: 'POST',
+      headers: { 'X-Chatwoot-Timestamp': 'abc', 'X-Chatwoot-Signature': sign(SECRETS.current, 'abc', body) },
+      body: new Uint8Array(body),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: delivery id', () => {
+  const expectedBodyHash = (payload: unknown) =>
+    'b' + createHash('sha256').update(Buffer.from(JSON.stringify(payload))).digest('hex')
+
+  it('a missing X-Chatwoot-Delivery header yields a 65-char body-hash id starting with b', async () => {
+    await POST(build(incoming(), { delivery: null }))
+    const id = ingestMock.mock.calls[0][0].deliveryId as string
+    expect(id).toHaveLength(65)
+    expect(id.startsWith('b')).toBe(true)
+    expect(id).toBe(expectedBodyHash(incoming()))
+  })
+
+  it.each(['has spaces in it', 'semi;colon-1234', 'short', 'x'.repeat(65), 'unicode-ééééé'])(
+    'a delivery header %j outside [A-Za-z0-9-]{8,64} falls back to the same body-hash id',
+    async (delivery) => {
+      await POST(build(incoming(), { delivery }))
+      expect(ingestMock.mock.calls[0][0].deliveryId).toBe(expectedBodyHash(incoming()))
+    },
+  )
+
+  it('a well-formed delivery header is used as is', async () => {
+    await POST(build(incoming(), { delivery: 'Abc-1234-XYZ' }))
+    expect(ingestMock.mock.calls[0][0].deliveryId).toBe('Abc-1234-XYZ')
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: log hygiene (T-83-55)', () => {
+  const PRIVATE_VALUES = ['Grace Hopper', 'grace@example.com', '+420777888999', 'Ada', 'ada@example.com', 'hello', 'secret customer sentence']
+
+  it('no log line from an intake, contact, invalid and fused request carries payload data', async () => {
+    await POST(build(incoming({ content: 'secret customer sentence' })))
+
+    await POST(build(contactUpdated()))
+
+    // invalid: valid HMAC, wrong shape; key names only
+    await POST(build({ event: 'message_created', content: 'secret customer sentence', sender: { email: 'grace@example.com' } }))
+
+    ingestMock.mockResolvedValue('fused')
+    await POST(build(contactUpdated()))
+
+    const lines = [...vi.mocked(console.log).mock.calls, ...vi.mocked(console.error).mock.calls, ...vi.mocked(console.warn).mock.calls]
+      .map((c) => c.map(String).join(' '))
+    expect(lines.length).toBeGreaterThanOrEqual(4)
+    for (const line of lines) {
+      for (const value of PRIVATE_VALUES) expect(line).not.toContain(value)
+    }
+  })
+
+  it('an invalid payload logs its top-level key names only', async () => {
+    await POST(build({ event: 'message_created', content: 'secret customer sentence', sender: { email: 'grace@example.com' } }))
+    const lines = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' '))
+    expect(lines).toEqual([
+      '[webhook] source=chatwoot event=message_created outcome=ignored code=invalid_payload keys=event,content,sender',
+    ])
+  })
+
+  it('key names outside a safe charset are dropped from the log line', async () => {
+    await POST(build({ event: 'message_created', 'grace@example.com': 1, 'a b': 2, ok_key: 3 }))
+    const logged = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' ')).join('\n')
+    expect(logged).toContain('keys=event,ok_key')
+    expect(logged).not.toContain('grace@example.com')
+  })
+
+  it('the unauthorized path logs a code only', async () => {
+    await POST(build(incoming(), { secret: SECRETS.wrong }))
+    const lines = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' '))
+    expect(lines).toEqual(['[webhook] source=chatwoot event=none outcome=rejected code=bad_signature'])
+  })
+
+  it('an event name that is not on the allowlist is logged as other', async () => {
+    await POST(build({ event: 'grace@example.com', id: 1 }))
+    const logged = vi.mocked(console.log).mock.calls.map((c) => c.map(String).join(' ')).join('\n')
+    expect(logged).toContain('event=other')
+    expect(logged).not.toContain('grace@example.com')
   })
 })
 
