@@ -4,6 +4,7 @@ import type { DispatchDeps } from '@/lib/lead-sync'
 import { deliverChatIntake } from '@/lib/chat-intake'
 import { deliverChatResolve } from '@/lib/chat-resolve'
 import { deliverChatContact, deliverChatLabel } from '@/lib/chat-contact'
+import { deliverEspoContactHook } from '@/lib/espo-contact-hook'
 
 /**
  * hook.* router of the outbox dispatcher (Phase 83, D-15). Runs only when QStash calls
@@ -16,8 +17,8 @@ import { deliverChatContact, deliverChatLabel } from '@/lib/chat-contact'
  *
  * Runtime imports never include lib/lead-sync (the DispatchDeps import is type-only), so the inbound
  * webhook import closure stays free of the Phase 81 lead writers (tests/webhook-isolation-guard).
- * Handler plans add their `case` here: 83-08 chat_resolve (done), 83-10 chat_contact / chat_label,
- * 83-11 espo_contact. Until then those types complete `failed` with `unsupported_event`.
+ * Handler plans add their `case` here: 83-08 chat_resolve, 83-10 chat_contact / chat_label,
+ * 83-11 espo_contact (all done). Any other type completes `failed` with `unsupported_event`.
  */
 export async function deliverHook(row: OutboxRow, d: DispatchDeps): Promise<DispatchResult> {
   if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
@@ -34,6 +35,8 @@ export async function deliverHook(row: OutboxRow, d: DispatchDeps): Promise<Disp
       return deliverChatContact(row, d, clients)
     case 'hook.chat_label':
       return deliverChatLabel(row, d, clients)
+    case 'hook.espo_contact':
+      return deliverEspoContactHook(row, d, clients)
     default:
       await d.store.complete(row.idempotency_key, 'failed', 'unsupported_event')
       return { outcome: 'failed', code: 'unsupported_event' }

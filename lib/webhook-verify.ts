@@ -40,3 +40,41 @@ export function verifyChatwootSignature(input: {
   }
   return ok ? 'ok' : 'bad_signature'
 }
+
+export type EspoVerifyResult = 'ok' | 'malformed' | 'wrong_webhook' | 'bad_signature'
+
+const BASE64_RE = /^[A-Za-z0-9+/]+={0,2}$/
+
+/**
+ * EspoCRM 10.0.8 webhooks send `Signature: base64("<webhookId>:<hex HMAC-SHA256(raw body, secret)>")`.
+ * The protocol has no timestamp, so there is no replay window here (D-19 compensates per delivery).
+ * Any listed secret may match (rotation without a gap). The legacy `X-Signature` header is never
+ * consulted by the route. When `expectedWebhookId` is given the embedded id must match it.
+ */
+export function verifyEspoSignature(input: {
+  rawBody: Buffer
+  signature: string | null
+  secrets: string[]
+  expectedWebhookId?: string
+}): EspoVerifyResult {
+  const { rawBody, signature, secrets, expectedWebhookId } = input
+  if (!signature || signature.length > 512 || !BASE64_RE.test(signature)) return 'malformed'
+
+  const decoded = Buffer.from(signature, 'base64').toString('utf8')
+  const colon = decoded.indexOf(':')
+  if (colon <= 0) return 'malformed'
+  const webhookId = decoded.slice(0, colon)
+  const hex = decoded.slice(colon + 1)
+  if (hex === '') return 'malformed'
+
+  if (expectedWebhookId && !safeEqual(webhookId, expectedWebhookId)) return 'wrong_webhook'
+
+  let ok = false
+  for (const secret of secrets) {
+    if (!secret) continue
+    const expected = createHmac('sha256', secret).update(rawBody).digest('hex')
+    // No early exit: every configured secret is compared, so timing does not reveal which matched.
+    if (safeEqual(expected, hex.toLowerCase())) ok = true
+  }
+  return ok ? 'ok' : 'bad_signature'
+}
