@@ -3,7 +3,7 @@ import { breaker, type DispatchResult } from '@/lib/dispatch-outcomes'
 import type { DispatchDeps } from '@/lib/lead-sync'
 import { deliverChatIntake } from '@/lib/chat-intake'
 import { deliverChatResolve } from '@/lib/chat-resolve'
-import { deliverChatContact } from '@/lib/chat-contact'
+import { deliverChatContact, deliverChatLabel } from '@/lib/chat-contact'
 
 /**
  * hook.* router of the outbox dispatcher (Phase 83, D-15). Runs only when QStash calls
@@ -32,6 +32,8 @@ export async function deliverHook(row: OutboxRow, d: DispatchDeps): Promise<Disp
       return deliverChatResolve(row, d, clients)
     case 'hook.chat_contact':
       return deliverChatContact(row, d, clients)
+    case 'hook.chat_label':
+      return deliverChatLabel(row, d, clients)
     default:
       await d.store.complete(row.idempotency_key, 'failed', 'unsupported_event')
       return { outcome: 'failed', code: 'unsupported_event' }

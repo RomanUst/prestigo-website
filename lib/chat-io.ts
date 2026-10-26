@@ -286,6 +286,20 @@ export async function findContactIdsByPhone(crm: SiteEspoClient, phone: string):
 }
 
 /**
+ * The single Contact carrying this phone that has NO email yet (the phone-keyed Contact the intake
+ * creates for a phone-only person, D-04), or null. A Contact that already has an email belongs to
+ * somebody else as far as this lookup is concerned, and two Contacts with the phone are ambiguous.
+ */
+export async function findEmaillessContactIdByPhone(crm: SiteEspoClient, phone: string): Promise<string | null> {
+  const res = await crm.get(
+    `/Contact?select=id,emailAddress&maxSize=2&where[0][type]=equals&where[0][attribute]=phoneNumber&where[0][value]=${q(phone)}`,
+  )
+  const list = listOf(res)
+  if (list.length !== 1) return null
+  return espoStr(list[0].emailAddress) ? null : espoStr(list[0].id)
+}
+
+/**
  * POST /Contact for a chat person. The caller already decided this is a new person, so EspoCRM's
  * own duplicate check (email OR first + last name) is skipped. 409 -> somebody created it in the
  * meantime: converge on it (by email, else by phone). 400 with a phone -> once more without it.
