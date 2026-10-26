@@ -34,6 +34,9 @@ export const LEAD_SOURCE = {
   email: 'Email',
   partner: 'Partner',
   other: 'Other',
+  // Phase 83 (HOOK-01): chat conversations; the inbox name goes into the description, not the source.
+  websiteChat: 'Website chat',
+  telegram: 'Telegram',
 } as const
 
 export type LeadStatusKey = 'new' | 'in_process' | 'converted' | 'dead'

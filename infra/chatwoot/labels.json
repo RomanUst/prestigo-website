@@ -12,6 +12,7 @@
     { "title": "complaint", "description": "Topic: service complaint", "color": "#BFA06A", "show_on_sidebar": true },
     { "title": "lost-item", "description": "Topic: lost item follow-up", "color": "#BFA06A", "show_on_sidebar": true },
     { "title": "review", "description": "Topic: post-trip review request or response", "color": "#BFA06A", "show_on_sidebar": true },
-    { "title": "other", "description": "Topic: operator-applied catch-all, corrected manually", "color": "#BFA06A", "show_on_sidebar": true }
+    { "title": "other", "description": "Topic: operator-applied catch-all, corrected manually", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "no-lead", "description": "Control: no CRM Lead for this conversation; moves an auto-created chat Lead to Dead", "color": "#BFA06A", "show_on_sidebar": true }
   ]
 }

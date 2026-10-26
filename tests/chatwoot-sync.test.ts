@@ -467,14 +467,14 @@ describe('client', () => {
 })
 
 describe('runSync labels (tracer)', () => {
-  it('creates 13 labels, then a second run reports create=0 update=0 unchanged=13', async () => {
+  it('creates 14 labels, then a second run reports create=0 update=0 unchanged=14', async () => {
     const fake = createFakeChatwoot()
     const first = await sync(fake, { only: ['labels'] })
-    expect(first).toContain('labels: create=13 update=0 unchanged=0 skipped=0 deleted=0')
-    expect(fake.state.labels).toHaveLength(13)
+    expect(first).toContain('labels: create=14 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(fake.state.labels).toHaveLength(14)
 
     const second = await sync(fake, { only: ['labels'] })
-    expect(second).toContain('labels: create=0 update=0 unchanged=13 skipped=0 deleted=0')
+    expect(second).toContain('labels: create=0 update=0 unchanged=14 skipped=0 deleted=0')
     expect(second).toContain('summary: create=0 update=0 skipped=0')
   })
 
@@ -485,7 +485,7 @@ describe('runSync labels (tracer)', () => {
     fake.state.labels.push({ id: 900, title: 'operator-made', description: 'x', color: '#111111', show_on_sidebar: true })
 
     const run = await sync(fake, { only: ['labels'] })
-    expect(run).toContain('labels: create=0 update=1 unchanged=12 skipped=0 deleted=0')
+    expect(run).toContain('labels: create=0 update=1 unchanged=13 skipped=0 deleted=0')
     expect(fake.state.labels.find((l) => l.title === 'payment').color).toBe('#BFA06A')
     expect(fake.state.labels.find((l) => l.title === 'operator-made').color).toBe('#111111')
   })
@@ -495,7 +495,7 @@ describe('runSync labels (tracer)', () => {
     const run = await sync(fake, { only: ['labels'], dryRun: true })
     expect(fake.requests.length).toBeGreaterThan(0)
     expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
-    expect(run).toContain('labels: create=13 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(run).toContain('labels: create=14 update=0 unchanged=0 skipped=0 deleted=0')
     expect(fake.state.labels).toHaveLength(0)
   })
 
