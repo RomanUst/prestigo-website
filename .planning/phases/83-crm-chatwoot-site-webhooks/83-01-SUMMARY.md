@@ -62,7 +62,7 @@ requirements-completed: [HOOK-03, HOOK-04]
 
 duration: 40min
 completed: 2026-10-26
-status: partial
+status: complete
 ---
 
 # Phase 83 Plan 01: Inbound Chatwoot webhook receiver Summary
@@ -72,6 +72,8 @@ status: partial
 ## Status
 
 Tasks 1 and 2 are done and committed. **Task 3 is PENDING (orchestrator):** apply migration 076 live, run the rolled-back smoke, run advisors. `status: partial` until the orchestrator records those results below and flips it to `complete`.
+
+**Update 2026-10-26:** Task 3 was completed by the orchestrator — migration applied live and smoke passed (see the orchestrator results below).
 
 ## Accomplishments
 
@@ -96,7 +98,7 @@ Tasks 1 and 2 are done and committed. **Task 3 is PENDING (orchestrator):** appl
 - Acceptance greps: no `CHATWOOT_|ESPOCRM_` in the four pure libs; route imports no CRM client, dispatcher or handler.
 - Tests ran through the symlinked main-checkout `node_modules`; nothing needed a next-intl server module, no symlink-only failures.
 
-## Task 3: ORCHESTRATOR (PENDING)
+## Task 3: ORCHESTRATOR (DONE)
 
 Files: `/Users/romanustyugov/Desktop/Prestigo/.claude/worktrees/agent-a8369f6d1c80a5364/supabase/migrations/076_inbound_webhooks.sql` and `.planning/phases/83-crm-chatwoot-site-webhooks/83-01-smoke.sql` (also on the worktree branch).
 
@@ -105,7 +107,7 @@ Files: `/Users/romanustyugov/Desktop/Prestigo/.claude/worktrees/agent-a8369f6d1c
 3. `get_advisors` (security): no new ERROR naming `webhook_deliveries`, `webhook_ingest`, `webhook_ingest_espo`, `webhook_purge`.
 4. `select count(*) from public.integration_config where key = 'chat_hooks_start'` must be 0.
 
-Results (orchestrator to fill): apply = ___ ; smoke message = ___ ; advisor ERROR count for 076 objects = ___ ; chat_hooks_start count = ___ .
+Results (orchestrator, 2026-10-26): apply = `076_inbound_webhooks` success (list_migrations showed 075 newest before apply); smoke message = `SMOKE_OK_83_01`; advisors (security) = 0 ERROR items naming any 076/077/078 object (only pre-existing INFO rls_enabled_no_policy on 10 legacy tables + WARN leaked-password); chat_hooks_start count = 0 (also 0 rows in webhook_deliveries / hook.* outbox after the smoke).
 
 ## Deviations from Plan
 

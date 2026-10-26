@@ -29,7 +29,7 @@ key-decisions:
   - "Operator attach never merges: an email owned by another identity returns owned_elsewhere and nothing changes; attach never writes phone_flags and does not use core rule 4"
   - "byChatwootContact stamps the requested contact id onto each returned ChatIdentity (RPC does not echo it)"
 requirements-completed: [HOOK-01, HOOK-03]
-status: complete-pending-orchestrator
+status: complete
 commits: 3
 plan_head_before: 1bec9e554f02791f2c2acfe8835b2d3035536922
 plan_head_after: e90ef8698205072b58db68eaae658eaea9ee71f9
@@ -47,13 +47,15 @@ actuals:
 
 Tasks 1 and 2 complete (code + tests, committed). Task 3 (apply migration 077 live + rolled-back smoke) is PENDING (orchestrator): executors have no Supabase MCP. Migration is NOT yet applied live.
 
+**Update 2026-10-26:** Task 3 was completed by the orchestrator — migration applied live and smoke passed (see the orchestrator results below).
+
 ## Tasks
 
 | Task | Name | Commit | Status |
 | ---- | ---- | ------ | ------ |
 | 1 (tracer) | identity_resolve_chat + identity_chat_lookup + basis 'chat' + store wrappers | a3fe5314 | done |
 | 2 | identity_by_chatwoot_contact, identity_attach_chat_contact, identity_phone_usable + wrappers | 64b8eda8 | done |
-| 3 | [BLOCKING][ORCHESTRATOR] apply 077 live + smoke SMOKE_OK_83_02 | e90ef869 (smoke SQL only) | PENDING (orchestrator) |
+| 3 | [BLOCKING][ORCHESTRATOR] apply 077 live + smoke SMOKE_OK_83_02 | e90ef869 (smoke SQL only) | DONE (orchestrator) |
 
 ## What was built
 
@@ -82,7 +84,7 @@ Tasks 1 and 2 complete (code + tests, committed). Task 3 (apply migration 077 li
 4. MCP get_advisors (security): no new ERROR naming a 077 function.
 5. Record the pre-apply constraint names, apply result, smoke message and advisor ERROR count here.
 
-Orchestrator results: PENDING.
+Orchestrator results (2026-10-26): pre-apply CHECK constraints on identity_emails = identity_emails_basis_check (email/phone/signup/split), identity_emails_email_check, identity_emails_via_phone_check; apply = `077_identity_chat` success (after 076); smoke message = `SMOKE_OK_83_02`; advisors (security) = 0 ERROR items naming any 076/077/078 object (only pre-existing INFO rls_enabled_no_policy on 10 legacy tables + WARN leaked-password).
 
 ## Deviations from Plan
 

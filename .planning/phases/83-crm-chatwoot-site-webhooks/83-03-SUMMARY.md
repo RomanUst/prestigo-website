@@ -42,11 +42,11 @@ key-decisions:
   - "Guard treats lib/supabase.ts as a boundary (reached, not traversed); a bookings/customer_profiles table handle that does not continue into a call is flagged as unprovable"
   - "chat_erasure_scope/chat_erase also cover conversations linked to in-scope leads; empty or NULL scope matches nothing"
 
-requirements-completed: []  # HOOK-01 / HOOK-03 close only after migration 078 is applied live (Task 3, orchestrator)
+requirements-completed: [HOOK-01, HOOK-03]
 
 duration: 40min
 completed: 2026-10-26
-status: partial
+status: complete
 ---
 
 # Phase 83 Plan 03: Chat registry and webhook isolation guard Summary
@@ -56,6 +56,8 @@ status: partial
 ## Status
 
 Tasks 1 and 2 are done and committed. Task 3 (apply migration 078 live and run the rolled-back smoke) is **PENDING (orchestrator)**: executors have no Supabase MCP. The smoke SQL is committed and ready.
+
+**Update 2026-10-26:** Task 3 was completed by the orchestrator — migration applied live and smoke passed (see the orchestrator results below).
 
 ## Accomplishments
 
@@ -71,7 +73,7 @@ Tasks 1 and 2 are done and committed. Task 3 (apply migration 078 live and run t
 | 1 (tracer) | e87d5129 | migration 078 (tables, all RPCs), lib/chat-store.ts, store and migration text tests |
 | 2 | 083d643b | webhook-isolation-guard test |
 | 3 smoke | 1efcb229 | 83-03-smoke.sql (rolled-back smoke for the orchestrator) |
-| 3 apply | PENDING (orchestrator) | apply_migration + smoke run |
+| 3 apply | DONE (orchestrator) | apply_migration + smoke run |
 
 ## Deviations from Plan
 
@@ -83,14 +85,14 @@ Tasks 1 and 2 are done and committed. Task 3 (apply migration 078 live and run t
 
 **4. [Design] Conversations of in-scope leads are erased too.** `chat_erase`/`chat_erasure_scope` include `chat_conversations` whose `chat_lead_id` is in scope, so no conversation row is left pointing at a deleted Lead (FK is ON DELETE SET NULL).
 
-## Orchestrator Task 3 (PENDING)
+## Orchestrator Task 3 (DONE)
 
 1. MCP `apply_migration` name `078_chat_registry` with the text of `supabase/migrations/078_chat_registry.sql`.
 2. `execute_sql` with `.planning/phases/83-crm-chatwoot-site-webhooks/83-03-smoke.sql`; expected error message exactly `SMOKE_OK_83_03` (failing steps are labelled a1..h4 in the assertion message). The smoke could not be run by the executor (no DB access), so a failing step label is possible and should be fixed in the SQL or migration.
 3. MCP `get_advisors` (security): no new ERROR naming `chat_leads`, `chat_conversations` or a 078 function; `select count(*) from public.integration_config where key = 'chat_hooks_start'` must be 0.
 4. Record apply result, smoke message, advisor ERROR count and the gate count in this SUMMARY.
 
-Results: apply = PENDING; smoke = PENDING; advisors = PENDING; chat_hooks_start count = PENDING.
+Results (2026-10-26): apply = `078_chat_registry` success (after 076, 077); smoke = `SMOKE_OK_83_03`; advisors (security) = 0 ERROR items naming any 076/077/078 object (only pre-existing INFO rls_enabled_no_policy on 10 legacy tables + WARN leaked-password); chat_hooks_start count = 0 (chat_leads / chat_conversations empty).
 
 ## Known Stubs
 
