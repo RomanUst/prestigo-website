@@ -5,17 +5,17 @@ milestone_name: Helpdesk + CRM
 current_phase: 84
 current_phase_name: Chatwoot Dashboard App
 status: planning
-stopped_at: Phase 83 complete, ready to discuss Phase 84
-last_updated: "2026-10-26T19:07:33.414Z"
+stopped_at: Phase 84 context gathered
+last_updated: "2026-10-26T19:22:23.912Z"
 last_activity: 2026-10-26
 last_activity_desc: Phase 83 complete (live, review CR-01..03 fixed in 079), next Phase 84 (78 deferred to backlog 999.9)
-state_head: de17a7c951009ecce48fab24f26df54104248ead
+state_head: b44b59ba99576d3baa8aa695585d072fc06448c4
 progress:
   total_phases: 10
   completed_phases: 28
   total_plans: 95
   completed_plans: 88
-  percent: 88
+  percent: 93
 ---
 
 # Project State
@@ -328,9 +328,9 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-10-26T11:37:32.238Z
-Stopped at: Phase 83 complete, ready to discuss Phase 84
-Resume file: .planning/phases/83-crm-chatwoot-site-webhooks/83-CONTEXT.md
+Last session: 2026-10-26T19:22:23.546Z
+Stopped at: Phase 84 context gathered
+Resume file: .planning/phases/84-chatwoot-dashboard-app/84-CONTEXT.md
 
 ## Performance Metrics
 
