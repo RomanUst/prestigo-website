@@ -1,0 +1,93 @@
+---
+phase: "83"
+slug: "crm-chatwoot-site-webhooks"
+# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
+# audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
+status: draft
+nyquist_compliant: false
+wave_0_complete: false
+created: "2026-10-26"
+---
+
+# Phase 83 — Validation Strategy
+
+> Per-phase validation contract for feedback sampling during execution.
+
+---
+
+## Test Infrastructure
+
+| Property | Value |
+|----------|-------|
+| **Framework** | vitest ^4.1.1 (jsdom default; new files start with `// @vitest-environment node`) |
+| **Config file** | `vitest.config.ts` (alias `@` → repo root, setup `tests/setup.ts`) |
+| **Quick run command** | `npx vitest run tests/webhook-verify.test.ts tests/webhooks-chatwoot-route.test.ts tests/webhooks-espocrm-route.test.ts tests/sync-origin.test.ts` |
+| **Full suite command** | `npx vitest run` |
+| **Estimated runtime** | ~90 seconds (full), ~10 seconds (quick) |
+
+---
+
+## Sampling Rate
+
+- **After every task commit:** Run the quick command plus the test file(s) of the touched module (`grep -rlE "[/'\"]<basename>['\"]" tests/` — `vitest related` crashes here)
+- **After every plan wave:** Run `npx vitest run`, `npx tsc --noEmit` (baseline: 8 old errors in `tests/` only), `npx eslint --quiet <files>`
+- **Before `/gsd-verify-work`:** Full suite must be green and the `verify` skill must PASS
+- **Max feedback latency:** 90 seconds
+
+---
+
+## Per-Task Verification Map
+
+Task IDs are filled in by the planner; the requirement → test map below is the contract each task binds to.
+
+| Requirement | Secure Behavior | Test Type | Automated Command | File Exists | Status |
+|-------------|-----------------|-----------|-------------------|-------------|--------|
+| HOOK-01 | Stranger → identity (basis chat) + Contact + Lead with channel source; known → nothing; one open chat Lead per person; spam/no-lead filters | unit (fakes) | `npx vitest run tests/chat-intake.test.ts tests/chat-classify.test.ts` | ❌ W0 | ⬜ pending |
+| HOOK-01 | `hook.*` keys parse/round-trip; dispatcher routes them | unit | `npx vitest run tests/outbox.test.ts tests/integrations-dispatch.test.ts tests/lead-sync.test.ts` | ✅ extend | ⬜ pending |
+| HOOK-01 | Lead source enum, Webhook role scope, `no-lead` label in config-as-code | unit | `npx vitest run tests/espocrm-enums.test.ts tests/espocrm-roles.test.ts tests/chatwoot-config.test.ts` | ✅ extend | ⬜ pending |
+| HOOK-02 | Resolve history Note content, private summary note, idempotency per resolve, Contact-else-Lead target | unit (fakes) | `npx vitest run tests/chat-resolve.test.ts` | ❌ W0 | ⬜ pending |
+| HOOK-03 | Chatwoot HMAC (`<ts>.<raw body>`), replay window, two-secret rotation, constant-time compare | unit | `npx vitest run tests/webhook-verify.test.ts` | ❌ W0 | ⬜ pending |
+| HOOK-03 | EspoCRM `Signature` verify, per-item dedup, never 410 | unit | `npx vitest run tests/webhooks-espocrm-route.test.ts` | ❌ W0 | ⬜ pending |
+| HOOK-03 | Fail-closed without secret, 413 oversize, 400 bad JSON, 200 for duplicate/ignored/fused | route test | `npx vitest run tests/webhooks-chatwoot-route.test.ts tests/middleware-csrf-forms.test.ts` | ❌ / ✅ extend | ⬜ pending |
+| HOOK-03 | Migration 076: deny-all RLS, REVOKE/GRANT per function, no writes to bookings/customer_profiles/auth.users | migration text | `npx vitest run tests/webhook-ingest-migration.test.ts` | ❌ W0 | ⬜ pending |
+| HOOK-03 | Structural barrier: import-closure guard + runtime tripwire; VPS guard allowlist | guard | `npx vitest run tests/webhook-isolation-guard.test.ts tests/infra-vps-isolation-guard.test.ts` | ❌ / ✅ extend | ⬜ pending |
+| HOOK-04 | Fingerprint determinism; receiver drops own-echo `contact_updated`, passes operator edit | unit | `npx vitest run tests/sync-origin.test.ts tests/webhooks-chatwoot-route.test.ts` | ❌ W0 | ⬜ pending |
+| HOOK-04 | `chatwoot-sync.ts` writes `site_sync_fp` of post-write state | unit | `npx vitest run tests/chatwoot-contact-sync.test.ts tests/chatwoot-mapping.test.ts` | ✅ extend | ⬜ pending |
+| HOOK-04 | Loop harness quiesces with bounded writes; fuse trips on forced loop | simulation | `npx vitest run tests/webhook-echo-loop.test.ts` | ❌ W0 | ⬜ pending |
+| HOOK-04 | Espo webhook created as `prestigo-sync` with `skipOwn: true` | unit | `npx vitest run tests/espocrm-webhook-script.test.ts` | ❌ W0 | ⬜ pending |
+| D-05 / erasure | Paid booking converts open chat Lead once; erasure scrubs chat data | unit | `npx vitest run tests/crm-sync.test.ts tests/erasure.test.ts` | ✅ extend | ⬜ pending |
+
+*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+---
+
+## Wave 0 Requirements
+
+- [ ] `tests/webhook-verify.test.ts`, `tests/webhooks-chatwoot-route.test.ts`, `tests/webhooks-espocrm-route.test.ts` — HOOK-03
+- [ ] `tests/webhook-ingest-migration.test.ts`, `tests/webhook-isolation-guard.test.ts` — HOOK-03
+- [ ] `tests/sync-origin.test.ts`, `tests/webhook-echo-loop.test.ts`, `tests/espocrm-webhook-script.test.ts` — HOOK-04
+- [ ] `tests/chat-intake.test.ts`, `tests/chat-classify.test.ts`, `tests/chat-resolve.test.ts`, `tests/chat-contact.test.ts`, `tests/espo-contact-hook.test.ts` — HOOK-01/02, D-12..14
+- [ ] Extend `tests/helpers/fake-chatwoot.ts` and `tests/helpers/fake-espocrm.ts` (conversations, messages, labels, Note, Webhook CRUD with `skipOwn`)
+- [ ] Signed-fixture builder in tests (obviously fake secrets only)
+- Framework install: none
+
+---
+
+## Manual-Only Verifications
+
+| Behavior | Requirement | Why Manual | Test Instructions |
+|----------|-------------|------------|-------------------|
+| Real signature round trip, real payload shapes, Note API, `skipOwn` behaviour | HOOK-01..04 | Needs live VPS Chatwoot/EspoCRM; VPS SSH blocked in auto mode | Owner runs `node infra/chatwoot/webhook-probe.mjs` and `node infra/espocrm/webhook.mjs --probe`, then a live UAT conversation (stranger → Lead, resolve → Note) |
+
+---
+
+## Validation Sign-Off
+
+- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
+- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
+- [ ] Wave 0 covers all MISSING references
+- [ ] No watch-mode flags
+- [ ] Feedback latency < 90s
+- [ ] `nyquist_compliant: true` set in frontmatter
+
+**Approval:** pending
