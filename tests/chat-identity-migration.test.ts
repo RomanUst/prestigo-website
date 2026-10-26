@@ -75,10 +75,59 @@ describe('077 identity_chat_lookup', () => {
   })
 })
 
+describe('077 identity_by_chatwoot_contact', () => {
+  const body = fnBody('identity_by_chatwoot_contact')
+
+  it('is a STABLE read capped at 2 rows (2 = ambiguous for the caller) with no writes', () => {
+    expect(body).toMatch(/\bSTABLE\b/)
+    expect(body).toContain('LIMIT 2')
+    expect(body).toMatch(/ORDER BY c\.created_at/)
+    expect(body).not.toMatch(/\b(INSERT|UPDATE|DELETE)\b/)
+  })
+})
+
+describe('077 identity_attach_chat_contact (D-12)', () => {
+  const body = fnBody('identity_attach_chat_contact')
+
+  it('takes the global lock before touching any row', () => {
+    expect(body).toContain("pg_advisory_xact_lock(hashtextextended('identity', 0))")
+    expect(body.indexOf('pg_advisory_xact_lock')).toBeLessThan(body.indexOf('INSERT INTO'))
+  })
+
+  it('skips an email owned by another identity and never merges (T-83-09)', () => {
+    expect(body).toContain("'owned_elsewhere'")
+    expect(body).not.toMatch(/identity_resolve_core\(/)
+    expect(body).not.toMatch(/UPDATE public\.identity_emails/)
+    expect(body).not.toMatch(/\buser_id\s*=/)
+  })
+
+  it("inserts the email with basis 'chat' and never writes phone_flags", () => {
+    expect(body).toMatch(/INSERT INTO public\.identity_emails \(email, identity_id, basis\)\s+VALUES \(v_email, p_identity_id, 'chat'\)/)
+    expect(body).not.toMatch(/(INSERT INTO|UPDATE|DELETE FROM) public\.phone_flags/)
+  })
+
+  it('handles the missing and erasing identity outcomes', () => {
+    expect(body).toContain("'identity_missing'")
+    expect(body).toContain("'erasing'")
+    expect(body).toContain("'shared'")
+  })
+})
+
+describe('077 identity_phone_usable', () => {
+  const body = fnBody('identity_phone_usable')
+
+  it('normalises and refuses a number flagged shared', () => {
+    expect(body).toContain('identity_normalize_phone(')
+    expect(body).toContain('public.phone_flags')
+    expect(body).toMatch(/\bSTABLE\b/)
+    expect(body).not.toMatch(/\b(INSERT|UPDATE|DELETE)\b/)
+  })
+})
+
 describe('077 grants and hardening (T-83-11)', () => {
   it('every function pins search_path, is SECURITY DEFINER and is created exactly once', () => {
     const creates = (m077.match(/CREATE OR REPLACE FUNCTION/g) ?? []).length
-    expect(creates).toBeGreaterThanOrEqual(2)
+    expect(creates).toBe(FUNCTION_SIGNATURES.length)
     expect((m077.match(/SET search_path = ''/g) ?? []).length).toBe(creates)
     expect((m077.match(/SECURITY DEFINER/g) ?? []).length).toBe(creates)
   })
@@ -86,7 +135,7 @@ describe('077 grants and hardening (T-83-11)', () => {
   it('has a per-function REVOKE and a service_role GRANT for every created function', () => {
     for (const sig of FUNCTION_SIGNATURES) {
       const name = sig.slice(0, sig.indexOf('('))
-      if (!m077.includes(`FUNCTION public.${name}(`)) continue
+      expect(m077, `FUNCTION ${name}`).toContain(`FUNCTION public.${name}(`)
       const esc = sig.replace(/[()]/g, '\\$&')
       expect(m077, `REVOKE ${sig}`).toMatch(
         new RegExp(`REVOKE EXECUTE ON FUNCTION public\\.${esc} FROM PUBLIC, anon, authenticated`),

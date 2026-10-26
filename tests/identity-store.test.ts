@@ -144,4 +144,45 @@ describe('identity store: chat identity (Phase 83)', () => {
   it('chatLookup() treats a malformed row as db_error', async () => {
     await expect(client([{ nope: 1 }]).store.chatLookup('a@x.example')).rejects.toMatchObject({ code: 'db_error' })
   })
+
+  it('byChatwootContact() maps 0, 1 and 2 rows and keeps the emails array', async () => {
+    const none = client([])
+    expect(await none.store.byChatwootContact(9)).toEqual([])
+    expect(none.rpc).toHaveBeenCalledWith('identity_by_chatwoot_contact', { p_contact_id: 9 })
+    const row = (id: string) => ({ identity_id: id, customer: false, erasing: false, espo_contact_id: null, emails: ['a@x.example', 'b@x.example'] })
+    const one = await client([row(ID)]).store.byChatwootContact(9)
+    expect(one).toEqual([
+      { identityId: ID, customer: false, erasing: false, espoContactId: null, chatwootContactId: 9, emails: ['a@x.example', 'b@x.example'] },
+    ])
+    expect((await client([row(ID), row(PREV)]).store.byChatwootContact(9)).map((i) => i.identityId)).toEqual([ID, PREV])
+    expect(await client(null).store.byChatwootContact(9)).toEqual([])
+    await expect(client([{ nope: 1 }]).store.byChatwootContact(9)).rejects.toMatchObject({ code: 'db_error' })
+  })
+
+  it('attach: attachChatContact() maps (attached, owned_elsewhere) and sends the contract arguments', async () => {
+    const { store, rpc } = client([{ email_outcome: 'attached', phone_outcome: 'owned_elsewhere' }])
+    expect(await store.attachChatContact(ID, 'A@x.example', '+420700000083')).toEqual({ email: 'attached', phone: 'owned_elsewhere' })
+    expect(rpc).toHaveBeenCalledWith('identity_attach_chat_contact', {
+      p_identity_id: ID,
+      p_email_raw: 'A@x.example',
+      p_phone_raw: '+420700000083',
+    })
+  })
+
+  it('attach: an unknown outcome, an empty result and an RPC error are db_error', async () => {
+    await expect(client([{ email_outcome: 'merged', phone_outcome: 'none' }]).store.attachChatContact(ID, null, null)).rejects.toMatchObject({ code: 'db_error' })
+    await expect(client([]).store.attachChatContact(ID, null, null)).rejects.toMatchObject({ code: 'db_error' })
+    await expect(client(null, { message: 'x' }).store.attachChatContact(ID, null, null)).rejects.toMatchObject({ code: 'db_error' })
+  })
+
+  it('phoneUsable() returns the E.164 string or null and skips the RPC for null', async () => {
+    const ok = client('+420725986855')
+    expect(await ok.store.phoneUsable('+420 725 986 855')).toBe('+420725986855')
+    expect(ok.rpc).toHaveBeenCalledWith('identity_phone_usable', { p_phone_raw: '+420 725 986 855' })
+    expect(await client(null).store.phoneUsable('123')).toBeNull()
+    const nul = client('+420725986855')
+    expect(await nul.store.phoneUsable(null)).toBeNull()
+    expect(nul.rpc).not.toHaveBeenCalled()
+    await expect(client(null, { message: 'x' }).store.phoneUsable('1')).rejects.toMatchObject({ code: 'db_error' })
+  })
 })

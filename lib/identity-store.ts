@@ -87,6 +87,20 @@ export interface ChatResolveResult {
   customer: boolean
 }
 
+export type AttachOutcome =
+  | 'attached'
+  | 'unchanged'
+  | 'owned_elsewhere'
+  | 'shared'
+  | 'none'
+  | 'erasing'
+  | 'identity_missing'
+
+export interface AttachResult {
+  email: AttachOutcome
+  phone: AttachOutcome
+}
+
 export interface IdentityStore {
   resolveBooking(bookingId: string): Promise<ResolveResult>
   resolveUser(userId: string): Promise<ResolveResult>
@@ -102,6 +116,13 @@ export interface IdentityStore {
   byChatwootContact(contactId: number): Promise<ChatIdentity[]>
   /** identity_resolve_chat: register / resolve a chat person under the global lock (basis 'chat'). */
   resolveChat(email: string | null, phone: string | null): Promise<ChatResolveResult>
+  /**
+   * identity_attach_chat_contact (D-12): add an operator-entered email (basis 'chat') or phone to an
+   * EXISTING identity only when no other identity owns it. Never merges two identities.
+   */
+  attachChatContact(identityId: string, email: string | null, phone: string | null): Promise<AttachResult>
+  /** identity_phone_usable: the E.164 number, or null when it does not normalise or is flagged shared. */
+  phoneUsable(phone: string | null): Promise<string | null>
   /** outbox_enqueue: true when a row was inserted, false only on a key conflict; THROWS on an RPC error. */
   enqueueSync(input: {
     eventType: string
@@ -136,18 +157,46 @@ function toChatResolveResult(data: unknown): ChatResolveResult {
   }
 }
 
+const ATTACH_OUTCOMES: ReadonlySet<string> = new Set([
+  'attached',
+  'unchanged',
+  'owned_elsewhere',
+  'shared',
+  'none',
+  'erasing',
+  'identity_missing',
+])
+
+function toAttachResult(data: unknown): AttachResult {
+  const row = Array.isArray(data) ? data[0] : data
+  if (
+    !isRecord(row) ||
+    typeof row.email_outcome !== 'string' ||
+    typeof row.phone_outcome !== 'string' ||
+    !ATTACH_OUTCOMES.has(row.email_outcome) ||
+    !ATTACH_OUTCOMES.has(row.phone_outcome)
+  ) {
+    throw new Error('shape')
+  }
+  return { email: row.email_outcome as AttachOutcome, phone: row.phone_outcome as AttachOutcome }
+}
+
 function toChatIdentity(row: unknown): ChatIdentity {
   if (!isRecord(row) || typeof row.identity_id !== 'string' || row.identity_id === '') {
     throw new Error('shape')
   }
   const contact = row.chatwoot_contact_id
-  return {
+  const identity: ChatIdentity = {
     identityId: row.identity_id,
     customer: row.customer === true,
     erasing: row.erasing === true,
     espoContactId: asString(row.espo_contact_id),
     chatwootContactId: typeof contact === 'number' ? contact : null,
   }
+  if (Array.isArray(row.emails)) {
+    identity.emails = row.emails.filter((e): e is string => typeof e === 'string')
+  }
+  return identity
 }
 
 function toResolveResult(data: unknown): ResolveResult {
@@ -242,7 +291,8 @@ export function createIdentityStore(client?: SupabaseClient): IdentityStore {
       const data = await rpc('identity_by_chatwoot_contact', { p_contact_id: contactId })
       if (!Array.isArray(data)) return []
       try {
-        return data.map(toChatIdentity)
+        // The caller knows the contact id it asked for; the RPC does not echo it back.
+        return data.map((row) => ({ ...toChatIdentity(row), chatwootContactId: contactId }))
       } catch {
         throw new OutboxStoreError('db_error')
       }
@@ -255,6 +305,25 @@ export function createIdentityStore(client?: SupabaseClient): IdentityStore {
       } catch {
         throw new OutboxStoreError('db_error')
       }
+    },
+
+    async attachChatContact(identityId, email, phone) {
+      const data = await rpc('identity_attach_chat_contact', {
+        p_identity_id: identityId,
+        p_email_raw: email,
+        p_phone_raw: phone,
+      })
+      try {
+        return toAttachResult(data)
+      } catch {
+        throw new OutboxStoreError('db_error')
+      }
+    },
+
+    async phoneUsable(phone) {
+      if (phone === null) return null
+      const data = await rpc('identity_phone_usable', { p_phone_raw: phone })
+      return asString(data)
     },
 
     async enqueueSync(input) {
