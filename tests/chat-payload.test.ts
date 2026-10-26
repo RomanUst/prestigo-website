@@ -118,3 +118,183 @@ describe('classifyChatwootEvent: contact_updated', () => {
     }
   })
 })
+
+// ---------------------------------------------------------------------------------------------
+// message_created (D-03)
+// ---------------------------------------------------------------------------------------------
+
+function message(overrides: Record<string, unknown> = {}) {
+  return {
+    event: 'message_created',
+    message_type: 'incoming',
+    private: false,
+    content: 'a customer sentence that must never be logged',
+    conversation: { id: 42 },
+    ...overrides,
+  }
+}
+
+describe('classifyChatwootEvent: message_created', () => {
+  it.each([
+    ['incoming string', 'incoming'],
+    ['incoming integer 0', 0],
+  ])('%s -> hook.chat_intake keyed by the conversation', (_name, messageType) => {
+    const p = plan(classifyChatwootEvent(message({ message_type: messageType }), ctx))
+    expect(p).toMatchObject({
+      eventType: 'hook.chat_intake',
+      aggregateType: 'chat_conversation',
+      aggregateId: aggregateUuid('conversation', 42),
+      entityKey: 'cw:conv:42',
+      fuseLimit: null,
+    })
+    expect(p.key.endsWith(':c42')).toBe(true)
+    expect(p.availableAt.getTime()).toBe(NOW_MS)
+  })
+
+  it.each([
+    ['outgoing', 'outgoing'],
+    ['1', 1],
+    ['activity', 'activity'],
+    ['2', 2],
+    ['template', 'template'],
+    ['3', 3],
+    ['missing', undefined],
+  ])('message_type %s is ignored as not_incoming', (_name, messageType) => {
+    const payload = message({ message_type: messageType })
+    expect(classifyChatwootEvent(payload, ctx)).toEqual({ kind: 'ignore', reason: 'not_incoming' })
+  })
+
+  it('an incoming private note is ignored as private', () => {
+    expect(classifyChatwootEvent(message({ private: true }), ctx)).toEqual({ kind: 'ignore', reason: 'private' })
+  })
+
+  it.each([
+    ['missing', undefined],
+    ['zero', { id: 0 }],
+    ['not an object', 'x'],
+  ])('conversation id %s is invalid with top-level key names only', (_name, conversation) => {
+    const result = classifyChatwootEvent(message({ conversation }), ctx)
+    expect(result.kind).toBe('invalid')
+    if (result.kind === 'invalid') {
+      expect(result.keys).toEqual(expect.arrayContaining(['event', 'content', 'conversation']))
+      expect(JSON.stringify(result.keys)).not.toContain('customer sentence')
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------------------------
+// conversation_status_changed (D-10)
+// ---------------------------------------------------------------------------------------------
+
+function statusEvent(overrides: Record<string, unknown> = {}) {
+  return {
+    event: 'conversation_status_changed',
+    id: 42,
+    status: 'resolved',
+    updated_at: 1729950000.73,
+    changed_attributes: [{ status: { previous_value: 'open', current_value: 'resolved' } }],
+    ...overrides,
+  }
+}
+
+describe('classifyChatwootEvent: conversation_status_changed', () => {
+  it('resolved with a float updated_at -> hook.chat_resolve keyed by conversation and resolve second', () => {
+    const p = plan(classifyChatwootEvent(statusEvent(), ctx))
+    expect(p).toMatchObject({
+      eventType: 'hook.chat_resolve',
+      aggregateType: 'chat_conversation',
+      aggregateId: aggregateUuid('conversation', 42),
+      entityKey: 'cw:conv:42',
+      fuseLimit: null,
+    })
+    expect(parseOutboxKey(p.key)).toMatchObject({ eventType: 'hook.chat_resolve', tag: 'c42r1729950000' })
+    expect(p.availableAt.getTime()).toBe(NOW_MS)
+  })
+
+  it('resolved with an ISO updated_at uses the matching epoch second', () => {
+    const iso = '2026-10-26T10:00:00Z'
+    const p = plan(classifyChatwootEvent(statusEvent({ updated_at: iso }), ctx))
+    expect(parseOutboxKey(p.key)).toMatchObject({ tag: `c42r${Date.parse(iso) / 1000}` })
+  })
+
+  it('resolved without updated_at falls back to the signed header timestamp', () => {
+    const payload = statusEvent()
+    delete (payload as Record<string, unknown>).updated_at
+    const p = plan(classifyChatwootEvent(payload, ctx))
+    expect(parseOutboxKey(p.key)).toMatchObject({ tag: `c42r${HEADER_SEC}` })
+  })
+
+  it('an unparseable updated_at also falls back to the header timestamp', () => {
+    const p = plan(classifyChatwootEvent(statusEvent({ updated_at: 'not a time' }), ctx))
+    expect(parseOutboxKey(p.key)).toMatchObject({ tag: `c42r${HEADER_SEC}` })
+  })
+
+  it('a changed_attributes block carrying another time does not change the resolved epoch', () => {
+    const withBlock = statusEvent({
+      changed_attributes: [{ updated_at: { previous_value: 1, current_value: 1800000000 } }],
+    })
+    const plain = statusEvent()
+    expect(plan(classifyChatwootEvent(withBlock, ctx)).key).toBe(plan(classifyChatwootEvent(plain, ctx)).key)
+    const noUpdatedAt = statusEvent({ changed_attributes: [{ updated_at: { current_value: 1800000000 } }] })
+    delete (noUpdatedAt as Record<string, unknown>).updated_at
+    expect(parseOutboxKey(plan(classifyChatwootEvent(noUpdatedAt, ctx)).key)).toMatchObject({ tag: `c42r${HEADER_SEC}` })
+  })
+
+  it.each(['open', 'pending', 'snoozed'])('status %s is ignored as not_resolved', (status) => {
+    expect(classifyChatwootEvent(statusEvent({ status }), ctx)).toEqual({ kind: 'ignore', reason: 'not_resolved' })
+  })
+
+  it('a missing conversation id is invalid', () => {
+    expect(classifyChatwootEvent(statusEvent({ id: undefined }), ctx).kind).toBe('invalid')
+  })
+})
+
+// ---------------------------------------------------------------------------------------------
+// conversation_updated (D-20, D-07/D-18)
+// ---------------------------------------------------------------------------------------------
+
+describe('classifyChatwootEvent: conversation_updated', () => {
+  const updated = (labels: unknown) => ({ event: 'conversation_updated', id: 42, labels, status: 'open' })
+
+  it('labels containing no-lead -> hook.chat_label keyed by the conversation', () => {
+    const p = plan(classifyChatwootEvent(updated(['b2b', 'no-lead']), ctx))
+    expect(p).toMatchObject({
+      eventType: 'hook.chat_label',
+      aggregateType: 'chat_conversation',
+      aggregateId: aggregateUuid('conversation', 42),
+      entityKey: 'cw:conv:42',
+      fuseLimit: null,
+    })
+    expect(parseOutboxKey(p.key)).toMatchObject({ eventType: 'hook.chat_label', tag: 'c42' })
+  })
+
+  it.each([
+    ['labels without no-lead', ['b2b', 'vip']],
+    ['empty labels', []],
+    ['labels absent', undefined],
+    ['labels not an array', 'no-lead'],
+  ])('%s is ignored as no_label', (_name, labels) => {
+    expect(classifyChatwootEvent(updated(labels), ctx)).toEqual({ kind: 'ignore', reason: 'no_label' })
+  })
+
+  it('a missing conversation id is invalid', () => {
+    expect(classifyChatwootEvent({ event: 'conversation_updated', labels: ['no-lead'] }, ctx).kind).toBe('invalid')
+  })
+})
+
+// ---------------------------------------------------------------------------------------------
+// everything else
+// ---------------------------------------------------------------------------------------------
+
+describe('classifyChatwootEvent: unsubscribed events and shapes', () => {
+  it.each(['conversation_created', 'message_updated', 'webwidget_triggered', 'something_new'])(
+    'event %s is ignored as unsubscribed_event',
+    (event) => {
+      expect(classifyChatwootEvent({ event, id: 1 }, ctx)).toEqual({ kind: 'ignore', reason: 'unsubscribed_event' })
+    },
+  )
+
+  it.each([null, 'text', 5, [], {}, { event: '' }, { event: 5 }])('a non-event body %j is invalid', (body) => {
+    expect(classifyChatwootEvent(body, ctx).kind).toBe('invalid')
+  })
+})

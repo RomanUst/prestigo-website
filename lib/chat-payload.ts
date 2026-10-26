@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { hookConversationKey, hookContactKey, isSiteEcho } from '@/lib/sync-origin'
+import { hookConversationKey, hookContactKey, hookResolveKey, isSiteEcho } from '@/lib/sync-origin'
 
 // Pure classification of a verified Chatwoot account-webhook payload into what the receiver does
 // with it (Phase 83). No I/O, no env access. The payload is only a hint: the outbox row carries
@@ -63,6 +63,33 @@ const messageCreatedSchema = z.object({
 })
 
 const eventShape = z.object({ event: z.string().min(1).max(64) })
+
+const conversationEventSchema = z.object({
+  id: displayId,
+  status: z.string().optional(),
+  labels: z.unknown().optional(),
+  updated_at: z.unknown().optional(),
+})
+
+/** The label that keeps a conversation out of the CRM (D-07, D-18, D-20). */
+const NO_LEAD_LABEL = 'no-lead'
+
+/**
+ * Resolve moment in epoch seconds (D-10): the payload's own updated_at (float seconds, numeric
+ * string or ISO string), else the signed header timestamp. Never changed_attributes (Pitfall 5).
+ */
+function resolveEpochSec(updatedAt: unknown, headerTimestampSec: number): number {
+  let sec: number | null = null
+  if (typeof updatedAt === 'number' && Number.isFinite(updatedAt)) {
+    sec = updatedAt
+  } else if (typeof updatedAt === 'string' && updatedAt.trim() !== '') {
+    const trimmed = updatedAt.trim()
+    const parsed = /^\d+(\.\d+)?$/.test(trimmed) ? Number(trimmed) : Date.parse(trimmed) / 1000
+    if (Number.isFinite(parsed)) sec = parsed
+  }
+  if (sec === null || sec <= 0) return headerTimestampSec
+  return sec > 1e11 ? sec / 1000 : sec
+}
 
 const contactUpdatedSchema = z.object({
   event: z.literal('contact_updated'),
@@ -129,6 +156,50 @@ export function classifyChatwootEvent(json: unknown, ctx: ClassifyContext): Chat
     }
   }
 
+  if (event === 'conversation_status_changed') {
+    const parsed = conversationEventSchema.safeParse(json)
+    if (!parsed.success) return invalid(json)
+    const { id, status, updated_at: updatedAt } = parsed.data
+    if (status !== 'resolved') return { kind: 'ignore', reason: 'not_resolved' }
+
+    // Each resolve is its own history entry: key = conversation + resolve second.
+    const { key, aggregateId } = hookResolveKey(id, resolveEpochSec(updatedAt, ctx.headerTimestampSec))
+    return {
+      kind: 'ingest',
+      plan: {
+        eventType: 'hook.chat_resolve',
+        aggregateType: 'chat_conversation',
+        aggregateId,
+        key,
+        entityKey: `cw:conv:${id}`,
+        fuseLimit: null,
+        availableAt: new Date(ctx.nowMs),
+      },
+    }
+  }
+
+  if (event === 'conversation_updated') {
+    const parsed = conversationEventSchema.safeParse(json)
+    if (!parsed.success) return invalid(json)
+    const { id, labels } = parsed.data
+    // conversation_updated is subscribed only for the no-lead label (Pitfall 14); filter the noise.
+    if (!Array.isArray(labels) || !labels.includes(NO_LEAD_LABEL)) return { kind: 'ignore', reason: 'no_label' }
+
+    const { key, aggregateId } = hookConversationKey('hook.chat_label', id)
+    return {
+      kind: 'ingest',
+      plan: {
+        eventType: 'hook.chat_label',
+        aggregateType: 'chat_conversation',
+        aggregateId,
+        key,
+        entityKey: `cw:conv:${id}`,
+        fuseLimit: null,
+        availableAt: new Date(ctx.nowMs),
+      },
+    }
+  }
+
   if (event === 'contact_updated') {
     const parsed = contactUpdatedSchema.safeParse(json)
     if (!parsed.success) return invalid(json)
@@ -155,5 +226,5 @@ export function classifyChatwootEvent(json: unknown, ctx: ClassifyContext): Chat
     }
   }
 
-  return { kind: 'ignore', reason: 'not_handled' }
+  return { kind: 'ignore', reason: 'unsubscribed_event' }
 }

@@ -222,6 +222,42 @@ describe('POST /api/webhooks/chatwoot: contact_updated (tracer, HOOK-04 receiver
   })
 })
 
+describe('POST /api/webhooks/chatwoot: conversation events', () => {
+  it('a signed resolved status event becomes one hook.chat_resolve row keyed by the resolve moment', async () => {
+    const res = await POST(
+      build({ event: 'conversation_status_changed', id: 42, status: 'resolved', updated_at: NOW_SEC - 5 + 0.4 }),
+    )
+    expect(res.status).toBe(200)
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+    const input = ingestMock.mock.calls[0][0]
+    expect(input).toMatchObject({
+      eventType: 'hook.chat_resolve',
+      aggregateType: 'chat_conversation',
+      aggregateId: aggregateUuid('conversation', 42),
+      entityKey: 'cw:conv:42',
+      fuseLimit: null,
+    })
+    expect(input.key.endsWith(`:c42r${NOW_SEC - 5}`)).toBe(true)
+  })
+
+  it('a no-lead label update becomes one hook.chat_label row', async () => {
+    await POST(build({ event: 'conversation_updated', id: 42, labels: ['no-lead'] }))
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+    expect(ingestMock.mock.calls[0][0]).toMatchObject({ eventType: 'hook.chat_label', fuseLimit: null })
+  })
+
+  it.each([
+    ['an open status event', { event: 'conversation_status_changed', id: 42, status: 'open' }],
+    ['a conversation_updated without the no-lead label', { event: 'conversation_updated', id: 42, labels: ['vip'] }],
+    ['an unsubscribed event', { event: 'webwidget_triggered', id: 42 }],
+  ])('%s answers 200 and never calls the database', async (_name, payload) => {
+    const res = await POST(build(payload))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+    expect(publishJSONMock).not.toHaveBeenCalled()
+  })
+})
+
 describe('POST /api/webhooks/chatwoot: authentication (401 before parsing or any database call)', () => {
   it('rejects a tampered body', async () => {
     const original = Buffer.from(JSON.stringify(incoming()))
