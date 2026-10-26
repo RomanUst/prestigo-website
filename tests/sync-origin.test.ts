@@ -4,6 +4,7 @@ import {
   SITE_SYNC_FP_ATTRIBUTE,
   contactFingerprint,
   isSiteEcho,
+  postWriteFingerprint,
   aggregateUuid,
   hookConversationKey,
   hookResolveKey,
@@ -58,6 +59,39 @@ describe('hook key builders round-trip through parseOutboxKey', () => {
     const a = hookContactKey(7, base)
     expect(hookContactKey(7, base + 5_000).key).toBe(a.key)
     expect(hookContactKey(7, base + 45_000).key).not.toBe(a.key)
+  })
+})
+
+describe('postWriteFingerprint', () => {
+  const live = { name: 'Ada', email: 'ada@example.com', phone: '+420111222333', identifier: 'user-1' }
+
+  it('uses the body value for keys present in the body and the live value for the rest', () => {
+    expect(postWriteFingerprint(live, { name: 'B' })).toBe(
+      contactFingerprint({ name: 'B', email: live.email, phone_number: live.phone, identifier: live.identifier }),
+    )
+    expect(postWriteFingerprint(live, { phone_number: '+420999888777', identifier: 'user-2' })).toBe(
+      contactFingerprint({ name: live.name, email: live.email, phone_number: '+420999888777', identifier: 'user-2' }),
+    )
+  })
+
+  it('an empty body is the fingerprint of the live contact; a key set to undefined counts as absent', () => {
+    const fp = contactFingerprint({ name: live.name, email: live.email, phone_number: live.phone, identifier: live.identifier })
+    expect(postWriteFingerprint(live, {})).toBe(fp)
+    expect(postWriteFingerprint(live, { name: undefined })).toBe(fp)
+  })
+
+  it('without a live contact (create) only the body counts', () => {
+    expect(postWriteFingerprint(null, { name: 'Ada', email: 'ada@example.com' })).toBe(
+      contactFingerprint({ name: 'Ada', email: 'ada@example.com' }),
+    )
+    expect(postWriteFingerprint(null, {})).toBe(contactFingerprint({}))
+  })
+
+  it('a stamp made with it is recognised by isSiteEcho on the resulting contact', () => {
+    const body = { name: 'Ada Lovelace', email: 'ada@example.com' }
+    const fp = postWriteFingerprint(live, body)
+    const after = { name: body.name, email: body.email, phone_number: live.phone, identifier: live.identifier }
+    expect(isSiteEcho({ ...after, custom_attributes: { [SITE_SYNC_FP_ATTRIBUTE]: fp } })).toBe(true)
   })
 })
 
