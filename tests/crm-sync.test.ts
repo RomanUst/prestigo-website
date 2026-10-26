@@ -6,6 +6,7 @@ import { createSiteEspoClient } from '@/lib/espocrm-client'
 import type { OutboxRow, OutboxStore } from '@/lib/outbox-store'
 import type { CrmBookingRecord, IdentityStore, PersonRecord } from '@/lib/identity-store'
 import { buildCBookingDraft } from '@/lib/customer-mapping'
+import { makeChatStoreDouble } from './helpers/chat-world'
 
 // Synthetic fixtures only (example/x.test domains, fake names).
 
@@ -207,7 +208,11 @@ function harness(
   const i = makeIdentity({ persons: o.persons, bookings: o.bookings, owners: o.owners })
   const c = makeCrm(crmOpts)
   const publish = vi.fn(async () => true)
-  return { ...s, ...c, ids: i, publish, now: o.now ?? (() => NOW) }
+  // Phase 83 (83-09): an empty chat registry double, so a person sync never reaches Supabase. The
+  // clock is mutable: seedChatLead() stamps the registry row's created_at with the time a test wants.
+  const chatClock = { at: NOW }
+  const chat = makeChatStoreDouble({ now: () => chatClock.at })
+  return { ...s, ...c, ids: i, publish, chat, chatClock, now: o.now ?? (() => NOW) }
 }
 type Harness = ReturnType<typeof harness>
 
@@ -219,6 +224,7 @@ function deps(h: Harness, over: Partial<DispatchDeps> = {}): Partial<DispatchDep
     publish: h.publish as unknown as DispatchDeps['publish'],
     now: h.now,
     identity: h.ids.identity,
+    chat: h.chat.store,
     ...over,
   }
 }
@@ -786,5 +792,239 @@ describe('sync.espo CBooking convergence', () => {
     expect(cbookings(h)).toHaveLength(2)
     expect(contacts(h)).toHaveLength(1)
     expect(posts(h, '/CBooking')).toHaveLength(2)
+  })
+})
+
+// ── Phase 83 D-05: a paid site booking converts the person's open chat Lead ──
+
+const CHAT_LEAD_ID = 'e00000000000000a1'
+const BOOKING_LEAD_ID = 'e00000000000000b2'
+const PAID_REF = 'PRG-20261025-ABC123'
+const LEAD_CREATED = '2026-10-20T08:00:00.000Z'
+const PAID_CREATED = '2026-10-25T10:00:00.000Z'
+
+const paid = (id: string, over: Partial<CrmBookingRecord> = {}) =>
+  booking(id, { booking_reference: PAID_REF, status: 'confirmed', created_at: PAID_CREATED, ...over })
+
+function chatLeadRecord(over: Record<string, unknown> = {}) {
+  return { id: CHAT_LEAD_ID, status: 'New', cSupabaseRef: 'chat:conv-1', ...over }
+}
+
+/** Registers an open chat Lead in the registry double (created_at = createdAt). */
+async function seedChatLead(
+  h: Harness,
+  o: { identityId?: string | null; phone?: string | null; espoLeadId?: string | null; createdAt?: string; ref?: string } = {},
+) {
+  h.chatClock.at = new Date(o.createdAt ?? LEAD_CREATED)
+  const identityId = o.identityId === undefined ? IDENTITY : o.identityId
+  const reserved = await h.chat.store.reserveLead({
+    personKey: identityId ? `i:${identityId}` : 'c:900',
+    identityId,
+    chatwootContactId: identityId ? null : 900,
+    phone: o.phone ?? null,
+    leadRef: o.ref ?? 'chat:conv-1',
+  })
+  const espoLeadId = o.espoLeadId === undefined ? CHAT_LEAD_ID : o.espoLeadId
+  if (espoLeadId) await h.chat.store.setLeadEspo(reserved.chatLeadId, espoLeadId, null)
+  h.chatClock.at = NOW
+  return reserved
+}
+
+const leadRow = (h: Harness, id = CHAT_LEAD_ID) => h.fake.state.records.Lead.find((r) => r.id === id)
+const leadPuts = (h: Harness) => h.fake.requests.filter((r) => r.method === 'PUT' && r.path.startsWith('/Lead/'))
+const notes = (h: Harness) => h.fake.state.records.Note
+const registry = (h: Harness) => h.chat.state.leads
+
+function d05(over: { persons?: PersonRecord[]; leads?: Array<Record<string, unknown>> } = {}) {
+  const persons = over.persons ?? [person({ bookings: [paid(BOOKING_1)] })]
+  return harness(
+    { rows: [personRow(IDENTITY, '100'), personRow(IDENTITY, '101')], persons },
+    { records: { Lead: over.leads ?? [chatLeadRecord()], Note: [] } },
+  )
+}
+
+describe('D-05 tracer: paid booking -> sync.espo person run -> open chat Lead Converted + booking link + registry closed', () => {
+  it('D-05: converts the open chat Lead, links the booking, posts one Note and closes the registry row', async () => {
+    const h = d05()
+    await seedChatLead(h)
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(leadRow(h)).toMatchObject({
+      status: 'Converted',
+      cBookingReference: PAID_REF,
+      cAdminLink: expect.stringMatching(/\?search=PRG-20261025-ABC123$/),
+    })
+    expect(notes(h)).toHaveLength(1)
+    expect(notes(h)[0]).toMatchObject({ type: 'Post', parentType: 'Lead', parentId: CHAT_LEAD_ID })
+    expect(notes(h)[0].post).toContain(PAID_REF)
+    expect(registry(h)).toHaveLength(1)
+    expect(registry(h)[0]).toMatchObject({ open: false, closedReason: 'converted', convertedBookingId: BOOKING_1 })
+  })
+
+  it('D-05: re-running the sync writes no further Lead PUT and no second Note', async () => {
+    const h = d05()
+    await seedChatLead(h)
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+    const writes = h.fake.requests.filter((r) => r.method !== 'GET').length
+
+    const again = await dispatchOutboxKey(espoKey(IDENTITY, '101'), deps(h))
+
+    expect(again).toEqual({ outcome: 'sent' })
+    expect(h.fake.requests.filter((r) => r.method !== 'GET')).toHaveLength(writes)
+    expect(leadPuts(h)).toHaveLength(1)
+    expect(notes(h)).toHaveLength(1)
+  })
+
+  it('D-05: an unpaid or pending booking leaves the Lead and the registry row untouched', async () => {
+    const h = d05({ persons: [person({ bookings: [paid(BOOKING_1, { status: 'unpaid' }), paid(BOOKING_2, { status: 'pending' })] })] })
+    await seedChatLead(h)
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadRow(h)).toMatchObject({ status: 'New' })
+    expect(leadPuts(h)).toHaveLength(0)
+    expect(notes(h)).toHaveLength(0)
+    expect(registry(h)[0].open).toBe(true)
+  })
+
+  it('D-05: a paid booking created before the lead does not convert it', async () => {
+    const h = d05({ persons: [person({ bookings: [paid(BOOKING_1, { created_at: '2026-10-19T10:00:00.000Z' })] })] })
+    await seedChatLead(h)
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadRow(h)).toMatchObject({ status: 'New' })
+    expect(leadPuts(h)).toHaveLength(0)
+    expect(registry(h)[0].open).toBe(true)
+  })
+
+  it('D-05: a Lead the owner already set to Dead is only closed in the registry (closed_in_crm), never re-opened', async () => {
+    const h = d05({ leads: [chatLeadRecord({ status: 'Dead' })] })
+    await seedChatLead(h)
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadRow(h)).toMatchObject({ status: 'Dead' })
+    expect(leadPuts(h)).toHaveLength(0)
+    expect(notes(h)).toHaveLength(0)
+    expect(registry(h)[0]).toMatchObject({ open: false, closedReason: 'closed_in_crm' })
+  })
+
+  it('D-05: a Lead the owner already Converted by hand is closed in the registry, not written again', async () => {
+    const h = d05({ leads: [chatLeadRecord({ status: 'Converted' })] })
+    await seedChatLead(h)
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadPuts(h)).toHaveLength(0)
+    expect(registry(h)[0]).toMatchObject({ open: false, closedReason: 'closed_in_crm' })
+  })
+
+  it('D-05: a Lead deleted in the CRM (404) is closed in the registry only', async () => {
+    const h = d05({ leads: [] })
+    await seedChatLead(h)
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(registry(h)[0]).toMatchObject({ open: false, closedReason: 'closed_in_crm' })
+    expect(notes(h)).toHaveLength(0)
+  })
+
+  it('D-05 phone half: a phone-only open chat Lead whose number is a non-shared identity phone converts the same way', async () => {
+    const h = d05({ persons: [person({ phones: ['+420777900001'], bookings: [paid(BOOKING_1)] })] })
+    await seedChatLead(h, { identityId: null, phone: '+420777900001' })
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadRow(h)).toMatchObject({ status: 'Converted', cBookingReference: PAID_REF })
+    expect(registry(h)[0]).toMatchObject({ open: false, closedReason: 'converted', convertedBookingId: BOOKING_1 })
+  })
+
+  it('D-05 phone half: a phone that is not one of the person phones never converts a phone-only Lead', async () => {
+    const h = d05({ persons: [person({ phones: [], bookings: [paid(BOOKING_1)] })] })
+    await seedChatLead(h, { identityId: null, phone: '+420777900001' })
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadPuts(h)).toHaveLength(0)
+    expect(registry(h)[0].open).toBe(true)
+  })
+
+  it('D-05: two paid bookings convert the Lead once, with the earliest booking after the Lead', async () => {
+    const h = d05({
+      persons: [
+        person({
+          bookings: [
+            paid(BOOKING_2, { booking_reference: 'PRG-LATER', created_at: '2026-10-25T12:00:00.000Z' }),
+            paid(BOOKING_1, { booking_reference: 'PRG-EARLIER', created_at: '2026-10-22T09:00:00.000Z' }),
+            paid(BOOKING_3, { booking_reference: 'PRG-BEFORE', created_at: '2026-10-19T09:00:00.000Z' }),
+          ],
+        }),
+      ],
+    })
+    await seedChatLead(h)
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadPuts(h)).toHaveLength(1)
+    expect(leadRow(h)).toMatchObject({ status: 'Converted', cBookingReference: 'PRG-EARLIER' })
+    expect(notes(h)).toHaveLength(1)
+    expect(registry(h)[0]).toMatchObject({ closedReason: 'converted', convertedBookingId: BOOKING_1 })
+  })
+
+  it('D-05: an abandoned checkout and a return leg are not "paid" for the conversion', async () => {
+    const h = d05({
+      persons: [person({ bookings: [paid(BOOKING_1, { abandoned: true }), paid(BOOKING_2, { leg: 'return' })] })],
+    })
+    await seedChatLead(h)
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadPuts(h)).toHaveLength(0)
+    expect(registry(h)[0].open).toBe(true)
+  })
+
+  it('D-05: a registry row without an EspoCRM Lead id is skipped and stays open', async () => {
+    const h = d05()
+    await seedChatLead(h, { espoLeadId: null })
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(leadPuts(h)).toHaveLength(0)
+    expect(registry(h)[0].open).toBe(true)
+  })
+
+  it('D-05: the booking own Phase 81 Lead (cSupabaseRef booking:<id>) is never written by this step', async () => {
+    const h = d05({
+      leads: [chatLeadRecord(), { id: BOOKING_LEAD_ID, status: 'Converted', cSupabaseRef: `booking:${BOOKING_1}` }],
+    })
+    await seedChatLead(h)
+
+    await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(leadPuts(h).map((r) => r.path)).toEqual([`/Lead/${CHAT_LEAD_ID}`])
+    expect(leadRow(h, BOOKING_LEAD_ID)).toEqual({ id: BOOKING_LEAD_ID, status: 'Converted', cSupabaseRef: `booking:${BOOKING_1}` })
+    expect(notes(h).every((n) => n.parentId === CHAT_LEAD_ID)).toBe(true)
+  })
+
+  it('D-05: a failing Lead write is retried (the sync.espo row is rescheduled) and the registry stays open', async () => {
+    const h = harness(
+      { rows: [personRow(IDENTITY, '100')], persons: [person({ bookings: [paid(BOOKING_1)] })] },
+      {
+        records: { Lead: [chatLeadRecord()], Note: [] },
+        extraRoutes: (req) => (req.method === 'PUT' && req.path.startsWith('/Lead/') ? new Response('', { status: 500 }) : undefined),
+      },
+    )
+    await seedChatLead(h)
+
+    const result = await dispatchOutboxKey(espoKey(IDENTITY, '100'), deps(h))
+
+    expect(result.outcome).toBe('rescheduled')
+    expect(registry(h)[0].open).toBe(true)
+    expect(notes(h)).toHaveLength(0)
   })
 })
