@@ -38,7 +38,7 @@ created: "2026-10-26"
 
 ## Per-Task Verification Map
 
-Task IDs filled in by the planner (2026-10-26, 15 plans); each row binds a plan task to its requirement and command.
+Task IDs filled in by the planner (2026-10-26, 16 plans; revised after plan check: the 83-01 receiver expansion moved to 83-16); each row binds a plan task to its requirement and command.
 
 | Task ID | Requirement | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|-------------|-----------------|-----------|-------------------|-------------|--------|
@@ -47,12 +47,13 @@ Task IDs filled in by the planner (2026-10-26, 15 plans); each row binds a plan 
 | 83-04 T1, 83-05 T1 | HOOK-01 | Lead source enum, Webhook role scope, `no-lead` label in config-as-code | unit | `npx vitest run tests/espocrm-enums.test.ts tests/espocrm-roles.test.ts tests/chatwoot-config.test.ts` | ✅ extend | ⬜ pending |
 | 83-02 T1-T2, 83-03 T1-T2 | HOOK-01 / HOOK-03 | Chat identity RPCs (no merge on attach) and chat registry (one open lead, erasure scope) | migration text + unit | `npx vitest run tests/chat-identity-migration.test.ts tests/identity-store.test.ts tests/chat-registry-migration.test.ts tests/chat-store.test.ts` | ❌ W0 | ⬜ pending |
 | 83-08 T1-T2 | HOOK-02 | Resolve history Note content, private summary note, idempotency per resolve, Contact-else-Lead target | unit (fakes) | `npx vitest run tests/chat-resolve.test.ts` | ❌ W0 | ⬜ pending |
-| 83-01 T1-T2 | HOOK-03 | Chatwoot HMAC (`<ts>.<raw body>`), replay window, two-secret rotation, constant-time compare | unit | `npx vitest run tests/webhook-verify.test.ts` | ❌ W0 | ⬜ pending |
+| 83-16 T3 | HOOK-03 | Chatwoot HMAC (`<ts>.<raw body>`), replay window, two-secret rotation, constant-time compare | unit | `npx vitest run tests/webhook-verify.test.ts` | ❌ W0 | ⬜ pending |
 | 83-11 T1-T2 | HOOK-03 | EspoCRM `Signature` verify, per-item dedup, never 410 | unit | `npx vitest run tests/webhooks-espocrm-route.test.ts tests/espo-payload.test.ts` | ❌ W0 | ⬜ pending |
-| 83-01 T1-T2, 83-11 T2 | HOOK-03 | Fail-closed without secret, 413 oversize, 400 bad JSON, 200 for duplicate/ignored/fused, no CSRF Origin requirement | route test | `npx vitest run tests/webhooks-chatwoot-route.test.ts tests/middleware-csrf-forms.test.ts` | ❌ / ✅ extend | ⬜ pending |
-| 83-01 T1, 83-01 T3 | HOOK-03 | Migration 076: deny-all RLS, REVOKE/GRANT per function, no writes to bookings/customer_profiles/auth.users, event-type allowlist | migration text + live smoke | `npx vitest run tests/webhook-ingest-migration.test.ts` | ❌ W0 | ⬜ pending |
+| 83-01 T1, 83-16 T1-T3, 83-11 T2 | HOOK-03 | Fail-closed without secret, 413 oversize, 400 bad JSON, 200 for duplicate/ignored/fused, no CSRF Origin requirement | route test | `npx vitest run tests/webhooks-chatwoot-route.test.ts tests/middleware-csrf-forms.test.ts` | ❌ / ✅ extend | ⬜ pending |
+| 83-01 T1-T3 | HOOK-03 | Migration 076: deny-all RLS, REVOKE/GRANT per function, no writes to bookings/customer_profiles/auth.users, event-type allowlist, EspoCRM ingest + purge (D-19) | migration text + live smoke | `npx vitest run tests/webhook-ingest-migration.test.ts` | ❌ W0 | ⬜ pending |
 | 83-03 T2, 83-12 T2 | HOOK-03 | Structural barrier: import-closure guard + runtime tripwire; VPS guard allowlist | guard | `npx vitest run tests/webhook-isolation-guard.test.ts tests/webhook-isolation-runtime.test.ts tests/infra-vps-isolation-guard.test.ts` | ❌ / ✅ extend | ⬜ pending |
-| 83-01 T2 | HOOK-04 | Fingerprint determinism; receiver drops own-echo `contact_updated`, passes operator edit | unit | `npx vitest run tests/sync-origin.test.ts tests/chat-payload.test.ts tests/webhooks-chatwoot-route.test.ts` | ❌ W0 | ⬜ pending |
+| 83-16 T1 | HOOK-04 | Fingerprint determinism; receiver drops own-echo `contact_updated`, passes operator edit; contact fuse limit + ALERT | unit | `npx vitest run tests/sync-origin.test.ts tests/chat-payload.test.ts tests/webhooks-chatwoot-route.test.ts` | ❌ W0 | ⬜ pending |
+| 83-16 T2 | HOOK-01 / HOOK-02 | Receiver event filter: incoming non-private messages, resolved status (payload/header time only), no-lead label, unsubscribed events ignored without a DB call | unit | `npx vitest run tests/chat-payload.test.ts tests/webhooks-chatwoot-route.test.ts` | ❌ W0 | ⬜ pending |
 | 83-10 T3 | HOOK-04 | `chatwoot-sync.ts` writes `site_sync_fp` of post-write state | unit | `npx vitest run tests/chatwoot-contact-sync.test.ts tests/chatwoot-mapping.test.ts` | ✅ extend | ⬜ pending |
 | 83-12 T1 | HOOK-04 | Loop harness quiesces with bounded writes; fuse trips on forced loop | simulation | `npx vitest run tests/webhook-echo-loop.test.ts` | ❌ W0 | ⬜ pending |
 | 83-05 T1-T2 | HOOK-04 | Espo webhook created as `prestigo-sync` with `skipOwn: true` | unit | `npx vitest run tests/espocrm-webhook-script.test.ts` | ❌ W0 | ⬜ pending |

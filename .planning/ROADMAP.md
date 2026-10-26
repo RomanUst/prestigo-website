@@ -385,11 +385,11 @@ Plans:
   3. Inbound webhooks (Chatwoot, EspoCRM) are verified — HMAC signature over the raw body, timestamp replay window, delivery dedup — and structurally cannot write to `bookings` / `customer_profiles`.
   4. A site → CRM → webhook → site round trip cannot re-trigger itself, proven by origin tagging/fingerprinting on outbound writes.
 
-**Plans:** 15 plans
+**Plans:** 16 plans
 
 Plans:
 **Wave 1**
-- [ ] 83-01-PLAN.md — Signed Chatwoot receiver -> webhook_ingest -> hook.* outbox rows, echo drop, fuse (migration 076)
+- [ ] 83-01-PLAN.md — Signed Chatwoot receiver tracer -> webhook_ingest -> hook.* outbox row, EspoCRM ingest groundwork + loop fuse (migration 076)
 - [ ] 83-02-PLAN.md — Chat identity layer: basis 'chat', resolve/lookup/attach RPCs (migration 077, D-16)
 - [ ] 83-03-PLAN.md — Chat registry: one open chat Lead per person, erasure scope (migration 078) + import-closure isolation guard
 - [ ] 83-04-PLAN.md — Chat policy (lead sources, D-18 filter, note formats) + Lead.source values + no-lead label
@@ -398,6 +398,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 83-07-PLAN.md — Intake handler: stranger -> identity + Contact + chat Lead with channel source (HOOK-01)
+- [ ] 83-16-PLAN.md — Chatwoot receiver completion: resolve/label/contact filters, fingerprint echo drop, contact fuse ALERT, verify matrix + rotation
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 83-08-PLAN.md — Resolve handler: one history Note per resolve with Итог summary and link (HOOK-02)

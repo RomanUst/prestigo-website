@@ -8,11 +8,11 @@ Integrated services: Chatwoot v4.18.0-ce (account webhooks inbound + site-side R
 
 | capability | decision | reason |
 |---|---|---|
-| message_created event | INTEGRATE | HOOK-01 intake on the first incoming message (83-01, 83-07) |
-| conversation_status_changed event | INTEGRATE | HOOK-02 resolve history entry (83-01, 83-08) |
-| conversation_updated event | INTEGRATE | D-07/D-20 no-lead label (83-01, 83-10) |
-| contact_updated event | INTEGRATE | D-12 operator contact edits (83-01, 83-10) |
-| HMAC signature + timestamp + delivery headers | INTEGRATE | HOOK-03 verification, replay window, dedup (83-01) |
+| message_created event | INTEGRATE | HOOK-01 intake on the first incoming message (83-01, 83-16, 83-07) |
+| conversation_status_changed event | INTEGRATE | HOOK-02 resolve history entry (83-16, 83-08) |
+| conversation_updated event | INTEGRATE | D-07/D-20 no-lead label (83-16, 83-10) |
+| contact_updated event | INTEGRATE | D-12 operator contact edits (83-16, 83-10) |
+| HMAC signature + timestamp + delivery headers | INTEGRATE | HOOK-03 verification, replay window, dedup (83-01, 83-16) |
 | webhook CRUD via API (list, create, update subscriptions, delete) | INTEGRATE | config-as-code registration and rotation (83-06) |
 | conversation_created event | OPT-OUT | not needed: D-03 creates the Lead on the first incoming message, not on conversation creation |
 | contact_created event | OPT-OUT | not needed: a contact without a message creates nothing; contact data changes arrive as contact_updated |
