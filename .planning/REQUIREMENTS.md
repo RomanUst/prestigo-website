@@ -56,11 +56,11 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Site → CRM/Chatwoot Sync (SYNC)
 
-- [ ] **SYNC-01**: Every booking create, payment, status change and admin edit is reflected in EspoCRM (Contact + Booking) and on the Chatwoot contact within minutes, delivered via a durable Supabase outbox + QStash with retries and idempotency (no duplicates on retry)
-- [ ] **SYNC-02**: Every customer account signup creates/updates the matching Contact in EspoCRM and Chatwoot
-- [ ] **SYNC-03**: Contacts are de-duplicated across site, Chatwoot and EspoCRM by normalized email OR E.164 phone; shared phones (hotel/office desks) are flagged and excluded from auto-merge, and an admin can split a wrong merge
-- [ ] **SYNC-04**: A one-time backfill imports every past customer and booking from Supabase into EspoCRM and Chatwoot, so no customer who ever booked is missing
-- [ ] **SYNC-05**: Admin can see outbox health (pending / failed events, last error) and retry failed events
+- [x] **SYNC-01**: Every booking create, payment, status change and admin edit is reflected in EspoCRM (Contact + Booking) and on the Chatwoot contact within minutes, delivered via a durable Supabase outbox + QStash with retries and idempotency (no duplicates on retry)
+- [x] **SYNC-02**: Every customer account signup creates/updates the matching Contact in EspoCRM and Chatwoot
+- [x] **SYNC-03**: Contacts are de-duplicated across site, Chatwoot and EspoCRM by normalized email OR E.164 phone; shared phones (hotel/office desks) are flagged and excluded from auto-merge, and an admin can split a wrong merge
+- [x] **SYNC-04**: A one-time backfill imports every past customer and booking from Supabase into EspoCRM and Chatwoot, so no customer who ever booked is missing
+- [x] **SYNC-05**: Admin can see outbox health (pending / failed events, last error) and retry failed events
 
 ### Chatwoot → CRM (HOOK)
 
@@ -87,8 +87,8 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Privacy (GDPR)
 
-- [ ] **GDPR-01**: A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM (erasure event through the outbox), with an audit record
-- [ ] **GDPR-02**: Privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget
+- [x] **GDPR-01**: A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM (erasure event through the outbox), with an audit record
+- [x] **GDPR-02**: Privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget
 
 ## v2 Requirements
 
@@ -144,11 +144,11 @@ Deferred — tracked, not in this roadmap.
 | LEAD-04 | Phase 81 | Complete |
 | LEAD-05 | Phase 81 | Complete |
 | LEAD-06 | Phase 81 | Complete |
-| SYNC-01 | Phase 82 | Pending |
-| SYNC-02 | Phase 82 | Pending |
-| SYNC-03 | Phase 82 | Pending |
-| SYNC-04 | Phase 82 | Pending |
-| SYNC-05 | Phase 82 | Pending |
+| SYNC-01 | Phase 82 | Complete |
+| SYNC-02 | Phase 82 | Complete |
+| SYNC-03 | Phase 82 | Complete |
+| SYNC-04 | Phase 82 | Complete |
+| SYNC-05 | Phase 82 | Complete |
 | HOOK-01 | Phase 83 | Pending |
 | HOOK-02 | Phase 83 | Pending |
 | HOOK-03 | Phase 83 | Pending |
@@ -160,8 +160,8 @@ Deferred — tracked, not in this roadmap.
 | STAT-01 | Phase 85 | Pending |
 | STAT-02 | Phase 85 | Pending |
 | STAT-03 | Phase 85 | Pending |
-| GDPR-01 | Phase 82 | Pending |
-| GDPR-02 | Phase 82 | Pending |
+| GDPR-01 | Phase 82 | Complete |
+| GDPR-02 | Phase 82 | Complete |
 
 **Coverage:**
 - v1 requirements: 46 total

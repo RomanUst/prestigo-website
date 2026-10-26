@@ -2,37 +2,37 @@
 gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
-current_phase: 82
-current_phase_name: Site ↔ CRM/Chatwoot Sync Foundation
-status: executing
-stopped_at: Phase 82 UI-SPEC approved
-last_updated: "2026-10-19T19:47:39.342Z"
-last_activity: 2026-10-19
-last_activity_desc: Phase 82 execution started
-state_head: c7417439c61b077d8cc126b9a968b9fcbb5ca657
+current_phase: 83
+current_phase_name: CRM/Chatwoot → Site Webhooks
+status: planning
+stopped_at: Phase 82 complete, ready to plan Phase 83 (Phase 78 deferred to backlog 999.9)
+last_updated: "2026-10-26T10:39:07.136Z"
+last_activity: 2026-10-26
+last_activity_desc: Phase 82 complete, transitioned to Phase 83
+state_head: 7fb46b7d0e53a8a5630585db2319833f74a0e27d
 progress:
   total_phases: 10
-  completed_phases: 26
+  completed_phases: 27
   total_plans: 79
-  completed_plans: 60
-  percent: 76
+  completed_plans: 72
+  percent: 84
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-27)
+See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 82 — Site ↔ CRM/Chatwoot Sync Foundation
+**Current focus:** Phase 83 — CRM/Chatwoot → Site Webhooks
 
 ## Current Position
 
-Phase: 82 (Site ↔ CRM/Chatwoot Sync Foundation) — EXECUTING
-Plan: 1 of 16
-Status: Executing Phase 82
-Last activity: 2026-10-19 — Phase 82 execution started
+Phase: 83 — CRM/Chatwoot → Site Webhooks
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-26 — Phase 82 complete, transitioned to Phase 83
 
 ## Accumulated Context
 
@@ -329,7 +329,7 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 ## Session Continuity
 
 Last session: 2026-10-18T20:35:27.884Z
-Stopped at: Phase 82 UI-SPEC approved
+Stopped at: Phase 82 complete, ready to plan Phase 83 (Phase 78 deferred to backlog 999.9)
 Resume file: .planning/phases/82-site-crm-chatwoot-sync-foundation/82-UI-SPEC.md
 
 ## Performance Metrics

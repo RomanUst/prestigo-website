@@ -19,7 +19,7 @@
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
 - [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
-- [ ] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure
+- [x] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure (completed 2026-10-26)
 - [ ] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops
 - [ ] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245-patched Chatwoot
 - [ ] **Phase 85: Statistics** - `/admin/stats` shows inquiry→booking conversion, repeat-customer rate, and B2B revenue per Account
@@ -338,7 +338,7 @@ Plans:
   4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
   5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
 
-**Plans:** 14/16 plans executed
+**Plans:** 16/16 plans complete
 
 Plans:
 **Wave 1**
@@ -366,10 +366,10 @@ Plans:
 - [x] 82-13-PLAN.md — Erasure admin page: preview, typed-email confirmation, log
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
+- [x] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
+- [x] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
 
 **UI hint**: yes
 **Security note**: yes — identity resolution, outbox event integrity and GDPR erasure propagation are security/privacy-relevant; commit with `security:` prefix per CLAUDE.md where the work touches identity matching or erasure.
@@ -446,7 +446,7 @@ Plans:
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
-| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 14/16 | In Progress|  |
+| 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 0/0 | Not started | - |
 | 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
