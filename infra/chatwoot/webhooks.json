@@ -1,0 +1,14 @@
+{
+  "webhooks": [
+    {
+      "name": "Prestigo site",
+      "url": "https://rideprestigo.com/api/webhooks/chatwoot",
+      "subscriptions": [
+        "message_created",
+        "conversation_status_changed",
+        "conversation_updated",
+        "contact_updated"
+      ]
+    }
+  ]
+}
