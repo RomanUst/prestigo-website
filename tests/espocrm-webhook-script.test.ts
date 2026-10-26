@@ -242,3 +242,146 @@ describe('espoSignature', () => {
     expect(espoSignature('a00000000000000w1', 'fake-secret', '[]')).toBe(Buffer.from(`a00000000000000w1:${hex}`).toString('base64'))
   })
 })
+
+describe('webhook --print custody (TTY refusal)', () => {
+  const seeded = async () => {
+    const w = world()
+    await w.run(['create'])
+    return w
+  }
+
+  it('TTY stdout: exit 1, nothing on stdout, no secret anywhere', async () => {
+    const w = await seeded()
+    const { code, stdout, stderr } = await w.run(['--print', 'secret'], { isTTY: true })
+    expect(code).toBe(1)
+    expect(stdout).toBe('')
+    expect(stderr).not.toContain(FAKE_SECRET)
+  })
+
+  it('non-TTY stdout: writes exactly the stored secret, no trailing newline', async () => {
+    const w = await seeded()
+    const { code, stdout } = await w.run(['--print', 'secret'], { isTTY: false })
+    expect(code).toBe(0)
+    expect(stdout).toBe(FAKE_SECRET)
+  })
+
+  it('print id writes the stored id, also only to a pipe', async () => {
+    const w = await seeded()
+    const id = w.fake.state.records.Webhook[0].id
+    expect((await w.run(['--print', 'id'], { isTTY: false })).stdout).toBe(id)
+    expect((await w.run(['--print', 'id'], { isTTY: true })).stdout).toBe('')
+  })
+
+  it('exits 2 with a hint when nothing is stored', async () => {
+    const w = world()
+    const { code, stdout, stderr } = await w.run(['--print', 'secret'])
+    expect(code).toBe(2)
+    expect(stdout).toBe('')
+    expect(stderr).toContain('webhook.mjs create')
+  })
+})
+
+describe('webhook delete', () => {
+  it('sends one DELETE /Webhook/<id> and removes the env file when it holds that id', async () => {
+    const w = world()
+    await w.run(['create'])
+    const id = w.fake.state.records.Webhook[0].id
+    const { code, stdout } = await w.run(['delete', id])
+    expect(code).toBe(0)
+    expect(stdout).toContain(`webhook=deleted id=${id}`)
+    expect(w.fake.requests.filter((r) => r.method === 'DELETE' && r.path === `/Webhook/${id}`)).toHaveLength(1)
+    expect(existsSync(w.envFile)).toBe(false)
+    expect(w.fake.state.records.Webhook).toHaveLength(0)
+  })
+
+  it('keeps the env file when another webhook is deleted (rotation of the old one)', async () => {
+    const w = world()
+    await w.run(['create'])
+    w.fake.state.records.Webhook.push({
+      id: 'c00000000000000b1',
+      event: 'Contact.update',
+      url: 'https://old.example/x',
+      skipOwn: true,
+      userId: SYNC_USER_ID,
+    })
+    expect((await w.run(['delete', 'c00000000000000b1'])).code).toBe(0)
+    expect(existsSync(w.envFile)).toBe(true)
+  })
+})
+
+describe('webhook probe (D-19 live check)', () => {
+  /** A fake receiver verifying the Signature header the way the site must: HMAC over the raw body. */
+  const receiver = (id: string, secret: string, seen: any[] = []) => async (url: string, init: any) => {
+    seen.push({ url, init })
+    const [claimed, hex] = Buffer.from(String(init.headers.Signature), 'base64').toString('utf8').split(':')
+    const expected = createHmac('sha256', secret).update(String(init.body)).digest('hex')
+    return new Response('', { status: claimed === id && hex === expected ? 200 : 401 })
+  }
+
+  const seeded = async () => {
+    const w = world()
+    await w.run(['create'])
+    return { w, id: w.fake.state.records.Webhook[0].id as string }
+  }
+
+  it('verdict=ok for 200 (good signature) then 401 (tampered body); output never contains the secret', async () => {
+    const { w, id } = await seeded()
+    const seen: any[] = []
+    const { code, stdout, all } = await w.run(['probe'], { fetchImpl: receiver(id, FAKE_SECRET, seen) })
+    expect(code).toBe(0)
+    expect(stdout).toContain('probe_status=200,401')
+    expect(stdout).toContain('verdict=ok')
+    expect(all).not.toContain(FAKE_SECRET)
+    expect(seen).toHaveLength(2)
+    expect(seen[0].url).toBe(DEFAULT_WEBHOOK_URL)
+    expect(seen[0].init.headers['Content-Type']).toBe('application/json')
+    // an unlinked synthetic contact: a random 17 hex id inside an array payload like EspoCRM's Sender
+    const batch = JSON.parse(seen[0].init.body)
+    expect(batch).toHaveLength(1)
+    expect(batch[0].id).toMatch(/^[0-9a-f]{17}$/)
+    expect(seen[1].init.body).not.toBe(seen[0].init.body)
+    expect(seen[1].init.headers.Signature).toBe(seen[0].init.headers.Signature)
+  })
+
+  it('verdict=fail (exit 1) when the receiver answers 200 for both, i.e. it does not verify the signature', async () => {
+    const { w } = await seeded()
+    const { code, stdout, all } = await w.run(['probe'], { fetchImpl: async () => new Response('', { status: 200 }) })
+    expect(code).toBe(1)
+    expect(stdout).toContain('probe_status=200,200')
+    expect(stdout).toContain('verdict=fail')
+    expect(all).not.toContain(FAKE_SECRET)
+  })
+
+  it('verdict=fail when the receiver rejects the good signature (wrong secret deployed)', async () => {
+    const { w, id } = await seeded()
+    const { code, stdout } = await w.run(['probe'], { fetchImpl: receiver(id, 'some-other-secret') })
+    expect(code).toBe(1)
+    expect(stdout).toContain('probe_status=401,401')
+    expect(stdout).toContain('verdict=fail')
+  })
+
+  it('a network failure is a fail with no detail beyond the error name', async () => {
+    const { w } = await seeded()
+    const { code, stdout, all } = await w.run(['probe'], {
+      fetchImpl: async () => {
+        throw new TypeError(`connect refused ${FAKE_SECRET}`)
+      },
+    })
+    expect(code).toBe(1)
+    expect(stdout).toContain('verdict=fail')
+    expect(all).not.toContain(FAKE_SECRET)
+  })
+
+  it('exits 2 without any request when no webhook is stored', async () => {
+    const w = world()
+    let called = 0
+    const { code } = await w.run(['probe'], {
+      fetchImpl: async () => {
+        called++
+        return new Response('', { status: 200 })
+      },
+    })
+    expect(code).toBe(2)
+    expect(called).toBe(0)
+  })
+})
