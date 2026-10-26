@@ -9,8 +9,10 @@
  *   node infra/chatwoot/webhook.mjs ensure                 create / update subscriptions / unchanged
  *   node infra/chatwoot/webhook.mjs list                   id, url, subscriptions (never the secret)
  *   node infra/chatwoot/webhook.mjs delete <id>            delete one webhook by numeric id
+ *   node infra/chatwoot/webhook.mjs rotate                 delete + recreate = a new secret (see README order)
  *   node infra/chatwoot/webhook.mjs --print secret | <consumer>
  *                                                          the signing secret, only into a pipe
+ *   node infra/chatwoot/webhook.mjs probe                  live signed round trip against the receiver
  *
  * Options: --url <url> (default: webhooks.json), --allow-host (tests only: accept a host other than
  * rideprestigo.com; the URL must still be https).
@@ -23,6 +25,12 @@
  * a command-line argument. Every other output line passes a scrubber that removes any secret value
  * this process has seen.
  *
+ * PROBE: fetches the secret itself and sends the receiver three synthetic requests for a private
+ * outgoing note (the receiver ignores it, so no database row is touched): correctly signed (200),
+ * changed body under the first signature (401) and a 600 s old timestamp correctly signed for it
+ * (401). `verdict=ok` only for 200,401,401. A redirect shows as a non-200 first status. The secret
+ * never leaves this process except as an HMAC.
+ *
  * ACCOUNT-LEVEL ONLY (T-83-22): an API-inbox or agent-bot webhook is unsigned in Chatwoot v4.18, so
  * it is never created or used here.
  *
@@ -30,7 +38,7 @@
  * ~/.config/prestigo/chatwoot-api.env, never argv). Webhook endpoints need an administrator.
  */
 
-import { createHmac } from 'node:crypto'
+import { createHmac, randomUUID } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -42,6 +50,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 export const CANONICAL_HOST = 'rideprestigo.com'
 const COMMANDS = ['ensure', 'list', 'delete', 'rotate', 'probe']
 const MIN_SCRUB_LENGTH = 8
+export const PROBE_TIMEOUT_MS = 30_000
+/** The receiver's replay window is 300 s; 600 s old is unambiguously outside it. */
+const STALE_SECONDS = 600
 
 // ---------------------------------------------------------------------------
 // Desired state and arguments
@@ -247,6 +258,79 @@ async function commandPrint(ctx) {
   return 0
 }
 
+/**
+ * Rotation = delete + recreate: Chatwoot has no rotate endpoint and generates the secret itself.
+ * The README order (current secret -> CHATWOOT_WEBHOOK_SECRET_PREVIOUS first) is what keeps the
+ * receiver accepting in-flight deliveries signed with the old secret. Prints no secret.
+ */
+async function commandRotate(ctx) {
+  const found = (await listWebhooks(ctx.client)).filter((w) => w.url === ctx.desired.url)
+  if (found.length > 1) {
+    ctx.err('error=duplicate_webhooks (delete all but one with: webhook.mjs delete <id>)')
+    return 1
+  }
+  for (const w of found) ctx.note(w.secret)
+  if (found.length === 1) await ctx.client.request('DELETE', `/webhooks/${found[0].id}`)
+  const res = await ctx.client.request('POST', '/webhooks', {
+    webhook: { name: ctx.desired.name, url: ctx.desired.url, subscriptions: ctx.desired.subscriptions },
+  })
+  ctx.note(res?.payload?.webhook?.secret ?? res?.payload?.secret ?? res?.secret)
+  ctx.out(`webhook=rotated old_id=${found.length === 1 ? found[0].id : 'none'} new_id=${createdId(res) ?? 'unknown'}`)
+  ctx.out('next: node infra/chatwoot/webhook.mjs --print secret | vercel env add CHATWOOT_WEBHOOK_SECRET production --sensitive --yes')
+  ctx.out('next: redeploy production, run webhook.mjs probe, then remove CHATWOOT_WEBHOOK_SECRET_PREVIOUS from Vercel after a day')
+  ctx.out('(the old secret must already be saved as CHATWOOT_WEBHOOK_SECRET_PREVIOUS - see infra/chatwoot/README.md)')
+  return 0
+}
+
+async function postProbe(ctx, url, body, timestampSec, signature) {
+  let res
+  try {
+    // Plain fetch on purpose: no Chatwoot credential is ever attached to a receiver request, and a
+    // redirect must be reported as such (manual), never followed.
+    res = await ctx.fetchImpl(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Chatwoot-Timestamp': String(timestampSec),
+        'X-Chatwoot-Delivery': randomUUID(),
+        'X-Chatwoot-Signature': signature,
+      },
+      body,
+      redirect: 'manual',
+      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
+    })
+  } catch {
+    return 0
+  }
+  await res.text().catch(() => '')
+  return res.status
+}
+
+async function commandProbe(ctx) {
+  const { secret, reason } = await currentSecret(ctx)
+  if (!secret) {
+    ctx.err(`no webhook secret available: ${reason}`)
+    return 2
+  }
+  ctx.note(secret)
+  const url = ctx.desired.url
+  const now = ctx.nowSec()
+  const payload = { event: 'message_created', message_type: 'outgoing', private: true, content: 'probe', conversation: { id: 1 } }
+  const body = JSON.stringify(payload)
+  const tampered = JSON.stringify({ ...payload, content: 'probe-tampered' })
+  const signature = chatwootSignature(secret, now, body)
+  const staleAt = now - STALE_SECONDS
+
+  const valid = await postProbe(ctx, url, body, now, signature)
+  const changedBody = await postProbe(ctx, url, tampered, now, signature)
+  const stale = await postProbe(ctx, url, body, staleAt, chatwootSignature(secret, staleAt, body))
+
+  ctx.out(`probe_status=${valid},${changedBody},${stale}`)
+  const ok = valid === 200 && changedBody === 401 && stale === 401
+  ctx.out(ok ? 'verdict=ok' : 'verdict=fail')
+  return ok ? 0 : 1
+}
+
 // ---------------------------------------------------------------------------
 // Runner
 // ---------------------------------------------------------------------------
@@ -299,7 +383,9 @@ export async function runChatwootWebhook({
     if (opts.command === 'list') return await commandList(ctx)
     if (opts.command === 'delete') return await commandDelete(ctx, opts)
     if (opts.command === 'print') return await commandPrint(ctx)
-    ctx.err(`${opts.command} is not available yet`)
+    if (opts.command === 'rotate') return await commandRotate(ctx)
+    if (opts.command === 'probe') return await commandProbe(ctx)
+    ctx.err(`Unknown command: ${opts.command}`)
     return 1
   } catch (error) {
     if (error instanceof ChatwootApiError) {

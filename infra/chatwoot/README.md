@@ -21,6 +21,8 @@ will overwrite it for every resource listed below. The VPS side of Chatwoot
 | `lib/client.mjs` | Shared API client (token handling, redaction) |
 | `sync.mjs` | Idempotent config sync |
 | `inspect.mjs` | Read-only views of the live instance |
+| `webhooks.json` | The one account webhook to the site receiver (URL and four subscriptions) |
+| `webhook.mjs` | Applies `webhooks.json`, hands over the signing secret through a pipe, rotates it, probes the live receiver |
 
 Templates must stay price-free. Canned responses are sent to customers verbatim,
 so a baked-in amount would go stale and could contradict the real charge. The
@@ -134,6 +136,8 @@ file is blocked (`scripts/qa/secret_gate_probe.sh` proves it).
 | Website widget token | Public (shipped to browsers). Vercel Production `CHATWOOT_WEBSITE_TOKEN` |
 | Chatwoot base URL | Not secret. Vercel Production `CHATWOOT_BASE_URL` |
 | Telegram bot token | Owner Mac, `~/.config/prestigo/telegram-chat-bot.env` (mode 600) and inside the Chatwoot Telegram inbox |
+| Inbound webhook signing secret | Chatwoot (generated there, account webhook) and Vercel Production `CHATWOOT_WEBHOOK_SECRET` (sensitive). Moved by a pipe only, see the inbound webhook section below |
+| Previous inbound webhook secret | Vercel Production `CHATWOOT_WEBHOOK_SECRET_PREVIOUS` (sensitive), set only during a rotation |
 
 The reverse proxy in front of Chatwoot drops request headers that contain an
 underscore, so the API client sends `api-access-token` (hyphens), never
@@ -172,6 +176,90 @@ Chatwoot rejects the identity, so do it in a quiet hour and check with
 bot and take the new token. Update the Telegram inbox in Chatwoot (Inboxes,
 Telegram, Settings) and the local file `~/.config/prestigo/telegram-chat-bot.env`.
 Send a test message to the bot and confirm it arrives in Chatwoot.
+
+## Inbound webhook (Phase 83)
+
+Chatwoot calls the site at `https://rideprestigo.com/api/webhooks/chatwoot` so a
+conversation event can reach the CRM. The webhook is declared in `webhooks.json`
+and applied by `webhook.mjs`; like everything else here, git is the source of
+truth. It is an **account-level** webhook on purpose: in Chatwoot v4.18 only the
+account webhook is signed (`X-Chatwoot-Signature`, HMAC-SHA256 over
+`<X-Chatwoot-Timestamp>.<raw body>`). An API-inbox or agent-bot webhook is
+unsigned and is never used. The URL is pinned to the canonical apex host
+(`rideprestigo.com`): a host that redirects drops POST requests silently, so
+`webhook.mjs` refuses any other host (`--allow-host` exists for tests only).
+
+Subscriptions (all four are required):
+
+| Event | Why |
+|-------|-----|
+| `message_created` | A new message in any conversation |
+| `conversation_status_changed` | Open, resolved and snoozed transitions |
+| `conversation_updated` | Needed for the no-lead label (D-20): a label change is delivered as this event, and the receiver filters for it |
+| `contact_updated` | A contact edited in Chatwoot |
+
+**Delivery is at most once.** Chatwoot never retries a failed account-webhook
+delivery (a 5 second timeout, then the error is logged and dropped). A receiver
+outage or a rejected request is a lost event; recovery is a replay from the
+runbook (D-21), not a retry from Chatwoot.
+
+Commands (all use the administrator token from `~/.config/prestigo/chatwoot-api.env`;
+exit 0 ok, 1 refused or expectation failed, 2 API or config error):
+
+```bash
+node infra/chatwoot/webhook.mjs ensure          # create, update subscriptions, or unchanged (idempotent)
+node infra/chatwoot/webhook.mjs list            # id, url, subscriptions (never the secret)
+node infra/chatwoot/webhook.mjs delete <id>     # one webhook by numeric id
+node infra/chatwoot/webhook.mjs rotate          # delete + recreate = a new secret (see the order below)
+node infra/chatwoot/webhook.mjs probe           # live signed round trip against production
+node infra/chatwoot/webhook.mjs --print secret  # the signing secret, only into a pipe
+```
+
+`ensure` finds the webhook by URL. Two webhooks with the same URL stop it with
+`error=duplicate_webhooks`; delete one with `delete <id>`. Run it twice and the
+second run must print `webhook=unchanged`.
+
+**First setup.** Chatwoot generates the secret and no command prints it to a
+terminal, a log or a file. Move it into Vercel with a pipe:
+
+```bash
+node infra/chatwoot/webhook.mjs ensure
+node infra/chatwoot/webhook.mjs --print secret | vercel env add CHATWOOT_WEBHOOK_SECRET production --sensitive --yes
+# then redeploy production (merge to main, or promote a fresh deployment)
+node infra/chatwoot/webhook.mjs probe
+```
+
+`--print secret` refuses to run when stdout is a terminal, and it writes the value
+without a trailing newline (a newline would become part of the stored value).
+
+**Probe.** `probe` reads the secret itself and sends the production receiver
+three synthetic requests, each a private outgoing note that the receiver ignores
+(no database row is touched): correctly signed, the same signature over a changed
+body, and a correctly signed request whose timestamp is 600 seconds old. It prints
+`probe_status=<a>,<b>,<c>` and `verdict=ok` only for `200,401,401`. A redirect or a
+wrong secret shows as a different first status. Run it after every deploy that
+touches the receiver and after every rotation.
+
+**Rotation.** Chatwoot has no rotate endpoint: `rotate` deletes the webhook and
+creates it again, which generates a new secret. The receiver accepts
+`CHATWOOT_WEBHOOK_SECRET` and `CHATWOOT_WEBHOOK_SECRET_PREVIOUS`, so keep the order:
+
+1. Save the current secret as the previous one:
+   `node infra/chatwoot/webhook.mjs --print secret | vercel env add CHATWOOT_WEBHOOK_SECRET_PREVIOUS production --sensitive --yes`
+2. `node infra/chatwoot/webhook.mjs rotate` (prints the next steps, never a secret).
+3. Replace the current one: `vercel env rm CHATWOOT_WEBHOOK_SECRET production --yes`, then
+   `node infra/chatwoot/webhook.mjs --print secret | vercel env add CHATWOOT_WEBHOOK_SECRET production --sensitive --yes`.
+4. Redeploy production, then run `node infra/chatwoot/webhook.mjs probe` until `verdict=ok`.
+5. A day later remove the previous one: `vercel env rm CHATWOOT_WEBHOOK_SECRET_PREVIOUS production --yes`, and redeploy at the next release.
+
+Chatwoot signs with the new secret from step 2, while Vercel keeps verifying with
+the old one until the redeploy in step 4 is live. Deliveries in that window are
+rejected and, because delivery is at most once, are not retried; keep steps 2 to 4
+back to back in a quiet hour and recover anything missed from the runbook (D-21).
+
+Names and custody notes for this secret and the EspoCRM webhook secrets are in
+`infra/vps/env/inbound-webhooks.env.example`, which also feeds the pre-commit
+infra secret gate.
 
 ## Adding a channel (Phases 78 and 79)
 

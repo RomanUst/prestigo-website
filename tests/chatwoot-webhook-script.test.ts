@@ -6,6 +6,7 @@
  * obviously fake object property.
  */
 import { describe, it, expect } from 'vitest'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -234,5 +235,187 @@ describe('inbound-webhooks.env.example', () => {
 describe('chatwootSignature', () => {
   it('is a sha256= prefixed hex string', () => {
     expect(chatwootSignature('fake-secret', 1_729_950_000, '{}')).toMatch(/^sha256=[0-9a-f]{64}$/)
+  })
+
+  it('equals sha256= + hex HMAC-SHA256(secret, "<ts>.<body>")', () => {
+    const expected = `sha256=${createHmac('sha256', 'fake-secret').update('1729950000.{}').digest('hex')}`
+    expect(chatwootSignature('fake-secret', 1_729_950_000, '{}')).toBe(expected)
+  })
+})
+
+/** A receiver that verifies like the site does: 300 s timestamp window, exact HMAC over "<ts>.<body>". */
+function siteReceiver(secret: string, nowSec: number) {
+  const calls: Array<{ url: string; init: RequestInit; headers: Headers; body: string }> = []
+  const fetchImpl = async (url: unknown, init: RequestInit = {}) => {
+    const headers = new Headers(init.headers as HeadersInit)
+    const body = String(init.body ?? '')
+    calls.push({ url: String(url), init, headers, body })
+    const ts = headers.get('x-chatwoot-timestamp')
+    const sig = headers.get('x-chatwoot-signature')
+    if (!ts || !sig || !headers.get('x-chatwoot-delivery')) return new Response('', { status: 401 })
+    if (Math.abs(nowSec - Number(ts)) > 300) return new Response('', { status: 401 })
+    const expected = Buffer.from(`sha256=${createHmac('sha256', secret).update(`${ts}.${body}`).digest('hex')}`)
+    const given = Buffer.from(sig)
+    if (expected.length !== given.length || !timingSafeEqual(expected, given)) return new Response('', { status: 401 })
+    return new Response('{"ok":true}', { status: 200 })
+  }
+  return { fetchImpl, calls }
+}
+
+describe('probe', () => {
+  const NOW = 1_729_950_000
+  const seeded = () => setup({ webhooks: [{ id: 2, name: 'Prestigo site', url: DESIRED_URL, subscriptions: FOUR, secret: FAKE_SECRET }] })
+
+  it('probe prints verdict=ok for 200, 401, 401 against a receiver that verifies like the site', async () => {
+    const ctx = seeded()
+    const receiver = siteReceiver(FAKE_SECRET, NOW)
+    const res = await run(['probe'], ctx, { fetchImpl: receiver.fetchImpl, nowSec: NOW })
+    expect(res.code).toBe(0)
+    expect(res.text).toContain('probe_status=200,401,401')
+    expect(res.text).toContain('verdict=ok')
+    expect(receiver.calls).toHaveLength(3)
+    expect(`${res.text}\n${res.errText}`).not.toContain(FAKE_SECRET)
+  })
+
+  it('probe sends a private outgoing note with timestamp, delivery id and a signature, to the desired url only', async () => {
+    const ctx = seeded()
+    const receiver = siteReceiver(FAKE_SECRET, NOW)
+    await run(['probe'], ctx, { fetchImpl: receiver.fetchImpl, nowSec: NOW })
+    const [a, b, c] = receiver.calls
+    for (const call of receiver.calls) {
+      expect(call.url).toBe(DESIRED_URL)
+      expect(call.init.method).toBe('POST')
+      expect(call.headers.get('content-type')).toBe('application/json')
+      expect(call.headers.get('x-chatwoot-timestamp')).toMatch(/^\d+$/)
+      expect(call.headers.get('x-chatwoot-delivery')).toMatch(/^[0-9a-f-]{36}$/)
+      expect(call.headers.get('x-chatwoot-signature')).toMatch(/^sha256=[0-9a-f]{64}$/)
+      expect(call.headers.get('api-access-token')).toBeNull()
+      expect(call.init.redirect).toBe('manual')
+    }
+    expect(new Set(receiver.calls.map((x) => x.headers.get('x-chatwoot-delivery'))).size).toBe(3)
+    expect(JSON.parse(a.body)).toMatchObject({ event: 'message_created', message_type: 'outgoing', private: true })
+    // 2: a changed body under the first signature. 3: a 600 s old timestamp, correctly signed for it.
+    expect(b.body).not.toBe(a.body)
+    expect(b.headers.get('x-chatwoot-signature')).toBe(a.headers.get('x-chatwoot-signature'))
+    expect(c.body).toBe(a.body)
+    expect(c.headers.get('x-chatwoot-timestamp')).toBe(String(NOW - 600))
+    expect(c.headers.get('x-chatwoot-signature')).toBe(chatwootSignature(FAKE_SECRET, NOW - 600, a.body))
+  })
+
+  it('probe fails (verdict=fail, exit 1) against a receiver that accepts everything', async () => {
+    const ctx = seeded()
+    const calls: unknown[] = []
+    const acceptAll = async (url: unknown) => {
+      calls.push(url)
+      return new Response('{}', { status: 200 })
+    }
+    const res = await run(['probe'], ctx, { fetchImpl: acceptAll, nowSec: NOW })
+    expect(res.code).toBe(1)
+    expect(res.text).toContain('probe_status=200,200,200')
+    expect(res.text).toContain('verdict=fail')
+    expect(res.text).not.toContain('verdict=ok')
+  })
+
+  it('probe fails when the receiver redirects (a redirected POST is not a 200)', async () => {
+    const ctx = seeded()
+    const redirecting = async () => new Response('', { status: 308, headers: { location: 'https://www.rideprestigo.com/x' } })
+    const res = await run(['probe'], ctx, { fetchImpl: redirecting, nowSec: NOW })
+    expect(res.code).toBe(1)
+    expect(res.text).toContain('probe_status=308,308,308')
+    expect(res.text).toContain('verdict=fail')
+  })
+
+  it('probe records a network failure as status 0 without leaking the error text', async () => {
+    const ctx = seeded()
+    const broken = async () => {
+      throw new Error(`connect failed with ${FAKE_SECRET}`)
+    }
+    const res = await run(['probe'], ctx, { fetchImpl: broken, nowSec: NOW })
+    expect(res.code).toBe(1)
+    expect(res.text).toContain('probe_status=0,0,0')
+    expect(`${res.text}\n${res.errText}`).not.toContain(FAKE_SECRET)
+  })
+
+  it('probe exits 2 and sends nothing when no webhook is registered for the url', async () => {
+    const ctx = setup()
+    const receiver = siteReceiver(FAKE_SECRET, NOW)
+    const res = await run(['probe'], ctx, { fetchImpl: receiver.fetchImpl, nowSec: NOW })
+    expect(res.code).toBe(2)
+    expect(receiver.calls).toHaveLength(0)
+  })
+
+  it('probe refuses a non-canonical host unless --allow-host, before any request', async () => {
+    const ctx = seeded()
+    const receiver = siteReceiver(FAKE_SECRET, NOW)
+    const res = await run(['probe', '--url', 'https://evil.example.test/h'], ctx, { fetchImpl: receiver.fetchImpl, nowSec: NOW })
+    expect(res.code).toBe(2)
+    expect(receiver.calls).toHaveLength(0)
+    expect(ctx.fake.requests).toHaveLength(0)
+  })
+})
+
+describe('rotate', () => {
+  const OLD_SECRET = 'whsec_FAKE_old_secret_value_aaaa'
+
+  it('rotate deletes the url webhook then creates a new one, and prints neither secret', async () => {
+    const ctx = setup({ webhooks: [{ id: 2, name: 'Prestigo site', url: DESIRED_URL, subscriptions: FOUR, secret: OLD_SECRET }] })
+    const res = await run(['rotate'], ctx)
+    expect(res.code).toBe(0)
+    const writes = webhookWrites(ctx.fake)
+    expect(writes.map((w) => `${w.method} ${w.path}`)).toEqual(['DELETE /webhooks/2', 'POST /webhooks'])
+    expect(ctx.fake.state.webhooks).toHaveLength(1)
+    const next = ctx.fake.state.webhooks[0]
+    expect(next.secret).not.toBe(OLD_SECRET)
+    expect(next.url).toBe(DESIRED_URL)
+    expect([...next.subscriptions].sort()).toEqual([...FOUR].sort())
+    const all = `${res.text}\n${res.errText}`
+    expect(all).not.toContain(OLD_SECRET)
+    expect(all).not.toContain(next.secret)
+    expect(all).toContain('CHATWOOT_WEBHOOK_SECRET_PREVIOUS')
+    expect(all).toContain('webhook.mjs --print secret')
+  })
+
+  it('rotate on an account without the webhook just creates it (no delete)', async () => {
+    const ctx = setup()
+    const res = await run(['rotate'], ctx)
+    expect(res.code).toBe(0)
+    expect(webhookWrites(ctx.fake).map((w) => w.method)).toEqual(['POST'])
+  })
+
+  it('rotate refuses duplicates: exit 1 and no write', async () => {
+    const ctx = setup({
+      webhooks: [
+        { name: 'a', url: DESIRED_URL, subscriptions: FOUR },
+        { name: 'b', url: DESIRED_URL, subscriptions: FOUR },
+      ],
+    })
+    const res = await run(['rotate'], ctx)
+    expect(res.code).toBe(1)
+    expect(`${res.text}\n${res.errText}`).toContain('duplicate_webhooks')
+    expect(webhookWrites(ctx.fake)).toHaveLength(0)
+  })
+})
+
+describe('delete', () => {
+  it('delete refuses a non-numeric id before any request', async () => {
+    for (const bad of ['abc', '1; rm', '-3', '0', '1.5', '']) {
+      const ctx = setup({ webhooks: [{ id: 1, name: 'w', url: DESIRED_URL, subscriptions: FOUR }] })
+      const res = await run(['delete', bad], ctx)
+      expect(res.code).toBe(2)
+      expect(ctx.fake.requests).toHaveLength(0)
+    }
+  })
+
+  it('delete removes exactly the named webhook', async () => {
+    const ctx = setup({
+      webhooks: [
+        { id: 1, name: 'a', url: DESIRED_URL, subscriptions: FOUR },
+        { id: 2, name: 'b', url: 'https://other.example.test/h', subscriptions: FOUR },
+      ],
+    })
+    const res = await run(['delete', '2'], ctx)
+    expect(res.code).toBe(0)
+    expect(res.text).toContain('webhook=deleted id=2')
+    expect(ctx.fake.state.webhooks.map((w) => w.id)).toEqual([1])
   })
 })
