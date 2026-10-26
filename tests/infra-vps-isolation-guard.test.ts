@@ -127,6 +127,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'QStash-invoked outbox dispatcher handler (erase.person, GDPR erasure saga): runs only when Upstash calls /api/integrations/dispatch with a signed message for an admin-confirmed erasure_requests row, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
   },
   {
+    path: 'app/api/webhooks/chatwoot/route.ts',
+    reason:
+      'server-to-server receiver called only by the Chatwoot server with an HMAC-signed request; reads its signing secret from env, verifies and enqueues one outbox row through a single RPC; makes no network call to the VPS and never runs on a page render or a booking/payment/contact request path',
+  },
+  {
     path: 'app/api/integrations/dispatch/route.ts',
     reason:
       'QStash-invoked outbox dispatcher: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; unsigned calls get 401',
