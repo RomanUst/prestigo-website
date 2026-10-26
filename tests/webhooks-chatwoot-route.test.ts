@@ -1,0 +1,282 @@
+// @vitest-environment node
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { createHash, createHmac } from 'node:crypto'
+
+const { ingestMock, publishJSONMock } = vi.hoisted(() => ({
+  ingestMock: vi.fn(),
+  publishJSONMock: vi.fn(),
+}))
+
+vi.mock('next/server', async () => {
+  const actual = await vi.importActual<typeof import('next/server')>('next/server')
+  return {
+    ...actual,
+    // Run the after() callback right away so the publish is observable.
+    after: (fn: () => unknown) => {
+      void fn()
+    },
+  }
+})
+vi.mock('@upstash/qstash', () => ({
+  Client: class {
+    publishJSON = publishJSONMock
+  },
+}))
+vi.mock('@/lib/supabase', () => ({ createSupabaseServiceClient: vi.fn() }))
+vi.mock('@/lib/webhook-store', () => ({
+  createWebhookStore: () => ({ ingest: ingestMock }),
+}))
+
+import { POST } from '@/app/api/webhooks/chatwoot/route'
+import { OutboxStoreError } from '@/lib/outbox-store'
+import { aggregateUuid } from '@/lib/sync-origin'
+
+// Obviously fake secrets, carried as object properties.
+const SECRETS = { current: 'unit-test-fake-secret-current', previous: 'unit-test-fake-secret-previous', wrong: 'unit-test-fake-secret-wrong' }
+const DELIVERY = '5f0c1c2e-1111-4222-8333-944455556666'
+const NOW_SEC = 1_729_950_000
+
+function sign(secret: string, ts: string, body: Buffer): string {
+  return 'sha256=' + createHmac('sha256', secret).update(Buffer.concat([Buffer.from(`${ts}.`), body])).digest('hex')
+}
+
+function incoming(overrides: Record<string, unknown> = {}) {
+  return {
+    event: 'message_created',
+    message_type: 'incoming',
+    private: false,
+    content: 'hello',
+    conversation: { id: 42 },
+    sender: { id: 7, name: 'Ada', email: 'ada@example.com' },
+    ...overrides,
+  }
+}
+
+function build(
+  payload: unknown | Buffer,
+  opts: { secret?: string; tsOffset?: number; signature?: string; delivery?: string | null; skipHeaders?: boolean } = {},
+): Request {
+  const body = Buffer.isBuffer(payload) ? payload : Buffer.from(JSON.stringify(payload))
+  const ts = String(NOW_SEC + (opts.tsOffset ?? 0))
+  const headers: Record<string, string> = { 'content-type': 'application/json' }
+  if (!opts.skipHeaders) {
+    headers['X-Chatwoot-Timestamp'] = ts
+    headers['X-Chatwoot-Signature'] = opts.signature ?? sign(opts.secret ?? SECRETS.current, ts, body)
+  }
+  if (opts.delivery !== null) headers['X-Chatwoot-Delivery'] = opts.delivery ?? DELIVERY
+  return new Request('http://localhost/api/webhooks/chatwoot', { method: 'POST', headers, body: new Uint8Array(body) })
+}
+
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date(NOW_SEC * 1000))
+  vi.stubEnv('CHATWOOT_WEBHOOK_SECRET', SECRETS.current)
+  vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '')
+  vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://example.test')
+  ingestMock.mockReset().mockResolvedValue('queued')
+  publishJSONMock.mockReset().mockResolvedValue({ messageId: 'm1' })
+  vi.spyOn(console, 'log').mockImplementation(() => {})
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllEnvs()
+  vi.restoreAllMocks()
+})
+
+describe('POST /api/webhooks/chatwoot: tracer', () => {
+  it('a signed incoming message becomes one hook.chat_intake row and one publish', async () => {
+    const res = await POST(build(incoming()))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ received: true })
+
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+    const input = ingestMock.mock.calls[0][0]
+    expect(input).toMatchObject({
+      source: 'chatwoot',
+      deliveryId: DELIVERY,
+      entityKey: 'cw:conv:42',
+      fuseLimit: null,
+      eventType: 'hook.chat_intake',
+      aggregateType: 'chat_conversation',
+      aggregateId: aggregateUuid('conversation', 42),
+    })
+    expect(input.key.endsWith(':c42')).toBe(true)
+    expect(input.key.startsWith('hook.chat_intake:')).toBe(true)
+
+    await Promise.resolve()
+    expect(publishJSONMock).toHaveBeenCalledTimes(1)
+    const call = publishJSONMock.mock.calls[0][0]
+    expect(call.body).toEqual({ key: input.key })
+    // publishOutboxDispatch sanitises ':' to '_' in the deduplication id; suffix 'w' marks the receiver.
+    expect(call.deduplicationId.endsWith('_w')).toBe(true)
+  })
+
+  it('falls back to a body hash when the delivery header is absent or malformed', async () => {
+    const payload = incoming()
+    await POST(build(payload, { delivery: null }))
+    const expected = 'b' + createHash('sha256').update(Buffer.from(JSON.stringify(payload))).digest('hex')
+    expect(ingestMock.mock.calls[0][0].deliveryId).toBe(expected)
+
+    ingestMock.mockClear()
+    await POST(build(payload, { delivery: 'bad id with spaces' }))
+    expect(ingestMock.mock.calls[0][0].deliveryId).toBe(expected)
+  })
+
+  it('accepts a request signed with the previous secret (rotation)', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', SECRETS.previous)
+    const res = await POST(build(incoming(), { secret: SECRETS.previous }))
+    expect(res.status).toBe(200)
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: authentication (401 before parsing or any database call)', () => {
+  it('rejects a tampered body', async () => {
+    const original = Buffer.from(JSON.stringify(incoming()))
+    const ts = String(NOW_SEC)
+    const signature = sign(SECRETS.current, ts, original)
+    const tampered = Buffer.from(JSON.stringify(incoming({ conversation: { id: 43 } })))
+    const res = await POST(build(tampered, { signature }))
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects a wrong secret', async () => {
+    const res = await POST(build(incoming(), { secret: SECRETS.wrong }))
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects a timestamp 301 s old (and accepts 300 s)', async () => {
+    const stale = await POST(build(incoming(), { tsOffset: -301 }))
+    expect(stale.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+    const edge = await POST(build(incoming(), { tsOffset: -300 }))
+    expect(edge.status).toBe(200)
+  })
+
+  it('rejects a short signature with 401, never 500', async () => {
+    const res = await POST(build(incoming(), { signature: 'sha256=ab' }))
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects missing signature headers', async () => {
+    const res = await POST(build(incoming(), { skipHeaders: true }))
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('fails closed when no secret is configured', async () => {
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET', '')
+    vi.stubEnv('CHATWOOT_WEBHOOK_SECRET_PREVIOUS', '')
+    const res = await POST(build(incoming()))
+    expect(res.status).toBe(401)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: body handling', () => {
+  it('answers 413 for a declared Content-Length over 1 MiB', async () => {
+    const req = new Request('http://localhost/api/webhooks/chatwoot', {
+      method: 'POST',
+      headers: { 'content-length': '2000000', 'X-Chatwoot-Timestamp': String(NOW_SEC), 'X-Chatwoot-Signature': 'sha256=ab' },
+      body: 'x',
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(413)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('answers 413 for a body that is over 1 MiB after reading', async () => {
+    const big = Buffer.alloc(1_048_577, 0x61)
+    const res = await POST(build(big))
+    expect(res.status).toBe(413)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('answers 400 for a valid signature over non-JSON bytes', async () => {
+    const res = await POST(build(Buffer.from('this is not json')))
+    expect(res.status).toBe(400)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/webhooks/chatwoot: filtering and outcomes', () => {
+  it.each([
+    ['outgoing string', { message_type: 'outgoing' }],
+    ['outgoing integer', { message_type: 1 }],
+    ['private note', { private: true }],
+  ])('ignores %s without a database call', async (_name, overrides) => {
+    const res = await POST(build(incoming(overrides)))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+    expect(publishJSONMock).not.toHaveBeenCalled()
+  })
+
+  it('tolerates the integer message_type 0 as incoming', async () => {
+    await POST(build(incoming({ message_type: 0 })))
+    expect(ingestMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores an event the classifier does not handle, without a database call', async () => {
+    const res = await POST(build({ event: 'conversation_created', id: 1 }))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+  })
+
+  it('answers 200 for an invalid payload and logs key names only', async () => {
+    const res = await POST(build({ event: 'message_created', secret_note: 'do not log me' }))
+    expect(res.status).toBe(200)
+    expect(ingestMock).not.toHaveBeenCalled()
+    const logged = vi.mocked(console.log).mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(logged).toContain('keys=event,secret_note')
+    expect(logged).not.toContain('do not log me')
+  })
+
+  it.each(['exists', 'duplicate', 'off', 'fused'])('outcome %s answers 200 and publishes nothing', async (outcome) => {
+    ingestMock.mockResolvedValue(outcome)
+    const res = await POST(build(incoming()))
+    expect(res.status).toBe(200)
+    await Promise.resolve()
+    expect(publishJSONMock).not.toHaveBeenCalled()
+  })
+
+  it('answers 500 when the store fails', async () => {
+    ingestMock.mockRejectedValue(new OutboxStoreError('db_error'))
+    const res = await POST(build(incoming()))
+    expect(res.status).toBe(500)
+    expect(publishJSONMock).not.toHaveBeenCalled()
+  })
+
+  it('logs one line per request with source, event, outcome and code, and no personal data', async () => {
+    await POST(build(incoming()))
+    const lines = vi.mocked(console.log).mock.calls.map((c) => c.join(' ')).filter((l) => l.startsWith('[webhook]'))
+    expect(lines).toEqual(['[webhook] source=chatwoot event=message_created outcome=queued code=ok'])
+    const all = JSON.stringify([...vi.mocked(console.log).mock.calls, ...vi.mocked(console.error).mock.calls])
+    expect(all).not.toContain('ada@example.com')
+    expect(all).not.toContain('hello')
+  })
+
+  it('a second incoming message of the same conversation hits the existing outbox key (exists)', async () => {
+    await POST(build(incoming(), { delivery: 'delivery-aaaa-0001' }))
+    ingestMock.mockResolvedValue('exists')
+    await POST(build(incoming(), { delivery: 'delivery-aaaa-0002' }))
+    expect(ingestMock).toHaveBeenCalledTimes(2)
+    expect(ingestMock.mock.calls[0][0].key).toBe(ingestMock.mock.calls[1][0].key)
+    expect(ingestMock.mock.calls[0][0].deliveryId).not.toBe(ingestMock.mock.calls[1][0].deliveryId)
+    await Promise.resolve()
+    expect(publishJSONMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('receiver isolation (D-15)', () => {
+  it('imports no CRM client, dispatcher or handler module', async () => {
+    const { readFileSync } = await import('node:fs')
+    const src = readFileSync('app/api/webhooks/chatwoot/route.ts', 'utf8')
+    expect(src).not.toMatch(/from '@\/lib\/(lead-sync|chatwoot-client|espocrm-client|crm-sync|chatwoot-sync|hook-dispatch)'/)
+  })
+})

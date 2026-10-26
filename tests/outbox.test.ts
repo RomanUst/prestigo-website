@@ -23,6 +23,8 @@ import {
   dispatchAfterResponse,
   enqueueOutboxEvent,
   syncBucketKey,
+  parseHookTag,
+  publishAfterResponse,
 } from '@/lib/outbox'
 
 const ID = '0b9f2c1e-5d3a-4e8b-9c7d-1a2b3c4d5e6f'
@@ -101,6 +103,69 @@ describe('parseOutboxKey: Phase 82 sync keys', () => {
     expect(parseOutboxKey(`sync.other:${ID}:12`)).toBeNull()
     expect(parseOutboxKey(`sync.booking:${ID.toUpperCase()}:12`)).toBeNull()
     expect(parseOutboxKey(`erase.person:${ID}:12`)).toBeNull()
+  })
+})
+
+describe('parseOutboxKey: Phase 83 hook keys', () => {
+  it.each([
+    ['hook.chat_intake', 'c42'],
+    ['hook.chat_resolve', 'c42r1729950000'],
+    ['hook.chat_label', 'c42'],
+    ['hook.chat_contact', 'c7b57665000'],
+    ['hook.espo_contact', 'b57665000m5'],
+  ] as const)('round-trips %s with its tag', (eventType, tag) => {
+    expect(parseOutboxKey(`${eventType}:${ID}:${tag}`)).toEqual({
+      eventType,
+      aggregateId: ID,
+      leadStatus: null,
+      tag,
+    })
+  })
+
+  it('rejects a hook key without a tag or with an unknown type', () => {
+    expect(parseOutboxKey(`hook.chat_intake:${ID}`)).toBeNull()
+    expect(parseOutboxKey(`hook.unknown:${ID}:c1`)).toBeNull()
+    expect(parseOutboxKey(`hook.chat_intake:${ID}:C1`)).toBeNull()
+    expect(parseOutboxKey(`hook.chat_intake:${ID}:c1:c2`)).toBeNull()
+  })
+})
+
+describe('parseHookTag', () => {
+  it('parses the four tag shapes', () => {
+    expect(parseHookTag('c42')).toEqual({ conversationId: 42 })
+    expect(parseHookTag('c42r1729950000')).toEqual({ conversationId: 42, resolveEpoch: 1729950000 })
+    expect(parseHookTag('c7b57665000')).toEqual({ contactId: 7, bucket: 57665000 })
+    expect(parseHookTag('b57665000m5')).toEqual({ bucket: 57665000, mask: 5 })
+  })
+
+  it('returns null for anything else', () => {
+    expect(parseHookTag('x1')).toBeNull()
+    expect(parseHookTag('')).toBeNull()
+    expect(parseHookTag('c')).toBeNull()
+    expect(parseHookTag('b1m0')).toBeNull()
+    expect(parseHookTag('b1m8')).toBeNull()
+    expect(parseHookTag(null)).toBeNull()
+    expect(parseHookTag(undefined)).toBeNull()
+  })
+})
+
+describe('publishAfterResponse', () => {
+  beforeEach(() => {
+    afterMock.mockReset()
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  it('does not throw when after() throws (no request scope)', () => {
+    afterMock.mockImplementation(() => {
+      throw new Error('after() was called outside a request scope')
+    })
+    expect(() => publishAfterResponse(`hook.chat_intake:${ID}:c1`)).not.toThrow()
+  })
+
+  it('registers one callback with after()', () => {
+    publishAfterResponse(`hook.chat_intake:${ID}:c1`, { delaySeconds: 3, dedupSuffix: 'w' })
+    expect(afterMock).toHaveBeenCalledTimes(1)
+    expect(typeof afterMock.mock.calls[0][0]).toBe('function')
   })
 })
 

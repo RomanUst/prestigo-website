@@ -15,6 +15,11 @@ export type OutboxEventType =
   | 'sync.espo'
   | 'sync.chatwoot'
   | 'erase.person'
+  | 'hook.chat_intake'
+  | 'hook.chat_resolve'
+  | 'hook.chat_label'
+  | 'hook.chat_contact'
+  | 'hook.espo_contact'
 export type OutboxLeadStatus = 'new' | 'in_process' | 'converted' | 'dead'
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -25,6 +30,11 @@ const BOOKING_KEY = new RegExp(`^lead\\.booking:(${UUID}):(new|in_process|conver
 // Phase 82: 'sync.<kind>:<uuid>:<bucket tag>' (the tag keeps a later change from colliding with an earlier row).
 const SYNC_KEY = new RegExp(`^(sync\\.(?:booking|signup|espo|chatwoot)):(${UUID}):([a-z0-9]{1,24})$`)
 const ERASE_KEY = new RegExp(`^erase\\.person:(${UUID})$`)
+// Phase 83: inbound webhook rows. Ids only; the tag shapes are parsed by parseHookTag:
+//   c<n> (intake, label) | c<n>r<epoch> (resolve) | c<n>b<bucket> (chat contact) | b<bucket>m<1-7> (espo contact)
+const HOOK_KEY = new RegExp(
+  `^(hook\\.(?:chat_intake|chat_resolve|chat_label|chat_contact|espo_contact)):(${UUID}):([a-z0-9]{1,24})$`,
+)
 
 const MAX_DELAY_SECONDS = 604_800 // QStash free plan max delay: 7 days
 
@@ -54,6 +64,30 @@ export function parseOutboxKey(key: string): ParsedOutboxKey | null {
   if (m) return { eventType: m[1] as OutboxEventType, aggregateId: m[2], leadStatus: null, tag: m[3] }
   m = ERASE_KEY.exec(key)
   if (m) return { eventType: 'erase.person', aggregateId: m[1], leadStatus: null, tag: null }
+  m = HOOK_KEY.exec(key)
+  if (m) return { eventType: m[1] as OutboxEventType, aggregateId: m[2], leadStatus: null, tag: m[3] }
+  return null
+}
+
+export interface ParsedHookTag {
+  conversationId?: number
+  contactId?: number
+  resolveEpoch?: number
+  bucket?: number
+  mask?: number
+}
+
+/** Parses a hook.* tag; null for any shape that is not one of the four the receiver emits. */
+export function parseHookTag(tag: string | null | undefined): ParsedHookTag | null {
+  if (typeof tag !== 'string') return null
+  let m = /^c(\d{1,12})r(\d{9,12})$/.exec(tag)
+  if (m) return { conversationId: Number(m[1]), resolveEpoch: Number(m[2]) }
+  m = /^c(\d{1,12})b(\d{1,12})$/.exec(tag)
+  if (m) return { contactId: Number(m[1]), bucket: Number(m[2]) }
+  m = /^b(\d{1,12})m([1-7])$/.exec(tag)
+  if (m) return { bucket: Number(m[1]), mask: Number(m[2]) }
+  m = /^c(\d{1,12})$/.exec(tag)
+  if (m) return { conversationId: Number(m[1]) }
   return null
 }
 
@@ -136,6 +170,21 @@ export async function publishOutboxDispatch(
 export function dispatchAfterResponse(key: string): void {
   try {
     after(() => publishOutboxDispatch(key, { dedupSuffix: 'p' }))
+  } catch {
+    console.warn('[outbox] after() unavailable, sweep will re-arm')
+  }
+}
+
+/**
+ * Like dispatchAfterResponse, for rows that are not due immediately (hook.* rows carry their own
+ * availability). Never throws: a lost publish is re-armed by the daily sweep.
+ */
+export function publishAfterResponse(
+  key: string,
+  opts: { delaySeconds?: number; dedupSuffix?: string } = {},
+): void {
+  try {
+    after(() => publishOutboxDispatch(key, opts))
   } catch {
     console.warn('[outbox] after() unavailable, sweep will re-arm')
   }
