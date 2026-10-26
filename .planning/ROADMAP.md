@@ -385,7 +385,40 @@ Plans:
   3. Inbound webhooks (Chatwoot, EspoCRM) are verified — HMAC signature over the raw body, timestamp replay window, delivery dedup — and structurally cannot write to `bookings` / `customer_profiles`.
   4. A site → CRM → webhook → site round trip cannot re-trigger itself, proven by origin tagging/fingerprinting on outbound writes.
 
-**Plans**: TBD
+**Plans:** 15 plans
+
+Plans:
+**Wave 1**
+- [ ] 83-01-PLAN.md — Signed Chatwoot receiver -> webhook_ingest -> hook.* outbox rows, echo drop, fuse (migration 076)
+- [ ] 83-02-PLAN.md — Chat identity layer: basis 'chat', resolve/lookup/attach RPCs (migration 077, D-16)
+- [ ] 83-03-PLAN.md — Chat registry: one open chat Lead per person, erasure scope (migration 078) + import-closure isolation guard
+- [ ] 83-04-PLAN.md — Chat policy (lead sources, D-18 filter, note formats) + Lead.source values + no-lead label
+- [ ] 83-05-PLAN.md — EspoCRM webhook as prestigo-sync with skipOwn, Sync writer Webhook/stream scopes, signed probe
+- [ ] 83-06-PLAN.md — Chatwoot account webhook as config-as-code, secret custody/rotation, signed probe, fake-chatwoot conversations
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 83-07-PLAN.md — Intake handler: stranger -> identity + Contact + chat Lead with channel source (HOOK-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 83-08-PLAN.md — Resolve handler: one history Note per resolve with Итог summary and link (HOOK-02)
+- [ ] 83-09-PLAN.md — D-05 paid booking converts the open chat Lead + erasure covers chat data
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 83-10-PLAN.md — Chatwoot contact edits (D-12) + no-lead label (D-07) + site_sync_fp origin fingerprint
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 83-11-PLAN.md — EspoCRM receiver -> hook.espo_contact -> Chatwoot (D-13/D-14), CSRF pin
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 83-12-PLAN.md — Echo-loop simulation harness + runtime tripwire (HOOK-04 / HOOK-03 proof)
+- [ ] 83-13-PLAN.md — Delivery purge, outbox labels, inbound-webhooks runbook, backlog 999.10 (D-21)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 83-14-PLAN.md — Go-live A: owner config + webhook registration + ship, switch on, live UAT
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 83-15-PLAN.md — Go-live B: no-lead live check, echo audit, live erasure, runbook live contract
+
 **Security note**: yes — inbound webhook verification and echo-loop prevention; commit with `security:` prefix per CLAUDE.md.
 
 ### Phase 84: Chatwoot Dashboard App
