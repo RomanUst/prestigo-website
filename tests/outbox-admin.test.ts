@@ -271,4 +271,20 @@ describe('outbox labels', () => {
     expect(outboxErrorHint('weird')).toBeNull()
     expect(outboxErrorHint(null)).toBeNull()
   })
+
+  it('names the five hook.* event types (Phase 83)', () => {
+    expect(outboxEventLabel('hook.chat_intake')).toBe('Chat intake')
+    expect(outboxEventLabel('hook.chat_resolve')).toBe('Chat resolved')
+    expect(outboxEventLabel('hook.chat_label')).toBe('Chat no-lead label')
+    expect(outboxEventLabel('hook.chat_contact')).toBe('Chatwoot contact edit')
+    expect(outboxEventLabel('hook.espo_contact')).toBe('EspoCRM contact edit')
+    expect(outboxEventLabel('hook.unknown')).toBe('hook.unknown')
+  })
+
+  it('gives the operator a hint for the webhook codes (Phase 83)', () => {
+    expect(outboxErrorHint('hooks_off')).toMatch(/chat_hooks_start/)
+    expect(outboxErrorHint('email_owned_elsewhere')).toMatch(/\/admin\/identities/)
+    expect(outboxErrorHint('contact_pending')).toMatch(/retries automatically/)
+    expect(outboxErrorHint('cw_unprocessable')).toMatch(/Chatwoot refused/)
+  })
 })

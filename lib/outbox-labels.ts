@@ -15,6 +15,16 @@ export function outboxEventLabel(eventType: string): string {
       return 'Chatwoot update'
     case 'erase.person':
       return 'Erasure'
+    case 'hook.chat_intake':
+      return 'Chat intake'
+    case 'hook.chat_resolve':
+      return 'Chat resolved'
+    case 'hook.chat_label':
+      return 'Chat no-lead label'
+    case 'hook.chat_contact':
+      return 'Chatwoot contact edit'
+    case 'hook.espo_contact':
+      return 'EspoCRM contact edit'
     default:
       return eventType
   }
@@ -33,6 +43,15 @@ export function outboxErrorHint(code: string | null): string | null {
   }
   if (code === 'email_owned_elsewhere') {
     return 'This email already belongs to another person. Nothing was changed; merge or split them by hand on /admin/identities.'
+  }
+  if (code === 'hooks_off') {
+    return 'Chat capture is switched off (no chat_hooks_start in the config). Nothing is wrong; switch it on when ready.'
+  }
+  if (code === 'contact_pending') {
+    return 'The contact is still being created in the CRM. This retries automatically.'
+  }
+  if (code === 'cw_unprocessable') {
+    return 'Chatwoot refused the change (for example a malformed value). Fix the field in Chatwoot or EspoCRM by hand.'
   }
   if (code === 'unsupported_event') {
     return 'This event type is not handled. Ask for a code fix.'
