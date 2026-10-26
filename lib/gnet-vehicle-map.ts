@@ -16,8 +16,8 @@ import type { VehicleClass } from '@/types/booking'
  *   T-47-08: Object.freeze() prevents runtime mutation of routing decisions
  */
 export const GNET_VEHICLE_MAP: Readonly<Record<string, VehicleClass>> = Object.freeze({
-  SEDAN:           'business',      // Mercedes-Benz E-Class (3 pax, 3 luggage)
-  SEDAN_LUX:       'first_class',   // Mercedes-Benz S-Class (3 pax, 3 luggage)
+  SEDAN:           'business',      // Mercedes-Benz E-Class (3 pax, 2 large + 2 cabin)
+  SEDAN_LUX:       'first_class',   // Mercedes-Benz S-Class (3 pax, 2 large + 2 cabin)
   VAN_MINI_LUXURY: 'business_van',  // Mercedes-Benz V-Class (6 pax, 6 luggage)
 })
 

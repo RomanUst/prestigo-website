@@ -89,7 +89,7 @@
     {
       "name": "E-Class",
       "tag": "Standard premium",
-      "cap": "Up to 3 passengers · 3 bags",
+      "cap": "Up to 3 passengers · 2 large cases + 2 cabin bags",
       "price": "From €{businessPrice}",
       "body": "The Mercedes E-Class is the everyday vehicle for Prague airport arrivals — quiet, spacious, and immaculate. The right choice for solo travellers, couples, and business arrivals who want comfort without excess."
     },
@@ -103,7 +103,7 @@
     {
       "name": "S-Class",
       "tag": "Executive flagship",
-      "cap": "Up to 3 passengers · 3 bags",
+      "cap": "Up to 3 passengers · 2 large cases + 2 cabin bags",
       "price": "From €{sClassAirport}",
       "body": "The Mercedes S-Class is reserved for VIP, diplomatic, and senior executive arrivals. Rear-seat comfort, ambient lighting, and the most refined cabin in the current Mercedes range."
     }

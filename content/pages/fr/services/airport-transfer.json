@@ -119,7 +119,7 @@
     {
       "name": "E-Class",
       "tag": "Premium standard",
-      "cap": "Jusqu'à 3 passagers · 3 bagages",
+      "cap": "Jusqu'à 3 passagers · 2 grandes valises + 2 bagages à main",
       "price": "À partir de €{businessPrice}",
       "body": "La Mercedes-Benz E-Class est le véhicule de référence pour les arrivées à l'aéroport de Prague — silencieuse, spacieuse et impeccable. Le choix juste pour les voyageurs seuls, les couples et les arrivées d'affaires qui recherchent le confort sans excès."
     },
@@ -133,7 +133,7 @@
     {
       "name": "S-Class",
       "tag": "Vaisseau amiral",
-      "cap": "Jusqu'à 3 passagers · 3 bagages",
+      "cap": "Jusqu'à 3 passagers · 2 grandes valises + 2 bagages à main",
       "price": "À partir de €{sClassAirport}",
       "body": "La Mercedes-Benz S-Class est réservée aux arrivées VIP, diplomatiques et de haute direction. Confort des places arrière, éclairage d'ambiance et l'habitacle le plus raffiné de la gamme Mercedes-Benz actuelle."
     }
