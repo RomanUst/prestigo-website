@@ -425,3 +425,336 @@ describe('hook.chat_intake - names and text', () => {
     }
   })
 })
+
+// ── Task 3: one open chat Lead per person, D-20 adoption, crash and race idempotency ──
+
+const FORM_LEAD_ID = 'd1d2d3d4d5d6d7d8d'
+const RACED_LEAD_ID = 'e1e2e3e4e5e6e7e8e'
+const HOUR = 3_600_000
+const DAY = 24 * HOUR
+
+/** EspoCRM's createdAt format: `YYYY-MM-DD HH:mm:ss`, UTC. */
+function espoInstant(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 19).replace('T', ' ')
+}
+
+function formLead(w: World, ageMs: number, over: Record<string, unknown> = {}) {
+  w.espo.state.records.Lead.push({
+    id: FORM_LEAD_ID,
+    cSupabaseRef: 'inquiry:0b9f2c1e-5d3a-4e8b-9c7d-1a2b3c4d5e6f',
+    source: 'Contact form',
+    status: 'New',
+    emailAddress: 'jan@x.example',
+    createdAt: espoInstant(w.now().getTime() - ageMs),
+    ...over,
+  })
+}
+
+/** A second (and later) conversation of Jan, same Chatwoot contact. */
+function addConversation(w: World, id: number, text = 'Another question about Prague') {
+  seedConversation(w, { id, messages: [incoming(text)] })
+}
+
+describe('hook.chat_intake - one open chat Lead per person (D-02)', () => {
+  it('a further conversation while the Lead is In Process appends one Note and creates no Lead', async () => {
+    const w = janWorld()
+    await w.dispatch(w.intakeKey(42))
+    const lead = w.leads()[0]
+    lead.status = 'In Process'
+    addConversation(w, 43)
+
+    const result = await w.dispatch(w.intakeKey(43))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(w.leads()).toHaveLength(1)
+    expect(w.notes()).toHaveLength(1)
+    expect(w.notes()[0]).toMatchObject({ type: 'Post', parentType: 'Lead', parentId: lead.id })
+    expect(String(w.notes()[0].post).endsWith('[cw:43:open]')).toBe(true)
+    expect(String(w.notes()[0].post)).toContain('Another question about Prague')
+    expect(w.chat.state.conversations.get(43)).toMatchObject({ outcome: 'lead_appended', espoLeadId: lead.id })
+    expect(w.chat.state.leads.filter((l) => l.open)).toHaveLength(1)
+  })
+
+  it('the same conversation processed again still leaves exactly one Note (append is marker-guarded)', async () => {
+    const w = janWorld()
+    await w.dispatch(w.intakeKey(42))
+    addConversation(w, 43)
+    await w.dispatch(w.intakeKey(43))
+
+    // Drop the registry record: the retry cannot rely on it, only on the stream marker.
+    w.chat.state.conversations.delete(43)
+    w.reset(w.intakeKey(43))
+    const again = await w.dispatch(w.intakeKey(43))
+
+    expect(again).toEqual({ outcome: 'sent' })
+    expect(w.notes()).toHaveLength(1)
+    expect(w.leads()).toHaveLength(1)
+  })
+
+  it('a Lead set to Dead in EspoCRM closes the registry row and the next conversation gets a new Lead', async () => {
+    const w = janWorld()
+    await w.dispatch(w.intakeKey(42))
+    const first = w.leads()[0]
+    first.status = 'Dead'
+    addConversation(w, 44)
+
+    const result = await w.dispatch(w.intakeKey(44))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(w.leads()).toHaveLength(2)
+    expect(w.leads()[1]).toMatchObject({ cSupabaseRef: refOf(44), status: 'New' })
+    expect(w.leads()[1].cSupabaseRef).not.toBe(first.cSupabaseRef)
+    const rows = w.chat.state.leads
+    expect(rows.find((l) => l.leadRef === refOf(42))).toMatchObject({ open: false, closedReason: 'closed_in_crm' })
+    expect(rows.find((l) => l.leadRef === refOf(44))).toMatchObject({ open: true })
+    expect(w.notes()).toHaveLength(0)
+    expect(w.chat.state.conversations.get(44)?.outcome).toBe('lead_created')
+  })
+
+  it.each(['Converted', 'Recycled'])('a Lead the owner set to %s also makes room for a new Lead', async (status) => {
+    const w = janWorld()
+    await w.dispatch(w.intakeKey(42))
+    w.leads()[0].status = status
+    addConversation(w, 44)
+
+    await w.dispatch(w.intakeKey(44))
+
+    expect(w.leads()).toHaveLength(2)
+  })
+
+  it('a Lead deleted in EspoCRM (404) closes the row and a new Lead is created', async () => {
+    const w = janWorld()
+    await w.dispatch(w.intakeKey(42))
+    w.espo.state.records.Lead.splice(0)
+    addConversation(w, 45)
+
+    const result = await w.dispatch(w.intakeKey(45))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(w.leads()).toHaveLength(1)
+    expect(w.leads()[0].cSupabaseRef).toBe(refOf(45))
+    expect(w.chat.state.leads.find((l) => l.leadRef === refOf(42))).toMatchObject({ open: false, closedReason: 'closed_in_crm' })
+  })
+
+  it('a Lead without a Contact link gets cExistingContactId on append when the person has a Contact', async () => {
+    const w = janWorld()
+    await w.dispatch(w.intakeKey(42))
+    const lead = w.leads()[0]
+    delete lead.cExistingContactId
+    addConversation(w, 43)
+
+    await w.dispatch(w.intakeKey(43))
+
+    // The fake replaces the record on PUT: read it again.
+    expect(w.leads()[0].cExistingContactId).toBe(w.contacts()[0].id)
+  })
+})
+
+describe('hook.chat_intake - D-20 adoption of a recent non-chat Lead', () => {
+  it('an open form Lead of the same email created 6 days 23 h ago takes a Note and no chat Lead is created', async () => {
+    const w = janWorld()
+    formLead(w, 6 * DAY + 23 * HOUR)
+
+    const result = await w.dispatch(w.intakeKey(42))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(w.leads()).toHaveLength(1)
+    expect(w.leads()[0].id).toBe(FORM_LEAD_ID)
+    expect(w.notes()).toHaveLength(1)
+    expect(w.notes()[0]).toMatchObject({ parentType: 'Lead', parentId: FORM_LEAD_ID })
+    expect(String(w.notes()[0].post).endsWith('[cw:42:open]')).toBe(true)
+    expect(w.chat.state.conversations.get(42)).toMatchObject({ outcome: 'lead_adopted', espoLeadId: FORM_LEAD_ID })
+    expect(w.chat.state.leads).toHaveLength(0)
+    // The person is still registered with a Contact (D-01 / D-16).
+    expect(w.identity.identities).toHaveLength(1)
+    expect(w.contacts()).toHaveLength(1)
+  })
+
+  it('adoption is idempotent: a retried row posts the Note once', async () => {
+    const w = janWorld()
+    formLead(w, 2 * DAY)
+    await w.dispatch(w.intakeKey(42))
+
+    w.chat.state.conversations.delete(42)
+    w.reset(w.intakeKey(42))
+    await w.dispatch(w.intakeKey(42))
+
+    expect(w.notes()).toHaveLength(1)
+    expect(w.leads()).toHaveLength(1)
+  })
+
+  it('a form Lead created 7 days 1 h ago is not adopted: a chat Lead is created', async () => {
+    const w = janWorld()
+    formLead(w, 7 * DAY + HOUR)
+
+    await w.dispatch(w.intakeKey(42))
+
+    expect(w.leads()).toHaveLength(2)
+    expect(w.leads().find((l) => l.cSupabaseRef === refOf(42))).toBeDefined()
+    expect(w.notes()).toHaveLength(0)
+    expect(w.chat.state.conversations.get(42)?.outcome).toBe('lead_created')
+  })
+
+  it('a closed form Lead (Converted) is not adopted even when recent', async () => {
+    const w = janWorld()
+    formLead(w, DAY, { status: 'Converted' })
+
+    await w.dispatch(w.intakeKey(42))
+
+    expect(w.leads()).toHaveLength(2)
+    expect(w.notes()).toHaveLength(0)
+  })
+
+  it('a form Lead of another email is left alone', async () => {
+    const w = janWorld()
+    formLead(w, DAY, { emailAddress: 'someone.else@x.example' })
+
+    await w.dispatch(w.intakeKey(42))
+
+    expect(w.leads()).toHaveLength(2)
+    expect(w.notes()).toHaveLength(0)
+  })
+})
+
+describe('hook.chat_intake - crash and race idempotency', () => {
+  it('crash after the Lead POST succeeded: the retry finds the Lead by cSupabaseRef and creates none', async () => {
+    let crashed = false
+    const w = makeWorld({
+      espo: {
+        extraRoutes: (req, state) => {
+          if (!crashed && req.method === 'POST' && req.path === '/Lead') {
+            crashed = true
+            // The server created the Lead but the answer was lost.
+            state.records.Lead.push({ ...req.body, id: RACED_LEAD_ID })
+            return new Response('', { status: 500 })
+          }
+          return undefined
+        },
+      },
+    })
+    w.cw.seed({ id: 7, name: 'Jan Novák', email: 'jan@x.example' })
+    seedConversation(w, { id: 42 })
+    const key = w.intakeKey(42)
+
+    const first = await w.dispatch(key)
+    expect(first).toEqual({ outcome: 'rescheduled', code: 'crm_500' })
+    expect(w.leads()).toHaveLength(1)
+
+    w.advance(HOUR)
+    const second = await w.dispatch(key)
+
+    expect(second).toEqual({ outcome: 'sent' })
+    expect(w.leads()).toHaveLength(1)
+    expect(w.contacts()).toHaveLength(1)
+    expect(w.chat.state.leads[0]).toMatchObject({ espoLeadId: RACED_LEAD_ID, open: true })
+    expect(w.chat.state.conversations.get(42)).toMatchObject({ outcome: 'lead_created', espoLeadId: RACED_LEAD_ID })
+  })
+
+  it('a 409 on Lead create (another delivery was faster) converges on the existing Lead', async () => {
+    let raced = false
+    const w = makeWorld({
+      espo: {
+        extraRoutes: (req, state) => {
+          if (!raced && req.method === 'POST' && req.path === '/Lead') {
+            raced = true
+            state.records.Lead.push({ id: RACED_LEAD_ID, cSupabaseRef: req.body.cSupabaseRef, status: 'New' })
+          }
+          return undefined // the built-in unique check on cSupabaseRef answers 409
+        },
+      },
+    })
+    w.cw.seed({ id: 7, name: 'Jan Novák', email: 'jan@x.example' })
+    seedConversation(w, { id: 42 })
+
+    const result = await w.dispatch(w.intakeKey(42))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(w.leads()).toHaveLength(1)
+    expect(w.chat.state.conversations.get(42)).toMatchObject({ espoLeadId: RACED_LEAD_ID })
+  })
+
+  it('a crash after the Contact was created: the retry finds it by email and creates no second Contact', async () => {
+    let crashed = false
+    const w = makeWorld({
+      espo: {
+        extraRoutes: (req, state) => {
+          if (!crashed && req.method === 'POST' && req.path === '/Contact') {
+            crashed = true
+            state.records.Contact.push({ ...req.body, id: CONTACT_ID_A })
+            return new Response('', { status: 503 })
+          }
+          return undefined
+        },
+      },
+    })
+    w.cw.seed({ id: 7, name: 'Jan Novák', email: 'jan@x.example' })
+    seedConversation(w, { id: 42 })
+    const key = w.intakeKey(42)
+
+    expect((await w.dispatch(key)).outcome).toBe('rescheduled')
+    w.advance(HOUR)
+    const second = await w.dispatch(key)
+
+    expect(second).toEqual({ outcome: 'sent' })
+    expect(w.contacts()).toHaveLength(1)
+    expect(w.leads()).toHaveLength(1)
+    expect(w.leads()[0].cExistingContactId).toBe(CONTACT_ID_A)
+    expect(w.identity.identities[0].espoContactId).toBe(CONTACT_ID_A)
+    // The identity already existed on the retry, so the Contact was not mistaken for a known contact.
+    expect(w.chat.state.conversations.get(42)?.outcome).toBe('lead_created')
+  })
+
+  it('interleaving: two conversations of one new person dispatched back to back give one Lead and one Note', async () => {
+    const w = janWorld()
+    addConversation(w, 51)
+
+    await w.dispatch(w.intakeKey(42))
+    await w.dispatch(w.intakeKey(51))
+
+    expect(w.leads()).toHaveLength(1)
+    expect(w.notes()).toHaveLength(1)
+    expect(w.contacts()).toHaveLength(1)
+    expect(w.chat.state.leads).toHaveLength(1)
+  })
+
+  it('interleaving: two conversations dispatched at the same time still end with one Lead and one Note', async () => {
+    const w = janWorld()
+    addConversation(w, 51)
+    const keys = [w.intakeKey(42), w.intakeKey(51)]
+
+    let results = await Promise.all(keys.map((k) => w.dispatch(k)))
+    // A conversation that raced ahead of the Lead of the other one is retried a little later.
+    for (let round = 0; round < 3 && results.some((r) => r.outcome === 'rescheduled'); round++) {
+      w.advance(HOUR)
+      results = await Promise.all(keys.map((k) => w.dispatch(k)))
+    }
+
+    expect(results.every((r) => r.outcome === 'sent' || r.outcome === 'already_done')).toBe(true)
+    expect(w.leads()).toHaveLength(1)
+    expect(w.notes()).toHaveLength(1)
+    expect(w.chat.state.leads.filter((l) => l.open)).toHaveLength(1)
+    const outcomes = [42, 51].map((id) => w.chat.state.conversations.get(id)?.outcome).sort()
+    expect(outcomes).toEqual(['lead_appended', 'lead_created'])
+  })
+
+  it('a conversation whose Lead owner has not created it yet is retried, never closes the owner row', async () => {
+    const w = janWorld()
+    addConversation(w, 51)
+    // Conversation 42 reserved the person's row but its Lead is not in EspoCRM yet.
+    await w.chat.store.reserveLead({
+      personKey: `i:${w.identity.seed({ email: 'jan@x.example', basis: 'chat' })}`,
+      identityId: null,
+      chatwootContactId: 7,
+      phone: null,
+      leadRef: refOf(42),
+    })
+    const owner = w.chat.state.leads[0]
+    owner.personKey = `i:${w.identity.identities[0].id}`
+
+    const result = await w.dispatch(w.intakeKey(51))
+
+    expect(result).toEqual({ outcome: 'rescheduled', code: 'lead_pending' })
+    expect(w.chat.state.leads[0].open).toBe(true)
+    expect(w.leads()).toHaveLength(0)
+  })
+})
