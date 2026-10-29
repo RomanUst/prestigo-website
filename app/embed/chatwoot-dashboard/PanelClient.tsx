@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { PANEL_ERROR_CODES, type PanelErrorCode, type PanelResponse } from '@/lib/panel-dto'
-import BookingCard from './BookingCard'
+import { ADMIN_ALL_BOOKINGS_HREF, ADMIN_HOME_HREF } from '@/lib/panel-links'
+import BookingCard, { formatEur, formatPragueTime } from './BookingCard'
 import { FETCH_INFO_MESSAGE, TOKEN_STORAGE_KEY, isTrustedContextEvent, parseAppContext } from './panel-handshake'
 
 // Kept as a local const holding the literal: the isolation guard proves the only fetch target of
@@ -12,6 +13,7 @@ const PANEL_API = '/api/chatwoot/dashboard-app'
 const ASK_INTERVAL_MS = 1000
 const MAX_RETRIES = 5
 const PAST_LIMIT = 10
+const AUTO_REFRESH_MS = 30_000
 
 const NOT_FRAMED_COPY = 'Open this panel from a Chatwoot conversation.'
 const HANDSHAKE_TIMEOUT_COPY =
@@ -48,7 +50,24 @@ function errorCodeFor(status: number, body: unknown): PanelErrorCode {
 function isPanelResponse(body: unknown): body is PanelResponse {
   if (typeof body !== 'object' || body === null) return false
   const b = body as Partial<PanelResponse>
-  return (b.state === 'ok' || b.state === 'no_contact') && Array.isArray(b.upcoming) && Array.isArray(b.past)
+  return (
+    (b.state === 'ok' || b.state === 'no_contact') &&
+    Array.isArray(b.upcoming) &&
+    Array.isArray(b.past) &&
+    typeof b.contact === 'object' &&
+    b.contact !== null &&
+    typeof b.counters === 'object' &&
+    b.counters !== null
+  )
+}
+
+/** The Lead link comes from our own API; still, only an https URL is ever put into an href. */
+function isHttpsUrl(value: string): boolean {
+  try {
+    return new URL(value).protocol === 'https:'
+  } catch {
+    return false
+  }
 }
 
 function readStoredToken(): string | null {
@@ -96,6 +115,8 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
   const [loading, setLoading] = useState(false)
   const [reloadTick, setReloadTick] = useState(0)
   const [announcement, setAnnouncement] = useState('')
+  const [showAllPast, setShowAllPast] = useState(false)
+  const loadingRef = useRef(false)
   const tokenInput = useRef<HTMLInputElement>(null)
 
   // Token from the tab-scoped store, after hydration so the server markup matches.
@@ -144,12 +165,17 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
     }
   }, [chatwootOrigin])
 
-  // Load the bookings once we hold both a token and a trusted conversation id.
+  // Load the bookings once we hold both a token and a trusted conversation id. A re-run (Refresh, focus,
+  // visibility, the 30 s timer) keeps the last good response on screen and swaps it in place.
   useEffect(() => {
-    if (!token || conversationId === null) return
+    if (!token || conversationId === null) {
+      loadingRef.current = false
+      setLoading(false)
+      return
+    }
     const controller = new AbortController()
+    loadingRef.current = true
     setLoading(true)
-    setErrorCode(null)
     ;(async () => {
       try {
         const res = await fetch(PANEL_API, {
@@ -164,25 +190,53 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
         if (controller.signal.aborted) return
         if (res.ok && isPanelResponse(body)) {
           setData(body)
+          setErrorCode(null)
         } else {
           const code = errorCodeFor(res.status, body)
           if (code === 'invalid_token') {
             writeStoredToken(null)
             setToken(null)
             setData(null)
+            setErrorCode(null)
             setTokenRejected(true)
           } else {
+            // No access means no booking data on screen; any other error keeps the last good data below it.
+            if (code === 'no_access') setData(null)
             setErrorCode(code)
           }
         }
       } catch {
         if (!controller.signal.aborted) setErrorCode('internal')
       } finally {
-        if (!controller.signal.aborted) setLoading(false)
+        if (!controller.signal.aborted) {
+          loadingRef.current = false
+          setLoading(false)
+        }
       }
     })()
     return () => controller.abort()
   }, [token, conversationId, reloadTick])
+
+  // Stay fresh on its own: window focus, the tab becoming visible, and every 30 s while visible.
+  useEffect(() => {
+    if (!token || conversationId === null) return
+    const refreshIfIdle = () => {
+      if (!loadingRef.current) setReloadTick((n) => n + 1)
+    }
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshIfIdle()
+    }
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') refreshIfIdle()
+    }, AUTO_REFRESH_MS)
+    window.addEventListener('focus', refreshIfIdle)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refreshIfIdle)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [token, conversationId])
 
   const showTokenEntry = tokenLoaded && !token
   useEffect(() => {
@@ -202,6 +256,16 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
     [draft],
   )
 
+  // Clears only the locally stored token (no confirmation: pasting it again restores everything).
+  const forgetToken = useCallback(() => {
+    writeStoredToken(null)
+    setToken(null)
+    setData(null)
+    setErrorCode(null)
+    setTokenRejected(false)
+    setShowAllPast(false)
+  }, [])
+
   if (inert) {
     return (
       <main className="panel">
@@ -211,7 +275,15 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
   }
 
   const upcoming = data ? data.upcoming : []
-  const bookings = data ? [...upcoming, ...data.past.slice(0, PAST_LIMIT)] : []
+  const past = data ? data.past : []
+  const visiblePast = showAllPast ? past : past.slice(0, PAST_LIMIT)
+  const hiddenPast = past.length - visiblePast.length
+  const hasBookings = upcoming.length + past.length > 0
+  const contactLabel = data ? (data.contact.email ?? data.contact.phone) : null
+  const updatedAt = data ? new Date(data.generatedAt) : null
+  const updatedText = updatedAt && !Number.isNaN(updatedAt.getTime()) ? formatPragueTime(updatedAt) : null
+  const leadHref = data && data.leadUrl && isHttpsUrl(data.leadUrl) ? data.leadUrl : null
+
   let status = ''
   if (showTokenEntry) status = 'Connect your Chatwoot account'
   else if (loading && !data) status = 'Loading bookings'
@@ -226,8 +298,14 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
       <header className="panel-header">
         <h1 className="heading">Bookings</h1>
         {token && conversationId !== null ? (
-          <button type="button" className="text-button" disabled={loading} onClick={() => setReloadTick((n) => n + 1)}>
-            Refresh
+          <button
+            type="button"
+            className="text-button"
+            disabled={loading}
+            aria-disabled={loading}
+            onClick={() => setReloadTick((n) => n + 1)}
+          >
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         ) : null}
       </header>
@@ -284,20 +362,104 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
         <p className="state-text">Add an email or phone to this contact in Chatwoot to see bookings</p>
       ) : null}
 
-      {!showTokenEntry && data && data.state === 'ok' && bookings.length === 0 ? (
-        <section className="state-panel">
-          <h2 className="heading">No bookings</h2>
-        </section>
+      {!showTokenEntry && data && data.state === 'ok' ? (
+        <>
+          <div className="contact">
+            {contactLabel ? <p className="meta contact-line">{contactLabel}</p> : null}
+            {data.contact.phoneMismatch ? <p className="meta">Phone matches a different customer</p> : null}
+            {data.contact.verified ? (
+              <p className="meta">Verified customer (signed in)</p>
+            ) : (
+              <p className="hint">
+                <span className="hint-dot" aria-hidden="true" />
+                Unverified email - confirm identity before sharing booking details
+              </p>
+            )}
+          </div>
+
+          {hasBookings ? (
+            <>
+              <dl className="counters">
+                <div className="counter">
+                  <dt className="label">Trips</dt>
+                  <dd className="counter-value">{data.counters.trips}</dd>
+                </div>
+                <div className="counter">
+                  <dt className="label">Total spent</dt>
+                  <dd className="counter-value">{formatEur(data.counters.totalSpentEur)}</dd>
+                </div>
+              </dl>
+
+              <section className="section">
+                <h2 className="heading">
+                  Upcoming <span className="meta">{`· ${upcoming.length}`}</span>
+                </h2>
+                {upcoming.length > 0 ? (
+                  <ul className="cards">
+                    {upcoming.map((b, i) => (
+                      <li key={b.id}>
+                        <BookingCard booking={b} isNext={i === 0} onAnnounce={setAnnouncement} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="empty-line">No upcoming trips</p>
+                )}
+              </section>
+
+              <section className="section">
+                <h2 className="heading">
+                  Past <span className="meta">{`· ${past.length}`}</span>
+                </h2>
+                {visiblePast.length > 0 ? (
+                  <ul className="cards">
+                    {visiblePast.map((b) => (
+                      <li key={b.id}>
+                        <BookingCard booking={b} isNext={false} onAnnounce={setAnnouncement} />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="empty-line">No past trips</p>
+                )}
+                {hiddenPast > 0 ? (
+                  <button type="button" className="text-button show-more" onClick={() => setShowAllPast(true)}>
+                    {`Show ${hiddenPast} more`}
+                  </button>
+                ) : null}
+                {data.pastTruncated ? (
+                  <a className="link" href={ADMIN_ALL_BOOKINGS_HREF} target="_blank" rel="noopener noreferrer">
+                    Open all bookings in admin
+                  </a>
+                ) : null}
+              </section>
+            </>
+          ) : (
+            <section className="state-panel">
+              <h2 className="heading">No bookings</h2>
+              <p>{`No bookings found for ${contactLabel ?? 'this contact'}.`}</p>
+              <p className="actions">
+                <a className="link" href={ADMIN_HOME_HREF} target="_blank" rel="noopener noreferrer">
+                  Create booking in admin
+                </a>
+                {leadHref ? (
+                  <a className="link" href={leadHref} target="_blank" rel="noopener noreferrer">
+                    Open Lead in EspoCRM
+                  </a>
+                ) : null}
+              </p>
+            </section>
+          )}
+        </>
       ) : null}
 
-      {!showTokenEntry && data && bookings.length > 0 ? (
-        <ul className="cards">
-          {bookings.map((b, i) => (
-            <li key={b.id}>
-              <BookingCard booking={b} isNext={i === 0 && upcoming.length > 0} onAnnounce={setAnnouncement} />
-            </li>
-          ))}
-        </ul>
+      {!showTokenEntry && token ? (
+        <footer className="panel-footer">
+          <span className="meta">{updatedText ? `Updated ${updatedText}` : ''}</span>
+          <button type="button" className="text-button" onClick={forgetToken}>
+            Forget token
+          </button>
+        </footer>
       ) : null}
     </main>
   )

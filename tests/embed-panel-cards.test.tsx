@@ -493,3 +493,413 @@ describe('tracer: API booking -> BookingCard -> Copy payment link -> clipboard -
     expect(document.querySelector('[aria-live="polite"]')).toHaveTextContent('Payment link copied')
   })
 })
+
+// ── Task 2: page structure, states, show-more, refresh, footer ─────────────────────────────────
+function manyBookings(prefix: string, count: number, over: Partial<PanelBooking> = {}): PanelBooking[] {
+  return Array.from({ length: count }, (_, i) =>
+    booking({
+      id: `${prefix}${i}`,
+      reference: `PRG-${prefix.toUpperCase()}${i}`,
+      status: 'completed',
+      paymentState: 'paid',
+      paymentLinkUrl: null,
+      driverName: null,
+      tripProgress: null,
+      flightNumber: null,
+      notes: null,
+      ...over,
+    }),
+  )
+}
+
+async function settle() {
+  for (let i = 0; i < 3; i++) {
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 10))
+    })
+  }
+}
+
+async function mountReady(res: PanelResponse = panelResponse()) {
+  installParent()
+  window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+  fetchMock.mockResolvedValue(json(200, res))
+  const view = render(<PanelClient chatwootOrigin={ORIGIN} />)
+  send()
+  await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+  await settle()
+  return view
+}
+
+function deferred() {
+  let resolve!: (r: Response) => void
+  const promise = new Promise<Response>((r) => {
+    resolve = r
+  })
+  return { promise, resolve }
+}
+
+describe('PanelClient: page structure (D-05)', () => {
+  it('renders the counters as a dl with Trips and the Intl-formatted total spent', async () => {
+    const { container } = await mountReady()
+    const dl = container.querySelector('dl') as HTMLElement
+    expect(dl).not.toBeNull()
+    expect(within(dl).getByText('Trips').tagName).toBe('DT')
+    expect(within(dl).getByText('Total spent').tagName).toBe('DT')
+    const values = [...dl.querySelectorAll('dd')].map((d) => d.textContent)
+    expect(values).toEqual(['2', EUR.format(1234.5)])
+    expect(dl.querySelector('dd')).toHaveClass('counter-value')
+  })
+
+  it('lists all upcoming bookings in order and marks only the first card as the next trip', async () => {
+    const upcoming = manyBookings('u', 3, { status: 'confirmed' })
+    await mountReady(panelResponse({ upcoming, past: [] }))
+    expect(screen.getByRole('heading', { level: 2, name: 'Upcoming · 3' })).toBeInTheDocument()
+    const cards = screen.getAllByRole('article')
+    expect(cards).toHaveLength(3)
+    expect(cards.map((c) => c.classList.contains('card-next'))).toEqual([true, false, false])
+    expect(cards[0]).toHaveTextContent('PRG-U0')
+    expect(cards[2]).toHaveTextContent('PRG-U2')
+  })
+
+  it('shows 10 past cards and expands in place with Show {n} more, without another request', async () => {
+    await mountReady(panelResponse({ upcoming: [], past: manyBookings('p', 25) }))
+    expect(screen.getByRole('heading', { level: 2, name: 'Past · 25' })).toBeInTheDocument()
+    expect(screen.getAllByRole('article')).toHaveLength(10)
+    fireEvent.click(screen.getByRole('button', { name: 'Show 15 more' }))
+    expect(screen.getAllByRole('article')).toHaveLength(25)
+    expect(screen.queryByRole('button', { name: /Show \d+ more/ })).not.toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows no Show more button for 10 or fewer past bookings', async () => {
+    await mountReady(panelResponse({ upcoming: [], past: manyBookings('p', 10) }))
+    expect(screen.getAllByRole('article')).toHaveLength(10)
+    expect(screen.queryByRole('button', { name: /Show \d+ more/ })).not.toBeInTheDocument()
+  })
+
+  it('adds Open all bookings in admin only when the server cap was reached', async () => {
+    await mountReady(panelResponse({ pastTruncated: true, past: manyBookings('p', 12) }))
+    const link = screen.getByRole('link', { name: 'Open all bookings in admin' })
+    expect(link).toHaveAttribute('href', '/admin/bookings')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+    cleanup()
+    iframe.remove()
+    fetchMock.mockReset()
+    await mountReady(panelResponse({ pastTruncated: false }))
+    expect(screen.queryByRole('link', { name: 'Open all bookings in admin' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the Upcoming heading with a line when there are no upcoming trips, and the reverse', async () => {
+    await mountReady(panelResponse({ upcoming: [] }))
+    expect(screen.getByRole('heading', { level: 2, name: 'Upcoming · 0' })).toBeInTheDocument()
+    expect(screen.getByText('No upcoming trips')).toBeInTheDocument()
+    expect(screen.queryByText('No past trips')).not.toBeInTheDocument()
+    cleanup()
+    iframe.remove()
+    fetchMock.mockReset()
+    await mountReady(panelResponse({ past: [] }))
+    expect(screen.getByRole('heading', { level: 2, name: 'Past · 0' })).toBeInTheDocument()
+    expect(screen.getByText('No past trips')).toBeInTheDocument()
+    expect(screen.queryByText('No upcoming trips')).not.toBeInTheDocument()
+  })
+})
+
+describe('PanelClient: empty, no-contact and hint states', () => {
+  it('empty state: No bookings with the searched email and links only', async () => {
+    await mountReady(panelResponse({ upcoming: [], past: [] }))
+    expect(screen.getByRole('heading', { level: 2, name: 'No bookings' })).toBeInTheDocument()
+    expect(screen.getByText('No bookings found for guest@example.test.')).toBeInTheDocument()
+    const create = screen.getByRole('link', { name: 'Create booking in admin' })
+    expect(create).toHaveAttribute('href', '/admin')
+    expect(create).toHaveAttribute('target', '_blank')
+    expect(screen.queryByRole('link', { name: 'Open Lead in EspoCRM' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(screen.queryByText('Trips')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button').map((b) => b.textContent)).toEqual(['Refresh', 'Forget token'])
+  })
+
+  it('empty state: uses the phone when there is no email and adds the Lead link only when present', async () => {
+    const lead = 'https://crm.example.test/#Lead/view/0123456789abcdef0'
+    await mountReady(
+      panelResponse({
+        upcoming: [],
+        past: [],
+        contact: { email: null, phone: '+420111222333', verified: false, phoneMismatch: false },
+        leadUrl: lead,
+      }),
+    )
+    expect(screen.getByText('No bookings found for +420111222333.')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'Open Lead in EspoCRM' })
+    expect(link).toHaveAttribute('href', lead)
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('never renders a Lead link that is not https', async () => {
+    await mountReady(panelResponse({ upcoming: [], past: [], leadUrl: 'javascript:alert(1)' }))
+    expect(screen.queryByRole('link', { name: 'Open Lead in EspoCRM' })).not.toBeInTheDocument()
+  })
+
+  it('no_contact shows only the hint, and the next refresh shows bookings without a reload', async () => {
+    installParent()
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+    const noContact = panelResponse({
+      state: 'no_contact',
+      upcoming: [],
+      past: [],
+      contact: { email: null, phone: null, verified: false, phoneMismatch: false },
+    })
+    fetchMock.mockResolvedValueOnce(json(200, noContact)).mockResolvedValueOnce(json(200, panelResponse()))
+    const { container } = render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send()
+    expect(await screen.findByText('Add an email or phone to this contact in Chatwoot to see bookings')).toBeInTheDocument()
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(container.querySelector('dl')).toBeNull()
+    expect(screen.queryByText(/Unverified|Verified/)).not.toBeInTheDocument()
+    expect(container.querySelector('input, textarea')).toBeNull()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Refresh' }))
+    expect(await screen.findAllByRole('article')).toHaveLength(2)
+    expect(screen.queryByText('Add an email or phone to this contact in Chatwoot to see bookings')).not.toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows the contact line and the verified hint above the counters', async () => {
+    const { container } = await mountReady()
+    expect(screen.getByText('guest@example.test')).toBeInTheDocument()
+    const verified = screen.getByText('Verified customer (signed in)')
+    expect(screen.queryByText(/Unverified/)).not.toBeInTheDocument()
+    const dl = container.querySelector('dl') as HTMLElement
+    expect(verified.compareDocumentPosition(dl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('shows the unverified hint in primary text with the unpaid-hue dot, above the counters, never red', async () => {
+    const { container } = await mountReady(
+      panelResponse({ contact: { email: 'guest@example.test', phone: null, verified: false, phoneMismatch: false } }),
+    )
+    const hint = screen.getByText('Unverified email - confirm identity before sharing booking details')
+    expect(hint).toHaveClass('hint')
+    expect(hint.querySelector('.hint-dot')).not.toBeNull()
+    expect(hint).not.toHaveClass('error-text')
+    expect(screen.queryByText('Verified customer (signed in)')).not.toBeInTheDocument()
+    const dl = container.querySelector('dl') as HTMLElement
+    expect(hint.compareDocumentPosition(dl) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('shows the muted phone-mismatch line without any data about the other customer', async () => {
+    await mountReady(
+      panelResponse({ contact: { email: 'guest@example.test', phone: '+420999888777', verified: true, phoneMismatch: true } }),
+    )
+    const line = screen.getByText('Phone matches a different customer')
+    expect(line).toHaveClass('meta')
+    expect(document.body).not.toHaveTextContent('+420999888777')
+  })
+
+  it('no_access shows only its copy: no cards, no counters, no contact data', async () => {
+    installParent()
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+    fetchMock.mockResolvedValueOnce(json(200, panelResponse())).mockResolvedValueOnce(json(403, { error: 'no_access' }))
+    const { container } = render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send()
+    await screen.findAllByRole('article')
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      "You don't have access to this conversation, so its bookings are hidden.",
+    )
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(container.querySelector('dl')).toBeNull()
+    expect(screen.queryByText('guest@example.test')).not.toBeInTheDocument()
+  })
+})
+
+describe('PanelClient: refresh behaviour', () => {
+  function setVisibility(state: 'visible' | 'hidden') {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+  }
+  afterEach(() => {
+    delete (document as unknown as Record<string, unknown>).visibilityState
+  })
+
+  it('refreshes once on window focus', async () => {
+    await mountReady()
+    act(() => {
+      window.dispatchEvent(new Event('focus'))
+    })
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await settle()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('refreshes once when the tab becomes visible, and not when it becomes hidden', async () => {
+    await mountReady()
+    setVisibility('hidden')
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    setVisibility('visible')
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+  })
+
+  it('refreshes every 30 s while visible and never while hidden', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] })
+    installParent()
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+    fetchMock.mockResolvedValue(json(200, panelResponse()))
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send()
+    await settle()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    act(() => {
+      vi.advanceTimersByTime(29_000)
+    })
+    await settle()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    act(() => {
+      vi.advanceTimersByTime(1_000)
+    })
+    await settle()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    setVisibility('hidden')
+    act(() => {
+      vi.advanceTimersByTime(90_000)
+    })
+    await settle()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not start another request while one is in flight', async () => {
+    const first = deferred()
+    installParent()
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+    fetchMock.mockReturnValue(first.promise)
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send()
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    act(() => {
+      window.dispatchEvent(new Event('focus'))
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    await act(async () => {
+      first.resolve(json(200, panelResponse()))
+      await new Promise((r) => setTimeout(r, 10))
+    })
+  })
+
+  it('keeps the cards on screen during a background refresh and shows Refreshing... on a disabled button', async () => {
+    const { container } = await mountReady()
+    const pending = deferred()
+    fetchMock.mockReturnValueOnce(pending.promise)
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
+    const busy = await screen.findByRole('button', { name: 'Refreshing...' })
+    expect(busy).toBeDisabled()
+    expect(container.querySelectorAll('.skeleton')).toHaveLength(0)
+    expect(screen.getAllByRole('article')).toHaveLength(2)
+
+    await act(async () => {
+      pending.resolve(json(200, panelResponse({ upcoming: manyBookings('n', 1, { status: 'confirmed' }), past: [] })))
+      await new Promise((r) => setTimeout(r, 10))
+    })
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled()
+    const cards = screen.getAllByRole('article')
+    expect(cards).toHaveLength(1)
+    expect(cards[0]).toHaveTextContent('PRG-N0')
+  })
+
+  it('keeps the loaded cards below the error line when a background refresh fails', async () => {
+    await mountReady()
+    fetchMock.mockResolvedValueOnce(json(502, { error: 'unavailable' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent("Can't reach Chatwoot right now. Try again in a minute.")
+    const cards = screen.getAllByRole('article')
+    expect(cards).toHaveLength(2)
+    expect(alert.compareDocumentPosition(cards[0]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled()
+  })
+
+  it('a 401 on a background refresh clears the token and returns to token entry', async () => {
+    await mountReady()
+    fetchMock.mockResolvedValueOnce(json(401, { error: 'invalid_token' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }))
+    expect(await screen.findByRole('heading', { name: 'Connect your Chatwoot account' })).toBeInTheDocument()
+    expect(window.sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull()
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+  })
+})
+
+describe('PanelClient: footer, accessibility and read-only guarantees', () => {
+  it('shows Updated in Prague time and forgets the token without a confirmation', async () => {
+    await mountReady()
+    // generatedAt 2026-10-29T10:00Z is 11:00 in Prague (CET).
+    expect(screen.getByText('Updated 11:00')).toBeInTheDocument()
+    const confirm = vi.fn()
+    vi.stubGlobal('confirm', confirm)
+    fireEvent.click(screen.getByRole('button', { name: 'Forget token' }))
+    expect(confirm).not.toHaveBeenCalled()
+    expect(window.sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Connect your Chatwoot account' })).toBeInTheDocument()
+    expect(screen.queryByRole('article')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Forget token' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer Forget token while no token is stored', () => {
+    installParent()
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    expect(screen.queryByRole('button', { name: 'Forget token' })).not.toBeInTheDocument()
+  })
+
+  it('has one h1, h2 sections, an article with an h3 per card and one polite live region', async () => {
+    const { container } = await mountReady(
+      panelResponse({ upcoming: manyBookings('u', 2, { status: 'confirmed' }), past: manyBookings('p', 3) }),
+    )
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Upcoming · 2', 'Past · 3'])
+    const articles = screen.getAllByRole('article')
+    expect(articles).toHaveLength(5)
+    for (const a of articles) expect(within(a).getAllByRole('heading', { level: 3 })).toHaveLength(1)
+    expect(container.querySelectorAll('[aria-live="polite"]')).toHaveLength(1)
+    expect(container.querySelectorAll('ul.cards')).toHaveLength(2)
+  })
+
+  it('has no search box and no text field other than the token field', async () => {
+    installParent()
+    const { container } = render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send()
+    // token entry: the only input is the password field
+    expect([...container.querySelectorAll('input')].map((i) => i.type)).toEqual(['password'])
+    cleanup()
+
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+    fetchMock.mockResolvedValue(json(200, panelResponse()))
+    const ready = render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send()
+    await screen.findAllByRole('article')
+    expect(
+      ready.container.querySelectorAll('input, textarea, [type="search"], [role="searchbox"], [role="search"]'),
+    ).toHaveLength(0)
+  })
+
+  it('adds no control that writes: only the listed buttons and plain links exist', async () => {
+    await mountReady(panelResponse({ upcoming: [], past: manyBookings('p', 11) }))
+    const names = screen.getAllByRole('button').map((b) => b.textContent)
+    expect(names).toEqual(['Refresh', 'Show 1 more', 'Forget token'])
+    expect(screen.queryByRole('form')).not.toBeInTheDocument()
+  })
+
+  it('source has no search field and no extra transport', () => {
+    for (const file of ['BookingCard.tsx', 'CopyLinkButton.tsx', 'PanelClient.tsx']) {
+      const source = readFileSync(path.resolve(__dirname, '../app/embed/chatwoot-dashboard', file), 'utf-8')
+      expect(source, file).not.toMatch(/type="search"|type='search'/)
+      expect(source, file).not.toMatch(/localStorage|sendBeacon|XMLHttpRequest|WebSocket/)
+    }
+  })
+})
