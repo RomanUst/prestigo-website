@@ -60,6 +60,12 @@ const CSP_DIRECTIVE_NAMES = [
   'media-src',
   'worker-src',
   'form-action',
+  // Phase 84 (plan 84-05): the Dashboard App embed CSP is a response header for
+  // the panel route; these directives never name the VPS host themselves but
+  // are listed so a single-directive line stays exempt if one ever does.
+  'frame-ancestors',
+  'base-uri',
+  'object-src',
 ].join('|')
 // Group 1 captures the opening quote (double, single or backtick) so the
 // body and closing quote can backreference it — `(?:(?!\1).)*` (a negative
@@ -85,6 +91,15 @@ interface Violation {
 // "QStash-invoked outbox worker route", "click-to-load consent-gated client
 // widget loader") — later phases (77 widget, 81/82 outbox) add entries
 // deliberately, never as a blanket exemption.
+//
+// Phase 84 adds a deliberate SECOND category next to the async ones: an
+// operator-only request path. A file may be allowlisted when it runs only
+// behind a Chatwoot operator token (an agent's personal token, validated
+// against Chatwoot on every request) — the Chatwoot Dashboard App API route
+// and its client. It is never reachable from a visitor-facing page render or a
+// booking/payment/contact request path, so a VPS outage degrades only the
+// operator panel. Its reason must say so; the allowlist hygiene tests below
+// still apply (file exists, reason of at least 20 characters).
 const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
   {
     path: 'app/api/chatwoot/identity/route.ts',
@@ -165,6 +180,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
     path: 'app/api/webhooks/chatwoot/route.ts',
     reason:
       'server-to-server receiver called only by the Chatwoot server with an HMAC-signed request; reads its signing secret from env, verifies and enqueues one outbox row through a single RPC; makes no network call to the VPS and never runs on a page render or a booking/payment/contact request path',
+  },
+  {
+    path: 'lib/chatwoot-operator.ts',
+    reason:
+      'operator-only request path behind a Chatwoot operator token: called only by the Chatwoot Dashboard App API route after a per-request Chatwoot token check; never on a public page render or a booking/payment/contact request path; a VPS outage degrades only the operator panel',
   },
   {
     path: 'app/api/integrations/dispatch/route.ts',
@@ -502,6 +522,22 @@ describe('CSP directive-line exemption (Phase 77, D-09/T-77-19)', () => {
       ],
     ])
     const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('middleware.ts')
+  })
+})
+
+describe('CSP directive-line exemption: embed directives (Phase 84, plan 84-02)', () => {
+  it('a single-directive frame-ancestors line in middleware.ts is exempt, the same text in a fetch call is not', () => {
+    const exempt = new Map([
+      ['middleware.ts', '    "frame-ancestors \'self\' https://chat.rideprestigo.com",'],
+    ])
+    expect(findVpsViolations(exempt, [])).toEqual([])
+
+    const inFetch = new Map([
+      ['middleware.ts', 'const res = await fetch("frame-ancestors https://chat.rideprestigo.com")'],
+    ])
+    const violations = findVpsViolations(inFetch, [])
     expect(violations).toHaveLength(1)
     expect(violations[0].path).toBe('middleware.ts')
   })
