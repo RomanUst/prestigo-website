@@ -51,7 +51,7 @@ plan_head_after: 5c7577581201f8c139a13ab51c091bf99cba4641
 
 **Read-only panel_bookings SECURITY DEFINER RPC (email-owned identity, unique non-shared phone fallback, mismatch flag, Lead pointer, 24-key allowlist, SQL totals, 200-row cap) plus the DTO, link and mapper modules the Dashboard App API and iframe share.**
 
-Status: Tasks 1 and 2 complete and committed. **Task 3 (apply migration 080 live + rolled-back smoke) is PENDING (orchestrator MCP).** Requirements PANEL-01 / PANEL-02 are not marked complete until Task 3 passes. `requirements-completed` is left empty for that reason.
+Status: all 3 tasks complete. Task 3 was run by the orchestrator via Supabase MCP on 2026-10-29. PANEL-01 / PANEL-02 stay open in `requirements-completed` until the panel is live (84-09).
 
 `commits: 3` counts the three code/test commits (two task commits and the smoke draft); the SUMMARY commit that follows is not included in `plan_head_after`.
 
@@ -62,7 +62,7 @@ Status: Tasks 1 and 2 complete and committed. **Task 3 (apply migration 080 live
 | 1 (tracer) | email -> panel_bookings -> store.load -> buildPanelResponse | d1a44471 | done |
 | 2 | phone rules, mismatch, Lead pointer, mapper edge matrix | 2e9acfd6 | done |
 | smoke draft | 84-01-smoke.sql | 5c757758 | done (UNTESTED against Postgres) |
-| 3 | apply 080 live + smoke SMOKE_OK_84_01 | - | **PENDING (orchestrator MCP)** |
+| 3 | apply 080 live + smoke SMOKE_OK_84_01 | - | done (orchestrator MCP) |
 
 Tracer gate: the `<verify>` of Task 1 (two test files + tsc filter) ran green before expansion to Task 2.
 
@@ -76,9 +76,10 @@ Tracer gate: the `<verify>` of Task 1 (two test files + tsc filter) ran green be
 
 ## Task 3 status (orchestrator)
 
-- apply_migration `080_panel_bookings`: PENDING
-- smoke message (expected exactly `SMOKE_OK_84_01`): PENDING
-- get_advisors security ERROR count naming panel_bookings: PENDING
+- apply_migration `080_panel_bookings`: success (live; 079 was newest before, no 080 existed; all columns the body names verified via information_schema; trip_progress/_updated_at live on driver_assignments)
+- smoke message: exactly `SMOKE_OK_84_01` (second run). First run failed: `pickup_utc` is a GENERATED column (`prestigo_text_to_utc(pickup_date, pickup_time)`) and cannot be inserted. The orchestrator fixed the smoke to drive ordering through pickup_date (E = oldest date) instead. Since pickup_time is NOT NULL, a NULL pickup_utc cannot occur live; the TS null-fallback path stays covered by unit tests only. Leftover check after rollback: 0 bookings / identities / drivers / conversations.
+- get_advisors security ERROR count naming panel_bookings: 0 (only pre-existing INFO rls_enabled_no_policy + WARN leaked-password)
+- `npx vitest run tests/panel-bookings-migration.test.ts tests/panel-bookings.test.ts` on the main checkout after apply: 56/56 pass
 
 ## Deviations from Plan
 

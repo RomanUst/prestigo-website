@@ -12,11 +12,12 @@
 -- rather than the resolver's.
 --
 -- Fixture for identity A (client_email smoke-84-a@example.test, phone +420700900002):
---   A confirmed  one_way    amount_eur 120                      pickup now + 3 days
---   B completed  round_trip amount_eur NULL, 2500 + 2500 CZK    pickup now - 10 days
---   C confirmed  leg return amount_eur 50                       pickup now + 10 days
---   D cancelled  one_way    amount_eur 80                       pickup now + 1 day
---   E pending    one_way    amount_eur 90                       pickup_utc NULL (date 2031-01-01)
+--   A confirmed  one_way    amount_eur 120                      pickup 2030-01-15
+--   B completed  round_trip amount_eur NULL, 2500 + 2500 CZK    pickup 2020-01-16
+--   C confirmed  leg return amount_eur 50                       pickup 2030-01-20
+--   D cancelled  one_way    amount_eur 80                       pickup 2030-01-10
+--   E pending    one_way    amount_eur 90                       pickup 2019-01-01 (oldest)
+-- pickup_utc is a generated column (prestigo_text_to_utc(pickup_date, pickup_time)); it is never inserted.
 --   F unpaid online, no payment_link_id (abandoned checkout)    linked by hand, must not appear
 --   G confirmed, anonymised_at set                              linked by hand, must not appear
 -- Expected: total 5, trip_count 3 (A, B, E), spent_eur 320 (A 120 + B round(5000 * 0.04) = 200).
@@ -55,43 +56,43 @@ BEGIN
   -- ── (a) seed identity A: bookings A..G ────────────────────────────────────
   INSERT INTO public.bookings (
     booking_reference, leg, booking_type, status, booking_source, trip_type,
-    origin_address, destination_address, passengers, luggage, pickup_date, pickup_time, pickup_utc,
+    origin_address, destination_address, passengers, luggage, pickup_date, pickup_time,
     vehicle_class, amount_czk, amount_eur, outbound_amount_czk, return_amount_czk,
     payment_link_id, anonymised_at, operator_notes, special_requests, flight_number,
     client_first_name, client_last_name, client_email, client_phone
   ) VALUES
     ('SMK-84-01-A', 'outbound', 'confirmed', 'confirmed', 'online', 'one_way',
-     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-15', '10:00', now() + interval '3 days',
+     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-15', '10:00',
      'business', 3000, 120, NULL, NULL,
      NULL, NULL, 'SMOKE-SECRET-NOTE', 'child seat', 'SM123',
      'Smokefirst', 'Smokelast', 'smoke-84-a@example.test', '+420700900002'),
     ('SMK-84-01-B', 'outbound', 'confirmed', 'completed', 'online', 'round_trip',
-     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-16', '10:00', now() - interval '10 days',
+     'Smoke origin', 'Smoke destination', 2, 1, '2020-01-16', '10:00',
      'business', 5000, NULL, 2500, 2500,
      NULL, NULL, 'SMOKE-SECRET-NOTE', NULL, NULL,
      'Smokefirst', 'Smokelast', 'smoke-84-a@example.test', '+420700900002'),
     ('SMK-84-01-C', 'return', 'confirmed', 'confirmed', 'online', 'round_trip',
-     'Smoke destination', 'Smoke origin', 2, 1, '2030-01-17', '10:00', now() + interval '10 days',
+     'Smoke destination', 'Smoke origin', 2, 1, '2030-01-20', '10:00',
      'business', 2500, 50, NULL, NULL,
      NULL, NULL, 'SMOKE-SECRET-NOTE', NULL, NULL,
      'Smokefirst', 'Smokelast', 'smoke-84-a@example.test', '+420700900002'),
     ('SMK-84-01-D', 'outbound', 'confirmed', 'cancelled', 'online', 'one_way',
-     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-18', '10:00', now() + interval '1 day',
+     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-10', '10:00',
      'business', 2000, 80, NULL, NULL,
      NULL, NULL, 'SMOKE-SECRET-NOTE', NULL, NULL,
      'Smokefirst', 'Smokelast', 'smoke-84-a@example.test', '+420700900002'),
     ('SMK-84-01-E', 'outbound', 'confirmed', 'pending', 'online', 'one_way',
-     'Smoke origin', 'Smoke destination', 2, 1, '2031-01-01', '09:00', NULL,
+     'Smoke origin', 'Smoke destination', 2, 1, '2019-01-01', '09:00',
      'business', 2250, 90, NULL, NULL,
      NULL, NULL, 'SMOKE-SECRET-NOTE', NULL, NULL,
      'Smokefirst', 'Smokelast', 'smoke-84-a@example.test', '+420700900002'),
     ('SMK-84-01-F', 'outbound', 'confirmed', 'unpaid', 'online', 'one_way',
-     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-19', '10:00', now() + interval '4 days',
+     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-19', '10:00',
      'business', 1000, 40, NULL, NULL,
      NULL, NULL, 'SMOKE-SECRET-NOTE', NULL, NULL,
      'Smokefirst', 'Smokelast', 'smoke-84-a@example.test', '+420700900002'),
     ('SMK-84-01-G', 'outbound', 'confirmed', 'confirmed', 'online', 'one_way',
-     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-20', '10:00', now() + interval '5 days',
+     'Smoke origin', 'Smoke destination', 2, 1, '2030-01-12', '10:00',
      'business', 1000, 40, NULL, NULL,
      NULL, now(), 'SMOKE-SECRET-NOTE', NULL, NULL,
      'Smokefirst', 'Smokelast', 'smoke-84-a@example.test', '+420700900002');
@@ -182,12 +183,12 @@ BEGIN
   -- Identity H: its own email and phone; the resolver attaches the number to H.
   INSERT INTO public.bookings (
     booking_reference, leg, booking_type, status, booking_source, trip_type,
-    origin_address, destination_address, passengers, luggage, pickup_date, pickup_time, pickup_utc,
+    origin_address, destination_address, passengers, luggage, pickup_date, pickup_time,
     vehicle_class, amount_czk, amount_eur,
     client_first_name, client_last_name, client_email, client_phone
   ) VALUES (
     'SMK-84-01-H', 'outbound', 'confirmed', 'confirmed', 'online', 'one_way',
-    'Smoke origin', 'Smoke destination', 1, 0, '2030-02-01', '10:00', now() + interval '2 days',
+    'Smoke origin', 'Smoke destination', 1, 0, '2030-02-01', '10:00',
     'business', 1000, 40,
     'Smokeh', 'Smokeh', 'smoke-84-b@example.test', '+420700900001'
   ) RETURNING id INTO v_h;
