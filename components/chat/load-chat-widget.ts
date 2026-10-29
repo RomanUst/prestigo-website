@@ -8,6 +8,14 @@
  * they arrive from the identity route at click time. This file therefore holds
  * no chat host literal and no uppercase env-var name (the VPS isolation guard
  * would otherwise taint every importer).
+ *
+ * D-13 (Phase 84, CVE-2025-12245 / GHSA-hgg8-54gw-8v33): the widget SDK's
+ * window message handler has no origin check, so a page or frame on any origin
+ * can post a `chatwoot-widget:` message to it, and no upstream fix exists.
+ * installWidgetOriginGuard() is the compensating control: a single
+ * capture-phase message listener, registered before the SDK is loaded (so
+ * before the SDK assigns its own handler), that stops propagation of every
+ * `chatwoot-widget:` message whose origin is not the widget origin.
  */
 import { buildVisitContext, type BookingVisitData, type VisitContext } from '@/lib/chat-visit-context'
 import {
@@ -60,6 +68,31 @@ export const WIDGET_LOCALE_BY_SITE_LOCALE: Record<string, string> = {
 }
 
 const STEP_TIMEOUT_MS = 10_000
+
+/** Prefix the widget SDK's message handler reacts to (IFrameHelper). */
+export const WIDGET_MESSAGE_PREFIX = 'chatwoot-widget:'
+
+let guardInstalled = false
+let trustedWidgetOrigin = ''
+
+function widgetOriginGuard(event: MessageEvent): void {
+  if (typeof event.data !== 'string' || !event.data.startsWith(WIDGET_MESSAGE_PREFIX)) return
+  if (event.origin === trustedWidgetOrigin) return
+  event.stopImmediatePropagation()
+}
+
+/**
+ * D-13: drops `chatwoot-widget:` messages that do not come from the widget
+ * origin, before any later window message listener (the SDK's) sees them.
+ * Idempotent: one capture-phase listener for the page lifetime; a later call
+ * with a different origin updates the origin that listener trusts.
+ */
+export function installWidgetOriginGuard(widgetOrigin: string): void {
+  trustedWidgetOrigin = widgetOrigin
+  if (guardInstalled) return
+  guardInstalled = true
+  window.addEventListener('message', widgetOriginGuard, true)
+}
 
 export interface OpenChatWidgetOptions {
   /** Site locale (en, ru, es, fr, ar, hi, zh). */
@@ -201,6 +234,9 @@ function awaitReady(): { promise: Promise<void>; fail: (err: Error) => void } {
 }
 
 function loadAndRun(config: { baseUrl: string; websiteToken: string }): Promise<void> {
+  // D-13: before the SDK is injected or re-run, so the guard precedes the SDK's handler.
+  installWidgetOriginGuard(new URL(config.baseUrl).origin)
+
   const { promise, fail } = awaitReady()
 
   // WR-02: the page CSP allow-lists one fixed widget origin. If the configured
