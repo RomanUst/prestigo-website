@@ -1,13 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import {
-  PANEL_ERROR_CODES,
-  STATUS_LABELS,
-  type PanelBooking,
-  type PanelErrorCode,
-  type PanelResponse,
-} from '@/lib/panel-dto'
+import { PANEL_ERROR_CODES, type PanelErrorCode, type PanelResponse } from '@/lib/panel-dto'
+import BookingCard from './BookingCard'
 import { FETCH_INFO_MESSAGE, TOKEN_STORAGE_KEY, isTrustedContextEvent, parseAppContext } from './panel-handshake'
 
 // Kept as a local const holding the literal: the isolation guard proves the only fetch target of
@@ -73,47 +68,6 @@ function writeStoredToken(token: string | null): void {
   }
 }
 
-const PRAGUE_DATE = new Intl.DateTimeFormat('en-GB', {
-  timeZone: 'Europe/Prague',
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-})
-
-/** "Thu 12 Nov 2026, 14:30" in Prague time; the wall-clock text when the instant is unknown. */
-function formatPickup(b: PanelBooking): string {
-  if (b.pickupMs === null) return `${b.pickupDate} ${b.pickupTime}`.trim()
-  const parts: Record<string, string> = {}
-  for (const part of PRAGUE_DATE.formatToParts(new Date(b.pickupMs))) parts[part.type] = part.value
-  return `${parts.weekday} ${parts.day} ${parts.month} ${parts.year}, ${parts.hour}:${parts.minute}`
-}
-
-function BookingCard({ booking }: { booking: PanelBooking }) {
-  const hourly = booking.hours !== null && booking.destination === null
-  return (
-    <article className="card">
-      <h3 className="card-title">
-        {formatPickup(booking)}
-        {booking.isReturnLeg ? <span className="badge badge-neutral">Return</span> : null}
-      </h3>
-      <p className="route">
-        <span>{hourly ? `${booking.origin} - ${booking.hours} h` : booking.origin}</span>
-        {booking.destination ? <span className="route-to">{`to ${booking.destination}`}</span> : null}
-      </p>
-      <p className="badge-row">
-        <span className={`badge badge-${STATUS_LABELS[booking.status] ? booking.status : 'neutral'}`}>
-          {STATUS_LABELS[booking.status] ?? booking.status}
-        </span>
-        {booking.reference ? <span className="meta reference">{booking.reference}</span> : null}
-      </p>
-    </article>
-  )
-}
-
 function SkeletonCards() {
   return (
     <div aria-hidden="true" className="skeletons">
@@ -141,6 +95,7 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
   const [errorCode, setErrorCode] = useState<PanelErrorCode | null>(null)
   const [loading, setLoading] = useState(false)
   const [reloadTick, setReloadTick] = useState(0)
+  const [announcement, setAnnouncement] = useState('')
   const tokenInput = useRef<HTMLInputElement>(null)
 
   // Token from the tab-scoped store, after hydration so the server markup matches.
@@ -255,11 +210,13 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
     )
   }
 
-  const bookings = data ? [...data.upcoming, ...data.past.slice(0, PAST_LIMIT)] : []
+  const upcoming = data ? data.upcoming : []
+  const bookings = data ? [...upcoming, ...data.past.slice(0, PAST_LIMIT)] : []
   let status = ''
   if (showTokenEntry) status = 'Connect your Chatwoot account'
   else if (loading && !data) status = 'Loading bookings'
   else if (data) status = 'Bookings loaded'
+  if (announcement) status = announcement
 
   return (
     <main className="panel">
@@ -335,9 +292,9 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
 
       {!showTokenEntry && data && bookings.length > 0 ? (
         <ul className="cards">
-          {bookings.map((b) => (
+          {bookings.map((b, i) => (
             <li key={b.id}>
-              <BookingCard booking={b} />
+              <BookingCard booking={b} isNext={i === 0 && upcoming.length > 0} onAnnounce={setAnnouncement} />
             </li>
           ))}
         </ul>
