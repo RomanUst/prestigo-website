@@ -47,6 +47,8 @@ const ENTRY_FILES = [
   'lib/panel-bookings.ts',
   'lib/panel-dto.ts',
   'lib/panel-links.ts',
+  'app/embed/chatwoot-dashboard/page.tsx',
+  'app/embed/chatwoot-dashboard/PanelClient.tsx',
 ]
 const ENTRY_PATTERNS = [/^app\/embed\//]
 /** The floor of the guard's scope: these entry modules must always be in it, so it can never shrink silently. */
@@ -556,11 +558,19 @@ describe('findPanelViolations: app/embed files', () => {
 })
 
 describe('scope floor: fixtures', () => {
-  it('names exactly the five panel entry modules', () => {
-    expect(SCOPE_FLOOR).toHaveLength(5)
-    expect(new Set(SCOPE_FLOOR).size).toBe(5)
+  it('names exactly the seven panel entry modules', () => {
+    expect(SCOPE_FLOOR).toHaveLength(7)
+    expect(new Set(SCOPE_FLOOR).size).toBe(7)
     expect(SCOPE_FLOOR).toEqual(
-      expect.arrayContaining([ROUTE, 'lib/chatwoot-operator.ts', 'lib/panel-bookings.ts', 'lib/panel-dto.ts', 'lib/panel-links.ts']),
+      expect.arrayContaining([
+        ROUTE,
+        'lib/chatwoot-operator.ts',
+        'lib/panel-bookings.ts',
+        'lib/panel-dto.ts',
+        'lib/panel-links.ts',
+        'app/embed/chatwoot-dashboard/page.tsx',
+        'app/embed/chatwoot-dashboard/PanelClient.tsx',
+      ]),
     )
   })
 
@@ -581,7 +591,7 @@ describe('dashboard app isolation guard: real tree', () => {
   const allFiles = listScanFiles(REPO_ROOT)
   const entries = computeEntries(allFiles)
 
-  it('scope covers the five floor modules and every file under app/embed/', () => {
+  it('scope covers the floor modules and every file under app/embed/', () => {
     expect(missingFromFloor(entries, SCOPE_FLOOR)).toEqual([])
     for (const floor of SCOPE_FLOOR) expect(fs.existsSync(path.join(REPO_ROOT, floor)), floor).toBe(true)
     for (const f of allFiles) {
