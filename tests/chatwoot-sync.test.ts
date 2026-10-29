@@ -22,6 +22,7 @@ import {
   parseArgs,
   parseWindowDelayOverride,
   planCollection,
+  RESOURCE_ORDER,
   resolveRefs,
   runSync,
 } from '../infra/chatwoot/sync.mjs'
@@ -70,6 +71,7 @@ function createFakeChatwoot(options: FakeOptions = {}) {
     inboxes: [...(options.inboxes ?? [])] as any[],
     inboxMembers: new Map<number, number[]>(),
     rules: [] as any[],
+    dashboardApps: [] as any[],
     avatarUploads: 0,
   }
   const requests: Req[] = []
@@ -197,6 +199,17 @@ function createFakeChatwoot(options: FakeOptions = {}) {
     if (p === '/inbox_members' && method === 'POST') {
       state.inboxMembers.set(body.inbox_id, body.user_ids)
       return json({ payload: body.user_ids.map((id: number) => ({ id })) })
+    }
+
+    // dashboard apps (GET answers a bare array, POST/PATCH bodies are wrapped in dashboard_app; no DELETE route)
+    if (p === '/dashboard_apps' && method === 'GET') return json(state.dashboardApps)
+    if (p === '/dashboard_apps' && method === 'POST') {
+      const row = { id: nextId++, ...body.dashboard_app }
+      state.dashboardApps.push(row)
+      return json(row)
+    }
+    if ((m = p.match(/^\/dashboard_apps\/(\d+)$/)) && method === 'PATCH') {
+      return json(Object.assign(state.dashboardApps.find((a) => a.id === Number(m![1])), body.dashboard_app))
     }
 
     // automation rules (25 per page, like a paginated API)
@@ -883,6 +896,70 @@ describe('WhatsApp window rules, feature check and override (78-04)', () => {
     expect(memberPosts).toContain(13)
     expect(memberPosts).toHaveLength(2) // Website (created by this run) + Telegram
     expect(fake.state.inboxes.some((i) => i.channel_type === 'Channel::Whatsapp')).toBe(false)
+  })
+})
+
+describe('runSync dashboardApps (84-06 tracer)', () => {
+  const desiredApp = () => readConfig('dashboard-apps.json').dashboardApps[0]
+
+  it('first run creates the Bookings app with the wrapped body, second run is a no-op', async () => {
+    const fake = createFakeChatwoot()
+    const first = await sync(fake, { only: ['dashboardApps'] })
+    expect(first).toContain('dashboardApps: create=1 update=0 unchanged=0 skipped=0 deleted=0')
+    const posts = fake.requests.filter((r) => r.method === 'POST' && r.path === '/dashboard_apps')
+    expect(posts).toHaveLength(1)
+    expect(posts[0].body).toEqual({ dashboard_app: { title: 'Bookings', content: desiredApp().content } })
+    expect(posts[0].body.dashboard_app.content).toEqual([
+      { type: 'frame', url: 'https://rideprestigo.com/embed/chatwoot-dashboard' },
+    ])
+
+    const before = fake.requests.length
+    const second = await sync(fake, { only: ['dashboardApps'] })
+    expect(second).toContain('dashboardApps: create=0 update=0 unchanged=1 skipped=0 deleted=0')
+    expect(fake.requests.slice(before).every((r) => r.method === 'GET')).toBe(true)
+    expect(fake.state.dashboardApps).toHaveLength(1)
+  })
+
+  it('a drifted frame url is patched with the wrapped body; an operator-made app is untouched; nothing is deleted', async () => {
+    const fake = createFakeChatwoot()
+    fake.state.dashboardApps.push(
+      { id: 5, title: 'Bookings', content: [{ type: 'frame', url: 'https://old.example.test/panel' }] },
+      { id: 6, title: 'Maps', content: [{ type: 'frame', url: 'https://maps.example.test/' }] },
+    )
+    const lines = await sync(fake, { only: ['dashboardApps'] })
+    expect(lines).toContain('dashboardApps: create=0 update=1 unchanged=0 skipped=0 deleted=0')
+    const patches = fake.requests.filter((r) => r.method === 'PATCH')
+    expect(patches).toHaveLength(1)
+    expect(patches[0].path).toBe('/dashboard_apps/5')
+    expect(patches[0].body).toEqual({ dashboard_app: { title: 'Bookings', content: desiredApp().content } })
+    expect(fake.state.dashboardApps.find((a) => a.id === 6)).toEqual({
+      id: 6,
+      title: 'Maps',
+      content: [{ type: 'frame', url: 'https://maps.example.test/' }],
+    })
+    expect(fake.requests.some((r) => r.method === 'DELETE')).toBe(false)
+  })
+
+  it('--dry-run issues GET requests only and creates nothing', async () => {
+    const fake = createFakeChatwoot()
+    const lines = await sync(fake, { only: ['dashboardApps'], dryRun: true })
+    expect(lines).toContain('dashboardApps: create=1 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(fake.requests.length).toBeGreaterThan(0)
+    expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
+    expect(fake.state.dashboardApps).toHaveLength(0)
+  })
+
+  it('dashboardApps is the last resource and parseArgs accepts --only dashboardApps', () => {
+    expect(RESOURCE_ORDER.at(-1)).toBe('dashboardApps')
+    expect(parseArgs(['--only', 'dashboardApps']).only).toEqual(['dashboardApps'])
+  })
+
+  it('a full run registers the app and a second full run reports unchanged=1', async () => {
+    const fake = createFakeChatwoot()
+    const first = await sync(fake)
+    const second = await sync(fake)
+    expect(first).toContain('dashboardApps: create=1 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(second).toContain('dashboardApps: create=0 update=0 unchanged=1 skipped=0 deleted=0')
   })
 })
 
