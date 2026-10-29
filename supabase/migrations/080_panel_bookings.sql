@@ -49,19 +49,53 @@ SET search_path = ''
 AS $$
 DECLARE
   v_email          text;
+  v_phone          text;
+  v_email_identity uuid;
+  v_phone_identity uuid;
+  v_phone_owners   integer;
   v_identity       uuid;
   v_erasing        timestamptz;
-  v_total         integer := 0;
+  v_mismatch       boolean := false;
+  v_lead           text;
+  v_total          integer := 0;
   v_trips          integer := 0;
   v_spent          integer := 0;
   v_rows           jsonb   := '[]'::jsonb;
 BEGIN
   v_email := public.identity_normalize_email(p_email);
+  v_phone := public.identity_normalize_phone(p_phone);
+
+  -- A number flagged shared is never used (072).
+  IF v_phone IS NOT NULL AND EXISTS (
+    SELECT 1 FROM public.phone_flags f WHERE f.phone = v_phone AND f.shared
+  ) THEN
+    v_phone := NULL;
+  END IF;
 
   IF v_email IS NOT NULL THEN
-    SELECT e.identity_id INTO v_identity
+    SELECT e.identity_id INTO v_email_identity
       FROM public.identity_emails e
      WHERE e.email = v_email;
+  END IF;
+
+  IF v_phone IS NOT NULL THEN
+    SELECT count(DISTINCT p.identity_id) INTO v_phone_owners
+      FROM public.identity_phones p
+     WHERE p.phone = v_phone;
+    IF v_phone_owners = 1 THEN
+      SELECT p.identity_id INTO v_phone_identity
+        FROM public.identity_phones p
+       WHERE p.phone = v_phone
+       LIMIT 1;
+    END IF;
+  END IF;
+
+  v_identity := COALESCE(v_email_identity, v_phone_identity);
+
+  IF v_email_identity IS NOT NULL
+     AND v_phone_identity IS NOT NULL
+     AND v_email_identity <> v_phone_identity THEN
+    v_mismatch := true;
   END IF;
 
   IF v_identity IS NOT NULL THEN
@@ -70,12 +104,48 @@ BEGIN
      WHERE c.id = v_identity;
   END IF;
 
-  -- Unknown person, or a person under erasure: nothing leaves the function.
-  IF v_identity IS NULL OR v_erasing IS NOT NULL THEN
+  -- A person under erasure: nothing leaves the function, not even a Lead id.
+  IF v_identity IS NOT NULL AND v_erasing IS NOT NULL THEN
     RETURN jsonb_build_object(
       'identity_found', false,
       'phone_mismatch', false,
       'espo_lead_id',   NULL,
+      'total',          0,
+      'trip_count',     0,
+      'spent_eur',      0,
+      'rows',           '[]'::jsonb
+    );
+  END IF;
+
+  -- Lead pointer (D-08): the conversation's chat_lead when open, else the identity's newest open
+  -- chat_lead. A Lead owned by an identity under erasure is never exposed.
+  SELECT l.espo_lead_id INTO v_lead
+    FROM public.chat_conversations cc
+    JOIN public.chat_leads l ON l.id = cc.chat_lead_id
+   WHERE cc.conversation_id = p_conversation_id
+     AND l.open
+     AND l.espo_lead_id IS NOT NULL
+     AND NOT EXISTS (
+       SELECT 1 FROM public.contact_identities x
+        WHERE x.id = l.identity_id AND x.erasing_at IS NOT NULL
+     );
+
+  IF v_lead IS NULL AND v_identity IS NOT NULL THEN
+    SELECT l.espo_lead_id INTO v_lead
+      FROM public.chat_leads l
+     WHERE l.identity_id = v_identity
+       AND l.open
+       AND l.espo_lead_id IS NOT NULL
+     ORDER BY l.created_at DESC
+     LIMIT 1;
+  END IF;
+
+  -- Unknown person: no bookings, but the conversation may still carry a Lead.
+  IF v_identity IS NULL THEN
+    RETURN jsonb_build_object(
+      'identity_found', false,
+      'phone_mismatch', false,
+      'espo_lead_id',   v_lead,
       'total',          0,
       'trip_count',     0,
       'spent_eur',      0,
@@ -163,8 +233,8 @@ BEGIN
 
   RETURN jsonb_build_object(
     'identity_found', true,
-    'phone_mismatch', false,
-    'espo_lead_id',   NULL,
+    'phone_mismatch', v_mismatch,
+    'espo_lead_id',   v_lead,
     'total',          v_total,
     'trip_count',     v_trips,
     'spent_eur',      v_spent,

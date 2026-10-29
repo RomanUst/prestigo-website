@@ -282,6 +282,161 @@ describe('adminBookingHref', () => {
   })
 })
 
+describe('pickupInstantMs wall-clock fallback', () => {
+  const wall = (date: string, time: string) => pickupInstantMs(row('w', { pickup_utc: null, pickup_date: date, pickup_time: time }))
+
+  it('winter date uses UTC+1', () => {
+    expect(wall('2026-11-12', '14:30')).toBe(Date.UTC(2026, 10, 12, 13, 30))
+  })
+  it('summer date uses UTC+2', () => {
+    expect(wall('2026-07-15', '14:30')).toBe(Date.UTC(2026, 6, 15, 12, 30))
+  })
+  it('handles the DST change days', () => {
+    // 2026-03-29: clocks go forward 02:00 -> 03:00; 10:00 is already summer time.
+    expect(wall('2026-03-29', '10:00')).toBe(Date.UTC(2026, 2, 29, 8, 0))
+    // 2026-10-25: clocks go back 03:00 -> 02:00; 10:00 is winter time.
+    expect(wall('2026-10-25', '10:00')).toBe(Date.UTC(2026, 9, 25, 9, 0))
+  })
+  it('returns null for garbage and impossible dates, never throws', () => {
+    expect(wall('garbage', '14:30')).toBeNull()
+    expect(wall('2026-11-12', 'later')).toBeNull()
+    expect(wall('2026-02-31', '10:00')).toBeNull()
+    expect(wall('2026-13-01', '10:00')).toBeNull()
+    expect(wall('2026-11-12', '25:00')).toBeNull()
+    expect(wall('', '')).toBeNull()
+  })
+  it('falls back to the wall clock when pickup_utc is unparseable', () => {
+    expect(pickupInstantMs(row('w', { pickup_utc: 'nonsense', pickup_date: '2026-11-12', pickup_time: '14:30' }))).toBe(
+      Date.UTC(2026, 10, 12, 13, 30),
+    )
+  })
+})
+
+describe('buildPanelResponse edge matrix', () => {
+  const future = new Date(NOW.getTime() + 5 * DAY).toISOString()
+  const past = new Date(NOW.getTime() - 5 * DAY).toISOString()
+
+  it('a null-pickup_utc row is placed by its wall clock and never dropped', () => {
+    const res = buildPanelResponse(
+      rpcResult([row('n', { pickup_utc: null, pickup_date: '2026-12-01', pickup_time: '09:00' })]),
+      CONTACT,
+      NOW,
+      LINKS,
+    )
+    expect(res.upcoming).toHaveLength(1)
+    expect(res.upcoming[0].pickupMs).toBe(Date.UTC(2026, 11, 1, 8, 0))
+  })
+
+  it('an unparseable row lands at the end of past', () => {
+    const res = buildPanelResponse(
+      rpcResult([
+        row('bad', { pickup_utc: null, pickup_date: 'garbage', pickup_time: 'x' }),
+        row('p1', { pickup_utc: past }),
+        row('p2', { pickup_utc: new Date(NOW.getTime() - 20 * DAY).toISOString() }),
+      ]),
+      CONTACT,
+      NOW,
+      LINKS,
+    )
+    expect(res.upcoming).toHaveLength(0)
+    expect(res.past.map((b) => b.id)).toEqual(['p1', 'p2', 'bad'])
+    expect(res.past[2].pickupMs).toBeNull()
+  })
+
+  it('a return leg is its own booking with isReturnLeg', () => {
+    const res = buildPanelResponse(rpcResult([row('r', { leg: 'return', pickup_utc: future })]), CONTACT, NOW, LINKS)
+    expect(res.upcoming).toHaveLength(1)
+    expect(res.upcoming[0].isReturnLeg).toBe(true)
+  })
+
+  it('completed or cancelled bookings with a future pickup go to past', () => {
+    const res = buildPanelResponse(
+      rpcResult([
+        row('c1', { status: 'completed', pickup_utc: future }),
+        row('c2', { status: 'cancelled', pickup_utc: future }),
+      ]),
+      CONTACT,
+      NOW,
+      LINKS,
+    )
+    expect(res.upcoming).toHaveLength(0)
+    expect(res.past).toHaveLength(2)
+    expect(res.past.find((b) => b.id === 'c2')?.paymentState).toBe('cancelled')
+  })
+
+  it('keeps all 25 past rows (the iframe slices to 10) and flags truncation only when total exceeds rows', () => {
+    const rows = Array.from({ length: 25 }, (_, i) =>
+      row(`p${i}`, { status: 'completed', pickup_utc: new Date(NOW.getTime() - (i + 1) * DAY).toISOString() }),
+    )
+    expect(buildPanelResponse(rpcResult(rows, { total: 25 }), CONTACT, NOW, LINKS).past).toHaveLength(25)
+    expect(buildPanelResponse(rpcResult(rows, { total: 230 }), CONTACT, NOW, LINKS).pastTruncated).toBe(true)
+    expect(buildPanelResponse(rpcResult(rows.slice(0, 12), { total: 12 }), CONTACT, NOW, LINKS).pastTruncated).toBe(false)
+  })
+
+  it('payment link survives only for awaiting_payment on https buy.stripe.com (D-09)', () => {
+    const unpaid = (url: string | null, over: Partial<PanelRpcRow> = {}) =>
+      buildPanelResponse(
+        rpcResult([row('u', { status: 'unpaid', payment_link_url: url, ...over })]),
+        CONTACT,
+        NOW,
+        LINKS,
+      ).upcoming[0].paymentLinkUrl
+    expect(unpaid('https://buy.stripe.com/test_x')).toBe('https://buy.stripe.com/test_x')
+    for (const bad of [
+      'http://buy.stripe.com/x',
+      'https://evil.example/x',
+      'https://buy.stripe.com.evil.example/x',
+      'https://user:pw@buy.stripe.com/x',
+      'https://buy.stripe.com:8443/x',
+      'javascript:alert(1)',
+      '',
+      'not a url',
+    ]) {
+      expect(unpaid(bad), bad).toBeNull()
+    }
+    expect(unpaid(null)).toBeNull()
+    // paid and quote bookings never expose the link, even a valid one
+    expect(unpaid('https://buy.stripe.com/test_x', { status: 'confirmed', paid_at: '2026-01-01T00:00:00Z' })).toBeNull()
+    expect(unpaid('https://buy.stripe.com/test_x', { status: 'pending' })).toBeNull()
+  })
+
+  it('leadUrl needs an https base and a 17-hex id', () => {
+    const id = 'aaaaaaaaaaaaaaaaa'
+    const url = (base: string | null, lead: string | null) =>
+      buildPanelResponse(rpcResult([], { espo_lead_id: lead }), CONTACT, NOW, { espoBaseUrl: base }).leadUrl
+    expect(url('https://crm.example.test/', id)).toBe('https://crm.example.test/#Lead/view/aaaaaaaaaaaaaaaaa')
+    expect(url('https://crm.example.test', id)).toBe('https://crm.example.test/#Lead/view/aaaaaaaaaaaaaaaaa')
+    expect(url('http://crm.example.test', id)).toBeNull()
+    expect(url('https://crm.example.test', 'AAAAAAAAAAAAAAAAA')).toBeNull()
+    expect(url('https://crm.example.test', 'abc')).toBeNull()
+    expect(url('https://crm.example.test', null)).toBeNull()
+    expect(url(null, id)).toBeNull()
+    expect(url('javascript:alert(1)', id)).toBeNull()
+  })
+
+  it('phone_mismatch from the RPC reaches contact.phoneMismatch', () => {
+    const res = buildPanelResponse(rpcResult([row('a')], { phone_mismatch: true }), CONTACT, NOW, LINKS)
+    expect(res.contact.phoneMismatch).toBe(true)
+  })
+
+  it('an unknown status is paid and passes through unchanged', () => {
+    const res = buildPanelResponse(rpcResult([row('a', { status: 'weird' })]), CONTACT, NOW, LINKS)
+    expect(res.upcoming[0].paymentState).toBe('paid')
+    expect(res.upcoming[0].status).toBe('weird')
+  })
+
+  it('identity_found false gives empty lists with the Lead pointer kept', () => {
+    const res = buildPanelResponse(
+      rpcResult([], { identity_found: false, espo_lead_id: 'bbbbbbbbbbbbbbbbb' }),
+      CONTACT,
+      NOW,
+      LINKS,
+    )
+    expect(res.upcoming).toEqual([])
+    expect(res.leadUrl).toBe('https://crm.example.test/#Lead/view/bbbbbbbbbbbbbbbbb')
+  })
+})
+
 describe('buildNoContactResponse', () => {
   it('has no rows and zero counters', () => {
     const res = buildNoContactResponse({ email: null, phone: null, verified: false }, NOW)

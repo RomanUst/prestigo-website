@@ -172,3 +172,56 @@ describe('080 panel_bookings: projection allowlist (D-06) and cap (D-05)', () =>
     expect(body).not.toMatch(/::\s*date\b/i)
   })
 })
+
+describe('080 panel_bookings: phone rules and mismatch (D-10)', () => {
+  const body = fnBody()
+
+  it('normalises the phone through the 072 helper', () => {
+    expect(body).toMatch(/public\.identity_normalize_phone\(/)
+  })
+
+  it('phone resolution: shared phones dropped, only a uniquely owned phone is used, never min() over uuid', () => {
+    expect(body).toMatch(/public\.phone_flags/)
+    expect(body).toMatch(/\bshared\b/)
+    expect(body).toMatch(/public\.identity_phones/)
+    expect(body).toMatch(/count\(DISTINCT\s+\w+\.identity_id\)/)
+    expect(body).toMatch(/v_phone_owners = 1/)
+    expect(body).not.toMatch(/min\(\s*\w*\.?identity_id/i)
+    expect(body).not.toMatch(/max\(\s*\w*\.?identity_id/i)
+  })
+
+  it('email wins: the phone identity is only a fallback', () => {
+    expect(body).toMatch(/v_identity := COALESCE\(v_email_identity, v_phone_identity\)/)
+  })
+
+  it('phone_mismatch needs both identities non-null and different', () => {
+    expect(body).toMatch(/v_email_identity IS NOT NULL/)
+    expect(body).toMatch(/v_phone_identity IS NOT NULL/)
+    expect(body).toMatch(/v_email_identity <> v_phone_identity/)
+    expect(body).toMatch(/'phone_mismatch',\s*v_mismatch/)
+  })
+
+  it('the other identity contributes no rows: the row query is keyed on v_identity only', () => {
+    expect(body).not.toMatch(/bi\.identity_id\s*=\s*v_phone_identity/)
+    expect(body).not.toMatch(/identity_id\s+IN\s*\(/i)
+    expect(body).not.toMatch(/\bUNION\b/i)
+  })
+})
+
+describe('080 panel_bookings: Lead pointer (D-08)', () => {
+  const body = fnBody()
+
+  it('reads the conversation chat_lead when open, then the identity newest open chat_lead', () => {
+    expect(body).toMatch(/public\.chat_conversations/)
+    expect(body).toMatch(/public\.chat_leads/)
+    expect(body).toMatch(/\.chat_lead_id/)
+    expect(body).toMatch(/\.open\b/)
+    expect(body).toMatch(/espo_lead_id IS NOT NULL/)
+    expect(body).toMatch(/ORDER BY l\.created_at DESC/)
+    expect(body).toMatch(/'espo_lead_id',\s*v_lead/)
+  })
+
+  it('never exposes a Lead owned by an identity under erasure', () => {
+    expect(body).toMatch(/x\.erasing_at IS NOT NULL/)
+  })
+})
