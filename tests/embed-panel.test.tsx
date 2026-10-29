@@ -246,6 +246,65 @@ describe('PanelClient: not framed', () => {
   })
 })
 
+// The Chatwoot mobile app opens the panel top level in react-native-webview: it asks through
+// window.ReactNativeWebView and answers by posting to this very window on the page's own origin.
+describe('PanelClient: mobile app WebView', () => {
+  let bridgePost: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    bridgePost = vi.fn()
+    Object.defineProperty(window, 'ReactNativeWebView', {
+      value: { postMessage: bridgePost },
+      configurable: true,
+    })
+  })
+
+  afterEach(() => {
+    delete (window as Window & { ReactNativeWebView?: unknown }).ReactNativeWebView
+  })
+
+  const self = () => ({ origin: window.location.origin, source: window as Window })
+
+  it('asks through the native bridge, not window.postMessage', () => {
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    expect(screen.queryByText('Open this panel from a Chatwoot conversation.')).toBeNull()
+    expect(bridgePost).toHaveBeenCalledWith(FETCH_INFO_MESSAGE)
+  })
+
+  it('loads the bookings from a context posted by this window on its own origin', async () => {
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+    fetchMock.mockResolvedValue(json(200, response()))
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send(goodContext(77), self())
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ conversationId: 77 })
+  })
+
+  it('ignores a context from another window or another origin', () => {
+    window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    const other = document.createElement('iframe')
+    document.body.appendChild(other)
+    send(goodContext(77), { origin: window.location.origin, source: other.contentWindow })
+    send(goodContext(77), { origin: ORIGIN, source: window })
+    send(goodContext(77), { origin: 'https://evil.example', source: window })
+    other.remove()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('stays inert without a configured Chatwoot origin', () => {
+    render(<PanelClient chatwootOrigin={null} />)
+    expect(screen.getByText('Open this panel from a Chatwoot conversation.')).toBeInTheDocument()
+    expect(bridgePost).not.toHaveBeenCalled()
+  })
+
+  it('ignores a bridge without a postMessage function', () => {
+    Object.defineProperty(window, 'ReactNativeWebView', { value: {}, configurable: true })
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    expect(screen.getByText('Open this panel from a Chatwoot conversation.')).toBeInTheDocument()
+  })
+})
+
 describe('PanelClient: handshake', () => {
   beforeEach(() => installParent())
 
@@ -454,6 +513,18 @@ describe('PanelClient: ready and errors', () => {
   beforeEach(() => {
     installParent()
     window.sessionStorage.setItem(TOKEN_STORAGE_KEY, TOKEN)
+  })
+
+  it('drops the previous customer when the conversation changes, even if the new request fails', async () => {
+    fetchMock.mockResolvedValueOnce(json(200, response()))
+    fetchMock.mockResolvedValueOnce(json(500, { error: 'internal' }))
+    render(<PanelClient chatwootOrigin={ORIGIN} />)
+    send(goodContext(42))
+    expect(await screen.findAllByRole('article')).toHaveLength(2)
+    send(goodContext(43))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(screen.queryAllByRole('article')).toHaveLength(0))
+    expect(screen.queryByText('PRG-UP01')).toBeNull()
   })
 
   it('lists one article per booking with Prague date/time, route, reference and status label', async () => {

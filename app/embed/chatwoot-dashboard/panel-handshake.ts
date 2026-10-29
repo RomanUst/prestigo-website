@@ -48,3 +48,32 @@ export function parseAppContext(raw: unknown): AppContext | null {
 export function isTrustedContextEvent(event: MessageEvent, chatwootOrigin: string, parent: Window): boolean {
   return event.origin === chatwootOrigin && event.source === parent
 }
+
+/** The bridge react-native-webview installs on the page it hosts. */
+export interface NativeBridge {
+  postMessage: (message: string) => void
+}
+
+/**
+ * The Chatwoot mobile app opens a Dashboard App as a top-level page in a react-native-webview, not in
+ * an iframe. It answers FETCH_INFO_MESSAGE sent through `window.ReactNativeWebView` by injecting
+ * `window.postMessage(appContext)` into this page. Returns the bridge only for that case: top level
+ * (no parent) and a bridge with a postMessage function.
+ */
+export function nativeBridgeOf(win: Window): NativeBridge | null {
+  if (win.parent !== win) return null
+  const bridge = (win as Window & { ReactNativeWebView?: unknown }).ReactNativeWebView
+  if (typeof bridge !== 'object' || bridge === null) return null
+  if (typeof (bridge as { postMessage?: unknown }).postMessage !== 'function') return null
+  return bridge as NativeBridge
+}
+
+/**
+ * In the mobile WebView the context is posted by script injected into this very page, so it is trusted
+ * only when it comes from this window itself on this page's own origin. Another window (an opener, a
+ * child frame) or another origin never passes. The API still checks the operator token's access to the
+ * conversation, so the id alone grants nothing.
+ */
+export function isTrustedWebViewEvent(event: MessageEvent, win: Window): boolean {
+  return event.source === win && event.origin === win.location.origin
+}
