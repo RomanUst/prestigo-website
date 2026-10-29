@@ -115,6 +115,57 @@ function buildCspStatic(): string {
   ].join('; ')
 }
 
+// Phase 84 (PANEL-02): the Chatwoot Dashboard App panel is rendered at /embed
+// (outside app/[locale]) and talks to PANEL_API_PATH. Both are same-site with
+// /admin, so both are made structurally cookie-less in middleware().
+const EMBED_PREFIX = '/embed'
+const PANEL_API_PATH = '/api/chatwoot/dashboard-app'
+
+function isEmbedPath(pathname: string): boolean {
+  return pathname === EMBED_PREFIX || pathname.startsWith(EMBED_PREFIX + '/')
+}
+
+/**
+ * Per-request CSP for the Chatwoot Dashboard App page (/embed/*).
+ *
+ * - default-src 'none': the panel is a small self-contained page; every
+ *   capability it needs is listed explicitly below and nothing else loads.
+ * - script-src nonce + 'strict-dynamic': only Next's own scripts (which get
+ *   the nonce through the Content-Security-Policy request header) and the
+ *   scripts they load can run; no host-based script sources, no unsafe-inline.
+ * - object-src / base-uri 'none', form-action 'none': no plugins, no <base>
+ *   rewriting, no form posts (the panel talks to its API with fetch only).
+ * - frame-ancestors is the ONLY framing allowance and names exactly the
+ *   Chatwoot origin — never a wildcard. next.config.ts omits X-Frame-Options
+ *   for /embed so the two cannot conflict (DENY would block Chatwoot).
+ * - WR-02: the host in the frame-ancestors line must equal the single chat
+ *   host of buildCspStatic(); tests/middleware-embed.test.ts pins that. It
+ *   stays a single directive string alone on its line so the Phase 76
+ *   isolation guard's CSP exemption covers it.
+ * - The caller also removes the cookie request header: the iframe is
+ *   same-site with /admin, so the browser attaches SameSite=Lax admin session
+ *   cookies, and nothing rendering the panel may read them (PANEL-02).
+ */
+function buildCspEmbed(nonce: string): string {
+  return [
+    "default-src 'none'",
+    // 'unsafe-eval' and 'self' are development-only, exactly as in buildCsp():
+    // React dev tooling and http://localhost chunk URLs. Absent in production.
+    process.env.NODE_ENV === 'development'
+      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'self'`
+      : `script-src 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "object-src 'none'",
+    "frame-ancestors https://chat.rideprestigo.com",
+    "report-uri /api/csp-report",
+  ].join('; ')
+}
+
 /**
  * Routes that require per-request dynamic rendering (auth, booking, API).
  * Everything else is a static marketing page served from the edge cache.
@@ -192,7 +243,9 @@ const handleI18nRouting = createMiddleware(routing)
 // /admin, /api, /auth, /driver are never routed through next-intl at all —
 // their pathnames are never locale-prefixed and the existing CSP/Supabase
 // logic below must run byte-for-byte unchanged for them (RESEARCH.md Pattern 1).
-const NON_LOCALIZED_PREFIXES = ['/admin', '/api', '/auth', '/driver']
+// /embed (Phase 84) is non-localized too, but middleware() answers it in its
+// own branch before this list is consulted — it never reaches runCspAndAuthChain.
+const NON_LOCALIZED_PREFIXES = ['/admin', '/api', '/auth', '/driver', '/embed']
 
 function isNonLocalizedRoute(pathname: string): boolean {
   return NON_LOCALIZED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))
@@ -290,6 +343,26 @@ export async function middleware(request: NextRequest) {
   if (csrfError) return csrfError
 
   const { pathname } = request.nextUrl
+
+  if (isEmbedPath(pathname)) {
+    // PANEL-02: the Chatwoot Dashboard App page. No next-intl (no /en/embed
+    // rewrite, no NEXT_LOCALE) and no updateSession (no Supabase round-trip,
+    // no Set-Cookie). The nonce CSP goes on the forwarded request so Next
+    // applies the nonce to its scripts, and on the response so the browser
+    // enforces it. The cookie request header is removed so nothing rendering
+    // the panel can read the admin session (same-site iframe, SameSite=Lax).
+    const nonce = btoa(crypto.randomUUID())
+    const csp = buildCspEmbed(nonce)
+    const reqHeaders = new Headers(request.headers)
+    reqHeaders.set('Content-Security-Policy', csp)
+    reqHeaders.set('x-nonce', nonce)
+    reqHeaders.delete('cookie')
+    const response = NextResponse.next({ request: { headers: reqHeaders } })
+    response.headers.set('Content-Security-Policy', csp)
+    response.headers.set('Cache-Control', 'no-store')
+    response.headers.set('Referrer-Policy', 'no-referrer')
+    return response
+  }
 
   if (isNonLocalizedRoute(pathname)) {
     // EXISTING LOGIC, BYTE-FOR-BYTE — next-intl never touches these paths.
