@@ -31,7 +31,17 @@ describe('middleware matcher — static/SEO files bypass locale routing', () => 
     expect(entersMiddleware(pathname)).toBe(false)
   })
 
-  it.each(['/', '/about', '/ru', '/ru/routes/prague-vienna', '/book', '/admin', '/api/bookings'])(
+  it.each([
+    '/',
+    '/about',
+    '/ru',
+    '/ru/routes/prague-vienna',
+    '/book',
+    '/admin',
+    '/api/bookings',
+    '/embed/chatwoot-dashboard',
+    '/api/chatwoot/dashboard-app',
+  ])(
     '%s still enters middleware',
     (pathname) => {
       expect(entersMiddleware(pathname)).toBe(true)
@@ -49,6 +59,11 @@ describe('middleware matcher — static/SEO files bypass locale routing', () => 
     '/auth/callback.ico',
     '/account/bookings/abc.jpg',
     '/ru/account/bookings/abc.svg',
+    // Phase 84 (PANEL-02): the Dashboard App page must always get its CSP and
+    // cookie strip, even under a crafted static-looking segment.
+    '/embed/x.xml',
+    '/embed/chatwoot-dashboard.txt',
+    '/api/chatwoot/dashboard-app.xml',
   ])('protected path %s still enters middleware despite a static-file extension',
     (pathname) => {
       expect(entersMiddleware(pathname)).toBe(true)

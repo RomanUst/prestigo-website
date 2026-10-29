@@ -4,18 +4,18 @@ milestone: v4.0
 milestone_name: Helpdesk + CRM
 current_phase: 84
 current_phase_name: Chatwoot Dashboard App
-status: planning
-stopped_at: Phase 83 complete, ready to discuss Phase 84
-last_updated: "2026-10-26T19:07:33.414Z"
-last_activity: 2026-10-26
-last_activity_desc: Phase 83 complete (live, review CR-01..03 fixed in 079), next Phase 84 (78 deferred to backlog 999.9)
-state_head: de17a7c951009ecce48fab24f26df54104248ead
+status: executing
+stopped_at: Phase 84 UI-SPEC approved
+last_updated: "2026-10-29T11:59:19.809Z"
+last_activity: 2026-10-29
+last_activity_desc: Phase 84 execution started
+state_head: 8958d6be231f0e076eeeaa6ff2f49d4a192145bc
 progress:
   total_phases: 10
   completed_phases: 28
-  total_plans: 95
+  total_plans: 104
   completed_plans: 88
-  percent: 88
+  percent: 85
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 83 — CRM/Chatwoot → Site Webhooks
+**Current focus:** Phase 84 — Chatwoot Dashboard App
 
 ## Current Position
 
-Phase: 78 — WhatsApp Cloud API Channel (Dedicated Number)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-10-26 — Phase 83 complete (live; review CR-01..03 fixed in migration 079), next Phase 84
+Phase: 84 (Chatwoot Dashboard App) — EXECUTING
+Plan: 1 of 9
+Status: Executing Phase 84
+Last activity: 2026-10-29 — Phase 84 execution started
 
 ## Accumulated Context
 
@@ -328,9 +328,9 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-10-26T11:37:32.238Z
-Stopped at: Phase 83 complete, ready to discuss Phase 84
-Resume file: .planning/phases/83-crm-chatwoot-site-webhooks/83-CONTEXT.md
+Last session: 2026-10-29T11:11:19.144Z
+Stopped at: Phase 84 UI-SPEC approved
+Resume file: .planning/phases/84-chatwoot-dashboard-app/84-UI-SPEC.md
 
 ## Performance Metrics
 

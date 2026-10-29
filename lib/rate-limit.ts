@@ -31,6 +31,7 @@ const LIMITS: Record<string, number> = {
   '/api/corporate-contact':       5, // 5 corporate enquiries per minute per IP
   '/api/driver/respond':         10, // SEC-02: prevent token oracle enumeration
   '/api/driver/trip/progress':   20, // DTRIP-08: driver taps through up to 5 states, higher than respond's 10
+  '/api/chatwoot/dashboard-app': 30, // operator panel: conversation switches + 30 s refresh per open tab; used fail-closed because the route proxies token checks to Chatwoot
 }
 
 export interface RateLimitResult {

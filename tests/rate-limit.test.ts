@@ -52,3 +52,30 @@ describe('sliding-window in-memory limiter', () => {
     expect((await checkRateLimit('/login', ip)).allowed).toBe(true)
   })
 })
+
+describe('panel API limiter (Phase 84)', () => {
+  beforeEach(() => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    vi.useFakeTimers()
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it('/api/chatwoot/dashboard-app allows 30 per IP per minute and denies the 31st', async () => {
+    const ip = '203.0.113.84'
+    for (let i = 0; i < 30; i++) {
+      const r = await checkRateLimit('/api/chatwoot/dashboard-app', ip)
+      expect(r.allowed).toBe(true)
+      expect(r.limit).toBe(30)
+    }
+    const next = await checkRateLimit('/api/chatwoot/dashboard-app', ip)
+    expect(next.allowed).toBe(false)
+  })
+
+  it('fails closed when the distributed limiter is down', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const r = await checkRateLimit('/api/chatwoot/dashboard-app', '203.0.113.85', { failClosed: true })
+    expect(r).toMatchObject({ allowed: false, degraded: true, limit: 30 })
+    err.mockRestore()
+  })
+})

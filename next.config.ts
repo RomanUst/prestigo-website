@@ -110,45 +110,66 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    // Security headers shared by every path. Content-Security-Policy is set
+    // dynamically per-request in middleware.ts using a cryptographic nonce. A
+    // static CSP here would share the same nonce across all requests, negating
+    // the protection. See middleware.ts buildCsp() for the full directive list.
+    const sharedSecurityHeaders = [
+      {
+        key: "X-Content-Type-Options",
+        value: "nosniff",
+      },
+      {
+        // Modern browsers ignore this header (CSP is the replacement),
+        // but legacy Internet Explorer and some older Safari/Android
+        // versions shipped a buggy XSS auditor that could be abused to
+        // create its own XSS via side-channel. Explicitly disabling it
+        // is the OWASP-recommended value for modern applications.
+        key: "X-XSS-Protection",
+        value: "0",
+      },
+      {
+        key: "Permissions-Policy",
+        value: "camera=(), microphone=(), geolocation=()",
+      },
+      {
+        key: "Strict-Transport-Security",
+        value: "max-age=63072000; includeSubDomains; preload",
+      },
+    ];
+
+    // Phase 84 (PANEL-02): /embed is the Chatwoot Dashboard App page and is
+    // rendered inside an iframe on the Chatwoot origin. Its only framing rule
+    // is the CSP frame-ancestors directive that middleware.ts sets; an
+    // X-Frame-Options: DENY here would block Chatwoot from framing it, so the
+    // global entry below excludes /embed and /embed/* with a negative
+    // lookahead (no reliance on header merge order). The page also sends no
+    // Referer, so a conversation URL never leaks to the panel's requests.
+    const embedHeaders = [
+      ...sharedSecurityHeaders,
+      {
+        key: "Referrer-Policy",
+        value: "no-referrer",
+      },
+    ];
+
     return [
       {
-        source: "/(.*)",
+        source: "/((?!embed(?:/|$)).*)",
         headers: [
           {
             key: "X-Frame-Options",
             value: "DENY",
           },
           {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            // Modern browsers ignore this header (CSP is the replacement),
-            // but legacy Internet Explorer and some older Safari/Android
-            // versions shipped a buggy XSS auditor that could be abused to
-            // create its own XSS via side-channel. Explicitly disabling it
-            // is the OWASP-recommended value for modern applications.
-            key: "X-XSS-Protection",
-            value: "0",
-          },
-          {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
-          // Content-Security-Policy is set dynamically per-request in middleware.ts
-          // using a cryptographic nonce. A static CSP here would share the same
-          // nonce across all requests, negating the protection. See middleware.ts
-          // buildCsp() for the full directive list.
+          ...sharedSecurityHeaders,
         ],
       },
+      { source: "/embed", headers: embedHeaders },
+      { source: "/embed/:path*", headers: embedHeaders },
     ];
   },
 };

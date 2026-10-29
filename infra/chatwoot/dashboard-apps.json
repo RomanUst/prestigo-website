@@ -1,0 +1,8 @@
+{
+  "dashboardApps": [
+    {
+      "title": "Bookings",
+      "content": [{ "type": "frame", "url": "https://rideprestigo.com/embed/chatwoot-dashboard" }]
+    }
+  ]
+}

@@ -16,6 +16,10 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/calculate-price',
   '/api/driver/respond',
   '/api/driver/trip',
+  // Phase 84 (PANEL-02): same-origin fetch from the Dashboard App page,
+  // authenticated by the operator's Chatwoot token. CSRF is defence in depth,
+  // so it is deliberately NOT in CSRF_STRICT_ORIGIN_REQUIRED below.
+  '/api/chatwoot/dashboard-app',
 ]
 
 // Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also
@@ -115,6 +119,57 @@ function buildCspStatic(): string {
   ].join('; ')
 }
 
+// Phase 84 (PANEL-02): the Chatwoot Dashboard App panel is rendered at /embed
+// (outside app/[locale]) and talks to PANEL_API_PATH. Both are same-site with
+// /admin, so both are made structurally cookie-less in middleware().
+const EMBED_PREFIX = '/embed'
+const PANEL_API_PATH = '/api/chatwoot/dashboard-app'
+
+function isEmbedPath(pathname: string): boolean {
+  return pathname === EMBED_PREFIX || pathname.startsWith(EMBED_PREFIX + '/')
+}
+
+/**
+ * Per-request CSP for the Chatwoot Dashboard App page (/embed/*).
+ *
+ * - default-src 'none': the panel is a small self-contained page; every
+ *   capability it needs is listed explicitly below and nothing else loads.
+ * - script-src nonce + 'strict-dynamic': only Next's own scripts (which get
+ *   the nonce through the Content-Security-Policy request header) and the
+ *   scripts they load can run; no host-based script sources, no unsafe-inline.
+ * - object-src / base-uri 'none', form-action 'none': no plugins, no <base>
+ *   rewriting, no form posts (the panel talks to its API with fetch only).
+ * - frame-ancestors is the ONLY framing allowance and names exactly the
+ *   Chatwoot origin — never a wildcard. next.config.ts omits X-Frame-Options
+ *   for /embed so the two cannot conflict (DENY would block Chatwoot).
+ * - WR-02: the host in the frame-ancestors line must equal the single chat
+ *   host of buildCspStatic(); tests/middleware-embed.test.ts pins that. It
+ *   stays a single directive string alone on its line so the Phase 76
+ *   isolation guard's CSP exemption covers it.
+ * - The caller also removes the cookie request header: the iframe is
+ *   same-site with /admin, so the browser attaches SameSite=Lax admin session
+ *   cookies, and nothing rendering the panel may read them (PANEL-02).
+ */
+function buildCspEmbed(nonce: string): string {
+  return [
+    "default-src 'none'",
+    // 'unsafe-eval' and 'self' are development-only, exactly as in buildCsp():
+    // React dev tooling and http://localhost chunk URLs. Absent in production.
+    process.env.NODE_ENV === 'development'
+      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'self'`
+      : `script-src 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    "connect-src 'self'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "object-src 'none'",
+    "frame-ancestors https://chat.rideprestigo.com",
+    "report-uri /api/csp-report",
+  ].join('; ')
+}
+
 /**
  * Routes that require per-request dynamic rendering (auth, booking, API).
  * Everything else is a static marketing page served from the edge cache.
@@ -192,7 +247,9 @@ const handleI18nRouting = createMiddleware(routing)
 // /admin, /api, /auth, /driver are never routed through next-intl at all —
 // their pathnames are never locale-prefixed and the existing CSP/Supabase
 // logic below must run byte-for-byte unchanged for them (RESEARCH.md Pattern 1).
-const NON_LOCALIZED_PREFIXES = ['/admin', '/api', '/auth', '/driver']
+// /embed (Phase 84) is non-localized too, but middleware() answers it in its
+// own branch before this list is consulted — it never reaches runCspAndAuthChain.
+const NON_LOCALIZED_PREFIXES = ['/admin', '/api', '/auth', '/driver', '/embed']
 
 function isNonLocalizedRoute(pathname: string): boolean {
   return NON_LOCALIZED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))
@@ -291,6 +348,40 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  if (pathname === PANEL_API_PATH) {
+    // PANEL-02: the panel API never uses the admin session cookie. The page
+    // is a same-site iframe, so the browser sends SameSite=Lax Supabase
+    // cookies with its fetch; they are dropped here and updateSession is
+    // skipped (no Supabase round-trip, no refreshed Set-Cookie). The route
+    // authenticates the operator by their Chatwoot token alone.
+    const reqHeaders = new Headers(request.headers)
+    reqHeaders.delete('cookie')
+    const response = NextResponse.next({ request: { headers: reqHeaders } })
+    response.headers.set('Content-Security-Policy', buildCspStatic())
+    response.headers.set('Cache-Control', 'no-store')
+    return response
+  }
+
+  if (isEmbedPath(pathname)) {
+    // PANEL-02: the Chatwoot Dashboard App page. No next-intl (no /en/embed
+    // rewrite, no NEXT_LOCALE) and no updateSession (no Supabase round-trip,
+    // no Set-Cookie). The nonce CSP goes on the forwarded request so Next
+    // applies the nonce to its scripts, and on the response so the browser
+    // enforces it. The cookie request header is removed so nothing rendering
+    // the panel can read the admin session (same-site iframe, SameSite=Lax).
+    const nonce = btoa(crypto.randomUUID())
+    const csp = buildCspEmbed(nonce)
+    const reqHeaders = new Headers(request.headers)
+    reqHeaders.set('Content-Security-Policy', csp)
+    reqHeaders.set('x-nonce', nonce)
+    reqHeaders.delete('cookie')
+    const response = NextResponse.next({ request: { headers: reqHeaders } })
+    response.headers.set('Content-Security-Policy', csp)
+    response.headers.set('Cache-Control', 'no-store')
+    response.headers.set('Referrer-Policy', 'no-referrer')
+    return response
+  }
+
   if (isNonLocalizedRoute(pathname)) {
     // EXISTING LOGIC, BYTE-FOR-BYTE — next-intl never touches these paths.
     return runCspAndAuthChain(request)
@@ -322,11 +413,13 @@ export const config = {
     // BingSiteAuth.xml and the IndexNow key file were all rewritten to
     // /en/<file> and 404'd in prod until these were excluded.
     // SECURITY: the extension exclusion must NOT apply under api/, admin/,
-    // driver/, auth/ or [locale/]account/ — otherwise a crafted dynamic
+    // driver/, auth/, embed/ or [locale/]account/ — otherwise a crafted dynamic
     // segment (e.g. PUT /api/admin/route-prices/prague-vienna.xml) skips
     // middleware and with it the CSRF Origin check and route gating
     // (Phase 74 security audit, T-74-07). Those prefixes never serve static
-    // files, so they always run the middleware.
-    '/((?!_next/static|_next/image|favicon.ico|(?!(?:api|admin|driver|auth)/|(?:[a-z]{2}/)?account/).*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|webmanifest)$).*)',
+    // files, so they always run the middleware. embed/ (Phase 84, T-84-24) is
+    // the Dashboard App page: a crafted /embed/x.xml must still get the embed
+    // CSP and the cookie strip, not fall through unprotected.
+    '/((?!_next/static|_next/image|favicon.ico|(?!(?:api|admin|driver|auth|embed)/|(?:[a-z]{2}/)?account/).*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|webmanifest)$).*)',
   ],
 }
