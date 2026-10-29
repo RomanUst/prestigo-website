@@ -4,7 +4,14 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { PANEL_ERROR_CODES, type PanelErrorCode, type PanelResponse } from '@/lib/panel-dto'
 import { ADMIN_ALL_BOOKINGS_HREF, ADMIN_HOME_HREF } from '@/lib/panel-links'
 import BookingCard, { formatEur, formatPragueTime } from './BookingCard'
-import { FETCH_INFO_MESSAGE, TOKEN_STORAGE_KEY, isTrustedContextEvent, parseAppContext } from './panel-handshake'
+import {
+  FETCH_INFO_MESSAGE,
+  TOKEN_STORAGE_KEY,
+  isTrustedContextEvent,
+  isTrustedWebViewEvent,
+  nativeBridgeOf,
+  parseAppContext,
+} from './panel-handshake'
 
 // Kept as a local const holding the literal: the isolation guard proves the only fetch target of
 // app/embed files from this declaration. A test pins it to PANEL_API_PATH.
@@ -125,16 +132,26 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
     setTokenLoaded(true)
   }, [])
 
-  // Handshake: listener first, then ask the parent, retrying while no context has arrived.
+  // Handshake: listener first, then ask Chatwoot, retrying while no context has arrived. On the web
+  // Chatwoot is the parent frame; in the mobile app this page is top level in a WebView and the
+  // request goes through the native bridge instead.
   useEffect(() => {
     const parent = window.parent
-    if (parent === window || !chatwootOrigin) {
+    const bridge = nativeBridgeOf(window)
+    if (!chatwootOrigin || (parent === window && !bridge)) {
       setInert(true)
       return
     }
+    const origin = chatwootOrigin
+    const ask = bridge
+      ? () => bridge.postMessage(FETCH_INFO_MESSAGE)
+      : () => parent.postMessage(FETCH_INFO_MESSAGE, origin)
+    const trusted = bridge
+      ? (event: MessageEvent) => isTrustedWebViewEvent(event, window)
+      : (event: MessageEvent) => isTrustedContextEvent(event, origin, parent)
     let received = false
     const onMessage = (event: MessageEvent) => {
-      if (!isTrustedContextEvent(event, chatwootOrigin, parent)) return
+      if (!trusted(event)) return
       const context = parseAppContext(event.data)
       if (!context) return
       received = true
@@ -145,14 +162,14 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
     }
     window.addEventListener('message', onMessage)
 
-    parent.postMessage(FETCH_INFO_MESSAGE, chatwootOrigin)
+    ask()
     let retries = 0
     const timer = window.setInterval(() => {
       if (received) {
         window.clearInterval(timer)
       } else if (retries < MAX_RETRIES) {
         retries += 1
-        parent.postMessage(FETCH_INFO_MESSAGE, chatwootOrigin)
+        ask()
       } else {
         window.clearInterval(timer)
         setHandshakeTimedOut(true)
@@ -164,6 +181,13 @@ export default function PanelClient({ chatwootOrigin }: PanelClientProps) {
       window.removeEventListener('message', onMessage)
     }
   }, [chatwootOrigin])
+
+  // A new conversation never shows the previous customer's data, even if its own request fails.
+  useEffect(() => {
+    setData(null)
+    setErrorCode(null)
+    setShowAllPast(false)
+  }, [conversationId])
 
   // Load the bookings once we hold both a token and a trusted conversation id. A re-run (Refresh, focus,
   // visibility, the 30 s timer) keeps the last good response on screen and swaps it in place.

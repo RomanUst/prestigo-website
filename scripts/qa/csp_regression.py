@@ -60,6 +60,7 @@ except ImportError:
 ROUTE_CLASSES = [
     '/', '/ru', '/ru/fleet', '/routes/prague-vienna', '/ar/routes/prague-vienna',
     '/book', '/ru/book', '/login', '/ru/login', '/ru/account', '/api/health',
+    '/embed/chatwoot-dashboard',
 ]
 
 NONCE_RE = re.compile(r"nonce-[A-Za-z0-9+/=]+")
