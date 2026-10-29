@@ -431,13 +431,13 @@ Plans:
   1. Inside a Chatwoot conversation, the operator sees the customer's bookings from the site (upcoming + past, status, payment, link into /admin) in the sidebar.
   2. The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and CVE-2025-12245 is scoped with recorded evidence (no upstream fix; flaw is in the widget SDK, not the Dashboard App) with a compensating message-origin guard shipped in the site widget loader.
 
-**Plans:** 9 plans
+**Plans:** 3/9 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 84-01-PLAN.md — Read-only panel_bookings RPC (migration 080, identity rules D-10/D-11, SQL totals, Lead pointer) + panel DTO/links/mapper; [BLOCKING] live apply + smoke
-- [ ] 84-02-PLAN.md — Operator-token verification against Chatwoot profile + conversation (D-01..D-04), hashed positive cache, VPS guard category
-- [ ] 84-03-PLAN.md — D-13 CVE-2025-12245 gate: widget message-origin guard before the SDK + dated evidence and re-check recipe in the runbook
+- [x] 84-01-PLAN.md — Read-only panel_bookings RPC (migration 080, identity rules D-10/D-11, SQL totals, Lead pointer) + panel DTO/links/mapper; [BLOCKING] live apply + smoke
+- [x] 84-02-PLAN.md — Operator-token verification against Chatwoot profile + conversation (D-01..D-04), hashed positive cache, VPS guard category
+- [x] 84-03-PLAN.md — D-13 CVE-2025-12245 gate: widget message-origin guard before the SDK + dated evidence and re-check recipe in the runbook
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 84-04-PLAN.md — POST /api/chatwoot/dashboard-app (api-access-token header, conversationId only), fail-closed rate limit, structural read-only/cookie-less guard
@@ -452,6 +452,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 84-09-PLAN.md — Go-live: owner ships + registers, live header/API probes, CSP baseline for /embed, CVE re-check, live UAT with UI-SPEC backstops
+
 **UI hint**: yes
 **Security note**: yes — iframe/postMessage origin validation and CVE-2025-12245 exposure; commit with `security:` prefix per CLAUDE.md.
 
@@ -502,7 +503,7 @@ Plans:
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
-| 84. Chatwoot Dashboard App | v4.0 | 0/0 | Not started | - |
+| 84. Chatwoot Dashboard App | v4.0 | 3/9 | In Progress|  |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
 
 ## Backlog
