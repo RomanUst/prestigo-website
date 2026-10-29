@@ -23,6 +23,7 @@ will overwrite it for every resource listed below. The VPS side of Chatwoot
 | `inspect.mjs` | Read-only views of the live instance |
 | `webhooks.json` | The one account webhook to the site receiver (URL and four subscriptions) |
 | `webhook.mjs` | Applies `webhooks.json`, hands over the signing secret through a pipe, rotates it, probes the live receiver |
+| `dashboard-apps.json` | The "Bookings" Dashboard App (conversation sidebar tab): one frame item, URL without query or secret |
 
 Templates must stay price-free. Canned responses are sent to customers verbatim,
 so a baked-in amount would go stale and could contradict the real charge. The
@@ -44,6 +45,21 @@ summary. A second run right after a real run must show `create=0 update=0`. The
 after the owner creates each inbox (the two email inboxes, later channels).
 Only automation rules named `topic:*` are ever deleted; rules made by hand in the
 UI are never touched.
+
+## Dashboard Apps
+
+`dashboard-apps.json` declares the one Dashboard App, "Bookings": a read-only booking history panel in the
+conversation sidebar (Phase 84). `sync.mjs` registers it as the `dashboardApps` resource, matched by title. It
+creates or updates that app only and never deletes; apps made by hand in the UI are left alone. The administrator
+token is required to create or change it.
+
+```bash
+node infra/chatwoot/sync.mjs --dry-run --only dashboardApps    # GET requests only
+node infra/chatwoot/sync.mjs --only dashboardApps              # apply
+```
+
+The frame URL must stay free of query string, fragment and secrets. Operator setup (personal token, revocation),
+troubleshooting and the go-live checklist: [infra/vps/runbooks/chatwoot-dashboard-app.md](../vps/runbooks/chatwoot-dashboard-app.md).
 
 ## Running inspect
 

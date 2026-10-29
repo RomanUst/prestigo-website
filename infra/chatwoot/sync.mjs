@@ -8,11 +8,11 @@
  *
  *   node infra/chatwoot/sync.mjs [--dry-run] [--only labels,teams,...] [--window-delay-override <minutes>]
  *
- * Resource order: account, labels, teams, attributes, canned, inboxes, automation.
+ * Resource order: account, labels, teams, attributes, canned, inboxes, automation, dashboardApps.
  * Matching (never re-create what exists): labels by title, teams by name,
  * attributes by attribute_key + model, canned responses by short_code, inboxes
  * by name, automation rules by name (infra/vps/scripts/provision-monitors.sh
- * precedent).
+ * precedent), Dashboard Apps by title (created or updated, never deleted).
  *
  * Output contract, one line per resource then a summary:
  *   <resource>: create=N update=N unchanged=N skipped=N deleted=N
@@ -38,7 +38,7 @@ import { createChatwootClient, loadChatwootConfig, ChatwootApiError, ChatwootCon
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = path.resolve(HERE, '..', '..')
 
-export const RESOURCE_ORDER = ['account', 'labels', 'teams', 'attributes', 'canned', 'inboxes', 'automation']
+export const RESOURCE_ORDER = ['account', 'labels', 'teams', 'attributes', 'canned', 'inboxes', 'automation', 'dashboardApps']
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -812,6 +812,40 @@ async function syncAutomation(ctx) {
   return counts
 }
 
+// ---------------------------------------------------------------------------
+// Resource: dashboardApps (Phase 84, PANEL-01)
+// ---------------------------------------------------------------------------
+
+/**
+ * Dashboard Apps (the "Bookings" tab in the conversation sidebar). Matched by
+ * title; GET /dashboard_apps answers a bare array; POST and PATCH wrap the body
+ * in `dashboard_app`. Apps an operator made by hand (other titles) are never
+ * touched and nothing is ever deleted. The frame url carries no secret (D-01).
+ */
+async function syncDashboardApps(ctx) {
+  const counts = emptyCounts()
+  const desired = ctx.read('dashboard-apps.json').dashboardApps
+  const existing = await ctx.list('/dashboard_apps', 'dashboard_apps')
+  const plan = planCollection({
+    desired,
+    existing,
+    keyOf: (a) => a.title,
+    differs: (want, have) => !subsetEqual(want.content, have.content),
+  })
+  for (const want of plan.create) {
+    ctx.log(`  [create] dashboard app ${want.title}`)
+    await ctx.mutate('POST', '/dashboard_apps', { dashboard_app: { title: want.title, content: want.content } })
+    counts.create++
+  }
+  for (const { desired: want, existing: have } of plan.update) {
+    ctx.log(`  [update] dashboard app ${want.title}`)
+    await ctx.mutate('PATCH', `/dashboard_apps/${have.id}`, { dashboard_app: { title: want.title, content: want.content } })
+    counts.update++
+  }
+  counts.unchanged = plan.unchanged.length
+  return counts
+}
+
 const HANDLERS = {
   account: syncAccount,
   labels: syncLabels,
@@ -820,6 +854,7 @@ const HANDLERS = {
   canned: syncCanned,
   inboxes: syncInboxes,
   automation: syncAutomation,
+  'dashboardApps': syncDashboardApps,
 }
 
 // ---------------------------------------------------------------------------
