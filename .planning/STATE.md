@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
 current_phase: 84
-current_phase_name: chatwoot-dashboard-app
+current_phase_name: Chatwoot Dashboard App
 status: executing
 stopped_at: Phase 84 UI-SPEC approved
-last_updated: "2026-10-29T11:51:58.686Z"
-last_activity: 2026-10-26
-last_activity_desc: Phase 83 complete (live, review CR-01..03 fixed in 079), next Phase 84 (78 deferred to backlog 999.9)
-state_head: 62dfab42ace5d91c8944cacafdf703efdc122af3
+last_updated: "2026-10-29T11:59:19.809Z"
+last_activity: 2026-10-29
+last_activity_desc: Phase 84 execution started
+state_head: 8958d6be231f0e076eeeaa6ff2f49d4a192145bc
 progress:
   total_phases: 10
   completed_phases: 28
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 83 — CRM/Chatwoot → Site Webhooks
+**Current focus:** Phase 84 — Chatwoot Dashboard App
 
 ## Current Position
 
-Phase: 84 (chatwoot-dashboard-app) — READY TO EXECUTE
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-10-26 — Phase 83 complete (live; review CR-01..03 fixed in migration 079), next Phase 84
+Phase: 84 (Chatwoot Dashboard App) — EXECUTING
+Plan: 1 of 9
+Status: Executing Phase 84
+Last activity: 2026-10-29 — Phase 84 execution started
 
 ## Accumulated Context
 
