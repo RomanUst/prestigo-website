@@ -171,6 +171,9 @@ and any message without the prefix, pass unchanged, so the live widget keeps wor
 | 2026-10-29 | `gh api repos/chatwoot/chatwoot/releases --jq '.[0].tag_name'` | v4.19.1 is the newest release |
 | 2026-10-29 | `gh api repos/chatwoot/chatwoot/security-advisories` | four advisories, patched in >= 4.9.0, 4.13.0, 4.11.2, 3.16.0; all at or below the pinned v4.18.0 |
 | 2026-10-29 | `IFrameHelper.js` at v4.18.0 vs v4.19.1 (curl, diff) | files byte-identical (344 lines each); `window.onmessage` handler checks only the `chatwoot-widget:` prefix, no origin |
+| 2026-10-29 | Go-live re-check: `gh api /advisories/GHSA-hgg8-54gw-8v33` | unchanged: `vulns: []`, updated 2025-10-27T09:30:27Z (no patched version) |
+| 2026-10-29 | Go-live re-check: releases + security-advisories | newest release still v4.19.1; same four advisories, all patched at or below v4.18.0 |
+| 2026-10-29 | Go-live re-check: `IFrameHelper.js` v4.18.0 vs v4.19.1 | still byte-identical (344 lines); `initPostMessageCommunication` has no origin check; compensating control stays |
 
 ### Re-check recipe
 
