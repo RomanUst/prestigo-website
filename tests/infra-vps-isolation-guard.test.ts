@@ -187,6 +187,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'operator-only request path behind a Chatwoot operator token: called only by the Chatwoot Dashboard App API route after a per-request Chatwoot token check; never on a public page render or a booking/payment/contact request path; a VPS outage degrades only the operator panel',
   },
   {
+    path: 'app/api/chatwoot/dashboard-app/route.ts',
+    reason:
+      'operator-only request path behind a Chatwoot operator token: the Chatwoot Dashboard App iframe calls it with the operator\'s own token; it verifies the token against Chatwoot and reads bookings read-only; never a public page render or a booking/payment/contact request path; a VPS outage degrades only the operator panel',
+  },
+  {
     path: 'app/api/integrations/dispatch/route.ts',
     reason:
       'QStash-invoked outbox dispatcher: runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path; unsigned calls get 401',
