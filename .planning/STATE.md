@@ -3,19 +3,19 @@ gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
 current_phase: 84
-current_phase_name: Chatwoot Dashboard App
-status: planning
-stopped_at: Phase 84 context gathered
-last_updated: "2026-10-26T19:22:23.912Z"
+current_phase_name: chatwoot-dashboard-app
+status: executing
+stopped_at: Phase 84 UI-SPEC approved
+last_updated: "2026-10-29T11:51:58.686Z"
 last_activity: 2026-10-26
 last_activity_desc: Phase 83 complete (live, review CR-01..03 fixed in 079), next Phase 84 (78 deferred to backlog 999.9)
-state_head: b44b59ba99576d3baa8aa695585d072fc06448c4
+state_head: 62dfab42ace5d91c8944cacafdf703efdc122af3
 progress:
   total_phases: 10
   completed_phases: 28
-  total_plans: 95
+  total_plans: 104
   completed_plans: 88
-  percent: 93
+  percent: 85
 ---
 
 # Project State
@@ -29,9 +29,9 @@ See: .planning/PROJECT.md (updated 2026-10-26)
 
 ## Current Position
 
-Phase: 78 — WhatsApp Cloud API Channel (Dedicated Number)
+Phase: 84 (chatwoot-dashboard-app) — READY TO EXECUTE
 Plan: Not started
-Status: Ready to plan
+Status: Ready to execute
 Last activity: 2026-10-26 — Phase 83 complete (live; review CR-01..03 fixed in migration 079), next Phase 84
 
 ## Accumulated Context
@@ -328,9 +328,9 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-10-26T19:22:23.546Z
-Stopped at: Phase 84 context gathered
-Resume file: .planning/phases/84-chatwoot-dashboard-app/84-CONTEXT.md
+Last session: 2026-10-29T11:11:19.144Z
+Stopped at: Phase 84 UI-SPEC approved
+Resume file: .planning/phases/84-chatwoot-dashboard-app/84-UI-SPEC.md
 
 ## Performance Metrics
 
