@@ -24,6 +24,7 @@
  * and status only. The token, a header or a response body is never logged, thrown or returned, and
  * this module writes no console output at all.
  */
+import { createHash } from 'node:crypto'
 import { z } from 'zod'
 import { readEnv } from '@/lib/env'
 
@@ -36,6 +37,36 @@ const TOKEN_RE = /^[\x21-\x7e]{1,128}$/
 const MAX_CONVERSATION_ID = 2 ** 31 - 1
 const EMAIL_MAX = 254
 const PHONE_MAX = 32
+const PROFILE_CACHE_TTL_MS = 5 * 60_000
+const PROFILE_CACHE_MAX_ENTRIES = 500
+
+// sha256 hex of the token -> agent id. Positive results only; the token itself is never stored.
+// A Map iterates in insertion order, so the first key is always the oldest entry.
+const profileCache = new Map<string, { agentId: number; expiresAt: number }>()
+
+function tokenKey(token: string): string {
+  return createHash('sha256').update(token).digest('hex')
+}
+
+function cacheGet(key: string, now: number): number | null {
+  const entry = profileCache.get(key)
+  if (!entry) return null
+  if (entry.expiresAt <= now) {
+    profileCache.delete(key)
+    return null
+  }
+  return entry.agentId
+}
+
+function cacheSet(key: string, agentId: number, now: number): void {
+  profileCache.delete(key)
+  while (profileCache.size >= PROFILE_CACHE_MAX_ENTRIES) {
+    const oldest = profileCache.keys().next().value
+    if (oldest === undefined) break
+    profileCache.delete(oldest)
+  }
+  profileCache.set(key, { agentId, expiresAt: now + PROFILE_CACHE_TTL_MS })
+}
 
 export function isPlausibleOperatorToken(token: unknown): token is string {
   return typeof token === 'string' && TOKEN_RE.test(token)
@@ -228,11 +259,21 @@ export async function verifyOperator(
   if (!config) return { ok: false, reason: 'not_configured' }
   const fetchImpl = deps.fetchImpl ?? globalThis.fetch
 
-  const profile = await fetchProfile(config, token, fetchImpl)
-  if (!profile.ok) return profile
+  const now = deps.now ?? Date.now
+  const key = tokenKey(token)
+
+  let agentId = cacheGet(key, now())
+  const fromCache = agentId !== null
+  if (agentId === null) {
+    const profile = await fetchProfile(config, token, fetchImpl)
+    if (!profile.ok) return profile
+    agentId = profile.agentId
+    cacheSet(key, agentId, now())
+  }
 
   let body: unknown
   try {
+    // Never cached: Chatwoot re-authorizes the agent on every request (D-01).
     body = await chatwootGet(
       config,
       `/api/v1/accounts/${config.accountId}/conversations/${conversationId}`,
@@ -241,7 +282,17 @@ export async function verifyOperator(
     )
   } catch (err) {
     const status = statusOf(err)
-    if (status === 401 || status === 403) return { ok: false, reason: 'no_access' }
+    if (status === 401 || status === 403) {
+      if (!fromCache) return { ok: false, reason: 'no_access' }
+      // The cached profile may be stale (agent removed, token reset): evict and ask Chatwoot once more.
+      profileCache.delete(key)
+      const recheck = await fetchProfile(config, token, fetchImpl)
+      if (recheck.ok) {
+        cacheSet(key, recheck.agentId, now())
+        return { ok: false, reason: 'no_access' }
+      }
+      return recheck
+    }
     if (status === 404) return { ok: false, reason: 'not_found' }
     return { ok: false, reason: 'unavailable' }
   }
@@ -253,7 +304,7 @@ export async function verifyOperator(
   const sender = parsed.data.meta?.sender
   return {
     ok: true,
-    agentId: profile.agentId,
+    agentId,
     contact: {
       chatwootContactId: sender?.id ?? null,
       email: cleanText(sender?.email, EMAIL_MAX),
@@ -263,7 +314,12 @@ export async function verifyOperator(
   }
 }
 
-/** Test seam: the cache is added in the next step; kept so tests can reset module state. */
+/** Test seam: clears the module-level profile cache. */
 export function resetOperatorCacheForTests(): void {
-  // no cache yet
+  profileCache.clear()
+}
+
+/** Test seam: the cache keys (sha256 hex), so tests can assert the token itself is never a key. */
+export function operatorCacheKeysForTests(): string[] {
+  return [...profileCache.keys()]
 }
