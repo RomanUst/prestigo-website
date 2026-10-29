@@ -431,7 +431,7 @@ Plans:
   1. Inside a Chatwoot conversation, the operator sees the customer's bookings from the site (upcoming + past, status, payment, link into /admin) in the sidebar.
   2. The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and CVE-2025-12245 is scoped with recorded evidence (no upstream fix; flaw is in the widget SDK, not the Dashboard App) with a compensating message-origin guard shipped in the site widget loader.
 
-**Plans:** 6/9 plans executed
+**Plans:** 7/9 plans executed
 
 Plans:
 **Wave 1**
@@ -445,7 +445,7 @@ Plans:
 - [x] 84-06-PLAN.md — Dashboard App registration as config-as-code (sync.mjs dashboardApps) + runbook operator setup, revocation, troubleshooting, UAT
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 84-07-PLAN.md — Embed page + client tracer: origin-validated handshake, sessionStorage token (D-02), API fetch, bookings list
+- [x] 84-07-PLAN.md — Embed page + client tracer: origin-validated handshake, sessionStorage token (D-02), API fetch, bookings list
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 84-08-PLAN.md — Full panel UI per UI-SPEC: D-06 cards, Copy payment link fallback chain (D-09), counters, Upcoming/Past + more, empty/no-contact states, refresh
@@ -503,7 +503,7 @@ Plans:
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
-| 84. Chatwoot Dashboard App | v4.0 | 6/9 | In Progress|  |
+| 84. Chatwoot Dashboard App | v4.0 | 7/9 | In Progress|  |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
 
 ## Backlog
