@@ -431,7 +431,27 @@ Plans:
   1. Inside a Chatwoot conversation, the operator sees the customer's bookings from the site (upcoming + past, status, payment, link into /admin) in the sidebar.
   2. The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and CVE-2025-12245 is scoped with recorded evidence (no upstream fix; flaw is in the widget SDK, not the Dashboard App) with a compensating message-origin guard shipped in the site widget loader.
 
-**Plans**: TBD
+**Plans:** 9 plans
+
+Plans:
+**Wave 1**
+- [ ] 84-01-PLAN.md — Read-only panel_bookings RPC (migration 080, identity rules D-10/D-11, SQL totals, Lead pointer) + panel DTO/links/mapper; [BLOCKING] live apply + smoke
+- [ ] 84-02-PLAN.md — Operator-token verification against Chatwoot profile + conversation (D-01..D-04), hashed positive cache, VPS guard category
+- [ ] 84-03-PLAN.md — D-13 CVE-2025-12245 gate: widget message-origin guard before the SDK + dated evidence and re-check recipe in the runbook
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 84-04-PLAN.md — POST /api/chatwoot/dashboard-app (api-access-token header, conversationId only), fail-closed rate limit, structural read-only/cookie-less guard
+- [ ] 84-05-PLAN.md — Framing boundary: /embed middleware branch (frame-ancestors nonce CSP, cookie strip), panel-API cookie strip, XFO exclusion, matcher, robots
+- [ ] 84-06-PLAN.md — Dashboard App registration as config-as-code (sync.mjs dashboardApps) + runbook operator setup, revocation, troubleshooting, UAT
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 84-07-PLAN.md — Embed page + client tracer: origin-validated handshake, sessionStorage token (D-02), API fetch, bookings list
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 84-08-PLAN.md — Full panel UI per UI-SPEC: D-06 cards, Copy payment link fallback chain (D-09), counters, Upcoming/Past + more, empty/no-contact states, refresh
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 84-09-PLAN.md — Go-live: owner ships + registers, live header/API probes, CSP baseline for /embed, CVE re-check, live UAT with UI-SPEC backstops
 **UI hint**: yes
 **Security note**: yes — iframe/postMessage origin validation and CVE-2025-12245 exposure; commit with `security:` prefix per CLAUDE.md.
 

@@ -39,7 +39,34 @@ created: "2026-10-26"
 
 ## Per-Task Verification Map
 
-To be filled by the planner per task. Requirement → test map from research:
+Per-task map (planner, 2026-10-29):
+
+| Plan · Task | Wave | Requirement / Decision | Automated Command | Kind |
+|-------------|------|------------------------|-------------------|------|
+| 84-01 · T1 (tracer) | 1 | PANEL-01/02 · D-05, D-06, D-09, D-11 | `npx vitest run tests/panel-bookings-migration.test.ts tests/panel-bookings.test.ts` | migration text + unit (RED first) |
+| 84-01 · T2 | 1 | PANEL-01 · D-08, D-10 | same as T1 + `npx eslint --quiet lib/panel-dto.ts lib/panel-links.ts lib/panel-bookings.ts` | migration text + unit |
+| 84-01 · T3 [BLOCKING][ORCHESTRATOR] | 1 | PANEL-01/02 | `npx vitest run tests/panel-bookings-migration.test.ts` + live smoke `SMOKE_OK_84_01` | live |
+| 84-02 · T1 (tracer) | 1 | PANEL-02 · D-01, D-03, D-04 | `npx vitest run tests/chatwoot-operator.test.ts tests/infra-vps-isolation-guard.test.ts` | unit (fetch stubs) |
+| 84-02 · T2 | 1 | PANEL-02 · D-01, D-02 | `npx vitest run tests/chatwoot-operator.test.ts` | unit |
+| 84-03 · T1 (tracer) | 1 | PANEL-02 · D-13 | `npx vitest run tests/chat-widget-origin-guard.test.ts tests/chat-launcher.test.tsx tests/chat-launcher-i18n.test.ts tests/infra-vps-isolation-guard.test.ts` | jsdom |
+| 84-03 · T2 | 1 | PANEL-02 · D-13 | `npx vitest run tests/dashboard-app-runbook.test.ts` | content |
+| 84-04 · T1 (tracer) | 2 | PANEL-01/02 · D-01..D-04, D-12 | `npx vitest run tests/chatwoot-dashboard-route.test.ts tests/rate-limit.test.ts tests/infra-vps-isolation-guard.test.ts` | route unit |
+| 84-04 · T2 | 2 | PANEL-02 | `npx vitest run tests/dashboard-app-isolation-guard.test.ts tests/webhook-isolation-guard.test.ts` | structural guard |
+| 84-05 · T1 (tracer) | 2 | PANEL-02 | `npx vitest run tests/middleware-embed.test.ts tests/middleware-i18n.test.ts tests/middleware-customer.test.ts tests/middleware-csrf-forms.test.ts tests/infra-vps-isolation-guard.test.ts` | middleware unit |
+| 84-05 · T2 | 2 | PANEL-02 | `npx vitest run tests/middleware-embed.test.ts tests/middleware-matcher.test.ts tests/next-config-headers.test.ts tests/middleware-i18n.test.ts tests/middleware-customer.test.ts tests/middleware-csrf-forms.test.ts` | middleware/config |
+| 84-06 · T1 (tracer) | 2 | PANEL-01 | `npx vitest run tests/chatwoot-sync.test.ts tests/chatwoot-dashboard-apps-config.test.ts tests/chatwoot-config.test.ts` | unit (fake API) |
+| 84-06 · T2 | 2 | PANEL-02 · D-01, D-02, D-04 | `npx vitest run tests/dashboard-app-runbook.test.ts` | content |
+| 84-07 · T1 (tracer) | 3 | PANEL-01/02 · D-02, D-03, D-07 | `npx vitest run tests/embed-panel.test.tsx tests/infra-vps-isolation-guard.test.ts tests/dashboard-app-isolation-guard.test.ts` | jsdom |
+| 84-07 · T2 | 3 | PANEL-02 | `npm run build 2>&1 \| grep -E "ƒ /embed/chatwoot-dashboard"` | build |
+| 84-08 · T1 (tracer) | 4 | PANEL-01 · D-06, D-07, D-09 | `npx vitest run tests/embed-panel-cards.test.tsx tests/embed-panel.test.tsx` | jsdom |
+| 84-08 · T2 | 4 | PANEL-01 · D-05, D-08, D-12 | `npx vitest run tests/embed-panel-cards.test.tsx tests/embed-panel.test.tsx tests/dashboard-app-isolation-guard.test.ts` | jsdom |
+| 84-09 · T1 (human-action) | 5 | PANEL-01 | `vercel env ls production \| grep -cE "CHATWOOT_BASE_URL\|CHATWOOT_ACCOUNT_ID"` | live |
+| 84-09 · T2 (tracer) | 5 | PANEL-02 · D-13 | live `curl -sI` checks + `python3 scripts/qa/csp_regression.py --compare` | live |
+| 84-09 · T3 (human-verify) | 5 | PANEL-01/02 · UI-SPEC backstops | full panel test set (see plan) + owner UAT | live/manual |
+
+Wave 0 note: there is no separate Wave 0 plan; every tracer and `tdd="true"` task writes its tests first (RED) inside the same task, so no task runs without an automated command.
+
+Requirement → test map from research:
 
 | Requirement | Behavior | Test Type | Automated Command | File Exists | Status |
 |-------------|----------|-----------|-------------------|-------------|--------|
