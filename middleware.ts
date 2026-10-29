@@ -16,6 +16,10 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/calculate-price',
   '/api/driver/respond',
   '/api/driver/trip',
+  // Phase 84 (PANEL-02): same-origin fetch from the Dashboard App page,
+  // authenticated by the operator's Chatwoot token. CSRF is defence in depth,
+  // so it is deliberately NOT in CSRF_STRICT_ORIGIN_REQUIRED below.
+  '/api/chatwoot/dashboard-app',
 ]
 
 // Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also
@@ -344,6 +348,20 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  if (pathname === PANEL_API_PATH) {
+    // PANEL-02: the panel API never uses the admin session cookie. The page
+    // is a same-site iframe, so the browser sends SameSite=Lax Supabase
+    // cookies with its fetch; they are dropped here and updateSession is
+    // skipped (no Supabase round-trip, no refreshed Set-Cookie). The route
+    // authenticates the operator by their Chatwoot token alone.
+    const reqHeaders = new Headers(request.headers)
+    reqHeaders.delete('cookie')
+    const response = NextResponse.next({ request: { headers: reqHeaders } })
+    response.headers.set('Content-Security-Policy', buildCspStatic())
+    response.headers.set('Cache-Control', 'no-store')
+    return response
+  }
+
   if (isEmbedPath(pathname)) {
     // PANEL-02: the Chatwoot Dashboard App page. No next-intl (no /en/embed
     // rewrite, no NEXT_LOCALE) and no updateSession (no Supabase round-trip,
@@ -395,11 +413,13 @@ export const config = {
     // BingSiteAuth.xml and the IndexNow key file were all rewritten to
     // /en/<file> and 404'd in prod until these were excluded.
     // SECURITY: the extension exclusion must NOT apply under api/, admin/,
-    // driver/, auth/ or [locale/]account/ — otherwise a crafted dynamic
+    // driver/, auth/, embed/ or [locale/]account/ — otherwise a crafted dynamic
     // segment (e.g. PUT /api/admin/route-prices/prague-vienna.xml) skips
     // middleware and with it the CSRF Origin check and route gating
     // (Phase 74 security audit, T-74-07). Those prefixes never serve static
-    // files, so they always run the middleware.
-    '/((?!_next/static|_next/image|favicon.ico|(?!(?:api|admin|driver|auth)/|(?:[a-z]{2}/)?account/).*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|webmanifest)$).*)',
+    // files, so they always run the middleware. embed/ (Phase 84, T-84-24) is
+    // the Dashboard App page: a crafted /embed/x.xml must still get the embed
+    // CSP and the cookie strip, not fall through unprotected.
+    '/((?!_next/static|_next/image|favicon.ico|(?!(?:api|admin|driver|auth|embed)/|(?:[a-z]{2}/)?account/).*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|webmanifest)$).*)',
   ],
 }

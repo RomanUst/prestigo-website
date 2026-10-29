@@ -13,6 +13,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { NextRequest, NextResponse } from 'next/server'
 
 const { mockGetUser, mockCreateServerClient, mockHandleI18nRouting, mockCreateMiddleware } =
@@ -193,5 +195,84 @@ describe('middleware.ts — /embed branch (PANEL-02)', () => {
     const csp = res.headers.get('Content-Security-Policy')!
     expect(csp).not.toContain('frame-ancestors')
     expect(csp).not.toMatch(/nonce-/)
+  })
+})
+
+describe('middleware.ts — Dashboard App panel API (PANEL-02)', () => {
+  const PANEL_API = '/api/chatwoot/dashboard-app'
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
+    mockHandleI18nRouting.mockReturnValue(makeIntlRewriteResponse())
+  })
+
+  it('POST with the site Origin passes CSRF, is forwarded without cookie, skips updateSession, sets no cookie', async () => {
+    const res = await middleware(
+      makeRequest(PANEL_API, {
+        method: 'POST',
+        headers: { origin: SITE_ORIGIN, cookie: 'sb-access-token=x' },
+      }),
+    )
+    expect(res.status).toBe(200)
+    expect(forwardedHeaderNames(res)).not.toContain('cookie')
+    expect(forwardedHeader(res, 'cookie')).toBeNull()
+    expect(mockCreateServerClient).not.toHaveBeenCalled()
+    expect(mockGetUser).not.toHaveBeenCalled()
+    expect(res.headers.get('set-cookie')).toBeNull()
+    expect(mockHandleI18nRouting).not.toHaveBeenCalled()
+  })
+
+  it('carries the standard static CSP (no nonce, no frame-ancestors) and no-store', async () => {
+    const res = await middleware(makeRequest(PANEL_API, { method: 'POST', headers: { origin: SITE_ORIGIN } }))
+    const csp = res.headers.get('Content-Security-Policy')!
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).not.toMatch(/nonce-/)
+    expect(csp).not.toContain('frame-ancestors')
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+  })
+
+  it('POST with a foreign Origin is rejected 403 by the CSRF check', async () => {
+    const res = await middleware(
+      makeRequest(PANEL_API, { method: 'POST', headers: { origin: 'https://evil.example' } }),
+    )
+    expect(res.status).toBe(403)
+  })
+
+  it('POST with no Origin passes (non-strict, token-authenticated)', async () => {
+    const res = await middleware(makeRequest(PANEL_API, { method: 'POST' }))
+    expect(res.status).toBe(200)
+    expect(forwardedHeaderNames(res)).not.toContain('cookie')
+  })
+
+  it('GET (non-mutation) is also cookie-less', async () => {
+    const res = await middleware(makeRequest(PANEL_API, { headers: { cookie: 'sb-access-token=x' } }))
+    expect(forwardedHeaderNames(res)).not.toContain('cookie')
+    expect(mockGetUser).not.toHaveBeenCalled()
+  })
+
+  it('other /api paths keep their behaviour: updateSession still runs and cookies are forwarded', async () => {
+    const res = await middleware(makeRequest('/api/health', { headers: { cookie: 'sb-access-token=x' } }))
+    expect(mockCreateServerClient).toHaveBeenCalled()
+    expect(res.status).toBe(200)
+  })
+
+  it('/api/admin paths still require Origin (strict) and are not affected', async () => {
+    const res = await middleware(makeRequest('/api/admin/x', { method: 'POST' }))
+    expect(res.status).toBe(403)
+  })
+
+  it('a longer sibling path is not treated as the panel API', async () => {
+    await middleware(makeRequest('/api/chatwoot/dashboard-app-other', { headers: { cookie: 'sb-access-token=x' } }))
+    expect(mockCreateServerClient).toHaveBeenCalled()
+  })
+})
+
+describe('public/robots.txt — /embed is hidden from crawlers (T-84-25)', () => {
+  it('Disallow: /embed/ appears in both groups, as often as Disallow: /admin/', () => {
+    const txt = readFileSync(join(process.cwd(), 'public/robots.txt'), 'utf8')
+    const count = (needle: string) => txt.split('\n').filter((l) => l.trim() === needle).length
+    expect(count('Disallow: /admin/')).toBe(2)
+    expect(count('Disallow: /embed/')).toBe(count('Disallow: /admin/'))
   })
 })

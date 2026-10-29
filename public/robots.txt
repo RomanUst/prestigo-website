@@ -3,6 +3,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
+Disallow: /embed/
 
 # Search engines and AI answer engines are explicitly welcomed for citation
 # coverage. They share ONE ruleset: a bot obeys only its most-specific matching
@@ -34,5 +35,6 @@ User-agent: Omgilibot
 Allow: /
 Disallow: /api/
 Disallow: /admin/
+Disallow: /embed/
 
 Sitemap: https://rideprestigo.com/sitemap.xml
