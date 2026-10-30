@@ -68,3 +68,16 @@ Automated re-run after UAT: 6 files, 229 tests passed.
 ## Follow-ups
 
 - Test conversation 204 in Chatwoot and its EspoCRM lead (`uat84@example.com`) can be closed / deleted by the owner.
+
+## Post-UAT fix — Chatwoot mobile app (PR #78, merge 508d0090)
+
+- Owner report after UAT: in the Chatwoot mobile app the Bookings tab showed "Open this panel from a Chatwoot
+  conversation." Cause: chatwoot-mobile-app `DashboardScreen.tsx` opens a Dashboard App top level in
+  react-native-webview (no iframe) and answers `fetch-info` sent via `window.ReactNativeWebView` by injecting
+  `window.postMessage(appContext)` into the page.
+- Fix `41006c6f`: `nativeBridgeOf` + `isTrustedWebViewEvent` (source === this window, origin === own origin);
+  iframe path unchanged. Same commit fixes review WR-01 (data cleared on conversation change). 6 new tests.
+- First production build failed on a Google Fonts download (Noto Sans Arabic, Turbopack), unrelated to the diff;
+  `vercel redeploy` succeeded. Live bundle contains the bridge code; embed headers and API 401 re-checked.
+- Owner confirmed on the phone: bookings visible in the mobile app ("Работает", 2026-10-30).
+- Known trade-off: the token lives in sessionStorage (D-02), so the mobile WebView asks for it on each open.
