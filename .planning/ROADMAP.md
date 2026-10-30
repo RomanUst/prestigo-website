@@ -21,7 +21,7 @@
 - [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
 - [x] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure (completed 2026-10-26)
 - [x] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops (completed 2026-10-26)
-- [ ] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245 scoped + compensating control
+- [x] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245 scoped + compensating control (completed 2026-10-30)
 - [ ] **Phase 85: Statistics** - `/admin/stats` shows inquiry→booking conversion, repeat-customer rate, and B2B revenue per Account
 
 <details>
@@ -431,7 +431,7 @@ Plans:
   1. Inside a Chatwoot conversation, the operator sees the customer's bookings from the site (upcoming + past, status, payment, link into /admin) in the sidebar.
   2. The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and CVE-2025-12245 is scoped with recorded evidence (no upstream fix; flaw is in the widget SDK, not the Dashboard App) with a compensating message-origin guard shipped in the site widget loader.
 
-**Plans:** 7/9 plans executed
+**Plans:** 9/9 plans complete
 
 Plans:
 **Wave 1**
@@ -448,10 +448,10 @@ Plans:
 - [x] 84-07-PLAN.md — Embed page + client tracer: origin-validated handshake, sessionStorage token (D-02), API fetch, bookings list
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 84-08-PLAN.md — Full panel UI per UI-SPEC: D-06 cards, Copy payment link fallback chain (D-09), counters, Upcoming/Past + more, empty/no-contact states, refresh
+- [x] 84-08-PLAN.md — Full panel UI per UI-SPEC: D-06 cards, Copy payment link fallback chain (D-09), counters, Upcoming/Past + more, empty/no-contact states, refresh
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 84-09-PLAN.md — Go-live: owner ships + registers, live header/API probes, CSP baseline for /embed, CVE re-check, live UAT with UI-SPEC backstops
+- [x] 84-09-PLAN.md — Go-live: owner ships + registers, live header/API probes, CSP baseline for /embed, CVE re-check, live UAT with UI-SPEC backstops
 
 **UI hint**: yes
 **Security note**: yes — iframe/postMessage origin validation and CVE-2025-12245 exposure; commit with `security:` prefix per CLAUDE.md.
@@ -503,7 +503,7 @@ Plans:
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
-| 84. Chatwoot Dashboard App | v4.0 | 7/9 | In Progress|  |
+| 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 0/0 | Not started | - |
 
 ## Backlog
