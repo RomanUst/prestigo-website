@@ -93,6 +93,18 @@ Data comes from Supabase only. No new tracking of the visitor journey, no conver
 - **D-17:** Visual language: existing admin dark theme, `KPICard`, `StatsChart`, table styles from other
   admin tables. English UI, no next-intl (internal tool).
 
+### Resolved after research (owner, 2026-10-31)
+- **D-18:** (refines D-02, research O-1) A qualifying booking = status in the five paid statuses
+  `confirmed, assigned, en_route, on_location, completed` (same set the CRM uses for "Converted");
+  `pending` does not count. Live: 0 pending rows today.
+- **D-19:** (refines D-07, research O-2) B2B bookings of an Account = `bookings.user_id` = the account's user
+  OR `client_email` matches the account user's email — same attribution as `/admin/accounts`.
+- **D-20:** (research O-4) Each abandoned online checkout row is one inquiry (no per-person/day dedup in v1).
+- **D-21:** (research O-5) An explicit `chat_leads.converted_booking_id` counts as converted regardless of
+  the 90-day window, as long as the booking is a qualifying trip (D-18). Identity-match conversion keeps the
+  90-day window (D-03). D-03's "same row reconciled to paid" clause is vacuous (research O-3) — implement as
+  "a different paid row of the same person".
+
 ### Claude's Discretion
 - Whether aggregation runs as Postgres RPC/SQL view(s) or in the route handler (data volume is tiny:
   ~80 bookings, ~10 chat Leads, ~4 form inquiries) — prefer SQL that stays correct as volume grows.
