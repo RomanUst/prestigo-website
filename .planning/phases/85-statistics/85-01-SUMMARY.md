@@ -51,7 +51,7 @@ actuals:
 
 ## Performance
 
-- **Tasks:** 2 of 3 executed by the executor; Task 3 (apply 081 live + run smoke) is PENDING (orchestrator, needs Supabase MCP)
+- **Tasks:** 2 of 3 executed by the executor; Task 3 (apply 081 live + run smoke) DONE by the orchestrator via Supabase MCP on 2026-10-31
 - **Files created:** 3
 
 ## Accomplishments
@@ -65,7 +65,7 @@ actuals:
 
 1. **Task 1 (tracer): stats_trips + stats_conversion funnel** - `391b8c7d` (security)
 2. **Task 2: channel bucket, 6-arg reserve, phone-resolved chat leads, direct rows, smoke script** - `3c95750a` (security)
-3. **Task 3: apply 081 live + smoke SMOKE_OK_85_01** - PENDING (orchestrator)
+3. **Task 3: apply 081 live + smoke SMOKE_OK_85_01** - DONE (orchestrator, 2026-10-31)
 
 ## Tracer gate
 
@@ -77,7 +77,7 @@ Tracer verified by re-running the static contract (`tests/stats-migration.test.t
 - `npx tsc --noEmit`: no new errors outside the known baseline; `npx eslint --quiet tests/stats-migration.test.ts`: clean
 - Acceptance greps from the plan (counts 1/1/1/0/1 for Task 1, 1/1/0/4=4/1 for Task 2) all match
 
-## PENDING (orchestrator) - Task 3
+## DONE (orchestrator) - Task 3
 
 Execute with the Supabase MCP, in this order:
 1. `list_migrations` (080 newest, no 081); confirm `chat_leads` has no `channel` column and only the 5-arg `chat_lead_reserve` exists; `apply_migration` name `081_stats_conversion` with the file text.
@@ -86,7 +86,7 @@ Execute with the Supabase MCP, in this order:
 4. `get_advisors` (security): no new ERROR naming a 081 function.
 5. Commit the smoke SQL if fixtures changed: `test(85-01): rolled-back smoke for migration 081`.
 
-Results to fill in: apply = ____ ; smoke message = ____ ; proacl = ____ ; live funnel_total = ____ ; live direct_total = ____ ; advisor ERRORs = ____
+Results: apply = success (`apply_migration 081_stats_conversion`; preconditions checked: 080 newest, only the 5-arg chat_lead_reserve, no channel column, every referenced column exists, reserve body == live 078 body) ; smoke message = `SMOKE_OK_85_01` on the first run, fixture unchanged ; proacl = asserted inside the smoke (step k: anon/authenticated no EXECUTE, service_role EXECUTE, search_path pinned, old 5-arg gone) ; leftovers after rollback = 0 bookings / 0 inquiries / 0 chat_leads / 0 identity_emails ; live 90-day funnel_total = 15 inquiries, 1 converted, 14 window_open, 1 converting booking ; live direct_total = 37 bookings ; trips_in_period = 39 (= 37 direct + 2 attributed) ; advisor ERRORs = 0 (only pre-existing INFO rls_enabled_no_policy + WARN leaked-password protection, none naming a 081 function)
 
 ## Decisions Made
 
