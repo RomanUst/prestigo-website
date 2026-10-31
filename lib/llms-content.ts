@@ -137,7 +137,7 @@ ${ratingLine(data)}
 
 ## Fleet
 
-All vehicles are late-model Mercedes-Benz, fully insured, non-smoking, equipped with Wi-Fi and phone chargers.
+All vehicles are 2025 model year or newer Mercedes-Benz, fully insured, non-smoking, equipped with Wi-Fi and phone chargers.
 
 ### Mercedes-Benz E-Class — Business Sedan
 - Page: ${BASE}/fleet/e-class
@@ -153,7 +153,7 @@ All vehicles are late-model Mercedes-Benz, fully insured, non-smoking, equipped 
 - Luggage: 2 large cases + 2 cabin bags
 - Ideal for: VIP travel, diplomatic missions, extended intercity routes
 - ${hourlyLine(sClassHourly)}
-- Transmission: automatic · Fuel: hybrid · Drive: RWD
+- Transmission: automatic · Fuel: hybrid · Drive: AWD (4MATIC all-wheel drive)
 
 ### Mercedes-Benz V-Class — Executive Van
 - Page: ${BASE}/fleet/v-class
