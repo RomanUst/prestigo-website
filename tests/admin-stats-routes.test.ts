@@ -15,6 +15,9 @@ vi.mock('@/lib/supabase', () => ({
 }))
 
 import { GET as getB2b } from '@/app/api/admin/stats/b2b/route'
+import { GET as getConversion } from '@/app/api/admin/stats/conversion/route'
+import { GET as getCustomers } from '@/app/api/admin/stats/customers/route'
+import { FUNNEL_SOURCES, DIRECT_SOURCES } from '@/lib/admin-stats'
 
 const FROM = '2026-01-01'
 const TO = '2026-03-31'
@@ -42,6 +45,30 @@ const B2B_OK = {
   ],
 }
 
+const CONVERSION_OK = {
+  from: FROM,
+  to: TO,
+  funnel: FUNNEL_SOURCES.map(source => ({ source, inquiries: 2, converted: 1, window_open: 0, revenue_eur: 100 })),
+  funnel_total: { inquiries: 18, converted: 9, window_open: 0, converting_bookings: 8, revenue_eur: 900 },
+  direct: DIRECT_SOURCES.map(source => ({ source, bookings: 3, revenue_eur: 300 })),
+  direct_total: { bookings: 24, revenue_eur: 2400 },
+  trips_in_period: 40,
+  attributed_bookings: 30,
+}
+
+const CUSTOMERS_OK = {
+  from: FROM,
+  to: TO,
+  customers: 20,
+  repeat_customers: 5,
+  revenue_eur: 4000,
+  repeat_revenue_eur: 1500,
+  repeat_customers_all_time: 9,
+  top: [
+    { name: 'Jane', email: 'j@example.com', trips: 3, revenue_eur: 450, first_trip: '2026-01-02', last_trip: '2026-03-01' },
+  ],
+}
+
 type Case = {
   tab: string
   rpc: string
@@ -57,6 +84,20 @@ const CASES: Case[] = [
     handler: getB2b as (req: Request) => Promise<Response>,
     ok: B2B_OK,
     broken: { ...B2B_OK, accounts: undefined },
+  },
+  {
+    tab: 'conversion',
+    rpc: 'stats_conversion',
+    handler: getConversion as (req: Request) => Promise<Response>,
+    ok: CONVERSION_OK,
+    broken: { ...CONVERSION_OK, funnel: undefined },
+  },
+  {
+    tab: 'customers',
+    rpc: 'stats_customers',
+    handler: getCustomers as (req: Request) => Promise<Response>,
+    ok: CUSTOMERS_OK,
+    broken: { ...CUSTOMERS_OK, top: undefined },
   },
 ]
 
