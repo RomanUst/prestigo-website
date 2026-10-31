@@ -43,6 +43,8 @@ function conversion(over: Record<string, unknown> = {}) {
     direct_total: { bookings: 6, revenue_eur: 1100 },
     trips_in_period: 7,
     attributed_bookings: 1,
+    attributed_total: { bookings: 1, revenue_eur: 120 },
+    period_total: { bookings: 7, revenue_eur: 1220 },
     ...over,
   }
 }
@@ -235,5 +237,37 @@ describe('ConversionTab states', () => {
     fetchMock.mockResolvedValue(ok({ nope: true }))
     render(<ConversionTab period={PERIOD} />)
     expect(await screen.findByText('Could not load data. Refresh to retry.')).toBeTruthy()
+  })
+})
+
+describe('ConversionTab period bookings table (WR-01)', () => {
+  it('splits all paid bookings of the period into after-inquiry and direct rows that add up to the total', async () => {
+    fetchMock.mockResolvedValue(
+      ok(
+        conversion({
+          direct_total: { bookings: 37, revenue_eur: 13407 },
+          attributed_total: { bookings: 2, revenue_eur: 1216 },
+          period_total: { bookings: 39, revenue_eur: 14623 },
+        }),
+      ),
+    )
+    render(<ConversionTab period={PERIOD} />)
+    expect(await screen.findByText('All paid bookings created in this period')).toBeTruthy()
+
+    const table = rowOf('After a recorded inquiry').closest('table') as HTMLElement
+    const rows = within(table)
+      .getAllByRole('row')
+      .slice(1)
+      .map((r) =>
+        within(r)
+          .getAllByRole('cell')
+          .map((c) => norm(c.textContent)),
+      )
+    expect(rows).toEqual([
+      ['After a recorded inquiry', '2', norm(formatEur(1216))],
+      ['Direct (no recorded inquiry)', '37', norm(formatEur(13407))],
+      ['Total', '39', norm(formatEur(14623))],
+    ])
+    expect(screen.getByText(/counts only the first booking each\s+inquiry led to/)).toBeTruthy()
   })
 })

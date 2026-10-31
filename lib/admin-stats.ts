@@ -186,6 +186,9 @@ export const conversionStatsSchema = z.object({
   direct_total: z.object({ bookings: int, revenue_eur: int }),
   trips_in_period: int,
   attributed_bookings: int,
+  // 083 (WR-01): bookings created in the period, split so attributed + direct = period.
+  attributed_total: z.object({ bookings: int, revenue_eur: int }),
+  period_total: z.object({ bookings: int, revenue_eur: int }),
 })
 
 export const customersStatsSchema = z.object({

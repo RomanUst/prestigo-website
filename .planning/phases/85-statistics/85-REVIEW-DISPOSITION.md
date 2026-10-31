@@ -8,7 +8,7 @@ updated: 2026-10-31
 
 | ID | Severity | Disposition | Note |
 |----|----------|-------------|------|
-| WR-01 | warning | open | Bookings after an inquiry that are not its first conversion appear in neither funnel revenue nor the direct table; fix needs migration 083 + ConversionTab row. Owner decision pending. |
+| WR-01 | warning | fixed | Migration 083_stats_conversion_period_totals (applied live, SMOKE_OK_85_07): stats_conversion adds attributed_total + period_total so attributed + direct = period exactly; ConversionTab shows an 'All paid bookings created in this period' table. Live 90 days: after-inquiry 2 / 1216 EUR (funnel showed 608), direct 37 / 13407, total 39 / 14623. |
 | WR-02 | warning | open | identity key split (booking_identity vs identity_emails). Live probe 2026-10-31: 0 affected trips. Fix in 083 if done. |
 | WR-03 | warning | open | CZK*0.04 fallback differs from panel_bookings (080). Live probe: 2 paid rows without amount_eur. |
 | IN-01 | info | open | malformed pickup_date -> zod 500 on Customers tab |

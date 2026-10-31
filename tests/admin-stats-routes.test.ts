@@ -54,6 +54,8 @@ const CONVERSION_OK = {
   direct_total: { bookings: 24, revenue_eur: 2400 },
   trips_in_period: 40,
   attributed_bookings: 30,
+  attributed_total: { bookings: 30, revenue_eur: 900 },
+  period_total: { bookings: 54, revenue_eur: 3300 },
 }
 
 const CUSTOMERS_OK = {

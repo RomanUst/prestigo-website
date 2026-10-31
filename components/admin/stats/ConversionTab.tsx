@@ -121,6 +121,24 @@ export function ConversionTab({ period }: { period: Period }) {
   })
   const directTotal = ['Total', String(stats.direct_total.bookings), formatEur(stats.direct_total.revenue_eur)]
 
+  // WR-01: every paid booking created in the period lands in exactly one of
+  // these two rows, so they add up to the period's full booking revenue.
+  const periodRows = [
+    {
+      key: 'attributed',
+      cells: [
+        'After a recorded inquiry',
+        String(stats.attributed_total.bookings),
+        formatEur(stats.attributed_total.revenue_eur),
+      ],
+    },
+    {
+      key: 'direct',
+      cells: ['Direct (no recorded inquiry)', String(stats.direct_total.bookings), formatEur(stats.direct_total.revenue_eur)],
+    },
+  ]
+  const periodTotal = ['Total', String(stats.period_total.bookings), formatEur(stats.period_total.revenue_eur)]
+
   return (
     <div>
       <StatsTable
@@ -151,6 +169,20 @@ export function ConversionTab({ period }: { period: Period }) {
         emptyText="No direct bookings in this period."
         totalRow={directTotal}
       />
+
+      <h2 style={headingStyle}>All paid bookings created in this period</h2>
+      <StatsTable
+        headers={['Origin', 'Bookings', 'Revenue (EUR)']}
+        rightAlignFrom={1}
+        rows={periodRows}
+        emptyText="No paid bookings in this period."
+        totalRow={periodTotal}
+      />
+      <StatsNote>
+        The funnel above follows the inquiries made in this period, so its revenue counts only the first booking each
+        inquiry led to. This table follows the bookings made in this period: a repeat booking after an inquiry, or one
+        whose inquiry came before the period, is counted here under &ldquo;After a recorded inquiry&rdquo;.
+      </StatsNote>
     </div>
   )
 }

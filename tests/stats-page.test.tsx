@@ -105,6 +105,8 @@ const CONVERSION = {
   direct_total: { bookings: 2, revenue_eur: 300 },
   trips_in_period: 3,
   attributed_bookings: 1,
+  attributed_total: { bookings: 1, revenue_eur: 900 },
+  period_total: { bookings: 3, revenue_eur: 1200 },
 }
 
 function routeFetch(b2bBody: unknown | (() => Response | Promise<Response>) = b2b()) {

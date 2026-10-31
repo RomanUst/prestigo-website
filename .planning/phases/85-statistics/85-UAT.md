@@ -22,14 +22,14 @@ result: [pending]
 
 ### 2. Owner decision on review warning WR-01 (with WR-02, WR-03)
 expected: Owner decides whether to ship a forward migration 083 that adds an "other after inquiry" bucket so funnel + direct + other = trips_in_period (plus the WR-02 identity-key and WR-03 amount-fallback fixes), or to accept the current behaviour.
-result: [pending]
+result: pass — owner chose to fix WR-01 (2026-10-31). Migration 083 applied live, SMOKE_OK_85_07; Conversion tab now has an "All paid bookings created in this period" table (after inquiry + direct = total). WR-02/WR-03 left open (0 and 2 live rows).
 
 ## Summary
 
 total: 2
-passed: 0
+passed: 1
 issues: 0
-pending: 2
+pending: 1
 skipped: 0
 blocked: 0
 
