@@ -410,6 +410,8 @@ interface LeadRow {
   open: boolean
   closedReason: string | null
   convertedBookingId: string | null
+  /** Raw Chatwoot class of the creating conversation; set on INSERT only (mirrors chat_lead_reserve, D-04). */
+  channel: string | null
   createdAt: string
 }
 
@@ -479,6 +481,7 @@ export function makeChatStoreDouble(opts: {
         open: true,
         closedReason: null,
         convertedBookingId: null,
+        channel: input.channel ?? null,
         createdAt: now().toISOString(),
       }
       state.leads.push(row)
