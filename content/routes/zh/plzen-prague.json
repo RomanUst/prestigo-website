@@ -92,7 +92,7 @@
   "relatedRoutes": [
     { "slug": "karlovy-vary-prague", "city": "卡罗维发利", "label": "卡罗维发利 → 布拉格", "distance": "130 公里", "duration": "1 小时 30 分钟" },
     { "slug": "marianske-lazne-prague", "city": "玛丽亚温泉市", "label": "玛丽亚温泉市 → 布拉格", "distance": "165 公里", "duration": "2 小时" },
-    { "slug": "nuremberg-prague", "city": "纽伦堡", "label": "纽伦堡 → 布拉格", "distance": "295 公里", "duration": "3 小时" },
+    { "slug": "nuremberg-prague", "city": "纽伦堡", "label": "纽伦堡 → 布拉格", "distance": "300 公里", "duration": "3 小时" },
     { "slug": "regensburg-prague", "city": "雷根斯堡", "label": "雷根斯堡 → 布拉格", "distance": "285 公里", "duration": "3 小时" }
   ],
   "highlights": [

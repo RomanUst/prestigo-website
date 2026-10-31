@@ -93,7 +93,7 @@
     { "slug": "leipzig-prague", "city": "Лейпциг", "label": "Лейпциг → Прага", "distance": "260 км", "duration": "2 ч 45 мин" },
     { "slug": "berlin-prague", "city": "Берлин", "label": "Берлин → Прага", "distance": "350 км", "duration": "4 ч" },
     { "slug": "karlovy-vary-prague", "city": "Карловы Вары", "label": "Карловы Вары → Прага", "distance": "130 км", "duration": "1 ч 30 мин" },
-    { "slug": "nuremberg-prague", "city": "Нюрнберг", "label": "Нюрнберг → Прага", "distance": "295 км", "duration": "3 ч" }
+    { "slug": "nuremberg-prague", "city": "Нюрнберг", "label": "Нюрнберг → Прага", "distance": "300 км", "duration": "3 ч" }
   ],
   "highlights": [
     { "label": "Расстояние", "value": "~150 км" },

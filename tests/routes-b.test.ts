@@ -160,7 +160,7 @@ describe("Group B route content (71-03)", () => {
   it("prague-nuremberg: byte-parity spot-check", () => {
     assertRouteParity("prague-nuremberg", {
       "hero.intro":
-        "295 km southwest on the D5 into Bavaria. About three hours door-to-door. Fixed fare from €485. Your chauffeur is already waiting.",
+        "300 km southwest on the D5 into Bavaria. About three hours door-to-door. Fixed fare from €485. Your chauffeur is already waiting.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":

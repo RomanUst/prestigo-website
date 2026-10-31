@@ -90,7 +90,7 @@
   "relatedRoutesIntro": "रेगेन्सबुर्ग से प्राग अक्सर बवेरिया और बोहेमिया की लंबी यात्रा का हिस्सा होता है। न्यूरेम्बर्ग, म्यूनिख या पसाउ से शुरू करने वाले, या प्लज़ेन में रुकने वाले ग्राहक भी इसी तरह बुक करते हैं — एक कार, एक निश्चित किराया, प्राग में द्वार पर ड्रॉप-ऑफ़।",
   "relatedHeading": { "line1": "प्राग पहुँचने के", "italic": "और रास्ते।" },
   "relatedRoutes": [
-    { "slug": "nuremberg-prague", "city": "न्यूरेम्बर्ग", "label": "न्यूरेम्बर्ग → प्राग", "distance": "295 किमी", "duration": "3 घं" },
+    { "slug": "nuremberg-prague", "city": "न्यूरेम्बर्ग", "label": "न्यूरेम्बर्ग → प्राग", "distance": "300 किमी", "duration": "3 घं" },
     { "slug": "munich-prague", "city": "म्यूनिख", "label": "म्यूनिख → प्राग", "distance": "385 किमी", "duration": "4 घं" },
     { "slug": "passau-prague", "city": "पसाउ", "label": "पसाउ → प्राग", "distance": "220 किमी", "duration": "2 घं 30 मि" },
     { "slug": "plzen-prague", "city": "प्लज़ेन", "label": "प्लज़ेन → प्राग", "distance": "90 किमी", "duration": "1 घं" }

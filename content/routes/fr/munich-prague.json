@@ -91,7 +91,7 @@
   "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
   "relatedRoutes": [
     { "slug": "regensburg-prague", "city": "Ratisbonne", "label": "Ratisbonne → Prague", "distance": "285 km", "duration": "3 h" },
-    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3 h" },
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "300 km", "duration": "3 h" },
     { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2 h 30" },
     { "slug": "salzburg-prague", "city": "Salzbourg", "label": "Salzbourg → Prague", "distance": "375 km", "duration": "4 h" }
   ],

@@ -90,7 +90,7 @@
   "relatedRoutesIntro": "Regensburg to Prague is often part of a longer trip through Bavaria and Bohemia. Clients starting in Nuremberg, Munich or Passau, or stopping in Plzeň, book the same way — one car, one fixed fare, drop-off at the door in Prague.",
   "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
   "relatedRoutes": [
-    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3h" },
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "300 km", "duration": "3h" },
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4h" },
     { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2h 30min" },
     { "slug": "plzen-prague", "city": "Plzeň", "label": "Plzeň → Prague", "distance": "90 km", "duration": "1h" }

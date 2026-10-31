@@ -92,7 +92,7 @@
   "relatedRoutes": [
     { "slug": "karlovy-vary-prague", "city": "Карловы Вары", "label": "Карловы Вары → Прага", "distance": "130 км", "duration": "1 ч 30 мин" },
     { "slug": "marianske-lazne-prague", "city": "Марианске-Лазне", "label": "Марианске-Лазне → Прага", "distance": "165 км", "duration": "2 ч" },
-    { "slug": "nuremberg-prague", "city": "Нюрнберг", "label": "Нюрнберг → Прага", "distance": "295 км", "duration": "3 ч" },
+    { "slug": "nuremberg-prague", "city": "Нюрнберг", "label": "Нюрнберг → Прага", "distance": "300 км", "duration": "3 ч" },
     { "slug": "regensburg-prague", "city": "Регенсбург", "label": "Регенсбург → Прага", "distance": "285 км", "duration": "3 ч" }
   ],
   "highlights": [

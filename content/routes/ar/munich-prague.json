@@ -91,7 +91,7 @@
   "relatedHeading": { "line1": "طرق أخرى", "italic": "إلى براغ." },
   "relatedRoutes": [
     { "slug": "regensburg-prague", "city": "ريغنسبورغ", "label": "ريغنسبورغ → براغ", "distance": "285 كم", "duration": "3 ساعات" },
-    { "slug": "nuremberg-prague", "city": "نورمبرغ", "label": "نورمبرغ → براغ", "distance": "295 كم", "duration": "3 ساعات" },
+    { "slug": "nuremberg-prague", "city": "نورمبرغ", "label": "نورمبرغ → براغ", "distance": "300 كم", "duration": "3 ساعات" },
     { "slug": "passau-prague", "city": "باساو", "label": "باساو → براغ", "distance": "220 كم", "duration": "ساعتان و30 دقيقة" },
     { "slug": "salzburg-prague", "city": "سالزبورغ", "label": "سالزبورغ → براغ", "distance": "375 كم", "duration": "4 ساعات" }
   ],

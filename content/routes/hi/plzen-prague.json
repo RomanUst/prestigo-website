@@ -92,7 +92,7 @@
   "relatedRoutes": [
     { "slug": "karlovy-vary-prague", "city": "कार्लोवी वारी", "label": "कार्लोवी वारी → प्राग", "distance": "130 किमी", "duration": "1 घं 30 मि" },
     { "slug": "marianske-lazne-prague", "city": "मारियान्स्के लाज़्ने", "label": "मारियान्स्के लाज़्ने → प्राग", "distance": "165 किमी", "duration": "2 घं" },
-    { "slug": "nuremberg-prague", "city": "न्यूरेमबर्ग", "label": "न्यूरेमबर्ग → प्राग", "distance": "295 किमी", "duration": "3 घं" },
+    { "slug": "nuremberg-prague", "city": "न्यूरेमबर्ग", "label": "न्यूरेमबर्ग → प्राग", "distance": "300 किमी", "duration": "3 घं" },
     { "slug": "regensburg-prague", "city": "रेगेन्सबुर्ग", "label": "रेगेन्सबुर्ग → प्राग", "distance": "285 किमी", "duration": "3 घं" }
   ],
   "highlights": [

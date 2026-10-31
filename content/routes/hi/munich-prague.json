@@ -91,7 +91,7 @@
   "relatedHeading": { "line1": "प्राग पहुँचने के", "italic": "और रास्ते।" },
   "relatedRoutes": [
     { "slug": "regensburg-prague", "city": "रेगेन्सबर्ग", "label": "रेगेन्सबर्ग → प्राग", "distance": "285 किमी", "duration": "3 घंटे" },
-    { "slug": "nuremberg-prague", "city": "नूरेम्बर्ग", "label": "नूरेम्बर्ग → प्राग", "distance": "295 किमी", "duration": "3 घंटे" },
+    { "slug": "nuremberg-prague", "city": "नूरेम्बर्ग", "label": "नूरेम्बर्ग → प्राग", "distance": "300 किमी", "duration": "3 घंटे" },
     { "slug": "passau-prague", "city": "पासाऊ", "label": "पासाऊ → प्राग", "distance": "220 किमी", "duration": "2 घंटे 30 मिनट" },
     { "slug": "salzburg-prague", "city": "साल्ज़बर्ग", "label": "साल्ज़बर्ग → प्राग", "distance": "375 किमी", "duration": "4 घंटे" }
   ],

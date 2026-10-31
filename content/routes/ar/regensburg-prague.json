@@ -90,7 +90,7 @@
   "relatedRoutesIntro": "كثيراً ما تكون رحلة ريغنسبورغ إلى براغ جزءاً من رحلة أطول عبر بافاريا وبوهيميا. ويحجز العملاء الذين يبدؤون من نورمبرغ أو ميونخ أو باساو، أو يتوقفون في بلزن، بالطريقة نفسها — سيارة واحدة، وأجرة ثابتة واحدة، والتوصيل إلى الباب في براغ.",
   "relatedHeading": { "line1": "طرق أخرى", "italic": "إلى براغ." },
   "relatedRoutes": [
-    { "slug": "nuremberg-prague", "city": "نورمبرغ", "label": "نورمبرغ → براغ", "distance": "295 كم", "duration": "3 ساعات" },
+    { "slug": "nuremberg-prague", "city": "نورمبرغ", "label": "نورمبرغ → براغ", "distance": "300 كم", "duration": "3 ساعات" },
     { "slug": "munich-prague", "city": "ميونخ", "label": "ميونخ → براغ", "distance": "385 كم", "duration": "4 ساعات" },
     { "slug": "passau-prague", "city": "باساو", "label": "باساو → براغ", "distance": "220 كم", "duration": "ساعتان و30 دقيقة" },
     { "slug": "plzen-prague", "city": "بلزن", "label": "بلزن → براغ", "distance": "90 كم", "duration": "ساعة واحدة" }

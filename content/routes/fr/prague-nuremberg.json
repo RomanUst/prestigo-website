@@ -3,11 +3,11 @@
     "label": "Prague → Nuremberg",
     "headlineLine1": "De Prague à Nuremberg,",
     "headlineItalic": "la cité franconienne.",
-    "intro": "295 km vers le sud-ouest par la D5 jusqu'en Bavière. Environ trois heures de porte à porte. Tarif fixe à partir de {ePrice} €. Votre chauffeur vous attend déjà.",
+    "intro": "300 km vers le sud-ouest par la D5 jusqu'en Bavière. Environ trois heures de porte à porte. Tarif fixe à partir de {ePrice} €. Votre chauffeur vous attend déjà.",
     "imageAlt": "Nuremberg — transfert en chauffeur privé de Prague à Nuremberg"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Nuremberg couvre environ 295 km par les autoroutes D5 et A6 et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Pilsen ou Ratisbonne — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans qu'il soit besoin de le demander en cas de retard.",
+    "Un transfert privé de Prague à Nuremberg couvre environ 300 km par les autoroutes D5 et A6 et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Pilsen ou Ratisbonne — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans qu'il soit besoin de le demander en cas de retard.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur et un tarif qui ne bouge pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en trois heures environ.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers le sud-ouest, à travers la campagne de Bohême en direction de Pilsen. Après la ville de la brasserie, la D5 s'élève dans la forêt de Bohême boisée et atteint la frontière Schengen tchéco-allemande à Rozvadov et Waidhaus — invisible au sein de l'espace Schengen, sans arrêt ni contrôle de documents. En Allemagne, la route devient l'A6 et file vers l'ouest à travers les collines du Haut-Palatinat jusqu'en Bavière, pour rejoindre Nuremberg par l'est.",
-      "La distance totale est d'environ 295 kilomètres. Le temps de conduite est d'environ trois heures en conditions normales. L'itinéraire vous conduit directement à l'Altstadt, avec le Kaiserburg sur la crête de grès dominant la Pegnitz, le Hauptmarkt où le Christkindlesmarkt remplit la place chaque mois de décembre, la maison d'Albrecht Dürer au pied du château et le Centre de documentation sur l'ancien terrain de rassemblement du parti nazi, au sud du centre.",
+      "La distance totale est d'environ 300 kilomètres. Le temps de conduite est d'environ trois heures en conditions normales. L'itinéraire vous conduit directement à l'Altstadt, avec le Kaiserburg sur la crête de grès dominant la Pegnitz, le Hauptmarkt où le Christkindlesmarkt remplit la place chaque mois de décembre, la maison d'Albrecht Dürer au pied du château et le Centre de documentation sur l'ancien terrain de rassemblement du parti nazi, au sud du centre.",
       "Votre chauffeur observe la circulation sur l'A6 avant chaque départ. Si un week-end de vacances estivales a saturé les abords d'Amberg, ou si les travaux d'élargissement de l'A6 sont en cours, il modifie l'itinéraire sans rien demander. Vous ne payez pas pour la circulation ; vous payez pour du temps."
     ]
   },
@@ -157,7 +157,7 @@
   "faqs": [
     {
       "q": "Combien de temps dure un transfert privé de Prague à Nuremberg ?",
-      "a": "Environ 3 heures de porte à porte, pour quelque 295 km, par l'autoroute D5 vers le sud-ouest via Pilsen, puis en franchissant la frontière Schengen tchéco-allemande à Rozvadov/Waidhaus et en filant vers l'ouest par l'A6 jusqu'en Bavière. La circulation du vendredi après-midi à la sortie de Prague peut ajouter 20 à 30 minutes."
+      "a": "Environ 3 heures de porte à porte, pour quelque 300 km, par l'autoroute D5 vers le sud-ouest via Pilsen, puis en franchissant la frontière Schengen tchéco-allemande à Rozvadov/Waidhaus et en filant vers l'ouest par l'A6 jusqu'en Bavière. La circulation du vendredi après-midi à la sortie de Prague peut ajouter 20 à 30 minutes."
     },
     {
       "q": "Combien coûte un chauffeur de Prague à Nuremberg ?",
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~295 km"
+      "value": "~300 km"
     },
     {
       "label": "Durée",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Nuremberg — Chauffeur premium",
-    "description": "Transfert premium Prague – Nuremberg : 295 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Prague – Nuremberg : 300 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Nuremberg — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Prague – Nuremberg : 295 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Prague – Nuremberg : 300 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

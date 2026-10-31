@@ -3,11 +3,11 @@
     "label": "Prague → Nuremberg",
     "headlineLine1": "Prague to Nuremberg,",
     "headlineItalic": "Franconian city.",
-    "intro": "295 km southwest on the D5 into Bavaria. About three hours door-to-door. Fixed fare from €{ePrice}. Your chauffeur is already waiting.",
+    "intro": "300 km southwest on the D5 into Bavaria. About three hours door-to-door. Fixed fare from €{ePrice}. Your chauffeur is already waiting.",
     "imageAlt": "Nuremberg — private chauffeur transfer from Prague to Nuremberg"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Nuremberg covers approximately 295 km via the D5 and A6 motorways and takes about 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Nuremberg covers approximately 300 km via the D5 and A6 motorways and takes about 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in about three hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway southwest through the Bohemian countryside toward Plzeň. After the brewery city the D5 climbs into the forested Bohemian Forest and reaches the Czech–German Schengen border at Rozvadov and Waidhaus — invisible inside the Schengen Area, no stops, no document checks. Once in Germany, the road becomes the A6 and runs west through the rolling Upper Palatinate countryside into Bavaria, arriving in Nuremberg from the east.",
-      "Total distance is approximately 295 kilometres. Driving time is about three hours in normal conditions. The route delivers you directly to the Altstadt with its Kaiserburg on the sandstone ridge above the Pegnitz, the Hauptmarkt where the Christkindlesmarkt fills the square every December, Albrecht Dürer's house below the castle, and the Documentation Centre at the former Nazi Party Rally Grounds south of the centre.",
+      "Total distance is approximately 300 kilometres. Driving time is about three hours in normal conditions. The route delivers you directly to the Altstadt with its Kaiserburg on the sandstone ridge above the Pegnitz, the Hauptmarkt where the Christkindlesmarkt fills the square every December, Albrecht Dürer's house below the castle, and the Documentation Centre at the former Nazi Party Rally Grounds south of the centre.",
       "Your chauffeur watches traffic on the A6 before every departure. If a summer holiday weekend has stacked traffic near Amberg, or if the A6 widening works are active, they reroute without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -78,7 +78,7 @@
   },
   "faqsHeading": "Frequently asked questions",
   "faqs": [
-    { "q": "How long does a private transfer from Prague to Nuremberg take?", "a": "Approximately 3 hours door-to-door for about 295 km via the D5 motorway southwest through Plzeň, then across the Czech–German Schengen border at Rozvadov/Waidhaus and west along the A6 into Bavaria. Friday afternoon traffic leaving Prague can add 20–30 minutes." },
+    { "q": "How long does a private transfer from Prague to Nuremberg take?", "a": "Approximately 3 hours door-to-door for about 300 km via the D5 motorway southwest through Plzeň, then across the Czech–German Schengen border at Rozvadov/Waidhaus and west along the A6 into Bavaria. Friday afternoon traffic leaving Prague can add 20–30 minutes." },
     { "q": "How much does a chauffeur from Prague to Nuremberg cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Nuremberg?", "a": "Yes, and it is a workable day at about 3 hours each way. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Most day-trip clients book between 4 and 6 hours on site." },
     { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The Rozvadov/Waidhaus crossing is invisible — no routine border checks. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
@@ -94,7 +94,7 @@
     { "slug": "prague-plzen", "city": "Plzeň", "distance": "90 km", "duration": "1h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~295 km" },
+    { "label": "Distance", "value": "~300 km" },
     { "label": "Duration", "value": "~3 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Nuremberg Transfer — Premium Chauffeur",
-    "description": "Premium Prague to Nuremberg transfer: 295 km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Nuremberg transfer: 300 km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Nuremberg Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Nuremberg transfer: 295 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Nuremberg transfer: 300 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

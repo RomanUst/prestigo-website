@@ -3,11 +3,11 @@
     "label": "Praga → Núremberg",
     "headlineLine1": "De Praga a Núremberg,",
     "headlineItalic": "la ciudad franconia.",
-    "intro": "295 km hacia el suroeste por la D5 hasta Baviera. Unas tres horas de puerta a puerta. Tarifa fija desde {ePrice} €. Su chófer ya le está esperando.",
+    "intro": "300 km hacia el suroeste por la D5 hasta Baviera. Unas tres horas de puerta a puerta. Tarifa fija desde {ePrice} €. Su chófer ya le está esperando.",
     "imageAlt": "Núremberg — traslado en chófer privado desde Praga a Núremberg"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Núremberg recorre 295 km por la autopista D5 y la A6 y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes-Benz E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada a la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Pilsen o Ratisbona— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Un traslado privado de Praga a Núremberg recorre 300 km por la autopista D5 y la A6 y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes-Benz E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada a la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Pilsen o Ratisbona— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
     "Esto no es una lanzadera compartida. Es un Mercedes-Benz privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en tres horas.",
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D5 hacia el suroeste, atravesando el campo bohemio en dirección a Pilsen. Tras la ciudad cervecera, la D5 asciende hacia la boscosa Selva de Bohemia y alcanza la frontera Schengen checo-alemana en Rozvadov y Waidhaus: invisible dentro del espacio Schengen, sin paradas ni controles de documentación. Ya en Alemania, la carretera se convierte en la A6 y avanza hacia el oeste por las suaves colinas del Alto Palatinado hasta Baviera, llegando a Núremberg desde el este.",
-      "La distancia total es de aproximadamente 295 kilómetros. El tiempo de conducción es de unas tres horas en condiciones normales. La ruta le deja directamente en el Altstadt, con su Kaiserburg sobre la cresta de arenisca que domina el Pegnitz, el Hauptmarkt donde el Christkindlesmarkt llena la plaza cada diciembre, la casa de Alberto Durero bajo el castillo y el Centro de Documentación del antiguo recinto de congresos del Partido Nazi, al sur del centro.",
+      "La distancia total es de aproximadamente 300 kilómetros. El tiempo de conducción es de unas tres horas en condiciones normales. La ruta le deja directamente en el Altstadt, con su Kaiserburg sobre la cresta de arenisca que domina el Pegnitz, el Hauptmarkt donde el Christkindlesmarkt llena la plaza cada diciembre, la casa de Alberto Durero bajo el castillo y el Centro de Documentación del antiguo recinto de congresos del Partido Nazi, al sur del centro.",
       "Su chófer consulta el tráfico en la A6 antes de cada salida. Si un fin de semana festivo de verano ha congestionado la circulación cerca de Amberg, o si las obras de ampliación de la A6 están activas, cambia la ruta sin necesidad de preguntar. Usted no paga por el tráfico; paga por su tiempo."
     ]
   },
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~295 km"
+      "value": "~300 km"
     },
     {
       "label": "Duración",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Núremberg — Chófer premium",
-    "description": "Traslado premium Praga – Núremberg: 295 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Núremberg: 300 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Núremberg — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Núremberg: 295 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Núremberg: 300 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }
