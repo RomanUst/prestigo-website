@@ -176,3 +176,119 @@ describe('081 grants (T-85-01)', () => {
     expect(m081).toContain(`GRANT EXECUTE ON FUNCTION public.${sig} TO service_role;`)
   })
 })
+
+// ── Task 2: chat channel writer, phone-resolved chat leads, direct rows ─────
+
+const DIRECT_SOURCES = [
+  'manual_whatsapp',
+  'manual_phone',
+  'manual_email',
+  'manual_partner',
+  'manual_other',
+  'manual_unknown',
+  'gnet',
+  'online',
+]
+
+describe('081 chat_lead_reserve (D-04, 6-arg)', () => {
+  it('drops the 5-arg overload before creating the 6-arg one', () => {
+    const drop = m081.indexOf('DROP FUNCTION IF EXISTS public.chat_lead_reserve(text, uuid, bigint, text, text);')
+    const create = m081.indexOf('CREATE OR REPLACE FUNCTION public.chat_lead_reserve(')
+    expect(drop, 'DROP of the old signature').toBeGreaterThan(-1)
+    expect(create, 'CREATE of the new signature').toBeGreaterThan(-1)
+    expect(drop).toBeLessThan(create)
+    expect(count(m081, 'CREATE OR REPLACE FUNCTION public.chat_lead_reserve(')).toBe(1)
+  })
+
+  it('new signature ends with p_channel text DEFAULT NULL and keeps the advisory lock', () => {
+    const { header, body } = fn('chat_lead_reserve')
+    expect(header).toMatch(/p_channel\s+text\s+DEFAULT NULL\s*\)/)
+    expect(header).toMatch(/SECURITY DEFINER/)
+    expect(header).toMatch(/SET search_path = ''/)
+    expect(body).toContain('pg_advisory_xact_lock')
+    expect(body).toContain('public.chat_channel_bucket(p_channel)')
+  })
+
+  it('stores the channel on INSERT only (existing-row paths never relabel a lead)', () => {
+    const { body } = fn('chat_lead_reserve')
+    expect(count(body, /\bINSERT\b/)).toBe(1)
+    expect(body).not.toMatch(/\bUPDATE\b/i)
+    expect(body).toMatch(/INSERT INTO public\.chat_leads\s*\(lead_ref, person_key, identity_id, chatwoot_contact_id, phone, channel\)/)
+  })
+})
+
+describe('081 chat_channel_bucket (D-04)', () => {
+  it('maps exactly the four Chatwoot classes leadSourceForChannel maps', () => {
+    const { body } = fn('chat_channel_bucket')
+    const sqlClasses = [...new Set(body.match(/Channel::\w+/g) ?? [])].sort()
+    const ts = readFileSync(join(process.cwd(), 'lib', 'chat-classify.ts'), 'utf8')
+    const start = ts.indexOf('export function leadSourceForChannel')
+    expect(start).toBeGreaterThan(-1)
+    const fnText = ts.slice(start, ts.indexOf('\n}\n', start))
+    const tsClasses = [...fnText.matchAll(/case '(Channel::\w+)'/g)].map((m) => m[1]).sort()
+    expect(tsClasses).toHaveLength(4)
+    expect(sqlClasses).toEqual(tsClasses)
+  })
+
+  it('NULL stays NULL, unknown classes fall to other, and it is IMMUTABLE with a pinned search_path', () => {
+    const { header, body } = fn('chat_channel_bucket')
+    expect(header).toMatch(/\bIMMUTABLE\b/)
+    expect(header).toMatch(/SET search_path = ''/)
+    expect(body).toMatch(/p_raw IS NULL THEN NULL/)
+    expect(body).toMatch(/ELSE 'other'/)
+    for (const b of ['web', 'whatsapp', 'email', 'telegram']) expect(body).toContain(`'${b}'`)
+  })
+})
+
+describe('081 grants on the new signatures (T-85-01)', () => {
+  it.each(['chat_lead_reserve(text, uuid, bigint, text, text, text)', 'chat_channel_bucket(text)'])(
+    '%s is service_role only',
+    (sig) => {
+      expect(m081).toContain(`REVOKE EXECUTE ON FUNCTION public.${sig} FROM PUBLIC, anon, authenticated;`)
+      expect(m081).toContain(`GRANT EXECUTE ON FUNCTION public.${sig} TO service_role;`)
+    },
+  )
+
+  it('no REVOKE or GRANT names the old 5-arg chat_lead_reserve', () => {
+    expect(m081).not.toMatch(/(REVOKE|GRANT) EXECUTE ON FUNCTION public\.chat_lead_reserve\(text, uuid, bigint, text, text\)\s/)
+  })
+
+  it('every function pins search_path (T-85-02)', () => {
+    expect(count(m081, `SET search_path = ''`)).toBe(count(m081, 'CREATE OR REPLACE FUNCTION'))
+  })
+})
+
+describe('081 stats_conversion: phone-resolved chat leads and direct rows (D-06)', () => {
+  const { body } = fn('stats_conversion')
+
+  it('resolves a chat lead phone only when not shared and exactly one identity owns it', () => {
+    expect(body).toContain('public.phone_flags')
+    expect(body).toMatch(/f\.shared/)
+    expect(body).toContain('public.identity_phones')
+    expect(body).toMatch(/count\(DISTINCT p\.identity_id\) = 1/)
+    expect(body).not.toMatch(/\bmin\s*\(/i)
+  })
+
+  it.each(DIRECT_SOURCES)('direct source %s is present', (src) => {
+    expect(body).toContain(src)
+  })
+
+  it('direct rule: no inquiry of the person in the 90 days before, and not a converted chat lead', () => {
+    expect(body).toMatch(/NOT EXISTS \(\s*SELECT 1\s+FROM inq_all/)
+    expect(body).toMatch(/NOT EXISTS \(\s*SELECT 1\s+FROM public\.chat_leads/)
+    expect(body).toContain(`t.created_at - interval '90 days'`)
+  })
+})
+
+describe('85-01-smoke.sql', () => {
+  const smoke = readFileSync(
+    join(process.cwd(), '.planning', 'phases', '85-statistics', '85-01-smoke.sql'),
+    'utf8',
+  )
+
+  it('is one DO block that ends by raising SMOKE_OK_85_01', () => {
+    expect(count(smoke, `RAISE EXCEPTION 'SMOKE_OK_85_01'`)).toBe(1)
+    expect(count(smoke, 'DO $smoke$')).toBe(1)
+    expect(smoke.trimEnd().endsWith('$smoke$;')).toBe(true)
+  })
+})

@@ -49,6 +49,88 @@ ALTER TABLE public.chat_leads DROP CONSTRAINT IF EXISTS chat_leads_channel_check
 ALTER TABLE public.chat_leads ADD CONSTRAINT chat_leads_channel_check
   CHECK (channel IS NULL OR channel IN ('web', 'whatsapp', 'email', 'telegram', 'other'));
 
+-- ── chat_channel_bucket: Chatwoot channel class -> five buckets ─────────────
+-- The four class strings are the same ones leadSourceForChannel (lib/chat-classify.ts) maps; a static
+-- test pins that both lists stay equal. NULL in means unknown (NULL out), any other class is 'other'.
+CREATE OR REPLACE FUNCTION public.chat_channel_bucket(p_raw text)
+RETURNS text
+LANGUAGE sql
+IMMUTABLE
+SET search_path = ''
+AS $$
+  SELECT CASE
+    WHEN p_raw IS NULL THEN NULL
+    WHEN p_raw = 'Channel::WebWidget' THEN 'web'
+    WHEN p_raw = 'Channel::Whatsapp' THEN 'whatsapp'
+    WHEN p_raw = 'Channel::Email' THEN 'email'
+    WHEN p_raw = 'Channel::Telegram' THEN 'telegram'
+    ELSE 'other'
+  END;
+$$;
+
+-- ── chat_lead_reserve: 078 body + the channel of the creating conversation ──
+-- The old 5-arg signature is dropped first: two overloads would make PostgREST named-argument calls
+-- ambiguous. p_channel has a DEFAULT so an intake deployed before this migration is applied keeps
+-- working. Only the INSERT path stores the channel; the open-row and lead_ref paths never touch it, so a
+-- later conversation of the same person never relabels the lead.
+DROP FUNCTION IF EXISTS public.chat_lead_reserve(text, uuid, bigint, text, text);
+
+CREATE OR REPLACE FUNCTION public.chat_lead_reserve(
+  p_person_key          text,
+  p_identity_id         uuid,
+  p_chatwoot_contact_id bigint,
+  p_phone               text,
+  p_lead_ref            text,
+  p_channel             text DEFAULT NULL
+)
+RETURNS TABLE (
+  chat_lead_id    uuid,
+  lead_ref        text,
+  espo_lead_id    text,
+  espo_contact_id text,
+  own             boolean
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+#variable_conflict use_column
+DECLARE
+  v_row public.chat_leads%ROWTYPE;
+BEGIN
+  -- Serialise every reserve for this person until the transaction ends.
+  PERFORM pg_advisory_xact_lock(hashtextextended('chat_lead:' || p_person_key, 0));
+
+  -- The person already has an open chat Lead: return it (own only when it is this conversation's).
+  SELECT l.* INTO v_row
+    FROM public.chat_leads l
+   WHERE l.person_key = p_person_key AND l.open;
+  IF FOUND THEN
+    RETURN QUERY SELECT v_row.id, v_row.lead_ref, v_row.espo_lead_id, v_row.espo_contact_id,
+                        (v_row.lead_ref = p_lead_ref);
+    RETURN;
+  END IF;
+
+  -- A retry of a conversation whose Lead is already closed or filed under another key.
+  SELECT l.* INTO v_row
+    FROM public.chat_leads l
+   WHERE l.lead_ref = p_lead_ref;
+  IF FOUND THEN
+    RETURN QUERY SELECT v_row.id, v_row.lead_ref, v_row.espo_lead_id, v_row.espo_contact_id, true;
+    RETURN;
+  END IF;
+
+  INSERT INTO public.chat_leads
+    (lead_ref, person_key, identity_id, chatwoot_contact_id, phone, channel)
+  VALUES
+    (p_lead_ref, p_person_key, p_identity_id, p_chatwoot_contact_id, p_phone,
+     public.chat_channel_bucket(p_channel))
+  RETURNING * INTO v_row;
+
+  RETURN QUERY SELECT v_row.id, v_row.lead_ref, v_row.espo_lead_id, v_row.espo_contact_id, true;
+END;
+$$;
+
 -- ── stats_trips: one row per paid ORDER ─────────────────────────────────────
 -- person_key is the identity uuid (as text) when the booking is linked, else 'e:' plus the normalised
 -- booking email, else NULL (anonymised rows and GNet placeholder emails never match a person).
@@ -138,7 +220,17 @@ BEGIN
       UNION ALL
       SELECT 'chat_' || COALESCE(l.channel, 'other'),
              l.created_at,
-             l.identity_id::text,
+             COALESCE(
+               l.identity_id::text,
+               (SELECT (array_agg(DISTINCT p.identity_id))[1]::text
+                  FROM public.identity_phones p
+                 WHERE l.phone IS NOT NULL
+                   AND p.phone = l.phone
+                   AND NOT EXISTS (
+                     SELECT 1 FROM public.phone_flags f WHERE f.phone = l.phone AND f.shared
+                   )
+                HAVING count(DISTINCT p.identity_id) = 1)
+             ),
              l.converted_booking_id
         FROM public.chat_leads l
       UNION ALL
@@ -197,11 +289,40 @@ BEGIN
         FROM matched x
        WHERE x.booking_id IS NOT NULL
     ),
-    trips_in_period AS (
-      SELECT count(*)::integer AS n
+    period_trips AS (
+      SELECT t.booking_id,
+             t.amount_eur,
+             CASE t.booking_source
+               WHEN 'manual' THEN 'manual_' || COALESCE(t.lead_channel, 'unknown')
+               WHEN 'gnet' THEN 'gnet'
+               ELSE 'online'
+             END AS dsrc,
+             (
+               NOT EXISTS (
+                 SELECT 1
+                   FROM inq_all q
+                  WHERE t.person_key IS NOT NULL
+                    AND q.pkey = t.person_key
+                    AND q.created_at >= t.created_at - interval '90 days'
+                    AND q.created_at <= t.created_at
+               )
+               AND NOT EXISTS (
+                 SELECT 1
+                   FROM public.chat_leads l
+                  WHERE l.converted_booking_id = t.booking_id
+               )
+             ) AS is_direct
         FROM trips t
        WHERE t.created_at >= v_lo
          AND t.created_at < v_hi
+    ),
+    direct_src AS (
+      SELECT x.dsrc,
+             count(*)::integer AS bookings,
+             COALESCE(sum(x.amount_eur), 0)::integer AS revenue_eur
+        FROM period_trips x
+       WHERE x.is_direct
+       GROUP BY x.dsrc
     )
     SELECT jsonb_build_object(
       'from', to_char(p_from, 'YYYY-MM-DD'),
@@ -239,8 +360,11 @@ BEGIN
       ),
       'direct', (
         SELECT jsonb_agg(
-                 jsonb_build_object('source', d.src, 'bookings', 0, 'revenue_eur', 0)
-                 ORDER BY d.ord)
+                 jsonb_build_object(
+                   'source',      d.src,
+                   'bookings',    COALESCE(ds.bookings, 0),
+                   'revenue_eur', COALESCE(ds.revenue_eur, 0)
+                 ) ORDER BY d.ord)
           FROM (VALUES
                  (1, 'manual_whatsapp'),
                  (2, 'manual_phone'),
@@ -251,10 +375,14 @@ BEGIN
                  (7, 'gnet'),
                  (8, 'online')
                ) AS d(ord, src)
+          LEFT JOIN direct_src ds ON ds.dsrc = d.src
       ),
-      'direct_total', jsonb_build_object('bookings', 0, 'revenue_eur', 0),
-      'trips_in_period',     (SELECT p.n FROM trips_in_period p),
-      'attributed_bookings', (SELECT p.n FROM trips_in_period p)
+      'direct_total', jsonb_build_object(
+        'bookings',    (SELECT COALESCE(sum(s.bookings), 0)::integer FROM direct_src s),
+        'revenue_eur', (SELECT COALESCE(sum(s.revenue_eur), 0)::integer FROM direct_src s)
+      ),
+      'trips_in_period',     (SELECT count(*)::integer FROM period_trips),
+      'attributed_bookings', (SELECT count(*)::integer FROM period_trips x WHERE NOT x.is_direct)
     )
   );
 
@@ -263,8 +391,12 @@ END;
 $$;
 
 -- ── Grants: service role only (per function; DROP+CREATE re-grants PUBLIC) ──
+REVOKE EXECUTE ON FUNCTION public.chat_channel_bucket(text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.chat_lead_reserve(text, uuid, bigint, text, text, text) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.stats_trips() FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.stats_conversion(date, date) FROM PUBLIC, anon, authenticated;
 
+GRANT EXECUTE ON FUNCTION public.chat_channel_bucket(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.chat_lead_reserve(text, uuid, bigint, text, text, text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.stats_trips() TO service_role;
 GRANT EXECUTE ON FUNCTION public.stats_conversion(date, date) TO service_role;
