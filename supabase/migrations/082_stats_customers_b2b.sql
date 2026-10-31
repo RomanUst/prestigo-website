@@ -132,7 +132,96 @@ BEGIN
 END;
 $$;
 
+-- ── stats_customers: repeat customers, their revenue share, top 10 ─────────
+-- Population (D-09, D-12): stats_trips rows that are not GNet (by SOURCE, not by missing identity: a GNet
+-- row can carry a real passenger email and still is not our customer), not anonymised and with a person
+-- key. A round trip is one trip (stats_trips skips the return leg). "Repeat" means 2 or more trips over
+-- ALL time, so a trip after p_to still makes an earlier customer a repeat customer (D-10).
+CREATE OR REPLACE FUNCTION public.stats_customers(
+  p_from date,
+  p_to   date
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_from   text;
+  v_to     text;
+  v_result jsonb;
+BEGIN
+  IF p_from IS NULL OR p_to IS NULL OR p_from > p_to THEN
+    RAISE EXCEPTION 'invalid period';
+  END IF;
+
+  v_from := to_char(p_from, 'YYYY-MM-DD');
+  v_to   := to_char(p_to, 'YYYY-MM-DD');
+
+  v_result := (
+    WITH pop AS MATERIALIZED (
+      SELECT t.booking_id, t.person_key, t.pickup_date, t.amount_eur,
+             t.created_at, t.client_name, t.client_email
+        FROM public.stats_trips() t
+       WHERE t.booking_source <> 'gnet'
+         AND NOT t.anonymised
+         AND t.person_key IS NOT NULL
+    ),
+    per_person AS (
+      SELECT p.person_key,
+             count(*)::integer AS trips,
+             COALESCE(sum(p.amount_eur), 0)::integer AS revenue_eur,
+             min(p.pickup_date) AS first_trip,
+             max(p.pickup_date) AS last_trip,
+             (array_agg(p.client_name ORDER BY p.created_at DESC, p.booking_id DESC))[1] AS name,
+             (array_agg(p.client_email ORDER BY p.created_at DESC, p.booking_id DESC))[1] AS email,
+             (count(*) FILTER (WHERE p.pickup_date >= v_from AND p.pickup_date <= v_to))::integer AS period_trips,
+             COALESCE(sum(p.amount_eur) FILTER (WHERE p.pickup_date >= v_from AND p.pickup_date <= v_to), 0)::integer AS period_revenue_eur
+        FROM pop p
+       GROUP BY p.person_key
+    ),
+    top AS (
+      SELECT s.*,
+             row_number() OVER (
+               ORDER BY s.revenue_eur DESC, s.trips DESC, s.last_trip DESC, s.email ASC NULLS LAST, s.person_key ASC
+             ) AS rn
+        FROM per_person s
+       WHERE s.trips >= 2
+       ORDER BY rn
+       LIMIT 10
+    )
+    SELECT jsonb_build_object(
+      'from', v_from,
+      'to',   v_to,
+      'customers',        (SELECT count(*)::integer FROM per_person s WHERE s.period_trips >= 1),
+      'repeat_customers', (SELECT count(*)::integer FROM per_person s WHERE s.period_trips >= 1 AND s.trips >= 2),
+      'revenue_eur',      (SELECT COALESCE(sum(s.period_revenue_eur), 0)::integer FROM per_person s),
+      'repeat_revenue_eur', (SELECT COALESCE(sum(s.period_revenue_eur), 0)::integer FROM per_person s WHERE s.trips >= 2),
+      'repeat_customers_all_time', (SELECT count(*)::integer FROM per_person s WHERE s.trips >= 2),
+      'top', COALESCE(
+        (SELECT jsonb_agg(
+                  jsonb_build_object(
+                    'name',        x.name,
+                    'email',       x.email,
+                    'trips',       x.trips,
+                    'revenue_eur', x.revenue_eur,
+                    'first_trip',  x.first_trip,
+                    'last_trip',   x.last_trip
+                  )
+                  ORDER BY x.rn)
+           FROM top x),
+        '[]'::jsonb)
+    )
+  );
+
+  RETURN v_result;
+END;
+$$;
+
 -- ── Grants: service role only (per function; DROP+CREATE re-grants PUBLIC) ──
 REVOKE EXECUTE ON FUNCTION public.stats_b2b(date, date) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.stats_customers(date, date) FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION public.stats_b2b(date, date) TO service_role;
+GRANT EXECUTE ON FUNCTION public.stats_customers(date, date) TO service_role;
