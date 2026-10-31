@@ -45,7 +45,7 @@ describe('mirror routes', () => {
         expect(c.faqs).toHaveLength(en.faqs.length)
         for (const r of c.relatedRoutes) expect(ALL_ROUTE_SLUGS.has(r.slug), r.slug).toBe(true)
       }
-      expect(en.metadata.title).toContain('{ePrice}')
+      expect(en.metadata.title.startsWith(`${en.hero.label.split(' → ')[0]} to Prague Transfer`)).toBe(true)
       expect(en.hero.label).toContain('→ Prague')
     })
   }

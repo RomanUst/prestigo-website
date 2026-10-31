@@ -50,7 +50,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Karlovy Vary Chauffeur — From €485",
+      "metadata.title": "Prague to Karlovy Vary Transfer — Executive",
     });
   });
 
@@ -63,7 +63,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, and all Polish toll sections including the A4. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Kraków Chauffeur — From €485",
+      "metadata.title": "Prague to Kraków Transfer — Executive Mercedes",
     });
   });
 
@@ -76,7 +76,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Kutná Hora Chauffeur — From €485",
+      "metadata.title": "Prague to Kutná Hora Transfer — Premium Chauffeur",
     });
   });
 
@@ -89,7 +89,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Leipzig Chauffeur — From €485",
+      "metadata.title": "Prague to Leipzig Transfer — Executive Chauffeur",
     });
   });
 
@@ -102,7 +102,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Liberec Chauffeur — From €485",
+      "metadata.title": "Prague to Liberec Transfer — Executive Mercedes",
     });
   });
 
@@ -121,7 +121,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, Czech and Austrian motorway vignettes, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Linz Chauffeur — From €485",
+      "metadata.title": "Prague to Linz Transfer — Premium Chauffeur",
     });
   });
 
@@ -134,7 +134,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Mariánské Lázně Chauffeur — From €485",
+      "metadata.title": "Prague to Mariánské Lázně Transfer — Executive",
     });
   });
 
@@ -153,7 +153,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Munich Chauffeur — From €485",
+      "metadata.title": "Prague to Munich Transfer — Executive Mercedes",
     });
   });
 
@@ -166,7 +166,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Nuremberg Chauffeur — From €485",
+      "metadata.title": "Prague to Nuremberg Transfer — Premium Chauffeur",
     });
   });
 
@@ -179,7 +179,7 @@ describe("Group B route content (71-03)", () => {
       "faqs.1.a":
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Olomouc Chauffeur — From €485",
+      "metadata.title": "Prague to Olomouc Transfer — Executive Chauffeur",
     });
   });
 

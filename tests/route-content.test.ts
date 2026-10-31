@@ -49,7 +49,7 @@ describe("getRouteContent()", () => {
       "faqs.1.a":
         "A fixed fare from €485 in a Mercedes E-Class for up to 3 passengers, €590 in the V-Class for up to 6, or €650 in the S-Class. The price covers fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
-      "metadata.title": "Prague to Vienna: 3.5h Door-to-Door, From €485",
+      "metadata.title": "Prague to Vienna Transfer — Premium, 3.5h",
     });
   });
 });
