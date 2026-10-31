@@ -31,7 +31,7 @@ created: "2026-10-31"
 
 - **After every task commit:** quick run command (files touched)
 - **After every plan wave:** quick run + `tests/chat-store.test.ts tests/chat-intake.test.ts tests/BookingsTable.test.tsx tests/panel-bookings-migration.test.ts tests/infra-vps-isolation-guard.test.ts` + `npx tsc --noEmit`
-- **Before `/gsd-verify-work`:** full suite green, `verify` skill PASS, live smokes `SMOKE_OK_85_01..03` returned, backfill applied and `channel IS NULL` count reported
+- **Before `/gsd-verify-work`:** full suite green, `verify` skill PASS, live smokes `SMOKE_OK_85_01` and `SMOKE_OK_85_03` returned, backfill applied and `channel IS NULL` count reported
 - **Max feedback latency:** 90 seconds
 
 ---
@@ -45,11 +45,11 @@ created: "2026-10-31"
 | STAT-01 | intake persists raw channel via `reserveLead` | unit | `npx vitest run tests/chat-store.test.ts tests/chat-intake.test.ts` | ✅ edit | ⬜ pending |
 | STAT-01/02/03 | stats routes: 401, 403, 400 (bad/reversed/impossible dates), 200 passes `p_from/p_to`, generic 500 | unit | `npx vitest run tests/admin-stats-routes.test.ts` | ❌ W0 | ⬜ pending |
 | D-13 | period presets + `parsePeriod` with injected `now` (Prague midnight) | unit | `npx vitest run tests/admin-stats-period.test.ts` | ❌ W0 | ⬜ pending |
-| STAT-02 | `stats_customers` contract: GNet excluded by `booking_source`, anonymised excluded, `>= 2`, `LIMIT 10` | unit (static SQL) | `npx vitest run tests/stats-migration.test.ts` | ❌ W0 | ⬜ pending |
-| STAT-02 | live: round trip = one trip, repeat rate num/den, revenue share, top 10, GNet with real email excluded | live smoke | MCP `85-02-smoke.sql` → `SMOKE_OK_85_02` | ❌ W0 (orchestrator) | ⬜ pending |
-| STAT-02 | Customers tab: rate with counts, rows link `/admin/bookings?search=<encoded email>` | component | `npx vitest run tests/stats-page.test.tsx` | ❌ W0 | ⬜ pending |
+| STAT-02 | `stats_customers` contract (migration 082): GNet excluded by `booking_source`, anonymised excluded, `>= 2`, `LIMIT 10` | unit (static SQL) | `npx vitest run tests/stats-customers-b2b-migration.test.ts` | ❌ W0 | ⬜ pending |
+| STAT-02 | live: round trip = one trip, repeat rate num/den, revenue share, top 10, GNet with real email excluded | live smoke | MCP `85-03-smoke.sql` → `SMOKE_OK_85_03` (customers + B2B, plan 85-03) | ❌ W0 (orchestrator) | ⬜ pending |
+| STAT-02 | Customers tab: rate with counts, rows link `/admin/bookings?search=<encoded email>` | component | `npx vitest run tests/stats-customers-tab.test.tsx` | ❌ W0 | ⬜ pending |
 | STAT-02 | `BookingsTable` accepts email deep link | component | `npx vitest run tests/BookingsTable.test.tsx` | ✅ edit | ⬜ pending |
-| STAT-03 | `stats_b2b` contract: `account_type = 'corporate'`, user_id OR client_email attribution (D-19), period on `pickup_date` text | unit (static SQL) | `npx vitest run tests/stats-migration.test.ts` | ❌ W0 | ⬜ pending |
+| STAT-03 | `stats_b2b` contract (migration 082): `account_type = 'corporate'`, COALESCE(user_id, email owner) attribution (D-19), period on `pickup_date` text | unit (static SQL) | `npx vitest run tests/stats-customers-b2b-migration.test.ts` | ❌ W0 | ⬜ pending |
 | STAT-03 | live: personal accounts excluded, avg/last trip, share of total revenue | live smoke | MCP `85-03-smoke.sql` → `SMOKE_OK_85_03` | ❌ W0 (orchestrator) | ⬜ pending |
 | STAT-03 / D-16 | B2B tab + tab shell: URL `?tab&from&to`, default 90 days, Overview unchanged | component | `npx vitest run tests/stats-page.test.tsx` | ❌ W0 | ⬜ pending |
 | D-04 | backfill helper: pure parse/SQL emit, never prints names/emails | unit | `npx vitest run tests/channel-backfill.test.ts` | ❌ W0 | ⬜ pending |
@@ -65,7 +65,8 @@ created: "2026-10-31"
 - [ ] `tests/admin-stats-period.test.ts` — period helper
 - [ ] `tests/stats-page.test.tsx` — tab shell + three tabs
 - [ ] `tests/channel-backfill.test.ts` — backfill helper
-- [ ] `.planning/phases/85-statistics/85-0{1,2,3}-smoke.sql` — live smokes (orchestrator-run)
+- [ ] `.planning/phases/85-statistics/85-01-smoke.sql` (`SMOKE_OK_85_01`, migration 081) and `85-03-smoke.sql` (`SMOKE_OK_85_03`, migration 082) — live smokes (orchestrator-run)
+- [ ] `tests/stats-customers-b2b-migration.test.ts`, `tests/stats-conversion-tab.test.tsx`, `tests/stats-customers-tab.test.tsx`
 - [ ] Edit: `tests/chat-store.test.ts`, `tests/chat-intake.test.ts`, `tests/BookingsTable.test.tsx`
 
 ---
