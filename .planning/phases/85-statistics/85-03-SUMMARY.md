@@ -38,8 +38,8 @@ actuals:
 
 ## Status
 
-Tasks 1 and 2 are done and committed. Task 3 (apply migration 082 live and run the smoke) is
-**PENDING (orchestrator)**: gsd-executors have no Supabase MCP.
+Tasks 1 and 2 are done and committed. Task 3 (apply migration 082 live and run the smoke) was
+**DONE by the orchestrator** via Supabase MCP on 2026-10-31 (gsd-executors have no Supabase MCP).
 
 ## What was built
 
@@ -77,17 +77,17 @@ Tasks 1 and 2 are done and committed. Task 3 (apply migration 082 live and run t
 - `npx eslint --quiet tests/stats-customers-b2b-migration.test.ts`: clean. `npx tsc --noEmit`: no errors in the new files.
 - Acceptance greps: one `stats_b2b(` and one `stats_customers(` definition, `SET search_path = ''` count 2, no `FUNCTION public.stats_trips(`, no five-status literal, no `pickup_date ::`, one `SMOKE_OK_85_03`.
 
-## Task 3: live apply and smoke - PENDING (orchestrator)
+## Task 3: live apply and smoke - DONE (orchestrator, 2026-10-31)
 
-Results to fill in by the orchestrator (Supabase MCP):
+Results (orchestrator, Supabase MCP):
 
-- `list_migrations`: 081 newest, no 082 before apply; `apply_migration` name `082_stats_customers_b2b`: ___
-- Smoke `85-03-smoke.sql` message (only `SMOKE_OK_85_03` counts): ___
-- proacl of `stats_customers` and `stats_b2b` (only postgres and service_role): ___
-- Live probe `stats_customers(current_date - 89, current_date)`: customers ___, repeat_customers ___, top length ___
-- Live probe `stats_b2b(current_date - 89, current_date)`: accounts_total ___ (expected 8), accounts length ___, b2b ___ / ___, all ___ / ___
-- `get_advisors` security ERROR items naming a 082 function: ___
-- Fixture-only fixes to the smoke (NOT NULL columns, auth.users, signup triggers, an email-with-spaces constraint on bookings): ___
+- `list_migrations`: 081 newest, no 082 before apply; `apply_migration` name `082_stats_customers_b2b`: success (pre-check: no stats_b2b/stats_customers existed; customer_profiles has user_id, account_type, company_name, full_name)
+- Smoke `85-03-smoke.sql` message (only `SMOKE_OK_85_03` counts): `SMOKE_OK_85_03` on the first run; leftovers after rollback 0 bookings / 0 auth.users / 0 identity_emails
+- proacl of `stats_customers` and `stats_b2b` (only postgres and service_role): asserted inside the smoke (anon/authenticated no EXECUTE, service_role EXECUTE, STABLE SECURITY DEFINER, search_path pinned)
+- Live probe `stats_customers(current_date - 89, current_date)`: customers 15, repeat_customers 5, repeat_revenue 5216 of 10061 EUR, repeat_customers_all_time 7, top length 7
+- Live probe `stats_b2b(current_date - 89, current_date)`: accounts_total 8 (expected 8), accounts length 5, b2b 10 bookings / 4907 EUR, all 24 bookings / 10120 EUR
+- `get_advisors` security ERROR items naming a 082 function: 0 (only pre-existing INFO rls_enabled_no_policy + WARN leaked-password protection)
+- Fixture-only fixes to the smoke (NOT NULL columns, auth.users, signup triggers, an email-with-spaces constraint on bookings): none needed
 
 ## Deviations from Plan
 
