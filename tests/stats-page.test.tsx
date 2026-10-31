@@ -94,9 +94,23 @@ function urls(): string[] {
   return fetchMock.mock.calls.map((c) => String(c[0]))
 }
 
+const CONVERSION = {
+  from: '2026-01-01',
+  to: '2026-03-31',
+  funnel: [
+    { source: 'chat_web', inquiries: 3, converted: 1, window_open: 0, revenue_eur: 120 },
+  ],
+  funnel_total: { inquiries: 3, converted: 1, window_open: 0, converting_bookings: 1, revenue_eur: 120 },
+  direct: [{ source: 'online', bookings: 2, revenue_eur: 300 }],
+  direct_total: { bookings: 2, revenue_eur: 300 },
+  trips_in_period: 3,
+  attributed_bookings: 1,
+}
+
 function routeFetch(b2bBody: unknown | (() => Response | Promise<Response>) = b2b()) {
   fetchMock.mockImplementation(async (url: string) => {
     if (url === '/api/admin/stats') return ok(OVERVIEW)
+    if (url.startsWith('/api/admin/stats/conversion?')) return ok(CONVERSION)
     if (url.startsWith('/api/admin/stats/b2b?')) {
       return typeof b2bBody === 'function' ? (b2bBody as () => Response | Promise<Response>)() : ok(b2bBody)
     }
@@ -134,13 +148,13 @@ describe('StatsPage shell + Overview', () => {
     })
   })
 
-  it('shows tabs Overview and B2B with Overview selected, and no period selector on Overview', async () => {
+  it('shows tabs Overview, Conversion, Customers and B2B in order with Overview selected, and no period selector on Overview', async () => {
     routeFetch()
     render(<StatsPage />)
     await screen.findByText('MONTHLY REVENUE')
 
     const tabs = screen.getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'B2B'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'Conversion', 'Customers', 'B2B'])
     expect(tabs[0].getAttribute('aria-selected')).toBe('true')
     expect(tabs[1].getAttribute('aria-selected')).toBe('false')
     expect(screen.queryByRole('button', { name: 'Last 30 days' })).toBeNull()
@@ -158,6 +172,19 @@ describe('StatsPage shell + Overview', () => {
     render(<StatsPage />)
     expect(await screen.findByText('MONTHLY REVENUE')).toBeTruthy()
     expect(urls()).toEqual(['/api/admin/stats'])
+  })
+})
+
+describe('StatsPage Conversion tab', () => {
+  it('?tab=conversion fetches only the conversion endpoint for the URL period and renders the funnel', async () => {
+    setUrl('?tab=conversion&from=2026-01-01&to=2026-03-31')
+    routeFetch()
+    render(<StatsPage />)
+
+    expect(await screen.findByText('Chat · Web widget')).toBeTruthy()
+    expect(screen.getAllByText('33.3% (1 of 3)').length).toBeGreaterThanOrEqual(1)
+    expect(urls()).toEqual(['/api/admin/stats/conversion?from=2026-01-01&to=2026-03-31'])
+    expect(screen.getByRole('button', { name: 'Last 30 days' })).toBeTruthy()
   })
 })
 

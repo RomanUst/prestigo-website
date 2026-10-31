@@ -2,16 +2,20 @@
 import { useEffect, useState } from 'react'
 import { OverviewTab } from '@/components/admin/stats/OverviewTab'
 import { B2BTab } from '@/components/admin/stats/B2BTab'
+import { ConversionTab } from '@/components/admin/stats/ConversionTab'
+import { CustomersTab } from '@/components/admin/stats/CustomersTab'
 import { PeriodSelector } from '@/components/admin/stats/PeriodSelector'
 import { defaultPeriod, periodQuery, periodSchema } from '@/lib/admin-stats'
 import type { Period } from '@/lib/admin-stats'
 
 export type StatsTab = 'overview' | 'conversion' | 'customers' | 'b2b'
 
-// Registered tabs, in display order. Plan 85-06 adds Conversion and Customers.
+// Registered tabs, in display order (D-16).
 // Not exported: a Next.js page file may only export its default component.
 const TABS: { id: StatsTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
+  { id: 'conversion', label: 'Conversion' },
+  { id: 'customers', label: 'Customers' },
   { id: 'b2b', label: 'B2B' },
 ]
 
@@ -112,6 +116,8 @@ export default function StatsPage() {
       {mounted && tab !== 'overview' && <PeriodSelector value={period} onChange={setPeriod} />}
 
       {mounted && tab === 'overview' && <OverviewTab />}
+      {mounted && tab === 'conversion' && <ConversionTab period={period} />}
+      {mounted && tab === 'customers' && <CustomersTab period={period} />}
       {mounted && tab === 'b2b' && <B2BTab period={period} />}
     </div>
   )
