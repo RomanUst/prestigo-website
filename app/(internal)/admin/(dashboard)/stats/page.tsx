@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { OverviewTab } from '@/components/admin/stats/OverviewTab'
 import { B2BTab } from '@/components/admin/stats/B2BTab'
+import { PeriodSelector } from '@/components/admin/stats/PeriodSelector'
 import { defaultPeriod, periodQuery, periodSchema } from '@/lib/admin-stats'
 import type { Period } from '@/lib/admin-stats'
 
@@ -107,6 +108,8 @@ export default function StatsPage() {
           )
         })}
       </div>
+
+      {mounted && tab !== 'overview' && <PeriodSelector value={period} onChange={setPeriod} />}
 
       {mounted && tab === 'overview' && <OverviewTab />}
       {mounted && tab === 'b2b' && <B2BTab period={period} />}

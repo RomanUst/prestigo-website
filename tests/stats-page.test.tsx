@@ -16,7 +16,7 @@ vi.mock('@/components/admin/StatsChart', () => ({
 }))
 
 import StatsPage from '@/app/(internal)/admin/(dashboard)/stats/page'
-import { defaultPeriod, formatEur, formatPct } from '@/lib/admin-stats'
+import { defaultPeriod, formatEur, formatPct, resolvePreset } from '@/lib/admin-stats'
 
 const ID1 = '11111111-1111-4111-8111-111111111111'
 const ID2 = '22222222-2222-4222-8222-222222222222'
@@ -287,5 +287,132 @@ describe('StatsPage B2B tab', () => {
     await waitFor(() => {
       expect(window.location.search).toBe('?tab=b2b&from=2026-01-01&to=2026-03-31')
     })
+  })
+})
+
+describe('StatsPage period selector', () => {
+  const b2bCalls = () => urls().filter((u) => u.startsWith('/api/admin/stats/b2b?'))
+
+  it('shows five presets on the B2B tab with Last 90 days pressed by default', async () => {
+    setUrl('?tab=b2b')
+    routeFetch()
+    render(<StatsPage />)
+    await screen.findByText('Acme s.r.o.')
+
+    for (const label of ['Last 30 days', 'Last 90 days', 'This month', 'This year', 'All time']) {
+      expect(screen.getByRole('button', { name: label })).toBeTruthy()
+    }
+    expect(screen.getByRole('button', { name: 'Last 90 days' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: 'Last 30 days' }).getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('clicking Last 30 days fetches that period and rewrites the URL', async () => {
+    setUrl('?tab=b2b')
+    routeFetch()
+    render(<StatsPage />)
+    await screen.findByText('Acme s.r.o.')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Last 30 days' }))
+
+    const p = resolvePreset('last_30', new Date())
+    await waitFor(() => {
+      expect(b2bCalls()).toContain(`/api/admin/stats/b2b?from=${p.from}&to=${p.to}`)
+    })
+    await waitFor(() => {
+      expect(window.location.search).toBe(`?tab=b2b&from=${p.from}&to=${p.to}`)
+    })
+    expect(screen.getByRole('button', { name: 'Last 30 days' }).getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('applies a valid custom range', async () => {
+    setUrl('?tab=b2b')
+    routeFetch()
+    render(<StatsPage />)
+    await screen.findByText('Acme s.r.o.')
+
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-01-01' } })
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-03-31' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+    await waitFor(() => {
+      expect(b2bCalls()).toContain('/api/admin/stats/b2b?from=2026-01-01&to=2026-03-31')
+    })
+    await waitFor(() => {
+      expect(window.location.search).toBe('?tab=b2b&from=2026-01-01&to=2026-03-31')
+    })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('rejects From after To without fetching', async () => {
+    setUrl('?tab=b2b')
+    routeFetch()
+    render(<StatsPage />)
+    await screen.findByText('Acme s.r.o.')
+    const before = b2bCalls().length
+    const search = window.location.search
+
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-04-01' } })
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-03-31' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Invalid date range')
+    expect(b2bCalls().length).toBe(before)
+    expect(window.location.search).toBe(search)
+  })
+
+  it('rejects an impossible date without fetching', async () => {
+    setUrl('?tab=b2b')
+    routeFetch()
+    render(<StatsPage />)
+    await screen.findByText('Acme s.r.o.')
+    const before = b2bCalls().length
+
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2026-02-30' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Invalid date range')
+    expect(b2bCalls().length).toBe(before)
+  })
+
+  it('rejects a range outside 2000-01-01..2099-12-31', async () => {
+    setUrl('?tab=b2b')
+    routeFetch()
+    render(<StatsPage />)
+    await screen.findByText('Acme s.r.o.')
+    const before = b2bCalls().length
+
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: '1999-12-31' } })
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2026-03-31' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+    expect((await screen.findByRole('alert')).textContent).toBe('Invalid date range')
+    expect(b2bCalls().length).toBe(before)
+  })
+
+  it('a late response for an old period never replaces newer data', async () => {
+    setUrl('?tab=b2b&from=2026-01-01&to=2026-03-31')
+    let resolveFirst: (r: Response) => void = () => {}
+    const first = new Promise<Response>((res) => {
+      resolveFirst = res
+    })
+    const second = b2b({
+      accounts: [acc({ user_id: ID3, company_name: 'Second Period Ltd' })],
+    })
+    let n = 0
+    fetchMock.mockImplementation(async (url: string) => {
+      if (!url.startsWith('/api/admin/stats/b2b?')) return fail(404)
+      n += 1
+      return n === 1 ? first : ok(second)
+    })
+    render(<StatsPage />)
+    await waitFor(() => expect(n).toBe(1))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Last 30 days' }))
+    expect(await screen.findByText('Second Period Ltd')).toBeTruthy()
+
+    resolveFirst(ok(b2b()))
+    await new Promise((r) => setTimeout(r, 20))
+    expect(screen.getByText('Second Period Ltd')).toBeTruthy()
+    expect(screen.queryByText('Acme s.r.o.')).toBeNull()
   })
 })
