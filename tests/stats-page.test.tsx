@@ -148,13 +148,13 @@ describe('StatsPage shell + Overview', () => {
     })
   })
 
-  it('shows tabs Overview, Conversion and B2B in order with Overview selected, and no period selector on Overview', async () => {
+  it('shows tabs Overview, Conversion, Customers and B2B in order with Overview selected, and no period selector on Overview', async () => {
     routeFetch()
     render(<StatsPage />)
     await screen.findByText('MONTHLY REVENUE')
 
     const tabs = screen.getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'Conversion', 'B2B'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'Conversion', 'Customers', 'B2B'])
     expect(tabs[0].getAttribute('aria-selected')).toBe('true')
     expect(tabs[1].getAttribute('aria-selected')).toBe('false')
     expect(screen.queryByRole('button', { name: 'Last 30 days' })).toBeNull()
