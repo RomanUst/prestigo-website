@@ -26,12 +26,11 @@ const ARTICLE_MODIFIED = '2026-04-09'
 
 const TITLE = 'Prague Airport Taxi vs Chauffeur 2026: Fares & Which to Pick'
 
-// The snippet answers the query directly: the rank fare (a third-party price,
-// whitelisted in tests/blog-live-prices.test.ts) next to the live Prestigo fare.
-function describe(p: Fares): string {
-  const chauffeur = p.e > 0 ? `a fixed-price chauffeur from €${p.e}` : 'a fixed-price chauffeur'
-  return `Prague Airport taxi vs chauffeur: the official rank costs €26–32 to the centre, ${chauffeur} with meet & greet. Which pays off and when.`
-}
+// The snippet answers the query directly but carries no fare: prices change in
+// the admin while Google caches the snippet (owner rule, 2026-10-31). The live
+// fares stay in the article body (getFares below).
+const DESCRIPTION =
+  'Prague Airport taxi vs chauffeur: what the official rank really costs against a fixed-price premium chauffeur with meet & greet — which pays off and when.'
 
 // CR-01: converted from a static `metadata` export to generateMetadata() so
 // the current locale is available. EN-only legacy JSX article (D-08) — no
@@ -40,7 +39,7 @@ function describe(p: Fares): string {
 // of locale — canonical/og:url stay pinned to the EN URL for every locale.
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
-  const description = describe(await getFares('airport'))
+  const description = DESCRIPTION
   const alternates = getAlternates(CANONICAL_PATH, {
     indexable: true,
     content: { kind: 'blog', key: 'prague-airport-taxi-vs-chauffeur' },
@@ -253,7 +252,7 @@ function buildArticle(p: Fares) {
         '@type': 'BlogPosting',
         '@id': `${CANONICAL_ABS}#article`,
         headline: TITLE,
-        description: describe(p),
+        description: DESCRIPTION,
         image: {
           '@type': 'ImageObject',
           url: 'https://rideprestigo.com/hero-airport-transfer.webp',

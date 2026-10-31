@@ -180,9 +180,9 @@
     "contactButton": "Request Custom Route"
   },
   "metadata": {
-    "title": "Prague Private Chauffeur — 30 Intercity Routes",
-    "description": "Private chauffeur from Prague to 30 Central European cities. Vienna from €{viennaPrice}, Berlin from €{berlinPrice}, Budapest from €{budapestPrice}. Fixed price, door-to-door.",
-    "ogTitle": "Prague Private Chauffeur — 30 Intercity Routes",
-    "ogDescription": "Private chauffeur from Prague to 30 Central European destinations. Vienna from €{viennaPrice}, Berlin from €{berlinPrice}, Munich from €{munichPrice}, Budapest from €{budapestPrice}. Fixed price, door-to-door."
+    "title": "Prague Private Chauffeur — 30 Premium Intercity Routes",
+    "description": "Private chauffeur from Prague to 30 Central European cities — Vienna, Berlin, Munich, Budapest and more. Premium Mercedes, fixed price, door-to-door.",
+    "ogTitle": "Prague Private Chauffeur — 30 Premium Intercity Routes",
+    "ogDescription": "Private chauffeur from Prague to 30 Central European cities — Vienna, Berlin, Munich, Budapest and more. Premium Mercedes, fixed price, door-to-door."
   }
 }

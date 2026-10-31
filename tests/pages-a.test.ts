@@ -45,7 +45,7 @@ describe("getPageContent('home')", () => {
   it("spot-checks 3 representative strings against verbatim originals", () => {
     const content = getPageContent("home", "en") as HomeContent;
     expect(content.metadata.title).toBe(
-      "Prague Chauffeur Service — Fixed-Price Transfers | PRESTIGO"
+      "Prague Chauffeur Service — Premium Transfers | PRESTIGO"
     );
     expect(content.metadata.description).toBe(
       "Prague chauffeur service with fixed prices, flight tracking and meet & greet. Executive Mercedes, English-speaking drivers, 24/7. Book online in 60 seconds."
