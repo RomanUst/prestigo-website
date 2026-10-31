@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "title": "Mercedes S-Class 布拉格专车司机服务 — 豪华专车",
+    "description": "布拉格 Mercedes S-Class 豪华专车服务：专业司机、Nappa 真皮、后排按摩座椅、近乎静谧的车厢。机场接送、VIP、商务及城际出行，全天候 24/7。",
+    "ogTitle": "Mercedes S-Class 布拉格专车司机服务 — 豪华专车"
+  },
+  "breadcrumbName": "Mercedes S-Class",
+  "hero": {
+    "label": "Mercedes S-Class · 布拉格",
+    "headlineLine1": "布拉格 Mercedes S-Class 带司机服务。",
+    "headlineItalic": "静谧，是标准配置。",
+    "intro": "S-Class 是 Prestigo 车队中的行政级轿车——为要员、VIP 贵宾，以及所有希望旅途本身成为一天中最安静时光的人而准备。一位专业司机、一辆新款 S-Class、一口价，从布拉格机场直达门口，穿行市内，或前往另一座首都。",
+    "ctaPrimary": "预订 S-Class",
+    "ctaSecondary": "咨询问题",
+    "imageAlt": "为布拉格 Prestigo 专车行程准备就绪的 Mercedes S-Class 后排车厢"
+  },
+  "glance": {
+    "label": "一览",
+    "items": [
+      {
+        "label": "载客量",
+        "value": "最多 3 位乘客，2 件大行李 + 2 件随身行李"
+      },
+      {
+        "label": "车厢",
+        "value": "Nappa 真皮、后排按摩座椅、氛围灯、全景天窗"
+      },
+      {
+        "label": "适合",
+        "value": "VIP、高管、外交及长途城际出行"
+      },
+      {
+        "label": "按小时",
+        "value": "每小时 €{hourlyS} 起，最少 2 小时"
+      }
+    ]
+  },
+  "vehicle": {
+    "label": "车辆",
+    "headingLine1": "Mercedes-Benz S-Class。",
+    "headingItalic": "陆路出行的最高级别。",
+    "photoAlt": "黑色 Mercedes-Benz S-Class — Prestigo 布拉格专车服务",
+    "seatsLabel": "座位",
+    "seatsValue": "最多 3 位乘客",
+    "luggageLabel": "行李",
+    "luggageValue": "2 件大行李 + 2 件随身行李",
+    "includedLabel": "每次预订 S-Class 均包含",
+    "included": [
+      "举牌接机服务",
+      "航班追踪，机场免费等候 60 分钟",
+      "车载 Wi-Fi，每个座位均可快充",
+      "常温水与气泡水",
+      "可按需提供儿童座椅，免费",
+      "城际路线已含过路费和高速通行证"
+    ]
+  },
+  "intro": {
+    "headingLine1": "什么时候",
+    "headingItalic": "S-Class 是最合适的选择。",
+    "paragraphs": [
+      "布拉格的大多数行程，E-Class 已完全胜任。S-Class 则属于那些车厢本身很重要的行程：带着助理、有礼宾要求的要员抵达；一位您希望隆重接待的贵宾；或是前往维也纳的两小时车程——您希望这段时间是被好好利用的，而不是被浪费的。",
+      "行政级后排套件带来的宽敞腿部空间、按摩座椅和近乎静谧的车厢，让后座成为办公、通话或长途飞行后休息的地方。可乘坐最多 3 位乘客，携带 2 件大行李和 2 件随身行李——行李容量与 E-Class 相同，乘坐体验却截然不同。",
+      "Prestigo 的每一辆 S-Class 均为 S 450 4MATIC 或 S 580 e Hybrid，2022 年款或更新，黑色外观、Nappa 真皮内饰，并在每次行程前精心准备。"
+    ]
+  },
+  "features": {
+    "label": "车内",
+    "headingLine1": "那些让您感受到",
+    "headingItalic": "却不必留意的细节。",
+    "items": [
+      {
+        "title": "后排按摩座椅",
+        "body": "行政级后排套件，腿部空间宽敞，配备按摩座椅——长途飞行之后最实用的配置。"
+      },
+      {
+        "title": "Nappa 真皮与氛围灯",
+        "body": "全景天窗下，柔和灯光营造出宁静的车厢。您偏好的温度会在车辆抵达前设定好。"
+      },
+      {
+        "title": "私密性",
+        "body": "后排配备隐私玻璃。车内的谈话，只留在车内。"
+      },
+      {
+        "title": "适合办公的车厢",
+        "body": "企业级 5G Wi-Fi，不限流量，USB-C 快充触手可及，会议间隙的视频通话顺畅无阻。"
+      },
+      {
+        "title": "饮品",
+        "body": "每次行程均备有冰镇常温水和气泡水；高管及 VIP 预订可按需提供咖啡、茶和香槟。"
+      },
+      {
+        "title": "专业司机",
+        "body": "司机均经过背景审查，具备专业资质，英语流利；可按需安排俄语、德语或捷克语司机。"
+      }
+    ]
+  },
+  "steps": {
+    "label": "预订流程",
+    "heading": "四步预订 S-Class。",
+    "items": [
+      {
+        "title": "选择 S-Class",
+        "body": "填写上车地点、目的地和时间，然后选择 S-Class。付款前价格即已固定。"
+      },
+      {
+        "title": "补充细节",
+        "body": "机场接机请填写航班号；VIP 抵达可备注接机牌、礼宾要求、偏好温度等。"
+      },
+      {
+        "title": "与司机会面",
+        "body": "您会提前收到司机的姓名和电话。在机场，司机会在到达大厅内等候。"
+      },
+      {
+        "title": "安静出行",
+        "body": "行李由我们处理。办公、休息或通话——其余一切交给司机。"
+      }
+    ]
+  },
+  "editorial": {
+    "label": "S-Class 可以带您去哪里",
+    "headingLine1": "机场、市内，",
+    "headingItalic": "或另一座首都。",
+    "paragraphs": [
+      "S-Class 适用于 Prestigo 的各类行程。瓦茨拉夫·哈维尔机场接送包含航班追踪、到达大厅举牌接机，以及最多 60 分钟免费等候。按小时包车时，车辆和司机全程听候安排——无论是满档的会议日、歌剧院的一个夜晚，还是按自己节奏进行的婚礼。",
+      "城际出行——维也纳、慕尼黑、柏林、布达佩斯等——一口价路线已包含过路费和高速通行证，所见即所付。外交访问、晚宴和活动，我们的 VIP 服务可协调多辆同款车辆，并提供单一调度联系人。"
+    ]
+  },
+  "faqsHeading": "Mercedes S-Class 常见问题",
+  "faqs": [
+    {
+      "q": "在布拉格预订带司机的 Mercedes S-Class 包含哪些服务？",
+      "a": "每次 S-Class 预订均包含专业司机、举牌接机、机场接机的航班追踪及最多 60 分钟免费等候、Wi-Fi、快充、常温水与气泡水，以及按需免费提供的儿童座椅。城际路线的过路费和高速通行证已包含在一口价中。"
+    },
+    {
+      "q": "S-Class 能坐几位乘客、放多少行李？",
+      "a": "S-Class 最多可乘坐 3 位乘客，550 升后备厢可放 2 件大行李和 2 件随身行李。如乘客更多，或携带滑雪板、高尔夫球包等大件物品，请选择 Mercedes V-Class。"
+    },
+    {
+      "q": "Prestigo 运营哪些 S-Class 车型？",
+      "a": "我们的 S-Class 为 S 450 4MATIC 或 S 580 e Hybrid，2022 年款或更新，黑色车身配 Nappa 真皮内饰。车辆由 Mercedes-Benz 授权技师按原厂计划保养，并在每次行程前检查。"
+    },
+    {
+      "q": "布拉格机场接送可以预订 S-Class 吗？",
+      "a": "可以。预订机场接送时选择 S-Class 即可。司机会追踪您的航班，在到达大厅内举牌等候，落地后最多 60 分钟免费等候。"
+    },
+    {
+      "q": "S-Class 可以按小时包车或前往其他城市吗？",
+      "a": "可以。按小时包车最少 2 小时，整个预订期间车辆和司机全程陪同。前往其他城市，从布拉格到维也纳、慕尼黑、柏林、布达佩斯等地的一口价路线均已包含过路费和高速通行证。"
+    },
+    {
+      "q": "S-Class 适合 VIP、外交或婚礼用车吗？",
+      "a": "适合。这正是我们为 VIP 贵宾、外交访问、晚宴和婚礼推荐的车型。通过我们的 VIP 与活动服务，可协调多辆同款车辆、准时抵达和单一调度联系人，并可应要求提前提供保险文件。"
+    },
+    {
+      "q": "S-Class 需要提前多久预订？",
+      "a": "请至少提前 12 小时在线预订。如需临时用车，请致电 +420 725 986 855——我们全天候 24/7 服务。"
+    }
+  ],
+  "related": {
+    "label": "相关推荐",
+    "heading": "车队其他车型，以及它们能带您去的地方。",
+    "links": [
+      {
+        "href": "/fleet",
+        "title": "Prestigo 车队",
+        "body": "E-Class、S-Class 和 V-Class 一览，附完整参数。"
+      },
+      {
+        "href": "/fleet/e-class",
+        "title": "Mercedes E-Class",
+        "body": "用于机场接送和市内出行的商务轿车。"
+      },
+      {
+        "href": "/fleet/v-class",
+        "title": "Mercedes V-Class",
+        "body": "最多六位乘客及全部行李，适合家庭和团体。"
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "布拉格机场接送",
+        "body": "PRG 举牌接机、航班追踪、一口价。"
+      },
+      {
+        "href": "/services/vip-events",
+        "title": "VIP 与活动",
+        "body": "外交访问、晚宴、婚礼及多车同时抵达。"
+      },
+      {
+        "href": "/routes/prague-vienna",
+        "title": "布拉格至维也纳",
+        "body": "一口价门到门接送，含过路费。"
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "一辆 S-Class，一位司机，随时为您待命。",
+    "headingItalic": "一口价，在线预订。",
+    "buttonText": "预订 S-Class"
+  }
+}

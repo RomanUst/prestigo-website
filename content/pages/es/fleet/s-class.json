@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "title": "Mercedes S-Class con conductor en Praga — servicio de limusina",
+    "description": "Servicio de limusina Mercedes S-Class en Praga: chófer profesional, piel Nappa y asientos traseros con masaje. Aeropuerto, VIP, negocios e interurbanos, 24/7.",
+    "ogTitle": "Mercedes S-Class con conductor en Praga — servicio de limusina ejecutivo"
+  },
+  "breadcrumbName": "Mercedes S-Class",
+  "hero": {
+    "label": "Mercedes S-Class · Praga",
+    "headlineLine1": "Mercedes S-Class con conductor en Praga.",
+    "headlineItalic": "El silencio, de serie.",
+    "intro": "El S-Class es la berlina ejecutiva de la flota Prestigo: para altos directivos, invitados VIP y cualquiera que quiera que el trayecto sea la parte más tranquila del día. Un chófer profesional, un S-Class reciente y una tarifa fija, del aeropuerto de Praga hasta la puerta, por la ciudad o hasta otra capital.",
+    "ctaPrimary": "Reservar el S-Class",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Habitáculo trasero de un Mercedes S-Class preparado para un traslado Prestigo en Praga"
+  },
+  "glance": {
+    "label": "En resumen",
+    "items": [
+      {
+        "label": "Capacidad",
+        "value": "Hasta 3 pasajeros, 2 maletas grandes + 2 de cabina"
+      },
+      {
+        "label": "Habitáculo",
+        "value": "Piel Nappa, asientos traseros con masaje, iluminación ambiental, techo panorámico"
+      },
+      {
+        "label": "Ideal para",
+        "value": "Viajes VIP, ejecutivos, diplomáticos e interurbanos largos"
+      },
+      {
+        "label": "Por horas",
+        "value": "Desde €{hourlyS}/hora, mínimo 2 horas"
+      }
+    ]
+  },
+  "vehicle": {
+    "label": "El vehículo",
+    "headingLine1": "Mercedes-Benz S-Class.",
+    "headingItalic": "Lo más alto del viaje por carretera.",
+    "photoAlt": "Mercedes-Benz S-Class negro — servicio de chófer Prestigo en Praga",
+    "seatsLabel": "Plazas",
+    "seatsValue": "Hasta 3 pasajeros",
+    "luggageLabel": "Equipaje",
+    "luggageValue": "2 maletas grandes + 2 de cabina",
+    "includedLabel": "Incluido en cada reserva de S-Class",
+    "included": [
+      "Recibimiento con cartel con su nombre",
+      "Seguimiento del vuelo y 60 minutos de espera gratuita en el aeropuerto",
+      "Wi-Fi a bordo y carga rápida en cada asiento",
+      "Agua con y sin gas",
+      "Sillas infantiles bajo petición, sin coste",
+      "Peajes y viñetas incluidos en las rutas interurbanas"
+    ]
+  },
+  "intro": {
+    "headingLine1": "Cuándo el S-Class",
+    "headingItalic": "es el coche adecuado.",
+    "paragraphs": [
+      "La mayoría de los trayectos por Praga se resuelven bien con el E-Class. El S-Class es para los viajes en los que el propio habitáculo importa: un alto directivo que llega con un asistente y requisitos de protocolo, un invitado al que se quiere recibir como merece, dos horas de carretera hasta Viena que deberían ser tiempo bien aprovechado y no tiempo perdido.",
+      "El espacio para las piernas del paquete ejecutivo trasero, los asientos con masaje y un habitáculo casi silencioso convierten el asiento trasero en un lugar para trabajar, atender una llamada o simplemente descansar tras un vuelo largo. Lleva hasta tres pasajeros con dos maletas grandes y dos de cabina: la misma capacidad que el E-Class, con una experiencia a bordo muy distinta.",
+      "Cada S-Class de Prestigo es un S 450 4MATIC o un S 580 e Hybrid, modelo 2022 o posterior, negro por fuera, con piel Nappa por dentro y preparado antes de cada trayecto."
+    ]
+  },
+  "features": {
+    "label": "A bordo",
+    "headingLine1": "Detalles que se sienten",
+    "headingItalic": "más que se notan.",
+    "items": [
+      {
+        "title": "Asientos traseros con masaje",
+        "body": "Paquete ejecutivo trasero con amplio espacio para las piernas y asientos con masaje: lo más útil después de un vuelo de largo recorrido."
+      },
+      {
+        "title": "Piel Nappa y luz ambiental",
+        "body": "Un habitáculo sereno y suavemente iluminado bajo un techo panorámico. Su temperatura preferida está ajustada antes de que llegue el coche."
+      },
+      {
+        "title": "Privacidad",
+        "body": "Lunas tintadas en el habitáculo trasero. Lo que se dice en el coche se queda en el coche."
+      },
+      {
+        "title": "Un habitáculo para trabajar",
+        "body": "Wi-Fi 5G de nivel empresarial sin límite de datos y carga rápida USB-C al alcance: una videollamada entre reuniones simplemente funciona."
+      },
+      {
+        "title": "Bebidas",
+        "body": "Agua fría con y sin gas en cada trayecto; café, té y champán bajo petición en reservas ejecutivas y VIP."
+      },
+      {
+        "title": "Un chófer profesional",
+        "body": "Conductores con antecedentes verificados, cualificación profesional e inglés fluido; ruso, alemán o checo bajo petición."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Reservar un S-Class en cuatro pasos.",
+    "items": [
+      {
+        "title": "Elija el S-Class",
+        "body": "Indique la recogida, el destino y la hora, y seleccione el S-Class. La tarifa queda fijada antes de pagar."
+      },
+      {
+        "title": "Añada los detalles",
+        "body": "Un número de vuelo para la recogida en el aeropuerto, o indicaciones para una llegada VIP: cartel, protocolo, temperatura preferida."
+      },
+      {
+        "title": "Conozca a su chófer",
+        "body": "Recibe con antelación el nombre y el teléfono del conductor. En el aeropuerto le espera dentro de la sala de llegadas."
+      },
+      {
+        "title": "Viaje en calma",
+        "body": "Nos ocupamos del equipaje. Trabaje, descanse o atienda una llamada: el chófer se encarga del resto."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Adónde va el S-Class",
+    "headingLine1": "Aeropuerto, ciudad",
+    "headingItalic": "u otra capital.",
+    "paragraphs": [
+      "El S-Class sirve para cualquier trayecto de Prestigo. Los traslados desde el aeropuerto Václav Havel incluyen seguimiento del vuelo, cartel con su nombre en la sala de llegadas y hasta 60 minutos de espera gratuita. El alquiler por horas deja el coche y el chófer a su disposición para un día de reuniones, una noche en la ópera o una boda que sigue su propio ritmo.",
+      "Para viajes interurbanos —Viena, Múnich, Berlín, Budapest y más— las rutas de precio fijo incluyen peajes y viñetas, así que la tarifa que ve es la que paga. Para visitas diplomáticas, galas y eventos, nuestro servicio VIP puede coordinar coches idénticos y un único contacto de despacho."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre el Mercedes S-Class",
+  "faqs": [
+    {
+      "q": "¿Qué incluye la reserva de un Mercedes S-Class con conductor en Praga?",
+      "a": "Cada reserva de S-Class incluye un chófer profesional, recibimiento con cartel con su nombre, seguimiento del vuelo y hasta 60 minutos de espera gratuita en las recogidas en el aeropuerto, Wi-Fi, carga rápida, agua con y sin gas, y sillas infantiles bajo petición sin coste adicional. En las rutas interurbanas, los peajes y las viñetas están incluidos en la tarifa fija."
+    },
+    {
+      "q": "¿Cuántos pasajeros y cuánto equipaje caben en el S-Class?",
+      "a": "El S-Class lleva hasta 3 pasajeros y 2 maletas grandes más 2 de cabina en su maletero de 550 litros. Para más pasajeros o bultos voluminosos como esquís o bolsas de golf, elija el Mercedes V-Class."
+    },
+    {
+      "q": "¿Qué modelos de S-Class tiene Prestigo?",
+      "a": "Nuestros S-Class son S 450 4MATIC o S 580 e Hybrid, modelo 2022 o posterior, negros y con interior de piel Nappa. Los revisan técnicos autorizados de Mercedes-Benz según el calendario de fábrica y se inspeccionan antes de cada trayecto."
+    },
+    {
+      "q": "¿Puedo reservar un S-Class para un traslado desde el aeropuerto de Praga?",
+      "a": "Sí. Seleccione el S-Class al reservar su traslado. Su chófer sigue el vuelo, le espera dentro de la sala de llegadas con un cartel con su nombre e incluye hasta 60 minutos de espera gratuita tras el aterrizaje."
+    },
+    {
+      "q": "¿Puedo alquilar el S-Class por horas o para ir a otra ciudad?",
+      "a": "Sí. El alquiler por horas tiene un mínimo de 2 horas y mantiene el coche y el chófer con usted durante toda la reserva. Para otras ciudades, las rutas de precio fijo desde Praga a Viena, Múnich, Berlín, Budapest y más incluyen peajes y viñetas."
+    },
+    {
+      "q": "¿Es el S-Class adecuado para traslados VIP, diplomáticos o de boda?",
+      "a": "Sí. Es el coche que recomendamos para invitados VIP, visitas diplomáticas, galas y bodas. Con nuestro servicio de VIP y eventos coordinamos varios coches idénticos, llegadas sincronizadas y un único contacto de despacho, y facilitamos la documentación del seguro por adelantado si se solicita."
+    },
+    {
+      "q": "¿Con cuánta antelación debo reservar el S-Class?",
+      "a": "Reserve en línea con al menos 12 horas de antelación. Con menos margen, llame al +420 725 986 855: operamos 24/7."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "El resto de la flota y adónde le lleva.",
+    "links": [
+      {
+        "href": "/fleet",
+        "title": "La flota Prestigo",
+        "body": "E-Class, S-Class y V-Class uno junto a otro, con todas sus especificaciones."
+      },
+      {
+        "href": "/fleet/e-class",
+        "title": "Mercedes E-Class",
+        "body": "La berlina de negocios para traslados al aeropuerto y trayectos urbanos."
+      },
+      {
+        "href": "/fleet/v-class",
+        "title": "Mercedes V-Class",
+        "body": "Hasta seis pasajeros con equipaje completo, para familias y grupos."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Recibimiento en PRG, seguimiento del vuelo y tarifa fija."
+      },
+      {
+        "href": "/services/vip-events",
+        "title": "VIP y eventos",
+        "body": "Visitas diplomáticas, galas, bodas y llegadas con varios coches."
+      },
+      {
+        "href": "/routes/prague-vienna",
+        "title": "Praga a Viena",
+        "body": "Traslado puerta a puerta a precio fijo, peajes incluidos."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Un S-Class y un chófer, cuando usted lo necesite.",
+    "headingItalic": "Tarifa fija, reserva en línea.",
+    "buttonText": "Reservar el S-Class"
+  }
+}

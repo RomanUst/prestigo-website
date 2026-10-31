@@ -70,6 +70,9 @@ ${ratingLine(data)}
 - [FAQ](${BASE}/faq): Booking, pricing, cancellation, vehicle questions.
 - [Corporate Accounts](${BASE}/corporate): Monthly invoicing, dedicated account manager, priority dispatch.
 - [Fleet](${BASE}/fleet): Mercedes E-Class, S-Class, V-Class — full spec and pricing.
+- [Mercedes S-Class with Driver](${BASE}/fleet/s-class): Executive limousine service — 3 passengers, rear massage seats, VIP and intercity.
+- [Mercedes V-Class with Driver](${BASE}/fleet/v-class): Premium minivan for groups and families — 6 passengers, 6 large cases.
+- [Mercedes E-Class with Driver](${BASE}/fleet/e-class): Executive chauffeur sedan — 3 passengers, airport transfers and business travel.
 
 ## Routes
 
@@ -137,6 +140,7 @@ ${ratingLine(data)}
 All vehicles are late-model Mercedes-Benz, fully insured, non-smoking, equipped with Wi-Fi and phone chargers.
 
 ### Mercedes-Benz E-Class — Business Sedan
+- Page: ${BASE}/fleet/e-class
 - Seating: up to 3 passengers
 - Luggage: 2 large cases + 2 cabin bags
 - Ideal for: airport transfers, city rides, solo business travel
@@ -144,6 +148,7 @@ All vehicles are late-model Mercedes-Benz, fully insured, non-smoking, equipped 
 - Transmission: automatic · Fuel: hybrid · Drive: RWD
 
 ### Mercedes-Benz S-Class — Executive Sedan
+- Page: ${BASE}/fleet/s-class
 - Seating: up to 3 passengers
 - Luggage: 2 large cases + 2 cabin bags
 - Ideal for: VIP travel, diplomatic missions, extended intercity routes
@@ -151,6 +156,7 @@ All vehicles are late-model Mercedes-Benz, fully insured, non-smoking, equipped 
 - Transmission: automatic · Fuel: hybrid · Drive: RWD
 
 ### Mercedes-Benz V-Class — Executive Van
+- Page: ${BASE}/fleet/v-class
 - Seating: up to 6 passengers
 - Luggage: 6 large cases + 6 cabin bags
 - Ideal for: groups, families, conference transfers

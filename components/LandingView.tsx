@@ -12,6 +12,15 @@ import type { LandingContent, LandingPageConfig } from '@/lib/landing-pages'
 
 const BASE = 'https://rideprestigo.com'
 
+/** Locale-resolves the path part of an internal href and keeps its query (e.g. /book?class=first_class). */
+function hrefWithQuery(locale: string, href: string): string {
+  const q = href.indexOf('?')
+  if (q === -1) return localizedHref(locale, href) ?? href
+  return `${localizedHref(locale, href.slice(0, q)) ?? href.slice(0, q)}${href.slice(q)}`
+}
+
+const SECTION_NAME: Record<LandingPageConfig['section'], string> = { faq: 'FAQ', services: 'Services', fleet: 'Fleet' }
+
 /**
  * Shared body for the keyword-variant landing pages (lib/landing-pages.ts).
  * Every visible string comes from the LandingContent JSON; FAQPage and
@@ -33,7 +42,11 @@ export default function LandingView({
   rating?: AggregateRatingInput | null
 }) {
   const path = `/${page.section}/${page.slug}`
-  const sectionName = page.section === 'faq' ? 'FAQ' : 'Services'
+  const sectionName = SECTION_NAME[page.section]
+  const ctaHref = hrefWithQuery(locale, page.ctaHref)
+  const vehicle = page.vehicle
+  const vehicleCopy = content.vehicle
+  const vehicleId = vehicle ? `${BASE}/fleet#${vehicle.model.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : null
   const faqs = content.faqs.map((f) => ({ q: f.q, a: interpolate(f.a, prices), aBidi: interpolateBidi(f.a, prices) }))
   const bidi = (s: string) => interpolateBidi(s, prices)
 
@@ -59,16 +72,31 @@ export default function LandingView({
           { '@type': 'ListItem', position: 3, name: content.breadcrumbName, item: `${BASE}${path}` },
         ],
       },
-      ...(page.section === 'services'
+      ...(page.section === 'services' || page.section === 'fleet'
         ? [{
             '@type': 'Service',
             '@id': `${BASE}${path}#service`,
             url: `${BASE}${path}`,
             name: content.metadata.ogTitle,
             description: interpolate(content.metadata.description, prices),
-            serviceType: 'Private chauffeur service',
+            serviceType: vehicle ? `Chauffeur service — ${vehicle.model}` : 'Private chauffeur service',
             areaServed: { '@type': 'City', name: 'Prague' },
             provider: { '@type': 'LocalBusiness', '@id': `${BASE}/#business` },
+          }]
+        : []),
+      // Same @id as the Vehicle node in /fleet's ItemList, so both pages describe one entity.
+      ...(vehicle && vehicleId
+        ? [{
+            '@type': 'Vehicle',
+            '@id': vehicleId,
+            name: vehicle.model,
+            image: `${BASE}${vehicle.photo}`,
+            url: `${BASE}${path}`,
+            brand: { '@type': 'Brand', name: 'Mercedes-Benz' },
+            bodyType: vehicle.bodyTypeEn,
+            vehicleConfiguration: vehicle.vehicleConfiguration,
+            vehicleTransmission: 'automatic',
+            vehicleSeatingCapacity: { '@type': 'QuantitativeValue', value: vehicle.seating, unitText: 'passengers' },
           }]
         : []),
     ],
@@ -86,13 +114,13 @@ export default function LandingView({
         <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
           <div className="absolute inset-0"><Image src={page.heroImage} alt={content.hero.imageAlt} fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
           <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-            <HeroBody content={content} locale={locale} ctaHref={page.ctaHref} bidi={bidi} rating={rating} />
+            <HeroBody content={content} locale={locale} ctaHref={ctaHref} bidi={bidi} rating={rating} />
           </div>
         </section>
       ) : (
         <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20">
           <div className="max-w-7xl mx-auto px-6 md:px-12">
-            <HeroBody content={content} locale={locale} ctaHref={page.ctaHref} bidi={bidi} rating={rating} />
+            <HeroBody content={content} locale={locale} ctaHref={ctaHref} bidi={bidi} rating={rating} />
           </div>
         </section>
       )}
@@ -115,6 +143,47 @@ export default function LandingView({
       </section>
 
       <Divider />
+
+      {vehicle && vehicleCopy && (
+        <>
+          {/* Vehicle & capacity (fleet pages) */}
+          <section className="bg-anthracite py-16 md:py-24" id="vehicle">
+            <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+              <Reveal variant="up"><div className="relative h-56 md:h-80">
+                <Image src={vehicle.photo} alt={vehicleCopy.photoAlt} width={600} height={340} className="w-full h-full object-contain" sizes="(max-width: 768px) 100vw, 50vw" />
+              </div></Reveal>
+              <Reveal variant="up" delay={150}><div className="flex flex-col gap-6">
+                <div>
+                  <p className="label mb-4">{vehicleCopy.label}</p>
+                  <h2 className="display text-[28px] md:text-[36px]">{vehicleCopy.headingLine1} <br /><span className="display-italic">{vehicleCopy.headingItalic}</span></h2>
+                </div>
+                <dl className="border-t border-anthracite-light pt-5 grid grid-cols-2 gap-x-6 gap-y-3">
+                  {[[vehicleCopy.seatsLabel, vehicleCopy.seatsValue], [vehicleCopy.luggageLabel, vehicleCopy.luggageValue]].map(([label, val]) => (
+                    <div key={label} className="flex flex-col">
+                      <dt className="font-body font-medium uppercase tracking-[0.12em] text-warmgrey/80" style={{ fontSize: '9px' }}>{label}</dt>
+                      <dd className="font-body font-light text-[13px] text-offwhite mt-1">{val}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div>
+                  <p className="font-body font-medium uppercase tracking-[0.12em] text-warmgrey/80 mb-3" style={{ fontSize: '9px' }}>{vehicleCopy.includedLabel}</p>
+                  <ul className="flex flex-col gap-2">
+                    {vehicleCopy.included.map((item) => (
+                      <li key={item} className="flex items-center gap-3">
+                        <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
+                        <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div><a href={ctaHref} className="btn-primary">{content.hero.ctaPrimary}</a></div>
+              </div></Reveal>
+            </div>
+          </section>
+
+          <Divider />
+        </>
+      )}
 
       {/* Intro */}
       <section className="bg-anthracite py-16 md:py-24">
@@ -212,7 +281,7 @@ export default function LandingView({
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{bidi(content.cta.headingItalic)}</span></h2></Reveal>
-          <Reveal variant="fade" delay={150}><a href={localizedHref(locale, page.ctaHref)} className="btn-primary">{content.cta.buttonText}</a></Reveal>
+          <Reveal variant="fade" delay={150}><a href={ctaHref} className="btn-primary">{content.cta.buttonText ?? content.hero.ctaPrimary}</a></Reveal>
         </div>
       </section>
 
@@ -230,6 +299,7 @@ function HeroBody({
 }: {
   content: LandingContent
   locale: string
+  /** Already locale-resolved. */
   ctaHref: string
   bidi: (s: string) => React.ReactNode
   rating: AggregateRatingInput | null
@@ -241,7 +311,7 @@ function HeroBody({
       <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-2xl">{content.hero.headlineLine1} <br /><span className="display-italic">{content.hero.headlineItalic}</span></h1>
       <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>{bidi(content.hero.intro)}</p>
       <div className="mt-10 flex flex-col sm:flex-row gap-4">
-        <a href={localizedHref(locale, ctaHref)} className="btn-primary">{content.hero.ctaPrimary}</a>
+        <a href={ctaHref} className="btn-primary">{content.hero.ctaPrimary}</a>
         <a href={localizedHref(locale, '/contact')} className="btn-ghost">{content.hero.ctaSecondary}</a>
       </div>
       {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} className="mt-8 inline-flex items-center gap-3" />}

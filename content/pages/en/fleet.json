@@ -43,6 +43,7 @@
   },
   "idealForPrefix": "Ideal for:",
   "bookButtonTemplate": "Book {className}",
+  "detailsLinkTemplate": "More about the {className}",
   "standards": {
     "heading": "Every vehicle, every time",
     "items": [

@@ -12,15 +12,34 @@
 import { getPricingConfig } from '@/lib/pricing-config'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 
-export type LandingSection = 'services' | 'faq'
+export type LandingSection = 'services' | 'faq' | 'fleet'
+
+/**
+ * Structural, locale-invariant facts for the per-vehicle fleet pages
+ * (/fleet/<slug>). Mirrors the VehicleSpec table on app/[locale]/fleet —
+ * capacities must stay identical to it (tests/fleet-vehicle-pages.test.ts).
+ */
+export type LandingVehicle = {
+  model: string
+  /** Cut-out vehicle photo shown in the vehicle section. */
+  photo: string
+  /** EN body type for the Vehicle JSON-LD node. */
+  bodyTypeEn: string
+  vehicleConfiguration: string
+  seating: number
+  luggageCases: number
+  luggageBags: number
+}
 
 export type LandingPageConfig = {
   slug: string
   section: LandingSection
   /** Hero background; omitted → plain dark hero (FAQ topics). */
   heroImage?: string
-  /** Primary CTA target (locale-resolved by the template). */
+  /** Primary CTA target (locale-resolved by the template; may carry a query, e.g. ?class=). */
   ctaHref: string
+  /** Fleet pages only — renders the vehicle/spec section and Vehicle JSON-LD. */
+  vehicle?: LandingVehicle
 }
 
 export const LANDING_PAGES: LandingPageConfig[] = [
@@ -30,6 +49,54 @@ export const LANDING_PAGES: LandingPageConfig[] = [
   { slug: 'child-seats', section: 'faq', ctaHref: '/book' },
   { slug: 'flight-delays', section: 'faq', ctaHref: '/book' },
   { slug: 'tipping-in-prague', section: 'faq', ctaHref: '/book' },
+  // Per-vehicle pages (2026-10-31): capture "s class prague", "v class prague",
+  // "minivan with driver prague", "e class chauffeur prague". ?class= preselects
+  // the vehicle in the booking wizard (components/booking/BookingWizard.tsx).
+  {
+    slug: 's-class',
+    section: 'fleet',
+    heroImage: '/vehicles/first-int-1.jpg',
+    ctaHref: '/book?class=first_class',
+    vehicle: {
+      model: 'Mercedes-Benz S-Class',
+      photo: '/vehicles/s-class.avif',
+      bodyTypeEn: 'Executive Sedan',
+      vehicleConfiguration: 'S 450 4MATIC / S 580 e Hybrid',
+      seating: 3,
+      luggageCases: 2,
+      luggageBags: 2,
+    },
+  },
+  {
+    slug: 'v-class',
+    section: 'fleet',
+    heroImage: '/vehicles/van-int-1.jpg',
+    ctaHref: '/book?class=business_van',
+    vehicle: {
+      model: 'Mercedes-Benz V-Class',
+      photo: '/vehicles/v-class.avif',
+      bodyTypeEn: 'Executive Van',
+      vehicleConfiguration: 'V 300 d Extralong AVANTGARDE',
+      seating: 6,
+      luggageCases: 6,
+      luggageBags: 6,
+    },
+  },
+  {
+    slug: 'e-class',
+    section: 'fleet',
+    heroImage: '/vehicles/business-int-1.jpg',
+    ctaHref: '/book?class=business',
+    vehicle: {
+      model: 'Mercedes-Benz E-Class',
+      photo: '/vehicles/e-class.avif',
+      bodyTypeEn: 'Business Sedan',
+      vehicleConfiguration: 'E 220 d / E 300 de Hybrid',
+      seating: 3,
+      luggageCases: 2,
+      luggageBags: 2,
+    },
+  },
 ]
 
 export function landingPagesFor(section: LandingSection): LandingPageConfig[] {
@@ -60,7 +127,21 @@ export type LandingContent = {
   faqsHeading: string
   faqs: { q: string; a: string }[]
   related: { label: string; heading: string; links: { href: string; title: string; body: string }[] }
-  cta: { headingLine1: string; headingItalic: string; buttonText: string }
+  /** buttonText omitted → the bottom CTA reuses hero.ctaPrimary. */
+  cta: { headingLine1: string; headingItalic: string; buttonText?: string }
+  /** Fleet pages only — copy for the vehicle/spec section. */
+  vehicle?: {
+    label: string
+    headingLine1: string
+    headingItalic: string
+    photoAlt: string
+    seatsLabel: string
+    seatsValue: string
+    luggageLabel: string
+    luggageValue: string
+    includedLabel: string
+    included: string[]
+  }
 }
 
 export async function getLandingPrices(): Promise<Record<string, number>> {

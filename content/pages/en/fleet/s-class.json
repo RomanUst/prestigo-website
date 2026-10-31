@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "title": "Mercedes S-Class with Driver in Prague — Executive Limousine Service",
+    "description": "Mercedes S-Class limousine service in Prague: a professional chauffeur, Nappa leather, rear massage seats. Airport, VIP, business and intercity trips, 24/7.",
+    "ogTitle": "Mercedes S-Class with Driver in Prague — Executive Limousine Service"
+  },
+  "breadcrumbName": "Mercedes S-Class",
+  "hero": {
+    "label": "Mercedes S-Class · Prague",
+    "headlineLine1": "Mercedes S-Class with driver in Prague.",
+    "headlineItalic": "Silence as standard.",
+    "intro": "The S-Class is the executive sedan of the Prestigo fleet — for principals, VIP guests and anyone who wants the journey itself to be the quietest part of the day. A professional chauffeur, a late-model S-Class and one fixed fare, from Prague Airport to the door, across the city or to another capital.",
+    "ctaPrimary": "Book the S-Class",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Rear cabin of a Mercedes S-Class prepared for a Prestigo chauffeur transfer in Prague"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      {
+        "label": "Capacity",
+        "value": "Up to 3 passengers, 2 large cases + 2 cabin bags"
+      },
+      {
+        "label": "Cabin",
+        "value": "Nappa leather, rear massage seats, ambient lighting, panoramic roof"
+      },
+      {
+        "label": "Ideal for",
+        "value": "VIP, executive, diplomatic and long intercity journeys"
+      },
+      {
+        "label": "By the hour",
+        "value": "From €{hourlyS}/hour, minimum 2 hours"
+      }
+    ]
+  },
+  "vehicle": {
+    "label": "The vehicle",
+    "headingLine1": "Mercedes-Benz S-Class.",
+    "headingItalic": "The upper tier of ground travel.",
+    "photoAlt": "Black Mercedes-Benz S-Class — Prestigo chauffeur service Prague",
+    "seatsLabel": "Seats",
+    "seatsValue": "Up to 3 passengers",
+    "luggageLabel": "Luggage",
+    "luggageValue": "2 large cases + 2 cabin bags",
+    "includedLabel": "Included with every S-Class booking",
+    "included": [
+      "Meet and greet with a name board",
+      "Flight tracking and 60 minutes of free waiting at the airport",
+      "Onboard Wi-Fi and fast charging at every seat",
+      "Still and sparkling water",
+      "Child seats on request, free of charge",
+      "Tolls and vignettes included on intercity routes"
+    ]
+  },
+  "intro": {
+    "headingLine1": "When the S-Class",
+    "headingItalic": "is the right car.",
+    "paragraphs": [
+      "Most journeys in Prague are well served by the E-Class. The S-Class is for the trips where the cabin itself matters: a principal arriving with an aide and protocol requirements, a guest you want to receive properly, a two-hour drive to Vienna that should feel like time well spent rather than time lost.",
+      "Rear legroom from the executive package, massage seats and a near-silent cabin turn the back seat into a place to work, take a call or simply rest after a long flight. It carries up to three passengers with two large cases and two cabin bags — the same luggage capacity as the E-Class, with a very different experience on board.",
+      "Every Prestigo S-Class is an S 450 4MATIC or S 580 e Hybrid, 2022 model year or newer, black outside with Nappa leather inside, and prepared before every journey."
+    ]
+  },
+  "features": {
+    "label": "On board",
+    "headingLine1": "Details you feel",
+    "headingItalic": "rather than notice.",
+    "items": [
+      {
+        "title": "Rear massage seats",
+        "body": "Executive rear package with generous legroom and massage seats — the most useful feature after a long-haul flight."
+      },
+      {
+        "title": "Nappa leather and ambient light",
+        "body": "A calm, softly lit cabin under a panoramic roof. Your preferred temperature is set before the car reaches you."
+      },
+      {
+        "title": "Privacy",
+        "body": "Privacy glass in the rear cabin. What is said in the car stays in the car."
+      },
+      {
+        "title": "A cabin for work",
+        "body": "Enterprise-grade 5G Wi-Fi with no data cap and USB-C fast charging within reach, so a video call between meetings simply works."
+      },
+      {
+        "title": "Refreshments",
+        "body": "Chilled still and sparkling water on every journey; coffee, tea and champagne on request for executive and VIP bookings."
+      },
+      {
+        "title": "A professional chauffeur",
+        "body": "Background-checked drivers with professional qualifications and fluent English; Russian, German or Czech on request."
+      }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Booking an S-Class in four steps.",
+    "items": [
+      {
+        "title": "Choose the S-Class",
+        "body": "Enter the pickup, destination and time, then select the S-Class. The fare is fixed before you pay."
+      },
+      {
+        "title": "Share the details",
+        "body": "Add a flight number for an airport pickup, or notes for a VIP arrival — name board, protocol, preferred temperature."
+      },
+      {
+        "title": "Meet your chauffeur",
+        "body": "You receive the driver’s name and phone number in advance. At the airport they wait inside the Arrivals hall."
+      },
+      {
+        "title": "Travel in quiet",
+        "body": "Luggage is handled for you. Work, rest or take a call — the driver takes care of the rest."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Where the S-Class goes",
+    "headingLine1": "Airport, city,",
+    "headingItalic": "or another capital.",
+    "paragraphs": [
+      "The S-Class works for every kind of Prestigo journey. Airport transfers from Václav Havel Airport include flight tracking, a name board in the Arrivals hall and up to 60 minutes of free waiting. Hourly hire keeps the car and chauffeur at your disposal for a day of meetings, an evening at the opera or a wedding that runs to its own schedule.",
+      "For intercity travel — Vienna, Munich, Berlin, Budapest and more — fixed-price routes include tolls and vignettes, so the fare you see is the fare you pay. For diplomatic visits, galas and events, our VIP service can coordinate matching cars and a single dispatch contact."
+    ]
+  },
+  "faqsHeading": "Mercedes S-Class questions",
+  "faqs": [
+    {
+      "q": "What is included when I book a Mercedes S-Class with driver in Prague?",
+      "a": "Every S-Class booking includes a professional chauffeur, meet and greet with a name board, flight tracking and up to 60 minutes of free waiting for airport pickups, Wi-Fi, fast charging, still and sparkling water, and child seats on request at no extra charge. On intercity routes, tolls and vignettes are included in the fixed fare."
+    },
+    {
+      "q": "How many passengers and how much luggage fit in the S-Class?",
+      "a": "The S-Class seats up to 3 passengers and carries 2 large suitcases plus 2 cabin bags in its 550-litre boot. For more passengers or bulky items such as skis or golf bags, choose the Mercedes V-Class."
+    },
+    {
+      "q": "Which S-Class models does Prestigo operate?",
+      "a": "Our S-Class cars are the S 450 4MATIC or S 580 e Hybrid, 2022 model year or newer, black with Nappa leather interiors. They are serviced by authorised Mercedes-Benz technicians on the factory schedule and inspected before every journey."
+    },
+    {
+      "q": "Can I book an S-Class for a Prague Airport transfer?",
+      "a": "Yes. Select the S-Class when you book your airport transfer. Your chauffeur tracks the flight, waits inside the Arrivals hall with a name board and includes up to 60 minutes of free waiting after landing."
+    },
+    {
+      "q": "Can I hire the S-Class by the hour or for a trip to another city?",
+      "a": "Yes. Hourly hire has a 2-hour minimum and keeps the car and chauffeur with you for the whole booking. For other cities, fixed-price routes from Prague to Vienna, Munich, Berlin, Budapest and more include tolls and vignettes."
+    },
+    {
+      "q": "Is the S-Class suitable for VIP, diplomatic or wedding transport?",
+      "a": "Yes. It is the car we recommend for VIP guests, diplomatic visits, galas and weddings. Through our VIP and events service we can coordinate several matching cars, timed arrivals and one dispatch contact, and we provide insurance documentation in advance on request."
+    },
+    {
+      "q": "How far in advance should I book the S-Class?",
+      "a": "Book online at least 12 hours ahead. For shorter notice, call +420 725 986 855 — we operate 24/7."
+    }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "The rest of the fleet, and where it takes you.",
+    "links": [
+      {
+        "href": "/fleet",
+        "title": "The Prestigo fleet",
+        "body": "E-Class, S-Class and V-Class side by side, with full specifications."
+      },
+      {
+        "href": "/fleet/e-class",
+        "title": "Mercedes E-Class",
+        "body": "The business sedan for airport transfers and city rides."
+      },
+      {
+        "href": "/fleet/v-class",
+        "title": "Mercedes V-Class",
+        "body": "Up to six passengers with full luggage, for families and groups."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Prague Airport Transfer",
+        "body": "Meet and greet at PRG, flight tracking and a fixed fare."
+      },
+      {
+        "href": "/services/vip-events",
+        "title": "VIP & Events",
+        "body": "Diplomatic visits, galas, weddings and multi-car arrivals."
+      },
+      {
+        "href": "/routes/prague-vienna",
+        "title": "Prague to Vienna",
+        "body": "A fixed-price door-to-door transfer, tolls included."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "An S-Class and a chauffeur, ready when you are.",
+    "headingItalic": "Fixed fare, booked online.",
+    "buttonText": "Book the S-Class"
+  }
+}

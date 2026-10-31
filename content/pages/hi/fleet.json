@@ -43,6 +43,7 @@
   },
   "idealForPrefix": "उपयुक्त:",
   "bookButtonTemplate": "{className} बुक करें",
+  "detailsLinkTemplate": "{className} के बारे में और जानें",
   "standards": {
     "heading": "हर कार, हर बार",
     "items": [

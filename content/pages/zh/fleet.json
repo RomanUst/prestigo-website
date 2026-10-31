@@ -43,6 +43,7 @@
   },
   "idealForPrefix": "适合：",
   "bookButtonTemplate": "预订 {className}",
+  "detailsLinkTemplate": "了解 {className} 详情",
   "standards": {
     "heading": "每一辆车，每一次都如此",
     "items": [

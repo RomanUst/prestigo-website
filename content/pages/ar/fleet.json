@@ -43,6 +43,7 @@
   },
   "idealForPrefix": "مناسبة لـ:",
   "bookButtonTemplate": "حجز {className}",
+  "detailsLinkTemplate": "المزيد عن {className}",
   "standards": {
     "heading": "كل سيارة، في كل مرة",
     "items": [

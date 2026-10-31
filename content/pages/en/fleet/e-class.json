@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "title": "Mercedes E-Class with Driver in Prague — Executive Chauffeur",
+    "description": "Mercedes E-Class with an executive chauffeur in Prague: the business sedan for airport transfers, meetings and city rides. Meet and greet, fixed fares, 24/7.",
+    "ogTitle": "Mercedes E-Class with Driver in Prague — Executive Chauffeur"
+  },
+  "breadcrumbName": "Mercedes E-Class",
+  "hero": {
+    "label": "Mercedes E-Class · Prague",
+    "headlineLine1": "Mercedes E-Class with driver in Prague.",
+    "headlineItalic": "Business, quietly done.",
+    "intro": "The E-Class is the business sedan of the Prestigo fleet and our first choice for airport transfers and city rides: comfortable, discreet and efficient. A professional chauffeur meets you at Prague Airport or at your door and drives you for one fixed fare.",
+    "ctaPrimary": "Book the E-Class",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Rear cabin of a Mercedes E-Class with bottled water, Prestigo chauffeur service Prague"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      {
+        "label": "Capacity",
+        "value": "Up to 3 passengers, 2 large cases + 2 cabin bags"
+      },
+      {
+        "label": "Airport transfer",
+        "value": "From €{businessPrice}, fixed, meet and greet included"
+      },
+      {
+        "label": "Ideal for",
+        "value": "Airport transfers, business meetings, city rides"
+      },
+      {
+        "label": "By the hour",
+        "value": "From €{hourlyFrom}/hour, minimum 2 hours"
+      }
+    ]
+  },
+  "vehicle": {
+    "label": "The vehicle",
+    "headingLine1": "Mercedes-Benz E-Class.",
+    "headingItalic": "The business standard.",
+    "photoAlt": "Black Mercedes-Benz E-Class — Prestigo chauffeur service Prague",
+    "seatsLabel": "Seats",
+    "seatsValue": "Up to 3 passengers",
+    "luggageLabel": "Luggage",
+    "luggageValue": "2 large cases + 2 cabin bags",
+    "includedLabel": "Included with every E-Class booking",
+    "included": [
+      "Meet and greet with a name board",
+      "Flight tracking and 60 minutes of free waiting at the airport",
+      "Onboard Wi-Fi and fast charging at every seat",
+      "Still and sparkling water",
+      "Child seats on request, free of charge",
+      "Tolls and vignettes included on intercity routes"
+    ]
+  },
+  "intro": {
+    "headingLine1": "The car most of our clients",
+    "headingItalic": "choose first.",
+    "paragraphs": [
+      "A solo executive arriving with a briefcase and a carry-on, a couple with two suitcases, a day of meetings across Prague — the E-Class is made for exactly these journeys. It seats up to three passengers and carries two large cases plus two cabin bags in its 540-litre boot.",
+      "The cabin is quiet and well appointed: leather seats, dual-zone climate control, Wi-Fi and fast charging. It is the default business sedan of Central Europe, and it does the job without drawing attention.",
+      "Every Prestigo E-Class is an E 220 d or E 300 de Hybrid, 2022 model year or newer, black with a leather interior, and prepared before every journey."
+    ]
+  },
+  "features": {
+    "label": "On board",
+    "headingLine1": "Everything a business trip needs,",
+    "headingItalic": "nothing it does not.",
+    "items": [
+      {
+        "title": "Leather interior",
+        "body": "Comfortable leather seats in a calm, uncluttered cabin — a quiet place to prepare for the day."
+      },
+      {
+        "title": "Dual-zone climate control",
+        "body": "Your preferred cabin temperature is set before the car reaches you — noted once, remembered for future bookings."
+      },
+      {
+        "title": "Wi-Fi with no data cap",
+        "body": "Enterprise-grade 5G Wi-Fi for emails and calls on the way from the airport to the first meeting."
+      },
+      {
+        "title": "Fast charging",
+        "body": "USB-C and USB-A ports within reach, with Apple and Samsung fast charging supported."
+      },
+      {
+        "title": "Bottled water",
+        "body": "Chilled still and sparkling water on every journey."
+      },
+      {
+        "title": "A professional chauffeur",
+        "body": "Background-checked drivers with professional qualifications and fluent English; Russian, German or Czech on request."
+      }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Booking an E-Class in four steps.",
+    "items": [
+      {
+        "title": "Choose the E-Class",
+        "body": "Enter the pickup, destination and time, then select the E-Class. The fare is fixed before you pay."
+      },
+      {
+        "title": "Add your flight",
+        "body": "For an airport pickup, add the flight number — your driver follows the arrival in real time."
+      },
+      {
+        "title": "Meet your chauffeur",
+        "body": "You receive the driver’s name and phone number in advance. At the airport they wait inside the Arrivals hall with a name board."
+      },
+      {
+        "title": "Arrive on time",
+        "body": "Luggage handled, route planned, and you arrive ready for the day."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Where the E-Class goes",
+    "headingLine1": "From the airport",
+    "headingItalic": "to the next meeting.",
+    "paragraphs": [
+      "Most E-Class journeys start at Václav Havel Airport. Every transfer includes flight tracking, a name board in the Arrivals hall and up to 60 minutes of free waiting, so a delayed flight costs you nothing extra. Hourly hire keeps the car and chauffeur with you for a day of meetings across the city.",
+      "For trips to other cities — Vienna, Munich, Berlin, Dresden and more — fixed-price routes include tolls and vignettes. Companies with regular travel can open a corporate account with monthly invoicing."
+    ]
+  },
+  "faqsHeading": "Mercedes E-Class questions",
+  "faqs": [
+    {
+      "q": "How many passengers and how much luggage fit in the E-Class?",
+      "a": "The E-Class seats up to 3 passengers and carries 2 large suitcases plus 2 cabin bags in its 540-litre boot. For more passengers or luggage, choose the Mercedes V-Class."
+    },
+    {
+      "q": "Is the E-Class a good choice for a Prague Airport transfer?",
+      "a": "Yes — it is our most popular airport car. Your chauffeur tracks the flight, waits inside the Arrivals hall with a name board and includes up to 60 minutes of free waiting after landing, all for a fixed fare."
+    },
+    {
+      "q": "What is included in an E-Class booking?",
+      "a": "A professional chauffeur, meet and greet with a name board, flight tracking and free waiting at the airport, Wi-Fi, fast charging, still and sparkling water, and child seats on request at no extra charge. Tolls and vignettes are included on intercity routes."
+    },
+    {
+      "q": "Which E-Class models does Prestigo operate?",
+      "a": "Our E-Class cars are the E 220 d or E 300 de Hybrid, 2022 model year or newer, black with leather interiors. They are serviced by authorised Mercedes-Benz technicians on the factory schedule and inspected before every journey."
+    },
+    {
+      "q": "Can I hire the E-Class with driver by the hour?",
+      "a": "Yes. Hourly hire has a 2-hour minimum and keeps the car and chauffeur with you for meetings, shopping or an evening out. Extra time is added at the same rate."
+    },
+    {
+      "q": "What is the difference between the E-Class and the S-Class?",
+      "a": "Both seat 3 passengers with the same luggage capacity. The S-Class adds an executive rear package with more legroom, massage seats, Nappa leather and a quieter cabin — it suits VIP guests and long intercity journeys. For most airport and city trips, the E-Class is the natural choice."
+    },
+    {
+      "q": "How far in advance should I book?",
+      "a": "Book online at least 12 hours ahead. For shorter notice, call +420 725 986 855 — we operate 24/7."
+    }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "The rest of the fleet, and where it takes you.",
+    "links": [
+      {
+        "href": "/fleet",
+        "title": "The Prestigo fleet",
+        "body": "E-Class, S-Class and V-Class side by side, with full specifications."
+      },
+      {
+        "href": "/fleet/s-class",
+        "title": "Mercedes S-Class",
+        "body": "The executive sedan for VIP and long intercity journeys."
+      },
+      {
+        "href": "/fleet/v-class",
+        "title": "Mercedes V-Class",
+        "body": "Up to six passengers with full luggage, for families and groups."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Prague Airport Transfer",
+        "body": "Meet and greet at PRG, flight tracking and a fixed fare."
+      },
+      {
+        "href": "/services/city-rides",
+        "title": "City rides by the hour",
+        "body": "Hourly hire inside Prague — rates, minimums and how it works."
+      },
+      {
+        "href": "/corporate",
+        "title": "Corporate accounts",
+        "body": "Monthly invoicing and priority dispatch for regular business travel."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "An E-Class and a chauffeur, wherever the day starts.",
+    "headingItalic": "Fixed fare, booked online.",
+    "buttonText": "Book the E-Class"
+  }
+}

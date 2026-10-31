@@ -43,6 +43,7 @@
   },
   "idealForPrefix": "Idéal pour :",
   "bookButtonTemplate": "Réserver {className}",
+  "detailsLinkTemplate": "En savoir plus sur la {className}",
   "standards": {
     "heading": "Chaque véhicule, chaque fois",
     "items": [

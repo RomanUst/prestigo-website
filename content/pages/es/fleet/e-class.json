@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "title": "Mercedes E-Class con conductor en Praga — chófer ejecutivo",
+    "description": "Mercedes E-Class con chófer ejecutivo en Praga: la berlina de negocios para aeropuerto, reuniones y ciudad. Recibimiento con cartel, tarifa fija, 24/7.",
+    "ogTitle": "Mercedes E-Class con conductor en Praga — chófer ejecutivo"
+  },
+  "breadcrumbName": "Mercedes E-Class",
+  "hero": {
+    "label": "Mercedes E-Class · Praga",
+    "headlineLine1": "Mercedes E-Class con conductor en Praga.",
+    "headlineItalic": "Negocios, con discreción.",
+    "intro": "El E-Class es la berlina de negocios de la flota Prestigo y nuestra primera opción para traslados al aeropuerto y trayectos urbanos: cómoda, discreta y eficaz. Un chófer profesional le recibe en el aeropuerto de Praga o en su puerta y le lleva por una tarifa fija.",
+    "ctaPrimary": "Reservar el E-Class",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Habitáculo trasero de un Mercedes E-Class con agua embotellada, servicio de chófer Prestigo en Praga"
+  },
+  "glance": {
+    "label": "En resumen",
+    "items": [
+      {
+        "label": "Capacidad",
+        "value": "Hasta 3 pasajeros, 2 maletas grandes + 2 de cabina"
+      },
+      {
+        "label": "Traslado al aeropuerto",
+        "value": "Desde €{businessPrice}, precio fijo, recibimiento incluido"
+      },
+      {
+        "label": "Ideal para",
+        "value": "Traslados al aeropuerto, reuniones de negocios, trayectos urbanos"
+      },
+      {
+        "label": "Por horas",
+        "value": "Desde €{hourlyFrom}/hora, mínimo 2 horas"
+      }
+    ]
+  },
+  "vehicle": {
+    "label": "El vehículo",
+    "headingLine1": "Mercedes-Benz E-Class.",
+    "headingItalic": "El estándar de los negocios.",
+    "photoAlt": "Mercedes-Benz E-Class negro — servicio de chófer Prestigo en Praga",
+    "seatsLabel": "Plazas",
+    "seatsValue": "Hasta 3 pasajeros",
+    "luggageLabel": "Equipaje",
+    "luggageValue": "2 maletas grandes + 2 de cabina",
+    "includedLabel": "Incluido en cada reserva de E-Class",
+    "included": [
+      "Recibimiento con cartel con su nombre",
+      "Seguimiento del vuelo y 60 minutos de espera gratuita en el aeropuerto",
+      "Wi-Fi a bordo y carga rápida en cada asiento",
+      "Agua con y sin gas",
+      "Sillas infantiles bajo petición, sin coste",
+      "Peajes y viñetas incluidos en las rutas interurbanas"
+    ]
+  },
+  "intro": {
+    "headingLine1": "El coche que la mayoría de nuestros clientes",
+    "headingItalic": "elige primero.",
+    "paragraphs": [
+      "Un directivo que llega solo con un maletín y equipaje de mano, una pareja con dos maletas, un día de reuniones por toda Praga: el E-Class está hecho exactamente para estos trayectos. Lleva hasta tres pasajeros y dos maletas grandes más dos de cabina en su maletero de 540 litros.",
+      "El habitáculo es silencioso y está bien equipado: asientos de piel, climatizador bizona, Wi-Fi y carga rápida. Es la berlina de negocios por excelencia en Europa Central, y cumple su función sin llamar la atención.",
+      "Cada E-Class de Prestigo es un E 220 d o un E 300 de Hybrid, modelo 2022 o posterior, negro, con interior de piel y preparado antes de cada trayecto."
+    ]
+  },
+  "features": {
+    "label": "A bordo",
+    "headingLine1": "Todo lo que necesita un viaje de negocios,",
+    "headingItalic": "nada que sobre.",
+    "items": [
+      {
+        "title": "Interior de piel",
+        "body": "Cómodos asientos de piel en un habitáculo sereno y despejado: un lugar tranquilo para preparar el día."
+      },
+      {
+        "title": "Climatizador bizona",
+        "body": "Su temperatura preferida está ajustada antes de que llegue el coche: nos lo dice una vez y lo recordamos en futuras reservas."
+      },
+      {
+        "title": "Wi-Fi sin límite de datos",
+        "body": "Wi-Fi 5G de nivel empresarial para correos y llamadas camino de la primera reunión."
+      },
+      {
+        "title": "Carga rápida",
+        "body": "Puertos USB-C y USB-A al alcance, compatibles con la carga rápida de Apple y Samsung."
+      },
+      {
+        "title": "Agua embotellada",
+        "body": "Agua fría con y sin gas en cada trayecto."
+      },
+      {
+        "title": "Un chófer profesional",
+        "body": "Conductores con antecedentes verificados, cualificación profesional e inglés fluido; ruso, alemán o checo bajo petición."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Reservar un E-Class en cuatro pasos.",
+    "items": [
+      {
+        "title": "Elija el E-Class",
+        "body": "Indique la recogida, el destino y la hora, y seleccione el E-Class. La tarifa queda fijada antes de pagar."
+      },
+      {
+        "title": "Añada su vuelo",
+        "body": "Para una recogida en el aeropuerto, indique el número de vuelo: su conductor sigue la llegada en tiempo real."
+      },
+      {
+        "title": "Conozca a su chófer",
+        "body": "Recibe con antelación el nombre y el teléfono del conductor. En el aeropuerto le espera dentro de la sala de llegadas con un cartel con su nombre."
+      },
+      {
+        "title": "Llegue a tiempo",
+        "body": "Equipaje resuelto, ruta planificada, y usted llega listo para el día."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Adónde va el E-Class",
+    "headingLine1": "Del aeropuerto",
+    "headingItalic": "a la siguiente reunión.",
+    "paragraphs": [
+      "La mayoría de los trayectos en E-Class empiezan en el aeropuerto Václav Havel. Cada traslado incluye seguimiento del vuelo, cartel con su nombre en la sala de llegadas y hasta 60 minutos de espera gratuita, de modo que un retraso no le cuesta nada más. El alquiler por horas mantiene el coche y el chófer con usted durante un día de reuniones por la ciudad.",
+      "Para viajes a otras ciudades —Viena, Múnich, Berlín, Dresde y más— las rutas de precio fijo incluyen peajes y viñetas. Las empresas que viajan con regularidad pueden abrir una cuenta corporativa con facturación mensual."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre el Mercedes E-Class",
+  "faqs": [
+    {
+      "q": "¿Cuántos pasajeros y cuánto equipaje caben en el E-Class?",
+      "a": "El E-Class lleva hasta 3 pasajeros y 2 maletas grandes más 2 de cabina en su maletero de 540 litros. Para más pasajeros o equipaje, elija el Mercedes V-Class."
+    },
+    {
+      "q": "¿Es el E-Class una buena opción para un traslado desde el aeropuerto de Praga?",
+      "a": "Sí: es nuestro coche más solicitado para el aeropuerto. Su chófer sigue el vuelo, le espera dentro de la sala de llegadas con un cartel con su nombre e incluye hasta 60 minutos de espera gratuita tras el aterrizaje, todo por una tarifa fija."
+    },
+    {
+      "q": "¿Qué incluye una reserva de E-Class?",
+      "a": "Un chófer profesional, recibimiento con cartel con su nombre, seguimiento del vuelo y espera gratuita en el aeropuerto, Wi-Fi, carga rápida, agua con y sin gas, y sillas infantiles bajo petición sin coste adicional. Los peajes y las viñetas están incluidos en las rutas interurbanas."
+    },
+    {
+      "q": "¿Qué modelos de E-Class tiene Prestigo?",
+      "a": "Nuestros E-Class son E 220 d o E 300 de Hybrid, modelo 2022 o posterior, negros y con interior de piel. Los revisan técnicos autorizados de Mercedes-Benz según el calendario de fábrica y se inspeccionan antes de cada trayecto."
+    },
+    {
+      "q": "¿Puedo alquilar el E-Class con conductor por horas?",
+      "a": "Sí. El alquiler por horas tiene un mínimo de 2 horas y mantiene el coche y el chófer con usted para reuniones, compras o una noche fuera. El tiempo adicional se cobra a la misma tarifa."
+    },
+    {
+      "q": "¿Qué diferencia hay entre el E-Class y el S-Class?",
+      "a": "Ambos llevan 3 pasajeros con la misma capacidad de equipaje. El S-Class añade un paquete ejecutivo trasero con más espacio para las piernas, asientos con masaje, piel Nappa y un habitáculo más silencioso: encaja con invitados VIP y viajes interurbanos largos. Para la mayoría de los trayectos al aeropuerto y por la ciudad, el E-Class es la opción natural."
+    },
+    {
+      "q": "¿Con cuánta antelación debo reservar?",
+      "a": "Reserve en línea con al menos 12 horas de antelación. Con menos margen, llame al +420 725 986 855: operamos 24/7."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "El resto de la flota y adónde le lleva.",
+    "links": [
+      {
+        "href": "/fleet",
+        "title": "La flota Prestigo",
+        "body": "E-Class, S-Class y V-Class uno junto a otro, con todas sus especificaciones."
+      },
+      {
+        "href": "/fleet/s-class",
+        "title": "Mercedes S-Class",
+        "body": "La berlina ejecutiva para viajes VIP e interurbanos largos."
+      },
+      {
+        "href": "/fleet/v-class",
+        "title": "Mercedes V-Class",
+        "body": "Hasta seis pasajeros con equipaje completo, para familias y grupos."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Recibimiento en PRG, seguimiento del vuelo y tarifa fija."
+      },
+      {
+        "href": "/services/city-rides",
+        "title": "Trayectos urbanos por horas",
+        "body": "Alquiler por horas en Praga: tarifas, mínimos y cómo funciona."
+      },
+      {
+        "href": "/corporate",
+        "title": "Cuentas corporativas",
+        "body": "Facturación mensual y despacho prioritario para viajes de negocios frecuentes."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Un E-Class y un chófer, dondequiera que empiece el día.",
+    "headingItalic": "Tarifa fija, reserva en línea.",
+    "buttonText": "Reservar el E-Class"
+  }
+}

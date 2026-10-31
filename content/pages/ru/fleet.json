@@ -43,6 +43,7 @@
   },
   "idealForPrefix": "Подходит для:",
   "bookButtonTemplate": "Забронировать {className}",
+  "detailsLinkTemplate": "Подробнее о {className}",
   "standards": {
     "heading": "Каждый автомобиль, каждый раз",
     "items": [

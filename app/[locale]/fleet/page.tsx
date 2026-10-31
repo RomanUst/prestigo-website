@@ -18,6 +18,7 @@ type FleetContent = {
   specsLabels: { seatsLabel: string; luggageLabel: string; passengersTemplate: string; luggageTemplate: string }
   idealForPrefix: string
   bookButtonTemplate: string
+  detailsLinkTemplate: string
   standards: { heading: string; items: { title: string; body: string }[] }
   marque: { label: string; headingLine1: string; headingItalic: string; paragraphs: string[] }
   maintenance: { label: string; headingLine1: string; headingItalic: string; items: { title: string; body: string }[] }
@@ -53,6 +54,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 type VehicleSpec = {
   model: string
   photo: string
+  /** Per-vehicle landing page (/fleet/<slug>, lib/landing-pages.ts). */
+  slug: 's-class' | 'v-class' | 'e-class'
+  /** Booking-wizard vehicle class preselected via /book?class=. */
+  bookClass: 'business' | 'first_class' | 'business_van'
   // EN-only, used exclusively for the Vehicle ItemList JSON-LD (Phase 74
   // D-09 — Service/ItemList/Breadcrumb names stay English by design). The
   // visible, localized equivalents live in content.vehicles[i].
@@ -80,6 +85,8 @@ type VehicleSpec = {
 const vehicles: VehicleSpec[] = [
   {
     model: 'Mercedes-Benz E-Class',
+    slug: 'e-class',
+    bookClass: 'business',
     categoryEn: 'Business Sedan',
     descriptionEn: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
     photo: '/vehicles/e-class.avif',
@@ -99,6 +106,8 @@ const vehicles: VehicleSpec[] = [
   },
   {
     model: 'Mercedes-Benz S-Class',
+    slug: 's-class',
+    bookClass: 'first_class',
     categoryEn: 'Executive Sedan',
     descriptionEn: 'For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.',
     photo: '/vehicles/s-class.avif',
@@ -118,6 +127,8 @@ const vehicles: VehicleSpec[] = [
   },
   {
     model: 'Mercedes-Benz V-Class',
+    slug: 'v-class',
+    bookClass: 'business_van',
     categoryEn: 'Executive Van',
     descriptionEn: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
     photo: '/vehicles/v-class.avif',
@@ -149,6 +160,7 @@ const vehicleListSchema = {
       '@type': 'Vehicle',
       '@id': `https://rideprestigo.com/fleet#${v.model.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       name: v.model,
+      url: `https://rideprestigo.com/fleet/${v.slug}`,
       description: v.descriptionEn,
       image: `https://rideprestigo.com${v.photo}`,
       brand: { '@type': 'Brand', name: 'Mercedes-Benz' },
@@ -245,6 +257,8 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
           {vehicles.map((v, i) => {
             const vc = content.vehicles[i]
             const photoAlt = content.imageAlts.vehicleTemplate.replace('{model}', v.model)
+            const className = v.model.split(' ').pop() ?? ''
+            const detailsHref = getPathname({ locale, href: `/fleet/${v.slug}` })
             const seatsValue = content.specsLabels.passengersTemplate.replace('{n}', String(v.specs.seating))
             const luggageValue = content.specsLabels.luggageTemplate
               .replace('{cases}', String(v.specs.luggageCases))
@@ -271,7 +285,7 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
                 <div className="flex flex-col justify-center gap-6">
                   <div>
                     <p className="label mb-2">{vc.category}</p>
-                    <h2 className="display text-[28px] md:text-[34px] mb-3">{v.model}</h2>
+                    <h2 className="display text-[28px] md:text-[34px] mb-3"><a href={detailsHref} className="hover:text-[var(--copper)] transition-colors">{v.model}</a></h2>
                     <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{vc.description}</p>
                   </div>
                   <ul className="flex flex-col gap-2">
@@ -297,8 +311,11 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
                   </dl>
 
                   <div className="flex items-center gap-6">
-                    <a href={bookHref} className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
-                      {content.bookButtonTemplate.replace('{className}', v.model.split(' ').pop() ?? '')}
+                    <a href={`${bookHref}?class=${v.bookClass}`} className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
+                      {content.bookButtonTemplate.replace('{className}', className)}
+                    </a>
+                    <a href={detailsHref} className="btn-ghost" style={{ padding: '10px 24px', fontSize: '9px' }}>
+                      {content.detailsLinkTemplate.replace('{className}', className)}
                     </a>
                   </div>
                   <p className="font-body font-light text-[11px] text-warmgrey">

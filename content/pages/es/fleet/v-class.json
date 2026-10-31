@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "title": "Mercedes V-Class con conductor en Praga — traslados premium",
+    "description": "Monovolumen Mercedes V-Class con chófer ejecutivo en Praga para hasta 6 pasajeros y 6 maletas grandes. Aeropuerto, familias, grupos e interurbanos, 24/7.",
+    "ogTitle": "Mercedes V-Class con conductor en Praga — traslados premium para grupos"
+  },
+  "breadcrumbName": "Mercedes V-Class",
+  "hero": {
+    "label": "Mercedes V-Class · Praga",
+    "headlineLine1": "Mercedes V-Class con conductor en Praga.",
+    "headlineItalic": "Sitio para todos, y para todo.",
+    "intro": "El V-Class es el monovolumen premium de la flota Prestigo: seis asientos individuales, equipaje completo para cada pasajero y un habitáculo que mantiene unidos en un solo coche a una familia, un consejo de dirección o un grupo de amigos. Un conductor profesional y una tarifa fija, del aeropuerto de Praga hasta la puerta o por toda Europa Central.",
+    "ctaPrimary": "Reservar el V-Class",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Habitáculo de un Mercedes V-Class con seis asientos enfrentados y agua embotellada, Prestigo Praga"
+  },
+  "glance": {
+    "label": "En resumen",
+    "items": [
+      {
+        "label": "Capacidad",
+        "value": "Hasta 6 pasajeros, 6 maletas grandes + 6 de cabina"
+      },
+      {
+        "label": "Habitáculo",
+        "value": "6 asientos capitán, mesa plegable, lunas traseras tintadas"
+      },
+      {
+        "label": "Ideal para",
+        "value": "Familias, grupos, traslados a congresos, esquís y bolsas de golf"
+      },
+      {
+        "label": "Por horas",
+        "value": "Desde €{hourlyV}/hora, mínimo 2 horas"
+      }
+    ]
+  },
+  "vehicle": {
+    "label": "El vehículo",
+    "headingLine1": "Mercedes-Benz V-Class.",
+    "headingItalic": "Seis plazas, sin concesiones.",
+    "photoAlt": "Monovolumen Mercedes-Benz V-Class negro — servicio de chófer Prestigo en Praga",
+    "seatsLabel": "Plazas",
+    "seatsValue": "Hasta 6 pasajeros",
+    "luggageLabel": "Equipaje",
+    "luggageValue": "6 maletas grandes + 6 de cabina",
+    "includedLabel": "Incluido en cada reserva de V-Class",
+    "included": [
+      "Recibimiento con cartel con su nombre",
+      "Seguimiento del vuelo y 60 minutos de espera gratuita en el aeropuerto",
+      "Wi-Fi a bordo y carga rápida en cada asiento",
+      "Agua con y sin gas",
+      "Sillas infantiles bajo petición, sin coste",
+      "Peajes y viñetas incluidos en las rutas interurbanas"
+    ]
+  },
+  "intro": {
+    "headingLine1": "Un coche para todo el grupo,",
+    "headingItalic": "no dos taxis.",
+    "paragraphs": [
+      "Una familia de cinco con maletas, cuatro colegas camino de un congreso, un grupo con esquís o bolsas de golf: aquí es donde una berlina deja de servir y empieza el V-Class. Acomoda hasta seis adultos en asientos capitán individuales y admite seis maletas grandes y seis de cabina en su zona de carga de 1.410 litros.",
+      "Todos viajan juntos, llegan juntos y cada uno tiene su asiento, su luz y su punto de carga. Para los padres, las sillas infantiles y los elevadores se instalan antes de la recogida sin coste: basta con indicar edades y pesos al reservar.",
+      "Cada V-Class de Prestigo es un V 300 d Extralong AVANTGARDE, modelo 2022 o posterior, negro, con asientos de piel y preparado antes de cada trayecto."
+    ]
+  },
+  "features": {
+    "label": "A bordo",
+    "headingLine1": "Un monovolumen concebido",
+    "headingItalic": "como una sala ejecutiva.",
+    "items": [
+      {
+        "title": "Seis asientos capitán",
+        "body": "Asientos individuales enfrentados, para que el grupo pueda conversar, planificar o simplemente descansar por el camino."
+      },
+      {
+        "title": "Equipaje completo para seis",
+        "body": "Seis maletas grandes y seis de cabina. Esquís, bolsas de golf o un cochecito también caben: indíquelo al reservar."
+      },
+      {
+        "title": "Mesa plegable",
+        "body": "Una mesa entre los asientos para un portátil, documentos o una breve reunión antes de la cita."
+      },
+      {
+        "title": "Privacidad",
+        "body": "Lunas traseras tintadas de serie y mampara de separación disponible bajo petición."
+      },
+      {
+        "title": "Wi-Fi y carga",
+        "body": "Wi-Fi 5G de nivel empresarial sin límite de datos y carga rápida USB-C y USB-A al alcance de cada asiento."
+      },
+      {
+        "title": "Pensado para familias",
+        "body": "Sillas infantiles y elevadores con homologación europea instalados sin coste, y luces de lectura individuales para los trayectos largos."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Reservar un V-Class en cuatro pasos.",
+    "items": [
+      {
+        "title": "Elija el V-Class",
+        "body": "Indique la recogida, el destino y la hora, y seleccione el V-Class. La tarifa es fija por vehículo, no por persona."
+      },
+      {
+        "title": "Díganos quién viaja",
+        "body": "Añada el número de pasajeros, el equipaje, esquís o bolsas de golf y, si hace falta, las edades para las sillas infantiles."
+      },
+      {
+        "title": "Conozca a su conductor",
+        "body": "Recibe con antelación el nombre y el teléfono del conductor. En el aeropuerto le espera dentro de la sala de llegadas con un cartel con su nombre."
+      },
+      {
+        "title": "Viajen juntos",
+        "body": "El conductor carga cada maleta. Su grupo va unido desde la terminal hasta la puerta."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Adónde va el V-Class",
+    "headingLine1": "Aeropuerto, ciudad",
+    "headingItalic": "y carretera.",
+    "paragraphs": [
+      "Los traslados desde el aeropuerto Václav Havel incluyen seguimiento del vuelo, cartel con su nombre en la sala de llegadas y hasta 60 minutos de espera gratuita, algo útil cuando seis personas pasan el control de pasaportes a distinto ritmo. El alquiler por horas mantiene el V-Class con usted durante un día en la ciudad o una excursión a Kutná Hora o Karlovy Vary.",
+      "Para viajes interurbanos —Viena, Múnich, Dresde, Český Krumlov y más— las rutas de precio fijo incluyen peajes y viñetas. ¿Son más de seis? Nuestro servicio de traslados de grupo coordina varias furgonetas V-Class para hasta 50 pasajeros, con un único contacto de despacho."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre el Mercedes V-Class",
+  "faqs": [
+    {
+      "q": "¿Cuántos pasajeros y maletas caben en el Mercedes V-Class?",
+      "a": "El V-Class lleva hasta 6 pasajeros en asientos capitán individuales y 6 maletas grandes más 6 de cabina en su zona de carga de 1.410 litros. Es la opción adecuada para familias, grupos y quien viaja con mucho equipaje."
+    },
+    {
+      "q": "¿Puedo reservar un monovolumen con conductor desde el aeropuerto de Praga?",
+      "a": "Sí. Seleccione el V-Class al reservar su traslado. Su conductor sigue el vuelo, le espera dentro de la sala de llegadas con un cartel con su nombre e incluye hasta 60 minutos de espera gratuita tras el aterrizaje."
+    },
+    {
+      "q": "¿Hay sillas infantiles en el V-Class?",
+      "a": "Sí, sin coste. Disponemos de capazos, sillas y elevadores con homologación europea e instalamos los adecuados antes de la recogida: solo indique la edad y el peso de cada niño al reservar."
+    },
+    {
+      "q": "¿Caben esquís, bolsas de golf o un cochecito en el V-Class?",
+      "a": "Sí. El V-Class es el único coche de nuestra flota que lleva bultos voluminosos con comodidad. Indíquelos al reservar para que el conductor planifique la carga."
+    },
+    {
+      "q": "¿Y si nuestro grupo es de más de seis personas?",
+      "a": "Reserve varios vehículos a través de nuestro servicio de traslados de grupo. Coordinamos furgonetas V-Class para grupos de hasta 50 pasajeros, con llegadas sincronizadas y un único contacto de despacho."
+    },
+    {
+      "q": "¿Puedo alquilar el V-Class por horas o para ir a otra ciudad?",
+      "a": "Sí. El alquiler por horas tiene un mínimo de 2 horas. Las rutas de precio fijo desde Praga a Viena, Múnich, Dresde y otras ciudades incluyen peajes y viñetas, y la tarifa es por vehículo, no por persona."
+    },
+    {
+      "q": "¿Qué incluye una reserva de V-Class?",
+      "a": "Un conductor profesional, recibimiento con cartel con su nombre, seguimiento del vuelo y espera gratuita en el aeropuerto, Wi-Fi, carga rápida, agua con y sin gas, y sillas infantiles bajo petición. Los peajes y las viñetas están incluidos en las rutas interurbanas."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "El resto de la flota y adónde le lleva.",
+    "links": [
+      {
+        "href": "/fleet",
+        "title": "La flota Prestigo",
+        "body": "E-Class, S-Class y V-Class uno junto a otro, con todas sus especificaciones."
+      },
+      {
+        "href": "/fleet/s-class",
+        "title": "Mercedes S-Class",
+        "body": "La berlina ejecutiva para viajes VIP e interurbanos largos."
+      },
+      {
+        "href": "/fleet/e-class",
+        "title": "Mercedes E-Class",
+        "body": "La berlina de negocios para traslados al aeropuerto y trayectos urbanos."
+      },
+      {
+        "href": "/services/group-transfers",
+        "title": "Traslados de grupo",
+        "body": "Varias furgonetas V-Class para grupos de hasta 50 pasajeros."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Recibimiento en PRG, seguimiento del vuelo y tarifa fija."
+      },
+      {
+        "href": "/routes",
+        "title": "Rutas desde Praga",
+        "body": "Trayectos a precio fijo a Viena, Múnich, Dresde, Český Krumlov y más."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Seis plazas, equipaje completo, un conductor.",
+    "headingItalic": "Tarifa fija, reserva en línea.",
+    "buttonText": "Reservar el V-Class"
+  }
+}
