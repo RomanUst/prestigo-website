@@ -122,6 +122,55 @@ function expectSkippedUntouched(w: World, code: string, result: Awaited<ReturnTy
   expect(w.leads()).toHaveLength(0)
 }
 
+describe('hook.chat_intake - Lead channel (D-04, Phase 85)', () => {
+  it('stores the raw Chatwoot class of the creating conversation on the new Lead', async () => {
+    const w = makeWorld()
+    w.cw.seed({ id: 7, name: 'Jan Novák' })
+    seedConversation(w, { id: 42, channel: 'Channel::Telegram' })
+
+    await w.dispatch(w.intakeKey(42))
+
+    expect(w.chat.state.leads).toHaveLength(1)
+    expect(w.chat.state.leads[0].channel).toBe('Channel::Telegram')
+  })
+
+  it('a default (web widget) conversation stores Channel::WebWidget', async () => {
+    const w = janWorld()
+
+    await w.dispatch(w.intakeKey(42))
+
+    expect(w.chat.state.leads[0].channel).toBe('Channel::WebWidget')
+  })
+
+  it('a later conversation of the same person on another channel appends and never changes the stored channel', async () => {
+    const w = makeWorld()
+    w.cw.seed({ id: 7, name: 'Jan Novák', email: 'jan@x.example' })
+    seedConversation(w, { id: 42, channel: 'Channel::Telegram' })
+    await w.dispatch(w.intakeKey(42))
+    w.leads()[0].status = 'In Process'
+    seedConversation(w, { id: 43, channel: 'Channel::Whatsapp', messages: [incoming('Another question about Prague')] })
+
+    await w.dispatch(w.intakeKey(43))
+
+    expect(w.chat.state.conversations.get(43)?.outcome).toBe('lead_appended')
+    expect(w.chat.state.leads).toHaveLength(1)
+    expect(w.chat.state.leads[0].channel).toBe('Channel::Telegram')
+  })
+
+  it('a reservation without a channel leaves the Lead channel null (the stats show it as chat_other)', async () => {
+    const w = makeWorld()
+    await w.chat.store.reserveLead({
+      personKey: 'c:7',
+      identityId: null,
+      chatwootContactId: 7,
+      phone: null,
+      leadRef: refOf(50),
+    })
+
+    expect(w.chat.state.leads[0].channel).toBeNull()
+  })
+})
+
 describe('hook.chat_intake - who is not a Lead (D-06, D-18, D-07, forward-only)', () => {
   it('customer by email (a booking exists) creates nothing and is recorded for the resolve entry', async () => {
     const w = janWorld()

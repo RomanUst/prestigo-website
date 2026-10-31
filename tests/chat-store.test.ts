@@ -26,7 +26,7 @@ describe('personKeyFor / chatLeadRef', () => {
 })
 
 describe('chat store: tracer', () => {
-  it('reserveLead sends the five p_ args and maps the table row', async () => {
+  it('reserveLead sends the six p_ args (raw Chatwoot channel class) and maps the table row', async () => {
     const { store, rpc } = client([
       { chat_lead_id: LEAD, lead_ref: REF, espo_lead_id: null, espo_contact_id: ESPO, own: false },
     ])
@@ -36,6 +36,7 @@ describe('chat store: tracer', () => {
       chatwootContactId: 9,
       phone: '+420700000086',
       leadRef: REF,
+      channel: 'Channel::Telegram',
     })
     expect(rpc).toHaveBeenCalledWith('chat_lead_reserve', {
       p_person_key: 'c:9',
@@ -43,8 +44,34 @@ describe('chat store: tracer', () => {
       p_chatwoot_contact_id: 9,
       p_phone: '+420700000086',
       p_lead_ref: REF,
+      p_channel: 'Channel::Telegram',
     })
     expect(out).toEqual({ chatLeadId: LEAD, leadRef: REF, espoLeadId: null, espoContactId: ESPO, own: false })
+  })
+
+  it.each([
+    ['omitted', undefined],
+    ['null', null],
+  ])('reserveLead with the channel %s sends p_channel null', async (_label, channel) => {
+    const { store, rpc } = client([
+      { chat_lead_id: LEAD, lead_ref: REF, espo_lead_id: null, espo_contact_id: null, own: true },
+    ])
+    await store.reserveLead({
+      personKey: 'c:9',
+      identityId: null,
+      chatwootContactId: 9,
+      phone: null,
+      leadRef: REF,
+      ...(channel === undefined ? {} : { channel }),
+    })
+    expect(rpc).toHaveBeenCalledWith('chat_lead_reserve', {
+      p_person_key: 'c:9',
+      p_identity_id: null,
+      p_chatwoot_contact_id: 9,
+      p_phone: null,
+      p_lead_ref: REF,
+      p_channel: null,
+    })
   })
 
   it('reserveLead rejects a bad shape as db_error', async () => {

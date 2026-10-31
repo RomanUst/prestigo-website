@@ -64,6 +64,8 @@ export interface ChatStore {
     chatwootContactId: number | null
     phone: string | null
     leadRef: string
+    /** Raw Chatwoot channel class of the creating conversation; bucketed in SQL, stored on INSERT only (D-04). */
+    channel?: string | null
   }): Promise<ReserveResult>
   setLeadEspo(chatLeadId: string, espoLeadId: string | null, espoContactId: string | null): Promise<boolean>
   closeLead(
@@ -233,6 +235,7 @@ export function createChatStore(client?: SupabaseClient): ChatStore {
         p_chatwoot_contact_id: input.chatwootContactId,
         p_phone: input.phone,
         p_lead_ref: input.leadRef,
+        p_channel: input.channel ?? null,
       })
       return parse(data, toReserveResult)
     },
