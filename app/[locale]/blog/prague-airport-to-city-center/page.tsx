@@ -179,7 +179,7 @@ function buildArticle(p: Fares) {
         'Free flight tracking — driver waits without extra charge if you\u2019re late',
         'Door-to-door to your exact hotel or apartment entrance',
         'Luggage handled, EU-certified child seats free, Wi-Fi on board',
-        'Guaranteed Mercedes E / S / V-Class 2022+, guaranteed English-speaking chauffeur',
+        'Guaranteed Mercedes E / S / V-Class 2025+, guaranteed English-speaking chauffeur',
         'Works in the 03:54–04:22 dead zone',
       ],
       cons: [

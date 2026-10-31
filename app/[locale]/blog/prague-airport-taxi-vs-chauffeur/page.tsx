@@ -147,7 +147,7 @@ function buildArticle(p: Fares) {
     { label: 'Meet & greet inside Arrivals', prestigo: 'Yes, named sign', uber: 'No', bolt: 'No', public: 'N/A' },
     { label: 'Flight tracking (free)', prestigo: 'Yes', uber: 'No', bolt: 'No', public: 'N/A' },
     { label: 'Waiting time if flight delayed', prestigo: 'Free, unlimited', uber: 'Re-queue on arrival', bolt: 'Re-book in app', public: 'N/A' },
-    { label: 'Vehicle standard', prestigo: 'Mercedes E/S/V-Class 2022+', uber: 'Škoda Octavia to Mercedes, varies', bolt: 'Varies — often Škoda or VW', public: 'ŠKODA 27Tr trolleybus' },
+    { label: 'Vehicle standard', prestigo: 'Mercedes E/S/V-Class 2025+', uber: 'Škoda Octavia to Mercedes, varies', bolt: 'Varies — often Škoda or VW', public: 'ŠKODA 27Tr trolleybus' },
     { label: 'Luggage handled by driver', prestigo: 'Yes', uber: 'Usually yes', bolt: 'Usually not', public: 'Self, limited space' },
     { label: 'Child seat included', prestigo: 'Free, EU-certified', uber: 'Not offered', bolt: 'Not offered', public: 'Not applicable' },
     { label: 'English-language driver', prestigo: 'Guaranteed B2+', uber: 'Often, not guaranteed', bolt: 'Often, not guaranteed', public: 'N/A' },
