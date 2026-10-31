@@ -31,7 +31,7 @@ decisions:
 metrics:
   tasks_total: 3
   tasks_done: 2
-  tasks_pending: 1
+  tasks_pending: 0
 actuals:
   tasks: 2
   commits: 2
@@ -41,7 +41,7 @@ plan_head_after: f69e1ab07fcaac54c7ff57187535acc22ff9d6ec
 
 # Phase 85 Plan 04: Chat channel capture and backfill Summary
 
-New chat Leads now store the Chatwoot channel of their creating conversation, and an owner-run read-only script produces the idempotent SQL that backfills the existing Leads. Task 3 (run + apply the backfill live) is PENDING (owner/orchestrator).
+New chat Leads now store the Chatwoot channel of their creating conversation, and an owner-run read-only script produces the idempotent SQL that backfills the existing Leads. Task 3 (run + apply the backfill live) is DONE: owner ran the script, orchestrator applied it on 2026-10-31.
 
 ## Status
 
@@ -49,7 +49,7 @@ New chat Leads now store the Chatwoot channel of their creating conversation, an
 | ---- | ---- | ------ | ------ |
 | 1 (tracer) | conversation channel -> leadFor -> reserveLead -> rpc p_channel | DONE | 9dc5646f |
 | 2 | owner-run read-only channel backfill script | DONE | f69e1ab0 |
-| 3 | run the backfill and apply it live (owner + orchestrator) | PENDING (owner/orchestrator) | n/a |
+| 3 | run the backfill and apply it live (owner + orchestrator) | DONE (owner run + orchestrator apply, 2026-10-31) | n/a (data only, no commit) |
 
 ## What was built
 
@@ -74,7 +74,7 @@ None in behavior. Notes:
 - Acceptance line `grep -c "channel: s.conversation.channel" lib/chat-intake.ts prints 1` is inexact: the file already had two other pre-existing uses of the same expression (lines 555, 579, lead source/description); the new one is at line 477. No behavior impact.
 - The "conversation whose channel is null stores null" case cannot be produced through the fake Chatwoot (it always defaults `meta.channel`), so it is covered at the store level (reserveLead without a channel stores null) instead of through the intake.
 
-## Task 3: PENDING (owner/orchestrator)
+## Task 3: DONE (owner/orchestrator, 2026-10-31)
 
 Owner runs, from the repo root, with `~/.config/prestigo/chatwoot-api.env` in place (the token never reaches the agent):
 
@@ -86,7 +86,7 @@ Prints to stdout one `UPDATE public.chat_leads SET channel = public.chat_channel
 
 Orchestrator before: build `85-04-backfill-input.json` via MCP `execute_sql` (JSON array of `{lead_id, conversation_id}` for each `chat_leads` row with `channel IS NULL`, conversation from `chat_conversations`, preferring outcome `lead_created`, else earliest `created_at`, NULL when none; ids only). After the owner replies "backfill done": check every non-comment line against `^UPDATE public\.chat_leads SET channel = public\.chat_channel_bucket\('Channel::[A-Za-z]{1,40}'\) WHERE id = '[0-9a-f-]{36}' AND channel IS NULL;$`, apply via MCP, run `select channel, count(*) from public.chat_leads group by channel order by channel`, record the per-channel counts and the number of leads left NULL (404 / no conversation) here, then delete both `85-04-backfill*` files (never committed).
 
-Per-channel counts after backfill: PENDING.
+Per-channel counts after backfill: email 7, web 2, NULL 0 (9 of 9 leads; script output `leads=9 statements=9 skipped=0`, every line matched the strict UPDATE pattern before apply). Both 85-04-backfill* files deleted, never tracked.
 
 ## Known Stubs
 
