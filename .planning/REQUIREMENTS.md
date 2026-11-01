@@ -81,9 +81,9 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Statistics (STAT)
 
-- [ ] **STAT-01**: `/admin/stats` shows inquiries → bookings conversion by source/channel for a chosen period
-- [ ] **STAT-02**: `/admin/stats` shows repeat-customer rate and a list of top repeat customers
-- [ ] **STAT-03**: `/admin/stats` shows B2B revenue and bookings per Account (hotel/agency/corporate)
+- [x] **STAT-01**: `/admin/stats` shows inquiries → bookings conversion by source/channel for a chosen period
+- [x] **STAT-02**: `/admin/stats` shows repeat-customer rate and a list of top repeat customers
+- [x] **STAT-03**: `/admin/stats` shows B2B revenue and bookings per Account (hotel/agency/corporate)
 
 ### Privacy (GDPR)
 
@@ -157,9 +157,9 @@ Deferred — tracked, not in this roadmap.
 | PANEL-02 | Phase 84 | Complete |
 | OPS-01 | Phase 77 | Complete |
 | OPS-02 | Phase 77 | Complete |
-| STAT-01 | Phase 85 | Pending |
-| STAT-02 | Phase 85 | Pending |
-| STAT-03 | Phase 85 | Pending |
+| STAT-01 | Phase 85 | Complete |
+| STAT-02 | Phase 85 | Complete |
+| STAT-03 | Phase 85 | Complete |
 | GDPR-01 | Phase 82 | Complete |
 | GDPR-02 | Phase 82 | Complete |
 

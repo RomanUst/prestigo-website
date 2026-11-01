@@ -68,6 +68,7 @@ v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin li
 - ✓ VER-01: Cross-locale production E2E (render, switcher, guest booking incl. RTL, analytics `site_locale`, no CSP regression, 0 EN leaks); RU/AR signed-in path accepted as unverified — v3.0 (Phase 75)
 - ✓ SEO-01..04, UX-01/02: Multilingual SEO — centralized translation/index-aware `getAlternates()` (hreflang incl. `zh-Hans`, self-referencing canonical + og:url per locale), sitemap cluster, localized metadata, JSON-LD `inLanguage`, header LocaleSwitcher, language suggestion inside the consent modal; prod-verified 417 localized URLs, 0 hreflang problems — v3.0 (Phase 74)
 - ✓ SYNC-01..05, GDPR-01/02: Site → EspoCRM/Chatwoot sync via Supabase outbox + QStash (bookings, payments, status changes, admin edits, signups), cross-system contact de-dup by email/E.164 with shared-number flag and admin split, one-time backfill, /admin/outbox health + retry, single erasure request across Supabase/Chatwoot/EspoCRM with audit, privacy policy in all locales — v4.0 (Phase 82, live 2026-10-20, UAT 4/4 + verification 5/5 on 2026-10-26)
+- ✓ STAT-01..03: `/admin/stats` with tabs Overview / Conversion (inquiries → paid bookings by source and chat channel, plus all paid bookings of the period: after inquiry + direct = total) / Customers (repeat rate, repeat revenue share, top 10) / B2B (revenue and bookings per corporate Account); period in the URL; read-only service_role RPCs (migrations 081–083), no Chatwoot/EspoCRM calls at render — v4.0 (Phase 85, live 2026-11-01, UAT 2/2, verification 9/9, security 23/23)
 
 ### Active
 
@@ -162,6 +163,8 @@ v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin li
 | v4.0: integration logic in repo (Next.js + Supabase outbox + QStash), no n8n | Tested, versioned, idempotent, retried; nothing lost if VPS is down | — Pending |
 | v4.0: Supabase remains source of truth for bookings/customers | CRM and Chatwoot are downstream views; no booking writes originate from them | — Pending |
 | v4.0: separate mailboxes — service mail in Chatwoot, sales mail in EspoCRM; never one mailbox in both | Avoids duplicate messages, double replies and broken reply-time stats; Chatwoot conversation summaries still reach CRM history via sync | — Pending |
+| v4.0 (Phase 85): stats computed in Supabase SQL (STABLE SECURITY DEFINER RPCs), chat channel stored at intake and backfilled once | Stats page never depends on the VPS; one source of truth for revenue numbers | ✓ Good (Phase 85) |
+| v4.0 (Phase 85): fix WR-01 so funnel + direct reconcile to period total; leave WR-02/WR-03 open | Revenue columns must add up for the owner; WR-02 has 0 live rows, WR-03 affects 2 rows | ✓ Good (migration 083) |
 | v3.0: accept tech debt at close, defer to backlog until API credits return | Translation-dependent fixes need the AI pipeline | — Pending |
 
 ## Evolution
@@ -182,4 +185,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-26 after Phase 82 (Site ↔ CRM/Chatwoot Sync Foundation).*
+*Last updated: 2026-11-01 after Phase 85 (Statistics).*

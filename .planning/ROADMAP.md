@@ -22,7 +22,7 @@
 - [x] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure (completed 2026-10-26)
 - [x] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops (completed 2026-10-26)
 - [x] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245 scoped + compensating control (completed 2026-10-30)
-- [ ] **Phase 85: Statistics** - `/admin/stats` shows inquiry→booking conversion, repeat-customer rate, and B2B revenue per Account
+- [x] **Phase 85: Statistics** - `/admin/stats` shows inquiry→booking conversion, repeat-customer rate, and B2B revenue per Account (completed 2026-11-01)
 
 <details>
 <summary>✅ v3.0 Site Internationalization (Phases 68-75) — SHIPPED 2026-09-27</summary>
@@ -466,7 +466,7 @@ Plans:
   2. `/admin/stats` shows repeat-customer rate and a list of top repeat customers.
   3. `/admin/stats` shows B2B revenue and bookings per Account (hotel/agency/corporate).
 
-**Plans:** 6/6 plans executed
+**Plans:** 6/6 plans complete
 
 **Wave 1**
 - [x] 85-01-PLAN.md — Migration 081: chat_leads.channel + chat_channel_bucket + 6-arg chat_lead_reserve, stats_trips(), stats_conversion funnel RPC + live smoke SMOKE_OK_85_01
@@ -518,7 +518,7 @@ Plans:
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
-| 85. Statistics | v4.0 | 6/6 | In Progress|  |
+| 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
 
 ## Backlog
 

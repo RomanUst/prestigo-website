@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
-current_phase: 85
-current_phase_name: statistics
-status: executing
-stopped_at: Phase 85 context gathered
-last_updated: "2026-10-31T13:33:17.722Z"
-last_activity: 2026-10-31
-last_activity_desc: Phase 85 execution started
-state_head: 4af55a40599bfcc1c499497b12473f0c2d20272a
+current_phase: 78
+current_phase_name: WhatsApp Cloud API Channel (Dedicated Number)
+status: planning
+stopped_at: Phase 85 complete; next real step Phase 79 (78 parked in backlog 999.9)
+last_updated: "2026-11-01T15:13:57.535Z"
+last_activity: 2026-11-01
+last_activity_desc: Phase 85 complete, transitioned to Phase 78
+state_head: f7b4f9cd646f3d6d865e055089471e9d580f968c
 progress:
   total_phases: 10
-  completed_phases: 29
+  completed_phases: 30
   total_plans: 110
-  completed_plans: 97
-  percent: 88
+  completed_plans: 103
+  percent: 94
 ---
 
 # Project State
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-26)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 85 — statistics
+**Current focus:** Phase 79 — Instagram + Facebook Channels (Phase 78 deferred to backlog 999.9 by owner)
 
 ## Current Position
 
-Phase: 85 (statistics) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 85
-Last activity: 2026-10-31 — Phase 85 execution started
+Phase: 78 — WhatsApp Cloud API Channel (Dedicated Number)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-11-01 — Phase 85 complete, transitioned to Phase 78
 
 ## Accumulated Context
 
@@ -328,9 +328,9 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-10-31T08:22:19.375Z
-Stopped at: Phase 85 context gathered
-Resume file: .planning/phases/85-statistics/85-CONTEXT.md
+Last session: 2026-11-01
+Stopped at: Phase 85 complete (UAT 2/2, verification 9/9, security 23/23, Nyquist validated). Phase 78 stays parked in backlog 999.9, so the next real step is Phase 79 (discuss) or closing v4.0 without 78/79.
+Resume file: None
 
 ## Performance Metrics
 
