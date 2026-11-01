@@ -1,87 +1,63 @@
 'use client'
-import { useState, useEffect } from 'react'
-import { KPICard } from '@/components/admin/KPICard'
-import { RevenueBarChart, GroupedBarChart } from '@/components/admin/StatsChart'
+import { useEffect, useState } from 'react'
+import { OverviewTab } from '@/components/admin/stats/OverviewTab'
+import { B2BTab } from '@/components/admin/stats/B2BTab'
+import { ConversionTab } from '@/components/admin/stats/ConversionTab'
+import { CustomersTab } from '@/components/admin/stats/CustomersTab'
+import { PeriodSelector } from '@/components/admin/stats/PeriodSelector'
+import { defaultPeriod, periodQuery, periodSchema } from '@/lib/admin-stats'
+import type { Period } from '@/lib/admin-stats'
 
-interface StatsData {
-  counts: {
-    today: number
-    thisWeek: number
-    thisMonth: number
-  }
-  revenue: {
-    currentMonth: number
-    previousMonth: number
-  }
-  byVehicleClass: { vehicle_class: string; revenue: number }[]
-  byTripType: { trip_type: string; revenue: number }[]
-  monthlyRevenue: { month: string; revenue: number }[]
+export type StatsTab = 'overview' | 'conversion' | 'customers' | 'b2b'
+
+// Registered tabs, in display order (D-16).
+// Not exported: a Next.js page file may only export its default component.
+const TABS: { id: StatsTab; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'conversion', label: 'Conversion' },
+  { id: 'customers', label: 'Customers' },
+  { id: 'b2b', label: 'B2B' },
+]
+
+function isTab(value: string | null): value is StatsTab {
+  return TABS.some((t) => t.id === value)
 }
 
-function formatCZK(value: number): string {
-  return new Intl.NumberFormat('cs-CZ').format(value)
+// D-13: tab and period live in the URL (?tab=&from=&to=). Read once after
+// mount from window.location (never during render, never via the search-params
+// hook which would force a Suspense boundary at build).
+function readUrlState(): { tab: StatsTab; period: Period } {
+  const params = new URLSearchParams(window.location.search)
+  const rawTab = params.get('tab')
+  const tab: StatsTab = isTab(rawTab) ? rawTab : 'overview'
+  const parsed = periodSchema.safeParse({
+    from: params.get('from') ?? undefined,
+    to: params.get('to') ?? undefined,
+  })
+  const period: Period = parsed.success
+    ? { from: parsed.data.from, to: parsed.data.to }
+    : defaultPeriod(new Date())
+  return { tab, period }
 }
 
 export default function StatsPage() {
-  const [statsData, setStatsData] = useState<StatsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [tab, setTab] = useState<StatsTab>('overview')
+  const [period, setPeriod] = useState<Period>({ from: '', to: '' })
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/stats')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch stats')
-        return res.json()
-      })
-      .then((data: StatsData) => {
-        setStatsData(data)
-        setLoading(false)
-      })
-      .catch(() => {
-        setError(true)
-        setLoading(false)
-      })
+    const initial = readUrlState()
+    setTab(initial.tab)
+    setPeriod(initial.period)
+    setMounted(true)
   }, [])
 
-  if (loading) {
-    return (
-      <div style={{ color: 'var(--warmgrey)', fontFamily: 'var(--font-montserrat)', fontSize: '13px', padding: '32px 0' }}>
-        Loading...
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div style={{ color: 'var(--warmgrey)', fontFamily: 'var(--font-montserrat)', fontSize: '13px', padding: '32px 0' }}>
-        Could not load data. Refresh to retry.
-      </div>
-    )
-  }
-
-  if (!statsData) {
-    return (
-      <div style={{ color: 'var(--warmgrey)', fontFamily: 'var(--font-montserrat)', fontSize: '13px', padding: '32px 0' }}>
-        No booking data for this period.
-      </div>
-    )
-  }
-
-  const { counts, revenue, byVehicleClass, byTripType, monthlyRevenue } = statsData
-
-  const vehicleClassChartData = [{
-    name: 'Revenue',
-    business: byVehicleClass.find((v) => v.vehicle_class === 'business')?.revenue ?? 0,
-    first_class: byVehicleClass.find((v) => v.vehicle_class === 'first_class')?.revenue ?? 0,
-    business_van: byVehicleClass.find((v) => v.vehicle_class === 'business_van')?.revenue ?? 0,
-  }]
-
-  const tripTypeChartData = [{
-    name: 'Revenue',
-    transfer: byTripType.find((t) => t.trip_type === 'transfer')?.revenue ?? 0,
-    hourly: byTripType.find((t) => t.trip_type === 'hourly')?.revenue ?? 0,
-    daily: byTripType.find((t) => t.trip_type === 'daily')?.revenue ?? 0,
-  }]
+  useEffect(() => {
+    if (!mounted) return
+    // Keep history.state: the Next.js router stores its own bookkeeping in it.
+    const search = `?tab=${tab}&${periodQuery(period)}`
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${search}`)
+  }, [mounted, tab, period])
 
   return (
     <div>
@@ -96,40 +72,53 @@ export default function StatsPage() {
         Stats
       </h1>
 
-      {/* KPI Row */}
-      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '32px' }}>
-        <KPICard label="TODAY" value={String(counts.today)} subLabel="bookings" />
-        <KPICard label="THIS WEEK" value={String(counts.thisWeek)} subLabel="bookings" />
-        <KPICard label="THIS MONTH" value={String(counts.thisMonth)} subLabel="bookings" />
-        <KPICard label="MONTHLY REVENUE" value={formatCZK(revenue.currentMonth)} subLabel="CZK" />
+      <div
+        role="tablist"
+        style={{
+          display: 'flex',
+          gap: '24px',
+          flexWrap: 'wrap',
+          borderBottom: '1px solid var(--anthracite-light)',
+          marginBottom: '32px',
+        }}
+      >
+        {TABS.map((t) => {
+          const active = t.id === tab
+          return (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(t.id)}
+              style={{
+                background: 'none',
+                border: 'none',
+                borderBottom: active ? '2px solid var(--copper)' : '2px solid transparent',
+                marginBottom: '-1px',
+                padding: '12px 0',
+                minHeight: '44px',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '11px',
+                fontWeight: 400,
+                textTransform: 'uppercase',
+                letterSpacing: '0.4em',
+                color: active ? 'var(--copper)' : 'var(--warmgrey)',
+              }}
+            >
+              {t.label}
+            </button>
+          )
+        })}
       </div>
 
-      {/* 12-month revenue chart — full width */}
-      <div style={{ marginBottom: '24px' }}>
-        <RevenueBarChart data={monthlyRevenue} />
-      </div>
+      {mounted && tab !== 'overview' && <PeriodSelector value={period} onChange={setPeriod} />}
 
-      {/* 2-column grid for breakdown charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        <GroupedBarChart
-          title="REVENUE BY CLASS"
-          data={vehicleClassChartData}
-          series={[
-            { dataKey: 'business', name: 'Business', color: '#B87333' },
-            { dataKey: 'first_class', name: 'First Class', color: '#D4924A' },
-            { dataKey: 'business_van', name: 'Business Van', color: '#E8B87A' },
-          ]}
-        />
-        <GroupedBarChart
-          title="REVENUE BY TRIP TYPE"
-          data={tripTypeChartData}
-          series={[
-            { dataKey: 'transfer', name: 'Transfer', color: '#B87333' },
-            { dataKey: 'hourly', name: 'Hourly', color: '#D4924A' },
-            { dataKey: 'daily', name: 'Daily', color: '#E8B87A' },
-          ]}
-        />
-      </div>
+      {mounted && tab === 'overview' && <OverviewTab />}
+      {mounted && tab === 'conversion' && <ConversionTab period={period} />}
+      {mounted && tab === 'customers' && <CustomersTab period={period} />}
+      {mounted && tab === 'b2b' && <B2BTab period={period} />}
     </div>
   )
 }

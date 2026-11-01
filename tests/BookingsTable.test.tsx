@@ -780,12 +780,50 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('/api/admin/settings'))).toBe(false)
   })
 
+  it('?search=<email> seeds the first fetch with the email + horizon=all and fills the search box (Phase 85 D-11)', async () => {
+    window.history.replaceState({}, '', `/admin/bookings?search=${encodeURIComponent('jane.doe+vip@example.com')}`)
+    const fetchMock = stubFetchTracking()
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitForBookingsFetch(fetchMock)
+    const params = firstBookingsParams(fetchMock)
+    expect(params.get('search')).toBe('jane.doe+vip@example.com')
+    expect(params.get('horizon')).toBe('all')
+    expect((screen.getByPlaceholderText('Search client or reference...') as HTMLInputElement).value).toBe(
+      'jane.doe+vip@example.com',
+    )
+    await waitFor(() => expect(window.location.search).toBe(''))
+  })
+
+  it('?search=<email> is trimmed before it is applied', async () => {
+    window.history.replaceState({}, '', '/admin/bookings?search=%20jane%40example.com%20')
+    const fetchMock = stubFetchTracking()
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitForBookingsFetch(fetchMock)
+    const params = firstBookingsParams(fetchMock)
+    expect(params.get('search')).toBe('jane@example.com')
+    expect(params.get('horizon')).toBe('all')
+  })
+
   it.each([
     ['empty value', '?search='],
     ['whitespace only', '?search=%20%20'],
     ['41 characters', `?search=${'A'.repeat(41)}`],
     ['script-like characters', '?search=PRG%3Cscript%3E'],
     ['underscore and space inside', '?search=PRG_2026%200928'],
+    ['email with angle brackets', '?search=%3Cscript%3E%40x.com'],
+    ['email domain without a dot', '?search=a%40b'],
+    ['email with two @', '?search=jane%40%40example.com'],
+    ['email with a quote in the local part', '?search=x%22%40example.com'],
+    ['email with a single quote in the domain', '?search=jane%40exa%27mple.com'],
+    ['email with a backtick', '?search=ja%60ne%40example.com'],
+    ['email with inner whitespace', '?search=ja%20ne%40example.com'],
+    ['email with an empty local part', '?search=%40example.com'],
+    ['email with a 65-character local part', `?search=${'a'.repeat(65)}%40example.com`],
+    ['email longer than 254 characters (255)', `?search=a%40${'b'.repeat(249)}.com`],
   ])('ignores an invalid search param (%s): first fetch keeps horizon=future and sends no search', async (_label, query) => {
     window.history.replaceState({}, '', `/admin/bookings${query}`)
     const fetchMock = stubFetchTracking()

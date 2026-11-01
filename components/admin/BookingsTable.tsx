@@ -1049,18 +1049,29 @@ interface BookingsTableProps {
   horizonDays?: number
 }
 
-// Phase 80 D-18: the CRM Booking "Admin link" opens /admin/bookings?search={ref}.
-// Read once on mount; only a well-formed booking reference is accepted
-// (letters, digits, hyphens, max 40) — anything else is ignored. The parameter
-// is stripped from the address bar right after it is applied (see
+// The bookings table opens pre-filtered from a link: /admin/bookings?search={ref|email}.
+// Sources: the CRM Booking "Admin link" (Phase 80 D-18, a booking reference),
+// the stats Customers tab top-customer links and the Chatwoot panel
+// admin_bookings_url (Phase 85 D-11, an email).
+// Read once on mount; only a well-formed booking reference (letters, digits,
+// hyphens, max 40) or a strict email (<= 254 characters, one @, local part of
+// 1-64 characters, a dotted domain, none of whitespace, angle brackets, quotes
+// or backtick) is accepted — anything else is ignored. The accepted value is
+// only placed in the search box and sent as a bound query parameter. The
+// parameter is stripped from the address bar right after it is applied (see
 // clearBookingDeepLink) so a later remount of the table — e.g. after a manual
 // booking is created — starts from the operator's defaults, not the old link.
+const DEEP_LINK_REFERENCE = /^[A-Za-z0-9-]{1,40}$/
+const DEEP_LINK_EMAIL = /^[^\s@<>"'`]{1,64}@[^\s@<>"'`]+\.[^\s@<>"'`]+$/
+
 function readBookingDeepLink(): string {
   if (typeof window === 'undefined') return ''
   const raw = new URLSearchParams(window.location.search).get('search')
   if (!raw) return ''
   const value = raw.trim()
-  return /^[A-Za-z0-9-]{1,40}$/.test(value) ? value : ''
+  if (DEEP_LINK_REFERENCE.test(value)) return value
+  if (value.length <= 254 && DEEP_LINK_EMAIL.test(value)) return value
+  return ''
 }
 
 function clearBookingDeepLink(): void {

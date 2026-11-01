@@ -474,6 +474,7 @@ async function leadFor(ctx: IntakeContext, s: Subject, person: Person): Promise<
       chatwootContactId: s.contact.id,
       phone: s.email ? null : s.phone,
       leadRef,
+      channel: s.conversation.channel,
     })
   }
 

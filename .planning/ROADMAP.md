@@ -466,8 +466,22 @@ Plans:
   2. `/admin/stats` shows repeat-customer rate and a list of top repeat customers.
   3. `/admin/stats` shows B2B revenue and bookings per Account (hotel/agency/corporate).
 
-**Plans**: TBD
+**Plans:** 6/6 plans executed
+
+**Wave 1**
+- [x] 85-01-PLAN.md — Migration 081: chat_leads.channel + chat_channel_bucket + 6-arg chat_lead_reserve, stats_trips(), stats_conversion funnel RPC + live smoke SMOKE_OK_85_01
+- [x] 85-02-PLAN.md — lib/admin-stats.ts (period, Prague presets, schemas, formatters) + GET /api/admin/stats/{conversion,customers,b2b}
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 85-03-PLAN.md — Migration 082: stats_customers + stats_b2b (D-19 attribution) + live smoke SMOKE_OK_85_03
+- [x] 85-04-PLAN.md — Intake writes the Chatwoot channel on new chat Leads + owner-run read-only backfill applied live
+- [x] 85-05-PLAN.md — /admin/stats tab shell (URL period, Overview unchanged) + period selector + B2B tab
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 85-06-PLAN.md — Conversion and Customers tabs + strict email deep link in BookingsTable; phase gate
+
 **UI hint**: yes
+**Security note**: yes — SECURITY DEFINER RPCs (REVOKE PUBLIC/anon/authenticated), admin route guards and validation, deep-link input; commit with `security:` prefix per CLAUDE.md.
 
 ## Progress
 
@@ -504,7 +518,7 @@ Plans:
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
-| 85. Statistics | v4.0 | 0/0 | Not started | - |
+| 85. Statistics | v4.0 | 6/6 | In Progress|  |
 
 ## Backlog
 
