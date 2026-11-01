@@ -2100,6 +2100,24 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
       <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 26px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 8px;">Thank You, ${firstName}</h1>
       <p style="font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #A9AEB0; text-align: center; margin: 0 32px 32px; line-height: 1.7;">It was a pleasure to have you on board. We hope your journey was everything you expected — and more.</p>
 
+      <!-- Review request -->
+      <div style="background-color: #17293B; margin: 0 32px 32px; padding: 32px; text-align: center;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 16px;">SHARE YOUR EXPERIENCE</div>
+        <p style="font-size: 14px; color: #A9AEB0; margin: 0 0 24px; line-height: 1.7;">Your feedback means the world to us. If you enjoyed the service, a quick review on any of these sites helps other travellers discover Prestigo.</p>
+        <a href="${escapeHtml(reviewUrl)}"
+           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: #BFA06A; color: #0F1D2C; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
+          ${reviewIcon('google')}REVIEW US ON GOOGLE
+        </a>
+        <a href="${escapeHtml(TRIPADVISOR_URL)}"
+           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: transparent; color: #F3EEE3; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
+          ${reviewIcon('tripadvisor')}REVIEW US ON TRIPADVISOR
+        </a>
+        <a href="${escapeHtml(TRUSTPILOT_URL)}"
+           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: transparent; color: #F3EEE3; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
+          ${reviewIcon('trustpilot')}REVIEW US ON TRUSTPILOT
+        </a>
+      </div>
+
       <!-- Booking reference box -->
       <div style="background-color: #17293B; border-left: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">BOOKING REFERENCE</div>
@@ -2123,24 +2141,6 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
           </tr>
         </table>
-      </div>
-
-      <!-- Review request -->
-      <div style="background-color: #17293B; margin: 0 32px 32px; padding: 32px; text-align: center;">
-        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 16px;">SHARE YOUR EXPERIENCE</div>
-        <p style="font-size: 14px; color: #A9AEB0; margin: 0 0 24px; line-height: 1.7;">Your feedback means the world to us. If you enjoyed the service, a quick review on any of these sites helps other travellers discover Prestigo.</p>
-        <a href="${escapeHtml(reviewUrl)}"
-           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: #BFA06A; color: #0F1D2C; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
-          ${reviewIcon('google')}REVIEW US ON GOOGLE
-        </a>
-        <a href="${escapeHtml(TRIPADVISOR_URL)}"
-           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: transparent; color: #F3EEE3; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
-          ${reviewIcon('tripadvisor')}REVIEW US ON TRIPADVISOR
-        </a>
-        <a href="${escapeHtml(TRUSTPILOT_URL)}"
-           style="display: block; max-width: 280px; margin: 0 auto 12px; background-color: transparent; color: #F3EEE3; border: 1px solid #BFA06A; padding: 13px 20px; line-height: 16px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">
-          ${reviewIcon('trustpilot')}REVIEW US ON TRUSTPILOT
-        </a>
       </div>
 
       <!-- Book again hint -->
