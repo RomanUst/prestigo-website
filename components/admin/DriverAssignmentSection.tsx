@@ -340,7 +340,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             <div style={{
               fontSize: '11px',
               fontWeight: 300,
-              color: '#f87171',
+              color: 'var(--status-danger-fg)',
               marginBottom: '4px',
               letterSpacing: '0.05em',
               fontFamily: 'var(--font-montserrat)',
@@ -420,7 +420,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
         <div style={{
           fontSize: '11px',
           fontWeight: 300,
-          color: '#f87171',
+          color: 'var(--status-danger-fg)',
           marginTop: '4px',
           letterSpacing: '0.05em',
           fontFamily: 'var(--font-montserrat)',

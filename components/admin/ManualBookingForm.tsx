@@ -376,7 +376,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.6)',
+        background: 'var(--admin-scrim)',
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
@@ -386,9 +386,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
     >
       <div
         style={{
-          background: 'var(--anthracite-mid)',
-          border: '1px solid var(--anthracite-light)',
-          borderRadius: '4px',
+          background: 'var(--admin-surface)',
+          border: '1px solid var(--admin-border)',
+          borderRadius: 'var(--admin-radius-lg)',
+          boxShadow: 'var(--admin-shadow-sheet)',
           maxWidth: '640px',
           width: '100%',
           maxHeight: '90vh',
@@ -400,7 +401,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
         {/* Copper accent line */}
         <div style={{ height: 2, background: 'linear-gradient(90deg, var(--copper), transparent)' }} />
 
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: 'var(--admin-sheet-padding)' }}>
           {/* Header */}
           <h2 style={{
             fontFamily: 'var(--font-cormorant)',
@@ -507,7 +508,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     fontFamily: 'var(--font-montserrat)',
                     fontSize: '11px',
                     fontWeight: 300,
-                    color: '#f87171',
+                    color: 'var(--status-danger-fg)',
                     marginTop: '8px',
                   }}>
                     Failed to send — try again
@@ -553,7 +554,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 fontSize: '13px',
                 fontWeight: 300,
                 lineHeight: 1.5,
-                color: '#f87171',
+                color: 'var(--status-danger-fg)',
               }}>
                 Booking was created, but the payment link could not be generated — use &quot;Generate Payment Link&quot; from the bookings list to retry.
               </div>
@@ -1074,7 +1075,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 disabled={loading}
                 style={{
                   background: 'var(--copper)',
-                  color: 'var(--offwhite)',
+                  color: 'var(--admin-on-accent)',
                   border: 'none',
                   minHeight: '44px',
                   padding: '0 24px',
@@ -1099,7 +1100,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 fontSize: '11px',
                 fontFamily: 'var(--font-montserrat)',
                 fontWeight: 300,
-                color: '#f87171',
+                color: 'var(--status-danger-fg)',
                 marginTop: '8px',
                 textAlign: 'right',
               }}>

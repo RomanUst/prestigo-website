@@ -123,7 +123,7 @@ export function BookingChangeHistory({ bookingId }: BookingChangeHistoryProps) {
 
       {status === 'error' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
-          <span style={{ fontSize: 11, color: '#f87171' }}>
+          <span style={{ fontSize: 11, color: 'var(--status-danger-fg)' }}>
             Couldn't load change history — try again.
           </span>
           <button

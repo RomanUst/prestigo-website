@@ -89,7 +89,7 @@ export default function DispatchDefault({ initialHorizon, initialDays }: Props) 
     <div style={{ maxWidth: 560, marginTop: 24 }}>
       <div
         style={{
-          background: 'var(--anthracite-mid, #252528)',
+          background: 'var(--admin-surface)',
           border: '1px solid var(--anthracite-light)',
           borderRadius: 4,
           padding: 24,
@@ -118,7 +118,7 @@ export default function DispatchDefault({ initialHorizon, initialDays }: Props) 
             <span
               style={{
                 fontSize: 11,
-                color: feedback.type === 'success' ? 'var(--copper-light)' : '#ef4444',
+                color: feedback.type === 'success' ? 'var(--copper-light)' : 'var(--status-danger-fg)',
                 letterSpacing: '0.08em',
                 fontFamily: 'var(--font-montserrat)',
               }}
@@ -152,7 +152,7 @@ export default function DispatchDefault({ initialHorizon, initialDays }: Props) 
                 cursor: 'pointer',
                 borderRadius: 4,
                 border: active ? '1px solid var(--copper)' : '1px solid transparent',
-                background: active ? 'rgba(191,160,106,0.09)' : 'transparent',
+                background: active ? 'var(--admin-accent-tint)' : 'transparent',
               }}
             >
               <span
@@ -219,7 +219,7 @@ export default function DispatchDefault({ initialHorizon, initialDays }: Props) 
                 padding: '8px 10px',
                 fontSize: 13,
                 color: 'var(--offwhite)',
-                background: 'var(--anthracite, #1a1a1c)',
+                background: 'var(--admin-input-bg)',
                 border: '1px solid var(--anthracite-light)',
                 borderRadius: 4,
                 fontFamily: 'var(--font-montserrat)',
