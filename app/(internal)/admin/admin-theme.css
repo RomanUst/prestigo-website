@@ -17,12 +17,21 @@
 /* OQ2 edge rule: the only selector above .admin-shell. Custom properties do
    not reach html/body, so the cream literal is required here. It only matches
    while a light admin wrapper exists, so public pages are structurally
-   unaffected. */
+   unaffected.
+
+   The ::-webkit-scrollbar-track selector is its own rule on purpose: browsers
+   drop a whole selector list when one selector is invalid, and Firefox does not
+   know the webkit pseudo-element, so sharing a list would also lose the
+   html/body background (navy overscroll in Firefox). Both rules stay gated on
+   the light wrapper (owner decision OQ2 is unchanged). */
 html:has(.admin-shell[data-admin-theme="light"]),
-body:has(.admin-shell[data-admin-theme="light"]),
-html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
+body:has(.admin-shell[data-admin-theme="light"]) {
   background-color: #EFE8DA;
   color-scheme: light;
+}
+
+html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
+  background-color: #EFE8DA;
 }
 
 .admin-shell {

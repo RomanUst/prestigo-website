@@ -186,10 +186,21 @@ describe('admin-theme.css scoping (D-02, T-86-05)', () => {
       else offenders.push(r.selectors.join(', '))
     }
     expect(offenders).toEqual([])
-    expect(edgeRules).toHaveLength(1)
+    // Exactly two edge rules: html/body, and the webkit scrollbar track on its
+    // own so Firefox (which drops a whole list holding an unknown pseudo) keeps
+    // the html/body rule.
+    expect(edgeRules).toHaveLength(2)
     const allowed = new Set(['background', 'background-color', 'color-scheme'])
-    for (const prop of edgeRules[0].decls.keys()) expect(allowed.has(prop)).toBe(true)
-    expect(edgeRules[0].media).toBeNull()
+    for (const edge of edgeRules) {
+      for (const prop of edge.decls.keys()) expect(allowed.has(prop)).toBe(true)
+      expect(edge.media).toBeNull()
+      // every edge selector stays gated on the light wrapper
+      for (const s of edge.selectors) expect(s).toContain(':has(.admin-shell[data-admin-theme="light"])')
+    }
+    const [plain, track] = edgeRules.sort((a, b) => Number(a.selectors.some((s) => s.includes('::'))) - Number(b.selectors.some((s) => s.includes('::'))))
+    expect(plain.selectors.some((s) => s.includes('::'))).toBe(false)
+    expect(plain.selectors).toHaveLength(2)
+    expect(track.selectors).toEqual(['html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track'])
   })
 
   it('no selector mentions :root or .theme-light', () => {
