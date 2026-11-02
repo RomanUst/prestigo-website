@@ -2,14 +2,12 @@
 gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
-current_phase: 78
-current_phase_name: WhatsApp Cloud API Channel (Dedicated Number)
-status: planning
-stopped_at: Phase 85 complete; 78 and 79 parked in backlog (999.9, 999.12); next step close v4.0
-last_updated: "2026-11-01T15:13:57.535Z"
-last_activity: 2026-11-01
-last_activity_desc: Phase 85 complete, transitioned to Phase 78
-state_head: f7b4f9cd646f3d6d865e055089471e9d580f968c
+status: Awaiting next milestone
+stopped_at: v4.0 milestone closed (override); 78 and 79 parked in backlog (999.9, 999.12)
+last_updated: "2026-11-02T11:27:01.138Z"
+last_activity: 2026-11-02
+last_activity_desc: Milestone v4.0 completed and archived
+state_head: 8ce9a6a90f629e74f5cd431d6712c6806862720d
 progress:
   total_phases: 10
   completed_phases: 30
@@ -22,17 +20,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-26)
+See: .planning/PROJECT.md (updated 2026-11-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Milestone v4.0 close-out — Phases 78 and 79 deferred to backlog 999.9 / 999.12 by owner
+**Current focus:** Planning next milestone (v4.0 shipped 2026-11-02; Phases 78/79 parked in Backlog 999.9 / 999.12)
 
 ## Current Position
 
-Phase: 78 — WhatsApp Cloud API Channel (Dedicated Number)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-11-01 — Phase 85 complete, transitioned to Phase 78
+Phase: Milestone v4.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-11-02 — Milestone v4.0 completed and archived
 
 ## Accumulated Context
 
@@ -329,7 +327,7 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 ## Session Continuity
 
 Last session: 2026-11-01
-Stopped at: Phase 85 complete (UAT 2/2, verification 9/9, security 23/23, Nyquist validated). Phase 78 stays parked in backlog 999.9; Phase 79 parked in backlog 999.12 by owner on 2026-11-02 (no Meta channels for now). Next step: close v4.0 (`/gsd-complete-milestone`).
+Stopped at: Phase 85 complete (UAT 2/2, verification 9/9, security 23/23, Nyquist validated). Phase 78 stays parked in backlog 999.9; Phase 79 parked in backlog 999.12 by owner on 2026-11-02 (no Meta channels for now). v4.0 closed 2026-11-02 with overrides (archived to milestones/, tag v4.0). Next step: `/gsd-new-milestone`.
 Resume file: None
 
 ## Performance Metrics
@@ -414,4 +412,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Run /gsd-plan-phase 76 to start planning VPS Infrastructure (v4.0 Phase 76)
+- Start the next milestone with /gsd-new-milestone

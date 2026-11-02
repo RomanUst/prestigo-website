@@ -7,23 +7,29 @@
 - ✅ **v2.1 Admin Booking Management & Payment Recovery** — Phases 62-64 (shipped 2026-08-26)
 - ✅ **v2.2 Dispatch & Driver Trip Portal** — Phases 65-67 (shipped 2026-09-02)
 - ✅ **v3.0 Site Internationalization (i18n)** — Phases 68-75 (shipped 2026-09-27)
-- 🚧 **v4.0 Helpdesk + CRM** — Phases 76-85 (in progress, started 2026-09-27)
+- ✅ **v4.0 Helpdesk + CRM** — Phases 76-85 (shipped 2026-11-02; 78/79 parked in backlog)
 
 ## Phases
 
-### v4.0 Helpdesk + CRM (Phases 76-85) — IN PROGRESS
+<details>
+<summary>✅ v4.0 Helpdesk + CRM (Phases 76-85) — SHIPPED 2026-11-02 (78/79 parked)</summary>
 
-- [x] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down (completed 2026-09-28)
-- [x] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation (completed 2026-09-29)
-- [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** — DEFERRED to backlog 999.9 (owner, 2026-10-18; 10/17 plans done) - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
-- [ ] **Phase 79: Instagram + Facebook Channels** — DEFERRED to backlog 999.12 (owner, 2026-11-02; not started) - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
-- [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
-- [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
-- [x] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure (completed 2026-10-26)
-- [x] **Phase 83: CRM/Chatwoot → Site Webhooks** - HMAC-verified inbound webhooks turn new conversations into EspoCRM Contacts/Leads and resolved-conversation summaries into Contact history, structurally barred from booking/customer tables and echo loops (completed 2026-10-26)
-- [x] **Phase 84: Chatwoot Dashboard App** - Read-only booking history in the Chatwoot conversation sidebar, origin-validated postMessage, no admin cookie, CVE-2025-12245 scoped + compensating control (completed 2026-10-30)
-- [x] **Phase 85: Statistics** - `/admin/stats` shows inquiry→booking conversion, repeat-customer rate, and B2B revenue per Account (completed 2026-11-01)
+- [x] Phase 76: VPS Infrastructure (9/9 plans) — completed 2026-09-28
+- [x] Phase 77: Chatwoot Deployment + Core Channels (13/13 plans) — completed 2026-09-29
+- [ ] Phase 78: WhatsApp Cloud API Channel (Dedicated Number) (10/17 plans) — PARKED in Backlog 999.9
+- [ ] Phase 79: Instagram + Facebook Channels (not started) — PARKED in Backlog 999.12
+- [x] Phase 80: EspoCRM Deployment + Core Entities (13/13 plans) — completed 2026-10-17
+- [x] Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM) (11/11 plans) — completed 2026-10-18
+- [x] Phase 82: Site ↔ CRM/Chatwoot Sync Foundation (16/16 plans) — completed 2026-10-26
+- [x] Phase 83: CRM/Chatwoot → Site Webhooks (16/16 plans) — completed 2026-10-26
+- [x] Phase 84: Chatwoot Dashboard App (9/9 plans) — completed 2026-10-30
+- [x] Phase 85: Statistics (6/6 plans) — completed 2026-11-01
 
+**Closeout:** override — 40/46 requirements; WA-01..04 and SOC-01/02 parked by owner; no milestone audit.
+
+See [milestones/v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md) for full phase details.
+
+</details>
 <details>
 <summary>✅ v3.0 Site Internationalization (Phases 68-75) — SHIPPED 2026-09-27</summary>
 
@@ -100,90 +106,9 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 
 </details>
 
-## Phase Details
+## Parked Phase Details (from v4.0, in Backlog)
 
-### Phase 76: VPS Infrastructure
-
-**Goal**: A dedicated, monitored, backed-up Hostinger VPS runs Chatwoot and EspoCRM independently of the public site, so the public site, booking wizard, Stripe payment and all emails never depend on VPS uptime.
-**Depends on**: Nothing (first phase of v4.0)
-**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05
-**Success Criteria** (what must be TRUE):
-  1. Owner reaches `chat.rideprestigo.com` and `crm.rideprestigo.com` over valid, auto-renewing HTTPS (Hostinger KVM 2 with documented upgrade trigger to KVM 4, Docker Compose, Caddy, EU region).
-  2. A restore drill onto a clean host, from the nightly encrypted offsite backup (databases + attachment storage), succeeds and is documented.
-  3. Owner receives an alert on a channel independent of the VPS within minutes when Chatwoot or EspoCRM is down, or a nightly backup did not run.
-  4. The VPS applies unattended security OS updates; a documented runbook (backup → upgrade → smoke check) governs Chatwoot/EspoCRM version upgrades.
-  5. With the VPS fully offline, the public site, booking wizard, Stripe payment and all emails keep working (real outage test + repo guard test). The "no lead or booking event is lost — delivered once the VPS is back" half is verified in Phases 81/82 where the outbox exists.
-
-**Plans**: 9/9 plans complete
-
-Plans:
-**Wave 1**
-- [x] 76-01-PLAN.md — D-19(b) VPS isolation guard test + versioned secret gate + owner buys KVM 2 VPS
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 76-02-PLAN.md — Host bootstrap and hardening (deploy user, key-only SSH, ufw, fail2ban, unattended-upgrades, swap, Docker)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 76-03-PLAN.md — Owner-approved chat/crm A records + Resend SMTP and B2 EU credentials on the VPS
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 76-04-PLAN.md — Chatwoot + EspoCRM pinned Compose stacks behind Caddy with auto-renewing HTTPS
-
-**Wave 5** *(blocked on Wave 4 completion)*
-- [x] 76-05-PLAN.md — Nightly restic backups to B2 EU, upgrade runbook, owner custody of secrets + 2FA
-
-**Wave 6** *(blocked on Wave 5 completion)*
-- [x] 76-06-PLAN.md — External monitoring (UptimeRobot + Healthchecks.io, Telegram + email) and on-VPS checks
-
-**Wave 7** *(blocked on Wave 6 completion)*
-- [x] 76-07-PLAN.md — Real VPS outage test (site/booking/contact keep working) + alert delivery proof
-
-**Wave 8** *(blocked on Wave 7 completion)*
-- [x] 76-08-PLAN.md — Restore-drill canary, integrity verifier, restore tooling + production rehearsal
-
-**Wave 9** *(blocked on Wave 8 completion)*
-- [x] 76-09-PLAN.md — Restore drill on a temporary Hetzner host, owner login sign-off, teardown
-
-### Phase 77: Chatwoot Deployment + Core Channels
-
-**Goal**: Chatwoot is live and unifies email, website-widget and Telegram conversations into one inbox, with canned responses and automation replacing the manual `send-*.mjs` ops scripts.
-**Depends on**: Phase 76
-**Requirements**: INBOX-01, INBOX-02, INBOX-03, INBOX-04, INBOX-05, INBOX-06, OPS-01, OPS-02
-**Success Criteria** (what must be TRUE):
-  1. Emails to info@/bookings@ arrive as Chatwoot conversations and operator replies are sent from that same address; these mailboxes are connected to Chatwoot only.
-  2. Visitor on any of the 7 locales (RTL-correct in Arabic) sees a lightweight chat button that loads no third-party script or cookie until clicked; clicking opens the Chatwoot widget and starts a conversation, with zero CSP violations and no measurable LCP/INP regression on home, route and /book pages.
-  3. A signed-in customer's widget conversation is already identified via HMAC validation and attaches to their existing Chatwoot contact.
-  4. Messages to the Prestigo Telegram bot arrive as Chatwoot conversations and can be answered from Chatwoot.
-  5. Owner sees conversation volume, first-response time and resolution time per channel in Chatwoot reports.
-  6. Operator sends every message previously sent by root `send-*.mjs` scripts (time change, vehicle change, payment help, post-trip review, login help) as a Chatwoot canned response/macro, multilingual where relevant; new conversations are auto-assigned and labeled by channel/topic.
-
-**Plans**: 13/13 plans complete
-
-Plans:
-**Wave 1**
-- [x] 77-01-PLAN.md — Server-side HMAC identity + widget config route (INBOX-03), one isolation-guard allowlist entry
-- [x] 77-02-PLAN.md — Customer-facing emails reply to bookings@ (D-11), internal sends unchanged
-- [x] 77-03-PLAN.md — Chatwoot config-as-code: 35 canned responses, labels, teams, attributes, inbox + automation JSON, template price guard
-- [x] 77-04-PLAN.md — Playwright chat probe (consent, CSP click, overlap) + pre-change CWV baseline
-- [x] 77-05-PLAN.md — ChatLauncher copy in 7 locales + pre-launch privacy disclosure (chat, Hostinger, Backblaze, Telegram)
-- [x] 77-06-PLAN.md — New Telegram bot with localized profile, connected to Chatwoot (owner steps)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 77-07-PLAN.md — Idempotent Chatwoot sync: templates, labels, teams, automation, Website inbox (owner token)
-- [x] 77-08-PLAN.md — Exact-origin widget CSP + scoped guard rule + chat cookies cleared on sign-out
-- [x] 77-10-PLAN.md — Brand chat launcher + click-to-load identified widget with visit context (7 locales, RTL)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 77-09-PLAN.md — Read-only inspect tooling (status/activity/reports/identity) + Vercel env hand-off + custody docs
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 77-11-PLAN.md — info@/bookings@ email inboxes, Chatwoot-only, webmail emergency runbook (owner decision + steps)
-- [x] 77-12-PLAN.md — Owner-approved production launch + consent/CSP/CWV gates on production
-
-**Wave 5** *(blocked on Wave 4 completion)*
-- [x] 77-13-PLAN.md — Live verification on every channel: automation, canned responses, identity, continuity, native reports
-
-**UI hint**: yes
+Kept here so `/gsd-execute-phase 78` and `/gsd-discuss-phase 79` still resolve; the Phase 78 directory stays in `.planning/phases/`.
 
 ### Phase 78: WhatsApp Cloud API Channel (Dedicated Number)
 
@@ -245,246 +170,6 @@ Plans:
 
 **Plans**: TBD
 
-### Phase 80: EspoCRM Deployment + Core Entities
-
-**Goal**: EspoCRM is live with the Account/Contact data model, B2B Opportunity pipeline, read-only booking history and sales mailbox the B2B workflow needs. Independent of the Chatwoot channel work (Phases 77-79) — can run in parallel once Phase 76 infra exists.
-**Depends on**: Phase 76
-**Requirements**: CRM-01, CRM-02, CRM-03, CRM-04, CRM-05
-**Success Criteria** (what must be TRUE):
-  1. Owner manages Accounts (hotels, agencies, corporates) and Contacts in EspoCRM, with each Contact linked to its Account.
-  2. Owner moves B2B Opportunities through a Kanban pipeline with Prestigo-specific stages and sets follow-up tasks/reminders.
-  3. Each Contact/Account shows its full booking history via a read-only Booking entity synced from Supabase (date, route, vehicle, status, amount, link to admin booking).
-  4. Sales mail (sales@ or roman@) is connected to EspoCRM only; sent and received emails attach to the matching Account/Contact/Opportunity.
-  5. Roles/ACL for 2-3 future operators exist in both Chatwoot (agent/admin, team assignment) and EspoCRM (role-based ACL), documented in a runbook.
-
-**Plans:** 13/13 plans complete
-
-Plans:
-**Wave 1**
-- [x] 80-01-PLAN.md — Service identities (D-17), hardened EspoCRM client + config sync engine, settings (EUR, Europe/Prague) live
-- [x] 80-02-PLAN.md — Site admin `?search=` deep link with horizon all (D-18)
-- [x] 80-03-PLAN.md — Pure transforms: booking row -> CRM payload (D-07..D-10, D-21) and account candidates (D-14)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 80-04-PLAN.md — CBooking entity, fields, Contact/Account links and booking panels (D-06, D-09, D-10)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 80-05-PLAN.md — Opportunity stages + Account types via merge-safe enum sync (D-01, D-02, D-20)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 80-06-PLAN.md — Account commercial terms + CPartnerRate child entity (D-03, D-04)
-
-**Wave 5** *(blocked on Wave 4 completion)*
-- [x] 80-07-PLAN.md — Roles/ACL as code (Dispatcher, Sales manager, Sync writer) + live ACL probe (D-15, D-16, D-22)
-
-**Wave 6** *(blocked on Wave 5 completion)*
-- [x] 80-08-PLAN.md — Unique index on CBooking.supabaseBookingId via owner-approved metadata overlay (D-19)
-- [x] 80-09-PLAN.md — Idempotent booking backfill, Supabase MCP export, dry run + owner approval (D-06, D-21)
-- [x] 80-10-PLAN.md — roman@ Personal Email Account, reminders, inspect tool, mail UAT (D-05, D-11..D-13, D-24)
-
-**Wave 7** *(blocked on Wave 6 completion)*
-- [x] 80-11-PLAN.md — CRM operator runbook pinned to roles.json, Chatwoot role mirror (D-23, CRM-05)
-- [x] 80-12-PLAN.md — Live backfill (one, then all, audit) + account candidate scan + owner confirmation (D-14)
-
-**Wave 8** *(blocked on Wave 7 completion)*
-- [x] 80-13-PLAN.md — Seed confirmed Accounts, link Contacts, relink bookings, PII cleanup, phase walk-through
-
-### Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)
-
-**Goal**: Every lead signal the site currently loses is persisted in Supabase and reaches EspoCRM as a Lead, with zero regression to today's email-only behavior if storage fails. This phase introduces the durable outbox core (`integration_outbox` + QStash dispatcher + thin EspoCRM client + basic email/phone normalization) with leads as its first event type, so no lead is lost while the VPS is down; Phase 82 extends the same outbox.
-**Depends on**: Phase 76, Phase 80
-**Requirements**: LEAD-01, LEAD-02, LEAD-03, LEAD-04, LEAD-05, LEAD-06
-**Success Criteria** (what must be TRUE):
-  1. Every contact-form submission is stored in Supabase (`inquiries`) in addition to the existing email, and appears as a Lead in EspoCRM.
-  2. Every corporate-form submission is stored and appears as a Lead with its company in EspoCRM.
-  3. Every multi-day quote request is stored and appears as a Lead with its itinerary details in EspoCRM.
-  4. Abandoned/unpaid checkouts and calculator email captures are also captured as Leads, with consent-appropriate retention. (calculator capture struck — page removed 2026-05-04, D-01)
-  5. If inquiry storage fails, the customer's submission still succeeds and the existing email path still fires — no regression of today's behaviour.
-  6. Every site booking (paid or not) also appears as a Lead in EspoCRM with source "Website booking", and its status follows the booking (paid → Converted, cancelled/abandoned → Dead).
-  7. With the VPS offline, submitted leads queue in the outbox and reach EspoCRM once it is back, exactly once (idempotent retries).
-
-**Plans**: 11/11 plans complete
-**UI hint**: yes
-
-Plans:
-**Wave 1**
-- [x] 81-01-PLAN.md — Outbox core (064) + inquiries table (065) + all three forms store submissions best-effort (contact tracer)
-- [x] 81-02-PLAN.md — Pure Lead mapping (TDD): status D-06/D-03, sources D-08, round trip D-19, purge eligibility D-20
-- [x] 81-03-PLAN.md — EspoCRM Lead fields + Lead ACL (D-22) + inspect user-id/notify-settings/contact-match
-- [x] 81-04-PLAN.md — Admin booking Channel field (D-08) + bookings.lead_channel (066)
-- [x] 81-05-PLAN.md — D-16 storage notice on the three forms in 7 locales
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 81-06-PLAN.md — EspoCRM Lead source enum, Lead->Contact link, Lead layouts, lead smoke tool
-- [x] 81-07-PLAN.md — Site EspoCRM client + QStash-signed dispatcher for inquiry Leads + VPS-down backoff/breaker
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 81-08-PLAN.md — Lead.cSupabaseRef unique index via metadata overlay (owner-approved VPS step)
-- [x] 81-09-PLAN.md — Bookings trigger -> outbox (067) + pg_net kick + booking Lead branch (all sources, round trips, forward-only)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 81-10-PLAN.md — Daily outbox sweep (068): Dead after pickup, 90-day purge, re-arm; LEAD-04 wording (D-01)
-
-**Wave 5** *(blocked on Wave 4 completion)*
-- [x] 81-11-PLAN.md — Go-live: owner secrets + ship, capture start, live smokes, VPS-down drill, runbook
-
-### Phase 82: Site ↔ CRM/Chatwoot Sync Foundation
-
-**Goal**: Extending the Phase 81 outbox, every booking and customer event on the site reaches EspoCRM and Chatwoot reliably, contacts stay de-duplicated across all three systems, a one-time backfill closes the historical gap, an admin page exposes outbox health, and a single erasure request reaches every system.
-**Depends on**: Phase 77, Phase 80, Phase 81
-**Requirements**: SYNC-01, SYNC-02, SYNC-03, SYNC-04, SYNC-05, GDPR-01, GDPR-02
-**Success Criteria** (what must be TRUE):
-  1. Every booking create, payment, status change and admin edit — and every customer account signup — is reflected in EspoCRM (Contact + Booking) and on the Chatwoot contact within minutes, delivered via a durable Supabase outbox + QStash with retries and no duplicates on retry.
-  2. Contacts are de-duplicated across site, Chatwoot and EspoCRM by normalized email OR E.164 phone; shared phones (hotel/office desks) are flagged and excluded from auto-merge, and an admin can split a wrong merge.
-  3. A one-time backfill imports every past customer and booking from Supabase into EspoCRM and Chatwoot, so no customer who ever booked is missing.
-  4. Admin sees outbox health (pending/failed events, last error) on a dedicated admin page and can retry a failed event.
-  5. A single erasure request removes/anonymises the person in Supabase, Chatwoot and EspoCRM through the outbox with an audit record, and the privacy policy (all locales) names Chatwoot/EspoCRM processing, the VPS host/region, channels, retention periods and the chat widget.
-
-**Plans:** 16/16 plans complete
-
-Plans:
-**Wave 1**
-- [x] 82-01-PLAN.md — Identity core + booking/signup capture triggers + resolver hop and fan-out (migration 069)
-- [x] 82-02-PLAN.md — Outbox health admin page with retry one / retry all (migration 070)
-- [x] 82-03-PLAN.md — Admin bookings search by email + Chatwoot contact attribute definitions (migration 071, D-02)
-- [x] 82-04-PLAN.md — Privacy policy in 7 locales + freeze (GDPR-02, D-13/D-14)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 82-05-PLAN.md — Phone matching: merge-once-then-shared, manual shared, guards (migration 072)
-- [x] 82-06-PLAN.md — Daily owner digest of failed/stuck sync events (D-11)
-- [x] 82-07-PLAN.md — EspoCRM person sync: Contact + CBookings, convergent (sync.espo)
-- [x] 82-08-PLAN.md — Identities admin API: list, mark shared, split via outbox (migration 073)
-- [x] 82-16-PLAN.md — Data-deletion page retention alignment in 7 locales + freeze (GDPR-02, D-13)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 82-09-PLAN.md — Backfill SQL: identity pass, report, staggered enqueue (migration 074)
-- [x] 82-10-PLAN.md — Chatwoot contact sync with D-02 attributes (sync.chatwoot)
-- [x] 82-11-PLAN.md — Identities admin page (merged by phone, shared numbers, split)
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 82-12-PLAN.md — GDPR erasure saga across Chatwoot, EspoCRM, Supabase (migration 075)
-
-**Wave 5** *(blocked on Wave 4 completion)*
-- [x] 82-13-PLAN.md — Erasure admin page: preview, typed-email confirmation, log
-
-**Wave 6** *(blocked on Wave 5 completion)*
-- [x] 82-14-PLAN.md — Go-live A: owner credentials + ship, live config, identity pass, switch on, live smoke, backfill approval
-
-**Wave 7** *(blocked on Wave 6 completion)*
-- [x] 82-15-PLAN.md — Go-live B: backfill run + counts, EspoCRM outage drill, live erasure smoke, runbook
-
-**UI hint**: yes
-**Security note**: yes — identity resolution, outbox event integrity and GDPR erasure propagation are security/privacy-relevant; commit with `security:` prefix per CLAUDE.md where the work touches identity matching or erasure.
-
-### Phase 83: CRM/Chatwoot → Site Webhooks
-
-**Goal**: Chatwoot and EspoCRM can safely push conversation-derived Contacts/Leads and resolution summaries into the CRM data model, with inbound webhooks verified and structurally barred from ever writing to `bookings`/`customer_profiles`, and no site→CRM→webhook→site echo loop can occur.
-**Depends on**: Phase 82
-**Requirements**: HOOK-01, HOOK-02, HOOK-03, HOOK-04
-**Success Criteria** (what must be TRUE):
-  1. A new Chatwoot conversation from an unknown person creates/updates a Contact and Lead in EspoCRM, tagged with the originating channel as lead source.
-  2. When a conversation is resolved, its summary/transcript link is written to the Contact's history in EspoCRM.
-  3. Inbound webhooks (Chatwoot, EspoCRM) are verified — HMAC signature over the raw body, timestamp replay window, delivery dedup — and structurally cannot write to `bookings` / `customer_profiles`.
-  4. A site → CRM → webhook → site round trip cannot re-trigger itself, proven by origin tagging/fingerprinting on outbound writes.
-
-**Plans:** 16/16 plans complete
-
-Plans:
-**Wave 1**
-- [x] 83-01-PLAN.md — Signed Chatwoot receiver tracer -> webhook_ingest -> hook.* outbox row, EspoCRM ingest groundwork + loop fuse (migration 076)
-- [x] 83-02-PLAN.md — Chat identity layer: basis 'chat', resolve/lookup/attach RPCs (migration 077, D-16)
-- [x] 83-03-PLAN.md — Chat registry: one open chat Lead per person, erasure scope (migration 078) + import-closure isolation guard
-- [x] 83-04-PLAN.md — Chat policy (lead sources, D-18 filter, note formats) + Lead.source values + no-lead label
-- [x] 83-05-PLAN.md — EspoCRM webhook as prestigo-sync with skipOwn, Sync writer Webhook/stream scopes, signed probe
-- [x] 83-06-PLAN.md — Chatwoot account webhook as config-as-code, secret custody/rotation, signed probe, fake-chatwoot conversations
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 83-07-PLAN.md — Intake handler: stranger -> identity + Contact + chat Lead with channel source (HOOK-01)
-- [x] 83-16-PLAN.md — Chatwoot receiver completion: resolve/label/contact filters, fingerprint echo drop, contact fuse ALERT, verify matrix + rotation
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 83-08-PLAN.md — Resolve handler: one history Note per resolve with Итог summary and link (HOOK-02)
-- [x] 83-09-PLAN.md — D-05 paid booking converts the open chat Lead + erasure covers chat data
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 83-10-PLAN.md — Chatwoot contact edits (D-12) + no-lead label (D-07) + site_sync_fp origin fingerprint
-
-**Wave 5** *(blocked on Wave 4 completion)*
-- [x] 83-11-PLAN.md — EspoCRM receiver -> hook.espo_contact -> Chatwoot (D-13/D-14), CSRF pin
-
-**Wave 6** *(blocked on Wave 5 completion)*
-- [x] 83-12-PLAN.md — Echo-loop simulation harness + runtime tripwire (HOOK-04 / HOOK-03 proof)
-- [x] 83-13-PLAN.md — Delivery purge, outbox labels, inbound-webhooks runbook, backlog 999.10 (D-21)
-
-**Wave 7** *(blocked on Wave 6 completion)*
-- [x] 83-14-PLAN.md — Go-live A: owner config + webhook registration + ship, switch on, live UAT
-
-**Wave 8** *(blocked on Wave 7 completion)*
-- [x] 83-15-PLAN.md — Go-live B: no-lead live check, echo audit, live erasure, runbook live contract
-
-**Security note**: yes — inbound webhook verification and echo-loop prevention; commit with `security:` prefix per CLAUDE.md.
-
-### Phase 84: Chatwoot Dashboard App
-
-**Goal**: An operator handling a Chatwoot conversation can see that customer's booking history without leaving Chatwoot or exposing admin credentials. Sequenced last among the integration phases — after Chatwoot/EspoCRM sync is stable and CVE-2025-12245 exposure is scoped with evidence and mitigated on our side (no upstream fix exists).
-**Depends on**: Phase 77, Phase 83
-**Requirements**: PANEL-01, PANEL-02
-**Success Criteria** (what must be TRUE):
-  1. Inside a Chatwoot conversation, the operator sees the customer's bookings from the site (upcoming + past, status, payment, link into /admin) in the sidebar.
-  2. The panel is read-only, only renders when embedded in Prestigo's Chatwoot (frame-ancestors + origin-validated postMessage), never uses the admin session cookie, and CVE-2025-12245 is scoped with recorded evidence (no upstream fix; flaw is in the widget SDK, not the Dashboard App) with a compensating message-origin guard shipped in the site widget loader.
-
-**Plans:** 9/9 plans complete
-
-Plans:
-**Wave 1**
-- [x] 84-01-PLAN.md — Read-only panel_bookings RPC (migration 080, identity rules D-10/D-11, SQL totals, Lead pointer) + panel DTO/links/mapper; [BLOCKING] live apply + smoke
-- [x] 84-02-PLAN.md — Operator-token verification against Chatwoot profile + conversation (D-01..D-04), hashed positive cache, VPS guard category
-- [x] 84-03-PLAN.md — D-13 CVE-2025-12245 gate: widget message-origin guard before the SDK + dated evidence and re-check recipe in the runbook
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 84-04-PLAN.md — POST /api/chatwoot/dashboard-app (api-access-token header, conversationId only), fail-closed rate limit, structural read-only/cookie-less guard
-- [x] 84-05-PLAN.md — Framing boundary: /embed middleware branch (frame-ancestors nonce CSP, cookie strip), panel-API cookie strip, XFO exclusion, matcher, robots
-- [x] 84-06-PLAN.md — Dashboard App registration as config-as-code (sync.mjs dashboardApps) + runbook operator setup, revocation, troubleshooting, UAT
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 84-07-PLAN.md — Embed page + client tracer: origin-validated handshake, sessionStorage token (D-02), API fetch, bookings list
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [x] 84-08-PLAN.md — Full panel UI per UI-SPEC: D-06 cards, Copy payment link fallback chain (D-09), counters, Upcoming/Past + more, empty/no-contact states, refresh
-
-**Wave 5** *(blocked on Wave 4 completion)*
-- [x] 84-09-PLAN.md — Go-live: owner ships + registers, live header/API probes, CSP baseline for /embed, CVE re-check, live UAT with UI-SPEC backstops
-
-**UI hint**: yes
-**Security note**: yes — iframe/postMessage origin validation and CVE-2025-12245 exposure; commit with `security:` prefix per CLAUDE.md.
-
-### Phase 85: Statistics
-
-**Goal**: The owner can see, on an admin stats dashboard, how conversations and CRM data turn into revenue.
-**Depends on**: Phase 80, Phase 81, Phase 82
-**Requirements**: STAT-01, STAT-02, STAT-03
-**Success Criteria** (what must be TRUE):
-  1. `/admin/stats` shows inquiries → bookings conversion by source/channel for a chosen period.
-  2. `/admin/stats` shows repeat-customer rate and a list of top repeat customers.
-  3. `/admin/stats` shows B2B revenue and bookings per Account (hotel/agency/corporate).
-
-**Plans:** 6/6 plans complete
-
-**Wave 1**
-- [x] 85-01-PLAN.md — Migration 081: chat_leads.channel + chat_channel_bucket + 6-arg chat_lead_reserve, stats_trips(), stats_conversion funnel RPC + live smoke SMOKE_OK_85_01
-- [x] 85-02-PLAN.md — lib/admin-stats.ts (period, Prague presets, schemas, formatters) + GET /api/admin/stats/{conversion,customers,b2b}
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [x] 85-03-PLAN.md — Migration 082: stats_customers + stats_b2b (D-19 attribution) + live smoke SMOKE_OK_85_03
-- [x] 85-04-PLAN.md — Intake writes the Chatwoot channel on new chat Leads + owner-run read-only backfill applied live
-- [x] 85-05-PLAN.md — /admin/stats tab shell (URL period, Overview unchanged) + period selector + B2B tab
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [x] 85-06-PLAN.md — Conversion and Customers tabs + strict email deep link in BookingsTable; phase gate
-
-**UI hint**: yes
-**Security note**: yes — SECURITY DEFINER RPCs (REVOKE PUBLIC/anon/authenticated), admin route guards and validation, deep-link input; commit with `security:` prefix per CLAUDE.md.
-
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -513,8 +198,8 @@ Plans:
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
 | 76. VPS Infrastructure | v4.0 | 9/9 | Complete    | 2026-09-28 |
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
-| 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
-| 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
+| 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | Parked (999.9) | - |
+| 79. Instagram + Facebook Channels | v4.0 | 0/0 | Parked (999.12) | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 13/13 | Complete    | 2026-10-17 |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 11/11 | Complete    | 2026-10-18 |
 | 82. Site ↔ CRM/Chatwoot Sync Foundation | v4.0 | 16/16 | Complete    | 2026-10-26 |

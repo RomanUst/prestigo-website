@@ -1,5 +1,28 @@
 # Milestones
 
+## v4.0 Helpdesk + CRM (Shipped: 2026-11-02)
+
+**Phases completed:** 76, 77, 80–85 (8 of 10); Phase 78 partial (10/17 plans), Phase 79 not started
+**Plans:** 110 executed (incl. 10 from Phase 78) · **Commits:** 803 · **Timeline:** 2026-09-27 → 2026-11-02 (36 days)
+**Changes:** 1,355 files, +163,632 / −4,637 lines (excluding `.planning/`)
+**Closeout type:** override_closeout
+
+**Key accomplishments:**
+- Hostinger VPS runs Chatwoot and EspoCRM in pinned Docker stacks behind Caddy TLS, with nightly encrypted restic backups to B2, a proven restore drill on a throwaway host, VPS-independent alerting, and a real production outage test showing site, booking and Stripe unaffected (Phase 76).
+- One Chatwoot inbox for info@/bookings@ email, a click-to-load site widget (7 locales, RTL, HMAC identity, no CSP/CWV regression) and the @PrestigoChauffeurBot Telegram bot; canned responses in 7 locales, labels, teams and 108 automation rules as code via an idempotent `sync.mjs` (Phase 77).
+- EspoCRM with Accounts/Contacts, a B2B Opportunity pipeline, read-only booking history (all 56 historical bookings backfilled), sales mailbox and operator ACL runbook, all as code (Phase 80).
+- Every lead and site booking stored in Supabase and mirrored into EspoCRM through a Supabase outbox + QStash, with cross-system de-dup, backfill, `/admin/outbox` health/retry and single-request GDPR erasure across all three systems (Phases 81–82).
+- HMAC-verified Chatwoot/EspoCRM webhooks turn conversations into Contacts/Leads and history Notes, structurally barred from booking tables and protected against echo loops (Phase 83).
+- Read-only Chatwoot Dashboard App with the customer's bookings, and `/admin/stats` with conversion by source/channel, repeat customers and B2B revenue per Account (Phases 84–85).
+
+### Known Gaps
+
+- WA-01..04 — WhatsApp Cloud API on a dedicated business number, templates, runbook, site number switch: Phase 78 parked at 78-11 Task 2 by owner (Backlog 999.9). Code, templates and runbook are in the repo; the site keeps the personal number.
+- SOC-01/02 — Instagram DMs and Facebook Page messages in Chatwoot: Phase 79 not started, parked by owner 2026-11-02 (Backlog 999.12).
+
+Known verification overrides: 0 newly acknowledged, 12 carried forward from a prior close (see STATE.md Deferred Items). Verification for Phases 76 and 80–83 reports "stale" (code changed after the verifier digest); each phase passed verification and UAT when it completed. No `/gsd-audit-milestone` run for v4.0 (owner chose to close with overrides).
+
+---
 ## v3.0 Site Internationalization (i18n) (Shipped: 2026-09-27)
 
 **Phases completed:** 8 phases (68–75), 85 plans, 176 tasks
