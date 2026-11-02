@@ -19,7 +19,7 @@ interface OutboxTableProps {
   caption: string | null
 }
 
-const COLUMNS = ['STATUS', 'EVENT', 'REFERENCE', 'ATTEMPTS', 'LAST ERROR', 'NEXT ATTEMPT']
+const COLUMNS = ['Status', 'Event', 'Reference', 'Attempts', 'Last error', 'Next attempt']
 const COL_COUNT = COLUMNS.length + 1
 
 /** "in 5 min" / "2 h ago" / "now". */

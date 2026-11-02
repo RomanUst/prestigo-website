@@ -26,9 +26,9 @@ function renderForm() {
 }
 
 function channelSelect(): HTMLSelectElement {
-  const label = screen.getByText('CHANNEL')
+  const label = screen.getByText('Channel')
   const select = label.parentElement?.querySelector('select')
-  if (!select) throw new Error('CHANNEL select not found')
+  if (!select) throw new Error('Channel select not found')
   return select as HTMLSelectElement
 }
 
@@ -72,7 +72,7 @@ describe('ManualBookingForm — CHANNEL select (D-08)', () => {
 
   it('blocks submit with a visible error and no fetch when no channel is chosen', () => {
     const { container } = renderForm()
-    fireEvent.click(screen.getByText('pick PICKUP ADDRESS'))
+    fireEvent.click(screen.getByText('pick Pickup address'))
     submitForm(container)
     expect(screen.getByText('Please choose the booking channel.')).toBeTruthy()
     expect(fetchMock).not.toHaveBeenCalled()
@@ -80,9 +80,9 @@ describe('ManualBookingForm — CHANNEL select (D-08)', () => {
 
   it('sends the chosen channel in the POST body', async () => {
     const { container } = renderForm()
-    fireEvent.click(screen.getByText('pick PICKUP ADDRESS'))
+    fireEvent.click(screen.getByText('pick Pickup address'))
     // hourly trips need no calculated distance, so submit gets as far as fetch
-    const tripType = screen.getByText('TRIP TYPE').parentElement?.querySelector('select') as HTMLSelectElement
+    const tripType = screen.getByText('Trip type').parentElement?.querySelector('select') as HTMLSelectElement
     fireEvent.change(tripType, { target: { value: 'hourly' } })
     fireEvent.change(channelSelect(), { target: { value: 'email' } })
     submitForm(container)

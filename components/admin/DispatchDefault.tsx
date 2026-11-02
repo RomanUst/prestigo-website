@@ -112,7 +112,7 @@ export default function DispatchDefault({ initialHorizon, initialDays }: Props) 
               fontFamily: 'var(--font-montserrat)',
             }}
           >
-            DISPATCH DEFAULT
+            Dispatch default
           </div>
           {feedback && (
             <span
