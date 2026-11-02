@@ -462,3 +462,70 @@ describe('admin-theme.css light safety net (D-08, D-10, Pitfall 1)', () => {
     expect(weight?.decls.get('font-weight')).toBe('400 !important')
   })
 })
+
+describe('admin-theme.css light structure rules (D-10, D-11, D-12)', () => {
+  const find = (sel: string) => {
+    const r = rules.find((x) => !x.media && x.selectors.includes(sel))
+    if (!r) throw new Error(`no rule with selector ${sel}`)
+    return r
+  }
+
+  it('light h1/h2/h3 in .admin-main and the modal title: no tracking, weight 500', () => {
+    for (const sel of [
+      `${LIGHT_SEL} .admin-main :is(h1, h2, h3)`,
+      `${LIGHT_SEL} #modal-title`,
+    ]) {
+      const r = find(sel)
+      expect(r.decls.get('letter-spacing')).toBe('normal !important')
+      expect(r.decls.get('font-weight')).toBe('500 !important')
+    }
+  })
+
+  it('light public .btn-* buttons: sentence case, no tracking, admin radius', () => {
+    const r = find(`${LIGHT_SEL} :is(.btn-primary, .btn-ghost, .btn-secondary)`)
+    expect(r.decls.get('text-transform')).toBe('none')
+    expect(r.decls.get('letter-spacing')).toBe('normal')
+    expect(r.decls.get('border-radius')).toBe('var(--admin-radius-md)')
+    expect(r.decls.get('font-weight')).toBe('500')
+  })
+
+  it('light .label (shared AddressInput labels) is neutralised', () => {
+    const r = find(`${LIGHT_SEL} .label`)
+    expect(r.decls.get('text-transform')).toBe('none')
+    expect(r.decls.get('letter-spacing')).toBe('normal')
+  })
+
+  it('light tables are flat: header, rows, hover and borderless wrapper', () => {
+    expect(find(`${LIGHT_SEL} table`).decls.get('border-collapse')).toBe('collapse')
+    const th = find(`${LIGHT_SEL} table th`)
+    expect(th.decls.get('font-size')).toBe('var(--admin-fs-label) !important')
+    expect(th.decls.get('font-weight')).toBe('500 !important')
+    expect(th.decls.get('color')).toBe('var(--admin-text-muted) !important')
+    expect(th.decls.get('border-bottom')).toBe('1px solid var(--admin-border) !important')
+    const td = find(`${LIGHT_SEL} table td`)
+    expect(td.decls.get('border-bottom')).toBe('1px solid var(--admin-border) !important')
+    expect(td.decls.get('border-left')).toBe('none !important')
+    expect(td.decls.get('border-right')).toBe('none !important')
+    expect(td.decls.get('border-top')).toBe('none !important')
+    expect(find(`${LIGHT_SEL} table tbody tr:hover > td`).decls.get('background-color')).toBe('var(--admin-hover)')
+    const wrap = find(`${LIGHT_SEL} div:has(> table)`)
+    expect(wrap.decls.get('border-color')).toBe('transparent !important')
+    expect(wrap.decls.get('border-radius')).toBe('0 !important')
+    expect(wrap.decls.get('box-shadow')).toBe('none')
+  })
+
+  it('modal action row sticks to the bottom in both themes (not theme-scoped)', () => {
+    const r = rules.find((x) => !x.media && x.selectors.some((s) => s.startsWith('.admin-shell .admin-modal-body > form > :last-child')))
+    expect(r).toBeDefined()
+    for (const s of r!.selectors) expect(s).not.toContain('data-admin-theme')
+    expect(r!.decls.get('position')).toBe('sticky')
+    expect(r!.decls.get('bottom')).toBe('0')
+    expect(r!.decls.get('background-color')).toBe('var(--admin-surface)')
+    expect(r!.decls.get('padding-top')).toBe('16px')
+  })
+
+  it('no new rule targets html, body or :root beyond the OQ2 edge rules', () => {
+    const bare = rules.flatMap((r) => r.selectors).filter((s) => /^(html|body|:root)\b/.test(s))
+    for (const s of bare) expect(s).toContain(':has(.admin-shell[data-admin-theme="light"])')
+  })
+})
