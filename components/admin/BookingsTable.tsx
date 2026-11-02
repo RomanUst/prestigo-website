@@ -241,8 +241,8 @@ function editFocusOff(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>)
 
 function SaveHint({ state, errorText }: { state: SaveState; errorText?: string }) {
   if (state === 'saving') return <span style={{ color: 'var(--copper)', fontSize: '11px', letterSpacing: '0.1em' }}>Saving...</span>
-  if (state === 'saved') return <span style={{ color: '#4ade80', fontSize: '11px', letterSpacing: '0.1em' }}>Saved</span>
-  if (state === 'error') return <span style={{ color: '#f87171', fontSize: '11px', letterSpacing: '0.1em' }}>{errorText || 'Error saving'}</span>
+  if (state === 'saved') return <span style={{ color: 'var(--status-ok-fg)', fontSize: '11px', letterSpacing: '0.1em' }}>Saved</span>
+  if (state === 'error') return <span style={{ color: 'var(--status-danger-fg)', fontSize: '11px', letterSpacing: '0.1em' }}>{errorText || 'Error saving'}</span>
   return null
 }
 
@@ -451,7 +451,7 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
           {booking.booking_source === 'gnet' && (
             <div style={{
               fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)',
-              background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)',
+              background: 'var(--status-info-bg)', border: '1px solid var(--status-info-border)',
               borderRadius: 2, padding: '8px 16px', marginBottom: 16,
             }}>
               This booking originated from a GNet partner — edits are recorded locally but not synced back to GNet.
@@ -664,7 +664,7 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
                   )}
 
                   {priceReview.status === 'error' && priceReview.newAmountCzk === null && (
-                    <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: '#f87171', marginTop: 16 }}>
+                    <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--status-danger-fg)', marginTop: 16 }}>
                       {priceReview.errorMessage}
                     </div>
                   )}
@@ -678,7 +678,7 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
                       </div>
 
                       {priceReview.mismatch && (
-                        <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: '#f87171', marginTop: 8 }}>
+                        <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--status-danger-fg)', marginTop: 8 }}>
                           Price mismatch — server recompute diverges from the submitted amount. Review and override if intentional.
                           <div style={{ marginTop: 4 }}>
                             Computed: {priceReview.mismatch.computedCzk} CZK · Submitted: {priceReview.mismatch.submittedCzk} CZK
@@ -721,7 +721,7 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
                       </div>
 
                       {priceReview.errorMessage && !priceReview.mismatch && (
-                        <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: '#f87171', marginTop: 8 }}>
+                        <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--status-danger-fg)', marginTop: 8 }}>
                           {priceReview.errorMessage}
                         </div>
                       )}
@@ -930,7 +930,7 @@ function PaymentLinkSection({ bookingId, status, paymentLinkUrl, clientEmail, am
               fontFamily: 'var(--font-montserrat)',
               fontSize: '11px',
               fontWeight: 300,
-              color: '#f87171',
+              color: 'var(--status-danger-fg)',
               marginTop: '8px',
             }}>
               Failed to send — try again
@@ -1030,7 +1030,7 @@ function PaymentLinkSection({ bookingId, status, paymentLinkUrl, clientEmail, am
           fontFamily: 'var(--font-montserrat)',
           fontSize: '11px',
           fontWeight: 300,
-          color: '#f87171',
+          color: 'var(--status-danger-fg)',
           marginTop: '8px',
         }}>
           Could not generate payment link. Please try again.
@@ -1384,9 +1384,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
           {row.original.booking_source === 'manual' && (
             <span style={{
               marginLeft: '8px',
-              background: '#2a2a1a',
-              color: '#E8B87A',
-              border: '1px solid rgba(184,115,51,0.25)',
+              background: 'var(--admin-accent-tint-strong)',
+              color: 'var(--admin-accent-text)',
+              border: '1px solid var(--admin-accent-border)',
               fontSize: '11px',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -1421,9 +1421,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
               data-testid={`gnet-badge-${row.original.id}`}
               style={{
                 marginLeft: '8px',
-                background: '#1a2a3a',
-                color: '#60a5fa',
-                border: '1px solid rgba(59,130,246,0.25)',
+                background: 'var(--status-info-bg)',
+                color: 'var(--status-info-fg)',
+                border: '1px solid var(--status-info-border)',
                 fontSize: '11px',
                 fontWeight: 500,
                 textTransform: 'uppercase',
@@ -1643,7 +1643,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
             letterSpacing: '0.06em',
             borderRadius: '2px',
             cursor: 'pointer',
-            background: showDateFilter ? 'rgba(184,115,51,0.09)' : 'transparent',
+            background: showDateFilter ? 'var(--admin-accent-tint)' : 'transparent',
             border: showDateFilter ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
             color: showDateFilter ? 'var(--offwhite)' : 'var(--warmgrey)',
             transition: 'border-color 150ms ease, color 150ms ease',
@@ -1734,7 +1734,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 letterSpacing: '0.06em',
                 borderRadius: '2px',
                 cursor: 'pointer',
-                background: isActive ? 'rgba(184,115,51,0.09)' : 'transparent',
+                background: isActive ? 'var(--admin-accent-tint)' : 'transparent',
                 border: isActive ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
                 color: isActive ? 'var(--offwhite)' : 'var(--warmgrey)',
                 transition: 'border-color 150ms ease, color 150ms ease',
@@ -1756,8 +1756,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
             letterSpacing: '0.06em',
             borderRadius: '2px',
             cursor: 'pointer',
-            background: statusFilter === 'unpaid' ? 'rgba(245,158,11,0.09)' : 'transparent',
-            border: statusFilter === 'unpaid' ? '1px solid #f59e0b' : '1px solid var(--anthracite-light)',
+            background: statusFilter === 'unpaid' ? 'var(--status-warn-bg)' : 'transparent',
+            border: statusFilter === 'unpaid' ? '1px solid var(--status-warn-fg)' : '1px solid var(--anthracite-light)',
             color: statusFilter === 'unpaid' ? 'var(--offwhite)' : 'var(--warmgrey)',
             transition: 'border-color 150ms ease, color 150ms ease',
           }}
@@ -1783,7 +1783,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
               textAlign: 'center',
               fontFamily: 'var(--font-montserrat)',
               fontSize: '13px',
-              color: '#f87171',
+              color: 'var(--status-danger-fg)',
             }}>
               Couldn&apos;t load bookings — check your connection and try again.
             </div>
@@ -1815,8 +1815,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 <div
                   key={booking.id}
                   style={{
-                    backgroundColor: booking.status === 'unpaid' ? 'rgba(245,158,11,0.06)' : '#36363B',
-                    border: '1px solid #4E4E56',
+                    backgroundColor: booking.status === 'unpaid' ? 'var(--status-warn-bg)' : 'var(--admin-surface)',
+                    border: '1px solid var(--admin-border)',
                     borderRadius: 8,
                     padding: 16,
                     marginBottom: 12,
@@ -1828,15 +1828,15 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                     <span style={{
                       fontFamily: 'monospace',
                       fontSize: '13px',
-                      color: booking.booking_source === 'manual' ? '#E8B87A' : 'var(--copper)',
+                      color: booking.booking_source === 'manual' ? 'var(--admin-accent-text)' : 'var(--copper)',
                     }}>
                       {booking.booking_reference}
                       {booking.booking_source === 'manual' && (
                         <span style={{
                           marginLeft: '8px',
-                          background: '#2a2a1a',
-                          color: '#E8B87A',
-                          border: '1px solid rgba(184,115,51,0.25)',
+                          background: 'var(--admin-accent-tint-strong)',
+                          color: 'var(--admin-accent-text)',
+                          border: '1px solid var(--admin-accent-border)',
                           fontSize: '11px',
                           textTransform: 'uppercase' as const,
                           letterSpacing: '0.08em',
@@ -1869,9 +1869,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           data-testid={`gnet-badge-mobile-${booking.id}`}
                           style={{
                             marginLeft: '8px',
-                            background: '#1a2a3a',
-                            color: '#60a5fa',
-                            border: '1px solid rgba(59,130,246,0.25)',
+                            background: 'var(--status-info-bg)',
+                            color: 'var(--status-info-fg)',
+                            border: '1px solid var(--status-info-border)',
                             fontSize: '11px',
                             fontWeight: 500,
                             textTransform: 'uppercase' as const,
@@ -1959,7 +1959,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
                   {/* Expanded details */}
                   {isExpanded && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid #4E4E56', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
+                    <div style={{ marginTop: 12, borderTop: '1px solid var(--admin-border)', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
                       {booking.flight_iata && (
                         <FlightStatusBlock
                           bookingId={booking.id}
@@ -2051,10 +2051,10 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                             <span style={{ color: 'var(--copper)', fontSize: '10px' }}>Saving...</span>
                           )}
                           {notesSaving[booking.id] === 'saved' && (
-                            <span style={{ color: '#4ade80', fontSize: '10px' }}>Saved</span>
+                            <span style={{ color: 'var(--status-ok-fg)', fontSize: '10px' }}>Saved</span>
                           )}
                           {notesSaving[booking.id] === 'error' && (
-                            <span style={{ color: '#f87171', fontSize: '10px' }}>Error saving</span>
+                            <span style={{ color: 'var(--status-danger-fg)', fontSize: '10px' }}>Error saving</span>
                           )}
                         </div>
                         <textarea
@@ -2197,7 +2197,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                     textAlign: 'center',
                     fontFamily: 'var(--font-montserrat)',
                     fontSize: '13px',
-                    color: '#f87171',
+                    color: 'var(--status-danger-fg)',
                   }}
                 >
                   Couldn&apos;t load bookings — check your connection and try again.
@@ -2239,7 +2239,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       background: row.getIsExpanded() || hoveredRow === row.id
                         ? 'var(--anthracite-light)'
                         : row.original.status === 'unpaid'
-                          ? 'rgba(245,158,11,0.06)'
+                          ? 'var(--status-warn-bg)'
                           : 'var(--anthracite-mid)',
                       borderBottom: '1px solid var(--anthracite-light)',
                       minHeight: '44px',
@@ -2435,10 +2435,10 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                               <span style={{ color: 'var(--copper)', fontSize: '10px', letterSpacing: '0.1em' }}>Saving...</span>
                             )}
                             {notesSaving[row.original.id] === 'saved' && (
-                              <span style={{ color: '#4ade80', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>
+                              <span style={{ color: 'var(--status-ok-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>
                             )}
                             {notesSaving[row.original.id] === 'error' && (
-                              <span style={{ color: '#f87171', fontSize: '10px', letterSpacing: '0.1em' }}>Error saving</span>
+                              <span style={{ color: 'var(--status-danger-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Error saving</span>
                             )}
                           </div>
                           <textarea
@@ -2475,8 +2475,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           }}>
                             Driver Price (CZK)
                             {driverPriceSaving[row.original.id] === 'saving' && <span style={{ color: 'var(--copper)', fontSize: '10px', letterSpacing: '0.1em' }}>Saving...</span>}
-                            {driverPriceSaving[row.original.id] === 'saved' && <span style={{ color: '#4ade80', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>}
-                            {driverPriceSaving[row.original.id] === 'error' && <span style={{ color: '#f87171', fontSize: '10px', letterSpacing: '0.1em' }}>Enter a whole number ≥ 0</span>}
+                            {driverPriceSaving[row.original.id] === 'saved' && <span style={{ color: 'var(--status-ok-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>}
+                            {driverPriceSaving[row.original.id] === 'error' && <span style={{ color: 'var(--status-danger-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Enter a whole number ≥ 0</span>}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <input
@@ -2646,7 +2646,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.6)',
+            background: 'var(--admin-scrim)',
             zIndex: 50,
             display: 'flex',
             alignItems: 'center',
@@ -2656,12 +2656,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'var(--anthracite-mid)',
-              border: '1px solid var(--anthracite-light)',
-              borderRadius: '4px',
+              background: 'var(--admin-surface)',
+              border: '1px solid var(--admin-border)',
+              borderRadius: 'var(--admin-radius-lg)',
               maxWidth: '480px',
               width: '100%',
-              padding: '24px',
+              padding: 'var(--admin-sheet-padding)',
+              boxShadow: 'var(--admin-shadow-sheet)',
               position: 'relative',
             }}
           >
@@ -2687,9 +2688,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
             {/* Heading */}
             <h2 style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '26px',
-              fontWeight: 300,
+              fontFamily: 'var(--admin-font-heading)',
+              fontSize: 'var(--admin-fs-heading)',
+              fontWeight: 'var(--admin-fw-heading)',
               lineHeight: 1.2,
               color: 'var(--offwhite)',
               margin: 0,
@@ -2731,7 +2732,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       fontFamily: 'var(--font-montserrat)',
                       fontWeight: 500,
                       textTransform: 'uppercase',
-                      color: '#f87171',
+                      color: 'var(--status-danger-fg)',
                       marginTop: '8px',
                     }}>
                       The paired {pairedLegLabel} booking {pairedRef} will NOT be affected and remains active.
@@ -2741,7 +2742,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       fontFamily: 'var(--font-montserrat)',
                       fontWeight: 500,
                       textTransform: 'uppercase',
-                      color: '#f87171',
+                      color: 'var(--status-danger-fg)',
                       marginTop: '8px',
                     }}>
                       PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG.
@@ -2767,7 +2768,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                   fontFamily: 'var(--font-montserrat)',
                   fontWeight: 500,
                   textTransform: 'uppercase',
-                  color: '#f87171',
+                  color: 'var(--status-danger-fg)',
                   marginTop: '12px',
                 }}>
                   A FULL STRIPE REFUND WILL BE ISSUED.
@@ -2871,7 +2872,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 fontSize: '11px',
                 fontFamily: 'var(--font-montserrat)',
                 fontWeight: 300,
-                color: '#f87171',
+                color: 'var(--status-danger-fg)',
                 marginTop: '8px',
                 textAlign: 'right',
               }}>
