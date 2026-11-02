@@ -136,12 +136,12 @@ export default function BookingsPage() {
         }}
       >
         <KPICard
-          label="TODAY"
+          label="Today"
           value={todayCount !== null ? String(todayCount) : '—'}
           subLabel="bookings"
         />
         <KPICard
-          label="THIS WEEK"
+          label="This week"
           value={weekRevenue !== null ? `${formatCZK(weekRevenue)} CZK` : '—'}
           subLabel="CZK revenue"
         />

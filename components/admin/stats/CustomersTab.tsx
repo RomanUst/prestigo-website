@@ -89,17 +89,17 @@ export function CustomersTab({ period }: { period: Period }) {
     <div>
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '32px' }}>
         <KPICard
-          label="REPEAT RATE"
+          label="Repeat rate"
           value={formatPct(stats.repeat_customers, stats.customers)}
           subLabel={`${stats.repeat_customers} of ${stats.customers} customers with a trip in the period`}
         />
         <KPICard
-          label="REPEAT REVENUE SHARE"
+          label="Repeat revenue share"
           value={formatPct(stats.repeat_revenue_eur, stats.revenue_eur)}
           subLabel={`${formatEur(stats.repeat_revenue_eur)} of ${formatEur(stats.revenue_eur)}`}
         />
         <KPICard
-          label="REPEAT CUSTOMERS"
+          label="Repeat customers"
           value={String(stats.repeat_customers_all_time)}
           subLabel="all time, 2+ paid trips"
         />
