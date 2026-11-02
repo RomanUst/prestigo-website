@@ -620,7 +620,7 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
               <div>
                 <div style={editHeaderLabelStyle}>Route</div>
                 <AddressInput
-                  label="PICKUP ADDRESS"
+                  label="Pickup address"
                   placeholder="Start typing an address…"
                   value={originPlace}
                   onSelect={setOriginPlace}
@@ -631,7 +631,7 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
                 {booking.trip_type === 'transfer' && (
                   <div style={{ marginTop: 16 }}>
                     <AddressInput
-                      label="DESTINATION ADDRESS"
+                      label="Destination address"
                       placeholder="Start typing an address…"
                       value={destinationPlace}
                       onSelect={setDestinationPlace}
@@ -1370,7 +1370,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const columns: ColumnDef<Booking>[] = [
     {
       accessorKey: 'booking_reference',
-      header: 'REF',
+      header: 'Ref',
       size: 160,
       cell: ({ row }) => (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 0 }}>
@@ -1393,7 +1393,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
               padding: '4px 8px',
               borderRadius: '2px',
               display: 'inline-block',
-            }}>MANUAL</span>
+            }}>Manual</span>
           )}
           {(row.original.leg === 'return' || (row.original.leg === 'outbound' && row.original.linked_booking_id !== null)) && (
             <span
@@ -1413,7 +1413,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 display: 'inline-block',
               }}
             >
-              {row.original.leg === 'return' ? 'RETURN' : 'OUTBOUND'}
+              {row.original.leg === 'return' ? 'Return' : 'Outbound'}
             </span>
           )}
           {row.original.booking_source === 'gnet' && (
@@ -1435,7 +1435,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 lineHeight: 1,
               }}
             >
-              GNET
+              GNet
             </span>
           )}
         </span>
@@ -1443,7 +1443,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     },
     {
       id: 'pickup',
-      header: 'PICKUP',
+      header: 'Pickup',
       size: 140,
       cell: ({ row }) => (
         <span>{row.original.pickup_date} · {row.original.pickup_time}</span>
@@ -1451,7 +1451,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     },
     {
       id: 'client',
-      header: 'CLIENT',
+      header: 'Client',
       size: 180,
       cell: ({ row }) => (
         <span>{row.original.client_first_name} {row.original.client_last_name}</span>
@@ -1459,7 +1459,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     },
     {
       accessorKey: 'trip_type',
-      header: 'TYPE',
+      header: 'Type',
       size: 100,
       cell: ({ getValue }) => {
         const v = getValue<string>()
@@ -1468,7 +1468,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     },
     {
       accessorKey: 'vehicle_class',
-      header: 'VEHICLE',
+      header: 'Vehicle',
       size: 120,
       cell: ({ getValue }) => {
         const v = getValue<string>()
@@ -1477,7 +1477,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     },
     {
       accessorKey: 'amount_czk',
-      header: 'AMOUNT',
+      header: 'Amount',
       size: 100,
       cell: ({ getValue }) => (
         <span style={{ textAlign: 'right', display: 'block' }}>
@@ -1487,7 +1487,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     },
     {
       id: 'status',
-      header: 'STATUS',
+      header: 'Status',
       size: 120,
       cell: ({ row }) => (
         <StatusBadge
@@ -1842,7 +1842,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           letterSpacing: '0.08em',
                           padding: '2px 6px',
                           borderRadius: '2px',
-                        }}>MANUAL</span>
+                        }}>Manual</span>
                       )}
                       {(booking.leg === 'return' || (booking.leg === 'outbound' && booking.linked_booking_id !== null)) && (
                         <span
@@ -1861,7 +1861,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                             borderRadius: '2px',
                           }}
                         >
-                          {booking.leg === 'return' ? 'RETURN' : 'OUTBOUND'}
+                          {booking.leg === 'return' ? 'Return' : 'Outbound'}
                         </span>
                       )}
                       {booking.booking_source === 'gnet' && (
@@ -1883,7 +1883,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                             lineHeight: 1,
                           }}
                         >
-                          GNET
+                          GNet
                         </span>
                       )}
                     </span>
@@ -1970,29 +1970,29 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         />
                       )}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 12 }}>
-                        <DetailField label="ORIGIN" value={booking.origin_address} />
-                        <DetailField label="DESTINATION" value={booking.destination_address} />
-                        <DetailField label="EMAIL" value={booking.client_email} />
-                        <DetailField label="PHONE" value={booking.client_phone} />
-                        {booking.flight_number && <DetailField label="FLIGHT" value={booking.flight_number} />}
-                        {booking.terminal && <DetailField label="TERMINAL" value={booking.terminal} />}
-                        {booking.special_requests && <DetailField label="REQUESTS" value={booking.special_requests} />}
-                        <DetailField label="LANGUAGE" value={booking.locale ? booking.locale.toUpperCase() : '—'} />
+                        <DetailField label="Origin" value={booking.origin_address} />
+                        <DetailField label="Destination" value={booking.destination_address} />
+                        <DetailField label="Email" value={booking.client_email} />
+                        <DetailField label="Phone" value={booking.client_phone} />
+                        {booking.flight_number && <DetailField label="Flight" value={booking.flight_number} />}
+                        {booking.terminal && <DetailField label="Terminal" value={booking.terminal} />}
+                        {booking.special_requests && <DetailField label="Requests" value={booking.special_requests} />}
+                        <DetailField label="Language" value={booking.locale ? booking.locale.toUpperCase() : '—'} />
                         <DetailField
-                          label="CHILD SEAT"
+                          label="Child seat"
                           value={booking.extra_child_seat ? <StatusBadge variant="active" label="Yes" /> : '—'}
                         />
                         <DetailField
-                          label="MEET & GREET"
+                          label="Meet & greet"
                           value={booking.extra_meet_greet ? <StatusBadge variant="active" label="Yes" /> : '—'}
                         />
                         <DetailField
-                          label="EXTRA LUGGAGE"
+                          label="Extra luggage"
                           value={booking.extra_luggage ? <StatusBadge variant="active" label="Yes" /> : '—'}
                         />
                         {booking.leg === 'return' && booking.linked_booking?.booking_reference && (
                           <DetailField
-                            label="PAIRED OUTBOUND"
+                            label="Paired outbound"
                             value={
                               <button
                                 type="button"
@@ -2286,38 +2286,38 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           gridTemplateColumns: '1fr 1fr',
                           gap: '12px',
                         }}>
-                          <DetailField label="ORIGIN" value={row.original.origin_address} />
-                          <DetailField label="DESTINATION" value={row.original.destination_address} />
+                          <DetailField label="Origin" value={row.original.origin_address} />
+                          <DetailField label="Destination" value={row.original.destination_address} />
                           {row.original.trip_type === 'hourly' && row.original.hours !== null && (
-                            <DetailField label="DURATION" value={`${row.original.hours} hours`} />
+                            <DetailField label="Duration" value={`${row.original.hours} hours`} />
                           )}
-                          <DetailField label="PASSENGERS" value={String(row.original.passengers)} />
-                          <DetailField label="LUGGAGE" value={String(row.original.luggage)} />
+                          <DetailField label="Passengers" value={String(row.original.passengers)} />
+                          <DetailField label="Luggage" value={String(row.original.luggage)} />
                           <DetailField
-                            label="CHILD SEAT"
+                            label="Child seat"
                             value={row.original.extra_child_seat
                               ? <StatusBadge variant="active" label="Yes" />
                               : '—'}
                           />
                           <DetailField
-                            label="MEET & GREET"
+                            label="Meet & greet"
                             value={row.original.extra_meet_greet
                               ? <StatusBadge variant="active" label="Yes" />
                               : '—'}
                           />
                           <DetailField
-                            label="EXTRA LUGGAGE"
+                            label="Extra luggage"
                             value={row.original.extra_luggage
                               ? <StatusBadge variant="active" label="Yes" />
                               : '—'}
                           />
-                          <DetailField label="FLIGHT" value={row.original.flight_number ?? '—'} />
-                          <DetailField label="TERMINAL" value={row.original.terminal ?? '—'} />
-                          <DetailField label="RETURN" value={row.original.return_date ?? '—'} />
-                          <DetailField label="NOTES" value={row.original.special_requests ?? '—'} />
-                          <DetailField label="LANGUAGE" value={row.original.locale ? row.original.locale.toUpperCase() : '—'} />
+                          <DetailField label="Flight" value={row.original.flight_number ?? '—'} />
+                          <DetailField label="Terminal" value={row.original.terminal ?? '—'} />
+                          <DetailField label="Return" value={row.original.return_date ?? '—'} />
+                          <DetailField label="Notes" value={row.original.special_requests ?? '—'} />
+                          <DetailField label="Language" value={row.original.locale ? row.original.locale.toUpperCase() : '—'} />
                           <DetailField
-                            label="PAYMENT ID"
+                            label="Payment ID"
                             value={
                               row.original.payment_intent_id ? (
                                 <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>
@@ -2330,7 +2330,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           />
                           {row.original.leg === 'return' && row.original.linked_booking?.booking_reference && (
                             <DetailField
-                              label="PAIRED OUTBOUND"
+                              label="Paired outbound"
                               value={
                                 <button
                                   type="button"
@@ -2745,7 +2745,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       color: 'var(--status-danger-fg)',
                       marginTop: '8px',
                     }}>
-                      PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG.
+                      Partial Stripe refund will be issued for this leg.
                     </p>
                   </>
                 )
@@ -2771,7 +2771,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                   color: 'var(--status-danger-fg)',
                   marginTop: '12px',
                 }}>
-                  A FULL STRIPE REFUND WILL BE ISSUED.
+                  A full Stripe refund will be issued.
                 </p>
               </>
             ) : (
