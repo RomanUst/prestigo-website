@@ -62,7 +62,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
 
   return (
     <div style={cardStyle}>
-      <div style={headerLabelStyle}>AIRPORT PROMO</div>
+      <div style={headerLabelStyle}>Airport promo</div>
 
       <div style={{ marginTop: '16px', marginBottom: '16px' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -159,7 +159,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
         </button>
 
         {saveStatus === 'range-error' && (
-          <span style={{ color: '#ff6b6b', fontFamily: 'var(--font-montserrat)', fontSize: '12px' }}>
+          <span style={{ color: 'var(--status-danger-fg)', fontFamily: 'var(--font-montserrat)', fontSize: '12px' }}>
             Promo price must not exceed regular price.
           </span>
         )}
@@ -169,7 +169,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
           </span>
         )}
         {saveStatus === 'error' && (
-          <span style={{ color: '#ff6b6b', fontFamily: 'var(--font-montserrat)', fontSize: '12px' }}>
+          <span style={{ color: 'var(--status-danger-fg)', fontFamily: 'var(--font-montserrat)', fontSize: '12px' }}>
             Save failed. Try again.
           </span>
         )}
