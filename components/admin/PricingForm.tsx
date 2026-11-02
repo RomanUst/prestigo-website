@@ -47,12 +47,12 @@ const GLOBALS_FIELDS: Array<{
   label: string
   suffix: string
 }> = [
-  { key: 'airport_fee', label: 'AIRPORT FEE', suffix: 'EUR flat' },
-  { key: 'night_coefficient', label: 'NIGHT COEFFICIENT', suffix: 'x multiplier' },
-  { key: 'holiday_coefficient', label: 'HOLIDAY COEFFICIENT', suffix: 'x multiplier' },
-  { key: 'extra_child_seat', label: 'CHILD SEAT', suffix: 'EUR / booking' },
-  { key: 'extra_luggage', label: 'EXTRA LUGGAGE', suffix: 'EUR / booking' },
-  { key: 'return_discount_percent', label: 'ROUND TRIP DISCOUNT', suffix: '% off total' },
+  { key: 'airport_fee', label: 'Airport fee', suffix: 'EUR flat' },
+  { key: 'night_coefficient', label: 'Night coefficient', suffix: 'x multiplier' },
+  { key: 'holiday_coefficient', label: 'Holiday coefficient', suffix: 'x multiplier' },
+  { key: 'extra_child_seat', label: 'Child seat', suffix: 'EUR / booking' },
+  { key: 'extra_luggage', label: 'Extra luggage', suffix: 'EUR / booking' },
+  { key: 'return_discount_percent', label: 'Round trip discount', suffix: '% off total' },
 ]
 
 const inputBaseStyle: React.CSSProperties = {
@@ -155,25 +155,25 @@ export default function PricingForm({ initialData }: PricingFormProps) {
         >
           <div />
           <div>
-            <div style={headerLabelStyle}>RATE / KM</div>
+            <div style={headerLabelStyle}>Rate / km</div>
             <div style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)', marginTop: '2px' }}>
               EUR / km
             </div>
           </div>
           <div>
-            <div style={headerLabelStyle}>HOURLY RATE</div>
+            <div style={headerLabelStyle}>Hourly rate</div>
             <div style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)', marginTop: '2px' }}>
               EUR / h
             </div>
           </div>
           <div>
-            <div style={headerLabelStyle}>DAILY RATE</div>
+            <div style={headerLabelStyle}>Daily rate</div>
             <div style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)', marginTop: '2px' }}>
               EUR / day
             </div>
           </div>
           <div>
-            <div style={headerLabelStyle}>MIN FARE</div>
+            <div style={headerLabelStyle}>Min fare</div>
             <div style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)', marginTop: '2px' }}>
               EUR min
             </div>
@@ -299,7 +299,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
 
       {/* Section C — Hourly Hire (min/max range for hourly tripType) */}
       <div style={{ ...cardStyle, marginTop: '16px' }}>
-        <div style={headerLabelStyle}>HOURLY HIRE</div>
+        <div style={headerLabelStyle}>Hourly hire</div>
         <div style={{
           fontFamily: 'var(--font-montserrat)',
           fontSize: '11px',
@@ -329,7 +329,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
                 marginBottom: '6px',
               }}
             >
-              MINIMUM HOURS
+              Minimum hours
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
@@ -356,7 +356,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
                 marginBottom: '6px',
               }}
             >
-              MAXIMUM HOURS
+              Maximum hours
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
@@ -390,7 +390,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
 
       {/* Section D — Holiday Dates */}
       <div style={{ ...cardStyle, marginTop: '16px' }}>
-        <div style={headerLabelStyle}>HOLIDAY DATES</div>
+        <div style={headerLabelStyle}>Holiday dates</div>
         <div style={{
           fontFamily: 'var(--font-montserrat)',
           fontSize: '11px',
@@ -557,7 +557,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
             ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--offwhite)'
           }}
         >
-          SAVE PRICING
+          Save pricing
         </button>
 
         {saveStatus === 'success' && (

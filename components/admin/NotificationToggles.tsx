@@ -79,7 +79,7 @@ export default function NotificationToggles({ initialFlags }: Props) {
             marginBottom: 16,
             fontFamily: 'var(--font-montserrat)',
           }}>
-            NOTIFICATION TYPES
+            Notification types
           </div>
 
           {TOGGLE_ROWS.map((row, idx) => {
