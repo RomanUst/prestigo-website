@@ -1,7 +1,8 @@
 ---
 phase: "86"
 slug: "admin-shell"
-status: draft
+status: approved
+reviewed_at: "2026-11-02"
 shadcn_initialized: false
 preset: none
 created: "2026-11-02"
@@ -276,20 +277,26 @@ Admin copy is English. This phase adds only shell controls; no new data screens.
 
 ## UI Considerations
 
-Applicable state considerations resolved: 7 covered, 2 backstop, 1 unresolved.
+Probe run 2026-11-02 over 7 elements (E1 sidebar, E2 theme toggle, E3 mobile slide-over, E4 tables/lists/status chips, E5 login form, E6 modals/side panels, E7 stats KPI/charts/zones map): 35 applicable considerations. This phase re-themes existing screens and changes no data flow, so data-state categories keep current behaviour and are held to a both-themes readability backstop. Owner accepted this resolution set.
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| populated | sidebar nav (11 items) | ✅ covered | Expanded shows icon + label for all 11 items in the existing order; collapsed shows 11 icon tiles with tooltips |
-| overflow | sidebar nav, short viewport | ✅ covered | Nav list scrolls (`overflow-y: auto`) while the footer (theme toggle, sign out) stays pinned |
-| long-text | rail tooltip, status chips | ✅ covered | Tooltip is `nowrap` (labels are one word); chips use `white-space: nowrap` with `max-width: 100%` and ellipsis |
-| error | theme and sidebar cookies (missing, invalid, blocked) | ✅ covered | Server falls back to light/expanded on a missing or invalid value; a blocked write only loses persistence, with no error UI (see Copywriting Contract) |
-| populated | first paint with cookie set | ✅ covered | Server-rendered attributes and `--admin-sidebar-w` give the final theme and width in the first HTML; no flash, no layout shift, no transition on load |
-| loading | theme toggle, collapse toggle | ✅ covered | Toggles are instant client-side attribute flips; there is no in-flight state to show |
-| empty | admin collection screens (bookings, drivers, outbox, …) | ✅ covered | Existing empty-state copy is kept; empty states must be readable in both themes (token-only colours) |
-| populated | every admin screen, both themes | 🧪 backstop | Held-out visual check: each screen in light and dark (desktop 1280px and mobile 390px) with no unreadable text, invisible borders or leftover dark-only panels; plus the guard test |
-| populated | public pages in all 7 locales | 🧪 backstop | Existing golden-HTML/snapshot tests unchanged and green; theme CSS is selector-scoped to `.admin-shell` |
-| error | zones map in light theme | ⚠ unresolved | Whether the `colorScheme` prop is honoured with the configured `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID`; the planner verifies in the browser and, if the cloud map style overrides it, keeps the current map style and records the deviation |
+Resolved — explicit (truths):
+- E1 populated: expanded sidebar shows icon + label for all 11 items in existing order; collapsed rail shows 11 icon tiles with tooltips; labels stay in the DOM as visually-hidden text.
+- E1 overflow: nav list scrolls (`overflow-y: auto`) on short viewports while the footer (theme toggle, sign out) stays pinned.
+- E1/E2/E3 long-text: rail tooltip is `white-space: nowrap`; status chips use `nowrap` + `max-width: 100%` + ellipsis.
+- E1/E2 error: missing, invalid or unwritable `admin_theme` / `admin_sidebar` cookie falls back to light / expanded on the server; a blocked write only loses persistence, with no error UI (see Copywriting Contract).
+- E1/E2 populated (first paint): server-rendered `data-admin-theme`, `data-admin-sidebar` and `--admin-sidebar-w` give the final theme and width in the first HTML — no flash, no layout shift, no transition on load.
+- E1/E2/E3 loading: toggles are instant client-side attribute flips; there is no in-flight state to show.
+- E6 overflow/long content: modal and side-panel bodies scroll internally (header and actions stay visible) in both themes; the backdrop and panel surface use tokens only.
+
+Resolved — backstop:
+- { statement: "E1 empty/partial/zero-one-many, E3 overflow, E4 empty/loading/error/populated/partial/overflow/zero-one-many, E5 empty/loading/error/partial/long-text, E7 empty/loading/error/populated/partial/overflow/zero-one-many: existing behaviour and copy are kept unchanged; every such state is readable in both themes (token-only colours, no invisible borders, no leftover dark-only panels)", verification: backstop }
+- { statement: "Held-out visual check of every admin screen (bookings, drivers, stats, outbox, settings, login, modals, side panels) in light and dark at 1280px and 390px, plus the hard-coded-colour guard test", verification: backstop }
+- { statement: "Public pages in all 7 locales are unchanged: existing golden-HTML/snapshot tests stay green; theme CSS is scoped to `.admin-shell`", verification: backstop }
+
+Unresolved:
+- ⚠ unresolved — planner must treat as assumption: E7 zones map in light theme — whether the Google Maps `colorScheme` prop is honoured with the configured `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID`. Verify in the browser; if the cloud map style overrides it, keep the current map style and record the deviation.
+
+Empty-state and error-state copy lives in the Copywriting Contract and is not restated here.
 
 ---
 
@@ -304,12 +311,12 @@ Applicable state considerations resolved: 7 covered, 2 backstop, 1 unresolved.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-11-02
