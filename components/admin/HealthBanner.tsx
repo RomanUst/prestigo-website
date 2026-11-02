@@ -6,8 +6,8 @@ interface HealthBannerProps {
 }
 
 // Colours of the StatusBadge `completed` and `cancelled` variants (UI-SPEC: banner reuses them).
-const HEALTHY = { bg: '#1a3a2a', color: '#4ade80', border: '1px solid rgba(34,197,94,0.25)' }
-const PROBLEM = { bg: '#2a1a1a', color: '#f87171', border: '1px solid rgba(239,68,68,0.25)' }
+const HEALTHY = { bg: 'var(--status-ok-bg)', color: 'var(--status-ok-fg)', border: '1px solid var(--status-ok-border)' }
+const PROBLEM = { bg: 'var(--status-danger-bg)', color: 'var(--status-danger-fg)', border: '1px solid var(--status-danger-border)' }
 
 /** Copy for the problem banner; a clause whose count is 0 is omitted. */
 export function healthProblemText(failed: number, stuck: number): string {
@@ -27,7 +27,7 @@ export function HealthBanner({ failed, stuck }: HealthBannerProps) {
         background: s.bg,
         color: s.color,
         border: s.border,
-        borderRadius: '4px',
+        borderRadius: 'var(--admin-radius-md)',
         padding: '16px 24px',
         margin: '0 0 24px',
         fontFamily: 'var(--font-montserrat)',

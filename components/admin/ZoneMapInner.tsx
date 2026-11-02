@@ -434,7 +434,7 @@ export default function ZoneMapInner() {
                         background: 'none',
                         border: 'none',
                         fontSize: '11px',
-                        color: '#f87171',
+                        color: 'var(--status-danger-fg)',
                         cursor: 'pointer',
                         fontFamily: 'var(--font-montserrat)',
                         padding: 0,
@@ -531,7 +531,7 @@ export default function ZoneMapInner() {
                         }}
                         onMouseEnter={(e) => {
                           const icon = e.currentTarget.querySelector('svg')
-                          if (icon) icon.style.color = '#f87171'
+                          if (icon) icon.style.color = 'var(--status-danger-fg)'
                         }}
                         onMouseLeave={(e) => {
                           const icon = e.currentTarget.querySelector('svg')

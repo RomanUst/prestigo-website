@@ -106,18 +106,18 @@ export function OverviewTab() {
           title="REVENUE BY CLASS"
           data={vehicleClassChartData}
           series={[
-            { dataKey: 'business', name: 'Business', color: '#B87333' },
-            { dataKey: 'first_class', name: 'First Class', color: '#D4924A' },
-            { dataKey: 'business_van', name: 'Business Van', color: '#E8B87A' },
+            { dataKey: 'business', name: 'Business', color: 'var(--admin-chart-1)' },
+            { dataKey: 'first_class', name: 'First Class', color: 'var(--admin-chart-2)' },
+            { dataKey: 'business_van', name: 'Business Van', color: 'var(--admin-chart-3)' },
           ]}
         />
         <GroupedBarChart
           title="REVENUE BY TRIP TYPE"
           data={tripTypeChartData}
           series={[
-            { dataKey: 'transfer', name: 'Transfer', color: '#B87333' },
-            { dataKey: 'hourly', name: 'Hourly', color: '#D4924A' },
-            { dataKey: 'daily', name: 'Daily', color: '#E8B87A' },
+            { dataKey: 'transfer', name: 'Transfer', color: 'var(--admin-chart-1)' },
+            { dataKey: 'hourly', name: 'Hourly', color: 'var(--admin-chart-2)' },
+            { dataKey: 'daily', name: 'Daily', color: 'var(--admin-chart-3)' },
           ]}
         />
       </div>

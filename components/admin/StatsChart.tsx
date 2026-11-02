@@ -5,31 +5,31 @@ import {
 } from 'recharts'
 
 const CHART_COLORS = {
-  copper: '#B87333',
-  copperLight: '#D4924A',
-  copperPale: '#E8B87A',
+  series1: 'var(--admin-chart-1)',
+  series2: 'var(--admin-chart-2)',
+  series3: 'var(--admin-chart-3)',
 }
 
 const AXIS_STYLE = {
   fontSize: 11,
   fontFamily: 'var(--font-montserrat)',
-  fill: '#CFC9C2',
+  fill: 'var(--admin-text-muted)',
 }
 
 const TOOLTIP_STYLE = {
-  contentStyle: { backgroundColor: '#28282B', border: '1px solid #4E4E56', borderRadius: '4px' },
-  labelStyle: { color: '#F5F2EE', fontSize: 11, fontFamily: 'var(--font-montserrat)' },
-  itemStyle: { color: '#F5F2EE', fontSize: 11, fontFamily: 'var(--font-montserrat)' },
+  contentStyle: { backgroundColor: 'var(--admin-surface)', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-md)' },
+  labelStyle: { color: 'var(--admin-text)', fontSize: 11, fontFamily: 'var(--font-montserrat)' },
+  itemStyle: { color: 'var(--admin-text)', fontSize: 11, fontFamily: 'var(--font-montserrat)' },
 }
 
-const GRID_STYLE = { stroke: '#4E4E56', strokeDasharray: '3 3' }
+const GRID_STYLE = { stroke: 'var(--admin-border)', strokeDasharray: '3 3' }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{
-      background: 'var(--anthracite-mid)',
-      border: '1px solid var(--anthracite-light)',
-      borderRadius: '4px',
+      background: 'var(--admin-surface)',
+      border: '1px solid var(--admin-border)',
+      borderRadius: 'var(--admin-radius-md)',
       padding: '24px',
     }}>
       <span style={{
@@ -38,7 +38,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
         fontSize: '11px',
         textTransform: 'uppercase',
         letterSpacing: '0.4em',
-        color: 'var(--copper)',
+        color: 'var(--admin-kpi-label)',
         marginBottom: '16px',
       }}>
         {title}
@@ -64,7 +64,7 @@ export function RevenueBarChart({ data }: { data: { month: string; revenue: numb
             itemStyle={TOOLTIP_STYLE.itemStyle}
             formatter={(value) => [typeof value === 'number' ? `${value.toLocaleString('cs-CZ')} CZK` : String(value), 'Revenue']}
           />
-          <Bar dataKey="revenue" fill={CHART_COLORS.copper} radius={[2, 2, 0, 0]} />
+          <Bar dataKey="revenue" fill={CHART_COLORS.series1} radius={[2, 2, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>
@@ -92,7 +92,7 @@ export function GroupedBarChart({ title, data, series }: GroupedBarChartProps) {
             formatter={(value) => [typeof value === 'number' ? `${value.toLocaleString('cs-CZ')} CZK` : String(value), '']}
           />
           <Legend
-            wrapperStyle={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: '#CFC9C2' }}
+            wrapperStyle={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--admin-text-muted)' }}
           />
           {series.map((s) => (
             <Bar key={s.dataKey} dataKey={s.dataKey} name={s.name} fill={s.color} radius={[2, 2, 0, 0]} />
