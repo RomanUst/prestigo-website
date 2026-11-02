@@ -30,21 +30,6 @@
     "plan": "86-07"
   },
   {
-    "file": "components/admin/ErasurePreview.tsx",
-    "reason": "pending 86-07 token conversion",
-    "plan": "86-07"
-  },
-  {
-    "file": "components/admin/ErasureConfirmForm.tsx",
-    "reason": "pending 86-07 token conversion",
-    "plan": "86-07"
-  },
-  {
-    "file": "components/admin/ErasureAuditTable.tsx",
-    "reason": "pending 86-07 token conversion",
-    "plan": "86-07"
-  },
-  {
     "file": "app/(internal)/admin/(dashboard)/outbox/page.tsx",
     "reason": "pending 86-07 token conversion",
     "plan": "86-07"

@@ -232,7 +232,7 @@ describe('Erasure page: confirm modal', () => {
     expect(button.disabled).toBe(false)
     fireEvent.click(box)
     expect(button.disabled).toBe(true)
-    expect(button.style.background).toMatch(/#f87171|rgb\(248, 113, 113\)/)
+    expect(button.style.background).toBe('var(--admin-danger-solid)')
   })
 
   it('without upcoming trips there is no second checkbox', async () => {
@@ -447,7 +447,7 @@ describe('Erasure page: log', () => {
     expect(cells[2].textContent).toBe('Needs attention')
     expect(cells[3].textContent).toMatch(/^Done/)
     const failed = within(cells[4]).getByText('Failed')
-    expect(failed.style.color).toMatch(/#f87171|rgb\(248, 113, 113\)/)
+    expect(failed.style.color).toBe('var(--status-danger-fg)')
     expect(within(cells[4]).getByRole('link', { name: 'Open Outbox' }).getAttribute('href')).toBe('/admin/outbox')
   })
 

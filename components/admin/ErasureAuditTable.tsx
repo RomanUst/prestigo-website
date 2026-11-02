@@ -113,7 +113,7 @@ function SystemCell({ cell }: { cell: SystemState }) {
   if (cell.state === 'failed') {
     return (
       <>
-        <span style={{ color: '#f87171' }}>Failed</span>
+        <span style={{ color: 'var(--status-danger-fg)' }}>Failed</span>
         <div style={{ ...labelText, whiteSpace: 'normal' }}>
           <Link href="/admin/outbox" style={{ color: 'var(--copper)', fontWeight: 500 }}>
             Open Outbox
