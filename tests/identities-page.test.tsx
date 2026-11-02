@@ -223,7 +223,7 @@ describe('Identities page: shared numbers tab', () => {
     expect(screen.getByText('TravelExpress desk')).toBeTruthy()
     expect(screen.getByText('+421900100001')).toBeTruthy()
     const heads = screen.getAllByRole('columnheader').map((h) => h.textContent)
-    expect(heads).toEqual(['PHONE', 'HOW', 'EMAILS', 'NOTE', 'MARKED'])
+    expect(heads).toEqual(['Phone', 'How', 'Emails', 'Note', 'Marked'])
   })
 
   it('shows "+2 more" for four emails and keeps the full list in the title', async () => {

@@ -12,7 +12,7 @@ interface MergedByPhoneTableProps {
   empty: { heading?: string; body: string }
 }
 
-const COLUMNS = ['CONTACT', 'MERGED EMAIL', 'PHONE', 'BOOKINGS', 'MERGED']
+const COLUMNS = ['Contact', 'Merged email', 'Phone', 'Bookings', 'Merged']
 const COL_COUNT = COLUMNS.length + 1
 const DASH = '—'
 
