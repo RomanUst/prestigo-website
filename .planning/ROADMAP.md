@@ -148,10 +148,10 @@ Detail sections for the active milestone v5.0 (Phases 86-93). Parser note: the `
   3. Every admin screen (bookings, drivers, stats, outbox, settings, login, plus modals and side panels) is readable in both themes — no unreadable text, invisible borders or leftover dark-only panels.
   4. Adding a new hard-coded colour value to admin code fails the test suite, so later phases cannot reintroduce theme debt.
 
-**Plans**: 13 plans
+**Plans**: 1/13 plans executed
 Plans:
 **Wave 1**
-- [ ] 86-01-PLAN.md — Wave 1: cookie-driven theme wrapper (tracer), full token sheet for both themes, colour guard with per-plan pending ledger, capital-label scanner
+- [x] 86-01-PLAN.md — Wave 1: cookie-driven theme wrapper (tracer), full token sheet for both themes, colour guard with per-plan pending ledger, capital-label scanner
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 86-02-PLAN.md — Wave 2: collapsible sidebar rail, theme toggle, Ctrl/Cmd+\ shortcut, themed login
@@ -412,7 +412,7 @@ Plans:
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
-| 86. Admin Shell | v5.0 | 0/0 | Not started | - |
+| 86. Admin Shell | v5.0 | 1/13 | In Progress|  |
 | 87. Status Service & Driver Step Flow | v5.0 | 0/0 | Not started | - |
 | 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
