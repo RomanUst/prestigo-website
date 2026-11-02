@@ -38,7 +38,7 @@ const SKIP_MARKER = 'caps-ok'
 
 // Capitals, digits, accented capitals (U+00C0-U+017D, so REG / IČO is caught),
 // space and the punctuation & / ( ) — : ' . -
-const CAP_CHARS = "A-Z0-9\\u00C0-\\u017D &/()\\u2014:'.\\-"
+const CAP_CHARS = "A-Z0-9\\u00C0-\\u017D &/()\\u2014:'.?!\\-"
 const CAP_RUN = `[${CAP_CHARS}]+`
 const TWO_CAPITALS = /[A-ZÀ-Ž]{2}/
 
