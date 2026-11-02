@@ -105,7 +105,7 @@
       "value": "La viñeta de autopista checa y todos los peajes están incluidos. Las autopistas alemanas son gratuitas para turismos."
     },
     {
-      "label": "Recogida en el aeropuerto",
+      "label": "Recogida en el aeropuerto de Múnich (MUC)",
       "value": "Indíquenos su número de vuelo. Su chófer sigue el aterrizaje en el aeropuerto de Múnich y le espera dentro de la sala de llegadas, con 60 minutos de espera gratuita."
     },
     {
@@ -173,6 +173,10 @@
     {
       "q": "¿Pueden recogerme en el aeropuerto de Múnich y llevarme directamente a Praga?",
       "a": "Sí. Indíquenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del aeropuerto de Múnich (MUC) con su nombre y le lleva directamente a su dirección en Praga, sin necesidad de pasar antes por Múnich. Hasta 60 minutos de espera son gratuitos."
+    },
+    {
+      "q": "¿Dónde me espera el chófer en el aeropuerto de Múnich (MUC)?",
+      "a": "En la sala pública de llegadas de su terminal — Terminal 1 o Terminal 2 — con un cartel con su nombre. El chófer sigue su vuelo, así que un retraso o un aterrizaje anticipado no cambian nada, y los primeros 60 minutos de espera son gratuitos. Desde MUC el coche toma la A92 y la A9 en pocos minutos y va directo a Praga, sin entrar en Múnich."
     },
     {
       "q": "¿Es mejor un traslado privado que el tren de Múnich a Praga?",
