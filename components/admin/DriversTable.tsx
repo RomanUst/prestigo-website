@@ -204,10 +204,11 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                               fontSize: '11px',
                               fontWeight: 400,
                               letterSpacing: '0.08em',
+                              textTransform: 'uppercase',
                               color: 'var(--status-danger-fg)',
                             }}
                           >
-                            CONFIRM?
+                            Confirm?
                           </button>
                           <button
                             onClick={() => handleDeleteCancel(driver.id)}

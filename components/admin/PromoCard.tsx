@@ -62,7 +62,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
 
   return (
     <div style={cardStyle}>
-      <div style={headerLabelStyle}>AIRPORT PROMO</div>
+      <div style={headerLabelStyle}>Airport promo</div>
 
       <div style={{ marginTop: '16px', marginBottom: '16px' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>

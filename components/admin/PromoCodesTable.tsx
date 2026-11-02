@@ -208,12 +208,13 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                       fontSize: '11px',
                       fontWeight: 400,
                       letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
                       borderRadius: '2px',
                       color: code.is_active ? 'var(--status-ok-fg)' : 'var(--status-danger-fg)',
                       border: `1px solid ${code.is_active ? 'var(--status-ok-fg)' : 'var(--status-danger-fg)'}`,
                     }}
                   >
-                    {code.is_active ? 'ACTIVE' : 'INACTIVE'}
+                    {code.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
                 <td style={{ ...cellStyle, padding: '0 4px' }}>
@@ -256,10 +257,11 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                           fontSize: '11px',
                           fontWeight: 400,
                           letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
                           color: 'var(--status-danger-fg)',
                         }}
                       >
-                        CONFIRM?
+                        Confirm?
                       </button>
                     ) : (
                       <button
