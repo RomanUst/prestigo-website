@@ -416,3 +416,38 @@ describe('admin-theme.css sidebar rail contract (ADM-01, D-13, D-16)', () => {
     expect(reduced?.decls.get('transition')).toBe('none')
   })
 })
+
+describe('admin-theme.css light safety net (D-08, D-10, Pitfall 1)', () => {
+  const styleSelectors = rules.flatMap((r) => r.selectors.filter((s) => s.includes('[style*=')))
+  const subOf = (s: string) => /\[style\*="([^"]+)"\]/.exec(s)?.[1] ?? ''
+  const subs = styleSelectors.map(subOf)
+
+  it('declares the four serialisation selectors', () => {
+    for (const form of ['text-transform:uppercase', 'text-transform: uppercase', 'font-weight:300', 'font-weight: 300']) {
+      expect(styleSelectors).toContain(`${LIGHT_SEL} [style*="${form}"]`)
+    }
+  })
+
+  it('every no-space selector has its spaced twin and vice versa', () => {
+    expect(subs.length).toBeGreaterThan(0)
+    for (const sub of subs) {
+      const twin = sub.includes(': ') ? sub.replace(': ', ':') : sub.replace(':', ': ')
+      expect(subs).toContain(twin)
+    }
+  })
+
+  it('no [style*=] selector is scoped to the dark theme or unscoped', () => {
+    for (const s of styleSelectors) {
+      expect(s.startsWith(LIGHT_SEL)).toBe(true)
+      expect(s).not.toContain('data-admin-theme="dark"')
+    }
+  })
+
+  it('uppercase rule resets case and tracking, weight rule lifts 300 to 400', () => {
+    const upper = rules.find((r) => r.selectors.includes(`${LIGHT_SEL} [style*="text-transform:uppercase"]`))
+    const weight = rules.find((r) => r.selectors.includes(`${LIGHT_SEL} [style*="font-weight:300"]`))
+    expect(upper?.decls.get('text-transform')).toBe('none !important')
+    expect(upper?.decls.get('letter-spacing')).toBe('normal !important')
+    expect(weight?.decls.get('font-weight')).toBe('400 !important')
+  })
+})

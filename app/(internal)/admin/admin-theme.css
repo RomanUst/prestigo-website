@@ -219,6 +219,25 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
   --status-neutral-border: rgba(169, 174, 176, 0.25);
 }
 
+/* ── Light safety net: inline uppercase and weight 300 (D-08, D-10) ─────── */
+/* Many admin components set text-transform: uppercase, wide tracking and
+   font-weight 300 as inline styles (adminFieldStyles and older forms). Inline
+   styles outrank any stylesheet rule, so the light theme neutralises them with
+   attribute-substring selectors plus !important. React SSR serialises the style
+   attribute without a space after the colon, client-created DOM nodes with one,
+   so both spellings are listed (Pitfall 1; tests/admin-light-safety-net.test.tsx
+   proves the substrings against real output). Dark gets none of these rules:
+   dark keeps today's tracked capitals. */
+.admin-shell[data-admin-theme="light"] [style*="text-transform:uppercase"],
+.admin-shell[data-admin-theme="light"] [style*="text-transform: uppercase"] {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.admin-shell[data-admin-theme="light"] [style*="font-weight:300"],
+.admin-shell[data-admin-theme="light"] [style*="font-weight: 300"] {
+  font-weight: 400 !important;
+}
 
 /* ── Shell: main offset and sidebar panel (ADM-01, D-13, D-16) ─────────── */
 /* Below 768px the aside is the 280px slide-over (display comes from the
