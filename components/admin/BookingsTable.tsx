@@ -1582,7 +1582,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 letterSpacing: '0.06em',
                 borderRadius: '2px',
                 cursor: 'pointer',
-                background: isActive ? 'rgba(191,160,106,0.09)' : 'transparent',
+                background: isActive ? 'var(--admin-accent-tint)' : 'transparent',
                 border: isActive ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
                 color: isActive ? 'var(--offwhite)' : 'var(--warmgrey)',
                 transition: 'border-color 150ms ease, color 150ms ease',

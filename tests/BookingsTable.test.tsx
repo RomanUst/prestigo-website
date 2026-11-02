@@ -686,7 +686,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
     // inactive-chip style — no copper border, no active-tint background.
     const futureSegment = screen.getByRole('button', { name: 'Future' })
     expect(futureSegment.style.border).not.toContain('var(--copper)')
-    expect(futureSegment.style.background).not.toContain('rgba(191, 160, 106, 0.09)')
+    expect(futureSegment.style.background).not.toContain('var(--admin-accent-tint)')
   })
 
   it('a mocked failed fetch renders the distinct refetch-error copy (not the empty-state copy)', async () => {
@@ -715,7 +715,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
 
     const futureSegment = await screen.findByRole('button', { name: 'Future' })
     await waitFor(() => {
-      expect(futureSegment.style.background).toContain('rgba(191, 160, 106, 0.09)')
+      expect(futureSegment.style.background).toContain('var(--admin-accent-tint)')
       expect(futureSegment.style.border).toContain('var(--copper)')
     })
   })
