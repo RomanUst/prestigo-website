@@ -214,11 +214,11 @@ export default function OutboxPage() {
       {h && <HealthBanner failed={h.failed} stuck={h.stuck} />}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', margin: '0 0 32px' }}>
-        <KPICard label="PENDING" value={h ? String(h.pending) : DASH} subLabel="events" />
-        <KPICard label="PROCESSING" value={h ? String(h.processing) : DASH} subLabel="events" />
-        <KPICard label="FAILED" value={h ? String(h.failed) : DASH} subLabel="events" />
-        <KPICard label="STUCK" value={h ? String(h.stuck) : DASH} subLabel="overdue > 6 h" />
-        <KPICard label="OLDEST PENDING" value={h ? formatAge(h.oldest_pending_seconds) : DASH} subLabel="waiting" />
+        <KPICard label="Pending" value={h ? String(h.pending) : DASH} subLabel="events" />
+        <KPICard label="Processing" value={h ? String(h.processing) : DASH} subLabel="events" />
+        <KPICard label="Failed" value={h ? String(h.failed) : DASH} subLabel="events" />
+        <KPICard label="Stuck" value={h ? String(h.stuck) : DASH} subLabel="overdue > 6 h" />
+        <KPICard label="Oldest pending" value={h ? formatAge(h.oldest_pending_seconds) : DASH} subLabel="waiting" />
       </div>
 
       <div
