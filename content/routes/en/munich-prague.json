@@ -1,7 +1,7 @@
 {
   "hero": {
     "label": "Munich → Prague",
-    "headlineLine1": "Munich to Prague,",
+    "headlineLine1": "Munich to Prague private transfer,",
     "headlineItalic": "one car all the way.",
     "intro": "Munich to Prague by private chauffeur is a 385 km door-to-door transfer north on the A9 and A93, then east on the A6 and D5, around 4 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, the Czech vignette and all tolls included. Pickup from any Munich address, München Hauptbahnhof or Munich Airport (MUC), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Munich to Prague in a Mercedes"
@@ -49,7 +49,7 @@
   "goodToKnow": [
     { "label": "Border crossing", "value": "German–Czech Schengen border at Waidhaus–Rozvadov. No routine passport check — non-EU passengers should still carry their passport and visa." },
     { "label": "Tolls", "value": "The Czech motorway vignette and all tolls are included. German motorways are toll-free for cars." },
-    { "label": "Airport pickup", "value": "Give us your flight number. Your chauffeur tracks the landing at Munich Airport, waits inside Arrivals, and you have 60 minutes of free waiting." },
+    { "label": "Munich Airport (MUC) pickup", "value": "Give us your flight number. Your chauffeur tracks the landing at Munich Airport, waits inside Arrivals, and you have 60 minutes of free waiting." },
     { "label": "Return transfer", "value": "Flying home from Munich later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
@@ -83,6 +83,7 @@
     { "q": "How long does a private transfer from Munich to Prague take?", "a": "Approximately 4 hours door to door: the A9 and A93 north past Regensburg, the A6 east to the Waidhaus–Rozvadov border, and the D5 past Plzeň into Prague. Rush hour around Munich or Friday traffic into Prague can each add 20–30 minutes." },
     { "q": "How much is a taxi or chauffeur from Munich to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech vignette, all tolls and driver time — it is per car, not per person." },
     { "q": "Can you pick me up at Munich Airport and drive me straight to Prague?", "a": "Yes. Give us your flight number when you book. Your chauffeur tracks the landing, waits inside Arrivals at Munich Airport (MUC) with your name, and drives you directly to your Prague address — there is no need to go into Munich first. Up to 60 minutes of waiting is free." },
+    { "q": "Where does the chauffeur meet me at Munich Airport (MUC)?", "a": "Inside the public Arrivals hall of your terminal — Terminal 1 or Terminal 2 — holding a name board. Your chauffeur tracks your flight, so a delay or an early landing changes nothing, and the first 60 minutes of waiting are free. From MUC the car joins the A92 and A9 within minutes and heads straight for Prague, without going into Munich." },
     { "q": "Is a private transfer better than the train from Munich to Prague?", "a": "The direct train runs via Regensburg and Plzeň and takes well over five hours station to station, before the trip to München Hauptbahnhof and a taxi at the Prague end. For a solo traveller with light luggage, train or coach is cheaper; for two or three people, the private car is door to door and costs the same per car." },
     { "q": "Can we stop on the way from Munich to Prague?", "a": "Yes. Regensburg, Plzeň and Karlštejn Castle are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included at no extra cost." },
     { "q": "Do I need my passport between Germany and the Czech Republic?", "a": "Both countries are in the Schengen Area, so there is no routine border control at Waidhaus–Rozvadov. Carry your passport or EU ID card anyway — spot checks do happen, and non-EU travellers arriving at Munich Airport should keep their documents to hand." }
@@ -106,9 +107,9 @@
     "headingItalic": "From €{ePrice}, fixed."
   },
   "metadata": {
-    "title": "Munich to Prague Transfer — Executive Mercedes",
-    "description": "Executive Munich to Prague transfer: 385 km, about 4 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
-    "ogTitle": "Munich to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Munich to Prague transfer: 385 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "title": "Munich to Prague Transfer — Private Mercedes Chauffeur",
+    "description": "Munich to Prague private transfer: 385 km, about 4 hours door to door. Pickup at Munich Airport (MUC) or any address in a chauffeured Mercedes.",
+    "ogTitle": "Munich to Prague Transfer — Private Premium Mercedes Chauffeur",
+    "ogDescription": "Munich to Prague private transfer: 385 km, about 4 hours door to door. Pickup at Munich Airport (MUC), München Hauptbahnhof or any address, in a Mercedes E, S or V-Class with a professional chauffeur. Child seats on request at no extra cost."
   }
 }
