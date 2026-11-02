@@ -3,9 +3,9 @@ import { useState } from 'react'
 import type { PromoCode } from '@/components/admin/PromoCodesTable'
 
 const inputBaseStyle: React.CSSProperties = {
-  backgroundColor: '#36363B',
-  border: '1px solid #4E4E56',
-  color: '#F5F2EE',
+  backgroundColor: 'var(--admin-input-bg)',
+  border: '1px solid var(--admin-border-strong)',
+  color: 'var(--admin-text)',
   fontFamily: 'var(--font-montserrat)',
   fontSize: '13px',
   fontWeight: 300,
@@ -23,7 +23,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 400,
   letterSpacing: '0.3em',
   textTransform: 'uppercase',
-  color: '#CFC9C2',
+  color: 'var(--admin-text-muted)',
   marginBottom: '4px',
 }
 
@@ -104,7 +104,7 @@ export function PromoCodeForm({ onCreated }: PromoCodeFormProps) {
             {codeError && (
               <div
                 style={{
-                  color: '#f87171',
+                  color: 'var(--status-danger-fg)',
                   fontFamily: 'var(--font-montserrat)',
                   fontSize: '11px',
                   fontWeight: 400,
@@ -135,7 +135,7 @@ export function PromoCodeForm({ onCreated }: PromoCodeFormProps) {
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: '11px',
                 fontWeight: 400,
-                color: '#CFC9C2',
+                color: 'var(--admin-text-muted)',
               }}
             >
               %
@@ -172,8 +172,8 @@ export function PromoCodeForm({ onCreated }: PromoCodeFormProps) {
           type="submit"
           disabled={isSubmitting}
           style={{
-            backgroundColor: '#B87333',
-            color: '#F5F2EE',
+            backgroundColor: 'var(--admin-accent)',
+            color: 'var(--admin-on-accent)',
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 400,

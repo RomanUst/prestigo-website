@@ -36,7 +36,7 @@ export default function PromoCodesPage() {
           fontSize: '26px',
           fontWeight: 300,
           lineHeight: 1.2,
-          color: '#F5F2EE',
+          color: 'var(--admin-text)',
           letterSpacing: 0,
           marginBottom: '8px',
         }}
@@ -47,7 +47,7 @@ export default function PromoCodesPage() {
         style={{
           fontSize: '13px',
           fontWeight: 300,
-          color: '#CFC9C2',
+          color: 'var(--admin-text-muted)',
           fontFamily: 'var(--font-montserrat)',
           marginBottom: '32px',
           margin: '0 0 32px 0',
@@ -58,8 +58,8 @@ export default function PromoCodesPage() {
 
       <div
         style={{
-          backgroundColor: '#36363B',
-          border: '1px solid #4E4E56',
+          backgroundColor: 'var(--admin-surface)',
+          border: '1px solid var(--admin-border)',
           borderRadius: '8px',
           padding: '24px',
           marginBottom: '32px',
@@ -74,7 +74,7 @@ export default function PromoCodesPage() {
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 300,
-            color: '#F5F2EE',
+            color: 'var(--admin-text)',
             opacity: 0.4,
           }}
         >

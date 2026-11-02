@@ -25,16 +25,16 @@ const thStyle: React.CSSProperties = {
   fontWeight: 400,
   letterSpacing: '0.3em',
   textTransform: 'uppercase',
-  color: '#CFC9C2',
+  color: 'var(--admin-text-muted)',
   padding: '10px 12px',
   textAlign: 'left',
-  borderBottom: '1px solid #4E4E56',
+  borderBottom: '1px solid var(--admin-border)',
 }
 
 function formatExpiry(date: string | null): React.ReactNode {
   if (!date) {
     return (
-      <span style={{ fontSize: '11px', color: '#CFC9C2', letterSpacing: '0.3em' }}>
+      <span style={{ fontSize: '11px', color: 'var(--admin-text-muted)', letterSpacing: '0.3em' }}>
         No expiry
       </span>
     )
@@ -45,7 +45,7 @@ function formatExpiry(date: string | null): React.ReactNode {
 function formatUses(current: number, max: number | null): React.ReactNode {
   const maxLabel = max !== null ? String(max) : 'Unlimited'
   return (
-    <span style={{ fontSize: '11px', color: '#CFC9C2' }}>
+    <span style={{ fontSize: '11px', color: 'var(--admin-text-muted)' }}>
       {current} / {maxLabel}
     </span>
   )
@@ -109,9 +109,9 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
         style={{
           textAlign: 'center',
           padding: '48px 24px',
-          border: '1px solid #4E4E56',
+          border: '1px solid var(--admin-border)',
           borderRadius: '8px',
-          backgroundColor: '#36363B',
+          backgroundColor: 'var(--admin-surface)',
         }}
       >
         <div
@@ -119,7 +119,7 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 300,
-            color: '#F5F2EE',
+            color: 'var(--admin-text)',
             marginBottom: '8px',
           }}
         >
@@ -130,7 +130,7 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 300,
-            color: '#CFC9C2',
+            color: 'var(--admin-text-muted)',
             marginBottom: '16px',
           }}
         >
@@ -142,8 +142,8 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
             if (input) input.focus()
           }}
           style={{
-            backgroundColor: '#B87333',
-            color: '#F5F2EE',
+            backgroundColor: 'var(--admin-accent)',
+            color: 'var(--admin-on-accent)',
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 400,
@@ -186,16 +186,16 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
             const cellStyle: React.CSSProperties = {
               fontSize: '13px',
               fontWeight: 300,
-              color: dimmed ? '#CFC9C2' : '#F5F2EE',
+              color: dimmed ? 'var(--admin-text-muted)' : 'var(--admin-text)',
               padding: '10px 12px',
-              borderBottom: '1px solid #4E4E56',
-              backgroundColor: dimmed ? '#28282B' : '#36363B',
+              borderBottom: '1px solid var(--admin-border)',
+              backgroundColor: dimmed ? 'var(--admin-input-bg)' : 'var(--admin-surface)',
             }
 
             return (
               <tr key={code.id}>
                 <td style={{ ...cellStyle, letterSpacing: '0.08em' }}>{code.code}</td>
-                <td style={{ ...cellStyle, color: dimmed ? '#CFC9C2' : '#4ade80', fontWeight: 400 }}>
+                <td style={{ ...cellStyle, color: dimmed ? 'var(--admin-text-muted)' : 'var(--status-ok-fg)', fontWeight: 400 }}>
                   {code.discount_value}%
                 </td>
                 <td style={cellStyle}>{formatExpiry(code.expiry_date)}</td>
@@ -209,8 +209,8 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                       fontWeight: 400,
                       letterSpacing: '0.08em',
                       borderRadius: '2px',
-                      color: code.is_active ? '#4ade80' : '#f87171',
-                      border: `1px solid ${code.is_active ? '#4ade80' : '#f87171'}`,
+                      color: code.is_active ? 'var(--status-ok-fg)' : 'var(--status-danger-fg)',
+                      border: `1px solid ${code.is_active ? 'var(--status-ok-fg)' : 'var(--status-danger-fg)'}`,
                     }}
                   >
                     {code.is_active ? 'ACTIVE' : 'INACTIVE'}
@@ -232,7 +232,7 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                         minWidth: '44px',
                         minHeight: '44px',
                         padding: '0',
-                        color: code.is_active ? '#4ade80' : '#f87171',
+                        color: code.is_active ? 'var(--status-ok-fg)' : 'var(--status-danger-fg)',
                       }}
                     >
                       {code.is_active ? <ToggleLeft size={20} /> : <ToggleRight size={20} />}
@@ -256,7 +256,7 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                           fontSize: '11px',
                           fontWeight: 400,
                           letterSpacing: '0.08em',
-                          color: '#f87171',
+                          color: 'var(--status-danger-fg)',
                         }}
                       >
                         CONFIRM?
@@ -275,13 +275,13 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                           minWidth: '44px',
                           minHeight: '44px',
                           padding: '0',
-                          color: '#CFC9C2',
+                          color: 'var(--admin-text-muted)',
                         }}
                         onMouseEnter={(e) => {
-                          ;(e.currentTarget as HTMLButtonElement).style.color = '#f87171'
+                          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--status-danger-fg)'
                         }}
                         onMouseLeave={(e) => {
-                          ;(e.currentTarget as HTMLButtonElement).style.color = '#CFC9C2'
+                          ;(e.currentTarget as HTMLButtonElement).style.color = 'var(--admin-text-muted)'
                         }}
                       >
                         <Trash2 size={16} />

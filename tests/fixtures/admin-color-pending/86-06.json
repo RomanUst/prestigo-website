@@ -1,25 +1,5 @@
 [
   {
-    "file": "app/(internal)/admin/(dashboard)/promo-codes/page.tsx",
-    "reason": "pending 86-06 token conversion",
-    "plan": "86-06"
-  },
-  {
-    "file": "components/admin/PromoCodesTable.tsx",
-    "reason": "pending 86-06 token conversion",
-    "plan": "86-06"
-  },
-  {
-    "file": "components/admin/PromoCodeForm.tsx",
-    "reason": "pending 86-06 token conversion",
-    "plan": "86-06"
-  },
-  {
-    "file": "components/admin/PromoCard.tsx",
-    "reason": "pending 86-06 token conversion",
-    "plan": "86-06"
-  },
-  {
     "file": "app/(internal)/admin/(dashboard)/drivers/page.tsx",
     "reason": "pending 86-06 token conversion",
     "plan": "86-06"
