@@ -8,8 +8,35 @@
 - ✅ **v2.2 Dispatch & Driver Trip Portal** — Phases 65-67 (shipped 2026-09-02)
 - ✅ **v3.0 Site Internationalization (i18n)** — Phases 68-75 (shipped 2026-09-27)
 - ✅ **v4.0 Helpdesk + CRM** — Phases 76-85 (shipped 2026-11-02; 78/79 parked in backlog)
+- 🚧 **v5.0 Payments, Quotes & Day Trips** — Phases 86-93 (in progress)
 
 ## Phases
+
+### 🚧 v5.0 Payments, Quotes & Day Trips (In Progress)
+
+**Milestone Goal:** Stop losing Stripe fees on cancellations, offer flexible payment (card hold, cash with card guarantee, quote deposits), speed up dispatch in the admin, and launch bookable day trips as a new product.
+
+**Phase Numbering:** Integer phases continue from v4.0 (last phase 85). Decimal phases (e.g. 88.1) are urgent insertions. Next DB migration is 084.
+
+- [ ] **Phase 86: Admin Shell** - Collapsible sidebar and persistent light theme; every admin screen on theme tokens
+- [ ] **Phase 87: Status Service & Driver Step Flow** - One trusted status writer; driver moves a trip one strict step at a time and admin sees it immediately
+- [ ] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
+- [ ] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, counsel-reviewed wording, public go-live
+- [ ] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh
+- [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
+- [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
+- [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
+
+**Milestone-wide guardrails (apply to every phase):**
+- **Hold lead time is configurable, default 72 h — never "~5 days".** A hold placed with the customer absent is merchant-initiated and Visa expires it after 4 d 18 h; the saved card plus mandate is the real guarantee, the hold is a convenience (research/SUMMARY.md).
+- **Partner (GNet) bookings skip every money path** — no hold, capture, no-show or extra charge.
+- **All scheduling math uses pickup instants and Prague time**, tested across the DST changes of 2027-03-28 and 2027-10-31.
+- **Payments reach the public only after counsel-reviewed wording** (Phase 89 gate); until then the PAYF-05 feature flag admits only the owner's canary booking.
+- **Security-relevant phases (commit with `security:` prefix per CLAUDE.md):** 87 (driver link now changes status), 88 and 89 (card mandate, off-session charges, webhook), 91 (server-side price recompute, extra charges), 92 (quote tokens, deposit).
+- **New strings need real translations in all 7 locales; no typed prices in marketing or tour content** (live from the admin only).
+- **Parallel owner work during 86-87:** Stripe test-mode path (owner-run scripts) and counsel review of the mandate / cancellation / no-show wording.
+
+**Execution order:** 86 → 87 → 88 → 89 → 90 → 91 → 92 → 93. Phases 86 and 87 are independent and may overlap. Phase 91 may swap with 90 only if the booking detail panel is extracted first.
 
 <details>
 <summary>✅ v4.0 Helpdesk + CRM (Phases 76-85) — SHIPPED 2026-11-02 (78/79 parked)</summary>
@@ -106,6 +133,145 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 
 </details>
 
+## Phase Details
+
+Detail sections for the active milestone v5.0 (Phases 86-93). Parser note: the `### Phase N:` headers below are read by downstream tools.
+
+### Phase 86: Admin Shell
+**Goal**: The operator works in an admin that adapts to screen and lighting — a collapsible sidebar and a light theme — and every later v5.0 admin screen is built on theme tokens instead of hard-coded colours.
+**Depends on**: Nothing (first phase of v5.0)
+**Requirements**: ADM-01, ADM-02, ADM-03
+**Success Criteria** (what must be TRUE):
+  1. Operator can collapse and expand the admin sidebar, and the choice is still applied after a reload and on the next visit.
+  2. Operator can switch the admin between dark and light theme; the choice persists, the very first paint already uses it (no dark-to-light flash), and public pages in every locale look exactly as before whichever theme the admin uses.
+  3. Every admin screen (bookings, drivers, stats, outbox, settings, login, plus modals and side panels) is readable in both themes — no unreadable text, invisible borders or leftover dark-only panels.
+  4. Adding a new hard-coded colour value to admin code fails the test suite, so later phases cannot reintroduce theme debt.
+**Plans**: TBD
+**UI hint**: yes
+**Planning notes**:
+  - Standard patterns, no research needed. Theme and sidebar state live in cookies (`admin_theme`, `admin_sidebar`) on top of the existing `.theme-light` CSS variables; no `next-themes` (CSP nonce conflict).
+  - About 234 hex literals are converted to tokens first, mechanically, so the payment/dispatch phases do not collide with it or add new hex debt.
+  - Admin session model and admin auth stay untouched.
+
+### Phase 87: Status Service & Driver Step Flow
+**Goal**: Every booking status change goes through one trusted service, and the driver moves a trip forward one strict step at a time from the trip link while the admin sees each step immediately.
+**Depends on**: Phase 86 (soft: new admin status UI uses theme tokens)
+**Requirements**: PAYF-02, DRV-01, DRV-02, DRV-03, DRV-04, DRV-05
+**Success Criteria** (what must be TRUE):
+  1. On the trip link the driver sees a single "next step" button, and steps go strictly en route → on site → passenger on board → completed.
+  2. Each driver step changes the booking status in admin immediately (a reload shows it, including the new "on board" status); a skipped step is rejected by the server and a repeated tap is harmless (nothing is applied or logged twice).
+  3. Admin edits, cancellation and driver steps all go through one status service with compare-and-set: if the admin cancels while the driver taps at the same moment, exactly one action applies and the other is rejected with a clear message; every change is logged with who made it, and existing admin transitions behave exactly as before.
+  4. For a GNet booking each driver step is pushed to GNet exactly once (no duplicates on retap or retry) and the booking is marked as a partner booking so no hold, capture or no-show charge can ever apply to it.
+  5. The "completed" step asks the driver to confirm, fires exactly one completion event that the payment engine consumes in Phase 88 (capture itself is verified there under HOLD-04), and the driver never sees or enters an amount.
+**Plans**: TBD
+**UI hint**: yes
+**Security-relevant**: yes — commit with `security:` prefix. The permanent driver link now changes `booking.status` and later moves money; the token-gated write route stays CSRF-protected and rate-limited, and the v2.2 DTRIP-04 isolation grep-gates are rewritten for the new rule rather than deleted.
+**Owner decisions before planning**: (1) `on_board` is a real `bookings.status` (recommended) vs progress-only mapped to `on_location`; (2) `no_show` is terminal and how it maps in leads (`converted` vs `dead`), stats (count revenue only when charged) and Chatwoot; (3) which statuses are pushed to GNet for `on_board` / `no_show`. **Decided 2026-11-02:** driver steps are auto-pushed to GNet (deduped); GNet bookings skip every money path — only the exact GNet status mapping stays open.
+**Research before planning**: GNet semantics for `on_board` and `no_show` (LOW confidence).
+**Planning notes**: Behaviour-preserving extraction of `advanceBookingStatus()` from `app/api/admin/bookings/route.ts` comes first, with parity tests; adds `on_board` / `no_show` statuses and a `booking_status_log` table (expected migration 084).
+
+### Phase 88: Card on File & Scheduled Holds
+**Goal**: A client can book by saving a card with nothing charged, and the full amount is then held, captured or recovered automatically — with every money event visible to the operator and the whole flow behind an owner-controlled flag.
+**Depends on**: Phase 87 (one status writer and the trip-completion event that triggers capture)
+**Requirements**: PAYF-01, PAYF-03, PAYF-04, PAYF-05, HOLD-01, HOLD-02, HOLD-03, HOLD-04, HOLD-05, HOLD-07, MAIL-01
+**Success Criteria** (what must be TRUE):
+  1. A client can book a transfer by saving a card — 3DS completed at checkout, nothing charged — after ticking an unticked consent checkbox (all 7 locales); exactly one booking is created, and the consent text version, locale, time and IP are stored with it.
+  2. The full-amount hold is placed automatically a configurable time before pickup (default 72 h, set in admin) and, for a booking made inside that window, at checkout while the client is present; timing is computed from the pickup instant so it is correct across daylight-saving changes (2027-03-28, 2027-10-31) and moves when the operator edits the pickup time; a missed scheduler run is caught up on the next one; partner (GNet) bookings are never held.
+  3. When the driver completes the trip the held amount is captured; if the hold has expired or no longer exists the saved card is charged instead, never twice; and if any hold or charge fails the client automatically gets a payment link and the operator gets an alert that does not depend on the VPS.
+  4. The operator sees each card booking's payment state, hold expiry and an append-only ledger of every money event in admin, can capture, release, retry or send a payment link, and the client's payment emails (card saved, hold placed, charged, payment failed with link) arrive in the booking language in all 7 locales.
+  5. Rollout is safe: the Stripe webhook routes each event by purpose with no duplicate bookings or false alerts and a partial refund never cancels a completed trip; the owner can run a script that subscribes the live webhook to the new events; a working test-mode path exists; and the owner's own canary booking passes end to end behind an admin feature flag before anyone else can use the flow.
+**Plans**: TBD
+**UI hint**: yes
+**Security-relevant**: yes — commit with `security:` prefix (card mandate, off-session charges, webhook routing, scheduler endpoint auth, capture trigger).
+**Decided 2026-11-02:** configurable 72 h hold lead (never 120 h). **Owner checkpoints**: confirm the ~6-day cutoff for an on-session hold at checkout, and that multi-day quotes never use one long hold; run the webhook-subscription script; create/verify the QStash schedule (free-plan quota unverified, daily Vercel cron stays the backstop); run the canary booking; confirm Stripe pricing plan and MCC in the Dashboard.
+**Research before planning**: `confirmSetup` inside the existing PaymentElement; Stripe Customer handling for guest checkouts; decline and 3DS recovery with SCA test cards; blended vs IC+ pricing and MCC; QStash schedule quota; legal wording draft.
+**Planning notes**:
+  - MAIL-01 is owned here (card-lifecycle templates and the language-aware payment-email mechanism); the no-show email lands in Phase 89 and the quote emails in Phase 92 through the same mechanism.
+  - The feature flag stays closed to all clients until Phase 89 completes. Until then, cancelling a canary card booking uses the operator's release action; the automatic policy-driven cancel path is Phase 89.
+  - Expected migration 085 (`payment_state`, `payment_mode`, hold fields, ledger, consent record, settings). Only `lib/payments/state.ts` writes `payment_state`; `payment_intent_id` is set only at capture.
+
+### Phase 89: Cancellation Policy, Cash Guarantee & No-Show
+**Goal**: Clients get clear, fair terms — cancelling in time costs nothing, cash bookings are guaranteed by a saved card, a no-show is charged only after the operator confirms — and card payments are opened to all clients once counsel has signed off the wording.
+**Depends on**: Phase 88
+**Requirements**: HOLD-06, CANC-01, CANC-02, CASH-01, CASH-02, CASH-03, CASH-04
+**Success Criteria** (what must be TRUE):
+  1. Cancelling a card booking in time releases an uncaptured hold (no Stripe fee) or refunds a captured payment, and a late cancellation costs 100%, according to the policy: free up to 1 h before pickup for trips up to 100 km and up to 12 h before for longer trips, with the km, hours and percent thresholds editable in admin.
+  2. The cancellation policy and the card-saving consent are shown at checkout, in the confirmation email and in the terms, in all 7 locales, and counsel sign-off on the wording is recorded before card payments are enabled for all clients.
+  3. A client can choose "pay cash to driver"; the card is saved as a guarantee and no hold is ever placed on it.
+  4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
+  5. The operator can mark a cash booking as settled in cash, a settled or cancelled booking can no longer be charged, and GNet bookings are never offered the cash guarantee or a no-show charge.
+**Plans**: TBD
+**UI hint**: yes
+**Security-relevant**: yes — commit with `security:` prefix (operator-initiated off-session charges, policy-driven refunds and releases, consent records).
+**Legal checkpoint (blocking public go-live)**: Czech counsel or ČOI review of the mandate and consent text, the tiered cancellation schedule and the no-show clause, the withdrawal-exemption disclosure, and Stripe PII erasure vs accounting retention. Start in parallel with Phases 86-87. The consent text version stored per booking (Phase 88) lets wording change without breaking old records.
+**Owner decisions before planning**: no-show wait thresholds (benchmark: 30 min in the city, 60 min at the airport, counted from the pickup time) . **Decided 2026-11-02:** no-show is operator-charged, never automatic; cancellation policy = free until 1 h before pickup for trips ≤100 km, until 12 h before for trips >100 km, otherwise 100% (thresholds admin-configurable, wording reviewed by counsel). The wait thresholds are admin settings reused by Phase 91.
+**Planning notes**: Public go-live (owner flips the flag) happens at the end of this phase, after criterion 2 sign-off and a clean canary. Expected migration 086.
+
+### Phase 90: Dispatch Views
+**Goal**: The operator sees and moves the day's bookings visually — a kanban board by status and a calendar in Prague time — and watches driver progress appear without reloading.
+**Depends on**: Phase 87 (final status set and status service), Phases 88-89 (payment badges and money-effect confirmations), Phase 86 (theme tokens)
+**Requirements**: DISP-01, DISP-02, DISP-03, DISP-04, DISP-05
+**Success Criteria** (what must be TRUE):
+  1. The operator sees bookings as a kanban board by status for a chosen date range, and clicking any card (or calendar entry) opens the same booking detail panel as the list.
+  2. The operator can move a card to another status by drag-and-drop or the card menu; only allowed transitions are accepted, a move with a money effect (for example completing → capture, cancelling → release or fee) asks for confirmation that states the effect, and a stale move is rejected with the card returning to its column.
+  3. The operator sees bookings in a calendar with day, week and month views in Prague time, coloured by status; a booking around midnight lands on the correct Prague day regardless of the browser's timezone, including the DST-change weeks.
+  4. When a driver taps a step, the board and calendar update on their own without a reload.
+**Plans**: TBD
+**UI hint**: yes
+**Planning notes**:
+  - Standard patterns, no research needed. Extract `BookingDetailPanel` from the 2,886-line `BookingsTable` first so the list, kanban and calendar share one panel (Phase 91's extra-charge action also lives there).
+  - Kanban offers only `UI_TRANSITIONS` and routes every move through the Phase 87 status service. Menus are the baseline; drag-and-drop is optional. Auto-refresh is polling with `router.refresh()` (Supabase Realtime is DISP-F2, deferred).
+
+### Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees
+**Goal**: Clients book transfers with intermediate stops and waiting time at a server-computed price, airport pickups are timed after landing, and the operator can bill waiting beyond what was booked.
+**Depends on**: Phase 89 (saved-card off-session charging), Phase 90 (booking detail panel for the operator charge action)
+**Requirements**: STOP-01, STOP-02, STOP-03, STOP-04, STOP-05, EXTRA-01
+**Success Criteria** (what must be TRUE):
+  1. A client can add intermediate stops when booking a transfer; the price is calculated by distance through all stops and recomputed on the server, so a distance or price tampered with in the browser is ignored.
+  2. The client chooses a waiting time for each stop; the first 15 minutes are free, each further 15 minutes costs the fee set in admin, and the price summary shows it.
+  3. For an airport pickup the client sets a pickup time after landing (landing 14:00, pickup 14:30); the 60 minutes of free waiting count from the pickup time, and both times are stored and shown to the driver (Prague time, DST-safe).
+  4. Stops, waiting times and the landing/pickup times are saved with the booking and visible in admin, on the driver trip page and in the confirmation email.
+  5. The operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates and recorded in the payment ledger; it is never offered for GNet bookings.
+**Plans**: TBD
+**UI hint**: yes
+**Security-relevant**: yes — commit with `security:` prefix. Closes the current gap where `distanceKm` is trusted from the client, and adds an operator-initiated off-session charge.
+**Research before planning**: Google Routes `computeRoutes` behaviour with many intermediates (cap the stop count, keep the Essentials SKU), airport detection, and the waiting-fee policy.
+**Planning notes**: Expected migration 087 (`booking_stops`, waiting rates in pricing globals, separate `landing_at` and `pickup_at`). Free-wait thresholds reuse the Phase 89 admin settings. Extra charges are operator-approved, never automatic.
+
+### Phase 92: Quotes
+**Goal**: The operator builds a multi-trip quote, the client opens it by a secret link, accepts it and pays a deposit, and the accepted quote becomes linked bookings collected the way the operator chose.
+**Depends on**: Phase 88 and Phase 89 (payment engine, saved card, payment modes), Phase 91 (stop and waiting semantics for quote lines)
+**Requirements**: QUOTE-01, QUOTE-02, QUOTE-03, QUOTE-04, QUOTE-05, QUOTE-06, QUOTE-07
+**Success Criteria** (what must be TRUE):
+  1. The operator can build a quote of several trips or days (each line with route, date, time, vehicle and price) in admin and sees its lifecycle — draft, sent, viewed, accepted, paid, expired; editing a sent quote creates a new version and voids the old links.
+  2. The client opens the quote by a secret link (unguessable, expiring, not indexed) and sees an itemised summary; a voided or expired link shows a clear message and no price data.
+  3. The operator sets the deposit as a percent or a fixed amount; the client accepts the quote (acceptance logged with time, IP and quote version) and pays the deposit on the quote page, which also saves the card.
+  4. When the deposit is paid each line becomes a booking linked to the quote, and the remainder is collected by the method the operator chose for that quote: saved card (hold/capture per trip), payment link, cash to the driver, or invoice.
+  5. The client can download the quote as a PDF, and the quote email includes it in the client's language.
+**Plans**: TBD
+**UI hint**: yes
+**Security-relevant**: yes — commit with `security:` prefix. Quote tokens are hashed 256-bit secrets with immutable versions, a side-effect-free GET, and no-referrer / no-store / noindex headers; the deposit is a client-facing payment.
+**Owner decisions before planning**: confirm multi-day quotes use per-day holds or a deposit plus remainder, never one long hold.
+**Research before planning**: the invoice remainder method (minimal: a record plus an email), VAT documents for deposits (counsel), Payment Link vs Checkout Session restriction parameters, and the quote-PDF approach (no PDF library in the repo; decide render path without breaking the zero-new-runtime-dependency stance).
+**Planning notes**: Quote bookings carry `payment_mode='quote'`, so the hold engine ignores them until the operator's remainder method applies. Expected migration 088.
+
+### Phase 93: Day Trips & Custom Tours
+**Goal**: Visitors browse and book day trips from a catalogue in all 7 locales, and anyone who finds nothing suitable can request a custom tour that the operator answers with a quote.
+**Depends on**: Phase 88 and Phase 89 (payment modes), Phase 92 (custom-tour answer is a quote)
+**Requirements**: TRIP-01, TRIP-02, TRIP-03, TRIP-04, TRIP-05, TRIP-06, TRIP-07
+**Success Criteria** (what must be TRUE):
+  1. A visitor can browse a day-trip catalogue (5-6 tours at launch, e.g. Karlovy Vary, Český Krumlov, Kutná Hora, Dresden, Karlštejn, Bohemian Switzerland) in all 7 locales; a locale is published only when it is complete, with no English leaking into it.
+  2. Each tour page shows gallery, duration, itinerary, includes/excludes, pickup, FAQ and cancellation terms with structured data, and every price on it is live from the admin — no typed prices.
+  3. The operator can add, edit, publish and unpublish tours and set the per-car price by class (E / S / V) in admin, and the change appears on the site without a redeploy.
+  4. A client can book a tour online with date, time, vehicle and passengers, using the same payment modes as transfers (card on file with hold, cash with card guarantee).
+  5. A visitor who finds nothing suitable can send a custom-tour request (destinations, date, people, wishes) that becomes a lead in Supabase, EspoCRM and Chatwoot without depending on the VPS, and the operator can answer it with a quote from admin.
+**Plans**: TBD
+**UI hint**: yes
+**Research before planning**: JSON-LD type (TouristTrip vs Product/Offer), package-travel classification of day trips (counsel), GSC keyword map so tour pages do not cannibalise `/routes/*`.
+**Planning notes**:
+  - Largest 7-locale batch of the milestone; AI credits are empty, so translate in-session. Marketing content rules apply: no typed prices (ISR-revalidated live fares, no stale JSON-LD prices), no Uber/ride-hailing comparisons, no fake scarcity or fabricated reviews.
+  - The catalogue and online booking (TRIP-01..05) can ship before the custom-tour loop (TRIP-06/07). Expected migrations 089-090; check every place the `trip_type` enum is used.
+
 ## Parked Phase Details (from v4.0, in Backlog)
 
 Kept here so `/gsd-execute-phase 78` and `/gsd-discuss-phase 79` still resolve; the Phase 78 directory stays in `.planning/phases/`.
@@ -172,6 +338,8 @@ Plans:
 
 ## Progress
 
+**Execution Order (v5.0):** 86 → 87 → 88 → 89 → 90 → 91 → 92 → 93
+
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 54. MDX Infrastructure | v1.0 | 2/2 | Complete | 2026-05-14 |
@@ -206,6 +374,14 @@ Plans:
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
+| 86. Admin Shell | v5.0 | 0/0 | Not started | - |
+| 87. Status Service & Driver Step Flow | v5.0 | 0/0 | Not started | - |
+| 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
+| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
+| 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
+| 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
+| 92. Quotes | v5.0 | 0/0 | Not started | - |
+| 93. Day Trips & Custom Tours | v5.0 | 0/0 | Not started | - |
 
 ## Backlog
 

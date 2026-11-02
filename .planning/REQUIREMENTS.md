@@ -123,12 +123,72 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| PAYF-01 | Phase 88 | Pending |
+| PAYF-02 | Phase 87 | Pending |
+| PAYF-03 | Phase 88 | Pending |
+| PAYF-04 | Phase 88 | Pending |
+| PAYF-05 | Phase 88 | Pending |
+| HOLD-01 | Phase 88 | Pending |
+| HOLD-02 | Phase 88 | Pending |
+| HOLD-03 | Phase 88 | Pending |
+| HOLD-04 | Phase 88 | Pending |
+| HOLD-05 | Phase 88 | Pending |
+| HOLD-06 | Phase 89 | Pending |
+| HOLD-07 | Phase 88 | Pending |
+| CASH-01 | Phase 89 | Pending |
+| CASH-02 | Phase 89 | Pending |
+| CASH-03 | Phase 89 | Pending |
+| CASH-04 | Phase 89 | Pending |
+| CANC-01 | Phase 89 | Pending |
+| CANC-02 | Phase 89 | Pending |
+| EXTRA-01 | Phase 91 | Pending |
+| MAIL-01 | Phase 88 | Pending |
+| DRV-01 | Phase 87 | Pending |
+| DRV-02 | Phase 87 | Pending |
+| DRV-03 | Phase 87 | Pending |
+| DRV-04 | Phase 87 | Pending |
+| DRV-05 | Phase 87 | Pending |
+| ADM-01 | Phase 86 | Pending |
+| ADM-02 | Phase 86 | Pending |
+| ADM-03 | Phase 86 | Pending |
+| DISP-01 | Phase 90 | Pending |
+| DISP-02 | Phase 90 | Pending |
+| DISP-03 | Phase 90 | Pending |
+| DISP-04 | Phase 90 | Pending |
+| DISP-05 | Phase 90 | Pending |
+| STOP-01 | Phase 91 | Pending |
+| STOP-02 | Phase 91 | Pending |
+| STOP-03 | Phase 91 | Pending |
+| STOP-04 | Phase 91 | Pending |
+| STOP-05 | Phase 91 | Pending |
+| QUOTE-01 | Phase 92 | Pending |
+| QUOTE-02 | Phase 92 | Pending |
+| QUOTE-03 | Phase 92 | Pending |
+| QUOTE-04 | Phase 92 | Pending |
+| QUOTE-05 | Phase 92 | Pending |
+| QUOTE-06 | Phase 92 | Pending |
+| QUOTE-07 | Phase 92 | Pending |
+| TRIP-01 | Phase 93 | Pending |
+| TRIP-02 | Phase 93 | Pending |
+| TRIP-03 | Phase 93 | Pending |
+| TRIP-04 | Phase 93 | Pending |
+| TRIP-05 | Phase 93 | Pending |
+| TRIP-06 | Phase 93 | Pending |
+| TRIP-07 | Phase 93 | Pending |
 
 **Coverage:**
 - v1 requirements: 52 total
-- Mapped to phases: 0
-- Unmapped: 52 ⚠️
+- Mapped to phases: 52 ✓
+- Unmapped: 0
+
+**Per phase:** 86 Admin Shell (3) · 87 Status Service & Driver Step Flow (6) · 88 Card on File & Scheduled Holds (11) · 89 Cancellation Policy, Cash Guarantee & No-Show (7) · 90 Dispatch Views (5) · 91 Multi-Stop, Airport Pickup & Waiting Fees (6) · 92 Quotes (7) · 93 Day Trips & Custom Tours (7)
+
+**Mapping notes:**
+- DRV-03 is owned by Phase 87 (confirmation, no amount entry, single completion event); the capture it triggers is verified in Phase 88 under HOLD-04.
+- MAIL-01 is owned by Phase 88 (language-aware payment-email mechanism and the card-lifecycle templates); the no-show email (Phase 89) and quote emails (Phase 92) reuse it.
+- EXTRA-01 sits with Phase 91 because the waiting rates and free-wait rules it bills against are defined there.
+- Status stays "Pending" until a phase passes verification.
 
 ---
 *Requirements defined: 2026-11-02*
-*Last updated: 2026-11-02 after initial definition*
+*Last updated: 2026-11-02 after roadmap creation (traceability filled, 52/52 mapped)*

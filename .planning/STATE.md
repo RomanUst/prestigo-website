@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v5.0
 milestone_name: Payments, Quotes & Day Trips
 status: planning
-last_updated: "2026-11-02T12:59:43.909Z"
+last_updated: "2026-11-02T13:53:15.000Z"
 last_activity: 2026-11-02
 progress:
-  total_phases: 0
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Planning next milestone (v4.0 shipped 2026-11-02; Phases 78/79 parked in Backlog 999.9 / 999.12)
+**Current focus:** Phase 86 — Admin Shell (milestone v5.0 Payments, Quotes & Day Trips, Phases 86-93; v4.0 shipped 2026-11-02, Phases 78/79 parked in Backlog 999.9 / 999.12)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 86 of 93 (Admin Shell) — first phase of v5.0
 Plan: —
-Status: Defining requirements
-Last activity: 2026-11-02 — Milestone v5.0 started
+Status: Ready to plan
+Last activity: 2026-11-02 — v5.0 roadmap created (8 phases, 52/52 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0% (0/8 phases)
 
 ## Accumulated Context
 
@@ -36,6 +38,7 @@ Last activity: 2026-11-02 — Milestone v5.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v5.0 roadmap: 8 phases (86-93) derived from 52 v1 requirements across 12 categories (PAYF/HOLD/CASH/CANC/EXTRA/MAIL/DRV/ADM/DISP/STOP/QUOTE/TRIP), continuing numbering from 85. The payment scope is split in two on the lifecycle boundary: Phase 88 = card-on-file engine (save card, scheduled hold, capture + fallback, failure recovery, admin panel, webhook routing, owner canary behind the PAYF-05 flag); Phase 89 = policy-driven cancellation, cash guarantee, operator-confirmed no-show, counsel-reviewed wording and the public go-live. Order 86 -> 87 -> 88 -> 89 -> 90 -> 91 -> 92 -> 93: admin shell first (stops hex-colour debt and merge conflicts), status service + driver sync before any money moves (capture needs one trusted status writer), dispatch views after payment badges exist and BookingDetailPanel is extracted, stops before quotes (stop semantics), quotes before day trips (custom tour -> quote). Judgement calls: DRV-03 stays in 87 (capture itself verified in 88 under HOLD-04); MAIL-01 owned by 88 (later phases add templates through the same mechanism); EXTRA-01 sits with 91 (waiting rates and free-wait rules are defined there). Hold lead time is configurable (default 72 h), never ~5 days (Visa 4 d 18 h merchant-initiated limit). Phases 87, 88, 89, 91, 92 are security-relevant (`security:` prefix). Next migration 084.
 - v4.0 roadmap: 10 phases derived from 45 v1 requirements across 12 categories (INFRA/INBOX/WA/SOC/CRM/LEAD/SYNC/HOOK/PANEL/OPS/STAT/GDPR), continuing phase numbering from 75 -> starting at 76. OPS-01/02 folded into Phase 77 (Chatwoot core channels - canned responses/automation are native Chatwoot features, not WhatsApp-specific). GDPR-01/02 folded into Phase 82 (Sync Foundation - erasure needs the outbox, and the privacy-policy update documents the same systems). Execution order: 76 -> (77 || 80) -> 78 -> 79; 80 -> 81 -> 82 (needs 77+80+81) -> 83 -> 84; 85 (Statistics) depends on 80/81/82's data existing. WhatsApp (78) and IG/FB (79) isolated as their own phases per research risk-sequencing (Meta verification lead time, blast-radius reduction); Dashboard App (84) sequenced last among integration phases pending CVE-2025-12245 confirmation. Outbox core built in Phase 81 (leads + site bookings as leads, LEAD-06), extended by Phase 82. Phases 82/83/84 flagged security-relevant for `security:` commit prefix per CLAUDE.md.
 - v3.0 (Phase 73): ar/hi/zh non-Latin + RTL infra shipped. Noto Sans Arabic/Devanagari/SC delivered per-locale via a single `localeFontClassName` ternary in SiteChrome (zero Noto bytes on en/ru/es/fr, no cross-family leak). Physical-direction Tailwind → logical properties; Arabic `dir="rtl"` with `.wordmark { direction: ltr }` to keep the PRESTIGO wordmark un-reversed. DNT price/phone/time tokens bidi-isolated via `interpolateBidi()`/`<bdi>` at the render site on all 30 route pages; FAQPage JSON-LD `acceptedAnswer.text` kept a plain `f.a` string (never a ReactNode) — guarded by strengthened CR-02 backstop. FONT-01 glyph-tofu independently browser-verified (0 tofu) 2026-09-20; security 16/16 threats closed.
 - v3.0: ~~7 static pages render EN on every locale (WINDOWS #7)~~ — FIXED in Phase 74 (74-04, params-forwarded locale).
@@ -243,6 +246,19 @@ Recent decisions affecting current work:
 - Phase 85: Statistics — STAT-01..03 (needs 80/81/82 data)
 - Proposed execution: 76 → (77 ∥ 80) → 78 → 79 (Meta verification for 78 can start early/in parallel with 76-77); 80 → 81 → 82 (needs 77+80+81) → 83 → 84; 85 after 80/81/82
 
+### v5.0 roadmap (Phases 86-93, planning)
+
+- Milestone: Payments, Quotes & Day Trips — card-on-file holds with capture on completion, cash with card guarantee, multi-trip quotes with deposits, admin kanban/calendar/theme, driver status sync, multi-stop transfers with waiting fees, bookable day trips. Zero new runtime dependencies expected; Stripe SDK stays at 21.0.1.
+- Phase 86: Admin Shell — ADM-01..03 (sidebar, light theme via cookie + `.theme-light`, hex -> token codemod + ban test)
+- Phase 87: Status Service & Driver Step Flow — PAYF-02, DRV-01..05 (extract `advanceBookingStatus()`, `on_board` / `no_show`, `booking_status_log`, strict single-step driver flow, idempotent GNet push; migration 084; security)
+- Phase 88: Card on File & Scheduled Holds — PAYF-01, PAYF-03, PAYF-04, PAYF-05, HOLD-01..05, HOLD-07, MAIL-01 (SetupIntent + consent, `payment_state` machine + ledger, payment-tick scheduler, capture fallback, webhook split, owner webhook script, flag + canary; migration 085; security; research first)
+- Phase 89: Cancellation Policy, Cash Guarantee & No-Show — HOLD-06, CANC-01/02, CASH-01..04 (policy thresholds in admin, cash mode, operator-confirmed no-show charge, 7-locale wording, LEGAL GATE before public go-live; migration 086; security)
+- Phase 90: Dispatch Views — DISP-01..05 (extract `BookingDetailPanel`, kanban via `UI_TRANSITIONS`, Prague-time calendar, polling refresh)
+- Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees — STOP-01..05, EXTRA-01 (`booking_stops`, server-side distance recompute, per-stop waiting, landing vs pickup, extra charge to saved card; migration 087; security; research first)
+- Phase 92: Quotes — QUOTE-01..07 (builder, `/quote/[token]`, versions, deposit, remainder methods, quote -> bookings, PDF; migration 088; security; research first)
+- Phase 93: Day Trips & Custom Tours — TRIP-01..07 (catalogue in 7 locales, per-car-class prices in admin, booking with payment modes, custom-tour lead -> quote; migrations 089-090; research first)
+- Execution: 86 -> 87 -> 88 -> 89 -> 90 -> 91 -> 92 -> 93 (86 and 87 may overlap). In parallel with 86-87 (owner): Stripe test-mode scripts and counsel review of mandate / cancellation / no-show wording.
+
 ### Key i18n grounding (verify during /gsd-plan-phase 68)
 
 - `middleware.ts` is a single default export doing CSP nonce (`buildCsp`) + Supabase `updateSession` + CSRF Origin-guard; broad matcher. next-intl locale-middleware must be COMPOSED into this chain, not replace it — highest-risk item.
@@ -273,6 +289,10 @@ None yet.
 - Phase 76 complete 2026-09-28 (verification passed 5/5). Open housekeeping only (76-OWNER-ACTIONS.md §E): rotate B2 master key, delete B2 key "crm", confirm Lifecycle 30d, revoke Hostinger + Hetzner API tokens. Privacy policy must list Backblaze (US) before the Phase 77 widget launch. Confirm VPS hostname stays prestigo-vps after the next reboot (cloud-init preserve_hostname fix unproven until then).
 - Phase 77 paused on owner actions: 77-06 T2 Telegram bot, 77-07 T1 Chatwoot API token, 77-11 T1 D-14 decision, 77-12 T1 launch decision
 - Phase 77 paused 2026-09-29: owner to connect Email info@/bookings@ inboxes in Chatwoot (77-11 T2); 77-09 executor branch worktree-agent-af1de82dcaea8c53e may need merge; 77-12 launch decision pending
+- [v5.0] Legal gate: card mandate / consent text, tiered cancellation schedule, no-show clause, withdrawal-exemption disclosure, VAT documents for deposits and day-trip classification need Czech counsel or ČOI review before Phase 89 ships; the PAYF-05 flag keeps payments owner-only until then.
+- [v5.0] `.env.local` Stripe test key is a dead placeholder: use owner-run scripts (PAYF-04) and a canary booking; hold expiry cannot be simulated with test cards, so mock the `canceled` branch.
+- [v5.0] Open owner decisions before planning: Phase 87 (`on_board` as real status, `no_show` terminal + lead/stats/Chatwoot mapping, GNet statuses to push), Phase 88 (72 h lead, ~6-day on-session cutoff, multi-day quote handling), Phase 89 (no-show wait thresholds).
+- [v5.0] QStash free-plan schedule quota is unverified (sources conflict) — if unavailable, the daily Vercel cron backstop must still place holds, just later. Existing debts surfaced by research: QStash 2 h reminder skips bookings more than 7 days out, CZK/EUR rate drift (WR-03), stale payment-link deactivation (CR-02); `charge.refunded` status guard is fixed in Phase 88, the rest stay in backlog.
 
 ## Deferred Items
 
@@ -323,8 +343,8 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-11-01
-Stopped at: Phase 85 complete (UAT 2/2, verification 9/9, security 23/23, Nyquist validated). Phase 78 stays parked in backlog 999.9; Phase 79 parked in backlog 999.12 by owner on 2026-11-02 (no Meta channels for now). v4.0 closed 2026-11-02 with overrides (archived to milestones/, tag v4.0). Next step: `/gsd-new-milestone`.
+Last session: 2026-11-02
+Stopped at: v5.0 roadmap created (Phases 86-93, 52/52 requirements mapped, no code started). Prior state: Phase 85 complete (UAT 2/2, verification 9/9, security 23/23, Nyquist validated). Phase 78 stays parked in backlog 999.9; Phase 79 parked in backlog 999.12 by owner on 2026-11-02 (no Meta channels for now). v4.0 closed 2026-11-02 with overrides (archived to milestones/, tag v4.0). Next step: `/gsd-discuss-phase 86` (or `/gsd-plan-phase 86`).
 Resume file: None
 
 ## Performance Metrics
@@ -409,4 +429,6 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 86 (Admin Shell): `/gsd-discuss-phase 86` or `/gsd-plan-phase 86`
+- In parallel (owner): start counsel review of the card mandate / cancellation / no-show wording; prepare the Stripe test-mode path (owner-run scripts)
+- Before planning Phase 87: decide `on_board` / `no_show` semantics and the GNet status mapping
