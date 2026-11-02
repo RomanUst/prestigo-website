@@ -309,7 +309,7 @@ export default function Step2DateTime() {
                   href={whatsappUrlWithText('Hello PRESTIGO, I need an urgent transfer.')}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ color: '#25D366', textDecoration: 'underline', textUnderlineOffset: 3 }}
+                  style={{ color: 'var(--status-ok-fg, #25D366)', textDecoration: 'underline', textUnderlineOffset: 3 }}
                 >
                   {chunks}
                 </a>

@@ -276,7 +276,7 @@ export default function AddressInput({
     )
   }
 
-  const borderColor = hasError ? '#C0392B' : 'var(--anthracite-light)'
+  const borderColor = hasError ? 'var(--status-danger-fg, #C0392B)' : 'var(--anthracite-light)'
 
   const renderMainText = (s: Suggestion) => {
     const { mainText, mainTextMatches } = s
@@ -495,7 +495,7 @@ export default function AddressInput({
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 400,
-            color: '#C0392B',
+            color: 'var(--status-danger-fg, #C0392B)',
             marginTop: '8px',
           }}
         >

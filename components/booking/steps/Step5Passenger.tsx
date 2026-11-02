@@ -23,9 +23,9 @@ const IATA_RE = /^([A-Z]{2,3}|[A-Z][0-9]|[0-9][A-Z])\d{1,4}$/i
 const STATUS_COLOR: Record<FlightStatus, string> = {
   scheduled: 'var(--copper)',
   active:    'var(--copper)',
-  landed:    '#27AE60',
-  cancelled: '#f87171',
-  diverted:  '#f87171',
+  landed:    'var(--status-ok-fg, #27AE60)',
+  cancelled: 'var(--status-danger-fg, #f87171)',
+  diverted:  'var(--status-danger-fg, #f87171)',
   unknown:   'var(--warmgrey)',
 }
 
@@ -240,7 +240,7 @@ export default function Step5Passenger() {
             style={{
               width: '100%',
               background: 'var(--anthracite-mid)',
-              border: `1px solid ${errors.firstName ? '#f87171' : 'var(--anthracite-light)'}`,
+              border: `1px solid ${errors.firstName ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
               padding: '12px 16px',
               fontFamily: 'var(--font-montserrat)',
               fontSize: 14,
@@ -250,7 +250,7 @@ export default function Step5Passenger() {
             }}
           />
           {errors.firstName && (
-            <p id="firstName-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+            <p id="firstName-error" style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
               {errors.firstName.message}
             </p>
           )}
@@ -268,7 +268,7 @@ export default function Step5Passenger() {
             style={{
               width: '100%',
               background: 'var(--anthracite-mid)',
-              border: `1px solid ${errors.lastName ? '#f87171' : 'var(--anthracite-light)'}`,
+              border: `1px solid ${errors.lastName ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
               padding: '12px 16px',
               fontFamily: 'var(--font-montserrat)',
               fontSize: 14,
@@ -278,7 +278,7 @@ export default function Step5Passenger() {
             }}
           />
           {errors.lastName && (
-            <p id="lastName-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+            <p id="lastName-error" style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
               {errors.lastName.message}
             </p>
           )}
@@ -298,7 +298,7 @@ export default function Step5Passenger() {
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
-            border: `1px solid ${errors.email ? '#f87171' : 'var(--anthracite-light)'}`,
+            border: `1px solid ${errors.email ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
             padding: '12px 16px',
             fontFamily: 'var(--font-montserrat)',
             fontSize: 14,
@@ -308,7 +308,7 @@ export default function Step5Passenger() {
           }}
         />
         {errors.email && (
-          <p id="email-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+          <p id="email-error" style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
             {errors.email.message}
           </p>
         )}
@@ -338,7 +338,7 @@ export default function Step5Passenger() {
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
-            border: `1px solid ${errors.phone ? '#f87171' : 'var(--anthracite-light)'}`,
+            border: `1px solid ${errors.phone ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
             padding: '12px 16px',
             fontFamily: 'var(--font-montserrat)',
             fontSize: 14,
@@ -348,7 +348,7 @@ export default function Step5Passenger() {
           }}
         />
         {errors.phone && (
-          <p id="phone-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+          <p id="phone-error" style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
             {errors.phone.message}
           </p>
         )}
@@ -402,7 +402,7 @@ export default function Step5Passenger() {
               style={{
                 width: '100%',
                 background: 'var(--anthracite-mid)',
-                border: `1px solid ${errors.flightNumber ? '#f87171' : 'var(--anthracite-light)'}`,
+                border: `1px solid ${errors.flightNumber ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
                 padding: '12px 16px',
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: 14,
@@ -412,7 +412,7 @@ export default function Step5Passenger() {
               }}
             />
             {errors.flightNumber && (
-              <p id="flightNumber-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 400, marginTop: 8 }}>
+              <p id="flightNumber-error" style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 400, marginTop: 8 }}>
                 {errors.flightNumber.message}
               </p>
             )}
@@ -429,7 +429,7 @@ export default function Step5Passenger() {
               style={{
                 width: '100%',
                 background: 'var(--anthracite-mid)',
-                border: `1px solid ${errors.terminal ? '#f87171' : 'var(--anthracite-light)'}`,
+                border: `1px solid ${errors.terminal ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
                 padding: '12px 16px',
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: 14,
@@ -439,7 +439,7 @@ export default function Step5Passenger() {
               }}
             />
             {errors.terminal && (
-              <p id="terminal-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+              <p id="terminal-error" style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
                 {errors.terminal.message}
               </p>
             )}
@@ -528,7 +528,7 @@ export default function Step5Passenger() {
                   {t('arrival', { time: formatArrivalTime(flightCheckResult.flight_estimated_arrival) })}
                   {' \u00b7 '}
                   {flightCheckResult.flight_delay_minutes != null && flightCheckResult.flight_delay_minutes > 0 ? (
-                    <span style={{ color: '#E67E22' }}>
+                    <span style={{ color: 'var(--status-warn-fg, #E67E22)' }}>
                       {t('delayMinutes', { minutes: flightCheckResult.flight_delay_minutes })}
                     </span>
                   ) : (
@@ -538,7 +538,7 @@ export default function Step5Passenger() {
 
                 {/* Line 3 (conditional): airport mismatch warning */}
                 {flightCheckResult.flight_arrival_airport !== 'PRG' && (
-                    <div style={{ color: '#E67E22', fontSize: 14, fontWeight: 400, marginTop: 4 }}>
+                    <div style={{ color: 'var(--status-warn-fg, #E67E22)', fontSize: 14, fontWeight: 400, marginTop: 4 }}>
                       {t('airportMismatch', { airport: flightCheckResult.flight_arrival_airport })}
                     </div>
                   )}
@@ -571,7 +571,7 @@ export default function Step5Passenger() {
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
-            border: `1px solid ${errors.specialRequests ? '#f87171' : 'var(--anthracite-light)'}`,
+            border: `1px solid ${errors.specialRequests ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
             padding: '12px 16px',
             fontFamily: 'var(--font-montserrat)',
             fontSize: 14,
@@ -585,7 +585,7 @@ export default function Step5Passenger() {
           {t('charCount', { count: (specialRequests ?? '').length })}
         </p>
         {errors.specialRequests && (
-          <p style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+          <p style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
             {errors.specialRequests.message}
           </p>
         )}
