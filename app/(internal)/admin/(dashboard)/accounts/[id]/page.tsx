@@ -168,13 +168,13 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
                           title={b.invoice_number ? `Invoice ${b.invoice_number}` : 'Paid'}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
-                            padding: '4px 8px', backgroundColor: '#1a3a2a', color: '#4ade80',
-                            border: '1px solid rgba(34,197,94,0.25)', borderRadius: '2px',
+                            padding: '4px 8px', backgroundColor: 'var(--status-ok-bg)', color: 'var(--status-ok-fg)',
+                            border: '1px solid var(--status-ok-border)', borderRadius: '2px',
                             fontFamily: 'var(--font-montserrat)', fontSize: '11px',
                             textTransform: 'uppercase', letterSpacing: '0.08em',
                           }}
                         >
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#4ade80' }} />
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--status-ok-fg)' }} />
                           Paid
                         </span>
                       )}
