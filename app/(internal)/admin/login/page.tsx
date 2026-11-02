@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'var(--anthracite)',
+        backgroundColor: 'var(--admin-bg)',
         fontFamily: 'var(--font-montserrat)',
       }}
     >
@@ -29,17 +29,17 @@ export default function AdminLoginPage() {
           width: '100%',
           maxWidth: '400px',
           padding: '48px 32px',
-          backgroundColor: 'var(--anthracite-mid)',
-          borderRadius: '8px',
-          border: '1px solid var(--anthracite-light)',
+          backgroundColor: 'var(--admin-surface)',
+          borderRadius: 'var(--admin-radius-lg)',
+          border: '1px solid var(--admin-border)',
         }}
       >
         <h1
           style={{
-            fontFamily: 'var(--font-cormorant)',
+            fontFamily: 'var(--admin-font-brand)',
             fontSize: '28px',
             fontWeight: 400,
-            color: 'var(--offwhite)',
+            color: 'var(--admin-text)',
             textAlign: 'center',
             marginBottom: '8px',
             letterSpacing: '0.12em',
@@ -49,8 +49,8 @@ export default function AdminLoginPage() {
         </h1>
         <p
           style={{
-            fontSize: '12px',
-            color: 'var(--warmgrey)',
+            fontSize: 'var(--admin-fs-label)',
+            color: 'var(--admin-text-muted)',
             textAlign: 'center',
             letterSpacing: '0.25em',
             textTransform: 'uppercase',
@@ -66,8 +66,8 @@ export default function AdminLoginPage() {
             htmlFor="email"
             style={{
               display: 'block',
-              fontSize: '11px',
-              color: 'var(--warmgrey)',
+              fontSize: 'var(--admin-fs-label)',
+              color: 'var(--admin-text-muted)',
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
               marginBottom: '6px',
@@ -84,10 +84,10 @@ export default function AdminLoginPage() {
             style={{
               width: '100%',
               padding: '12px 14px',
-              backgroundColor: 'var(--anthracite)',
-              border: '1px solid var(--anthracite-light)',
-              borderRadius: '4px',
-              color: 'var(--offwhite)',
+              backgroundColor: 'var(--admin-input-bg)',
+              border: '1px solid var(--admin-border-strong)',
+              borderRadius: 'var(--admin-radius-md)',
+              color: 'var(--admin-text)',
               fontSize: '14px',
               fontFamily: 'var(--font-montserrat)',
               marginBottom: '16px',
@@ -100,8 +100,8 @@ export default function AdminLoginPage() {
             htmlFor="password"
             style={{
               display: 'block',
-              fontSize: '11px',
-              color: 'var(--warmgrey)',
+              fontSize: 'var(--admin-fs-label)',
+              color: 'var(--admin-text-muted)',
               letterSpacing: '0.18em',
               textTransform: 'uppercase',
               marginBottom: '6px',
@@ -118,10 +118,10 @@ export default function AdminLoginPage() {
             style={{
               width: '100%',
               padding: '12px 14px',
-              backgroundColor: 'var(--anthracite)',
-              border: '1px solid var(--anthracite-light)',
-              borderRadius: '4px',
-              color: 'var(--offwhite)',
+              backgroundColor: 'var(--admin-input-bg)',
+              border: '1px solid var(--admin-border-strong)',
+              borderRadius: 'var(--admin-radius-md)',
+              color: 'var(--admin-text)',
               fontSize: '14px',
               fontFamily: 'var(--font-montserrat)',
               marginBottom: '24px',
@@ -133,7 +133,7 @@ export default function AdminLoginPage() {
           {state?.error && (
             <p
               style={{
-                color: '#e74c3c',
+                color: 'var(--status-danger-fg)',
                 fontSize: '13px',
                 marginBottom: '16px',
                 textAlign: 'center',
@@ -149,10 +149,10 @@ export default function AdminLoginPage() {
             style={{
               width: '100%',
               padding: '14px',
-              backgroundColor: 'var(--copper)',
-              color: 'var(--offwhite)',
+              backgroundColor: 'var(--admin-accent)',
+              color: 'var(--admin-on-accent)',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: 'var(--admin-radius-md)',
               fontSize: '12px',
               fontFamily: 'var(--font-montserrat)',
               letterSpacing: '0.18em',
