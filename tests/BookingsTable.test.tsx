@@ -155,9 +155,9 @@ describe('BookingsTable LegBadge — RTAD-02', () => {
     render(<BookingsTable />)
 
     await waitFor(() => {
-      expect(screen.getByText('RETURN')).toBeDefined()
+      expect(screen.getByText('Return')).toBeDefined()
     })
-    expect(screen.queryByText('OUTBOUND')).toBeNull()
+    expect(screen.queryByText('Outbound')).toBeNull()
   })
 
   it('renders OUTBOUND badge for an outbound leg of a round trip (linked_booking_id present)', async () => {
@@ -177,9 +177,9 @@ describe('BookingsTable LegBadge — RTAD-02', () => {
     render(<BookingsTable />)
 
     await waitFor(() => {
-      expect(screen.getByText('OUTBOUND')).toBeDefined()
+      expect(screen.getByText('Outbound')).toBeDefined()
     })
-    expect(screen.queryByText('RETURN')).toBeNull()
+    expect(screen.queryByText('Return')).toBeNull()
   })
 
   it('renders NO leg badge for a one-way booking (leg=null)', async () => {
@@ -198,8 +198,8 @@ describe('BookingsTable LegBadge — RTAD-02', () => {
     await waitFor(() => {
       expect(screen.getByText('PRE-OW')).toBeDefined()
     })
-    expect(screen.queryByText('RETURN')).toBeNull()
-    expect(screen.queryByText('OUTBOUND')).toBeNull()
+    expect(screen.queryByText('Return')).toBeNull()
+    expect(screen.queryByText('Outbound')).toBeNull()
   })
 })
 
@@ -249,7 +249,7 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
       expect(screen.getByText(/Refund: 4500 CZK for this leg only\./)).toBeDefined()
     })
     expect(screen.getByText(/The paired outbound booking PRE-OUT will NOT be affected and remains active\./)).toBeDefined()
-    expect(screen.getByText(/PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG/)).toBeDefined()
+    expect(screen.getByText(/Partial Stripe refund will be issued for this leg/)).toBeDefined()
     // Confirm button stays as-is
     expect(screen.getByRole('button', { name: /Confirm Cancel \+ Refund/i })).toBeDefined()
   })
@@ -276,7 +276,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
 
     // The expanded detail panel renders as a SIBLING <tr> (colSpan row), not
     // nested inside the clicked row's own <tr> — query at document level.
-    const languageLabel = await screen.findByText('LANGUAGE')
+    const languageLabel = await screen.findByText('Language')
     expect(languageLabel.nextElementSibling?.textContent).toBe('RU')
   })
 
@@ -293,7 +293,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     expect(rowEl).not.toBeNull()
     if (rowEl) fireEvent.click(rowEl)
 
-    const languageLabel = await screen.findByText('LANGUAGE')
+    const languageLabel = await screen.findByText('Language')
     expect(languageLabel.nextElementSibling?.textContent).toBe('—')
   })
 
@@ -318,7 +318,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     const refCell = await within(mobileCards).findByText('PRE-LOCALE-ZH-M')
     fireEvent.click(refCell)
 
-    const languageLabel = await within(mobileCards).findByText('LANGUAGE')
+    const languageLabel = await within(mobileCards).findByText('Language')
     expect(languageLabel.nextElementSibling?.textContent).toBe('ZH')
   })
 })
@@ -454,7 +454,7 @@ describe('Phase 51 — GNet UI', () => {
     await waitFor(() => {
       expect(screen.getByTestId('gnet-badge-gnet-test-1')).toBeDefined()
     })
-    expect(screen.getByTestId('gnet-badge-gnet-test-1').textContent).toBe('GNET')
+    expect(screen.getByTestId('gnet-badge-gnet-test-1').textContent).toBe('GNet')
   })
 
   it('desktop: online row does NOT render gnet-badge', async () => {
@@ -686,7 +686,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
     // inactive-chip style — no copper border, no active-tint background.
     const futureSegment = screen.getByRole('button', { name: 'Future' })
     expect(futureSegment.style.border).not.toContain('var(--copper)')
-    expect(futureSegment.style.background).not.toContain('rgba(191, 160, 106, 0.09)')
+    expect(futureSegment.style.background).not.toContain('var(--admin-accent-tint)')
   })
 
   it('a mocked failed fetch renders the distinct refetch-error copy (not the empty-state copy)', async () => {
@@ -715,7 +715,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
 
     const futureSegment = await screen.findByRole('button', { name: 'Future' })
     await waitFor(() => {
-      expect(futureSegment.style.background).toContain('rgba(191, 160, 106, 0.09)')
+      expect(futureSegment.style.background).toContain('var(--admin-accent-tint)')
       expect(futureSegment.style.border).toContain('var(--copper)')
     })
   })
