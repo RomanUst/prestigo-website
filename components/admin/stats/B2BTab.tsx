@@ -76,17 +76,17 @@ export function B2BTab({ period }: { period: Period }) {
     <div>
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '32px' }}>
         <KPICard
-          label="B2B REVENUE"
+          label="B2B revenue"
           value={formatEur(stats.b2b_revenue_eur)}
           subLabel={`${formatPct(stats.b2b_revenue_eur, stats.all_revenue_eur)} of all revenue (${formatEur(stats.all_revenue_eur)})`}
         />
         <KPICard
-          label="B2B BOOKINGS"
+          label="B2B bookings"
           value={String(stats.b2b_bookings)}
           subLabel={`of ${stats.all_bookings} paid trips`}
         />
         <KPICard
-          label="CORPORATE ACCOUNTS"
+          label="Corporate accounts"
           value={String(stats.accounts.length)}
           subLabel={`with trips in period · ${stats.accounts_total} total`}
         />

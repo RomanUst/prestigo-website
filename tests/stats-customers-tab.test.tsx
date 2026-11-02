@@ -79,7 +79,7 @@ describe('CustomersTab KPIs', () => {
   it('fetches only the customers endpoint for the period', async () => {
     fetchMock.mockResolvedValue(ok(customers()))
     render(<CustomersTab period={PERIOD} />)
-    await screen.findByText('REPEAT RATE')
+    await screen.findByText('Repeat rate')
     expect(fetchMock.mock.calls.map((c) => String(c[0]))).toEqual([
       '/api/admin/stats/customers?from=2026-01-01&to=2026-03-31',
     ])
@@ -88,7 +88,7 @@ describe('CustomersTab KPIs', () => {
   it('shows the repeat rate with its counts', async () => {
     fetchMock.mockResolvedValue(ok(customers()))
     render(<CustomersTab period={PERIOD} />)
-    await screen.findByText('REPEAT RATE')
+    await screen.findByText('Repeat rate')
     expect(screen.getAllByText('25.0%').length).toBe(2)
     expect(screen.getByText(/3 of 12 customers/)).toBeTruthy()
   })
@@ -96,14 +96,14 @@ describe('CustomersTab KPIs', () => {
   it('shows the repeat revenue share with both amounts', async () => {
     fetchMock.mockResolvedValue(ok(customers()))
     render(<CustomersTab period={PERIOD} />)
-    await screen.findByText('REPEAT REVENUE SHARE')
+    await screen.findByText('Repeat revenue share')
     expect(norm(document.body.textContent)).toContain(`${norm(formatEur(400))} of ${norm(formatEur(1600))}`)
   })
 
   it('shows repeat customers all time', async () => {
     fetchMock.mockResolvedValue(ok(customers()))
     render(<CustomersTab period={PERIOD} />)
-    await screen.findByText('REPEAT CUSTOMERS')
+    await screen.findByText('Repeat customers')
     expect(screen.getByText('9')).toBeTruthy()
     expect(screen.getByText(/all time, 2\+ paid trips/)).toBeTruthy()
   })
@@ -113,7 +113,7 @@ describe('CustomersTab KPIs', () => {
       ok(customers({ customers: 0, repeat_customers: 0, revenue_eur: 0, repeat_revenue_eur: 0, top: [] })),
     )
     render(<CustomersTab period={PERIOD} />)
-    await screen.findByText('REPEAT RATE')
+    await screen.findByText('Repeat rate')
     expect(screen.getAllByText('n/a').length).toBe(2)
     expect(screen.getByText(/0 of 0 customers/)).toBeTruthy()
   })
@@ -179,7 +179,7 @@ describe('CustomersTab top repeat customers', () => {
   it('states what is not counted', async () => {
     fetchMock.mockResolvedValue(ok(customers()))
     render(<CustomersTab period={PERIOD} />)
-    await screen.findByText('REPEAT RATE')
+    await screen.findByText('Repeat rate')
     const text = norm(document.body.textContent)
     expect(text).toContain('GNet partner bookings and erased customers are not counted')
     expect(text).toContain('A round trip counts as one trip')
@@ -214,7 +214,7 @@ describe('StatsPage Customers tab', () => {
     )
     render(<StatsPage />)
 
-    expect(await screen.findByText('REPEAT RATE')).toBeTruthy()
+    expect(await screen.findByText('Repeat rate')).toBeTruthy()
     expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Overview', 'Conversion', 'Customers', 'B2B'])
     expect(fetchMock.mock.calls.map((c) => String(c[0]))).toEqual([
       '/api/admin/stats/customers?from=2026-01-01&to=2026-03-31',
