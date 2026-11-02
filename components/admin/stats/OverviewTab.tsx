@@ -89,10 +89,10 @@ export function OverviewTab() {
     <div>
       {/* KPI Row */}
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '32px' }}>
-        <KPICard label="TODAY" value={String(counts.today)} subLabel="bookings" />
-        <KPICard label="THIS WEEK" value={String(counts.thisWeek)} subLabel="bookings" />
-        <KPICard label="THIS MONTH" value={String(counts.thisMonth)} subLabel="bookings" />
-        <KPICard label="MONTHLY REVENUE" value={formatCZK(revenue.currentMonth)} subLabel="CZK" />
+        <KPICard label="Today" value={String(counts.today)} subLabel="bookings" />
+        <KPICard label="This week" value={String(counts.thisWeek)} subLabel="bookings" />
+        <KPICard label="This month" value={String(counts.thisMonth)} subLabel="bookings" />
+        <KPICard label="Monthly revenue" value={formatCZK(revenue.currentMonth)} subLabel="CZK" />
       </div>
 
       {/* 12-month revenue chart — full width */}
@@ -103,7 +103,7 @@ export function OverviewTab() {
       {/* 2-column grid for breakdown charts */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         <GroupedBarChart
-          title="REVENUE BY CLASS"
+          title="Revenue by class"
           data={vehicleClassChartData}
           series={[
             { dataKey: 'business', name: 'Business', color: 'var(--admin-chart-1)' },
@@ -112,7 +112,7 @@ export function OverviewTab() {
           ]}
         />
         <GroupedBarChart
-          title="REVENUE BY TRIP TYPE"
+          title="Revenue by trip type"
           data={tripTypeChartData}
           series={[
             { dataKey: 'transfer', name: 'Transfer', color: 'var(--admin-chart-1)' },

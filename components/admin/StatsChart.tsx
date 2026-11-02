@@ -52,7 +52,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 
 export function RevenueBarChart({ data }: { data: { month: string; revenue: number }[] }) {
   return (
-    <ChartCard title="12-MONTH REVENUE">
+    <ChartCard title="12-month revenue">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
           <CartesianGrid {...GRID_STYLE} />

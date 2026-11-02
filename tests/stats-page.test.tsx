@@ -136,10 +136,10 @@ describe('StatsPage shell + Overview', () => {
     routeFetch()
     render(<StatsPage />)
 
-    expect(await screen.findByText('THIS WEEK')).toBeTruthy()
-    expect(screen.getByText('TODAY')).toBeTruthy()
-    expect(screen.getByText('THIS MONTH')).toBeTruthy()
-    expect(screen.getByText('MONTHLY REVENUE')).toBeTruthy()
+    expect(await screen.findByText('This week')).toBeTruthy()
+    expect(screen.getByText('Today')).toBeTruthy()
+    expect(screen.getByText('This month')).toBeTruthy()
+    expect(screen.getByText('Monthly revenue')).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Stats' })).toBeTruthy()
 
     expect(urls()).toEqual(['/api/admin/stats'])
@@ -153,7 +153,7 @@ describe('StatsPage shell + Overview', () => {
   it('shows tabs Overview, Conversion, Customers and B2B in order with Overview selected, and no period selector on Overview', async () => {
     routeFetch()
     render(<StatsPage />)
-    await screen.findByText('MONTHLY REVENUE')
+    await screen.findByText('Monthly revenue')
 
     const tabs = screen.getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual(['Overview', 'Conversion', 'Customers', 'B2B'])
@@ -172,7 +172,7 @@ describe('StatsPage shell + Overview', () => {
     setUrl('?tab=unknown&from=2026-01-01&to=2026-03-31')
     routeFetch()
     render(<StatsPage />)
-    expect(await screen.findByText('MONTHLY REVENUE')).toBeTruthy()
+    expect(await screen.findByText('Monthly revenue')).toBeTruthy()
     expect(urls()).toEqual(['/api/admin/stats'])
   })
 })
@@ -307,7 +307,7 @@ describe('StatsPage B2B tab', () => {
     setUrl('?tab=overview&from=2026-01-01&to=2026-03-31')
     routeFetch()
     render(<StatsPage />)
-    await screen.findByText('MONTHLY REVENUE')
+    await screen.findByText('Monthly revenue')
 
     fireEvent.click(screen.getByRole('tab', { name: 'B2B' }))
 
