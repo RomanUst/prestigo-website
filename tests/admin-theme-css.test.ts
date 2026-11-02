@@ -343,3 +343,76 @@ describe('admin-theme.css contrast (WCAG)', () => {
     })
   }
 })
+
+describe('admin-theme.css sidebar rail contract (ADM-01, D-13, D-16)', () => {
+  const DESKTOP = /min-width:\s*768px/
+  const inDesktop = (r: Rule) => r.media !== null && DESKTOP.test(r.media)
+  const has = (r: Rule, sel: string) => r.selectors.includes(sel)
+
+  it('the base wrapper declares the expanded width token (280px)', () => {
+    expect(base.decls.get('--admin-sidebar-w')).toBe('280px')
+  })
+
+  it('the only 72px width declaration is the collapsed wrapper inside the desktop media block', () => {
+    const narrow = rules.filter((r) => r.decls.get('--admin-sidebar-w') === '72px')
+    expect(narrow).toHaveLength(1)
+    expect(narrow[0].selectors).toEqual(['.admin-shell[data-admin-sidebar="collapsed"]'])
+    expect(inDesktop(narrow[0])).toBe(true)
+  })
+
+  it('every selector that mentions the collapsed state sits inside a (min-width: 768px) block (Pitfall 5)', () => {
+    const offenders: string[] = []
+    let seen = 0
+    for (const r of rules) {
+      for (const s of r.selectors) {
+        if (!s.includes('data-admin-sidebar="collapsed"')) continue
+        seen++
+        if (!inDesktop(r)) offenders.push(s)
+      }
+    }
+    expect(offenders).toEqual([])
+    expect(seen).toBeGreaterThan(0)
+  })
+
+  it('main margin and aside width both resolve from the single --admin-sidebar-w value', () => {
+    const main = rules.find((r) => inDesktop(r) && has(r, '.admin-shell .admin-main'))
+    const aside = rules.find((r) => inDesktop(r) && has(r, '.admin-shell .admin-aside') && r.decls.has('width'))
+    expect(main?.decls.get('margin-left')).toBe('var(--admin-sidebar-w)')
+    expect(aside?.decls.get('width')).toBe('var(--admin-sidebar-w)')
+    expect(main?.decls.get('transition')).toContain('200ms')
+    expect(aside?.decls.get('transition')).toContain('200ms')
+  })
+
+  it('below 768px main has no left margin and the aside is a fixed 280px panel', () => {
+    const main = rules.find((r) => r.media === null && has(r, '.admin-shell .admin-main'))
+    const aside = rules.find((r) => r.media === null && has(r, '.admin-shell .admin-aside'))
+    expect(main?.decls.get('margin-left')).toBe('0')
+    expect(aside?.decls.get('width')).toBe('280px')
+    expect(aside?.decls.get('position')).toBe('fixed')
+  })
+
+  it('collapsed nav labels use the visually-hidden pattern, never display: none', () => {
+    const hidden = rules.find((r) => has(r, '.admin-shell[data-admin-sidebar="collapsed"] .admin-nav-label'))
+    expect(hidden).toBeDefined()
+    expect(hidden?.decls.get('position')).toBe('absolute')
+    expect(hidden?.decls.get('clip')).toBe('rect(0 0 0 0)')
+    expect(hidden?.decls.has('display')).toBe(false)
+  })
+
+  it('the collapse button is desktop-only through CSS', () => {
+    const sel = '.admin-shell .admin-icon-btn.admin-collapse-btn'
+    const top = rules.find((r) => r.media === null && has(r, sel))
+    const wide = rules.find((r) => inDesktop(r) && has(r, sel))
+    expect(top?.decls.get('display')).toBe('none')
+    expect(wide?.decls.get('display')).toBe('inline-flex')
+  })
+
+  it('prefers-reduced-motion switches both width transitions off', () => {
+    const reduced = rules.find(
+      (r) => r.media !== null && /prefers-reduced-motion:\s*reduce/.test(r.media) && has(r, '.admin-shell .admin-main'),
+    )
+    expect(reduced).toBeDefined()
+    expect(reduced?.selectors).toContain('.admin-shell .admin-aside')
+    expect(reduced?.decls.get('transition')).toBe('none')
+  })
+})
