@@ -31,6 +31,10 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
   color: var(--admin-text);
   font-family: var(--font-montserrat);
   --admin-font-brand: 'Fraunces', Georgia, serif;
+  /* Single source for the aside width and main's left offset (D-13). The
+     collapsed override below lives inside the desktop media block, so a
+     collapsed cookie never produces a rail on a phone (D-16). */
+  --admin-sidebar-w: 280px;
 }
 
 /* ── Light ─────────────────────────────────────────────────────────────── */
@@ -213,4 +217,95 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
   --status-neutral-fg: #A9AEB0;
   --status-neutral-bg: #1F344A;
   --status-neutral-border: rgba(169, 174, 176, 0.25);
+}
+
+/* ── Shell: main offset and sidebar panel (ADM-01, D-13, D-16) ─────────── */
+/* Below 768px the aside is the 280px slide-over (display comes from the
+   Tailwind hidden/flex classes on the element) and main has no offset. */
+.admin-shell .admin-main {
+  margin-left: 0;
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-montserrat);
+}
+
+.admin-shell .admin-aside {
+  width: 280px;
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  flex-direction: column;
+  background-color: var(--admin-sidebar-bg);
+  border-right: 1px solid var(--admin-border);
+}
+
+.admin-shell .admin-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* Icon buttons (collapse, theme toggle, sign out in the rail). */
+.admin-shell .admin-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  cursor: pointer;
+}
+
+/* Desktop-only collapse button: the compound selector outranks the generic
+   .admin-icon-btn display rule above whatever the source order. */
+.admin-shell .admin-icon-btn.admin-collapse-btn {
+  display: none;
+}
+
+/* Everything below applies from the md breakpoint up. Every collapsed-state
+   selector must stay inside this block (tests/admin-theme-css.test.ts). */
+@media (min-width: 768px) {
+  .admin-shell[data-admin-sidebar="collapsed"] {
+    --admin-sidebar-w: 72px;
+  }
+
+  .admin-shell .admin-aside {
+    width: var(--admin-sidebar-w);
+    transition: width 200ms ease;
+  }
+
+  .admin-shell .admin-main {
+    margin-left: var(--admin-sidebar-w);
+    transition: margin-left 200ms ease;
+  }
+
+  .admin-shell .admin-icon-btn.admin-collapse-btn {
+    display: inline-flex;
+  }
+
+  /* Visually hidden, never display: none: the label stays in the accessibility
+     tree and findable by text. */
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .admin-main,
+  .admin-shell .admin-aside {
+    transition: none;
+  }
 }

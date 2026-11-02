@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Menu, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react'
 import { signOut } from '@/app/(internal)/admin/login/actions'
+import { useAdminShell } from '@/components/admin/AdminShell'
 
 const navItems = [
   { href: '/admin/pricing', label: 'Pricing' },
@@ -23,6 +24,8 @@ const navItems = [
 export default function AdminSidebar() {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const { sidebar, toggleSidebar } = useAdminShell()
+  const collapsed = sidebar === 'collapsed'
 
   return (
     <>
@@ -66,36 +69,43 @@ export default function AdminSidebar() {
 
       {/* Sidebar — always visible on desktop, toggle on mobile */}
       <aside
-        className={open ? 'flex' : 'hidden md:flex'}
-        style={{
-          width: 280,
-          minHeight: '100vh',
-          backgroundColor: '#28282B',
-          borderRight: '1px solid #4E4E56',
-          flexDirection: 'column',
-          fontFamily: 'var(--font-montserrat)',
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          zIndex: 50,
-        }}
+        id="admin-sidebar"
+        className={`admin-aside ${open ? 'flex' : 'hidden md:flex'}`}
+        style={{ fontFamily: 'var(--font-montserrat)' }}
       >
         {/* Header */}
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid #4E4E56' }}>
-          <span style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: '20px',
-            color: '#F5F2EE',
-            letterSpacing: '0.12em',
-          }}>PRESTIGO</span>
-          <span style={{
-            display: 'block',
-            fontSize: '11px',
-            color: '#CFC9C2',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            marginTop: '4px',
-          }}>Admin</span>
+        <div
+          className="admin-sidebar-header"
+          style={{ padding: '24px 20px', borderBottom: '1px solid #4E4E56' }}
+        >
+          <div>
+            <span style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: '20px',
+              color: '#F5F2EE',
+              letterSpacing: '0.12em',
+            }}>PRESTIGO</span>
+            <span style={{
+              display: 'block',
+              fontSize: '11px',
+              color: '#CFC9C2',
+              letterSpacing: '0.25em',
+              textTransform: 'uppercase',
+              marginTop: '4px',
+            }}>Admin</span>
+          </div>
+          <button
+            type="button"
+            className="admin-icon-btn admin-collapse-btn"
+            onClick={toggleSidebar}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-expanded={!collapsed}
+            aria-controls="admin-sidebar"
+          >
+            {collapsed
+              ? <PanelLeftOpen size={20} aria-hidden="true" />
+              : <PanelLeftClose size={20} aria-hidden="true" />}
+          </button>
         </div>
 
         {/* Nav */}
@@ -107,6 +117,7 @@ export default function AdminSidebar() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
+                    className="admin-nav-item"
                     onClick={() => setOpen(false)}
                     style={{
                       display: 'flex',
@@ -121,7 +132,7 @@ export default function AdminSidebar() {
                       paddingLeft: isActive ? '17px' : '20px',
                       transition: 'color 150ms ease',
                     }}
-                  >{item.label}</Link>
+                  ><span className="admin-nav-label">{item.label}</span></Link>
                 </li>
               )
             })}
