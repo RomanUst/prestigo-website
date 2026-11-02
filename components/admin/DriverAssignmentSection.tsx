@@ -306,7 +306,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             own field being present. */}
         {assignment.trip_note && (
           <div style={{ marginTop: '8px' }}>
-            <div style={sectionLabelStyle}>Driver Note</div>
+            <div style={sectionLabelStyle}>Driver note</div>
             <div
               style={{
                 fontSize: '13px',

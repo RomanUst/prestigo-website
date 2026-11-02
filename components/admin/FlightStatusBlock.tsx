@@ -102,7 +102,7 @@ export function FlightStatusBlock({
           letterSpacing: '0.3em',
           fontFamily: 'var(--font-montserrat)',
         }}>
-          FLIGHT STATUS
+          Flight status
         </span>
 
         {/* Right: Refresh button + Updated timestamp */}
