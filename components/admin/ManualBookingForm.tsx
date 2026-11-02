@@ -584,10 +584,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
           ) : (
           <form onSubmit={handleSubmit}>
             {/* Section A: Trip Details */}
-            <div style={sectionLabelStyle}>TRIP DETAILS</div>
+            <div style={sectionLabelStyle}>Trip details</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Field label="TRIP TYPE">
+              <Field label="Trip type">
                 <select
                   value={tripType}
                   onChange={(e) => setTripType(e.target.value)}
@@ -600,7 +600,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="PICKUP DATE">
+                <Field label="Pickup date">
                   <input
                     type="date"
                     value={pickupDate}
@@ -610,7 +610,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     required
                   />
                 </Field>
-                <Field label="PICKUP TIME">
+                <Field label="Pickup time">
                   <input
                     type="time"
                     value={pickupTime}
@@ -623,7 +623,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </div>
 
               <AddressInput
-                label="PICKUP ADDRESS"
+                label="Pickup address"
                 placeholder="Start typing an address…"
                 value={originPlace}
                 onSelect={setOriginPlace}
@@ -633,7 +633,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               />
 
               <AddressInput
-                label="DESTINATION ADDRESS"
+                label="Destination address"
                 placeholder="Start typing an address… (optional for hourly/daily)"
                 value={destinationPlace}
                 onSelect={setDestinationPlace}
@@ -642,7 +642,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 neverDisabled
               />
 
-              <Field label="VEHICLE CLASS">
+              <Field label="Vehicle class">
                 <select
                   value={vehicleClass}
                   onChange={(e) => setVehicleClass(e.target.value)}
@@ -655,7 +655,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="PASSENGERS">
+                <Field label="Passengers">
                   <input
                     type="number"
                     min={1}
@@ -666,7 +666,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     required
                   />
                 </Field>
-                <Field label="LUGGAGE">
+                <Field label="Luggage">
                   <input
                     type="number"
                     min={0}
@@ -682,7 +682,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               <div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={labelStyle}>PRICE (CZK)</label>
+                    <label style={labelStyle}>Price (CZK)</label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
                         type="number"
@@ -717,7 +717,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     </div>
                   </div>
                   <div>
-                    <label style={labelStyle}>PRICE (EUR)</label>
+                    <label style={labelStyle}>Price (EUR)</label>
                     <input
                       type="number"
                       value={amountEur}
@@ -801,7 +801,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={labelStyle}>FLIGHT NUMBER (OPTIONAL)</label>
+                  <label style={labelStyle}>Flight number (optional)</label>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
                       type="text"
@@ -871,10 +871,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
             </div>
 
             {/* Section B: Passenger Details */}
-            <div style={sectionLabelStyle}>PASSENGER DETAILS</div>
+            <div style={sectionLabelStyle}>Passenger details</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Field label="CHANNEL">
+              <Field label="Channel">
                 <select
                   value={channel}
                   onChange={(e) => setChannel(e.target.value)}
@@ -890,7 +890,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="FIRST NAME">
+                <Field label="First name">
                   <input
                     type="text"
                     value={firstName}
@@ -900,7 +900,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     maxLength={100}
                   />
                 </Field>
-                <Field label="LAST NAME">
+                <Field label="Last name">
                   <input
                     type="text"
                     value={lastName}
@@ -913,7 +913,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="EMAIL">
+                <Field label="Email">
                   <input
                     type="email"
                     value={email}
@@ -922,7 +922,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     required
                   />
                 </Field>
-                <Field label="PHONE">
+                <Field label="Phone">
                   <input
                     type="text"
                     value={phone}
@@ -936,7 +936,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
             </div>
 
             {/* Section C: Payment (D-01/D-02/D-03) */}
-            <div style={paymentSectionLabelStyle}>PAYMENT</div>
+            <div style={paymentSectionLabelStyle}>Payment</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
@@ -974,7 +974,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
 
               {!collectPayment && (
                 <div>
-                  <label style={labelStyle}>BOOKING STATUS</label>
+                  <label style={labelStyle}>Booking status</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                       <input

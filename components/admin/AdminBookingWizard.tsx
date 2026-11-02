@@ -171,7 +171,7 @@ export function AdminBookingWizard({ open, onClose, onCreated }: Props) {
                 margin: 0,
               }}
             >
-              NEW BOOKING — STEP {currentStep} OF 6
+              New booking — step {currentStep} of 6
             </p>
             <h2
               style={{
