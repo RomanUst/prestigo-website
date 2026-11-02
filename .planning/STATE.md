@@ -1,19 +1,16 @@
 ---
 gsd_state_version: "1.0"
-milestone: v4.0
-milestone_name: Helpdesk + CRM
-status: Awaiting next milestone
-stopped_at: v4.0 milestone closed (override); 78 and 79 parked in backlog (999.9, 999.12)
-last_updated: "2026-11-02T11:27:01.138Z"
+milestone: v5.0
+milestone_name: Payments, Quotes & Day Trips
+status: planning
+last_updated: "2026-11-02T12:59:43.909Z"
 last_activity: 2026-11-02
-last_activity_desc: Milestone v4.0 completed and archived
-state_head: 8ce9a6a90f629e74f5cd431d6712c6806862720d
 progress:
-  total_phases: 10
-  completed_phases: 30
-  total_plans: 110
-  completed_plans: 103
-  percent: 94
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -27,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-11-02)
 
 ## Current Position
 
-Phase: Milestone v4.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-11-02 — Milestone v4.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-11-02 — Milestone v5.0 started
 
 ## Accumulated Context
 

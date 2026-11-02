@@ -21,9 +21,18 @@ v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin li
 
 </details>
 
-## Next Milestone Goals
+## Current Milestone: v5.0 Payments, Quotes & Day Trips
 
-Not defined yet — start with `/gsd-new-milestone`. Candidates from the backlog: Meta channels (WhatsApp dedicated number 999.9, Instagram/Facebook 999.12), Chatwoot webhook reconcile job (999.10), Phase 83 review follow-ups (999.11), v3.0 i18n debt (999.1–999.8, needs API credit).
+**Goal:** Stop losing Stripe fees on cancellations, offer flexible payment (card hold, cash with card guarantee, quote deposits), speed up dispatch in the admin, and launch bookable day trips as a new product.
+
+**Target features:**
+- Card-on-file booking: SetupIntent (3DS) at checkout, no charge; automatic full-amount hold ~5 days before the trip; capture after completion; cancellation costs 0 € in fees; failed hold → client payment link + operator alert
+- Cash payment option: card saved only (no hold); no-show → off-session charge of 100%
+- Admin quotes: bundle several days/trips into one quote with a shareable quote link and a deposit link (operator sets deposit as % or fixed amount); operator chooses how the remainder is collected (saved card, payment link, cash, invoice)
+- Admin UX: kanban of bookings by status, day/week/month calendar, collapsible sidebar, light theme toggle
+- Driver → admin status sync: driver trip-link status (en route → on site → passenger on board → completed) updates the booking status in admin; driver page shows only the single next step (strict order); "completed" triggers capture (reverses the v2.2 "trip-progress never mutates booking.status" decision)
+- Multi-stop transfers: price by km through all stops + per-stop waiting (15 min free, then a configurable fee per extra 15 min); airport pickup offset (landing 14:00, pickup 14:30) with 60 min free waiting counted from the pickup time
+- Day trips (GetYourGuide-style catalogue: Karlovy Vary, Český Krumlov, …): price per car by vehicle class from the admin, online booking; "request a custom tour" form → lead (Supabase/EspoCRM/Chatwoot) → operator answers with a quote link
 
 ## Requirements
 
@@ -74,6 +83,16 @@ Not defined yet — start with `/gsd-new-milestone`. Candidates from the backlog
 - ✓ STAT-01..03: `/admin/stats` with tabs Overview / Conversion (inquiries → paid bookings by source and chat channel, plus all paid bookings of the period: after inquiry + direct = total) / Customers (repeat rate, repeat revenue share, top 10) / B2B (revenue and bookings per corporate Account); period in the URL; read-only service_role RPCs (migrations 081–083), no Chatwoot/EspoCRM calls at render — v4.0 (Phase 85, live 2026-11-01, UAT 2/2, verification 9/9, security 23/23)
 
 ### Active
+
+<!-- v5.0 Payments, Quotes & Day Trips -->
+
+- [ ] Card-on-file + scheduled hold + capture-on-completion payment model
+- [ ] Cash payment with saved card and 100% no-show charge
+- [ ] Admin multi-trip quotes with quote link, deposit link and remainder method
+- [ ] Admin kanban, calendar, collapsible sidebar, light theme
+- [ ] Driver step-by-step status synced to booking status
+- [ ] Multi-stop transfers with waiting fees; airport pickup offset
+- [ ] Day trips catalogue + booking + custom-tour request
 
 <!-- infrastructure/tech-debt items carried forward + v2.2 tech debt -->
 
@@ -194,4 +213,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-11-02 after v4.0 milestone (Helpdesk + CRM).*
+*Last updated: 2026-11-02 after starting v5.0 milestone (Payments, Quotes & Day Trips).*
