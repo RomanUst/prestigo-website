@@ -73,7 +73,7 @@ export default function DriversPage() {
               fontFamily: 'var(--font-cormorant)',
               fontSize: '26px',
               fontWeight: 300,
-              color: '#F5F2EE',
+              color: 'var(--admin-text)',
               margin: 0,
             }}
           >
@@ -84,7 +84,7 @@ export default function DriversPage() {
               fontFamily: 'var(--font-montserrat)',
               fontSize: '13px',
               fontWeight: 300,
-              color: '#CFC9C2',
+              color: 'var(--admin-text-muted)',
               letterSpacing: '0.03em',
               marginTop: '4px',
               margin: '4px 0 0 0',
@@ -96,8 +96,8 @@ export default function DriversPage() {
         <button
           onClick={handleAddClick}
           style={{
-            backgroundColor: '#B87333',
-            color: '#F5F2EE',
+            backgroundColor: 'var(--admin-accent)',
+            color: 'var(--admin-on-accent)',
             border: 'none',
             borderRadius: '4px',
             padding: '8px 24px',
@@ -119,7 +119,7 @@ export default function DriversPage() {
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 300,
-            color: '#F5F2EE',
+            color: 'var(--admin-text)',
             opacity: 0.4,
           }}
         >

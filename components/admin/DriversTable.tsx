@@ -15,7 +15,7 @@ const thStyle: React.CSSProperties = {
   fontWeight: 400,
   letterSpacing: '0.3em',
   textTransform: 'uppercase',
-  color: '#CFC9C2',
+  color: 'var(--admin-text-muted)',
   padding: '10px 12px',
   textAlign: 'left',
 }
@@ -24,10 +24,10 @@ const cellStyle: React.CSSProperties = {
   fontFamily: 'var(--font-montserrat)',
   fontSize: '13px',
   fontWeight: 300,
-  color: '#F5F2EE',
+  color: 'var(--admin-text)',
   padding: '10px 12px',
   letterSpacing: '0.03em',
-  borderBottom: '1px solid #4E4E56',
+  borderBottom: '1px solid var(--admin-border)',
 }
 
 export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) {
@@ -94,9 +94,9 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
         style={{
           textAlign: 'center',
           padding: '48px 24px',
-          border: '1px solid #4E4E56',
+          border: '1px solid var(--admin-border)',
           borderRadius: '8px',
-          backgroundColor: '#36363B',
+          backgroundColor: 'var(--admin-surface)',
         }}
       >
         <div
@@ -104,7 +104,7 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 300,
-            color: '#F5F2EE',
+            color: 'var(--admin-text)',
             marginBottom: '8px',
           }}
         >
@@ -115,7 +115,7 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 300,
-            color: '#CFC9C2',
+            color: 'var(--admin-text-muted)',
           }}
         >
           Add your first driver to start assigning them to bookings.
@@ -127,8 +127,8 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
   return (
     <div
       style={{
-        backgroundColor: '#36363B',
-        border: '1px solid #4E4E56',
+        backgroundColor: 'var(--admin-surface)',
+        border: '1px solid var(--admin-border)',
         borderRadius: '8px',
         overflow: 'hidden',
       }}
@@ -136,7 +136,7 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #4E4E56' }}>
+            <tr style={{ borderBottom: '1px solid var(--admin-border)' }}>
               <th style={thStyle}>Name</th>
               <th style={thStyle}>Email</th>
               <th style={thStyle}>Phone</th>
@@ -151,12 +151,12 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                 <td style={cellStyle}>{driver.email}</td>
                 <td style={cellStyle}>
                   {driver.phone || (
-                    <span style={{ color: '#CFC9C2' }}>—</span>
+                    <span style={{ color: 'var(--admin-text-muted)' }}>—</span>
                   )}
                 </td>
                 <td style={cellStyle}>
                   {driver.vehicle_info || (
-                    <span style={{ color: '#CFC9C2' }}>—</span>
+                    <span style={{ color: 'var(--admin-text-muted)' }}>—</span>
                   )}
                 </td>
                 <td style={{ ...cellStyle, padding: '0 4px' }}>
@@ -176,11 +176,11 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                           minWidth: '44px',
                           minHeight: '44px',
                           padding: '0',
-                          color: '#CFC9C2',
+                          color: 'var(--admin-text-muted)',
                           transition: 'color 150ms ease',
                         }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#F5F2EE' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#CFC9C2' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--admin-text)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--admin-text-muted)' }}
                       >
                         <Pencil size={16} />
                       </button>
@@ -204,7 +204,7 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                               fontSize: '11px',
                               fontWeight: 400,
                               letterSpacing: '0.08em',
-                              color: '#f87171',
+                              color: 'var(--status-danger-fg)',
                             }}
                           >
                             CONFIRM?
@@ -218,7 +218,7 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                               fontFamily: 'var(--font-montserrat)',
                               fontSize: '11px',
                               fontWeight: 300,
-                              color: '#CFC9C2',
+                              color: 'var(--admin-text-muted)',
                               minHeight: '44px',
                               padding: '0 4px',
                             }}
@@ -240,11 +240,11 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                             minWidth: '44px',
                             minHeight: '44px',
                             padding: '0',
-                            color: '#CFC9C2',
+                            color: 'var(--admin-text-muted)',
                             transition: 'color 150ms ease',
                           }}
-                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#f87171' }}
-                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#CFC9C2' }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--status-danger-fg)' }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'var(--admin-text-muted)' }}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -258,7 +258,7 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                           fontFamily: 'var(--font-montserrat)',
                           fontSize: '11px',
                           fontWeight: 400,
-                          color: '#f87171',
+                          color: 'var(--status-danger-fg)',
                           padding: '0 8px',
                           maxWidth: '240px',
                         }}
