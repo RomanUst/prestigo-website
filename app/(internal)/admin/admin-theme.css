@@ -1,0 +1,216 @@
+/* Admin theme tokens (Phase 86, D-02, D-03, D-05, D-07, D-17).
+
+   Light and dark are declared on the same wrapper, keyed on data-admin-theme.
+   Every selector starts with .admin-shell, so public pages and the 7 locales
+   never see these rules. The single exception is the OQ2 edge rule below.
+   This file is a bundled import (never placed in public/), so the middleware
+   matcher is not involved. tests/admin-theme-css.test.ts enforces scoping,
+   light/dark token parity and contrast; tests/admin-no-hardcoded-colors.test.ts
+   keeps TS/TSX free of colour literals (this stylesheet is the one place they
+   live).
+
+   Do not add transform, filter, will-change, contain, perspective or
+   backdrop-filter to the wrapper rules: any of them makes .admin-shell the
+   containing block for position: fixed descendants (sidebar, hamburger,
+   modal overlays). */
+
+/* OQ2 edge rule: the only selector above .admin-shell. Custom properties do
+   not reach html/body, so the cream literal is required here. It only matches
+   while a light admin wrapper exists, so public pages are structurally
+   unaffected. */
+html:has(.admin-shell[data-admin-theme="light"]),
+body:has(.admin-shell[data-admin-theme="light"]),
+html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
+  background-color: #EFE8DA;
+  color-scheme: light;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-montserrat);
+  --admin-font-brand: 'Fraunces', Georgia, serif;
+}
+
+/* ── Light ─────────────────────────────────────────────────────────────── */
+.admin-shell[data-admin-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces and text */
+  --admin-bg: #EFE8DA;
+  --admin-sidebar-bg: #E5DCCB;
+  --admin-surface: #F7F4EF;
+  --admin-input-bg: #F7F4EF;
+  --admin-hover: #E5DCCB;
+  --admin-sidebar-hover: color-mix(in srgb, #D6CAB4 55%, transparent);
+  --admin-sidebar-active: #D6CAB4;
+  --admin-border: #D6CAB4;
+  --admin-border-strong: #857A60;
+  --admin-text: #16202A;
+  --admin-text-muted: #4F5B64;
+
+  /* Accent and states */
+  --admin-accent: #7A5A28;
+  --admin-on-accent: #F7F4EF;
+  --admin-accent-text: #6F5224;
+  --admin-accent-tint: rgba(122, 90, 40, 0.10);
+  --admin-accent-tint-strong: rgba(122, 90, 40, 0.16);
+  --admin-accent-border: rgba(122, 90, 40, 0.30);
+  --admin-focus: #6F5224;
+  --admin-danger-solid: #A32A1C;
+  --admin-on-danger: #F7F4EF;
+  --admin-scrim: rgba(22, 32, 42, 0.40);
+  --admin-shadow-sheet: 0 8px 32px rgba(22, 32, 42, 0.16);
+  --admin-tooltip-bg: #16202A;
+  --admin-tooltip-fg: #F7F4EF;
+  --admin-card-hover-border: #D6CAB4;
+  --admin-kpi-label: #4F5B64;
+
+  /* Shape and type (D-08: per-theme values, dark equals today's inline values) */
+  --admin-radius-sm: 4px;
+  --admin-radius-md: 8px;
+  --admin-radius-lg: 12px;
+  --admin-font-heading: 'Inter', 'Helvetica Neue', sans-serif;
+  --admin-fs-label: 12px;
+  --admin-fs-body: 14px;
+  --admin-fs-heading: 20px;
+  --admin-fs-display: 28px;
+  --admin-fw-strong: 500;
+  --admin-fw-heading: 500;
+  --admin-sheet-padding: 32px;
+
+  /* Charts */
+  --admin-chart-1: #7A5A28;
+  --admin-chart-2: #9A7A44;
+  --admin-chart-3: #5E6B75;
+
+  /* Status (D-17): light chips are borderless pastels */
+  --status-ok-fg: #1F5130;
+  --status-ok-bg: #D9E8D3;
+  --status-ok-border: transparent;
+  --status-danger-fg: #8F2418;
+  --status-danger-bg: #F2D4CE;
+  --status-danger-border: transparent;
+  --status-warn-fg: #8A4A0F;
+  --status-warn-bg: #F5DFC8;
+  --status-warn-border: transparent;
+  --status-amber-fg: #7A4A05;
+  --status-amber-bg: #F6E1B8;
+  --status-amber-border: transparent;
+  --status-info-fg: #1F4F78;
+  --status-info-bg: #D6E3EE;
+  --status-info-border: transparent;
+  --status-teal-fg: #17564B;
+  --status-teal-bg: #CFE7E2;
+  --status-teal-border: transparent;
+  --status-violet-fg: #4A2F7A;
+  --status-violet-bg: #E3DAF0;
+  --status-violet-border: transparent;
+  --status-neutral-fg: #4A4F55;
+  --status-neutral-bg: #E0DAC9;
+  --status-neutral-border: transparent;
+
+  /* Legacy remap: the ~900 existing var(--anthracite*) references flip for free.
+     Values are the site cream/ink/gold family with AA corrections; the public
+     .theme-light block in app/globals.css is deliberately not touched. */
+  --anthracite: #F7F4EF;
+  --anthracite-mid: #F7F4EF;
+  --anthracite-light: #D6CAB4;
+  --offwhite: #16202A;
+  --warmgrey: #4F5B64;
+  --copper: #7A5A28;
+  --copper-light: #6F5224;
+  --copper-pale: #9A7A44;
+  --color-anthracite: #F7F4EF;
+  --color-anthracite-mid: #F7F4EF;
+  --color-anthracite-light: #D6CAB4;
+  --color-offwhite: #16202A;
+  --color-warmgrey: #4F5B64;
+  --color-copper: #7A5A28;
+  --color-copper-light: #6F5224;
+  --color-copper-pale: #9A7A44;
+  --font-cormorant: var(--admin-font-heading);
+}
+
+/* ── Dark ──────────────────────────────────────────────────────────────── */
+/* Maps the retired anthracite/copper palette onto the navy/gold brand palette
+   (D-07). The bare legacy variables are intentionally not redeclared here:
+   dark inherits the global navy values from app/globals.css. */
+.admin-shell[data-admin-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces and text */
+  --admin-bg: #17293B;
+  --admin-sidebar-bg: #0F1D2C;
+  --admin-surface: #17293B;
+  --admin-input-bg: #0F1D2C;
+  --admin-hover: #1F344A;
+  --admin-sidebar-hover: #17293B;
+  --admin-sidebar-active: #17293B;
+  --admin-border: #2B4056;
+  --admin-border-strong: #6B829A;
+  --admin-text: #F3EEE3;
+  --admin-text-muted: #A9AEB0;
+
+  /* Accent and states */
+  --admin-accent: #BFA06A;
+  --admin-on-accent: #0F1D2C;
+  --admin-accent-text: #D4BB86;
+  --admin-accent-tint: rgba(191, 160, 106, 0.09);
+  --admin-accent-tint-strong: rgba(191, 160, 106, 0.15);
+  --admin-accent-border: rgba(191, 160, 106, 0.25);
+  --admin-focus: #D4BB86;
+  --admin-danger-solid: #C0392B;
+  --admin-on-danger: #F3EEE3;
+  --admin-scrim: rgba(0, 0, 0, 0.60);
+  --admin-shadow-sheet: none;
+  --admin-tooltip-bg: #F3EEE3;
+  --admin-tooltip-fg: #0F1D2C;
+  --admin-card-hover-border: #BFA06A;
+  --admin-kpi-label: #BFA06A;
+
+  /* Shape and type */
+  --admin-radius-sm: 2px;
+  --admin-radius-md: 4px;
+  --admin-radius-lg: 8px;
+  --admin-font-heading: 'Fraunces', Georgia, serif;
+  --admin-fs-label: 11px;
+  --admin-fs-body: 13px;
+  --admin-fs-heading: 20px;
+  --admin-fs-display: 28px;
+  --admin-fw-strong: 400;
+  --admin-fw-heading: 300;
+  --admin-sheet-padding: 24px;
+
+  /* Charts */
+  --admin-chart-1: #BFA06A;
+  --admin-chart-2: #D4BB86;
+  --admin-chart-3: #E6D6B0;
+
+  /* Status (D-17): dark keeps today's tinted chips with a coloured border */
+  --status-ok-fg: #4ade80;
+  --status-ok-bg: #1a3a2a;
+  --status-ok-border: rgba(34, 197, 94, 0.25);
+  --status-danger-fg: #f87171;
+  --status-danger-bg: #2a1a1a;
+  --status-danger-border: rgba(239, 68, 68, 0.25);
+  --status-warn-fg: #fb923c;
+  --status-warn-bg: #3a2a1a;
+  --status-warn-border: rgba(249, 115, 22, 0.25);
+  --status-amber-fg: #fbbf24;
+  --status-amber-bg: #3a2a0a;
+  --status-amber-border: rgba(251, 191, 36, 0.25);
+  --status-info-fg: #60a5fa;
+  --status-info-bg: #1a2a3a;
+  --status-info-border: rgba(59, 130, 246, 0.25);
+  --status-teal-fg: #34d399;
+  --status-teal-bg: #1a3a35;
+  --status-teal-border: rgba(52, 211, 153, 0.25);
+  --status-violet-fg: #a78bfa;
+  --status-violet-bg: #2a1f3a;
+  --status-violet-border: rgba(167, 139, 250, 0.25);
+  --status-neutral-fg: #A9AEB0;
+  --status-neutral-bg: #1F344A;
+  --status-neutral-border: rgba(169, 174, 176, 0.25);
+}

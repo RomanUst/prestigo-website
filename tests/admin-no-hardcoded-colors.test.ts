@@ -1,0 +1,273 @@
+// @vitest-environment node
+import { describe, it, expect } from 'vitest'
+import fs from 'fs'
+import path from 'path'
+
+/**
+ * Phase 86, ADM-03 (D-04): no hard-coded colour in admin TS/TSX.
+ *
+ * Scans every .ts/.tsx under components/admin and app/(internal)/admin for hex
+ * literals, rgb()/rgba()/hsl()/hsla()/oklch()/oklab()/color-mix() calls and bare
+ * CSS colour keywords used as colour values. The token sheet itself
+ * (app/(internal)/admin/admin-theme.css) is a .css file and is intentionally
+ * outside the scan.
+ *
+ * Ratchet: the 34 files that still carry literals today are listed per owning
+ * plan in tests/fixtures/admin-color-pending/86-0N.json (a separate file per
+ * plan so Wave 2 plans never edit the same file). Each conversion plan deletes
+ * its own entries; the closeout plan asserts the ledger is empty. A literal in
+ * any file outside the ledger fails immediately, so no new literal can land.
+ */
+
+const REPO_ROOT = path.resolve(__dirname, '..')
+const SCAN_ROOTS = ['components/admin', 'app/(internal)/admin']
+const EXTENSIONS = new Set(['.ts', '.tsx'])
+const LEDGER_DIR = 'tests/fixtures/admin-color-pending'
+
+/** The scan can never shrink silently: these files must always be in it. */
+const SCOPE_FLOOR = [
+  'components/admin/AdminSidebar.tsx',
+  'components/admin/BookingsTable.tsx',
+  'components/admin/StatusBadge.tsx',
+  'components/admin/AdminShell.tsx',
+  'app/(internal)/admin/layout.tsx',
+  'app/(internal)/admin/login/page.tsx',
+  'app/(internal)/admin/(dashboard)/layout.tsx',
+]
+
+// (?<![\w&]) keeps HTML entities such as &#10003; and word-internal # out.
+const HEX = /(?<![\w&])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})(?![\w-])/g
+const COLOR_FN = /\b(?:rgb|rgba|hsl|hsla|oklch|oklab|color-mix)\(/g
+const COLOR_KEYWORD =
+  /\b(?:color|background(?:Color)?|border(?:Color|Top|Right|Bottom|Left)?|fill|stroke|outline|boxShadow)\s*:\s*['"`]?\s*(?:white|black|red|green|blue|gray|grey|orange|yellow|purple)\b/g
+
+const PATTERNS = [HEX, COLOR_FN, COLOR_KEYWORD]
+
+/** Frequent legacy literal -> UI-SPEC Token Map target. */
+const TOKEN_HINTS: Record<string, string> = {
+  '#f87171': '--status-danger-fg',
+  '#ff6b6b': '--status-danger-fg',
+  '#ef4444': '--status-danger-fg',
+  '#e74c3c': '--status-danger-fg',
+  '#c0392b': '--admin-danger-solid',
+  '#4ade80': '--status-ok-fg',
+  '#27ae60': '--status-ok-fg',
+  '#60a5fa': '--status-info-fg',
+  '#cfc9c2': '--admin-text-muted',
+  '#f5f2ee': '--admin-text',
+  '#4e4e56': '--admin-border or --admin-border-strong',
+  '#b87333': '--admin-accent',
+  '#28282b': '--admin-sidebar-bg or --admin-surface',
+  '#36363b': '--admin-sidebar-bg or --admin-surface',
+}
+const DEFAULT_HINT = 'a var(--admin-*|--status-*) token'
+const RGBA_HINT = '--admin-scrim / --admin-accent-tint / --status-*-border'
+
+function tokenHint(literal: string): string {
+  const key = literal.toLowerCase()
+  if (TOKEN_HINTS[key]) return TOKEN_HINTS[key]
+  if (/^rgba?\($/.test(key)) return RGBA_HINT
+  return DEFAULT_HINT
+}
+
+interface PendingEntry {
+  file: string
+  reason: string
+  plan: string
+}
+
+interface Hit {
+  file: string
+  line: number
+  literal: string
+}
+
+function walk(rel: string, out: string[] = []): string[] {
+  const abs = path.join(REPO_ROOT, rel)
+  if (!fs.existsSync(abs)) return out
+  for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+    const child = `${rel}/${entry.name}`
+    if (entry.isDirectory()) walk(child, out)
+    else if (EXTENSIONS.has(path.extname(entry.name))) out.push(child)
+  }
+  return out
+}
+
+/** Path-sorted list of every scanned file. */
+function scanFiles(): string[] {
+  return SCAN_ROOTS.flatMap((root) => walk(root)).sort()
+}
+
+/** Colour literals on one line, in the order they appear. */
+function literalsInLine(line: string): string[] {
+  const found: { index: number; text: string }[] = []
+  for (const re of PATTERNS) {
+    re.lastIndex = 0
+    for (const m of line.matchAll(re)) found.push({ index: m.index ?? 0, text: m[0] })
+  }
+  return found.sort((a, b) => a.index - b.index).map((f) => f.text)
+}
+
+function hitsInSource(file: string, source: string): Hit[] {
+  const hits: Hit[] = []
+  source.split('\n').forEach((line, i) => {
+    for (const literal of literalsInLine(line)) hits.push({ file, line: i + 1, literal })
+  })
+  return hits
+}
+
+/** Deterministic report order: file path, then line number. */
+function sortHits(hits: Hit[]): Hit[] {
+  return [...hits].sort((a, b) => (a.file === b.file ? a.line - b.line : a.file.localeCompare(b.file)))
+}
+
+function formatHit(h: Hit): string {
+  return `${h.file}:${h.line} ${h.literal} -> ${tokenHint(h.literal)}`
+}
+
+function readSource(file: string): string {
+  return fs.readFileSync(path.join(REPO_ROOT, file), 'utf8')
+}
+
+/** Hits for files that are not pending, as sorted report lines. */
+function violations(sources: Record<string, string>, pending: Set<string>): string[] {
+  const hits: Hit[] = []
+  for (const [file, source] of Object.entries(sources)) {
+    if (pending.has(file)) continue
+    hits.push(...hitsInSource(file, source))
+  }
+  return sortHits(hits).map(formatHit)
+}
+
+/** Ledger entries whose file no longer holds a literal (or is no longer scanned). */
+function staleEntries(sources: Record<string, string>, ledger: PendingEntry[]): string[] {
+  return ledger
+    .filter((e) => !(e.file in sources) || hitsInSource(e.file, sources[e.file]).length === 0)
+    .map((e) => `${e.file} (${e.plan})`)
+    .sort()
+}
+
+function loadLedger(): PendingEntry[] {
+  const dir = path.join(REPO_ROOT, LEDGER_DIR)
+  if (!fs.existsSync(dir)) return []
+  return fs
+    .readdirSync(dir)
+    .filter((n) => n.endsWith('.json'))
+    .sort()
+    .flatMap((n) => JSON.parse(fs.readFileSync(path.join(dir, n), 'utf8')) as PendingEntry[])
+}
+
+const FILES = scanFiles()
+const SOURCES: Record<string, string> = Object.fromEntries(FILES.map((f) => [f, readSource(f)]))
+const LEGACY_PENDING = loadLedger()
+
+describe('admin colour guard: regexes (D-04)', () => {
+  it.each([
+    "'#fff'",
+    '"#B87333"',
+    "'#B8733380'",
+    "'rgba(0,0,0,0.5)'",
+    "'hsl(10 20% 30%)'",
+    "'color-mix(in srgb, red, blue)'",
+    "{ color: 'white' }",
+    '{ background: "black" }',
+    "'oklch(0.5 0.1 200)'",
+  ])('detects %s', (line) => {
+    expect(literalsInLine(line).length).toBeGreaterThan(0)
+  })
+
+  it.each([
+    "'&#10003;'",
+    "'var(--admin-text)'",
+    "'transparent'",
+    "'currentColor'",
+    "'inherit'",
+    "'none'",
+    "href='#section-1'",
+    "{ border: '1px solid var(--admin-border)' }",
+  ])('ignores %s', (line) => {
+    expect(literalsInLine(line)).toEqual([])
+  })
+})
+
+describe('admin colour guard: scan scope', () => {
+  it('scans a non-empty, path-sorted file set', () => {
+    expect(FILES.length).toBeGreaterThan(0)
+    expect([...FILES].sort()).toEqual(FILES)
+  })
+
+  it('covers .ts and .tsx only (the .css token file is not scanned)', () => {
+    for (const f of FILES) expect(['.ts', '.tsx']).toContain(path.extname(f))
+  })
+
+  it('never loses a SCOPE_FLOOR file', () => {
+    for (const f of SCOPE_FLOOR) expect(FILES).toContain(f)
+  })
+})
+
+describe('admin colour guard: report behaviour', () => {
+  it('with an empty ledger every literal fails', () => {
+    const out = violations({ 'components/admin/X.tsx': "const a = '#123456'\nconst b = 'rgba(1,2,3,0.5)'" }, new Set())
+    expect(out).toHaveLength(2)
+  })
+
+  it('a file with zero literals passes', () => {
+    expect(violations({ 'components/admin/Y.tsx': "const a = 'var(--admin-text)'" }, new Set())).toEqual([])
+  })
+
+  it('names file:line literal -> token, sorted by file then line', () => {
+    const out = violations(
+      {
+        'components/admin/B.tsx': "x\ny = '#f87171'",
+        'components/admin/A.tsx': "a = '#b87333'\nb\nc = '#4ade80'",
+      },
+      new Set(),
+    )
+    expect(out).toEqual([
+      'components/admin/A.tsx:1 #b87333 -> --admin-accent',
+      'components/admin/A.tsx:3 #4ade80 -> --status-ok-fg',
+      'components/admin/B.tsx:2 #f87171 -> --status-danger-fg',
+    ])
+  })
+
+  it('a ledger entry whose file holds no literal is stale', () => {
+    const sources = { 'components/admin/Clean.tsx': 'const a = 1', 'components/admin/Dirty.tsx': "x = '#abc'" }
+    const ledger: PendingEntry[] = [
+      { file: 'components/admin/Clean.tsx', reason: 'r', plan: '86-02' },
+      { file: 'components/admin/Dirty.tsx', reason: 'r', plan: '86-02' },
+      { file: 'components/admin/Gone.tsx', reason: 'r', plan: '86-03' },
+    ]
+    expect(staleEntries(sources, ledger)).toEqual([
+      'components/admin/Clean.tsx (86-02)',
+      'components/admin/Gone.tsx (86-03)',
+    ])
+  })
+})
+
+describe('admin colour guard: the tree (ADM-03)', () => {
+  const pending = new Set(LEGACY_PENDING.map((e) => e.file))
+
+  it('has no colour literal outside the pending ledger', () => {
+    expect(violations(SOURCES, pending)).toEqual([])
+  })
+
+  it('every ledger entry has a reason, an owning plan 86-02..86-07 and a scanned file', () => {
+    for (const e of LEGACY_PENDING) {
+      expect(e.reason.trim().length).toBeGreaterThan(0)
+      expect(e.plan).toMatch(/^86-0[2-7]$/)
+      expect(FILES).toContain(e.file)
+    }
+  })
+
+  it('no file is claimed by two plans', () => {
+    const seen = new Set<string>()
+    for (const e of LEGACY_PENDING) {
+      expect(seen.has(e.file)).toBe(false)
+      seen.add(e.file)
+    }
+  })
+
+  it('no ledger entry is stale (a converted file must leave the ledger)', () => {
+    expect(staleEntries(SOURCES, LEGACY_PENDING)).toEqual([])
+  })
+})

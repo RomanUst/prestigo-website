@@ -1,0 +1,37 @@
+[
+  {
+    "file": "components/admin/FlightStatusBlock.tsx",
+    "reason": "pending 86-05 token conversion",
+    "plan": "86-05"
+  },
+  {
+    "file": "components/admin/DriverAssignmentSection.tsx",
+    "reason": "pending 86-05 token conversion",
+    "plan": "86-05"
+  },
+  {
+    "file": "components/admin/DispatchDefault.tsx",
+    "reason": "pending 86-05 token conversion",
+    "plan": "86-05"
+  },
+  {
+    "file": "components/admin/ManualBookingForm.tsx",
+    "reason": "pending 86-05 token conversion",
+    "plan": "86-05"
+  },
+  {
+    "file": "components/admin/AdminBookingWizard.tsx",
+    "reason": "pending 86-05 token conversion",
+    "plan": "86-05"
+  },
+  {
+    "file": "components/admin/AdminStep6Create.tsx",
+    "reason": "pending 86-05 token conversion",
+    "plan": "86-05"
+  },
+  {
+    "file": "components/admin/BookingChangeHistory.tsx",
+    "reason": "pending 86-05 token conversion",
+    "plan": "86-05"
+  }
+]
