@@ -58,13 +58,14 @@ Declared values (all multiples of 4):
 |-------|-------|-------|
 | xs | 4px | Gap between stacked nav items (light), icon-to-badge dot, label-to-input |
 | sm | 8px | Compact element spacing, tooltip offset from rail, chip padding (vertical 4 / horizontal 8) |
+| md-sm | 12px | Nav icon-to-label gap, input and nav-item horizontal padding, table cell vertical padding (existing in-use value, multiple of 4) |
 | md | 16px | Default element spacing, sidebar section padding, modal header margin |
 | lg | 24px | Card padding, modal padding (dark), sidebar header padding |
 | xl | 32px | Main content side/bottom padding (unchanged), modal padding (light), layout gaps |
 | 2xl | 48px | Login card vertical padding (unchanged) |
 | 3xl | 64px | Mobile main top padding `pt-16` (unchanged, clears the hamburger) |
 
-Existing in-use `12px` (nav icon-to-label gap, input horizontal padding) is a multiple of 4 and is retained.
+
 
 Exceptions:
 - Sidebar widths: expanded 280px, collapsed rail 72px (D-13), driven only by `--admin-sidebar-w`.
@@ -78,17 +79,19 @@ Exceptions:
 
 ## Typography
 
-Four sizes and two weights per theme. Dark keeps today's 11/13 scale; light uses the calmer 12/14 scale (D-09, D-10). Sizes are exposed as tokens (`--admin-fs-label`, `--admin-fs-body`, `--admin-fs-heading`, `--admin-fs-display`) that new and restyled code references; this phase does not re-type every inline `fontSize`, only shared primitives, the shell and the elements named below.
+Four sizes and two weights per theme (light 400/500, dark 300/400). Dark keeps today's 11/13 scale; light uses the calmer 12/14 scale (D-09, D-10). Sizes are exposed as tokens (`--admin-fs-label`, `--admin-fs-body`, `--admin-fs-heading`, `--admin-fs-display`) that new and restyled code references; this phase does not re-type every inline `fontSize`, only shared primitives, the shell and the elements named below.
 
-| Role | Light | Dark | Weight | Line Height |
-|------|-------|------|--------|-------------|
-| Label / meta (table headers, field labels, chip, sub-label, tooltip) | 12px, sentence case, tracking 0 | 11px, UPPERCASE, existing tracking | 500 (field labels, table headers, chips) / 400 (sub-labels) | 1.4 |
-| Body (nav, table cells, inputs, buttons) | 14px | 13px | 400 (500 for the active nav item and primary button) | 1.5 |
-| Heading (page title, modal title, card title) | 20px, Inter | 20px, Fraunces | 500 light / 300 dark (legacy, unchanged) | 1.2 |
-| Display (KPI value, login title) | 28px, Inter | 28px, Fraunces | 500 light / 300 dark (legacy) | 1.1 |
+| Role | Light size | Dark size | Light weight | Dark weight | Line Height |
+|------|------------|-----------|--------------|-------------|-------------|
+| Label / meta (table headers, field labels, chip, sub-label, tooltip, rail tooltip) | 12px, sentence case, tracking 0 | 11px, UPPERCASE, existing tracking | 500 | 400 | 1.4 |
+| Body (nav, table cells, inputs, buttons) | 14px | 13px | 400 (500 for active nav item and primary button) | 400 | 1.5 |
+| Heading (page title, modal title, card title) | 20px, Inter | 20px, Fraunces | 500 | 300 (existing Fraunces look, unchanged) | 1.2 |
+| Display (KPI value, login title) | 28px, Inter | 28px, Fraunces | 500 | 300 (existing, unchanged) | 1.1 |
 
 Rules:
-- Declared weights are 400 and 500. The legacy weights 300 (dark headings) and 600 (3 usages) are not extended to any new element; in light, 300 is forced to 400 by the safety net, and the three 600 usages are changed to 500.
+- Exactly two weights per theme: light = 400 + 500; dark = 300 + 400. Dark keeps Fraunces headings at their current weight 300 (D-08: dark structure unchanged) and everything else at 400, so dark labels, active nav item and buttons use 400 (no bold in dark). Existing inline `fontWeight` 500/600 in dark are not re-typed by the mechanical conversion, but no new or restyled element may use them; the three existing 600 usages become 500 (light) / 400 (dark) via the shared primitives.
+- Light: the safety net forces legacy inline 300 to 400. Any restyled light heading uses 500.
+- Every text element uses one of the four size tokens of its theme; the rail tooltip uses the label token (12px light, 11px dark), never a fixed 12px. Table-header and chip sizes in this spec are likewise the label token.
 - KPI value was 32px; it becomes 28px (Display token) in both themes to keep a 4-size scale.
 - PRESTIGO wordmark: Fraunces 20px, tracking 0.12em, uppercase, weight 400 in both themes (brand mark, exempt from the light-theme sentence-case rule). The "Admin" sub-label under it is hidden in the collapsed rail.
 - Light theme: no uppercase and no letter-spacing on labels or headings (D-10); thin 1px dividers (`--admin-border`) instead of boxes.
@@ -207,7 +210,7 @@ The conversion plan runs first and is purely mechanical (no layout change). Inve
 |--------|------------------|--------------------------------------|
 | Header | `PRESTIGO` wordmark + "Admin" sub-label; collapse button at the right edge (D-14) | Collapse button only, centered; wordmark and sub-label hidden |
 | Nav item | 20px lucide icon + 14px label, 12px gap, 44px min height, radius `--admin-radius-md`, horizontal padding 12px | Icon only, centered in a 44x44 target; label kept in the DOM as visually hidden text (screen readers and existing tests find it) |
-| Active item | `aria-current="page"`; light = `--admin-sidebar-active` fill, ink text, weight 500; dark = current look (left bar, offwhite text) | Same fill on the icon tile |
+| Active item | `aria-current="page"`; light = `--admin-sidebar-active` fill, ink text, weight 500; dark = current look (left bar, offwhite text, weight 400) | Same fill on the icon tile |
 | Hover | `--admin-sidebar-hover` fill, 150ms colour transition | Same, plus tooltip |
 | Footer | Theme toggle (icon button) and Sign out (LogOut icon + "Sign out") on one row | Theme toggle and Sign out icon buttons stacked, each with tooltip |
 | Overflow | Nav list scrolls (`overflow-y: auto`) on short viewports; footer stays pinned | Same |
@@ -216,7 +219,7 @@ The conversion plan runs first and is purely mechanical (no layout change). Inve
 - Collapse toggle: `PanelLeftClose` when expanded, `PanelLeftOpen` when collapsed; `aria-expanded`, `aria-controls="admin-sidebar"`. Click writes `admin_sidebar`, flips `data-admin-sidebar` and `--admin-sidebar-w`; `main` margin is `md:ml-[var(--admin-sidebar-w)]` with the 200ms transition (replaces `md:ml-[280px]`).
 - Theme toggle: shows `Sun` while dark (action: go light) and `Moon` while light (action: go dark); the label always names the action. Click writes `admin_theme` and flips `data-admin-theme` instantly with no reload.
 - Keyboard (D-15): `Ctrl+\` or `Cmd+\` toggles collapse and calls `preventDefault`. Ignored when focus is in `input`, `textarea`, `select` or a `contenteditable` element, and while a modal is open. Desktop only.
-- Tooltips (collapsed rail only): one small CSS tooltip per item, shown on hover and on `:focus-visible`, 300ms hover delay, placed 8px to the right of the rail, `white-space: nowrap`, z-index 70, `--admin-tooltip-bg/fg`, 12px/500 type. Not the native `title` attribute (no keyboard support, inconsistent delay). Icon-only controls always carry `aria-label`.
+- Tooltips (collapsed rail only): one small CSS tooltip per item, shown on hover and on `:focus-visible`, 300ms hover delay, placed 8px to the right of the rail, `white-space: nowrap`, z-index 70, `--admin-tooltip-bg/fg`, label-token type (12px/500 light, 11px/400 dark). Not the native `title` attribute (no keyboard support, inconsistent delay). Icon-only controls always carry `aria-label`.
 - Mobile (D-16): below `md` nothing changes structurally — hamburger (44x44, top-left, z 60) plus a 280px slide-over that always shows full labels regardless of the cookie; the panel closes on navigation and on backdrop tap. The collapsed state never affects mobile. Hamburger and backdrop use `--admin-sidebar-bg`, `--admin-border-strong`, `--admin-text`, `--admin-scrim`.
 - Existing assertions in `tests/AdminSidebar.test.tsx` must keep passing (open-menu label, `md:hidden` on the hamburger, nav order, hrefs, inline `min-height` on every link); the tests are updated only to supply the new props.
 
@@ -231,6 +234,8 @@ The conversion plan runs first and is purely mechanical (no layout change). Inve
 | Modals / side panels | `--admin-surface` sheet, `--admin-shadow-sheet`, radius `--admin-radius-lg`, padding 32px, 20px/500 title, close button 44x44 using `X` icon in `--admin-text-muted`, scrim `--admin-scrim` |
 | Fields | `--admin-input-bg`, 1px `--admin-border-strong`, radius `--admin-radius-md`, 14px, `min-height: 44px` |
 | Status | Pastel chips: `--status-*-bg` fill, `--status-*-fg` text, no border, radius `--admin-radius-sm`, 12px/500 sentence case; the 6px leading dot is kept in `fg` |
+
+Focal points: each screen's page title (Heading) followed by its KPI row or primary table leads the eye; the single filled primary button is the only accent-filled element per view; on login the focal point is the card with its primary button. The active nav item is the only highlighted sidebar row.
 
 Dark keeps its current structure (uppercase-tracked labels, bordered cards, left active bar, Fraunces headings), re-tokened only (D-08).
 
