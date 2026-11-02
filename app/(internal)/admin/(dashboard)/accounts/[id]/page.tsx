@@ -133,7 +133,7 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--anthracite)', borderBottom: '1px solid var(--anthracite-light)', height: '40px' }}>
-              {['REF', 'PICKUP', 'ROUTE', 'VEHICLE', 'AMOUNT', 'STATUS'].map((h, i) => (
+              {['Ref', 'Pickup', 'Route', 'Vehicle', 'Amount', 'Status'].map((h, i) => (
                 <th key={h} style={{ padding: '0 12px', textAlign: i === 4 ? 'right' : 'left', fontFamily: 'var(--font-montserrat)', fontSize: '11px', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.4em', color: 'var(--warmgrey)' }}>
                   {h}
                 </th>

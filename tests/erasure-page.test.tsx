@@ -399,7 +399,7 @@ describe('Erasure page: log', () => {
     render(<ErasurePage />)
     await screen.findByText('abcdef0121')
     const heads = screen.getAllByRole('columnheader').map((h) => h.textContent)
-    expect(heads).toEqual(['REQUESTED', 'REFERENCE', 'STATUS', 'SITE', 'CHATWOOT', 'ESPOCRM', 'VERIFIED', 'COMPLETED'])
+    expect(heads).toEqual(['Requested', 'Reference', 'Status', 'Site', 'Chatwoot', 'EspoCRM', 'Verified', 'Completed'])
     expect(screen.getByRole('heading', { level: 2, name: 'Erasure log' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Refresh erasure log' })).toBeTruthy()
   })
@@ -564,7 +564,8 @@ describe('Erasure page: log polling', () => {
     expect(logCalls).toBe(1)
     await advance(1_500)
     expect(logCalls).toBe(2)
-    expect(screen.getByText('Completed')).toBeTruthy()
+    // The header cell is also "Completed" now that headers are sentence case; look in the data row.
+    expect(within(screen.getAllByRole('row')[1]).getByText('Completed')).toBeTruthy()
 
     await advance(60_000)
     expect(logCalls).toBe(2)
