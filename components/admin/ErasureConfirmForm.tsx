@@ -18,7 +18,7 @@ const CONFIRM_ERROR = 'Could not start the erasure. Nothing was deleted. Try aga
 const IN_PROGRESS = 'An erasure for this person is already in progress.'
 const UNCONFIGURED = 'Erasure is not set up on this server yet. Ask your developer to configure it.'
 
-const DESTRUCTIVE = '#f87171'
+const DESTRUCTIVE = 'var(--admin-danger-solid)'
 
 export function ErasureConfirmForm({ requestId, email, upcoming, onQueued, onKeep }: ErasureConfirmFormProps) {
   const [identityOk, setIdentityOk] = useState(false)
@@ -205,7 +205,7 @@ const destructiveButton: React.CSSProperties = {
   minHeight: '44px',
   padding: '0 24px',
   background: DESTRUCTIVE,
-  color: 'var(--anthracite)',
+  color: 'var(--admin-on-danger)',
   border: 'none',
   borderRadius: '4px',
   ...bodyText,

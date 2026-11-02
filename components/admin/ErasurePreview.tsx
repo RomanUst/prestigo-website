@@ -33,7 +33,7 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
       >
         {preview.primaryEmail}
       </h2>
-      <div style={{ ...labelText, letterSpacing: '0.3em', textTransform: 'uppercase', color: '#CFC9C2', margin: '0 0 8px' }}>
+      <div style={{ ...labelText, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--admin-text-muted)', margin: '0 0 8px' }}>
         What will happen
       </div>
       <div style={{ border: '1px solid var(--anthracite-light)', borderRadius: '4px' }}>
@@ -59,10 +59,10 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
             alignItems: 'flex-start',
             margin: '16px 0 0',
             padding: '16px',
-            background: '#2a1a1a',
-            border: '1px solid #f87171',
+            background: 'var(--status-danger-bg)',
+            border: '1px solid var(--status-danger-fg)',
             borderRadius: '4px',
-            color: '#f87171',
+            color: 'var(--status-danger-fg)',
             ...bodyText,
           }}
         >
@@ -105,7 +105,7 @@ function Row({ label, muted, children }: { label?: string; muted?: boolean; chil
             flex: '0 0 96px',
             letterSpacing: '0.3em',
             textTransform: 'uppercase',
-            color: '#CFC9C2',
+            color: 'var(--admin-text-muted)',
             paddingTop: '2px',
           }}
         >
@@ -146,8 +146,8 @@ const destructiveOutlined: React.CSSProperties = {
   minHeight: '44px',
   padding: '0 24px',
   background: 'transparent',
-  color: '#f87171',
-  border: '1px solid #f87171',
+  color: 'var(--status-danger-fg)',
+  border: '1px solid var(--status-danger-fg)',
   borderRadius: '4px',
   cursor: 'pointer',
   ...bodyText,

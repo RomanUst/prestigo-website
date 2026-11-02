@@ -269,7 +269,7 @@ export default function OutboxPage() {
         {retryAllMsg}
       </div>
       {retryError && (
-        <p role="alert" style={{ ...labelText, color: '#f87171', margin: '0 0 16px' }}>
+        <p role="alert" style={{ ...labelText, color: 'var(--status-danger-fg)', margin: '0 0 16px' }}>
           {RETRY_ERROR}
         </p>
       )}

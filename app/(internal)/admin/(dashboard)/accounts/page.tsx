@@ -44,8 +44,8 @@ export default function AccountsPage() {
         <button
           onClick={() => setModalOpen(true)}
           style={{
-            backgroundColor: '#B87333',
-            color: '#F5F2EE',
+            backgroundColor: 'var(--admin-accent)',
+            color: 'var(--admin-on-accent)',
             border: 'none',
             borderRadius: '4px',
             padding: '8px 24px',

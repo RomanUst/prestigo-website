@@ -379,7 +379,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
               marginTop: '12px',
               fontFamily: 'var(--font-montserrat)',
               fontSize: '11px',
-              color: '#f87171',
+              color: 'var(--status-danger-fg)',
             }}
             role="alert"
           >
@@ -452,7 +452,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
                   }}
                   onMouseEnter={(e) => {
                     const svg = e.currentTarget.querySelector('svg')
-                    if (svg) (svg as SVGElement & { style: CSSStyleDeclaration }).style.color = '#f87171'
+                    if (svg) (svg as SVGElement & { style: CSSStyleDeclaration }).style.color = 'var(--status-danger-fg)'
                   }}
                   onMouseLeave={(e) => {
                     const svg = e.currentTarget.querySelector('svg')
@@ -474,7 +474,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
             onChange={(e) => setNewDate(e.target.value)}
             style={{
               background: 'var(--anthracite)',
-              border: `1px solid ${newDate && holidayDates.includes(newDate) ? '#f87171' : focusedInput === 'holiday-date-input' ? 'var(--copper)' : 'var(--anthracite-light)'}`,
+              border: `1px solid ${newDate && holidayDates.includes(newDate) ? 'var(--status-danger-fg)' : focusedInput === 'holiday-date-input' ? 'var(--copper)' : 'var(--anthracite-light)'}`,
               borderRadius: '2px',
               color: 'var(--offwhite)',
               fontFamily: 'var(--font-montserrat)',
@@ -561,13 +561,13 @@ export default function PricingForm({ initialData }: PricingFormProps) {
         </button>
 
         {saveStatus === 'success' && (
-          <span style={{ fontSize: '11px', color: '#4ade80' }}>Pricing saved.</span>
+          <span style={{ fontSize: '11px', color: 'var(--status-ok-fg)' }}>Pricing saved.</span>
         )}
         {saveStatus === 'error' && (
-          <span style={{ fontSize: '11px', color: '#f87171' }}>Save failed. Try again.</span>
+          <span style={{ fontSize: '11px', color: 'var(--status-danger-fg)' }}>Save failed. Try again.</span>
         )}
         {saveStatus === 'range-error' && (
-          <span style={{ fontSize: '11px', color: '#f87171' }}>Minimum hours must be less than maximum hours.</span>
+          <span style={{ fontSize: '11px', color: 'var(--status-danger-fg)' }}>Minimum hours must be less than maximum hours.</span>
         )}
       </div>
     </form>
