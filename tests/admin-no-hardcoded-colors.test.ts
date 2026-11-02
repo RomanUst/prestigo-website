@@ -12,17 +12,18 @@ import path from 'path'
  * (app/(internal)/admin/admin-theme.css) is a .css file and is intentionally
  * outside the scan.
  *
- * Ratchet: the 34 files that still carry literals today are listed per owning
- * plan in tests/fixtures/admin-color-pending/86-0N.json (a separate file per
- * plan so Wave 2 plans never edit the same file). Each conversion plan deletes
- * its own entries; the closeout plan asserts the ledger is empty. A literal in
- * any file outside the ledger fails immediately, so no new literal can land.
+ * Closeout (D-04): the conversion ratchet is finished. LEGACY_PENDING is an
+ * empty constant (asserted empty below) and the pending-ledger directory is
+ * gone (asserted absent), so a single literal in any admin .ts/.tsx fails the
+ * suite. Do not relocate literals into a module outside the scanned roots;
+ * admin colours come only from var(--admin-*) / var(--status-*) tokens.
  */
 
 const REPO_ROOT = path.resolve(__dirname, '..')
 const SCAN_ROOTS = ['components/admin', 'app/(internal)/admin']
 const EXTENSIONS = new Set(['.ts', '.tsx'])
-const LEDGER_DIR = 'tests/fixtures/admin-color-pending'
+/** Removed at closeout; the guard asserts it stays gone (no silent ledger fallback). */
+const REMOVED_LEDGER_DIR = 'tests/fixtures/admin-color-pending'
 
 /** The scan can never shrink silently: these files must always be in it. */
 const SCOPE_FLOOR = [
@@ -68,12 +69,6 @@ function tokenHint(literal: string): string {
   if (TOKEN_HINTS[key]) return TOKEN_HINTS[key]
   if (/^rgba?\($/.test(key)) return RGBA_HINT
   return DEFAULT_HINT
-}
-
-interface PendingEntry {
-  file: string
-  reason: string
-  plan: string
 }
 
 interface Hit {
@@ -129,37 +124,17 @@ function readSource(file: string): string {
   return fs.readFileSync(path.join(REPO_ROOT, file), 'utf8')
 }
 
-/** Hits for files that are not pending, as sorted report lines. */
-function violations(sources: Record<string, string>, pending: Set<string>): string[] {
+/** Every colour literal in the given sources, as sorted report lines. */
+function violations(sources: Record<string, string>): string[] {
   const hits: Hit[] = []
-  for (const [file, source] of Object.entries(sources)) {
-    if (pending.has(file)) continue
-    hits.push(...hitsInSource(file, source))
-  }
+  for (const [file, source] of Object.entries(sources)) hits.push(...hitsInSource(file, source))
   return sortHits(hits).map(formatHit)
-}
-
-/** Ledger entries whose file no longer holds a literal (or is no longer scanned). */
-function staleEntries(sources: Record<string, string>, ledger: PendingEntry[]): string[] {
-  return ledger
-    .filter((e) => !(e.file in sources) || hitsInSource(e.file, sources[e.file]).length === 0)
-    .map((e) => `${e.file} (${e.plan})`)
-    .sort()
-}
-
-function loadLedger(): PendingEntry[] {
-  const dir = path.join(REPO_ROOT, LEDGER_DIR)
-  if (!fs.existsSync(dir)) return []
-  return fs
-    .readdirSync(dir)
-    .filter((n) => n.endsWith('.json'))
-    .sort()
-    .flatMap((n) => JSON.parse(fs.readFileSync(path.join(dir, n), 'utf8')) as PendingEntry[])
 }
 
 const FILES = scanFiles()
 const SOURCES: Record<string, string> = Object.fromEntries(FILES.map((f) => [f, readSource(f)]))
-const LEGACY_PENDING = loadLedger()
+/** D-04 closeout: no file is allowed to keep a colour literal. Must stay empty. */
+const LEGACY_PENDING: readonly string[] = []
 
 describe('admin colour guard: regexes (D-04)', () => {
   it.each([
@@ -206,13 +181,13 @@ describe('admin colour guard: scan scope', () => {
 })
 
 describe('admin colour guard: report behaviour', () => {
-  it('with an empty ledger every literal fails', () => {
-    const out = violations({ 'components/admin/X.tsx': "const a = '#123456'\nconst b = 'rgba(1,2,3,0.5)'" }, new Set())
+  it('every literal fails', () => {
+    const out = violations({ 'components/admin/X.tsx': "const a = '#123456'\nconst b = 'rgba(1,2,3,0.5)'" })
     expect(out).toHaveLength(2)
   })
 
   it('a file with zero literals passes', () => {
-    expect(violations({ 'components/admin/Y.tsx': "const a = 'var(--admin-text)'" }, new Set())).toEqual([])
+    expect(violations({ 'components/admin/Y.tsx': "const a = 'var(--admin-text)'" })).toEqual([])
   })
 
   it('names file:line literal -> token, sorted by file then line', () => {
@@ -221,7 +196,6 @@ describe('admin colour guard: report behaviour', () => {
         'components/admin/B.tsx': "x\ny = '#f87171'",
         'components/admin/A.tsx': "a = '#b87333'\nb\nc = '#4ade80'",
       },
-      new Set(),
     )
     expect(out).toEqual([
       'components/admin/A.tsx:1 #b87333 -> --admin-accent',
@@ -229,45 +203,18 @@ describe('admin colour guard: report behaviour', () => {
       'components/admin/B.tsx:2 #f87171 -> --status-danger-fg',
     ])
   })
-
-  it('a ledger entry whose file holds no literal is stale', () => {
-    const sources = { 'components/admin/Clean.tsx': 'const a = 1', 'components/admin/Dirty.tsx': "x = '#abc'" }
-    const ledger: PendingEntry[] = [
-      { file: 'components/admin/Clean.tsx', reason: 'r', plan: '86-02' },
-      { file: 'components/admin/Dirty.tsx', reason: 'r', plan: '86-02' },
-      { file: 'components/admin/Gone.tsx', reason: 'r', plan: '86-03' },
-    ]
-    expect(staleEntries(sources, ledger)).toEqual([
-      'components/admin/Clean.tsx (86-02)',
-      'components/admin/Gone.tsx (86-03)',
-    ])
-  })
 })
 
-describe('admin colour guard: the tree (ADM-03)', () => {
-  const pending = new Set(LEGACY_PENDING.map((e) => e.file))
-
-  it('has no colour literal outside the pending ledger', () => {
-    expect(violations(SOURCES, pending)).toEqual([])
+describe('admin colour guard: the tree (ADM-03, D-04 closeout)', () => {
+  it('LEGACY_PENDING is empty: no admin file is allowed a colour literal', () => {
+    expect(LEGACY_PENDING).toHaveLength(0)
   })
 
-  it('every ledger entry has a reason, an owning plan 86-02..86-07 and a scanned file', () => {
-    for (const e of LEGACY_PENDING) {
-      expect(e.reason.trim().length).toBeGreaterThan(0)
-      expect(e.plan).toMatch(/^86-0[2-7]$/)
-      expect(FILES).toContain(e.file)
-    }
+  it('the pending-ledger directory no longer exists and must not come back', () => {
+    expect(fs.existsSync(path.join(REPO_ROOT, REMOVED_LEDGER_DIR))).toBe(false)
   })
 
-  it('no file is claimed by two plans', () => {
-    const seen = new Set<string>()
-    for (const e of LEGACY_PENDING) {
-      expect(seen.has(e.file)).toBe(false)
-      seen.add(e.file)
-    }
-  })
-
-  it('no ledger entry is stale (a converted file must leave the ledger)', () => {
-    expect(staleEntries(SOURCES, LEGACY_PENDING)).toEqual([])
+  it('has no colour literal in any admin .ts/.tsx', () => {
+    expect(violations(SOURCES)).toEqual([])
   })
 })

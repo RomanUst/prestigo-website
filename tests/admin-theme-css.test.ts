@@ -186,10 +186,21 @@ describe('admin-theme.css scoping (D-02, T-86-05)', () => {
       else offenders.push(r.selectors.join(', '))
     }
     expect(offenders).toEqual([])
-    expect(edgeRules).toHaveLength(1)
+    // Exactly two edge rules: html/body, and the webkit scrollbar track on its
+    // own so Firefox (which drops a whole list holding an unknown pseudo) keeps
+    // the html/body rule.
+    expect(edgeRules).toHaveLength(2)
     const allowed = new Set(['background', 'background-color', 'color-scheme'])
-    for (const prop of edgeRules[0].decls.keys()) expect(allowed.has(prop)).toBe(true)
-    expect(edgeRules[0].media).toBeNull()
+    for (const edge of edgeRules) {
+      for (const prop of edge.decls.keys()) expect(allowed.has(prop)).toBe(true)
+      expect(edge.media).toBeNull()
+      // every edge selector stays gated on the light wrapper
+      for (const s of edge.selectors) expect(s).toContain(':has(.admin-shell[data-admin-theme="light"])')
+    }
+    const [plain, track] = edgeRules.sort((a, b) => Number(a.selectors.some((s) => s.includes('::'))) - Number(b.selectors.some((s) => s.includes('::'))))
+    expect(plain.selectors.some((s) => s.includes('::'))).toBe(false)
+    expect(plain.selectors).toHaveLength(2)
+    expect(track.selectors).toEqual(['html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track'])
   })
 
   it('no selector mentions :root or .theme-light', () => {
@@ -414,5 +425,107 @@ describe('admin-theme.css sidebar rail contract (ADM-01, D-13, D-16)', () => {
     expect(reduced).toBeDefined()
     expect(reduced?.selectors).toContain('.admin-shell .admin-aside')
     expect(reduced?.decls.get('transition')).toBe('none')
+  })
+})
+
+describe('admin-theme.css light safety net (D-08, D-10, Pitfall 1)', () => {
+  const styleSelectors = rules.flatMap((r) => r.selectors.filter((s) => s.includes('[style*=')))
+  const subOf = (s: string) => /\[style\*="([^"]+)"\]/.exec(s)?.[1] ?? ''
+  const subs = styleSelectors.map(subOf)
+
+  it('declares the four serialisation selectors', () => {
+    for (const form of ['text-transform:uppercase', 'text-transform: uppercase', 'font-weight:300', 'font-weight: 300']) {
+      expect(styleSelectors).toContain(`${LIGHT_SEL} [style*="${form}"]`)
+    }
+  })
+
+  it('every no-space selector has its spaced twin and vice versa', () => {
+    expect(subs.length).toBeGreaterThan(0)
+    for (const sub of subs) {
+      const twin = sub.includes(': ') ? sub.replace(': ', ':') : sub.replace(':', ': ')
+      expect(subs).toContain(twin)
+    }
+  })
+
+  it('no [style*=] selector is scoped to the dark theme or unscoped', () => {
+    for (const s of styleSelectors) {
+      expect(s.startsWith(LIGHT_SEL)).toBe(true)
+      expect(s).not.toContain('data-admin-theme="dark"')
+    }
+  })
+
+  it('uppercase rule resets case and tracking, weight rule lifts 300 to 400', () => {
+    const upper = rules.find((r) => r.selectors.includes(`${LIGHT_SEL} [style*="text-transform:uppercase"]`))
+    const weight = rules.find((r) => r.selectors.includes(`${LIGHT_SEL} [style*="font-weight:300"]`))
+    expect(upper?.decls.get('text-transform')).toBe('none !important')
+    expect(upper?.decls.get('letter-spacing')).toBe('normal !important')
+    expect(weight?.decls.get('font-weight')).toBe('400 !important')
+  })
+})
+
+describe('admin-theme.css light structure rules (D-10, D-11, D-12)', () => {
+  const find = (sel: string) => {
+    const r = rules.find((x) => !x.media && x.selectors.includes(sel))
+    if (!r) throw new Error(`no rule with selector ${sel}`)
+    return r
+  }
+
+  it('light h1/h2/h3 in .admin-main and the modal title: no tracking, weight 500', () => {
+    for (const sel of [
+      `${LIGHT_SEL} .admin-main :is(h1, h2, h3)`,
+      `${LIGHT_SEL} #modal-title`,
+    ]) {
+      const r = find(sel)
+      expect(r.decls.get('letter-spacing')).toBe('normal !important')
+      expect(r.decls.get('font-weight')).toBe('500 !important')
+    }
+  })
+
+  it('light public .btn-* buttons: sentence case, no tracking, admin radius', () => {
+    const r = find(`${LIGHT_SEL} :is(.btn-primary, .btn-ghost, .btn-secondary)`)
+    expect(r.decls.get('text-transform')).toBe('none')
+    expect(r.decls.get('letter-spacing')).toBe('normal')
+    expect(r.decls.get('border-radius')).toBe('var(--admin-radius-md)')
+    expect(r.decls.get('font-weight')).toBe('500')
+  })
+
+  it('light .label (shared AddressInput labels) is neutralised', () => {
+    const r = find(`${LIGHT_SEL} .label`)
+    expect(r.decls.get('text-transform')).toBe('none')
+    expect(r.decls.get('letter-spacing')).toBe('normal')
+  })
+
+  it('light tables are flat: header, rows, hover and borderless wrapper', () => {
+    expect(find(`${LIGHT_SEL} table`).decls.get('border-collapse')).toBe('collapse')
+    const th = find(`${LIGHT_SEL} table th`)
+    expect(th.decls.get('font-size')).toBe('var(--admin-fs-label) !important')
+    expect(th.decls.get('font-weight')).toBe('500 !important')
+    expect(th.decls.get('color')).toBe('var(--admin-text-muted) !important')
+    expect(th.decls.get('border-bottom')).toBe('1px solid var(--admin-border) !important')
+    const td = find(`${LIGHT_SEL} table td`)
+    expect(td.decls.get('border-bottom')).toBe('1px solid var(--admin-border) !important')
+    expect(td.decls.get('border-left')).toBe('none !important')
+    expect(td.decls.get('border-right')).toBe('none !important')
+    expect(td.decls.get('border-top')).toBe('none !important')
+    expect(find(`${LIGHT_SEL} table tbody tr:hover > td`).decls.get('background-color')).toBe('var(--admin-hover)')
+    const wrap = find(`${LIGHT_SEL} div:has(> table)`)
+    expect(wrap.decls.get('border-color')).toBe('transparent !important')
+    expect(wrap.decls.get('border-radius')).toBe('0 !important')
+    expect(wrap.decls.get('box-shadow')).toBe('none')
+  })
+
+  it('modal action row sticks to the bottom in both themes (not theme-scoped)', () => {
+    const r = rules.find((x) => !x.media && x.selectors.some((s) => s.startsWith('.admin-shell .admin-modal-body > form > :last-child')))
+    expect(r).toBeDefined()
+    for (const s of r!.selectors) expect(s).not.toContain('data-admin-theme')
+    expect(r!.decls.get('position')).toBe('sticky')
+    expect(r!.decls.get('bottom')).toBe('0')
+    expect(r!.decls.get('background-color')).toBe('var(--admin-surface)')
+    expect(r!.decls.get('padding-top')).toBe('16px')
+  })
+
+  it('no new rule targets html, body or :root beyond the OQ2 edge rules', () => {
+    const bare = rules.flatMap((r) => r.selectors).filter((s) => /^(html|body|:root)\b/.test(s))
+    for (const s of bare) expect(s).toContain(':has(.admin-shell[data-admin-theme="light"])')
   })
 })

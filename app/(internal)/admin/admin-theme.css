@@ -17,12 +17,21 @@
 /* OQ2 edge rule: the only selector above .admin-shell. Custom properties do
    not reach html/body, so the cream literal is required here. It only matches
    while a light admin wrapper exists, so public pages are structurally
-   unaffected. */
+   unaffected.
+
+   The ::-webkit-scrollbar-track selector is its own rule on purpose: browsers
+   drop a whole selector list when one selector is invalid, and Firefox does not
+   know the webkit pseudo-element, so sharing a list would also lose the
+   html/body background (navy overscroll in Firefox). Both rules stay gated on
+   the light wrapper (owner decision OQ2 is unchanged). */
 html:has(.admin-shell[data-admin-theme="light"]),
-body:has(.admin-shell[data-admin-theme="light"]),
-html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
+body:has(.admin-shell[data-admin-theme="light"]) {
   background-color: #EFE8DA;
   color-scheme: light;
+}
+
+html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
+  background-color: #EFE8DA;
 }
 
 .admin-shell {
@@ -219,6 +228,103 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
   --status-neutral-border: rgba(169, 174, 176, 0.25);
 }
 
+/* ── Light safety net: inline uppercase and weight 300 (D-08, D-10) ─────── */
+/* Many admin components set text-transform: uppercase, wide tracking and
+   font-weight 300 as inline styles (adminFieldStyles and older forms). Inline
+   styles outrank any stylesheet rule, so the light theme neutralises them with
+   attribute-substring selectors plus !important. React SSR serialises the style
+   attribute without a space after the colon, client-created DOM nodes with one,
+   so both spellings are listed (Pitfall 1; tests/admin-light-safety-net.test.tsx
+   proves the substrings against real output). Dark gets none of these rules:
+   dark keeps today's tracked capitals. */
+.admin-shell[data-admin-theme="light"] [style*="text-transform:uppercase"],
+.admin-shell[data-admin-theme="light"] [style*="text-transform: uppercase"] {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.admin-shell[data-admin-theme="light"] [style*="font-weight:300"],
+.admin-shell[data-admin-theme="light"] [style*="font-weight: 300"] {
+  font-weight: 400 !important;
+}
+
+/* ── Light structure: headings, wizard buttons, labels, flat tables (D-10, D-11) ── */
+/* Headings: calm weight 500, no tracking. !important because several pages set
+   letter-spacing and weight inline on their own headings. */
+.admin-shell[data-admin-theme="light"] .admin-main :is(h1, h2, h3) {
+  letter-spacing: normal !important;
+  font-weight: 500 !important;
+}
+
+.admin-shell[data-admin-theme="light"] #modal-title {
+  letter-spacing: normal !important;
+  font-weight: 500 !important;
+}
+
+/* The public booking wizard steps render inside the admin (manual booking).
+   Their .btn-* classes come from app/globals.css (uppercase, 0.35em tracking);
+   scoped here, so the public pages keep them. These class rules need no
+   !important: .admin-shell[...] .btn-* outranks the bare class. */
+.admin-shell[data-admin-theme="light"] :is(.btn-primary, .btn-ghost, .btn-secondary) {
+  text-transform: none;
+  letter-spacing: normal;
+  border-radius: var(--admin-radius-md);
+  font-weight: 500;
+}
+
+/* Shared public .label (AddressInput inside the admin edit form) uppercases
+   through a class, not an inline style, so the safety net above cannot reach it. */
+.admin-shell[data-admin-theme="light"] .label {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Flat tables: no outer border, muted 12px/500 header with a hairline, 1px row
+   separators, soft hover. Cell borders and header type are often inline, hence
+   !important. */
+.admin-shell[data-admin-theme="light"] table {
+  border-collapse: collapse;
+}
+
+.admin-shell[data-admin-theme="light"] table th {
+  font-size: var(--admin-fs-label) !important;
+  font-weight: 500 !important;
+  color: var(--admin-text-muted) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-shell[data-admin-theme="light"] table td {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-shell[data-admin-theme="light"] table tbody tr:hover > td {
+  background-color: var(--admin-hover);
+}
+
+/* The wrapper that directly holds a table loses its outer border and radius. */
+.admin-shell[data-admin-theme="light"] div:has(> table) {
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+
+/* ── Modal action rows stay in view in both themes (UI-SPEC E6) ─────────── */
+/* The Modal body scrolls; the last child of its direct form is the action row
+   (ErasureConfirmForm, SplitContactForm). Forms that wrap everything in one
+   div (AccountForm, DriverForm, MarkSharedForm) keep the action row as that
+   wrapper's last child, so the second selector covers them. :not(:only-child)
+   keeps the single wrapper itself from becoming sticky. */
+.admin-shell .admin-modal-body > form > :last-child:not(:only-child),
+.admin-shell .admin-modal-body > form > :only-child > :last-child:not(:only-child) {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--admin-surface);
+  padding-top: 16px;
+}
 
 /* ── Shell: main offset and sidebar panel (ADM-01, D-13, D-16) ─────────── */
 /* Below 768px the aside is the 280px slide-over (display comes from the
