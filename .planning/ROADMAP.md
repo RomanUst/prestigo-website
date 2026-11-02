@@ -16,7 +16,7 @@
 - [x] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down (completed 2026-09-28)
 - [x] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation (completed 2026-09-29)
 - [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** — DEFERRED to backlog 999.9 (owner, 2026-10-18; 10/17 plans done) - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
-- [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
+- [ ] **Phase 79: Instagram + Facebook Channels** — DEFERRED to backlog 999.12 (owner, 2026-11-02; not started) - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [x] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL (completed 2026-10-17)
 - [x] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails (completed 2026-10-18)
 - [x] **Phase 82: Site ↔ CRM/Chatwoot Sync Foundation** - Durable Supabase outbox + QStash reflects every booking/signup event into EspoCRM and Chatwoot, de-duplicates contacts, backfills history, exposes outbox health, and propagates GDPR erasure (completed 2026-10-26)
@@ -233,6 +233,8 @@ Plans:
 - [ ] 78-17-PLAN.md — Stored-text inventory (Supabase/Chatwoot), test-data cleanup, off-site checklist, verified end state (pricing backstop)
 
 ### Phase 79: Instagram + Facebook Channels
+
+**Status**: DEFERRED to Backlog 999.12 by owner decision 2026-11-02 — not started (no discuss/plans). Parked together with Phase 78: no Meta messaging app, WhatsApp, Instagram or Facebook channel for now. Locked when resumed: app and business verification under chelautotrans s.r.o. (IČO 05650801), as in 78 D-04. Resume with `/gsd-discuss-phase 79` after 78 is back.
 
 **Goal**: Instagram and Facebook Page conversations join the same Chatwoot inbox as every other channel. Sequenced after WhatsApp/email/widget are stable to reduce blast radius if Meta App Review stalls or a scope-mixing rejection occurs.
 **Depends on**: Phase 78
@@ -535,3 +537,4 @@ v3.0 tech debt, deferred by owner decision 2026-09-27 until Anthropic API credit
 - [ ] **999.9 Phase 78 WhatsApp dedicated number (resume)** — 10/17 plans done; resume at 78-11 Task 2: new SIM, "Prestigo Messaging" app Live, number + display name, own PIN, token, EUR card, business verification; then 78-12..78-17 (go-live, submit 56 templates, site number switch, acceptance). Deferred by owner 2026-10-18
 - [ ] **999.10 Chatwoot webhook reconcile job (D-21)** — periodic job that lists recently created and resolved Chatwoot conversations and re-enqueues hook.chat_intake / hook.chat_resolve rows for events Chatwoot's at-most-once account webhook lost; manual recovery is in infra/vps/runbooks/inbound-webhooks.md until then
 - [ ] **999.11 Phase 83 review follow-ups** — open warnings from 83-REVIEW.md / 83-REVIEW-DISPOSITION.md: first WR-06 (erasure treats a Note-stream 403 as "no notes", uncounted) and WR-02 (concurrent intake/contact/sync can create a duplicate EspoCRM Contact outside the registry — erasure would miss it); then WR-01 (label between intake retries leaves an orphan Lead), WR-03 (lost conversion Note → Phase 85 counts), WR-04 (Chatwoot rotate loses events until redeploy), WR-05 (visitor Markdown in CRM fields), WR-07 (no cap on deadline reschedules), IN-01..05; plus the D-01 edge: a widget visitor whose email belongs to a site login account is classed as a stranger (identity not linked to user_id)
+- [ ] **999.12 Phase 79 Instagram + Facebook channels (resume)** — SOC-01/02 not started; depends on 999.9 (the shared "Prestigo Messaging" Meta app, 78 D-01). Open questions for discuss: create the app inside 79 vs wait for 78, App Review / Advanced Access + business verification (chelautotrans s.r.o.), Instagram Login vs Page-linked Instagram channel, single reply surface + labels/routing. Deferred by owner 2026-11-02
