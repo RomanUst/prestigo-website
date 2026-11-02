@@ -219,9 +219,12 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
   --status-neutral-border: rgba(169, 174, 176, 0.25);
 }
 
+
 /* ── Shell: main offset and sidebar panel (ADM-01, D-13, D-16) ─────────── */
 /* Below 768px the aside is the 280px slide-over (display comes from the
-   Tailwind hidden/flex classes on the element) and main has no offset. */
+   Tailwind hidden/flex classes on the element) and main has no offset. The
+   aside is pinned top and bottom so the nav can scroll while the footer
+   stays in view. */
 .admin-shell .admin-main {
   margin-left: 0;
   min-height: 100vh;
@@ -232,9 +235,9 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
 
 .admin-shell .admin-aside {
   width: 280px;
-  min-height: 100vh;
   position: fixed;
   top: 0;
+  bottom: 0;
   left: 0;
   z-index: 50;
   flex-direction: column;
@@ -242,14 +245,119 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
   border-right: 1px solid var(--admin-border);
 }
 
+/* ── Sidebar header, wordmark, sub-label ───────────────────────────────── */
 .admin-shell .admin-sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--admin-border);
+  flex-shrink: 0;
 }
 
-/* Icon buttons (collapse, theme toggle, sign out in the rail). */
+.admin-shell .admin-wordmark {
+  font-family: var(--admin-font-brand);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-sublabel {
+  display: block;
+  margin-top: 4px;
+  color: var(--admin-text-muted);
+}
+
+.admin-shell[data-admin-theme="dark"] .admin-sublabel {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.admin-shell[data-admin-theme="light"] .admin-sublabel {
+  font-size: 12px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* ── Nav list (scrolls on short viewports) and pinned footer ───────────── */
+.admin-shell .admin-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.admin-shell .admin-sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--admin-border);
+}
+
+/* ── Nav items ─────────────────────────────────────────────────────────── */
+.admin-shell .admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  color: var(--admin-text-muted);
+  font-size: var(--admin-fs-body);
+  text-decoration: none;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.admin-shell .admin-nav-item:hover {
+  background-color: var(--admin-sidebar-hover);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-nav-item:focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: -2px;
+}
+
+.admin-shell .admin-nav-icon {
+  flex-shrink: 0;
+}
+
+/* Dark keeps today's look: tracked labels and a 3px left accent bar. */
+.admin-shell[data-admin-theme="dark"] .admin-nav-item {
+  padding: 0 20px 0 17px;
+  border-left: 3px solid transparent;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+
+.admin-shell[data-admin-theme="dark"] .admin-nav-item[aria-current="page"] {
+  border-left-color: var(--admin-accent);
+  color: var(--admin-text);
+}
+
+/* Light: Notion-like soft rows, sentence case, no accent bar. */
+.admin-shell[data-admin-theme="light"] .admin-nav-item {
+  margin: 0 8px;
+  border-radius: var(--admin-radius-md);
+  font-weight: 400;
+}
+
+.admin-shell[data-admin-theme="light"] .admin-nav li + li {
+  margin-top: 4px;
+}
+
+.admin-shell[data-admin-theme="light"] .admin-nav-item[aria-current="page"] {
+  background-color: var(--admin-sidebar-active);
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+/* ── Icon buttons (collapse, theme toggle, sign out) ───────────────────── */
 .admin-shell .admin-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -261,13 +369,73 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
   border: none;
   border-radius: var(--admin-radius-md);
   color: var(--admin-text-muted);
+  font-family: var(--font-montserrat);
+  font-size: var(--admin-fs-body);
   cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.admin-shell .admin-icon-btn:hover {
+  background-color: var(--admin-sidebar-hover);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-icon-btn:focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
 }
 
 /* Desktop-only collapse button: the compound selector outranks the generic
    .admin-icon-btn display rule above whatever the source order. */
 .admin-shell .admin-icon-btn.admin-collapse-btn {
   display: none;
+}
+
+.admin-shell .admin-signout-btn {
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.admin-shell[data-admin-theme="dark"] .admin-signout-btn .admin-nav-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Mobile hamburger and backdrop ─────────────────────────────────────── */
+.admin-shell .admin-hamburger {
+  background: var(--admin-sidebar-bg);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-backdrop {
+  background-color: var(--admin-scrim);
+}
+
+/* ── Rail tooltip: fixed so the scrolling nav cannot clip it ───────────── */
+.admin-shell .admin-rail-tooltip {
+  position: fixed;
+  left: calc(var(--admin-sidebar-w) + 8px);
+  transform: translateY(-50%);
+  z-index: 70;
+  white-space: nowrap;
+  pointer-events: none;
+  padding: 4px 8px;
+  border-radius: var(--admin-radius-sm);
+  background-color: var(--admin-tooltip-bg);
+  color: var(--admin-tooltip-fg);
+  font-family: var(--font-montserrat);
+  font-size: var(--admin-fs-label);
+  font-weight: var(--admin-fw-strong);
+  line-height: 1.4;
+}
+
+.admin-shell .admin-rail-tooltip-hint {
+  display: block;
+  font-weight: 400;
+  opacity: 0.8;
 }
 
 /* Everything below applies from the md breakpoint up. Every collapsed-state
@@ -300,6 +468,46 @@ html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-wordmark,
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-sublabel {
+    display: none;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-sidebar-header {
+    justify-content: center;
+    padding: 24px 0;
+  }
+
+  /* Icon tiles: 44x44, centered in the 72px rail, in both themes. */
+  .admin-shell[data-admin-sidebar="collapsed"][data-admin-theme="light"] .admin-nav-item,
+  .admin-shell[data-admin-sidebar="collapsed"][data-admin-theme="dark"] .admin-nav-item {
+    width: 44px;
+    margin: 0 auto;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-nav li + li {
+    margin-top: 4px;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"][data-admin-theme="dark"] .admin-nav-item[aria-current="page"] {
+    background-color: var(--admin-sidebar-active);
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-sidebar-footer {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 0;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-signout-btn {
+    gap: 0;
+    padding: 0;
   }
 }
 

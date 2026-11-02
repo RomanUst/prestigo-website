@@ -1,10 +1,5 @@
 [
   {
-    "file": "components/admin/AdminSidebar.tsx",
-    "reason": "pending 86-02 token conversion",
-    "plan": "86-02"
-  },
-  {
     "file": "app/(internal)/admin/login/page.tsx",
     "reason": "pending 86-02 token conversion",
     "plan": "86-02"
