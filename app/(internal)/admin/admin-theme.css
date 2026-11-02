@@ -1,0 +1,55 @@
+/* Admin theme tokens (Phase 86). Tracer subset: Task 2 completes the sheet.
+   Every selector starts with .admin-shell so public pages are unaffected. */
+
+.admin-shell {
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-montserrat);
+  --admin-font-brand: 'Fraunces', Georgia, serif;
+}
+
+.admin-shell[data-admin-theme="light"] {
+  color-scheme: light;
+
+  --admin-bg: #EFE8DA;
+  --admin-surface: #F7F4EF;
+  --admin-text: #16202A;
+  --admin-text-muted: #4F5B64;
+  --admin-border: #D6CAB4;
+  --admin-accent: #7A5A28;
+  --admin-on-accent: #F7F4EF;
+  --admin-font-heading: 'Inter', 'Helvetica Neue', sans-serif;
+
+  /* Legacy remap: ~900 existing var(--anthracite*) references flip for free. */
+  --anthracite: #F7F4EF;
+  --anthracite-mid: #F7F4EF;
+  --anthracite-light: #D6CAB4;
+  --offwhite: #16202A;
+  --warmgrey: #4F5B64;
+  --copper: #7A5A28;
+  --copper-light: #6F5224;
+  --copper-pale: #9A7A44;
+  --color-anthracite: #F7F4EF;
+  --color-anthracite-mid: #F7F4EF;
+  --color-anthracite-light: #D6CAB4;
+  --color-offwhite: #16202A;
+  --color-warmgrey: #4F5B64;
+  --color-copper: #7A5A28;
+  --color-copper-light: #6F5224;
+  --color-copper-pale: #9A7A44;
+  --font-cormorant: var(--admin-font-heading);
+}
+
+.admin-shell[data-admin-theme="dark"] {
+  color-scheme: dark;
+
+  --admin-bg: #17293B;
+  --admin-surface: #17293B;
+  --admin-text: #F3EEE3;
+  --admin-text-muted: #A9AEB0;
+  --admin-border: #2B4056;
+  --admin-accent: #BFA06A;
+  --admin-on-accent: #0F1D2C;
+  --admin-font-heading: 'Fraunces', Georgia, serif;
+}
