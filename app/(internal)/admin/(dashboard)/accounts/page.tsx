@@ -87,7 +87,7 @@ export default function AccountsPage() {
                 height: '40px',
               }}
             >
-              {['ACCOUNT', 'TYPE', 'EMAIL', 'REG / IČO', 'TRIPS', 'REVENUE'].map((h, i) => (
+              {['Account', 'Type', 'Email', 'Reg / IČO', 'Trips', 'Revenue'].map((h, i) => (
                 <th
                   key={h}
                   style={{

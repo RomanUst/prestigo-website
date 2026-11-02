@@ -122,7 +122,7 @@ export default function RoutesTable({ initialRoutes }: RoutesTableProps) {
         role="button"
         aria-expanded={isOpen}
       >
-        INTERCITY ROUTES {isOpen ? '▲' : '▼'}
+        Intercity routes {isOpen ? '▲' : '▼'}
       </div>
 
       {isOpen && (

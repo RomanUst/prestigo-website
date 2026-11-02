@@ -17,7 +17,7 @@ type SystemKey = 'site' | 'chatwoot' | 'espocrm'
 type SystemState = { state: 'done' | 'pending' | 'failed'; counts: string | null }
 type Badge = { variant: 'pending' | 'confirmed' | 'completed' | 'cancelled'; label: string }
 
-const COLUMNS = ['REQUESTED', 'REFERENCE', 'STATUS', 'SITE', 'CHATWOOT', 'ESPOCRM', 'VERIFIED', 'COMPLETED']
+const COLUMNS = ['Requested', 'Reference', 'Status', 'Site', 'Chatwoot', 'EspoCRM', 'Verified', 'Completed']
 
 /** Rows that are still moving: the page polls only while one of these exists. */
 export function isErasureActive(row: Pick<ErasureLogRow, 'status'>): boolean {
