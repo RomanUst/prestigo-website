@@ -24,6 +24,7 @@ import { deliverResolve } from '@/lib/sync-resolve'
 import { deliverEspoSync } from '@/lib/crm-sync'
 import { deliverChatwootSync } from '@/lib/chatwoot-sync'
 import { deliverErasure } from '@/lib/erasure'
+import { deliverNoShowAlert, type NoShowAlertDeps } from '@/lib/noshow-alert'
 import type { ErasureStore } from '@/lib/erasure-store'
 import {
   buildLeadFromBooking,
@@ -62,6 +63,8 @@ export interface DispatchDeps {
   erasure?: ErasureStore
   /** Phase 83 (plan 83-07): chat registry store; undefined = the Supabase RPC store. Tests inject a double. */
   chat?: ChatStore
+  /** Phase 87 (plan 87-06): no-show alert store and operations conversation; undefined = Supabase / env. */
+  noShowAlert?: NoShowAlertDeps
 }
 
 const LEASE_SECONDS = 120
@@ -91,6 +94,7 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     chatwootConfig,
     erasure: deps.erasure,
     chat: deps.chat,
+    noShowAlert: deps.noShowAlert,
   }
 }
 
@@ -186,6 +190,17 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
   if (row.event_type.startsWith('hook.')) {
     try {
       return await deliverHook(row, d)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+
+  // Phase 87 (D-16 b): driver no-show request -> Chatwoot private note for the operator. Chatwoot gate
+  // only (no CRM), and always inside this QStash-invoked dispatcher, never on a request path.
+  if (row.event_type === 'alert.no_show') {
+    if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
+    try {
+      return await deliverNoShowAlert(row, d, d.noShowAlert)
     } catch (err) {
       return handleFailure(row, err, d)
     }

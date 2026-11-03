@@ -20,6 +20,7 @@ export type OutboxEventType =
   | 'hook.chat_label'
   | 'hook.chat_contact'
   | 'hook.espo_contact'
+  | 'alert.no_show'
 export type OutboxLeadStatus = 'new' | 'in_process' | 'converted' | 'dead'
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -35,6 +36,9 @@ const ERASE_KEY = new RegExp(`^erase\\.person:(${UUID})$`)
 const HOOK_KEY = new RegExp(
   `^(hook\\.(?:chat_intake|chat_resolve|chat_label|chat_contact|espo_contact)):(${UUID}):([a-z0-9]{1,24})$`,
 )
+// Phase 87 (D-16 b): 'alert.no_show:<bookingId>:r<epoch seconds of the driver's request>'. The epoch tag
+// makes a second request after a cleared one a row of its own (a plain key would swallow it).
+const ALERT_NO_SHOW_KEY = new RegExp(`^alert\\.no_show:(${UUID}):(r\\d{9,12})$`)
 
 const MAX_DELAY_SECONDS = 604_800 // QStash free plan max delay: 7 days
 
@@ -66,7 +70,14 @@ export function parseOutboxKey(key: string): ParsedOutboxKey | null {
   if (m) return { eventType: 'erase.person', aggregateId: m[1], leadStatus: null, tag: null }
   m = HOOK_KEY.exec(key)
   if (m) return { eventType: m[1] as OutboxEventType, aggregateId: m[2], leadStatus: null, tag: m[3] }
+  m = ALERT_NO_SHOW_KEY.exec(key)
+  if (m) return { eventType: 'alert.no_show', aggregateId: m[1], leadStatus: null, tag: m[2] }
   return null
+}
+
+/** The single builder of the no-show alert outbox key (the parser above is its only reader). */
+export function noShowAlertKey(bookingId: string, requestedAtMs: number): string {
+  return `alert.no_show:${bookingId}:r${Math.floor(requestedAtMs / 1000)}`
 }
 
 export interface ParsedHookTag {
