@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, MessageCircle } from 'lucide-react'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 export interface ConfirmStepDialogProps {
@@ -14,7 +14,11 @@ export interface ConfirmStepDialogProps {
   error: string | null
   onConfirm: () => void
   onCancel: () => void
+  /** Help mode only (87-UAT gap 3): the primary "Chat with the office" button. */
+  chat?: { state: 'idle' | 'opening' | 'error'; onOpen: () => void }
 }
+
+const CHAT_ERROR = 'Chat is not available right now. Call the office instead.'
 
 // 87-UI-SPEC "Step table": the confirm button for each step label.
 const CONFIRM_BUTTON: Record<string, string> = {
@@ -48,7 +52,7 @@ const FOCUSABLE = 'button:not([disabled]), a[href]'
  * button is pressed, and focus returns to the invoking control on close.
  */
 export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
-  const { mode, stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel } = props
+  const { mode, stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel, chat } = props
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -142,8 +146,8 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {isHelp ? (
             <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
-              Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped
-              by mistake.
+              Chat with the office or call if you cannot find the passenger, the trip details look wrong, or a
+              step was tapped by mistake.
             </p>
           ) : isNoShow ? (
             <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
@@ -171,7 +175,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
           ) : null}
         </div>
 
-        {error ? (
+        {error || (isHelp && chat?.state === 'error') ? (
           <p
             role="alert"
             style={{
@@ -182,38 +186,70 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               color: 'var(--status-danger-fg)',
             }}
           >
-            {error}
+            {error ?? CHAT_ERROR}
           </p>
         ) : null}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {isHelp ? (
-            <a
-              href={BUSINESS_TEL_URL}
-              data-driver-focus=""
-              style={{
-                ...buttonBase,
-                flexDirection: 'column',
-                gap: 0,
-                fontWeight: 500,
-                textDecoration: 'none',
-                border: '1px solid var(--admin-accent)',
-                background: 'var(--admin-accent)',
-                color: 'var(--admin-on-accent)',
-              }}
-            >
-              <span>Call the office</span>
-              <span
+            <>
+              {chat ? (
+                <button
+                  type="button"
+                  data-driver-focus=""
+                  disabled={chat.state === 'opening'}
+                  aria-busy={chat.state === 'opening'}
+                  onClick={chat.onOpen}
+                  style={{
+                    ...buttonBase,
+                    fontWeight: 500,
+                    border: '1px solid var(--admin-accent)',
+                    background: 'var(--admin-accent)',
+                    color: 'var(--admin-on-accent)',
+                    opacity: chat.state === 'opening' ? 0.85 : 1,
+                    cursor: chat.state === 'opening' ? 'default' : 'pointer',
+                  }}
+                >
+                  {chat.state === 'opening' ? (
+                    <>
+                      <LoaderCircle size={20} className="driver-spin" aria-hidden="true" />
+                      Opening chat…
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle size={20} aria-hidden="true" />
+                      {chat.state === 'error' ? 'Try chat again' : 'Chat with the office'}
+                    </>
+                  )}
+                </button>
+              ) : null}
+              <a
+                href={BUSINESS_TEL_URL}
+                data-driver-focus=""
                 style={{
-                  fontSize: 'var(--driver-fs-label)',
-                  fontWeight: 400,
-                  lineHeight: 1.4,
-                  fontVariantNumeric: 'tabular-nums',
+                  ...buttonBase,
+                  flexDirection: 'column',
+                  gap: 0,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  border: '1px solid var(--admin-border-strong)',
+                  background: 'transparent',
+                  color: 'var(--admin-text)',
                 }}
               >
-                {BUSINESS_PHONE_DISPLAY}
-              </span>
-            </a>
+                <span>Call the office</span>
+                <span
+                  style={{
+                    fontSize: 'var(--driver-fs-label)',
+                    fontWeight: 400,
+                    lineHeight: 1.4,
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {BUSINESS_PHONE_DISPLAY}
+                </span>
+              </a>
+            </>
           ) : (
             <button
               type="button"

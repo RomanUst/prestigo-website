@@ -4,8 +4,9 @@ import userEvent from '@testing-library/user-event'
 import { formatPragueTime, formatPragueUnlock, DRIVER_STATUS_LABEL } from '@/lib/driver-trip-format'
 import { googleMapsDirectionsUrl, wazeNavigationUrl } from '@/lib/driver-nav-url'
 
-const { refreshMock, routeMapProbe } = vi.hoisted(() => ({
+const { refreshMock, openHelpPageMock, routeMapProbe } = vi.hoisted(() => ({
   refreshMock: vi.fn(),
+  openHelpPageMock: vi.fn(),
   routeMapProbe: {
     props: null as null | {
       height?: number | string
@@ -23,9 +24,18 @@ vi.mock('@/components/booking/RouteMap', () => ({
   },
 }))
 
+const routerPushMock = vi.fn()
+const routerReplaceMock = vi.fn()
+
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: refreshMock, push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ refresh: refreshMock, push: routerPushMock, replace: routerReplaceMock }),
 }))
+
+// 87-UAT gap 3: the hard navigation to the help page is observed, not performed.
+vi.mock('@/lib/driver-help-contract', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/driver-help-contract')>()
+  return { ...actual, openDriverHelpPage: openHelpPageMock }
+})
 
 import TripCompleted from '@/app/(internal)/driver/trip/[token]/TripCompleted'
 import InvalidTripLinkView from '@/app/(internal)/driver/trip/[token]/InvalidTripLinkView'
@@ -72,6 +82,10 @@ let fetchMock: ReturnType<typeof vi.fn>
 beforeEach(() => {
   routeMapProbe.props = null
   refreshMock.mockClear()
+  openHelpPageMock.mockClear()
+  routerPushMock.mockClear()
+  routerReplaceMock.mockClear()
+  window.sessionStorage.clear()
   fetchMock = vi.fn()
   vi.stubGlobal('fetch', fetchMock)
 })
@@ -435,7 +449,7 @@ describe('TripScreen: Help (D-18)', () => {
     expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument()
   })
 
-  it('opens "Need help?" with a tel: link and returns focus to Help on Close', async () => {
+  it('opens "Need help?" with the chat button, a tel: link and returns focus to Help on Close', async () => {
     const user = userEvent.setup()
     render(<TripScreen {...makeProps()} />)
     const help = screen.getByRole('button', { name: /^Help$/ })
@@ -445,9 +459,10 @@ describe('TripScreen: Help (D-18)', () => {
     expect(within(dialog).getByText('Need help?')).toBeInTheDocument()
     expect(
       within(dialog).getByText(
-        'Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake.',
+        'Chat with the office or call if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake.',
       ),
     ).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Chat with the office' })).toBeEnabled()
     expect(within(dialog).getByRole('link', { name: /Call the office/ })).toHaveAttribute('href', BUSINESS_TEL_URL)
     expect(within(dialog).getByText(BUSINESS_PHONE_DISPLAY)).toBeInTheDocument()
     expect(fetchMock).not.toHaveBeenCalled()
@@ -463,6 +478,168 @@ describe('TripScreen: Help (D-18)', () => {
     await user.click(screen.getByRole('button', { name: /^Help$/ }))
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  describe('Chat with the office (87-UAT gap 3)', () => {
+    const DRIVER_ID = 'a0000002-0000-4000-8000-000000000002'
+    const HELP_CONFIG = {
+      enabled: true,
+      baseUrl: 'https://chat.example.test',
+      websiteToken: 'site-token',
+      user: {
+        identifier: `driver:${DRIVER_ID}`,
+        identifierHash: 'a'.repeat(64),
+        name: 'Ivan Petrov (driver)',
+        email: null,
+        phone: null,
+      },
+      conversation: { chat_role: 'driver', driver_trip_ref: 'PRG-100' },
+    }
+
+    async function openHelpDialog() {
+      const user = userEvent.setup()
+      render(<TripScreen {...makeProps()} />)
+      await user.click(screen.getByRole('button', { name: /^Help$/ }))
+      return { user, dialog: screen.getByRole('dialog') }
+    }
+
+    it('sends exactly one POST to the help route, stores the config and navigates with a full page load', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(200, HELP_CONFIG))
+      const { user, dialog } = await openHelpDialog()
+      expect(fetchMock).not.toHaveBeenCalled()
+
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+
+      await waitFor(() => expect(openHelpPageMock).toHaveBeenCalledTimes(1))
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(fetchMock.mock.calls[0][0]).toBe(`/api/driver/trip/${TOKEN}/help`)
+      expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+      expect(JSON.parse(window.sessionStorage.getItem('prestigo_driver_help') ?? 'null')).toEqual(HELP_CONFIG)
+      expect(routerPushMock).not.toHaveBeenCalled()
+      expect(routerReplaceMock).not.toHaveBeenCalled()
+    })
+
+    it('shows "Opening chat…" disabled and aria-busy while the request is pending', async () => {
+      fetchMock.mockImplementation(() => new Promise(() => {}))
+      const { user, dialog } = await openHelpDialog()
+
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+
+      const busy = await within(dialog).findByRole('button', { name: /Opening chat/ })
+      expect(busy).toBeDisabled()
+      expect(busy).toHaveAttribute('aria-busy', 'true')
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+    })
+
+    const CHAT_ERROR_LINE = 'Chat is not available right now. Call the office instead.'
+
+    it.each([
+      ['200 { enabled: false }', () => jsonResponse(200, { enabled: false })],
+      ['429', () => jsonResponse(429, { error: 'rate_limited' })],
+      ['a rejected fetch', () => Promise.reject(new Error('network'))],
+    ])('%s shows the error line, "Try chat again" and keeps the call link', async (_label, answer) => {
+      fetchMock.mockImplementation(answer)
+      const { user, dialog } = await openHelpDialog()
+
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+
+      expect(await within(dialog).findByText(CHAT_ERROR_LINE)).toBeInTheDocument()
+      expect(within(dialog).getByRole('button', { name: 'Try chat again' })).toBeEnabled()
+      expect(within(dialog).getByRole('link', { name: /Call the office/ })).toHaveAttribute('href', BUSINESS_TEL_URL)
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+      expect(window.sessionStorage.getItem('prestigo_driver_help')).toBeNull()
+    })
+
+    it('a request that never resolves ends in the error line after 10 s', async () => {
+      vi.useFakeTimers()
+      fetchMock.mockImplementation(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+          }),
+      )
+      render(<TripScreen {...makeProps()} />)
+      fireEvent.click(screen.getByRole('button', { name: /^Help$/ }))
+      fireEvent.click(screen.getByRole('button', { name: 'Chat with the office' }))
+      expect(screen.getByRole('button', { name: /Opening chat/ })).toBeDisabled()
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10_500)
+      })
+
+      expect(screen.getByText(CHAT_ERROR_LINE)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Try chat again' })).toBeEnabled()
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+    })
+
+    it('400 invalid_token closes the dialog and refreshes into the ended view', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(400, { error: 'invalid_token' }))
+      const { user, dialog } = await openHelpDialog()
+
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+      expect(refreshMock).toHaveBeenCalledTimes(1)
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+    })
+
+    it('Escape and a scrim click do not close the dialog while opening', async () => {
+      fetchMock.mockImplementation(() => new Promise(() => {}))
+      const { user, dialog } = await openHelpDialog()
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+      await within(dialog).findByRole('button', { name: /Opening chat/ })
+
+      await user.keyboard('{Escape}')
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      const scrim = dialog.parentElement as HTMLElement
+      await user.click(scrim)
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+
+    it('after an error Close works and returns focus to Help', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(429, {}))
+      const { user, dialog } = await openHelpDialog()
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+      await within(dialog).findByText(CHAT_ERROR_LINE)
+
+      await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^Help$/ })).toHaveFocus()
+    })
+
+    it('reopening the dialog after an error starts from "Chat with the office" again', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(429, {}))
+      const { user, dialog } = await openHelpDialog()
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+      await within(dialog).findByText(CHAT_ERROR_LINE)
+      await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+      await user.click(screen.getByRole('button', { name: /^Help$/ }))
+      const again = screen.getByRole('dialog')
+      expect(within(again).getByRole('button', { name: 'Chat with the office' })).toBeEnabled()
+      expect(within(again).queryByText(CHAT_ERROR_LINE)).not.toBeInTheDocument()
+    })
+
+    it('the chat button and the call link are at least 48px high', async () => {
+      const { dialog } = await openHelpDialog()
+      const chat = within(dialog).getByRole('button', { name: 'Chat with the office' })
+      const call = within(dialog).getByRole('link', { name: /Call the office/ })
+      expect(chat.style.minHeight).toBe('48px')
+      expect(call.style.minHeight).toBe('48px')
+    })
+
+    it('a 200 with an invalid config stores nothing and shows the error line with the call link', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(200, { enabled: true, baseUrl: 'http://x', websiteToken: '' }))
+      const { user, dialog } = await openHelpDialog()
+
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+
+      expect(await within(dialog).findByText('Chat is not available right now. Call the office instead.')).toBeInTheDocument()
+      expect(window.sessionStorage.getItem('prestigo_driver_help')).toBeNull()
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+      expect(within(dialog).getByRole('link', { name: /Call the office/ })).toHaveAttribute('href', BUSINESS_TEL_URL)
+    })
   })
 })
 

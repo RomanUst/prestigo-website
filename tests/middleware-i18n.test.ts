@@ -409,6 +409,72 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
   })
 
   // -------------------------------------------------------------------------
+  // CSP: the tokenless driver help page carries the chat origin (87-UAT gap 3)
+  // -------------------------------------------------------------------------
+  describe('CSP: driver help page carries the chat origin (87-UAT gap 3)', () => {
+    const TRIP_PATH = '/driver/trip/00000000-0000-4000-8000-000000000000'
+    const NONCE_RE = /'nonce-[^']+'/g
+
+    async function cspOf(pathname: string): Promise<string> {
+      const response = await middleware(makeRequest(pathname))
+      return response.headers.get('Content-Security-Policy')!
+    }
+
+    function directive(csp: string, name: string): string {
+      return csp.split('; ').find((d) => d.startsWith(`${name} `)) ?? ''
+    }
+
+    it('GET /driver/trip/help keeps nonce + strict-dynamic and allows the chat origin in frame, img and connect', async () => {
+      const csp = await cspOf('/driver/trip/help')
+      const script = directive(csp, 'script-src')
+      expect(script).toMatch(/'nonce-[^']+'/)
+      expect(script).toContain("'strict-dynamic'")
+      expect(script).not.toContain("'unsafe-inline'")
+      expect(directive(csp, 'frame-src')).toContain('https://chat.rideprestigo.com')
+      expect(directive(csp, 'img-src')).toContain('https://chat.rideprestigo.com')
+      expect(directive(csp, 'connect-src')).toContain('https://chat.rideprestigo.com')
+      expect(directive(csp, 'connect-src')).toContain('wss://chat.rideprestigo.com')
+    })
+
+    it('removing the chat tokens from the help CSP yields exactly the trip page CSP (nonces normalised)', async () => {
+      const help = await cspOf('/driver/trip/help')
+      const trip = await cspOf(TRIP_PATH)
+      const stripped = help
+        .replace(/ https:\/\/chat\.rideprestigo\.com/g, '')
+        .replace(/ wss:\/\/chat\.rideprestigo\.com/g, '')
+        .replace(NONCE_RE, "'nonce-X'")
+      expect(stripped).toBe(trip.replace(NONCE_RE, "'nonce-X'"))
+    })
+
+    it.each([TRIP_PATH, '/driver/response', '/admin', '/driver/trip/help/extra'])(
+      '%s CSP contains no chat origin',
+      async (pathname) => {
+        mockGetUser.mockResolvedValue({ data: { user: makeAdminUser() }, error: null })
+        const csp = await cspOf(pathname)
+        expect(csp).toMatch(/nonce-/)
+        expect(csp).not.toContain('chat.rideprestigo.com')
+      },
+    )
+
+    it('WR-02: the help CSP names one chat host, the same as the static CSP', async () => {
+      const hostsOf = (csp: string) =>
+        new Set([...csp.matchAll(/(?:https|wss):\/\/(chat\.[a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase()))
+      const help = hostsOf(await cspOf('/driver/trip/help'))
+      const stat = hostsOf(await cspOf('/'))
+      expect([...help]).toHaveLength(1)
+      expect([...help]).toEqual([...stat])
+    })
+
+    it('the request CSP Next reads the nonce from equals the response CSP', async () => {
+      const response = await middleware(makeRequest('/driver/trip/help'))
+      const requestCsp = response.headers.get('x-middleware-request-content-security-policy')
+      expect(requestCsp).toBeTruthy()
+      expect(requestCsp).toBe(response.headers.get('Content-Security-Policy'))
+      expect(requestCsp).toContain('https://chat.rideprestigo.com')
+    })
+  })
+
+  // -------------------------------------------------------------------------
   // Backstop edges — NOT asserted here by design (must_haves `edges` list,
   // verification: backstop). Per-request nonce freshness under concurrency
   // and trailing-slash/case normalization on the locale segment are not
