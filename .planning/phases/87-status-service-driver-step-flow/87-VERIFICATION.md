@@ -15,15 +15,15 @@ covered_files:
   - "supabase/migrations/084_booking_statuses_status_log.sql"
 covered_digest: "v2:sha256:64e04e0a7a66470ed7b370ba07352b7d73912cc0993cdf0beddc041cb6c91db6"
 behavior_unverified: 0
-overrides_applied: 0
+overrides_applied: 1
 re_verification: false
 gaps: []
 deferred: []
 suggested_overrides:
   - must_have: "For a GNet booking each driver step is pushed to GNet exactly once"
     reason: "The 'passenger on board' step is not pushed: GNet has no on_board status (GnetStatus = CONFIRMED|ASSIGNED|EN_ROUTE|ON_LOCATION|COMPLETE|CANCEL). Locked decision D-22 fallback: send nothing for on_board. Three of four driver steps (en route, on site, completed) are pushed exactly once."
-    accepted_by: "PENDING owner"
-    accepted_at: "PENDING"
+    accepted_by: "owner"
+    accepted_at: "2026-11-03"
 human_verification:
   - test: "Real-phone production driver run on a test booking: open the trip link, run On my way -> I have arrived -> Passenger on board -> Complete trip, each with the confirm dialog"
     expected: "One slide-to-advance control per step; each step needs confirmation; the completed screen shows no amount; the booking row in admin shows En Route / On Location / On Board / Completed after a reload"
