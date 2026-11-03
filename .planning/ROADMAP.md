@@ -190,10 +190,10 @@ Plans:
   4. For a GNet booking each driver step is pushed to GNet exactly once (no duplicates on retap or retry) and the booking is marked as a partner booking so no hold, capture or no-show charge can ever apply to it.
   5. The "completed" step asks the driver to confirm, fires exactly one completion event that the payment engine consumes in Phase 88 (capture itself is verified there under HOLD-04), and the driver never sees or enters an amount.
 
-**Plans**: 1/14 plans executed
+**Plans**: 2/14 plans executed
 Plans:
 **Wave 1**
-- [ ] 87-01-PLAN.md — Wave 1: behaviour-preserving extraction of advanceBookingStatus() + single GNet push helper; cancel route characterized; PATCH/cancel/assign routed through the service (tracer)
+- [x] 87-01-PLAN.md — Wave 1: behaviour-preserving extraction of advanceBookingStatus() + single GNet push helper; cancel route characterized; PATCH/cancel/assign routed through the service (tracer)
 - [x] 87-02-PLAN.md — Wave 1: lib/booking-status.ts vocabulary, transitions, trip-token view state; migration 084 (on_board/no_show, booking_status_log + trigger, CAS RPC, no-show RPC + settings, redefined lead/gcal/panel/stats); [BLOCKING] live apply + smoke
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -458,7 +458,7 @@ Plans:
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
-| 87. Status Service & Driver Step Flow | v5.0 | 1/14 | In Progress|  |
+| 87. Status Service & Driver Step Flow | v5.0 | 2/14 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
