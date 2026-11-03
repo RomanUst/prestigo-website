@@ -49,7 +49,7 @@ actuals:
 
 # Phase 87 Plan 02: Status vocabulary and migration 084 Summary
 
-Tasks 1-2 are done and committed; Task 3 (the live apply of migration 084 and its smoke) is PENDING and belongs to the orchestrator (executors have no Supabase MCP). Requirements PAYF-02, DRV-01, DRV-02, DRV-05 are NOT marked complete until Task 3 records "084 live".
+Tasks 1-2 are done and committed; Task 3 (the live apply of migration 084 and its smoke) was run by the orchestrator via Supabase MCP on 2026-11-03: 084 is live.
 
 One status vocabulary in TypeScript (`lib/booking-status.ts`, 10 statuses) held equal to the newest `bookings_status_check` by a parity test, plus migration 084 with the status log, trigger, compare-and-set RPC, no-show RPC and settings, and a self-rolling-back live smoke.
 
@@ -59,7 +59,7 @@ One status vocabulary in TypeScript (`lib/booking-status.ts`, 10 statuses) held 
 |------|------|--------|--------|
 | 1 (tracer) | 084 status CHECK -> lib/booking-status.ts -> VALID_TRANSITIONS -> trip-link terminal set, one parity test | done | adb6eb54 |
 | 2 | Complete 084 (log + trigger, CAS RPC, no-show RPC + settings, redefined lead/gcal/panel/stats), text contract test, live smoke script | done | f737b15b |
-| 3 | [BLOCKING] orchestrator applies 084 live and runs the smoke | PENDING (ORCHESTRATOR_MCP_REQUIRED) | - |
+| 3 | [BLOCKING] orchestrator applies 084 live and runs the smoke | DONE (orchestrator, Supabase MCP, 2026-11-03) | live migration 20261103134654 |
 
 ## What was built
 
@@ -77,18 +77,19 @@ One status vocabulary in TypeScript (`lib/booking-status.ts`, 10 statuses) held 
 - Scoped `npx tsc --noEmit` for lib/booking-*, lib/trip-token, tests/helpers, tests/booking-status*: no errors. `npx eslint --quiet` on the touched files: clean.
 - Environment note: `tests/stats-migration.test.ts` and `tests/stats-customers-b2b-migration.test.ts` fail in this worktree only with ENOENT on `.planning/phases/85-statistics/85-0x-smoke.sql` (the phase 85 directory is not tracked in this worktree). They read only 081/082, which 084 does not touch; the orchestrator should re-run them on the main checkout. node_modules was a symlink to the main checkout (not committed); no next-intl failure seen.
 
-## Task 3: PENDING (orchestrator)
+## Task 3: DONE (orchestrator, 2026-11-03)
 
 Steps 1-7 of the plan are unchanged (apply_migration `084_booking_statuses_status_log`, run `87-02-smoke.sql`, CHECK definition, RLS + table privileges, function privilege matrix, defaults 30 / 60, security advisors). Outputs are to be recorded here by the orchestrator:
 
-- apply_migration result: _pending_
-- smoke error text (expected `SMOKE_OK all checks passed`): _pending_
-- `pg_get_constraintdef` of `bookings_status_check`: _pending_
-- `relrowsecurity`, `has_table_privilege(anon, SELECT)`, `has_table_privilege(authenticated, INSERT)`: _pending_
-- function privilege matrix (anon false, authenticated false, service_role true; log_booking_status_change and notify_booking_gcal_sync: anon / authenticated false): _pending_
-- `noshow_wait_city_min`, `noshow_wait_airport_min` (expected 30 / 60): _pending_
-- advisors: _pending_
-- resume signal "084 live": _pending_
+- preconditions: 080–083 live; live `panel_bookings`, `stats_trips`, `booking_lead_status`, `notify_booking_gcal_sync` bodies matched the repo (only the status lists differ in 084); `pricing_globals` id=1 present; booking columns present.
+- apply_migration result: success (version 20261103134654); all 7 live function bodies md5-match the 084 file
+- smoke error text: `P0001: SMOKE_OK all checks passed` (first run; rolled back, booking_status_log has 0 rows afterwards)
+- `pg_get_constraintdef` of `bookings_status_check`: 10 values incl. `on_board`, `no_show`
+- `relrowsecurity`, `has_table_privilege(anon, SELECT)`, `has_table_privilege(authenticated, INSERT)`: true / false / false
+- function privilege matrix: all 7 functions anon=false, authenticated=false, service_role=true
+- `noshow_wait_city_min`, `noshow_wait_airport_min`: 30 / 60
+- advisors (security): no finding names booking_status_log, advance_booking_status or set_no_show_request (only pre-existing INFO/WARN items)
+- resume signal: "084 live"
 
 Do not start Wave 2 plans that write `on_board`, call the RPCs or read the new columns until "084 live" is recorded.
 
