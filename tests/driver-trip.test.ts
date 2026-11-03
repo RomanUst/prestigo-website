@@ -1,11 +1,15 @@
-import { describe, it, expect, vi } from 'vitest'
+import fs from 'fs'
+import path from 'path'
+import { createElement } from 'react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { TERMINAL_STATUSES, isTripLinkValid, tripLinkViewState } from '@/lib/trip-token'
 
 // vi.hoisted ensures stubs are available inside vi.mock factories (hoisted
 // before imports) — mirrors tests/admin-assignment.test.ts conventions.
-const { stubSupabaseFrom } = vi.hoisted(() => ({
+const { stubSupabaseFrom, getStartGateMock } = vi.hoisted(() => ({
   stubSupabaseFrom: vi.fn(),
+  getStartGateMock: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -18,7 +22,18 @@ vi.mock('@/components/booking/RouteMap', () => ({
   default: () => null,
 }))
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+}))
+
+// buildTripView consults the Maps-backed start gate; the page test decides the answer.
+vi.mock('@/lib/start-gate', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/start-gate')>()),
+  getStartGate: getStartGateMock,
+}))
+
 import TripSheetPage, { metadata } from '@/app/(internal)/driver/trip/[token]/page'
+import DriverTripLayout from '@/app/(internal)/driver/trip/layout'
 
 const validToken = 'a0000004-0000-4000-8000-000000000004'
 const driverId = 'a0000002-0000-4000-8000-000000000002'
@@ -28,13 +43,19 @@ function makeAssignmentRow(overrides: {
   assignmentDriverId?: string
   bookingDriverId?: string | null
   bookingStatus?: string
+  assignmentStatus?: string | null
 } = {}) {
   return {
     id: 'assign-1',
     driver_id: overrides.assignmentDriverId ?? driverId,
+    status: overrides.assignmentStatus === undefined ? 'accepted' : overrides.assignmentStatus,
+    trip_progress: null,
+    trip_note: null,
     bookings: {
       id: 'booking-1',
       booking_reference: 'PRG-100',
+      booking_source: null,
+      pickup_utc: null,
       pickup_date: '2026-09-01',
       pickup_time: '10:00',
       origin_address: 'Prague Airport',
@@ -50,6 +71,9 @@ function makeAssignmentRow(overrides: {
       flight_iata: null,
       special_requests: null,
       vehicle_class: 'business',
+      distance_km: 12.4,
+      completed_at: null,
+      no_show_requested_at: null,
       status: overrides.bookingStatus ?? 'assigned',
       driver_id: overrides.bookingDriverId === undefined ? driverId : overrides.bookingDriverId,
     },
@@ -62,6 +86,7 @@ function mockSupabaseSingle(data: unknown, error: unknown = null) {
   const eqFn = vi.fn().mockReturnValue({ single: singleFn })
   const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
   stubSupabaseFrom.mockReturnValue({ select: selectFn })
+  return { selectFn, eqFn, singleFn }
 }
 
 describe('isTripLinkValid', () => {
@@ -185,74 +210,127 @@ describe('tripLinkViewState (D-17)', () => {
   })
 })
 
-describe('TripSheetPage (app/driver/trip/[token]/page.tsx)', () => {
-  it('metadata.robots has index and follow both false (D-08 noindex)', () => {
+async function renderPage(token = validToken) {
+  const element = await TripSheetPage({ params: Promise.resolve({ token }) })
+  return render(createElement(DriverTripLayout, null, element))
+}
+
+describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
+  beforeEach(() => {
+    stubSupabaseFrom.mockReset()
+    getStartGateMock.mockReset()
+    getStartGateMock.mockResolvedValue({ unlocksAtMs: null, open: true })
+  })
+
+  it('metadata.robots has index and follow both false (D-08 noindex, T-87-34)', () => {
     expect(metadata.robots).toMatchObject({ index: false, follow: false })
   })
 
-  it('valid token renders booking reference, passenger, from/to, date/time', async () => {
+  it('active assigned booking renders exactly one control labelled "On my way" inside the light driver shell (D-12, D-19)', async () => {
     mockSupabaseSingle(makeAssignmentRow())
+    const { container } = await renderPage()
 
-    const element = await TripSheetPage({ params: Promise.resolve({ token: validToken }) })
-    render(element)
-
-    expect(screen.getByText('PRG-100')).toBeInTheDocument()
-    expect(screen.getByText('Alice Smith')).toBeInTheDocument()
-    expect(screen.getByText('Prague Airport')).toBeInTheDocument()
-    expect(screen.getByText('Wenceslas Square')).toBeInTheDocument()
-    expect(screen.getByText('2026-09-01')).toBeInTheDocument()
-    expect(screen.getByText('10:00')).toBeInTheDocument()
+    expect(container.querySelector('div.admin-shell.driver-shell[data-admin-theme="light"]')).not.toBeNull()
+    expect(screen.getAllByText('On my way')).toHaveLength(1)
+    for (const other of ['I have arrived', 'Passenger on board', 'Complete trip']) {
+      expect(screen.queryByText(other)).not.toBeInTheDocument()
+    }
     expect(screen.queryByText('This trip link is no longer active.')).not.toBeInTheDocument()
   })
 
-  it('unknown token renders the neutral placeholder with no passenger/reference data', async () => {
-    mockSupabaseSingle(null, { message: 'Not found' })
+  it('before the unlock instant the control is locked with "Too early to start" and the unlock time (D-14)', async () => {
+    mockSupabaseSingle(makeAssignmentRow())
+    getStartGateMock.mockResolvedValue({ unlocksAtMs: Date.parse('2099-01-02T05:15:00Z'), open: false })
+    await renderPage()
 
-    const element = await TripSheetPage({ params: Promise.resolve({ token: validToken }) })
-    render(element)
-
-    expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
-    expect(screen.queryByText('PRG-100')).not.toBeInTheDocument()
-    expect(screen.queryByText('Alice Smith')).not.toBeInTheDocument()
+    expect(screen.getByText('Too early to start')).toBeInTheDocument()
+    expect(screen.getByText(/^Unlocks on /)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Too early to start/ })).toHaveAttribute('aria-disabled', 'true')
   })
 
-  it('terminal booking status (completed) renders the same neutral placeholder, no data', async () => {
+  it('confirmed booking shows "Waiting for the office"', async () => {
+    mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'confirmed' }))
+    await renderPage()
+    expect(screen.getByText('Waiting for the office')).toBeInTheDocument()
+    expect(screen.queryByText('On my way')).not.toBeInTheDocument()
+  })
+
+  it('renders no price, amount or currency text (D-06)', async () => {
+    mockSupabaseSingle(makeAssignmentRow())
+    const { container } = await renderPage()
+    expect(container.textContent ?? '').not.toMatch(/€|EUR|CZK|\bprice\b|amount/i)
+  })
+
+  it('performs no write: the page only selects from driver_assignments', async () => {
+    const { selectFn } = mockSupabaseSingle(makeAssignmentRow())
+    await renderPage()
+    expect(stubSupabaseFrom).toHaveBeenCalledTimes(1)
+    expect(stubSupabaseFrom).toHaveBeenCalledWith('driver_assignments')
+    expect(selectFn).toHaveBeenCalledTimes(1)
+    // The mocked builder offers select() only: update/insert/rpc would have thrown. Source gate too.
+    const src = fs.readFileSync(path.resolve(__dirname, '../app/(internal)/driver/trip/[token]/page.tsx'), 'utf8')
+    expect(src).not.toMatch(/\.(update|insert|upsert|delete|rpc)\(/)
+  })
+
+  it('does not select the amount of the booking', async () => {
+    const { selectFn } = mockSupabaseSingle(makeAssignmentRow())
+    await renderPage()
+    expect(String(selectFn.mock.calls[0][0])).not.toMatch(/amount|price/i)
+  })
+
+  it('completed booking renders the "Trip completed" re-opened view with no trip data (D-17)', async () => {
     mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'completed' }))
+    const { container } = await renderPage()
 
-    const element = await TripSheetPage({ params: Promise.resolve({ token: validToken }) })
-    render(element)
-
-    expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
-    expect(screen.queryByText('PRG-100')).not.toBeInTheDocument()
+    expect(screen.getByText('Trip completed')).toBeInTheDocument()
+    expect(screen.getByText('Thank you. This trip is closed.')).toBeInTheDocument()
+    const text = container.textContent ?? ''
+    for (const secret of ['PRG-100', 'Alice', 'Smith', '+420123456789', 'Prague Airport', 'Wenceslas Square', '2026-09-01']) {
+      expect(text).not.toContain(secret)
+    }
+    expect(screen.queryByText('This trip link is no longer active.')).not.toBeInTheDocument()
   })
 
-  it('reassigned booking (assignment.driver_id !== booking.driver_id) renders the same neutral placeholder, no data', async () => {
-    mockSupabaseSingle(makeAssignmentRow({ assignmentDriverId: driverId, bookingDriverId: otherDriverId }))
-
-    const element = await TripSheetPage({ params: Promise.resolve({ token: validToken }) })
-    render(element)
-
-    expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
-    expect(screen.queryByText('PRG-100')).not.toBeInTheDocument()
-  })
-
-  it('malformed (non-UUID) token renders the neutral placeholder without querying Supabase', async () => {
-    stubSupabaseFrom.mockClear()
-
-    const element = await TripSheetPage({ params: Promise.resolve({ token: 'not-a-uuid' }) })
-    render(element)
-
+  it('malformed (non-UUID) token renders the ended view without querying Supabase', async () => {
+    await renderPage('not-a-uuid')
     expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
     expect(stubSupabaseFrom).not.toHaveBeenCalled()
   })
 
-  it('orphaned assignment (joined booking missing) renders the same neutral placeholder, no data', async () => {
-    const row = makeAssignmentRow()
-    mockSupabaseSingle({ ...row, bookings: null })
+  it('cancelled, no_show, reassigned, declined, unknown and malformed tokens render byte-identical ended HTML (D-09, T-87-33)', async () => {
+    const arrangements: Array<{ arrange: () => void; token: string }> = [
+      { arrange: () => mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'cancelled' })), token: validToken },
+      { arrange: () => mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'no_show' })), token: validToken },
+      {
+        arrange: () =>
+          mockSupabaseSingle(makeAssignmentRow({ assignmentDriverId: driverId, bookingDriverId: otherDriverId })),
+        token: validToken,
+      },
+      { arrange: () => mockSupabaseSingle(makeAssignmentRow({ assignmentStatus: 'declined' })), token: validToken },
+      { arrange: () => mockSupabaseSingle(null, { message: 'Not found' }), token: validToken },
+      { arrange: () => stubSupabaseFrom.mockReset(), token: 'not-a-uuid' },
+    ]
 
-    const element = await TripSheetPage({ params: Promise.resolve({ token: validToken }) })
-    render(element)
+    const htmls: string[] = []
+    for (const { arrange, token } of arrangements) {
+      arrange()
+      const { container, unmount } = await renderPage(token)
+      htmls.push(container.innerHTML)
+      unmount()
+    }
 
+    expect(htmls).toHaveLength(6)
+    expect(htmls[0]).toContain('This trip link is no longer active.')
+    for (const html of htmls) {
+      expect(html).toBe(htmls[0])
+      expect(html).not.toContain('PRG-100')
+      expect(html).not.toContain('Alice')
+    }
+  })
+
+  it('orphaned assignment (joined booking missing) renders the same ended view', async () => {
+    mockSupabaseSingle({ ...makeAssignmentRow(), bookings: null })
+    await renderPage()
     expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
   })
 })

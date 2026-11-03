@@ -1,0 +1,56 @@
+/* Driver trip screen (Phase 87, 87-UI-SPEC "Theme Architecture").
+   Selector-scoped to .admin-shell.driver-shell. Size and motion only: this file holds no colour
+   value; colours come from the --admin-* / --status-* tokens of admin-theme.css. */
+
+.admin-shell.driver-shell {
+  --driver-fs-label: 12px;
+  --driver-fs-body: 16px;
+  --driver-fs-heading: 20px;
+  --driver-fs-display: 28px;
+  /* The base .admin-shell uses 100vh, which is taller than the visible area in mobile browsers. */
+  min-height: 100dvh;
+}
+
+/* Focus ring for the hand-built controls (knob, dialog buttons, Help): 2px with 2px offset. */
+.admin-shell.driver-shell [data-driver-focus]:focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
+}
+
+.admin-shell.driver-shell .driver-spin {
+  animation: driver-spin 1s linear infinite;
+}
+
+@keyframes driver-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell.driver-shell .driver-spin {
+    animation: none;
+  }
+}
+
+/* Confirm dialog: anchored to the bottom on phones, centred from 600px. */
+.admin-shell.driver-shell .driver-dialog-scrim {
+  align-items: flex-end;
+}
+
+.admin-shell.driver-shell .driver-dialog-sheet {
+  border-radius: var(--admin-radius-lg) var(--admin-radius-lg) 0 0;
+}
+
+@media (min-width: 600px) {
+  .admin-shell.driver-shell .driver-dialog-scrim {
+    align-items: center;
+  }
+
+  .admin-shell.driver-shell .driver-dialog-sheet {
+    border-radius: var(--admin-radius-lg);
+  }
+}
