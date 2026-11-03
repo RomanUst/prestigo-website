@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import Stripe from 'stripe'
 import { czkToEur } from '@/lib/currency'
+import { advanceBookingStatus } from '@/lib/booking-status-service'
 
 function getStripe() {
    
@@ -22,7 +23,7 @@ const cancelSchema = z.object({
 const NON_CANCELLABLE_STATUSES = ['cancelled', 'completed']
 
 export async function POST(request: Request) {
-  const { error } = await getAdminUser()
+  const { user, error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -53,6 +54,18 @@ export async function POST(request: Request) {
       { status: 422 }
     )
   }
+
+  // Phase 87 D-01: the status write goes through the status service; this
+  // profile runs no side effects (today's behaviour).
+  const cancelThroughService = () =>
+    advanceBookingStatus({
+      bookingId: parsed.data.id,
+      to: 'cancelled',
+      actor: { type: 'admin', id: user?.id ?? null },
+      source: 'admin_cancel',
+      profile: 'cancel-route',
+      current: booking,
+    })
 
   // If online booking with Stripe payment, issue refund first
   if (booking.payment_intent_id) {
@@ -99,24 +112,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: msg }, { status: 502 })
     }
 
-    // D-13: DB update scoped to `id` ONLY — never to payment_intent_id — so the paired leg is untouched
-    const { error: dbError } = await supabase
-      .from('bookings')
-      .update({ status: 'cancelled' })
-      .eq('id', parsed.data.id)
+    // D-13: the status write is scoped to `id` ONLY (inside the service) — never to
+    // payment_intent_id — so the paired leg is untouched.
+    const refundResult = await cancelThroughService()
 
-    if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+    // The only failure reachable after the NON_CANCELLABLE_STATUSES gate is the write.
+    if (!refundResult.ok) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
 
     return NextResponse.json({ ok: true, refund_id: refund.id })
   }
 
   // Manual booking — no Stripe, just update status
-  const { error: dbError } = await supabase
-    .from('bookings')
-    .update({ status: 'cancelled' })
-    .eq('id', parsed.data.id)
+  const result = await cancelThroughService()
 
-  if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+  if (!result.ok) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
 
   return NextResponse.json({ ok: true })
 }
