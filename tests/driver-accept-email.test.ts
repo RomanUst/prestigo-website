@@ -78,6 +78,11 @@ vi.mock('@/lib/supabase', () => ({
   }),
 }))
 
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true }),
+  getClientIp: () => '203.0.113.7',
+}))
+
 vi.mock('@/lib/email-log', () => ({ logEmail: logEmailStub }))
 
 vi.mock('resend', () => ({
@@ -135,6 +140,14 @@ function joinRow(overrides: Record<string, unknown> = {}, bookingOverrides: Reco
 
 async function flush() {
   await new Promise((r) => setTimeout(r, 20))
+}
+
+/** POST accepted, assert the answer is the unchanged 200 { ok: true } (so a 429 can never fake a pass), then let after() settle. */
+async function accept() {
+  const res = await respondPost(makeRequest('accepted'))
+  expect(res.status).toBe(200)
+  expect(await res.json()).toEqual({ ok: true })
+  await flush()
 }
 
 const savedSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -199,8 +212,7 @@ describe('87-15 tracer: accept -> one email with the order details and the trip 
       order.push('send')
       return { data: { id: 'x' }, error: null }
     })
-    await respondPost(makeRequest('accepted'))
-    await flush()
+    await accept()
     expect(logEmailStub).toHaveBeenCalledTimes(1)
     expect(logEmailStub).toHaveBeenCalledWith({
       bookingId: null,
@@ -226,18 +238,130 @@ describe('87-15 tracer: accept -> one email with the order details and the trip 
 
   it('NEXT_PUBLIC_SITE_URL with a trailing slash and whitespace still yields exactly one slash', async () => {
     process.env.NEXT_PUBLIC_SITE_URL = 'https://rideprestigo.com/ \n'
-    await respondPost(makeRequest('accepted'))
-    await flush()
+    await accept()
     const html: string = sendStub.mock.calls[0][0].html
     expect(html).toContain(`href="https://rideprestigo.com/driver/trip/${tripToken}"`)
     expect(html).not.toContain('com//driver')
   })
 
   it('never selects the client price columns (D-06)', async () => {
-    await respondPost(makeRequest('accepted'))
-    await flush()
+    await accept()
     expect(state.joinSelects).toHaveLength(1)
     expect(state.joinSelects[0]).not.toMatch(/amount_(eur|czk)/)
     expect(state.joinSelects[0]).toContain('driver_price_czk')
+  })
+})
+
+describe('87-15 guards', () => {
+  it('notification_flags { driver_assigned: false } -> no logEmail, no send', async () => {
+    state.flags = { driver_assigned: false }
+    await accept()
+    expect(logEmailStub).not.toHaveBeenCalled()
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it('notification_flags null or a missing key -> sends', async () => {
+    state.flags = null
+    await accept()
+    expect(sendStub).toHaveBeenCalledTimes(1)
+
+    sendStub.mockClear()
+    state.flags = { client_confirmed: true }
+    await accept()
+    expect(sendStub).toHaveBeenCalledTimes(1)
+  })
+
+  it('logEmail returns false (dedupe window) -> no send', async () => {
+    logEmailStub.mockResolvedValue(false)
+    await accept()
+    expect(logEmailStub).toHaveBeenCalledTimes(1)
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it('booking reassigned to another driver -> no send', async () => {
+    state.joinRow = joinRow({}, { driver_id: 'd0000099-0000-4000-8000-000000000099' })
+    await accept()
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it('booking has no driver -> no send', async () => {
+    state.joinRow = joinRow({}, { driver_id: null })
+    await accept()
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it('assignment status declined -> no send', async () => {
+    state.joinRow = joinRow({ status: 'declined' })
+    await accept()
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it.each(['completed', 'cancelled', 'no_show'])('booking status %s -> no send', async (status) => {
+    state.joinRow = joinRow({}, { status })
+    await accept()
+    expect(logEmailStub).not.toHaveBeenCalled()
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it.each([null, ''])('driver email %j -> no send', async (email) => {
+    state.joinRow = joinRow({ drivers: { name: 'Petr Driver', email } })
+    await accept()
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it('trip_token missing -> no send', async () => {
+    state.joinRow = joinRow({ trip_token: null })
+    await accept()
+    expect(sendStub).not.toHaveBeenCalled()
+  })
+
+  it('join read error or no row -> no send, one console.error with the assignment id and no token', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    state.joinRow = null
+    state.joinError = { message: 'boom' }
+    const res = await respondPost(makeRequest('accepted'))
+    await flush()
+    expect(res.status).toBe(200)
+    expect(sendStub).not.toHaveBeenCalled()
+    expect(errSpy).toHaveBeenCalledTimes(1)
+    const line = String(errSpy.mock.calls[0].join(' '))
+    expect(line).toContain(assignmentId)
+    expect(line).not.toContain(tripToken)
+    expect(line).not.toContain(acceptToken)
+    errSpy.mockRestore()
+  })
+
+  it('Resend send rejects -> the route still answers 200 { ok: true } and nothing throws', async () => {
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    sendStub.mockRejectedValue(new Error('resend down'))
+    const res = await respondPost(makeRequest('accepted'))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    await flush()
+    expect(sendStub).toHaveBeenCalledTimes(1)
+    errSpy.mockRestore()
+  })
+
+  it('declined sends no accept email', async () => {
+    state.updated = { id: assignmentId, status: 'declined', token_used_at: new Date().toISOString() }
+    const res = await respondPost(makeRequest('declined'))
+    expect(res.status).toBe(200)
+    await flush()
+    expect(logEmailStub).not.toHaveBeenCalled()
+  })
+
+  it('outcome logs carry the assignment id and a code, never the token, name, email or phone', async () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    await accept()
+    const lines = logSpy.mock.calls.map((c) => c.join(' ')).filter((l) => l.includes('[driver-accept]'))
+    expect(lines.length).toBeGreaterThan(0)
+    for (const l of lines) {
+      expect(l).toContain(assignmentId)
+      expect(l).not.toContain(tripToken)
+      expect(l).not.toContain('petr@example.com')
+      expect(l).not.toContain('Novak')
+      expect(l).not.toContain('+420')
+    }
+    logSpy.mockRestore()
   })
 })

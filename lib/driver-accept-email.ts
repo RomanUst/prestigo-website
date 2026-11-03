@@ -13,6 +13,7 @@
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { logEmail } from '@/lib/email-log'
 import { sendDriverAcceptedEmail } from '@/lib/email'
+import { isTripLinkValid } from '@/lib/trip-token'
 
 export type DriverAcceptedOutcome = 'sent' | 'skipped'
 
@@ -69,6 +70,27 @@ export async function sendDriverAcceptedTripEmail(assignmentId: string): Promise
   if (!booking || !driver) return skip(assignmentId, 'no_booking_or_driver')
   if (!driver.email) return skip(assignmentId, 'no_driver_email')
   if (!data.trip_token) return skip(assignmentId, 'no_trip_token')
+
+  // The same boundary the trip page and progress route enforce (D-03): the link must still work.
+  // Reassigned, declined, or a terminal booking (completed / cancelled / no_show) -> no email.
+  if (
+    !isTripLinkValid({
+      assignmentDriverId: data.driver_id,
+      bookingDriverId: booking.driver_id,
+      bookingStatus: booking.status,
+      assignmentStatus: data.status,
+    })
+  ) {
+    return skip(assignmentId, 'link_not_valid')
+  }
+
+  // Same toggle as the Phase 40 assignment email: missing flags = enabled.
+  const { data: config } = await supabase
+    .from('pricing_globals')
+    .select('notification_flags')
+    .eq('id', 1)
+    .single()
+  if (config?.notification_flags?.driver_assigned === false) return skip(assignmentId, 'flag_off')
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com').trim().replace(/\/+$/, '')
   const tripUrl = `${siteUrl}/driver/trip/${data.trip_token}`
