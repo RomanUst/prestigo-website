@@ -407,6 +407,21 @@ describe('hook.chat_contact - phone-only update (no email)', () => {
   })
 })
 
+describe('hook.chat_contact - driver contacts', () => {
+  it('a driver chat contact (identifier driver:<uuid>) with an email creates no identity, Contact or Lead', async () => {
+    const w = chatWorld()
+    w.cw.seed({ id: 7, name: 'Pavel Driver', email: 'driver@x.example', identifier: 'driver:a0000002-0000-4000-8000-000000000002' })
+
+    const result = await w.dispatch(contactKey(w, 7))
+
+    expect(result).toEqual({ outcome: 'skipped', code: 'driver_contact' })
+    expect(w.espoWrites()).toEqual([])
+    expect(w.contacts()).toHaveLength(0)
+    expect(w.leads()).toHaveLength(0)
+    expect(w.identity.identities).toHaveLength(0)
+  })
+})
+
 describe('hook.chat_contact - echo (HOOK-04 handler layer)', () => {
   it('a contact whose stored fingerprint matches its fields is skipped after the contact GET only', async () => {
     const w = chatWorld()
