@@ -131,14 +131,29 @@ function buildSupabaseMock({
     }
     if (table === 'gnet_bookings') {
       return {
+        // 87-07: existence check after a zero-row claim
         select: () => ({
           eq: () => ({
-            single: async () => ({ data: gnetData, error: gnetData ? null : 'not found' }),
+            maybeSingle: async () => ({ data: gnetData ? { id: gnetData.id } : null, error: null }),
           }),
         }),
         update: (payload: unknown) => {
           mockGnetBookingsUpdate(payload)
-          return { eq: async () => ({ error: null }) }
+          return {
+            // failure record by row id
+            eq: (col: string) => {
+              if (col === 'id') return Promise.resolve({ error: null })
+              // claim by booking_id: .or(filter).select('id, gnet_res_no') wins when the row exists
+              return {
+                or: () => ({
+                  select: async () => ({
+                    data: gnetData ? [{ id: gnetData.id, gnet_res_no: gnetData.gnet_res_no }] : [],
+                    error: null,
+                  }),
+                }),
+              }
+            },
+          }
         },
       }
     }
@@ -477,9 +492,12 @@ describe('advanceBookingStatus — profile assign-route', () => {
       '[assign:gnet-push] failed',
       expect.objectContaining({ bookingId: BOOKING_ID, error: 'GNet 503' }),
     )
-    expect(mockGnetBookingsUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ last_push_status: 'ASSIGNED', last_push_error: 'GNet 503' }),
+    // 87-07: claim sets the status, the failure record sets the error only
+    expect(mockGnetBookingsUpdate).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ last_push_status: 'ASSIGNED', last_push_error: null }),
     )
+    expect(mockGnetBookingsUpdate).toHaveBeenNthCalledWith(2, { last_push_error: 'GNet 503' })
     errorSpy.mockRestore()
   })
 

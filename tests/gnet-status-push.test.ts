@@ -109,10 +109,22 @@ function buildSupabaseMock({
       select: () => ({ eq: () => ({ single: async () => ({ data: bookingData, error: bookingData ? null : 'not found' }) }) }),
     }
     if (table === 'gnet_bookings') return {
-      select: () => ({ eq: () => ({ single: async () => ({ data: gnetData, error: gnetData ? null : 'not found' }) }) }),
-      update: (payload: unknown) => {
+      // Phase 87-07: existence check after a zero-row claim
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: gnetData ? { id: gnetData.id } : null, error: null }) }) }),
+      update: (payload: Record<string, unknown>) => {
         mockGnetBookingsUpdate(payload)
-        return { eq: async () => ({ error: null }) }
+        return {
+          // failure record by row id
+          eq: (col: string) => {
+            if (col === 'id') return Promise.resolve({ error: null })
+            // claim by booking_id: .or(filter).select('id, gnet_res_no') — wins when the row exists
+            return {
+              or: () => ({
+                select: async () => ({ data: gnetData ? [{ id: gnetData.id, gnet_res_no: gnetData.gnet_res_no }] : [], error: null }),
+              }),
+            }
+          },
+        }
       },
     }
     if (table === 'pricing_globals') return {
@@ -178,11 +190,14 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     await PATCH(req)
     await flushAfterCallbacks()
 
-    expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
-    const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
-    expect(updatePayload.last_push_status).toBe('CONFIRMED')
-    expect(updatePayload.last_push_error).toBe('GNet timeout')
-    expect(typeof updatePayload.last_pushed_at).toBe('string')
+    // 87-07: claim (status CONFIRMED, error cleared) then the failure record (error only)
+    expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(2)
+    const claimPayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
+    expect(claimPayload.last_push_status).toBe('CONFIRMED')
+    expect(claimPayload.last_push_error).toBeNull()
+    expect(typeof claimPayload.last_pushed_at).toBe('string')
+    const failPayload = mockGnetBookingsUpdate.mock.calls[1][0] as Record<string, unknown>
+    expect(failPayload).toEqual({ last_push_error: 'GNet timeout' })
   })
 
   it('STATUS-03 success: gnet_bookings.update receives last_push_error null', async () => {
@@ -193,6 +208,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     await PATCH(req)
     await flushAfterCallbacks()
 
+    // 87-07: the single claim update carries the outcome (error null)
     expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
     const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
     expect(updatePayload.last_push_status).toBe('CONFIRMED')
@@ -246,7 +262,8 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
 
     expect(res.status).toBe(200)
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
-    expect(mockGnetBookingsUpdate).not.toHaveBeenCalled()
+    // 87-07: the claim is attempted but wins no row, so no failure/audit record follows
+    expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
   })
 
   it('D-01 guard: unmapped status (pending) does NOT call pushGnetStatus', async () => {
