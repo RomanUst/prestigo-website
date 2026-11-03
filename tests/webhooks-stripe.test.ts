@@ -146,7 +146,11 @@ const ONE_WAY_ROWS = [
 // The webhook calls: supabase.from('bookings').select(...).eq('payment_intent_id', pi)
 //         then:      supabase.from('bookings').update({status: 'cancelled'}).eq('id'|'payment_intent_id', ...)
 function mockFromChain(rows: Array<Record<string, unknown>>) {
-  const updateEq = vi.fn().mockResolvedValue({ data: null, error: null })
+  // .eq() is awaitable and also chains .neq('status', 'no_show') (D-09 refund guard).
+  const updateNeq = vi.fn().mockResolvedValue({ data: null, error: null })
+  const updateEq = vi.fn().mockImplementation(() =>
+    Object.assign(Promise.resolve({ data: null, error: null }), { neq: updateNeq }),
+  )
   const update = vi.fn().mockReturnValue({ eq: updateEq })
   const inFn = vi.fn().mockResolvedValue({ data: [], error: null })
   // .select().eq() for refund lookup must resolve with rows
@@ -164,7 +168,7 @@ function mockFromChain(rows: Array<Record<string, unknown>>) {
     }
     return { select, update }
   })
-  return { update, updateEq, select, selectEq: selectEqResolved }
+  return { update, updateEq, updateNeq, select, selectEq: selectEqResolved }
 }
 
 const mockPaymentIntent = {
@@ -252,7 +256,11 @@ beforeEach(() => {
     const inFn = vi.fn().mockResolvedValue({ data: [], error: null })
     const selectEq = vi.fn().mockReturnValue({ single })
     const select = vi.fn().mockReturnValue({ eq: selectEq, in: inFn })
-    const updateEq = vi.fn().mockResolvedValue({ data: null, error: null })
+    const updateEq = vi.fn().mockImplementation(() =>
+      Object.assign(Promise.resolve({ data: null, error: null }), {
+        neq: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }),
+    )
     const update = vi.fn().mockReturnValue({ eq: updateEq })
     return { select, update }
   })
@@ -789,5 +797,7 @@ describe('Round-trip (Phase 27)', () => {
     expect(res.status).toBe(200)
     expect(chain.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'cancelled' }))
     expect(chain.updateEq).toHaveBeenCalledWith('id', 'uuid-single')
+    // D-09: a refund never erases a no-show
+    expect(chain.updateNeq).toHaveBeenCalledWith('status', 'no_show')
   })
 })

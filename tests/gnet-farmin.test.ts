@@ -475,7 +475,7 @@ describe('POST /api/gnet/farmin cancellation (Pitfall 7, D-22 no echo)', () => {
         return {
           update: (payload: unknown) => {
             updates.push(payload)
-            return { eq: () => ({ select: () => ({ single: async () => ({ data: { booking_reference: 'PRG-CANCEL-1' }, error: null }) }) }) }
+            return { eq: () => ({ not: () => ({ select: () => ({ maybeSingle: async () => ({ data: { booking_reference: 'PRG-CANCEL-1' }, error: null }) }) }) }) }
           },
         }
       }
@@ -496,5 +496,39 @@ describe('POST /api/gnet/farmin cancellation (Pitfall 7, D-22 no echo)', () => {
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
     expect(mockPushGnetForTransition).not.toHaveBeenCalled()
     expect(mockAdvanceBookingStatus).not.toHaveBeenCalled()
+  })
+
+  it('WR-05: CANCEL never rewrites a completed or no_show booking and still acknowledges', async () => {
+    const notFilters: unknown[][] = []
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === 'gnet_bookings') {
+        return { select: () => ({ eq: () => ({ single: async () => ({ data: { booking_id: 'booking-uuid-1' }, error: null }) }) }) }
+      }
+      if (table === 'bookings') {
+        return {
+          update: () => ({
+            eq: () => ({
+              not: (...args: unknown[]) => {
+                notFilters.push(args)
+                return { select: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }
+              },
+            }),
+          }),
+          select: () => ({
+            eq: () => ({ maybeSingle: async () => ({ data: { booking_reference: 'PRG-DONE-1', status: 'completed' }, error: null }) }),
+          }),
+        }
+      }
+      return {}
+    })
+
+    const res = await POST(makeReq({ ...validBookingPayload, affiliateReservation: { action: 'CANCEL' } }, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.reservationId).toBe('PRG-DONE-1')
+    expect(body.message).toBe('Reservation already finished')
+    expect(notFilters).toEqual([['status', 'in', '(completed,no_show)']])
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
   })
 })

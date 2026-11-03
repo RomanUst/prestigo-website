@@ -234,12 +234,37 @@ export async function POST(req: Request): Promise<Response> {
       )
     }
 
+    // A partner CANCEL never rewrites a finished trip: completed and no_show are terminal (D-09).
     const { data: cancelled, error: cancelErr } = await supabase
       .from('bookings')
       .update({ status: 'cancelled' })
       .eq('id', existingGnet.booking_id)
+      .not('status', 'in', '(completed,no_show)')
       .select('booking_reference')
-      .single()
+      .maybeSingle()
+
+    if (!cancelErr && !cancelled) {
+      const { data: finished } = await supabase
+        .from('bookings')
+        .select('booking_reference, status')
+        .eq('id', existingGnet.booking_id)
+        .maybeSingle()
+      if (finished && (finished.status === 'completed' || finished.status === 'no_show')) {
+        console.warn('[gnet-farmin] cancel ignored, booking already final', {
+          bookingId: existingGnet.booking_id,
+          status: finished.status,
+        })
+        return Response.json(
+          {
+            success:       true,
+            reservationId: finished.booking_reference,
+            transactionId: parsed.data.transactionId,
+            message:       'Reservation already finished',
+          },
+          { status: 200 },
+        )
+      }
+    }
 
     if (cancelErr || !cancelled) {
       console.error('[gnet-farmin] cancel failed', cancelErr)

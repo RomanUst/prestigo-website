@@ -927,6 +927,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
       .from('bookings')
       .update({ status: 'cancelled' })
       .eq('id', rows[0].id)
+      .neq('status', 'no_show') // D-09: a refund never erases a no-show
     if (updErr) console.error('charge.refunded one-way: update failed:', updErr.message)
     return
   }
@@ -940,6 +941,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
       .from('bookings')
       .update({ status: 'cancelled' })
       .eq('payment_intent_id', pi)
+      .neq('status', 'no_show') // D-09: a refund never erases a no-show
     if (updErr) console.error('charge.refunded full: bulk update failed:', updErr.message)
     return
   }
@@ -954,6 +956,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
       .from('bookings')
       .update({ status: 'cancelled' })
       .eq('payment_intent_id', pi)
+      .neq('status', 'no_show') // D-09: a refund never erases a no-show
     if (updErr) console.error('charge.refunded partial "both": bulk update failed:', updErr.message)
     return
   }
@@ -1003,6 +1006,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
           .from('bookings')
           .update({ status: 'cancelled' })
           .eq('payment_intent_id', pi)
+          .neq('status', 'no_show') // D-09: a refund never erases a no-show
         if (updErr) console.error('charge.refunded ambiguous: bulk update failed:', updErr.message)
         return
       }
@@ -1015,6 +1019,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
         .from('bookings')
         .update({ status: 'cancelled' })
         .eq('payment_intent_id', pi)
+        .neq('status', 'no_show') // D-09: a refund never erases a no-show
       if (updErr) console.error('charge.refunded no-data: bulk update failed:', updErr.message)
       return
     }
@@ -1030,5 +1035,6 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     .from('bookings')
     .update({ status: 'cancelled' })
     .eq('id', targetRow.id)
+    .neq('status', 'no_show') // D-09: a refund never erases a no-show
   if (updErr) console.error('charge.refunded partial: update failed:', updErr.message)
 }
