@@ -8,6 +8,7 @@ import {
   CHATWOOT_SYNCED_ATTRIBUTE_KEYS,
 } from '@/lib/chatwoot-mapping'
 import type { CrmBookingRecord, PersonRecord } from '@/lib/identity-store'
+import { REVENUE_STATUSES } from '@/lib/booking-status'
 
 // Synthetic fixtures only.
 
@@ -121,13 +122,24 @@ describe('buildChatwootAttributes: counters', () => {
   })
 
   it('every paid or active status adds to lifetime_value', () => {
-    const statuses = ['confirmed', 'assigned', 'en_route', 'on_location', 'completed']
+    const statuses = [...REVENUE_STATUSES]
+    expect(statuses).toContain('on_board')
     const attrs = buildChatwootAttributes(
       person(statuses.map((status, i) => booking(`b${i}`, { status, amount_eur: 10.5 }))),
       NOW,
       LINKS,
     )
-    expect(attrs.lifetime_value).toBe('52.50 EUR')
+    expect(attrs.lifetime_value).toBe(`${(statuses.length * 10.5).toFixed(2)} EUR`)
+  })
+
+  it('a no_show booking is still a trip but adds no lifetime_value (D-11)', () => {
+    const attrs = buildChatwootAttributes(
+      person([booking('b1', { status: 'on_board', amount_eur: 40 }), booking('b2', { status: 'no_show', amount_eur: 60 })]),
+      NOW,
+      LINKS,
+    )
+    expect(attrs.trip_count).toBe('2')
+    expect(attrs.lifetime_value).toBe('40.00 EUR')
   })
 
   it('an abandoned checkout never counts', () => {

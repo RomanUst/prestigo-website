@@ -16,6 +16,8 @@ import {
 } from '@/lib/panel-bookings'
 import { bookingLeadAmountEur, type BookingRow } from '@/lib/lead-mapping'
 import { adminBookingHref } from '@/lib/panel-links'
+import { REVENUE_STATUSES } from '@/lib/booking-status'
+import { pickupInstantMs as pragueDatePickupInstantMs } from '@/lib/prague-date'
 
 // Synthetic fixtures only.
 
@@ -138,6 +140,11 @@ describe('paymentState (RESEARCH A1)', () => {
     expect(paymentState('en_route', null)).toBe('paid')
     expect(paymentState('on_location', null)).toBe('paid')
     expect(paymentState('confirmed', null)).toBe('paid')
+    expect(paymentState('on_board', null)).toBe('paid')
+  })
+  it('an unpaid no_show is awaiting_payment, a paid one stays paid (A6)', () => {
+    expect(paymentState('no_show', null)).toBe('awaiting_payment')
+    expect(paymentState('no_show', '2026-11-01T10:00:00Z')).toBe('paid')
   })
 })
 
@@ -255,20 +262,20 @@ describe('counter parity anchor (82 D-02)', () => {
     expect(sum).toBe(320)
   })
 
-  it('PANEL_VALUE_STATUSES equals the VALUE_STATUSES literal in lib/chatwoot-mapping.ts', () => {
+  it('PANEL_VALUE_STATUSES equals REVENUE_STATUSES and chatwoot-mapping derives its set from it (D-02, D-11)', () => {
+    expect([...PANEL_VALUE_STATUSES].sort()).toEqual([...REVENUE_STATUSES].sort())
+    expect(PANEL_VALUE_STATUSES.has('on_board')).toBe(true)
+    expect(PANEL_VALUE_STATUSES.has('no_show')).toBe(false)
     const src = fs.readFileSync(path.join(process.cwd(), 'lib', 'chatwoot-mapping.ts'), 'utf8')
-    const m = src.match(/VALUE_STATUSES[^=]*=\s*new Set\(\[([^\]]+)\]\)/)
-    expect(m, 'VALUE_STATUSES literal not found').not.toBeNull()
-    const fromSource = (m as RegExpMatchArray)[1]
-      .split(',')
-      .map((s) => s.trim().replace(/['"]/g, ''))
-      .filter(Boolean)
-      .sort()
-    expect([...PANEL_VALUE_STATUSES].sort()).toEqual(fromSource)
+    // No hand-written status list may remain next to the value set.
+    expect(src).toMatch(/VALUE_STATUSES[^=\n]*=\s*REVENUE_STATUSES/)
   })
 })
 
 describe('pickupInstantMs', () => {
+  it('lives in lib/prague-date.ts and is re-exported unchanged by lib/panel-bookings.ts', () => {
+    expect(pragueDatePickupInstantMs).toBe(pickupInstantMs)
+  })
   it('prefers pickup_utc', () => {
     expect(pickupInstantMs(row('a', { pickup_utc: '2026-11-12T13:30:00+00:00' }))).toBe(Date.UTC(2026, 10, 12, 13, 30))
   })
@@ -341,6 +348,13 @@ describe('buildPanelResponse edge matrix', () => {
     expect(res.upcoming).toHaveLength(0)
     expect(res.past.map((b) => b.id)).toEqual(['p1', 'p2', 'bad'])
     expect(res.past[2].pickupMs).toBeNull()
+  })
+
+  it('a no_show booking with a future pickup goes to past, not upcoming (D-10)', () => {
+    const res = buildPanelResponse(rpcResult([row('ns', { status: 'no_show', pickup_utc: future })]), CONTACT, NOW, LINKS)
+    expect(res.upcoming).toHaveLength(0)
+    expect(res.past.map((b) => b.id)).toEqual(['ns'])
+    expect(res.past[0].paymentState).toBe('awaiting_payment')
   })
 
   it('a return leg is its own booking with isReturnLeg', () => {

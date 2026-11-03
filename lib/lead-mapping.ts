@@ -48,7 +48,11 @@ export const LEAD_STATUS_VALUE: Record<LeadStatusKey, 'New' | 'In Process' | 'Co
   dead: 'Dead',
 }
 
-/** Exactly the 8 booking statuses of migration 053 (D-06). */
+/**
+ * Exactly the 10 statuses of lib/booking-status.ts (D-06, D-10), equal to the latest SQL
+ * booking_lead_status() body (pinned by tests/booking-status-parity.test.ts). on_board and no_show
+ * stay 'converted': the booking was won, a no-show does not un-win it.
+ */
 export const BOOKING_LEAD_STATUS: Readonly<Record<string, LeadStatusKey>> = {
   unpaid: 'new',
   pending: 'in_process',
@@ -56,6 +60,8 @@ export const BOOKING_LEAD_STATUS: Readonly<Record<string, LeadStatusKey>> = {
   assigned: 'converted',
   en_route: 'converted',
   on_location: 'converted',
+  on_board: 'converted',
+  no_show: 'converted',
   completed: 'converted',
   cancelled: 'dead',
 }
