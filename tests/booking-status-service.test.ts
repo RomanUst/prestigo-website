@@ -703,6 +703,129 @@ describe('advanceBookingStatus — compare-and-set (D-01, PAYF-02)', () => {
   })
 })
 
+describe('advanceBookingStatus — completion event (D-05, D-06)', () => {
+  const completeInput = {
+    bookingId: BOOKING_ID,
+    to: 'completed',
+    actor: adminActor,
+    source: 'admin_patch',
+    profile: 'full' as const,
+  }
+
+  it('applied completion: emitBookingCompleted runs once, from after(), with the RPC completed_at and partner false', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'on_location', booking_source: 'website' } })
+    const result = await advanceBookingStatus(completeInput)
+    expect(result.ok).toBe(true)
+    // scheduled in after(), not run inline
+    expect(mockEmitCompleted).not.toHaveBeenCalled()
+    await flushAfterCallbacks()
+    expect(mockEmitCompleted).toHaveBeenCalledTimes(1)
+    expect(mockEmitCompleted).toHaveBeenCalledWith({
+      bookingId: BOOKING_ID,
+      completedAt: '2026-11-03T10:00:00.000Z',
+      partner: false,
+      actorType: 'admin',
+      source: 'admin_patch',
+    })
+  })
+
+  it('a gnet booking completes with partner true', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'on_location', booking_source: 'gnet' } })
+    await advanceBookingStatus(completeInput)
+    await flushAfterCallbacks()
+    expect(mockEmitCompleted).toHaveBeenCalledTimes(1)
+    expect(mockEmitCompleted.mock.calls[0][0]).toMatchObject({ partner: true })
+  })
+
+  it('a driver completion carries the driver actor type and source', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'on_board' } })
+    await advanceBookingStatus({
+      ...completeInput,
+      actor: { type: 'driver', id: 'driver-1' },
+      source: 'driver_trip',
+    })
+    await flushAfterCallbacks()
+    expect(mockEmitCompleted).toHaveBeenCalledWith(
+      expect.objectContaining({ actorType: 'driver', source: 'driver_trip' }),
+    )
+  })
+
+  it('completedAt is null when the RPC row carries no completed_at', async () => {
+    buildSupabaseMock({
+      bookingData: { ...baseRow, status: 'on_location' },
+      rpcData: { applied: true, previous_status: 'on_location', booking: { ...baseRow, status: 'completed' } },
+    })
+    await advanceBookingStatus(completeInput)
+    await flushAfterCallbacks()
+    expect(mockEmitCompleted.mock.calls[0][0]).toMatchObject({ completedAt: null })
+  })
+
+  it('never emits on a lost race (conflict)', async () => {
+    buildSupabaseMock({
+      bookingData: { ...baseRow, status: 'on_location' },
+      rpcData: { applied: false, current_status: 'cancelled' },
+    })
+    const result = await advanceBookingStatus(completeInput)
+    await flushAfterCallbacks()
+    expect(result).toMatchObject({ ok: false, code: 'conflict' })
+    expect(mockEmitCompleted).not.toHaveBeenCalled()
+  })
+
+  it('never emits on a stale expectedFrom (conflict, no RPC)', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'on_location' } })
+    await advanceBookingStatus({ ...completeInput, expectedFrom: 'en_route' })
+    await flushAfterCallbacks()
+    expect(mockEmitCompleted).not.toHaveBeenCalled()
+  })
+
+  it('never emits on an invalid transition', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'cancelled' } })
+    const result = await advanceBookingStatus(completeInput)
+    await flushAfterCallbacks()
+    expect(result).toMatchObject({ ok: false, code: 'invalid_transition' })
+    expect(mockEmitCompleted).not.toHaveBeenCalled()
+  })
+
+  it('never emits on a db error', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'on_location' }, updateError: { message: 'boom' } })
+    const result = await advanceBookingStatus(completeInput)
+    await flushAfterCallbacks()
+    expect(result).toMatchObject({ ok: false, code: 'db_error' })
+    expect(mockEmitCompleted).not.toHaveBeenCalled()
+  })
+
+  it.each(['en_route', 'on_board', 'cancelled', 'no_show'])('never emits for target %s', async (to) => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: to === 'en_route' ? 'assigned' : 'on_location' } })
+    const result = await advanceBookingStatus({ ...completeInput, to })
+    await flushAfterCallbacks()
+    expect(result.ok).toBe(true)
+    expect(mockEmitCompleted).not.toHaveBeenCalled()
+  })
+})
+
+describe('emitBookingCompleted (booking-events module)', () => {
+  it('returns the event and logs ids only: no client name, email, phone or amount', async () => {
+    const actual = await vi.importActual<typeof import('@/lib/booking-events')>('@/lib/booking-events')
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const event = {
+      bookingId: BOOKING_ID,
+      completedAt: '2026-11-03T10:00:00.000Z',
+      partner: true,
+      actorType: 'driver' as const,
+      source: 'driver_trip',
+    }
+    const returned = actual.emitBookingCompleted(event)
+    expect(returned).toBe(event)
+    expect(logSpy).toHaveBeenCalledTimes(1)
+    const line = String(logSpy.mock.calls[0][0])
+    expect(line).toContain('[booking-events] completed')
+    expect(line).toContain(BOOKING_ID)
+    expect(line).toContain('partner=true')
+    expect(line).not.toMatch(/@|\+420|amount|name/i)
+    logSpy.mockRestore()
+  })
+})
+
 describe('advanceResultToResponse', () => {
   it('returns null for an ok result', () => {
     const ok: AdvanceBookingStatusResult = {

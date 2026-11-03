@@ -6,6 +6,8 @@ import { scheduleQStashReminder } from '@/lib/qstash'
 import { deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { pushGnetForTransition } from '@/lib/gnet-push'
+import { isPartnerBooking } from '@/lib/booking-status'
+import { emitBookingCompleted } from '@/lib/booking-events'
 
 /**
  * The one writer of bookings.status for admin-driven transitions
@@ -187,6 +189,23 @@ export async function advanceBookingStatus(
     previous: previousStatus,
     current: to,
     booking,
+  }
+
+  // D-06: exactly one completion event, only for the compare-and-set that applied the
+  // move to 'completed', whoever the actor is (admin PATCH or driver). It records and
+  // returns the fact; no money action here (Phase 88 consumes it, see booking-events.ts).
+  if (to === 'completed') {
+    const completedAt = (booking.completed_at as string | null | undefined) ?? null
+    const partner = isPartnerBooking(booking as { booking_source?: string | null })
+    after(() =>
+      emitBookingCompleted({
+        bookingId,
+        completedAt,
+        partner,
+        actorType: input.actor.type,
+        source: input.source,
+      }),
+    )
   }
 
   // 'cancel-route': no side effect at all (today's cancel route sends no email,
