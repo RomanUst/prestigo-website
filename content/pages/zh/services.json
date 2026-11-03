@@ -114,6 +114,24 @@
       "image": "/hero-vip-events.png"
     },
     {
+      "label": "豪华轿车",
+      "title": "豪华轿车服务",
+      "description": "行政级豪华轿车，而非派对礼车：黑色奔驰 S-Class，配身着西装的司机。适用于机场接机、婚礼、商务日程和歌剧院之夜——安静的车厢，出行前即确定固定价格。",
+      "features": [
+        "奔驰 S-Class，2025 年款或更新",
+        "后排按摩座椅与隐私玻璃",
+        "婚礼、VIP 与机场接机",
+        "最多 3 位乘客"
+      ],
+      "price": null,
+      "cta": "了解更多",
+      "href": "/services/limousine-prague",
+      "bookHref": "/book?class=first_class",
+      "bookCta": "立即预订",
+      "isNew": true,
+      "image": "/s-class-photo.webp"
+    },
+    {
       "label": "团体",
       "title": "团体接送",
       "description": "会议代表团。奖励旅游。企业外出活动。商务车、多台车辆、精准时间把控。所有人准时同行、同时抵达。",

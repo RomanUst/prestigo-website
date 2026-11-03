@@ -551,7 +551,8 @@
         "title": "Location sur plusieurs jours",
         "body": "Un chauffeur dédié pour l'ensemble de votre séjour. Combinez transferts et journées à l'heure à travers l'Europe centrale.",
         "detail": "Itinéraire personnalisé · Devis sous 24 h"
-      }
+      },
+      {"label": "Limousine", "title": "Service de limousine", "body": "Une Mercedes S-Class noire et un chauffeur en costume — pour l'aéroport, les mariages, les journées d'affaires et les soirées.", "detail": "Mercedes S-Class · Jusqu'à 3 passagers"}
     ],
     "fromPrice": "À partir de {price} €",
     "fromPriceHourly": "À partir de {price} €/h",

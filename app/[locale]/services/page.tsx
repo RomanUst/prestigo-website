@@ -262,7 +262,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">{content.alsoPopularLabel}</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {landingPagesFor('services').map((p) => {
+            {landingPagesFor('services').filter((p) => !content.services.some((s) => s.href === `/services/${p.slug}`)).map((p) => {
               const page = getPageContent(`services/${p.slug}`, locale) as LandingContent
               return (
                 <a key={p.slug} href={localizedHref(locale, `/services/${p.slug}`)} className="border border-anthracite-light p-6 hover:border-[var(--copper)] transition-colors">

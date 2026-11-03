@@ -551,7 +551,8 @@
         "title": "Alquiler de varios días",
         "body": "Un chófer exclusivo para todo su viaje. Combine traslados y jornadas por horas por toda Europa Central.",
         "detail": "Itinerario a medida · Presupuesto en 24 h"
-      }
+      },
+      {"label": "Limusina", "title": "Servicio de limusina", "body": "Un Mercedes S-Class negro con chófer de traje: llegadas al aeropuerto, bodas, días de negocios y salidas nocturnas.", "detail": "Mercedes S-Class · Hasta 3 pasajeros"}
     ],
     "fromPrice": "Desde {price} €",
     "fromPriceHourly": "Desde {price} €/h",
