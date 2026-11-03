@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: complete
 phase: 87-status-service-driver-step-flow
 source: [87-VERIFICATION.md, 87-13-PLAN.md]
 started: 2026-11-03T15:59:57Z
-updated: 2026-11-03T17:25:00Z
+updated: 2026-11-03T22:30:00Z
 ---
 
 ## Current Test
@@ -43,10 +43,24 @@ expected: owner accepts that GNet receives en route / on site / completed only (
 result: pass
 note: owner re-confirmed "да все верно"
 
+### 7. Re-test gap 1 — driver accept email (87-15)
+expected: after Accept a "Trip confirmed: PRG-..." email arrives with full details and OPEN TRIP; no Accept/Decline; no client price
+result: pass
+
+### 8. Re-test gap 2 — Google Maps / Waze chooser (87-16)
+expected: Navigate to pickup / drop-off opens a sheet with Google Maps and Waze; each opens directions to that stop (also inside WhatsApp / Telegram / Instagram); Cancel and tapping outside close it
+result: pass
+
+### 9. Re-test gap 3 — Help opens the Chatwoot chat (87-17..87-19)
+expected: Help → Chat with the office opens the chat; the message lands in the Drivers inbox from "<name> (driver)" with Chat from: driver and Driver trip: PRG-...; the trip token appears nowhere in Chatwoot; replies show on the phone; Call the office and Back to trip work
+result: pass
+note: owner "все работает" on booking PRG-20261103-UAT87G; orchestrator verified conversation 218 — inbox Drivers, sender "Roman (driver)", identifier driver:*, no email, custom_attributes {chat_role: driver, driver_trip_ref: PRG-20261103-UAT87G}, referer https://rideprestigo.com/driver/trip/help, no trip-token URL anywhere; chat_conversations.outcome = filtered, no espo lead/contact
+open_cosmetic: widget shows the agent "Prestigo Admin" profile photo (a sail) — also visible to clients on the Website inbox; Drivers inbox has no avatar — follow-up
+
 ## Summary
 
-total: 6
-passed: 5
+total: 9
+passed: 8
 issues: 1
 pending: 0
 skipped: 0
@@ -55,7 +69,8 @@ blocked: 0
 ## Gaps
 
 - truth: "After the driver taps Accept, the driver receives an email with the full order details"
-  status: failed
+  status: resolved
+  resolved_by: 87-15..87-20 (PR #85), re-tested pass 2026-11-03 (tests 7-9)
   reason: "User reported: после того как водитель нажал что принял заказ ему не пришел имеил с заказом"
   severity: major
   test: 1
@@ -68,7 +83,8 @@ blocked: 0
   debug_session: ""
 
 - truth: "Tapping the pickup / drop-off navigation button lets the driver choose Google Maps or Waze"
-  status: failed
+  status: resolved
+  resolved_by: 87-15..87-20 (PR #85), re-tested pass 2026-11-03 (tests 7-9)
   reason: "User reported: у кнопок навигации к пикапу или к дропоффу при нажатии должно быть на выбор гугл мапс или вейз"
   severity: major
   test: 1
@@ -84,7 +100,8 @@ blocked: 0
   debug_session: ""
 
 - truth: "Tapping Help opens a chat whose messages reach Chatwoot"
-  status: failed
+  status: resolved
+  resolved_by: 87-15..87-20 (PR #85), re-tested pass 2026-11-03 (tests 7-9)
   reason: "User reported: при нажатии кнопки хелп должен открываться чат который получит чатвоот"
   severity: major
   test: 1

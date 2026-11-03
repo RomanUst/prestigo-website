@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, TouchEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { CircleHelp, Clock, Info, Navigation, Phone, TriangleAlert } from 'lucide-react'
+import { CircleHelp, Clock, Info, MessageSquare, Navigation, Phone, TriangleAlert } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import type { StatusBadgeVariant } from '@/components/admin/StatusBadge'
 import { DRIVER_STEP_LABEL, TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
@@ -46,6 +46,7 @@ export interface TripScreenProps {
     passengerPhone: string | null
     vehicleLabel: string
     vehicleInfo: string | null
+    driverName: string | null
     flight: string | null
     clientNotes: string | null
     distanceKm: number | null
@@ -110,6 +111,8 @@ interface StepResponseBody {
   noShowAvailableAt?: string
 }
 
+const SWIPE_MIN_PX = 24
+
 export default function TripScreen({ token, view, trip, initialNote, noShow }: TripScreenProps) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -130,6 +133,26 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [noShowDialogOpen, setNoShowDialogOpen] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  // A short vertical swipe on the sheet head opens (up) or closes (down) the details; the tap on
+  // the handle still toggles. The click that follows a swipe is swallowed so it does not undo it.
+  const swipeStartY = useRef<number | null>(null)
+  const swipedRef = useRef(false)
+  const sheetSwipe = {
+    onTouchStart: (e: TouchEvent) => {
+      swipeStartY.current = e.touches[0]?.clientY ?? null
+      swipedRef.current = false
+    },
+    onTouchEnd: (e: TouchEvent) => {
+      const start = swipeStartY.current
+      swipeStartY.current = null
+      const end = e.changedTouches[0]?.clientY
+      if (start == null || end == null) return
+      const dy = end - start
+      if (Math.abs(dy) < SWIPE_MIN_PX) return
+      swipedRef.current = true
+      setExpanded(dy < 0)
+    },
+  }
   // The note draft lives here: it survives collapsing the sheet and router.refresh() re-renders.
   const [noteDraft, setNoteDraft] = useState(initialNote ?? '')
   // Request time from this session's 200 answer; the refreshed server props take over afterwards.
@@ -531,11 +554,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
         </button>
       </header>
 
-      <PassengerCard
-        name={trip.passengerName}
-        vehicleLine={trip.vehicleInfo ? `${trip.vehicleLabel} · ${trip.vehicleInfo}` : trip.vehicleLabel}
-        phone={trip.passengerPhone}
-      />
+      <PassengerCard name={trip.passengerName} />
 
       <TripMap
         origin={trip.origin}
@@ -567,7 +586,14 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
           data-driver-focus=""
           aria-expanded={expanded}
           aria-label={expanded ? 'Hide trip details' : 'Show trip details'}
-          onClick={() => setExpanded((v) => !v)}
+          onClick={() => {
+            if (swipedRef.current) {
+              swipedRef.current = false
+              return
+            }
+            setExpanded((v) => !v)
+          }}
+          {...sheetSwipe}
           style={{
             boxSizing: 'border-box',
             alignSelf: 'center',
@@ -583,14 +609,17 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
             cursor: 'pointer',
           }}
         >
-          {/* Bar only, no chevron; tap toggles, there is no drag gesture. */}
+          {/* Bar only, no chevron; tap toggles, a short swipe up / down opens / closes. */}
           <span
             aria-hidden="true"
             style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--admin-border-strong)' }}
           />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
+        <div
+          {...sheetSwipe}
+          style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}
+        >
           <div>
             <div
               style={{
@@ -651,9 +680,16 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
         </ol>
 
         {expanded ? (
+          <PassengerRow name={trip.passengerName} phone={trip.passengerPhone} />
+        ) : null}
+
+        {expanded ? (
           <TripDetails
             token={token}
             bookingReference={trip.bookingReference}
+            driverName={trip.driverName}
+            vehicleLabel={trip.vehicleLabel}
+            vehicleInfo={trip.vehicleInfo}
             flight={trip.flight}
             clientNotes={trip.clientNotes}
             draft={noteDraft}
@@ -756,59 +792,98 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   )
 }
 
-function PassengerCard({ name, vehicleLine, phone }: { name: string; vehicleLine: string; phone: string | null }) {
-  // tel: needs digits and an optional leading +; spaces and punctuation from the booking form are dropped.
-  const dialable = phone ? phone.replace(/[^\d+]/g, '') : ''
+// Owner 2026-11-03 (after the 87 UAT): the card above the map shows only who to meet; the phone,
+// the contact buttons and the booking / driver / vehicle rows live in the expanded sheet.
+function PassengerCard({ name }: { name: string }) {
   return (
     <div
       style={{
         boxSizing: 'border-box',
         margin: '0 24px',
         padding: 16,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
         background: 'var(--admin-surface)',
         border: '1px solid var(--admin-border)',
         borderRadius: 'var(--admin-radius-md)',
       }}
     >
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <p
+      <span
+        style={{
+          fontSize: 'var(--driver-fs-label)',
+          fontWeight: 500,
+          lineHeight: 1.4,
+          color: 'var(--admin-text-muted)',
+        }}
+      >
+        Passenger
+      </span>
+      <p
+        style={{
+          margin: 0,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+          fontSize: 'var(--driver-fs-heading)',
+          fontWeight: 500,
+          lineHeight: 1.2,
+        }}
+      >
+        {name}
+      </p>
+    </div>
+  )
+}
+
+function PassengerRow({ name, phone }: { name: string; phone: string | null }) {
+  // tel:/sms: need digits and an optional leading +; spaces and punctuation from the booking form are dropped.
+  const dialable = phone ? phone.replace(/[^\d+]/g, '') : ''
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
+      <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <span
           style={{
-            margin: 0,
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            fontSize: 'var(--driver-fs-heading)',
+            fontSize: 'var(--driver-fs-label)',
             fontWeight: 500,
-            lineHeight: 1.2,
+            lineHeight: 1.4,
+            color: 'var(--admin-text-muted)',
           }}
         >
-          {name}
-        </p>
+          Passenger
+        </span>
         <p
           style={{
             margin: 0,
             fontSize: 'var(--driver-fs-body)',
             fontWeight: 400,
             lineHeight: 1.5,
-            color: 'var(--admin-text-muted)',
             overflowWrap: 'anywhere',
           }}
         >
-          {vehicleLine}
+          {name}
         </p>
+        {dialable ? (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 'var(--driver-fs-body)',
+              fontWeight: 400,
+              lineHeight: 1.5,
+              color: 'var(--admin-text-muted)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {phone?.trim()}
+          </p>
+        ) : null}
       </div>
       {dialable ? (
-        <a
-          href={`tel:${dialable}`}
-          aria-label="Call passenger"
-          data-driver-focus=""
-          style={iconButtonStyle}
-        >
-          <Phone size={20} aria-hidden="true" />
-        </a>
+        <>
+          <a href={`sms:${dialable}`} aria-label="Message passenger" data-driver-focus="" style={iconButtonStyle}>
+            <MessageSquare size={20} aria-hidden="true" />
+          </a>
+          <a href={`tel:${dialable}`} aria-label="Call passenger" data-driver-focus="" style={iconButtonStyle}>
+            <Phone size={20} aria-hidden="true" />
+          </a>
+        </>
       ) : null}
     </div>
   )

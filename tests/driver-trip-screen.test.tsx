@@ -64,6 +64,7 @@ function makeProps(
       passengerPhone: '+420123456789',
       vehicleLabel: 'Business Class',
       vehicleInfo: 'Black Mercedes E-Class',
+      driverName: 'John Driver',
       flight: null,
       clientNotes: null,
       distanceKm: 12.4,
@@ -752,42 +753,77 @@ describe('ConfirmStepDialog behaviour', () => {
 })
 
 describe('TripScreen: passenger card, map and navigation (D-18)', () => {
-  it('shows the passenger name and the vehicle line with the driver vehicle info', () => {
+  // Passenger contact moved into the expanded sheet (owner 2026-11-03, after the 87 UAT).
+  function openSheet() {
+    fireEvent.click(screen.getByRole('button', { name: 'Show trip details' }))
+  }
+
+  it('collapsed: the card above the map shows only the passenger name, no phone, vehicle or buttons', () => {
     render(<TripScreen {...makeProps()} />)
+    expect(screen.getByText('Passenger')).toBeInTheDocument()
     expect(screen.getByText('Alice Smith')).toBeInTheDocument()
-    expect(screen.getByText('Business Class · Black Mercedes E-Class')).toBeInTheDocument()
+    expect(screen.queryByText('+420123456789')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Business Class/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Call passenger' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Message passenger' })).not.toBeInTheDocument()
   })
 
-  it('drops the " · " segment when the driver has no vehicle info', () => {
+  it('expanded: passenger name and phone, booking, driver, vehicle class and vehicle rows', () => {
+    render(<TripScreen {...makeProps()} />)
+    openSheet()
+    expect(screen.getAllByText('Passenger')).toHaveLength(2)
+    expect(screen.getAllByText('Alice Smith')).toHaveLength(2)
+    expect(screen.getByText('+420123456789')).toBeInTheDocument()
+    expect(screen.getByText('PRG-100')).toBeInTheDocument()
+    expect(screen.getByText('Driver')).toBeInTheDocument()
+    expect(screen.getByText('John Driver')).toBeInTheDocument()
+    expect(screen.getByText('Vehicle class')).toBeInTheDocument()
+    expect(screen.getByText('Business Class')).toBeInTheDocument()
+    expect(screen.getByText('Vehicle')).toBeInTheDocument()
+    expect(screen.getByText('Black Mercedes E-Class')).toBeInTheDocument()
+  })
+
+  it('expanded: no Driver or Vehicle row when the driver profile has neither', () => {
     const props = makeProps()
     props.trip.vehicleInfo = null
+    props.trip.driverName = null
     render(<TripScreen {...props} />)
+    openSheet()
     expect(screen.getByText('Business Class')).toBeInTheDocument()
-    expect(screen.queryByText(/·/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Driver')).not.toBeInTheDocument()
+    expect(screen.queryByText('Vehicle')).not.toBeInTheDocument()
   })
 
-  it('renders a Call passenger tel: link with an aria-label and a 48px target', () => {
+  it('renders Call and Message passenger links with aria-labels and 48px targets', () => {
     render(<TripScreen {...makeProps()} />)
+    openSheet()
     const call = screen.getByRole('link', { name: 'Call passenger' })
     expect(call).toHaveAttribute('href', 'tel:+420123456789')
     expect(call).toHaveStyle({ minWidth: '48px', minHeight: '48px' })
+    const sms = screen.getByRole('link', { name: 'Message passenger' })
+    expect(sms).toHaveAttribute('href', 'sms:+420123456789')
+    expect(sms).toHaveStyle({ minWidth: '48px', minHeight: '48px' })
   })
 
-  it.each([null, '', '   '])('renders no Call link when the phone is %j', (phone) => {
+  it.each([null, '', '   '])('renders no Call or Message link when the phone is %j', (phone) => {
     const props = makeProps()
     props.trip.passengerPhone = phone
     render(<TripScreen {...props} />)
+    openSheet()
     expect(screen.queryByRole('link', { name: 'Call passenger' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Message passenger' })).not.toBeInTheDocument()
   })
 
-  it('strips spaces and punctuation from the tel: number', () => {
+  it('strips spaces and punctuation from the tel: and sms: number', () => {
     const props = makeProps()
     props.trip.passengerPhone = '+420 123-456 789'
     render(<TripScreen {...props} />)
+    openSheet()
     expect(screen.getByRole('link', { name: 'Call passenger' })).toHaveAttribute('href', 'tel:+420123456789')
+    expect(screen.getByRole('link', { name: 'Message passenger' })).toHaveAttribute('href', 'sms:+420123456789')
   })
 
-  it('a long passenger name is a single ellipsised line', () => {
+  it('a long passenger name is a single ellipsised line in the card above the map', () => {
     const props = makeProps()
     props.trip.passengerName = 'Maximilian '.repeat(20).trim()
     render(<TripScreen {...props} />)
@@ -1101,6 +1137,37 @@ describe('TripScreen: sheet handle, details and driver note (D-21)', () => {
   function handle() {
     return screen.getByRole('button', { name: /(Show|Hide) trip details/ })
   }
+
+  function swipe(el: Element, fromY: number, toY: number) {
+    fireEvent.touchStart(el, { touches: [{ clientY: fromY }] })
+    fireEvent.touchEnd(el, { changedTouches: [{ clientY: toY }] })
+  }
+
+  it('a short swipe up on the handle opens the details, a swipe down closes them', () => {
+    render(<TripScreen {...makeProps()} />)
+    swipe(handle(), 400, 360)
+    expect(handle()).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getAllByText('Passenger')).toHaveLength(2)
+    swipe(handle(), 360, 400)
+    expect(handle()).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getAllByText('Passenger')).toHaveLength(1)
+  })
+
+  it('a swipe up on the pickup time row opens the details too', () => {
+    render(<TripScreen {...makeProps()} />)
+    const timeRow = screen.getByText(/Tue|Mon|Wed|Thu|Fri|Sat|Sun/).closest('div')!.parentElement!
+    swipe(timeRow, 500, 450)
+    expect(handle()).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('a movement under the threshold does nothing, and the click after a swipe does not undo it', () => {
+    render(<TripScreen {...makeProps()} />)
+    swipe(handle(), 400, 390)
+    expect(handle()).toHaveAttribute('aria-expanded', 'false')
+    swipe(handle(), 400, 340)
+    fireEvent.click(handle())
+    expect(handle()).toHaveAttribute('aria-expanded', 'true')
+  })
 
   it('the handle is collapsed by default with a 48px hit area and toggles aria-expanded and the label', async () => {
     const user = userEvent.setup()
