@@ -15,6 +15,11 @@ import { FlightStatusBlock } from './FlightStatusBlock'
 import { BookingChangeHistory } from './BookingChangeHistory'
 import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
+import {
+  BOOKING_STATUS_LABELS,
+  TERMINAL_BOOKING_STATUSES,
+  type BookingStatus,
+} from '@/lib/booking-status'
 import AddressInput from '@/components/booking/AddressInput'
 import type { PlaceResult } from '@/types/booking'
 import { eurToCzk, czkToEur } from '@/lib/currency'
@@ -83,15 +88,22 @@ const vehicleClassMap: Record<string, string> = {
   business_van: 'Business Van',
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  unpaid:      'Unpaid',
-  pending:     'Pending',
-  confirmed:   'Confirmed',
-  completed:   'Completed',
-  cancelled:   'Cancelled',
-  assigned:    'Assigned',
-  en_route:    'En Route',
-  on_location: 'On Location',
+// D-02: one label source for every admin surface. Indexed by arbitrary row.status strings, so
+// the alias is widened to Record<string, string>; unknown values fall back to the raw status.
+const STATUS_LABELS: Record<string, string> = BOOKING_STATUS_LABELS
+
+// Exact copy from 87-UI-SPEC "Conflict feedback" ({label} = the status the driver moved it to).
+function statusConflictMessage(currentStatus: string | undefined): string {
+  const label = currentStatus ? (STATUS_LABELS[currentStatus] ?? currentStatus) : 'another status'
+  return `This booking was just changed to ${label} by the driver. Reload to see the latest state.`
+}
+
+// Danger text for the inline conflict message (Phase 86 token, no colour literal).
+const STATUS_CONFLICT_STYLE: React.CSSProperties = {
+  marginTop: 8,
+  fontFamily: 'var(--font-montserrat)',
+  fontSize: '13px',
+  color: 'var(--status-danger-fg)',
 }
 
 function DetailField({ label, value }: { label: string; value: React.ReactNode }) {
@@ -126,6 +138,8 @@ function DetailField({ label, value }: { label: string; value: React.ReactNode }
 interface PatchBody {
   id: string
   status?: string
+  // D-01: the status the row shows; the server answers 409 status_conflict when the stored status differs
+  expected_status?: string
   operator_notes?: string
   driver_price_czk?: number | null
   pickup_date?: string
@@ -155,12 +169,18 @@ class PatchError extends Error {
   status?: number
   computedCzk?: number
   submittedCzk?: number
-  constructor(message: string, extra?: { status?: number; computedCzk?: number; submittedCzk?: number }) {
+  // 409 status_conflict body: the status the booking really has now
+  currentStatus?: string
+  constructor(
+    message: string,
+    extra?: { status?: number; computedCzk?: number; submittedCzk?: number; currentStatus?: string },
+  ) {
     super(message)
     this.name = 'PatchError'
     this.status = extra?.status
     this.computedCzk = extra?.computedCzk
     this.submittedCzk = extra?.submittedCzk
+    this.currentStatus = extra?.currentStatus
   }
 }
 
@@ -253,7 +273,7 @@ interface TripEditPanelProps {
 }
 
 function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps) {
-  const isTerminal = booking.status === 'completed' || booking.status === 'cancelled'
+  const isTerminal = TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)
   const [editOpen, setEditOpen] = useState(false)
 
   const [fields, setFields] = useState<TripEditFieldsState>(() => ({
@@ -1126,6 +1146,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
   const [localNotes, setLocalNotes] = useState<Record<string, string>>({})
   const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({})
+  // D-01: per-booking inline message after an admin status change lost the race (409 status_conflict)
+  const [statusConflict, setStatusConflict] = useState<Record<string, string>>({})
   const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
   const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
@@ -1167,6 +1189,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
         status: res.status,
         computedCzk: data.computedCzk,
         submittedCzk: data.submittedCzk,
+        currentStatus: data.error === 'status_conflict' ? data.currentStatus : undefined,
       })
     }
     return res.json()
@@ -1185,15 +1208,27 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, payment_link_url: url, status: 'unpaid' } : b))
   }, [])
 
-  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string) => {
+  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string, fromStatus: string) => {
     setStatusUpdating(prev => ({ ...prev, [bookingId]: true }))
+    setStatusConflict(prev => {
+      if (!(bookingId in prev)) return prev
+      const next = { ...prev }
+      delete next[bookingId]
+      return next
+    })
     try {
-      await patchBooking({ id: bookingId, status: newStatus })
+      // D-01: expected_status = the status this row shows, so a stale view cannot overwrite the driver
+      await patchBooking({ id: bookingId, status: newStatus, expected_status: fromStatus })
       // Optimistic update — mutate only the status field, don't re-fetch
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b))
     } catch (err) {
-      // Show alert on failure — simple for v1.3 single-operator admin
-      alert(err instanceof Error ? err.message : 'Status update failed')
+      if (err instanceof PatchError && err.status === 409 && err.message === 'status_conflict') {
+        // Lost the race: show the locked inline copy, keep the row as it is, no automatic reload
+        setStatusConflict(prev => ({ ...prev, [bookingId]: statusConflictMessage(err.currentStatus) }))
+      } else {
+        // Show alert on failure — simple for v1.3 single-operator admin
+        alert(err instanceof Error ? err.message : 'Status update failed')
+      }
     } finally {
       setStatusUpdating(prev => ({ ...prev, [bookingId]: false }))
     }
@@ -1491,7 +1526,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       size: 120,
       cell: ({ row }) => (
         <StatusBadge
-          variant={row.original.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+          variant={row.original.status as BookingStatus}
           label={STATUS_LABELS[row.original.status] ?? row.original.status}
         />
       ),
@@ -1888,7 +1923,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       )}
                     </span>
                     <StatusBadge
-                      variant={booking.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+                      variant={booking.status as BookingStatus}
                       label={STATUS_LABELS[booking.status] ?? booking.status}
                     />
                   </div>
@@ -1929,12 +1964,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
                   {/* Status transitions */}
                   {transitions.length > 0 && (
+                    <>
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
                       {transitions.map(s => (
                         <button
                           key={s}
                           disabled={!!statusUpdating[booking.id]}
-                          onClick={() => handleStatusChange(booking.id, s)}
+                          onClick={() => handleStatusChange(booking.id, s, booking.status)}
                           style={{
                             minHeight: 44,
                             minWidth: 44,
@@ -1955,6 +1991,12 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         </button>
                       ))}
                     </div>
+                    {statusConflict[booking.id] && (
+                      <div role="alert" style={{ ...STATUS_CONFLICT_STYLE, marginTop: 0, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
+                        {statusConflict[booking.id]}
+                      </div>
+                    )}
+                    </>
                   )}
 
                   {/* Expanded details */}
@@ -2386,7 +2428,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                               value=""
                               disabled={!!statusUpdating[row.original.id]}
                               onChange={(e) => {
-                                if (e.target.value) handleStatusChange(row.original.id, e.target.value)
+                                if (e.target.value) handleStatusChange(row.original.id, e.target.value, row.original.status)
                               }}
                               onClick={(e) => e.stopPropagation()}
                               style={{
@@ -2411,11 +2453,16 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                             </select>
                           ) : (
                             <StatusBadge
-                              variant={row.original.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+                              variant={row.original.status as BookingStatus}
                               label={`${STATUS_LABELS[row.original.status]} (final)`}
                             />
                           )}
                         </div>
+                        {statusConflict[row.original.id] && (
+                          <div role="alert" style={STATUS_CONFLICT_STYLE}>
+                            {statusConflict[row.original.id]}
+                          </div>
+                        )}
 
                         {/* Operator notes */}
                         <div style={{ marginTop: '16px' }}>

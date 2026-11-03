@@ -194,13 +194,20 @@ describe('BookingCard: D-06 fields in order', () => {
     for (const [progress, label, cls] of [
       ['en_route', 'En Route', 'badge-en_route'],
       ['arrived', 'Arrived', 'badge-on_location'],
-      ['on_board', 'On Board', 'badge-assigned'],
+      ['on_board', 'On Board', 'badge-on_board'],
       ['completed', 'Completed', 'badge-completed'],
-      ['no_show', 'No-Show', 'badge-cancelled'],
+      ['no_show', 'No-Show', 'badge-no_show'],
     ] as const) {
       rerender(<BookingCard booking={booking({ status: 'assigned', tripProgress: progress })} isNext={false} />)
       expect(screen.getByText(label), progress).toHaveClass(cls)
     }
+  })
+
+  it('labels the on_board and no_show booking statuses with their own hues (Phase 87 D-08)', () => {
+    const { rerender } = render(<BookingCard booking={booking({ status: 'on_board' })} isNext={false} />)
+    expect(screen.getByText('On Board')).toHaveClass('badge', 'badge-on_board')
+    rerender(<BookingCard booking={booking({ status: 'no_show' })} isNext={false} />)
+    expect(screen.getByText('No-Show')).toHaveClass('badge', 'badge-no_show')
   })
 
   it('shows no payment badge for a cancelled booking and Paid / Quote for the other states', () => {

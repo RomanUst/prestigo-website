@@ -2,6 +2,8 @@
 // Pure: shared by the API route (server) and the iframe (client). No imports from lib/supabase
 // and no node built-ins, because this file is bundled into the browser.
 
+import { BOOKING_STATUS_LABELS } from '@/lib/booking-status'
+
 export type PaymentState = 'paid' | 'awaiting_payment' | 'quote' | 'cancelled'
 
 export interface PanelBooking {
@@ -52,16 +54,8 @@ export interface PanelResponse {
 }
 
 // Status vocabulary: the same words the admin bookings table uses (D-07).
-export const STATUS_LABELS: Record<string, string> = {
-  unpaid: 'Unpaid',
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-  assigned: 'Assigned',
-  en_route: 'En Route',
-  on_location: 'On Location',
-}
+// Phase 87 D-02: spread from the shared vocabulary so a new status cannot be forgotten here.
+export const STATUS_LABELS: Record<string, string> = { ...BOOKING_STATUS_LABELS }
 
 export const VEHICLE_CLASS_LABELS: Record<string, string> = {
   business: 'Business',

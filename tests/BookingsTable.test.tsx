@@ -888,3 +888,200 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     })
   })
 })
+
+describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 05', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  function stubFetchWithPatch(
+    bookings: PartialBooking[],
+    patchResponse: { ok: boolean; status: number; body: unknown },
+  ) {
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') {
+        return Promise.resolve({
+          ok: patchResponse.ok,
+          status: patchResponse.status,
+          json: () => Promise.resolve(patchResponse.body),
+        })
+      }
+      if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ bookings, total: bookings.length, page: 0, limit: 20 }),
+        })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  it('desktop: an on_board row renders the On Board badge label', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-ob', booking_reference: 'PRE-ONBOARD', status: 'on_board' }),
+    ])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-ONBOARD')
+    const rowEl = refCell.closest('tr') as HTMLElement
+    await waitFor(() => {
+      expect(within(rowEl).getByText('On Board')).toBeDefined()
+    })
+  })
+
+  it('desktop: a no_show row renders No-Show and, expanded, the final badge and the final notice', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-ns', booking_reference: 'PRE-NOSHOW', status: 'no_show' }),
+    ])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-NOSHOW')
+    const rowEl = refCell.closest('tr') as HTMLElement
+    await waitFor(() => {
+      expect(within(rowEl).getByText('No-Show')).toBeDefined()
+    })
+
+    fireEvent.click(rowEl)
+    expect(await screen.findByText('No-Show (final)')).toBeDefined()
+    expect(screen.getByText(/No-Show bookings are final and cannot be edited\./)).toBeDefined()
+    expect(screen.queryByText(/^Change from /)).toBeNull()
+  })
+
+  it('mobile: on_board and no_show cards render their labels', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-ob-m', booking_reference: 'PRE-OB-M', status: 'on_board' }),
+      makeBooking({ id: 'b-ns-m', booking_reference: 'PRE-NS-M', status: 'no_show' }),
+    ])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mobile-cards')).toBeDefined()
+    })
+    const cards = within(screen.getByTestId('mobile-cards'))
+    await waitFor(() => {
+      expect(cards.getByText('On Board')).toBeDefined()
+      expect(cards.getByText('No-Show')).toBeDefined()
+    })
+  })
+
+  it('desktop: the select for an on_location booking offers On Board and No-Show', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-ol', booking_reference: 'PRE-ONLOC', status: 'on_location' }),
+    ])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-ONLOC')
+    fireEvent.click(refCell.closest('tr') as HTMLElement)
+    const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
+    const labels = Array.from(select.options).map(o => o.textContent)
+    expect(labels).toContain('On Board')
+    expect(labels).toContain('No-Show')
+  })
+
+  it('desktop: a status change PATCHes expected_status = the row status', async () => {
+    const fetchMock = stubFetchWithPatch(
+      [makeBooking({ id: 'b-ol2', booking_reference: 'PRE-ONLOC2', status: 'on_location' })],
+      { ok: true, status: 200, body: { booking: {} } },
+    )
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-ONLOC2')
+    fireEvent.click(refCell.closest('tr') as HTMLElement)
+    const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'on_board' } })
+
+    await waitFor(() => {
+      const patchCall = fetchMock.mock.calls.find(([, init]) => (init as RequestInit | undefined)?.method === 'PATCH')
+      expect(patchCall).toBeDefined()
+      expect(JSON.parse((patchCall![1] as RequestInit).body as string)).toEqual({
+        id: 'b-ol2',
+        status: 'on_board',
+        expected_status: 'on_location',
+      })
+    })
+  })
+
+  it('desktop: a 409 status_conflict shows the inline conflict copy, re-enables the control, does not alert or change the row', async () => {
+    const alertSpy = vi.fn()
+    vi.stubGlobal('alert', alertSpy)
+    stubFetchWithPatch(
+      [makeBooking({ id: 'b-cf', booking_reference: 'PRE-CONFLICT', status: 'assigned' })],
+      { ok: false, status: 409, body: { error: 'status_conflict', currentStatus: 'en_route' } },
+    )
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-CONFLICT')
+    const rowEl = refCell.closest('tr') as HTMLElement
+    fireEvent.click(rowEl)
+    const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'cancelled' } })
+
+    const msg = await screen.findByRole('alert')
+    expect(msg.textContent).toBe('This booking was just changed to En Route by the driver. Reload to see the latest state.')
+    expect(msg.getAttribute('style') ?? '').toContain('var(--status-danger-fg)')
+    expect(alertSpy).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect((screen.getByText(/^Change from /).closest('select') as HTMLSelectElement).disabled).toBe(false)
+    })
+    // The row status was not optimistically changed
+    expect(within(rowEl).getByText('Assigned')).toBeDefined()
+  })
+
+  it('mobile: a 409 status_conflict shows the conflict copy under the status buttons', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+    const alertSpy = vi.fn()
+    vi.stubGlobal('alert', alertSpy)
+    stubFetchWithPatch(
+      [makeBooking({ id: 'b-cf-m', booking_reference: 'PRE-CF-M', status: 'assigned' })],
+      { ok: false, status: 409, body: { error: 'status_conflict', currentStatus: 'on_location' } },
+    )
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mobile-cards')).toBeDefined()
+    })
+    const cards = within(screen.getByTestId('mobile-cards'))
+    const btn = await cards.findByRole('button', { name: 'En Route' })
+    fireEvent.click(btn)
+
+    const msg = await cards.findByRole('alert')
+    expect(msg.textContent).toBe('This booking was just changed to On Location by the driver. Reload to see the latest state.')
+    expect(alertSpy).not.toHaveBeenCalled()
+  })
+
+  it('desktop: any other PATCH failure keeps the alert behaviour', async () => {
+    const alertSpy = vi.fn()
+    vi.stubGlobal('alert', alertSpy)
+    stubFetchWithPatch(
+      [makeBooking({ id: 'b-er', booking_reference: 'PRE-ERR', status: 'assigned' })],
+      { ok: false, status: 500, body: { error: 'Boom' } },
+    )
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-ERR')
+    fireEvent.click(refCell.closest('tr') as HTMLElement)
+    const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'cancelled' } })
+
+    await waitFor(() => expect(alertSpy).toHaveBeenCalledWith('Boom'))
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+})

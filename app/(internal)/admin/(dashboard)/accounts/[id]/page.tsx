@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { ManualBookingForm } from '@/components/admin/ManualBookingForm'
 import { StatusBadge } from '@/components/admin/StatusBadge'
+import { BOOKING_STATUS_LABELS, type BookingStatus } from '@/lib/booking-status'
 
 interface Account {
   user_id: string
@@ -34,10 +35,8 @@ interface AccountBooking {
   invoice_number: string | null
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending', confirmed: 'Confirmed', completed: 'Completed', cancelled: 'Cancelled',
-  assigned: 'Assigned', en_route: 'En Route', on_location: 'On Location',
-}
+// D-02: one label source (adds Unpaid, On Board, No-Show)
+const STATUS_LABELS: Record<string, string> = BOOKING_STATUS_LABELS
 const vehicleClassMap: Record<string, string> = {
   business: 'Business', first_class: 'First Class', business_van: 'Business Van',
 }
@@ -160,7 +159,7 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
                   <td style={tdStyle}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <StatusBadge
-                        variant={b.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+                        variant={b.status as BookingStatus}
                         label={STATUS_LABELS[b.status] ?? b.status}
                       />
                       {b.paid_at && (

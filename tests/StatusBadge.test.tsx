@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { StatusBadge, STATUS_FAMILY } from '@/components/admin/StatusBadge'
+import type { StatusBadgeVariant } from '@/components/admin/StatusBadge'
 
 type Variant = keyof typeof STATUS_FAMILY
 
@@ -72,5 +73,21 @@ describe('StatusBadge (D-17)', () => {
     expect(labelSpan.textContent).toContain('A very long status label')
     expect(labelSpan.style.overflow).toBe('hidden')
     expect(labelSpan.style.textOverflow).toBe('ellipsis')
+  })
+})
+
+describe('StatusBadge variant type (Phase 87 D-02)', () => {
+  it('accepts every BookingStatus as a variant and resolves each to a family', async () => {
+    const { BOOKING_STATUSES } = await import('@/lib/booking-status')
+    for (const s of BOOKING_STATUSES) {
+      // BookingStatus must be assignable to StatusBadgeVariant (compile-time) and map to a family (runtime)
+      const v: StatusBadgeVariant = s
+      expect(STATUS_FAMILY[v]).toBeDefined()
+    }
+  })
+
+  it('on_board uses the teal family and no_show the danger family', () => {
+    expect(STATUS_FAMILY.on_board).toBe('teal')
+    expect(STATUS_FAMILY.no_show).toBe('danger')
   })
 })
