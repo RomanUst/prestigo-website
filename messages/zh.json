@@ -669,7 +669,8 @@
         "altTemplate": "{model} — 布拉格专车司机服务"
       }
     ],
-    "seePricing": "查看价格 →"
+    "seePricing": "查看价格 →",
+    "limousineLink": "豪华轿车服务 →"
   },
   "HowItWorks": {
     "label": "服务流程",

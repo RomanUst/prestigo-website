@@ -669,7 +669,8 @@
         "altTemplate": "{model} — service de chauffeur à Prague"
       }
     ],
-    "seePricing": "Voir les tarifs →"
+    "seePricing": "Voir les tarifs →",
+    "limousineLink": "Service de limousine →"
   },
   "HowItWorks": {
     "label": "Comment cela fonctionne",

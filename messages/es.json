@@ -669,7 +669,8 @@
         "altTemplate": "{model} — servicio de chófer en Praga"
       }
     ],
-    "seePricing": "Ver tarifas →"
+    "seePricing": "Ver tarifas →",
+    "limousineLink": "Servicio de limusina →"
   },
   "HowItWorks": {
     "label": "Cómo funciona",

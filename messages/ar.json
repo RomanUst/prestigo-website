@@ -669,7 +669,8 @@
         "altTemplate": "{model} — خدمة السائق الخاص في براغ"
       }
     ],
-    "seePricing": "اطّلع على الأسعار →"
+    "seePricing": "اطّلع على الأسعار →",
+    "limousineLink": "خدمة الليموزين →"
   },
   "HowItWorks": {
     "label": "كيف تعمل الخدمة",

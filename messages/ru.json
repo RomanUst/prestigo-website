@@ -669,7 +669,8 @@
         "altTemplate": "{model} — услуги личного водителя в Праге"
       }
     ],
-    "seePricing": "Смотреть цены →"
+    "seePricing": "Смотреть цены →",
+    "limousineLink": "Лимузин с водителем →"
   },
   "HowItWorks": {
     "label": "Как это работает",

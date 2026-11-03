@@ -669,7 +669,8 @@
         "altTemplate": "{model} — प्राग शॉफ़र सेवा"
       }
     ],
-    "seePricing": "मूल्य देखें →"
+    "seePricing": "मूल्य देखें →",
+    "limousineLink": "लिमोज़ीन सेवा →"
   },
   "HowItWorks": {
     "label": "यह कैसे काम करता है",
