@@ -725,7 +725,8 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
     const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
     const mockGnetRow = { id: 'g0000001-0000-4000-8000-000000000001', gnet_res_no: 'GR-123' }
 
-    const mockGnetSingleFn = vi.fn().mockResolvedValue({ data: mockGnetRow, error: null })
+    // 87-07: the push claims the gnet_bookings row with update().eq().or().select()
+    const mockGnetClaimSelectFn = vi.fn().mockResolvedValue({ data: [mockGnetRow], error: null })
     const mockNfSingleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
     let callCount = 0
     stubSupabaseFrom.mockImplementation(() => {
@@ -740,8 +741,8 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
         const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
         return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
       } else if (callCount === 4) {
-        // after() starts sync execution: gnet_bookings.from().select() called before first await
-        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockGnetSingleFn }) }) }
+        // after() starts sync execution: gnet_bookings claim update called before first await
+        return { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ or: vi.fn().mockReturnValue({ select: mockGnetClaimSelectFn }) }) }) }
       } else if (callCount === 5) {
         // notification_flags select (5d, main handler continues after after() suspends at first await)
         return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockNfSingleFn }) }) }
