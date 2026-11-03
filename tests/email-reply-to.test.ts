@@ -26,6 +26,7 @@ import {
   sendBookingChangedEmail,
   sendPaymentRequestEmail,
   sendDriverAssignmentEmail,
+  sendDriverAcceptedEmail,
   sendDriverDeclineNotification,
   sendClientReminderEmail,
   sendDriverReminderEmail,
@@ -37,6 +38,7 @@ import {
   type BookingChangeEntry,
   type PaymentRequestEmailData,
   type DriverAssignmentEmailData,
+  type DriverAcceptedEmailData,
   type DriverDeclineNotificationData,
   type ReminderEmailBooking,
 } from '@/lib/email'
@@ -173,6 +175,26 @@ const BASE_DRIVER_ASSIGNMENT: DriverAssignmentEmailData = {
   driverPriceCzk: 2000,
   acceptUrl: 'https://rideprestigo.com/driver/response?token=a',
   declineUrl: 'https://rideprestigo.com/driver/response?token=d',
+  tripUrl: 'https://rideprestigo.com/driver/trip/t',
+}
+
+const BASE_DRIVER_ACCEPTED: DriverAcceptedEmailData = {
+  driverName: 'Petr',
+  driverEmail: 'petr@example.com',
+  bookingReference: 'PRG-20260415-ABCDEF',
+  pickupDate: '2026-04-15',
+  pickupTime: '14:00',
+  originAddress: 'Prague Airport',
+  destinationAddress: 'Hotel Alcron',
+  passengerFirstName: 'Jan',
+  passengerLastName: 'Novak',
+  passengerPhone: '+420123456789',
+  vehicleClass: 'business',
+  passengers: 2,
+  luggage: 2,
+  flightNumber: null,
+  specialRequests: null,
+  driverPriceCzk: 2000,
   tripUrl: 'https://rideprestigo.com/driver/trip/t',
 }
 
@@ -316,6 +338,11 @@ describe('lib/email — D-11 full classification (Phase 77-02, Task 2)', () => {
   describe('driver + operator sends — replyTo undefined (D-11 out of scope)', () => {
     it('sendDriverAssignmentEmail', async () => {
       await sendDriverAssignmentEmail(BASE_DRIVER_ASSIGNMENT)
+      expect(sendStub.mock.calls[0][0].replyTo).toBeUndefined()
+    })
+
+    it('sendDriverAcceptedEmail', async () => {
+      await sendDriverAcceptedEmail(BASE_DRIVER_ACCEPTED)
       expect(sendStub.mock.calls[0][0].replyTo).toBeUndefined()
     })
 

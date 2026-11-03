@@ -1635,7 +1635,6 @@ export interface DriverAssignmentEmailData {
 }
 
 function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
-  const formattedDate = formatPickupDate(data.pickupDate)
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1669,36 +1668,17 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
       <div style="padding: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">TRIP DETAILS</div>
         <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Pickup Date</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}</td>
-          </tr>
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">From</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.originAddress)}</td>
-          </tr>
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">To</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.destinationAddress)}</td>
-          </tr>
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Passenger</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.passengerFirstName)} ${escapeHtml(data.passengerLastName)}</td>
-          </tr>
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Passenger Phone</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.passengerPhone)}</td>
-          </tr>
-          ${data.driverPriceCzk != null ? `
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Your Fee</td>
-            <td style="font-size: 14px; font-weight: 600; color: #F3EEE3; padding: 8px 0;">${formatCZK(data.driverPriceCzk)} (${formatEUR(czkToEur(data.driverPriceCzk))})</td>
-          </tr>` : ''}
-          ${data.specialRequests ? `
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Notes</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.specialRequests)}</td>
-          </tr>` : ''}
+${driverTripDetailsRows({
+  pickupDate: data.pickupDate,
+  pickupTime: data.pickupTime,
+  originAddress: data.originAddress,
+  destinationAddress: data.destinationAddress,
+  passengerFirstName: data.passengerFirstName,
+  passengerLastName: data.passengerLastName,
+  passengerPhone: data.passengerPhone,
+  driverPriceCzk: data.driverPriceCzk,
+  specialRequests: data.specialRequests,
+})}
         </table>
       </div>
 

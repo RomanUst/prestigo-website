@@ -92,6 +92,13 @@ vi.mock('resend', () => ({
 }))
 
 import { POST as respondPost } from '@/app/api/driver/respond/route'
+import {
+  buildDriverAcceptedEmailHtml,
+  sendDriverAssignmentEmail,
+  type DriverAcceptedEmailData,
+  type DriverAssignmentEmailData,
+} from '@/lib/email'
+import goldenAssignment from './fixtures/driver-assignment-email-golden.json'
 
 const assignmentId = 'a1a2a3a4-0000-4000-8000-000000000001'
 const bookingId = 'b0000001-0000-4000-8000-000000000001'
@@ -363,5 +370,147 @@ describe('87-15 guards', () => {
       expect(l).not.toContain('+420')
     }
     logSpy.mockRestore()
+  })
+})
+
+// ─── Task 3: shared detail rows ─────────────────────────────────────────────
+
+const BASE_ASSIGNMENT: DriverAssignmentEmailData = {
+  driverName: 'Petr',
+  driverEmail: 'petr@example.com',
+  bookingReference: 'PRG-20260415-ABCDEF',
+  pickupDate: '2026-04-15',
+  pickupTime: '14:00',
+  originAddress: 'Prague Airport',
+  destinationAddress: 'Hotel Alcron',
+  passengerFirstName: 'Jan',
+  passengerLastName: 'Novak',
+  passengerPhone: '+420123456789',
+  driverPriceCzk: 2000,
+  acceptUrl: 'https://rideprestigo.com/driver/response?token=a',
+  declineUrl: 'https://rideprestigo.com/driver/response?token=d',
+  tripUrl: 'https://rideprestigo.com/driver/trip/t',
+}
+
+describe('87-15 assignment email stays byte-identical after the shared rows refactor', () => {
+  // The fixture was captured from sendDriverAssignmentEmail BEFORE the refactor.
+  async function assignmentHtml(overrides: Partial<DriverAssignmentEmailData>): Promise<string> {
+    sendStub.mockClear()
+    await sendDriverAssignmentEmail({ ...BASE_ASSIGNMENT, ...overrides })
+    return sendStub.mock.calls[0][0].html as string
+  }
+
+  it('fee + no notes', async () => {
+    expect(await assignmentHtml({})).toBe(goldenAssignment.full)
+  })
+  it('no fee + notes needing escaping', async () => {
+    expect(await assignmentHtml({ driverPriceCzk: null, specialRequests: 'Child <seat> & "luggage"' })).toBe(
+      goldenAssignment.noFeeNotes,
+    )
+  })
+  it('fee + notes', async () => {
+    expect(await assignmentHtml({ specialRequests: 'Wait at arrivals' })).toBe(goldenAssignment.feeNotes)
+  })
+  it('no fee + no notes', async () => {
+    expect(await assignmentHtml({ driverPriceCzk: null })).toBe(goldenAssignment.bare)
+  })
+})
+
+const FULL_ACCEPT: DriverAcceptedEmailData = {
+  driverName: 'Petr Driver',
+  driverEmail: 'petr@example.com',
+  bookingReference: 'PRG-20260501-ABCDEF',
+  pickupDate: '2026-05-01',
+  pickupTime: '10:00',
+  originAddress: 'Prague Airport, Terminal 2',
+  destinationAddress: 'Hotel Alcron',
+  passengerFirstName: 'Jan',
+  passengerLastName: 'Novak',
+  passengerPhone: '+420123456789',
+  vehicleClass: 'business_van',
+  passengers: 4,
+  luggage: 5,
+  flightNumber: 'OK123',
+  specialRequests: 'Child seat please',
+  driverPriceCzk: 2000,
+  tripUrl: 'https://rideprestigo.com/driver/trip/tok',
+}
+
+const MINIMAL_ACCEPT: DriverAcceptedEmailData = {
+  ...FULL_ACCEPT,
+  destinationAddress: null,
+  passengerPhone: null,
+  vehicleClass: null,
+  passengers: null,
+  luggage: null,
+  flightNumber: null,
+  specialRequests: null,
+  driverPriceCzk: null,
+}
+
+const ANY_ENTITY = /&(?:#\d+|[A-Za-z][A-Za-z0-9]*);/g
+
+describe('87-15 accept email content', () => {
+  it('shows every order detail, the OPEN TRIP anchor and none of the assignment-only text', () => {
+    const html = buildDriverAcceptedEmailHtml(FULL_ACCEPT)
+    expect(html).toContain('PRG-20260501-ABCDEF')
+    expect(html).toContain('1 May 2026 at 10:00')
+    for (const label of ['From', 'To', 'Passenger', 'Passenger Phone', 'Vehicle', 'Passengers', 'Luggage', 'Flight', 'Notes', 'Your Fee']) {
+      expect(html).toContain(`>${label}</td>`)
+    }
+    expect(html).toContain('Prague Airport, Terminal 2')
+    expect(html).toContain('Hotel Alcron')
+    expect(html).toContain('Jan Novak')
+    expect(html).toContain('+420123456789')
+    expect(html).toContain('Business Van')
+    expect(html).toContain('OK123')
+    expect(html).toContain('Child seat please')
+    expect(html).toContain('href="https://rideprestigo.com/driver/trip/tok"')
+    expect(html).toContain('OPEN TRIP')
+    for (const gone of ['ACCEPT TRIP', 'DECLINE TRIP', '48 hours']) {
+      expect(html).not.toContain(gone)
+    }
+  })
+
+  it('the Your Fee text equals the assignment email fee text', async () => {
+    const feeCell = (h: string) => /Your Fee<\/td>\s*<td[^>]*>([^<]*)<\/td>/.exec(h)?.[1]
+    sendStub.mockClear()
+    await sendDriverAssignmentEmail(BASE_ASSIGNMENT)
+    const assignmentFee = feeCell(sendStub.mock.calls[0][0].html as string)
+    const acceptFee = feeCell(buildDriverAcceptedEmailHtml({ ...FULL_ACCEPT, driverPriceCzk: 2000 }))
+    expect(assignmentFee).toBeTruthy()
+    expect(acceptFee).toBe(assignmentFee)
+  })
+
+  it('omits optional rows when their values are null and renders a null destination as "As directed"', () => {
+    const html = buildDriverAcceptedEmailHtml(MINIMAL_ACCEPT)
+    for (const label of ['Passenger Phone', 'Vehicle', 'Passengers', 'Luggage', 'Flight', 'Notes', 'Your Fee']) {
+      expect(html).not.toContain(`>${label}</td>`)
+    }
+    expect(html).toContain('As directed')
+  })
+
+  it('escapes user-supplied values', () => {
+    const html = buildDriverAcceptedEmailHtml({ ...FULL_ACCEPT, passengerFirstName: '<b>&"x' })
+    expect(html).toContain('&lt;b&gt;&amp;&quot;x')
+    expect(html).not.toContain('<b>&"x')
+  })
+
+  it('uses no HTML entity other than &amp; &lt; &gt; &quot; &#39;', () => {
+    const html = buildDriverAcceptedEmailHtml({
+      ...FULL_ACCEPT,
+      passengerFirstName: "O'Neil & <Sons>",
+      specialRequests: 'say "hi"',
+    })
+    const allowed = new Set(['&amp;', '&lt;', '&gt;', '&quot;', '&#39;'])
+    const entities = html.match(ANY_ENTITY) ?? []
+    expect(entities.length).toBeGreaterThan(0)
+    expect(entities.filter((e) => !allowed.has(e))).toEqual([])
+    expect(buildDriverAcceptedEmailHtml(MINIMAL_ACCEPT).match(ANY_ENTITY) ?? []).toEqual([])
+  })
+
+  it('never contains a client price label', () => {
+    const html = buildDriverAcceptedEmailHtml(FULL_ACCEPT)
+    expect(html).not.toMatch(/Total|Amount|Price Paid/i)
   })
 })
