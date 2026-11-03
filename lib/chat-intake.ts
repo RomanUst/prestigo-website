@@ -49,6 +49,7 @@ import {
 } from '@/lib/chat-io'
 import { LEAD_ATTR, LEAD_STATUS_VALUE, splitName } from '@/lib/lead-mapping'
 import { aggregateUuid } from '@/lib/sync-origin'
+import { isDriverChatIdentifier } from '@/lib/driver-help-contract'
 
 /**
  * hook.chat_intake handler (Phase 83, HOOK-01). Runs only inside the QStash-invoked dispatcher
@@ -69,6 +70,7 @@ import { aggregateUuid } from '@/lib/sync-origin'
  *                  the Note instead (a deliberate deviation from D-02's wording: the person's
  *                  contact form inquiry and the chat are one lead, not two)
  *   customer / known_contact / filtered / no_lead_label   nothing is created (D-06, D-18, D-07)
+ *                  driver help chats (identifier driver:<uuid>) are filtered: no Lead, no Contact
  *
  * Never: an Account, a Lead conversion, a booking, a customer profile, an auth user; never a Chatwoot
  * message or contact write; never an overwrite of a Contact's name, account, title or description.
@@ -265,6 +267,12 @@ export async function ensureIntake(ctx: IntakeContext, conversationId: number): 
   if (!contact) return { skipped: 'contact_missing' }
 
   const base = { conversationId, chatwootContactId: contact.id }
+
+  // Driver help chats (87-UAT gap 3) are not sales leads: no identity, Contact, Lead or Note.
+  if (isDriverChatIdentifier(contact.identifier)) {
+    await record(ctx, { ...base, outcome: 'filtered' })
+    return { skipped: 'filtered_driver' }
+  }
 
   // D-07 / D-18: label and filter before any write.
   if (hasNoLeadLabel(conversation.labels)) {
