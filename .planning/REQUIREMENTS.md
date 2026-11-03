@@ -10,7 +10,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 ### Payment foundation (PAYF)
 
 - [ ] **PAYF-01**: Every booking carries a payment mode (card / cash / quote / partner) and a payment state that is separate from the trip status; every money event is recorded in an append-only payment ledger visible in admin
-- [ ] **PAYF-02**: All status changes (admin, kanban, driver, cancel, payment engine) go through one status service with compare-and-set, so a stale or double action is rejected instead of applied twice
+- [x] **PAYF-02**: All status changes (admin, kanban, driver, cancel, payment engine) go through one status service with compare-and-set, so a stale or double action is rejected instead of applied twice
 - [ ] **PAYF-03**: The Stripe webhook routes each event by its purpose (booking setup, hold, capture, no-show, extra charge, quote deposit, quote remainder) without creating duplicate bookings or false alerts; a partial refund never cancels a completed trip
 - [ ] **PAYF-04**: Owner can run a script that subscribes the live Stripe webhook to every new event type, and a working test-mode path (owner-run script or valid test key) exists before payments go live
 - [ ] **PAYF-05**: The new payment flow is behind an admin feature flag so the owner can run a canary booking before enabling it for all clients
@@ -47,11 +47,11 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Driver flow (DRV)
 
-- [ ] **DRV-01**: Driver trip page shows a single "next step" button; steps go strictly in order: en route → on site → passenger on board → completed
-- [ ] **DRV-02**: Each driver step updates the booking status in admin immediately (reverses the v2.2 separate-field decision)
-- [ ] **DRV-03**: The "completed" step asks for confirmation and triggers payment capture; the driver never enters an amount
-- [ ] **DRV-04**: A skipped step is rejected by the server and a repeated tap is harmless
-- [ ] **DRV-05**: For GNet bookings, driver steps are automatically pushed to GNet without duplicates, and no hold, capture or no-show charge is made
+- [x] **DRV-01**: Driver trip page shows a single "next step" button; steps go strictly in order: en route → on site → passenger on board → completed
+- [x] **DRV-02**: Each driver step updates the booking status in admin immediately (reverses the v2.2 separate-field decision)
+- [x] **DRV-03**: The "completed" step asks for confirmation and triggers payment capture; the driver never enters an amount
+- [x] **DRV-04**: A skipped step is rejected by the server and a repeated tap is harmless
+- [x] **DRV-05**: For GNet bookings, driver steps are automatically pushed to GNet without duplicates, and no hold, capture or no-show charge is made
 
 ### Admin shell (ADM)
 
@@ -124,7 +124,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PAYF-01 | Phase 88 | Pending |
-| PAYF-02 | Phase 87 | Pending |
+| PAYF-02 | Phase 87 | Complete |
 | PAYF-03 | Phase 88 | Pending |
 | PAYF-04 | Phase 88 | Pending |
 | PAYF-05 | Phase 88 | Pending |
@@ -143,11 +143,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CANC-02 | Phase 89 | Pending |
 | EXTRA-01 | Phase 91 | Pending |
 | MAIL-01 | Phase 88 | Pending |
-| DRV-01 | Phase 87 | Pending |
-| DRV-02 | Phase 87 | Pending |
-| DRV-03 | Phase 87 | Pending |
-| DRV-04 | Phase 87 | Pending |
-| DRV-05 | Phase 87 | Pending |
+| DRV-01 | Phase 87 | Complete |
+| DRV-02 | Phase 87 | Complete |
+| DRV-03 | Phase 87 | Complete |
+| DRV-04 | Phase 87 | Complete |
+| DRV-05 | Phase 87 | Complete |
 | ADM-01 | Phase 86 | Complete |
 | ADM-02 | Phase 86 | Complete |
 | ADM-03 | Phase 86 | Complete |
