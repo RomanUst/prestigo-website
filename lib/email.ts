@@ -1753,6 +1753,171 @@ export async function sendDriverAssignmentEmail(data: DriverAssignmentEmailData)
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// DRIVER ACCEPTED EMAIL (Phase 87-15, 87-UAT gap 1)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Fields the shared driver "TRIP DETAILS" table can show. Optional rows are omitted when null/undefined. */
+interface DriverTripDetails {
+  pickupDate: string
+  pickupTime: string
+  originAddress: string
+  destinationAddress: string | null
+  passengerFirstName: string
+  passengerLastName: string
+  passengerPhone?: string | null
+  vehicleClass?: string | null
+  passengers?: number | null
+  luggage?: number | null
+  flightNumber?: string | null
+  driverPriceCzk: number | null
+  specialRequests?: string | null
+}
+
+function driverTripRow(label: string, valueHtml: string, weight = 400): string {
+  return `<tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">${label}</td>
+            <td style="font-size: 14px; font-weight: ${weight}; color: #F3EEE3; padding: 8px 0;">${valueHtml}</td>
+          </tr>`
+}
+
+/**
+ * Rows of the driver "TRIP DETAILS" table, shared by the assignment email and the accept email.
+ * Every user-supplied value goes through escapeHtml. Returns the markup between the opening
+ * <table> line and the closing </table> line.
+ */
+function driverTripDetailsRows(data: DriverTripDetails): string {
+  const formattedDate = formatPickupDate(data.pickupDate)
+  const fixed = [
+    driverTripRow('Pickup Date', `${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}`),
+    driverTripRow('From', escapeHtml(data.originAddress)),
+    driverTripRow('To', escapeHtml(data.destinationAddress ?? 'As directed')),
+    driverTripRow('Passenger', `${escapeHtml(data.passengerFirstName)} ${escapeHtml(data.passengerLastName)}`),
+  ]
+  if (data.passengerPhone != null) {
+    fixed.push(driverTripRow('Passenger Phone', escapeHtml(data.passengerPhone)))
+  }
+  const optional: string[] = []
+  if (data.vehicleClass) optional.push(driverTripRow('Vehicle', escapeHtml(formatVehicleLabel(data.vehicleClass))))
+  if (data.passengers != null) optional.push(driverTripRow('Passengers', escapeHtml(String(data.passengers))))
+  if (data.luggage != null) optional.push(driverTripRow('Luggage', escapeHtml(String(data.luggage))))
+  if (data.flightNumber) optional.push(driverTripRow('Flight', escapeHtml(data.flightNumber)))
+  const feeRow = data.driverPriceCzk != null
+    ? driverTripRow('Your Fee', `${formatCZK(data.driverPriceCzk)} (${formatEUR(czkToEur(data.driverPriceCzk))})`, 600)
+    : ''
+  const notesRow = data.specialRequests ? driverTripRow('Notes', escapeHtml(data.specialRequests)) : ''
+  return `          ${fixed.join('\n          ')}${optional.map((r) => `\n          ${r}`).join('')}
+          ${feeRow ? `\n          ${feeRow}` : ''}
+          ${notesRow ? `\n          ${notesRow}` : ''}`
+}
+
+export interface DriverAcceptedEmailData {
+  driverName: string
+  driverEmail: string
+  bookingReference: string
+  pickupDate: string
+  pickupTime: string
+  originAddress: string
+  destinationAddress: string | null
+  passengerFirstName: string
+  passengerLastName: string
+  passengerPhone: string | null
+  vehicleClass: string | null
+  passengers: number | null
+  luggage: number | null
+  flightNumber: string | null
+  specialRequests: string | null
+  driverPriceCzk: number | null
+  tripUrl: string
+}
+
+export function buildDriverAcceptedEmailHtml(data: DriverAcceptedEmailData): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Confirmed — PRESTIGO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C;">
+  <div style="background-color: #0F1D2C; padding: 0; margin: 0; font-family: 'Inter', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0F1D2C;">
+
+      <!-- Header gold gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        ${emailLogoImg(28)}
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 32px;">Thank you. You accepted this trip.</h1>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #17293B; border-left: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #BFA06A;">${escapeHtml(data.bookingReference)}</div>
+      </div>
+
+      <!-- TRIP DETAILS section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">TRIP DETAILS</div>
+        <table style="width: 100%; border-collapse: collapse;">
+${driverTripDetailsRows(data)}
+        </table>
+      </div>
+
+      <!-- Open trip (permanent trip link, DRV-01) -->
+      <div style="text-align: center; padding: 8px 32px 24px;">
+        <a href="${escapeHtml(data.tripUrl)}" style="display: inline-block; border: 1px solid #BFA06A; color: #BFA06A; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">OPEN TRIP</a>
+      </div>
+
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <p style="font-size: 12px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif; margin: 0;">Open this link on the day of the trip. It shows the route and one button for the next step: on my way, arrived, passenger on board, trip completed. The link stays the same for this trip.</p>
+      </div>
+
+      <!-- Help line -->
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">For any queries, contact us at ${EMAIL_CONTACT_LINE}</div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #BFA06A; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          ${emailLogoImg(18)}
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send the driver a copy of the order after Accept, with the permanent trip link.
+ * Non-fatal — catches and logs errors, does not throw. No replyTo (driver/operator send).
+ */
+export async function sendDriverAcceptedEmail(data: DriverAcceptedEmailData): Promise<void> {
+  try {
+    const formattedDate = formatPickupDate(data.pickupDate)
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.driverEmail],
+      subject: `Trip confirmed: ${data.bookingReference} - ${formattedDate} at ${data.pickupTime}`,
+      html: buildDriverAcceptedEmailHtml(data),
+    })
+    if (error) console.error('[driver-accept] accept email error:', error)
+  } catch (err) {
+    console.error('[driver-accept] accept email exception:', err)
+    // Non-fatal — do not throw
+  }
+}
+
 export interface DriverDeclineNotificationData {
   bookingReference: string
   pickupDate: string
