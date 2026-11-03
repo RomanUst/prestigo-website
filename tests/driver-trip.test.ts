@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { TERMINAL_STATUSES, isTripLinkValid } from '@/lib/trip-token'
+import { TERMINAL_STATUSES, isTripLinkValid, tripLinkViewState } from '@/lib/trip-token'
 
 // vi.hoisted ensures stubs are available inside vi.mock factories (hoisted
 // before imports) — mirrors tests/admin-assignment.test.ts conventions.
@@ -115,10 +115,73 @@ describe('isTripLinkValid', () => {
     ).toBe(false)
   })
 
-  it('TERMINAL_STATUSES contains exactly completed and cancelled', () => {
+  it('returns false when bookingStatus is no_show (D-09)', () => {
+    expect(
+      isTripLinkValid({
+        assignmentDriverId: 'driver-1',
+        bookingDriverId: 'driver-1',
+        bookingStatus: 'no_show',
+      })
+    ).toBe(false)
+  })
+
+  it('returns false when the assignment was declined (Pitfall 6)', () => {
+    expect(
+      isTripLinkValid({
+        assignmentDriverId: 'driver-1',
+        bookingDriverId: 'driver-1',
+        bookingStatus: 'assigned',
+        assignmentStatus: 'declined',
+      })
+    ).toBe(false)
+  })
+
+  it('stays valid for a pending or accepted assignment', () => {
+    for (const assignmentStatus of ['pending', 'accepted', null, undefined]) {
+      expect(
+        isTripLinkValid({
+          assignmentDriverId: 'driver-1',
+          bookingDriverId: 'driver-1',
+          bookingStatus: 'on_board',
+          assignmentStatus,
+        })
+      ).toBe(true)
+    }
+  })
+
+  it('TERMINAL_STATUSES contains exactly completed, cancelled and no_show', () => {
     expect(TERMINAL_STATUSES.has('completed')).toBe(true)
     expect(TERMINAL_STATUSES.has('cancelled')).toBe(true)
-    expect(TERMINAL_STATUSES.size).toBe(2)
+    expect(TERMINAL_STATUSES.has('no_show')).toBe(true)
+    expect(TERMINAL_STATUSES.size).toBe(3)
+  })
+})
+
+describe('tripLinkViewState (D-17)', () => {
+  const base = { assignmentDriverId: 'driver-1', bookingDriverId: 'driver-1' as string | null }
+
+  it('is completed for a matching assignment on a completed booking', () => {
+    expect(tripLinkViewState({ ...base, bookingStatus: 'completed' })).toBe('completed')
+    expect(tripLinkViewState({ ...base, bookingStatus: 'completed', assignmentStatus: 'accepted' })).toBe('completed')
+  })
+
+  it('is ended for cancelled and no_show', () => {
+    expect(tripLinkViewState({ ...base, bookingStatus: 'cancelled' })).toBe('ended')
+    expect(tripLinkViewState({ ...base, bookingStatus: 'no_show' })).toBe('ended')
+  })
+
+  it('is ended after reassignment, decline or when the booking has no driver', () => {
+    expect(tripLinkViewState({ ...base, bookingDriverId: 'driver-2', bookingStatus: 'assigned' })).toBe('ended')
+    expect(tripLinkViewState({ ...base, bookingDriverId: 'driver-2', bookingStatus: 'completed' })).toBe('ended')
+    expect(tripLinkViewState({ ...base, bookingStatus: 'assigned', assignmentStatus: 'declined' })).toBe('ended')
+    expect(tripLinkViewState({ ...base, bookingStatus: 'completed', assignmentStatus: 'declined' })).toBe('ended')
+    expect(tripLinkViewState({ ...base, bookingDriverId: null, bookingStatus: 'confirmed' })).toBe('ended')
+  })
+
+  it('is active for a matching assignment on a live booking', () => {
+    expect(tripLinkViewState({ ...base, bookingStatus: 'assigned' })).toBe('active')
+    expect(tripLinkViewState({ ...base, bookingStatus: 'on_location' })).toBe('active')
+    expect(tripLinkViewState({ ...base, bookingStatus: 'on_board' })).toBe('active')
   })
 })
 
