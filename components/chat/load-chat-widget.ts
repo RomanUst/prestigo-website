@@ -1,10 +1,10 @@
 /**
  * Click-time loader for the Chatwoot website widget (Phase 77, plan 10).
  *
- * Reached ONLY through the dynamic import in components/ChatLauncher.tsx's
- * "Chat on site" click handler — never from a mount effect or a next/script
- * tag — so a visitor who does not click makes zero third-party requests
- * (D-02, T-77-24). The base URL and website token are not known to the client:
+ * Reached ONLY through a dynamic import after a tap: components/ChatLauncher.tsx's
+ * "Chat on site" click handler, and (87-UAT gap 3) the tokenless driver help page's
+ * open effect — never from a static import or a next/script tag — so a visitor who
+ * does not click makes zero third-party requests (D-02, T-77-24). The base URL and website token are not known to the client:
  * they arrive from the identity route at click time. This file therefore holds
  * no chat host literal and no uppercase env-var name (the VPS isolation guard
  * would otherwise taint every importer).
@@ -24,6 +24,7 @@ import {
   type WidgetConfigResponse,
   type WidgetIdentity,
 } from '@/lib/chat-widget-contract'
+import type { DriverHelpEnabledConfig } from '@/lib/driver-help-contract'
 
 interface WidgetSettings {
   hideMessageBubble: boolean
@@ -284,7 +285,23 @@ function loadAndRun(config: { baseUrl: string; websiteToken: string }): Promise<
   return promise
 }
 
-async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
+interface PreparedOpen {
+  config: { baseUrl: string; websiteToken: string; user: WidgetIdentity | null }
+  /** Conversation custom attributes, applied now and again on the first message. */
+  conversation: Record<string, string>
+  /** Contact custom attributes; null = setCustomAttributes is not called. */
+  contact: Record<string, string> | null
+}
+
+interface OpenSpec {
+  widgetLocale: string
+  isRtl: boolean
+  texts: OpenChatWidgetOptions['texts']
+  /** Runs first on every open; supplies the config and the attributes to apply. */
+  prepare: () => Promise<PreparedOpen>
+}
+
+async function performOpenWith(spec: OpenSpec): Promise<void> {
   trackReadyEvents()
   const existing = window.$chatwoot
   if (!existing) {
@@ -293,32 +310,30 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
     sdkReady = false
   }
 
-  // Click-time snapshot: the page, UTM, referrer and booking state as they are
-  // now, not as they will be when the widget finishes loading.
-  const visitContext = await collectVisitContext(options)
-  // Identity is re-read on EVERY open (T-77-20): a sign-out is a soft
+  // prepare() supplies the click-time snapshot and the config. For the public
+  // launcher identity is re-read on EVERY open (T-77-20): a sign-out is a soft
   // navigation that leaves the loaded widget — and the previous customer's
   // conversation — alive in this tab.
-  const config = await fetchWidgetConfig()
+  const { config, conversation, contact } = await spec.prepare()
   const identifier = identifierOf(config)
   if (existing && configuredIdentifier === identifier) {
     existing.toggle('open')
     return
   }
-  const widgetLocale = WIDGET_LOCALE_BY_SITE_LOCALE[options.locale] ?? 'en'
+  const widgetLocale = spec.widgetLocale
 
   // chatwootSettings must exist before sdk.js runs.
   window.chatwootSettings = {
     hideMessageBubble: true,
-    position: options.isRtl ? 'left' : 'right',
+    position: spec.isRtl ? 'left' : 'right',
     locale: widgetLocale,
     useBrowserLanguage: false,
     type: 'standard',
     darkMode: 'light',
     showPopoutButton: false,
-    welcomeTitle: options.texts.welcomeTitle,
-    welcomeDescription: options.texts.welcomeDescription,
-    availableMessage: options.texts.replyTimeHint,
+    welcomeTitle: spec.texts.welcomeTitle,
+    welcomeDescription: spec.texts.welcomeDescription,
+    availableMessage: spec.texts.replyTimeHint,
   }
 
   if (!existing) {
@@ -346,17 +361,32 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
     cw.setUser(config.user.identifier, identityAttributes(config.user))
   }
   cw.setLocale(widgetLocale)
-  cw.setCustomAttributes({ site_locale: options.locale })
-  cw.setConversationCustomAttributes(visitContext)
+  if (contact) cw.setCustomAttributes(contact)
+  cw.setConversationCustomAttributes(conversation)
   // The conversation only exists once the visitor sends a message — set the
   // attributes again then so they land on the created conversation.
   window.addEventListener(
     'chatwoot:on-message',
-    () => cw.setConversationCustomAttributes(visitContext),
+    () => cw.setConversationCustomAttributes(conversation),
     { once: true },
   )
   configuredIdentifier = identifier
   cw.toggle('open')
+}
+
+function performOpen(options: OpenChatWidgetOptions): Promise<void> {
+  return performOpenWith({
+    widgetLocale: WIDGET_LOCALE_BY_SITE_LOCALE[options.locale] ?? 'en',
+    isRtl: options.isRtl,
+    texts: options.texts,
+    prepare: async () => {
+      // Click-time snapshot: the page, UTM, referrer and booking state as they
+      // are now, not as they will be when the widget finishes loading.
+      const visitContext = await collectVisitContext(options)
+      const config = await fetchWidgetConfig()
+      return { config, conversation: visitContext, contact: { site_locale: options.locale } }
+    },
+  })
 }
 
 /**
@@ -367,6 +397,40 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
 export function openChatWidget(options: OpenChatWidgetOptions): Promise<void> {
   if (inFlight) return inFlight
   inFlight = performOpen(options).finally(() => {
+    inFlight = null
+  })
+  return inFlight
+}
+
+export interface OpenDriverHelpChatOptions {
+  /** Already validated by the driver help contract (parseDriverHelpConfig); no fetch happens here. */
+  config: DriverHelpEnabledConfig
+  texts: OpenChatWidgetOptions['texts']
+}
+
+/**
+ * Driver Help chat (87-UAT gap 3). Runs ONLY on the tokenless /driver/trip/help page: the SDK reports
+ * the page address to the widget, so the trip token must never be in this document's URL. The
+ * conversation carries the driver attributes only (never the public visit context, a URL or the
+ * referrer) and there are no contact attributes. Shares the in-flight run, the ready tracking and the
+ * origin guard with openChatWidget.
+ */
+export function openDriverHelpChat(options: OpenDriverHelpChatOptions): Promise<void> {
+  if (inFlight) return inFlight
+  const { config } = options
+  inFlight = performOpenWith({
+    widgetLocale: 'en',
+    isRtl: false,
+    texts: options.texts,
+    prepare: async () => ({
+      config: { baseUrl: config.baseUrl, websiteToken: config.websiteToken, user: config.user },
+      conversation: {
+        chat_role: config.conversation.chat_role,
+        driver_trip_ref: config.conversation.driver_trip_ref,
+      },
+      contact: null,
+    }),
+  }).finally(() => {
     inFlight = null
   })
   return inFlight

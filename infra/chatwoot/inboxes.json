@@ -44,6 +44,7 @@
     { "name": "Email info@", "channel_type": "Channel::Email", "settings": { "enable_auto_assignment": false, "business_name": "Prestigo", "sender_name_type": "professional" } },
     { "name": "Email bookings@", "channel_type": "Channel::Email", "settings": { "enable_auto_assignment": false, "business_name": "Prestigo", "sender_name_type": "professional" } },
     { "name": "Telegram", "channel_type": "Channel::Telegram", "settings": { "enable_auto_assignment": false } },
-    { "name": "WhatsApp", "channel_type": "Channel::Whatsapp", "settings": { "enable_auto_assignment": false, "greeting_enabled": false, "csat_survey_enabled": false, "working_hours_enabled": false } }
+    { "name": "WhatsApp", "channel_type": "Channel::Whatsapp", "settings": { "enable_auto_assignment": false, "greeting_enabled": false, "csat_survey_enabled": false, "working_hours_enabled": false } },
+    { "name": "Drivers", "channel_type": "Channel::WebWidget", "settings": { "enable_auto_assignment": false, "greeting_enabled": false, "csat_survey_enabled": false } }
   ]
 }

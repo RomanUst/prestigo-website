@@ -370,7 +370,9 @@ export function buildInboxRefs(inboxes, config) {
   const map = new Map(inboxes.map((i) => [i.name, i.id]))
   for (const entry of config.managed ?? []) {
     if (map.has(entry.name)) continue
-    const sameType = inboxes.filter((i) => i.channel_type === entry.channel_type)
+    // The config-as-code Website inbox is never a fallback target: it is a WebWidget too,
+    // so a not-yet-created "Drivers" widget inbox would otherwise bind to it (87-20).
+    const sameType = inboxes.filter((i) => i.channel_type === entry.channel_type && i.name !== config.website?.name)
     const sameManaged = (config.managed ?? []).filter((m) => m.channel_type === entry.channel_type)
     if (sameType.length === 1 && sameManaged.length === 1) map.set(entry.name, sameType[0].id)
   }

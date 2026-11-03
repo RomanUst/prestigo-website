@@ -169,6 +169,24 @@ describe('hook.chat_resolve - target of the entry (D-11, D-06)', () => {
     expect(resolveNotes(w)[0]).toMatchObject({ parentType: 'Contact', parentId: CONTACT_ID_A })
   })
 
+  it('a driver help conversation (identifier driver:<uuid>) creates no Lead and no Note', async () => {
+    const w = makeWorld()
+    w.cw.seed({ id: 7, name: 'Pavel Driver', email: 'driver@x.example', identifier: 'driver:a0000002-0000-4000-8000-000000000002' })
+    seedConversation(w, {
+      id: 42,
+      messages: [incoming('I need help with the pickup'), outgoing('On it')],
+    })
+
+    const result = await w.dispatch(resolveKey(42))
+
+    expect(result.outcome).toBe('skipped')
+    expect(w.espoWrites()).toEqual([])
+    expect(w.leads()).toHaveLength(0)
+    expect(w.notes()).toHaveLength(0)
+    expect(w.contacts()).toHaveLength(0)
+    expect(w.identity.identities).toHaveLength(0)
+  })
+
   it('customer whose identity has no Contact yet -> rescheduled contact_pending, zero Notes', async () => {
     const w = janWorld()
     w.identity.seed({ email: 'jan@x.example', bookings: 1, espoContactId: null })

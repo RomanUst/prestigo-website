@@ -28,6 +28,7 @@ import {
 } from '@/lib/chat-io'
 import { LEAD_ATTR, LEAD_STATUS_VALUE, splitName } from '@/lib/lead-mapping'
 import { isSiteEcho } from '@/lib/sync-origin'
+import { isDriverChatIdentifier } from '@/lib/driver-help-contract'
 
 /**
  * hook.chat_contact handler (Phase 83, HOOK-01 / D-12). Runs only inside the QStash-invoked dispatcher
@@ -99,6 +100,9 @@ async function contactEntry(ctx: IntakeContext, contactId: number): Promise<Entr
   guard()
   const contact = await readContact(cw, contactId)
   if (!contact) return skipped('contact_missing')
+
+  // Driver help chats (87-UAT gap 3): a driver is not a CRM person, nothing is created or linked.
+  if (isDriverChatIdentifier(contact.identifier)) return skipped('driver_contact')
 
   // HOOK-04 handler layer: the contact still carries the site's own fingerprint, so this event is the
   // echo of a site write that got past the receiver. Nothing to learn from it.

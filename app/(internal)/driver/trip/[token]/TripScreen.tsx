@@ -7,7 +7,7 @@ import { CircleHelp, Clock, Info, Navigation, Phone, TriangleAlert } from 'lucid
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import type { StatusBadgeVariant } from '@/components/admin/StatusBadge'
 import { DRIVER_STEP_LABEL, TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
-import { googleMapsDirectionsUrl } from '@/lib/driver-nav-url'
+import type { NavigationTarget } from '@/lib/driver-nav-url'
 import type { DriverStep } from '@/lib/booking-status'
 import {
   DRIVER_STATUS_LABEL,
@@ -16,9 +16,11 @@ import {
   formatPragueTime,
   formatPragueUnlock,
 } from '@/lib/driver-trip-format'
+import { driverHelpConfigPath, openDriverHelpPage, saveDriverHelpConfig } from '@/lib/driver-help-contract'
 import SlideToAdvance from './SlideToAdvance'
 import type { SlideState } from './SlideToAdvance'
 import ConfirmStepDialog from './ConfirmStepDialog'
+import NavigateChooser from './NavigateChooser'
 import TripCompleted from './TripCompleted'
 import TripMap from './TripMap'
 import NoShowBlock from './NoShowBlock'
@@ -70,6 +72,8 @@ const NO_SHOW_ERROR =
 
 // The server may take a moment to re-render after router.refresh(); never stay "Saving…" forever.
 const SETTLE_TIMEOUT_MS = 8000
+// 87-UAT gap 3: the help config request gives up after 10 s (the call link stays available).
+const HELP_CHAT_TIMEOUT_MS = 10_000
 // setTimeout cannot take a delay above 2^31-1 ms.
 const MAX_TIMEOUT_MS = 2_147_483_647
 
@@ -110,6 +114,12 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [helpChat, setHelpChat] = useState<'idle' | 'opening' | 'error'>('idle')
+  const [navTarget, setNavTarget] = useState<{
+    title: 'Navigate to pickup' | 'Navigate to drop-off'
+    address: string
+    target: NavigationTarget
+  } | null>(null)
   const [completedAt, setCompletedAt] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
@@ -125,6 +135,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   // Request time from this session's 200 answer; the refreshed server props take over afterwards.
   const [noShowSentAt, setNoShowSentAt] = useState<string | null>(null)
   const sendingRef = useRef(false)
+  const helpChatBusyRef = useRef(false)
 
   const noShowActive = view.status === 'on_location'
   const noShowRequestedAt = noShowActive ? (noShow.requestedAt ?? noShowSentAt) : null
@@ -292,6 +303,69 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
     [token],
   )
 
+  const openHelp = useCallback(() => {
+    setHelpChat('idle')
+    setHelpOpen(true)
+  }, [])
+
+  const closeHelp = useCallback(() => {
+    if (helpChatBusyRef.current) return
+    setHelpOpen(false)
+    setHelpChat('idle')
+  }, [])
+
+  // 87-UAT gap 3: fetch the driver identity, hand it to the tokenless help page through sessionStorage
+  // and leave with a FULL page load (never the Next router), so the Chatwoot SDK never runs in a
+  // document whose address carries the trip token.
+  const openHelpChat = useCallback(async () => {
+    if (helpChatBusyRef.current) return
+    helpChatBusyRef.current = true
+    setHelpChat('opening')
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), HELP_CHAT_TIMEOUT_MS)
+    try {
+      const res = await fetch(driverHelpConfigPath(token), { method: 'POST', signal: controller.signal })
+      let body: unknown = null
+      try {
+        body = await res.json()
+      } catch {
+        body = null
+      }
+      if (res.status === 200 && saveDriverHelpConfig(body)) {
+        // Stay "opening" while the browser leaves the page.
+        openDriverHelpPage()
+        return
+      }
+      if (res.status === 400 && (body as StepResponseBody | null)?.error === 'invalid_token') {
+        // The link died while the screen was open: the refreshed page renders the ended view.
+        helpChatBusyRef.current = false
+        setHelpOpen(false)
+        setHelpChat('idle')
+        router.refresh()
+        return
+      }
+      helpChatBusyRef.current = false
+      setHelpChat('error')
+    } catch {
+      helpChatBusyRef.current = false
+      setHelpChat('error')
+    } finally {
+      clearTimeout(timer)
+    }
+  }, [token, router])
+
+  // "Back to trip" can restore this page from the back/forward cache with the chat button still
+  // "Opening chat…": reset it so the driver can try again.
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return
+      helpChatBusyRef.current = false
+      setHelpChat('idle')
+    }
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, [])
+
   const closeStepDialog = useCallback(() => setDialogOpen(false), [])
   const closeNoShowDialog = useCallback(() => setNoShowDialogOpen(false), [])
 
@@ -433,7 +507,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
         <button
           type="button"
           data-driver-focus=""
-          onClick={() => setHelpOpen(true)}
+          onClick={openHelp}
           style={{
             boxSizing: 'border-box',
             minWidth: 48,
@@ -548,6 +622,13 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
             address={trip.originAddress}
             point={trip.origin}
             navigateLabel="Navigate to pickup"
+            onNavigate={() =>
+              setNavTarget({
+                title: 'Navigate to pickup',
+                address: trip.originAddress,
+                target: trip.origin ?? { address: trip.originAddress },
+              })
+            }
             clamp={!expanded}
             dot="filled"
             connector
@@ -557,6 +638,13 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
             address={trip.destinationAddress}
             point={trip.destination}
             navigateLabel="Navigate to drop-off"
+            onNavigate={() =>
+              setNavTarget({
+                title: 'Navigate to drop-off',
+                address: trip.destinationAddress,
+                target: trip.destination ?? { address: trip.destinationAddress },
+              })
+            }
             clamp={!expanded}
             dot="ring"
           />
@@ -623,13 +711,23 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
         {announcement}
       </div>
 
+      {navTarget ? (
+        <NavigateChooser
+          title={navTarget.title}
+          address={navTarget.address}
+          target={navTarget.target}
+          onClose={() => setNavTarget(null)}
+        />
+      ) : null}
+
       {helpOpen ? (
         <ConfirmStepDialog
           mode="help"
-          submitting={false}
+          submitting={helpChat === 'opening'}
           error={null}
-          onConfirm={() => setHelpOpen(false)}
-          onCancel={() => setHelpOpen(false)}
+          chat={{ state: helpChat, onOpen: openHelpChat }}
+          onConfirm={closeHelp}
+          onCancel={closeHelp}
         />
       ) : null}
 
@@ -739,18 +837,21 @@ function AddressRow({
   clamp,
   dot,
   connector = false,
+  onNavigate,
 }: {
   caption: string
   address: string
   point: { lat: number; lng: number } | null
   navigateLabel: string
+  /** Opens the Google Maps / Waze chooser for this stop (87-UAT gap 2). */
+  onNavigate: () => void
   /** Collapsed sheet: addresses stop at 2 lines (class in driver-trip.css); expanded shows them in full. */
   clamp: boolean
   dot: 'filled' | 'ring'
   connector?: boolean
 }) {
   // Coordinates when present, otherwise the address string; nothing to navigate to means no button.
-  const navHref = point ? googleMapsDirectionsUrl(point) : address ? googleMapsDirectionsUrl({ address }) : null
+  const canNavigate = Boolean(point) || Boolean(address)
   return (
     <li style={{ display: 'flex', gap: 16, paddingBottom: connector ? 16 : 0 }}>
       <div style={{ position: 'relative', width: 16, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
@@ -805,17 +906,17 @@ function AddressRow({
           {address}
         </div>
       </div>
-      {navHref ? (
-        <a
-          href={navHref}
-          target="_blank"
-          rel="noopener noreferrer"
+      {canNavigate ? (
+        <button
+          type="button"
+          aria-haspopup="dialog"
           aria-label={navigateLabel}
           data-driver-focus=""
-          style={{ ...iconButtonStyle, alignSelf: 'flex-start' }}
+          onClick={onNavigate}
+          style={{ ...iconButtonStyle, alignSelf: 'flex-start', cursor: 'pointer' }}
         >
           <Navigation size={20} aria-hidden="true" />
-        </a>
+        </button>
       ) : null}
     </li>
   )

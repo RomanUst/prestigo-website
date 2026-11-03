@@ -277,6 +277,8 @@ const telegramInbox = () => ({ id: 13, name: 'PrestigoChauffeurBot', channel_typ
 // Owner-created WhatsApp Cloud inbox: display name differs from the managed "WhatsApp" entry, and the payload
 // carries provider_config exactly like an admin token would receive it (plain fake words, never real secrets).
 const WA_FAKE_VALUES = ['fake-api-key', 'fake-phone-id', 'fake-waba-id', 'fake-app-secret']
+// 87-20: owner-made Drivers widget inbox for driver Help chats (option-b).
+const driversInbox = () => ({ id: 15, name: 'Drivers', channel_type: 'Channel::WebWidget', enable_auto_assignment: true, greeting_enabled: true, csat_survey_enabled: true })
 const whatsappInbox = () => ({
   id: 14,
   name: 'Prestigo WhatsApp',
@@ -374,6 +376,13 @@ describe('resolveRefs / expandAutomationRules', () => {
 
 describe('buildInboxRefs', () => {
   const config = readConfig('inboxes.json')
+
+  it('never binds a missing managed widget inbox (Drivers) to the Website inbox', () => {
+    const website = { id: 20, name: config.website.name, channel_type: 'Channel::WebWidget' }
+    const refs = buildInboxRefs([website], config)
+    expect(refs.get('Drivers')).toBeUndefined()
+    expect(refs.get(config.website.name)).toBe(20)
+  })
 
   it('falls back to the single same-type inbox only when unambiguous', () => {
     const refs = buildInboxRefs([...emailInboxes(), telegramInbox()], config)
@@ -535,12 +544,12 @@ describe('runSync account + teams + attributes + canned', () => {
     expect(await sync(fake, { only: ['teams'] })).toContain('teams: create=0 update=0 unchanged=2 skipped=0 deleted=0')
   })
 
-  it('creates 15 conversation + 8 contact attribute definitions keyed by key + model, rerun unchanged', async () => {
+  it('creates 17 conversation + 8 contact attribute definitions keyed by key + model, rerun unchanged', async () => {
     const fake = createFakeChatwoot()
-    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=23 update=0 unchanged=0 skipped=0 deleted=0')
-    expect(fake.state.attributes.filter((a) => a.attribute_model === 'conversation_attribute')).toHaveLength(15)
+    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=25 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(fake.state.attributes.filter((a) => a.attribute_model === 'conversation_attribute')).toHaveLength(17)
     expect(fake.state.attributes.filter((a) => a.attribute_model === 'contact_attribute')).toHaveLength(8)
-    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=0 update=0 unchanged=23 skipped=0 deleted=0')
+    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=0 update=0 unchanged=25 skipped=0 deleted=0')
   })
 
   it('creates 35 canned responses <topic>-<locale>, updates changed content, leaves operator canned untouched', async () => {
@@ -582,16 +591,18 @@ describe('runSync inboxes', () => {
       '  missing: Email bookings@',
       '  missing: Telegram',
       '  missing: WhatsApp',
+      '  missing: Drivers',
     ])
-    expect(lines).toContain('inboxes: create=1 update=0 unchanged=0 skipped=4 deleted=0')
+    expect(lines).toContain('inboxes: create=1 update=0 unchanged=0 skipped=5 deleted=0')
 
     const rerun = await sync(fake, { only: ['inboxes'] })
-    expect(rerun).toContain('inboxes: create=0 update=0 unchanged=1 skipped=4 deleted=0')
+    expect(rerun).toContain('inboxes: create=0 update=0 unchanged=1 skipped=5 deleted=0')
     expect(fake.state.avatarUploads).toBe(1)
+    expect(fake.requests.some((r) => r.method === 'PATCH' && r.path === `/inboxes/${site.id}` && typeof r.body === 'object' && r.body !== null && 'csat_survey_enabled' in r.body)).toBe(false)
   })
 
   it('patches only the listed non-secret settings of owner-made inboxes, never channel fields', async () => {
-    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox(), driversInbox()] })
     const lines = await sync(fake, { only: ['inboxes'] })
     expect(lines.filter((l) => l.startsWith('  missing: '))).toEqual([])
     const patches = fake.requests.filter((r) => r.method === 'PATCH' && /^\/inboxes\/1[1234]$/.test(r.path))
@@ -874,15 +885,15 @@ describe('WhatsApp window rules, feature check and override (78-04)', () => {
   })
 
   it('adds the owner to every existing managed inbox (email, telegram, whatsapp) once; a rerun changes nothing', async () => {
-    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox(), driversInbox()] })
     const first = await sync(fake, { only: ['inboxes'] })
-    for (const [name, id] of [['Email info@', 11], ['Email bookings@', 12], ['Telegram', 13], ['WhatsApp', 14]] as const) {
+    for (const [name, id] of [['Email info@', 11], ['Email bookings@', 12], ['Telegram', 13], ['WhatsApp', 14], ['Drivers', 15]] as const) {
       expect(first).toContain(`  [update] inbox ${name}: owner member`)
       expect(fake.state.inboxMembers.get(id)).toEqual([OWNER_ID])
     }
     const second = await sync(fake, { only: ['inboxes'] })
     expect(second.some((l) => l.includes('owner member'))).toBe(false)
-    expect(second.find((l) => l.startsWith('inboxes: '))).toMatch(/create=0 update=0 unchanged=5 /)
+    expect(second.find((l) => l.startsWith('inboxes: '))).toMatch(/create=0 update=0 unchanged=6 /)
   })
 
   it('keeps existing members when adding the owner, and never touches a missing inbox', async () => {
@@ -965,7 +976,7 @@ describe('runSync dashboardApps (84-06 tracer)', () => {
 
 describe('full run', () => {
   it('second full run is a no-op and the first run never prints a secret', async () => {
-    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox(), driversInbox()] })
     const spies = (['log', 'info', 'warn', 'error'] as const).map((k) => vi.spyOn(console, k).mockImplementation(() => {}))
 
     const first = await sync(fake)
@@ -982,7 +993,7 @@ describe('full run', () => {
   })
 
   it('--dry-run of a full sync issues only GET requests and prints the full plan', async () => {
-    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox(), driversInbox()] })
     const lines = await sync(fake, { dryRun: true })
     expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
     expect(lines.some((l) => l.startsWith('summary: create='))).toBe(true)

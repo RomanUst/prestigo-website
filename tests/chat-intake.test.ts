@@ -285,6 +285,34 @@ describe('hook.chat_intake - who is not a Lead (D-06, D-18, D-07, forward-only)'
     expect(w.identity.identities).toHaveLength(0)
   })
 
+  it('a driver help chat (identifier driver:<uuid>) creates nothing and a replay is a no-op (filtered_driver)', async () => {
+    const w = makeWorld()
+    w.cw.seed({ id: 7, name: 'Pavel Driver', email: 'driver@x.example', identifier: 'driver:a0000002-0000-4000-8000-000000000002' })
+    seedConversation(w, { id: 42 })
+
+    const result = await w.dispatch(w.intakeKey(42))
+
+    expectSkippedUntouched(w, 'filtered_driver', result)
+    expect(w.contacts()).toHaveLength(0)
+    expect(w.identity.identities).toHaveLength(0)
+    expect(w.chat.state.conversations.get(42)?.outcome).toBe('filtered')
+
+    w.reset(w.intakeKey(42))
+    const again = await w.dispatch(w.intakeKey(42))
+    expectSkippedUntouched(w, 'filtered', again)
+  })
+
+  it('a customer identifier (bare user uuid) is not mistaken for a driver', async () => {
+    const w = makeWorld()
+    w.cw.seed({ id: 7, name: 'Jan Novák', email: 'jan@x.example', identifier: 'a0000002-0000-4000-8000-000000000002' })
+    seedConversation(w, { id: 42 })
+
+    const result = await w.dispatch(w.intakeKey(42))
+
+    expect(result).toEqual({ outcome: 'sent' })
+    expect(w.leads()).toHaveLength(1)
+  })
+
   it('hooks off (no start instant) writes nothing and reads nothing from Chatwoot', async () => {
     const w = janWorld({ hooksStart: null })
 

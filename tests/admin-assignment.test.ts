@@ -8,6 +8,7 @@ const {
   stubLogEmail,
   stubSendDriverAssignmentEmail,
   stubSendDriverDeclineNotification,
+  stubSendDriverAcceptedTripEmail,
   stubPushGnetStatus,
   stubPrestigoToGnetStatus,
   supabaseAuthStub,
@@ -24,6 +25,7 @@ const {
   const stubLogEmail = vi.fn().mockResolvedValue(true)
   const stubSendDriverAssignmentEmail = vi.fn().mockResolvedValue(undefined)
   const stubSendDriverDeclineNotification = vi.fn().mockResolvedValue(undefined)
+  const stubSendDriverAcceptedTripEmail = vi.fn().mockResolvedValue('sent')
   const stubPushGnetStatus = vi.fn().mockResolvedValue(undefined)
   const stubPrestigoToGnetStatus = vi.fn().mockImplementation((status: string) => {
     const map: Record<string, string> = {
@@ -44,6 +46,7 @@ const {
     stubLogEmail,
     stubSendDriverAssignmentEmail,
     stubSendDriverDeclineNotification,
+    stubSendDriverAcceptedTripEmail,
     stubPushGnetStatus,
     stubPrestigoToGnetStatus,
     supabaseAuthStub,
@@ -74,6 +77,10 @@ vi.mock('@/lib/email-log', () => ({
 vi.mock('@/lib/email', () => ({
   sendDriverAssignmentEmail: stubSendDriverAssignmentEmail,
   sendDriverDeclineNotification: stubSendDriverDeclineNotification,
+}))
+
+vi.mock('@/lib/driver-accept-email', () => ({
+  sendDriverAcceptedTripEmail: stubSendDriverAcceptedTripEmail,
 }))
 
 vi.mock('@/lib/gnet-client', () => ({
@@ -123,6 +130,7 @@ beforeEach(() => {
   stubLogEmail.mockResolvedValue(true)
   stubSendDriverAssignmentEmail.mockResolvedValue(undefined)
   stubSendDriverDeclineNotification.mockResolvedValue(undefined)
+  stubSendDriverAcceptedTripEmail.mockResolvedValue('sent')
   stubPushGnetStatus.mockResolvedValue(undefined)
   stubPrestigoToGnetStatus.mockImplementation((status: string) => {
     const map: Record<string, string> = {
@@ -388,6 +396,11 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toHaveProperty('ok', true)
+
+    // 87-15: accepting schedules the accept email once, with the assignment id
+    await new Promise((r) => setTimeout(r, 10))
+    expect(stubSendDriverAcceptedTripEmail).toHaveBeenCalledTimes(1)
+    expect(stubSendDriverAcceptedTripEmail).toHaveBeenCalledWith('a1a2a3a4-0000-0000-0000-000000000001')
   })
 
   it('Test 10: returns 200 with ok:true for valid token + action=declined', async () => {
@@ -443,6 +456,10 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toHaveProperty('ok', true)
+
+    // 87-15: declining never sends the accept email
+    await new Promise((r) => setTimeout(r, 10))
+    expect(stubSendDriverAcceptedTripEmail).not.toHaveBeenCalled()
   })
 
   it('Test 11: returns 400 with uniform error=invalid_token for expired token (anti-enumeration)', async () => {
@@ -547,6 +564,7 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
 
     await new Promise((r) => setTimeout(r, 10))
     expect(stubSendDriverDeclineNotification).toHaveBeenCalledTimes(1)
+    expect(stubSendDriverAcceptedTripEmail).not.toHaveBeenCalled()
   })
 })
 

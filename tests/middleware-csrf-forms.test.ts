@@ -46,6 +46,22 @@ describe('CSRF Origin check on the lead form endpoints (WR-04)', () => {
   })
 })
 
+// Phase 87 plan 18 (T-87-56): the driver Help identity endpoint sits under the CSRF-protected
+// /api/driver/trip prefix; no middleware change was needed.
+const DRIVER_HELP_PATH = '/api/driver/trip/a0000004-0000-4000-8000-000000000004/help'
+
+describe('CSRF Origin check on the driver help endpoint (Phase 87)', () => {
+  it('a cross-site Origin is refused with 403', async () => {
+    const res = await middleware(post(DRIVER_HELP_PATH, 'https://evil.example'))
+    expect(res.status).toBe(403)
+  })
+
+  it('the site origin passes', async () => {
+    const res = await middleware(post(DRIVER_HELP_PATH, 'https://prestigo.cz'))
+    expect(res.status).not.toBe(403)
+  })
+})
+
 // Phase 83 (HOOK-03): server-to-server senders (Chatwoot, EspoCRM) carry no Origin or a foreign one.
 // They authenticate by HMAC in the route, so the Origin check must never apply to them.
 const WEBHOOK_ROUTES = ['/api/webhooks/chatwoot', '/api/webhooks/espocrm']
