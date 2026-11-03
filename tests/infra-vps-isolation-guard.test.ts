@@ -485,6 +485,22 @@ describe('findVpsViolations — fixture self-tests', () => {
     expect(violations.map((v) => v.path)).toEqual(['app/api/route.ts'])
   })
 
+  it('Phase 87: lib/noshow-alert.ts passes with its allowlist entry but a driver or admin route importing it is flagged', () => {
+    const files = new Map([
+      ['lib/noshow-alert.ts', 'const base = process.env.CHATWOOT_BASE_URL'],
+      ['lib/lead-sync.ts', "import { deliverNoShowAlert } from '@/lib/noshow-alert'"],
+      ['app/api/driver/trip/route.ts', "import { deliverNoShowAlert } from '@/lib/noshow-alert'"],
+      ['app/api/admin/bookings/route.ts', "import { createSiteChatwootClient } from '@/lib/chatwoot-client'"],
+      ['lib/chatwoot-client.ts', 'const t = process.env.CHATWOOT_API_TOKEN'],
+    ])
+    const allowlist = VPS_ASYNC_ALLOWLIST.filter((e) =>
+      ['lib/noshow-alert.ts', 'lib/lead-sync.ts', 'lib/chatwoot-client.ts'].includes(e.path),
+    )
+    expect(allowlist).toHaveLength(3)
+    const violations = findVpsViolations(files, allowlist)
+    expect(violations.map((v) => v.path)).toEqual(['app/api/admin/bookings/route.ts', 'app/api/driver/trip/route.ts'])
+  })
+
   it('returns an empty list for an empty file map', () => {
     expect(findVpsViolations(new Map(), [])).toEqual([])
   })

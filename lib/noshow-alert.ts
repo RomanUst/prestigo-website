@@ -1,6 +1,8 @@
 import type { OutboxRow } from '@/lib/outbox-store'
 import { OutboxStoreError } from '@/lib/outbox-store'
 import { skip, type DispatchResult } from '@/lib/dispatch-outcomes'
+import { loadChatwootOpsConversationId } from '@/lib/chatwoot-client'
+import { parseOutboxKey } from '@/lib/outbox'
 import type { DispatchDeps } from '@/lib/lead-sync'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 
@@ -142,6 +144,22 @@ export async function deliverNoShowAlert(
   return result
 }
 
+/** A request stamped within this window after the key's whole second is the same request. */
+const SAME_REQUEST_WINDOW_MS = 1000
+
+/**
+ * The booking must still be waiting at the pickup (on_location) with a pending request that is not
+ * newer than the one the key was built for. The key floors the request time to whole seconds, so the
+ * stored value may sit up to a second above it.
+ */
+function isStale(ctx: NoShowAlertContext, keyEpochSeconds: number | null): boolean {
+  if (ctx.status !== 'on_location') return true
+  if (!ctx.noShowRequestedAt) return true
+  const requestedMs = Date.parse(ctx.noShowRequestedAt)
+  if (!Number.isFinite(requestedMs)) return true
+  return keyEpochSeconds !== null && requestedMs - keyEpochSeconds * 1000 > SAME_REQUEST_WINDOW_MS
+}
+
 async function run(row: OutboxRow, d: DispatchDeps, deps: NoShowAlertDeps): Promise<DispatchResult> {
   const client = d.chatwoot
   const store = deps.store ?? createNoShowAlertStore()
@@ -149,9 +167,15 @@ async function run(row: OutboxRow, d: DispatchDeps, deps: NoShowAlertDeps): Prom
   const ctx = await store.load(row.aggregate_id)
   if (!ctx) return skip(row, d, 'booking_gone')
 
-  const conversationId = ctx.conversationId
-  if (conversationId === null) return skip(row, d, 'no_conversation')
-  if (!client) return skip(row, d, 'no_conversation')
+  const tag = parseOutboxKey(row.idempotency_key)?.tag ?? null
+  const keySeconds = tag && /^r\d+$/.test(tag) ? Number(tag.slice(1)) : null
+  if (isStale(ctx, keySeconds)) return skip(row, d, 'stale_request')
+
+  // Passenger conversation first, then the optional operations conversation; with neither, the admin
+  // banner and the operator email are the alert.
+  const opsId = deps.opsConversationId === undefined ? loadChatwootOpsConversationId() : deps.opsConversationId
+  const conversationId = ctx.conversationId ?? opsId
+  if (conversationId === null || !client) return skip(row, d, 'no_conversation')
 
   await client.post(`/conversations/${conversationId}/messages`, {
     content: buildNoShowNote(ctx),
