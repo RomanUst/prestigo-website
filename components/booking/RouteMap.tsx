@@ -141,6 +141,12 @@ interface RouteMapProps {
   origin: PlaceResult | null
   destination: PlaceResult | null
   pickupTime?: string | null    // 24h HH:MM
+  /** Container height; default 300 keeps every existing caller unchanged (Phase 87 driver map). */
+  height?: number | string
+  /** Called once from the Directions OK branch with the first leg's distance (km) and duration (min). */
+  onRouteInfo?: (distanceKm: number, durationMin: number) => void
+  /** Called when Directions fails or the Maps library cannot load (no route info will arrive). */
+  onRouteError?: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -150,9 +156,19 @@ export default function RouteMap({
   origin,
   destination,
   pickupTime = null,
+  height = 300,
+  onRouteInfo,
+  onRouteError,
 }: RouteMapProps) {
   const t = useTranslations('Booking.routeMap')
   const mapRef = useRef<HTMLDivElement>(null)
+  // Callbacks live in refs so a new callback identity never rebuilds the map (effect deps stay as before).
+  const onRouteInfoRef = useRef(onRouteInfo)
+  const onRouteErrorRef = useRef(onRouteError)
+  useEffect(() => {
+    onRouteInfoRef.current = onRouteInfo
+    onRouteErrorRef.current = onRouteError
+  })
 
   useEffect(() => {
     // Show empty state when origin or destination is missing — no map to draw
@@ -210,7 +226,13 @@ export default function RouteMap({
 
             // Extract decoded path
             path = result.routes[0].overview_path
+
+            const leg = result.routes[0].legs?.[0]
+            if (leg?.distance && leg?.duration) {
+              onRouteInfoRef.current?.(leg.distance.value / 1000, Math.round(leg.duration.value / 60))
+            }
           } else {
+            onRouteErrorRef.current?.()
             // Fallback: straight-line polyline
             path = [originLatLng, destLatLng]
             new google.maps.Polyline({
@@ -280,6 +302,8 @@ export default function RouteMap({
           }
         }
       )
+    }).catch(() => {
+      if (!cancelled) onRouteErrorRef.current?.()
     })
 
     return () => {
@@ -293,7 +317,7 @@ export default function RouteMap({
     return (
       <div
         style={{
-          height: 300,
+          height,
           background: 'var(--anthracite-mid)',
           display: 'flex',
           alignItems: 'center',
@@ -320,7 +344,7 @@ export default function RouteMap({
   return (
     <div
       ref={mapRef}
-      style={{ height: 300, background: 'var(--anthracite-mid)' }}
+      style={{ height, background: 'var(--anthracite-mid)' }}
       aria-label={t('aria', { origin: origin.address, destination: destination.address })}
       role="img"
     />

@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { CircleHelp, Clock, Info, TriangleAlert } from 'lucide-react'
+import { CircleHelp, Clock, Info, Navigation, Phone, TriangleAlert } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import type { StatusBadgeVariant } from '@/components/admin/StatusBadge'
 import { DRIVER_STEP_LABEL } from '@/lib/booking-status'
+import { googleMapsDirectionsUrl } from '@/lib/driver-nav-url'
 import type { DriverStep } from '@/lib/booking-status'
 import {
   DRIVER_STATUS_LABEL,
@@ -19,6 +20,7 @@ import SlideToAdvance from './SlideToAdvance'
 import type { SlideState } from './SlideToAdvance'
 import ConfirmStepDialog from './ConfirmStepDialog'
 import TripCompleted from './TripCompleted'
+import TripMap from './TripMap'
 
 export interface TripScreenProps {
   token: string
@@ -314,6 +316,20 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
         </button>
       </header>
 
+      <PassengerCard
+        name={trip.passengerName}
+        vehicleLine={trip.vehicleInfo ? `${trip.vehicleLabel} · ${trip.vehicleInfo}` : trip.vehicleLabel}
+        phone={trip.passengerPhone}
+      />
+
+      <TripMap
+        origin={trip.origin}
+        destination={trip.destination}
+        originAddress={trip.originAddress}
+        destinationAddress={trip.destinationAddress}
+        distanceKm={trip.distanceKm}
+      />
+
       <section
         aria-label="Trip"
         style={{
@@ -358,8 +374,21 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
         </div>
 
         <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
-          <AddressRow caption="Pickup" address={trip.originAddress} dot="filled" connector />
-          <AddressRow caption="Drop-off" address={trip.destinationAddress} dot="ring" />
+          <AddressRow
+            caption="Pickup"
+            address={trip.originAddress}
+            point={trip.origin}
+            navigateLabel="Navigate to pickup"
+            dot="filled"
+            connector
+          />
+          <AddressRow
+            caption="Drop-off"
+            address={trip.destinationAddress}
+            point={trip.destination}
+            navigateLabel="Navigate to drop-off"
+            dot="ring"
+          />
         </ol>
 
         <div
@@ -428,17 +457,96 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
   )
 }
 
+function PassengerCard({ name, vehicleLine, phone }: { name: string; vehicleLine: string; phone: string | null }) {
+  // tel: needs digits and an optional leading +; spaces and punctuation from the booking form are dropped.
+  const dialable = phone ? phone.replace(/[^\d+]/g, '') : ''
+  return (
+    <div
+      style={{
+        boxSizing: 'border-box',
+        margin: '0 24px',
+        padding: 16,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        background: 'var(--admin-surface)',
+        border: '1px solid var(--admin-border)',
+        borderRadius: 'var(--admin-radius-md)',
+      }}
+    >
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <p
+          style={{
+            margin: 0,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            fontSize: 'var(--driver-fs-heading)',
+            fontWeight: 500,
+            lineHeight: 1.2,
+          }}
+        >
+          {name}
+        </p>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 'var(--driver-fs-body)',
+            fontWeight: 400,
+            lineHeight: 1.5,
+            color: 'var(--admin-text-muted)',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {vehicleLine}
+        </p>
+      </div>
+      {dialable ? (
+        <a
+          href={`tel:${dialable}`}
+          aria-label="Call passenger"
+          data-driver-focus=""
+          style={iconButtonStyle}
+        >
+          <Phone size={20} aria-hidden="true" />
+        </a>
+      ) : null}
+    </div>
+  )
+}
+
+const iconButtonStyle: CSSProperties = {
+  boxSizing: 'border-box',
+  minWidth: 48,
+  minHeight: 48,
+  flexShrink: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid var(--admin-border-strong)',
+  borderRadius: 'var(--admin-radius-md)',
+  background: 'transparent',
+  color: 'var(--admin-text)',
+  textDecoration: 'none',
+}
+
 function AddressRow({
   caption,
   address,
+  point,
+  navigateLabel,
   dot,
   connector = false,
 }: {
   caption: string
   address: string
+  point: { lat: number; lng: number } | null
+  navigateLabel: string
   dot: 'filled' | 'ring'
   connector?: boolean
 }) {
+  // Coordinates when present, otherwise the address string; nothing to navigate to means no button.
+  const navHref = point ? googleMapsDirectionsUrl(point) : address ? googleMapsDirectionsUrl({ address }) : null
   return (
     <li style={{ display: 'flex', gap: 16, paddingBottom: connector ? 16 : 0 }}>
       <div style={{ position: 'relative', width: 16, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
@@ -470,7 +578,7 @@ function AddressRow({
           />
         ) : null}
       </div>
-      <div style={{ minWidth: 0 }}>
+      <div style={{ minWidth: 0, flex: 1 }}>
         <div
           style={{
             fontSize: 'var(--driver-fs-label)',
@@ -492,6 +600,18 @@ function AddressRow({
           {address}
         </div>
       </div>
+      {navHref ? (
+        <a
+          href={navHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={navigateLabel}
+          data-driver-focus=""
+          style={{ ...iconButtonStyle, alignSelf: 'flex-start' }}
+        >
+          <Navigation size={20} aria-hidden="true" />
+        </a>
+      ) : null}
     </li>
   )
 }

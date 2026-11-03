@@ -3,7 +3,24 @@ import { render, screen, within, act, waitFor, fireEvent } from '@testing-librar
 import userEvent from '@testing-library/user-event'
 import { formatPragueTime, formatPragueUnlock, DRIVER_STATUS_LABEL } from '@/lib/driver-trip-format'
 
-const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }))
+const { refreshMock, routeMapProbe } = vi.hoisted(() => ({
+  refreshMock: vi.fn(),
+  routeMapProbe: {
+    props: null as null | {
+      height?: number | string
+      onRouteInfo?: (km: number, min: number) => void
+      onRouteError?: () => void
+    },
+  },
+}))
+
+// RouteMap loads Google Maps; the screen tests only need its props contract.
+vi.mock('@/components/booking/RouteMap', () => ({
+  default: (props: NonNullable<typeof routeMapProbe.props>) => {
+    routeMapProbe.props = props
+    return <div data-testid="route-map" role="img" aria-label="Route map" />
+  },
+}))
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: refreshMock, push: vi.fn(), replace: vi.fn() }),
@@ -48,6 +65,7 @@ function jsonResponse(status: number, body: unknown) {
 let fetchMock: ReturnType<typeof vi.fn>
 
 beforeEach(() => {
+  routeMapProbe.props = null
   refreshMock.mockClear()
   fetchMock = vi.fn()
   vi.stubGlobal('fetch', fetchMock)
@@ -548,5 +566,141 @@ describe('ConfirmStepDialog behaviour', () => {
       vi.advanceTimersByTime(1500)
     })
     expect(screen.queryByText(text)).not.toBeInTheDocument()
+  })
+})
+
+describe('TripScreen: passenger card, map and navigation (D-18)', () => {
+  it('shows the passenger name and the vehicle line with the driver vehicle info', () => {
+    render(<TripScreen {...makeProps()} />)
+    expect(screen.getByText('Alice Smith')).toBeInTheDocument()
+    expect(screen.getByText('Business Class · Black Mercedes E-Class')).toBeInTheDocument()
+  })
+
+  it('drops the " · " segment when the driver has no vehicle info', () => {
+    const props = makeProps()
+    props.trip.vehicleInfo = null
+    render(<TripScreen {...props} />)
+    expect(screen.getByText('Business Class')).toBeInTheDocument()
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument()
+  })
+
+  it('renders a Call passenger tel: link with an aria-label and a 48px target', () => {
+    render(<TripScreen {...makeProps()} />)
+    const call = screen.getByRole('link', { name: 'Call passenger' })
+    expect(call).toHaveAttribute('href', 'tel:+420123456789')
+    expect(call).toHaveStyle({ minWidth: '48px', minHeight: '48px' })
+  })
+
+  it.each([null, '', '   '])('renders no Call link when the phone is %j', (phone) => {
+    const props = makeProps()
+    props.trip.passengerPhone = phone
+    render(<TripScreen {...props} />)
+    expect(screen.queryByRole('link', { name: 'Call passenger' })).not.toBeInTheDocument()
+  })
+
+  it('strips spaces and punctuation from the tel: number', () => {
+    const props = makeProps()
+    props.trip.passengerPhone = '+420 123-456 789'
+    render(<TripScreen {...props} />)
+    expect(screen.getByRole('link', { name: 'Call passenger' })).toHaveAttribute('href', 'tel:+420123456789')
+  })
+
+  it('a long passenger name is a single ellipsised line', () => {
+    const props = makeProps()
+    props.trip.passengerName = 'Maximilian '.repeat(20).trim()
+    render(<TripScreen {...props} />)
+    const name = screen.getByText(props.trip.passengerName)
+    expect(name).toHaveStyle({ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' })
+  })
+
+  it('mounts RouteMap with the fluid height and no chip until the route arrives', () => {
+    render(<TripScreen {...makeProps()} />)
+    expect(screen.getByTestId('route-map')).toBeInTheDocument()
+    expect(routeMapProbe.props?.height).toBe('clamp(200px, 32dvh, 320px)')
+    expect(screen.queryByText(/\(est\.\)/)).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Trip map' })).toBeInTheDocument()
+  })
+
+  it('shows "12.4 km · 18 min (est.)" after onRouteInfo fires', () => {
+    render(<TripScreen {...makeProps()} />)
+    act(() => routeMapProbe.props?.onRouteInfo?.(12.4, 18))
+    expect(screen.getByText('12.4 km · 18 min (est.)')).toBeInTheDocument()
+  })
+
+  it('on a Directions failure shows "12.4 km (est.)" from distance_km only', () => {
+    render(<TripScreen {...makeProps()} />)
+    expect(screen.queryByText('12.4 km (est.)')).not.toBeInTheDocument()
+    act(() => routeMapProbe.props?.onRouteError?.())
+    expect(screen.getByText('12.4 km (est.)')).toBeInTheDocument()
+  })
+
+  it('on a Directions failure without distance_km there is no chip', () => {
+    const props = makeProps()
+    props.trip.distanceKm = null
+    render(<TripScreen {...props} />)
+    act(() => routeMapProbe.props?.onRouteError?.())
+    expect(screen.queryByText(/\(est\.\)/)).not.toBeInTheDocument()
+  })
+
+  it('places the chip top-left and nothing over the bottom of the map (attribution stays visible)', () => {
+    render(<TripScreen {...makeProps()} />)
+    act(() => routeMapProbe.props?.onRouteInfo?.(12.4, 18))
+    const chip = screen.getByText('12.4 km · 18 min (est.)')
+    expect(chip).toHaveStyle({ position: 'absolute', top: '8px', left: '8px' })
+    const region = screen.getByRole('region', { name: 'Trip map' })
+    for (const el of Array.from(region.querySelectorAll<HTMLElement>('*'))) {
+      expect(el.style.bottom).toBe('')
+    }
+  })
+
+  it.each([
+    ['origin', { origin: null }],
+    ['destination', { destination: null }],
+  ])('a missing %s coordinate shows the placeholder and does not mount RouteMap', (_n, patch) => {
+    const props = makeProps()
+    props.trip = { ...props.trip, ...patch }
+    render(<TripScreen {...props} />)
+    expect(screen.getByText('Map unavailable')).toBeInTheDocument()
+    expect(screen.getByText('Use the pickup and drop-off addresses below, or tap Navigate.')).toBeInTheDocument()
+    expect(screen.queryByTestId('route-map')).not.toBeInTheDocument()
+    expect(routeMapProbe.props).toBeNull()
+  })
+
+  it('Navigate buttons open Google Maps directions to the coordinates in a new tab', () => {
+    render(<TripScreen {...makeProps()} />)
+    const pickup = screen.getByRole('link', { name: 'Navigate to pickup' })
+    const drop = screen.getByRole('link', { name: 'Navigate to drop-off' })
+    expect(pickup).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=50.1,14.26')
+    expect(drop).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=50.08,14.42')
+    for (const a of [pickup, drop]) {
+      expect(a).toHaveAttribute('target', '_blank')
+      expect(a).toHaveAttribute('rel', 'noopener noreferrer')
+      expect(a.getAttribute('href')).not.toContain(TOKEN)
+    }
+  })
+
+  it('Navigate falls back to the encoded address when coordinates are missing', () => {
+    const props = makeProps()
+    props.trip = { ...props.trip, origin: null, originAddress: 'Wenceslas Square 1' }
+    render(<TripScreen {...props} />)
+    expect(screen.getByRole('link', { name: 'Navigate to pickup' })).toHaveAttribute(
+      'href',
+      'https://www.google.com/maps/dir/?api=1&destination=Wenceslas%20Square%201',
+    )
+  })
+
+  it('renders no Navigate button when there are neither coordinates nor an address', () => {
+    const props = makeProps()
+    props.trip = { ...props.trip, destination: null, destinationAddress: '' }
+    render(<TripScreen {...props} />)
+    expect(screen.queryByRole('link', { name: 'Navigate to drop-off' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Navigate to pickup' })).toBeInTheDocument()
+  })
+
+  it('keeps the chip across a router.refresh re-render with fresh prop objects', () => {
+    const { rerender } = render(<TripScreen {...makeProps()} />)
+    act(() => routeMapProbe.props?.onRouteInfo?.(12.4, 18))
+    rerender(<TripScreen {...makeProps()} />)
+    expect(screen.getByText('12.4 km · 18 min (est.)')).toBeInTheDocument()
   })
 })
