@@ -98,6 +98,12 @@ function buildCsp(nonce: string): string {
  * to one host, and the client loader reports a CSP block of the widget origin
  * immediately (console + error state) instead of waiting out the 10 s timeout.
  * On a host change update every line below together with the env value.
+ *
+ * 87-UAT gap 3: the chat origin is ALSO allowed on the exact driver help path
+ * (buildCspDriverHelp below). That page loads the widget only after the
+ * driver's tap and only in a document whose address carries no trip token (the
+ * SDK reports the page address to the widget). Every other /driver and /admin
+ * path keeps the strict buildCsp().
  */
 function buildCspStatic(): string {
   return [
@@ -109,6 +115,32 @@ function buildCspStatic(): string {
     process.env.NODE_ENV === 'development'
       ? "script-src 'unsafe-inline' 'unsafe-eval' 'self' https: https://chat.rideprestigo.com"
       : "script-src 'unsafe-inline' https: https://chat.rideprestigo.com",
+    "frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://chat.rideprestigo.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
+    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms https://chat.rideprestigo.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com https://chat.rideprestigo.com wss://chat.rideprestigo.com",
+    "form-action 'self' https://accounts.google.com https://appleid.apple.com",
+    "report-uri /api/csp-report",
+  ].join('; ')
+}
+
+// 87-UAT gap 3: the one driver page that hosts the Chatwoot widget. Exact path only.
+const DRIVER_HELP_PATH = '/driver/trip/help'
+
+/**
+ * CSP of the driver help page: exactly buildCsp(nonce) (same directives, same order, nonce +
+ * 'strict-dynamic' script-src) with the one chat origin added to frame-src, img-src and connect-src
+ * (https and wss). No wildcard. Each directive that names the chat host is a lone string literal on its
+ * own line, like buildCspStatic, so the Phase 76 isolation guard's directive-line exemption applies.
+ * tests/middleware-i18n.test.ts proves it equals buildCsp plus those tokens and nothing else.
+ */
+function buildCspDriverHelp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    process.env.NODE_ENV === 'development'
+      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'self' https:`
+      : `script-src 'nonce-${nonce}' 'strict-dynamic' https:`,
     "frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://chat.rideprestigo.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
     "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms https://chat.rideprestigo.com",
@@ -310,7 +342,11 @@ async function runCspAndAuthChain(
       request.nextUrl.pathname.startsWith('/admin') ||
       request.nextUrl.pathname.startsWith('/driver')
     const nonce = useNonceCsp ? btoa(crypto.randomUUID()) : null
-    const csp = nonce ? buildCsp(nonce) : buildCspStatic()
+    const csp = nonce
+      ? request.nextUrl.pathname === DRIVER_HELP_PATH
+        ? buildCspDriverHelp(nonce)
+        : buildCsp(nonce)
+      : buildCspStatic()
     const reqHeaders = new Headers(request.headers)
     if (nonce) {
       // Next extracts the nonce from this header and applies it to its scripts.
