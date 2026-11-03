@@ -20,7 +20,7 @@ import path from 'path'
  */
 
 const REPO_ROOT = path.resolve(__dirname, '..')
-const SCAN_ROOTS = ['components/admin', 'app/(internal)/admin']
+const SCAN_ROOTS = ['components/admin', 'app/(internal)/admin', 'app/(internal)/driver/trip']
 const EXTENSIONS = new Set(['.ts', '.tsx'])
 /** Removed at closeout; the guard asserts it stays gone (no silent ledger fallback). */
 const REMOVED_LEDGER_DIR = 'tests/fixtures/admin-color-pending'
