@@ -16,6 +16,7 @@ import {
   formatPragueTime,
   formatPragueUnlock,
 } from '@/lib/driver-trip-format'
+import { driverHelpConfigPath, openDriverHelpPage, saveDriverHelpConfig } from '@/lib/driver-help-contract'
 import SlideToAdvance from './SlideToAdvance'
 import type { SlideState } from './SlideToAdvance'
 import ConfirmStepDialog from './ConfirmStepDialog'
@@ -71,6 +72,8 @@ const NO_SHOW_ERROR =
 
 // The server may take a moment to re-render after router.refresh(); never stay "Saving…" forever.
 const SETTLE_TIMEOUT_MS = 8000
+// 87-UAT gap 3: the help config request gives up after 10 s (the call link stays available).
+const HELP_CHAT_TIMEOUT_MS = 10_000
 // setTimeout cannot take a delay above 2^31-1 ms.
 const MAX_TIMEOUT_MS = 2_147_483_647
 
@@ -111,6 +114,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [helpChat, setHelpChat] = useState<'idle' | 'opening' | 'error'>('idle')
   const [navTarget, setNavTarget] = useState<{
     title: 'Navigate to pickup' | 'Navigate to drop-off'
     address: string
@@ -131,6 +135,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   // Request time from this session's 200 answer; the refreshed server props take over afterwards.
   const [noShowSentAt, setNoShowSentAt] = useState<string | null>(null)
   const sendingRef = useRef(false)
+  const helpChatBusyRef = useRef(false)
 
   const noShowActive = view.status === 'on_location'
   const noShowRequestedAt = noShowActive ? (noShow.requestedAt ?? noShowSentAt) : null
@@ -298,6 +303,69 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
     [token],
   )
 
+  const openHelp = useCallback(() => {
+    setHelpChat('idle')
+    setHelpOpen(true)
+  }, [])
+
+  const closeHelp = useCallback(() => {
+    if (helpChatBusyRef.current) return
+    setHelpOpen(false)
+    setHelpChat('idle')
+  }, [])
+
+  // 87-UAT gap 3: fetch the driver identity, hand it to the tokenless help page through sessionStorage
+  // and leave with a FULL page load (never the Next router), so the Chatwoot SDK never runs in a
+  // document whose address carries the trip token.
+  const openHelpChat = useCallback(async () => {
+    if (helpChatBusyRef.current) return
+    helpChatBusyRef.current = true
+    setHelpChat('opening')
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), HELP_CHAT_TIMEOUT_MS)
+    try {
+      const res = await fetch(driverHelpConfigPath(token), { method: 'POST', signal: controller.signal })
+      let body: unknown = null
+      try {
+        body = await res.json()
+      } catch {
+        body = null
+      }
+      if (res.status === 200 && saveDriverHelpConfig(body)) {
+        // Stay "opening" while the browser leaves the page.
+        openDriverHelpPage()
+        return
+      }
+      if (res.status === 400 && (body as StepResponseBody | null)?.error === 'invalid_token') {
+        // The link died while the screen was open: the refreshed page renders the ended view.
+        helpChatBusyRef.current = false
+        setHelpOpen(false)
+        setHelpChat('idle')
+        router.refresh()
+        return
+      }
+      helpChatBusyRef.current = false
+      setHelpChat('error')
+    } catch {
+      helpChatBusyRef.current = false
+      setHelpChat('error')
+    } finally {
+      clearTimeout(timer)
+    }
+  }, [token, router])
+
+  // "Back to trip" can restore this page from the back/forward cache with the chat button still
+  // "Opening chat…": reset it so the driver can try again.
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return
+      helpChatBusyRef.current = false
+      setHelpChat('idle')
+    }
+    window.addEventListener('pageshow', onPageShow)
+    return () => window.removeEventListener('pageshow', onPageShow)
+  }, [])
+
   const closeStepDialog = useCallback(() => setDialogOpen(false), [])
   const closeNoShowDialog = useCallback(() => setNoShowDialogOpen(false), [])
 
@@ -439,7 +507,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
         <button
           type="button"
           data-driver-focus=""
-          onClick={() => setHelpOpen(true)}
+          onClick={openHelp}
           style={{
             boxSizing: 'border-box',
             minWidth: 48,
@@ -655,10 +723,11 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
       {helpOpen ? (
         <ConfirmStepDialog
           mode="help"
-          submitting={false}
+          submitting={helpChat === 'opening'}
           error={null}
-          onConfirm={() => setHelpOpen(false)}
-          onCancel={() => setHelpOpen(false)}
+          chat={{ state: helpChat, onOpen: openHelpChat }}
+          onConfirm={closeHelp}
+          onCancel={closeHelp}
         />
       ) : null}
 
