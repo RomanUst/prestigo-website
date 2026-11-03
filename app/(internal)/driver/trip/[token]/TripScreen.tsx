@@ -7,7 +7,7 @@ import { CircleHelp, Clock, Info, Navigation, Phone, TriangleAlert } from 'lucid
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import type { StatusBadgeVariant } from '@/components/admin/StatusBadge'
 import { DRIVER_STEP_LABEL, TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
-import { googleMapsDirectionsUrl } from '@/lib/driver-nav-url'
+import type { NavigationTarget } from '@/lib/driver-nav-url'
 import type { DriverStep } from '@/lib/booking-status'
 import {
   DRIVER_STATUS_LABEL,
@@ -19,6 +19,7 @@ import {
 import SlideToAdvance from './SlideToAdvance'
 import type { SlideState } from './SlideToAdvance'
 import ConfirmStepDialog from './ConfirmStepDialog'
+import NavigateChooser from './NavigateChooser'
 import TripCompleted from './TripCompleted'
 import TripMap from './TripMap'
 import NoShowBlock from './NoShowBlock'
@@ -110,6 +111,11 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [navTarget, setNavTarget] = useState<{
+    title: 'Navigate to pickup' | 'Navigate to drop-off'
+    address: string
+    target: NavigationTarget
+  } | null>(null)
   const [completedAt, setCompletedAt] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
@@ -548,6 +554,13 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
             address={trip.originAddress}
             point={trip.origin}
             navigateLabel="Navigate to pickup"
+            onNavigate={() =>
+              setNavTarget({
+                title: 'Navigate to pickup',
+                address: trip.originAddress,
+                target: trip.origin ?? { address: trip.originAddress },
+              })
+            }
             clamp={!expanded}
             dot="filled"
             connector
@@ -557,6 +570,13 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
             address={trip.destinationAddress}
             point={trip.destination}
             navigateLabel="Navigate to drop-off"
+            onNavigate={() =>
+              setNavTarget({
+                title: 'Navigate to drop-off',
+                address: trip.destinationAddress,
+                target: trip.destination ?? { address: trip.destinationAddress },
+              })
+            }
             clamp={!expanded}
             dot="ring"
           />
@@ -622,6 +642,15 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
       <div aria-live="polite" style={visuallyHidden}>
         {announcement}
       </div>
+
+      {navTarget ? (
+        <NavigateChooser
+          title={navTarget.title}
+          address={navTarget.address}
+          target={navTarget.target}
+          onClose={() => setNavTarget(null)}
+        />
+      ) : null}
 
       {helpOpen ? (
         <ConfirmStepDialog
@@ -739,18 +768,21 @@ function AddressRow({
   clamp,
   dot,
   connector = false,
+  onNavigate,
 }: {
   caption: string
   address: string
   point: { lat: number; lng: number } | null
   navigateLabel: string
+  /** Opens the Google Maps / Waze chooser for this stop (87-UAT gap 2). */
+  onNavigate: () => void
   /** Collapsed sheet: addresses stop at 2 lines (class in driver-trip.css); expanded shows them in full. */
   clamp: boolean
   dot: 'filled' | 'ring'
   connector?: boolean
 }) {
   // Coordinates when present, otherwise the address string; nothing to navigate to means no button.
-  const navHref = point ? googleMapsDirectionsUrl(point) : address ? googleMapsDirectionsUrl({ address }) : null
+  const canNavigate = Boolean(point) || Boolean(address)
   return (
     <li style={{ display: 'flex', gap: 16, paddingBottom: connector ? 16 : 0 }}>
       <div style={{ position: 'relative', width: 16, flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
@@ -805,17 +837,17 @@ function AddressRow({
           {address}
         </div>
       </div>
-      {navHref ? (
-        <a
-          href={navHref}
-          target="_blank"
-          rel="noopener noreferrer"
+      {canNavigate ? (
+        <button
+          type="button"
+          aria-haspopup="dialog"
           aria-label={navigateLabel}
           data-driver-focus=""
-          style={{ ...iconButtonStyle, alignSelf: 'flex-start' }}
+          onClick={onNavigate}
+          style={{ ...iconButtonStyle, alignSelf: 'flex-start', cursor: 'pointer' }}
         >
           <Navigation size={20} aria-hidden="true" />
-        </a>
+        </button>
       ) : null}
     </li>
   )
