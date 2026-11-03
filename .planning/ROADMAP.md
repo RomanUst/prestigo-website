@@ -18,7 +18,7 @@
 
 **Phase Numbering:** Integer phases continue from v4.0 (last phase 85). Decimal phases (e.g. 88.1) are urgent insertions. Next DB migration is 084.
 
-- [ ] **Phase 86: Admin Shell** - Collapsible sidebar and persistent light theme; every admin screen on theme tokens
+- [x] **Phase 86: Admin Shell** - Collapsible sidebar and persistent light theme; every admin screen on theme tokens (completed 2026-11-03)
 - [ ] **Phase 87: Status Service & Driver Step Flow** - One trusted status writer; driver moves a trip one strict step at a time and admin sees it immediately
 - [ ] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
 - [ ] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, counsel-reviewed wording, public go-live
@@ -148,7 +148,7 @@ Detail sections for the active milestone v5.0 (Phases 86-93). Parser note: the `
   3. Every admin screen (bookings, drivers, stats, outbox, settings, login, plus modals and side panels) is readable in both themes — no unreadable text, invisible borders or leftover dark-only panels.
   4. Adding a new hard-coded colour value to admin code fails the test suite, so later phases cannot reintroduce theme debt.
 
-**Plans**: 12/13 plans executed
+**Plans**: 13/13 plans complete
 Plans:
 **Wave 1**
 - [x] 86-01-PLAN.md — Wave 1: cookie-driven theme wrapper (tracer), full token sheet for both themes, colour guard with per-plan pending ledger, capital-label scanner
@@ -169,7 +169,7 @@ Plans:
 - [x] 86-12-PLAN.md — Wave 3: sentence-case labels in stats tabs, stats charts and the bookings KPI row
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 86-13-PLAN.md — Wave 4: first-paint and public-leakage proof, full quality gate, phase-wide caps scan, owner production UAT
+- [x] 86-13-PLAN.md — Wave 4: first-paint and public-leakage proof, full quality gate, phase-wide caps scan, owner production UAT
 
 **UI hint**: yes
 **Planning notes**:
@@ -412,7 +412,7 @@ Plans:
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
-| 86. Admin Shell | v5.0 | 12/13 | In Progress|  |
+| 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
 | 87. Status Service & Driver Step Flow | v5.0 | 0/0 | Not started | - |
 | 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
