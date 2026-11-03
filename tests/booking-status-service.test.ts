@@ -332,6 +332,23 @@ describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
     expect(mockSendConfirmed).not.toHaveBeenCalled()
   })
 
+  it('WR-03: a partner (gnet) booking gets no status email, even on driver completion', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({
+      bookingData: { ...baseRow, status: 'on_board', booking_source: 'gnet', client_email: 'noreply@gnet.local' },
+    })
+    await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'completed',
+      actor: { type: 'driver', id: 'drv-1' },
+      source: 'driver_trip',
+      profile: 'full',
+    })
+    await flushAfterCallbacks()
+    expect(mockLogEmail).not.toHaveBeenCalled()
+    expect(mockSendPostTrip).not.toHaveBeenCalled()
+  })
+
   it('gnet booking confirmed -> assigned pushes ASSIGNED exactly once', async () => {
     buildSupabaseMock({ bookingData: { ...baseRow, status: 'confirmed', booking_source: 'gnet' } })
     await advanceBookingStatus({

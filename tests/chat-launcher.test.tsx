@@ -61,6 +61,8 @@ import { WHATSAPP_CHAT_URL, TELEGRAM_CHAT_URL } from '@/lib/contact-channels'
 import { getLandingHref, resetLandingHrefForTests, VISIT_CONTEXT_KEYS } from '@/lib/chat-visit-context'
 import { useBookingStore } from '@/lib/booking-store'
 
+// The full suite runs ~320 files in parallel; the default 1 s waitFor flakes under that load.
+const WAIT_MS = 5000
 const BASE_URL = 'https://chat.rideprestigo.com'
 const WEBSITE_TOKEN = 'test-website-token'
 const HMAC_SECRET = 'test-hmac-secret'
@@ -235,7 +237,7 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
 
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'), { timeout: WAIT_MS })
 
     expect(mockTrack).toHaveBeenCalledWith('Contact', { content_name: 'Chat on site' })
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -281,7 +283,7 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     renderWithIntl(<ChatLauncher />)
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'), { timeout: WAIT_MS })
     expect(sdk.cw.setUser).not.toHaveBeenCalled()
   })
 
@@ -291,11 +293,11 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     renderWithIntl(<ChatLauncher />)
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1), { timeout: WAIT_MS })
 
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2), { timeout: WAIT_MS })
     expect(sdk.scripts).toHaveLength(1)
     // Identity is re-checked on every open (T-77-20) — the route is the only extra call.
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -326,7 +328,7 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     })
 
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'), { timeout: WAIT_MS })
     expect(sdk.cw.setUser).toHaveBeenCalledWith(USER.id, expect.objectContaining({ email: USER.email }))
     expect(sdk.cw.setLocale).toHaveBeenCalledWith('en')
     expect(sdk.cw.setConversationCustomAttributes).toHaveBeenCalled()
@@ -354,7 +356,7 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     await act(async () => {
       window.dispatchEvent(new Event('chatwoot:ready'))
     })
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'), { timeout: WAIT_MS })
     expect(sdk.cw.setUser).toHaveBeenCalledTimes(1)
     expect(sdk.run).toHaveBeenCalledTimes(1)
   })
@@ -365,14 +367,14 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     renderWithIntl(<ChatLauncher />)
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1), { timeout: WAIT_MS })
     expect(sdk.cw.setUser).toHaveBeenCalledTimes(1)
 
     // Visitor signs out (soft navigation: widget stays in memory), next person clicks.
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2), { timeout: WAIT_MS })
     expect(sdk.cw.reset).toHaveBeenCalledTimes(1)
     expect(sdk.cw.reset.mock.invocationCallOrder[0]).toBeLessThan(sdk.cw.toggle.mock.invocationCallOrder[1])
     expect(sdk.cw.setUser).toHaveBeenCalledTimes(1) // no identity re-applied for the anonymous visitor
@@ -386,13 +388,13 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     renderWithIntl(<ChatLauncher />)
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1), { timeout: WAIT_MS })
     expect(sdk.cw.setUser).not.toHaveBeenCalled()
 
     mockGetUser.mockResolvedValue({ data: { user: USER }, error: null })
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2), { timeout: WAIT_MS })
     expect(sdk.cw.reset).toHaveBeenCalledTimes(1)
     expect(sdk.cw.setUser).toHaveBeenCalledWith(USER.id, expect.objectContaining({ email: USER.email }))
     expect(sdk.cw.setUser.mock.invocationCallOrder[0]).toBeLessThan(sdk.cw.toggle.mock.invocationCallOrder[1])
@@ -407,7 +409,7 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     })
     fireEvent.click(screen.getByRole('button', { name: zhMessages.ChatLauncher.openAria }))
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'), { timeout: WAIT_MS })
     expect(sdk.settingsAtAppend[0]).toMatchObject({
       locale: 'zh_CN',
       position: 'right',
@@ -434,7 +436,7 @@ describe('ChatLauncher — visit context after the click (D-06, T-77-25/26)', ()
   async function openChatOnSite(sdk: ReturnType<typeof installFakeSdk>) {
     fireEvent.click(launcherButton())
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'), { timeout: WAIT_MS })
   }
 
   it('records the landing href on first mount without fetch, cookies or storage', () => {
@@ -584,7 +586,7 @@ describe('ChatLauncher — loading and error states (UI-SPEC E3)', () => {
     resetWidgetGlobals()
     const sdk = installFakeSdk()
     fireEvent.click(menuItems()[0])
-    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'), { timeout: WAIT_MS })
   })
 
   it('WR-02: a CSP block of the widget origin fails immediately and loudly, not after the 10 s timeout', async () => {

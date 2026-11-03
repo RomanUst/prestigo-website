@@ -74,7 +74,7 @@ coverage:
 
 duration: 35min
 completed: 2026-11-03
-status: in-progress
+status: complete
 ---
 
 # Phase 87 Plan 13: Release Gate Summary
@@ -233,6 +233,8 @@ Not executed. Instructions as handed to the owner and orchestrator:
 Outputs to record here once available: sync.mjs dry-run diff / real-run output: owner confirmed "ready to merge" on 2026-11-03 (outputs not pasted into the session); CHECK definition (orchestrator, 2026-11-03): 10 values incl. `on_board`, `no_show`; privilege results: `advance_booking_status` and `set_no_show_request` anon=false, authenticated=false, service_role=true; Chatwoot variable set: not confirmed (optional). Resume signal: "ready to merge".
 
 ## Task 3 (PENDING - owner checkpoint, after Task 2 and the merge)
+
+Merged to main 2026-11-03 15:40 UTC via PR #83 (merge 9e71bcdc); production served the rebuilt page ~130 s later. Production anti-enumeration check: `/driver/trip/not-a-uuid` and `/driver/trip/00000000-0000-4000-8000-000000000000` both 200 with `data-admin-theme="light"` and the ended message; ended-view markup identical: true. Home and /ru: 200. Owner phone UAT (steps 3-8, E2, E4): DEFERRED by owner on 2026-11-03 — these items become human_needed UAT in /gsd-verify-work 87.
 
 Not executed. The full 8-step production checklist is in `87-13-PLAN.md` (Task 3 `how-to-verify`). Additional item from this gate: after the deploy, run the two production curls for anti-enumeration (see section 1) and compare the bodies. Verdicts to record: steps 3-8: PENDING; E4 in-app browsers: PENDING; E2 attribution: PENDING. Owner reply: "approved", an issue list ("step / device / what is wrong"), or "defer" (items become human_needed UAT in /gsd-verify-work).
 

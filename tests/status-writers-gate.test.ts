@@ -37,7 +37,7 @@ export const STATUS_WRITER_ALLOWLIST: AllowlistEntry[] = [
   {
     path: 'app/api/webhooks/stripe/route.ts',
     reason:
-      'Stripe webhook (W5/W6): payment confirmation unpaid -> confirmed and refund-driven cancels must stay unconditional, including completed -> cancelled that VALID_TRANSITIONS forbids; the trigger logs them as system',
+      'Stripe webhook (W5/W6): payment confirmation unpaid -> confirmed and refund-driven cancels; refund cancels skip completed / no_show (a refund after the trip keeps the trip); the trigger logs them as system',
   },
   {
     path: 'app/api/gnet/farmin/route.ts',

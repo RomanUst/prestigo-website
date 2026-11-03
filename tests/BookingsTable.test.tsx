@@ -1043,6 +1043,41 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
     expect(within(rowEl).getByText('Assigned')).toBeDefined()
   })
 
+  it('cancel modal: a 409 status_conflict shows the conflict copy and the refund fact, not the raw code', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      if (typeof url === 'string' && url.includes('/api/admin/bookings/cancel') && init?.method === 'POST') {
+        return Promise.resolve({
+          ok: false,
+          status: 409,
+          json: () => Promise.resolve({ error: 'status_conflict', currentStatus: 'on_board', refund_id: 're_1' }),
+        })
+      }
+      if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
+        const bookings = [makeBooking({ id: 'b-cx', booking_reference: 'PRE-CANCEL-RACE', status: 'confirmed' })]
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ bookings, total: 1, page: 0, limit: 20 }) })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-CANCEL-RACE')
+    fireEvent.click(refCell.closest('tr') as HTMLElement)
+    const openBtn = (await screen.findAllByRole('button', { name: /cancel booking/i })).find(b => !b.textContent?.includes('Keep'))
+    fireEvent.click(openBtn as HTMLElement)
+    await screen.findByRole('button', { name: /keep booking/i })
+    const modalButtons = screen.getAllByRole('button', { name: /^(Confirm Cancel \+ Refund|Cancel Booking)$/ })
+    fireEvent.click(modalButtons[modalButtons.length - 1])
+
+    expect(
+      await screen.findByText(
+        'This booking was just changed to On Board by the driver. Reload to see the latest state. The refund was already issued.',
+      ),
+    ).toBeDefined()
+    expect(screen.queryByText('status_conflict')).toBeNull()
+  })
+
   it('mobile: a 409 status_conflict shows the conflict copy under the status buttons', async () => {
     Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
     window.dispatchEvent(new Event('resize'))

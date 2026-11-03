@@ -282,7 +282,7 @@ describe('081 stats_conversion: phone-resolved chat leads and direct rows (D-06)
 
 describe('85-01-smoke.sql', () => {
   const smoke = readFileSync(
-    join(process.cwd(), '.planning', 'phases', '85-statistics', '85-01-smoke.sql'),
+    join(process.cwd(), '.planning', 'milestones', 'v4.0-phases', '85-statistics', '85-01-smoke.sql'),
     'utf8',
   )
 

@@ -921,12 +921,25 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     return
   }
 
+  // A refund after the trip (goodwill, complaint, chargeback) keeps the trip as it happened:
+  // every cancel below skips completed / no_show rows. Ids only in the log.
+  const finished = (rows as Array<{ id: string; status: string }>).filter(
+    (r) => r.status === 'completed' || r.status === 'no_show',
+  )
+  if (finished.length > 0) {
+    console.warn('charge.refunded: refund on a finished trip, status kept', {
+      paymentIntentId: pi,
+      bookings: finished.map((r) => ({ id: r.id, status: r.status })),
+    })
+  }
+
   // D-19 fall-through: one-way (single row) — cancel it regardless of partial/full
   if (rows.length === 1) {
     const { error: updErr } = await supabase
       .from('bookings')
       .update({ status: 'cancelled' })
       .eq('id', rows[0].id)
+      .not('status', 'in', '(completed,no_show)') // a refund never un-does a finished trip (completed / no_show)
     if (updErr) console.error('charge.refunded one-way: update failed:', updErr.message)
     return
   }
@@ -940,6 +953,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
       .from('bookings')
       .update({ status: 'cancelled' })
       .eq('payment_intent_id', pi)
+      .not('status', 'in', '(completed,no_show)') // a refund never un-does a finished trip (completed / no_show)
     if (updErr) console.error('charge.refunded full: bulk update failed:', updErr.message)
     return
   }
@@ -954,6 +968,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
       .from('bookings')
       .update({ status: 'cancelled' })
       .eq('payment_intent_id', pi)
+      .not('status', 'in', '(completed,no_show)') // a refund never un-does a finished trip (completed / no_show)
     if (updErr) console.error('charge.refunded partial "both": bulk update failed:', updErr.message)
     return
   }
@@ -1003,6 +1018,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
           .from('bookings')
           .update({ status: 'cancelled' })
           .eq('payment_intent_id', pi)
+          .not('status', 'in', '(completed,no_show)') // a refund never un-does a finished trip (completed / no_show)
         if (updErr) console.error('charge.refunded ambiguous: bulk update failed:', updErr.message)
         return
       }
@@ -1015,6 +1031,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
         .from('bookings')
         .update({ status: 'cancelled' })
         .eq('payment_intent_id', pi)
+        .not('status', 'in', '(completed,no_show)') // a refund never un-does a finished trip (completed / no_show)
       if (updErr) console.error('charge.refunded no-data: bulk update failed:', updErr.message)
       return
     }
@@ -1030,5 +1047,6 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     .from('bookings')
     .update({ status: 'cancelled' })
     .eq('id', targetRow.id)
+    .not('status', 'in', '(completed,no_show)') // a refund never un-does a finished trip (completed / no_show)
   if (updErr) console.error('charge.refunded partial: update failed:', updErr.message)
 }

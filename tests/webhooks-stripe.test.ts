@@ -146,7 +146,11 @@ const ONE_WAY_ROWS = [
 // The webhook calls: supabase.from('bookings').select(...).eq('payment_intent_id', pi)
 //         then:      supabase.from('bookings').update({status: 'cancelled'}).eq('id'|'payment_intent_id', ...)
 function mockFromChain(rows: Array<Record<string, unknown>>) {
-  const updateEq = vi.fn().mockResolvedValue({ data: null, error: null })
+  // .eq() is awaitable and also chains .not('status', 'in', '(completed,no_show)') (refund guard).
+  const updateNot = vi.fn().mockResolvedValue({ data: null, error: null })
+  const updateEq = vi.fn().mockImplementation(() =>
+    Object.assign(Promise.resolve({ data: null, error: null }), { not: updateNot }),
+  )
   const update = vi.fn().mockReturnValue({ eq: updateEq })
   const inFn = vi.fn().mockResolvedValue({ data: [], error: null })
   // .select().eq() for refund lookup must resolve with rows
@@ -164,7 +168,7 @@ function mockFromChain(rows: Array<Record<string, unknown>>) {
     }
     return { select, update }
   })
-  return { update, updateEq, select, selectEq: selectEqResolved }
+  return { update, updateEq, updateNot, select, selectEq: selectEqResolved }
 }
 
 const mockPaymentIntent = {
@@ -252,7 +256,11 @@ beforeEach(() => {
     const inFn = vi.fn().mockResolvedValue({ data: [], error: null })
     const selectEq = vi.fn().mockReturnValue({ single })
     const select = vi.fn().mockReturnValue({ eq: selectEq, in: inFn })
-    const updateEq = vi.fn().mockResolvedValue({ data: null, error: null })
+    const updateEq = vi.fn().mockImplementation(() =>
+      Object.assign(Promise.resolve({ data: null, error: null }), {
+        not: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }),
+    )
     const update = vi.fn().mockReturnValue({ eq: updateEq })
     return { select, update }
   })
@@ -789,5 +797,32 @@ describe('Round-trip (Phase 27)', () => {
     expect(res.status).toBe(200)
     expect(chain.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'cancelled' }))
     expect(chain.updateEq).toHaveBeenCalledWith('id', 'uuid-single')
+    // A refund never un-does a finished trip (completed / no_show)
+    expect(chain.updateNot).toHaveBeenCalledWith('status', 'in', '(completed,no_show)')
+  })
+
+  it('refund on a completed trip: the cancel is guarded and the kept status is logged by id', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const chain = mockFromChain(ONE_WAY_ROWS.map((r) => ({ ...r, status: 'completed' })))
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'charge.refunded',
+      data: {
+        object: {
+          amount: 250000,
+          amount_refunded: 50000,
+          refunded: true,
+          payment_intent: 'pi_test_oneway',
+          refunds: { data: [{ id: 're_2', amount: 50000, metadata: {} }] },
+        },
+      },
+    })
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    expect(chain.updateNot).toHaveBeenCalledWith('status', 'in', '(completed,no_show)')
+    expect(warn).toHaveBeenCalledWith('charge.refunded: refund on a finished trip, status kept', {
+      paymentIntentId: 'pi_test_oneway',
+      bookings: [{ id: 'uuid-single', status: 'completed' }],
+    })
+    warn.mockRestore()
   })
 })

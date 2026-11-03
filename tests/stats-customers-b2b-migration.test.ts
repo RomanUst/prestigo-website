@@ -253,7 +253,7 @@ describe('082 stats_customers result (D-10, D-11)', () => {
 
 describe('85-03-smoke.sql', () => {
   const smoke = readFileSync(
-    join(process.cwd(), '.planning', 'phases', '85-statistics', '85-03-smoke.sql'),
+    join(process.cwd(), '.planning', 'milestones', 'v4.0-phases', '85-statistics', '85-03-smoke.sql'),
     'utf8',
   )
 

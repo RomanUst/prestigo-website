@@ -1332,6 +1332,11 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({ error: 'Unknown error' }))
+      if (res.status === 409 && data.error === 'status_conflict') {
+        // Lost the compare-and-set race: same copy as the status select, plus the refund fact.
+        const refundNote = data.refund_id ? ' The refund was already issued.' : ''
+        throw new Error(statusConflictMessage(data.currentStatus) + refundNote)
+      }
       throw new Error(data.error ?? 'Cancel failed')
     }
     // Optimistic update

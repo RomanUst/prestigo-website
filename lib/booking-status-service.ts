@@ -240,8 +240,10 @@ export async function advanceBookingStatus(
     ))
   }
 
-  // D-11: Only fire email when status actually changed
-  if (previousStatus !== to) {
+  // D-11: Only fire email when status actually changed. Partner (GNet) passengers are the
+  // partner's clients: their address is the partner's or a noreply@gnet.local placeholder, so
+  // no confirmed / cancelled / post-trip email goes to them (WR-03).
+  if (previousStatus !== to && !isPartnerBooking(current as { booking_source?: string | null })) {
     // D-12: Check notification_flags from pricing_globals
     const { data: flagsRow } = await supabase
       .from('pricing_globals')
