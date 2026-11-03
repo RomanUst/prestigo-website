@@ -293,6 +293,8 @@ const CONVERSATION_ATTR_KEYS = [
   'book_vehicle',
   'chat_opened_at',
   'chat_consent',
+  'chat_role',
+  'driver_trip_ref',
 ] as const
 
 function readInfraJson<T>(file: string): T {
@@ -364,7 +366,7 @@ describe('infra/chatwoot/custom-attributes.json (D-06)', () => {
     contact: { key: string; display_type: string }[]
   }>('custom-attributes.json')
 
-  it('conversation keys equal exactly the 15 keys in the interfaces block', () => {
+  it('conversation keys equal exactly the 17 keys in the interfaces block (15 visit + 2 driver help)', () => {
     expect(data.conversation.map((a) => a.key)).toEqual([...CONVERSATION_ATTR_KEYS])
   })
 

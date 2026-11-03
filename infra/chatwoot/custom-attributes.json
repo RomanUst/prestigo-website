@@ -14,7 +14,9 @@
     { "key": "book_destination", "display_name": "Trip destination", "display_type": "text", "description": "Selected destination inside the booking wizard, if the visitor is on /book" },
     { "key": "book_vehicle", "display_name": "Selected vehicle", "display_type": "text", "description": "Selected vehicle class inside the booking wizard, if the visitor is on /book" },
     { "key": "chat_opened_at", "display_name": "Chat opened at", "display_type": "text", "description": "ISO timestamp when the visitor clicked Chat on site" },
-    { "key": "chat_consent", "display_name": "Chat consent recorded", "display_type": "text", "description": "Whether opening the widget was recorded as a consent event" }
+    { "key": "chat_consent", "display_name": "Chat consent recorded", "display_type": "text", "description": "Whether opening the widget was recorded as a consent event" },
+    { "key": "chat_role", "display_name": "Chat from", "display_type": "text", "description": "driver for a driver Help chat from the trip page; empty for visitor chats" },
+    { "key": "driver_trip_ref", "display_name": "Driver trip", "display_type": "text", "description": "Booking reference of the trip the driver asked about" }
   ],
   "contact": [
     { "key": "site_locale", "display_name": "Site language", "display_type": "text", "description": "The locale of the site the contact most recently visited" },

@@ -12,6 +12,7 @@ import {
   resetLandingHrefForTests,
   VISIT_CONTEXT_KEYS,
 } from '@/lib/chat-visit-context'
+import { DRIVER_HELP_CONTEXT_KEYS } from '@/lib/driver-help-contract'
 
 const OPENED_AT = '2026-09-29T08:00:00.000Z'
 
@@ -26,12 +27,17 @@ beforeEach(() => {
 })
 
 describe('VISIT_CONTEXT_KEYS', () => {
-  it('equals the conversation attribute keys in infra/chatwoot/custom-attributes.json exactly', () => {
+  it('plus DRIVER_HELP_CONTEXT_KEYS equals the conversation attribute keys in infra/chatwoot/custom-attributes.json exactly', () => {
     const json = JSON.parse(
       readFileSync(join(process.cwd(), 'infra/chatwoot/custom-attributes.json'), 'utf8'),
     ) as { conversation: Array<{ key: string }> }
     const expected = json.conversation.map((a) => a.key).sort()
-    expect([...VISIT_CONTEXT_KEYS].sort()).toEqual(expected)
+    expect([...VISIT_CONTEXT_KEYS, ...DRIVER_HELP_CONTEXT_KEYS].sort()).toEqual(expected)
+  })
+
+  it('the visit-context and driver-help key lists do not overlap', () => {
+    const overlap = VISIT_CONTEXT_KEYS.filter((k) => (DRIVER_HELP_CONTEXT_KEYS as readonly string[]).includes(k))
+    expect(overlap).toEqual([])
   })
 })
 
