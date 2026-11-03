@@ -42,6 +42,7 @@ Requirements: PAYF-02, DRV-01, DRV-02, DRV-03, DRV-04, DRV-05.
 
 ### Driver page look
 - **D-18:** Layout modelled on the owner's reference screenshots (Blacklane driver app, ride screen): header with help (back dropped for Phase 87 — owner confirmed 2026-11-03 after UI-SPEC; back slot reserved for the Phase 94 ride list), passenger + vehicle card, map with pickup/dropoff pins and "km · min (est.)", bottom sheet with date/time, pickup → dropoff addresses and booking number, and a slide-to-advance control at the bottom showing the next step label (or "too early to start"). Inspired-by only — Prestigo branding, no copying of Blacklane name, assets or look-alike branding.
+  - **D-18 amendment (owner, 2026-11-03, 87-UAT test 1):** the pickup / drop-off navigation button opens a chooser "Google Maps / Waze" (87-16); Help opens a chat that lands in Chatwoot, with the call option kept as fallback (87-17..87-19). Only the destination ever leaves the page; the trip token never reaches Chatwoot or any URL.
 - **D-19:** The driver page is always light theme (cream/navy-ink/antique-gold, same palette as admin light from Phase 86 D-05), no theme toggle. Mobile-first.
 - **D-20:** Language: English only (as today).
 - **D-21:** The existing driver note field (DTRIP-06) and the accept/decline flow (`/driver/response`) stay working.
