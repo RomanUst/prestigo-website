@@ -3,6 +3,8 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { BOOKING_LEAD_STATUS } from '@/lib/lead-mapping'
+import { BOOKING_STATUSES } from '@/lib/booking-status'
+import { latestFunctionBody } from './helpers/latest-migration'
 
 function load(name: string): string {
   return readFileSync(join(process.cwd(), 'supabase', 'migrations', name), 'utf8')
@@ -196,12 +198,13 @@ describe('067_bookings_lead_outbox.sql', () => {
     expect(m067).not.toMatch(/INSERT INTO public\.integration_config/i)
   })
 
-  it('parity: booking_lead_status() equals BOOKING_LEAD_STATUS for all 8 statuses', () => {
-    const fn = fnBody(m067, 'booking_lead_status')
+  it('parity: the LATEST booking_lead_status() equals BOOKING_LEAD_STATUS for all statuses', () => {
+    // 067 created the function; 084 redefined it for on_board / no_show. Read the live (last) body.
+    const fn = latestFunctionBody('booking_lead_status')
     const sqlMap: Record<string, string> = {}
     for (const m of fn.matchAll(/WHEN '([a-z_]+)'\s+THEN '([a-z_]+)'/g)) sqlMap[m[1]] = m[2]
 
-    expect(Object.keys(BOOKING_LEAD_STATUS)).toHaveLength(8)
+    expect(Object.keys(BOOKING_LEAD_STATUS)).toHaveLength(BOOKING_STATUSES.length)
     expect(sqlMap).toEqual({ ...BOOKING_LEAD_STATUS })
     expect(fn).toMatch(/ELSE NULL/)
   })

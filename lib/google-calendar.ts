@@ -15,14 +15,10 @@
 import { createSign } from 'crypto'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { formatVehicleLabel, getAcceptedDriver } from '@/lib/email'
+import { CALENDAR_ACTIVE_STATUSES, type BookingStatus } from '@/lib/booking-status'
 
-export const CALENDAR_ACTIVE_STATUSES = [
-  'confirmed',
-  'assigned',
-  'en_route',
-  'on_location',
-  'completed',
-] as const
+// D-02: one shared set (confirmed through completed, plus on_board and no_show, which keep their event).
+export { CALENDAR_ACTIVE_STATUSES }
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const API_BASE = 'https://www.googleapis.com/calendar/v3'
@@ -165,8 +161,8 @@ export function buildCalendarEvent(b: CalendarBooking) {
     start: { dateTime: start.toISOString(), timeZone: TIME_ZONE },
     end: { dateTime: end.toISOString(), timeZone: TIME_ZONE },
     status: 'confirmed',
-    // Completed trips stay on the calendar but turn grey (colorId 8 = Graphite).
-    colorId: b.status === 'completed' ? '8' : undefined,
+    // Completed and no-show trips stay on the calendar but turn grey (colorId 8 = Graphite).
+    colorId: b.status === 'completed' || b.status === 'no_show' ? '8' : undefined,
   }
 }
 
@@ -201,7 +197,7 @@ export async function syncBookingToCalendar(bookingId: string): Promise<Calendar
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
 
   const isActive =
-    row && (CALENDAR_ACTIVE_STATUSES as readonly string[]).includes(row.status) && row.pickup_utc
+    row && CALENDAR_ACTIVE_STATUSES.has(row.status as BookingStatus) && row.pickup_utc
 
   if (!isActive) {
     const res = await fetch(`${eventUrl}/${eventId}`, { method: 'DELETE', headers })

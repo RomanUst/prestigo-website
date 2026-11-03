@@ -120,6 +120,11 @@ describe('calendar event helpers', () => {
   it('greys out completed trips', () => {
     expect(buildCalendarEvent({ ...BOOKING, status: 'completed' }).colorId).toBe('8')
   })
+
+  it('greys out no_show trips too (A5)', () => {
+    expect(buildCalendarEvent({ ...BOOKING, status: 'no_show' }).colorId).toBe('8')
+    expect(buildCalendarEvent({ ...BOOKING, status: 'on_board' }).colorId).toBeUndefined()
+  })
 })
 
 // ── Sync ─────────────────────────────────────────────────────────────────────
@@ -129,6 +134,11 @@ describe('syncBookingToCalendar', () => {
     vi.stubEnv('GOOGLE_CALENDAR_SA_KEY', '')
     expect(await syncBookingToCalendar(BOOKING_ID)).toEqual({ action: 'skipped', reason: 'not_configured' })
     expect(calls).toHaveLength(0)
+  })
+
+  it.each(['on_board', 'no_show'])('keeps the calendar event for a %s booking (A5)', async (status) => {
+    mockMaybeSingle.mockResolvedValue({ data: { ...BOOKING, status }, error: null })
+    expect(await syncBookingToCalendar(BOOKING_ID)).toEqual({ action: 'upserted' })
   })
 
   it('updates the event in place for an accepted booking', async () => {

@@ -58,7 +58,7 @@
       {
         "name": "status",
         "type": "enum",
-        "options": ["unpaid", "pending", "confirmed", "completed", "cancelled", "assigned", "en_route", "on_location"],
+        "options": ["unpaid", "pending", "confirmed", "completed", "cancelled", "assigned", "en_route", "on_location", "on_board", "no_show"],
         "translatedOptions": {
           "unpaid": "Unpaid",
           "pending": "Pending",
@@ -67,7 +67,9 @@
           "cancelled": "Cancelled",
           "assigned": "Assigned",
           "en_route": "En Route",
-          "on_location": "On Location"
+          "on_location": "On Location",
+          "on_board": "On Board",
+          "no_show": "No-Show"
         },
         "label": "Status"
       },

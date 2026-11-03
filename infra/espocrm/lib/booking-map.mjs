@@ -2,7 +2,8 @@
 //
 // No I/O, no network, no file access (the backfill in plan 80-09 owns those).
 // Mirrors the lib/currency.ts constants (pinned by tests/espocrm-booking-map.test.ts)
-// and uses enum values verbatim from the DB: status from migration 053, source from
+// and uses enum values verbatim from the DB: status from the latest bookings_status_check (084; infra never
+// imports lib/, so tests/booking-status-parity.test.ts pins this list to lib/booking-status.ts), source from
 // migration 039, vehicleClass and tripType from types/booking.ts (all pinned by tests).
 //
 // Decisions: D-06..D-10 (CBooking fields), D-07 (keys), D-18 (admin link),
@@ -22,6 +23,8 @@ export const BOOKING_STATUS_VALUES = [
   'assigned',
   'en_route',
   'on_location',
+  'on_board',
+  'no_show',
 ]
 export const BOOKING_SOURCE_VALUES = ['online', 'manual', 'gnet']
 export const VEHICLE_CLASS_VALUES = ['business', 'first_class', 'business_van']
