@@ -114,6 +114,24 @@
       "image": "/hero-vip-events.png"
     },
     {
+      "label": "LIMUSINA",
+      "title": "Servicio de limusina",
+      "description": "Una limusina ejecutiva, no de fiesta: un Mercedes S-Class negro con chófer de traje. Llegadas al aeropuerto, bodas, días de negocios y noches en la ópera; cabina silenciosa y precio fijo acordado antes del viaje.",
+      "features": [
+        "Mercedes S-Class, modelo 2025 o posterior",
+        "Asientos con masaje y cristales de privacidad",
+        "Bodas, VIP y llegadas al aeropuerto",
+        "Hasta 3 pasajeros"
+      ],
+      "price": null,
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/limousine-prague",
+      "bookHref": "/book?class=first_class",
+      "bookCta": "RESERVAR AHORA",
+      "isNew": true,
+      "image": "/s-class-photo.webp"
+    },
+    {
       "label": "GRUPOS",
       "title": "Traslados de grupos",
       "description": "Delegaciones de congresos. Viajes de incentivo. Jornadas corporativas fuera de la oficina. Monovolúmenes, varios vehículos, precisión horaria. Todos llegan juntos y a la hora prevista.",

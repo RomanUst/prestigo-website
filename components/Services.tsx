@@ -20,6 +20,7 @@ const services: ServiceConfig[] = [
   { id: 'Concierge', href: '/services/concierge' },
   { id: 'Group', href: '/services/group-transfers' },
   { id: 'Multi-day', href: '/book/multi-day', isNew: true },
+  { id: 'Limousine', href: '/services/limousine-prague', isNew: true },
 ]
 
 type Props = {

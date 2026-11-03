@@ -516,7 +516,8 @@
         "title": "Multi-day Hire",
         "body": "One dedicated chauffeur for your entire trip. Mix transfers and hourly days across Central Europe.",
         "detail": "Custom itinerary · Quote within 24 h"
-      }
+      },
+      {"label": "Limousine", "title": "Limousine Service", "body": "A black Mercedes S-Class with a chauffeur in a suit — for airport arrivals, weddings, business days and evenings out.", "detail": "Mercedes S-Class · Up to 3 passengers"}
     ],
     "fromPrice": "From €{price}",
     "fromPriceHourly": "From €{price}/hr",
@@ -618,7 +619,8 @@
         "altTemplate": "{model} — Prague chauffeur service"
       }
     ],
-    "seePricing": "See pricing →"
+    "seePricing": "See pricing →",
+    "limousineLink": "Limousine service →"
   },
   "HowItWorks": {
     "label": "How it works",

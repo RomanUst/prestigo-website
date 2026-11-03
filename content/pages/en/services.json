@@ -84,6 +84,19 @@
       "image": "/hero-vip-events.png"
     },
     {
+      "label": "LIMOUSINE",
+      "title": "Limousine Service",
+      "description": "An executive limousine, not a party limo: a black Mercedes S-Class with a chauffeur in a suit. Airport arrivals, weddings, business days and evenings at the opera — quiet cabin, fixed price agreed before the trip.",
+      "features": ["Mercedes S-Class, 2025 model year or newer", "Rear massage seats & privacy glass", "Weddings, VIP & airport arrivals", "Up to 3 passengers"],
+      "price": null,
+      "cta": "LEARN MORE",
+      "href": "/services/limousine-prague",
+      "bookHref": "/book?class=first_class",
+      "bookCta": "BOOK NOW",
+      "isNew": true,
+      "image": "/s-class-photo.webp"
+    },
+    {
       "label": "GROUP",
       "title": "Group Transfers",
       "description": "Conference delegations. Incentive travel. Corporate off-sites. Minivans, multiple vehicles, precise timing. Everyone arrives together, on schedule.",

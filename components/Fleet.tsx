@@ -9,7 +9,7 @@ import Reveal from '@/components/Reveal'
 // `vehicles` catalog array (category/passengers/bags/features/altTemplate).
 const vehicles = [
   { model: 'Mercedes-Benz E-Class', photo: '/vehicles/e-class.avif' },
-  { model: 'Mercedes-Benz S-Class', photo: '/vehicles/s-class.avif' },
+  { model: 'Mercedes-Benz S-Class', photo: '/vehicles/s-class.avif', limousine: true },
   { model: 'Mercedes-Benz V-Class', photo: '/vehicles/v-class.avif' },
 ]
 
@@ -77,6 +77,14 @@ export default function Fleet() {
                     >
                       {t('seePricing')}
                     </Link>
+                    {'limousine' in v && (
+                      <Link
+                        href="/services/limousine-prague"
+                        className="block mt-2 font-body font-light text-[10px] tracking-[0.18em] uppercase text-copper hover:text-copper-light transition-colors"
+                      >
+                        {t('limousineLink')}
+                      </Link>
+                    )}
                   </div>
                 </div>
               </Reveal>
