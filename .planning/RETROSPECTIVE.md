@@ -163,6 +163,48 @@ next-intl `app/[locale]/` routing with EN at root and every EN URL byte-identica
 
 ---
 
+## Milestone: v4.0 — Helpdesk + CRM
+
+**Shipped:** 2026-11-02 (override closeout: Phases 78/79 parked)
+**Phases:** 10 planned, 8 complete (76-77, 80-85), 78 partial (10/17), 79 not started | **Plans:** 110 executed | **Commits:** 803 over 36 days
+
+### What Was Built
+A Hostinger VPS with Chatwoot and EspoCRM in pinned Docker stacks behind Caddy, nightly restic backups to B2 with a real restore drill, VPS-independent alerting and a production outage test (76); a Chatwoot inbox for email, a click-to-load site widget with HMAC identity and Telegram, with canned responses, labels, teams and automation as code (77); EspoCRM with Accounts/Contacts, B2B pipeline, read-only booking history and a sales mailbox (80); every lead and site booking persisted and mirrored through a Supabase outbox + QStash (81-82), with de-dup, backfill, outbox health and three-system GDPR erasure; HMAC-verified inbound webhooks with echo-loop protection (83); a read-only Chatwoot Dashboard App (84); and `/admin/stats` on SQL RPCs (85). WhatsApp code, templates and runbook exist but the dedicated number was never onboarded.
+
+### What Worked
+- **VPS independence as a tested constraint** — the outage test (stop every VPS container, book and pay on production) turned "the site must not depend on the VPS" into evidence, not a promise.
+- **Configuration as code for third-party apps** — `sync.mjs` for Chatwoot and EspoCRM made restores and reviews reproducible; second-run-is-no-op was a cheap correctness check.
+- **Outbox + idempotent dispatcher** — one durable table, one dispatcher, ids-only payloads; retries and backfill reused the same path.
+- **Structural guards over reviews** — import-closure and recording-tripwire tests prove the webhook paths cannot write bookings, instead of relying on reviewers to notice.
+- **Owner-secret scripts** — secrets piped from `~/.config/prestigo/` into Vercel/VPS, never shown in chat or committed.
+
+### What Was Inefficient
+- **Go-live surprises in glue config** — QStash was never actually configured, `SITE_URL` carried a trailing newline, EspoCRM assignment ACL and Chatwoot's underscore-header handling each broke the first live run of their phase.
+- **Owner-gated Meta onboarding** — WhatsApp stalled at the SIM/Meta-app step and then IG/FB were dropped; ~10 plans of WhatsApp work sit unused until the owner resumes.
+- **Verifier digests go stale** — Phases 76 and 80-83 show "stale" verification at close because later phases touched shared files; the digest needs a scope that matches the phase's files.
+- **Executors without Supabase MCP** — the orchestrator had to apply migrations and run smoke tests, and one backfill plan could not run its live dry-run.
+- **Local admin testing blocked** by the fail-closed Upstash limiter on localhost.
+
+### Patterns Established
+- `infra/` tree with owner-run idempotent scripts (`--dry-run`, redacted output, exit codes 0/1/2), never called by the site at runtime.
+- Supabase outbox rows carry ids only; the dispatcher re-reads current state before every external write.
+- Inbound webhook contract: HMAC over raw body, replay window, delivery dedup table purged by a cron sweep, origin fingerprint on outbound writes.
+- SECURITY DEFINER RPCs always `SET search_path = ''` and re-REVOKE from PUBLIC/anon/authenticated after DROP+CREATE.
+- Runbook per external system under `infra/vps/runbooks/`, with a "never delete without a fresh backup" rule.
+
+### Key Lessons
+- Put an end-to-end "first live event" smoke test in the plan of every integration phase, not in go-live improvisation.
+- Sequence owner-gated external onboarding (SIMs, Meta apps, verification) before any code for that channel, or keep the code out of the milestone.
+- Scope verifier digests to the phase's own files so later phases do not mark earlier ones stale.
+- Give executors the same live-verification tools as the orchestrator, or plan migration/smoke steps as orchestrator tasks explicitly.
+
+### Cost Observations
+- Model mix: Opus orchestration and most execution; parallel worktree executors for independent waves.
+- Sessions: many; Phases 82 and 83 (16 plans each) and the parked Phase 78 took the largest share.
+- Notable: ~10 WhatsApp plans executed before the owner parked the channel — onboarding readiness should gate execution.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -174,12 +216,14 @@ next-intl `app/[locale]/` routing with EN at root and every EN URL byte-identica
 | v2.1 Admin Booking + Payment | 3 (62-64) | 13 | Tracer-first phases + one webhook, two reconcile paths |
 | v2.2 Dispatch + Driver Portal | 3 (65-67) | 8 | Isolation-by-omission + single shared validity predicate |
 | v3.0 Site i18n | 8 (68-75) | 85 | Byte-parity EN safety net + production leak-scanning harness |
+| v4.0 Helpdesk + CRM | 8 of 10 (76-85; 78/79 parked) | 110 | Outbox + config-as-code + structural write guards |
 
 ### Recurring Issues
 
 - **Live environment testing** — OAuth, OTP, payment, and now on-device/visual UAT always block automated verification; accept `blocked_by: third-party`/`release-build` and run UAT post-deploy
 - **Under-specified requirement adjectives** — "live" (DTRIP-05) shipped as on-load fetch; nail observable behavior at plan time
 - **Launch-phase bloat** — verification phases that discover defects turn into fix phases (v3.0 Phase 75: 36 plans); push scanners earlier
+- **Owner-gated external setup** — third-party onboarding (OAuth credentials in v2.0, Meta/WhatsApp in v4.0) stalls phases after code is written; gate execution on onboarding readiness
 - **Temp filesystem space** — ENOSPC recurred; keep `CLAUDE_CODE_TMPDIR=/tmp` in muscle memory
 
 ### Improving Each Milestone
@@ -188,3 +232,4 @@ next-intl `app/[locale]/` routing with EN at root and every EN URL byte-identica
 - v2.0 → v2.1: Plan: run milestone audit after all phases, create Phase 60-style single-commit docs for small scoped fixes
 - v2.1 → v2.2: Isolation contracts enforced by grep gates; token-gated write-route hardening as a reusable checklist; human UAT harvested into VERIFICATION and run post-deploy
 - v2.2 → v3.0: Byte-parity snapshots as a regression gate for large restructures; production QA scanners + deviation ledger; override closeouts recorded explicitly
+- v3.0 → v4.0: Infra as code with owner-run idempotent scripts; real outage and restore drills as acceptance; structural import-closure guards for write isolation

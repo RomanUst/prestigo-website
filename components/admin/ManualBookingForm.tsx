@@ -376,7 +376,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0,0,0,0.6)',
+        background: 'var(--admin-scrim)',
         zIndex: 50,
         display: 'flex',
         alignItems: 'center',
@@ -386,9 +386,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
     >
       <div
         style={{
-          background: 'var(--anthracite-mid)',
-          border: '1px solid var(--anthracite-light)',
-          borderRadius: '4px',
+          background: 'var(--admin-surface)',
+          border: '1px solid var(--admin-border)',
+          borderRadius: 'var(--admin-radius-lg)',
+          boxShadow: 'var(--admin-shadow-sheet)',
           maxWidth: '640px',
           width: '100%',
           maxHeight: '90vh',
@@ -400,7 +401,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
         {/* Copper accent line */}
         <div style={{ height: 2, background: 'linear-gradient(90deg, var(--copper), transparent)' }} />
 
-        <div style={{ padding: '24px' }}>
+        <div style={{ padding: 'var(--admin-sheet-padding)' }}>
           {/* Header */}
           <h2 style={{
             fontFamily: 'var(--font-cormorant)',
@@ -507,7 +508,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     fontFamily: 'var(--font-montserrat)',
                     fontSize: '11px',
                     fontWeight: 300,
-                    color: '#f87171',
+                    color: 'var(--status-danger-fg)',
                     marginTop: '8px',
                   }}>
                     Failed to send — try again
@@ -553,7 +554,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 fontSize: '13px',
                 fontWeight: 300,
                 lineHeight: 1.5,
-                color: '#f87171',
+                color: 'var(--status-danger-fg)',
               }}>
                 Booking was created, but the payment link could not be generated — use &quot;Generate Payment Link&quot; from the bookings list to retry.
               </div>
@@ -583,10 +584,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
           ) : (
           <form onSubmit={handleSubmit}>
             {/* Section A: Trip Details */}
-            <div style={sectionLabelStyle}>TRIP DETAILS</div>
+            <div style={sectionLabelStyle}>Trip details</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Field label="TRIP TYPE">
+              <Field label="Trip type">
                 <select
                   value={tripType}
                   onChange={(e) => setTripType(e.target.value)}
@@ -599,7 +600,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="PICKUP DATE">
+                <Field label="Pickup date">
                   <input
                     type="date"
                     value={pickupDate}
@@ -609,7 +610,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     required
                   />
                 </Field>
-                <Field label="PICKUP TIME">
+                <Field label="Pickup time">
                   <input
                     type="time"
                     value={pickupTime}
@@ -622,7 +623,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </div>
 
               <AddressInput
-                label="PICKUP ADDRESS"
+                label="Pickup address"
                 placeholder="Start typing an address…"
                 value={originPlace}
                 onSelect={setOriginPlace}
@@ -632,7 +633,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               />
 
               <AddressInput
-                label="DESTINATION ADDRESS"
+                label="Destination address"
                 placeholder="Start typing an address… (optional for hourly/daily)"
                 value={destinationPlace}
                 onSelect={setDestinationPlace}
@@ -641,7 +642,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 neverDisabled
               />
 
-              <Field label="VEHICLE CLASS">
+              <Field label="Vehicle class">
                 <select
                   value={vehicleClass}
                   onChange={(e) => setVehicleClass(e.target.value)}
@@ -654,7 +655,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="PASSENGERS">
+                <Field label="Passengers">
                   <input
                     type="number"
                     min={1}
@@ -665,7 +666,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     required
                   />
                 </Field>
-                <Field label="LUGGAGE">
+                <Field label="Luggage">
                   <input
                     type="number"
                     min={0}
@@ -681,7 +682,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               <div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={labelStyle}>PRICE (CZK)</label>
+                    <label style={labelStyle}>Price (CZK)</label>
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                       <input
                         type="number"
@@ -716,7 +717,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     </div>
                   </div>
                   <div>
-                    <label style={labelStyle}>PRICE (EUR)</label>
+                    <label style={labelStyle}>Price (EUR)</label>
                     <input
                       type="number"
                       value={amountEur}
@@ -800,7 +801,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={labelStyle}>FLIGHT NUMBER (OPTIONAL)</label>
+                  <label style={labelStyle}>Flight number (optional)</label>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
                       type="text"
@@ -870,10 +871,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
             </div>
 
             {/* Section B: Passenger Details */}
-            <div style={sectionLabelStyle}>PASSENGER DETAILS</div>
+            <div style={sectionLabelStyle}>Passenger details</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <Field label="CHANNEL">
+              <Field label="Channel">
                 <select
                   value={channel}
                   onChange={(e) => setChannel(e.target.value)}
@@ -889,7 +890,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="FIRST NAME">
+                <Field label="First name">
                   <input
                     type="text"
                     value={firstName}
@@ -899,7 +900,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     maxLength={100}
                   />
                 </Field>
-                <Field label="LAST NAME">
+                <Field label="Last name">
                   <input
                     type="text"
                     value={lastName}
@@ -912,7 +913,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="EMAIL">
+                <Field label="Email">
                   <input
                     type="email"
                     value={email}
@@ -921,7 +922,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     required
                   />
                 </Field>
-                <Field label="PHONE">
+                <Field label="Phone">
                   <input
                     type="text"
                     value={phone}
@@ -935,7 +936,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
             </div>
 
             {/* Section C: Payment (D-01/D-02/D-03) */}
-            <div style={paymentSectionLabelStyle}>PAYMENT</div>
+            <div style={paymentSectionLabelStyle}>Payment</div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
@@ -973,7 +974,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
 
               {!collectPayment && (
                 <div>
-                  <label style={labelStyle}>BOOKING STATUS</label>
+                  <label style={labelStyle}>Booking status</label>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                       <input
@@ -1074,7 +1075,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 disabled={loading}
                 style={{
                   background: 'var(--copper)',
-                  color: 'var(--offwhite)',
+                  color: 'var(--admin-on-accent)',
                   border: 'none',
                   minHeight: '44px',
                   padding: '0 24px',
@@ -1099,7 +1100,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                 fontSize: '11px',
                 fontFamily: 'var(--font-montserrat)',
                 fontWeight: 300,
-                color: '#f87171',
+                color: 'var(--status-danger-fg)',
                 marginTop: '8px',
                 textAlign: 'right',
               }}>

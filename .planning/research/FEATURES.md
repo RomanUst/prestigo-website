@@ -1,205 +1,283 @@
 # Feature Research
 
-**Domain:** Self-hosted helpdesk (Chatwoot) + CRM (EspoCRM) for a small premium chauffeur business
-**Researched:** 2026-09-27
-**Confidence:** MEDIUM (official docs/hc pages + GitHub discussions cross-checked via web search; no direct API testing against a live instance yet — verify exact automation-rule tier gating and current Enterprise feature list at install time, both products ship fast)
+**Domain:** Premium chauffeur service (Prague) adding card-on-file payments, multi-trip quotes, dispatcher UX, driver step flow, multi-stop/airport pricing and a day-trip catalogue
+**Milestone:** v5.0 Payments, Quotes & Day Trips (subsequent milestone; only NEW features are covered)
+**Researched:** 2026-11-02
+**Confidence:** MEDIUM-HIGH (Stripe card-network rules HIGH from official docs; competitor policies MEDIUM from help-centre pages; dispatcher/kanban conventions and schema.org/Google behaviour MEDIUM, partly from domain knowledge)
+
+Project rules applied: prices are never typed in `app/`/`components/` (they come from the admin via `lib/route-prices.ts`, `lib/pricing-config.ts`, `lib/live-prices.ts`); marketing content contains no prices and no ride-hailing comparisons. Every number below (15 min, 60 min, 24 h, %, EUR) is an example from research or from the owner brief. It must be an admin-configurable setting, not a constant.
+
+---
+
+## Critical Finding (read first): the "hold ~5 days before trip" rule collides with card-network windows
+
+Source: Stripe "Place a hold on a payment method" (HIGH, official docs, fetched 2026-11-02).
+
+| Card brand | Merchant-initiated (off-session, cron-created) hold | Customer-initiated (customer present) hold |
+|---|---|---|
+| Visa | **5 days (exactly 4 d 18 h)** | 7 days |
+| Mastercard / Amex / Discover | 7 days | 7 days |
+
+- Stripe states MIT vs CIT is decided by card-network signals, not just `off_session`. Do not rely on getting the longer CIT window for a cron-created hold.
+- A Visa hold created exactly 5 days before pickup **expires about 6 hours BEFORE the trip starts**, so capture-after-completion would find a cancelled authorization. Visa is the majority of cards.
+- Extended authorization (up to 30 days) is NOT a fix: it is IC+ pricing only, for Visa "other categories" applies to customer-initiated transactions only and costs +0.08%, and Discover excludes taxicabs/limousines.
+- Stripe's `capture_before` field on the charge is the only source of truth for the real expiry. Persist it and alert on it.
+- Partial capture is allowed (capture <= authorised amount, remainder released). Capturing MORE than the hold needs overcapture (restricted by category). So waiting-time and extras that raise the final price cannot ride on the hold and need a second off-session charge.
+
+**Recommendation for the roadmap:**
+1. Place the hold at about T-3 days (about 72 h before pickup), not T-5. This leaves a safe window for Visa (4 d 18 h) through pickup plus a long day trip. Make "hold lead time" an admin setting, and default it so that `lead + max_trip_duration < 4 d 18 h`.
+2. If the booking is made inside the hold lead time, the customer is on-session at checkout. Authorise at checkout with the saved/entered card (customer-initiated, 7-day Visa window). Do not wait for the cron.
+3. Capture-time fallback is mandatory: at "completed", if the PaymentIntent is no longer `requires_capture` (expired or cancelled), create a fresh off-session PaymentIntent on the saved card for the final amount. A hold is a convenience and a customer-trust signal; the saved card plus mandate is the real guarantee.
+4. Multi-day quote trips: never hold the whole amount upfront. Hold per trip/day at its own T-3d, or charge the remainder with the operator's chosen method.
+
+---
 
 ## Feature Landscape
 
-### Table Stakes (Owner Expects These — v4.0 Goal Requires Them)
+### Table Stakes (Users Expect These)
 
-Both tools are Community/free edition unless marked otherwise. "Complexity" is integration effort for Prestigo, not the tool's own build effort.
+#### A. Card-on-file, hold, capture (Features 1, 2)
 
-| Feature | Why Expected | Edition | Complexity | Notes |
-|---------|--------------|---------|------------|-------|
-| Chatwoot WhatsApp Cloud API inbox | Core goal: WhatsApp is the #1 customer channel (wa.me links today) | Community | MEDIUM | Coexistence mode (QR-code Embedded Signup) connects the **existing** +420 WhatsApp Business App number without losing it from the phone — requires Meta Tech Provider status (or Chatwoot-hosted onboarding) + Meta app config. Manual/API fallback needs phone number ID, WABA ID, access token, webhook. |
-| Chatwoot Email inbox (IMAP/SMTP) for info@/booking@ | Service mail must land in the same inbox as chat/WhatsApp | Community | LOW–MEDIUM | Google Workspace/Microsoft 365/custom SMTP+IMAP all supported; Microsoft path needs per-user OAuth license (relevant if service mail is on M365 vs a generic SMTP provider). |
-| Chatwoot website widget, consent-gated | Owner goal: one inbox incl. website chat; existing site has a CookieBanner consent pattern | Community | MEDIUM | Widget script + CSP additions (script/connect/frame-src, possibly wss for real-time) must be gated behind existing consent modal, mirroring `CookieBanner.tsx` consumers. Identity validation (HMAC-SHA256 `identifier_hash` from `setUser()`) should be turned on immediately for any logged-in customer_profiles user to prevent conversation-history spoofing/impersonation. |
-| Chatwoot Telegram inbox | Owner goal: Telegram channel | Community | LOW | ~2-minute setup: create bot via @BotFather, paste token into Chatwoot. No Meta review process. |
-| Chatwoot Instagram + Facebook inboxes | Owner goal: IG/FB channels | Community | MEDIUM–HIGH | Both route through a Meta (Facebook) Developer app; Instagram requires a Business IG account linked to a Facebook Page. Self-hosted installs must register/verify their own Meta app (unlike Chatwoot Cloud, which has one pre-approved). Expect Meta App Review friction (messaging permissions) — budget lead time here, not code time. |
-| Contact custom attributes | Needed to store booking-linked identifiers (customer_profiles id, VIP flag, language) on the Chatwoot contact for the Dashboard App and CRM sync | Community | LOW | Typed fields (text/number/currency/list/date/checkbox/link) on Contact, Conversation, and Company (Company object doubles as a lightweight "Account" inside Chatwoot). |
-| Canned responses | Owner explicitly wants to retire the one-off `send-*.mjs` scripts (payment help, vehicle/time change, invoice) | Community | LOW | Account-wide reusable snippets agents adapt per reply. Direct 1:1 replacement for several `send-*.mjs` templates (payment-help, time-change, vehicle-change email bodies become canned responses instead of scripts). |
-| Macros | Same "retire manual ops scripts" goal, for multi-step actions (e.g., reply + label + resolve) | Community | LOW | One-click bundles; good fit for "send post-trip review request + label 'review-sent' + resolve." |
-| Automation rules | Owner goal: no lost inquiries — auto-assign/auto-label by channel or keyword | Community (basic rule CRUD is core; some sources list richer automation as Business/Enterprise-gated on Chatwoot Cloud — **verify current self-hosted gating at setup**, since Cloud plan names don't map 1:1 to self-hosted tiers) | LOW–MEDIUM | Triggers: conversation created/updated/opened, new message. Conditions: label, priority, inbox, language, country, custom attribute. Actions: assign agent/team, add label, reply, resolve, snooze, email team. |
-| Agent/team assignment | 1 operator now, 2–3 later — assignment rules must exist before headcount grows | Community | LOW | "Assign to agent" = ownership; "assign to team" = pool routing. With 1 operator this is trivial; becomes load-bearing at 2–3 agents. |
-| Labels | Segmentation for reporting and for CRM sync mapping (e.g., `lead`, `b2b`, `existing-customer`) | Community | LOW | Also drives automation-rule conditions. |
-| Reports (conversation volume, first response time, CSAT) | Owner goal: statistics (response time, leads→bookings) | Community | LOW | Built-in dashboards; first-response-time and CSAT are the two numbers most directly tied to the owner's "convenient work" and quality goals. CSAT survey is sent automatically on resolve if enabled. |
-| Chatwoot Application API + webhooks | Required for the whole Site↔Chatwoot↔CRM sync architecture | Community | MEDIUM | `api_access_token` header (agent or agent-bot token) for Application API; outbound webhooks POST conversation/message/contact lifecycle events to a Next.js API route. This is the mechanism for "Chatwoot → CRM: conversations create/update contacts & leads." |
-| Chatwoot Dashboard App (iframe) | Explicit v4.0 target feature: show the customer's bookings inside the conversation sidebar | Community | MEDIUM | Register a URL (a new Next.js route, e.g. `/internal/chatwoot-app`), Chatwoot iframes it beside the conversation and posts `{conversation, contact}` context via `window.postMessage`; app can pull fresh context on demand via `chatwoot-dashboard-app:fetch-info`. **Must be a separate authenticated internal route**, not the public site — needs its own auth (shared secret or session check) since it will read Supabase booking data. |
-| EspoCRM Contact / Account / Lead / Opportunity / Case | Standard CRM core; matches "hotels, agencies, corporates" (Account), "repeat customer" (Contact), inbound inquiry (Lead), B2B deal (Opportunity), and any post-booking service issue (Case) | Community | LOW | Lead converts into Contact/Account/Opportunity — this is EspoCRM's built-in "inquiry → pipeline" flow and maps directly to the owner's "inquiry → lead → booking" goal. |
-| EspoCRM custom "Booking" entity | v4.0 explicitly needs booking data visible/queryable in CRM without duplicating Supabase as source of truth | Community | LOW–MEDIUM | Entity Manager (no-code) creates the entity, fields, and relationships to Contact/Account. Populated by the Supabase→CRM sync (read-model, not a second source of truth) — CRM never writes bookings back. |
-| EspoCRM Opportunity pipeline (Kanban, custom stages) | Explicit v4.0 target: B2B pipeline for hotels/agencies/corporates | Community | LOW | Kanban on by default; stages + win-probability % configured per business workflow in Entity Manager. Multiple pipelines possible (e.g., separate stage sets for "hotel partnership" vs "corporate account") via Kanban ignored-groups. |
-| EspoCRM REST API (API Key or HMAC) + Webhooks | Required for Site↔CRM sync in both directions | Community | LOW–MEDIUM | API Key auth is simplest (create an API User, assign a Role scoping which entities it can touch); HMAC is the documented "most secure" option — worth using for the VPS-facing integration user given it's an internet-facing secret. Webhooks let EspoCRM notify the outbox pipeline of CRM-side changes (e.g., Opportunity won) if any human edits are meant to flow back — confirm whether v4.0 needs that direction at all, since Supabase is locked as sole source of truth for bookings. |
-| EspoCRM Group Email Account (sales@/roman@) | Locked decision: sales mail lives in EspoCRM only, never dual-connected | Community | LOW | Admin-only setup; a role's "Group Email Account" permission (None/Team/All) scopes who can send from the shared address — enforces the "no mailbox connected to both systems" rule at the permissions layer, not just by convention. |
-| EspoCRM Roles/ACL | Needed the moment there's more than the owner using either system (2–3 agents later; separating sales vs service staff) | Community | LOW | 4 access levels (No/Own/Team/All) per entity/action; multiple roles merge to the more permissive. Set this up correctly from day one even with 1 operator — retrofitting ACL after data exists is more error-prone than defining it upfront. |
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Card saved at checkout without charge (SetupIntent, 3DS) | Hotel-style "card guarantees booking" is standard in premium transport. Blacklane shows a pending authorization that is reversed on cancellation. | MEDIUM | Checkout `mode: setup` (or Elements SetupIntent) plus an on-page mandate sentence ("You authorise Prestigo to charge this card for the fare ... and for a no-show/late-cancellation fee"). 3DS at setup is what makes later off-session charges succeed under SCA. Guest checkout must keep working (Stripe Customer created per booking/email). |
+| Pre-booking cancellation policy statement, shown before pay and in the confirmation email | Industry norm: Blacklane free cancel until 1 h before pickup. GetYourGuide, Viator and Daytrip free cancel until 24 h before start. Disputes drop when the policy is visible pre-purchase. | LOW | One policy object per product type (transfer vs day trip vs airport) in admin: `free_cancel_hours`, `late_cancel_fee_pct`. EU consumer law: dated transport/leisure services are normally exempt from the 14-day withdrawal right, but the exemption must be disclosed. Confirm wording with the legal skill before shipping (MEDIUM, not legal advice). |
+| Automatic hold before the trip (cron), idempotent per booking | The owner's core value: no Stripe fee lost on late cancellations. | MEDIUM-HIGH | Extend the existing cron pattern (`app/api/cron/reminder-24h`, `outbox-sweep`). Idempotency key = booking id + attempt. Store PI id, `capture_before`, `amount_capturable`, hold status on the booking. |
+| Cancel before capture = release the authorization (0 EUR fee) | Stripe: cancelling an uncaptured PaymentIntent voids it; a refund after capture does not return processing fees. This is the whole point of the feature. | LOW | Admin "cancel" and customer-initiated cancel call `paymentIntents.cancel`. Pre-hold (SetupIntent only) cancellation = nothing to void. |
+| Capture after completion | Hotel/rental pattern. | MEDIUM | Triggered by driver "completed" (Feature 5). Must be idempotent and never block the driver UI (failure = admin alert, not a driver error). Capture amount may be <= hold. |
+| Failed hold -> payment link to the client + operator alert | The owner requirement; also the standard recovery for `authentication_required` / insufficient funds on off-session payments. | MEDIUM | Reuse existing payment-link machinery (Stripe Payment Links, group link, `unpaid` queue from v2.1). Email to client, alert to admin (+Chatwoot/Telegram if already wired). Mark booking `payment_attention`. Per Stripe SCA guidance the customer has to be brought back on-session when the bank demands authentication. |
+| Payment state visible per booking in admin (card saved / hold placed / held until / captured / failed / released) | Dispatchers must see whether a trip is guaranteed. | LOW-MEDIUM | Badge on the list, kanban card and detail. Webhook-driven (`payment_intent.amount_capturable_updated`, `.canceled`, `.payment_failed`, `setup_intent.succeeded`). |
+| Cash option: card saved only, no hold; cash paid to driver | Cash-on-delivery with a card guarantee is how Prague operators actually work. | MEDIUM | `payment_method = card_hold | cash_guaranteed | prepaid | invoice`. Operator marks "cash received" at completion. No cron hold for cash bookings. |
+| No-show = 100% off-session charge | Owner requirement. Blacklane no-show is a driver-requested, ops-approved flow, paid only after a mandatory wait (30 min standard, 60 min airport) with Blacklane trying to contact the guest first. | MEDIUM | See "no-show workflow" below. Charge uses the saved card, off-session, with the mandate captured at setup. |
 
-### Differentiators (Where This Setup Beats "Just Use wa.me Links + Spreadsheets")
+**No-show workflow (table stakes for defensibility):**
+1. The driver can only tap "No-show" after "on site" plus the policy wait has elapsed (standard 30 min, airport 60 min from pickup time are the Blacklane benchmarks; owner config).
+2. The system records on-site timestamp, wait elapsed, and the driver's note.
+3. The operator confirms (after a call/message attempt, logged) and then clicks "Charge no-show". Not automatic.
+4. Charge 100% on the saved card; failure -> payment link and alert; send an itemised email.
 
-| Feature | Value Proposition | Edition | Complexity | Notes |
-|---------|-------------------|---------|------------|-------|
-| Outbox-pattern sync (Supabase → QStash → Chatwoot/CRM) | Guarantees no lost lead/booking even if the VPS is down — directly satisfies the "public site must never depend on VPS uptime" constraint | N/A (custom, in Next.js repo) | HIGH | This is the actual hard engineering in v4.0 — idempotent, retried, event-sourced from a Supabase outbox table. Neither Chatwoot nor EspoCRM provide this; it's bespoke glue code per the locked decision "no n8n." |
-| Contact form / corporate form / multi-day quote form → persisted + CRM Lead | Today these are email-only and never stored — first-ever retention of these inquiries | N/A (Supabase + EspoCRM Lead) | MEDIUM | Directly satisfies "no lost inquiries" and "every customer who ever booked retained." Requires new Supabase tables/migrations plus the outbox trigger — not just a CRM feature. |
-| Dashboard App showing bookings in the Chatwoot sidebar | Operator sees booking history while replying — no tab-switching, no CRM lookup mid-chat | Community | MEDIUM | Biggest single "convenient work" win named in the milestone goal. Read-only view is enough for v1; write-back (editing a booking from the sidebar) is explicitly not needed and would add scope. |
-| Canned responses + macros replacing `send-*.mjs` scripts | Removes the current workflow's ad-hoc Node scripts entirely (payment help, vehicle/time change, invoice send, custom replies, post-trip review request) | Community | LOW–MEDIUM | This is a straight migration, not new functionality — map each existing script to a canned response or macro. Invoice-with-PDF-attachment scripts may need a macro + email-attachment step or stay as a script triggered from a Dashboard App button, since Chatwoot canned responses are text, not file-generation. |
-| EspoCRM Opportunity → repeat-sales / renewal visibility for B2B accounts | Owner goal: "repeat sales" — EspoCRM's Account/Opportunity model natively supports tracking a hotel/agency relationship over multiple deals, which a flat bookings table does not | Community | LOW | This is exactly what a CRM is for vs. a booking database; low build cost because it's using EspoCRM as designed. |
-| Statistics: leads → bookings conversion, repeat-customer rate | Owner goal: statistics | Custom (EspoCRM reports for pipeline-side numbers; Supabase/CRM join for booking-side conversion) | MEDIUM | Native EspoCRM reports cover Lead/Opportunity funnel numbers; "leads → bookings" requires joining CRM lead records with Supabase booking outcomes — likely a small internal dashboard or scheduled report, not out-of-the-box from either tool. |
-| Future: client↔driver messaging 24h before trip via Chatwoot | Explicitly named as a future idea, not v4.0 scope | Community (conceptually — Chatwoot API-channel or WhatsApp template message) | HIGH (future) | Flag only — do not build in v4.0. Would likely use a Chatwoot API inbox or template-based WhatsApp outbound message triggered by the outbox pipeline near trip time. Needs its own consent/opt-in design later. |
+**No-show policy wording (copy requirements, from Blacklane/marketplace practice):** state (a) how long the chauffeur waits, (b) that the booking is then treated as a no-show and the full fare is charged, (c) that the card saved at booking is used. Put it in the checkout mandate, the confirmation email, T&Cs and each locale.
 
-### Anti-Features (Skip for a 1–3 Operator Chauffeur Business)
+#### B. Quotes (Feature 3)
 
-| Feature | Why It Looks Appealing | Why Problematic Here | Alternative |
-|---------|------------------------|----------------------|-------------|
-| Chatwoot Enterprise tier (SLA policies, audit logs, agent capacity/scheduling, SSO/SAML, 2FA enforcement, whitelabel, IP allowlisting) | "Enterprise" sounds like the safe/complete choice; SLA policies sound useful for response-time discipline | \$19–99/agent/month self-hosted, and every one of these targets multi-team, multi-tenant, or compliance-driven orgs — none apply to 1–3 agents on one VPS. SSO/2FA-enforcement/audit logs solve problems Prestigo doesn't have yet | Stay on Community; revisit only if headcount grows well past 2–3 agents or a client contractually requires SLA reporting/SSO |
-| EspoCRM Advanced Pack (paid: full Reports module, Workflows, BPM flowcharts) | "More automation in the CRM" feels like less code to write | The locked architecture decision already puts all automation/sync logic in the Next.js repo (Supabase outbox + QStash) specifically so it's tested, versioned, and works when the VPS is down — duplicating that logic as in-CRM BPM flowcharts creates two automation systems to maintain and a second place bugs can hide | Community EspoCRM's basic reports/exports are enough for CRM-side numbers; keep all business logic in the repo per the locked decision |
-| Connecting one mailbox (e.g. info@) to both Chatwoot and EspoCRM | Seems convenient — one address, see it everywhere | Explicitly identified and rejected in Key Decisions: causes duplicate messages, double replies from two agents/systems, and broken response-time stats in both tools | Keep the locked split: service mail only in Chatwoot, sales mail only in EspoCRM; conversation summaries flow into CRM contact history via sync, not via a shared inbox |
-| n8n or another workflow-automation tool for the sync layer | Visual workflow builders are fast to prototype and often the default choice for "connect system A to system B" | Already rejected in Key Decisions — an external workflow tool adds a fourth system to keep up (plus the VPS, Chatwoot, EspoCRM), is harder to unit-test, and doesn't naturally support the idempotent-outbox/retry pattern the VPS-independence constraint requires | Keep sync logic in the Next.js repo as typed, tested, versioned code |
-| Building a second "leads" table independent of EspoCRM Lead entity | Feels safer to "own the data" fully in Supabase | Creates exactly the two-source-of-truth problem the architecture is designed to avoid on the CRM side (Supabase stays authoritative for bookings/customers; EspoCRM should be authoritative for pipeline/lead state, not duplicated) | Persist inbound form submissions to a lightweight Supabase table only as an outbox/audit trail, with EspoCRM Lead as the working record; don't build parallel pipeline-stage tracking in Supabase |
-| Real-time driver GPS / push notifications via Chatwoot | Feels like a natural extension once a messaging platform exists | Explicitly out of scope (DTRIP-FUT-01/02/03 backlog items) and unrelated to helpdesk/CRM — conflates driver-ops tooling with customer messaging | Keep as backlog; if built later it's a separate driver-portal feature, not a Chatwoot channel |
-| Full BPM/case-status automation inside EspoCRM Case entity | Case entity supports rich support-ticket workflows (SLA on cases, escalation) | Service-side ticketing already lives in Chatwoot (conversations, labels, CSAT); duplicating a full case-workflow in EspoCRM Case creates two "where do I look for an open issue" systems | Use EspoCRM Case only for B2B-relevant account issues that need Account/Opportunity context (e.g., a corporate billing dispute), not for routine customer service — that stays in Chatwoot |
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Public quote page at an unguessable link (`/quote/[token]`, noindex) | Standard proposal UX (HubSpot, Quoter, HoneyBook): client opens link, no login. | MEDIUM | Same token pattern as the driver `trip_token`. Token invalid if quote is withdrawn. Locale-aware (7 locales). |
+| Itemised multi-trip/multi-day body | Core of the feature: each day shows date, time, route/stops, vehicle class, hours, line price; then total, currency, VAT line. | MEDIUM-HIGH | Quote = header + N trip lines (transfer, hourly, day trip). Totals computed server-side from the admin price sources. Operator may override line prices. |
+| Explicit validity / expiry date, shown on the page; expired state with a "request a refresh" CTA | Proposal tools tie link validity to quote lifetime (HubSpot). Prices lock until expiry. | LOW-MEDIUM | `valid_until` required. Expired page: show the content greyed out and a "Request updated quote" button that creates a lead. Do NOT silently re-price. |
+| Quote lifecycle statuses: draft / sent / viewed / accepted / deposit-paid / expired / declined / withdrawn | Operators need to follow up; "viewed" is the single most useful sales signal. | LOW-MEDIUM | `viewed_at` set on first load of the page. Surface in admin list and EspoCRM via outbox. |
+| Accept button -> records acceptance | Quoter's "Accept Quote" pattern. Legal evidence = timestamp + terms version + IP/UA, not a drawn signature. | LOW-MEDIUM | Acceptance converts trip lines into bookings (one booking per trip, shared `quote_id`). |
+| Deposit: operator sets % or fixed amount; client pays via a deposit link | Quoter / most invoicing tools offer fixed or %; deposit is taken from the quote total. | MEDIUM | Deposit link = Stripe Checkout. If the remainder method is "saved card", the deposit Checkout MUST save the card (`setup_future_usage=off_session`) so one 3DS does both. Deposit paid -> quote `deposit_paid` and bookings `confirmed`. |
+| Remainder method chosen by operator: saved card / payment link / cash / invoice | Owner requirement; mirrors B2B practice. | MEDIUM | An enum on the quote, copied to each booking's payment model. Saved-card remainder reuses the hold/capture machinery (per trip). Invoice reuses the existing HTML->PDF invoice flow (no PDF lib in repo). |
+| Operator can edit after sending; edits create a new version and void the old acceptance | Proposals change. Silent edits to an accepted quote are a dispute generator. | MEDIUM | `version` column. Client sees "this quote was updated". Audit log (v2.1 field-level audit pattern). |
+| Quote email (branded) with the link and expiry | Sending mechanism. | LOW | Resend, existing templates. |
+
+#### C. Admin UX (Feature 4)
+
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Kanban columns = booking statuses, scoped by date horizon (today / tomorrow / next 7 days) | Dispatcher boards (Limo Anywhere-style) are always date-scoped. An all-time kanban is unusable. | MEDIUM | Reuse the v2.2 horizon setting (Future / Last N days / All). Columns follow `VALID_TRANSITIONS`; cancelled collapsed or hidden. |
+| Cards show: pickup time, route, pax, vehicle class, driver, payment badge, flight status | The minimum a dispatcher scans. | MEDIUM | Reuse list row data. |
+| Drag between columns limited to legal transitions (`lib/booking-transitions.ts`) | A kanban that allows illegal moves breaks the capture trigger and audit. | MEDIUM | Reject invalid drops with a toast. Every move goes through the same server route and audit log as the dropdown. |
+| Calendar day / week / month | Standard dispatcher views. Day/week = time grid, month = per-day counts. | MEDIUM-HIGH | Colour by status (and optionally by driver). Click -> existing edit drawer. Multi-day quote trips appear on their own days. |
+| Collapsible sidebar, persisted per operator | Small UX table stake. | LOW | localStorage; keyboard shortcut optional. |
+| Light/dark theme toggle for admin | Owner requirement. | MEDIUM-HIGH | Cost is hidden: every admin component using hard-coded dark colours needs token conversion. Scope to `/admin` only (public site keeps its palette). Persist per user; respect `prefers-color-scheme` on first visit. |
+
+#### D. Driver flow (Feature 5)
+
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| One primary button with the label of the NEXT step only (en route -> on site -> passenger on board -> completed) | Limo Anywhere DriverAnywhere flow: On the Way -> On Location -> Customer in Car -> Dropped Off/Completed (No-Show optional); Blacklane driver app: button presses compute waiting time and cannot be edited later. | MEDIUM | Server enforces the order (not only the UI). Double-tap safe (idempotent per step). Big touch target, works on poor mobile networks. |
+| Timestamp per step, immutable once written | Needed for waiting fees, no-show proof and disputes. | LOW | Dedicated columns already exist (v2.2). Add `on_board_at` if missing. |
+| Final step needs a confirm ("Complete trip?") | Completion now triggers a payment capture. | LOW | Confirm modal with the amount NOT shown to the driver. |
+| Time-gate on "en route" (do not allow hours before pickup) | Limo Anywhere warns drivers who change status too early (default 24 h before pickup). | LOW | Prevents accidental early status changes that would move cards on the kanban. |
+| Driver status writes `booking.status`; admin sees it live | Owner requirement. Reverses the v2.2 isolation decision. | MEDIUM-HIGH | See dependency notes: `VALID_TRANSITIONS` has `en_route` and `on_location` but NO "on board" state, so decide: (a) add an `on_board` status, or (b) keep on-board as trip-progress only and map it to `on_location`. Recommendation: (a), because kanban and customer notifications benefit. The v2.2 grep-gate tests that forbid status writes from the driver route must be rewritten, not deleted. |
+| No-show as a secondary, gated action (after on-site wait) | See no-show workflow. | LOW | Not part of the main button. |
+| Admin sees status changes without reload | A dispatcher board that needs F5 is not a dispatcher board. | MEDIUM | DTRIP-05 tech debt (mount-only). Polling (30 s) is enough; Supabase Realtime is a differentiator. |
+
+#### E. Multi-stop and waiting time, airport offset (Feature 6)
+
+| Feature | Why Expected | Complexity | Notes |
+|---|---|---|---|
+| Add 1-N intermediate stops with autocomplete, reorder, remove | Blacklane lists extra stops and waiting time as billable extras. Clients expect to add a stop in the booking itself. | MEDIUM-HIGH | Google Directions with `waypoints` (the existing wizard already uses Maps + RouteMap). Cap stops (e.g. 5). Re-quote on every change; the price bar already recomputes. |
+| Distance priced across all legs, transparent breakdown | Clients accept a price they can read. | MEDIUM | Line items: base route, additional km, waiting per stop. All rates from `pricing_globals` (admin), never hard-coded. |
+| Per-stop waiting selector (client chooses), 15 min free, then a configurable fee per extra 15 min block | Owner design. Blacklane charges post-ride from driver-recorded time; pre-selected waiting = no post-ride surprise. | MEDIUM | Selector steps of 15 min. Convention: bill per started block. Show "15 min free at each stop" next to the control. |
+| Overstay beyond the pre-selected wait handled by an explicit rule | Reality: clients run late at stops. | MEDIUM | Recommended: driver timestamps (on site/departed at stop) feed an "overage" suggestion that the OPERATOR approves, charged on the saved card as a separate off-session charge because the hold cannot grow. Mark as phase 2 of this feature if time is short. |
+| Airport pickup: flight number, landing time, pickup offset after landing, free wait counted from the PICKUP time | Providers differ: Singapore operator 60 min free from landing; London one 45/60 min from actual landing; Blacklane 60 min included wait at airports; some start the clock at the booked pickup time unless Meet & Greet is requested. Owner design = clock starts at pickup time. | MEDIUM | Example given: landing 14:00, offset 30 -> pickup 14:30 -> free wait until 15:30. Offset options (0/15/30/45/60...) configurable. Show the three times on the confirmation and the driver sheet. |
+| Flight tracking adjusts pickup automatically on delay (landing_new + offset) | Blacklane tracks flights and adjusts pickups; clients expect never to call. | MEDIUM | Reuse `lib/flight-status.ts`, `flight-cache.ts`, `app/api/cron/flight-refresh`. Notify driver and (optionally) client when the pickup moves; avoid moving the pickup more than once per N minutes (flapping). |
+| Name sign / meet-and-greet note on driver sheet | Airport baseline. | LOW | Already part of the driver trip sheet; add the pickup-offset and free-wait-until time. |
+
+#### F. Day trips catalogue (Feature 7)
+
+Product page anatomy (GetYourGuide, Viator and Daytrip pattern; Daytrip is the closest model, being private-car day trips):
+
+| Block | Content | Complexity | Notes |
+|---|---|---|---|
+| Hero + gallery | 4-8 images; first image doubles as OG | LOW | AVIF in `/public`, one gallery component. Only current Mercedes fleet images in generated visuals (project rule). |
+| Key-facts bar | Duration (hours), pickup (hotel/address), max passengers per class, private vehicle, free cancellation up to X h, language of driver | LOW | Cancellation line is the single most clicked reassurance on GYG/Viator/Daytrip. |
+| Highlights (3-6 bullets) | Why go | LOW | Per-locale content file. |
+| Itinerary / stops timeline | Each stop with recommended duration (Daytrip: adjustable later in booking), drive time between stops, total | MEDIUM | Reuse the journey-timeline component from route pages. |
+| Includes / excludes | Daytrip's list: two-way private car, air conditioning, English-speaking driver, bottled water; excludes tickets, meals, tips. | LOW | Decide fuel/tolls/parking inclusion explicitly (should be included). State that the driver is not a licensed guide unless that is true (owner to confirm). |
+| Pickup / meeting point | Hotel or any Prague address, changeable until 24 h before (Daytrip) | LOW | Reuse the wizard pickup autocomplete. |
+| Pricing and booking widget (sticky on mobile) | Date, start time, passengers, vehicle class (E/S/V) -> price per car (not per person) with passenger cap per class; "free cancellation" line | MEDIUM-HIGH | Price per class from admin (new `day_trip_prices` or reuse `route_prices`). Rendered through the live-price helpers, never typed. Include "included hours" and extra-hour fee if the trip runs long. |
+| Availability / date picker | Chauffeur fleet has no per-slot inventory. Date + start time + minimum notice, blackout dates from admin. | MEDIUM | Do NOT build inventory. Conflicts surface at dispatch (calendar view in Feature 4). |
+| Reviews | Real reviews only (existing `lib/google-reviews.ts`) | LOW | No fabricated ratings. |
+| FAQ | 5-8 Q&A: pickup, duration, children seats, luggage, changing stops, weather, cancellation | LOW | Per locale. |
+| Related trips + "Customise this trip" CTA | Cross-sell; the CTA opens the custom-tour form pre-filled | LOW | Feeds the lead path. |
+| "Request a custom tour" form | Fields: destination(s)/interests, date or flexible window, passengers, vehicle preference, pickup place, duration, contact (name, email, phone/WhatsApp), notes, consent. | MEDIUM | Same intake as `submit-multiday-quote`/lead outbox -> Supabase -> EspoCRM/Chatwoot (v4.0 path). Confirmation page states a response window. Operator replies with a quote link (Feature 3). |
+| Schema.org / SEO | See below | MEDIUM | Sitemap, hreflang, JSON-LD via existing `lib/jsonld.ts`/`getAlternates()`. |
+
+**Structured data decision (MEDIUM; verify with Rich Results Test):**
+- Google's rich-result gallery has no TouristTrip/Trip feature; Product (price, availability, review snippet), BreadcrumbList, Video and Event are the supported types. TouristTrip is still a pending schema.org type.
+- Use `@type: ["Product", "TouristTrip"]` (schema.org itself recommends adding Product as a second type for offers). Put `offers` (price from the admin, `priceCurrency: EUR`, `availability`, `priceValidUntil`), `itinerary` (ItemList of stops) and `provider` (existing Organization). Add `aggregateRating` ONLY if real, third-party-verifiable reviews exist on that page. Per project rule, `priceValidUntil` must be normalised in golden-HTML tests.
+- FAQPage: Google restricts FAQ rich results to authoritative government/health sites (MEDIUM, knowledge-based). Keep FAQPage for AI-answer/GEO value but do not expect SERP expansion.
+- Intent overlap risk: `/routes/prague-karlovy-vary` (transfer) already exists. A day trip page targets "day trip / private tour" intent. Cross-link both ways, distinct titles/H1, and do not duplicate copy.
+
+### Differentiators (Competitive Advantage)
+
+| Feature | Value Proposition | Complexity | Notes |
+|---|---|---|---|
+| Card hold with automatic fallback to a fresh off-session charge | Competitors (Blacklane) charge at booking or hold opaquely. This gives Prestigo "pay nothing now, never lose a fee" without relying on fragile authorization windows. | MEDIUM | Design once; reuse for transfers, day trips and quote remainders. |
+| Cash booking with card guarantee | Rare among premium chauffeur sites. Converts clients who will not prepay online but removes no-show risk. | MEDIUM | Marketing copy: "Pay the driver; the card only guarantees your booking." No prices in marketing copy. |
+| Pre-priced waiting per stop (no post-ride extras surprise) | Blacklane reconciles waiting/extra stops after the ride (driver review within 24 h). Fixed up-front is a trust differentiator. | MEDIUM | Overage only as an operator-approved add-on. |
+| Pickup-offset picker with plain-language timeline ("Land 14:00 -> driver 14:30 -> free wait to 15:30") | Removes the commonest airport anxiety. | LOW-MEDIUM | Part of the airport booking step. |
+| Quote "viewed" notification + expiry reminder email | Sales signal; recovers lapsing quotes. | LOW-MEDIUM | Use the existing cron + Resend. Optional Telegram alert. |
+| Quote page with live "accept & pay deposit" in a single step | Fewer clicks than accept -> invoice -> pay. | MEDIUM | Single Checkout that both takes the deposit and saves the card. |
+| Calendar resource view by driver (day view columns = drivers) | Spot double-booked drivers at a glance. | MEDIUM-HIGH | Needs `driver_assignments` join. Defer to a later phase if tight. |
+| Day-trip "customise this trip" pre-fill into the lead form | Turns browsers into qualified leads with context. | LOW | Pass trip slug as lead source; EspoCRM Lead gets the trip name. |
+| Day-trip price transparency: price per car with passenger cap per class (E/S/V) | GYG/Viator price per person; groups of 4-6 see a lower effective cost with a private car. | LOW | Show per-car price only (marketing no-comparison rule). A "per person" helper is optional UI only if the admin exposes it, via `<Price per={4}>` style helpers. |
+| Realtime board (Supabase Realtime) instead of polling | Dispatcher sees driver steps instantly. | MEDIUM | Pairs with DTRIP-05 tech debt. Polling first. |
+
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---|---|---|---|
+| Hold placed exactly "5 days before" and expected to survive until capture | Matches the brief | Visa merchant-initiated authorizations last 4 d 18 h; the hold expires before the trip | Hold at ~T-3 d (configurable), `capture_before` tracked, capture-time fallback charge |
+| Extended authorizations to "hold for 30 days" | Looks like a clean fix | IC+ only, Visa 30-day window is customer-initiated only, +0.08%, Discover excludes limousines, network compliance burden | SetupIntent + late hold + fallback charge |
+| Auto-charging no-show the moment the driver taps "no-show" | Zero admin work | Disputes and chargebacks; driver error or flight delay = wrongly charged client | Time-gated driver action + operator confirmation + logged contact attempt |
+| Capturing more than the hold for waiting/extras | One transaction | Overcapture is restricted; fails silently for some cards | Capture the hold, then a separate off-session charge for approved extras |
+| Draggable kanban with free moves between any columns | Feels "easy" | Skips the legal transition map, audit log and capture trigger | Drop only onto allowed columns; reuse `VALID_TRANSITIONS` |
+| All-time kanban/calendar loading everything | Complete view | Slow and unusable at scale | Date horizon + virtualised columns |
+| E-signature (drawn/typed signature) on quotes | Looks "legal" | Extra vendor/library, GDPR surface, no real gain; acceptance timestamp + terms version is sufficient | "I accept" button with logged evidence |
+| PDF quote generation in-app | Clients ask for PDFs | No PDF lib in repo; Chrome-headless flow exists only for invoices | Printable HTML quote page; PDF only via the existing invoice flow if truly required |
+| Real-time per-slot inventory for day trips | GYG-style "5 spots left" | Prestigo has a fleet, not tour seats. Fake scarcity is also a trust risk | Date + time request with minimum notice and admin blackouts |
+| Per-person day-trip pricing | GYG/Viator default | Contradicts the per-car, E/S/V owner model; makes private-car value unclear | Per-car price with passenger cap per class |
+| Third-party guide marketplace / tickets in day trips | Bigger catalogue | Operational and liability scope explosion | Driver-only trips; tickets excluded, guide add-on as a quote line later |
+| Live GPS tracking for driver steps | Nice to have | DTRIP-FUT-01, out of scope; battery, privacy | Timestamped steps only |
+| Counter-offer / negotiation chat inside the quote page | Sounds modern | Duplicates Chatwoot | CTA "Ask a question" opens the existing chat widget |
+| Prices or Uber/ride-hailing comparisons in marketing copy for these features | Persuasive | Violates project content rules | Sell on guarantee/flexibility; prices only via live admin components |
+| Fabricated ratings in Product JSON-LD | Rich-result bait | Policy violation and trust risk | Only real reviews |
+
+---
 
 ## Feature Dependencies
 
 ```
-Existing: WhatsApp Business App (+420 number, wa.me links)
-    └──required-by──> Chatwoot WhatsApp Cloud API inbox (Coexistence mode)
-                           └──requires──> Meta Tech Provider / Meta app review
-                           └──requires──> CSP/webhook endpoint reachable from Meta
+SetupIntent / card saved (A1)
+    ├──requires──> Stripe Customer per booking (guest checkout kept)
+    ├──requires──> mandate wording + cancellation policy in 7 locales
+    └──enables──> scheduled hold (A2) ──requires──> cron + payment-state columns + webhooks
+                         └──enables──> capture on completion (A3) ──requires──> Driver status sync (D)
+                                              └──fallback──> new off-session charge (A4)
+Cash option (A5) ──requires──> SetupIntent (A1)
+No-show charge (A6) ──requires──> SetupIntent (A1) + Driver "on site" timestamp (D) + operator confirm UI
 
-Existing: contact form / corporate form / multi-day quote form (email-only, not stored)
-    └──requires-new──> Supabase tables to persist submissions
-                           └──feeds──> Supabase outbox
-                                           └──feeds──> EspoCRM Lead (via REST API + webhook)
-                                           └──feeds──> Chatwoot Contact (optional, if inquiry becomes a conversation)
+Driver strict flow (D) ──requires──> booking.status model decision (add on_board?) + rewrite v2.2 isolation tests
+Driver strict flow (D) ──feeds──> Kanban (C) + capture (A3) + waiting-time clock (E)
 
-Supabase outbox + QStash (bespoke, HIGH complexity)
-    └──required-by──> Chatwoot → CRM sync (conversations create/update contacts & leads)
-    └──required-by──> Site → CRM/Chatwoot sync (bookings, payments, status, signups, leads)
-    └──required-by──> VPS-independence constraint (public site keeps working if VPS is down)
+Multi-stop pricing (E1) ──requires──> pricing_globals extension (+ PricingGlobals type) + Maps waypoints
+Per-stop waiting (E2) ──requires──> E1 + driver timestamps (D) for overage
+Airport offset (E3) ──requires──> existing flight-status/flight-refresh + admin time-edit + driver notification
 
-EspoCRM Entity Manager: custom "Booking" entity
-    └──requires──> EspoCRM Account/Contact entities (relationship target)
-    └──requires──> Supabase → CRM sync pipeline (Booking entity is a read-model, populated by sync)
+Quote (B) ──requires──> price sources (route_prices, pricing_globals, day trip prices) + token pattern
+Quote deposit (B2) ──requires──> Stripe Checkout (+ setup_future_usage when remainder = saved card)
+Quote remainder (B3) ──requires──> A1-A4 (saved card), payment link (exists), invoice flow (exists)
+Quote acceptance ──creates──> N bookings (shared quote_id) ──uses──> group payment link (exists)
 
-Chatwoot Application API access token + Contact custom attributes
-    └──required-by──> Chatwoot Dashboard App (needs a stable link from Chatwoot contact → Supabase customer_profiles id)
-                           └──requires──> new internal authenticated Next.js route (iframe target)
-                                              └──requires──> Supabase booking read access from that route
+Day trips (F) ──requires──> admin price table by class + content per locale + sitemap/JSON-LD
+Custom tour form (F) ──requires──> lead outbox (v4.0) ──enables──> Quote (B)
 
-Chatwoot canned responses / macros
-    └──replaces──> send-*.mjs scripts (payment help, vehicle/time change, invoice, custom replies, post-trip review)
-    └──conflicts-partially-with──> invoice PDF-attachment scripts (canned responses are text-only; keep those as scripts or macro-triggered actions)
-
-EspoCRM Group Email Account (sales@/roman@) ──conflicts──> connecting the same mailbox in Chatwoot
-Chatwoot service mail (info@/booking@) ──conflicts──> connecting the same mailbox in EspoCRM
-
-EspoCRM Roles/ACL + Chatwoot agent/team assignment
-    └──enhances──> future 2–3 operator scale-up (must exist before headcount grows, cheap to set up now)
+Kanban/Calendar (C) ──requires──> final status set from D (build AFTER D)
+Light theme (C) ──independent──> but touches every admin component
 ```
 
 ### Dependency Notes
 
-- **WhatsApp Cloud API inbox requires Meta Tech Provider / app review before Coexistence works** — this is a Meta-side approval process, not a code task, and should be started early since it can take days, independent of when the VPS/Docker stack is ready.
-- **Every "persist a lead" feature requires new Supabase schema first** — contact form, corporate form, and multi-day quote form currently write nothing to the database; the outbox pattern needs a source table to read from before any CRM/Chatwoot sync can exist.
-- **The Dashboard App depends on a stable identifier linking a Chatwoot contact to a Supabase `customer_profiles`/booking record** — this link (likely a custom attribute holding the Supabase user id or email match) must be established by the Site→CRM/Chatwoot sync before the sidebar app has anything reliable to query.
-- **The two "single mailbox, two systems" anti-features are structural conflicts, not preferences** — Chatwoot and EspoCRM should be configured so it is not merely convention but enforced (e.g., only creating each mailbox in one tool's admin panel) to prevent an operator from accidentally double-connecting one later.
-- **EspoCRM's Booking entity is a read-model, not a second source of truth** — it must never accept writes that flow back into Supabase; this constrains the sync direction (Site → CRM one-way for booking data) even though EspoCRM technically has a two-way-capable REST API.
+- **Capture requires the driver status sync.** Without D, there is no trigger for A3. Build D (and the status-model decision) before or together with the capture code.
+- **Cash and no-show depend on A1 only.** They need the SetupIntent and mandate wording, not the hold cron.
+- **Waiting fees affect the hold amount.** Decide first whether the booking total at hold time includes pre-selected waiting (yes, because it is known at booking) and whether overage is a separate charge (yes).
+- **Quote remainder = saved card depends on A1 being solid.** Quote Phase must come after the payment foundation.
+- **Kanban/calendar should follow D.** They display the final status set; building earlier means rework.
+- **Day trips depend on the pricing admin and quotes only for custom tours.** Online booking of fixed trips can ship before quotes if the lead -> quote step is the last piece.
+- **Existing `VALID_TRANSITIONS` conflict:** currently `confirmed -> completed` and `assigned -> completed` are API-legal. Once completion triggers capture, tighten or audit these shortcuts so a payment is never captured by an accidental admin click.
 
-## MVP Definition
+---
 
-### Launch With (v4.0 core, matches stated milestone target features)
+## Existing-Code Touchpoints (verified in repo 2026-11-02)
 
-- [ ] VPS (Docker) running Chatwoot + EspoCRM on subdomains, TLS, backups, monitoring — foundation everything else depends on
-- [ ] Chatwoot inboxes: WhatsApp Cloud API (Coexistence), email (info@/booking@ IMAP/SMTP), website widget (consent-gated, identity-validated), Telegram, Instagram, Facebook
-- [ ] Supabase tables + outbox for contact form / corporate form / multi-day quote form (persist what's lost today)
-- [ ] Site → CRM/Chatwoot sync via Supabase outbox + QStash (idempotent, retried) for bookings/payments/status/signups/leads
-- [ ] Chatwoot → CRM sync: conversation-derived contact/lead create-update + conversation summary into CRM history
-- [ ] Chatwoot Dashboard App: read-only customer bookings in the conversation sidebar
-- [ ] EspoCRM Account/Contact/Lead/Opportunity + custom Booking entity + B2B Opportunity pipeline (hotels, agencies, corporates)
-- [ ] EspoCRM Group Email Account for sales@/roman@ (EspoCRM-only, per locked decision)
-- [ ] Canned responses + macros replacing the current `send-*.mjs` manual-ops scripts
-- [ ] Reports/stats: Chatwoot conversation volume + first response time + CSAT; EspoCRM pipeline/lead→won numbers; a simple leads→bookings and repeat-customer view
+| Existing item | Relevance |
+|---|---|
+| `lib/booking-transitions.ts` (`VALID_TRANSITIONS`: unpaid/pending/confirmed/assigned/en_route/on_location/completed/cancelled; no on-board state) | Add the on-board decision here; drives kanban columns; guards capture. |
+| `app/api/driver/trip/[token]/progress/route.ts` + `driver_assignments` trip-progress columns | Becomes the status writer; v2.2 isolation grep-gates must be rewritten. |
+| `app/api/create-payment-intent/route.ts`, Stripe webhook, payment links, group payment link, unpaid queue | Foundation for A1-A4 and quote deposit/remainder links. |
+| `app/api/cron/*` (`reminder-24h`, `reminder-2h`, `flight-refresh`, `outbox-sweep`) | Pattern and host for the hold cron and quote-expiry reminders; flight-refresh reused for the airport offset. |
+| `lib/flight-status.ts`, `lib/flight-cache.ts`, `app/api/check-flight` | Airport offset + auto-adjust. |
+| `lib/pricing-config.ts` (`hourlyRate`, `hourlyMinHours`), `pricing_globals`, `lib/route-prices.ts`, `lib/live-prices.ts` | Waiting fee/stop fee/day-trip prices must extend these; CLAUDE.md forbids hard-coded EUR. Migration 084 is next. |
+| `app/api/submit-multiday-quote`, `submit-quote`, lead outbox + QStash (`lib/lead-sync.ts`, `crm-sync.ts`) | Custom-tour form -> lead path. |
+| Admin bookings table with inline edit + per-field audit log, manual bookings, payment link emails | Reuse for kanban/calendar cards, quote -> booking conversion, and payment-state badges. |
+| `lib/jsonld.ts`, `getAlternates()`, `lib/landing-pages.ts`, route-page workflow | Day-trip pages and sitemap. |
+| `.env.local` Stripe test key is a dead placeholder | Payment features cannot be exercised locally; plan owner-run scripts with the live key or a fixed test key for UAT. |
 
-### Add After Validation (v4.x)
+---
 
-- [ ] Automation rules tuned by real conversation volume/labels once there's enough data to see patterns (start with a small manual rule set, expand once 1 operator sees repeat routing needs)
-- [ ] Second/third agent onboarding — exercise the Roles/ACL and assignment setup for real with 2–3 people
-- [ ] EspoCRM webhooks feeding back CRM-side changes into the outbox (only if a real workflow needs it — not assumed necessary for v4.0)
-- [ ] Richer B2B reporting (e.g., dedicated hotel/agency renewal dashboard) once the pipeline has enough Opportunity history
+## MVP Recommendation
 
-### Future Consideration (v2+ of this milestone track)
+Prioritise (table stakes, in dependency order):
+1. **Payment foundation:** SetupIntent at checkout, mandate text, cancellation-policy object, payment-state columns/webhooks, hold cron at T-3 d (configurable), `capture_before` tracking, fallback charge, failed-hold payment link + alert.
+2. **Driver strict flow + booking.status sync + capture on completion** (and the on-board status decision, rewritten isolation tests).
+3. **Cash option + gated no-show charge (operator-confirmed).**
+4. **Multi-stop pricing + per-stop waiting (pre-selected) + airport pickup offset** (with flight-refresh integration).
+5. **Quotes:** token page, lifecycle, deposit link, remainder method, versions.
+6. **Day trips:** admin price table, product pages, online booking, custom-tour form -> lead -> quote.
+7. **Admin UX:** kanban (date-scoped), calendar, collapsible sidebar, light theme (can run parallel to 4-6 after step 2).
 
-- [ ] Client↔driver messaging 24h before trip via Chatwoot (owner's stated future idea) — needs its own consent/opt-in and channel design, deliberately excluded from v4.0
-- [ ] Chatwoot/EspoCRM Enterprise or Advanced Pack features — only if headcount or compliance needs actually appear
-- [ ] Driver GPS/push notifications through the messaging stack — unrelated concern, stays in the driver-portal backlog
+One differentiator to include in MVP: the **capture-time fallback charge** (it is required for correctness, not optional). Next best low-cost differentiators: the airport timeline wording and the "viewed" quote signal.
 
-## Feature Prioritization Matrix
+Defer:
+- **Operator-approved overstay overage charge:** useful but needs driver timestamps and a second charge path; ship pre-selected waiting first.
+- **Driver-resource calendar view and Supabase Realtime:** polling and a plain calendar are enough at launch.
+- **Quote PDF/e-signature, counter-offers, live GPS, multi-currency:** see Anti-Features.
+- **Customer self-service rebooking/cancel portal for held bookings:** admin-driven first; the customer account page can show policy and a cancel button later.
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Supabase outbox + QStash sync pipeline | HIGH | HIGH | P1 |
-| Persist contact/corporate/multi-day-quote forms | HIGH | MEDIUM | P1 |
-| Chatwoot WhatsApp Cloud API (Coexistence) | HIGH | MEDIUM (+ Meta approval lead time) | P1 |
-| Chatwoot email + website widget inboxes | HIGH | LOW–MEDIUM | P1 |
-| Chatwoot Telegram/Instagram/Facebook inboxes | MEDIUM | MEDIUM–HIGH | P1 (Telegram) / P2 (IG/FB, gated by Meta review) |
-| EspoCRM Account/Contact/Lead/Opportunity + Booking entity | HIGH | LOW–MEDIUM | P1 |
-| Chatwoot Dashboard App (bookings in sidebar) | HIGH | MEDIUM | P1 |
-| Canned responses/macros replacing send-*.mjs | MEDIUM | LOW–MEDIUM | P1 |
-| EspoCRM sales mailbox isolation | MEDIUM | LOW | P1 |
-| Reports/stats (CSAT, response time, leads→bookings) | MEDIUM | MEDIUM | P2 |
-| Automation rules beyond a basic set | MEDIUM | LOW–MEDIUM | P2 |
-| Roles/ACL for future 2–3 agents | LOW now / HIGH later | LOW | P2 (cheap to do now, avoids retrofit pain) |
-| Chatwoot/EspoCRM Enterprise/Advanced Pack | LOW | HIGH (cost + complexity) | P3 (avoid) |
-| Client↔driver messaging | MEDIUM (future) | HIGH | P3 (explicitly future) |
-
-**Priority key:**
-- P1: Must have — matches explicit v4.0 target features in PROJECT.md
-- P2: Should have, add once P1 is live and generating real data
-- P3: Nice to have or explicitly future/out-of-scope for v4.0
-
-## Competitor / Reference Pattern Analysis
-
-Not a market-competitor comparison (this is internal tooling), but a comparison of the two viable "one inbox + CRM" approaches considered:
-
-| Concern | Chatwoot + EspoCRM (chosen) | SaaS alternative (Intercom/HubSpot-style) | Our Approach |
-|---------|------------------------------|--------------------------------------------|--------------|
-| Data ownership / VPS-independence | Self-hosted, full control, but requires the outbox pattern to survive VPS downtime | Vendor-hosted, always up, but Supabase would no longer be sole source of truth and per-seat SaaS cost scales with agents | Self-hosted on Hostinger VPS; async outbox ensures booking/payment flow never blocks on VPS |
-| Channel coverage (WhatsApp/Telegram/IG/FB/email/widget) | All supported, but each Meta channel needs its own app review on self-hosted (no shared pre-approved app like Chatwoot Cloud) | Usually broader out-of-box channel support with less setup friction | Accept the Meta app-review lead time as a one-time setup cost |
-| Custom entities (Booking) & B2B pipeline | EspoCRM Entity Manager: no-code, free | Most SaaS CRMs also support custom objects but often gate them behind higher-priced tiers | EspoCRM Community is sufficient — no paid tier needed |
-| Automation/BPM | Available (Advanced Pack, paid) but deliberately not used — logic lives in the repo instead | Often the SaaS's core selling point, drives lock-in | Keep automation in Next.js code per locked architecture decision |
+---
 
 ## Sources
 
-- [Chatwoot: WhatsApp Business App Coexistence onboarding (GitHub issue #15695)](https://github.com/chatwoot/chatwoot/issues/15695)
-- [Chatwoot: WhatsApp Embedded Signup — Developer Docs](https://developers.chatwoot.com/self-hosted/configuration/features/integrations/whatsapp-embedded-signup)
-- [Chatwoot: How to setup a WhatsApp channel (Manual flow) — User Guide](https://www.chatwoot.com/hc/user-guide/articles/1756799850-how-to-setup-a-whats_app-channel-manual-flow)
-- [Chatwoot: Managing Enterprise Edition Features — Developer Docs](https://developers.chatwoot.com/self-hosted/enterprise-edition)
-- [Chatwoot: Self-Hosted Pricing](https://www.chatwoot.com/pricing/self-hosted-plans)
-- [Chatwoot: Enterprise Edition — User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677776492-enterprise-edition)
-- [Chatwoot: How to enable identity validation — User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677587479-how-to-enable-identity-validation-in-chatwoot)
-- [Chatwoot: HMAC Verification and Identity Validation — DeepWiki](https://deepwiki.com/chatwoot/chatwoot/11.4-hmac-verification-and-identity-validation)
-- [Chatwoot: How to use Dashboard Apps — User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677691702-how-to-use-dashboard-apps)
-- [Chatwoot: IFrame Communication and Events — DeepWiki](https://deepwiki.com/chatwoot/chatwoot/6.2-widget-application)
-- [Chatwoot: Platform APIs — Developer Docs](https://developers.chatwoot.com/contributing-guide/chatwoot-platform-apis)
-- [Chatwoot: Building on Top of Chatwoot: Platform APIs — Wiki](https://github.com/chatwoot/chatwoot/wiki/Building-on-Top-of-Chatwoot:-Platform-APIs)
-- [Chatwoot: API Layer — DeepWiki](https://deepwiki.com/chatwoot/chatwoot/4-api-layer)
-- [Chatwoot: Automations feature page](https://www.chatwoot.com/features/automations)
-- [Chatwoot: Customer Support Automation & Routing](https://www.chatwoot.com/use-cases/automation-routing)
-- [Chatwoot: Chatwoot Glossary — User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677141565-chatwoot-glossary)
-- [Chatwoot: How to setup an Instagram channel — User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677829420-how-to-setup-an-instagram-channel)
-- [Chatwoot: How to setup an Email channel — User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677843043-how-to-setup-an-email-channel)
-- [Chatwoot: Email Channel Configuration — Developer Docs](https://developers.chatwoot.com/self-hosted/configuration/features/email-channel/introduction)
-- [EspoCRM: Entity Manager — Documentation](https://docs.espocrm.com/administration/entity-manager/)
-- [EspoCRM: Sales management — Documentation](https://docs.espocrm.com/user-guide/sales-management/)
-- [EspoCRM: Opportunities feature page](https://www.espocrm.com/features/opportunities/)
-- [EspoCRM: API overview — Documentation](https://docs.espocrm.com/development/api/)
-- [EspoCRM: Webhooks — Documentation](https://docs.espocrm.com/administration/webhooks/)
-- [EspoCRM: Using HMAC to connect to API using Python3 — Forum](https://forum.espocrm.com/forum/developer-help/46378-using-hmac-to-connect-to-api-using-python3)
-- [EspoCRM: Advanced Pack — product page](https://www.espocrm.com/extensions/advanced-pack/)
-- [EspoCRM: Advanced Pack Overview — Documentation](https://docs.espocrm.com/extensions/advanced-pack/overview/)
-- [EspoCRM: Email administration — Documentation](https://docs.espocrm.com/administration/emails/)
-- [EspoCRM: Roles — Documentation](https://docs.espocrm.com/administration/roles-management/)
-- [Prestigo PROJECT.md — v4.0 milestone target features, constraints, and Key Decisions](/Users/romanustyugov/Desktop/Prestigo/.planning/PROJECT.md)
+- Stripe, "Place a hold on a payment method" (authorization validity windows, partial capture, `capture_before`): https://docs.stripe.com/payments/place-a-hold-on-a-payment-method (HIGH, fetched 2026-11-02)
+- Stripe, "Place an extended hold on an online card payment" (IC+ only, CIT only for Visa other categories, +0.08%, Discover category exclusions): https://docs.stripe.com/payments/extended-authorization (HIGH)
+- Stripe SCA/off-session guidance (authenticate at mandate setup, bring customer back on-session when auth is demanded): https://docs.stripe.com/strong-customer-authentication/migration (MEDIUM; aggregated via search)
+- Blacklane help centre, cancellation policy (free until 1 h before pickup; pending authorizations reversed on cancel): https://help.blacklane.com/en/articles/3810157-what-is-the-cancellation-policy-and-how-can-i-cancel-my-ride (MEDIUM; customer-facing terms may differ)
+- Blacklane partner help, no-show policy (30 min standard / 60 min airport wait; ops tries to contact guest; payout tiers 60-100%): https://partner-help.blacklane.com/en/articles/8420639-what-is-the-no-show-policy (MEDIUM; partner-facing)
+- Blacklane partner help, recording extras (waiting calculated from driver button presses, not editable after ride; extras reviewed within 24 h): https://partner-help.blacklane.com/en/articles/8420375-how-do-i-record-extras-for-a-pickup (MEDIUM)
+- Limo Anywhere knowledge base, status mapping and DriverAnywhere workflow (En Route -> On Location -> Customer in Car -> Dropped Off/Completed; optional No Show; early-status warning default 24 h): https://kb.limoanywhere.com/docs/Understanding-Status-Mapping-And-Workflow (MEDIUM; 2020-21 articles, labels configurable)
+- Daytrip (daytrip.com), day-trip page content (two-way private car, a/c, English-speaking driver, water; excludes tickets/meals/tips; stop durations adjustable; free cancel 24 h): https://www.daytrip.com/en/day-trips (MEDIUM)
+- GetYourGuide / Viator practices (24 h free cancellation standard; Reserve Now Pay Later on Viator): third-party summaries, MEDIUM-LOW; not verified from official pages
+- Airport waiting-time conventions across providers (45/60 min from landing, 25 min from pickup time, Meet & Greet starts at gate): Transfeero help centre and operator listings via search, MEDIUM-LOW
+- Quote UX patterns (Accept button, fixed/percent deposit, expiry tied to link): Quoter and HubSpot help docs via search, MEDIUM
+- schema.org TouristTrip / Trip (Product as second type for offers, subTrip for days): https://schema.org/TouristTrip (HIGH for vocabulary); Google structured-data gallery has no Trip/TouristTrip feature (MEDIUM; confirm with Rich Results Test)
+- Per-vehicle private-tour pricing in Prague market (Expedia whole-car listings, GoWithGuide per-group): search results, LOW-MEDIUM (price points not used)
+- Repo files read for dependencies: `.planning/PROJECT.md`, `CLAUDE.md`, `lib/booking-transitions.ts`, directory listings of `lib/` and `app/api/`
 
----
-*Feature research for: self-hosted helpdesk (Chatwoot) + CRM (EspoCRM) integration, Prestigo v4.0*
-*Researched: 2026-09-27*
+## Confidence and Gaps
+
+| Area | Confidence | Gap |
+|---|---|---|
+| Stripe hold/capture mechanics | HIGH | Confirm blended vs IC+ pricing on the Prestigo Stripe account (determines extended auth availability; recommendation does not depend on it). |
+| Competitor cancellation / no-show / waiting policies | MEDIUM | Blacklane customer T&Cs not fetched (help centre only). Welcome Pickups and Sixt ride terms could not be retrieved. |
+| Quote UX | MEDIUM | Domain tools, not chauffeur-specific; expiry-reminder UX is a design choice. |
+| Dispatcher kanban/calendar conventions | MEDIUM | Limo Anywhere docs are old; no direct source for kanban vs calendar usage. |
+| Day-trip page anatomy | MEDIUM | GetYourGuide/Viator official pages were not fetched; Daytrip page is the main primary source. |
+| Google structured-data behaviour for tours | MEDIUM | Needs Rich Results Test on the real page. |
+| EU consumer-law wording (withdrawal exemption, mandate wording) | LOW-MEDIUM | Not researched in depth; route through the legal skill or counsel before launch. |
+
+Likely phase-level research flags: payment foundation (Stripe Checkout `setup` mode vs Elements, guest customer handling, 3DS failure recovery); multi-stop pricing (Directions API waypoint limits and cost); calendar component choice (build vs library) belongs to the STACK researcher.

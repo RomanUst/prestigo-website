@@ -60,13 +60,13 @@ export default function NotificationToggles({ initialFlags }: Props) {
     <>
       <style>{`
         .notif-toggle-input:focus-visible + label .notif-toggle-track {
-          outline: 2px solid var(--copper);
+          outline: 2px solid var(--admin-focus);
           outline-offset: 2px;
         }
       `}</style>
       <div style={{ maxWidth: 560 }}>
         <div style={{
-          background: 'var(--anthracite-mid, #252528)',
+          background: 'var(--admin-surface)',
           border: '1px solid var(--anthracite-light)',
           borderRadius: 4,
           padding: 24,
@@ -79,7 +79,7 @@ export default function NotificationToggles({ initialFlags }: Props) {
             marginBottom: 16,
             fontFamily: 'var(--font-montserrat)',
           }}>
-            NOTIFICATION TYPES
+            Notification types
           </div>
 
           {TOGGLE_ROWS.map((row, idx) => {
@@ -116,7 +116,7 @@ export default function NotificationToggles({ initialFlags }: Props) {
                   {fb && (
                     <span style={{
                       fontSize: 11,
-                      color: fb.type === 'success' ? 'var(--copper-light)' : '#ef4444',
+                      color: fb.type === 'success' ? 'var(--copper-light)' : 'var(--status-danger-fg)',
                       letterSpacing: '0.08em',
                       fontFamily: 'var(--font-montserrat)',
                     }}>

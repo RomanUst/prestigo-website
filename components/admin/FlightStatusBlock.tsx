@@ -10,13 +10,13 @@ interface FlightStatusBlockProps {
 }
 
 const STATUS_COLORS: Record<string, { text: string; bg: string }> = {
-  scheduled: { text: '#B87333', bg: 'rgba(184,115,51,0.15)' },
-  active:    { text: '#B87333', bg: 'rgba(184,115,51,0.15)' },
-  landed:    { text: '#27AE60', bg: '#1a3a2a' },
-  delayed:   { text: '#E67E22', bg: '#3a2a1a' },
-  cancelled: { text: '#C0392B', bg: '#2a1a1a' },
-  diverted:  { text: '#C0392B', bg: '#2a1a1a' },
-  unknown:   { text: '#CFC9C2', bg: 'transparent' },
+  scheduled: { text: 'var(--admin-accent-text)', bg: 'var(--admin-accent-tint-strong)' },
+  active:    { text: 'var(--admin-accent-text)', bg: 'var(--admin-accent-tint-strong)' },
+  landed:    { text: 'var(--status-ok-fg)', bg: 'var(--status-ok-bg)' },
+  delayed:   { text: 'var(--status-warn-fg)', bg: 'var(--status-warn-bg)' },
+  cancelled: { text: 'var(--status-danger-fg)', bg: 'var(--status-danger-bg)' },
+  diverted:  { text: 'var(--status-danger-fg)', bg: 'var(--status-danger-bg)' },
+  unknown:   { text: 'var(--admin-text-muted)', bg: 'transparent' },
 }
 
 function getStatusColors(status: string | null): { text: string; bg: string } {
@@ -102,7 +102,7 @@ export function FlightStatusBlock({
           letterSpacing: '0.3em',
           fontFamily: 'var(--font-montserrat)',
         }}>
-          FLIGHT STATUS
+          Flight status
         </span>
 
         {/* Right: Refresh button + Updated timestamp */}

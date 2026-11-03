@@ -1,304 +1,380 @@
-# Architecture Research — v4.0 Helpdesk + CRM
+# Architecture Patterns
 
-**Domain:** Self-hosted Chatwoot + EspoCRM on a Hostinger VPS, two-way linked to a production Next.js/Supabase/Vercel site
-**Researched:** 2026-09-27
-**Confidence:** HIGH (integration points against real code) / MEDIUM (Chatwoot/EspoCRM webhook & Dashboard App mechanics, verified via docs search, not yet exercised against the actual self-hosted instance)
+**Domain:** Premium chauffeur booking platform (Next.js App Router + Supabase + Stripe), milestone v5.0 "Payments, Quotes & Day Trips" added to the shipped v4.0 codebase
+**Researched:** 2026-11-02
+**Mode:** Integration architecture for a SUBSEQUENT milestone (what is new vs modified, not a greenfield design)
+**Overall confidence:** HIGH on codebase integration points (read from source); MEDIUM on Stripe/QStash/Vercel limits (official docs, a few conflicting third-party numbers); LOW only where flagged (GNet no-show semantics).
 
-This document is scoped to the delta for v4.0 only. It assumes the existing Next.js App Router + Supabase + Stripe + QStash architecture described in `.planning/PROJECT.md` and does not restate it. The `.planning/codebase/` snapshot is stale (dated 2026-03-20, pre-Supabase, pre-booking-flow) — all facts below come from reading the current `main` branch directly.
+> `.planning/codebase/ARCHITECTURE.md` is stale (dated 2026-03-20, describes a pre-booking marketing site). Everything below is derived from the current source tree, not from that file.
 
-## Standard Architecture
+---
 
-### System Overview
+## Executive Position (read this first)
 
-```
-┌──────────────────────────────── VERCEL (must never depend on VPS uptime) ─────────────────────────────┐
-│                                                                                                          │
-│  Browser ── forms (contact/corporate/multiday/quote) ──► app/api/* routes                               │
-│  Browser ── booking checkout ──► app/api/create-payment-intent ──► Stripe                                │
-│  Stripe ──► app/api/webhooks/stripe (event-id dedup, existing)                                           │
-│                        │                                                                                 │
-│                        ▼ (same txn / same request, INSERT only)                                          │
-│              ┌─────────────────────┐        ┌──────────────────┐                                        │
-│              │ Supabase Postgres   │        │  integration_     │  outbox rows                          │
-│              │ bookings            │──────► │  outbox (NEW)     │──────┐                                │
-│              │ customer_profiles   │        └──────────────────┘       │                                │
-│              │ inquiries (NEW)     │                                    │ QStash.publishJSON (delay 0)  │
-│              │ crm_identity_map    │                                    ▼                                │
-│              │ (NEW)               │                          app/api/integrations/dispatch (NEW)        │
-│              └─────────────────────┘                                    │                                │
-│                        ▲                                                │ HTTPS (server-to-server)       │
-│                        │ write-back (booking summaries only,            │                                │
-│                        │ read-only view/RPC)                            ▼                                │
-│              app/api/chatwoot/* (NEW)                        ┌──────────────────────┐                    │
-│              app/api/crm/webhook (NEW)                       │ Chatwoot REST API /   │                    │
-│                        ▲                                     │ EspoCRM REST API      │                    │
-│                        │ inbound webhooks (HMAC-verified)     └──────────┬────────────┘                  │
-└────────────────────────┼──────────────────────────────────────────────┼─────────────────────────────────┘
-                          │                                              │
-                          │                                 ┌────────────▼────────────┐
-              ┌───────────┴───────────┐                     │  Hostinger VPS (Docker)  │
-              │ Chatwoot conversation  │◄────────────────────┤  Chatwoot + EspoCRM +    │
-              │ webhook → our API      │  Chatwoot Dashboard  │  Postgres/MySQL + Caddy  │
-              │ → EspoCRM contact/lead │  App (iframe, embeds │  TLS + backups          │
-              └────────────────────────┘  OUR page)          └──────────────────────────┘
-                          ▲
-                          │ consent-gated widget script (browser, loaded from VPS)
-                     Browser (customer)
-```
+1. **Payment lifecycle is a second state machine next to `bookings.status`, never folded into it.** `status` stays the operational vocabulary (dispatch, driver, GNet, CRM, calendar). A new `payment_state` column family carries money. Seven downstream systems hard-code the status list; adding payment meaning to it multiplies that fan-out.
+2. **The "hold ~5 days before" requirement is unsafe as stated.** Stripe documents that a Visa merchant-initiated (off-session) authorization lives **4 days 18 hours** (5 days nominal); Mastercard/Amex/Discover 7. A hold placed at T-5d on a Visa card expires before pickup. Default the lead to **72 h** (configurable in `pricing_globals`), place the hold immediately when the booking is already inside the lead window, and add a capture-before watchdog. (HIGH, official Stripe doc: docs.stripe.com/payments/place-a-hold-on-a-payment-method)
+3. **The scheduler is a DB-as-queue plus a signed tick endpoint, not per-booking delayed messages.** Existing QStash per-booking delay is capped at 7 days (`MAX_DELAY_SECONDS` in `lib/outbox.ts`, free plan), and Vercel Hobby crons run at most once a day with +/-59 min precision (all 4 existing crons are daily). Use a QStash Schedule (every 15-30 min) hitting `/api/cron/payment-tick` as primary, with the existing Vercel daily cron as a backstop calling the same endpoint. Do NOT put payment jobs into the CRM integration outbox (its key regexes, dispatcher and "imports no CRM code" guard are CRM-specific).
+4. **Reverse DTRIP-04 by extracting the status mutation logic that today lives inline in `app/api/admin/bookings/route.ts` PATCH (~200 lines: transition check, payment-link deactivation, emails, QStash reminder, GNet push) into one service, `advanceBookingStatus()`.** Admin PATCH, the driver progress route, cancel, and the payment engine all call it. Without this extraction the driver sync would be a third copy of that logic.
+5. **Admin theming is cheaper than it looks** because `.theme-light` already exists in `app/globals.css` and remaps the token vars (`--anthracite`, `--offwhite`, `--copper`, ...) that admin components use ~800 times via `var()`. The real work is ~234 hard-coded hex literals in 33 admin files (many are the *retired* old palette `#28282B/#4E4E56/#B87333`) plus status-badge colors.
+6. **Build order:** admin shell (theme + sidebar) -> status vocabulary + driver sync -> payments -> dispatch views (board/calendar) -> multi-stop/airport/waiting -> quotes -> day trips. Rationale in the Build Order section.
 
-### Component Responsibilities
+---
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|-------------------------|
-| `integration_outbox` (Supabase) | Durable, ordered record of every domain event that must reach Chatwoot/CRM | Postgres table, `INSERT` in the same code path (or DB trigger) that writes the source row |
-| Outbox dispatcher (`app/api/integrations/dispatch`) | Turns one outbox row into an idempotent write to Chatwoot and/or EspoCRM | Next.js API route, invoked by QStash; verifies QStash signature |
-| Outbox enqueue helper (`lib/outbox.ts`) | Single call site every write path uses to insert an outbox row + fire the immediate QStash publish | Thin wrapper, mirrors `lib/qstash.ts`'s fire-and-forget `after()` pattern |
-| Outbox sweep cron (`app/api/cron/outbox-sweep`) | Catches rows stuck `pending` past a threshold (QStash publish failed, process crashed before publish) | Vercel Cron → re-publishes stragglers to QStash, capped retry count |
-| `crm_identity_map` (Supabase) | Canonical join between a Supabase identity (customer / guest booking contact) and `chatwoot_contact_id` / `espocrm_contact_id` / `espocrm_account_id` | Postgres table, service-role only |
-| `inquiries` (Supabase) | Persists every form submission that today is email-only (contact, corporate, multi-day quote) | Postgres table, replaces "email-only, never stored" |
-| Chatwoot webhook receiver (`app/api/webhooks/chatwoot`) | Ingests conversation/contact events from Chatwoot, syncs into EspoCRM | Next.js API route, HMAC-verified (`X-Chatwoot-Signature`) |
-| EspoCRM webhook receiver (`app/api/webhooks/espocrm`) | Optional, narrow: reflects CRM-side pipeline state back to the site | Next.js API route, HMAC-verified (`X-Signature`), off by default |
-| Chatwoot Dashboard App page (`app/embed/chatwoot-dashboard` or similar) | Renders a customer's Supabase bookings inside the Chatwoot conversation sidebar | Server component page, no admin session cookie, `frame-ancestors` CSP scoped to the Chatwoot origin, identity via Chatwoot's own `postMessage` context |
-| Widget identity endpoint (`app/api/chatwoot/identify`) | Computes the widget's `identifier_hash` (HMAC-SHA256) server-side for logged-in customers | Next.js API route, never exposes the widget's `hmac_token` |
-| `lib/identity.ts` (NEW) | Normalizes email + phone (E.164) and dedupes/merges contacts before they reach Chatwoot/EspoCRM | Pure functions, `libphonenumber-js` for E.164 |
+## Recommended Architecture
 
-## Recommended Project Structure
+### Layered view (what exists, what v5.0 adds)
 
 ```
-app/
-├── api/
-│   ├── integrations/
-│   │   └── dispatch/route.ts          # NEW — QStash → outbox row → Chatwoot/EspoCRM write
-│   ├── webhooks/
-│   │   ├── stripe/route.ts            # EXISTING — unchanged, still the booking source of truth
-│   │   ├── chatwoot/route.ts          # NEW — inbound Chatwoot conversation/contact webhook
-│   │   └── espocrm/route.ts           # NEW — optional, narrow CRM→site reflection (off by default)
-│   ├── chatwoot/
-│   │   ├── identify/route.ts          # NEW — widget identifier_hash minting (auth'd customers only)
-│   │   └── dashboard-app/route.ts     # NEW — read-only booking summaries for the Dashboard App page
-│   ├── cron/
-│   │   └── outbox-sweep/route.ts      # NEW — stragglers past pending threshold
-│   ├── contact/route.ts               # MODIFIED — also inserts into `inquiries`
-│   ├── corporate-contact/route.ts     # MODIFIED — also inserts into `inquiries`
-│   └── submit-multiday-quote/route.ts # MODIFIED — also inserts into `inquiries`
-├── embed/
-│   └── chatwoot-dashboard/page.tsx    # NEW — Dashboard App iframe target, no admin cookie
-│
-lib/
-├── outbox.ts                          # NEW — enqueueOutboxEvent() single call site
-├── identity.ts                        # NEW — normalizeEmail, normalizePhoneE164, resolveIdentity
-├── chatwoot-client.ts                 # NEW — thin REST wrapper (contacts, conversations, custom attrs)
-├── espocrm-client.ts                  # NEW — thin REST wrapper (Contact/Account/Lead/Opportunity)
-├── qstash.ts                          # EXISTING — add publishOutboxDispatch() alongside scheduleQStashReminder()
-├── webhook-verify.ts                  # NEW — X-Chatwoot-Signature / X-Signature HMAC verification helpers
-│
-supabase/migrations/
-├── 063_integration_outbox.sql         # NEW
-├── 064_crm_identity_map.sql           # NEW
-├── 065_inquiries.sql                  # NEW
+                       PUBLIC (app/[locale]/…, next-intl, 7 locales)
+ /book wizard ──────────────────────────  /day-trips (NEW)  /quote/[token] (NEW, noindex)
+   Step6Payment: pay now | card hold | cash (MOD)           custom-tour form (NEW)
+        │                                        │                    │
+        ▼                                        ▼                    ▼
+ /api/create-payment-intent (MOD)    /api/submit-custom-tour (NEW)   /api/quote/[token]/checkout (NEW)
+ /api/create-setup-intent   (NEW)    → storeInquiry('custom_tour')   → Stripe Checkout Session (deposit)
+        │  both call ▼                       │ (existing trigger → outbox → EspoCRM Lead)
+ lib/checkout/compute.ts (NEW, extracted from create-payment-intent)
+        │
+        ▼
+ ┌────────────────────────── SUPABASE (source of truth) ──────────────────────────┐
+ │ bookings (+payment_*, +stripe_*, +quote_id, +day_trip_id, +free_wait_min …)    │
+ │ booking_stops (NEW)  booking_status_log (NEW)  booking_payment_events (NEW)    │
+ │ quotes (NEW) quote_items (NEW) quote_payments (NEW)                            │
+ │ day_trips (NEW; 3 price columns like route_prices)                             │
+ │ pricing_globals (+hold lead, waiting fee, airport offset, deposit defaults)    │
+ │ inquiries (kind CHECK += 'custom_tour')                                        │
+ └────────────────────────────────────────────────────────────────────────────────┘
+        ▲                       ▲                              ▲
+        │                       │                              │
+ lib/booking-status-service.ts   lib/payments/* (NEW engine)    lib/quotes/* (NEW)
+  advanceBookingStatus()         setup/hold/capture/noshow/      materialize quote → bookings
+  (NEW, extracted from PATCH)    recover/release + events log
+        ▲        ▲        ▲               ▲            ▲
+        │        │        │               │            │
+  admin PATCH  driver   cancel     /api/webhooks/stripe (MOD: thin dispatcher     /api/cron/payment-tick (NEW)
+  (MOD)        progress (MOD)      → lib/stripe-webhook/* handlers, by metadata.kind)   QStash Schedule + Vercel daily backstop
+               (MOD)
 ```
 
-### Structure Rationale
+### Component Boundaries
 
-- **`app/api/integrations/`:** one dispatcher, not per-provider routes — QStash calls a single endpoint per outbox row; the endpoint fans out to Chatwoot and/or EspoCRM based on `event_type`. Keeps QStash config (one target URL) stable as providers are added later.
-- **`app/api/webhooks/{chatwoot,espocrm}`:** siblings of the existing `app/api/webhooks/stripe`, same directory convention, same "verify signature, then act" shape.
-- **`app/embed/`:** new top-level route group, distinct from `app/[locale]/` — the Dashboard App page is agent-tool UI, not a customer-facing localized page, and must NOT go through the CSP/consent/next-intl composition built for the public site. It gets its own narrow middleware carve-out (see Anti-Patterns).
-- **`lib/outbox.ts` as the only insert path:** every future event producer (booking webhook, admin edit route, customer signup) calls one function instead of hand-rolling `supabase.from('integration_outbox').insert(...)` in N places — keeps event shape and idempotency-key generation consistent.
+| Component | Responsibility | Status | Communicates With |
+|-----------|---------------|--------|-------------------|
+| `lib/stripe.ts` | ONE lazy Stripe client (today 3-4 divergent copies: create-payment-intent, stripe-payment-links, webhook route, cancel route) | NEW (consolidation) | every payments module |
+| `lib/booking-status.ts` | Single TS source for status vocabulary: `BOOKING_STATUSES`, `TERMINAL`, `VALUE_STATUSES`, driver-step map | NEW | transitions, trip-token, mappings, StatusBadge; SQL parity tests |
+| `lib/booking-status-service.ts` | `advanceBookingStatus(id, to, {actor})`: compare-and-set UPDATE, status log row, emails, GNet push, reminders, link deactivation, payment hooks (capture / no-show / release) | NEW (extracted from `app/api/admin/bookings/route.ts` PATCH) | admin PATCH, driver progress, cancel, payments engine, GNet client |
+| `lib/payments/*` | Payment state machine: `setup`, `scheduleHold`, `placeHold`, `capture`, `release`, `chargeNoShow`, `recoverViaLink`, `chargeExtras`; writes `booking_payment_events` | NEW | Stripe, Supabase, email, status service |
+| `lib/stripe-webhook/*` | One file per event family; `app/api/webhooks/stripe/route.ts` shrinks to signature check + idempotency + dispatch | NEW (split of a 1034-line file) | payments engine, existing handlers |
+| `lib/checkout/compute.ts` | Validation + server pricing + metadata building extracted from `create-payment-intent` (~300 lines) so setup-intent, admin create, day-trip and quote paths share ONE pricing authority | NEW (extracted) | server-pricing, route-prices, pricing-config |
+| `lib/route-distance.ts` | Google Routes call with intermediates, extracted from `calculate-price`; also used to *verify* client `distanceKm` | NEW (extracted) | calculate-price, create-*-intent, admin create |
+| `lib/stops.ts` | Waiting-time + fee math (free minutes, per-15-min fee) from status/stop timestamps | NEW | driver stop route, admin extras-due |
+| `lib/quotes/*` | Token generation, deposit math, item pricing, `materializeQuote()` → bookings | NEW | payments engine, server-pricing |
+| `lib/day-trips.ts`, `lib/day-trip-prices.ts` | DB structural data + live prices (clone of `lib/route-prices.ts`, same ISR/fallback behavior) | NEW | pages, calculate-price, create-*-intent |
+| `app/api/cron/payment-tick` | Claims due work: place holds, retry transient failures, capture-after-complete retries, expiring-hold watchdog, no-show charge reminders | NEW | `lib/payments/*` |
+| Admin shell (layout + `AdminSidebar` + theme) | Collapsible sidebar, light theme via cookie → `data-admin-theme` | MODIFIED | all admin pages |
+| `BookingDetailPanel` (extracted from `BookingsTable`) | Reusable booking drawer for list, board, calendar | NEW (extracted from 2886-line file) | list/board/calendar |
+| Board + Calendar views | Read-mostly dispatch views on a slim range endpoint | NEW | `GET /api/admin/bookings/board` (NEW) |
+| Driver trip page + progress route | Single next-step flow, writes through status service | MODIFIED | status service |
 
-## Architectural Patterns
+### Data Flow
 
-### Pattern 1: Outbox table + QStash dispatch (not a DB trigger, not n8n)
+**Card-hold booking (Feature 1):**
+1. Wizard Step 6 → `POST /api/create-setup-intent` (CSRF-strict, same guards as create-payment-intent). Server recomputes price via `lib/checkout/compute.ts`, creates/reuses a Stripe **Customer**, creates a **SetupIntent** (`usage:'off_session'`, `payment_method_types:['card']` — a hold needs a card; do not allow SEPA/iDEAL on this path), and captures an `unpaid` booking row exactly like today (`captureUnpaidBooking`, **attemptId made mandatory** here because `payment_intent_id` is NULL and the `(payment_intent_id, leg)` upsert key cannot dedupe NULLs).
+2. Client `stripe.confirmSetup()` with the existing `PaymentElement` (3DS happens here — this is the SCA anchor for later off-session use). Redirect to the existing confirmation page (it is sessionStorage + `ref`-driven, no server dependency on `payment_intent`).
+3. Webhook `setup_intent.succeeded` → `handleSetupSucceeded`: reconcile `unpaid → confirmed` (same status-gated pattern as `reconcileBookingToConfirmed`), store `stripe_customer_id`, `stripe_payment_method_id`, set `payment_mode`, compute `hold_at = pickup_utc - hold_lead`, set `payment_state = hold_scheduled` (or place the hold immediately when `hold_at <= now`), send the confirmation email suite + GA4/CAPI + QStash 2h reminder.
+4. `payment-tick` claims due rows (`payment_state='hold_scheduled' AND hold_at <= now()`), creates an off-session manual-capture PaymentIntent (`off_session:true, confirm:true, capture_method:'manual'`, idempotency key `hold:<bookingId>:<attempt>`), sets `authorized` + stores `hold_payment_intent_id` and `capture_before`.
+5. Driver/admin marks `completed` → `advanceBookingStatus` → `capturePayment()` (best-effort in `after()`; the tick retries any `completed ∧ authorized` row). `payment_intent_id` is set to the hold PI **only at capture**, so every existing consumer that treats `payment_intent_id IS NOT NULL` as "money moved" (cancel→refund, stats, invoices, erasure) stays truthful.
+6. Failure at step 4 (`authentication_required`, decline) → `payment_state='failed'`, create a payment link (existing `createBookingPaymentLink` with new `purpose:'hold_recovery'` metadata), email client, alert operator (`sendManagerAlert`), surface in admin. Payment of the link → webhook marks `captured` (see Pitfall: stale-link CR-02 branch).
 
-**What:** Every write path that produces a CRM-relevant event does two things in the same request: (1) its existing Supabase write (booking insert/update, `inquiries` insert, `customer_profiles` insert), (2) an `integration_outbox` insert via `lib/outbox.ts`. That helper also fires `after(() => qstash.publishJSON({ url: '.../api/integrations/dispatch', body: { outbox_id } }))` — mirroring the existing `scheduleQStashReminder` fire-and-forget convention in `lib/qstash.ts`.
+**Cash with card guarantee (Feature 2):** same steps 1-3, `payment_mode='cash_guarantee'`, state `card_saved`, no hold ever scheduled. On `completed`: state → `cash_settled` (operator confirms cash received). On `no_show`: alert + **operator-confirmed** one-click 100% off-session charge (`chargeNoShow`, idempotency key `noshow:<bookingId>`); an `auto_charge_noshow` flag in `pricing_globals` (default false) exists for later. Reason: one driver mis-tap must not silently charge a customer 100%.
 
-**When to use:** Any event that must reach Chatwoot and/or EspoCRM. Not used for reads.
+**Driver status sync (Feature 5):** driver taps the single next step → `POST /api/driver/trip/[token]/progress {step}` → token + `isTripLinkValid` check (kept) → `advanceBookingStatus(bookingId, mapped, {actor:'driver'})` → `UPDATE … WHERE id=$1 AND status=$prev` (compare-and-set; lost race returns 409 + current state) → `booking_status_log` row → side effects in `after()`. `driver_assignments.trip_progress` stays written (admin display back-compat) but is no longer the source of truth.
 
-**Trade-offs:**
-- vs. a Postgres trigger (`pg_net`/`supabase_functions.http_request`) that fires on `INSERT`/`UPDATE`: the trigger approach removes the "must remember to call `lib/outbox.ts`" discipline risk, but Supabase's async trigger delivery has weaker retry/observability than an explicit QStash publish, and debugging a trigger requires DB-side log access rather than Vercel function logs. Given the existing codebase already has an established "service-role client + explicit fire-and-forget QStash" idiom (`scheduleQStashReminder`), the explicit-insert approach is more consistent and easier for future agents to grep for. Recommendation: explicit insert, not trigger.
-- vs. n8n: explicitly rejected by the locked decision in PROJECT.md — integration logic lives in-repo, versioned, tested.
-- Immediate QStash publish (delay 0) gives near-real-time delivery in the common case; the `outbox-sweep` cron is the safety net for the "publish call itself failed" case (network blip between Vercel and Upstash) — this is the same two-layer pattern QStash reminders already rely on implicitly (QStash's own retries) plus a fallback (the sweep) for failures QStash never received at all.
+**Quote (Feature 3):** operator builds quote (items priced server-side, optional override) → `sent` → client opens `/[locale]/quote/[token]` (noindex, private cache) → "Pay deposit" → `POST /api/quote/[token]/checkout` creates a **fresh Checkout Session** (`setup_future_usage:'off_session'`, `customer_creation:'always'`, metadata `quoteId`, `purpose:'deposit'`) → `checkout.session.completed` → `handleQuoteDeposit`: mark deposit paid, store customer/PM, **materialize each `quote_item` into a `bookings` row** (+`booking_stops`), confirm, one client email. Remainder per `remainder_method`: saved card (tick or operator button), payment link (same Checkout mechanism, `purpose:'remainder'`), cash, invoice.
 
-**Example (schema sketch, migration 063):**
-```sql
-CREATE TABLE public.integration_outbox (
-  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  event_type      text NOT NULL,        -- 'booking.created' | 'booking.paid' | ...
-  aggregate_type  text NOT NULL,        -- 'booking' | 'inquiry' | 'customer'
-  aggregate_id    uuid NOT NULL,        -- bookings.id / inquiries.id / customer_profiles.id
-  payload         jsonb NOT NULL,       -- denormalized snapshot at enqueue time (never re-read source row later)
-  idempotency_key text NOT NULL,        -- see Pattern 2
-  status          text NOT NULL DEFAULT 'pending',  -- 'pending' | 'sent' | 'failed'
-  attempts        int  NOT NULL DEFAULT 0,
-  last_error      text,
-  created_at      timestamptz NOT NULL DEFAULT now(),
-  sent_at         timestamptz
-);
-CREATE UNIQUE INDEX integration_outbox_idempotency_key_idx ON public.integration_outbox (idempotency_key);
-CREATE INDEX integration_outbox_status_created_idx ON public.integration_outbox (status, created_at) WHERE status = 'pending';
--- Service-role only, no RLS policy — mirrors booking_edit_audit_log's posture.
-ALTER TABLE public.integration_outbox ENABLE ROW LEVEL SECURITY;
+**Day trip (Feature 7):** `/day-trips/[slug]` (static, ISR 120 s, prices live from DB) → `/book?dayTrip=<slug>` → `calculate-price` returns fixed class prices for the slug → `create-payment-intent` / `create-setup-intent` branch `tripType:'day_trip'` (server loads price from `day_trips`; unknown/inactive slug rejected). Custom tour form → `storeInquiry('custom_tour')` → existing inquiries trigger → outbox → EspoCRM Lead (zero new plumbing) → operator opens `/admin/quotes/new?inquiry=<id>`.
+
+---
+
+## Data Model Changes (migrations from 084)
+
+All new tables follow the repo convention: RLS enabled with deny-all policies, `REVOKE ALL … FROM anon, authenticated`, service-role access only; any `DROP+CREATE` of a SECURITY DEFINER function must re-`REVOKE … FROM PUBLIC, anon, authenticated` (documented gotcha). Migrations are applied live by the operator/orchestrator (executors have no Supabase MCP).
+
+| # | Migration | Contents |
+|---|-----------|----------|
+| 084 | `084_booking_statuses_status_log.sql` | `bookings_status_check` DROP+RECREATE adding `on_board`, `no_show` (pattern of 040/053); `booking_status_log`; `completed_at`; `CREATE OR REPLACE booking_lead_status()` (067) with new statuses; gcal trigger accepted-status list (063); panel (080) and stats (081-083) status lists |
+| 085 | `085_payment_state.sql` | `bookings` payment columns, `booking_payment_events`, `claim_due_payment_work()` (FOR UPDATE SKIP LOCKED + lease, modeled on `outbox_claim` in 064), partial index `bookings_hold_due_idx`, `pricing_globals` payment settings |
+| 086 | `086_stops_airport_wait.sql` | `booking_stops`, bookings `landing_time`/`pickup_offset_min`/`free_wait_min`/`extras_due_eur`, `pricing_globals` waiting + airport settings |
+| 087 | `087_quotes.sql` | `quotes`, `quote_items`, `quote_payments`, `bookings.quote_id/quote_item_id` |
+| 088 | `088_day_trips.sql` | `day_trips`, `bookings.day_trip_id`, `trip_type` CHECK += `day_trip` (verify live constraint first — name unverified) |
+| 089 | `089_inquiries_custom_tour.sql` | `inquiries.kind` CHECK += `custom_tour`; `lead-mapping` kind label |
+
+### bookings payment state machine (new columns, orthogonal to `status`)
+
 ```
-The payload is a **denormalized snapshot**, not a foreign-key-only pointer — deliberately, because by the time the dispatcher runs (possibly minutes later on a sweep retry), the source `bookings` row may have changed again (e.g. a `booking.status_changed` event racing an admin edit). Snapshotting at enqueue time is the same principle the Stripe webhook already applies (it reads `paymentIntent.metadata`, a point-in-time snapshot, not a live re-query for most fields).
+payment_mode   text  CHECK IN ('pay_now','card_hold','cash_guarantee','link','invoice','cash','partner','quote')
+                     -- backfill: payment_intent_id NOT NULL → 'pay_now'; booking_source='gnet' → 'partner';
+                     -- manual w/o PI → 'cash'/'invoice'/'link' by existing flags. NULL = legacy, treated as pay_now.
+payment_state  text  CHECK IN ('none','setup_pending','card_saved','hold_scheduled','hold_processing',
+                               'authorized','captured','released','failed','cash_settled',
+                               'noshow_pending','noshow_charged','refunded')
+stripe_customer_id text, stripe_payment_method_id text, setup_intent_id text (partial UNIQUE with leg),
+hold_payment_intent_id text, hold_at timestamptz, hold_attempts smallint DEFAULT 0, hold_lease_until timestamptz,
+capture_before timestamptz, captured_amount_eur numeric, captured_at timestamptz, last_payment_error text
+```
 
-### Pattern 2: Idempotency key, not "exactly-once" delivery
+Transition table (only `lib/payments/state.ts` may write `payment_state`; UI and routes call engine functions):
 
-**What:** `idempotency_key` is a deterministic string derived from `(event_type, aggregate_id, a version/timestamp discriminator)`, e.g. `booking.status_changed:{booking_id}:{status}:{updated_at}`. The dispatcher's Chatwoot/EspoCRM calls use this same key as an idempotency token where the target API supports it (EspoCRM custom field `externalId`, Chatwoot conversation custom attributes), or fall back to an upsert-by-lookup pattern (find-by-email/phone, then update).
+| From | To | Trigger | Actor |
+|------|----|---------|-------|
+| `none` | `setup_pending` | create-setup-intent captures unpaid row | route |
+| `setup_pending` | `card_saved` / `hold_scheduled` | `setup_intent.succeeded` (hold mode → scheduled; cash mode → card_saved) | webhook |
+| `hold_scheduled` | `hold_processing` | tick claims row (lease) | tick |
+| `hold_processing` | `authorized` | PI `requires_capture` (API response; `amount_capturable_updated` reconciles) | tick/webhook |
+| `hold_processing` | `hold_scheduled` | transient Stripe error, `hold_attempts < 3` | tick |
+| `hold_processing` | `failed` | card error / `authentication_required` | tick → link + alert |
+| `authorized` | `captured` | status → `completed` | status service / tick |
+| `authorized` | `released` | booking cancelled (PI `cancel`, 0 fee) or hold expired (`payment_intent.canceled`) | cancel / webhook |
+| `failed` | `captured` | recovery link paid (`purpose:'hold_recovery'`) | webhook |
+| `card_saved` | `noshow_pending` → `noshow_charged` | status `no_show` → operator confirms | status service / admin |
+| `card_saved` | `cash_settled` | status `completed` + operator "cash received" | admin |
+| `hold_scheduled`/`card_saved` | `released` | booking cancelled before any money moved | cancel |
+| `captured` | `refunded` | existing refund flow (`charge.refunded`) | admin/webhook |
 
-**When to use:** Every outbox row. QStash itself retries on non-2xx, and the dispatcher may also be re-invoked by the sweep cron — the dispatcher must be safe to run twice for the same row.
+`booking_payment_events` (append-only): `booking_id, kind, stripe_object_id, amount_minor, status, error_code, actor, created_at`. This is the admin payment timeline and the dispute evidence; it also makes tick runs idempotent to reason about.
 
-**Trade-offs:** This is the exact same idempotency discipline already proven in `app/api/webhooks/stripe/route.ts` (`stripe_processed_events`, claim-after-side-effect ordering, `ON CONFLICT DO NOTHING`). Reuse the pattern rather than inventing a new one: dispatcher marks `status = 'sent'` only AFTER the Chatwoot/EspoCRM call succeeds (side-effect-first, claim-after — a crash mid-flight means a harmless retry, not a lost event).
+### Stops, airport, waiting
 
-### Pattern 3: Identity resolution before every Chatwoot/EspoCRM write
+- `booking_stops(id, booking_id → bookings ON DELETE CASCADE, position smallint, address, lat, lng, place_id, planned_wait_min, arrived_at, departed_at, actual_wait_min, wait_fee_eur)`, `UNIQUE(booking_id, position)`. Stops are **per leg**. Quote items carry a `stops jsonb` snapshot, materialized into `booking_stops` on acceptance.
+- Today wizard stops only influence `distanceKm` (Step3Vehicle passes `intermediates` to `calculate-price`); **they are not sent to `create-payment-intent`, not persisted, and the server trusts the client `distanceKm`** (`StopItem` has a local-only `waitMinutes` stub). v5 makes `create-*-intent` and admin create re-derive distance server-side through `lib/route-distance.ts` (tolerance check or always-recompute when stops exist). The flat `EXTRA_STOP_PRICE = 20` in `lib/pricing-helpers.ts` conflicts with "price by km through all stops" and must be removed from the wizard path (keep only for the calculator widget if still wanted).
+- Waiting policy lives in `pricing_globals` (follow migration 058 + `PricingGlobals` type + `getPricingConfig` select list + `/api/admin/pricing` + `PricingForm`): `stop_free_wait_min` (15), `stop_wait_fee_eur_per_15min`, `airport_pickup_offset_min` (30), `airport_free_wait_min` (60), `payment_hold_lead_hours` (72), `auto_charge_noshow`, `deposit_default_*`.
+- Airport offset: store `landing_time` + `pickup_offset_min` + snapshot `free_wait_min` on the booking; `pickup_time/pickup_utc` stay the *final* pickup time, so reminders (24h cron, QStash 2h), Google Calendar sync, driver sheet and lead-time (12 h) validation are unchanged. Free waiting is counted from `pickup_utc`; actual wait = `on_board` log timestamp minus `max(arrival, pickup_utc)`.
+- Waiting fee is a **post-trip extra**, computed from `booking_status_log` and `booking_stops` timestamps, stored as `extras_due_eur`, and collected only by operator action (charge saved card / send payment link / add to invoice). Overcapture beyond the authorized amount is not generally available for cards, and pay-now bookings have no saved card unless `setup_future_usage` was set at checkout — so the waiting fee couples Feature 6 to Feature 1 and must not auto-charge.
 
-**What:** `lib/identity.ts` exports `normalizeEmail(email)` (lowercase, trim) and `normalizePhoneE164(phone, defaultCountry='CZ')` (via `libphonenumber-js`, NOT currently a dependency — must be added). Before the dispatcher creates a Chatwoot contact or EspoCRM Contact/Lead, it queries `crm_identity_map` by normalized email OR normalized phone. A match reuses the existing `chatwoot_contact_id`/`espocrm_contact_id`; no match creates new records in both systems and inserts a new `crm_identity_map` row.
+### Quotes
 
-**When to use:** Every outbound sync to Chatwoot or EspoCRM.
+`quotes(id, quote_number, public_token UNIQUE (>=128-bit random, base64url), status [draft|sent|viewed|accepted|deposit_paid|paid|declined|expired|cancelled], revision, client_name/email/phone/company, locale, user_id?, inquiry_id?, valid_until, total_eur, deposit_type [none|percent|fixed], deposit_value, deposit_amount_eur (frozen at send), remainder_method [saved_card|payment_link|cash|invoice], remainder_due_at, stripe_customer_id, stripe_payment_method_id, sent_at, accepted_at, created_by)`; `quote_items(id, quote_id, position, kind [transfer|hourly|daily|day_trip|custom], title, trip fields…, vehicle_class, price_eur, price_override bool, stops jsonb, day_trip_id?, booking_id?)`; `quote_payments(id, quote_id, kind [deposit|remainder|adjustment], amount_eur, method, stripe_object_id, status, paid_at)`.
 
-**Trade-offs:** Matching on email-OR-phone (not AND) is deliberately permissive to avoid duplicate CRM contacts — the cost is a rare false-positive merge (two different people sharing a phone, e.g. a corporate booking desk). Given the domain (premium chauffeur, low volume, high-touch), false-positive merges are cheaper to manually split in EspoCRM than duplicate contacts are to manually merge across two systems. Flag this as a MEDIUM-confidence design choice for the phase-planning stage to confirm with the owner.
+- Bookings are **materialized at deposit payment (or at acceptance when deposit_type=none), not at send**, so unaccepted quotes never pollute dispatch, calendar or stats. Materialized bookings get `payment_mode='quote'`, `payment_state='none'` so the per-booking hold/capture engine ignores them; money is tracked on `quote_payments`.
+- Editing after `sent` bumps `revision` and expires any open Checkout Session (`checkout.sessions.expire`); editing is locked once a deposit is paid.
+- The "deposit link" given to the client is **our own URL** (`/quote/<token>` or `/quote/<token>/pay` → 302 to a freshly minted Checkout Session), not a static Stripe Payment Link — static links go stale when the quote changes (the CR-02 problem already documented for booking links).
 
+### Day trips
+
+`day_trips(id, slug UNIQUE, active, display_order, duration_hours, distance_km, hero_image, place coordinates, e_class_eur, s_class_eur, v_class_eur, created_at, updated_at)` — same three-price-column shape as `route_prices` so the admin table/form, the `Price` MDX component pattern and `lib/live-prices.ts` pattern are cloned, not reinvented. Prose (title, summary, itinerary, FAQ, SEO meta) lives in `content/day-trips/<locale>/<slug>.json` (v3.0 decision: long-form → content files, structure/prices → DB/admin). Prices render via `lib/day-trip-prices.ts` (never typed; CLAUDE.md hard rule and pre-commit). `bookings.trip_type='day_trip'` + `day_trip_id` is recommended over reusing `transfer`, because board filters, stats-by-product, emails and GA need to tell them apart; the cost is a fan-out check of every `trip_type` switch (server-pricing, email labels, lead/panel/stats mappings) — grep before the phase.
+
+---
+
+## Status Vocabulary Changes
+
+Current DB values: `unpaid, pending, confirmed, assigned, en_route, on_location, completed, cancelled`. Driver `trip_progress` values: `en_route, arrived, on_board, completed, no_show` (migration 061). `StatusBadge` already declares `arrived | on_board | no_show` variants.
+
+**Recommendation:** add `on_board` and `no_show` to `bookings.status`; do not add `arrived` (it maps to the existing `on_location`).
+
+| Driver step (UI label) | `trip_progress` | `bookings.status` | GNet push |
+|---|---|---|---|
+| Start driving to pickup | `en_route` | `en_route` | `EN_ROUTE` |
+| I have arrived | `arrived` | `on_location` | `ON_LOCATION` |
+| Passenger on board | `on_board` | `on_board` (NEW) | none (no GNet equivalent in `GnetStatus`) |
+| Stop reached / continue (Feature 6) | stop stamps | `on_board` (no change; stamps in `booking_stops`) | none |
+| Complete trip | `completed` | `completed` | `COMPLETE` |
+| Passenger no-show (only from `on_location`, after grace) | `no_show` | `no_show` (NEW, terminal) | LOW confidence: check GNet API before deciding; default skip |
+
+Transitions to add to `VALID_TRANSITIONS`: `on_location → on_board | no_show | cancelled`; `on_board → completed | cancelled`; `assigned → en_route | cancelled` unchanged. Admin keeps its override shortcuts (`en_route/on_location → completed`); the **driver route enforces strict order server-side** (`step === nextStepFor(currentStatus)`; replay of the already-applied step returns 200, a stale step returns 409). Add `no_show` to `TERMINAL_STATUSES` in `lib/trip-token.ts` (the trip link must die at no-show/complete).
+
+**Fan-out checklist (every place a status list is hard-coded) — update in ONE phase, guard with parity tests:**
+`lib/booking-transitions.ts`, `lib/trip-token.ts` (TERMINAL), DB CHECK (084), SQL `booking_lead_status()` (067) vs `lib/lead-mapping.ts` (`no_show` → `converted`, because a real booking existed; confirm with owner), `lib/customer-mapping.ts`, `lib/chatwoot-mapping.ts` (`VALUE_STATUSES`), `lib/panel-bookings.ts` + migration 080 SQL, `lib/google-calendar.ts` + 063 trigger, stats RPCs 081-083 (`status IN (…)`), `lib/gnet-client.ts` map, `components/admin/StatusBadge.tsx` + `BookingsTable` action maps, admin `KNOWN_STATUSES` + `admin_search_bookings p_status`, `statusToFlagKey` notification flags. `tests/customer-mapping-parity.test.ts` shows the established parity-test pattern; extend it to cover SQL-vs-TS lists from `lib/booking-status.ts`.
+
+**Revenue semantics caution:** stats and panel treat `confirmed…completed` as value-bearing. After v5 a `confirmed` card-hold or cash-guarantee booking has no money yet, and a `failed` hold has none at risk. Decide explicitly whether `/admin/stats` means "booked" or "collected" revenue, and filter on `payment_state` in the RPCs (081-083) accordingly. No-show counts as revenue only when `noshow_charged`.
+
+**GNet bookings (`booking_source='gnet'`):** `payment_mode='partner'`, `payment_state='none'`; capture / hold / no-show branches must early-return. Driver-sync makes GNet pushes automatic (today only admin PATCH and first-assign push). Make the push idempotent against `gnet_bookings.last_push_status` (skip repeats) because driver retries on bad mobile networks are expected. The push logic exists twice today (PATCH, assign route) — fold both into the status service.
+
+---
+
+## Webhook Additions (`/api/webhooks/stripe`)
+
+The endpoint currently handles `charge.refunded`, `payment_intent.succeeded`, `checkout.session.completed`, all with the same pattern: duplicate read-check on `stripe_processed_events` → side effect → claim after (SEC-10). Keep that pattern for every new event. Split the 1034-line file: the route keeps signature verification, idempotency and dispatch; handlers move to `lib/stripe-webhook/`.
+
+| Event | New/Mod | Handler | Notes |
+|-------|---------|---------|-------|
+| `setup_intent.succeeded` | NEW | `handleSetupSucceeded` | confirm booking, store customer/PM, schedule or place hold, confirmations |
+| `setup_intent.setup_failed` | NEW | log event | no booking change; row stays `unpaid` for the abandoned queue |
+| `payment_intent.amount_capturable_updated` | NEW | `handleHoldAuthorized` | reconcile `authorized` + `capture_before` (API response already set it; webhook is the truth on retries) |
+| `payment_intent.payment_failed` | NEW | `handleOffSessionFailed` | only when `metadata.kind ∈ {hold,noshow,remainder,extras}` |
+| `payment_intent.canceled` | NEW | `handleHoldCanceled` | expiry or our own cancel; if booking still live → alert "hold expired" |
+| `payment_intent.succeeded` | MOD | route by `metadata.kind` **first** | see pitfall below |
+| `checkout.session.completed` | MOD | add `mode==='setup'` branch (payment_status is `no_payment_required`, today's guard requires `'paid'`), `purpose` router: `booking` / `hold_recovery` / `deposit` / `remainder` | admin "card guarantee link" for manual bookings uses Checkout `mode:'setup'` |
+| `charge.refunded` | MOD (light) | refund of a captured hold PI must set `payment_state='refunded'` | existing cancel logic stays |
+| `charge.dispute.created` | NEW (recommended) | operator alert | off-session/MIT charges carry higher dispute exposure |
+
+**Owner action required:** every new event type must be subscribed on the live Stripe webhook endpoint. This already bit the project once (`enable-checkout-webhook-event.mjs` exists in the repo root for exactly that). Ship an equivalent owner-run script (never commit keys) and put "subscribe events" in the phase's go-live checklist.
+
+---
+
+## Scheduler (where it lives)
+
+- **Endpoint:** `app/api/cron/payment-tick/route.ts`. Auth accepts EITHER the existing `CRON_SECRET` bearer check (timing-safe, copy from `reminder-24h`) OR a verified QStash signature (`Receiver`, already used in `app/api/integrations/dispatch/route.ts` and `reminder-2h`).
+- **Triggers:** (1) QStash **Schedule** every 15-30 min (primary; free plan documents 7-day max delay and a schedule allowance of 10 on most sources — one conflicting source says otherwise, verify in the Upstash console), (2) `vercel.json` daily entry as backstop (Hobby: once/day, hour-level precision). Schedule creation is an owner-run script like `setup-phase81-qstash.mjs`.
+- **Work per tick** (each step try/catch-isolated, pattern from `outbox-sweep`): (a) claim due holds via `claim_due_payment_work()` (SKIP LOCKED + lease so overlapping ticks never double-hold; Stripe idempotency key as second guard); (b) retry `completed ∧ authorized` captures; (c) watchdog: `authorized` rows with `capture_before` within 24 h → alert, and `pickup passed + 24 h ∧ not completed` → alert (an uncaptured hold silently expires and the revenue is lost); (d) `noshow_pending` reminders; (e) quote reminders / expiry (later phase); (f) `remainder_due_at` saved-card charges (later phase).
+- **Why not per-booking QStash messages:** delay cap 7 days vs bookings made months ahead; messages cannot be edited when the pickup is rescheduled (admin edits are a first-class feature, AEDIT) — a DB column `hold_at` recomputed on edit is trivially correct. **Admin edit hook:** changing pickup date/time must recompute `hold_at` (and release/replace an existing authorization if the new pickup is beyond its window).
+- **Why not the CRM outbox:** it is CRM-sync-only by design (strict key regexes, "imports no CRM code" VPS-isolation guard, PII-free ids). Payments must not depend on it, and its health page/digest would mix concerns.
+
+---
+
+## Admin Layout Changes
+
+- **Shell:** `app/(internal)/admin/(dashboard)/layout.tsx` hard-codes `md:ml-[280px]` and `AdminSidebar` is a fixed 280 px aside with inline hex colors. Change to a CSS variable `--admin-sidebar-w` (280 / 72 px) on the wrapper with a margin transition; collapsed state and theme persisted in **cookies** read by the server layout (`admin_sidebar`, `admin_theme`) so there is no flash or layout shift. Collapsed mode = icon rail (lucide-react is already a dependency) + tooltip labels; mobile keeps the existing hamburger overlay.
+- **Theme:** apply `theme-light` (existing class) or a `data-admin-theme` attribute **on the admin wrapper only** — `app/(internal)/layout.tsx` renders `<html>` via shared `SiteChrome`, so never toggle the root. Add semantic admin tokens (`--status-ok/warn/danger/info` + badge bg/fg) defined for both themes, replace the 234 hex literals (top offenders: `#f87171` x52, `#CFC9C2` x35, `#F5F2EE` x25, `#4E4E56` x21, `#4ade80` x14) with tokens, and add a test that bans new hex literals in `components/admin` and `app/(internal)/admin`. Recheck `StatsChart`, `ZoneMapInner`, Modal overlays and `StatusBadge` (dark-tuned rgba backgrounds) in light.
+- **Nav items to add:** Quotes, Day trips (Bookings gets view tabs List | Board | Calendar via `?view=`, not new top-level items).
+- **Board/Calendar data:** the list endpoint is the `admin_search_bookings` RPC capped at 100/page; do not stretch it. Add `GET /api/admin/bookings/board?from&to` returning slim rows (id, ref, pickup_utc, status, payment_state, vehicle, short route, driver name, amount, flags) for a window (default −1 d … +14 d; calendar month = month range). Calendar is built in-house (CSS grid; month grid, week/day time-grid) — FullCalendar's CSS/theming weight is not worth it for three views. Use `lib/prague-date.ts` for all day boundaries; `app/(internal)/admin/(dashboard)/bookings/page.tsx` currently derives week bounds with local `Date` + `toISOString()` (UTC shift) — do not copy that into the calendar.
+- **Kanban v1:** columns `unpaid/pending | confirmed | assigned | en_route+on_location+on_board | completed (last 48 h) `; `cancelled/no_show` behind a toggle. No drag-and-drop in v1: per-card "next step" button + existing assign-driver modal, all through `advanceBookingStatus`. Dragging into `completed` would trigger a capture and into `cancelled` a release/refund — too destructive for a gesture. Add `@dnd-kit` later only for safe forward moves (new dependency, verify React 19 support first).
+- **Prerequisite refactor:** extract `BookingDetailPanel` (TripEditPanel, PaymentLinkSection, DriverAssignmentSection wiring, audit log) from `components/admin/BookingsTable.tsx` (2886 lines) so list, board and calendar share one drawer. This is the single riskiest UI refactor of the milestone; do it with its own tests before building the views.
+
+---
+
+## i18n Impact
+
+| Surface | Locales | Work |
+|---------|---------|------|
+| Wizard Step 6 payment-mode chooser, consent copy ("a hold of €X will be placed on …", "no-show is charged in full"), error codes | 7 | new `booking.payment.*` keys in `messages/en.json` + real translations in all 6 others (CLAUDE.md rule) |
+| Terms / privacy / cancellation policy / FAQ | 7 | legal copy for off-session consent, hold, no-show charge, saved card, quote deposit — `content/pages/<locale>/…`; privacy policy must name Stripe card-on-file |
+| `/[locale]/quote/[token]` | 7 | `quote.*` namespace; locale chosen by operator and stored on the quote; `robots noindex`, no alternates, excluded from sitemap |
+| `/[locale]/day-trips`, `[slug]`, custom-tour form | 7 | `dayTrips.*` + `customTour.*` catalogs; `content/day-trips/<locale>/<slug>.json` per trip (N trips x 7 locales is the largest translation volume of the milestone); `getAlternates()` for hreflang, sitemap cluster, JSON-LD with `priceValidUntil` normalized in snapshot tests, `llms-data` entries |
+| Emails | EN today | all client emails are English-only (v3.0 debt, Backlog 999.x). Recommend localizing only the three payment-critical ones from day one (hold-failed + pay link, quote link, no-show charge notice) via an `emails.*` catalog namespace keyed on `bookings.locale`/`quotes.locale`; the rest stays EN |
+| Admin (board, calendar, quotes, day-trips admin) | EN only | `app/(internal)` is hard-coded `lang="en"`; no i18n work |
+| Driver page (single-step flow) | EN only | same; if drivers are non-English speakers this is an owner question |
+
+Translation pipeline note: the GH translate workflow is disabled while API credit is empty — batch new strings and translate in-session at the end of each phase; never run `scripts/i18n-translate.mjs --dry-run` on the repo tree. Price tokens on new public pages come from the DB helpers (no typed `€`), and `middleware.ts` matcher needs **no change** (no new static extensions) but `CSRF_PROTECTED_PREFIXES` must gain `/api/create-setup-intent` (also in `CSRF_STRICT_ORIGIN_REQUIRED`), `/api/submit-custom-tour`, `/api/quote`.
+
+---
+
+## New vs Modified (explicit)
+
+**NEW:** `lib/stripe.ts`, `lib/booking-status.ts`, `lib/booking-status-service.ts`, `lib/payments/*`, `lib/stripe-webhook/*`, `lib/checkout/compute.ts`, `lib/route-distance.ts`, `lib/stops.ts`, `lib/quotes/*`, `lib/day-trips.ts`, `lib/day-trip-prices.ts`; API: `create-setup-intent`, `cron/payment-tick`, `admin/bookings/[id]/payment/{retry-hold,send-link,charge-noshow,capture,charge-extras}`, `admin/bookings/board`, `admin/quotes` (+`[id]`, `send`), `quote/[token]/checkout`, `admin/day-trips`, `submit-custom-tour`, `driver/trip/[token]/stop`; pages: `/admin/quotes*`, `/admin/day-trips`, `/[locale]/quote/[token]`, `/[locale]/day-trips*`; components: `BookingDetailPanel`, `BookingsBoard`, `BookingsCalendar`, `PaymentPanel`, `QuoteBuilder`, `DayTripForm`, wizard `PaymentModeChooser`; tables listed above; owner scripts (webhook events, QStash schedule).
+
+**MODIFIED:** `app/api/create-payment-intent/route.ts` (delegates to compute module, `payment_mode`, mandatory-attempt semantics, `day_trip`, `setup_future_usage` when waiting-fee exposure), `app/api/webhooks/stripe/route.ts` (dispatcher + routing by `metadata.kind` BEFORE the `groupBookingIds`/`bookingId` branches), `app/api/admin/bookings/route.ts` (PATCH → service; GET status whitelist; POST accepts payment mode / card-guarantee link), `app/api/admin/bookings/cancel/route.ts` (**branch by `payment_state`**: no-money states → release only; `authorized` → `paymentIntents.cancel`; `captured` → existing refund. Today it refunds whenever `payment_intent_id` exists), `[id]/assign/route.ts` (shared GNet push), `[id]/payment-link/route.ts` (`purpose` metadata), `lib/stripe-payment-links.ts` (purpose, setup mode), `app/api/driver/trip/[token]/progress/route.ts` + `TripProgressClient.tsx` + trip page (single next step, stops, strict order), `lib/trip-token.ts`, `lib/booking-transitions.ts`, `components/admin/BookingsTable.tsx` (extraction, payment badges), `ManualBookingForm.tsx` / `AdminBookingWizard.tsx` (payment mode, stops), `Step6Payment.tsx` (+ `confirmSetup` path), `Step2DateTime`/`Step5Passenger` (landing time/offset), `lib/booking-store.ts` (zustand: `paymentMode`, `dayTripSlug`; stops persisted with coordinates and `waitMinutes` wired for real), `app/api/calculate-price/route.ts` (day trips, shared distance module), `lib/pricing-config.ts` + `PricingForm` + `/api/admin/pricing` (new globals), `AdminSidebar`, admin layout, `app/globals.css`, `StatusBadge`, SQL/TS status mappings (fan-out list), `lib/inquiries.ts` / `lead-mapping.ts`, `middleware.ts` (CSRF prefixes), `vercel.json`, `app/sitemap.ts`, `lib/llms-data.ts`, email templates.
+
+---
+
+## Patterns to Follow
+
+### Pattern 1: Status-gated compare-and-set for every money-moving transition
+**What:** `UPDATE … SET payment_state=$to WHERE id=$id AND payment_state=$from RETURNING *`; zero rows = another actor already moved it. Same idea the repo already uses in `reconcileBookingByIdToConfirmed` (`WHERE status='unpaid'`).
+**When:** hold claim, capture, release, no-show charge, recovery.
 **Example:**
-```sql
-CREATE TABLE public.crm_identity_map (
-  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  normalized_email   text,
-  normalized_phone_e164 text,
-  supabase_user_id   uuid REFERENCES auth.users(id) ON DELETE SET NULL,  -- nullable: guest bookings have none
-  chatwoot_contact_id integer,
-  espocrm_contact_id text,
-  espocrm_account_id text,          -- corporate accounts (hotels/agencies) map here, not contact_id
-  created_at         timestamptz NOT NULL DEFAULT now(),
-  updated_at         timestamptz NOT NULL DEFAULT now()
-);
-CREATE UNIQUE INDEX crm_identity_map_email_idx ON public.crm_identity_map (normalized_email) WHERE normalized_email IS NOT NULL;
-CREATE UNIQUE INDEX crm_identity_map_phone_idx ON public.crm_identity_map (normalized_phone_e164) WHERE normalized_phone_e164 IS NOT NULL;
+```typescript
+// lib/payments/state.ts
+export async function transition(id: string, from: PaymentState[], to: PaymentState, patch: Partial<Row> = {}) {
+  const { data } = await supabase.from('bookings')
+    .update({ payment_state: to, ...patch })
+    .eq('id', id).in('payment_state', from).select('id').maybeSingle()
+  return Boolean(data) // false → someone else won; caller must NOT call Stripe
+}
+// Stripe call only after winning the claim, always with an idempotency key:
+// stripe.paymentIntents.create({...}, { idempotencyKey: `hold:${id}:${attempt}` })
 ```
 
-## Data Flow
+### Pattern 2: Side effect first, claim after (existing SEC-10 ordering)
+Keep it for every new webhook branch; handlers must be idempotent because a crash between effect and claim causes a Stripe retry.
 
-### Event types and their producers
+### Pattern 3: Metadata `kind` routing
+Every PaymentIntent/Session we create carries `kind` (`booking|hold|hold_recovery|noshow|deposit|remainder|extras`) and a *distinct* id key per kind (`holdBookingId`, `quoteId`, …). The webhook routes on `kind` before any legacy key.
 
-| `event_type` | Producer (write path) | Consumers |
-|---|---|---|
-| `booking.created` | `saveBooking` / `saveRoundTripBookings` call sites (Stripe webhook `payment_intent.succeeded`, `checkout.session.completed`; `submit-quote` route) | EspoCRM: create/update Opportunity or Order on the matched Contact/Account |
-| `booking.paid` | Same Stripe webhook handlers, on the `status → confirmed` transition | Chatwoot: post a private note on the customer's conversation; EspoCRM: mark Opportunity won / create Order |
-| `booking.status_changed` | `app/api/admin/bookings` PATCH route (existing `VALID_TRANSITIONS` map) | EspoCRM: update pipeline stage |
-| `booking.edited` | Same PATCH route, alongside the existing `booking_edit_audit_log` insert | EspoCRM: update Order/Opportunity fields |
-| `lead.created` | `inquiries` insert (contact/corporate/multi-day forms) | Chatwoot: nothing (leads don't have a conversation yet); EspoCRM: create Lead |
-| `customer.signed_up` | Supabase Auth `on_auth_user_created`-adjacent app code, or `customer_profiles` insert path (Phase 57's existing insert-own-row flow) | EspoCRM: create/update Contact |
+### Pattern 4: Server-authoritative money
+Prices, deposits, hold amounts, no-show amounts, waiting fees are computed on the server from DB values at the moment of use (like `computeCombinedTotalMinor` today). Quote deposit is frozen at `sent`; client-supplied amounts are never read.
 
-### Request Flow — booking paid → CRM
+### Pattern 5: One extracted service for status mutation
+`advanceBookingStatus()` owns validation, CAS, log, notification flags (`pricing_globals.notification_flags`), email dedupe (`logEmail`), GNet push with `last_push_status` guard, QStash reminder, payment hooks. Routes are thin adapters (auth/CSRF/zod → service).
 
-```
-Stripe payment_intent.succeeded
-    ↓
-app/api/webhooks/stripe (EXISTING — unchanged, still writes `bookings` first, claims `stripe_processed_events` after)
-    ↓ (new call, same request, after booking confirmed)
-lib/outbox.ts enqueueOutboxEvent('booking.paid', bookingRow)
-    ↓ INSERT integration_outbox (status=pending) + after(() => qstash.publishJSON(...))
-    ↓
-QStash → app/api/integrations/dispatch (verifies QStash signature header)
-    ↓
-lib/identity.ts resolveIdentity(email, phone) ──► crm_identity_map lookup/create
-    ↓
-lib/espocrm-client.ts upsert Opportunity/Order on matched Contact/Account
-    ↓
-UPDATE integration_outbox SET status='sent', sent_at=now() WHERE id = ... (claim AFTER side effect)
-```
+### Pattern 6: Config in `pricing_globals`, content in files, structure in DB
+Hold lead, waiting fee, offsets, deposit defaults → `pricing_globals` (migration 058 pattern + `PricingGlobals` type). Day-trip prose → `content/day-trips/<locale>/`. Day-trip price/active/order → admin DB. Matches the v3.0 content/UI/data split.
 
-### Request Flow — Chatwoot conversation → EspoCRM
+---
 
-```
-Customer messages via WhatsApp/widget/email → Chatwoot conversation created/updated
-    ↓
-Chatwoot fires outgoing webhook (X-Chatwoot-Signature: sha256=HMAC(webhook_secret, "{timestamp}.{raw_body}"))
-    ↓
-app/api/webhooks/chatwoot (verifies signature over the RAW body — same "read .text() not .json() first" discipline as the Stripe route)
-    ↓
-lib/identity.ts resolveIdentity(contact.email, contact.phone_number)
-    ↓
-lib/espocrm-client.ts create/update Contact + Lead (or append conversation summary to existing Contact history)
-```
+## Anti-Patterns to Avoid
 
-### Request Flow — Dashboard App (agent viewing a customer's bookings inside Chatwoot)
+### Anti-Pattern 1: Payment meaning inside `bookings.status`
+**Why bad:** status is mirrored in 7+ SQL/TS lists, GNet, CRM leads, Google Calendar and stats; each new value requires a coordinated edit and silent `ELSE NULL` in `booking_lead_status()` stops lead sync for that status.
+**Instead:** orthogonal `payment_state`; `status` gains only the two driver-facing values that are genuinely operational.
 
-```
-Agent opens a conversation in Chatwoot → Chatwoot renders the Dashboard App iframe
-  src = https://rideprestigo.com/embed/chatwoot-dashboard   (STATIC url, no templated contact_id in the URL)
-    ↓
-Our page loads (no admin session cookie; frame-ancestors CSP restricts embedding to the Chatwoot origin)
-    ↓
-Our page: window.parent.postMessage('chatwoot-dashboard-app:fetch-info', '*')
-    ↓
-Chatwoot's own JS (already authenticated as the agent) responds via `message` event with
-  { conversation, contact: { email, phone_number, id } }
-    ↓ (only happens if we are genuinely embedded by an authenticated Chatwoot session —
-    ↓  a direct top-level visit to the URL never receives this response)
-Our page: fetch('/api/chatwoot/dashboard-app', { method: 'POST', body: { email, phone } })
-    ↓
-app/api/chatwoot/dashboard-app: looks up bookings by normalized email/phone via a read-only
-  RPC (booking summaries only — reference, status, pickup date, vehicle class; NOT payment_intent_id,
-  NOT full address, NOT admin notes)
-    ↓
-Renders a small booking-history list inside the iframe
-```
+### Anti-Pattern 2: Hold PaymentIntent metadata containing `bookingId`
+**Why bad:** the webhook routes any PI with `meta.bookingId` to `handlePaymentLinkSucceeded`, which reconciles `unpaid → confirmed` and, finding a `confirmed` row, fires the CR-02 "untracked capture" alert on every capture.
+**Instead:** `kind` + `holdBookingId`, routed first; recovery links carry `purpose:'hold_recovery'` and flip `failed → captured`.
 
-## Anti-Patterns
+### Anti-Pattern 3: Setting `payment_intent_id` at hold time
+**Why bad:** cancel route would try `refunds.create` on an uncaptured PI (Stripe error → 502); stats/panel/erasure treat it as paid.
+**Instead:** `hold_payment_intent_id` until capture; cancel branches on `payment_state`.
 
-### Anti-Pattern 1: Admin session cookie (or any cookie-based session) inside the Dashboard App iframe
+### Anti-Pattern 4: Driver route touching `bookings` directly
+**Why bad:** skips emails, GNet, capture, audit; races with admin edits.
+**Instead:** only through `advanceBookingStatus`; rewrite the DTRIP-04 structural grep gates in `tests/driver-trip-progress.test.ts` / `tests/driver-trip.test.ts` to assert the *new* invariant (driver route imports the service, never `supabase.from('bookings').update`).
 
-**What people do:** Reuse the existing admin auth (`getAdminUser()` / Supabase GoTrue cookie) to gate the embed page, since it is conceptually "an admin tool."
-**Why it's wrong:** The iframe runs inside Chatwoot's origin context in the agent's browser. A cookie-based session tied to `rideprestigo.com` may or may not be sent depending on `SameSite` policy and whether the agent is also separately logged into the admin panel in the same browser — this is fragile and, worse, couples an unrelated third-party surface (Chatwoot) to the admin session's blast radius (a leaked Dashboard App URL becomes a way to probe admin-cookie state). It also violates the explicit locked constraint in the milestone context.
-**Instead:** No cookie-based identity at all on this route. Identity comes from the Chatwoot `postMessage` handshake (see Pattern above) plus a narrow, read-only, booking-summary-only backend query. `frame-ancestors` is the load-bearing access control, not a session.
+### Anti-Pattern 5: Auto-charging the customer on a driver signal
+**Why bad:** a mis-tapped `no_show` or `completed` becomes an irreversible 100% charge or capture.
+**Instead:** confirmation dialog on the final driver step, server-side grace time for `no_show` (config, default 30 min after pickup), operator-confirmed no-show charge, capture retried by tick not by hand.
 
-### Anti-Pattern 2: Treating Chatwoot webhooks as unauthenticated
+### Anti-Pattern 6: Payments or quotes in the CRM outbox
+See Scheduler. Also: EspoCRM/Chatwoot never write bookings (v4.0 import-closure guard tests); quote status may later be mirrored *to* CRM through a new `sync.quote` outbox key, but v5 should not depend on it.
 
-**What people do:** Assume (as this milestone's initial framing did) that Chatwoot webhooks carry no signature, and gate the receiver on a secret query-string token alone.
-**Why it's wrong:** Verified via Chatwoot's developer docs (MEDIUM confidence — the docs describe current behavior; confirm the specific self-hosted version pinned in the VPS docker-compose actually emits `X-Chatwoot-Signature`, since this is a comparatively recent addition): Chatwoot DOES sign outgoing webhooks — `X-Chatwoot-Signature: sha256=HMAC-SHA256(webhook_secret, "{X-Chatwoot-Timestamp}.{raw_body}")`. Skipping HMAC verification and relying on a static URL token is weaker (a leaked/logged URL is a permanent bypass; a leaked webhook secret is rotatable and time-boxed via the timestamp check).
-**Instead:** Verify `X-Chatwoot-Signature` over the raw request body (read via `request.text()`, mirroring the Stripe route's `.text()` discipline — never `.json()` first). Reject requests where the `X-Chatwoot-Timestamp` is more than ~5 minutes old (replay protection). Keep an IP allowlist (the VPS's static egress IP) as defense-in-depth, not as the primary control, since it's the weaker signal. Apply the identical pattern to the EspoCRM receiver (`X-Signature` header, per EspoCRM's webhook docs).
+### Anti-Pattern 7: Trusting client `distanceKm` once stops exist
+Re-derive server-side; otherwise stops become a free price-tamper vector.
 
-### Anti-Pattern 3: Loading the Chatwoot widget script unconditionally on every page
+---
 
-**What people do:** Drop the Chatwoot widget `<script>` snippet into the root layout like a typical SaaS embed.
-**Why it's wrong:** Violates the existing consent architecture (`components/CookieBanner.tsx`'s `prestigo_consent_v2` per-category model) and would set third-party cookies before consent — the same class of problem `MetaPixel.tsx` already solves by listening for `prestigo:consent-granted`. It's also an unconditional new `connect-src`/`frame-src`/`script-src`/`img-src` CSP surface added to every route, whereas the widget is only needed where a chat entry point makes sense.
-**Instead:** Extend `ConsentState` with a `support` (or reuse `marketing`, phase-planning decision) category, mount the widget loader component the same way `MetaPixel.tsx` does — listen for the consent CustomEvent, inject the script only then. Add the VPS's Chatwoot subdomain to `middleware.ts`'s CSP builder (`script-src`, `connect-src` incl. `wss://` for the widget's websocket, `frame-src` if the widget itself opens an iframe, `img-src` for avatars) and to `scripts/qa/baselines/csp_baseline.json` in the same change (per the existing hard rule).
+## Scalability Considerations
 
-### Anti-Pattern 4: Reusing `quote_leads` for the new `inquiries` table
+| Concern | Today (~dozens bookings/day) | 10x | Note |
+|---------|------------------------------|-----|------|
+| Hold tick | one indexed scan, handful of rows | still one scan; `claim … LIMIT 50` per tick | partial index on `hold_at` where state='hold_scheduled' |
+| Stripe API rate | negligible | negligible | sequential per tick; idempotency keys make retries safe |
+| Webhook volume | ~3 events/booking | ~6-8 events/booking | already idempotent via `stripe_processed_events` |
+| Board/calendar | window-bounded slim query | same | never load unbounded; index on `pickup_utc` exists via RPC usage — confirm for the new query |
+| Vercel Hobby CPU | daily crons only | tick endpoint must be cheap (no-op when nothing is due) | 15-30 min tick = 48-96 invocations/day; keep the no-work path to one query |
+| QStash free budget | 1,000 msg/day | schedule uses ~96/day | shared with outbox + reminders; watch combined use |
 
-**What people do:** Since a similar-sounding table already exists (`quote_leads`, migration 038), extend it for contact/corporate/multi-day form submissions.
-**Why it's wrong:** `quote_leads` has purpose-built, incompatible semantics — a 30-day GDPR retention window enforced by `app/api/cron/purge-quote-leads` and a deny-all RLS posture tuned for ephemeral calculator captures. CRM-bound inquiries need to persist indefinitely (they become EspoCRM Leads and stay linked via `crm_identity_map`).
-**Instead:** New `inquiries` table (migration 065), no purge cron, same "service-role only, no public RLS" posture as `booking_edit_audit_log`.
+---
 
-## Integration Points
+## Suggested Build Order (with dependencies)
 
-### External Services
+| # | Phase (proposed number) | Features | Depends on | Why here |
+|---|-------------------------|----------|------------|----------|
+| 1 | **86 Admin shell** — collapsible sidebar, light theme, hex→token codemod + lint ban | 4 (part) | none | Touches 33 admin files mechanically; doing it first avoids merge conflicts with every later admin change and stops new screens (quotes, day-trips, board, calendar) from adding hex debt. Small, shippable, low risk. |
+| 2 | **87 Status vocabulary + status service + driver sync** | 5 | 1 not required, but BookingsTable edits are cleaner after 1 | Foundation for capture/no-show triggers. Do the fan-out edits (SQL fns, mappings, parity tests) once. Behavior-preserving extraction of PATCH first (tests), then statuses, then driver single-step flow, GNet idempotent push, rewrite DTRIP-04 gates, update PROJECT.md Key Decisions. Migration 084. |
+| 3 | **88 Payments: card-on-file, hold, capture, cash guarantee** | 1, 2 | 2 (completed/no_show hooks, status log) | Highest value and highest risk; everything after reuses its customer/PM/off-session machinery. Includes `lib/stripe.ts` consolidation, compute-module extraction, setup-intent route, webhook split + new events, tick endpoint + QStash schedule, cancel route branching, admin payment panel + actions, alerts, localized payment emails + legal copy (7 locales). Migration 085. Owner scripts: webhook events, QStash schedule. **Test-mode verification caveat:** `.env.local` Stripe key is a dead placeholder — verification of live Stripe flows must be done through owner-run scripts / a real test key, plan for it. |
+| 4 | **89 Dispatch views** — extract `BookingDetailPanel`, board, calendar, payment badges | 4 (rest) | 2, 3 (new statuses, payment_state to display), 1 (tokens) | Cards need the final vocabulary and payment badges; extraction refactor is isolated here. |
+| 5 | **90 Multi-stop + airport offset + waiting fees** | 6 | 2 (status log timestamps), 3 (saved card for extras charge), 4 optional | Needs `booking_status_log`, driver stop steps, server distance verification; migration 086. Also fixes the pre-existing "client-trusted distanceKm" gap. |
+| 6 | **91 Quotes** | 3 | 3 (customer/PM, off-session, purposes), 5 (stops semantics in items), 1 (admin tokens) | Bundles trips; deposit + remainder reuse the payment engine; `quote_items.kind='day_trip'` is added once day trips exist (nullable FK later). Migration 087. |
+| 7 | **92 Day trips + custom tour** | 7 | 3 (payment modes), 6 (quote link reply), i18n | Last because it carries the biggest 7-locale translation batch, benefits from every payment mode, and the custom-tour → quote loop needs quotes. Public catalogue/pages/booking can ship before the quote loop if schedule slips (catalogue+booking have no quote dependency). Migrations 088-089. |
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Chatwoot (self-hosted, VPS) | REST API (outbound, `lib/chatwoot-client.ts`) + outgoing webhooks (inbound, HMAC-verified) + Dashboard App (iframe embed of our page) + website widget (script embed, consent-gated, identity-validated via `identifier_hash`) | Auth for our→Chatwoot calls: Chatwoot API access token (agent-bot or platform app token), stored as a VPS-and-Vercel-shared env var, never committed |
-| EspoCRM (self-hosted, VPS) | REST API (outbound, `lib/espocrm-client.ts`) via an API User with API Key or HMAC auth (HMAC recommended per EspoCRM docs — "most secure method") + optional outgoing webhooks (inbound, `X-Signature` HMAC-verified, off by default for v4.0 core scope) | API User must be scoped (Roles/ACL) to only the entities it needs (Contact, Account, Lead, Opportunity) — least privilege |
-| QStash (Upstash) | Already integrated (`lib/qstash.ts`). Reuse the same client for immediate (`delay: 0`) dispatch publishes, distinct target URL (`/api/integrations/dispatch`) | QStash signs its own callbacks (`Upstash-Signature`) — verify in the dispatch route the same way reminder routes presumably already do; check `app/api/cron/reminder-2h/route.ts` for the existing verification helper and reuse it rather than re-implementing |
-| WhatsApp Cloud API | Configured inside Chatwoot (existing +420 number) — no direct site-side integration; the site only ever talks to Chatwoot, never to WhatsApp Cloud API directly | Out of the site's integration surface entirely |
+Parallelism: phases 4 and 5 can swap or overlap (different files) once 3 is done. Phase 1 can overlap phase 2's *design/research* but not its code (BookingsTable conflicts).
 
-### Internal Boundaries
+**Research flags for phases:**
+- Phase 3 (payments): needs deeper research and Stripe test-mode access — hold window per card brand, 3DS/off-session decline recovery UX, Customer dedupe for guests, consent wording (legal), SetupIntent + Elements `confirmSetup` behavior in the existing PaymentElement, Link/wallet payment methods interaction with `payment_method_types:['card']`.
+- Phase 2: GNet no-show/on-board mapping (LOW) — read the GNet provider API doc/ask partner before deciding.
+- Phase 5: Google Routes behavior with many intermediates + airport detection (`isNearAirport` uses a 0.027° box) for the offset rule; waiting-fee collection policy (owner).
+- Phase 6: invoice remainder method flow (today invoices are manual HTML→Chrome→PDF scripts) — decide minimal viable "invoice" (record + email) vs automation.
+- Phase 7: JSON-LD type for day trips (TouristTrip vs Product+Offer), sitemap/llms integration, image assets (modern Mercedes-only rule for any generated visuals).
+- Phases 1, 4: standard patterns, unlikely to need research (theme remap, in-house calendar grid).
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| Booking write paths (Stripe webhook, admin PATCH, submit-quote) ↔ outbox | Direct function call to `lib/outbox.ts`, same request/transaction | Must NOT block the response — `after()` for the QStash publish, but the outbox row INSERT itself should be synchronous (durability first, dispatch is fire-and-forget) |
-| Outbox ↔ Chatwoot/EspoCRM clients | QStash-mediated, async, at-least-once | Dispatcher is the ONLY code path allowed to call `lib/chatwoot-client.ts` / `lib/espocrm-client.ts` for outbound writes — keeps retry/idempotency logic in one place |
-| Chatwoot/EspoCRM webhooks ↔ Supabase | Inbound HTTP → `lib/identity.ts` → direct Supabase writes (`crm_identity_map`, and — per the locked decision — NEVER `bookings` or `customer_profiles`, since Supabase is the one-way source of truth for those) | Enforce structurally: the webhook receivers must not import `lib/supabase.ts`'s booking-write functions (`saveBooking`, `buildBookingRow`, etc.) — same "isolation by omission" pattern already used for the driver trip-progress route (DTRIP-04) to keep it from touching `booking.status`/GNet |
-| Dashboard App page ↔ Supabase | Read-only RPC returning a narrow booking-summary projection, no admin client exposed to the browser | New Postgres function (e.g. `chatwoot_dashboard_bookings(p_email text, p_phone text)`) called via the service-role client from the API route only — never a client-side Supabase call |
+---
+
+## Open Decisions for the Owner (surface in requirements)
+
+1. Hold lead default 72 h instead of "~5 days" (Visa MIT window) — confirm.
+2. No-show charge: operator-confirmed (recommended) vs automatic.
+3. `no_show` lead status (`converted` vs `dead`) and whether stats count it as revenue only when charged.
+4. Stats meaning: booked vs collected revenue once unpaid-but-confirmed holds exist.
+5. Whether to localize payment-critical client emails now.
+6. Driver UI language (EN only today).
+7. Kanban drag-and-drop: defer (recommended).
+8. Waiting fee collection: operator-approved charge (recommended) vs automatic.
+
+---
 
 ## Sources
 
-- [How to use webhooks? — Chatwoot User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677693021-how-to-use-webhooks) (MEDIUM — official docs, version not pinned to the VPS deployment target)
-- [HMAC Verification and Identity Validation — DeepWiki chatwoot/chatwoot](https://deepwiki.com/chatwoot/chatwoot/11.4-hmac-verification-and-identity-validation) (MEDIUM — third-party code-derived doc, cross-checked against Chatwoot's own webhook signature description)
-- [How to enable identity validation in Chatwoot? — Chatwoot User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677587479-how-to-enable-identity-validation-in-chatwoot) (MEDIUM)
-- [How to use Dashboard Apps? — Chatwoot User Guide](https://www.chatwoot.com/hc/user-guide/articles/1677691702-how-to-use-dashboard-apps) (MEDIUM)
-- [Securing Dashboard Apps? — chatwoot/chatwoot Discussion #5878](https://github.com/orgs/chatwoot/discussions/5878) (LOW — community discussion, corroborates the postMessage-only trust model, not an authoritative spec)
-- [Webhooks — EspoCRM Documentation](https://docs.espocrm.com/administration/webhooks/) (MEDIUM — official docs)
-- [API overview — EspoCRM Documentation](https://docs.espocrm.com/development/api/) (MEDIUM — official docs)
-- Codebase: `app/api/webhooks/stripe/route.ts`, `lib/qstash.ts`, `lib/rate-limit.ts`, `middleware.ts`, `lib/supabase/server.ts`, `components/CookieBanner.tsx`, `components/MetaPixel.tsx`, `supabase/migrations/038_quote_leads.sql`, `supabase/migrations/044_customer_profiles.sql`, `supabase/migrations/055_booking_edit_audit_log.sql` (HIGH — read directly from the `main` branch, 2026-09-27)
-
----
-*Architecture research for: v4.0 Helpdesk + CRM integration layer*
-*Researched: 2026-09-27*
+- Repo source read for this document (HIGH): `app/api/create-payment-intent/route.ts`, `app/api/webhooks/stripe/route.ts`, `lib/stripe-payment-links.ts`, `app/api/admin/bookings/route.ts` (PATCH/GET), `app/api/admin/bookings/cancel/route.ts`, `app/api/admin/bookings/[id]/assign/route.ts`, `app/api/driver/trip/[token]/progress/route.ts`, `lib/trip-token.ts`, `lib/booking-transitions.ts`, `lib/gnet-client.ts`, `lib/outbox.ts`, `app/api/cron/*`, `lib/qstash.ts`, `lib/supabase.ts`, `lib/pricing-config.ts`, `lib/server-pricing.ts`, `app/api/calculate-price/route.ts`, `lib/booking-store.ts`, `components/admin/{AdminSidebar,BookingsTable,StatusBadge}.tsx`, admin layout, `app/globals.css` (`.theme-light`), `middleware.ts`, migrations 039/040/053/056/058/061/063/064/065/067/069/080/081, `vercel.json`, `.planning/PROJECT.md`, `CLAUDE.md`.
+- Stripe: "Place a hold on a payment method" — https://docs.stripe.com/payments/place-a-hold-on-a-payment-method (HIGH; authorization windows table: Visa MIT 5 days / exact 4 d 18 h, others 7 days; capture-before-expiry; partial capture; cancel to release; `amount_capturable_updated`).
+- Stripe: "Save a customer's payment method without making a payment" (Setup Intents API) — https://docs.stripe.com/payments/save-and-reuse?payment-ui=elements (HIGH; SCA up-front authentication, `off_session:true`, `authentication_required` recovery by bringing the customer back on-session).
+- Vercel cron limits — https://vercel.com/docs/cron-jobs/usage-and-pricing (MEDIUM; Hobby once per day, hourly precision; third-party pages conflict on job-count limit).
+- Upstash QStash pricing/delay — https://upstash.com/qstash/pricing and https://upstash.com/docs/qstash/features/delay (MEDIUM; free plan 7-day max delay corroborated by in-repo `MAX_DELAY_SECONDS`; active-schedule count conflicting across sources — verify in console).

@@ -122,7 +122,7 @@ export default function RoutesTable({ initialRoutes }: RoutesTableProps) {
         role="button"
         aria-expanded={isOpen}
       >
-        INTERCITY ROUTES {isOpen ? '▲' : '▼'}
+        Intercity routes {isOpen ? '▲' : '▼'}
       </div>
 
       {isOpen && (
@@ -237,7 +237,7 @@ export default function RoutesTable({ initialRoutes }: RoutesTableProps) {
                         </span>
                       )}
                       {status === 'error' && (
-                        <span style={{ color: '#ff6b6b', marginLeft: '8px', fontSize: '11px', fontFamily: 'var(--font-montserrat)' }}>
+                        <span style={{ color: 'var(--status-danger-fg)', marginLeft: '8px', fontSize: '11px', fontFamily: 'var(--font-montserrat)' }}>
                           Error
                         </span>
                       )}

@@ -189,7 +189,7 @@ export default function Step1TripType() {
                   marginTop: '-8px',
                   fontSize: 12,
                   fontWeight: 300,
-                  color: '#ff8a7a',
+                  color: 'var(--status-danger-fg, #ff8a7a)',
                   lineHeight: 1.4,
                 }}
               >

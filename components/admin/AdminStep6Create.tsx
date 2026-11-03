@@ -317,7 +317,7 @@ export default function AdminStep6Create({ onClose: _onClose, onCreated }: Props
           style={{
             fontFamily: 'var(--font-montserrat)',
             fontSize: '12px',
-            color: '#f87171',
+            color: 'var(--status-danger-fg)',
             marginBottom: 12,
           }}
         >
@@ -332,7 +332,7 @@ export default function AdminStep6Create({ onClose: _onClose, onCreated }: Props
         style={{
           width: '100%',
           background: 'var(--copper)',
-          color: 'var(--offwhite)',
+          color: 'var(--admin-on-accent)',
           border: 'none',
           minHeight: 48,
           fontFamily: 'var(--font-montserrat)',

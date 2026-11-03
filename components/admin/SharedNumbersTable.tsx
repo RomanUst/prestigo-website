@@ -10,7 +10,7 @@ interface SharedNumbersTableProps {
   empty: { heading?: string; body: string }
 }
 
-const COLUMNS = ['PHONE', 'HOW', 'EMAILS', 'NOTE', 'MARKED']
+const COLUMNS = ['Phone', 'How', 'Emails', 'Note', 'Marked']
 const DASH = '—'
 const SHOWN_EMAILS = 2
 

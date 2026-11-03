@@ -1,0 +1,625 @@
+/* Admin theme tokens (Phase 86, D-02, D-03, D-05, D-07, D-17).
+
+   Light and dark are declared on the same wrapper, keyed on data-admin-theme.
+   Every selector starts with .admin-shell, so public pages and the 7 locales
+   never see these rules. The single exception is the OQ2 edge rule below.
+   This file is a bundled import (never placed in public/), so the middleware
+   matcher is not involved. tests/admin-theme-css.test.ts enforces scoping,
+   light/dark token parity and contrast; tests/admin-no-hardcoded-colors.test.ts
+   keeps TS/TSX free of colour literals (this stylesheet is the one place they
+   live).
+
+   Do not add transform, filter, will-change, contain, perspective or
+   backdrop-filter to the wrapper rules: any of them makes .admin-shell the
+   containing block for position: fixed descendants (sidebar, hamburger,
+   modal overlays). */
+
+/* OQ2 edge rule: the only selector above .admin-shell. Custom properties do
+   not reach html/body, so the cream literal is required here. It only matches
+   while a light admin wrapper exists, so public pages are structurally
+   unaffected.
+
+   The ::-webkit-scrollbar-track selector is its own rule on purpose: browsers
+   drop a whole selector list when one selector is invalid, and Firefox does not
+   know the webkit pseudo-element, so sharing a list would also lose the
+   html/body background (navy overscroll in Firefox). Both rules stay gated on
+   the light wrapper (owner decision OQ2 is unchanged). */
+html:has(.admin-shell[data-admin-theme="light"]),
+body:has(.admin-shell[data-admin-theme="light"]) {
+  background-color: #EFE8DA;
+  color-scheme: light;
+}
+
+html:has(.admin-shell[data-admin-theme="light"])::-webkit-scrollbar-track {
+  background-color: #EFE8DA;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-montserrat);
+  --admin-font-brand: 'Fraunces', Georgia, serif;
+  /* Single source for the aside width and main's left offset (D-13). The
+     collapsed override below lives inside the desktop media block, so a
+     collapsed cookie never produces a rail on a phone (D-16). */
+  --admin-sidebar-w: 280px;
+}
+
+/* ── Light ─────────────────────────────────────────────────────────────── */
+.admin-shell[data-admin-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces and text */
+  --admin-bg: #EFE8DA;
+  --admin-sidebar-bg: #E5DCCB;
+  --admin-surface: #F7F4EF;
+  --admin-input-bg: #F7F4EF;
+  --admin-hover: #E5DCCB;
+  --admin-sidebar-hover: color-mix(in srgb, #D6CAB4 55%, transparent);
+  --admin-sidebar-active: #D6CAB4;
+  --admin-border: #D6CAB4;
+  --admin-border-strong: #857A60;
+  --admin-text: #16202A;
+  --admin-text-muted: #4F5B64;
+
+  /* Accent and states */
+  --admin-accent: #7A5A28;
+  --admin-on-accent: #F7F4EF;
+  --admin-accent-text: #6F5224;
+  --admin-accent-tint: rgba(122, 90, 40, 0.10);
+  --admin-accent-tint-strong: rgba(122, 90, 40, 0.16);
+  --admin-accent-border: rgba(122, 90, 40, 0.30);
+  --admin-focus: #6F5224;
+  --admin-danger-solid: #A32A1C;
+  --admin-on-danger: #F7F4EF;
+  --admin-scrim: rgba(22, 32, 42, 0.40);
+  --admin-shadow-sheet: 0 8px 32px rgba(22, 32, 42, 0.16);
+  --admin-tooltip-bg: #16202A;
+  --admin-tooltip-fg: #F7F4EF;
+  --admin-card-hover-border: #D6CAB4;
+  --admin-kpi-label: #4F5B64;
+
+  /* Shape and type (D-08: per-theme values, dark equals today's inline values) */
+  --admin-radius-sm: 4px;
+  --admin-radius-md: 8px;
+  --admin-radius-lg: 12px;
+  --admin-font-heading: 'Inter', 'Helvetica Neue', sans-serif;
+  --admin-fs-label: 12px;
+  --admin-fs-body: 14px;
+  --admin-fs-heading: 20px;
+  --admin-fs-display: 28px;
+  --admin-fw-strong: 500;
+  --admin-fw-heading: 500;
+  --admin-sheet-padding: 32px;
+
+  /* Charts */
+  --admin-chart-1: #7A5A28;
+  --admin-chart-2: #9A7A44;
+  --admin-chart-3: #5E6B75;
+
+  /* Status (D-17): light chips are borderless pastels */
+  --status-ok-fg: #1F5130;
+  --status-ok-bg: #D9E8D3;
+  --status-ok-border: transparent;
+  --status-danger-fg: #8F2418;
+  --status-danger-bg: #F2D4CE;
+  --status-danger-border: transparent;
+  --status-warn-fg: #8A4A0F;
+  --status-warn-bg: #F5DFC8;
+  --status-warn-border: transparent;
+  --status-amber-fg: #7A4A05;
+  --status-amber-bg: #F6E1B8;
+  --status-amber-border: transparent;
+  --status-info-fg: #1F4F78;
+  --status-info-bg: #D6E3EE;
+  --status-info-border: transparent;
+  --status-teal-fg: #17564B;
+  --status-teal-bg: #CFE7E2;
+  --status-teal-border: transparent;
+  --status-violet-fg: #4A2F7A;
+  --status-violet-bg: #E3DAF0;
+  --status-violet-border: transparent;
+  --status-neutral-fg: #4A4F55;
+  --status-neutral-bg: #E0DAC9;
+  --status-neutral-border: transparent;
+
+  /* Legacy remap: the ~900 existing var(--anthracite*) references flip for free.
+     Values are the site cream/ink/gold family with AA corrections; the public
+     .theme-light block in app/globals.css is deliberately not touched. */
+  --anthracite: #F7F4EF;
+  --anthracite-mid: #F7F4EF;
+  --anthracite-light: #D6CAB4;
+  --offwhite: #16202A;
+  --warmgrey: #4F5B64;
+  --copper: #7A5A28;
+  --copper-light: #6F5224;
+  --copper-pale: #9A7A44;
+  --color-anthracite: #F7F4EF;
+  --color-anthracite-mid: #F7F4EF;
+  --color-anthracite-light: #D6CAB4;
+  --color-offwhite: #16202A;
+  --color-warmgrey: #4F5B64;
+  --color-copper: #7A5A28;
+  --color-copper-light: #6F5224;
+  --color-copper-pale: #9A7A44;
+  --font-cormorant: var(--admin-font-heading);
+}
+
+/* ── Dark ──────────────────────────────────────────────────────────────── */
+/* Maps the retired anthracite/copper palette onto the navy/gold brand palette
+   (D-07). The bare legacy variables are intentionally not redeclared here:
+   dark inherits the global navy values from app/globals.css. */
+.admin-shell[data-admin-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces and text */
+  --admin-bg: #17293B;
+  --admin-sidebar-bg: #0F1D2C;
+  --admin-surface: #17293B;
+  --admin-input-bg: #0F1D2C;
+  --admin-hover: #1F344A;
+  --admin-sidebar-hover: #17293B;
+  --admin-sidebar-active: #17293B;
+  --admin-border: #2B4056;
+  --admin-border-strong: #6B829A;
+  --admin-text: #F3EEE3;
+  --admin-text-muted: #A9AEB0;
+
+  /* Accent and states */
+  --admin-accent: #BFA06A;
+  --admin-on-accent: #0F1D2C;
+  --admin-accent-text: #D4BB86;
+  --admin-accent-tint: rgba(191, 160, 106, 0.09);
+  --admin-accent-tint-strong: rgba(191, 160, 106, 0.15);
+  --admin-accent-border: rgba(191, 160, 106, 0.25);
+  --admin-focus: #D4BB86;
+  --admin-danger-solid: #C0392B;
+  --admin-on-danger: #F3EEE3;
+  --admin-scrim: rgba(0, 0, 0, 0.60);
+  --admin-shadow-sheet: none;
+  --admin-tooltip-bg: #F3EEE3;
+  --admin-tooltip-fg: #0F1D2C;
+  --admin-card-hover-border: #BFA06A;
+  --admin-kpi-label: #BFA06A;
+
+  /* Shape and type */
+  --admin-radius-sm: 2px;
+  --admin-radius-md: 4px;
+  --admin-radius-lg: 8px;
+  --admin-font-heading: 'Fraunces', Georgia, serif;
+  --admin-fs-label: 11px;
+  --admin-fs-body: 13px;
+  --admin-fs-heading: 20px;
+  --admin-fs-display: 28px;
+  --admin-fw-strong: 400;
+  --admin-fw-heading: 300;
+  --admin-sheet-padding: 24px;
+
+  /* Charts */
+  --admin-chart-1: #BFA06A;
+  --admin-chart-2: #D4BB86;
+  --admin-chart-3: #E6D6B0;
+
+  /* Status (D-17): dark keeps today's tinted chips with a coloured border */
+  --status-ok-fg: #4ade80;
+  --status-ok-bg: #1a3a2a;
+  --status-ok-border: rgba(34, 197, 94, 0.25);
+  --status-danger-fg: #f87171;
+  --status-danger-bg: #2a1a1a;
+  --status-danger-border: rgba(239, 68, 68, 0.25);
+  --status-warn-fg: #fb923c;
+  --status-warn-bg: #3a2a1a;
+  --status-warn-border: rgba(249, 115, 22, 0.25);
+  --status-amber-fg: #fbbf24;
+  --status-amber-bg: #3a2a0a;
+  --status-amber-border: rgba(251, 191, 36, 0.25);
+  --status-info-fg: #60a5fa;
+  --status-info-bg: #1a2a3a;
+  --status-info-border: rgba(59, 130, 246, 0.25);
+  --status-teal-fg: #34d399;
+  --status-teal-bg: #1a3a35;
+  --status-teal-border: rgba(52, 211, 153, 0.25);
+  --status-violet-fg: #a78bfa;
+  --status-violet-bg: #2a1f3a;
+  --status-violet-border: rgba(167, 139, 250, 0.25);
+  --status-neutral-fg: #A9AEB0;
+  --status-neutral-bg: #1F344A;
+  --status-neutral-border: rgba(169, 174, 176, 0.25);
+}
+
+/* ── Light safety net: inline uppercase and weight 300 (D-08, D-10) ─────── */
+/* Many admin components set text-transform: uppercase, wide tracking and
+   font-weight 300 as inline styles (adminFieldStyles and older forms). Inline
+   styles outrank any stylesheet rule, so the light theme neutralises them with
+   attribute-substring selectors plus !important. React SSR serialises the style
+   attribute without a space after the colon, client-created DOM nodes with one,
+   so both spellings are listed (Pitfall 1; tests/admin-light-safety-net.test.tsx
+   proves the substrings against real output). Dark gets none of these rules:
+   dark keeps today's tracked capitals. */
+.admin-shell[data-admin-theme="light"] [style*="text-transform:uppercase"],
+.admin-shell[data-admin-theme="light"] [style*="text-transform: uppercase"] {
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+.admin-shell[data-admin-theme="light"] [style*="font-weight:300"],
+.admin-shell[data-admin-theme="light"] [style*="font-weight: 300"] {
+  font-weight: 400 !important;
+}
+
+/* ── Light structure: headings, wizard buttons, labels, flat tables (D-10, D-11) ── */
+/* Headings: calm weight 500, no tracking. !important because several pages set
+   letter-spacing and weight inline on their own headings. */
+.admin-shell[data-admin-theme="light"] .admin-main :is(h1, h2, h3) {
+  letter-spacing: normal !important;
+  font-weight: 500 !important;
+}
+
+.admin-shell[data-admin-theme="light"] #modal-title {
+  letter-spacing: normal !important;
+  font-weight: 500 !important;
+}
+
+/* The public booking wizard steps render inside the admin (manual booking).
+   Their .btn-* classes come from app/globals.css (uppercase, 0.35em tracking);
+   scoped here, so the public pages keep them. These class rules need no
+   !important: .admin-shell[...] .btn-* outranks the bare class. */
+.admin-shell[data-admin-theme="light"] :is(.btn-primary, .btn-ghost, .btn-secondary) {
+  text-transform: none;
+  letter-spacing: normal;
+  border-radius: var(--admin-radius-md);
+  font-weight: 500;
+}
+
+/* Shared public .label (AddressInput inside the admin edit form) uppercases
+   through a class, not an inline style, so the safety net above cannot reach it. */
+.admin-shell[data-admin-theme="light"] .label {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Flat tables: no outer border, muted 12px/500 header with a hairline, 1px row
+   separators, soft hover. Cell borders and header type are often inline, hence
+   !important. */
+.admin-shell[data-admin-theme="light"] table {
+  border-collapse: collapse;
+}
+
+.admin-shell[data-admin-theme="light"] table th {
+  font-size: var(--admin-fs-label) !important;
+  font-weight: 500 !important;
+  color: var(--admin-text-muted) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-shell[data-admin-theme="light"] table td {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid var(--admin-border) !important;
+}
+
+.admin-shell[data-admin-theme="light"] table tbody tr:hover > td {
+  background-color: var(--admin-hover);
+}
+
+/* The wrapper that directly holds a table loses its outer border and radius. */
+.admin-shell[data-admin-theme="light"] div:has(> table) {
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+
+/* ── Modal action rows stay in view in both themes (UI-SPEC E6) ─────────── */
+/* The Modal body scrolls; the last child of its direct form is the action row
+   (ErasureConfirmForm, SplitContactForm). Forms that wrap everything in one
+   div (AccountForm, DriverForm, MarkSharedForm) keep the action row as that
+   wrapper's last child, so the second selector covers them. :not(:only-child)
+   keeps the single wrapper itself from becoming sticky. */
+.admin-shell .admin-modal-body > form > :last-child:not(:only-child),
+.admin-shell .admin-modal-body > form > :only-child > :last-child:not(:only-child) {
+  position: sticky;
+  bottom: 0;
+  background-color: var(--admin-surface);
+  padding-top: 16px;
+}
+
+/* ── Shell: main offset and sidebar panel (ADM-01, D-13, D-16) ─────────── */
+/* Below 768px the aside is the 280px slide-over (display comes from the
+   Tailwind hidden/flex classes on the element) and main has no offset. The
+   aside is pinned top and bottom so the nav can scroll while the footer
+   stays in view. */
+.admin-shell .admin-main {
+  margin-left: 0;
+  min-height: 100vh;
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+  font-family: var(--font-montserrat);
+}
+
+.admin-shell .admin-aside {
+  width: 280px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 50;
+  flex-direction: column;
+  background-color: var(--admin-sidebar-bg);
+  border-right: 1px solid var(--admin-border);
+}
+
+/* ── Sidebar header, wordmark, sub-label ───────────────────────────────── */
+.admin-shell .admin-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--admin-border);
+  flex-shrink: 0;
+}
+
+.admin-shell .admin-wordmark {
+  font-family: var(--admin-font-brand);
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-sublabel {
+  display: block;
+  margin-top: 4px;
+  color: var(--admin-text-muted);
+}
+
+.admin-shell[data-admin-theme="dark"] .admin-sublabel {
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+
+.admin-shell[data-admin-theme="light"] .admin-sublabel {
+  font-size: 12px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+/* ── Nav list (scrolls on short viewports) and pinned footer ───────────── */
+.admin-shell .admin-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.admin-shell .admin-sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--admin-border);
+}
+
+/* ── Nav items ─────────────────────────────────────────────────────────── */
+.admin-shell .admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  color: var(--admin-text-muted);
+  font-size: var(--admin-fs-body);
+  text-decoration: none;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.admin-shell .admin-nav-item:hover {
+  background-color: var(--admin-sidebar-hover);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-nav-item:focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: -2px;
+}
+
+.admin-shell .admin-nav-icon {
+  flex-shrink: 0;
+}
+
+/* Dark keeps today's look: tracked labels and a 3px left accent bar. */
+.admin-shell[data-admin-theme="dark"] .admin-nav-item {
+  padding: 0 20px 0 17px;
+  border-left: 3px solid transparent;
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+
+.admin-shell[data-admin-theme="dark"] .admin-nav-item[aria-current="page"] {
+  border-left-color: var(--admin-accent);
+  color: var(--admin-text);
+}
+
+/* Light: Notion-like soft rows, sentence case, no accent bar. */
+.admin-shell[data-admin-theme="light"] .admin-nav-item {
+  margin: 0 8px;
+  border-radius: var(--admin-radius-md);
+  font-weight: 400;
+}
+
+.admin-shell[data-admin-theme="light"] .admin-nav li + li {
+  margin-top: 4px;
+}
+
+.admin-shell[data-admin-theme="light"] .admin-nav-item[aria-current="page"] {
+  background-color: var(--admin-sidebar-active);
+  color: var(--admin-text);
+  font-weight: 500;
+}
+
+/* ── Icon buttons (collapse, theme toggle, sign out) ───────────────────── */
+.admin-shell .admin-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  font-family: var(--font-montserrat);
+  font-size: var(--admin-fs-body);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.admin-shell .admin-icon-btn:hover {
+  background-color: var(--admin-sidebar-hover);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-icon-btn:focus-visible {
+  outline: 2px solid var(--admin-focus);
+  outline-offset: 2px;
+}
+
+/* Desktop-only collapse button: the compound selector outranks the generic
+   .admin-icon-btn display rule above whatever the source order. */
+.admin-shell .admin-icon-btn.admin-collapse-btn {
+  display: none;
+}
+
+.admin-shell .admin-signout-btn {
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.admin-shell[data-admin-theme="dark"] .admin-signout-btn .admin-nav-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Mobile hamburger and backdrop ─────────────────────────────────────── */
+.admin-shell .admin-hamburger {
+  background: var(--admin-sidebar-bg);
+  border: 1px solid var(--admin-border-strong);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text);
+}
+
+.admin-shell .admin-backdrop {
+  background-color: var(--admin-scrim);
+}
+
+/* ── Rail tooltip: fixed so the scrolling nav cannot clip it ───────────── */
+.admin-shell .admin-rail-tooltip {
+  position: fixed;
+  left: calc(var(--admin-sidebar-w) + 8px);
+  transform: translateY(-50%);
+  z-index: 70;
+  white-space: nowrap;
+  pointer-events: none;
+  padding: 4px 8px;
+  border-radius: var(--admin-radius-sm);
+  background-color: var(--admin-tooltip-bg);
+  color: var(--admin-tooltip-fg);
+  font-family: var(--font-montserrat);
+  font-size: var(--admin-fs-label);
+  font-weight: var(--admin-fw-strong);
+  line-height: 1.4;
+}
+
+.admin-shell .admin-rail-tooltip-hint {
+  display: block;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Everything below applies from the md breakpoint up. Every collapsed-state
+   selector must stay inside this block (tests/admin-theme-css.test.ts). */
+@media (min-width: 768px) {
+  .admin-shell[data-admin-sidebar="collapsed"] {
+    --admin-sidebar-w: 72px;
+  }
+
+  .admin-shell .admin-aside {
+    width: var(--admin-sidebar-w);
+    transition: width 200ms ease;
+  }
+
+  .admin-shell .admin-main {
+    margin-left: var(--admin-sidebar-w);
+    transition: margin-left 200ms ease;
+  }
+
+  .admin-shell .admin-icon-btn.admin-collapse-btn {
+    display: inline-flex;
+  }
+
+  /* Visually hidden, never display: none: the label stays in the accessibility
+     tree and findable by text. */
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-wordmark,
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-sublabel {
+    display: none;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-sidebar-header {
+    justify-content: center;
+    padding: 24px 0;
+  }
+
+  /* Icon tiles: 44x44, centered in the 72px rail, in both themes. */
+  .admin-shell[data-admin-sidebar="collapsed"][data-admin-theme="light"] .admin-nav-item,
+  .admin-shell[data-admin-sidebar="collapsed"][data-admin-theme="dark"] .admin-nav-item {
+    width: 44px;
+    margin: 0 auto;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-nav li + li {
+    margin-top: 4px;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"][data-admin-theme="dark"] .admin-nav-item[aria-current="page"] {
+    background-color: var(--admin-sidebar-active);
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-sidebar-footer {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 0;
+  }
+
+  .admin-shell[data-admin-sidebar="collapsed"] .admin-signout-btn {
+    gap: 0;
+    padding: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell .admin-main,
+  .admin-shell .admin-aside {
+    transition: none;
+  }
+}

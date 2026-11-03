@@ -232,7 +232,7 @@ describe('Erasure page: confirm modal', () => {
     expect(button.disabled).toBe(false)
     fireEvent.click(box)
     expect(button.disabled).toBe(true)
-    expect(button.style.background).toMatch(/#f87171|rgb\(248, 113, 113\)/)
+    expect(button.style.background).toBe('var(--admin-danger-solid)')
   })
 
   it('without upcoming trips there is no second checkbox', async () => {
@@ -399,7 +399,7 @@ describe('Erasure page: log', () => {
     render(<ErasurePage />)
     await screen.findByText('abcdef0121')
     const heads = screen.getAllByRole('columnheader').map((h) => h.textContent)
-    expect(heads).toEqual(['REQUESTED', 'REFERENCE', 'STATUS', 'SITE', 'CHATWOOT', 'ESPOCRM', 'VERIFIED', 'COMPLETED'])
+    expect(heads).toEqual(['Requested', 'Reference', 'Status', 'Site', 'Chatwoot', 'EspoCRM', 'Verified', 'Completed'])
     expect(screen.getByRole('heading', { level: 2, name: 'Erasure log' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Refresh erasure log' })).toBeTruthy()
   })
@@ -447,7 +447,7 @@ describe('Erasure page: log', () => {
     expect(cells[2].textContent).toBe('Needs attention')
     expect(cells[3].textContent).toMatch(/^Done/)
     const failed = within(cells[4]).getByText('Failed')
-    expect(failed.style.color).toMatch(/#f87171|rgb\(248, 113, 113\)/)
+    expect(failed.style.color).toBe('var(--status-danger-fg)')
     expect(within(cells[4]).getByRole('link', { name: 'Open Outbox' }).getAttribute('href')).toBe('/admin/outbox')
   })
 
@@ -564,7 +564,8 @@ describe('Erasure page: log polling', () => {
     expect(logCalls).toBe(1)
     await advance(1_500)
     expect(logCalls).toBe(2)
-    expect(screen.getByText('Completed')).toBeTruthy()
+    // The header cell is also "Completed" now that headers are sentence case; look in the data row.
+    expect(within(screen.getAllByRole('row')[1]).getByText('Completed')).toBeTruthy()
 
     await advance(60_000)
     expect(logCalls).toBe(2)

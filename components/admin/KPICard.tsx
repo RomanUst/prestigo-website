@@ -9,9 +9,9 @@ interface KPICardProps {
 export function KPICard({ label, value, subLabel }: KPICardProps) {
   return (
     <div style={{
-      background: 'var(--anthracite-mid)',
-      border: '1px solid var(--anthracite-light)',
-      borderRadius: '4px',
+      background: 'var(--admin-surface)',
+      border: '1px solid var(--admin-border)',
+      borderRadius: 'var(--admin-radius-md)',
       padding: '24px',
       minWidth: '200px',
       display: 'flex',
@@ -20,25 +20,25 @@ export function KPICard({ label, value, subLabel }: KPICardProps) {
       transition: 'border-color 300ms ease',
       cursor: 'default',
     }}
-    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--copper)' }}
-    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--anthracite-light)' }}
+    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--admin-card-hover-border)' }}
+    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--admin-border)' }}
     >
       <span style={{
-        fontFamily: 'var(--font-montserrat)', fontSize: '11px', fontWeight: 400,
-        textTransform: 'uppercase', letterSpacing: '0.4em', color: 'var(--copper)',
+        fontFamily: 'var(--font-montserrat)', fontSize: 'var(--admin-fs-label)', fontWeight: 'var(--admin-fw-strong)',
+        textTransform: 'uppercase', letterSpacing: '0.4em', color: 'var(--admin-kpi-label)',
       }}>
         {label}
       </span>
       <span style={{
-        fontFamily: 'var(--font-cormorant)', fontSize: '32px', fontWeight: 300,
-        color: 'var(--offwhite)', lineHeight: 1,
+        fontFamily: 'var(--admin-font-heading)', fontSize: 'var(--admin-fs-display)', fontWeight: 'var(--admin-fw-heading)',
+        color: 'var(--admin-text)', lineHeight: 1,
       }}>
         {value}
       </span>
       {subLabel && (
         <span style={{
-          fontFamily: 'var(--font-montserrat)', fontSize: '11px', fontWeight: 400,
-          color: 'var(--warmgrey)',
+          fontFamily: 'var(--font-montserrat)', fontSize: 'var(--admin-fs-label)', fontWeight: 400,
+          color: 'var(--admin-text-muted)',
         }}>
           {subLabel}
         </span>

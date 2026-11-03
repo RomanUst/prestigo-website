@@ -133,7 +133,7 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--anthracite)', borderBottom: '1px solid var(--anthracite-light)', height: '40px' }}>
-              {['REF', 'PICKUP', 'ROUTE', 'VEHICLE', 'AMOUNT', 'STATUS'].map((h, i) => (
+              {['Ref', 'Pickup', 'Route', 'Vehicle', 'Amount', 'Status'].map((h, i) => (
                 <th key={h} style={{ padding: '0 12px', textAlign: i === 4 ? 'right' : 'left', fontFamily: 'var(--font-montserrat)', fontSize: '11px', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.4em', color: 'var(--warmgrey)' }}>
                   {h}
                 </th>
@@ -168,13 +168,13 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
                           title={b.invoice_number ? `Invoice ${b.invoice_number}` : 'Paid'}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
-                            padding: '4px 8px', backgroundColor: '#1a3a2a', color: '#4ade80',
-                            border: '1px solid rgba(34,197,94,0.25)', borderRadius: '2px',
+                            padding: '4px 8px', backgroundColor: 'var(--status-ok-bg)', color: 'var(--status-ok-fg)',
+                            border: '1px solid var(--status-ok-border)', borderRadius: '2px',
                             fontFamily: 'var(--font-montserrat)', fontSize: '11px',
                             textTransform: 'uppercase', letterSpacing: '0.08em',
                           }}
                         >
-                          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#4ade80' }} />
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--status-ok-fg)' }} />
                           Paid
                         </span>
                       )}

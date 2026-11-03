@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import { X } from 'lucide-react'
 
 type ModalProps = {
   isOpen: boolean
@@ -45,7 +46,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
         position: 'fixed',
         inset: 0,
         zIndex: 100,
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'var(--admin-scrim)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -55,28 +56,30 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     >
       <div
         style={{
-          backgroundColor: '#36363B',
-          border: '1px solid #4E4E56',
-          borderRadius: '8px',
-          padding: '24px',
+          backgroundColor: 'var(--admin-surface)',
+          border: '1px solid var(--admin-border)',
+          borderRadius: 'var(--admin-radius-lg)',
+          padding: 'var(--admin-sheet-padding)',
+          boxShadow: 'var(--admin-shadow-sheet)',
+          display: 'flex',
+          flexDirection: 'column',
           // min() keeps the 480px floor on desktop but lets the panel shrink to the
           // screen on phones instead of overflowing both edges.
           minWidth: 'min(480px, 100%)',
           maxWidth: '560px',
           width: '100%',
           maxHeight: '100%',
-          overflowY: 'auto',
         }}
         onClick={e => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexShrink: 0 }}>
           <h2
             id="modal-title"
             style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '20px',
-              fontWeight: 300,
-              color: '#F5F2EE',
+              fontFamily: 'var(--admin-font-heading)',
+              fontSize: 'var(--admin-fs-heading)',
+              fontWeight: 'var(--admin-fw-heading)',
+              color: 'var(--admin-text)',
               margin: 0,
             }}
           >
@@ -88,20 +91,21 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             style={{
               background: 'none',
               border: 'none',
-              color: '#CFC9C2',
+              color: 'var(--admin-text-muted)',
               cursor: 'pointer',
               minWidth: '44px',
               minHeight: '44px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '16px',
             }}
           >
-            ✕
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
-        {children}
+        <div className="admin-modal-body" style={{ overflowY: 'auto', flex: 1, minHeight: 0 }}>
+          {children}
+        </div>
       </div>
     </div>
   )

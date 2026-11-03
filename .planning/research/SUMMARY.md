@@ -1,186 +1,364 @@
 # Project Research Summary
 
-**Project:** Prestigo v4.0 — Helpdesk + CRM
-**Domain:** Self-hosted omnichannel helpdesk (Chatwoot) + CRM (EspoCRM) on a new Hostinger VPS, two-way linked to an existing production Next.js/Supabase/Stripe site
-**Researched:** 2026-09-27
-**Confidence:** MEDIUM
+**Project:** Prestigo — milestone v5.0 "Payments, Quotes & Day Trips"
+**Researched:** 2026-11-02
+**Confidence:** MEDIUM-HIGH
 
 ## Executive Summary
 
-v4.0 bolts a self-hosted helpdesk (Chatwoot) and CRM (EspoCRM) onto the existing Prestigo stack, running on a new Hostinger VPS (Docker, KVM 4 recommended, 16GB/4vCPU) behind Caddy. Both tools are mature, free-tier-sufficient open-source products — Chatwoot unifies WhatsApp Cloud API, email, website widget, Telegram/Instagram/Facebook into one inbox; EspoCRM gives a no-code custom-entity CRM with a B2B Opportunity pipeline. Neither Enterprise/paid tier is needed for 1-3 operators. The only genuinely hard engineering is the sync layer: a Supabase `integration_outbox` table dispatched via QStash to Chatwoot/EspoCRM REST APIs, plus inbound HMAC-verified webhooks from both — built in-repo (no n8n, per locked decision) so the public site, booking and payment flow never depend on VPS uptime.
+v5.0 is an integration milestone on a shipped Next.js + Supabase + Stripe + Vercel Hobby codebase and needs **zero new runtime npm dependencies**. The work is:
 
-The recommended approach: stand up the VPS infrastructure first (Docker, Caddy, backups, Uptime Kuma) as its own phase, then Chatwoot channels (WhatsApp Coexistence is the critical, highest-business-risk step — must not disconnect the existing +420 number), then EspoCRM entities/pipeline, then the outbox/webhook sync layer (idempotency, identity resolution, echo-loop prevention, GDPR erasure propagation all belong in this phase's initial design, not bolted on later), and only then the Dashboard App (booking data in the Chatwoot sidebar) once Chatwoot/EspoCRM are stable and any known CVEs are confirmed patched.
+- New Stripe flows: SetupIntent + Customer, off-session manual-capture holds, capture, and the no-show charge.
+- One signed scheduler endpoint.
+- A second state machine for money (`payment_state`) that runs alongside `bookings.status`.
+- One shared status-mutation service used by both admin and driver.
+- Hand-built kanban, calendar and theme on top of the existing `.theme-light` CSS variables.
 
-Key risks: (1) WhatsApp migration — must use Coexistence, not a hard cutover, or the live +420 number's history/app access is destroyed; (2) Meta Business/App-Review friction for WhatsApp/IG/FB, which is a lead-time risk, not a code risk, and should start in parallel with VPS setup; (3) webhook security — Chatwoot's webhook-secret/HMAC mismatch (GitHub #13809) means signature verification must be validated against the actual deployed version, not assumed; (4) CSP/CWV regressions from the chat widget on conversion-critical pages, which Prestigo has already been burned by twice (middleware matcher incidents); (5) GDPR erasure/DSR propagation across three systems (Supabase/Chatwoot/EspoCRM) must be designed into the outbox schema from day one, not retrofitted.
+Quotes and day trips reuse the payment engine, the `route_prices`/`live-prices` pattern and the v4.0 lead outbox.
+
+### The blocker: a hold ~5 days before the trip does not work
+
+All four researchers independently reached the same conclusion: **the owner's "hold ~5 days before" cannot work as stated.**
+
+- A scheduled hold, placed with the customer absent, is merchant-initiated. Visa holds last 4 d 18 h in that case; Mastercard, Amex and Discover holds last 7 d.
+- A Visa hold placed at T-5d therefore expires about 6 h before pickup.
+- Extended and incremental authorization do not fix this:
+  - Both require IC+ pricing.
+  - Visa extended authorization applies to customer-initiated payments only (+0.08%).
+  - Discover excludes limousines.
+
+### Recommendation (unanimous)
+
+1. Make the hold lead time configurable (`payment_hold_lead_hours`), defaulting to 72 h and never set to 120 h.
+2. When pickup is already inside the lead window, place an on-session manual-capture hold at checkout (customer-initiated, 3DS, 7-day window).
+3. Store Stripe's `capture_before` and alert on it.
+4. Always implement a capture-time fallback:
+   - If the PaymentIntent is no longer `requires_capture`, create a fresh off-session automatic-capture charge on the saved card under the SetupIntent mandate.
+   - If that charge fails, send a payment link and alert the operator.
+
+The real guarantee is the saved card plus the mandate; the hold is a convenience and a trust signal.
+
+### Other top risks
+
+- The webhook creates bookings from `payment_intent.succeeded` and will mishandle hold, capture and no-show events.
+- The driver link becomes a trigger that moves money.
+- Mandate wording, and Czech/EU consumer law on a 100% no-show fee.
+- Vercel Hobby cron runs only once a day.
+- There is no usable local Stripe test key.
 
 ## Key Findings
 
-### Recommended Stack
+### Stack
 
-New infra only — the existing Next.js/Supabase/Stripe/Resend/QStash stack is untouched. Hostinger VPS **KVM 4** (16GB/4vCPU) runs Chatwoot (Rails + Sidekiq + Postgres 16/pgvector + Redis 7, Community Edition) and EspoCRM (PHP 8.3+/MariaDB 10.3+, Community, v10.0.3) as separate Docker Compose stacks behind **Caddy** (auto-TLS, minimal ops for a static 2-subdomain box) on `chat.rideprestigo.com` / `crm.rideprestigo.com`. Backups: `pg_dump`/`mysqldump` nightly -> **restic -> Backblaze B2**, plus Hostinger's weekly snapshot as a coarse safety net, with a dead-man's-switch ping to **Uptime Kuma** (also used for uptime/health monitoring). OS patched via `unattended-upgrades` (security-repo only, Docker packages blacklisted); app images upgraded manually/deliberately. SMTP: Hostinger-hosted mailboxes (not Resend, which is send-only) for info@/booking@ (Chatwoot) and sales@/roman@ (EspoCRM) — strictly separate, per locked decision.
+Keep everything that is installed: `stripe` stays at 21.0.1, with no major bumps mid-milestone.
 
-**Core technologies:**
-- Chatwoot CE v4.18.x on Docker — omnichannel inbox (WhatsApp/email/widget/Telegram/IG/FB), Application API + webhooks
-- EspoCRM CE v10.0.3 on Docker — Contact/Account/Lead/Opportunity/Case + custom "Booking" entity, REST API (API Key/HMAC) + webhooks
-- Caddy 2.x — reverse proxy + automatic TLS for the two subdomains
-- restic + Backblaze B2 — encrypted offsite backups; Uptime Kuma — monitoring + backup dead-man's-switch
-- No new Node client packages — hand-written `fetch` wrappers (`lib/chatwoot.ts`, `lib/espocrm.ts`), matching existing repo convention (Stripe/Resend, no unofficial SDKs)
-- Reuse existing QStash (`lib/qstash.ts`) for outbox dispatch — no new queue library
+**Card on file and holds**
+- SetupIntent + Customer with `usage: off_session`, using a deferred-intent PaymentElement and `confirmSetup`.
+- Payment methods: `card` only. This covers Apple Pay and Google Pay.
+- The scheduled hold is an off-session PaymentIntent with `capture_method: manual` and the idempotency key `hold:<bookingId>:<attempt>`.
+- Cancelling the PaymentIntent releases the hold at no fee; capture uses `amount_to_capture`.
 
-### Expected Features
+**Quotes**
+- Use our own `/quote/[token]` page and Supabase tables, not Stripe Quotes or Invoicing.
+- The deposit is taken one of two ways: an on-page PaymentElement PaymentIntent with `setup_future_usage`, or a Checkout Session created per attempt. Either way, the deposit is paid and the card saved in a single 3DS step.
 
-**Must have (table stakes):**
-- Chatwoot inboxes: WhatsApp Cloud API (Coexistence mode, existing +420 number), email IMAP/SMTP (info@/booking@), consent-gated website widget with identity validation, Telegram, Instagram, Facebook
-- Canned responses + macros directly replacing the current ad-hoc `send-*.mjs` scripts
-- Automation rules, agent/team assignment, labels, reports (CSAT, first-response-time, conversation volume)
-- Chatwoot Application API + webhooks; Dashboard App (read-only bookings in the conversation sidebar)
-- EspoCRM Account/Contact/Lead/Opportunity/Case, custom "Booking" entity (read-model, never a second source of truth), B2B Opportunity pipeline (Kanban)
-- EspoCRM REST API + Roles/ACL (set up correctly from day one, even with 1 operator)
-- Persisting currently-lost inquiries: contact form, corporate form, multi-day quote form -> Supabase `inquiries` table -> EspoCRM Lead
+**Scheduler**
+- One endpoint, `/api/cron/payment-tick`, accepting either a `CRON_SECRET` bearer or a QStash signature.
+- The primary trigger is a QStash Schedule every 15–30 min; the daily Vercel cron is the backstop.
+- Rejected: pg_cron, and per-booking delayed QStash messages (the free plan caps delays at 7 days).
 
-**Should have (differentiators):**
-- Supabase outbox + QStash sync (the actual hard engineering; guarantees no lost lead/booking if VPS is down)
-- Dashboard App showing booking history in the Chatwoot sidebar (biggest named "convenient work" win)
-- Statistics: leads->bookings conversion, repeat-customer rate (requires a join across CRM + Supabase, not out-of-the-box)
+**Admin shell**
+- Theme uses the existing `.theme-light` class plus cookies (`admin_theme`, `admin_sidebar`). No `next-themes`, because of the CSP nonce problem.
+- Kanban is hand-built and moves cards through menus only (no drag-and-drop).
+- Calendar is a CSS grid built on `lib/prague-date.ts`.
+- Live updates use polling with `router.refresh()`.
 
-**Defer (v2+ of this milestone / backlog):**
-- Chatwoot Enterprise / EspoCRM Advanced Pack (SLA, SSO, BPM, pivot reports) — not needed for 1-3 operators
-- EspoCRM webhooks feeding CRM-side changes back into the outbox — only if a real workflow needs it
-- Client<->driver messaging 24h before trip via Chatwoot — explicitly named as future, not v4.0 scope
-- Automation-rule tuning, 2nd/3rd agent onboarding — after real data exists
+**Routing**
+- Google Routes `computeRoutes` with `intermediates`, which the codebase already uses.
+- Do not set `routingPreference`, so requests stay on the Essentials SKU. Cap the number of stops.
 
-### Architecture Approach
+**Webhook events to subscribe** (via an owner-run script):
+- `setup_intent.succeeded`, `setup_intent.setup_failed`
+- `payment_intent.amount_capturable_updated`, `.payment_failed`, `.canceled`
+- `charge.expired`, `charge.dispute.created`
+- `payment_method.detached`
 
-The delta is entirely additive: a durable `integration_outbox` table (Supabase) that every booking/inquiry/customer write path inserts into in the same request, dispatched near-real-time via QStash to a single `app/api/integrations/dispatch` route that fans out to Chatwoot/EspoCRM based on `event_type`, with a `crm_identity_map` table resolving identity (normalized email/phone) before every outbound write. Inbound direction mirrors this: HMAC-verified webhook receivers (`app/api/webhooks/chatwoot`, `app/api/webhooks/espocrm`) write only to CRM-side tables, never to `bookings`/`customer_profiles` (Supabase stays sole source of truth, enforced structurally by which modules the webhook routes are allowed to import — same "isolation by omission" pattern already used for the driver trip-progress route).
+### Features
 
-**Major components:**
-1. `integration_outbox` + `lib/outbox.ts` — durable, idempotent event log; single insert call site for every producer
-2. `app/api/integrations/dispatch` (QStash-invoked) — the only code path allowed to call `lib/chatwoot-client.ts` / `lib/espocrm-client.ts` for outbound writes
-3. `crm_identity_map` + `lib/identity.ts` — email/phone normalization and dedup before any Chatwoot/EspoCRM contact is created
-4. Webhook receivers (`app/api/webhooks/{chatwoot,espocrm}`) — HMAC-verified inbound sync, structurally barred from touching booking/customer core tables
-5. `app/embed/chatwoot-dashboard` — Dashboard App iframe page, no admin session cookie, identity via Chatwoot's own `postMessage` handshake + `frame-ancestors` CSP, read-only booking-summary RPC only
+**Must have**
+- **Card on file:**
+  - an unticked consent checkbox with a stored consent record
+  - a visible, tiered cancellation policy
+- **Holds:**
+  - a scheduled hold, released free of charge on cancellation and captured on completion
+  - a recovery link plus an operator alert when a hold fails
+  - payment status badges
+- **Cash:** cash payment backed by a card guarantee, with a 100% no-show charge that an operator must confirm.
+- **Driver flow:** a single "next step" flow that writes `booking.status`.
+- **Multi-stop pricing:**
+  - priced across all legs and recomputed on the server
+  - pre-selected waiting time per stop, with the first 15 min free
+- **Airport pickup offset:** the free wait is counted from the pickup time.
+- **Quotes:**
+  - a token page with an itemised body and an expiry
+  - a lifecycle that includes "viewed"
+  - acceptance recorded with logged evidence
+  - a deposit, plus a remainder collected by card, link, cash or invoice
+  - versions
+- **Admin:** a date-scoped kanban, a day/week/month calendar, a collapsible sidebar and a light theme.
+- **Day trips:**
+  - a catalogue priced per car (E/S/V) in admin
+  - trip pages with online booking
+  - a custom-tour form that feeds the lead pipeline and then a quote
+
+**Differentiators**
+- the capture-time fallback charge
+- cash backed by a card guarantee
+- pre-priced waiting time
+- airport timeline wording
+- the quote "viewed" signal
+- prefill for "customise this trip"
+
+**Defer**
+- an overstay overage charge
+- a calendar showing drivers as resources
+- Supabase Realtime
+- drag-and-drop
+- quote PDF or e-signature
+- live GPS
+- per-slot inventory
+- per-person pricing
+- a self-service cancellation portal
+
+### Architecture
+
+**Data model**
+- `payment_state`, `payment_mode`, `hold_at` and `capture_before` are independent of `status`.
+- A ledger table, `booking_payment_events`, records money events.
+- Only `lib/payments/state.ts` writes `payment_state`, using compare-and-set transitions.
+- `bookings.status` gains just two values: `on_board` and `no_show`. The driver's `arrived` step maps to the existing `on_location`.
+- `payment_intent_id` is set only at capture; the hold's PaymentIntent lives in `hold_payment_intent_id`. This keeps cancel, stats and erasure correct.
+
+**Status service**
+- The inline PATCH logic in `app/api/admin/bookings/route.ts` is extracted into `advanceBookingStatus()`.
+- It becomes the single status writer for admin, driver, cancel and payments.
+
+**Quotes and day trips**
+- Quotes turn into bookings when the deposit is paid, with `payment_mode='quote'`, so the hold engine ignores them.
+- Day trips copy the `route_prices` shape (3 price columns, edited in admin); prose lives in `content/day-trips/<locale>/`.
+
+**Main components**
+- `lib/stripe.ts` and `lib/stripe-webhook/*`
+- `lib/booking-status-service.ts`
+- `lib/payments/*` and `/api/cron/payment-tick`
+- `lib/checkout/compute.ts` and `lib/route-distance.ts`
+- `lib/quotes/*` and `lib/day-trips.ts`
+- the admin shell, plus an extracted `BookingDetailPanel`
 
 ### Critical Pitfalls
 
-1. **WhatsApp hard-cutover migration destroys the existing +420 number's history/app access** — use Embedded Signup Coexistence mode, verify the number isn't already claimed by another BSP, test both directions before declaring done.
-2. **Webhook signature verification trusted on a known-buggy field** — Chatwoot's API-exposed `secret` field can mismatch the real `hmac_token` (issue #13809); verify against a real test delivery, add IP-allowlist/shared-secret as compensating control if unverifiable for the installed version.
-3. **Bidirectional sync infinite echo loop** — tag every outbound write with an origin marker/fingerprint; inbound webhooks must skip processing anything matching a recent outbound write, since Supabase is the locked sole source of truth.
-4. **Chat widget tanks LCP/INP on conversion-critical pages** — defer load past `load`/facade pattern, gate behind consent (also closes the GDPR pre-consent-cookie gap), measure before/after CWV as an explicit UAT gate given Prestigo's SEO/CWV history is already load-bearing.
-5. **GDPR erasure request only deletes the Supabase row**, leaving the person live in Chatwoot conversations and EspoCRM contacts — design an `erasure_requested` outbox event type from day one, not after a real DSR arrives.
+1. **Hold window vs Visa's 4 d 18 h limit.**
+   - Use a configurable 72 h lead and an on-session hold for near-term trips.
+   - Track `capture_before` and implement the fallback charge.
+2. **The webhook assumes pay-now.**
+   - Route on `metadata.kind` first, and make `setup_intent.succeeded` the booking trigger.
+   - Status-guard `charge.refunded` so that a partial refund cannot cancel a completed trip.
+   - The cancel route branches on `payment_state`, choosing between `cancel` and `refund`.
+   - Never put `bookingId` in a hold PaymentIntent's metadata.
+3. **Failed or double holds.**
+   - Write the attempt row before calling Stripe, and use one idempotency key per attempt.
+   - Allow only one active hold per booking and leg, and never retry blindly.
+   - The recovery link and operator alert must not depend on the VPS.
+4. **The driver link moves money.**
+   - Use one status writer with compare-and-set.
+   - The server enforces step order: skipping a step returns 409, replaying one returns 200.
+   - Completing the trip requires confirmation.
+   - Capture is retried by the tick and is visible in admin.
+   - The driver never sets an amount, and there is no automatic no-show charge.
+   - Rewrite the v2.2 isolation grep-gates rather than deleting them.
+5. **Consent and legal exposure.**
+   - An unticked mandate checkbox in all 7 locales, with a stored hash of the text.
+   - A tiered cancellation schedule; a flat 100% fee is a trap under unfair-terms law.
+   - Sign-off from Czech counsel or ČOI before payments ship.
+   - Quote tokens:
+     - hashed and 256-bit
+     - immutable versions
+     - side-effect-free GET
+     - no-referrer, no-store and noindex
+6. **Scheduler and time.**
+   - Hobby cron runs only once a day, so the tick uses catch-up semantics.
+   - Do all scheduling math on `pickup_utc` instants, with DST fixtures for 2027-03-28 and 2027-10-31.
+   - Keep `landing_at` separate from `pickup_at`.
+   - Recompute `hold_at` whenever admin edits the pickup.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure (phases start at 76 per milestone numbering):
+Numbering continues from v4.0, which ended at phase 85: the next phase is 86 and the next migration is 084.
 
-### Phase 1: VPS Infrastructure
-**Rationale:** Everything else (Chatwoot, EspoCRM, sync) needs the VPS, TLS, backups, and monitoring to exist first; also the phase where the "VPS must never be a silent SPOF" constraint and backup/restore integrity need to be proven before any real data flows through.
-**Delivers:** Hostinger VPS provisioned (KVM 4), Docker + Compose, Caddy with TLS on `chat.*`/`crm.*`, `unattended-upgrades` configured (Docker packages blacklisted), restic->B2 backup pipeline with a tested restore drill, Uptime Kuma monitoring + dead-man's-switch alerting on a channel independent of the VPS.
-**Addresses:** Foundation for all target features.
-**Avoids:** Pitfall 13 (VPS SPOF/no alerting), Pitfall 14 (backup/restore integrity — DB dump + attachment storage out of sync).
-
-### Phase 2: Chatwoot Deployment + Core Channels (Email, Widget, Telegram)
-**Rationale:** Get Chatwoot live and low-risk channels connected before the highest-business-risk step (WhatsApp) and before Meta-gated channels (IG/FB).
-**Delivers:** Chatwoot CE running on the VPS; email channel (info@/booking@ IMAP/SMTP, audited for no dual-mailbox access first); consent-gated, CWV-safe website widget with CSP additions + `csp_baseline.json` update; Telegram inbox.
-**Addresses:** Table-stakes Chatwoot inboxes (partial), canned responses/macros scaffolding.
-**Avoids:** Pitfall 6 (CWV regression), Pitfall 7 (CSP breakage), Pitfall 8 (pre-consent cookie/GDPR), Pitfall 17 (dual mailbox access).
-
-### Phase 3: WhatsApp Cloud API Channel (Coexistence)
-**Rationale:** Isolated as its own phase because it's the single highest-business-risk step (can kill the live +420 number) and has external lead-time dependencies (Meta Business verification, template approval) that should run in parallel with other build work, not block it.
-**Delivers:** WhatsApp Coexistence onboarding, Meta Business verification + display-name approval, pre-approved outbound templates replacing every current `send-*.mjs` use case (payment reminder, time-change, vehicle-change, review request, invoice), 24h-window UI/automation awareness.
-**Addresses:** WhatsApp Cloud API inbox target feature; retiring manual ops scripts.
-**Avoids:** Pitfall 1 (migration cutover), Pitfall 2 (Meta verification rejection), Pitfall 4 (24h window/template gap), Pitfall 5 (pricing model changes Oct 2026), Pitfall 15 (inbox deletion cascade — runbook).
-
-### Phase 4: Instagram + Facebook Channels
-**Rationale:** Sequenced after WhatsApp/email/widget are stable, per pitfalls research, to reduce blast radius if Meta App Review stalls; scope-mixing bugs mean these should go through separate app-review submissions.
-**Delivers:** IG + FB inboxes via separate, scope-minimal Meta App Review submissions.
-**Addresses:** Remaining Chatwoot channel target features.
-**Avoids:** Pitfall 3 (Instagram scope-mixing rejection loop).
-
-### Phase 5: EspoCRM Deployment + Core Entities
-**Rationale:** Independent of Chatwoot channel work; can run in parallel with Phase 3/4 once Phase 1 infra exists. Establishes the CRM data model the sync layer will target.
-**Delivers:** EspoCRM live; Account/Contact/Lead/Opportunity/Case configured; custom "Booking" entity (read-model only); B2B Opportunity pipeline (Kanban, hotel/agency/corporate stages); Roles/ACL set up for future 2-3 operators; sales@/roman@ Group Email Account (audited for no dual mailbox access first).
-**Addresses:** EspoCRM table-stakes target features.
-**Avoids:** Pitfall 17 (dual mailbox access, applied to sales@/roman@).
-
-### Phase 6: Site -> Sync Foundation (Outbox, Identity, Inquiries)
-**Rationale:** This is the hard engineering and the true dependency root for every "leads never lost" and "two-way sync" goal — must exist before any inbound webhook or Dashboard App work, and its schema (including erasure events) shapes everything downstream.
-**Delivers:** `integration_outbox`, `crm_identity_map`, `inquiries` Supabase migrations; `lib/outbox.ts`, `lib/identity.ts` (with `libphonenumber-js` added); contact/corporate/multi-day-quote forms modified to persist into `inquiries`; `app/api/integrations/dispatch` route wired to QStash, pushing `booking.created/paid/status_changed/edited`, `lead.created`, `customer.signed_up` events to Chatwoot/EspoCRM; `outbox-sweep` cron.
-**Uses:** QStash (`lib/qstash.ts`), Supabase, `lib/chatwoot-client.ts`/`lib/espocrm-client.ts` thin fetch wrappers.
-**Implements:** Outbox pattern, idempotency-key pattern, identity resolution pattern (Architecture Patterns 1-3).
-**Avoids:** Pitfall 9 (erasure propagation — build the event type now), Pitfall 12 (duplicate contacts — normalization at the single matching point).
-
-### Phase 7: CRM/Chatwoot -> Site Sync (Webhooks + Echo Prevention)
-**Rationale:** Depends on Phase 6's identity/outbox infrastructure; the inbound direction is architecturally riskier (webhook auth, echo loops) so it's kept as its own reviewable, security-flagged phase.
-**Delivers:** `app/api/webhooks/chatwoot` and `app/api/webhooks/espocrm` routes, HMAC-verified over raw body with replay protection and delivery-ID dedup; origin-tagging/fingerprint mechanism to prevent bidirectional echo loops; conversation-derived contact/lead create-update flowing into EspoCRM; erasure-propagation end-to-end tested.
-**Addresses:** "Chatwoot -> CRM: conversations create/update contacts & leads" target feature.
-**Avoids:** Pitfall 10 (unverified/spoofable webhooks), Pitfall 11 (echo loop) — commit with `security:` prefix per CLAUDE.md.
-
-### Phase 8: Chatwoot Dashboard App (Bookings in Sidebar)
-**Rationale:** Sequenced last, after core Chatwoot/EspoCRM sync is stable and the Chatwoot version is confirmed to have patched CVE-2025-12245 — this is explicitly the phase pitfalls research flags as needing a security-first build, not a quick iframe wire-up.
-**Delivers:** `app/embed/chatwoot-dashboard` page, `app/api/chatwoot/dashboard-app` read-only RPC, origin-validated `postMessage` handshake, no cookie-based auth.
-**Addresses:** Explicit v4.0 target feature (biggest named "convenient work" win).
-**Avoids:** Pitfall 16 (iframe/postMessage CVE-class vulnerability) — commit with `security:` prefix.
-
-### Phase Ordering Rationale
-
-- VPS infra must exist before anything is deployed onto it (Phase 1 first, universally blocking).
-- WhatsApp is isolated as its own phase, not bundled with other channels, because it's the highest-risk step (can break a live customer-facing number) and has external Meta approval lead time that benefits from starting early and running in parallel with other build work.
-- IG/FB deliberately come after WhatsApp/email/widget are stable, per the pitfalls research's explicit sequencing recommendation (reduces blast radius from Meta review stalls, avoids scope-mixing rejection loops).
-- The sync layer (outbox -> dispatch -> identity) must exist before any inbound webhook work, since webhooks need `crm_identity_map` and the origin-tagging mechanism the outbox establishes.
-- The Dashboard App is deliberately last among the build phases — it depends on both Chatwoot and EspoCRM being live and stable, and it's flagged as needing the most security hardening (CVE-2025-12245), so it shouldn't be the first thing built on a fresh, unverified Chatwoot install.
-- GDPR/compliance work (privacy policy, RoPA, erasure propagation) is folded into Phase 6 rather than deferred, per pitfalls research's explicit warning that this is easy to skip under deadline pressure and hard to retrofit.
+- **Phase 86: Admin shell.**
+  - Scope:
+    - theme stored in a cookie and a collapsible sidebar
+    - a codemod converting about 234 hex literals to tokens
+    - a test that bans new hex values
+  - Why first: it is mechanical and low-risk.
+  - Prevents:
+    - merge conflicts, and new hex debt piling up in later phases
+    - theme flash and CSP nonce issues
+    - the theme leaking onto public pages
+- **Phase 87: Status vocabulary, status service, driver sync** (migration 084).
+  - Scope:
+    - a behaviour-preserving extraction of `advanceBookingStatus()`
+    - the `on_board` and `no_show` statuses, and a `booking_status_log` table
+    - the driver's single-step flow, with idempotent GNet pushes
+    - rewritten DTRIP-04 gates, and parity tests
+  - Why before payments: capture and no-show hooks need one trusted status writer.
+- **Phase 88: Payments** (migration 085), with a legal checkpoint before launch.
+  - **Code and plumbing:**
+    - consolidate `lib/stripe.ts` and extract the compute module
+    - `create-setup-intent`
+    - the `payment_state` machine and its ledger
+    - split the webhook and add the new events
+    - `payment-tick` with its QStash schedule
+    - the capture fallback, and cancel-route branching
+  - **Admin and operations:**
+    - an admin payment panel
+    - the recovery link and alerts
+    - a feature flag, rolled out with an owner canary
+  - **Customer-facing:**
+    - consent storage
+    - 7-locale mandate and terms copy
+    - 3 localized payment emails
+  - Highest value and highest risk; quotes, extras and day trips all reuse it.
+- **Phase 89: Dispatch views.**
+  - Scope: extract `BookingDetailPanel` from the 2886-line `BookingsTable`, then build the kanban and the calendar.
+  - Depends on the final status set and the payment badges.
+  - Avoid:
+    - a kanban that bypasses transitions; it should offer `UI_TRANSITIONS` only, with confirm dialogs that state the money effect
+    - grouping by the browser's timezone
+  - Can swap or overlap with Phase 90 once 88 is done.
+- **Phase 90: Multi-stop, airport offset, waiting fees** (migration 086).
+  - Scope:
+    - `booking_stops`
+    - server-side distance recompute, which also closes the current gap where `distanceKm` is trusted from the client
+    - pre-selected waiting per stop
+    - airport offset, with the free wait counted from pickup
+    - delay handling that notifies the operator
+  - Extras above the hold are charged separately, with operator approval.
+- **Phase 91: Quotes** (migration 087).
+  - Scope:
+    - the quote builder and `/quote/[token]`
+    - versions
+    - the deposit, taken through a per-attempt session
+    - remainder methods, including a minimal invoice method (a record plus an email)
+    - turning a quote into bookings
+  - Needs the payment machinery from 88 and the stop semantics from 90.
+- **Phase 92: Day trips + custom tour** (migrations 088–089).
+  - Why last:
+    - it carries the largest 7-locale batch
+    - it benefits from every payment mode
+    - the custom-tour loop needs quotes
+  - The catalogue and booking can ship before the quote loop.
+  - Avoid:
+    - thin per-locale pages
+    - cannibalising `/routes/*`
+    - stale JSON-LD prices (use ISR with revalidation)
+    - missing places where the `trip_type` enum is used
+- **In parallel with 86–87:** Stripe test-mode setup (owner-run scripts) and the legal review.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 3 (WhatsApp Coexistence):** Meta's onboarding flow, current pricing model (changed twice in 15 months, Oct 2026 service-message billing change), and the exact state of the +420 number's current BSP connection all need verification at plan time, not assumed from this research.
-- **Phase 6 (Outbox/Identity foundation):** idempotency-key design and the email-OR-phone permissive-matching trade-off are flagged MEDIUM-confidence design choices in ARCHITECTURE.md that should be confirmed with the owner during planning.
-- **Phase 7 (Webhooks):** must confirm the exact Chatwoot/EspoCRM version deployed and whether the HMAC signing bug (#13809) and EspoCRM's header rename (`X-Signature`->`Signature` at v9+) apply to the installed versions before finalizing verification code.
-- **Phase 8 (Dashboard App):** must confirm CVE-2025-12245 is patched in the deployed Chatwoot version before building.
+Need research before planning:
+- **Phase 88:**
+  - `confirmSetup` inside the existing PaymentElement
+  - Stripe Customer handling for guest checkouts
+  - decline and 3DS recovery, and SCA test cards
+  - blended vs IC+ pricing and the merchant category code
+  - legal wording
+  - the QStash schedule quota
+- **Phase 87:** GNet semantics for `on_board` and `no_show` (LOW confidence).
+- **Phase 90:** Routes API behaviour with many intermediates, airport detection, and the waiting-fee policy.
+- **Phase 91:**
+  - the invoice remainder method
+  - VAT documents for deposits
+  - Payment Link vs Checkout Session restriction parameters
+- **Phase 92:** the JSON-LD type, package-travel classification, and a GSC keyword map.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (VPS infra):** Docker Compose + Caddy + restic/B2 + Uptime Kuma are all well-documented, standard self-hosting patterns.
-- **Phase 2 (Chatwoot core channels), Phase 5 (EspoCRM core entities):** both follow official vendor documentation closely; low ambiguity.
+Standard patterns: Phases 86 and 89.
+
+## Owner Decisions Still Open
+
+1. **Hold lead time.**
+   - Confirm a configurable 72 h lead instead of "~5 days", with an on-session hold at checkout for near-term trips and the capture-time fallback.
+   - Confirm the cutoff for the on-session hold (about 6 days out).
+   - Confirm that multi-day quotes use per-day holds or a deposit plus remainder, never one long hold.
+2. **`on_board`.**
+   - Decide whether it is a real `bookings.status` (recommended) or progress-only, mapped to `on_location`.
+   - Decide whether `no_show` is terminal, and how it maps in:
+     - leads (`converted` vs `dead`)
+     - stats (count revenue only when charged)
+     - Chatwoot
+3. **No-show charge.**
+   - Operator-confirmed (recommended) or automatic.
+   - Wait thresholds: Blacklane's benchmark is 30 min in the city and 60 min at the airport, counted from the pickup time.
+4. **GNet.**
+   - Which statuses are pushed for `on_board` and `no_show`.
+   - Whether changes the driver makes are pushed automatically.
+   - Partner (`gnet`) bookings must skip the hold, capture and no-show charge.
+5. **Legal wording** — needs Czech counsel or ČOI before Phase 88 ships:
+   - mandate and consent text
+   - the tiered cancellation schedule and the no-show clause
+   - the withdrawal-exemption disclosure
+   - VAT documents for deposits
+   - how day trips are classified
+   - Stripe PII erasure vs accounting retention
+6. **Lower priority:**
+   - booked vs collected revenue in stats
+   - waiting-fee collection (operator-approved recommended)
+   - localizing the payment-critical emails now
+   - the driver UI language
+   - kanban drag-and-drop (deferred)
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | MEDIUM | Web-search cross-checked across 2-3 sources per claim; no official Context7 docs for Chatwoot/EspoCRM/Caddy; Hostinger pricing figures are directional only |
-| Features | MEDIUM | Official docs + GitHub discussions cross-checked via web search; no direct API testing against a live instance; automation-rule tier gating and Enterprise feature lists should be re-verified at install time |
-| Architecture | HIGH (integration points) / MEDIUM (Chatwoot/EspoCRM webhook & Dashboard App mechanics) | Integration points verified against the actual `main` branch codebase (2026-09-27); external mechanics (webhooks, iframe) verified via docs search only, not yet exercised against a live self-hosted instance |
-| Pitfalls | MEDIUM | Cross-checked across official docs, GitHub issues/discussions, CVE databases, GDPR sources; a few findings (e.g. "5 production failures" blog) are single-source but corroborated elsewhere |
+| Stack | HIGH | Official docs read 2026-11-02; UI build-vs-buy MEDIUM |
+| Features | MEDIUM-HIGH | Stripe rules HIGH; competitor policies/structured-data MEDIUM |
+| Architecture | HIGH | Read from source; GNet no-show semantics LOW |
+| Pitfalls | MEDIUM-HIGH | Stripe HIGH; Czech/EU law MEDIUM-LOW |
 
-**Overall confidence:** MEDIUM
+**Overall confidence:** MEDIUM-HIGH
 
 ### Gaps to Address
 
-- **Exact Chatwoot/EspoCRM patch versions at deploy time** — webhook HMAC behavior (issue #13809), CVE-2025-12245 patch status, and EspoCRM's webhook header name (`X-Signature` vs `Signature`) all depend on the specific version installed; verify against a real test webhook delivery during Phase 7/8 planning, not assumed from this research.
-- **Current WhatsApp Business Platform pricing** (changed materially in 2025-2026, another change Oct 1 2026) — re-verify against Meta's live pricing docs immediately before Phase 3 launch, not from this document.
-- **+420 number's current BSP connection status** — confirm it's still only on the WhatsApp Business App (not already claimed by a competing BSP) before starting Coexistence onboarding.
-- **Email-OR-phone permissive identity matching** — flagged MEDIUM-confidence in ARCHITECTURE.md; confirm with the owner whether false-positive merges (e.g. shared corporate booking-desk phone) are acceptable before Phase 6 implementation.
-- **Automation-rule gating on self-hosted vs Chatwoot Cloud plan names** — some sources suggest richer automation may be Business/Enterprise-gated on Cloud; verify actual self-hosted CE gating at Phase 2 setup time.
-- **GDPR/legal review of the Hostinger VPS's physical hosting region and sub-processor documentation** — this research recommends an EU region and privacy-policy updates but does not substitute for actual legal review.
+- **Stripe pricing plan and MCC:** confirm in the Dashboard.
+- **QStash free-plan schedule count:** sources conflict, so verify in the Upstash console. If the schedule is unavailable, the daily backstop must still place holds, just later.
+- **Stripe test key:** the current key is a dead placeholder, so use owner-run scripts and a canary. Hold expiry cannot be simulated with test cards; mock the `canceled` branch instead.
+- **GNet:** the semantics for `on_board` and `no_show` are unknown.
+- **Legal:** the Czech/EU specifics are unverified.
+- **Existing debts found:**
+  - the QStash 2 h reminder silently skips bookings more than 7 days out
+  - CZK/EUR rate drift (WR-03)
+  - stale payment-link deactivation (CR-02)
+  - `charge.refunded` has no status guard; fix this one in Phase 88 and backlog the others
+- **Day-trip content volume** (N trips × 7 locales): publish a locale only when it is complete, and translate in-session.
 
 ## Sources
 
-### Primary (HIGH confidence)
-- Codebase read directly from `main` branch (2026-09-27): `app/api/webhooks/stripe/route.ts`, `lib/qstash.ts`, `lib/rate-limit.ts`, `middleware.ts`, `lib/supabase/server.ts`, `components/CookieBanner.tsx`, `components/MetaPixel.tsx`, migrations 038/044/055
-- `.planning/PROJECT.md` — locked v4.0 decisions, target features, constraints
+**HIGH:**
+- Stripe docs: hold, extended and incremental authorization, overcapture, save-and-reuse, testing
+- Vercel cron and function-duration docs
+- Upstash QStash docs
+- Google Routes docs
+- reading the repo source
 
-### Secondary (MEDIUM confidence)
-- Chatwoot official docs (developers.chatwoot.com) — deployment requirements, webhooks, email/Instagram/WhatsApp channel setup, Dashboard Apps, Enterprise Edition scope
-- EspoCRM official docs (docs.espocrm.com) — Entity Manager, API, webhooks, roles, Docker deployment
-- GitHub issues: chatwoot/chatwoot #13809 (webhook HMAC mismatch), #8434 and #13860 (Instagram scope-mixing)
-- GitHub Advisory GHSA-hgg8-54gw-8v33 (CVE-2025-12245, Dashboard App/widget iframe origin validation)
-- Meta for Developers — WhatsApp Coexistence, pricing docs
-- GDPR sources: gdpr-info.eu Art. 17
+**MEDIUM:** Blacklane, Limo Anywhere, Daytrip, Quoter/HubSpot, schema.org TouristTrip.
 
-### Tertiary (LOW confidence)
-- dev.to "Self-Hosted Chatwoot: 5 Failures the Docs Don't Warn You About" — single-source, corroborated on storage/backup points by official docs
-- GitHub Discussion #5878 (Dashboard App security) — community discussion, not authoritative spec
-- Various 2026 Caddy/Traefik/nginx comparison blog posts — cross-checked for consistency across multiple posts
+**LOW:**
+- Czech/EU consumer law (from recollection)
+- GetYourGuide/Viator summaries
+- remarks on card-network misuse fees
 
 ---
-*Research completed: 2026-09-27*
+*Research completed: 2026-11-02*
 *Ready for roadmap: yes*

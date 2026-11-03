@@ -234,7 +234,7 @@ export default function ZoneMapInner() {
                   letterSpacing: '0.08em',
                 }}
               >
-                DRAW ZONE
+                Draw zone
               </button>
             ) : (
               <button
@@ -252,7 +252,7 @@ export default function ZoneMapInner() {
                   letterSpacing: '0.08em',
                 }}
               >
-                STOP DRAWING
+                Stop drawing
               </button>
             )}
           </div>
@@ -311,7 +311,7 @@ export default function ZoneMapInner() {
                 opacity: saving || !zoneName.trim() ? 0.6 : 1,
               }}
             >
-              SAVE ZONE
+              Save zone
             </button>
             <button
               onClick={() => {
@@ -361,7 +361,7 @@ export default function ZoneMapInner() {
             marginBottom: '16px',
           }}
         >
-          ZONES
+          Zones
         </div>
 
         {zones.length === 0 ? (
@@ -434,7 +434,7 @@ export default function ZoneMapInner() {
                         background: 'none',
                         border: 'none',
                         fontSize: '11px',
-                        color: '#f87171',
+                        color: 'var(--status-danger-fg)',
                         cursor: 'pointer',
                         fontFamily: 'var(--font-montserrat)',
                         padding: 0,
@@ -531,7 +531,7 @@ export default function ZoneMapInner() {
                         }}
                         onMouseEnter={(e) => {
                           const icon = e.currentTarget.querySelector('svg')
-                          if (icon) icon.style.color = '#f87171'
+                          if (icon) icon.style.color = 'var(--status-danger-fg)'
                         }}
                         onMouseLeave={(e) => {
                           const icon = e.currentTarget.querySelector('svg')

@@ -117,7 +117,7 @@ export function AdminBookingWizard({ open, onClose, onCreated }: Props) {
           position: 'fixed',
           inset: 0,
           zIndex: 999,
-          background: 'rgba(0,0,0,0.7)',
+          background: 'var(--admin-scrim)',
         }}
         onClick={handleClose}
       />
@@ -135,7 +135,8 @@ export function AdminBookingWizard({ open, onClose, onCreated }: Props) {
           zIndex: 1000,
           width: '100%',
           maxWidth: 820,
-          background: 'var(--anthracite)',
+          background: 'var(--admin-surface)',
+          boxShadow: 'var(--admin-shadow-sheet)',
           display: 'flex',
           flexDirection: 'column',
           overflowY: 'auto',
@@ -154,7 +155,7 @@ export function AdminBookingWizard({ open, onClose, onCreated }: Props) {
             borderBottom: '1px solid var(--anthracite-light)',
             position: 'sticky',
             top: 0,
-            background: 'var(--anthracite)',
+            background: 'var(--admin-surface)',
             zIndex: 10,
             flexShrink: 0,
           }}
@@ -170,7 +171,7 @@ export function AdminBookingWizard({ open, onClose, onCreated }: Props) {
                 margin: 0,
               }}
             >
-              NEW BOOKING — STEP {currentStep} OF 6
+              New booking — step {currentStep} of 6
             </p>
             <h2
               style={{

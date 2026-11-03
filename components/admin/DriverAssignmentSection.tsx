@@ -306,7 +306,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             own field being present. */}
         {assignment.trip_note && (
           <div style={{ marginTop: '8px' }}>
-            <div style={sectionLabelStyle}>Driver Note</div>
+            <div style={sectionLabelStyle}>Driver note</div>
             <div
               style={{
                 fontSize: '13px',
@@ -340,7 +340,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             <div style={{
               fontSize: '11px',
               fontWeight: 300,
-              color: '#f87171',
+              color: 'var(--status-danger-fg)',
               marginBottom: '4px',
               letterSpacing: '0.05em',
               fontFamily: 'var(--font-montserrat)',
@@ -420,7 +420,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
         <div style={{
           fontSize: '11px',
           fontWeight: 300,
-          color: '#f87171',
+          color: 'var(--status-danger-fg)',
           marginTop: '4px',
           letterSpacing: '0.05em',
           fontFamily: 'var(--font-montserrat)',
