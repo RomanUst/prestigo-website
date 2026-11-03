@@ -69,10 +69,16 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
   }
 
+  // Inbox selection is configuration: the dedicated Drivers inbox pair when BOTH values are set,
+  // otherwise the Website inbox pair. Missing pieces make the builder answer { enabled: false }.
+  const driverToken = readEnv('CHATWOOT_DRIVER_WEBSITE_TOKEN')
+  const driverSecret = readEnv('CHATWOOT_DRIVER_WIDGET_HMAC_SECRET')
+  const useDriverInbox = Boolean(driverToken && driverSecret)
+
   const config = buildDriverWidgetConfig({
     baseUrl: readEnv('CHATWOOT_BASE_URL'),
-    websiteToken: readEnv('CHATWOOT_WEBSITE_TOKEN'),
-    hmacSecret: readEnv('CHATWOOT_WIDGET_HMAC_SECRET'),
+    websiteToken: useDriverInbox ? driverToken : readEnv('CHATWOOT_WEBSITE_TOKEN'),
+    hmacSecret: useDriverInbox ? driverSecret : readEnv('CHATWOOT_WIDGET_HMAC_SECRET'),
     driverId: row.driver_id,
     driverName: row.drivers?.name ?? null,
     bookingReference: row.bookings.booking_reference,

@@ -170,3 +170,169 @@ describe('POST /api/driver/trip/[token]/help: tracer (T-87-56, T-87-58)', () => 
     expect(src).toMatch(/export async function POST/)
   })
 })
+
+describe('POST /api/driver/trip/[token]/help: uniform rejections (T-87-56)', () => {
+  const INVALID = { error: 'invalid_token' }
+
+  it('a non-uuid token is rejected before any DB call', async () => {
+    setWebsiteEnv()
+    mockLookup(makeRow())
+
+    const res = await callRoute('not-a-uuid')
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual(INVALID)
+    expect(mockCreateClient).not.toHaveBeenCalled()
+    expect(stubSupabaseFrom).not.toHaveBeenCalled()
+  })
+
+  const rejected: Array<[string, () => void]> = [
+    ['unknown token', () => mockLookup(null, { message: 'Not found' })],
+    ['lookup error with data', () => mockLookup(makeRow(), { message: 'boom' })],
+    ['declined assignment', () => mockLookup(makeRow({ assignmentStatus: 'declined' }))],
+    ['reassigned booking', () => mockLookup(makeRow({ assignmentDriverId: driverId, bookingDriverId: otherDriverId }))],
+    ['driverless booking', () => mockLookup(makeRow({ bookingDriverId: null }))],
+    ['completed booking', () => mockLookup(makeRow({ bookingStatus: 'completed' }))],
+    ['cancelled booking', () => mockLookup(makeRow({ bookingStatus: 'cancelled' }))],
+    ['no_show booking', () => mockLookup(makeRow({ bookingStatus: 'no_show' }))],
+  ]
+
+  it.each(rejected)('%s: 400 with the same body as an unknown token', async (_label, arrange) => {
+    setWebsiteEnv()
+    arrange()
+
+    const res = await callRoute(validToken)
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual(INVALID)
+  })
+
+  it('rate limit denied: 429 and no DB call', async () => {
+    setWebsiteEnv()
+    mockCheckRateLimit.mockResolvedValue({ allowed: false, remaining: 0, limit: 10 })
+    mockLookup(makeRow())
+
+    const res = await callRoute(validToken)
+    expect(res.status).toBe(429)
+    expect(await res.json()).toEqual({ error: 'Too many requests' })
+    expect(mockCreateClient).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/driver/trip/[token]/help: inbox selection and fail closed (T-87-60)', () => {
+  it('both driver-inbox values set: the driver pair is used', async () => {
+    setWebsiteEnv()
+    process.env.CHATWOOT_DRIVER_WEBSITE_TOKEN = 'driver-token-xyz'
+    process.env.CHATWOOT_DRIVER_WIDGET_HMAC_SECRET = DRIVER_SECRET
+    mockLookup(makeRow())
+
+    const body = await (await callRoute(validToken)).json()
+    expect(body.websiteToken).toBe('driver-token-xyz')
+    expect(body.user.identifierHash).toBe(computeIdentifierHash(DRIVER_SECRET, `driver:${driverId}`))
+  })
+
+  it.each([
+    ['only the driver token', { CHATWOOT_DRIVER_WEBSITE_TOKEN: 'driver-token-xyz' }],
+    ['only the driver secret', { CHATWOOT_DRIVER_WIDGET_HMAC_SECRET: DRIVER_SECRET }],
+  ])('%s set: the Website pair is used', async (_label, extra) => {
+    setWebsiteEnv()
+    Object.assign(process.env, extra)
+    mockLookup(makeRow())
+
+    const body = await (await callRoute(validToken)).json()
+    expect(body.websiteToken).toBe('website-token-abc')
+    expect(body.user.identifierHash).toBe(computeIdentifierHash(SECRET, `driver:${driverId}`))
+  })
+
+  it.each([
+    ['base URL missing', () => { delete process.env.CHATWOOT_BASE_URL }],
+    ['base URL over http', () => { process.env.CHATWOOT_BASE_URL = 'http://chat.example.test' }],
+    ['base URL with a path', () => { process.env.CHATWOOT_BASE_URL = 'https://chat.example.test/app' }],
+    ['website token missing', () => { delete process.env.CHATWOOT_WEBSITE_TOKEN }],
+    ['HMAC secret missing', () => { delete process.env.CHATWOOT_WIDGET_HMAC_SECRET }],
+  ])('%s: 200 { enabled: false }', async (_label, breakEnv) => {
+    setWebsiteEnv()
+    breakEnv()
+    mockLookup(makeRow())
+
+    const res = await callRoute(validToken)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ enabled: false })
+  })
+})
+
+describe('POST /api/driver/trip/[token]/help: name and reference hardening', () => {
+  it('an empty or missing driver name falls back to "Driver"', async () => {
+    setWebsiteEnv()
+    mockLookup(makeRow({ driverName: '   ' }))
+    expect((await (await callRoute(validToken)).json()).user.name).toBe('Driver')
+
+    mockLookup(makeRow({ driverName: null }))
+    expect((await (await callRoute(validToken)).json()).user.name).toBe('Driver')
+  })
+
+  it('a 200-character name is capped at 120', async () => {
+    setWebsiteEnv()
+    mockLookup(makeRow({ driverName: 'A'.repeat(200) }))
+
+    const body = await (await callRoute(validToken)).json()
+    expect(body.user.name.length).toBe(120)
+    expect(parseDriverHelpConfig(body)).not.toBeNull()
+  })
+
+  it('a booking reference loses control characters and is capped at 60', async () => {
+    setWebsiteEnv()
+    mockLookup(makeRow({ bookingReference: `PRG-1\u0000\n${'X'.repeat(100)}` }))
+
+    const body = await (await callRoute(validToken)).json()
+    const ref: string = body.conversation.driver_trip_ref
+    expect(ref.length).toBe(60)
+    expect(ref.startsWith('PRG-1XXX')).toBe(true)
+    // eslint-disable-next-line no-control-regex
+    expect(ref).not.toMatch(/[\u0000-\u001f\u007f]/)
+    expect(parseDriverHelpConfig(body)).not.toBeNull()
+  })
+})
+
+describe('POST /api/driver/trip/[token]/help: response hygiene (T-87-57)', () => {
+  it('the body holds no token, passenger data, address, phone or HMAC secret, and nothing is logged with the token', async () => {
+    setWebsiteEnv()
+    process.env.CHATWOOT_DRIVER_WEBSITE_TOKEN = 'driver-token-xyz'
+    process.env.CHATWOOT_DRIVER_WIDGET_HMAC_SECRET = DRIVER_SECRET
+    const base = makeRow()
+    mockLookup({
+      ...base,
+      bookings: {
+        ...base.bookings,
+        client_name: 'Passenger Smith',
+        client_phone: '+420123456789',
+        origin_address: 'Old Town Square 1',
+      },
+    })
+    const logs = [
+      vi.spyOn(console, 'log').mockImplementation(() => {}),
+      vi.spyOn(console, 'error').mockImplementation(() => {}),
+      vi.spyOn(console, 'warn').mockImplementation(() => {}),
+      vi.spyOn(console, 'info').mockImplementation(() => {}),
+    ]
+
+    const res = await callRoute(validToken)
+    const raw = JSON.stringify(await res.json())
+
+    expect(raw).not.toContain(validToken)
+    expect(raw).not.toContain('Passenger')
+    expect(raw).not.toContain('+420')
+    expect(raw).not.toContain('Old Town')
+    expect(raw).not.toContain('@')
+    expect(raw).not.toContain(SECRET)
+    expect(raw).not.toContain(DRIVER_SECRET)
+    for (const spy of logs) {
+      expect(JSON.stringify(spy.mock.calls)).not.toContain(validToken)
+      spy.mockRestore()
+    }
+  })
+
+  it('a rejection body carries no token either', async () => {
+    mockLookup(null, { message: 'Not found' })
+    const rejected = await callRoute(validToken)
+    expect(JSON.stringify(await rejected.json())).not.toContain(validToken)
+  })
+})
