@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { renderWithIntl as render } from './helpers/renderWithIntl'
 import type { PlaceResult } from '@/types/booking'
 import RouteMap from '@/components/booking/RouteMap'
@@ -96,5 +96,107 @@ describe('RouteMap', () => {
         screen.getByText('Route unavailable — you can still select a vehicle class.')
       ).toBeInTheDocument()
     })
+  })
+})
+
+describe('Phase 87 additive props (height, onRouteInfo, onRouteError)', () => {
+  function installDirections(outcome: 'OK' | 'ZERO_RESULTS') {
+    class RoutedDirService {
+      route = (
+        _req: unknown,
+        cb: (result: unknown, status: string) => void,
+      ) => {
+        cb(
+          outcome === 'OK'
+            ? {
+                routes: [
+                  {
+                    overview_path: [],
+                    legs: [{ distance: { value: 12400 }, duration: { value: 1080 } }],
+                  },
+                ],
+              }
+            : null,
+          outcome,
+        )
+      }
+    }
+    ;(window as unknown as { google: { maps: Record<string, unknown> } }).google.maps.DirectionsService =
+      RoutedDirService
+  }
+
+  it('keeps the default height 300 for existing callers', () => {
+    render(<RouteMap origin={pragueCentre} destination={pragueStation} />)
+    const mapEl = screen.getByRole('img', { name: /route map/i })
+    expect(mapEl).toHaveStyle({ height: '300px' })
+  })
+
+  it('keeps the default height 300 in the empty state too', () => {
+    const { container } = render(<RouteMap origin={null} destination={pragueStation} />)
+    expect((container.firstChild as HTMLElement).style.height).toBe('300px')
+  })
+
+  it('uses a custom height string (passed through unchanged; jsdom cannot parse clamp())', () => {
+    render(<RouteMap origin={pragueCentre} destination={pragueStation} height="25rem" />)
+    const mapEl = screen.getByRole('img', { name: /route map/i })
+    expect(mapEl.style.height).toBe('25rem')
+  })
+
+  it('uses a custom numeric height', () => {
+    render(<RouteMap origin={pragueCentre} destination={pragueStation} height={220} />)
+    expect(screen.getByRole('img', { name: /route map/i })).toHaveStyle({ height: '220px' })
+  })
+
+  it('calls onRouteInfo(12.4, 18) once when Directions returns OK', async () => {
+    installDirections('OK')
+    const onRouteInfo = vi.fn()
+    const onRouteError = vi.fn()
+    render(
+      <RouteMap
+        origin={pragueCentre}
+        destination={pragueStation}
+        onRouteInfo={onRouteInfo}
+        onRouteError={onRouteError}
+      />,
+    )
+    await waitFor(() => expect(onRouteInfo).toHaveBeenCalledTimes(1))
+    expect(onRouteInfo).toHaveBeenCalledWith(12.4, 18)
+    expect(onRouteError).not.toHaveBeenCalled()
+  })
+
+  it('does not call onRouteInfo on a Directions failure and signals onRouteError instead', async () => {
+    installDirections('ZERO_RESULTS')
+    const onRouteInfo = vi.fn()
+    const onRouteError = vi.fn()
+    render(
+      <RouteMap
+        origin={pragueCentre}
+        destination={pragueStation}
+        onRouteInfo={onRouteInfo}
+        onRouteError={onRouteError}
+      />,
+    )
+    await waitFor(() => expect(onRouteError).toHaveBeenCalledTimes(1))
+    expect(onRouteInfo).not.toHaveBeenCalled()
+  })
+
+  it('works without any callback (existing callers)', async () => {
+    installDirections('OK')
+    expect(() => render(<RouteMap origin={pragueCentre} destination={pragueStation} />)).not.toThrow()
+    await Promise.resolve()
+  })
+
+  it('a new callback identity does not rebuild the map', async () => {
+    installDirections('OK')
+    const first = vi.fn()
+    const second = vi.fn()
+    const { rerender } = render(
+      <RouteMap origin={pragueCentre} destination={pragueStation} onRouteInfo={first} />,
+    )
+    await waitFor(() => expect(first).toHaveBeenCalledTimes(1))
+    rerender(<RouteMap origin={pragueCentre} destination={pragueStation} onRouteInfo={second} />)
+    await Promise.resolve()
+    expect(first).toHaveBeenCalledTimes(1)
+    expect(second).not.toHaveBeenCalled()
   })
 })

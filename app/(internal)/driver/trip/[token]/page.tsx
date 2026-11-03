@@ -4,6 +4,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { tripLinkViewState } from '@/lib/trip-token'
 import { formatVehicleLabel } from '@/lib/email'
 import { buildTripView } from '@/lib/driver-trip-step'
+import { getNoShowView } from '@/lib/no-show'
 import type { DriverTripRecord } from '@/lib/driver-trip-step'
 import InvalidTripLinkView from './InvalidTripLinkView'
 import TripCompleted from './TripCompleted'
@@ -140,7 +141,11 @@ export default async function TripSheetPage({ params }: PageProps) {
     completed_at: booking.completed_at,
     no_show_requested_at: booking.no_show_requested_at,
   }
-  const view = await buildTripView({ booking: record, nowMs: currentTimeMs() })
+  const nowMs = currentTimeMs()
+  const view = await buildTripView({ booking: record, nowMs })
+  // D-15: when a no-show request unlocks is a server fact (pickup / arrival + waiting time); the page
+  // only hands the times to the screen, the progress route stays the authority.
+  const noShowView = await getNoShowView({ supabase, booking: record, nowMs })
 
   return (
     <TripScreen
@@ -163,6 +168,7 @@ export default async function TripSheetPage({ params }: PageProps) {
         distanceKm: booking.distance_km,
       }}
       initialNote={assignment.trip_note ?? null}
+      noShow={{ availableAt: noShowView.noShowAvailableAt, requestedAt: noShowView.noShowRequestedAt }}
     />
   )
 }

@@ -36,6 +36,22 @@
   }
 }
 
+/* Map surface: RouteMap sets a dark placeholder fill inline for the booking flow; on the light driver
+   screen the area shows the cream surface while Google Maps loads. Fill only, the map itself and its
+   attribution are never touched. */
+.admin-shell.driver-shell .driver-map [role='img'] {
+  background: var(--admin-surface) !important;
+}
+
+/* Collapsed sheet: addresses stop at 2 lines; expanded removes the class and shows them in full. */
+.admin-shell.driver-shell .driver-address-clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
 /* Confirm dialog: anchored to the bottom on phones, centred from 600px. */
 .admin-shell.driver-shell .driver-dialog-scrim {
   align-items: flex-end;
