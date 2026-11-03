@@ -535,12 +535,12 @@ describe('runSync account + teams + attributes + canned', () => {
     expect(await sync(fake, { only: ['teams'] })).toContain('teams: create=0 update=0 unchanged=2 skipped=0 deleted=0')
   })
 
-  it('creates 15 conversation + 8 contact attribute definitions keyed by key + model, rerun unchanged', async () => {
+  it('creates 17 conversation + 8 contact attribute definitions keyed by key + model, rerun unchanged', async () => {
     const fake = createFakeChatwoot()
-    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=23 update=0 unchanged=0 skipped=0 deleted=0')
-    expect(fake.state.attributes.filter((a) => a.attribute_model === 'conversation_attribute')).toHaveLength(15)
+    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=25 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(fake.state.attributes.filter((a) => a.attribute_model === 'conversation_attribute')).toHaveLength(17)
     expect(fake.state.attributes.filter((a) => a.attribute_model === 'contact_attribute')).toHaveLength(8)
-    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=0 update=0 unchanged=23 skipped=0 deleted=0')
+    expect(await sync(fake, { only: ['attributes'] })).toContain('attributes: create=0 update=0 unchanged=25 skipped=0 deleted=0')
   })
 
   it('creates 35 canned responses <topic>-<locale>, updates changed content, leaves operator canned untouched', async () => {
