@@ -123,7 +123,7 @@ Custom dialog (not the admin `Modal`, whose 32px padding and 480px floor suit de
 
 Behaviour: initial focus on "Not yet" (safe default for an irreversible action); focus is trapped; Escape, scrim tap and "Not yet" all cancel and reset the knob; no request is sent until the primary button is pressed. While submitting both buttons are disabled, the primary shows `LoaderCircle` and "Saving…", the dialog cannot be dismissed. On a network or server error the dialog stays open, an inline `role="alert"` line in `--status-danger-fg` shows the error copy and the primary label becomes "Try again". On `409` (step conflict, too early, trip changed by the office) the dialog closes, the knob resets, and the banner below appears.
 
-Other modes of the same component: **no-show request** (title "Request a no-show", body "The office will try to reach the passenger. Nothing is charged and the trip stays open.", primary "Send request", secondary "Not yet"); **help** (`HelpDialog`: title "Need help?", body "Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake.", primary "Call the office" as a `tel:` link using `BUSINESS_TEL_URL` from `lib/contact-channels.ts`, with the number shown in Label 12 below it via `BUSINESS_PHONE_DISPLAY`; secondary "Close").
+Other modes of the same component: **no-show request** (title "Request a no-show", body "The office will try to reach the passenger. Nothing is charged and the trip stays open.", primary "Send request", secondary "Not yet"); **help** **[Superseded by Amendment B: chat is now the primary action, the call option is the fallback.]** (`HelpDialog`: title "Need help?", body "Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake.", primary "Call the office" as a `tel:` link using `BUSINESS_TEL_URL` from `lib/contact-channels.ts`, with the number shown in Label 12 below it via `BUSINESS_PHONE_DISPLAY`; secondary "Close").
 
 ### Banners and live region
 
@@ -287,7 +287,7 @@ All strings English, hard-coded in the components (no `messages/*`).
 | Error, note failed | "Could not send the note. Try again." ; success "Note sent" |
 | Completed | Heading "Trip completed"; body "Thank you. This trip is closed."; summary captions "Booking", "Date", "Completed at"; link "Call the office" |
 | Ended (all reasons) | "This trip link is no longer active." + "If you think this is a mistake, call the office." |
-| Help dialog | Title "Need help?"; body "Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake."; primary "Call the office"; secondary "Close" |
+| Help dialog **(superseded by Amendment B)** | Title "Need help?"; body "Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake."; primary "Call the office"; secondary "Close" |
 | Note | Label "Note for the office"; placeholder "Optional, for example: passenger running late"; button "Send note" |
 | Admin banner | Title "No-show requested"; buttons "Confirm no-show" / "Client found"; chip "No-show requested" |
 | Admin destructive confirmation | Confirm no-show: "Mark booking {reference} as a no-show? The driver's trip link stops working and the status cannot be changed back." Buttons "Confirm no-show" / "Keep booking open". |
@@ -387,3 +387,23 @@ Owner decision on D-18: the Navigate control no longer opens Google Maps directl
 - URLs, destination only (T-87-37, T-87-51): Google Maps `https://www.google.com/maps/dir/?api=1&destination=<lat>,<lng>` (encoded address when coordinates are missing); Waze `https://waze.com/ul?ll=<lat>,<lng>&navigate=yes` (`https://waze.com/ul?q=<encoded address>&navigate=yes` when coordinates are missing). No token, booking reference or passenger data in either URL.
 - Both options are plain anchors with `target="_blank" rel="noopener noreferrer"` (no script-opened windows) so they work in WhatsApp / Telegram / Instagram in-app browsers and no Referer carrying the trip token is sent. Choosing one also closes the chooser; the link's default action is not prevented.
 - Focus: initial focus on the first option (Google Maps); Tab / Shift+Tab are trapped inside the sheet; Escape, a scrim tap and Cancel close it; focus returns to the Navigate button that opened it. Copy is English (D-20), light theme tokens only (D-19).
+
+## Amendment B (2026-11-03, 87-UAT gap 3): Help chat
+
+Owner decision on D-18: Help on the trip screen opens a chat with the office. The call option stays as the fallback.
+
+**Help dialog** (`ConfirmStepDialog` help mode, same sheet, focus trap and focus return as before; initial focus stays on "Close"):
+- Title "Need help?". Body Body 16/400: "Chat with the office or call if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake."
+- Primary, full width, 48px, accent fill (`--admin-accent` / `--admin-on-accent`): `MessageCircle` 20px + "Chat with the office". While the identity request runs: `LoaderCircle` (`driver-spin`) + "Opening chat…", disabled, `aria-busy`; Escape, scrim tap and Close are ignored. After a failure the label is "Try chat again".
+- Error line (`role="alert"`, `--status-danger-fg`): "Chat is not available right now. Call the office instead." Shown for a disabled chat, 429, a network error, a 10 s timeout or an invalid config answer. An invalid link (400 `invalid_token`) closes the dialog and refreshes into the ended view, like the step flow.
+- Secondary, neutral outline (1px `--admin-border-strong`, transparent, `--admin-text`, 48px): "Call the office" as a `tel:` link (`BUSINESS_TEL_URL`) with the number below in Label 12 (`BUSINESS_PHONE_DISPLAY`). Then "Close". The accent list in "Color" now has the chat button here (instead of the call link) as the one primary of the help dialog.
+
+**Where the widget runs.** The Chatwoot SDK reports the current page address to the widget, and Chatwoot stores it as the conversation's "initiated from" URL. `/driver/trip/<token>` carries the bearer trip token, so the widget never loads there. "Chat with the office" fetches the driver identity (`POST /api/driver/trip/<token>/help`), stores it in this tab's sessionStorage and leaves with a full page load (never the Next router) to the tokenless page `/driver/trip/help`. The widget is loaded there by a dynamic import after the driver's tap, identified as the driver (`driver:<uuid>`, hash and name only, never email or phone), with conversation attributes `{ chat_role: 'driver', driver_trip_ref: <booking reference> }`. No page URL, landing URL, referrer or UTM value is sent. The CSP allows the chat origin on that exact path only.
+
+**`/driver/trip/help` page** (inside the light driver layout, `noindex`): one centered column, max-width 480, padding 24px, min-height 100dvh, gap 16.
+- PRESTIGO wordmark header; heading "Chat with the office" (Heading 20/500, `--admin-font-heading`); body Body 16/400 `--admin-text-muted`: "Your messages go straight to the Prestigo office. Keep this page open to see the reply."
+- States: checking (first render, no storage read), opening ("Opening chat…" with `LoaderCircle`, `role="status"`), open (accent button "Open chat" re-opens the widget panel), error (`role="alert"` "Chat is not available right now. Call the office instead." plus accent "Try again"), missing config ("Open Help from your trip link to chat with the office." replaces the body).
+- "Call the office" (`tel:`, neutral outline, number below) is present in every state. "Back to trip" (neutral outline, `history.back()`) shows only when the tab has history to go back to. The accent is used on the single primary button of the current state only; every control is 48px high.
+- Widget texts: welcome title "Prestigo office", welcome description "Write to us about this trip.", availability "We usually reply in a few minutes." Widget locale en, light, bubble hidden (the page's own buttons open it).
+
+Copy is English (D-20), nothing is added to `messages/*`, light theme tokens only (D-19).

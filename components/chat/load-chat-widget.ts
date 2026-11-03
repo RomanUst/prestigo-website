@@ -1,10 +1,10 @@
 /**
  * Click-time loader for the Chatwoot website widget (Phase 77, plan 10).
  *
- * Reached ONLY through the dynamic import in components/ChatLauncher.tsx's
- * "Chat on site" click handler — never from a mount effect or a next/script
- * tag — so a visitor who does not click makes zero third-party requests
- * (D-02, T-77-24). The base URL and website token are not known to the client:
+ * Reached ONLY through a dynamic import after a tap: components/ChatLauncher.tsx's
+ * "Chat on site" click handler, and (87-UAT gap 3) the tokenless driver help page's
+ * open effect — never from a static import or a next/script tag — so a visitor who
+ * does not click makes zero third-party requests (D-02, T-77-24). The base URL and website token are not known to the client:
  * they arrive from the identity route at click time. This file therefore holds
  * no chat host literal and no uppercase env-var name (the VPS isolation guard
  * would otherwise taint every importer).

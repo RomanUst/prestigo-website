@@ -531,6 +531,104 @@ describe('TripScreen: Help (D-18)', () => {
       expect(openHelpPageMock).not.toHaveBeenCalled()
     })
 
+    const CHAT_ERROR_LINE = 'Chat is not available right now. Call the office instead.'
+
+    it.each([
+      ['200 { enabled: false }', () => jsonResponse(200, { enabled: false })],
+      ['429', () => jsonResponse(429, { error: 'rate_limited' })],
+      ['a rejected fetch', () => Promise.reject(new Error('network'))],
+    ])('%s shows the error line, "Try chat again" and keeps the call link', async (_label, answer) => {
+      fetchMock.mockImplementation(answer)
+      const { user, dialog } = await openHelpDialog()
+
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+
+      expect(await within(dialog).findByText(CHAT_ERROR_LINE)).toBeInTheDocument()
+      expect(within(dialog).getByRole('button', { name: 'Try chat again' })).toBeEnabled()
+      expect(within(dialog).getByRole('link', { name: /Call the office/ })).toHaveAttribute('href', BUSINESS_TEL_URL)
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+      expect(window.sessionStorage.getItem('prestigo_driver_help')).toBeNull()
+    })
+
+    it('a request that never resolves ends in the error line after 10 s', async () => {
+      vi.useFakeTimers()
+      fetchMock.mockImplementation(
+        (_url: string, init?: RequestInit) =>
+          new Promise((_resolve, reject) => {
+            init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')))
+          }),
+      )
+      render(<TripScreen {...makeProps()} />)
+      fireEvent.click(screen.getByRole('button', { name: /^Help$/ }))
+      fireEvent.click(screen.getByRole('button', { name: 'Chat with the office' }))
+      expect(screen.getByRole('button', { name: /Opening chat/ })).toBeDisabled()
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10_500)
+      })
+
+      expect(screen.getByText(CHAT_ERROR_LINE)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Try chat again' })).toBeEnabled()
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+    })
+
+    it('400 invalid_token closes the dialog and refreshes into the ended view', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(400, { error: 'invalid_token' }))
+      const { user, dialog } = await openHelpDialog()
+
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+      expect(refreshMock).toHaveBeenCalledTimes(1)
+      expect(openHelpPageMock).not.toHaveBeenCalled()
+    })
+
+    it('Escape and a scrim click do not close the dialog while opening', async () => {
+      fetchMock.mockImplementation(() => new Promise(() => {}))
+      const { user, dialog } = await openHelpDialog()
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+      await within(dialog).findByRole('button', { name: /Opening chat/ })
+
+      await user.keyboard('{Escape}')
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+      const scrim = dialog.parentElement as HTMLElement
+      await user.click(scrim)
+      expect(screen.getByRole('dialog')).toBeInTheDocument()
+    })
+
+    it('after an error Close works and returns focus to Help', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(429, {}))
+      const { user, dialog } = await openHelpDialog()
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+      await within(dialog).findByText(CHAT_ERROR_LINE)
+
+      await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /^Help$/ })).toHaveFocus()
+    })
+
+    it('reopening the dialog after an error starts from "Chat with the office" again', async () => {
+      fetchMock.mockImplementation(() => jsonResponse(429, {}))
+      const { user, dialog } = await openHelpDialog()
+      await user.click(within(dialog).getByRole('button', { name: 'Chat with the office' }))
+      await within(dialog).findByText(CHAT_ERROR_LINE)
+      await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+
+      await user.click(screen.getByRole('button', { name: /^Help$/ }))
+      const again = screen.getByRole('dialog')
+      expect(within(again).getByRole('button', { name: 'Chat with the office' })).toBeEnabled()
+      expect(within(again).queryByText(CHAT_ERROR_LINE)).not.toBeInTheDocument()
+    })
+
+    it('the chat button and the call link are at least 48px high', async () => {
+      const { dialog } = await openHelpDialog()
+      const chat = within(dialog).getByRole('button', { name: 'Chat with the office' })
+      const call = within(dialog).getByRole('link', { name: /Call the office/ })
+      expect(chat.style.minHeight).toBe('48px')
+      expect(call.style.minHeight).toBe('48px')
+    })
+
     it('a 200 with an invalid config stores nothing and shows the error line with the call link', async () => {
       fetchMock.mockImplementation(() => jsonResponse(200, { enabled: true, baseUrl: 'http://x', websiteToken: '' }))
       const { user, dialog } = await openHelpDialog()
