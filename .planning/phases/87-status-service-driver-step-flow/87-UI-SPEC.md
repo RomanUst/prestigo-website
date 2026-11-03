@@ -407,3 +407,9 @@ Owner decision on D-18: Help on the trip screen opens a chat with the office. Th
 - Widget texts: welcome title "Prestigo office", welcome description "Write to us about this trip.", availability "We usually reply in a few minutes." Widget locale en, light, bubble hidden (the page's own buttons open it).
 
 Copy is English (D-20), nothing is added to `messages/*`, light theme tokens only (D-19).
+
+## Amendment C (2026-11-03, owner after the 87 UAT re-test): passenger contact in the sheet
+Owner: «убрать оттуда кнопку, данные клиента должны находиться при небольшом свайпе вверх» (reference: Blacklane ride screen).
+- The passenger card above the map is removed; the map follows the header directly.
+- The expanded sheet starts with a **Passenger** row: caption "Passenger", the name (one ellipsised line), the vehicle line (`<class> · <vehicle info>`), and two 48px outline icon links when the booking has a phone: **Message passenger** (`sms:`) and **Call passenger** (`tel:`); digits and a leading + only. No phone → no links.
+- The sheet opens with a short swipe up (≥ 24 px) on the handle or the pickup time row and closes with a swipe down; the tap on the handle still toggles. The click that follows a swipe is ignored. The slide-to-advance control and the address rows are not swipe targets.
