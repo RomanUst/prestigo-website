@@ -762,6 +762,27 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
     expect(stubPushGnetStatus).toHaveBeenCalledWith('GR-123', 'ASSIGNED', expect.any(String))
   })
 
+  it('87-03: first assign loses the compare-and-set — assignment kept, no GNet push, logged, 201 with the current status', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    stubRpc.mockResolvedValue({ data: { applied: false, current_status: 'cancelled' }, error: null })
+    makeFullAssignMock({ status: 'confirmed', booking_source: 'gnet' })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    await new Promise((r) => setTimeout(r, 10))
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.booking_status).toBe('cancelled')
+    expect(json.assignment.driver_id).toBe(driverId)
+    expect(stubPushGnetStatus).not.toHaveBeenCalled()
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[assign] status changed concurrently'),
+      expect.anything(),
+    )
+    errorSpy.mockRestore()
+  })
+
   it('Test D: GNet reassign no push (D-07) — pushGnetStatus NOT called on reassign', async () => {
     // booking status: 'assigned', booking_source: 'gnet' → reassign, no GNet push
     // makeFullAssignMock handles the 5b-bis status fetch now
