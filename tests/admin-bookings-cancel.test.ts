@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const {
   mockGetAdminUser,
   mockSupabaseFrom,
+  mockRpc,
   mockRefundsCreate,
   MockStripeInvalidRequestError,
   mockLogEmail,
@@ -31,6 +32,7 @@ const {
   return {
     mockGetAdminUser: vi.fn(),
     mockSupabaseFrom: vi.fn(),
+    mockRpc: vi.fn(),
     mockRefundsCreate: vi.fn(),
     MockStripeInvalidRequestError,
     mockLogEmail: vi.fn(),
@@ -54,7 +56,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom }),
+  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom, rpc: mockRpc }),
 }))
 
 vi.mock('stripe', () => {
@@ -97,13 +99,15 @@ function makeRequest(body: Record<string, unknown>): Request {
 }
 
 /**
- * Wires supabase.from: first call = the booking select (single), second call =
- * the status update. updateEq records the .eq() scope; updateFn the payload.
+ * Wires supabase: from() call 1 = the booking select (single); the status change is the
+ * advance_booking_status compare-and-set RPC (Phase 87-03). rpcFn records the call;
+ * `rpcResult` overrides the RPC answer (default: applied).
  */
 function wireSupabase(opts: {
   booking: Record<string, unknown> | null
   selectError?: unknown
   updateError?: unknown
+  rpcResult?: unknown
 }) {
   const singleFn = vi.fn().mockResolvedValue({
     data: opts.booking,
@@ -112,14 +116,13 @@ function wireSupabase(opts: {
   const selectEq = vi.fn().mockReturnValue({ single: singleFn })
   const selectFn = vi.fn().mockReturnValue({ eq: selectEq })
 
-  const updateEq = vi.fn().mockResolvedValue({ error: opts.updateError ?? null })
-  const updateFn = vi.fn().mockReturnValue({ eq: updateEq })
+  mockSupabaseFrom.mockReturnValueOnce({ select: selectFn })
+  mockRpc.mockImplementation(async () => {
+    if (opts.updateError) return { data: null, error: opts.updateError }
+    return { data: opts.rpcResult ?? { applied: true }, error: null }
+  })
 
-  mockSupabaseFrom
-    .mockReturnValueOnce({ select: selectFn })
-    .mockReturnValueOnce({ update: updateFn })
-
-  return { selectFn, updateFn, updateEq }
+  return { selectFn, rpcFn: mockRpc }
 }
 
 function expectNoSideEffects() {
@@ -136,6 +139,7 @@ function expectNoSideEffects() {
 beforeEach(() => {
   vi.clearAllMocks()
   mockSupabaseFrom.mockReset()
+  mockRpc.mockReset()
   mockGetAdminUser.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
 })
 
@@ -169,7 +173,7 @@ describe('POST /api/admin/bookings/cancel — characterization', () => {
     expect(await res.json()).toEqual({ error: 'Booking not found' })
   })
 
-  it.each(['completed', 'cancelled'])(
+  it.each(['completed', 'cancelled', 'no_show'])(
     "422 for status '%s' with no refund and no bookings update",
     async (status) => {
       wireSupabase({ booking: { id: ID, status, payment_intent_id: 'pi_xxx' } })
@@ -184,21 +188,28 @@ describe('POST /api/admin/bookings/cancel — characterization', () => {
     },
   )
 
-  it('manual booking (no payment_intent_id): update { status: cancelled } scoped by id, 200 { ok: true }', async () => {
-    const { updateFn, updateEq } = wireSupabase({
+  it('manual booking (no payment_intent_id): compare-and-set to cancelled scoped by id, 200 { ok: true }', async () => {
+    const { rpcFn } = wireSupabase({
       booking: { id: ID, status: 'pending', payment_intent_id: null },
     })
     const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true })
     expect(mockRefundsCreate).not.toHaveBeenCalled()
-    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
-    expect(updateEq).toHaveBeenCalledWith('id', ID)
+    expect(rpcFn).toHaveBeenCalledWith('advance_booking_status', {
+      p_booking_id: ID,
+      p_from: 'pending',
+      p_to: 'cancelled',
+      p_actor_type: 'admin',
+      p_actor_id: 'admin-1',
+      p_source: 'admin_cancel',
+      p_patch: {},
+    })
     expectNoSideEffects()
   })
 
   it('paid booking without leg: full refund is created BEFORE the status update, response carries refund_id', async () => {
-    const { updateFn } = wireSupabase({
+    const { rpcFn } = wireSupabase({
       booking: { id: ID, status: 'confirmed', payment_intent_id: 'pi_xxx' },
     })
     mockRefundsCreate.mockResolvedValue({ id: 're_full' })
@@ -207,16 +218,19 @@ describe('POST /api/admin/bookings/cancel — characterization', () => {
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true, refund_id: 're_full' })
     expect(mockRefundsCreate).toHaveBeenCalledWith({ payment_intent: 'pi_xxx' })
-    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
+    expect(rpcFn).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_from: 'confirmed', p_to: 'cancelled' }),
+    )
 
     const refundOrder = mockRefundsCreate.mock.invocationCallOrder[0]
-    const updateOrder = updateFn.mock.invocationCallOrder[0]
+    const updateOrder = rpcFn.mock.invocationCallOrder[0]
     expect(refundOrder).toBeLessThan(updateOrder)
     expectNoSideEffects()
   })
 
   it('leg=return with return_amount_czk 2500: partial refund amount and metadata.leg', async () => {
-    const { updateFn, updateEq } = wireSupabase({
+    const { rpcFn } = wireSupabase({
       booking: {
         id: ID,
         status: 'confirmed',
@@ -235,11 +249,12 @@ describe('POST /api/admin/bookings/cancel — characterization', () => {
       amount: Math.round(czkToEur(2500) * 100),
       metadata: { leg: 'return' },
     })
-    // the update is scoped to id ONLY so the paired leg is untouched
-    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
-    for (const call of updateEq.mock.calls) {
-      expect(call[0]).toBe('id')
-    }
+    // the status write is scoped to the booking id ONLY so the paired leg is untouched
+    expect(rpcFn).toHaveBeenCalledTimes(1)
+    const rpcArgs = rpcFn.mock.calls[0][1] as Record<string, unknown>
+    expect(rpcArgs.p_booking_id).toBe(ID)
+    expect(rpcArgs.p_to).toBe('cancelled')
+    expect(JSON.stringify(rpcArgs)).not.toContain('pi_rt')
   })
 
   it('leg=outbound uses outbound_amount_czk', async () => {
@@ -327,6 +342,76 @@ describe('POST /api/admin/bookings/cancel — characterization', () => {
     const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(500)
     expect(await res.json()).toEqual({ error: 'DB update failed' })
+  })
+
+  // ── Phase 87-03: compare-and-set, explicit lost-race responses (D-01) ──────────────────────
+
+  it('manual booking confirmed: rpc p_from confirmed, p_to cancelled, p_source admin_cancel, 200', async () => {
+    const { rpcFn } = wireSupabase({
+      booking: { id: ID, status: 'confirmed', payment_intent_id: null },
+    })
+    const res = await POST(makeRequest({ id: ID }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(rpcFn).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_from: 'confirmed', p_to: 'cancelled', p_source: 'admin_cancel' }),
+    )
+  })
+
+  it('a booking already on board can still be cancelled (on_board -> cancelled)', async () => {
+    const { rpcFn } = wireSupabase({
+      booking: { id: ID, status: 'on_board', payment_intent_id: null },
+    })
+    const res = await POST(makeRequest({ id: ID }))
+    expect(res.status).toBe(200)
+    expect(rpcFn).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_from: 'on_board', p_to: 'cancelled' }),
+    )
+  })
+
+  it('no_show is terminal: 422 with the exact message and no refund, no status write', async () => {
+    wireSupabase({ booking: { id: ID, status: 'no_show', payment_intent_id: 'pi_ns' } })
+    const res = await POST(makeRequest({ id: ID }))
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: "Cannot cancel a booking with status 'no_show'" })
+    expect(mockRefundsCreate).not.toHaveBeenCalled()
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('lost race, no payment: 409 status_conflict with the winner status (driver completed meanwhile)', async () => {
+    wireSupabase({
+      booking: { id: ID, status: 'on_board', payment_intent_id: null },
+      rpcResult: { applied: false, current_status: 'completed' },
+    })
+    const res = await POST(makeRequest({ id: ID }))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'status_conflict', currentStatus: 'completed' })
+    expect(mockRefundsCreate).not.toHaveBeenCalled()
+    expectNoSideEffects()
+  })
+
+  it('lost race after a refund: 409 carries refund_id and logs the refund-issued line', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    wireSupabase({
+      booking: { id: ID, status: 'on_board', payment_intent_id: 'pi_race' },
+      rpcResult: { applied: false, current_status: 'completed' },
+    })
+    mockRefundsCreate.mockResolvedValue({ id: 're_race' })
+
+    const res = await POST(makeRequest({ id: ID }))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({
+      error: 'status_conflict',
+      currentStatus: 'completed',
+      refund_id: 're_race',
+    })
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[cancel] refund issued but status changed'),
+      expect.anything(),
+    )
+    errorSpy.mockRestore()
   })
 
   it('runs no email, payment-link deactivation, QStash or GNet push on any successful cancel path', async () => {

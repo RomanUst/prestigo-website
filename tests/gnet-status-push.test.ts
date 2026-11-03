@@ -11,6 +11,7 @@ const {
   mockAfter,
   mockGnetBookingsUpdate,
   mockSupabaseFrom,
+  mockRpc,
 } = vi.hoisted(() => ({
   mockPushGnetStatus: vi.fn(),
   mockGetAdminUser: vi.fn(),
@@ -19,6 +20,7 @@ const {
   mockAfter: vi.fn(),
   mockGnetBookingsUpdate: vi.fn(),
   mockSupabaseFrom: vi.fn(),
+  mockRpc: vi.fn(),
 }))
 
 /**
@@ -40,7 +42,7 @@ vi.mock('@/lib/gnet-client', async (importActual) => {
 })
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom }),
+  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom, rpc: mockRpc }),
 }))
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -97,10 +99,14 @@ function buildSupabaseMock({
   bookingData = bookingRow as typeof bookingRow | null,
   gnetData = gnetRow as typeof gnetRow | null,
 } = {}) {
+  // Phase 87-03: the status write is the advance_booking_status compare-and-set RPC.
+  mockRpc.mockImplementation(async (_fn: string, args: Record<string, unknown>) => ({
+    data: { applied: true, previous_status: args.p_from, booking: { ...bookingData, status: args.p_to } },
+    error: null,
+  }))
   mockSupabaseFrom.mockImplementation((table: string) => {
     if (table === 'bookings') return {
       select: () => ({ eq: () => ({ single: async () => ({ data: bookingData, error: bookingData ? null : 'not found' }) }) }),
-      update: () => ({ eq: async () => ({ error: null }) }),
     }
     if (table === 'gnet_bookings') return {
       select: () => ({ eq: () => ({ single: async () => ({ data: gnetData, error: gnetData ? null : 'not found' }) }) }),
@@ -305,6 +311,30 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
     const res = await PATCH(req)
     expect(res.status).toBe(422)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('87-03: a lost compare-and-set (409) pushes nothing to GNet and touches no gnet_bookings row', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'confirmed', booking_source: 'gnet' } })
+    mockRpc.mockResolvedValue({ data: { applied: false, current_status: 'cancelled' }, error: null })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'assigned' })
+    const res = await PATCH(req)
+    await flushAfterCallbacks()
+    expect(res.status).toBe(409)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+    expect(mockGnetBookingsUpdate).not.toHaveBeenCalled()
+  })
+
+  it('87-03 D-22: on_location -> on_board and -> no_show push nothing to GNet (no mapping)', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'on_location', booking_source: 'gnet' } })
+    const res1 = await PATCH(makePatchRequest({ id: BOOKING_UUID, status: 'on_board' }))
+    await flushAfterCallbacks()
+    expect(res1.status).toBe(200)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+
+    const res2 = await PATCH(makePatchRequest({ id: BOOKING_UUID, status: 'no_show' }))
+    await flushAfterCallbacks()
+    expect(res2.status).toBe(200)
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
   })
 

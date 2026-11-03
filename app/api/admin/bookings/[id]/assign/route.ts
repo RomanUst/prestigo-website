@@ -85,6 +85,10 @@ export async function POST(
   const canTransitionToAssigned =
     isFirstAssign && (VALID_TRANSITIONS[previousStatus ?? '']?.includes('assigned') ?? false)
 
+  // Status reported back to the caller: 'assigned' on a won first-assign, the winner's status
+  // when the compare-and-set was lost (the booking changed under the assignment).
+  let reportedStatus: string = canTransitionToAssigned ? 'assigned' : (previousStatus ?? 'unknown')
+
   if (previousStatus !== null) {
     if (canTransitionToAssigned) {
       // confirmed → assigned (or any other valid → assigned transition).
@@ -97,10 +101,22 @@ export async function POST(
         source: 'admin_assign',
         profile: 'assign-route',
         current: booking,
+        expectedFrom: previousStatus,
         patch: { driver_id: driverId },
       })
       if (!assignResult.ok) {
-        console.error('[assign] bookings update failed:', assignResult.message)
+        if (assignResult.code === 'conflict') {
+          // Lost the race (e.g. the booking was cancelled meanwhile): the assignment row stays,
+          // bookings.status is untouched and nothing is pushed to GNet.
+          console.error('[assign] status changed concurrently', {
+            bookingId,
+            expected: previousStatus,
+            currentStatus: assignResult.currentStatus,
+          })
+          reportedStatus = assignResult.currentStatus ?? reportedStatus
+        } else {
+          console.error('[assign] bookings update failed:', assignResult.message)
+        }
       }
     } else if (previousStatus === 'assigned') {
       // D-07: reassign — only driver_id, do not touch status
@@ -175,7 +191,7 @@ export async function POST(
         status: assignment.status,
         // SEC-18: token omitted — used only server-side for email URL, must not be returned to browser
       },
-      booking_status: canTransitionToAssigned ? 'assigned' : (previousStatus ?? 'unknown'),
+      booking_status: reportedStatus,
     },
     { status: 201 }
   )

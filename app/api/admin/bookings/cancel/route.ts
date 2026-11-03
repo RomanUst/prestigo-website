@@ -20,7 +20,8 @@ const cancelSchema = z.object({
   leg: z.enum(['outbound', 'return']).optional(),
 })
 
-const NON_CANCELLABLE_STATUSES = ['cancelled', 'completed']
+// no_show is terminal (D-09) like completed and cancelled.
+const NON_CANCELLABLE_STATUSES = ['cancelled', 'completed', 'no_show']
 
 export async function POST(request: Request) {
   const { user, error } = await getAdminUser()
@@ -65,6 +66,9 @@ export async function POST(request: Request) {
       source: 'admin_cancel',
       profile: 'cancel-route',
       current: booking,
+      // Compare-and-set against the status this route validated; it also covers the
+      // Stripe refund window below (a driver or the webhook may move the booking meanwhile).
+      expectedFrom: booking.status as string,
     })
 
   // If online booking with Stripe payment, issue refund first
@@ -116,8 +120,23 @@ export async function POST(request: Request) {
     // payment_intent_id — so the paired leg is untouched.
     const refundResult = await cancelThroughService()
 
-    // The only failure reachable after the NON_CANCELLABLE_STATUSES gate is the write.
-    if (!refundResult.ok) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+    if (!refundResult.ok) {
+      if (refundResult.code === 'conflict') {
+        // The refund already went out but the booking moved first (e.g. the driver completed the
+        // trip). Refund-first order is kept for parity; surface the refund so the office can act.
+        console.error('[cancel] refund issued but status changed', {
+          bookingId: parsed.data.id,
+          refundId: refund.id,
+          currentStatus: refundResult.currentStatus,
+        })
+        return NextResponse.json(
+          { error: 'status_conflict', currentStatus: refundResult.currentStatus, refund_id: refund.id },
+          { status: 409 }
+        )
+      }
+      // Otherwise the only failure reachable after the NON_CANCELLABLE_STATUSES gate is the write.
+      return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+    }
 
     return NextResponse.json({ ok: true, refund_id: refund.id })
   }
@@ -125,7 +144,15 @@ export async function POST(request: Request) {
   // Manual booking — no Stripe, just update status
   const result = await cancelThroughService()
 
-  if (!result.ok) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+  if (!result.ok) {
+    if (result.code === 'conflict') {
+      return NextResponse.json(
+        { error: 'status_conflict', currentStatus: result.currentStatus },
+        { status: 409 }
+      )
+    }
+    return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }

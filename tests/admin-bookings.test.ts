@@ -462,6 +462,39 @@ describe('/api/admin/bookings', () => {
       expect.objectContaining({ p_status: null }),
     )
   })
+
+  it('87-03 D-02: ?status=on_board is forwarded as p_status on_board', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?status=on_board'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_status: 'on_board' }),
+    )
+  })
+
+  it('87-03 D-02: ?status=no_show is forwarded; ?status=arrived is treated as no filter', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    await GET(makeRequest('http://localhost/api/admin/bookings?status=no_show'))
+    expect(supabaseServiceStub.rpc).toHaveBeenLastCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_status: 'no_show' }),
+    )
+
+    await GET(makeRequest('http://localhost/api/admin/bookings?status=arrived'))
+    expect(supabaseServiceStub.rpc).toHaveBeenLastCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_status: null }),
+    )
+  })
 })
 
 describe('PATCH /api/admin/bookings', () => {
@@ -490,12 +523,8 @@ describe('PATCH /api/admin/bookings', () => {
     const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectChainFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
     expect(res.status).toBe(200)
@@ -562,12 +591,8 @@ describe('PATCH /api/admin/bookings', () => {
     const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectChainFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
     expect(res.status).toBe(200)
@@ -588,21 +613,20 @@ describe('PATCH /api/admin/bookings', () => {
     const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
 
-    let capturedUpdate: Record<string, unknown> | null = null
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockImplementation((payload: Record<string, unknown>) => {
-      capturedUpdate = payload
-      return { eq: updateEqFn }
-    })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectChainFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
     expect(res.status).toBe(200)
-    // The status update nulls the link fields so the UI stops showing a live link…
-    expect(capturedUpdate).toMatchObject({ status: 'confirmed', payment_link_url: null, payment_link_id: null })
+    // The compare-and-set RPC clears the link fields so the UI stops showing a live link…
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({
+        p_from: 'unpaid',
+        p_to: 'confirmed',
+        p_patch: { clear_payment_link: true },
+      }),
+    )
     // …and the stale Stripe link is deactivated so it can no longer be paid.
     expect(stubDeactivateBookingPaymentLink).toHaveBeenCalledWith('plink_stale')
   })
@@ -614,12 +638,8 @@ describe('PATCH /api/admin/bookings', () => {
     })
     const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectChainFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
     expect(res.status).toBe(200)
@@ -631,12 +651,8 @@ describe('PATCH /api/admin/bookings', () => {
     const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectChainFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'cancelled' }))
     expect(res.status).toBe(200)
@@ -668,6 +684,108 @@ describe('PATCH /api/admin/bookings', () => {
     expect(res.status).toBe(422)
     const json = await res.json()
     expect(json.error).toContain("Cannot transition from 'confirmed' to 'unpaid'")
+  })
+
+  // ── Phase 87-03: compare-and-set via advance_booking_status (D-01, PAYF-02) ──
+  const PATCH_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'
+
+  function wireStatusRow(row: Record<string, unknown>) {
+    const singleFn = vi.fn().mockResolvedValue({ data: row, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: vi.fn().mockReturnValue({ eq: selectEqFn }) })
+  }
+
+  it('87-03: the status write is one RPC call with p_from = the read status, the admin actor and source admin_patch', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'pending', client_email: 'a@b.com' })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
+
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'confirmed' }))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledTimes(1)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith('advance_booking_status', {
+      p_booking_id: PATCH_ID,
+      p_from: 'pending',
+      p_to: 'confirmed',
+      p_actor_type: 'admin',
+      p_actor_id: '1',
+      p_source: 'admin_patch',
+      p_patch: {},
+    })
+  })
+
+  it('87-03: a lost race (rpc applied false) is 409 status_conflict with the winner status and no side effect', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'confirmed', client_email: 'a@b.com', booking_source: 'gnet' })
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: { applied: false, current_status: 'en_route' },
+      error: null,
+    })
+
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'cancelled' }))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'status_conflict', currentStatus: 'en_route' })
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    expect(stubPushGnetStatus).not.toHaveBeenCalled()
+    expect(stubDeactivateBookingPaymentLink).not.toHaveBeenCalled()
+  })
+
+  it('87-03: expected_status different from the stored status is 409 before any write', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'en_route', client_email: 'a@b.com' })
+
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'cancelled', expected_status: 'assigned' }))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'status_conflict', currentStatus: 'en_route' })
+    expect(supabaseServiceStub.rpc).not.toHaveBeenCalled()
+    expect(stubLogEmail).not.toHaveBeenCalled()
+  })
+
+  it('87-03: expected_status equal to the stored status proceeds (200)', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'assigned', client_email: 'a@b.com' })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
+
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'en_route', expected_status: 'assigned' }))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledTimes(1)
+  })
+
+  it('87-03: an unknown expected_status is rejected by the schema (400)', async () => {
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'confirmed', expected_status: 'arrived' }))
+    expect(res.status).toBe(400)
+  })
+
+  it('87-03: rpc error is 500 DB update failed', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'pending', client_email: 'a@b.com' })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: null, error: { message: 'boom' } })
+
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'confirmed' }))
+    expect(res.status).toBe(500)
+    expect(await res.json()).toEqual({ error: 'DB update failed' })
+  })
+
+  it('87-03 D-02: on_board is accepted from on_location', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'on_location', client_email: 'a@b.com' })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
+
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'on_board' }))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_from: 'on_location', p_to: 'on_board' }),
+    )
+  })
+
+  it('87-03 D-02: no_show is accepted from on_location and sends no client email', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'on_location', client_email: 'a@b.com' })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
+
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'no_show' }))
+    expect(res.status).toBe(200)
+    expect(stubLogEmail).not.toHaveBeenCalled()
+  })
+
+  it('87-03 D-02: arrived is not a booking status (400 Invalid payload)', async () => {
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'arrived' }))
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'Invalid payload' })
   })
 })
 
@@ -1806,19 +1924,18 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toMatchObject({ ok: true })
     expect(stripeRefundsStub.create).not.toHaveBeenCalled()
-    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_to: 'cancelled', p_actor_type: 'admin', p_source: 'admin_cancel' }),
+    )
   })
 
   it('Test 7: returns 200 and calls stripe.refunds.create for Stripe-paid booking', async () => {
@@ -1826,12 +1943,8 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_test123' })
 
@@ -1840,7 +1953,10 @@ describe('POST /api/admin/bookings/cancel', () => {
     const json = await res.json()
     expect(json).toMatchObject({ ok: true, refund_id: 're_test123' })
     expect(stripeRefundsStub.create).toHaveBeenCalledWith({ payment_intent: 'pi_xxx' })
-    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_to: 'cancelled', p_actor_type: 'admin', p_source: 'admin_cancel' }),
+    )
   })
 
   it('Test 8: returns 502 when stripe.refunds.create throws, booking status NOT updated', async () => {
@@ -1872,12 +1988,8 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_test123' })
 
@@ -1894,9 +2006,12 @@ describe('POST /api/admin/bookings/cancel', () => {
       amount: 20000,
       metadata: { leg: 'outbound' },
     })
-    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
-    // DB update scoped to id, not payment_intent_id
-    expect(updateEqFn).toHaveBeenCalledWith('id', 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d')
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_from: 'confirmed', p_to: 'cancelled', p_source: 'admin_cancel' }),
+    )
+    // status write scoped to id, not payment_intent_id
+    expect(supabaseServiceStub.rpc.mock.calls[0][1]).toMatchObject({ p_booking_id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' })
   })
 
   it('Test 10: partial refund with leg=return — uses return_amount_czk', async () => {
@@ -1913,12 +2028,8 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_test456' })
 
@@ -1949,12 +2060,8 @@ describe('POST /api/admin/bookings/cancel', () => {
     const fetchEqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: fetchEqFn })
 
-    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
-    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
-
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: selectFn })
-      .mockReturnValueOnce({ update: updateFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_scope' })
 
@@ -1963,13 +2070,13 @@ describe('POST /api/admin/bookings/cancel', () => {
       leg: 'outbound',
     }))
 
-    // CRITICAL regression guard: the .eq() call on the update chain must use 'id', not 'payment_intent_id'
-    const allEqCalls = updateEqFn.mock.calls
-    expect(allEqCalls.length).toBeGreaterThan(0)
-    for (const call of allEqCalls) {
-      expect(call[0]).toBe('id')
-      expect(call[0]).not.toBe('payment_intent_id')
-    }
+    // CRITICAL regression guard: the status write targets the booking id only, never the shared
+    // payment_intent_id (the paired round-trip leg must stay untouched).
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledTimes(1)
+    const rpcArgs = supabaseServiceStub.rpc.mock.calls[0][1] as Record<string, unknown>
+    expect(rpcArgs.p_booking_id).toBe('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d')
+    expect(JSON.stringify(rpcArgs)).not.toContain('payment_intent_id')
+    expect(JSON.stringify(rpcArgs)).not.toContain('pi_shared_round_trip')
   })
 
   it('Test 12: returns 422 (not 502) when Stripe throws StripeInvalidRequestError (over-refund)', async () => {
