@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { CircleHelp, Clock, Info, Navigation, Phone, TriangleAlert } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import type { StatusBadgeVariant } from '@/components/admin/StatusBadge'
-import { DRIVER_STEP_LABEL } from '@/lib/booking-status'
+import { DRIVER_STEP_LABEL, TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
 import { googleMapsDirectionsUrl } from '@/lib/driver-nav-url'
 import type { DriverStep } from '@/lib/booking-status'
 import {
@@ -22,6 +22,7 @@ import ConfirmStepDialog from './ConfirmStepDialog'
 import TripCompleted from './TripCompleted'
 import TripMap from './TripMap'
 import NoShowBlock from './NoShowBlock'
+import TripDetails from './TripDetails'
 
 export interface TripScreenProps {
   token: string
@@ -59,6 +60,8 @@ interface Banner {
 }
 
 const INFO_BANNER_MS = 8000
+// UI-SPEC "Freshness": the server view is re-rendered every 30 s while the page is visible.
+const REFRESH_MS = 30_000
 
 const SAVE_ERROR =
   'Could not save this step. Your trip was not changed. Check your connection and try again.'
@@ -103,7 +106,7 @@ interface StepResponseBody {
   noShowAvailableAt?: string
 }
 
-export default function TripScreen({ token, view, trip, noShow }: TripScreenProps) {
+export default function TripScreen({ token, view, trip, initialNote, noShow }: TripScreenProps) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
@@ -116,6 +119,9 @@ export default function TripScreen({ token, view, trip, noShow }: TripScreenProp
   const [settlingTo, setSettlingTo] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [noShowDialogOpen, setNoShowDialogOpen] = useState(false)
+  const [expanded, setExpanded] = useState(false)
+  // The note draft lives here: it survives collapsing the sheet and router.refresh() re-renders.
+  const [noteDraft, setNoteDraft] = useState(initialNote ?? '')
   // Request time from this session's 200 answer; the refreshed server props take over afterwards.
   const [noShowSentAt, setNoShowSentAt] = useState<string | null>(null)
   const sendingRef = useRef(false)
@@ -160,6 +166,32 @@ export default function TripScreen({ token, view, trip, noShow }: TripScreenProp
     }, Math.min(delay, MAX_TIMEOUT_MS))
     return () => clearTimeout(id)
   }, [view.lockReason, unlocksAtMs])
+
+  // Freshness (no polling endpoint): re-render the server view every 30 s while visible, when the page
+  // becomes visible again and when the connection returns. Stops on a terminal status and once the
+  // in-session completed screen is showing (the link is closed, a refresh would drop that summary).
+  const refreshable = completedAt === null && !(TERMINAL_BOOKING_STATUSES as ReadonlySet<string>).has(view.status)
+  useEffect(() => {
+    if (!refreshable) return
+    const visible = () => document.visibilityState === 'visible'
+    const timer = setInterval(() => {
+      if (visible()) router.refresh()
+    }, REFRESH_MS)
+    const onVisibility = () => {
+      if (!visible()) return
+      // Timers are throttled while hidden: re-check the unlock / no-show instants against the clock.
+      setNowMs(Date.now())
+      router.refresh()
+    }
+    const onOnline = () => router.refresh()
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('online', onOnline)
+    return () => {
+      clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('online', onOnline)
+    }
+  }, [refreshable, router])
 
   // Info banners clear on their own after 8 s (UI-SPEC: banners clear on the next success or after 8 s).
   useEffect(() => {
@@ -456,6 +488,34 @@ export default function TripScreen({ token, view, trip, noShow }: TripScreenProp
           gap: 16,
         }}
       >
+        <button
+          type="button"
+          data-driver-focus=""
+          aria-expanded={expanded}
+          aria-label={expanded ? 'Hide trip details' : 'Show trip details'}
+          onClick={() => setExpanded((v) => !v)}
+          style={{
+            boxSizing: 'border-box',
+            alignSelf: 'center',
+            width: '100%',
+            minHeight: 48,
+            margin: '-16px 0 -32px',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+          }}
+        >
+          {/* Bar only, no chevron; tap toggles, there is no drag gesture. */}
+          <span
+            aria-hidden="true"
+            style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--admin-border-strong)' }}
+          />
+        </button>
+
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
           <div>
             <div
@@ -488,6 +548,7 @@ export default function TripScreen({ token, view, trip, noShow }: TripScreenProp
             address={trip.originAddress}
             point={trip.origin}
             navigateLabel="Navigate to pickup"
+            clamp={!expanded}
             dot="filled"
             connector
           />
@@ -496,9 +557,21 @@ export default function TripScreen({ token, view, trip, noShow }: TripScreenProp
             address={trip.destinationAddress}
             point={trip.destination}
             navigateLabel="Navigate to drop-off"
+            clamp={!expanded}
             dot="ring"
           />
         </ol>
+
+        {expanded ? (
+          <TripDetails
+            token={token}
+            bookingReference={trip.bookingReference}
+            flight={trip.flight}
+            clientNotes={trip.clientNotes}
+            draft={noteDraft}
+            onDraftChange={setNoteDraft}
+          />
+        ) : null}
 
         {noShowActive ? (
           <NoShowBlock
@@ -663,6 +736,7 @@ function AddressRow({
   address,
   point,
   navigateLabel,
+  clamp,
   dot,
   connector = false,
 }: {
@@ -670,6 +744,8 @@ function AddressRow({
   address: string
   point: { lat: number; lng: number } | null
   navigateLabel: string
+  /** Collapsed sheet: addresses stop at 2 lines (class in driver-trip.css); expanded shows them in full. */
+  clamp: boolean
   dot: 'filled' | 'ring'
   connector?: boolean
 }) {
@@ -718,6 +794,7 @@ function AddressRow({
           {caption}
         </div>
         <div
+          className={clamp ? 'driver-address-clamp' : undefined}
           style={{
             fontSize: 'var(--driver-fs-body)',
             fontWeight: 400,

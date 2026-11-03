@@ -906,3 +906,285 @@ describe('TripScreen: no-show request (D-15, D-16)', () => {
     expect(text.match(/charged/gi)).toHaveLength(1)
   })
 })
+
+describe('TripScreen: sheet handle, details and driver note (D-21)', () => {
+  function handle() {
+    return screen.getByRole('button', { name: /(Show|Hide) trip details/ })
+  }
+
+  it('the handle is collapsed by default with a 48px hit area and toggles aria-expanded and the label', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    expect(handle()).toHaveAttribute('aria-expanded', 'false')
+    expect(handle()).toHaveAccessibleName('Show trip details')
+    expect(handle()).toHaveStyle({ minHeight: '48px' })
+    expect(screen.queryByText('Booking')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Note for the office')).not.toBeInTheDocument()
+
+    await user.click(handle())
+    expect(handle()).toHaveAttribute('aria-expanded', 'true')
+    expect(handle()).toHaveAccessibleName('Hide trip details')
+    expect(screen.getByText('Booking')).toBeInTheDocument()
+
+    await user.click(handle())
+    expect(handle()).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Booking')).not.toBeInTheDocument()
+  })
+
+  it('expanded: shows the booking reference with tabular numerals', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(handle())
+    const ref = screen.getByText('PRG-100')
+    expect(ref).toHaveStyle({ fontVariantNumeric: 'tabular-nums' })
+  })
+
+  it('Flight and Notes from the client rows render only when present', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<TripScreen {...makeProps()} />)
+    await user.click(handle())
+    expect(screen.queryByText('Flight')).not.toBeInTheDocument()
+    expect(screen.queryByText('Notes from the client')).not.toBeInTheDocument()
+    unmount()
+
+    const props = makeProps()
+    props.trip = { ...props.trip, flight: 'OK 123', clientNotes: 'Two large suitcases' }
+    render(<TripScreen {...props} />)
+    await user.click(handle())
+    expect(screen.getByText('Flight')).toBeInTheDocument()
+    expect(screen.getByText('OK 123')).toBeInTheDocument()
+    expect(screen.getByText('Notes from the client')).toBeInTheDocument()
+    expect(screen.getByText('Two large suitcases')).toBeInTheDocument()
+  })
+
+  it('addresses clamp to 2 lines only while the sheet is collapsed', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    expect(screen.getByText('Prague Airport')).toHaveClass('driver-address-clamp')
+    expect(screen.getByText('Wenceslas Square')).toHaveClass('driver-address-clamp')
+    await user.click(handle())
+    expect(screen.getByText('Prague Airport')).not.toHaveClass('driver-address-clamp')
+    expect(screen.getByText('Wenceslas Square')).not.toHaveClass('driver-address-clamp')
+  })
+
+  it('the note textarea is prefilled, 16px text, maxLength 2000 and Send note is disabled while empty', async () => {
+    const user = userEvent.setup()
+    const props = makeProps()
+    props.initialNote = 'Running 5 min late'
+    const { unmount } = render(<TripScreen {...props} />)
+    await user.click(handle())
+    const area = screen.getByLabelText('Note for the office')
+    expect(area).toHaveValue('Running 5 min late')
+    expect(area).toHaveAttribute('maxlength', '2000')
+    expect(area).toHaveAttribute('placeholder', 'Optional, for example: passenger running late')
+    expect(area).toHaveStyle({ fontSize: 'var(--driver-fs-body)' })
+    expect(screen.getByRole('button', { name: 'Send note' })).toBeEnabled()
+    unmount()
+
+    render(<TripScreen {...makeProps()} />)
+    await user.click(handle())
+    expect(screen.getByLabelText('Note for the office')).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Send note' })).toBeDisabled()
+  })
+
+  it('posts { note } only; Sending… disables the textarea; then "Note sent", cleared by the next edit', async () => {
+    let resolve!: (r: Response) => void
+    fetchMock.mockReturnValue(new Promise<Response>((r) => (resolve = r)))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(handle())
+    const area = screen.getByLabelText('Note for the office')
+    fireEvent.change(area, { target: { value: 'Passenger running late' } })
+    await user.click(screen.getByRole('button', { name: 'Send note' }))
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`/api/driver/trip/${TOKEN}/progress`)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual({ note: 'Passenger running late' })
+    expect(screen.getByRole('button', { name: 'Sending…' })).toBeDisabled()
+    expect(screen.getByLabelText('Note for the office')).toBeDisabled()
+    expect(screen.getByLabelText('Note for the office')).toHaveAttribute('aria-busy', 'true')
+
+    await act(async () => {
+      resolve({ ok: true, status: 200, json: () => Promise.resolve({ ok: true }) } as Response)
+    })
+    expect(screen.getByText('Note sent')).toBeInTheDocument()
+    expect(screen.getByLabelText('Note for the office')).toBeEnabled()
+    // A note is independent of steps: no status change, no refresh was requested for it.
+    expect(refreshMock).not.toHaveBeenCalled()
+
+    fireEvent.change(screen.getByLabelText('Note for the office'), { target: { value: 'Passenger running late!' } })
+    expect(screen.queryByText('Note sent')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['a 500 answer', () => jsonResponse(500, { error: 'update_failed' })],
+    ['a network error', () => Promise.reject(new Error('offline'))],
+  ])('%s shows the role=alert error and keeps the text', async (_n, answer) => {
+    fetchMock.mockImplementation(answer)
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(handle())
+    fireEvent.change(screen.getByLabelText('Note for the office'), { target: { value: 'hello' } })
+    await user.click(screen.getByRole('button', { name: 'Send note' }))
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('Could not send the note. Try again.')
+    expect(screen.getByLabelText('Note for the office')).toHaveValue('hello')
+    expect(screen.getByRole('button', { name: 'Send note' })).toBeEnabled()
+  })
+
+  it('a 2000-character note and a long client note wrap (overflow-wrap) instead of scrolling sideways', async () => {
+    const user = userEvent.setup()
+    const props = makeProps()
+    props.trip = { ...props.trip, clientNotes: 'W'.repeat(400) }
+    render(<TripScreen {...props} />)
+    await user.click(handle())
+    expect(screen.getByText('W'.repeat(400))).toHaveStyle({ overflowWrap: 'anywhere' })
+    const area = screen.getByLabelText('Note for the office')
+    expect(area).toHaveStyle({ width: '100%', boxSizing: 'border-box' })
+    fireEvent.change(area, { target: { value: 'n'.repeat(2000) } })
+    expect((area as HTMLTextAreaElement).value).toHaveLength(2000)
+  })
+
+  it('the expanded sheet and the note draft survive a re-render with new props (router.refresh)', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<TripScreen {...makeProps()} />)
+    await user.click(handle())
+    fireEvent.change(screen.getByLabelText('Note for the office'), { target: { value: 'draft in progress' } })
+    rerender(<TripScreen {...makeProps({ status: 'en_route', nextStep: 'on_site' })} />)
+    expect(handle()).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByLabelText('Note for the office')).toHaveValue('draft in progress')
+    expect(screen.getByText('I have arrived')).toBeInTheDocument()
+  })
+
+  it('the draft survives collapsing and expanding the sheet', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(handle())
+    fireEvent.change(screen.getByLabelText('Note for the office'), { target: { value: 'keep me' } })
+    await user.click(handle())
+    await user.click(handle())
+    expect(screen.getByLabelText('Note for the office')).toHaveValue('keep me')
+  })
+})
+
+describe('TripScreen: freshness (UI-SPEC "Freshness")', () => {
+  function setVisibility(state: 'visible' | 'hidden') {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+  }
+
+  afterEach(() => {
+    setVisibility('visible')
+  })
+
+  it('refreshes every 30 s while the page is visible', () => {
+    vi.useFakeTimers()
+    setVisibility('visible')
+    render(<TripScreen {...makeProps()} />)
+    act(() => {
+      vi.advanceTimersByTime(29_000)
+    })
+    expect(refreshMock).not.toHaveBeenCalled()
+    act(() => {
+      vi.advanceTimersByTime(1_000)
+    })
+    expect(refreshMock).toHaveBeenCalledTimes(1)
+    act(() => {
+      vi.advanceTimersByTime(30_000)
+    })
+    expect(refreshMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not refresh on the timer while the page is hidden', () => {
+    vi.useFakeTimers()
+    setVisibility('hidden')
+    render(<TripScreen {...makeProps()} />)
+    act(() => {
+      vi.advanceTimersByTime(120_000)
+    })
+    expect(refreshMock).not.toHaveBeenCalled()
+  })
+
+  it('refreshes once when the page becomes visible and once on the online event', () => {
+    vi.useFakeTimers()
+    setVisibility('hidden')
+    render(<TripScreen {...makeProps()} />)
+    setVisibility('visible')
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(refreshMock).toHaveBeenCalledTimes(1)
+    act(() => {
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(refreshMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('a visibilitychange to hidden does not refresh', () => {
+    vi.useFakeTimers()
+    render(<TripScreen {...makeProps()} />)
+    setVisibility('hidden')
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(refreshMock).not.toHaveBeenCalled()
+  })
+
+  it.each(['completed', 'cancelled', 'no_show'])('does not poll for the terminal status %s', (status) => {
+    vi.useFakeTimers()
+    render(<TripScreen {...makeProps({ status, nextStep: null })} />)
+    act(() => {
+      vi.advanceTimersByTime(120_000)
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(refreshMock).not.toHaveBeenCalled()
+  })
+
+  it('stops all timers and listeners on unmount', () => {
+    vi.useFakeTimers()
+    const { unmount } = render(<TripScreen {...makeProps()} />)
+    unmount()
+    act(() => {
+      vi.advanceTimersByTime(120_000)
+      window.dispatchEvent(new Event('online'))
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+    expect(refreshMock).not.toHaveBeenCalled()
+  })
+
+  it('the completed in-session screen never triggers a refresh', async () => {
+    fetchMock.mockReturnValue(
+      jsonResponse(200, { ok: true, status: 'completed', nextStep: null, completedAt: '2026-11-04T10:05:00Z' }),
+    )
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps({ status: 'on_board', nextStep: 'completed' })} />)
+    knob().focus()
+    await user.keyboard('{Enter}')
+    await user.click(screen.getByRole('button', { name: 'Yes, complete trip' }))
+    await screen.findByText('Trip completed')
+    vi.useFakeTimers()
+    act(() => {
+      vi.advanceTimersByTime(120_000)
+      window.dispatchEvent(new Event('online'))
+    })
+    expect(refreshMock).not.toHaveBeenCalled()
+  })
+
+  it('at unlocksAt the locked control becomes ready without a reload and announces "Start step unlocked."', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-04T05:14:00Z'))
+    render(<TripScreen {...makeProps({ lockReason: 'too_early', unlocksAt: '2026-11-04T05:15:00Z' })} />)
+    expect(knob()).toHaveAttribute('aria-disabled', 'true')
+    expect(screen.getByText('Too early to start')).toBeInTheDocument()
+    act(() => {
+      vi.advanceTimersByTime(61_000)
+    })
+    expect(screen.queryByText('Too early to start')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Next step: On my way. Double tap to confirm.' })).not.toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+    expect(screen.getByText('Start step unlocked.')).toBeInTheDocument()
+  })
+})
