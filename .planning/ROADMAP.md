@@ -190,7 +190,7 @@ Plans:
   4. For a GNet booking each driver step is pushed to GNet exactly once (no duplicates on retap or retry) and the booking is marked as a partner booking so no hold, capture or no-show charge can ever apply to it.
   5. The "completed" step asks the driver to confirm, fires exactly one completion event that the payment engine consumes in Phase 88 (capture itself is verified there under HOLD-04), and the driver never sees or enters an amount.
 
-**Plans**: 14/20 plans executed (6 gap-closure plans added 2026-11-03 from 87-UAT)
+**Plans**: 17/20 plans executed (6 gap-closure plans added 2026-11-03 from 87-UAT)
 Plans:
 **Wave 1**
 - [x] 87-01-PLAN.md — Wave 1: behaviour-preserving extraction of advanceBookingStatus() + single GNet push helper; cancel route characterized; PATCH/cancel/assign routed through the service (tracer)
@@ -220,9 +220,9 @@ Plans:
 
 **Gap closure (87-UAT gaps 1-3, 2026-11-03)**
 **Wave 1**
-- [ ] 87-15-PLAN.md — Gap 1: driver gets an email with the order details and the trip-step link after Accept
-- [ ] 87-16-PLAN.md — Gap 2: Google Maps / Waze chooser on the pickup and drop-off Navigate buttons
-- [ ] 87-17-PLAN.md — Gap 3 prerequisite: driver help contract; the CRM bridge never turns driver chats into Leads
+- [x] 87-15-PLAN.md — Gap 1: driver gets an email with the order details and the trip-step link after Accept
+- [x] 87-16-PLAN.md — Gap 2: Google Maps / Waze chooser on the pickup and drop-off Navigate buttons
+- [x] 87-17-PLAN.md — Gap 3 prerequisite: driver help contract; the CRM bridge never turns driver chats into Leads
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 87-18-PLAN.md — Gap 3: token-gated driver help chat identity endpoint + Chatwoot conversation attributes
@@ -471,7 +471,7 @@ Plans:
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
-| 87. Status Service & Driver Step Flow | v5.0 | 14/20 | In Progress|  |
+| 87. Status Service & Driver Step Flow | v5.0 | 17/20 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
