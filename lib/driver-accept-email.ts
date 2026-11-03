@@ -15,7 +15,7 @@ import { logEmail } from '@/lib/email-log'
 import { sendDriverAcceptedEmail } from '@/lib/email'
 import { isTripLinkValid } from '@/lib/trip-token'
 
-export type DriverAcceptedOutcome = 'sent' | 'skipped'
+export type DriverAcceptedOutcome = 'sent' | 'skipped' | 'send_failed'
 
 type BookingRow = {
   id: string
@@ -102,7 +102,7 @@ export async function sendDriverAcceptedTripEmail(assignmentId: string): Promise
   })
   if (!allowed) return skip(assignmentId, 'deduped')
 
-  await sendDriverAcceptedEmail({
+  const delivered = await sendDriverAcceptedEmail({
     driverName: driver.name,
     driverEmail: driver.email,
     bookingReference: booking.booking_reference,
@@ -122,6 +122,10 @@ export async function sendDriverAcceptedTripEmail(assignmentId: string): Promise
     tripUrl,
   })
 
+  if (!delivered) {
+    console.error(`[driver-accept] assignment=${assignmentId} outcome=send_failed`)
+    return 'send_failed'
+  }
   console.log(`[driver-accept] assignment=${assignmentId} outcome=sent`)
   return 'sent'
 }

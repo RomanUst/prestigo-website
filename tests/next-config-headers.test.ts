@@ -81,4 +81,14 @@ describe('next.config.ts headers() — X-Frame-Options excluded for /embed', () 
     expect(headerOf(hit, 'Referrer-Policy')).toBe('strict-origin-when-cross-origin')
     expect(headerOf(hit, 'X-Content-Type-Options')).toBe('nosniff')
   })
+
+  // Phase 87 review WR-01: the trip URL carries the bearer trip token.
+  it.each(['/driver/trip/a37b7885-a3bc-49c9-9418-d2d4bd7eeede', '/driver/trip/help'])(
+    '%s: Referrer-Policy is no-referrer and X-Frame-Options stays DENY',
+    async (pathname) => {
+      const hit = matching(await loadEntries(), pathname)
+      expect(headerOf(hit, 'Referrer-Policy')).toBe('no-referrer')
+      expect(headerOf(hit, 'X-Frame-Options')).toBe('DENY')
+    },
+  )
 })

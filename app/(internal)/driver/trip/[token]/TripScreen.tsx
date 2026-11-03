@@ -135,21 +135,33 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   const [expanded, setExpanded] = useState(false)
   // A short vertical swipe on the sheet head opens (up) or closes (down) the details; the tap on
   // the handle still toggles. The click that follows a swipe is swallowed so it does not undo it.
-  const swipeStartY = useRef<number | null>(null)
+  const swipeStart = useRef<{ x: number; y: number } | null>(null)
   const swipedRef = useRef(false)
   const sheetSwipe = {
     onTouchStart: (e: TouchEvent) => {
-      swipeStartY.current = e.touches[0]?.clientY ?? null
+      const t = e.touches[0]
+      swipeStart.current = t ? { x: t.clientX, y: t.clientY } : null
       swipedRef.current = false
     },
+    onTouchCancel: () => {
+      swipeStart.current = null
+    },
     onTouchEnd: (e: TouchEvent) => {
-      const start = swipeStartY.current
-      swipeStartY.current = null
-      const end = e.changedTouches[0]?.clientY
-      if (start == null || end == null) return
-      const dy = end - start
-      if (Math.abs(dy) < SWIPE_MIN_PX) return
+      const start = swipeStart.current
+      swipeStart.current = null
+      const t = e.changedTouches[0]
+      if (!start || !t) return
+      const dx = t.clientX - start.x
+      const dy = t.clientY - start.y
+      // Vertical only, past the threshold; a downward drag while the page is scrolled is a scroll
+      // back up, not a request to close the details.
+      if (Math.abs(dy) < SWIPE_MIN_PX || Math.abs(dx) > Math.abs(dy)) return
+      if (dy > 0 && window.scrollY > 0) return
       swipedRef.current = true
+      // The synthetic click follows touchend at once; never let a stale flag eat a later click.
+      window.setTimeout(() => {
+        swipedRef.current = false
+      }, 400)
       setExpanded(dy < 0)
     },
   }

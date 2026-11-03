@@ -1881,8 +1881,9 @@ ${driverTripDetailsRows(data)}
 /**
  * Send the driver a copy of the order after Accept, with the permanent trip link.
  * Non-fatal — catches and logs errors, does not throw. No replyTo (driver/operator send).
+ * Returns true when Resend accepted the message, so the caller can log a failed send.
  */
-export async function sendDriverAcceptedEmail(data: DriverAcceptedEmailData): Promise<void> {
+export async function sendDriverAcceptedEmail(data: DriverAcceptedEmailData): Promise<boolean> {
   try {
     const formattedDate = formatPickupDate(data.pickupDate)
     const { error } = await getResend().emails.send({
@@ -1891,10 +1892,15 @@ export async function sendDriverAcceptedEmail(data: DriverAcceptedEmailData): Pr
       subject: `Trip confirmed: ${data.bookingReference} - ${formattedDate} at ${data.pickupTime}`,
       html: buildDriverAcceptedEmailHtml(data),
     })
-    if (error) console.error('[driver-accept] accept email error:', error)
+    if (error) {
+      console.error('[driver-accept] accept email error:', error)
+      return false
+    }
+    return true
   } catch (err) {
     console.error('[driver-accept] accept email exception:', err)
     // Non-fatal — do not throw
+    return false
   }
 }
 

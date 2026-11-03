@@ -278,6 +278,19 @@ describe('87-15 guards', () => {
     expect(sendStub).toHaveBeenCalledTimes(1)
   })
 
+  it('Resend error -> one send attempt, logged as send_failed, never as sent', async () => {
+    sendStub.mockResolvedValue({ data: null, error: { message: 'boom' } })
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    await accept()
+    expect(sendStub).toHaveBeenCalledTimes(1)
+    const errs = errSpy.mock.calls.map((c) => c.join(' '))
+    expect(errs.some((l) => l.includes(`assignment=${assignmentId} outcome=send_failed`))).toBe(true)
+    expect(logSpy.mock.calls.map((c) => c.join(' ')).some((l) => l.includes('outcome=sent'))).toBe(false)
+    errSpy.mockRestore()
+    logSpy.mockRestore()
+  })
+
   it('logEmail returns false (dedupe window) -> no send', async () => {
     logEmailStub.mockResolvedValue(false)
     await accept()

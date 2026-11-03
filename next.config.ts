@@ -170,6 +170,13 @@ const nextConfig: NextConfig = {
       },
       { source: "/embed", headers: embedHeaders },
       { source: "/embed/:path*", headers: embedHeaders },
+      // Phase 87 review WR-01: the driver trip URL carries the bearer trip token, so no
+      // driver page sends a Referer (the Help page, Chatwoot and analytics never see it).
+      // Listed after the global entry, so this Referrer-Policy wins for /driver/*.
+      {
+        source: "/driver/:path*",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
     ];
   },
 };

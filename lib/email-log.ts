@@ -26,10 +26,10 @@ export async function logEmail(params: {
 
   // D-16: Dedup check — same booking_id + email_type + recipient within last 10 minutes
   // recipient included so reassigning to a different driver sends a new email
-  const { data: existing } = await supabase
-    .from('email_log')
-    .select('id')
-    .eq('booking_id', params.bookingId)
+  // .eq('booking_id', null) sends `eq.null`, which never matches a NULL row, so a null id uses .is().
+  const base = supabase.from('email_log').select('id')
+  const byBooking = params.bookingId === null ? base.is('booking_id', null) : base.eq('booking_id', params.bookingId)
+  const { data: existing } = await byBooking
     .eq('email_type', params.emailType)
     .eq('recipient', params.recipient)
     .gte('sent_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
