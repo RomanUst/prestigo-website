@@ -190,7 +190,7 @@ Plans:
   4. For a GNet booking each driver step is pushed to GNet exactly once (no duplicates on retap or retry) and the booking is marked as a partner booking so no hold, capture or no-show charge can ever apply to it.
   5. The "completed" step asks the driver to confirm, fires exactly one completion event that the payment engine consumes in Phase 88 (capture itself is verified there under HOLD-04), and the driver never sees or enters an amount.
 
-**Plans**: 13 plans
+**Plans**: 14 plans
 Plans:
 **Wave 1**
 - [ ] 87-01-PLAN.md — Wave 1: behaviour-preserving extraction of advanceBookingStatus() + single GNet push helper; cancel route characterized; PATCH/cancel/assign routed through the service (tracer)
@@ -199,20 +199,21 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 87-03-PLAN.md — Wave 2: compare-and-set via advance_booking_status, 409 status_conflict, cancel/assign lost-race responses, single completion event (partner-aware), direct status-writer gate
 - [ ] 87-04-PLAN.md — Wave 2: CRM/lead/Chatwoot/panel/calendar status fan-out, pickupInstantMs to prague-date, SQL-vs-TS parity on latest definitions
-- [ ] 87-05-PLAN.md — Wave 2: admin On Board / No-Show labels and hues, no_show terminal, expected_status + inline conflict message
 - [ ] 87-06-PLAN.md — Wave 2: no-show operator alert as a Chatwoot private note via the outbox dispatcher
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 87-07-PLAN.md — Wave 3: idempotent GNet push (conditional claim), D-22 null mapping and no farm-in echo pinned
 - [ ] 87-08-PLAN.md — Wave 3: driver route rebuilt on the status service (strict next step, replay 200, 409), start gate, DTRIP-04 gates rewritten
+- [ ] 87-05-PLAN.md — Wave 3: admin On Board / No-Show labels and hues, no_show terminal, expected_status + inline conflict message (depends on 87-03's 409 contract)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 87-09-PLAN.md — Wave 4: driver no-show request (server threshold, email + outbox alert), admin confirm/dismiss route, settings thresholds, shared airport helper
-- [ ] 87-10-PLAN.md — Wave 4: light driver trip screen — one-step slide control, confirm dialog, completed/ended/help views
+- [ ] 87-10-PLAN.md — Wave 4: light driver trip screen — one-step control (keyboard path), confirm dialog, completed/ended/help views
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 87-11-PLAN.md — Wave 5: driver map + distance, passenger card, navigation, details + note, no-show block, refresh timers
 - [ ] 87-12-PLAN.md — Wave 5: admin no-show banner/chip/confirm modal and no-show waiting-time settings
+- [ ] 87-14-PLAN.md — Wave 5: slide-to-advance gesture contract (drag past 85%, hold, tap hint, assistive activation, offline lock, reduced motion), split from 87-10
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 87-13-PLAN.md — Wave 6: full quality gate, [BLOCKING] EspoCRM fields sync before merge, owner production UAT on a real phone
