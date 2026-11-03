@@ -1,52 +1,99 @@
 ---
-status: testing
+status: diagnosed
 phase: 87-status-service-driver-step-flow
 source: [87-VERIFICATION.md, 87-13-PLAN.md]
 started: 2026-11-03T15:59:57Z
-updated: 2026-11-03T15:59:57Z
+updated: 2026-11-03T17:25:00Z
 ---
 
 ## Current Test
 
-number: 1
-name: Real-phone production run of the four driver steps
-expected: |
-  Trip link opens light, header PRESTIGO + Help only; one control at a time: On my way -> I have arrived -> Passenger on board -> Complete trip, each behind a confirm dialog ("Not yet" cancels). Admin shows En Route / On Location / On Board / Completed after a reload. Completed screen shows booking, date and completed time only; reopening the link shows "Trip completed" with no details.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
 ### 1. Real-phone production run of the four driver steps
 expected: as above (87-13 Task 3 steps 2, 3, 4, 5)
-result: [pending]
+result: issue
+reported: "после того как водитель нажал что принял заказ ему не пришел имеил с заказом"
+severity: major
+note: four-step flow and admin statuses confirmed working by the owner ("да статусы работают")
+reported_2: "у кнопок навигации к пикапу или к дропоффу при нажатии должно быть на выбор гугл мапс или вейз, при нажатии кнопки хелп должен открываться чат который получит чатвоот"
 
 ### 2. Double tap and airplane-mode retry
 expected: a repeated tap applies nothing twice; with no connection the control shows "No connection" and steps cannot be saved; after reconnecting the step goes through once
-result: [pending]
+result: pass
+note: double tap impossible by design (slider + confirm dialog after every slide) — owner confirmed; airplane-mode retry confirmed
 
 ### 3. No-show request end to end
 expected: with City pickup = 1 min, "Request no-show" appears after the wait; admin shows chip + banner with driver name and time, operator email arrives (needs MANAGER_EMAIL in Vercel), Chatwoot private note appears; "Client found" clears the banner; reset City pickup to 30
-result: [pending]
+result: pass
 
 ### 4. Admin change racing a driver step (incl. the Cancel button)
 expected: with a step dialog open on the phone, change the status in admin; confirming on the phone shows "The office has updated this trip (...)"; admin keeps its change; the admin Cancel button on a lost race shows a clear message
-result: [pending]
+result: pass
+note: completed is terminal (lib/booking-transitions.ts completed: []), admin cannot change it either — owner accepts this; race tested on an active trip
 
 ### 5. Device checks E2 / E4 / accessibility
 expected: Google logo and attribution fully visible at 360x640 and 390x844 with the distance chip; slide works in WhatsApp / Telegram / Instagram in-app browsers (or Enter/hold fallbacks) without triggering the iOS edge swipe; VoiceOver double tap opens exactly one dialog; 200% zoom keeps the control usable; admin no-show banner readable at 360px and 640px
-result: [pending]
+result: pass
 
 ### 6. Owner decision: on_board is not pushed to GNet (D-22)
 expected: owner accepts that GNet receives en route / on site / completed only (no ON_BOARD status in GNet), or asks for a follow-up after checking with GRiDD
-result: [pending]
+result: pass
+note: owner re-confirmed "да все верно"
 
 ## Summary
 
 total: 6
-passed: 0
-issues: 0
-pending: 6
+passed: 5
+issues: 1
+pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
+
+- truth: "After the driver taps Accept, the driver receives an email with the full order details"
+  status: failed
+  reason: "User reported: после того как водитель нажал что принял заказ ему не пришел имеил с заказом"
+  severity: major
+  test: 1
+  root_cause: "Pre-existing (Phase 40), not a Phase 87 regression: app/api/driver/respond/route.ts sends only sendDriverDeclineNotification on 'declined'; on 'accepted' no email is sent. The only driver email with order details is sendDriverAssignmentEmail at assign time (app/api/admin/bookings/[id]/assign/route.ts:165)."
+  artifacts:
+    - path: "app/api/driver/respond/route.ts"
+      issue: "no email on action=accepted"
+  missing:
+    - "Send the driver a confirmation email with full order details (and the trip-step link) after accept, deduped via logEmail"
+  debug_session: ""
+
+- truth: "Tapping the pickup / drop-off navigation button lets the driver choose Google Maps or Waze"
+  status: failed
+  reason: "User reported: у кнопок навигации к пикапу или к дропоффу при нажатии должно быть на выбор гугл мапс или вейз"
+  severity: major
+  test: 1
+  root_cause: "By design in D-18: lib/driver-nav-url.ts builds a Google Maps directions URL only; no Waze option, no chooser."
+  artifacts:
+    - path: "lib/driver-nav-url.ts"
+      issue: "only googleMapsDirectionsUrl, no Waze URL"
+    - path: "app/(internal)/driver/trip/[token]/TripScreen.tsx"
+      issue: "nav button opens Google Maps directly"
+  missing:
+    - "Add wazeUrl(target) (https://waze.com/ul?ll=lat,lng&navigate=yes or ?q=address) with the same no-PII rule (T-87-37)"
+    - "Nav button opens a small chooser: Google Maps / Waze"
+  debug_session: ""
+
+- truth: "Tapping Help opens a chat whose messages reach Chatwoot"
+  status: failed
+  reason: "User reported: при нажатии кнопки хелп должен открываться чат который получит чатвоот"
+  severity: major
+  test: 1
+  root_cause: "By design in D-18: Help opens ConfirmStepDialog mode='help' with a call link (BUSINESS_TEL_URL) only; no chat on the driver trip page."
+  artifacts:
+    - path: "app/(internal)/driver/trip/[token]/ConfirmStepDialog.tsx"
+      issue: "help mode shows phone link only"
+    - path: "app/(internal)/driver/trip/[token]/TripScreen.tsx"
+      issue: "Help button opens the call dialog"
+  missing:
+    - "Open a Chatwoot conversation from Help (reuse the Phase 77/83 Chatwoot widget/inbox), identified as the driver + booking reference, without exposing the trip token; keep the call option as fallback"
+  debug_session: ""
