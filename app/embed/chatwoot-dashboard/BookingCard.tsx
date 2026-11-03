@@ -8,6 +8,7 @@ import {
   VEHICLE_CLASS_LABELS,
   type PanelBooking,
 } from '@/lib/panel-dto'
+import { BOOKING_STATUSES } from '@/lib/booking-status'
 import { isSafePaymentLinkUrl } from '@/lib/panel-links'
 import CopyLinkButton from './CopyLinkButton'
 
@@ -54,15 +55,17 @@ function labelFor(map: Record<string, string>, key: string): string | null {
   return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : null
 }
 
-const STATUS_HUES = new Set(['unpaid', 'pending', 'confirmed', 'assigned', 'en_route', 'on_location', 'completed', 'cancelled'])
+// Every booking status has its own .badge-<status> hue in panel.css (Phase 87 D-02: one vocabulary).
+const STATUS_HUES: ReadonlySet<string> = new Set(BOOKING_STATUSES)
 
-// Trip progress reuses the status hues (UI-SPEC): arrived = on_location, on_board = assigned, no_show = cancelled.
+// Trip progress reuses the status hues: arrived = on_location. on_board and no_show have their own
+// hues (Phase 87 D-08: on_board teal, no_show danger), no longer borrowed from assigned / cancelled.
 const PROGRESS_HUES: Record<string, string> = {
   en_route: 'en_route',
   arrived: 'on_location',
-  on_board: 'assigned',
+  on_board: 'on_board',
   completed: 'completed',
-  no_show: 'cancelled',
+  no_show: 'no_show',
 }
 
 // Payment badge hues (UI-SPEC): paid = completed, awaiting payment = unpaid, quote = confirmed.

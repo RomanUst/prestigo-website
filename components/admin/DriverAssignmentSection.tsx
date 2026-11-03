@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Copy } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
+import { TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
 
 interface Driver {
   id: string
@@ -109,8 +110,8 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
     return () => { cancelled = true }
   }, [bookingId])
 
-  // D-01 + D-02: hide entirely for terminal statuses — guard placed AFTER hooks
-  if (bookingStatus === 'completed' || bookingStatus === 'cancelled') {
+  // D-01 + D-02: hide entirely for terminal statuses (completed, cancelled, no_show: D-09) — guard placed AFTER hooks
+  if (TERMINAL_BOOKING_STATUSES.has(bookingStatus as BookingStatus)) {
     return null
   }
 
