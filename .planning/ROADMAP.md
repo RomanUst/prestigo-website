@@ -190,7 +190,7 @@ Plans:
   4. For a GNet booking each driver step is pushed to GNet exactly once (no duplicates on retap or retry) and the booking is marked as a partner booking so no hold, capture or no-show charge can ever apply to it.
   5. The "completed" step asks the driver to confirm, fires exactly one completion event that the payment engine consumes in Phase 88 (capture itself is verified there under HOLD-04), and the driver never sees or enters an amount.
 
-**Plans**: 13/14 plans executed
+**Plans**: 14/14 plans executed
 Plans:
 **Wave 1**
 - [x] 87-01-PLAN.md — Wave 1: behaviour-preserving extraction of advanceBookingStatus() + single GNet push helper; cancel route characterized; PATCH/cancel/assign routed through the service (tracer)
@@ -216,7 +216,7 @@ Plans:
 - [x] 87-14-PLAN.md — Wave 5: slide-to-advance gesture contract (drag past 85%, hold, tap hint, assistive activation, offline lock, reduced motion), split from 87-10
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 87-13-PLAN.md — Wave 6: full quality gate, [BLOCKING] EspoCRM fields sync before merge, owner production UAT on a real phone
+- [x] 87-13-PLAN.md — Wave 6: full quality gate, [BLOCKING] EspoCRM fields sync before merge, owner production UAT on a real phone
 
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix. The permanent driver link now changes `booking.status` and later moves money; the token-gated write route stays CSRF-protected and rate-limited, and the v2.2 DTRIP-04 isolation grep-gates are rewritten for the new rule rather than deleted.
@@ -458,7 +458,7 @@ Plans:
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
-| 87. Status Service & Driver Step Flow | v5.0 | 13/14 | In Progress|  |
+| 87. Status Service & Driver Step Flow | v5.0 | 14/14 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
