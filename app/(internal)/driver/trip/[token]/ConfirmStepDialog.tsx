@@ -3,9 +3,11 @@
 import { useEffect, useId, useRef } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { LoaderCircle } from 'lucide-react'
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 export interface ConfirmStepDialogProps {
-  mode: 'step'
+  /** 'no-show' mode is added by plan 87-11. */
+  mode: 'step' | 'help'
   stepLabel?: string
   isFinal?: boolean
   submitting: boolean
@@ -46,7 +48,7 @@ const FOCUSABLE = 'button:not([disabled]), a[href]'
  * button is pressed, and focus returns to the invoking control on close.
  */
 export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
-  const { stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel } = props
+  const { mode, stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel } = props
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -83,6 +85,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
     }
   }
 
+  const isHelp = mode === 'help'
   const primaryLabel = error ? 'Try again' : (CONFIRM_BUTTON[stepLabel] ?? 'Confirm')
 
   return (
@@ -132,16 +135,23 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
             lineHeight: 1.2,
           }}
         >
-          {`Confirm: ${stepLabel}`}
+          {isHelp ? 'Need help?' : `Confirm: ${stepLabel}`}
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
-            {'Are you sure you want to move to '}
-            <span style={{ fontWeight: 500 }}>{stepLabel}</span>
-            {'?'}
-          </p>
-          {isFinal ? (
+          {isHelp ? (
+            <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
+              Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped
+              by mistake.
+            </p>
+          ) : (
+            <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
+              {'Are you sure you want to move to '}
+              <span style={{ fontWeight: 500 }}>{stepLabel}</span>
+              {'?'}
+            </p>
+          )}
+          {!isHelp && isFinal ? (
             <p
               style={{
                 margin: 0,
@@ -172,30 +182,59 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
         ) : null}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button
-            type="button"
-            data-driver-focus=""
-            disabled={submitting}
-            onClick={onConfirm}
-            style={{
-              ...buttonBase,
-              fontWeight: 500,
-              border: '1px solid var(--admin-accent)',
-              background: 'var(--admin-accent)',
-              color: 'var(--admin-on-accent)',
-              opacity: submitting ? 0.85 : 1,
-              cursor: submitting ? 'default' : 'pointer',
-            }}
-          >
-            {submitting ? (
-              <>
-                <LoaderCircle size={20} className="driver-spin" aria-hidden="true" />
-                Saving…
-              </>
-            ) : (
-              primaryLabel
-            )}
-          </button>
+          {isHelp ? (
+            <a
+              href={BUSINESS_TEL_URL}
+              data-driver-focus=""
+              style={{
+                ...buttonBase,
+                flexDirection: 'column',
+                gap: 0,
+                fontWeight: 500,
+                textDecoration: 'none',
+                border: '1px solid var(--admin-accent)',
+                background: 'var(--admin-accent)',
+                color: 'var(--admin-on-accent)',
+              }}
+            >
+              <span>Call the office</span>
+              <span
+                style={{
+                  fontSize: 'var(--driver-fs-label)',
+                  fontWeight: 400,
+                  lineHeight: 1.4,
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {BUSINESS_PHONE_DISPLAY}
+              </span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              data-driver-focus=""
+              disabled={submitting}
+              onClick={onConfirm}
+              style={{
+                ...buttonBase,
+                fontWeight: 500,
+                border: '1px solid var(--admin-accent)',
+                background: 'var(--admin-accent)',
+                color: 'var(--admin-on-accent)',
+                opacity: submitting ? 0.85 : 1,
+                cursor: submitting ? 'default' : 'pointer',
+              }}
+            >
+              {submitting ? (
+                <>
+                  <LoaderCircle size={20} className="driver-spin" aria-hidden="true" />
+                  Saving…
+                </>
+              ) : (
+                primaryLabel
+              )}
+            </button>
+          )}
           <button
             ref={cancelRef}
             type="button"
@@ -211,7 +250,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               cursor: submitting ? 'default' : 'pointer',
             }}
           >
-            Not yet
+            {isHelp ? 'Close' : 'Not yet'}
           </button>
         </div>
       </div>

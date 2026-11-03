@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { Clock, Info, TriangleAlert } from 'lucide-react'
+import { CircleHelp, Clock, Info, TriangleAlert } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import type { StatusBadgeVariant } from '@/components/admin/StatusBadge'
 import { DRIVER_STEP_LABEL } from '@/lib/booking-status'
@@ -18,6 +18,7 @@ import {
 import SlideToAdvance from './SlideToAdvance'
 import type { SlideState } from './SlideToAdvance'
 import ConfirmStepDialog from './ConfirmStepDialog'
+import TripCompleted from './TripCompleted'
 
 export interface TripScreenProps {
   token: string
@@ -51,6 +52,8 @@ interface Banner {
   kind: BannerKind
   text: string
 }
+
+const INFO_BANNER_MS = 8000
 
 const SAVE_ERROR =
   'Could not save this step. Your trip was not changed. Check your connection and try again.'
@@ -88,11 +91,14 @@ interface StepResponseBody {
   nextStep?: DriverStep | null
   error?: string
   unlocksAt?: string
+  completedAt?: string
 }
 
 export default function TripScreen({ token, view, trip }: TripScreenProps) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [completedAt, setCompletedAt] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
   const [banner, setBanner] = useState<Banner | null>(null)
@@ -120,6 +126,13 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
     }, Math.min(delay, MAX_TIMEOUT_MS))
     return () => clearTimeout(id)
   }, [view.lockReason, unlocksAtMs])
+
+  // Info banners clear on their own after 8 s (UI-SPEC: banners clear on the next success or after 8 s).
+  useEffect(() => {
+    if (banner?.kind !== 'info') return
+    const id = setTimeout(() => setBanner(null), INFO_BANNER_MS)
+    return () => clearTimeout(id)
+  }, [banner])
 
   // The refreshed server view reached the status we are waiting for: leave the settling state.
   useEffect(() => {
@@ -188,9 +201,22 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
         // Server truth only: the screen re-renders from router.refresh(), never from local state.
         setDialogOpen(false)
         setBanner(null)
-        setSettlingTo(body.status)
         setAnnouncement(`Status updated: ${DRIVER_STEP_LABEL[nextStep]}.`)
+        if (body.status === 'completed') {
+          // The link is closed now: a refresh would render the details-free re-opened view, so the
+          // in-session summary is built from the server's 200 answer and no refresh is requested.
+          setCompletedAt(body.completedAt ?? new Date().toISOString())
+        } else {
+          setSettlingTo(body.status)
+          router.refresh()
+        }
+      } else if (res.status === 400 && body?.error === 'invalid_token') {
+        // The link died while the screen was open: the refreshed page renders the ended view.
+        setDialogOpen(false)
         router.refresh()
+      } else if (res.status === 429) {
+        setDialogOpen(false)
+        setBanner({ kind: 'amber', text: 'Too many taps. Wait a moment and try again.' })
       } else if (res.status === 409 && body?.error === 'step_conflict') {
         setDialogOpen(false)
         setBanner({
@@ -220,6 +246,19 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
 
   const badgeVariant = view.status as StatusBadgeVariant
 
+  if (completedAt !== null) {
+    return (
+      <TripCompleted
+        variant="in-session"
+        summary={{
+          bookingReference: trip.bookingReference,
+          pickupDate: trip.pickupDate,
+          completedAt,
+        }}
+      />
+    )
+  }
+
   return (
     <main
       style={{
@@ -247,6 +286,32 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
         }}
       >
         <span className="admin-wordmark">PRESTIGO</span>
+        {/* D-18: Help only. No Back in Phase 87 (the back slot is reserved for the Phase 94 ride list). */}
+        <button
+          type="button"
+          data-driver-focus=""
+          onClick={() => setHelpOpen(true)}
+          style={{
+            boxSizing: 'border-box',
+            minWidth: 48,
+            minHeight: 48,
+            padding: '0 12px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            background: 'transparent',
+            border: '1px solid var(--admin-border-strong)',
+            borderRadius: 'var(--admin-radius-md)',
+            color: 'var(--admin-text)',
+            fontFamily: 'inherit',
+            fontSize: 'var(--driver-fs-body)',
+            fontWeight: 400,
+            cursor: 'pointer',
+          }}
+        >
+          <CircleHelp size={20} aria-hidden="true" />
+          Help
+        </button>
       </header>
 
       <section
@@ -337,6 +402,16 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
       <div aria-live="polite" style={visuallyHidden}>
         {announcement}
       </div>
+
+      {helpOpen ? (
+        <ConfirmStepDialog
+          mode="help"
+          submitting={false}
+          error={null}
+          onConfirm={() => setHelpOpen(false)}
+          onCancel={() => setHelpOpen(false)}
+        />
+      ) : null}
 
       {dialogOpen && nextStep ? (
         <ConfirmStepDialog

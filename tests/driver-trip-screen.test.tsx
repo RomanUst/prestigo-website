@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, within, act, waitFor } from '@testing-library/react'
+import { render, screen, within, act, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { formatPragueTime, formatPragueUnlock, DRIVER_STATUS_LABEL } from '@/lib/driver-trip-format'
 
@@ -9,6 +9,9 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: refreshMock, push: vi.fn(), replace: vi.fn() }),
 }))
 
+import TripCompleted from '@/app/(internal)/driver/trip/[token]/TripCompleted'
+import InvalidTripLinkView from '@/app/(internal)/driver/trip/[token]/InvalidTripLinkView'
+import { BUSINESS_TEL_URL, BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
 import TripScreen, { type TripScreenProps } from '@/app/(internal)/driver/trip/[token]/TripScreen'
 import SlideToAdvance from '@/app/(internal)/driver/trip/[token]/SlideToAdvance'
 
@@ -329,5 +332,221 @@ describe('TripScreen: confirm then POST', () => {
     await act(async () => {
       resolve({ ok: true, status: 200, json: () => Promise.resolve({ ok: true, status: 'en_route', nextStep: 'on_site' }) } as Response)
     })
+  })
+})
+
+async function openStepDialog(user: ReturnType<typeof userEvent.setup>) {
+  knob().focus()
+  await user.keyboard('{Enter}')
+}
+
+describe('TripScreen: completing the trip in session (D-17)', () => {
+  const completedResponse = {
+    ok: true,
+    status: 'completed',
+    nextStep: null,
+    completedAt: '2026-11-04T09:41:00Z',
+  }
+
+  it('swaps to "Trip completed" with Booking, Date and Completed at only', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, completedResponse))
+    const user = userEvent.setup()
+    const { container } = render(<TripScreen {...makeProps({ status: 'on_board', nextStep: 'completed' })} />)
+    await openStepDialog(user)
+    await user.click(screen.getByRole('button', { name: 'Yes, complete trip' }))
+
+    await waitFor(() => expect(screen.getByText('Trip completed')).toBeInTheDocument())
+    expect(screen.getByText('Thank you. This trip is closed.')).toBeInTheDocument()
+    expect(screen.getByText('Booking')).toBeInTheDocument()
+    expect(screen.getByText('PRG-100')).toBeInTheDocument()
+    expect(screen.getByText('Date')).toBeInTheDocument()
+    expect(screen.getByText('Wed 4 Nov 2026')).toBeInTheDocument()
+    expect(screen.getByText('Completed at')).toBeInTheDocument()
+    expect(screen.getByText('10:41')).toBeInTheDocument() // 09:41Z = 10:41 CET
+
+    const text = container.textContent ?? ''
+    for (const secret of ['Alice', 'Smith', '+420123456789', 'Prague Airport', 'Wenceslas Square', 'Mercedes']) {
+      expect(text).not.toContain(secret)
+    }
+    expect(text).not.toMatch(/€|EUR|CZK|\bprice\b|amount/i)
+    // The closed link would answer "completed" (details hidden) on a refresh, which drops the summary.
+    expect(refreshMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('TripCompleted and InvalidTripLinkView', () => {
+  it('reopened variant has the heading, the body and no summary card', () => {
+    const { container } = render(<TripCompleted variant="reopened" />)
+    expect(screen.getByText('Trip completed')).toBeInTheDocument()
+    expect(screen.getByText('Thank you. This trip is closed.')).toBeInTheDocument()
+    expect(screen.queryByText('Booking')).not.toBeInTheDocument()
+    expect(screen.queryByText('Completed at')).not.toBeInTheDocument()
+    expect(container.textContent ?? '').not.toMatch(/€|EUR|CZK/)
+  })
+
+  it('both completed variants link to the office phone', () => {
+    const { unmount } = render(<TripCompleted variant="reopened" />)
+    expect(screen.getByRole('link', { name: 'Call the office' })).toHaveAttribute('href', BUSINESS_TEL_URL)
+    unmount()
+    render(
+      <TripCompleted
+        variant="in-session"
+        summary={{ bookingReference: 'PRG-1', pickupDate: '2026-11-04', completedAt: '2026-11-04T09:41:00Z' }}
+      />,
+    )
+    expect(screen.getByRole('link', { name: 'Call the office' })).toHaveAttribute('href', BUSINESS_TEL_URL)
+  })
+
+  it('ended view has both lines and the office phone link', () => {
+    render(<InvalidTripLinkView />)
+    expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
+    expect(screen.getByText(/If you think this is a mistake, call the office\./)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Call the office' })).toHaveAttribute('href', BUSINESS_TEL_URL)
+  })
+})
+
+describe('TripScreen: Help (D-18)', () => {
+  it('has a Help button in the header and no Back control', () => {
+    render(<TripScreen {...makeProps()} />)
+    expect(screen.getByRole('button', { name: /^Help$/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument()
+  })
+
+  it('opens "Need help?" with a tel: link and returns focus to Help on Close', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    const help = screen.getByRole('button', { name: /^Help$/ })
+    await user.click(help)
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Need help?')).toBeInTheDocument()
+    expect(
+      within(dialog).getByText(
+        'Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped by mistake.',
+      ),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: /Call the office/ })).toHaveAttribute('href', BUSINESS_TEL_URL)
+    expect(within(dialog).getByText(BUSINESS_PHONE_DISPLAY)).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+
+    await user.click(within(dialog).getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(help).toHaveFocus()
+  })
+
+  it('Escape closes the help dialog', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: /^Help$/ }))
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('ConfirmStepDialog behaviour', () => {
+  it('starts on "Not yet" and Tab cycles inside the dialog', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await openStepDialog(user)
+    const primary = screen.getByRole('button', { name: "Yes, I'm on my way" })
+    const notYet = screen.getByRole('button', { name: 'Not yet' })
+    expect(notYet).toHaveFocus()
+    await user.tab()
+    expect(primary).toHaveFocus()
+    await user.tab()
+    expect(notYet).toHaveFocus()
+    await user.tab({ shift: true })
+    expect(primary).toHaveFocus()
+  })
+
+  it('while submitting both buttons are disabled and Escape does nothing', async () => {
+    fetchMock.mockReturnValue(new Promise<Response>(() => {}))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await openStepDialog(user)
+    await user.click(screen.getByRole('button', { name: "Yes, I'm on my way" }))
+
+    const dialog = screen.getByRole('dialog')
+    await waitFor(() => expect(within(dialog).getByText('Saving…')).toBeInTheDocument())
+    for (const b of within(dialog).getAllByRole('button')) expect(b).toBeDisabled()
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('a network error keeps the dialog open with an alert and "Try again", which re-sends once', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await openStepDialog(user)
+    await user.click(screen.getByRole('button', { name: "Yes, I'm on my way" }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(
+      'Could not save this step. Your trip was not changed. Check your connection and try again.',
+    )
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    fetchMock.mockReturnValueOnce(jsonResponse(200, { ok: true, status: 'en_route', nextStep: 'on_site' }))
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    expect(refreshMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('a 500 behaves like a network error', async () => {
+    fetchMock.mockReturnValue(jsonResponse(500, { ok: false, error: 'update_failed' }))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await openStepDialog(user)
+    await user.click(screen.getByRole('button', { name: "Yes, I'm on my way" }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not save this step.')
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+  })
+
+  it('a 429 closes the dialog and shows the rate-limit banner', async () => {
+    fetchMock.mockReturnValue(jsonResponse(429, { error: 'Too many requests' }))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await openStepDialog(user)
+    await user.click(screen.getByRole('button', { name: "Yes, I'm on my way" }))
+    expect(await screen.findByText('Too many taps. Wait a moment and try again.')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('a 400 invalid_token refreshes the page (it will render the ended view)', async () => {
+    fetchMock.mockReturnValue(jsonResponse(400, { error: 'invalid_token' }))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await openStepDialog(user)
+    await user.click(screen.getByRole('button', { name: "Yes, I'm on my way" }))
+    await waitFor(() => expect(refreshMock).toHaveBeenCalledTimes(1))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('an info banner clears after 8 seconds', async () => {
+    // fake timers + user-event deadlock (RTL's async wrapper awaits a faked setTimeout), so fireEvent here
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    fetchMock.mockReturnValue(
+      jsonResponse(409, { ok: false, error: 'step_conflict', status: 'on_location', nextStep: 'on_board' }),
+    )
+    render(<TripScreen {...makeProps()} />)
+    fireEvent.keyDown(knob(), { key: 'Enter' })
+    fireEvent.click(screen.getByRole('button', { name: "Yes, I'm on my way" }))
+    const text = 'The office has updated this trip (On site). Showing the latest step.'
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(screen.getByText(text)).toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(7000)
+    })
+    expect(screen.getByText(text)).toBeInTheDocument()
+    act(() => {
+      vi.advanceTimersByTime(1500)
+    })
+    expect(screen.queryByText(text)).not.toBeInTheDocument()
   })
 })
