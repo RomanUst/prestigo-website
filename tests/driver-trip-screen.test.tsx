@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within, act, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { formatPragueTime, formatPragueUnlock, DRIVER_STATUS_LABEL } from '@/lib/driver-trip-format'
+import { googleMapsDirectionsUrl, wazeNavigationUrl } from '@/lib/driver-nav-url'
 
 const { refreshMock, routeMapProbe } = vi.hoisted(() => ({
   refreshMock: vi.fn(),
@@ -670,26 +671,38 @@ describe('TripScreen: passenger card, map and navigation (D-18)', () => {
     expect(routeMapProbe.props).toBeNull()
   })
 
-  it('Navigate buttons open Google Maps directions to the coordinates in a new tab', () => {
+  it('Navigate buttons open a chooser whose Google Maps link goes to the coordinates in a new tab', async () => {
+    const user = userEvent.setup()
     render(<TripScreen {...makeProps()} />)
-    const pickup = screen.getByRole('link', { name: 'Navigate to pickup' })
-    const drop = screen.getByRole('link', { name: 'Navigate to drop-off' })
-    expect(pickup).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=50.1,14.26')
-    expect(drop).toHaveAttribute('href', 'https://www.google.com/maps/dir/?api=1&destination=50.08,14.42')
-    for (const a of [pickup, drop]) {
-      expect(a).toHaveAttribute('target', '_blank')
-      expect(a).toHaveAttribute('rel', 'noopener noreferrer')
-      expect(a.getAttribute('href')).not.toContain(TOKEN)
+    const expected = [
+      ['Navigate to pickup', 'https://www.google.com/maps/dir/?api=1&destination=50.1,14.26'],
+      ['Navigate to drop-off', 'https://www.google.com/maps/dir/?api=1&destination=50.08,14.42'],
+    ]
+    for (const [name, href] of expected) {
+      await user.click(screen.getByRole('button', { name }))
+      const google = within(screen.getByRole('dialog', { name })).getByRole('link', { name: 'Google Maps' })
+      expect(google).toHaveAttribute('href', href)
+      expect(google).toHaveAttribute('target', '_blank')
+      expect(google).toHaveAttribute('rel', 'noopener noreferrer')
+      expect(google.getAttribute('href')).not.toContain(TOKEN)
+      await user.keyboard('{Escape}')
     }
   })
 
-  it('Navigate falls back to the encoded address when coordinates are missing', () => {
+  it('Navigate falls back to the encoded address when coordinates are missing', async () => {
+    const user = userEvent.setup()
     const props = makeProps()
     props.trip = { ...props.trip, origin: null, originAddress: 'Wenceslas Square 1' }
     render(<TripScreen {...props} />)
-    expect(screen.getByRole('link', { name: 'Navigate to pickup' })).toHaveAttribute(
+    await user.click(screen.getByRole('button', { name: 'Navigate to pickup' }))
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('link', { name: 'Google Maps' })).toHaveAttribute(
       'href',
       'https://www.google.com/maps/dir/?api=1&destination=Wenceslas%20Square%201',
+    )
+    expect(within(dialog).getByRole('link', { name: 'Waze' })).toHaveAttribute(
+      'href',
+      'https://waze.com/ul?q=Wenceslas%20Square%201&navigate=yes',
     )
   })
 
@@ -697,8 +710,8 @@ describe('TripScreen: passenger card, map and navigation (D-18)', () => {
     const props = makeProps()
     props.trip = { ...props.trip, destination: null, destinationAddress: '' }
     render(<TripScreen {...props} />)
-    expect(screen.queryByRole('link', { name: 'Navigate to drop-off' })).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Navigate to pickup' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Navigate to drop-off' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Navigate to pickup' })).toBeInTheDocument()
   })
 
   it('keeps the chip across a router.refresh re-render with fresh prop objects', () => {
@@ -1186,5 +1199,126 @@ describe('TripScreen: freshness (UI-SPEC "Freshness")', () => {
       'true',
     )
     expect(screen.getByText('Start step unlocked.')).toBeInTheDocument()
+  })
+})
+
+describe('TripScreen: navigation chooser (87-UAT gap 2)', () => {
+  it('the pickup Navigate control is a button that opens a Google Maps / Waze chooser', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    const opener = screen.getByRole('button', { name: 'Navigate to pickup' })
+    expect(opener).toHaveAttribute('aria-haspopup', 'dialog')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    await user.click(opener)
+
+    const dialog = screen.getByRole('dialog', { name: 'Navigate to pickup' })
+    expect(within(dialog).getByText('Prague Airport')).toBeInTheDocument()
+    const google = within(dialog).getByRole('link', { name: 'Google Maps' })
+    const waze = within(dialog).getByRole('link', { name: 'Waze' })
+    expect(google).toHaveAttribute('href', googleMapsDirectionsUrl({ lat: 50.1, lng: 14.26 }))
+    expect(waze).toHaveAttribute('href', wazeNavigationUrl({ lat: 50.1, lng: 14.26 }))
+    expect(waze).toHaveAttribute('href', 'https://waze.com/ul?ll=50.1,14.26&navigate=yes')
+    for (const a of [google, waze]) {
+      expect(a).toHaveAttribute('target', '_blank')
+      expect(a).toHaveAttribute('rel', 'noopener noreferrer')
+      expect(a.getAttribute('href')).not.toContain(TOKEN)
+      expect(a.getAttribute('href')).not.toContain('PRG-100')
+    }
+  })
+
+  it('opening the chooser sends no request', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: 'Navigate to pickup' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('NavigateChooser behaviour (87-UAT gap 2)', () => {
+  it('the drop-off button opens the drop-off address with both links for its coordinates', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: 'Navigate to drop-off' }))
+    const dialog = screen.getByRole('dialog', { name: 'Navigate to drop-off' })
+    expect(within(dialog).getByText('Wenceslas Square')).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Google Maps' })).toHaveAttribute(
+      'href',
+      googleMapsDirectionsUrl({ lat: 50.08, lng: 14.42 }),
+    )
+    expect(within(dialog).getByRole('link', { name: 'Waze' })).toHaveAttribute(
+      'href',
+      'https://waze.com/ul?ll=50.08,14.42&navigate=yes',
+    )
+  })
+
+  it('is a modal dialog with initial focus on Google Maps; Tab and Shift+Tab cycle inside', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: 'Navigate to pickup' }))
+    expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true')
+    const google = screen.getByRole('link', { name: 'Google Maps' })
+    const waze = screen.getByRole('link', { name: 'Waze' })
+    const cancel = screen.getByRole('button', { name: 'Cancel' })
+    expect(google).toHaveFocus()
+    await user.tab()
+    expect(waze).toHaveFocus()
+    await user.tab()
+    expect(cancel).toHaveFocus()
+    await user.tab()
+    expect(google).toHaveFocus()
+    await user.tab({ shift: true })
+    expect(cancel).toHaveFocus()
+  })
+
+  it('Escape closes it and focus returns to the Navigate button that opened it', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    const opener = screen.getByRole('button', { name: 'Navigate to drop-off' })
+    await user.click(opener)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(opener).toHaveFocus()
+  })
+
+  it('Cancel closes it; a click on the scrim closes it; a click inside the sheet does not', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: 'Navigate to pickup' }))
+    await user.click(screen.getByText('Prague Airport', { selector: 'p' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Navigate to pickup' }))
+    const scrim = screen.getByRole('dialog').parentElement as HTMLElement
+    expect(scrim).toHaveClass('driver-dialog-scrim')
+    await user.click(scrim)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('choosing an app closes the chooser without cancelling the link default action', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: 'Navigate to pickup' }))
+    const waze = screen.getByRole('link', { name: 'Waze' })
+    // fireEvent.click returns false when a handler called preventDefault (that would block the link).
+    const notPrevented = fireEvent.click(waze)
+    expect(notPrevented).toBe(true)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('every chooser control is at least 48px high and the sheet uses the shared dialog classes', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: 'Navigate to pickup' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveClass('driver-dialog-sheet')
+    for (const el of [
+      ...within(dialog).getAllByRole('link'),
+      ...within(dialog).getAllByRole('button'),
+    ]) {
+      expect(el).toHaveStyle({ minHeight: '48px' })
+    }
   })
 })
