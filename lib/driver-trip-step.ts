@@ -3,6 +3,7 @@ import { z } from 'zod'
 import type { createSupabaseServiceClient } from '@/lib/supabase'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { pushGnetForTransition } from '@/lib/gnet-push'
+import { getStartGate, type StartGate } from '@/lib/start-gate'
 import {
   DRIVER_STEPS,
   DRIVER_STEP_TARGET,
@@ -133,8 +134,10 @@ export async function driverTripStep(input: {
   trip: DriverTripRecord
   step: DriverStep
   nowMs: number
+  /** Injected in tests; computed from the booking when absent. */
+  gate?: StartGate
 }): Promise<DriverTripStepResult> {
-  const { supabase, trip, step } = input
+  const { supabase, trip, step, nowMs } = input
   const booking = trip.booking
 
   if (!hasTripIdentity(trip)) return INVALID_TOKEN
@@ -171,7 +174,24 @@ export async function driverTripStep(input: {
   // 3. Strict order: only the one next step is accepted.
   if (step !== nextStepFor(booking.status)) return conflict(booking.status)
 
-  // 4. Compare-and-set through the status service. expectedFrom is the status validated above,
+  // 4. Start gate (D-14): only the first step is time-locked, so later steps never call Maps.
+  if (step === 'en_route') {
+    const gate = input.gate ?? (await getStartGate(booking, nowMs))
+    if (!gate.open) {
+      return {
+        httpStatus: 409,
+        body: {
+          ok: false,
+          error: 'too_early',
+          status: booking.status,
+          nextStep: 'en_route',
+          ...(gate.unlocksAtMs !== null ? { unlocksAt: new Date(gate.unlocksAtMs).toISOString() } : {}),
+        },
+      }
+    }
+  }
+
+  // 5. Compare-and-set through the status service. expectedFrom is the status validated above,
   // so an admin change between our read and the write makes the service answer 'conflict'.
   const result = await advanceBookingStatus({
     bookingId: booking.id,
@@ -198,7 +218,7 @@ export async function driverTripStep(input: {
     }
   }
 
-  // 5. Mirror trip_progress only after the compare-and-set won. A failed mirror never undoes the
+  // 6. Mirror trip_progress only after the compare-and-set won. A failed mirror never undoes the
   // applied status; the booking status is the source of truth.
   const { error: mirrorError } = await supabase
     .from('driver_assignments')
@@ -257,13 +277,25 @@ const WAITING_STATUSES: ReadonlySet<string> = new Set(['confirmed', 'pending', '
 export async function buildTripView(input: {
   booking: DriverTripRecord['booking']
   nowMs: number
+  /** Injected in tests; computed from the booking when absent. */
+  gate?: StartGate
 }): Promise<TripView> {
-  const { booking } = input
+  const { booking, nowMs } = input
   const nextStep = nextStepFor(booking.status)
-  return {
+  const view: TripView = {
     status: booking.status,
     nextStep,
     lockReason: WAITING_STATUSES.has(booking.status) ? 'waiting' : null,
     unlocksAt: null,
   }
+
+  // The Maps call runs only while the next step is en_route (no cost on later steps).
+  if (nextStep === 'en_route') {
+    const gate = input.gate ?? (await getStartGate(booking, nowMs))
+    if (!gate.open) {
+      view.lockReason = 'too_early'
+      view.unlocksAt = gate.unlocksAtMs !== null ? new Date(gate.unlocksAtMs).toISOString() : null
+    }
+  }
+  return view
 }

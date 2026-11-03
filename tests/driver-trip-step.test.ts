@@ -6,8 +6,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const afterCallbacks: Array<() => unknown> = []
 
-const { mockAdvance, mockPush, mockFrom, mockCheckRateLimit, mockGetClientIp } = vi.hoisted(() => ({
+const { mockAdvance, mockPush, mockFrom, mockCheckRateLimit, mockGetClientIp, mockGetStartGate } = vi.hoisted(() => ({
   mockAdvance: vi.fn(),
+  mockGetStartGate: vi.fn(),
   mockPush: vi.fn(),
   mockFrom: vi.fn(),
   mockCheckRateLimit: vi.fn(),
@@ -26,6 +27,7 @@ vi.mock('next/server', async () => {
 
 vi.mock('@/lib/booking-status-service', () => ({ advanceBookingStatus: mockAdvance }))
 vi.mock('@/lib/gnet-push', () => ({ pushGnetForTransition: mockPush }))
+vi.mock('@/lib/start-gate', () => ({ getStartGate: mockGetStartGate }))
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => ({ from: mockFrom })),
 }))
@@ -146,6 +148,7 @@ beforeEach(() => {
   mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 19, limit: 20 })
   mockGetClientIp.mockReturnValue('127.0.0.1')
   mockPush.mockResolvedValue(undefined)
+  mockGetStartGate.mockResolvedValue({ unlocksAtMs: NOW - 60_000, open: true })
   setupSupabase({ data: rawRow() })
 })
 
@@ -416,6 +419,112 @@ describe('buildTripView', () => {
   it('a later status has its next step and no lock', async () => {
     const view = await buildTripView({ booking: bookingRow({ status: 'en_route' }), nowMs: NOW })
     expect(view).toEqual({ status: 'en_route', nextStep: 'on_site', lockReason: null, unlocksAt: null })
+  })
+})
+
+describe('start gate (D-14)', () => {
+  const UNLOCK = NOW + 30 * 60_000
+
+  it('en_route before the unlock instant: 409 too_early with unlocksAt, no service call, no write', async () => {
+    const res = await driverTripStep({
+      supabase: supabaseStub(),
+      trip: tripRecord(),
+      step: 'en_route',
+      nowMs: NOW,
+      gate: { unlocksAtMs: UNLOCK, open: false },
+    })
+
+    expect(res.httpStatus).toBe(409)
+    expect(res.body).toEqual({
+      ok: false,
+      error: 'too_early',
+      status: 'assigned',
+      nextStep: 'en_route',
+      unlocksAt: new Date(UNLOCK).toISOString(),
+    })
+    expect(mockAdvance).not.toHaveBeenCalled()
+    expect(assignmentUpdates).toHaveLength(0)
+  })
+
+  it('en_route at or after the unlock instant is applied', async () => {
+    mockAdvance.mockResolvedValue(advanceOk('en_route', 'assigned'))
+
+    const res = await driverTripStep({
+      supabase: supabaseStub(),
+      trip: tripRecord(),
+      step: 'en_route',
+      nowMs: NOW,
+      gate: { unlocksAtMs: NOW, open: true },
+    })
+
+    expect(res.httpStatus).toBe(200)
+    expect(mockAdvance).toHaveBeenCalledTimes(1)
+  })
+
+  it('the gate is computed from the booking when none is injected', async () => {
+    mockGetStartGate.mockResolvedValue({ unlocksAtMs: UNLOCK, open: false })
+
+    const res = await driverTripStep({ supabase: supabaseStub(), trip: tripRecord(), step: 'en_route', nowMs: NOW })
+
+    expect(res.httpStatus).toBe(409)
+    expect(mockGetStartGate).toHaveBeenCalledWith(expect.objectContaining({ id: bookingId }), NOW)
+  })
+
+  it('other steps never consult the gate, even when it is closed', async () => {
+    mockGetStartGate.mockResolvedValue({ unlocksAtMs: UNLOCK, open: false })
+    mockAdvance.mockResolvedValue(advanceOk('on_location', 'en_route'))
+
+    const res = await driverTripStep({ supabase: supabaseStub(), trip: tripRecord({ status: 'en_route' }), step: 'on_site', nowMs: NOW })
+
+    expect(res.httpStatus).toBe(200)
+    expect(mockGetStartGate).not.toHaveBeenCalled()
+  })
+
+  it('a replay or a skipped step does not consult the gate either', async () => {
+    mockGetStartGate.mockResolvedValue({ unlocksAtMs: UNLOCK, open: false })
+
+    await driverTripStep({ supabase: supabaseStub(), trip: tripRecord({ status: 'en_route' }), step: 'en_route', nowMs: NOW })
+    await driverTripStep({ supabase: supabaseStub(), trip: tripRecord({ status: 'confirmed' }), step: 'en_route', nowMs: NOW })
+
+    expect(mockGetStartGate).not.toHaveBeenCalled()
+  })
+
+  it('a gate with an unknown unlock instant is open and never blocks', async () => {
+    mockAdvance.mockResolvedValue(advanceOk('en_route', 'assigned'))
+    mockGetStartGate.mockResolvedValue({ unlocksAtMs: null, open: true })
+
+    const res = await driverTripStep({ supabase: supabaseStub(), trip: tripRecord(), step: 'en_route', nowMs: NOW })
+
+    expect(res.httpStatus).toBe(200)
+  })
+
+  it('buildTripView: assigned before the unlock shows lockReason too_early with unlocksAt', async () => {
+    mockGetStartGate.mockResolvedValue({ unlocksAtMs: UNLOCK, open: false })
+
+    const view = await buildTripView({ booking: bookingRow({ status: 'assigned' }), nowMs: NOW })
+
+    expect(view).toEqual({
+      status: 'assigned',
+      nextStep: 'en_route',
+      lockReason: 'too_early',
+      unlocksAt: new Date(UNLOCK).toISOString(),
+    })
+  })
+
+  it('buildTripView: assigned after the unlock has no lock', async () => {
+    const view = await buildTripView({ booking: bookingRow({ status: 'assigned' }), nowMs: NOW })
+    expect(view).toEqual({ status: 'assigned', nextStep: 'en_route', lockReason: null, unlocksAt: null })
+  })
+
+  it('buildTripView: confirmed is "waiting"; en_route and later never consult the gate', async () => {
+    mockGetStartGate.mockResolvedValue({ unlocksAtMs: UNLOCK, open: false })
+
+    const waiting = await buildTripView({ booking: bookingRow({ status: 'confirmed' }), nowMs: NOW })
+    const underway = await buildTripView({ booking: bookingRow({ status: 'en_route' }), nowMs: NOW })
+
+    expect(waiting.lockReason).toBe('waiting')
+    expect(underway.lockReason).toBeNull()
+    expect(mockGetStartGate).not.toHaveBeenCalled()
   })
 })
 
