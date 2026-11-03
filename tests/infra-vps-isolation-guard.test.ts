@@ -177,6 +177,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'QStash-invoked outbox dispatcher handler (erase.person, GDPR erasure saga): runs only when Upstash calls /api/integrations/dispatch with a signed message for an admin-confirmed erasure_requests row, never on a page render or a booking/payment/contact request path; reachable only from lib/lead-sync.ts',
   },
   {
+    path: 'lib/noshow-alert.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (alert.no_show): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact/driver request path; reachable only from lib/lead-sync.ts',
+  },
+  {
     path: 'app/api/webhooks/chatwoot/route.ts',
     reason:
       'server-to-server receiver called only by the Chatwoot server with an HMAC-signed request; reads its signing secret from env, verifies and enqueues one outbox row through a single RPC; makes no network call to the VPS and never runs on a page render or a booking/payment/contact request path',
@@ -478,6 +483,22 @@ describe('findVpsViolations — fixture self-tests', () => {
     ]
     const violations = findVpsViolations(files, allowlist)
     expect(violations.map((v) => v.path)).toEqual(['app/api/route.ts'])
+  })
+
+  it('Phase 87: lib/noshow-alert.ts passes with its allowlist entry but a driver or admin route importing it is flagged', () => {
+    const files = new Map([
+      ['lib/noshow-alert.ts', 'const base = process.env.CHATWOOT_BASE_URL'],
+      ['lib/lead-sync.ts', "import { deliverNoShowAlert } from '@/lib/noshow-alert'"],
+      ['app/api/driver/trip/route.ts', "import { deliverNoShowAlert } from '@/lib/noshow-alert'"],
+      ['app/api/admin/bookings/route.ts', "import { createSiteChatwootClient } from '@/lib/chatwoot-client'"],
+      ['lib/chatwoot-client.ts', 'const t = process.env.CHATWOOT_API_TOKEN'],
+    ])
+    const allowlist = VPS_ASYNC_ALLOWLIST.filter((e) =>
+      ['lib/noshow-alert.ts', 'lib/lead-sync.ts', 'lib/chatwoot-client.ts'].includes(e.path),
+    )
+    expect(allowlist).toHaveLength(3)
+    const violations = findVpsViolations(files, allowlist)
+    expect(violations.map((v) => v.path)).toEqual(['app/api/admin/bookings/route.ts', 'app/api/driver/trip/route.ts'])
   })
 
   it('returns an empty list for an empty file map', () => {

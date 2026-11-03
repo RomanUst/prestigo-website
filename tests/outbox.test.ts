@@ -25,6 +25,7 @@ import {
   syncBucketKey,
   parseHookTag,
   publishAfterResponse,
+  noShowAlertKey,
 } from '@/lib/outbox'
 
 const ID = '0b9f2c1e-5d3a-4e8b-9c7d-1a2b3c4d5e6f'
@@ -127,6 +128,31 @@ describe('parseOutboxKey: Phase 83 hook keys', () => {
     expect(parseOutboxKey(`hook.unknown:${ID}:c1`)).toBeNull()
     expect(parseOutboxKey(`hook.chat_intake:${ID}:C1`)).toBeNull()
     expect(parseOutboxKey(`hook.chat_intake:${ID}:c1:c2`)).toBeNull()
+  })
+})
+
+describe('noShowAlertKey (Phase 87, D-16 b)', () => {
+  it('builds alert.no_show:<id>:r<epoch seconds> from milliseconds', () => {
+    expect(noShowAlertKey(ID, 1767268800123)).toBe(`alert.no_show:${ID}:r1767268800`)
+  })
+
+  it('round-trips through parseOutboxKey', () => {
+    expect(parseOutboxKey(noShowAlertKey(ID, 1767268800123))).toEqual({
+      eventType: 'alert.no_show',
+      aggregateId: ID,
+      leadStatus: null,
+      tag: 'r1767268800',
+    })
+  })
+
+  it('rejects every other shape', () => {
+    expect(parseOutboxKey('alert.no_show:not-a-uuid:r1767268800')).toBeNull()
+    expect(parseOutboxKey(`alert.no_show:${ID}:x1767268800`)).toBeNull()
+    expect(parseOutboxKey(`alert.no_show:${ID}:r1`)).toBeNull()
+    expect(parseOutboxKey(`alert.no_show:${ID}`)).toBeNull()
+    expect(parseOutboxKey(`alert.no_show:${ID}:r1767268800:extra`)).toBeNull()
+    expect(parseOutboxKey(`alert.no_show:${ID.toUpperCase()}:r1767268800`)).toBeNull()
+    expect(parseOutboxKey(`alert.other:${ID}:r1767268800`)).toBeNull()
   })
 })
 

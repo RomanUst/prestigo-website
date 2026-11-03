@@ -51,6 +51,17 @@ export function loadSiteChatwootConfig(env: Record<string, string | undefined> =
   }
 }
 
+/**
+ * Phase 87 (plan 87-06): optional id of an operations conversation that receives the driver no-show
+ * alert for passengers who have no Chatwoot conversation of their own. A positive integer or null;
+ * never throws. Lives here because this file is the only one that names CHATWOOT_* env vars.
+ */
+export function loadChatwootOpsConversationId(env: Record<string, string | undefined> = process.env): number | null {
+  const raw = env.CHATWOOT_OPS_CONVERSATION_ID
+  if (typeof raw !== 'string' || !/^[1-9]\d{0,11}$/.test(raw.trim())) return null
+  return Number(raw.trim())
+}
+
 export class SiteChatwootError extends Error {
   method: string
   /** Path relative to the account, without the query string. */
