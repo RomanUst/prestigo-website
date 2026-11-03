@@ -230,7 +230,7 @@ Not executed. Instructions as handed to the owner and orchestrator:
 2. **Orchestrator** (Supabase MCP, read-only): `SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'bookings_status_check'` must contain `on_board` and `no_show`; repeat the `has_function_privilege` checks of 87-02 step 5 for `advance_booking_status` and `set_no_show_request` (anon false, authenticated false, service_role true).
 3. **Optional (owner):** create an internal "Operations" conversation in Chatwoot, set `CHATWOOT_OPS_CONVERSATION_ID` in Vercel project `prestigo-site` (Production). Also confirm `MANAGER_EMAIL` is set there.
 
-Outputs to record here once available: sync.mjs dry-run diff: PENDING; real-run output: PENDING; CHECK definition (orchestrator, 2026-11-03): 10 values incl. `on_board`, `no_show`; privilege results: `advance_booking_status` and `set_no_show_request` anon=false, authenticated=false, service_role=true; Chatwoot variable set: PENDING. Resume signal: "ready to merge".
+Outputs to record here once available: sync.mjs dry-run diff / real-run output: owner confirmed "ready to merge" on 2026-11-03 (outputs not pasted into the session); CHECK definition (orchestrator, 2026-11-03): 10 values incl. `on_board`, `no_show`; privilege results: `advance_booking_status` and `set_no_show_request` anon=false, authenticated=false, service_role=true; Chatwoot variable set: not confirmed (optional). Resume signal: "ready to merge".
 
 ## Task 3 (PENDING - owner checkpoint, after Task 2 and the merge)
 
