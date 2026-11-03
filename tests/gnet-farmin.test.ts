@@ -1,11 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-const { mockGetPricingConfig, mockSupabaseFrom, mockPublicFrom, mockFetch } = vi.hoisted(() => ({
+const {
+  mockGetPricingConfig, mockSupabaseFrom, mockPublicFrom, mockFetch,
+  mockPushGnetStatus, mockAdvanceBookingStatus, mockPushGnetForTransition,
+} = vi.hoisted(() => ({
+  mockPushGnetStatus: vi.fn(),
+  mockAdvanceBookingStatus: vi.fn(),
+  mockPushGnetForTransition: vi.fn(),
   mockGetPricingConfig: vi.fn(),
   mockSupabaseFrom:     vi.fn(),
   mockPublicFrom:       vi.fn(),
   mockFetch:            vi.fn(),
 }))
+
+// Phase 87-07 (Pitfall 7): the farm-in cancel is a GNet-originated write and must never be echoed back.
+vi.mock('@/lib/gnet-client', async (importActual) => {
+  const actual = await importActual<typeof import('@/lib/gnet-client')>()
+  return { ...actual, pushGnetStatus: mockPushGnetStatus }
+})
+vi.mock('@/lib/gnet-push', () => ({ pushGnetForTransition: mockPushGnetForTransition }))
+vi.mock('@/lib/booking-status-service', () => ({ advanceBookingStatus: mockAdvanceBookingStatus }))
 
 vi.mock('@/lib/pricing-config', () => ({
   getPricingConfig: mockGetPricingConfig,
@@ -447,5 +461,40 @@ describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', (
     const gnetUpsert = calls.find(c => c.table === 'gnet_bookings' && c.op === 'upsert')
     expect(gnetUpsert).toBeDefined()
     expect(gnetUpsert!.args[1]).toMatchObject({ onConflict: 'transaction_id', ignoreDuplicates: true })
+  })
+})
+
+describe('POST /api/gnet/farmin cancellation (Pitfall 7, D-22 no echo)', () => {
+  it('CANCEL flips the booking to cancelled and never pushes CANCEL back or calls the status service', async () => {
+    const updates: unknown[] = []
+    mockSupabaseFrom.mockImplementation((table: string) => {
+      if (table === 'gnet_bookings') {
+        return { select: () => ({ eq: () => ({ single: async () => ({ data: { booking_id: 'booking-uuid-1' }, error: null }) }) }) }
+      }
+      if (table === 'bookings') {
+        return {
+          update: (payload: unknown) => {
+            updates.push(payload)
+            return { eq: () => ({ select: () => ({ single: async () => ({ data: { booking_reference: 'PRG-CANCEL-1' }, error: null }) }) }) }
+          },
+        }
+      }
+      return {}
+    })
+
+    const cancelPayload = {
+      ...validBookingPayload,
+      affiliateReservation: { action: 'CANCEL' },
+    }
+    const res = await POST(makeReq(cancelPayload, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.reservationId).toBe('PRG-CANCEL-1')
+
+    expect(updates).toEqual([{ status: 'cancelled' }])
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+    expect(mockPushGnetForTransition).not.toHaveBeenCalled()
+    expect(mockAdvanceBookingStatus).not.toHaveBeenCalled()
   })
 })

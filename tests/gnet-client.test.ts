@@ -201,6 +201,16 @@ describe('prestigoToGnetStatus', () => {
     const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
     expect(prestigoToGnetStatus('garbage_unknown')).toBeNull()
   })
+  // Phase 87 D-22: no documented GNet status for on board / no-show, so nothing is pushed.
+  // If GRiDD support names one later it is a one-line change in PRESTIGO_TO_GNET_STATUS.
+  it('returns null for on_board (D-22: nothing is pushed)', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('on_board')).toBeNull()
+  })
+  it('returns null for no_show (D-22: nothing is pushed)', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('no_show')).toBeNull()
+  })
 })
 
 // ── Test 7: GnetStatus type — compile-time and runtime check ─────────────────
