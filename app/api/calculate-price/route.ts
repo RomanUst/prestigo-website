@@ -9,6 +9,7 @@ import { isInAnyZone } from '@/lib/zones'
 import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
 import { getRoutePrice, findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
 import { CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
+import { isNearAirport } from '@/lib/airport'
 // Re-export extracted helpers so legacy consumers (tests/pricing.test.ts)
 // that imported them directly from this route continue to compile. The single
 // source of truth is @/lib/server-pricing; this re-export is a compat shim.
@@ -43,20 +44,6 @@ const calculatePriceSchema = z.object({
   childSeats: z.number().int().min(0).max(3).optional().default(0),
   extraStops: z.number().int().min(0).max(5).optional().default(0),
 })
-
-// Prague Václav Havel Airport coordinates
-const PRG_LAT = 50.1008
-const PRG_LNG = 14.26
-// ~3 km radius (degree tolerance)
-const PRG_RADIUS_DEG = 0.027
-
-function isNearAirport(pt: { lat: number; lng: number } | null | undefined): boolean {
-  if (!pt) return false
-  return (
-    Math.abs(pt.lat - PRG_LAT) < PRG_RADIUS_DEG &&
-    Math.abs(pt.lng - PRG_LNG) < PRG_RADIUS_DEG
-  )
-}
 
 type VehiclePrice = { base: number; extras: number; total: number; currency: string }
 

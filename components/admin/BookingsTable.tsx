@@ -11,10 +11,18 @@ import {
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronDown, ChevronUp, Search, X, Copy, Send } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
+import { NoShowBanner, NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
+import { ConfirmNoShowModal } from './ConfirmNoShowModal'
+import { STATUS_CONFLICT_STYLE, statusConflictMessage } from './statusConflict'
 import { FlightStatusBlock } from './FlightStatusBlock'
 import { BookingChangeHistory } from './BookingChangeHistory'
 import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
+import {
+  BOOKING_STATUS_LABELS,
+  TERMINAL_BOOKING_STATUSES,
+  type BookingStatus,
+} from '@/lib/booking-status'
 import AddressInput from '@/components/booking/AddressInput'
 import type { PlaceResult } from '@/types/booking'
 import { eurToCzk, czkToEur } from '@/lib/currency'
@@ -75,6 +83,9 @@ interface Booking {
   // Phase 75-17 D-11: site locale at checkout (migration 062). Null for
   // admin-created bookings and any row created before the column existed.
   locale?: string | null
+  // Phase 87 D-16(a): when the driver asked for a no-show (migration 084). Arrives through
+  // admin_search_bookings to_jsonb; null/absent = no open request.
+  no_show_requested_at?: string | null
 }
 
 const vehicleClassMap: Record<string, string> = {
@@ -83,16 +94,9 @@ const vehicleClassMap: Record<string, string> = {
   business_van: 'Business Van',
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  unpaid:      'Unpaid',
-  pending:     'Pending',
-  confirmed:   'Confirmed',
-  completed:   'Completed',
-  cancelled:   'Cancelled',
-  assigned:    'Assigned',
-  en_route:    'En Route',
-  on_location: 'On Location',
-}
+// D-02: one label source for every admin surface. Indexed by arbitrary row.status strings, so
+// the alias is widened to Record<string, string>; unknown values fall back to the raw status.
+const STATUS_LABELS: Record<string, string> = BOOKING_STATUS_LABELS
 
 function DetailField({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -126,6 +130,8 @@ function DetailField({ label, value }: { label: string; value: React.ReactNode }
 interface PatchBody {
   id: string
   status?: string
+  // D-01: the status the row shows; the server answers 409 status_conflict when the stored status differs
+  expected_status?: string
   operator_notes?: string
   driver_price_czk?: number | null
   pickup_date?: string
@@ -155,12 +161,18 @@ class PatchError extends Error {
   status?: number
   computedCzk?: number
   submittedCzk?: number
-  constructor(message: string, extra?: { status?: number; computedCzk?: number; submittedCzk?: number }) {
+  // 409 status_conflict body: the status the booking really has now
+  currentStatus?: string
+  constructor(
+    message: string,
+    extra?: { status?: number; computedCzk?: number; submittedCzk?: number; currentStatus?: string },
+  ) {
     super(message)
     this.name = 'PatchError'
     this.status = extra?.status
     this.computedCzk = extra?.computedCzk
     this.submittedCzk = extra?.submittedCzk
+    this.currentStatus = extra?.currentStatus
   }
 }
 
@@ -253,7 +265,7 @@ interface TripEditPanelProps {
 }
 
 function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps) {
-  const isTerminal = booking.status === 'completed' || booking.status === 'cancelled'
+  const isTerminal = TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)
   const [editOpen, setEditOpen] = useState(false)
 
   const [fields, setFields] = useState<TripEditFieldsState>(() => ({
@@ -1126,6 +1138,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
   const [localNotes, setLocalNotes] = useState<Record<string, string>>({})
   const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({})
+  // D-01: per-booking inline message after an admin status change lost the race (409 status_conflict)
+  const [statusConflict, setStatusConflict] = useState<Record<string, string>>({})
   const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
   const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
@@ -1134,6 +1148,10 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
   const [isMobile, setIsMobile] = useState(false)
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
+
+  // Phase 87 D-16(a): the booking whose Confirm no-show modal is open (banner button or the
+  // generic status select / buttons; no_show is terminal, so it is never applied directly).
+  const [noShowTarget, setNoShowTarget] = useState<{ id: string; reference: string } | null>(null)
 
   const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
@@ -1167,6 +1185,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
         status: res.status,
         computedCzk: data.computedCzk,
         submittedCzk: data.submittedCzk,
+        currentStatus: data.error === 'status_conflict' ? data.currentStatus : undefined,
       })
     }
     return res.json()
@@ -1185,19 +1204,57 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, payment_link_url: url, status: 'unpaid' } : b))
   }, [])
 
-  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string) => {
+  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string, fromStatus: string) => {
     setStatusUpdating(prev => ({ ...prev, [bookingId]: true }))
+    setStatusConflict(prev => {
+      if (!(bookingId in prev)) return prev
+      const next = { ...prev }
+      delete next[bookingId]
+      return next
+    })
     try {
-      await patchBooking({ id: bookingId, status: newStatus })
+      // D-01: expected_status = the status this row shows, so a stale view cannot overwrite the driver
+      await patchBooking({ id: bookingId, status: newStatus, expected_status: fromStatus })
       // Optimistic update — mutate only the status field, don't re-fetch
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b))
     } catch (err) {
-      // Show alert on failure — simple for v1.3 single-operator admin
-      alert(err instanceof Error ? err.message : 'Status update failed')
+      if (err instanceof PatchError && err.status === 409 && err.message === 'status_conflict') {
+        // Lost the race: show the locked inline copy, keep the row as it is, no automatic reload
+        setStatusConflict(prev => ({ ...prev, [bookingId]: statusConflictMessage(err.currentStatus) }))
+      } else {
+        // Show alert on failure — simple for v1.3 single-operator admin
+        alert(err instanceof Error ? err.message : 'Status update failed')
+      }
     } finally {
       setStatusUpdating(prev => ({ ...prev, [bookingId]: false }))
     }
   }, [patchBooking])
+
+  // T-87-40: every path to the terminal no_show goes through the confirmation modal.
+  const requestStatusChange = useCallback((booking: Booking, newStatus: string) => {
+    if (newStatus === 'no_show') {
+      setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
+      return
+    }
+    handleStatusChange(booking.id, newStatus, booking.status)
+  }, [handleStatusChange])
+
+  // The server moved the booking to no_show (final): mirror it locally and drop the request flag.
+  const handleNoShowConfirmed = useCallback((bookingId: string) => {
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'no_show', no_show_requested_at: null } : b))
+    setStatusConflict(prev => {
+      if (!(bookingId in prev)) return prev
+      const next = { ...prev }
+      delete next[bookingId]
+      return next
+    })
+    setNoShowTarget(null)
+  }, [])
+
+  // "Client found": the request is cleared, the status stays on_location.
+  const handleNoShowCleared = useCallback((bookingId: string) => {
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, no_show_requested_at: null } : b))
+  }, [])
 
   const flushNotes = useCallback(async (bookingId: string, value: string) => {
     setNotesSaving(prev => ({ ...prev, [bookingId]: 'saving' }))
@@ -1490,10 +1547,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       header: 'Status',
       size: 120,
       cell: ({ row }) => (
-        <StatusBadge
-          variant={row.original.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
-          label={STATUS_LABELS[row.original.status] ?? row.original.status}
-        />
+        <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px' }}>
+          <StatusBadge
+            variant={row.original.status as BookingStatus}
+            label={STATUS_LABELS[row.original.status] ?? row.original.status}
+          />
+          {hasOpenNoShowRequest(row.original) && <NoShowChip />}
+        </span>
       ),
     },
     {
@@ -1887,10 +1947,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         </span>
                       )}
                     </span>
-                    <StatusBadge
-                      variant={booking.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
-                      label={STATUS_LABELS[booking.status] ?? booking.status}
-                    />
+                    <span style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: '4px' }}>
+                      <StatusBadge
+                        variant={booking.status as BookingStatus}
+                        label={STATUS_LABELS[booking.status] ?? booking.status}
+                      />
+                      {hasOpenNoShowRequest(booking) && <NoShowChip />}
+                    </span>
                   </div>
 
                   {/* Client name */}
@@ -1929,12 +1992,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
                   {/* Status transitions */}
                   {transitions.length > 0 && (
+                    <>
                     <div style={{ display: 'flex', gap: 8, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
                       {transitions.map(s => (
                         <button
                           key={s}
                           disabled={!!statusUpdating[booking.id]}
-                          onClick={() => handleStatusChange(booking.id, s)}
+                          onClick={() => requestStatusChange(booking, s)}
                           style={{
                             minHeight: 44,
                             minWidth: 44,
@@ -1955,11 +2019,25 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         </button>
                       ))}
                     </div>
+                    {statusConflict[booking.id] && (
+                      <div role="alert" style={{ ...STATUS_CONFLICT_STYLE, marginTop: 0, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
+                        {statusConflict[booking.id]}
+                      </div>
+                    )}
+                    </>
                   )}
 
                   {/* Expanded details */}
                   {isExpanded && (
                     <div style={{ marginTop: 12, borderTop: '1px solid var(--admin-border)', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
+                      {hasOpenNoShowRequest(booking) && booking.no_show_requested_at && (
+                        <NoShowBanner
+                          bookingId={booking.id}
+                          requestedAt={booking.no_show_requested_at}
+                          onConfirmRequest={() => setNoShowTarget({ id: booking.id, reference: booking.booking_reference })}
+                          onCleared={() => handleNoShowCleared(booking.id)}
+                        />
+                      )}
                       {booking.flight_iata && (
                         <FlightStatusBlock
                           bookingId={booking.id}
@@ -2272,6 +2350,14 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           borderBottom: '1px solid var(--anthracite-light)',
                         }}
                       >
+                        {hasOpenNoShowRequest(row.original) && row.original.no_show_requested_at && (
+                          <NoShowBanner
+                            bookingId={row.original.id}
+                            requestedAt={row.original.no_show_requested_at}
+                            onConfirmRequest={() => setNoShowTarget({ id: row.original.id, reference: row.original.booking_reference })}
+                            onCleared={() => handleNoShowCleared(row.original.id)}
+                          />
+                        )}
                         {row.original.flight_iata && (
                           <FlightStatusBlock
                             bookingId={row.original.id}
@@ -2386,7 +2472,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                               value=""
                               disabled={!!statusUpdating[row.original.id]}
                               onChange={(e) => {
-                                if (e.target.value) handleStatusChange(row.original.id, e.target.value)
+                                if (e.target.value) requestStatusChange(row.original, e.target.value)
                               }}
                               onClick={(e) => e.stopPropagation()}
                               style={{
@@ -2411,11 +2497,16 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                             </select>
                           ) : (
                             <StatusBadge
-                              variant={row.original.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+                              variant={row.original.status as BookingStatus}
                               label={`${STATUS_LABELS[row.original.status]} (final)`}
                             />
                           )}
                         </div>
+                        {statusConflict[row.original.id] && (
+                          <div role="alert" style={STATUS_CONFLICT_STYLE}>
+                            {statusConflict[row.original.id]}
+                          </div>
+                        )}
 
                         {/* Operator notes */}
                         <div style={{ marginTop: '16px' }}>
@@ -2638,6 +2729,15 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
           Next
         </button>
       </div>
+
+      {/* Confirm no-show (Phase 87 D-16 a): the only way to reach the terminal no_show status */}
+      <ConfirmNoShowModal
+        isOpen={noShowTarget !== null}
+        bookingId={noShowTarget?.id ?? ''}
+        bookingReference={noShowTarget?.reference ?? ''}
+        onClose={() => setNoShowTarget(null)}
+        onConfirmed={() => { if (noShowTarget) handleNoShowConfirmed(noShowTarget.id) }}
+      />
 
       {/* CancellationModal */}
       {pendingCancel !== null && (

@@ -18,7 +18,7 @@
 
 **Phase Numbering:** Integer phases continue from v4.0 (last phase 85). Decimal phases (e.g. 88.1) are urgent insertions. Next DB migration is 084.
 
-- [ ] **Phase 86: Admin Shell** - Collapsible sidebar and persistent light theme; every admin screen on theme tokens
+- [x] **Phase 86: Admin Shell** - Collapsible sidebar and persistent light theme; every admin screen on theme tokens (completed 2026-11-03)
 - [ ] **Phase 87: Status Service & Driver Step Flow** - One trusted status writer; driver moves a trip one strict step at a time and admin sees it immediately
 - [ ] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
 - [ ] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, counsel-reviewed wording, public go-live
@@ -26,6 +26,7 @@
 - [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
 - [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
 - [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
+- [ ] **Phase 94: Driver Cabinet** - Driver login, ride list (upcoming/past), offers instead of email links, profile; ride detail = Phase 87 trip screen
 
 **Milestone-wide guardrails (apply to every phase):**
 - **Hold lead time is configurable, default 72 h — never "~5 days".** A hold placed with the customer absent is merchant-initiated and Visa expires it after 4 d 18 h; the saved card plus mandate is the real guarantee, the hold is a convenience (research/SUMMARY.md).
@@ -148,7 +149,7 @@ Detail sections for the active milestone v5.0 (Phases 86-93). Parser note: the `
   3. Every admin screen (bookings, drivers, stats, outbox, settings, login, plus modals and side panels) is readable in both themes — no unreadable text, invisible borders or leftover dark-only panels.
   4. Adding a new hard-coded colour value to admin code fails the test suite, so later phases cannot reintroduce theme debt.
 
-**Plans**: 12/13 plans executed
+**Plans**: 13/13 plans complete
 Plans:
 **Wave 1**
 - [x] 86-01-PLAN.md — Wave 1: cookie-driven theme wrapper (tracer), full token sheet for both themes, colour guard with per-plan pending ledger, capital-label scanner
@@ -169,7 +170,7 @@ Plans:
 - [x] 86-12-PLAN.md — Wave 3: sentence-case labels in stats tabs, stats charts and the bookings KPI row
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 86-13-PLAN.md — Wave 4: first-paint and public-leakage proof, full quality gate, phase-wide caps scan, owner production UAT
+- [x] 86-13-PLAN.md — Wave 4: first-paint and public-leakage proof, full quality gate, phase-wide caps scan, owner production UAT
 
 **UI hint**: yes
 **Planning notes**:
@@ -189,7 +190,34 @@ Plans:
   4. For a GNet booking each driver step is pushed to GNet exactly once (no duplicates on retap or retry) and the booking is marked as a partner booking so no hold, capture or no-show charge can ever apply to it.
   5. The "completed" step asks the driver to confirm, fires exactly one completion event that the payment engine consumes in Phase 88 (capture itself is verified there under HOLD-04), and the driver never sees or enters an amount.
 
-**Plans**: TBD
+**Plans**: 13/14 plans executed
+Plans:
+**Wave 1**
+- [x] 87-01-PLAN.md — Wave 1: behaviour-preserving extraction of advanceBookingStatus() + single GNet push helper; cancel route characterized; PATCH/cancel/assign routed through the service (tracer)
+- [x] 87-02-PLAN.md — Wave 1: lib/booking-status.ts vocabulary, transitions, trip-token view state; migration 084 (on_board/no_show, booking_status_log + trigger, CAS RPC, no-show RPC + settings, redefined lead/gcal/panel/stats); [BLOCKING] live apply + smoke
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 87-03-PLAN.md — Wave 2: compare-and-set via advance_booking_status, 409 status_conflict, cancel/assign lost-race responses, single completion event (partner-aware), direct status-writer gate
+- [x] 87-04-PLAN.md — Wave 2: CRM/lead/Chatwoot/panel/calendar status fan-out, pickupInstantMs to prague-date, SQL-vs-TS parity on latest definitions
+- [x] 87-06-PLAN.md — Wave 2: no-show operator alert as a Chatwoot private note via the outbox dispatcher
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 87-07-PLAN.md — Wave 3: idempotent GNet push (conditional claim), D-22 null mapping and no farm-in echo pinned
+- [x] 87-08-PLAN.md — Wave 3: driver route rebuilt on the status service (strict next step, replay 200, 409), start gate, DTRIP-04 gates rewritten
+- [x] 87-05-PLAN.md — Wave 3: admin On Board / No-Show labels and hues, no_show terminal, expected_status + inline conflict message (depends on 87-03's 409 contract)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 87-09-PLAN.md — Wave 4: driver no-show request (server threshold, email + outbox alert), admin confirm/dismiss route, settings thresholds, shared airport helper
+- [x] 87-10-PLAN.md — Wave 4: light driver trip screen — one-step control (keyboard path), confirm dialog, completed/ended/help views
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 87-11-PLAN.md — Wave 5: driver map + distance, passenger card, navigation, details + note, no-show block, refresh timers
+- [x] 87-12-PLAN.md — Wave 5: admin no-show banner/chip/confirm modal and no-show waiting-time settings
+- [x] 87-14-PLAN.md — Wave 5: slide-to-advance gesture contract (drag past 85%, hold, tap hint, assistive activation, offline lock, reduced motion), split from 87-10
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 87-13-PLAN.md — Wave 6: full quality gate, [BLOCKING] EspoCRM fields sync before merge, owner production UAT on a real phone
+
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix. The permanent driver link now changes `booking.status` and later moves money; the token-gated write route stays CSRF-protected and rate-limited, and the v2.2 DTRIP-04 isolation grep-gates are rewritten for the new rule rather than deleted.
 **Owner decisions before planning**: (1) `on_board` is a real `bookings.status` (recommended) vs progress-only mapped to `on_location`; (2) `no_show` is terminal and how it maps in leads (`converted` vs `dead`), stats (count revenue only when charged) and Chatwoot; (3) which statuses are pushed to GNet for `on_board` / `no_show`. **Decided 2026-11-02:** driver steps are auto-pushed to GNet (deduped); GNet bookings skip every money path — only the exact GNet status mapping stays open.
@@ -310,6 +338,23 @@ Plans:
   - Largest 7-locale batch of the milestone; AI credits are empty, so translate in-session. Marketing content rules apply: no typed prices (ISR-revalidated live fares, no stale JSON-LD prices), no Uber/ride-hailing comparisons, no fake scarcity or fabricated reviews.
   - The catalogue and online booking (TRIP-01..05) can ship before the custom-tour loop (TRIP-06/07). Expected migrations 089-090; check every place the `trip_type` enum is used.
 
+### Phase 94: Driver Cabinet
+
+**Goal**: A driver signs in to a personal cabinet that lists all of their rides and new ride offers, instead of receiving one separate link per assignment.
+**Depends on**: Phase 87 (light-theme trip screen and status service); scheduled after Phase 93 by owner decision 2026-11-03
+**Requirements**: TBD (to be defined at discuss/plan time)
+**Scope (owner, 2026-11-03)**:
+  - Driver login/accounts.
+  - Ride list with Upcoming / Past tabs, grouped by day (time, pickup → dropoff, passenger first name, vehicle plate or "Pending", class).
+  - Offers tab that replaces the accept/decline links sent by email (`/driver/response`).
+  - "You" profile: rating, documents, help, sign out.
+  - Ride detail reuses the Phase 87 trip screen (map, bottom sheet, slide-to-advance step control).
+
+**Owner reference**: Blacklane driver app screenshots shared 2026-11-03 (layout only — Prestigo branding, light theme, no copied names or assets).
+**Plans**: TBD
+**UI hint**: yes
+**Security-relevant**: yes — new driver authentication and per-driver data access (commit with `security:` prefix).
+
 ## Parked Phase Details (from v4.0, in Backlog)
 
 Kept here so `/gsd-execute-phase 78` and `/gsd-discuss-phase 79` still resolve; the Phase 78 directory stays in `.planning/phases/`.
@@ -412,8 +457,8 @@ Plans:
 | 83. CRM/Chatwoot → Site Webhooks | v4.0 | 16/16 | Complete    | 2026-10-26 |
 | 84. Chatwoot Dashboard App | v4.0 | 9/9 | Complete    | 2026-10-30 |
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
-| 86. Admin Shell | v5.0 | 12/13 | In Progress|  |
-| 87. Status Service & Driver Step Flow | v5.0 | 0/0 | Not started | - |
+| 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
+| 87. Status Service & Driver Step Flow | v5.0 | 13/14 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |

@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const {
   stubGetAdminUser,
   stubSupabaseFrom,
+  stubRpc,
   stubLogEmail,
   stubSendDriverAssignmentEmail,
   stubSendDriverDeclineNotification,
@@ -19,6 +20,7 @@ const {
 
   const stubGetAdminUser = vi.fn()
   const stubSupabaseFrom = vi.fn()
+  const stubRpc = vi.fn()
   const stubLogEmail = vi.fn().mockResolvedValue(true)
   const stubSendDriverAssignmentEmail = vi.fn().mockResolvedValue(undefined)
   const stubSendDriverDeclineNotification = vi.fn().mockResolvedValue(undefined)
@@ -38,6 +40,7 @@ const {
   return {
     stubGetAdminUser,
     stubSupabaseFrom,
+    stubRpc,
     stubLogEmail,
     stubSendDriverAssignmentEmail,
     stubSendDriverDeclineNotification,
@@ -61,7 +64,7 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: vi.fn(() => ({ from: stubSupabaseFrom })),
+  createSupabaseServiceClient: vi.fn(() => ({ from: stubSupabaseFrom, rpc: stubRpc })),
 }))
 
 vi.mock('@/lib/email-log', () => ({
@@ -115,6 +118,8 @@ beforeEach(() => {
 
   // Default to admin user
   stubGetAdminUser.mockResolvedValue({ user: { id: '1', app_metadata: { is_admin: true } }, error: null })
+  // Phase 87-03: the first-assign status write is the advance_booking_status RPC (applied by default)
+  stubRpc.mockResolvedValue({ data: { applied: true }, error: null })
   stubLogEmail.mockResolvedValue(true)
   stubSendDriverAssignmentEmail.mockResolvedValue(undefined)
   stubSendDriverDeclineNotification.mockResolvedValue(undefined)
@@ -549,8 +554,9 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
 // 1: drivers select (5a)
 // 2: bookings select for email + status (5b)
 // 3: insert assignment (5c)
-// 4: bookings update (5c-bis) — only if transition allowed
-// 5+: notification_flags select (5d) + async after() gnet calls
+// 4: bookings update (5c-bis) — only on REASSIGN (a plain driver_id update). The first-assign
+//    status write is the advance_booking_status RPC (Phase 87-03) and is not a from() call.
+// 4+: notification_flags select (5d) + async after() gnet calls
 
 // Helper for assign tests
 function makeFullAssignMock(
@@ -616,8 +622,7 @@ function makeFullAssignMock(
 describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, D-07)', () => {
   // Call order: 1=drivers(5a) 2=bookings-email+status(5b) 3=insert(5c) 4=bookings-update(5c-bis) 5+=nf/gnet
 
-  it('Test A: confirmed → assigned transition updates bookings with driver_id + status', async () => {
-    let updateArgs: unknown[] = []
+  it('Test A: confirmed → assigned transition writes driver_id + status through the compare-and-set RPC', async () => {
     const mockDriver = { id: driverId, name: 'John Driver', email: 'driver@example.com' }
     const mockBooking = {
       id: bookingId, booking_reference: 'PRG-001', pickup_date: '2026-05-01', pickup_time: '10:00',
@@ -640,11 +645,6 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
       } else if (callCount === 3) {
         const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
         return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
-      } else if (callCount === 4) {
-        // 5c-bis: bookings update — capture args
-        const eqFn = vi.fn().mockResolvedValue({ data: null, error: null })
-        const updateFn = vi.fn().mockImplementation((args) => { updateArgs = [args]; return { eq: eqFn } })
-        return { update: updateFn }
       } else {
         const singleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
         return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
@@ -655,7 +655,15 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
       params: Promise.resolve({ id: bookingId }),
     })
     expect(res.status).toBe(201)
-    expect(updateArgs[0]).toMatchObject({ driver_id: driverId, status: 'assigned' })
+    expect(stubRpc).toHaveBeenCalledWith('advance_booking_status', {
+      p_booking_id: bookingId,
+      p_from: 'confirmed',
+      p_to: 'assigned',
+      p_actor_type: 'admin',
+      p_actor_id: '1',
+      p_source: 'admin_assign',
+      p_patch: { driver_id: driverId },
+    })
     expect(stubPushGnetStatus).not.toHaveBeenCalled()
     const json = await res.json()
     expect(json.booking_status).toBe('assigned')
@@ -717,7 +725,8 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
     const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
     const mockGnetRow = { id: 'g0000001-0000-4000-8000-000000000001', gnet_res_no: 'GR-123' }
 
-    const mockGnetSingleFn = vi.fn().mockResolvedValue({ data: mockGnetRow, error: null })
+    // 87-07: the push claims the gnet_bookings row with update().eq().or().select()
+    const mockGnetClaimSelectFn = vi.fn().mockResolvedValue({ data: [mockGnetRow], error: null })
     const mockNfSingleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
     let callCount = 0
     stubSupabaseFrom.mockImplementation(() => {
@@ -732,17 +741,13 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
         const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
         return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
       } else if (callCount === 4) {
-        // 5c-bis: bookings update
-        const eqFn = vi.fn().mockResolvedValue({ data: null, error: null })
-        return { update: vi.fn().mockReturnValue({ eq: eqFn }) }
+        // after() starts sync execution: gnet_bookings claim update called before first await
+        return { update: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ or: vi.fn().mockReturnValue({ select: mockGnetClaimSelectFn }) }) }) }
       } else if (callCount === 5) {
-        // after() starts sync execution: gnet_bookings.from().select() called before first await
-        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockGnetSingleFn }) }) }
-      } else if (callCount === 6) {
         // notification_flags select (5d, main handler continues after after() suspends at first await)
         return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockNfSingleFn }) }) }
       } else {
-        // callCount=7+: gnet_bookings update (after() continuation after pushGnetStatus resolves)
+        // callCount=6+: gnet_bookings update (after() continuation after pushGnetStatus resolves)
         const eqFnUpdate = vi.fn().mockResolvedValue({ data: null, error: null })
         return { update: vi.fn().mockReturnValue({ eq: eqFnUpdate }) }
       }
@@ -756,6 +761,27 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
     await new Promise((r) => setTimeout(r, 10))
     // GNet push MUST be called with gnet_res_no and 'ASSIGNED'
     expect(stubPushGnetStatus).toHaveBeenCalledWith('GR-123', 'ASSIGNED', expect.any(String))
+  })
+
+  it('87-03: first assign loses the compare-and-set — assignment kept, no GNet push, logged, 201 with the current status', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    stubRpc.mockResolvedValue({ data: { applied: false, current_status: 'cancelled' }, error: null })
+    makeFullAssignMock({ status: 'confirmed', booking_source: 'gnet' })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    await new Promise((r) => setTimeout(r, 10))
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.booking_status).toBe('cancelled')
+    expect(json.assignment.driver_id).toBe(driverId)
+    expect(stubPushGnetStatus).not.toHaveBeenCalled()
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[assign] status changed concurrently'),
+      expect.anything(),
+    )
+    errorSpy.mockRestore()
   })
 
   it('Test D: GNet reassign no push (D-07) — pushGnetStatus NOT called on reassign', async () => {

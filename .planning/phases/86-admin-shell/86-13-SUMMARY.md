@@ -9,7 +9,7 @@ requires:
     provides: plans 86-08..86-12 (colour guard, sentence-case label edits, token-only admin screens)
 provides:
   - Recorded evidence for ROADMAP Phase 86 success criteria 1-4 (first-paint HTML, public non-leakage, full quality gate)
-  - Owner production UAT checklist (Task 3, awaiting owner)
+  - Owner production UAT checklist (Task 3, approved by owner 2026-11-03)
 affects: [86 verification, gap closure, ship]
 
 actuals:
@@ -62,7 +62,7 @@ coverage:
     requirement: ADM-03
     verification: []
     human_judgment: true
-    rationale: "Visual judgment of readability, borders, hover and modal look on production; local admin sign-in is blocked by the fail-closed rate limiter. Task 3 is awaiting owner UAT."
+    rationale: "Visual judgment of readability, borders, hover and modal look on production; local admin sign-in is blocked by the fail-closed rate limiter. Task 3 approved by owner on production 2026-11-03."
 
 duration: 12min
 completed: 2026-11-02
@@ -71,14 +71,14 @@ status: complete
 
 # Phase 86 Plan 13: Close-out evidence Summary
 
-**Raw first-paint HTML proves flash-free cookie-driven theme and sidebar state with zero public leakage, and the full quality gate (suite, tsc, eslint, build, untouched public artefacts, sentence-case scan) is green apart from known out-of-scope failures; owner production UAT (Task 3) is awaiting the owner.**
+**Raw first-paint HTML proves flash-free cookie-driven theme and sidebar state with zero public leakage, and the full quality gate (suite, tsc, eslint, build, untouched public artefacts, sentence-case scan) is green apart from known out-of-scope failures; owner production UAT (Task 3) was approved on 2026-11-03 after PR #82 went live.**
 
 ## Performance
 
 - **Duration:** about 12 min
 - **Started:** 2026-11-02T21:22:00Z
-- **Completed:** 2026-11-02T21:32:00Z (Tasks 1-2; Task 3 awaiting owner)
-- **Tasks:** 2 of 3 executed; Task 3 is a blocking human-verify checkpoint, not yet answered
+- **Completed:** 2026-11-02T21:32:00Z (Tasks 1-2); Task 3 approved 2026-11-03
+- **Tasks:** 3 of 3 complete (Task 3 = owner human-verify, approved)
 - **Files modified:** 0 source files (evidence only)
 
 ## Accomplishments
@@ -118,9 +118,9 @@ The 8 failed files split into two groups:
    - `tests/route-metadata-seo.test.ts` en/munich-prague description (content commit merged from origin/main).
 2. **Worktree environment artefact (5 files):** `tests/account-trips.test.tsx`, `auth-customer.test.ts`, `login-actions.test.ts`, `passenger-actions.test.ts`, `profile-actions.test.ts` fail to load with `ERR_MODULE_NOT_FOUND: /@fs/Users/romanustyugov/Desktop/Prestigo/node_modules/next-intl/dist/esm/development/server.react-server.js`. The file exists in the main node_modules; the failure is vite-node resolving through the worktree's symlinked `node_modules` (the orchestrator-mandated setup). It reproduces deterministically when run in isolation, touches no admin code, and none of these files is related to phase 86. The orchestrator's wave-3 baseline on the main checkout was 3 failed files / 1 failed test / 7879 passed; this run shows the same 3 genuine failures and 1 failed test, with 7824 passed (the 55-test difference is the 5 files that cannot load here). Recommend the orchestrator re-confirm the full suite on the main checkout before merge.
 
-## Task 3: owner production UAT (blocking checkpoint, awaiting owner)
+## Task 3: owner production UAT (approved)
 
-Status: **not answered**. No merge, push or PR was done by this executor. Owner verdict: pending (to be recorded verbatim by the orchestrator/verifier: "approved", an issue list, or "defer").
+Status: **approved**. The orchestrator merged PR #82 (merge commit a6bf4b20) with owner consent; production served the new layout 120 s later. Production curl: cookies dark+collapsed render `data-admin-theme="dark"` / `data-admin-sidebar="collapsed"`, no cookies render light/expanded, unauthenticated `/admin` → 307 `/admin/login`, `/ /ru /ar /en/fleet` contain 0 admin markers, robots.txt/sitemap.xml/llms.txt 200. Owner verdict (verbatim): "approved".
 
 Checklist presented to the owner (read-only: open and close only; no erasure preview or run, no booking/driver/promo/pricing/zone/account save):
 

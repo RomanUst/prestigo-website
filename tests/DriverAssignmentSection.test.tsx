@@ -28,6 +28,13 @@ describe('DriverAssignmentSection — Phase 53 prop evolution', () => {
     expect(container.firstChild).toBeNull()
   })
 
+  it('returns null when bookingStatus is no_show (Phase 87 D-09: terminal)', () => {
+    const { container } = render(
+      <DriverAssignmentSection bookingId="b1" bookingStatus="no_show" />
+    )
+    expect(container.firstChild).toBeNull()
+  })
+
   it('renders the DRIVER section for confirmed bookings', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,

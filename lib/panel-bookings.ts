@@ -4,6 +4,10 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { bookingLeadAmountEur, type BookingRow } from '@/lib/lead-mapping'
 import type { PanelBooking, PanelResponse, PaymentState } from '@/lib/panel-dto'
 import { adminBookingHref, espoLeadUrl, isSafePaymentLinkUrl } from '@/lib/panel-links'
+import { REVENUE_STATUSES } from '@/lib/booking-status'
+import { pickupInstantMs } from '@/lib/prague-date'
+
+export { pickupInstantMs }
 
 // Read-only data layer of the Chatwoot Dashboard App (Phase 84, plan 84-01). Server only.
 // The ONLY database call is the SECURITY DEFINER RPC panel_bookings (migration 080), which resolves
@@ -19,14 +23,8 @@ export class PanelStoreError extends Error {
   }
 }
 
-/** Statuses whose value counts towards the spent total; mirrors VALUE_STATUSES in chatwoot-mapping. */
-export const PANEL_VALUE_STATUSES: ReadonlySet<string> = new Set([
-  'confirmed',
-  'assigned',
-  'en_route',
-  'on_location',
-  'completed',
-])
+/** Statuses whose value counts towards the spent total (D-02: the shared revenue set; no_show is excluded). */
+export const PANEL_VALUE_STATUSES: ReadonlySet<string> = REVENUE_STATUSES
 
 const nullableString = z.string().nullable()
 const nullableNumber = z.number().nullable()
@@ -102,69 +100,16 @@ export function createPanelBookingsStore(client?: SupabaseClient): PanelBookings
 
 // ── Payment state ──────────────────────────────────────────────────────────
 
-/** RESEARCH A1: cancelled, then paid_at, then unpaid / pending; every other status counts as paid. */
+/**
+ * RESEARCH A1: cancelled, then paid_at, then unpaid / pending; every other status counts as paid.
+ * A6 (Phase 87): an unpaid no_show is never shown as paid.
+ */
 export function paymentState(status: string, paidAt: string | null): PaymentState {
   if (status === 'cancelled') return 'cancelled'
   if (paidAt) return 'paid'
-  if (status === 'unpaid') return 'awaiting_payment'
+  if (status === 'unpaid' || status === 'no_show') return 'awaiting_payment'
   if (status === 'pending') return 'quote'
   return 'paid'
-}
-
-// ── Pickup instant ─────────────────────────────────────────────────────────
-
-const PRAGUE_TZ = 'Europe/Prague'
-const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/
-const TIME_RE = /^(\d{2}):(\d{2})/
-
-const pragueParts = new Intl.DateTimeFormat('en-US', {
-  timeZone: PRAGUE_TZ,
-  hourCycle: 'h23',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-})
-
-/** Offset of Europe/Prague from UTC at the given instant, in ms (positive east of Greenwich). */
-function pragueOffsetMs(utcMs: number): number {
-  const parts: Record<string, number> = {}
-  for (const p of pragueParts.formatToParts(new Date(utcMs))) {
-    if (p.type !== 'literal') parts[p.type] = Number(p.value)
-  }
-  const asUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second)
-  return asUtc - Math.floor(utcMs / 1000) * 1000
-}
-
-/**
- * The pickup instant: pickup_utc when present and valid, else the Europe/Prague wall clock of
- * pickup_date (YYYY-MM-DD) + pickup_time (HH:MM). Null when neither parses; never throws.
- */
-export function pickupInstantMs(row: {
-  pickup_utc: string | null
-  pickup_date: string
-  pickup_time: string
-}): number | null {
-  if (row.pickup_utc) {
-    const ms = Date.parse(row.pickup_utc)
-    if (Number.isFinite(ms)) return ms
-  }
-  const d = DATE_RE.exec(row.pickup_date ?? '')
-  const t = TIME_RE.exec(row.pickup_time ?? '')
-  if (!d || !t) return null
-  const [year, month, day, hour, minute] = [Number(d[1]), Number(d[2]), Number(d[3]), Number(t[1]), Number(t[2])]
-  if (month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59) return null
-  const wall = Date.UTC(year, month - 1, day, hour, minute)
-  // Reject impossible calendar dates (31 February): Date.UTC would roll them over.
-  const check = new Date(wall)
-  if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 || check.getUTCDate() !== day) return null
-  const first = pragueOffsetMs(wall)
-  let instant = wall - first
-  const second = pragueOffsetMs(instant)
-  if (second !== first) instant = wall - second
-  return instant
 }
 
 // ── Mapping ────────────────────────────────────────────────────────────────
@@ -226,7 +171,8 @@ export function buildPanelResponse(
       booking.pickupMs !== null &&
       booking.pickupMs >= nowMs &&
       booking.status !== 'cancelled' &&
-      booking.status !== 'completed'
+      booking.status !== 'completed' &&
+      booking.status !== 'no_show'
     ;(isUpcoming ? upcoming : past).push(booking)
   }
   upcoming.sort((a, b) => (a.pickupMs as number) - (b.pickupMs as number))

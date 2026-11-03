@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v5.0
 milestone_name: Payments, Quotes & Day Trips
-current_phase: 86
-current_phase_name: admin-shell
+current_phase: 87
+current_phase_name: Status Service & Driver Step Flow
 status: executing
-stopped_at: Phase 86 UI-SPEC approved
-last_updated: "2026-11-02T20:44:20.850Z"
-last_activity: 2026-11-02
-last_activity_desc: Phase 86 execution started
-state_head: d88e2e5d9e3cdd1311ad82f4f8492e9a573210f3
+stopped_at: Phase 87 UI-SPEC approved
+last_updated: "2026-11-03T13:34:33.889Z"
+last_activity: 2026-11-03
+last_activity_desc: Phase 87 execution started
+state_head: 06cde60d218f62e16ab791454f4f7e00f8c66ca1
 progress:
-  total_phases: 8
-  completed_phases: 0
-  total_plans: 13
-  completed_plans: 0
-  percent: 0
+  total_phases: 9
+  completed_phases: 1
+  total_plans: 27
+  completed_plans: 13
+  percent: 11
 ---
 
 # Project State
@@ -25,16 +25,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 86 — admin-shell
+**Current focus:** Phase 87 — Status Service & Driver Step Flow
 
 ## Current Position
 
-Phase: 86 (admin-shell) — EXECUTING
-Plan: 1 of 13
-Status: Executing Phase 86
-Last activity: 2026-11-02 — Phase 86 execution started
+Phase: 87 (Status Service & Driver Step Flow) — EXECUTING
+Plan: 1 of 14
+Status: Executing Phase 87
+Last activity: 2026-11-03 — Phase 87 execution started
 
-Progress: [░░░░░░░░░░] 0% (0/8 phases)
+Progress: [█░░░░░░░░░] 11% (0/8 phases)
 
 ## Accumulated Context
 
@@ -273,6 +273,10 @@ Recent decisions affecting current work:
 - Do NOT localize: `app/admin/*`, `app/api/*`, `app/auth/*`, `app/driver/*` — stay at root, off the [locale] tree.
 - `next.config.ts` has a `/cs → /` redirect (CS not in v3.0 scope — leave it); ensure new locale prefixes are not caught by any catch-all.
 
+### Roadmap Evolution
+
+- Phase 94 added (2026-11-03): Driver Cabinet — driver login, ride list, offers, profile; after Phase 93 (deferred from Phase 87 discussion)
+
 ### Pending Todos
 
 None yet.
@@ -348,9 +352,9 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-11-02T19:36:12.900Z
-Stopped at: Phase 86 UI-SPEC approved
-Resume file: .planning/phases/86-admin-shell/86-UI-SPEC.md
+Last session: 2026-11-03T12:33:19.519Z
+Stopped at: Phase 87 UI-SPEC approved
+Resume file: .planning/phases/87-status-service-driver-step-flow/87-UI-SPEC.md
 
 ## Performance Metrics
 

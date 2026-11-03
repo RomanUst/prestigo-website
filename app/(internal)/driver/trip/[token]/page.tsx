@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { isTripLinkValid } from '@/lib/trip-token'
+import { tripLinkViewState } from '@/lib/trip-token'
 import { formatVehicleLabel } from '@/lib/email'
-import RouteMap from '@/components/booking/RouteMap'
-import TripProgressClient from './TripProgressClient'
-import type { PlaceResult } from '@/types/booking'
+import { buildTripView } from '@/lib/driver-trip-step'
+import { getNoShowView } from '@/lib/no-show'
+import type { DriverTripRecord } from '@/lib/driver-trip-step'
+import InvalidTripLinkView from './InvalidTripLinkView'
+import TripCompleted from './TripCompleted'
+import TripScreen from './TripScreen'
 
 // D-08: this page must never be indexed — it is a permanent, unguessable
 // per-assignment link presentable to police control, not public content.
@@ -19,11 +22,14 @@ interface PageProps {
 
 // Explicit row shape for the trip-sheet join query. createSupabaseServiceClient()
 // is not generic-typed against Database (matches the rest of this codebase's
-// service-client call sites), so a `bookings!inner(*)` select-string join is
+// service-client call sites), so a `bookings!inner(...)` select-string join is
 // otherwise inferred as an array by supabase-js's string-literal parser — cast
 // through this interface instead of loosening types with `any` at each use site.
 interface TripSheetBookingRow {
+  id: string
   booking_reference: string
+  booking_source: string | null
+  pickup_utc: string | null
   pickup_date: string
   pickup_time: string
   origin_address: string | null
@@ -34,131 +40,47 @@ interface TripSheetBookingRow {
   destination_lng: number | null
   client_first_name: string
   client_last_name: string
-  client_phone: string
+  client_phone: string | null
   flight_number: string | null
   flight_iata: string | null
   special_requests: string | null
   vehicle_class: string
+  distance_km: number | null
+  completed_at: string | null
+  no_show_requested_at: string | null
   status: string
   driver_id: string | null
 }
 
 interface TripSheetDriverRow {
-  name: string
-  phone: string
   vehicle_info: string | null
 }
 
 interface TripSheetAssignmentRow {
   id: string
   driver_id: string
-  trip_progress: string | null
+  status: string | null
   trip_note: string | null
   bookings: TripSheetBookingRow | null
   drivers: TripSheetDriverRow | null
 }
 
-const cardStyle: React.CSSProperties = {
-  background: 'var(--anthracite-mid)',
-  border: '1px solid var(--anthracite-light)',
-  borderRadius: '2px',
-  maxWidth: '560px',
-  width: '100%',
-  padding: '32px 48px',
+// D-06: the driver never sees an amount, so the booking amount is not selected at all.
+const TRIP_SELECT =
+  'id, driver_id, status, trip_note, ' +
+  'bookings!inner(id, booking_reference, booking_source, pickup_utc, pickup_date, pickup_time, ' +
+  'origin_address, destination_address, origin_lat, origin_lng, destination_lat, destination_lng, ' +
+  'client_first_name, client_last_name, client_phone, flight_number, flight_iata, special_requests, ' +
+  'vehicle_class, distance_km, completed_at, no_show_requested_at, status, driver_id), ' +
+  'drivers(vehicle_info)'
+
+function coords(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
+  return lat !== null && lat !== undefined && lng !== null && lng !== undefined ? { lat, lng } : null
 }
 
-const labelStyle: React.CSSProperties = {
-  fontSize: '13px',
-  fontWeight: 300,
-  letterSpacing: '0.25em',
-  textTransform: 'uppercase',
-  color: 'var(--copper-light)',
-}
-
-const valueStyle: React.CSSProperties = {
-  fontSize: '13px',
-  fontWeight: 300,
-  color: 'var(--offwhite)',
-  letterSpacing: '0.03em',
-  whiteSpace: 'normal',
-  wordBreak: 'break-word',
-}
-
-const headingStyle: React.CSSProperties = {
-  fontFamily: 'var(--font-cormorant)',
-  fontSize: '18px',
-  fontWeight: 500,
-  color: 'var(--offwhite)',
-  letterSpacing: '0.03em',
-  marginTop: '24px',
-  marginBottom: '16px',
-  paddingBottom: '8px',
-  borderBottom: '1px solid var(--anthracite-light)',
-}
-
-const gridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '8px 16px',
-}
-
-function FieldRow({ label, value }: { label: string; value: string }) {
-  return (
-    <>
-      <span style={labelStyle}>{label}</span>
-      <span style={valueStyle}>{value}</span>
-    </>
-  )
-}
-
-// D-11: single neutral view for EVERY invalid reason (unknown token,
-// bad-UUID shape, terminal status, reassigned, orphaned booking) — no branch
-// distinguishes the reason, preventing enumeration/information disclosure.
-function InvalidTripLinkView() {
-  return (
-    <main
-      style={{
-        background: 'var(--anthracite)',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
-        fontFamily: 'var(--font-montserrat)',
-      }}
-    >
-      <div
-        style={{
-          background: 'var(--anthracite-mid)',
-          border: '1px solid var(--anthracite-light)',
-          borderRadius: '2px',
-          maxWidth: '480px',
-          width: '100%',
-          padding: '32px 48px',
-        }}
-      >
-        <div
-          className="wordmark"
-          style={{ marginBottom: '32px', display: 'block', textAlign: 'center' }}
-        >
-          <span className="wordmark-presti">PRESTI</span>
-          <span className="wordmark-go">GO</span>
-        </div>
-        <p
-          style={{
-            color: 'var(--warmgrey)',
-            fontSize: '14px',
-            fontWeight: 300,
-            lineHeight: 1.75,
-            textAlign: 'center',
-            letterSpacing: '0.03em',
-          }}
-        >
-          This trip link is no longer active.
-        </p>
-      </div>
-    </main>
-  )
+// Request time for the start gate. A named helper keeps the impure read out of the render body.
+function currentTimeMs(): number {
+  return Date.now()
 }
 
 export default async function TripSheetPage({ params }: PageProps) {
@@ -178,7 +100,7 @@ export default async function TripSheetPage({ params }: PageProps) {
   // data, no enumeration parameter, no writes anywhere on this page.
   const { data: rawAssignment, error } = await supabase
     .from('driver_assignments')
-    .select('id, driver_id, trip_progress, trip_note, bookings!inner(*), drivers(name, phone, vehicle_info)')
+    .select(TRIP_SELECT)
     .eq('trip_token', parsedToken.data)
     .single()
 
@@ -191,153 +113,62 @@ export default async function TripSheetPage({ params }: PageProps) {
   const booking = assignment.bookings
   const driver = assignment.drivers
 
-  // D-03 security boundary: driver_id match (self-invalidates on
-  // reassignment) AND non-terminal status (self-invalidates on completion
-  // or cancellation) — checked live on every request, no stored expiry.
-  const valid = isTripLinkValid({
+  // D-03 / D-17 security boundary: driver_id match (self-invalidates on reassignment), not
+  // declined, and the booking status decide the view live on every request — no stored expiry.
+  // 'completed' shows the details-free completed screen; every other dead link is one uniform view.
+  const viewState = tripLinkViewState({
     assignmentDriverId: assignment.driver_id,
     bookingDriverId: booking.driver_id,
     bookingStatus: booking.status,
+    assignmentStatus: assignment.status,
   })
 
-  if (!valid) {
-    return <InvalidTripLinkView />
+  if (viewState === 'ended') return <InvalidTripLinkView />
+  if (viewState === 'completed') return <TripCompleted variant="reopened" />
+
+  const record: DriverTripRecord['booking'] = {
+    id: booking.id,
+    status: booking.status,
+    driver_id: booking.driver_id,
+    booking_source: booking.booking_source,
+    amount_eur: null,
+    pickup_utc: booking.pickup_utc,
+    pickup_date: booking.pickup_date,
+    pickup_time: booking.pickup_time,
+    origin_lat: booking.origin_lat,
+    origin_lng: booking.origin_lng,
+    origin_address: booking.origin_address,
+    completed_at: booking.completed_at,
+    no_show_requested_at: booking.no_show_requested_at,
   }
-
-  // Pitfall 3: pass null through when a coordinate is missing rather than
-  // {lat:0, lng:0} — RouteMap's own null-safe empty state is for its OWN
-  // internal use; here we render a page-owned placeholder instead of
-  // mounting RouteMap at all when either pair is null.
-  const origin: PlaceResult | null =
-    booking.origin_lat !== null && booking.origin_lat !== undefined &&
-    booking.origin_lng !== null && booking.origin_lng !== undefined
-      ? { address: booking.origin_address ?? '', placeId: '', lat: booking.origin_lat, lng: booking.origin_lng }
-      : null
-
-  const destination: PlaceResult | null =
-    booking.destination_lat !== null && booking.destination_lat !== undefined &&
-    booking.destination_lng !== null && booking.destination_lng !== undefined
-      ? { address: booking.destination_address ?? '', placeId: '', lat: booking.destination_lat, lng: booking.destination_lng }
-      : null
-
-  const flightInfo: string | null = booking.flight_number ?? booking.flight_iata ?? null
+  const nowMs = currentTimeMs()
+  const view = await buildTripView({ booking: record, nowMs })
+  // D-15: when a no-show request unlocks is a server fact (pickup / arrival + waiting time); the page
+  // only hands the times to the screen, the progress route stays the authority.
+  const noShowView = await getNoShowView({ supabase, booking: record, nowMs })
 
   return (
-    <main
-      style={{
-        background: 'var(--anthracite)',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px',
-        fontFamily: 'var(--font-montserrat)',
+    <TripScreen
+      token={parsedToken.data}
+      view={view}
+      trip={{
+        bookingReference: booking.booking_reference,
+        pickupDate: booking.pickup_date,
+        pickupTime: booking.pickup_time,
+        originAddress: booking.origin_address ?? '',
+        destinationAddress: booking.destination_address ?? '',
+        origin: coords(booking.origin_lat, booking.origin_lng),
+        destination: coords(booking.destination_lat, booking.destination_lng),
+        passengerName: `${booking.client_first_name} ${booking.client_last_name}`.trim(),
+        passengerPhone: booking.client_phone || null,
+        vehicleLabel: formatVehicleLabel(booking.vehicle_class),
+        vehicleInfo: driver?.vehicle_info ?? null,
+        flight: booking.flight_number ?? booking.flight_iata ?? null,
+        clientNotes: booking.special_requests,
+        distanceKm: booking.distance_km,
       }}
-    >
-      <div style={cardStyle}>
-        {/* Header (D-05): wordmark, title, booking reference — primary focal anchor */}
-        <div
-          className="wordmark"
-          style={{ marginBottom: '24px', display: 'block', textAlign: 'center' }}
-        >
-          <span className="wordmark-presti">PRESTI</span>
-          <span className="wordmark-go">GO</span>
-        </div>
-
-        <h1
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: '28px',
-            fontWeight: 300,
-            lineHeight: 1.2,
-            color: 'var(--offwhite)',
-            letterSpacing: '0.05em',
-            marginBottom: '8px',
-            textAlign: 'center',
-          }}
-        >
-          Trip Sheet
-        </h1>
-
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ ...labelStyle, marginBottom: '4px' }}>Booking Reference</div>
-          <div
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '22px',
-              fontWeight: 500,
-              color: 'var(--copper-light)',
-              letterSpacing: '0.05em',
-            }}
-          >
-            {booking.booking_reference}
-          </div>
-        </div>
-
-        {/* Section 1 (D-06): Trip Details */}
-        <h2 style={headingStyle}>Trip Details</h2>
-        <div style={gridStyle}>
-          <FieldRow label="Date" value={booking.pickup_date} />
-          <FieldRow label="Time" value={booking.pickup_time} />
-          <FieldRow label="From" value={booking.origin_address ?? ''} />
-          <FieldRow label="To" value={booking.destination_address ?? ''} />
-          {flightInfo && <FieldRow label="Flight" value={flightInfo} />}
-        </div>
-
-        {/* Section 2 (D-06): Passenger */}
-        <h2 style={headingStyle}>Passenger</h2>
-        <div style={gridStyle}>
-          <FieldRow label="Passenger" value={`${booking.client_first_name} ${booking.client_last_name}`} />
-          <FieldRow label="Phone" value={booking.client_phone} />
-          {booking.special_requests && <FieldRow label="Notes" value={booking.special_requests} />}
-        </div>
-
-        {/* Section 3 (D-06/D-07): Route Map — embedded, attribution-safe (RouteMap.tsx reused as-is) */}
-        <h2 style={headingStyle}>Route Map</h2>
-        {origin && destination ? (
-          <RouteMap origin={origin} destination={destination} pickupTime={booking.pickup_time} />
-        ) : (
-          <div
-            style={{
-              height: 300,
-              background: 'var(--anthracite-mid)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 16px',
-              textAlign: 'center',
-            }}
-          >
-            <p
-              style={{
-                fontFamily: 'var(--font-montserrat)',
-                fontSize: '11px',
-                fontWeight: 400,
-                color: 'var(--warmgrey)',
-                lineHeight: 1.5,
-              }}
-            >
-              Map unavailable — see address above.
-            </p>
-          </div>
-        )}
-
-        {/* Section 4 (D-06): Vehicle & Driver — Pitfall 4: both vehicle fields, distinct labels */}
-        <h2 style={headingStyle}>Vehicle & Driver</h2>
-        <div style={gridStyle}>
-          <FieldRow label="Vehicle Class" value={formatVehicleLabel(booking.vehicle_class)} />
-          {driver?.vehicle_info && <FieldRow label="Vehicle" value={driver.vehicle_info} />}
-          <FieldRow label="Driver" value={driver?.name ?? ''} />
-          <FieldRow label="Driver Phone" value={driver?.phone ?? ''} />
-        </div>
-
-        {/* Section 5 (DTRIP-03): trip-progress island — driver self-reports status */}
-        <TripProgressClient
-          token={parsedToken.data}
-          initialProgress={assignment.trip_progress ?? null}
-          initialNote={assignment.trip_note ?? null}
-        />
-      </div>
-    </main>
+      initialNote={assignment.trip_note ?? null}
+      noShow={{ availableAt: noShowView.noShowAvailableAt, requestedAt: noShowView.noShowRequestedAt }}
+    />
   )
 }

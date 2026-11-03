@@ -1,11 +1,13 @@
 'use client'
 
-type Variant =
+export type StatusBadgeVariant =
   | 'active' | 'inactive' | 'pending' | 'quote' | 'confirmed' | 'completed' | 'cancelled'
   | 'assigned' | 'en_route' | 'on_location' | 'unpaid' | 'arrived' | 'on_board' | 'no_show'
 
+type Variant = StatusBadgeVariant
+
 interface StatusBadgeProps {
-  variant: Variant
+  variant: StatusBadgeVariant
   label: string
 }
 

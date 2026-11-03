@@ -5,8 +5,8 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendDriverAssignmentEmail } from '@/lib/email'
-import { pushGnetStatus, prestigoToGnetStatus } from '@/lib/gnet-client'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
+import { advanceBookingStatus } from '@/lib/booking-status-service'
 
 const assignSchema = z.object({
   driver_id: z.string().uuid(),
@@ -21,7 +21,7 @@ export async function POST(
   if (bodyCheck) return bodyCheck
 
   // 2. Auth guard
-  const { error } = await getAdminUser()
+  const { user, error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -81,20 +81,42 @@ export async function POST(
   // 5c-bis: Update bookings.driver_id (+ status if first assign) per D-04 + D-07
   // Use status and booking_source already fetched in 5b — no second round-trip needed.
   const previousStatus: string | null = booking.status as string
-  const bookingSource: string | null = booking.booking_source as string
   const isFirstAssign = previousStatus !== null && previousStatus !== 'assigned'
   const canTransitionToAssigned =
     isFirstAssign && (VALID_TRANSITIONS[previousStatus ?? '']?.includes('assigned') ?? false)
 
+  // Status reported back to the caller: 'assigned' on a won first-assign, the winner's status
+  // when the compare-and-set was lost (the booking changed under the assignment).
+  let reportedStatus: string = canTransitionToAssigned ? 'assigned' : (previousStatus ?? 'unknown')
+
   if (previousStatus !== null) {
     if (canTransitionToAssigned) {
-      // confirmed → assigned (or any other valid → assigned transition)
-      const { error: updateErr } = await supabase
-        .from('bookings')
-        .update({ driver_id: driverId, status: 'assigned' })
-        .eq('id', bookingId)
-      if (updateErr) {
-        console.error('[assign] bookings update failed:', updateErr.message)
+      // confirmed → assigned (or any other valid → assigned transition).
+      // Phase 87 D-01/D-04: the status write and the GNet ASSIGNED push (first
+      // assign only, D-05/D-07) go through the status service.
+      const assignResult = await advanceBookingStatus({
+        bookingId,
+        to: 'assigned',
+        actor: { type: 'admin', id: user?.id ?? null },
+        source: 'admin_assign',
+        profile: 'assign-route',
+        current: booking,
+        expectedFrom: previousStatus,
+        patch: { driver_id: driverId },
+      })
+      if (!assignResult.ok) {
+        if (assignResult.code === 'conflict') {
+          // Lost the race (e.g. the booking was cancelled meanwhile): the assignment row stays,
+          // bookings.status is untouched and nothing is pushed to GNet.
+          console.error('[assign] status changed concurrently', {
+            bookingId,
+            expected: previousStatus,
+            currentStatus: assignResult.currentStatus,
+          })
+          reportedStatus = assignResult.currentStatus ?? reportedStatus
+        } else {
+          console.error('[assign] bookings update failed:', assignResult.message)
+        }
       }
     } else if (previousStatus === 'assigned') {
       // D-07: reassign — only driver_id, do not touch status
@@ -111,43 +133,8 @@ export async function POST(
     // first confirm the booking via PATCH /api/admin/bookings before assigning).
   }
 
-  // 5c-tris: Fire-and-forget GNet ASSIGNED push per D-05 (only on FIRST assign — D-07)
-  if (canTransitionToAssigned && bookingSource === 'gnet') {
-    const gnetStatus = prestigoToGnetStatus('assigned') // → 'ASSIGNED'
-    if (gnetStatus) {
-      after(async () => {
-        const svcSupabase = createSupabaseServiceClient()
-        const { data: gnetRow } = await svcSupabase
-          .from('gnet_bookings')
-          .select('id, gnet_res_no')
-          .eq('booking_id', bookingId)
-          .single()
-
-        if (!gnetRow) {
-          console.error('[assign:gnet-push] no gnet_bookings row for', bookingId)
-          return
-        }
-
-        let pushError: string | null = null
-        try {
-          const totalAmount = Number(booking.amount_eur).toFixed(2)
-          await pushGnetStatus(gnetRow.gnet_res_no, gnetStatus, totalAmount)
-        } catch (err) {
-          pushError = err instanceof Error ? err.message : String(err)
-          console.error('[assign:gnet-push] failed', { bookingId, gnetResNo: gnetRow.gnet_res_no, error: pushError })
-        }
-
-        await svcSupabase
-          .from('gnet_bookings')
-          .update({
-            last_push_status: gnetStatus,
-            last_push_error: pushError,
-            last_pushed_at: new Date().toISOString(),
-          })
-          .eq('id', gnetRow.id)
-      })
-    }
-  }
+  // 5c-tris (GNet ASSIGNED push on first assign, D-05/D-07) now runs inside
+  // advanceBookingStatus — one GNet push implementation (Phase 87 D-04).
 
   // 5d. Check notification_flags gate
   const { data: config } = await supabase
@@ -204,7 +191,7 @@ export async function POST(
         status: assignment.status,
         // SEC-18: token omitted — used only server-side for email URL, must not be returned to browser
       },
-      booking_status: canTransitionToAssigned ? 'assigned' : (previousStatus ?? 'unknown'),
+      booking_status: reportedStatus,
     },
     { status: 201 }
   )

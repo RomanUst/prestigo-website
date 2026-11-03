@@ -2,6 +2,7 @@ import type { CrmBookingRecord, PersonRecord } from '@/lib/identity-store'
 import { bookingLeadAmountEur, type BookingRow } from '@/lib/lead-mapping'
 import { buildContactDraft } from '@/lib/customer-mapping'
 import { E164_RE } from '@/lib/phone'
+import { REVENUE_STATUSES } from '@/lib/booking-status'
 
 /**
  * Pure mapping Supabase person -> Chatwoot contact (Phase 82, plan 82-10). No env, no I/O.
@@ -24,8 +25,8 @@ export const CHATWOOT_SYNCED_ATTRIBUTE_KEYS = [
 
 export type ChatwootAttributeKey = (typeof CHATWOOT_SYNCED_ATTRIBUTE_KEYS)[number]
 
-/** Statuses whose booking value counts towards lifetime_value (paid or actively being served). */
-const VALUE_STATUSES: ReadonlySet<string> = new Set(['confirmed', 'assigned', 'en_route', 'on_location', 'completed'])
+/** Statuses whose booking value counts towards lifetime_value (D-02, D-11: no_show is not revenue). */
+const VALUE_STATUSES: ReadonlySet<string> = REVENUE_STATUSES
 
 const NEXT_TRIP_MAX = 400
 const NAME_MAX = 100

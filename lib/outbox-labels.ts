@@ -25,6 +25,8 @@ export function outboxEventLabel(eventType: string): string {
       return 'Chatwoot contact edit'
     case 'hook.espo_contact':
       return 'EspoCRM contact edit'
+    case 'alert.no_show':
+      return 'No-show alert'
     default:
       return eventType
   }

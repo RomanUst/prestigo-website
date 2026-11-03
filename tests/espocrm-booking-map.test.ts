@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import * as map from '../infra/espocrm/lib/booking-map.mjs'
+import { latestStatusCheckValues } from './helpers/latest-migration'
 
 // Synthetic fixture only (example.test domain, fake names) - T-80-07.
 const CONFIRMED_ONLINE_ROW = {
@@ -305,6 +306,16 @@ describe('empties and sanitising', () => {
   })
 })
 
+describe('Phase 87: on_board and no_show map to a CBooking payload (DRV-02)', () => {
+  it.each(['on_board', 'no_show'])('rowToBooking accepts status %s', (status) => {
+    expect(map.rowToBooking(row({ status })).status).toBe(status)
+  })
+
+  it('an unknown status such as arrived is still rejected', () => {
+    expect(() => map.rowToBooking(row({ status: 'arrived' }))).toThrow(map.BookingMapError)
+  })
+})
+
 describe('BookingMapError', () => {
   it.each([
     ['unknown_status', { status: 'archived' }],
@@ -327,12 +338,9 @@ describe('BookingMapError', () => {
 describe('pins against the site sources of truth', () => {
   const read = (p: string) => readFileSync(join(__dirname, '..', p), 'utf8')
 
-  it('BOOKING_STATUS_VALUES equals the list in migration 053', () => {
-    const sql = read('supabase/migrations/053_unpaid_booking_status.sql')
-    const block = sql.match(/bookings_status_check\s+CHECK \(status IN \(([\s\S]*?)\)\)/)
-    expect(block).not.toBeNull()
-    const values = [...block![1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1])
-    expect(map.BOOKING_STATUS_VALUES).toEqual(values)
+  it('BOOKING_STATUS_VALUES equals the latest bookings_status_check (084 and later)', () => {
+    // Pinned to the NEWEST definition: a CHECK redefined by a later migration must not leave this list stale.
+    expect(map.BOOKING_STATUS_VALUES).toEqual(latestStatusCheckValues())
   })
 
   it('BOOKING_SOURCE_VALUES equals the list in migration 039', () => {

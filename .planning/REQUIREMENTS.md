@@ -55,9 +55,9 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Admin shell (ADM)
 
-- [ ] **ADM-01**: Admin sidebar can be collapsed and expanded; the choice persists between visits
-- [ ] **ADM-02**: Admin has a light theme toggle; the choice persists, with no flash on load and no effect on the public site
-- [ ] **ADM-03**: All admin screens are readable in both themes (hard-coded colours replaced with theme tokens; a test blocks new hard-coded colours)
+- [x] **ADM-01**: Admin sidebar can be collapsed and expanded; the choice persists between visits
+- [x] **ADM-02**: Admin has a light theme toggle; the choice persists, with no flash on load and no effect on the public site
+- [x] **ADM-03**: All admin screens are readable in both themes (hard-coded colours replaced with theme tokens; a test blocks new hard-coded colours)
 
 ### Dispatch views (DISP)
 
@@ -148,9 +148,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DRV-03 | Phase 87 | Pending |
 | DRV-04 | Phase 87 | Pending |
 | DRV-05 | Phase 87 | Pending |
-| ADM-01 | Phase 86 | Pending |
-| ADM-02 | Phase 86 | Pending |
-| ADM-03 | Phase 86 | Pending |
+| ADM-01 | Phase 86 | Complete |
+| ADM-02 | Phase 86 | Complete |
+| ADM-03 | Phase 86 | Complete |
 | DISP-01 | Phase 90 | Pending |
 | DISP-02 | Phase 90 | Pending |
 | DISP-03 | Phase 90 | Pending |

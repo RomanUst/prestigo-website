@@ -11,6 +11,7 @@ const {
   mockAfter,
   mockGnetBookingsUpdate,
   mockSupabaseFrom,
+  mockRpc,
 } = vi.hoisted(() => ({
   mockPushGnetStatus: vi.fn(),
   mockGetAdminUser: vi.fn(),
@@ -19,6 +20,7 @@ const {
   mockAfter: vi.fn(),
   mockGnetBookingsUpdate: vi.fn(),
   mockSupabaseFrom: vi.fn(),
+  mockRpc: vi.fn(),
 }))
 
 /**
@@ -40,7 +42,7 @@ vi.mock('@/lib/gnet-client', async (importActual) => {
 })
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom }),
+  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom, rpc: mockRpc }),
 }))
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -97,16 +99,32 @@ function buildSupabaseMock({
   bookingData = bookingRow as typeof bookingRow | null,
   gnetData = gnetRow as typeof gnetRow | null,
 } = {}) {
+  // Phase 87-03: the status write is the advance_booking_status compare-and-set RPC.
+  mockRpc.mockImplementation(async (_fn: string, args: Record<string, unknown>) => ({
+    data: { applied: true, previous_status: args.p_from, booking: { ...bookingData, status: args.p_to } },
+    error: null,
+  }))
   mockSupabaseFrom.mockImplementation((table: string) => {
     if (table === 'bookings') return {
       select: () => ({ eq: () => ({ single: async () => ({ data: bookingData, error: bookingData ? null : 'not found' }) }) }),
-      update: () => ({ eq: async () => ({ error: null }) }),
     }
     if (table === 'gnet_bookings') return {
-      select: () => ({ eq: () => ({ single: async () => ({ data: gnetData, error: gnetData ? null : 'not found' }) }) }),
-      update: (payload: unknown) => {
+      // Phase 87-07: existence check after a zero-row claim
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: gnetData ? { id: gnetData.id } : null, error: null }) }) }),
+      update: (payload: Record<string, unknown>) => {
         mockGnetBookingsUpdate(payload)
-        return { eq: async () => ({ error: null }) }
+        return {
+          // failure record by row id
+          eq: (col: string) => {
+            if (col === 'id') return Promise.resolve({ error: null })
+            // claim by booking_id: .or(filter).select('id, gnet_res_no') — wins when the row exists
+            return {
+              or: () => ({
+                select: async () => ({ data: gnetData ? [{ id: gnetData.id, gnet_res_no: gnetData.gnet_res_no }] : [], error: null }),
+              }),
+            }
+          },
+        }
       },
     }
     if (table === 'pricing_globals') return {
@@ -172,11 +190,14 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     await PATCH(req)
     await flushAfterCallbacks()
 
-    expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
-    const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
-    expect(updatePayload.last_push_status).toBe('CONFIRMED')
-    expect(updatePayload.last_push_error).toBe('GNet timeout')
-    expect(typeof updatePayload.last_pushed_at).toBe('string')
+    // 87-07: claim (status CONFIRMED, error cleared) then the failure record (error only)
+    expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(2)
+    const claimPayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
+    expect(claimPayload.last_push_status).toBe('CONFIRMED')
+    expect(claimPayload.last_push_error).toBeNull()
+    expect(typeof claimPayload.last_pushed_at).toBe('string')
+    const failPayload = mockGnetBookingsUpdate.mock.calls[1][0] as Record<string, unknown>
+    expect(failPayload).toEqual({ last_push_error: 'GNet timeout' })
   })
 
   it('STATUS-03 success: gnet_bookings.update receives last_push_error null', async () => {
@@ -187,6 +208,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     await PATCH(req)
     await flushAfterCallbacks()
 
+    // 87-07: the single claim update carries the outcome (error null)
     expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
     const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
     expect(updatePayload.last_push_status).toBe('CONFIRMED')
@@ -240,7 +262,8 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
 
     expect(res.status).toBe(200)
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
-    expect(mockGnetBookingsUpdate).not.toHaveBeenCalled()
+    // 87-07: the claim is attempted but wins no row, so no failure/audit record follows
+    expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
   })
 
   it('D-01 guard: unmapped status (pending) does NOT call pushGnetStatus', async () => {
@@ -305,6 +328,30 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
     const res = await PATCH(req)
     expect(res.status).toBe(422)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('87-03: a lost compare-and-set (409) pushes nothing to GNet and touches no gnet_bookings row', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'confirmed', booking_source: 'gnet' } })
+    mockRpc.mockResolvedValue({ data: { applied: false, current_status: 'cancelled' }, error: null })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'assigned' })
+    const res = await PATCH(req)
+    await flushAfterCallbacks()
+    expect(res.status).toBe(409)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+    expect(mockGnetBookingsUpdate).not.toHaveBeenCalled()
+  })
+
+  it('87-03 D-22: on_location -> on_board and -> no_show push nothing to GNet (no mapping)', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'on_location', booking_source: 'gnet' } })
+    const res1 = await PATCH(makePatchRequest({ id: BOOKING_UUID, status: 'on_board' }))
+    await flushAfterCallbacks()
+    expect(res1.status).toBe(200)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+
+    const res2 = await PATCH(makePatchRequest({ id: BOOKING_UUID, status: 'no_show' }))
+    await flushAfterCallbacks()
+    expect(res2.status).toBe(200)
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
   })
 

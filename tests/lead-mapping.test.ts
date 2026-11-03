@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { BOOKING_STATUSES } from '@/lib/booking-status'
 import {
   BOOKING_LEAD_STATUS,
   LEAD_ATTR,
@@ -152,6 +153,8 @@ describe('bookingLeadStatus (D-06, D-03)', () => {
     ['assigned', 'converted'],
     ['en_route', 'converted'],
     ['on_location', 'converted'],
+    ['on_board', 'converted'],
+    ['no_show', 'converted'],
     ['completed', 'converted'],
     ['cancelled', 'dead'],
     ['weird', null],
@@ -160,10 +163,9 @@ describe('bookingLeadStatus (D-06, D-03)', () => {
     expect(bookingLeadStatus(status, FUTURE, NOW)).toBe(expected)
   })
 
-  it('has exactly the 8 statuses of migration 053', () => {
-    expect(Object.keys(BOOKING_LEAD_STATUS).sort()).toEqual(
-      ['assigned', 'cancelled', 'completed', 'confirmed', 'en_route', 'on_location', 'pending', 'unpaid'],
-    )
+  it('has exactly the statuses of lib/booking-status.ts (10)', () => {
+    expect(Object.keys(BOOKING_LEAD_STATUS).sort()).toEqual([...BOOKING_STATUSES].sort())
+    expect(Object.keys(BOOKING_LEAD_STATUS)).toHaveLength(10)
   })
 
   it('maps keys to EspoCRM values', () => {
