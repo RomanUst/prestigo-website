@@ -273,6 +273,10 @@ Recent decisions affecting current work:
 - Do NOT localize: `app/admin/*`, `app/api/*`, `app/auth/*`, `app/driver/*` — stay at root, off the [locale] tree.
 - `next.config.ts` has a `/cs → /` redirect (CS not in v3.0 scope — leave it); ensure new locale prefixes are not caught by any catch-all.
 
+### Roadmap Evolution
+
+- Phase 94 added (2026-11-03): Driver Cabinet — driver login, ride list, offers, profile; after Phase 93 (deferred from Phase 87 discussion)
+
 ### Pending Todos
 
 None yet.

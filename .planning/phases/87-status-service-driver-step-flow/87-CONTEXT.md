@@ -122,7 +122,7 @@ Requirements: PAYF-02, DRV-01, DRV-02, DRV-03, DRV-04, DRV-05.
 <deferred>
 ## Deferred Ideas
 
-- **Full driver cabinet** (driver login/accounts, ride list Upcoming/Past by day, Offers tab replacing accept/decline links, "You" profile with rating/streak, documents, help) — new phase after Phase 93 (owner: "after everything already planned").
+- **Full driver cabinet** (driver login/accounts, ride list Upcoming/Past by day, Offers tab replacing accept/decline links, "You" profile with rating/streak, documents, help) — added to ROADMAP as Phase 94 (after Phase 93, owner: "after everything already planned").
 - Theme toggle / dark mode for the driver page — not now (always light).
 - Driver UI in other languages — not now (English only).
 

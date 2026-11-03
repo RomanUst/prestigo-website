@@ -26,6 +26,7 @@
 - [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
 - [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
 - [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
+- [ ] **Phase 94: Driver Cabinet** - Driver login, ride list (upcoming/past), offers instead of email links, profile; ride detail = Phase 87 trip screen
 
 **Milestone-wide guardrails (apply to every phase):**
 - **Hold lead time is configurable, default 72 h — never "~5 days".** A hold placed with the customer absent is merchant-initiated and Visa expires it after 4 d 18 h; the saved card plus mandate is the real guarantee, the hold is a convenience (research/SUMMARY.md).
@@ -309,6 +310,22 @@ Plans:
 **Planning notes**:
   - Largest 7-locale batch of the milestone; AI credits are empty, so translate in-session. Marketing content rules apply: no typed prices (ISR-revalidated live fares, no stale JSON-LD prices), no Uber/ride-hailing comparisons, no fake scarcity or fabricated reviews.
   - The catalogue and online booking (TRIP-01..05) can ship before the custom-tour loop (TRIP-06/07). Expected migrations 089-090; check every place the `trip_type` enum is used.
+
+### Phase 94: Driver Cabinet
+
+**Goal**: A driver signs in to a personal cabinet that lists all of their rides and new ride offers, instead of receiving one separate link per assignment.
+**Depends on**: Phase 87 (light-theme trip screen and status service); scheduled after Phase 93 by owner decision 2026-11-03
+**Requirements**: TBD (to be defined at discuss/plan time)
+**Scope (owner, 2026-11-03)**:
+  - Driver login/accounts.
+  - Ride list with Upcoming / Past tabs, grouped by day (time, pickup → dropoff, passenger first name, vehicle plate or "Pending", class).
+  - Offers tab that replaces the accept/decline links sent by email (`/driver/response`).
+  - "You" profile: rating, documents, help, sign out.
+  - Ride detail reuses the Phase 87 trip screen (map, bottom sheet, slide-to-advance step control).
+**Owner reference**: Blacklane driver app screenshots shared 2026-11-03 (layout only — Prestigo branding, light theme, no copied names or assets).
+**Plans**: TBD
+**UI hint**: yes
+**Security-relevant**: yes — new driver authentication and per-driver data access (commit with `security:` prefix).
 
 ## Parked Phase Details (from v4.0, in Backlog)
 
