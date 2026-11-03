@@ -566,6 +566,62 @@ export async function sendEmergencyAlert(
   }
 }
 
+/**
+ * Phase 87 D-16(b): operator email when a driver requests a no-show. Goes to MANAGER_EMAIL only
+ * and carries no client name, email, phone or amount. Plain text, UTF-8. Never throws.
+ */
+export async function sendNoShowRequestAlert(data: {
+  bookingReference: string
+  pickupDate: string
+  pickupTime: string
+  originAddress: string | null
+  driverName: string | null
+  requestedAt: string
+}): Promise<void> {
+  const manager = process.env.MANAGER_EMAIL
+  if (!manager) return
+
+  let requestedHm = data.requestedAt
+  try {
+    requestedHm = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Prague',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(new Date(data.requestedAt))
+  } catch {
+    // keep the raw ISO value
+  }
+
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com').trim()
+  const text = [
+    `No-show requested for ${data.bookingReference}.`,
+    '',
+    `Driver: ${data.driverName ?? 'unknown'}`,
+    `Booking: ${data.bookingReference}`,
+    `Pickup: ${data.pickupDate} ${data.pickupTime}`,
+    `Address: ${data.originAddress ?? 'n/a'}`,
+    `Requested at: ${requestedHm} (Prague time)`,
+    '',
+    'Try to reach the passenger, then confirm the no-show or press Client found in admin.',
+    `${base}/admin/bookings`,
+  ].join('\n')
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO System <bookings@rideprestigo.com>',
+      to: [manager],
+      replyTo: manager,
+      subject: `No-show requested — ${data.bookingReference}`,
+      text,
+    })
+    if (error) console.error('Resend no-show request alert error:', error)
+  } catch (err) {
+    console.error('Resend no-show request alert exception:', err)
+    // Non-fatal — do not throw
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // ROUND-TRIP (Phase 27) — additive, one-way helpers above remain unchanged
 // ═══════════════════════════════════════════════════════════════════════════

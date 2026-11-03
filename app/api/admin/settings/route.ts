@@ -9,12 +9,18 @@ const settingsPatchSchema = z
     notification_flags: z.record(z.string(), z.boolean()).optional(),
     dispatch_default_horizon: z.enum(['future', 'last_n_days', 'all']).optional(),
     dispatch_horizon_days: z.number().int().min(1).max(365).optional(),
+    // D-15: free waiting minutes before a driver may request a no-show (same 1..240 bounds as the
+    // migration 084 CHECK)
+    noshow_wait_city_min: z.number().int().min(1).max(240).optional(),
+    noshow_wait_airport_min: z.number().int().min(1).max(240).optional(),
   })
   .refine(
     d =>
       d.notification_flags !== undefined ||
       d.dispatch_default_horizon !== undefined ||
-      d.dispatch_horizon_days !== undefined,
+      d.dispatch_horizon_days !== undefined ||
+      d.noshow_wait_city_min !== undefined ||
+      d.noshow_wait_airport_min !== undefined,
     { message: 'At least one settings field must be provided' }
   )
 
@@ -26,7 +32,9 @@ export async function GET() {
   const supabase = createSupabaseServiceClient()
   const { data, error: dbError } = await supabase
     .from('pricing_globals')
-    .select('notification_flags, dispatch_default_horizon, dispatch_horizon_days')
+    .select(
+      'notification_flags, dispatch_default_horizon, dispatch_horizon_days, noshow_wait_city_min, noshow_wait_airport_min'
+    )
     .eq('id', 1)
     .single()
 
@@ -36,6 +44,8 @@ export async function GET() {
     notification_flags: data.notification_flags,
     dispatch_default_horizon: data.dispatch_default_horizon,
     dispatch_horizon_days: data.dispatch_horizon_days,
+    noshow_wait_city_min: data.noshow_wait_city_min,
+    noshow_wait_airport_min: data.noshow_wait_airport_min,
   })
 }
 
@@ -65,6 +75,12 @@ export async function PATCH(request: Request) {
   }
   if (parsed.data.dispatch_horizon_days !== undefined) {
     updates.dispatch_horizon_days = parsed.data.dispatch_horizon_days
+  }
+  if (parsed.data.noshow_wait_city_min !== undefined) {
+    updates.noshow_wait_city_min = parsed.data.noshow_wait_city_min
+  }
+  if (parsed.data.noshow_wait_airport_min !== undefined) {
+    updates.noshow_wait_airport_min = parsed.data.noshow_wait_airport_min
   }
 
   const supabase = createSupabaseServiceClient()

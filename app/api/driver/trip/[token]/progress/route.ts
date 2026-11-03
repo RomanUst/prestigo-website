@@ -10,6 +10,7 @@ import {
   hasTripIdentity,
   loadDriverTripForStep,
 } from '@/lib/driver-trip-step'
+import { requestNoShowForDriver } from '@/lib/no-show'
 
 /**
  * DTRIP-03/04/08 (Phase 67) rebuilt for Phase 87 (D-01, D-07, D-12): unauthenticated,
@@ -60,10 +61,13 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
   }
 
+  const data = parsed.data
   const result =
-    'step' in parsed.data
-      ? await driverTripStep({ supabase, trip, step: parsed.data.step, nowMs: Date.now() })
-      : await driverTripNote({ supabase, trip, note: parsed.data.note })
+    'step' in data
+      ? await driverTripStep({ supabase, trip, step: data.step, nowMs: Date.now() })
+      : 'action' in data
+        ? await requestNoShowForDriver({ supabase, trip, nowMs: Date.now() })
+        : await driverTripNote({ supabase, trip, note: data.note })
 
   return NextResponse.json(result.body, { status: result.httpStatus })
 }

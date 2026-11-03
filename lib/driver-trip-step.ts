@@ -30,6 +30,8 @@ type ServiceClient = ReturnType<typeof createSupabaseServiceClient>
 export const driverTripRequestSchema = z.union([
   z.object({ step: z.enum(DRIVER_STEPS) }).strict(),
   z.object({ note: z.string().max(2000) }).strict(),
+  // D-15/D-16: the driver may only ASK for a no-show; the operator alone sets the status.
+  z.object({ action: z.literal('request_no_show') }).strict(),
 ])
 
 export type DriverTripRequest = z.infer<typeof driverTripRequestSchema>
