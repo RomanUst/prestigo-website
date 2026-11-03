@@ -46,6 +46,7 @@ type PartialBooking = {
   return_amount_czk: number | null
   linked_booking: { booking_reference: string } | null
   locale?: string | null
+  no_show_requested_at?: string | null
 }
 
 function makeBooking(overrides: Partial<PartialBooking> = {}): PartialBooking {
@@ -1083,5 +1084,274 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
 
     await waitFor(() => expect(alertSpy).toHaveBeenCalledWith('Boom'))
     expect(screen.queryByRole('alert')).toBeNull()
+  })
+})
+
+describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 87 plan 12 (D-16 a)', () => {
+  // 13:41 UTC on 3 Nov 2026 is 14:41 in Prague
+  const REQUESTED_AT = '2026-11-03T13:41:00.000Z'
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  type NoShowPost = { ok: boolean; status: number; body: unknown }
+
+  function stubNoShowFetch(bookings: PartialBooking[], post: NoShowPost = { ok: true, status: 200, body: { ok: true, status: 'no_show' } }) {
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      const u = String(url)
+      if (u.includes('/no-show')) {
+        if (init?.method === 'POST') {
+          return Promise.resolve({ ok: post.ok, status: post.status, json: () => Promise.resolve(post.body) })
+        }
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ status: 'on_location', noShowRequestedAt: REQUESTED_AT, driverName: 'Jan Novak' }),
+        })
+      }
+      if (init?.method === 'PATCH') {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ booking: {} }) })
+      }
+      if (u.includes('/api/admin/bookings')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ bookings, total: bookings.length, page: 0, limit: 20 }),
+        })
+      }
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  type FetchMock = ReturnType<typeof vi.fn>
+  const noShowPosts = (m: FetchMock) =>
+    m.mock.calls.filter(([url, init]) => (init as RequestInit | undefined)?.method === 'POST' && String(url).includes('/no-show'))
+  const patches = (m: FetchMock) => m.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === 'PATCH')
+
+  const requested = (over: Partial<PartialBooking> = {}) =>
+    makeBooking({ id: 'b-ns1', booking_reference: 'PRE-NSREQ', status: 'on_location', no_show_requested_at: REQUESTED_AT, ...over })
+
+  it('desktop: an on_location row with an open request shows the chip next to the status badge', async () => {
+    stubNoShowFetch([requested()])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
+    await waitFor(() => {
+      expect(within(rowEl).getByText('On Location')).toBeDefined()
+      expect(within(rowEl).getByTestId('no-show-chip').textContent).toBe('No-show requested')
+    })
+  })
+
+  it('desktop: no chip when the field is null or absent, or when the status is not on_location', async () => {
+    stubNoShowFetch([
+      makeBooking({ id: 'b-n1', booking_reference: 'PRE-NULL', status: 'on_location', no_show_requested_at: null }),
+      makeBooking({ id: 'b-n2', booking_reference: 'PRE-ENROUTE', status: 'en_route', no_show_requested_at: REQUESTED_AT }),
+      makeBooking({ id: 'b-n3', booking_reference: 'PRE-ABSENT', status: 'on_location' }),
+    ])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await screen.findByText('PRE-NULL')
+    await screen.findByText('PRE-ENROUTE')
+    await screen.findByText('PRE-ABSENT')
+    expect(screen.queryByTestId('no-show-chip')).toBeNull()
+  })
+
+  it('desktop: every booking with an open request gets its own chip', async () => {
+    stubNoShowFetch([
+      requested({ id: 'b-a', booking_reference: 'PRE-A' }),
+      requested({ id: 'b-b', booking_reference: 'PRE-B' }),
+      makeBooking({ id: 'b-c', booking_reference: 'PRE-C', status: 'on_location' }),
+    ])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await screen.findByText('PRE-C')
+    await waitFor(() => expect(screen.getAllByTestId('no-show-chip')).toHaveLength(2))
+  })
+
+  it('mobile: the card shows the chip next to the badge and the banner inside the expanded card', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+    stubNoShowFetch([requested({ id: 'b-m', booking_reference: 'PRE-NS-M' })])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => expect(screen.getByTestId('mobile-cards')).toBeDefined())
+    const cards = within(screen.getByTestId('mobile-cards'))
+    expect((await cards.findByTestId('no-show-chip')).textContent).toBe('No-show requested')
+    expect(cards.queryByTestId('no-show-banner')).toBeNull()
+
+    fireEvent.click(await cards.findByText('PRE-NS-M'))
+    expect(await cards.findByTestId('no-show-banner')).toBeDefined()
+    expect(await cards.findByText(/^Jan Novak asked for a no-show at 14:41/)).toBeDefined()
+  })
+
+  it('desktop: the expanded row shows the banner with the driver name and the Prague time', async () => {
+    stubNoShowFetch([requested()])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    fireEvent.click((await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement)
+    expect(await screen.findByTestId('no-show-banner')).toBeDefined()
+    expect(
+      await screen.findByText(
+        'Jan Novak asked for a no-show at 14:41 after waiting for the passenger. Try to reach the client, then confirm or dismiss.',
+      ),
+    ).toBeDefined()
+  })
+
+  it('desktop: the banner button opens the modal; its primary POSTs confirm once and the row becomes No-Show (final)', async () => {
+    const fetchMock = stubNoShowFetch([requested()])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
+    fireEvent.click(rowEl)
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm no-show' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByText(
+        "Mark booking PRE-NSREQ as a no-show? The driver's trip link stops working and the status cannot be changed back.",
+      ),
+    ).toBeDefined()
+    expect(noShowPosts(fetchMock)).toHaveLength(0)
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm no-show' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(noShowPosts(fetchMock)).toHaveLength(1)
+    expect(JSON.parse((noShowPosts(fetchMock)[0][1] as RequestInit).body as string)).toEqual({
+      action: 'confirm',
+      expected_status: 'on_location',
+    })
+    await waitFor(() => {
+      expect(within(rowEl).getByText('No-Show')).toBeDefined()
+    })
+    expect(screen.getByText('No-Show (final)')).toBeDefined()
+    expect(screen.queryByTestId('no-show-banner')).toBeNull()
+    expect(screen.queryByTestId('no-show-chip')).toBeNull()
+    // the status service owns the write: the generic PATCH is never used
+    expect(patches(fetchMock)).toHaveLength(0)
+  })
+
+  it("desktop: 'Keep booking open' closes the modal and changes nothing", async () => {
+    const fetchMock = stubNoShowFetch([requested()])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
+    fireEvent.click(rowEl)
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm no-show' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Keep booking open' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(noShowPosts(fetchMock)).toHaveLength(0)
+    expect(within(rowEl).getByText('On Location')).toBeDefined()
+    expect(screen.getByTestId('no-show-banner')).toBeDefined()
+  })
+
+  it('desktop: a 409 in the modal shows the conflict copy and leaves the row unchanged', async () => {
+    stubNoShowFetch([requested()], { ok: false, status: 409, body: { error: 'status_conflict', currentStatus: 'on_board' } })
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
+    fireEvent.click(rowEl)
+    fireEvent.click(await screen.findByRole('button', { name: 'Confirm no-show' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm no-show' }))
+
+    const msg = await within(dialog).findByRole('alert')
+    expect(msg.textContent).toBe('This booking was just changed to On Board by the driver. Reload to see the latest state.')
+    expect(within(rowEl).getByText('On Location')).toBeDefined()
+  })
+
+  it("desktop: 'Client found' POSTs dismiss, then the chip and the banner disappear and the status stays", async () => {
+    const fetchMock = stubNoShowFetch([requested()], { ok: true, status: 200, body: { ok: true, noShowRequestedAt: null } })
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
+    fireEvent.click(rowEl)
+    fireEvent.click(await screen.findByRole('button', { name: 'Client found' }))
+
+    await waitFor(() => expect(screen.queryByTestId('no-show-banner')).toBeNull())
+    expect(screen.queryByTestId('no-show-chip')).toBeNull()
+    expect(noShowPosts(fetchMock)).toHaveLength(1)
+    expect(JSON.parse((noShowPosts(fetchMock)[0][1] as RequestInit).body as string)).toEqual({ action: 'dismiss' })
+    expect(within(rowEl).getByText('On Location')).toBeDefined()
+  })
+
+  it("desktop: choosing 'No-Show' in the status select opens the modal and does not PATCH", async () => {
+    const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-sel', booking_reference: 'PRE-SEL', status: 'on_location' })])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    fireEvent.click((await screen.findByText('PRE-SEL')).closest('tr') as HTMLElement)
+    const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'no_show' } })
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/Mark booking PRE-SEL as a no-show\?/)).toBeDefined()
+    expect(patches(fetchMock)).toHaveLength(0)
+    expect(noShowPosts(fetchMock)).toHaveLength(0)
+  })
+
+  it('desktop: confirming from the select path moves the row to No-Show too', async () => {
+    const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-sel2', booking_reference: 'PRE-SEL2', status: 'on_location' })])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const rowEl = (await screen.findByText('PRE-SEL2')).closest('tr') as HTMLElement
+    fireEvent.click(rowEl)
+    const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'no_show' } })
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Confirm no-show' }))
+
+    await waitFor(() => expect(within(rowEl).getByText('No-Show')).toBeDefined())
+    expect(noShowPosts(fetchMock)).toHaveLength(1)
+    expect(patches(fetchMock)).toHaveLength(0)
+  })
+
+  it('desktop: other select choices still apply immediately', async () => {
+    const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-sel3', booking_reference: 'PRE-SEL3', status: 'on_location' })])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    fireEvent.click((await screen.findByText('PRE-SEL3')).closest('tr') as HTMLElement)
+    const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
+    fireEvent.change(select, { target: { value: 'on_board' } })
+
+    await waitFor(() => expect(patches(fetchMock)).toHaveLength(1))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it("mobile: the 'No-Show' status button opens the modal and does not PATCH", async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+    const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-selm', booking_reference: 'PRE-SELM', status: 'on_location' })])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => expect(screen.getByTestId('mobile-cards')).toBeDefined())
+    const cards = within(screen.getByTestId('mobile-cards'))
+    fireEvent.click(await cards.findByRole('button', { name: 'No-Show' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText(/Mark booking PRE-SELM as a no-show\?/)).toBeDefined()
+    expect(patches(fetchMock)).toHaveLength(0)
   })
 })
