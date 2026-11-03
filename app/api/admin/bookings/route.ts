@@ -12,6 +12,7 @@ import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendStatusConfirmedEmail, sendBookingChangedEmail, sendPaymentRequestEmail, type BookingChangeEntry } from '@/lib/email'
 import { advanceBookingStatus, advanceResultToResponse } from '@/lib/booking-status-service'
+import { BOOKING_STATUSES } from '@/lib/booking-status'
 import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
@@ -24,16 +25,7 @@ import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 // Whitelist for GET's `status` filter param — bound as p_status to the
 // admin_search_bookings RPC. Only known status strings are accepted; anything
 // else is treated as "no filter" (D-08).
-const KNOWN_STATUSES = new Set([
-  'unpaid',
-  'pending',
-  'confirmed',
-  'completed',
-  'cancelled',
-  'assigned',
-  'en_route',
-  'on_location',
-])
+const KNOWN_STATUSES = new Set<string>(BOOKING_STATUSES)
 
 // Whitelist for GET's `horizon` filter param (DISP-01, D-01, D-02, D-06, D-07).
 // Only a known horizon string is accepted; anything else is treated as "no
@@ -91,16 +83,9 @@ const PRICE_EDIT_FIELD_LABELS: Record<PriceEditField, string> = {
 
 const bookingPatchSchema = z.object({
   id: z.string().uuid(),
-  status: z.enum([
-    'unpaid',
-    'pending',
-    'confirmed',
-    'completed',
-    'cancelled',
-    'assigned',
-    'en_route',
-    'on_location',
-  ]).optional(),
+  status: z.enum(BOOKING_STATUSES).optional(),
+  // PAYF-02: the status the admin UI saw. A different stored status is a 409, not a silent overwrite.
+  expected_status: z.enum(BOOKING_STATUSES).optional(),
   operator_notes: z.string().max(2000).optional(),
   // Driver fee (manual entry). null clears it; used in the driver assignment email.
   driver_price_czk: z.number().int().min(0).max(1_000_000).nullable().optional(),
@@ -349,6 +334,7 @@ export async function PATCH(request: Request) {
       actor: { type: 'admin', id: user?.id ?? null },
       source: 'admin_patch',
       profile: 'full',
+      expectedFrom: parsed.data.expected_status,
       patch,
     })
 

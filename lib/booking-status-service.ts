@@ -13,9 +13,13 @@ import { pushGnetForTransition } from '@/lib/gnet-push'
  * its own — every caller authenticates before calling (admin session, driver
  * trip token, or a system job).
  *
- * Plan 87-01 is a behaviour-preserving extraction of the admin PATCH status
- * branch. The compare-and-set write (87-03) and the driver route (87-08)
- * build on this contract; keep the names.
+ * Plan 87-01 extracted the admin PATCH status branch behaviour-preservingly;
+ * plan 87-03 turned the write into a compare-and-set: bookings.status changes
+ * only through the advance_booking_status RPC (migration 084) with
+ * p_from = the status this service validated, so exactly one of two racing
+ * writers is applied and the loser gets a 'conflict' result with the winner's
+ * status and runs no side effect. The driver route (87-08) reuses this
+ * unchanged; keep the names.
  */
 
 export type StatusActor =
@@ -44,6 +48,12 @@ export interface AdvanceBookingStatusInput {
    * select (keeps the cancel / assign call order identical to today).
    */
   current?: Record<string, unknown>
+  /**
+   * The status the caller believes the booking has (the admin UI sends it as
+   * expected_status). When present and different from the stored status the
+   * service returns 'conflict' without calling the RPC.
+   */
+  expectedFrom?: string
   patch?: {
     operator_notes?: string
     driver_price_czk?: number | null
@@ -61,7 +71,7 @@ export type AdvanceBookingStatusResult =
     }
   | {
       ok: false
-      // 'conflict' is declared now and first produced by plan 87-03 (compare-and-set)
+      // 'conflict': the stored status is not the one this change was validated against
       code: 'not_found' | 'invalid_transition' | 'conflict' | 'db_error'
       message: string
       currentStatus?: string
@@ -90,6 +100,17 @@ export async function advanceBookingStatus(
   }
 
   const previousStatus = current.status as string
+
+  // Stale-view guard (PAYF-02): the caller saw another status than the stored one.
+  if (input.expectedFrom !== undefined && input.expectedFrom !== previousStatus) {
+    return {
+      ok: false,
+      code: 'conflict',
+      message: 'status_conflict',
+      currentStatus: previousStatus,
+    }
+  }
+
   const allowed = VALID_TRANSITIONS[previousStatus] ?? []
   if (!allowed.includes(to)) {
     return {
@@ -99,13 +120,13 @@ export async function advanceBookingStatus(
     }
   }
 
-  // Build the update payload field-by-field (mass-assignment guard).
-  const updatePayload: Record<string, unknown> = {}
-  if (profile === 'assign-route') updatePayload.driver_id = patch?.driver_id
-  updatePayload.status = to
+  // Build the RPC patch key-by-key (mass-assignment guard; the RPC re-checks the
+  // same allowlist: operator_notes, driver_price_czk, driver_id, clear_payment_link).
+  const rpcPatch: Record<string, unknown> = {}
+  if (profile === 'assign-route' && patch?.driver_id !== undefined) rpcPatch.driver_id = patch.driver_id
   if (profile === 'full') {
-    if (patch?.operator_notes !== undefined) updatePayload.operator_notes = patch.operator_notes
-    if (patch?.driver_price_czk !== undefined) updatePayload.driver_price_czk = patch.driver_price_czk
+    if (patch?.operator_notes !== undefined) rpcPatch.operator_notes = patch.operator_notes
+    if (patch?.driver_price_czk !== undefined) rpcPatch.driver_price_czk = patch.driver_price_czk
   }
 
   // CR-02: a manual transition to a terminal state (confirmed/cancelled) makes any
@@ -120,20 +141,46 @@ export async function advanceBookingStatus(
     (to === 'confirmed' || to === 'cancelled')
   ) {
     staleLinkIdOnStatus = current.payment_link_id as string
-    updatePayload.payment_link_url = null
-    updatePayload.payment_link_id = null
+    rpcPatch.clear_payment_link = true
   }
 
-  const { error: dbError } = await supabase
-    .from('bookings')
-    .update(updatePayload)
-    .eq('id', bookingId)
+  // Compare-and-set: UPDATE ... WHERE id AND status = p_from inside one transaction;
+  // the status-log trigger records the actor. Applied false = someone else moved the
+  // booking first.
+  const { data: rpcData, error: rpcError } = await supabase.rpc('advance_booking_status', {
+    p_booking_id: bookingId,
+    p_from: previousStatus,
+    p_to: to,
+    p_actor_type: input.actor.type,
+    p_actor_id: input.actor.id ?? null,
+    p_source: input.source,
+    p_patch: rpcPatch,
+  })
 
-  if (dbError) {
+  const rpcResult = rpcData as
+    | { applied?: boolean; current_status?: string | null; booking?: Record<string, unknown> | null }
+    | null
+    | undefined
+
+  if (rpcError || !rpcResult || typeof rpcResult.applied !== 'boolean') {
     return { ok: false, code: 'db_error', message: 'DB update failed' }
   }
 
-  const booking = { ...current, ...updatePayload }
+  if (!rpcResult.applied) {
+    if (!rpcResult.current_status) {
+      return { ok: false, code: 'not_found', message: 'Booking not found' }
+    }
+    return {
+      ok: false,
+      code: 'conflict',
+      message: 'status_conflict',
+      currentStatus: rpcResult.current_status,
+    }
+  }
+
+  // The RPC row is authoritative (completed_at included); side effects below keep
+  // using the pre-read row exactly as before.
+  const booking = { ...current, ...(rpcResult.booking ?? {}) }
   const result: AdvanceBookingStatusResult = {
     ok: true,
     applied: true,

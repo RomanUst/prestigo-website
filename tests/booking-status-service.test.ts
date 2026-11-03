@@ -15,7 +15,8 @@ const {
   mockSendCancelled,
   mockSendPostTrip,
   mockSupabaseFrom,
-  mockBookingsUpdate,
+  mockRpc,
+  mockEmitCompleted,
   mockGnetBookingsUpdate,
 } = vi.hoisted(() => ({
   mockPushGnetStatus: vi.fn(),
@@ -26,7 +27,8 @@ const {
   mockSendCancelled: vi.fn(),
   mockSendPostTrip: vi.fn(),
   mockSupabaseFrom: vi.fn(),
-  mockBookingsUpdate: vi.fn(),
+  mockRpc: vi.fn(),
+  mockEmitCompleted: vi.fn(),
   mockGnetBookingsUpdate: vi.fn(),
 }))
 
@@ -41,8 +43,10 @@ vi.mock('@/lib/gnet-client', async (importActual) => {
 })
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom }),
+  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom, rpc: mockRpc }),
 }))
+
+vi.mock('@/lib/booking-events', () => ({ emitBookingCompleted: mockEmitCompleted }))
 
 vi.mock('@/lib/email-log', () => ({ logEmail: mockLogEmail }))
 
@@ -91,9 +95,27 @@ function buildSupabaseMock({
   bookingData = baseRow as Record<string, unknown> | null,
   selectError = null as unknown,
   updateError = null as unknown,
+  rpcData = undefined as unknown,
   gnetData = { id: GNET_ROW_ID, gnet_res_no: 'RES-123' } as Record<string, unknown> | null,
   flags = null as Record<string, boolean> | null,
 } = {}) {
+  // advance_booking_status RPC (migration 084): applied row by default, or the supplied result
+  mockRpc.mockImplementation(async (_fn: string, args: Record<string, unknown>) => {
+    if (updateError) return { data: null, error: updateError }
+    if (rpcData !== undefined) return { data: rpcData, error: null }
+    return {
+      data: {
+        applied: true,
+        previous_status: args.p_from,
+        booking: {
+          ...(bookingData ?? {}),
+          status: args.p_to,
+          completed_at: args.p_to === 'completed' ? '2026-11-03T10:00:00.000Z' : null,
+        },
+      },
+      error: null,
+    }
+  })
   mockSupabaseFrom.mockImplementation((table: string) => {
     if (table === 'bookings') {
       return {
@@ -105,10 +127,6 @@ function buildSupabaseMock({
             }),
           }),
         }),
-        update: (payload: unknown) => {
-          mockBookingsUpdate(payload)
-          return { eq: async () => ({ error: updateError }) }
-        },
       }
     }
     if (table === 'gnet_bookings') {
@@ -139,6 +157,10 @@ function buildSupabaseMock({
 
 const adminActor = { type: 'admin' as const, id: 'admin-1' }
 
+function rpcPatch() {
+  return (mockRpc.mock.calls[0][1] as Record<string, unknown>).p_patch
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   afterCallbacks.splice(0)
@@ -166,8 +188,16 @@ describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
       expect(result.previous).toBe('pending')
       expect(result.current).toBe('confirmed')
     }
-    expect(mockBookingsUpdate).toHaveBeenCalledTimes(1)
-    expect(mockBookingsUpdate.mock.calls[0][0]).toEqual({ status: 'confirmed' })
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+    expect(mockRpc).toHaveBeenCalledWith('advance_booking_status', {
+      p_booking_id: BOOKING_ID,
+      p_from: 'pending',
+      p_to: 'confirmed',
+      p_actor_type: 'admin',
+      p_actor_id: 'admin-1',
+      p_source: 'admin_patch',
+      p_patch: {},
+    })
   })
 
   it('includes operator_notes and driver_price_czk only when given in patch', async () => {
@@ -180,11 +210,7 @@ describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
       profile: 'full',
       patch: { operator_notes: 'VIP', driver_price_czk: 900 },
     })
-    expect(mockBookingsUpdate.mock.calls[0][0]).toEqual({
-      status: 'confirmed',
-      operator_notes: 'VIP',
-      driver_price_czk: 900,
-    })
+    expect(rpcPatch()).toEqual({ operator_notes: 'VIP', driver_price_czk: 900 })
   })
 
   it('completed -> pending is invalid_transition with the exact message and no write', async () => {
@@ -201,7 +227,7 @@ describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
       code: 'invalid_transition',
       message: "Cannot transition from 'completed' to 'pending'",
     })
-    expect(mockBookingsUpdate).not.toHaveBeenCalled()
+    expect(mockRpc).not.toHaveBeenCalled()
   })
 
   it('select error -> not_found', async () => {
@@ -249,9 +275,7 @@ describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
       source: 'admin_patch',
       profile: 'full',
     })
-    const payload = mockBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
-    expect(payload.payment_link_url).toBeNull()
-    expect(payload.payment_link_id).toBeNull()
+    expect(rpcPatch()).toEqual({ clear_payment_link: true })
     expect(mockDeactivateLink).not.toHaveBeenCalled()
     await flushAfterCallbacks()
     expect(mockDeactivateLink).toHaveBeenCalledWith('plink_1')
@@ -346,10 +370,11 @@ describe('advanceBookingStatus — profile cancel-route', () => {
       current: cancelRow,
     })
     expect(result.ok).toBe(true)
-    // no select: the only bookings call is the update
-    expect(mockSupabaseFrom).toHaveBeenCalledTimes(1)
-    expect(mockBookingsUpdate).toHaveBeenCalledTimes(1)
-    expect(mockBookingsUpdate.mock.calls[0][0]).toEqual({ status: 'cancelled' })
+    // no select and no table write: the status change is one RPC call
+    expect(mockSupabaseFrom).not.toHaveBeenCalled()
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+    expect(mockRpc.mock.calls[0][1]).toMatchObject({ p_from: 'confirmed', p_to: 'cancelled', p_source: 'admin_cancel' })
+    expect(rpcPatch()).toEqual({})
   })
 
   it('runs no side effect at all (no email, no link deactivation, no QStash, no GNet push, no after)', async () => {
@@ -400,7 +425,7 @@ describe('advanceBookingStatus — profile cancel-route', () => {
       code: 'invalid_transition',
       message: "Cannot transition from 'completed' to 'cancelled'",
     })
-    expect(mockBookingsUpdate).not.toHaveBeenCalled()
+    expect(mockRpc).not.toHaveBeenCalled()
   })
 })
 
@@ -426,9 +451,10 @@ describe('advanceBookingStatus — profile assign-route', () => {
       patch: { driver_id: DRIVER_ID },
     })
     expect(result.ok).toBe(true)
-    expect(mockSupabaseFrom).toHaveBeenCalledTimes(1)
-    expect(mockBookingsUpdate).toHaveBeenCalledTimes(1)
-    expect(mockBookingsUpdate.mock.calls[0][0]).toEqual({ driver_id: DRIVER_ID, status: 'assigned' })
+    expect(mockSupabaseFrom).not.toHaveBeenCalled()
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+    expect(mockRpc.mock.calls[0][1]).toMatchObject({ p_from: 'confirmed', p_to: 'assigned', p_source: 'admin_assign' })
+    expect(rpcPatch()).toEqual({ driver_id: DRIVER_ID })
   })
 
   it('gnet booking: pushes ASSIGNED once after the write, with the assign log prefix on failure', async () => {
@@ -491,8 +517,7 @@ describe('advanceBookingStatus — profile assign-route', () => {
     expect(mockSendConfirmed).not.toHaveBeenCalled()
     expect(mockScheduleQStash).not.toHaveBeenCalled()
     expect(mockDeactivateLink).not.toHaveBeenCalled()
-    const payload = mockBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
-    expect(payload).not.toHaveProperty('payment_link_id')
+    expect(rpcPatch()).not.toHaveProperty('clear_payment_link')
   })
 
   it('a failed write returns db_error and pushes nothing to GNet', async () => {
@@ -509,6 +534,172 @@ describe('advanceBookingStatus — profile assign-route', () => {
     await flushAfterCallbacks()
     expect(result).toMatchObject({ ok: false, code: 'db_error' })
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+})
+
+describe('advanceBookingStatus — compare-and-set (D-01, PAYF-02)', () => {
+  it('sends p_from = the validated status and the actor, and returns the RPC row (completed_at included)', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'on_location', booking_source: 'website' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'completed',
+      actor: { type: 'driver', id: 'driver-9' },
+      source: 'driver_trip',
+      profile: 'full',
+    })
+    expect(mockRpc).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({
+        p_from: 'on_location',
+        p_to: 'completed',
+        p_actor_type: 'driver',
+        p_actor_id: 'driver-9',
+        p_source: 'driver_trip',
+      }),
+    )
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.booking.completed_at).toBe('2026-11-03T10:00:00.000Z')
+  })
+
+  it('an admin actor without an id is sent as p_actor_id null', async () => {
+    buildSupabaseMock()
+    await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: { type: 'admin', id: null },
+      source: 'admin_patch',
+      profile: 'full',
+    })
+    expect((mockRpc.mock.calls[0][1] as Record<string, unknown>).p_actor_id).toBeNull()
+  })
+
+  it('RPC applied false -> conflict with the winner status, and no side effect runs', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({
+      bookingData: { ...baseRow, status: 'pending', booking_source: 'gnet', payment_link_id: 'plink_1', pickup_utc: '2026-12-01T10:00:00.000Z' },
+      rpcData: { applied: false, current_status: 'cancelled' },
+    })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: adminActor,
+      source: 'admin_patch',
+      profile: 'full',
+    })
+    await flushAfterCallbacks()
+    expect(result).toMatchObject({ ok: false, code: 'conflict', currentStatus: 'cancelled' })
+    expect(afterCallbacks.length).toBe(0)
+    expect(mockLogEmail).not.toHaveBeenCalled()
+    expect(mockSendConfirmed).not.toHaveBeenCalled()
+    expect(mockScheduleQStash).not.toHaveBeenCalled()
+    expect(mockDeactivateLink).not.toHaveBeenCalled()
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+    expect(mockEmitCompleted).not.toHaveBeenCalled()
+  })
+
+  it('RPC applied false with current_status null -> not_found', async () => {
+    buildSupabaseMock({ rpcData: { applied: false, current_status: null } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: adminActor,
+      source: 'admin_patch',
+      profile: 'full',
+    })
+    expect(result).toMatchObject({ ok: false, code: 'not_found', message: 'Booking not found' })
+  })
+
+  it('RPC error -> db_error', async () => {
+    buildSupabaseMock({ updateError: { message: 'rpc failed' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: adminActor,
+      source: 'admin_patch',
+      profile: 'full',
+    })
+    expect(result).toMatchObject({ ok: false, code: 'db_error', message: 'DB update failed' })
+  })
+
+  it('RPC returning no data -> db_error', async () => {
+    buildSupabaseMock({ rpcData: null })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: adminActor,
+      source: 'admin_patch',
+      profile: 'full',
+    })
+    expect(result).toMatchObject({ ok: false, code: 'db_error' })
+  })
+
+  it('expectedFrom different from the stored status -> conflict, RPC never called, no side effect', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'en_route', booking_source: 'gnet' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'cancelled',
+      actor: adminActor,
+      source: 'admin_patch',
+      profile: 'full',
+      expectedFrom: 'assigned',
+    })
+    await flushAfterCallbacks()
+    expect(result).toMatchObject({
+      ok: false,
+      code: 'conflict',
+      currentStatus: 'en_route',
+      message: 'status_conflict',
+    })
+    expect(mockRpc).not.toHaveBeenCalled()
+    expect(mockLogEmail).not.toHaveBeenCalled()
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('expectedFrom equal to the stored status proceeds to the RPC', async () => {
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'assigned' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'en_route',
+      actor: adminActor,
+      source: 'admin_patch',
+      profile: 'full',
+      expectedFrom: 'assigned',
+    })
+    expect(result.ok).toBe(true)
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+  })
+
+  it('two writers racing from the same status: exactly one applies, the other gets the winner status', async () => {
+    // Model the database: the first CAS from 'on_location' wins, the second sees 'completed'.
+    let dbStatus = 'on_location'
+    mockRpc.mockImplementation(async (_fn: string, args: Record<string, unknown>) => {
+      if (dbStatus === args.p_from) {
+        dbStatus = args.p_to as string
+        return { data: { applied: true, previous_status: args.p_from, booking: { ...baseRow, status: dbStatus } }, error: null }
+      }
+      return { data: { applied: false, current_status: dbStatus }, error: null }
+    })
+    mockSupabaseFrom.mockImplementation(() => ({
+      select: () => ({
+        eq: () => ({ single: async () => ({ data: { ...baseRow, status: 'on_location' }, error: null }) }),
+      }),
+    }))
+    const [driver, admin] = await Promise.all([
+      advanceBookingStatus({
+        bookingId: BOOKING_ID, to: 'completed', actor: { type: 'driver', id: 'd1' },
+        source: 'driver_trip', profile: 'full',
+      }),
+      advanceBookingStatus({
+        bookingId: BOOKING_ID, to: 'cancelled', actor: adminActor,
+        source: 'admin_patch', profile: 'full',
+      }),
+    ])
+    const applied = [driver, admin].filter(r => r.ok)
+    const lost = [driver, admin].filter(r => !r.ok)
+    expect(applied).toHaveLength(1)
+    expect(lost).toHaveLength(1)
+    expect(lost[0]).toMatchObject({ ok: false, code: 'conflict', currentStatus: dbStatus })
   })
 })
 
