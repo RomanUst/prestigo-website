@@ -46,6 +46,7 @@ export interface TripScreenProps {
     passengerPhone: string | null
     vehicleLabel: string
     vehicleInfo: string | null
+    driverName: string | null
     flight: string | null
     clientNotes: string | null
     distanceKm: number | null
@@ -553,6 +554,8 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
         </button>
       </header>
 
+      <PassengerCard name={trip.passengerName} />
+
       <TripMap
         origin={trip.origin}
         destination={trip.destination}
@@ -677,17 +680,16 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
         </ol>
 
         {expanded ? (
-          <PassengerRow
-            name={trip.passengerName}
-            vehicleLine={trip.vehicleInfo ? `${trip.vehicleLabel} · ${trip.vehicleInfo}` : trip.vehicleLabel}
-            phone={trip.passengerPhone}
-          />
+          <PassengerRow name={trip.passengerName} phone={trip.passengerPhone} />
         ) : null}
 
         {expanded ? (
           <TripDetails
             token={token}
             bookingReference={trip.bookingReference}
+            driverName={trip.driverName}
+            vehicleLabel={trip.vehicleLabel}
+            vehicleInfo={trip.vehicleInfo}
             flight={trip.flight}
             clientNotes={trip.clientNotes}
             draft={noteDraft}
@@ -790,14 +792,53 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
   )
 }
 
-// Passenger contact lives in the expanded sheet (owner 2026-11-03, after the 87 UAT): the trip
-// screen opens on the map and the route; a short swipe up shows who to meet and how to reach them.
-function PassengerRow({ name, vehicleLine, phone }: { name: string; vehicleLine: string; phone: string | null }) {
+// Owner 2026-11-03 (after the 87 UAT): the card above the map shows only who to meet; the phone,
+// the contact buttons and the booking / driver / vehicle rows live in the expanded sheet.
+function PassengerCard({ name }: { name: string }) {
+  return (
+    <div
+      style={{
+        boxSizing: 'border-box',
+        margin: '0 24px',
+        padding: 16,
+        background: 'var(--admin-surface)',
+        border: '1px solid var(--admin-border)',
+        borderRadius: 'var(--admin-radius-md)',
+      }}
+    >
+      <span
+        style={{
+          fontSize: 'var(--driver-fs-label)',
+          fontWeight: 500,
+          lineHeight: 1.4,
+          color: 'var(--admin-text-muted)',
+        }}
+      >
+        Passenger
+      </span>
+      <p
+        style={{
+          margin: 0,
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+          fontSize: 'var(--driver-fs-heading)',
+          fontWeight: 500,
+          lineHeight: 1.2,
+        }}
+      >
+        {name}
+      </p>
+    </div>
+  )
+}
+
+function PassengerRow({ name, phone }: { name: string; phone: string | null }) {
   // tel:/sms: need digits and an optional leading +; spaces and punctuation from the booking form are dropped.
   const dialable = phone ? phone.replace(/[^\d+]/g, '') : ''
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0 }}>
-      <div style={{ minWidth: 0, flex: 1 }}>
+      <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
         <span
           style={{
             fontSize: 'var(--driver-fs-label)',
@@ -811,28 +852,28 @@ function PassengerRow({ name, vehicleLine, phone }: { name: string; vehicleLine:
         <p
           style={{
             margin: 0,
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            fontSize: 'var(--driver-fs-heading)',
-            fontWeight: 500,
-            lineHeight: 1.2,
+            fontSize: 'var(--driver-fs-body)',
+            fontWeight: 400,
+            lineHeight: 1.5,
+            overflowWrap: 'anywhere',
           }}
         >
           {name}
         </p>
-        <p
-          style={{
-            margin: 0,
-            fontSize: 'var(--driver-fs-body)',
-            fontWeight: 400,
-            lineHeight: 1.5,
-            color: 'var(--admin-text-muted)',
-            overflowWrap: 'anywhere',
-          }}
-        >
-          {vehicleLine}
-        </p>
+        {dialable ? (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 'var(--driver-fs-body)',
+              fontWeight: 400,
+              lineHeight: 1.5,
+              color: 'var(--admin-text-muted)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {phone?.trim()}
+          </p>
+        ) : null}
       </div>
       {dialable ? (
         <>

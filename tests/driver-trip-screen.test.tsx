@@ -64,6 +64,7 @@ function makeProps(
       passengerPhone: '+420123456789',
       vehicleLabel: 'Business Class',
       vehicleInfo: 'Black Mercedes E-Class',
+      driverName: 'John Driver',
       flight: null,
       clientNotes: null,
       distanceKm: 12.4,
@@ -757,28 +758,40 @@ describe('TripScreen: passenger card, map and navigation (D-18)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Show trip details' }))
   }
 
-  it('collapsed: no passenger name, vehicle line or contact buttons above the map', () => {
+  it('collapsed: the card above the map shows only the passenger name, no phone, vehicle or buttons', () => {
     render(<TripScreen {...makeProps()} />)
-    expect(screen.queryByText('Alice Smith')).not.toBeInTheDocument()
+    expect(screen.getByText('Passenger')).toBeInTheDocument()
+    expect(screen.getByText('Alice Smith')).toBeInTheDocument()
+    expect(screen.queryByText('+420123456789')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Business Class/)).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Call passenger' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Message passenger' })).not.toBeInTheDocument()
   })
 
-  it('expanded: shows the passenger name and the vehicle line with the driver vehicle info', () => {
+  it('expanded: passenger name and phone, booking, driver, vehicle class and vehicle rows', () => {
     render(<TripScreen {...makeProps()} />)
     openSheet()
-    expect(screen.getByText('Passenger')).toBeInTheDocument()
-    expect(screen.getByText('Alice Smith')).toBeInTheDocument()
-    expect(screen.getByText('Business Class · Black Mercedes E-Class')).toBeInTheDocument()
+    expect(screen.getAllByText('Passenger')).toHaveLength(2)
+    expect(screen.getAllByText('Alice Smith')).toHaveLength(2)
+    expect(screen.getByText('+420123456789')).toBeInTheDocument()
+    expect(screen.getByText('PRG-100')).toBeInTheDocument()
+    expect(screen.getByText('Driver')).toBeInTheDocument()
+    expect(screen.getByText('John Driver')).toBeInTheDocument()
+    expect(screen.getByText('Vehicle class')).toBeInTheDocument()
+    expect(screen.getByText('Business Class')).toBeInTheDocument()
+    expect(screen.getByText('Vehicle')).toBeInTheDocument()
+    expect(screen.getByText('Black Mercedes E-Class')).toBeInTheDocument()
   })
 
-  it('drops the " · " segment when the driver has no vehicle info', () => {
+  it('expanded: no Driver or Vehicle row when the driver profile has neither', () => {
     const props = makeProps()
     props.trip.vehicleInfo = null
+    props.trip.driverName = null
     render(<TripScreen {...props} />)
     openSheet()
     expect(screen.getByText('Business Class')).toBeInTheDocument()
-    expect(screen.queryByText(/·/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Driver')).not.toBeInTheDocument()
+    expect(screen.queryByText('Vehicle')).not.toBeInTheDocument()
   })
 
   it('renders Call and Message passenger links with aria-labels and 48px targets', () => {
@@ -810,11 +823,10 @@ describe('TripScreen: passenger card, map and navigation (D-18)', () => {
     expect(screen.getByRole('link', { name: 'Message passenger' })).toHaveAttribute('href', 'sms:+420123456789')
   })
 
-  it('a long passenger name is a single ellipsised line', () => {
+  it('a long passenger name is a single ellipsised line in the card above the map', () => {
     const props = makeProps()
     props.trip.passengerName = 'Maximilian '.repeat(20).trim()
     render(<TripScreen {...props} />)
-    openSheet()
     const name = screen.getByText(props.trip.passengerName)
     expect(name).toHaveStyle({ whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' })
   })
@@ -1135,10 +1147,10 @@ describe('TripScreen: sheet handle, details and driver note (D-21)', () => {
     render(<TripScreen {...makeProps()} />)
     swipe(handle(), 400, 360)
     expect(handle()).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('Alice Smith')).toBeInTheDocument()
+    expect(screen.getAllByText('Passenger')).toHaveLength(2)
     swipe(handle(), 360, 400)
     expect(handle()).toHaveAttribute('aria-expanded', 'false')
-    expect(screen.queryByText('Alice Smith')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Passenger')).toHaveLength(1)
   })
 
   it('a swipe up on the pickup time row opens the details too', () => {

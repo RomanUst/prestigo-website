@@ -409,7 +409,13 @@ Owner decision on D-18: Help on the trip screen opens a chat with the office. Th
 Copy is English (D-20), nothing is added to `messages/*`, light theme tokens only (D-19).
 
 ## Amendment C (2026-11-03, owner after the 87 UAT re-test): passenger contact in the sheet
-Owner: «убрать оттуда кнопку, данные клиента должны находиться при небольшом свайпе вверх» (reference: Blacklane ride screen).
-- The passenger card above the map is removed; the map follows the header directly.
-- The expanded sheet starts with a **Passenger** row: caption "Passenger", the name (one ellipsised line), the vehicle line (`<class> · <vehicle info>`), and two 48px outline icon links when the booking has a phone: **Message passenger** (`sms:`) and **Call passenger** (`tel:`); digits and a leading + only. No phone → no links.
-- The sheet opens with a short swipe up (≥ 24 px) on the handle or the pickup time row and closes with a swipe down; the tap on the handle still toggles. The click that follows a swipe is ignored. The slide-to-advance control and the address rows are not swipe targets.
+Owner: «убрать оттуда кнопку, данные клиента должны находиться при небольшом свайпе вверх», then «верни как было наверх только имя клиента; при свайпе вверх данные пассажира и кнопки позвонить или смс, номер заказа, данные водителя, класс машины, номер машины» (reference: Blacklane ride screen).
+- The card above the map shows a "Passenger" caption and the passenger name (one ellipsised line): no vehicle line, no call button (owner: «карточка сверху добавь что это пассажира имя»).
+- The expanded sheet, after the addresses, shows in order:
+  - **Passenger:** the name, the phone number, and two 48px outline icon links when the booking has a phone: **Message passenger** (`sms:`) and **Call passenger** (`tel:`), digits and a leading + only. No phone means no number and no links.
+  - **Booking:** the booking reference.
+  - **Driver:** the driver profile name. The row is hidden when the name is empty.
+  - **Vehicle class:** the booking class label.
+  - **Vehicle:** the driver profile `vehicle_info` free text, which usually holds the plate. The row is hidden when it is empty.
+  - Then flight, notes from the client, and the note for the office, as before.
+- The sheet opens with a short swipe up (at least 24 px) on the handle or the pickup time row, and closes with a swipe down. Tapping the handle still toggles it, and the click that follows a swipe is ignored. The slide-to-advance control and the address rows are not swipe targets.

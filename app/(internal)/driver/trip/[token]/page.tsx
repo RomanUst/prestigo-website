@@ -53,6 +53,7 @@ interface TripSheetBookingRow {
 }
 
 interface TripSheetDriverRow {
+  name: string | null
   vehicle_info: string | null
 }
 
@@ -72,7 +73,7 @@ const TRIP_SELECT =
   'origin_address, destination_address, origin_lat, origin_lng, destination_lat, destination_lng, ' +
   'client_first_name, client_last_name, client_phone, flight_number, flight_iata, special_requests, ' +
   'vehicle_class, distance_km, completed_at, no_show_requested_at, status, driver_id), ' +
-  'drivers(vehicle_info)'
+  'drivers(name, vehicle_info)'
 
 function coords(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
   return lat !== null && lat !== undefined && lng !== null && lng !== undefined ? { lat, lng } : null
@@ -163,6 +164,7 @@ export default async function TripSheetPage({ params }: PageProps) {
         passengerPhone: booking.client_phone || null,
         vehicleLabel: formatVehicleLabel(booking.vehicle_class),
         vehicleInfo: driver?.vehicle_info ?? null,
+        driverName: driver?.name?.trim() || null,
         flight: booking.flight_number ?? booking.flight_iata ?? null,
         clientNotes: booking.special_requests,
         distanceKm: booking.distance_km,
