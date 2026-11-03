@@ -190,7 +190,33 @@ Plans:
   4. For a GNet booking each driver step is pushed to GNet exactly once (no duplicates on retap or retry) and the booking is marked as a partner booking so no hold, capture or no-show charge can ever apply to it.
   5. The "completed" step asks the driver to confirm, fires exactly one completion event that the payment engine consumes in Phase 88 (capture itself is verified there under HOLD-04), and the driver never sees or enters an amount.
 
-**Plans**: TBD
+**Plans**: 13 plans
+Plans:
+**Wave 1**
+- [ ] 87-01-PLAN.md — Wave 1: behaviour-preserving extraction of advanceBookingStatus() + single GNet push helper; cancel route characterized; PATCH/cancel/assign routed through the service (tracer)
+- [ ] 87-02-PLAN.md — Wave 1: lib/booking-status.ts vocabulary, transitions, trip-token view state; migration 084 (on_board/no_show, booking_status_log + trigger, CAS RPC, no-show RPC + settings, redefined lead/gcal/panel/stats); [BLOCKING] live apply + smoke
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 87-03-PLAN.md — Wave 2: compare-and-set via advance_booking_status, 409 status_conflict, cancel/assign lost-race responses, single completion event (partner-aware), direct status-writer gate
+- [ ] 87-04-PLAN.md — Wave 2: CRM/lead/Chatwoot/panel/calendar status fan-out, pickupInstantMs to prague-date, SQL-vs-TS parity on latest definitions
+- [ ] 87-05-PLAN.md — Wave 2: admin On Board / No-Show labels and hues, no_show terminal, expected_status + inline conflict message
+- [ ] 87-06-PLAN.md — Wave 2: no-show operator alert as a Chatwoot private note via the outbox dispatcher
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 87-07-PLAN.md — Wave 3: idempotent GNet push (conditional claim), D-22 null mapping and no farm-in echo pinned
+- [ ] 87-08-PLAN.md — Wave 3: driver route rebuilt on the status service (strict next step, replay 200, 409), start gate, DTRIP-04 gates rewritten
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 87-09-PLAN.md — Wave 4: driver no-show request (server threshold, email + outbox alert), admin confirm/dismiss route, settings thresholds, shared airport helper
+- [ ] 87-10-PLAN.md — Wave 4: light driver trip screen — one-step slide control, confirm dialog, completed/ended/help views
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 87-11-PLAN.md — Wave 5: driver map + distance, passenger card, navigation, details + note, no-show block, refresh timers
+- [ ] 87-12-PLAN.md — Wave 5: admin no-show banner/chip/confirm modal and no-show waiting-time settings
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 87-13-PLAN.md — Wave 6: full quality gate, [BLOCKING] EspoCRM fields sync before merge, owner production UAT on a real phone
+
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix. The permanent driver link now changes `booking.status` and later moves money; the token-gated write route stays CSRF-protected and rate-limited, and the v2.2 DTRIP-04 isolation grep-gates are rewritten for the new rule rather than deleted.
 **Owner decisions before planning**: (1) `on_board` is a real `bookings.status` (recommended) vs progress-only mapped to `on_location`; (2) `no_show` is terminal and how it maps in leads (`converted` vs `dead`), stats (count revenue only when charged) and Chatwoot; (3) which statuses are pushed to GNet for `on_board` / `no_show`. **Decided 2026-11-02:** driver steps are auto-pushed to GNet (deduped); GNet bookings skip every money path — only the exact GNet status mapping stays open.
