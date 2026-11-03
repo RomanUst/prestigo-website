@@ -7,9 +7,10 @@ import { TERMINAL_STATUSES, isTripLinkValid, tripLinkViewState } from '@/lib/tri
 
 // vi.hoisted ensures stubs are available inside vi.mock factories (hoisted
 // before imports) — mirrors tests/admin-assignment.test.ts conventions.
-const { stubSupabaseFrom, getStartGateMock } = vi.hoisted(() => ({
+const { stubSupabaseFrom, getStartGateMock, getNoShowViewMock } = vi.hoisted(() => ({
   stubSupabaseFrom: vi.fn(),
   getStartGateMock: vi.fn(),
+  getNoShowViewMock: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -30,6 +31,12 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/lib/start-gate', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/start-gate')>()),
   getStartGate: getStartGateMock,
+}))
+
+// The page asks lib/no-show for the unlock time; the page test decides the answer.
+vi.mock('@/lib/no-show', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/no-show')>()),
+  getNoShowView: getNoShowViewMock,
 }))
 
 import TripSheetPage, { metadata } from '@/app/(internal)/driver/trip/[token]/page'
@@ -220,6 +227,8 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     stubSupabaseFrom.mockReset()
     getStartGateMock.mockReset()
     getStartGateMock.mockResolvedValue({ unlocksAtMs: null, open: true })
+    getNoShowViewMock.mockReset()
+    getNoShowViewMock.mockResolvedValue({ noShowAvailableAt: null, noShowRequestedAt: null })
   })
 
   it('metadata.robots has index and follow both false (D-08 noindex, T-87-34)', () => {
@@ -253,6 +262,33 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     await renderPage()
     expect(screen.getByText('Waiting for the office')).toBeInTheDocument()
     expect(screen.queryByText('On my way')).not.toBeInTheDocument()
+  })
+
+  it('passes the no-show times from getNoShowView to the screen while on site (D-15)', async () => {
+    mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'on_location' }))
+    getNoShowViewMock.mockResolvedValue({
+      noShowAvailableAt: '2099-01-02T13:35:00Z',
+      noShowRequestedAt: null,
+    })
+    await renderPage()
+
+    expect(getNoShowViewMock).toHaveBeenCalledTimes(1)
+    expect(getNoShowViewMock.mock.calls[0][0]).toMatchObject({
+      booking: { id: 'booking-1', status: 'on_location' },
+    })
+    expect(screen.getByText('You can request a no-show after 14:35.')).toBeInTheDocument()
+    expect(screen.getByText('Passenger on board')).toBeInTheDocument()
+  })
+
+  it('shows the requested line when the booking already has an open request', async () => {
+    mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'on_location' }))
+    getNoShowViewMock.mockResolvedValue({
+      noShowAvailableAt: '2026-01-02T13:35:00Z',
+      noShowRequestedAt: '2026-01-02T13:41:00Z',
+    })
+    await renderPage()
+    expect(screen.getByText('No-show requested at 14:41. The office is trying to reach the passenger.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Request no-show' })).not.toBeInTheDocument()
   })
 
   it('renders no price, amount or currency text (D-06)', async () => {

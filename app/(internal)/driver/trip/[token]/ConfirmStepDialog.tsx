@@ -6,8 +6,8 @@ import { LoaderCircle } from 'lucide-react'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 export interface ConfirmStepDialogProps {
-  /** 'no-show' mode is added by plan 87-11. */
-  mode: 'step' | 'help'
+  /** 'no-show' asks the office to try the passenger (D-15); it changes no status and charges nothing. */
+  mode: 'step' | 'help' | 'no-show'
   stepLabel?: string
   isFinal?: boolean
   submitting: boolean
@@ -86,7 +86,8 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
   }
 
   const isHelp = mode === 'help'
-  const primaryLabel = error ? 'Try again' : (CONFIRM_BUTTON[stepLabel] ?? 'Confirm')
+  const isNoShow = mode === 'no-show'
+  const primaryLabel = error ? 'Try again' : isNoShow ? 'Send request' : (CONFIRM_BUTTON[stepLabel] ?? 'Confirm')
 
   return (
     <div
@@ -135,7 +136,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
             lineHeight: 1.2,
           }}
         >
-          {isHelp ? 'Need help?' : `Confirm: ${stepLabel}`}
+          {isHelp ? 'Need help?' : isNoShow ? 'Request a no-show' : `Confirm: ${stepLabel}`}
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -144,6 +145,10 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               Call the office if you cannot find the passenger, the trip details look wrong, or a step was tapped
               by mistake.
             </p>
+          ) : isNoShow ? (
+            <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
+              The office will try to reach the passenger. Nothing is charged and the trip stays open.
+            </p>
           ) : (
             <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
               {'Are you sure you want to move to '}
@@ -151,7 +156,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               {'?'}
             </p>
           )}
-          {!isHelp && isFinal ? (
+          {!isHelp && !isNoShow && isFinal ? (
             <p
               style={{
                 margin: 0,

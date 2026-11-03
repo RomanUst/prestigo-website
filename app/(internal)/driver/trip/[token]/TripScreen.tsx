@@ -21,6 +21,7 @@ import type { SlideState } from './SlideToAdvance'
 import ConfirmStepDialog from './ConfirmStepDialog'
 import TripCompleted from './TripCompleted'
 import TripMap from './TripMap'
+import NoShowBlock from './NoShowBlock'
 
 export interface TripScreenProps {
   token: string
@@ -47,6 +48,8 @@ export interface TripScreenProps {
     distanceKm: number | null
   }
   initialNote: string | null
+  /** D-15: server-computed unlock instant and the open request (both null outside on_location). */
+  noShow: { availableAt: string | null; requestedAt: string | null }
 }
 
 type BannerKind = 'info' | 'amber' | 'danger'
@@ -59,6 +62,8 @@ const INFO_BANNER_MS = 8000
 
 const SAVE_ERROR =
   'Could not save this step. Your trip was not changed. Check your connection and try again.'
+const NO_SHOW_ERROR =
+  'Could not send the request. Your trip was not changed. Check your connection and try again.'
 
 // The server may take a moment to re-render after router.refresh(); never stay "Saving…" forever.
 const SETTLE_TIMEOUT_MS = 8000
@@ -94,9 +99,11 @@ interface StepResponseBody {
   error?: string
   unlocksAt?: string
   completedAt?: string
+  noShowRequestedAt?: string
+  noShowAvailableAt?: string
 }
 
-export default function TripScreen({ token, view, trip }: TripScreenProps) {
+export default function TripScreen({ token, view, trip, noShow }: TripScreenProps) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
@@ -108,7 +115,32 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
   // Status the server confirmed; the control keeps "Saving…" until the refreshed view reaches it.
   const [settlingTo, setSettlingTo] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
+  const [noShowDialogOpen, setNoShowDialogOpen] = useState(false)
+  // Request time from this session's 200 answer; the refreshed server props take over afterwards.
+  const [noShowSentAt, setNoShowSentAt] = useState<string | null>(null)
   const sendingRef = useRef(false)
+
+  const noShowActive = view.status === 'on_location'
+  const noShowRequestedAt = noShowActive ? (noShow.requestedAt ?? noShowSentAt) : null
+  const noShowAvailableMs = noShow.availableAt ? Date.parse(noShow.availableAt) : Number.NaN
+
+  // Server props are the truth: whenever they report a different request state (a refresh brought
+  // the stored request, or the office dismissed it), the local copy of the answer is dropped.
+  useEffect(() => {
+    setNoShowSentAt(null)
+  }, [noShow.requestedAt])
+
+  // The caption flips to the button at availableAt with one timer (the server still rejects an early ask).
+  useEffect(() => {
+    if (!noShowActive || noShow.requestedAt || !Number.isFinite(noShowAvailableMs)) return
+    const delay = noShowAvailableMs - Date.now()
+    if (delay <= 0) {
+      setNowMs(Date.now())
+      return
+    }
+    const id = setTimeout(() => setNowMs(Date.now()), Math.min(delay, MAX_TIMEOUT_MS))
+    return () => clearTimeout(id)
+  }, [noShowActive, noShow.requestedAt, noShowAvailableMs])
 
   const unlocksAtMs = view.unlocksAt ? Date.parse(view.unlocksAt) : Number.NaN
   const stillEarly =
@@ -181,16 +213,41 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
     setDialogOpen(true)
   }, [])
 
-  const submit = useCallback(async () => {
-    if (!nextStep || sendingRef.current) return
-    sendingRef.current = true
-    setSubmitting(true)
-    setDialogError(null)
-    try {
+  // 400 invalid_token, 429 and 409 step_conflict mean the same for a step and for a no-show request.
+  // Returns true when the answer was one of those and has been handled.
+  const handleSharedFailure = useCallback(
+    (status: number, body: StepResponseBody | null, closeDialog: () => void): boolean => {
+      if (status === 400 && body?.error === 'invalid_token') {
+        // The link died while the screen was open: the refreshed page renders the ended view.
+        closeDialog()
+        router.refresh()
+        return true
+      }
+      if (status === 429) {
+        closeDialog()
+        setBanner({ kind: 'amber', text: 'Too many taps. Wait a moment and try again.' })
+        return true
+      }
+      if (status === 409 && body?.error === 'step_conflict') {
+        closeDialog()
+        setBanner({
+          kind: 'info',
+          text: `The office has updated this trip (${statusLabel(body.status ?? view.status)}). Showing the latest step.`,
+        })
+        router.refresh()
+        return true
+      }
+      return false
+    },
+    [router, view.status],
+  )
+
+  const postProgress = useCallback(
+    async (payload: Record<string, unknown>): Promise<{ status: number; body: StepResponseBody | null }> => {
       const res = await fetch(`/api/driver/trip/${token}/progress`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ step: nextStep }),
+        body: JSON.stringify(payload),
       })
       let body: StepResponseBody | null = null
       try {
@@ -198,8 +255,23 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
       } catch {
         body = null
       }
+      return { status: res.status, body }
+    },
+    [token],
+  )
 
-      if (res.status === 200 && body?.ok && typeof body.status === 'string') {
+  const closeStepDialog = useCallback(() => setDialogOpen(false), [])
+  const closeNoShowDialog = useCallback(() => setNoShowDialogOpen(false), [])
+
+  const submit = useCallback(async () => {
+    if (!nextStep || sendingRef.current) return
+    sendingRef.current = true
+    setSubmitting(true)
+    setDialogError(null)
+    try {
+      const { status, body } = await postProgress({ step: nextStep })
+
+      if (status === 200 && body?.ok && typeof body.status === 'string') {
         // Server truth only: the screen re-renders from router.refresh(), never from local state.
         setDialogOpen(false)
         setBanner(null)
@@ -212,21 +284,9 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
           setSettlingTo(body.status)
           router.refresh()
         }
-      } else if (res.status === 400 && body?.error === 'invalid_token') {
-        // The link died while the screen was open: the refreshed page renders the ended view.
-        setDialogOpen(false)
-        router.refresh()
-      } else if (res.status === 429) {
-        setDialogOpen(false)
-        setBanner({ kind: 'amber', text: 'Too many taps. Wait a moment and try again.' })
-      } else if (res.status === 409 && body?.error === 'step_conflict') {
-        setDialogOpen(false)
-        setBanner({
-          kind: 'info',
-          text: `The office has updated this trip (${statusLabel(body.status ?? view.status)}). Showing the latest step.`,
-        })
-        router.refresh()
-      } else if (res.status === 409 && body?.error === 'too_early') {
+      } else if (handleSharedFailure(status, body, closeStepDialog)) {
+        // handled
+      } else if (status === 409 && body?.error === 'too_early') {
         setDialogOpen(false)
         setBanner({
           kind: 'amber',
@@ -244,7 +304,56 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
       sendingRef.current = false
       setSubmitting(false)
     }
-  }, [nextStep, router, token, view.status])
+  }, [nextStep, router, postProgress, handleSharedFailure, closeStepDialog])
+
+  const cancelNoShowDialog = useCallback(() => {
+    if (sendingRef.current) return
+    setNoShowDialogOpen(false)
+    setDialogError(null)
+  }, [])
+
+  const openNoShowDialog = useCallback(() => {
+    if (sendingRef.current) return
+    setDialogError(null)
+    setNoShowDialogOpen(true)
+  }, [])
+
+  // D-15: the driver only asks. Nothing is posted until the dialog's primary button; the status never changes.
+  const submitNoShow = useCallback(async () => {
+    if (sendingRef.current) return
+    sendingRef.current = true
+    setSubmitting(true)
+    setDialogError(null)
+    try {
+      const { status, body } = await postProgress({ action: 'request_no_show' })
+
+      if (status === 200 && body?.ok) {
+        setNoShowDialogOpen(false)
+        setBanner(null)
+        setNoShowSentAt(body.noShowRequestedAt ?? new Date().toISOString())
+        setAnnouncement('No-show requested.')
+        router.refresh()
+      } else if (handleSharedFailure(status, body, closeNoShowDialog)) {
+        // handled
+      } else if (status === 409 && body?.error === 'too_early') {
+        setNoShowDialogOpen(false)
+        setBanner({
+          kind: 'amber',
+          text: body.noShowAvailableAt
+            ? `Too early to request a no-show. You can request it after ${formatPragueTime(body.noShowAvailableAt)}.`
+            : 'Too early to request a no-show.',
+        })
+        router.refresh()
+      } else {
+        setDialogError(NO_SHOW_ERROR)
+      }
+    } catch {
+      setDialogError(NO_SHOW_ERROR)
+    } finally {
+      sendingRef.current = false
+      setSubmitting(false)
+    }
+  }, [router, postProgress, handleSharedFailure, closeNoShowDialog])
 
   const badgeVariant = view.status as StatusBadgeVariant
 
@@ -391,6 +500,15 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
           />
         </ol>
 
+        {noShowActive ? (
+          <NoShowBlock
+            availableAt={noShow.availableAt}
+            requestedAt={noShowRequestedAt}
+            nowMs={nowMs}
+            onRequest={openNoShowDialog}
+          />
+        ) : null}
+
         <div
           style={{
             position: 'sticky',
@@ -439,6 +557,16 @@ export default function TripScreen({ token, view, trip }: TripScreenProps) {
           error={null}
           onConfirm={() => setHelpOpen(false)}
           onCancel={() => setHelpOpen(false)}
+        />
+      ) : null}
+
+      {noShowDialogOpen && noShowActive ? (
+        <ConfirmStepDialog
+          mode="no-show"
+          submitting={submitting}
+          error={dialogError}
+          onConfirm={submitNoShow}
+          onCancel={cancelNoShowDialog}
         />
       ) : null}
 

@@ -34,7 +34,10 @@ import SlideToAdvance from '@/app/(internal)/driver/trip/[token]/SlideToAdvance'
 
 const TOKEN = 'a0000004-0000-4000-8000-000000000004'
 
-function makeProps(overrides: Partial<TripScreenProps['view']> = {}): TripScreenProps {
+function makeProps(
+  overrides: Partial<TripScreenProps['view']> = {},
+  noShow: Partial<TripScreenProps['noShow']> = {},
+): TripScreenProps {
   return {
     token: TOKEN,
     view: { status: 'assigned', nextStep: 'en_route', lockReason: null, unlocksAt: null, ...overrides },
@@ -55,6 +58,7 @@ function makeProps(overrides: Partial<TripScreenProps['view']> = {}): TripScreen
       distanceKm: 12.4,
     },
     initialNote: null,
+    noShow: { availableAt: null, requestedAt: null, ...noShow },
   }
 }
 
@@ -702,5 +706,203 @@ describe('TripScreen: passenger card, map and navigation (D-18)', () => {
     act(() => routeMapProbe.props?.onRouteInfo?.(12.4, 18))
     rerender(<TripScreen {...makeProps()} />)
     expect(screen.getByText('12.4 km · 18 min (est.)')).toBeInTheDocument()
+  })
+})
+
+describe('TripScreen: no-show request (D-15, D-16)', () => {
+  const ON_SITE = { status: 'on_location', nextStep: 'on_board' as const }
+  // 2026-11-04 13:35Z = 14:35 Prague (CET).
+  const AVAILABLE_AT = '2026-11-04T13:35:00Z'
+
+  function noShowButton() {
+    return screen.queryByRole('button', { name: 'Request no-show' })
+  }
+
+  it('before availableAt: caption with the Prague time, no button, the slide control still says Passenger on board', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T13:00:00Z'))
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    expect(screen.getByText('You can request a no-show after 14:35.')).toBeInTheDocument()
+    expect(noShowButton()).not.toBeInTheDocument()
+    expect(screen.getByText('Passenger on board')).toBeInTheDocument()
+  })
+
+  it('at availableAt a single timer swaps the caption for the neutral button', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-04T13:34:00Z'))
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    expect(noShowButton()).not.toBeInTheDocument()
+    act(() => {
+      vi.advanceTimersByTime(60_000)
+    })
+    const btn = noShowButton()
+    expect(btn).toBeInTheDocument()
+    expect(btn).toHaveStyle({ minHeight: '48px', width: '100%' })
+    expect(screen.queryByText(/You can request a no-show after/)).not.toBeInTheDocument()
+    // Neutral outline: not the accent fill and not a danger colour.
+    expect(btn!.getAttribute('style')).not.toMatch(/accent|danger/)
+  })
+
+  it('shows the button at once when availableAt has already passed or is unknown', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    const { unmount } = render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    expect(noShowButton()).toBeInTheDocument()
+    unmount()
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: null })} />)
+    expect(noShowButton()).toBeInTheDocument()
+  })
+
+  it('opens the no-show dialog; "Not yet" sends nothing', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    await user.click(noShowButton()!)
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Request a no-show')).toBeInTheDocument()
+    expect(
+      within(dialog).getByText('The office will try to reach the passenger. Nothing is charged and the trip stays open.'),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Not yet' })).toHaveFocus()
+    // The step slide is not in "awaiting confirm": the no-show dialog is separate.
+    expect(screen.queryByText('Confirm to continue')).not.toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Not yet' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(noShowButton()).toBeInTheDocument()
+  })
+
+  it('"Send request" posts { action: request_no_show } once and replaces the button with the requested line', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    fetchMock.mockReturnValue(
+      jsonResponse(200, {
+        ok: true,
+        status: 'on_location',
+        nextStep: 'on_board',
+        noShowRequestedAt: '2026-11-04T13:41:00Z',
+      }),
+    )
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    await user.click(noShowButton()!)
+    expect(fetchMock).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: 'Send request' }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`/api/driver/trip/${TOKEN}/progress`)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual({ action: 'request_no_show' })
+
+    expect(
+      await screen.findByText('No-show requested at 14:41. The office is trying to reach the passenger.'),
+    ).toBeInTheDocument()
+    expect(noShowButton()).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(refreshMock).toHaveBeenCalled()
+    // Status is unchanged and the step control is still available.
+    expect(screen.getByText('Passenger on board')).toBeInTheDocument()
+  })
+
+  it('the requested line is role=status', () => {
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT, requestedAt: '2026-11-04T13:41:00Z' })} />)
+    const line = screen.getByText('No-show requested at 14:41. The office is trying to reach the passenger.')
+    expect(line.closest('[role="status"]')).not.toBeNull()
+  })
+
+  it('requestedAt set on load: only the requested line renders', () => {
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT, requestedAt: '2026-11-04T13:41:00Z' })} />)
+    expect(screen.getByText(/No-show requested at 14:41/)).toBeInTheDocument()
+    expect(noShowButton()).not.toBeInTheDocument()
+    expect(screen.queryByText(/You can request a no-show after/)).not.toBeInTheDocument()
+  })
+
+  it('the office dismissing the request (next refresh, requestedAt null) brings the button back', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    const { rerender } = render(
+      <TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT, requestedAt: '2026-11-04T13:41:00Z' })} />,
+    )
+    expect(noShowButton()).not.toBeInTheDocument()
+    rerender(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT, requestedAt: null })} />)
+    expect(noShowButton()).toBeInTheDocument()
+  })
+
+  it('a 409 too_early closes the dialog, shows an amber banner and refreshes', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    fetchMock.mockReturnValue(
+      jsonResponse(409, {
+        ok: false,
+        error: 'too_early',
+        status: 'on_location',
+        nextStep: 'on_board',
+        noShowAvailableAt: '2026-11-04T14:30:00Z',
+      }),
+    )
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    await user.click(noShowButton()!)
+    await user.click(screen.getByRole('button', { name: 'Send request' }))
+    await waitFor(() =>
+      expect(screen.getByText('Too early to request a no-show. You can request it after 15:30.')).toBeInTheDocument(),
+    )
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(refreshMock).toHaveBeenCalled()
+  })
+
+  it('a 409 step_conflict shows the conflict banner and refreshes', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    fetchMock.mockReturnValue(
+      jsonResponse(409, { ok: false, error: 'step_conflict', status: 'on_board', nextStep: 'completed' }),
+    )
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    await user.click(noShowButton()!)
+    await user.click(screen.getByRole('button', { name: 'Send request' }))
+    await waitFor(() =>
+      expect(
+        screen.getByText('The office has updated this trip (On board). Showing the latest step.'),
+      ).toBeInTheDocument(),
+    )
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(refreshMock).toHaveBeenCalled()
+  })
+
+  it('a network failure keeps the dialog open with a retry', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    fetchMock.mockRejectedValue(new Error('offline'))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    await user.click(noShowButton()!)
+    await user.click(screen.getByRole('button', { name: 'Send request' }))
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it.each([
+    ['assigned', 'en_route'],
+    ['en_route', 'on_site'],
+    ['on_board', 'completed'],
+  ] as const)('status %s: no no-show block at all', (status, nextStep) => {
+    render(<TripScreen {...makeProps({ status, nextStep }, { availableAt: AVAILABLE_AT })} />)
+    expect(screen.queryByText(/no-show/i)).not.toBeInTheDocument()
+    expect(noShowButton()).not.toBeInTheDocument()
+  })
+
+  it('never mentions money beyond the locked sentence', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-04T14:00:00Z'))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps(ON_SITE, { availableAt: AVAILABLE_AT })} />)
+    await user.click(noShowButton()!)
+    const text = document.body.textContent ?? ''
+    expect(text).not.toMatch(/€|EUR|CZK|fee|penalty|refund/i)
+    expect(text.match(/charged/gi)).toHaveLength(1)
   })
 })
