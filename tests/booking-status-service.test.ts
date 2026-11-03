@@ -326,6 +326,84 @@ describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
   })
 })
 
+describe('advanceBookingStatus — profile cancel-route', () => {
+  const cancelRow = {
+    ...baseRow,
+    status: 'confirmed',
+    booking_source: 'gnet',
+    payment_link_id: 'plink_9',
+    pickup_utc: '2026-12-01T10:00:00.000Z',
+  }
+
+  it('uses the supplied row (no select), writes only { status } scoped by id', async () => {
+    buildSupabaseMock({ bookingData: cancelRow })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'cancelled',
+      actor: adminActor,
+      source: 'admin_cancel',
+      profile: 'cancel-route',
+      current: cancelRow,
+    })
+    expect(result.ok).toBe(true)
+    // no select: the only bookings call is the update
+    expect(mockSupabaseFrom).toHaveBeenCalledTimes(1)
+    expect(mockBookingsUpdate).toHaveBeenCalledTimes(1)
+    expect(mockBookingsUpdate.mock.calls[0][0]).toEqual({ status: 'cancelled' })
+  })
+
+  it('runs no side effect at all (no email, no link deactivation, no QStash, no GNet push, no after)', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({ bookingData: cancelRow })
+    await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'cancelled',
+      actor: adminActor,
+      source: 'admin_cancel',
+      profile: 'cancel-route',
+      current: cancelRow,
+    })
+    await flushAfterCallbacks()
+    expect(afterCallbacks.length).toBe(0)
+    expect(mockLogEmail).not.toHaveBeenCalled()
+    expect(mockSendCancelled).not.toHaveBeenCalled()
+    expect(mockDeactivateLink).not.toHaveBeenCalled()
+    expect(mockScheduleQStash).not.toHaveBeenCalled()
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('db error surfaces as db_error', async () => {
+    buildSupabaseMock({ updateError: { message: 'write failed' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'cancelled',
+      actor: adminActor,
+      source: 'admin_cancel',
+      profile: 'cancel-route',
+      current: cancelRow,
+    })
+    expect(result).toMatchObject({ ok: false, code: 'db_error' })
+  })
+
+  it('a terminal row is rejected by VALID_TRANSITIONS', async () => {
+    buildSupabaseMock()
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'cancelled',
+      actor: adminActor,
+      source: 'admin_cancel',
+      profile: 'cancel-route',
+      current: { ...cancelRow, status: 'completed' },
+    })
+    expect(result).toMatchObject({
+      ok: false,
+      code: 'invalid_transition',
+      message: "Cannot transition from 'completed' to 'cancelled'",
+    })
+    expect(mockBookingsUpdate).not.toHaveBeenCalled()
+  })
+})
+
 describe('advanceResultToResponse', () => {
   it('returns null for an ok result', () => {
     const ok: AdvanceBookingStatusResult = {
