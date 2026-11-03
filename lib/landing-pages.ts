@@ -46,6 +46,8 @@ export const LANDING_PAGES: LandingPageConfig[] = [
   { slug: 'airport-meet-and-greet', section: 'services', heroImage: '/journey-03-arrive.jpg', ctaHref: '/book' },
   { slug: 'prague-airport-taxi', section: 'services', heroImage: '/photohero.jpg', ctaHref: '/book' },
   { slug: 'private-driver-prague', section: 'services', heroImage: '/hero-city-rides.png', ctaHref: '/book' },
+  // 2026-11-03: "limousine prague" / "limo service prague" cluster — executive S-Class, no stretch limos.
+  { slug: 'limousine-prague', section: 'services', heroImage: '/vehicles/first-int-2.jpg', ctaHref: '/book?class=first_class' },
   { slug: 'child-seats', section: 'faq', ctaHref: '/book' },
   { slug: 'flight-delays', section: 'faq', ctaHref: '/book' },
   { slug: 'tipping-in-prague', section: 'faq', ctaHref: '/book' },

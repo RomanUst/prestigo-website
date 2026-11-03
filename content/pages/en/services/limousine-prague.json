@@ -1,0 +1,91 @@
+{
+  "metadata": {
+    "title": "Limousine Service Prague — Mercedes S-Class",
+    "description": "Limousine service in Prague: a Mercedes S-Class with a professional chauffeur for airport arrivals, weddings, business days and VIP evenings. Available 24/7.",
+    "ogTitle": "Limousine Service in Prague — Mercedes S-Class with Chauffeur"
+  },
+  "breadcrumbName": "Limousine Service Prague",
+  "hero": {
+    "label": "Limousine · Prague",
+    "headlineLine1": "Limousine service in Prague.",
+    "headlineItalic": "The S-Class, with a chauffeur.",
+    "intro": "Book a limousine in Prague the way executives and diplomats travel: a Mercedes-Benz S-Class with a professional chauffeur, for an airport arrival, a wedding, a day of meetings or an evening at the opera. Fixed price before you book, from €{sClassAirport} for an airport transfer or €{hourlyS} per hour.",
+    "ctaPrimary": "Book a Limousine",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Rear cabin of a Mercedes-Benz S-Class limousine with leather seats"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      { "label": "The car", "value": "Mercedes-Benz S-Class, 2025 model year or newer" },
+      { "label": "Capacity", "value": "Up to 3 passengers, 2 large cases + 2 cabin bags" },
+      { "label": "Airport", "value": "From €{sClassAirport}, meet and greet with a name board" },
+      { "label": "By the hour", "value": "From €{hourlyS}/hour, minimum 2 hours" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "What a limousine means",
+    "headingItalic": "at Prestigo.",
+    "paragraphs": [
+      "In Prague, “limousine” can mean two very different things. One is the stretch limo or party Hummer — long, loud and built for a night out. The other is the executive limousine: the Mercedes-Benz S-Class, the car embassies, heads of state and five-star hotels use to move their guests.",
+      "Prestigo is the second kind. We do not operate stretch limousines or party buses. Every limousine booking is a black S-Class with a chauffeur in a suit, a quiet cabin and a fixed price agreed before the trip.",
+      "If your group is larger than three, the same service runs in a Mercedes V-Class for up to six passengers, or in several cars that travel together."
+    ]
+  },
+  "features": {
+    "label": "Ways to book",
+    "headingLine1": "One limousine,",
+    "headingItalic": "many occasions.",
+    "items": [
+      { "title": "Airport limousine", "body": "Your chauffeur tracks the flight, waits in the arrivals hall with a name board and includes 60 minutes of free waiting. From €{sClassAirport} to anywhere in Prague." },
+      { "title": "Wedding limousine", "body": "A clean black S-Class for the couple, on time to the minute. The chauffeur waits during the ceremony and the photographs, then takes you on to the reception." },
+      { "title": "Business and roadshows", "body": "A car waiting outside every meeting, Wi-Fi on board and a chauffeur who keeps the schedule. Monthly invoicing is available for companies." },
+      { "title": "Evenings out", "body": "Dinner, the opera or the National Theatre without thinking about parking or taxis. Hourly hire from €{hourlyS} per hour with a 2-hour minimum." },
+      { "title": "VIP and delegations", "body": "Discreet chauffeurs, privacy glass and several cars coordinated for one programme — for delegations, artists and private clients." },
+      { "title": "Intercity by limousine", "body": "Vienna, Munich, Berlin or Budapest in an S-Class, door to door, with tolls and vignettes included in the fixed price." }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Booking a limousine in four steps.",
+    "items": [
+      { "title": "Choose the S-Class", "body": "Enter the pickup, destination and time, then choose First Class — the Mercedes S-Class. You see the full price before paying." },
+      { "title": "Add the details", "body": "Flight number, name for the board, child seats, a stop on the way or a dress code for the chauffeur." },
+      { "title": "Meet your chauffeur", "body": "You receive the chauffeur’s name and phone number in advance. They arrive early and wait at the agreed place." },
+      { "title": "Ride in quiet", "body": "Massage seats, water on board and a calm cabin. Extra stops or extra time can be arranged with the chauffeur on the day." }
+    ]
+  },
+  "editorial": {
+    "label": "Why the S-Class",
+    "headingLine1": "A limousine is the cabin,",
+    "headingItalic": "not the length.",
+    "paragraphs": [
+      "What makes a car a limousine is not how long it is but how it feels inside. The S-Class has rear massage seats, Nappa leather, ambient lighting and a panoramic roof, with privacy glass and enough legroom to work or sleep after a long-haul flight.",
+      "It is also a car that fits Prague. A stretch limousine cannot turn in the lanes of the Old Town or stop outside most hotels; an S-Class can go wherever a normal car goes, and the chauffeur knows where it may wait.",
+      "Every chauffeur speaks English, with Russian, German or Czech on request. Bottled water, Wi-Fi and charging are always on board; child seats are free on request."
+    ]
+  },
+  "faqsHeading": "Limousine questions",
+  "faqs": [
+    { "q": "How much does a limousine in Prague cost?", "a": "An S-Class airport transfer to Prague starts at €{sClassAirport}. Hourly limousine hire starts at €{hourlyS} per hour with a 2-hour minimum. The price is fixed when you book; there is no meter." },
+    { "q": "Do you have stretch limousines or Hummer limousines?", "a": "No. Prestigo operates executive limousines only — the Mercedes-Benz S-Class — plus the E-Class and the V-Class for groups. We do not run stretch limos or party buses." },
+    { "q": "Can I book a limousine for a wedding in Prague?", "a": "Yes. The chauffeur arrives early, waits during the ceremony and photographs and drives the couple to the reception. For guests, add a V-Class or several cars." },
+    { "q": "How many people fit in the limousine?", "a": "The S-Class takes up to 3 passengers with 2 large cases and 2 cabin bags. For up to 6 passengers, book a Mercedes V-Class." },
+    { "q": "Can the limousine meet me at Prague Airport?", "a": "Yes. The chauffeur tracks your flight, waits in the arrivals hall with a name board and includes 60 minutes of free waiting after landing." },
+    { "q": "How far in advance should I book?", "a": "Book online at least 12 hours ahead. For shorter notice, call +420 725 986 855 — we operate 24/7." }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "More ways to travel in an S-Class.",
+    "links": [
+      { "href": "/fleet/s-class", "title": "Mercedes S-Class", "body": "The car in detail: cabin, capacity and what is included with every booking." },
+      { "href": "/services/vip-events", "title": "VIP and events", "body": "Delegations, weddings and multi-car programmes coordinated end to end." },
+      { "href": "/services/airport-transfer", "title": "Prague Airport Transfer", "body": "Fixed-price pickup from PRG with meet and greet and flight tracking." },
+      { "href": "/services/private-driver-prague", "title": "Private driver in Prague", "body": "A car and driver by the hour, for a day trip or for several days." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "A limousine in Prague, without surprises.",
+    "headingItalic": "Mercedes S-Class with a chauffeur."
+  }
+}

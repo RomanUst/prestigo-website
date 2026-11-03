@@ -1,0 +1,91 @@
+{
+  "metadata": {
+    "title": "Limusina en Praga con chófer — Mercedes S-Class",
+    "description": "Servicio de limusina en Praga: un Mercedes S-Class con chófer profesional para llegadas al aeropuerto, bodas, viajes de negocios y noches VIP. Disponible 24/7.",
+    "ogTitle": "Limusina en Praga — Mercedes S-Class con chófer"
+  },
+  "breadcrumbName": "Limusina en Praga",
+  "hero": {
+    "label": "Limusina · Praga",
+    "headlineLine1": "Servicio de limusina en Praga.",
+    "headlineItalic": "El S-Class, con chófer.",
+    "intro": "Reserve una limusina en Praga como viajan directivos y diplomáticos: un Mercedes-Benz S-Class con chófer profesional para una llegada al aeropuerto, una boda, un día de reuniones o una noche en la ópera. Precio fijo antes de reservar, desde €{sClassAirport} por un traslado al aeropuerto o €{hourlyS} por hora.",
+    "ctaPrimary": "Reservar limusina",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Cabina trasera de una limusina Mercedes-Benz S-Class con asientos de cuero"
+  },
+  "glance": {
+    "label": "De un vistazo",
+    "items": [
+      { "label": "El coche", "value": "Mercedes-Benz S-Class, modelo 2025 o posterior" },
+      { "label": "Capacidad", "value": "Hasta 3 pasajeros, 2 maletas grandes + 2 de cabina" },
+      { "label": "Aeropuerto", "value": "Desde €{sClassAirport}, recibimiento con cartel con su nombre" },
+      { "label": "Por horas", "value": "Desde €{hourlyS}/hora, mínimo 2 horas" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Qué significa limusina",
+    "headingItalic": "en Prestigo.",
+    "paragraphs": [
+      "En Praga, «limusina» puede significar dos cosas muy distintas. Una es la limusina alargada o el Hummer de fiesta: largo, ruidoso y pensado para una noche de juerga. La otra es la limusina ejecutiva: el Mercedes-Benz S-Class, el coche que usan embajadas, jefes de Estado y hoteles de cinco estrellas para mover a sus invitados.",
+      "Prestigo es la segunda. No operamos limusinas alargadas ni party buses. Cada reserva de limusina es un S-Class negro con un chófer de traje, una cabina silenciosa y un precio fijo acordado antes del viaje.",
+      "Si su grupo es de más de tres personas, el mismo servicio funciona en un Mercedes V-Class para hasta seis pasajeros, o en varios coches que viajan juntos."
+    ]
+  },
+  "features": {
+    "label": "Formas de reservar",
+    "headingLine1": "Una limusina,",
+    "headingItalic": "muchas ocasiones.",
+    "items": [
+      { "title": "Limusina al aeropuerto", "body": "El chófer sigue su vuelo, le espera en la sala de llegadas con un cartel e incluye 60 minutos de espera gratuita. Desde €{sClassAirport} a cualquier punto de Praga." },
+      { "title": "Limusina para bodas", "body": "Un S-Class negro impecable para los novios, puntual al minuto. El chófer espera durante la ceremonia y las fotos y les lleva al banquete." },
+      { "title": "Negocios y roadshows", "body": "Un coche esperando a la salida de cada reunión, Wi-Fi a bordo y un chófer que cumple la agenda. Facturación mensual para empresas." },
+      { "title": "Noches de salida", "body": "Cena, ópera o Teatro Nacional sin pensar en aparcar ni en taxis. Alquiler por horas desde €{hourlyS}/hora con un mínimo de 2 horas." },
+      { "title": "VIP y delegaciones", "body": "Chóferes discretos, cristales tintados y varios coches coordinados en un mismo programa, para delegaciones, artistas y clientes privados." },
+      { "title": "Interurbano en limusina", "body": "Viena, Múnich, Berlín o Budapest en S-Class, puerta a puerta, con peajes y viñetas incluidos en el precio fijo." }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Reservar una limusina en cuatro pasos.",
+    "items": [
+      { "title": "Elija el S-Class", "body": "Indique recogida, destino y hora, y elija First Class: el Mercedes S-Class. Verá el precio completo antes de pagar." },
+      { "title": "Añada los detalles", "body": "Número de vuelo, nombre para el cartel, sillas infantiles, una parada en el camino o el código de vestimenta del chófer." },
+      { "title": "Conozca a su chófer", "body": "Recibe con antelación el nombre y el teléfono del chófer. Llega antes de la hora y espera en el lugar acordado." },
+      { "title": "Viaje en silencio", "body": "Asientos con masaje, agua a bordo y una cabina tranquila. Paradas o tiempo extra se acuerdan con el chófer el mismo día." }
+    ]
+  },
+  "editorial": {
+    "label": "Por qué el S-Class",
+    "headingLine1": "Una limusina es la cabina,",
+    "headingItalic": "no la longitud.",
+    "paragraphs": [
+      "Lo que convierte un coche en limusina no es su longitud, sino cómo se siente por dentro. El S-Class tiene asientos traseros con masaje, cuero Nappa, iluminación ambiental y techo panorámico, cristales de privacidad y espacio suficiente para trabajar o dormir tras un vuelo largo.",
+      "Además, es un coche que encaja en Praga. Una limusina alargada no puede girar en las callejuelas de la Ciudad Vieja ni detenerse frente a la mayoría de hoteles; un S-Class llega a donde llega cualquier coche, y el chófer sabe dónde puede esperar.",
+      "Todos los chóferes hablan inglés; ruso, alemán o checo bajo petición. Agua, Wi-Fi y cargadores siempre a bordo; sillas infantiles gratuitas bajo petición."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre la limusina",
+  "faqs": [
+    { "q": "¿Cuánto cuesta una limusina en Praga?", "a": "Un traslado en S-Class del aeropuerto a Praga cuesta desde €{sClassAirport}. El alquiler de limusina por horas, desde €{hourlyS}/hora con un mínimo de 2 horas. El precio se fija al reservar; no hay taxímetro." },
+    { "q": "¿Tienen limusinas alargadas o Hummer?", "a": "No. Prestigo opera solo limusinas ejecutivas —el Mercedes-Benz S-Class— además del E-Class y del V-Class para grupos. No ofrecemos limusinas alargadas ni party buses." },
+    { "q": "¿Puedo reservar una limusina para una boda en Praga?", "a": "Sí. El chófer llega con antelación, espera durante la ceremonia y las fotos y lleva a los novios al banquete. Para los invitados, añada un V-Class o varios coches." },
+    { "q": "¿Cuántas personas caben en la limusina?", "a": "El S-Class admite hasta 3 pasajeros con 2 maletas grandes y 2 de cabina. Para hasta 6 pasajeros, reserve un Mercedes V-Class." },
+    { "q": "¿Puede la limusina recogerme en el aeropuerto de Praga?", "a": "Sí. El chófer sigue su vuelo, le espera en la sala de llegadas con un cartel e incluye 60 minutos de espera gratuita tras el aterrizaje." },
+    { "q": "¿Con cuánta antelación debo reservar?", "a": "Reserve online al menos 12 horas antes. Con menos antelación, llame al +420 725 986 855; trabajamos 24/7." }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Más formas de viajar en S-Class.",
+    "links": [
+      { "href": "/fleet/s-class", "title": "Mercedes S-Class", "body": "El coche en detalle: cabina, capacidad y qué incluye cada reserva." },
+      { "href": "/services/vip-events", "title": "VIP y eventos", "body": "Delegaciones, bodas y programas con varios coches coordinados de principio a fin." },
+      { "href": "/services/airport-transfer", "title": "Traslado aeropuerto de Praga", "body": "Recogida en PRG a precio fijo, con cartel y seguimiento del vuelo." },
+      { "href": "/services/private-driver-prague", "title": "Conductor privado en Praga", "body": "Coche con conductor por horas, para una excursión o para varios días." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Una limusina en Praga, sin sorpresas.",
+    "headingItalic": "Mercedes S-Class con chófer."
+  }
+}
