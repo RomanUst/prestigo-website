@@ -404,6 +404,114 @@ describe('advanceBookingStatus — profile cancel-route', () => {
   })
 })
 
+describe('advanceBookingStatus — profile assign-route', () => {
+  const assignRow = {
+    ...baseRow,
+    status: 'confirmed',
+    booking_source: 'gnet',
+    payment_link_id: 'plink_7',
+    pickup_utc: '2026-12-01T10:00:00.000Z',
+  }
+  const DRIVER_ID = 'c3d4e5f6-a7b8-4901-92d3-e4f5a6b7c8d9'
+
+  it('writes { driver_id, status: assigned } in one update from the supplied row (no select)', async () => {
+    buildSupabaseMock({ bookingData: assignRow })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'assigned',
+      actor: adminActor,
+      source: 'admin_assign',
+      profile: 'assign-route',
+      current: assignRow,
+      patch: { driver_id: DRIVER_ID },
+    })
+    expect(result.ok).toBe(true)
+    expect(mockSupabaseFrom).toHaveBeenCalledTimes(1)
+    expect(mockBookingsUpdate).toHaveBeenCalledTimes(1)
+    expect(mockBookingsUpdate.mock.calls[0][0]).toEqual({ driver_id: DRIVER_ID, status: 'assigned' })
+  })
+
+  it('gnet booking: pushes ASSIGNED once after the write, with the assign log prefix on failure', async () => {
+    mockPushGnetStatus.mockRejectedValueOnce(new Error('GNet 503'))
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    buildSupabaseMock({ bookingData: assignRow })
+    await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'assigned',
+      actor: adminActor,
+      source: 'admin_assign',
+      profile: 'assign-route',
+      current: assignRow,
+      patch: { driver_id: DRIVER_ID },
+    })
+    await flushAfterCallbacks()
+    expect(mockPushGnetStatus).toHaveBeenCalledTimes(1)
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'ASSIGNED', '120.00')
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[assign:gnet-push] failed',
+      expect.objectContaining({ bookingId: BOOKING_ID, error: 'GNet 503' }),
+    )
+    expect(mockGnetBookingsUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ last_push_status: 'ASSIGNED', last_push_error: 'GNet 503' }),
+    )
+    errorSpy.mockRestore()
+  })
+
+  it('non-gnet booking: no push, and no after() scheduled', async () => {
+    const row = { ...assignRow, booking_source: 'website' }
+    buildSupabaseMock({ bookingData: row })
+    await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'assigned',
+      actor: adminActor,
+      source: 'admin_assign',
+      profile: 'assign-route',
+      current: row,
+      patch: { driver_id: DRIVER_ID },
+    })
+    await flushAfterCallbacks()
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+    expect(afterCallbacks.length).toBe(0)
+  })
+
+  it('sends no status email, schedules no QStash reminder and clears no payment link', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({ bookingData: assignRow })
+    await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'assigned',
+      actor: adminActor,
+      source: 'admin_assign',
+      profile: 'assign-route',
+      current: assignRow,
+      patch: { driver_id: DRIVER_ID },
+    })
+    await flushAfterCallbacks()
+    expect(mockLogEmail).not.toHaveBeenCalled()
+    expect(mockSendConfirmed).not.toHaveBeenCalled()
+    expect(mockScheduleQStash).not.toHaveBeenCalled()
+    expect(mockDeactivateLink).not.toHaveBeenCalled()
+    const payload = mockBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
+    expect(payload).not.toHaveProperty('payment_link_id')
+  })
+
+  it('a failed write returns db_error and pushes nothing to GNet', async () => {
+    buildSupabaseMock({ bookingData: assignRow, updateError: { message: 'write failed' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'assigned',
+      actor: adminActor,
+      source: 'admin_assign',
+      profile: 'assign-route',
+      current: assignRow,
+      patch: { driver_id: DRIVER_ID },
+    })
+    await flushAfterCallbacks()
+    expect(result).toMatchObject({ ok: false, code: 'db_error' })
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+})
+
 describe('advanceResultToResponse', () => {
   it('returns null for an ok result', () => {
     const ok: AdvanceBookingStatusResult = {

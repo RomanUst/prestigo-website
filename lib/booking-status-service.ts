@@ -101,6 +101,7 @@ export async function advanceBookingStatus(
 
   // Build the update payload field-by-field (mass-assignment guard).
   const updatePayload: Record<string, unknown> = {}
+  if (profile === 'assign-route') updatePayload.driver_id = patch?.driver_id
   updatePayload.status = to
   if (profile === 'full') {
     if (patch?.operator_notes !== undefined) updatePayload.operator_notes = patch.operator_notes
@@ -141,9 +142,26 @@ export async function advanceBookingStatus(
     booking,
   }
 
-  // Profiles 'cancel-route' and 'assign-route' are wired in Tasks 2-3 of plan
-  // 87-01; until then they run no side effects.
-  if (profile !== 'full') return result
+  // 'cancel-route': no side effect at all (today's cancel route sends no email,
+  // deactivates no link and pushes nothing to GNet).
+  if (profile === 'cancel-route') return result
+
+  // 'assign-route': the GNet push only. Scheduled last so the caller's next query
+  // keeps its place in the call order.
+  if (profile === 'assign-route') {
+    if (current.booking_source === 'gnet' && previousStatus !== to) {
+      after(() =>
+        pushGnetForTransition({
+          bookingId,
+          bookingSource: current.booking_source as string | null,
+          status: to,
+          amountEur: current.amount_eur,
+          logTag: '[assign:gnet-push]',
+        }),
+      )
+    }
+    return result
+  }
 
   // ── profile 'full' ──
 
