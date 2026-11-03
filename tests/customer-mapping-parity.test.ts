@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import { rowToBooking, SYNCED_BOOKING_FIELDS } from '../infra/espocrm/lib/booking-map.mjs'
 import { buildCBookingDraft, buildContactDraft, CBOOKING_SYNCED_FIELDS } from '@/lib/customer-mapping'
 import type { CrmBookingRecord, PersonRecord } from '@/lib/identity-store'
+import { BOOKING_STATUSES } from '@/lib/booking-status'
 
 // Synthetic fixtures only (example/x.test domains, fake names). Tests may import infra code; lib must not.
 
@@ -76,7 +77,7 @@ const FIXTURES: Array<[string, CrmBookingRecord]> = [
   ],
   ['blank last name', row({ client_last_name: '' })],
   ['reference with spaces and symbols', row({ booking_reference: ' PRG 2026/01 &x ' })],
-  ...['unpaid', 'pending', 'confirmed', 'completed', 'cancelled', 'assigned', 'en_route', 'on_location'].map(
+  ...BOOKING_STATUSES.map(
     (status) => [`status ${status}`, row({ status })] as [string, CrmBookingRecord],
   ),
   ...['business', 'first_class', 'business_van'].map(
@@ -104,6 +105,7 @@ describe('buildCBookingDraft equals the Phase 80 rowToBooking', () => {
 
   it.each([
     ['status', { status: 'refunded' }],
+    ['status (arrived is not a booking status)', { status: 'arrived' }],
     ['source', { booking_source: 'partner' }],
     ['leg', { leg: 'middle' }],
     ['trip_type', { trip_type: 'one_way' }],

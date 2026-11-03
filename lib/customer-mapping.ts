@@ -1,6 +1,7 @@
 import type { CrmBookingRecord, PersonRecord } from '@/lib/identity-store'
 import { E164_RE } from '@/lib/phone'
 import { splitName } from '@/lib/lead-mapping'
+import { BOOKING_STATUSES } from '@/lib/booking-status'
 
 /**
  * Pure mapping Supabase -> EspoCRM CBooking / Contact (Phase 82, plan 82-07). No env, no I/O.
@@ -57,16 +58,9 @@ export type CBookingResult = { ok: true; draft: CBookingDraft } | { ok: false; c
 
 // ── Enum pins (same values as the Phase 80 mapper, which pins them against migrations/types) ──
 
-const BOOKING_STATUS_VALUES = [
-  'unpaid',
-  'pending',
-  'confirmed',
-  'completed',
-  'cancelled',
-  'assigned',
-  'en_route',
-  'on_location',
-]
+// D-02: derived from the single status vocabulary; infra/espocrm/lib/booking-map.mjs keeps its own copy
+// (infra never imports app code) and is parity-tested against the latest bookings_status_check.
+const BOOKING_STATUS_VALUES: string[] = [...BOOKING_STATUSES]
 const BOOKING_SOURCE_VALUES = ['online', 'manual', 'gnet']
 const VEHICLE_CLASS_VALUES = ['business', 'first_class', 'business_van']
 const TRIP_TYPE_VALUES = ['transfer', 'hourly', 'daily', 'round_trip']
