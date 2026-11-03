@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendDriverDeclineNotification } from '@/lib/email'
+import { sendDriverAcceptedTripEmail } from '@/lib/driver-accept-email'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const respondSchema = z.object({
@@ -87,6 +88,12 @@ export async function POST(request: Request) {
         driverName: driver.name,
       }).catch(err => console.error('[driver-decline]:', err)))
     }
+  }
+
+  // If accepted, email the driver the order details and the trip link (87-UAT gap 1).
+  // Fire-and-forget inside after(): a failure here never changes the response (D-21).
+  if (action === 'accepted') {
+    after(() => sendDriverAcceptedTripEmail(assignment.id).catch(err => console.error('[driver-accept]:', err)))
   }
 
   return NextResponse.json({ ok: true })
