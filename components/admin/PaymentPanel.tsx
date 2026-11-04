@@ -1,6 +1,9 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Check, Copy, LoaderCircle, TriangleAlert } from 'lucide-react'
 import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
+import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
+import { Modal } from './Modal'
 import { PaymentStateBadge, RefundFailedBadge } from './PaymentStateBadge'
 
 // Phase 88-07 (HOLD-07, PAYF-01, D-14, D-20): self-contained admin payment panel. It fetches
@@ -198,7 +201,15 @@ interface Fact {
   value: React.ReactNode
 }
 
-function buildFacts(p: PaymentSnapshot): Fact[] {
+interface LinkCopyState {
+  copied: boolean
+  /** The clipboard was unavailable: the link is shown so the operator can select it. */
+  manual: boolean
+  onCopy: () => void
+  fallbackId: string
+}
+
+function buildFacts(p: PaymentSnapshot, link: LinkCopyState): Fact[] {
   const facts: Fact[] = []
   const cur = p.currency
   const push = (key: string, caption: string, value: React.ReactNode | null) => {
@@ -236,6 +247,22 @@ function buildFacts(p: PaymentSnapshot): Fact[] {
     // D-13: one automatic retry is scheduled while payment_retry_count is 0 and a time is set.
     const scheduled = p.payment_retry_at && p.payment_retry_count < 1 ? formatPragueFull(p.payment_retry_at) : null
     push('retry', 'Automatic retry', scheduled ? `Once, at ${scheduled}` : 'No more automatic retries')
+  }
+  if (p.recovery_link_url) {
+    push('link', 'Payment link', (
+      <span style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+        <span>Sent</span>
+        <button type="button" onClick={link.onCopy} style={{ ...outlineButtonStyle, display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0 16px' }}>
+          {link.copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+          <span aria-live="polite">{link.copied ? 'Copied' : 'Copy link'}</span>
+        </button>
+        {link.manual && (
+          <span id={link.fallbackId} style={{ ...labelStyle, flexBasis: '100%', overflowWrap: 'anywhere', userSelect: 'all' }}>
+            {p.recovery_link_url}
+          </span>
+        )}
+      </span>
+    ))
   }
   return facts
 }
@@ -354,6 +381,257 @@ function PanelHeader({ children }: { children?: React.ReactNode }) {
   )
 }
 
+// ── alert banner (D-14, HOLD-05, D-20) ───────────────────────────────────────
+
+type BannerFamily = 'danger' | 'amber' | 'warn'
+interface BannerSpec {
+  family: BannerFamily
+  title: string
+  body: string
+}
+
+const HOUR_MS = 3_600_000
+const NO_HOLD_STATES = ['card_saved', 'failed', 'expired', 'placing_hold', 'checkout_pending']
+
+/** Amount still owed on the booking: booked minus captured (null when the price is unknown). */
+function outstandingMinor(p: PaymentSnapshot): number | null {
+  if (p.amount_minor === null) return null
+  const due = p.amount_minor - p.captured_amount_minor
+  return due > 0 ? due : p.amount_minor
+}
+
+function refundFailedBanner(p: PaymentSnapshot): BannerSpec {
+  const amount = p.amount_minor !== null ? ` of ${money(p.amount_minor, p.currency)}` : ''
+  return {
+    family: 'danger',
+    title: 'Refund failed',
+    body: `Booking ${p.booking_reference} was cancelled, but the refund${amount} did not go through. Refund it manually in the Stripe Dashboard. The operator alert was emailed to you.`,
+  }
+}
+
+/** First matching rule wins (UI-SPEC alert banner rules). */
+function computeBanner(data: PaymentResponse, nowMs: number): BannerSpec | null {
+  const p = data.payment
+  if (data.refund_failed) return refundFailedBanner(p)
+  if (p.state === 'failed') {
+    const retryAt = p.payment_retry_at && p.payment_retry_count < 1 ? formatPragueFull(p.payment_retry_at) : null
+    return {
+      family: 'danger',
+      title: 'Payment failed',
+      body: `The client was emailed a payment link. ${retryAt
+        ? `Automatic retry at ${retryAt}, once.`
+        : 'No automatic retries are left. Use Retry or Send payment link.'}`,
+    }
+  }
+  if (p.state === 'balance_due') {
+    const diff = p.amount_minor !== null ? p.amount_minor - p.captured_amount_minor : null
+    return {
+      family: 'danger',
+      title: 'Balance unpaid',
+      body: `The trip amount was captured, but ${diff !== null && diff > 0 ? money(diff, p.currency) : 'the difference'} was declined. The client was emailed a payment link.`,
+    }
+  }
+  if (p.state === 'expired' && !p.completed) {
+    return {
+      family: 'amber',
+      title: 'Hold expired',
+      body: 'The hold ran out before the trip. It will be charged to the saved card after the trip, or place a new hold now.',
+    }
+  }
+  if (p.state === 'authorized' && !p.completed && p.capture_before) {
+    const endsMs = new Date(p.capture_before).getTime()
+    if (!Number.isNaN(endsMs) && endsMs - nowMs <= 12 * HOUR_MS) {
+      return {
+        family: 'amber',
+        title: 'Hold expires soon',
+        body: `The hold ends on ${formatPragueFull(p.capture_before)}. Complete the trip before then or place a new hold.`,
+      }
+    }
+  }
+  if (NO_HOLD_STATES.includes(p.state) && !p.completed && p.pickup_at) {
+    const pickupMs = new Date(p.pickup_at).getTime()
+    if (!Number.isNaN(pickupMs) && pickupMs - nowMs <= 24 * HOUR_MS) {
+      return {
+        family: 'warn',
+        title: 'No valid hold',
+        body: 'Pickup is within 24 hours and this booking has no valid hold or payment.',
+      }
+    }
+  }
+  return null
+}
+
+function AlertBanner({ spec }: { spec: BannerSpec }) {
+  return (
+    <div
+      role={spec.family === 'danger' ? 'alert' : 'status'}
+      style={{
+        display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '16px', padding: '16px',
+        background: `var(--status-${spec.family}-bg)`,
+        border: `1px solid var(--status-${spec.family}-border)`,
+        borderRadius: 'var(--admin-radius-md)',
+      }}
+    >
+      <TriangleAlert size={20} aria-hidden="true" style={{ flexShrink: 0, color: `var(--status-${spec.family}-fg)` }} />
+      <div style={{ ...bodyStyle, minWidth: 0 }}>
+        <strong style={{ display: 'block', fontWeight: 'var(--admin-fw-strong)', color: `var(--status-${spec.family}-fg)` }}>
+          {spec.title}
+        </strong>
+        <span style={{ overflowWrap: 'anywhere' }}>{spec.body}</span>
+      </div>
+    </div>
+  )
+}
+
+// ── actions and confirm modals (HOLD-07, T-88-17) ────────────────────────────
+
+interface ConfirmCopy {
+  title: string
+  body: string
+  primary: string
+  secondary: string
+  danger: boolean
+}
+
+function actionButtonLabel(action: PaymentActionName, completed: boolean): string {
+  switch (action) {
+    case 'capture': return 'Capture'
+    case 'retry': return completed ? 'Retry charge' : 'Place hold now'
+    case 'send_link': return 'Send payment link'
+    case 'release': return 'Release hold'
+    case 'waive': return 'Waive balance'
+  }
+}
+
+function confirmCopy(action: PaymentActionName, p: PaymentSnapshot): ConfirmCopy {
+  const ref = p.booking_reference
+  const due = outstandingMinor(p)
+  const text = (minor: number | null) => (minor !== null ? money(minor, p.currency) : 'the amount')
+  const withAmount = (prefix: string, minor: number | null) => (minor !== null ? `${prefix} ${money(minor, p.currency)}` : prefix)
+  switch (action) {
+    case 'capture': {
+      const amount = due ?? p.hold_amount_minor
+      return {
+        title: 'Capture payment',
+        body: `Charge ${text(amount)} to the client's card for booking ${ref} now? The hold becomes the final charge. Refunds are made in Stripe.`,
+        primary: withAmount('Capture', amount),
+        secondary: "Don't capture",
+        danger: false,
+      }
+    }
+    case 'retry': {
+      if (!p.completed) {
+        const amount = p.amount_minor ?? p.hold_amount_minor
+        return {
+          title: 'Place hold now',
+          body: `Hold ${text(amount)} on the client's saved card for booking ${ref}? A hold is not a charge.`,
+          primary: 'Place hold',
+          secondary: "Don't place hold",
+          danger: false,
+        }
+      }
+      return {
+        title: 'Retry charge',
+        body: `Charge ${text(due)} to the client's saved card for booking ${ref}? If it is declined, the client gets a payment link.`,
+        primary: withAmount('Charge', due),
+        secondary: "Don't charge",
+        danger: false,
+      }
+    }
+    case 'send_link':
+      return {
+        title: 'Send payment link',
+        body: `Email a payment link for ${text(due)} to ${p.client_email ?? 'the client'}? Any older link stops working.`,
+        primary: 'Send link',
+        secondary: "Don't send link",
+        danger: false,
+      }
+    case 'release':
+      return {
+        title: 'Release hold',
+        body: `Release the hold of ${text(p.hold_amount_minor ?? p.amount_minor)} for booking ${ref}? Nothing will be charged and the client's card is released. This cannot be undone.`,
+        primary: 'Release hold',
+        secondary: 'Keep hold',
+        danger: true,
+      }
+    case 'waive':
+      return {
+        title: 'Waive balance',
+        body: `Write off the unpaid ${text(p.amount_minor !== null ? p.amount_minor - p.captured_amount_minor : null)} for booking ${ref}? The client will not be asked to pay it. This cannot be undone.`,
+        primary: 'Waive balance',
+        secondary: 'Keep balance',
+        danger: true,
+      }
+  }
+}
+
+const COPY_BUSY = 'Payment is being processed. Wait a moment and try again.'
+const COPY_GENERIC = 'Could not complete the action. Nothing was changed. Try again.'
+const COPY_SESSION = 'Your session has ended. Sign in again.'
+const COPY_GONE = 'That action is no longer available. The panel shows the current state.'
+const COPY_DONE = 'Done. The payment history is updated.'
+const COPY_DECLINED = 'The card was declined. The client was emailed a payment link.'
+
+function ConfirmDialog({
+  copy, submitting, error, onConfirm, onDismiss,
+}: {
+  copy: ConfirmCopy
+  submitting: boolean
+  error: string | null
+  onConfirm: () => void
+  onDismiss: () => void
+}) {
+  const dismissRef = useRef<HTMLButtonElement>(null)
+
+  // Money actions open with focus on the safe choice. Deferred one tick so Modal records the
+  // trigger button (for focus return) before focus moves.
+  useEffect(() => {
+    const t = setTimeout(() => dismissRef.current?.focus(), 0)
+    return () => clearTimeout(t)
+  }, [])
+
+  const primaryColors = copy.danger
+    ? { background: 'var(--admin-danger-solid)', color: 'var(--admin-on-danger)' }
+    : { background: 'var(--admin-accent)', color: 'var(--admin-on-accent)' }
+
+  return (
+    <>
+      <p style={{ ...bodyStyle, margin: 0, overflowWrap: 'anywhere' }}>{copy.body}</p>
+      {error && (
+        <p role="alert" style={{ ...bodyStyle, color: 'var(--status-danger-fg)', margin: '16px 0 0' }}>{error}</p>
+      )}
+      <div className="flex flex-col sm:flex-row" style={{ gap: '8px', marginTop: '24px' }}>
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={submitting}
+          style={{
+            ...outlineButtonStyle,
+            ...primaryColors,
+            border: 'none',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            opacity: submitting ? 0.7 : 1,
+            cursor: submitting ? 'not-allowed' : 'pointer',
+            ...amountStyle,
+          }}
+        >
+          {submitting && <LoaderCircle size={16} aria-hidden="true" className="animate-spin motion-reduce:animate-none" />}
+          {submitting ? 'Working…' : copy.primary}
+        </button>
+        <button
+          ref={dismissRef}
+          type="button"
+          onClick={onDismiss}
+          disabled={submitting}
+          style={{ ...outlineButtonStyle, opacity: submitting ? 0.7 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
+        >
+          {copy.secondary}
+        </button>
+      </div>
+    </>
+  )
+}
+
 type LoadState =
   | { status: 'loading' }
   | { status: 'error' }
@@ -428,9 +706,111 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode }:
   }
 
   const { data } = load
-  const p = data.payment
-  const isCard = p.mode === 'card_hold'
+  const isCard = data.payment.mode === 'card_hold'
   if (!isCard && !data.refund_failed) return null
+
+  // D-20: any payment mode. A non-card booking (legacy pay-now) gets only the Refund failed banner.
+  if (!isCard) {
+    return (
+      <div data-testid="payment-refund-failed" onClick={(e) => e.stopPropagation()}>
+        <AlertBanner spec={refundFailedBanner(data.payment)} />
+      </div>
+    )
+  }
+
+  return (
+    <PanelBody
+      bookingId={bookingId}
+      data={data}
+      onRefetch={() => setReloadTick(t => t + 1)}
+    />
+  )
+}
+
+const KNOWN_ACTIONS: readonly PaymentActionName[] = ['capture', 'retry', 'send_link', 'release', 'waive']
+
+function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: PaymentResponse; onRefetch: () => void }) {
+  const p = data.payment
+  const [modal, setModal] = useState<PaymentActionName | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [modalError, setModalError] = useState<string | null>(null)
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null)
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'manual'>('idle')
+  const inFlight = useRef(false)
+  const linkFallbackId = `payment-link-url-${bookingId}`
+
+  // The result line clears after 8 s (or on the next action).
+  useEffect(() => {
+    if (!result) return
+    const t = setTimeout(() => setResult(null), 8000)
+    return () => clearTimeout(t)
+  }, [result])
+
+  useEffect(() => {
+    if (copyState !== 'copied') return
+    const t = setTimeout(() => setCopyState('idle'), 2000)
+    return () => clearTimeout(t)
+  }, [copyState])
+
+  const openModal = (action: PaymentActionName) => {
+    setResult(null)
+    setModalError(null)
+    setModal(action)
+  }
+
+  const closeModal = () => {
+    if (submitting) return // cannot be dismissed while a money action is in flight
+    setModal(null)
+    setModalError(null)
+  }
+
+  async function confirm() {
+    if (!modal || inFlight.current) return
+    const action = modal
+    inFlight.current = true
+    setSubmitting(true)
+    setModalError(null)
+    setResult(null)
+    try {
+      // T-88-17: the body carries the action name only; the server decides and re-checks everything.
+      const res = await fetch(`/api/admin/bookings/${bookingId}/payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      const body: { outcome?: string; error?: string } | null = await res.json().catch(() => null)
+      if (res.ok) {
+        setModal(null)
+        setResult(body?.outcome === 'declined' ? { ok: false, text: COPY_DECLINED } : { ok: true, text: COPY_DONE })
+        onRefetch()
+      } else if (res.status === 409 && body?.error === 'payment_busy') {
+        setModalError(COPY_BUSY)
+      } else if (res.status === 422) {
+        setModal(null)
+        setResult({ ok: false, text: COPY_GONE })
+        onRefetch()
+      } else if (res.status === 401 || res.status === 403) {
+        setModalError(COPY_SESSION)
+      } else {
+        setModalError(COPY_GENERIC)
+      }
+    } catch {
+      setModalError(COPY_GENERIC)
+    } finally {
+      inFlight.current = false
+      setSubmitting(false)
+    }
+  }
+
+  async function copyLink() {
+    if (!p.recovery_link_url) return
+    const copied = await copyPaymentLinkToClipboard(p.recovery_link_url, linkFallbackId)
+    setCopyState(copied ? 'copied' : 'manual')
+  }
+
+  const banner = computeBanner(data, Date.now())
+  const actions = data.allowed_actions.filter(a => KNOWN_ACTIONS.includes(a))
+  const modalCopy = modal ? confirmCopy(modal, p) : null
 
   return (
     <div data-testid="payment-panel" style={cardStyle} onClick={(e) => e.stopPropagation()}>
@@ -438,8 +818,56 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode }:
         <PaymentStateBadge state={p.state} />
         {data.refund_failed && <RefundFailedBadge />}
       </PanelHeader>
-      <FactsGrid facts={buildFacts(p)} />
+
+      {banner && <AlertBanner spec={banner} />}
+
+      <FactsGrid
+        facts={buildFacts(p, { copied: copyState === 'copied', manual: copyState === 'manual', onCopy: copyLink, fallbackId: linkFallbackId })}
+      />
+
+      {actions.length === 0 ? (
+        <p style={{ ...bodyStyle, color: 'var(--admin-text-muted)', margin: '16px 0 0' }}>No actions available in this state.</p>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:flex-wrap" style={{ gap: '8px', marginTop: '16px' }}>
+          {actions.map(action => (
+            <button
+              key={action}
+              type="button"
+              disabled={submitting}
+              onClick={() => openModal(action)}
+              style={{ ...outlineButtonStyle, opacity: submitting ? 0.6 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
+            >
+              {actionButtonLabel(action, p.completed)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {result && (
+        <p
+          role="status"
+          style={{
+            margin: '8px 0 0', fontFamily: FONT, fontSize: 'var(--admin-fs-label)',
+            color: result.ok ? 'var(--status-ok-fg)' : 'var(--status-danger-fg)',
+          }}
+        >
+          {result.text}
+        </p>
+      )}
+
       <HistoryList events={data.events} total={data.events_total} />
+
+      <Modal isOpen={modal !== null} onClose={closeModal} title={modalCopy?.title ?? ''}>
+        {modalCopy && (
+          <ConfirmDialog
+            copy={modalCopy}
+            submitting={submitting}
+            error={modalError}
+            onConfirm={() => { void confirm() }}
+            onDismiss={closeModal}
+          />
+        )}
+      </Modal>
     </div>
   )
 }
