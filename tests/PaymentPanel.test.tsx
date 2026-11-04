@@ -582,6 +582,14 @@ describe('PaymentPanel alert banners (D-14, HOLD-05)', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
+  it('a cancelled booking shows no hold or payment banner (88-REVIEW T2)', async () => {
+    stubFetch(makeBody({ payment: { state: 'failed', status: 'cancelled', payment_retry_at: null, payment_retry_count: 1 } }))
+    render(<PaymentPanel bookingId="b-1" />)
+    await screen.findByText('Payment failed')
+    expect(screen.queryByText('Payment failed', { selector: 'strong' })).toBeNull()
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
   it('expired but completed: no Hold expired banner', async () => {
     stubFetch(makeBody({ payment: { state: 'expired', completed: true, capture_before: null } }))
     render(<PaymentPanel bookingId="b-1" />)

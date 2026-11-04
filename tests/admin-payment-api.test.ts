@@ -513,14 +513,15 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
   const EXPECTED: Record<string, { open: PaymentAction[]; done: PaymentAction[] }> = {
     none: { open: [], done: [] },
     checkout_pending: { open: ['release'], done: [] },
-    card_saved: { open: ['retry', 'release'], done: ['capture', 'retry', 'send_link'] },
+    // 88-REVIEW T2: no payment link where the engine still collects by itself (card_saved / authorized / expired).
+    card_saved: { open: ['retry', 'release'], done: ['capture', 'retry'] },
     placing_hold: { open: [], done: [] },
-    authorized: { open: ['release'], done: ['capture', 'send_link'] },
+    authorized: { open: ['release'], done: ['capture'] },
     capturing: { open: [], done: [] },
     captured: { open: [], done: [] },
     balance_due: { open: ['waive', 'send_link'], done: ['waive', 'send_link'] },
     failed: { open: ['retry', 'release', 'send_link'], done: ['capture', 'retry', 'send_link'] },
-    expired: { open: ['retry', 'release'], done: ['capture', 'retry', 'send_link'] },
+    expired: { open: ['retry', 'release'], done: ['capture', 'retry'] },
     released: { open: [], done: [] },
   }
 
@@ -537,6 +538,29 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
     it(`pay_now + ${state}: nothing, completed or not`, () => {
       expect(allowedPaymentActions({ payment_mode: 'pay_now', payment_state: state, status: 'confirmed' })).toEqual([])
       expect(allowedPaymentActions({ payment_mode: 'pay_now', payment_state: state, status: 'completed' })).toEqual([])
+    })
+  }
+
+  // 88-REVIEW T2 (C-WR-03): a cancelled or no-show booking never gets a new hold, a capture or a link; only a hold or
+  // card that is still there can be released.
+  const CLOSED: Record<string, PaymentAction[]> = {
+    none: [],
+    checkout_pending: ['release'],
+    card_saved: ['release'],
+    placing_hold: [],
+    authorized: ['release'],
+    capturing: [],
+    captured: [],
+    balance_due: [],
+    failed: ['release'],
+    expired: ['release'],
+    released: [],
+  }
+  for (const status of ['cancelled', 'no_show']) {
+    it(`${status}: release only, never retry / capture / send_link / waive`, () => {
+      for (const state of PAYMENT_STATES) {
+        expect(allowedPaymentActions({ payment_mode: 'card_hold', payment_state: state, status }), `${status} ${state}`).toEqual(CLOSED[state])
+      }
     })
   }
 
@@ -743,12 +767,23 @@ describe('POST send_link (HOLD-07, D-14, Pitfall 12)', () => {
     expect(mockSendEmail.mock.calls[0][0].booking.payment_amount_minor).toBe(3000)
   })
 
-  it('a completed trip still in authorized may be sent a link; an upcoming one in authorized may not', async () => {
+  it('a booking in authorized (completed or not) is never sent a link: the engine captures it (88-REVIEW T2)', async () => {
     await seedWithHold()
-    expect((await postReq({ action: 'send_link' })).status).toBe(200)
+    expect((await postReq({ action: 'send_link' })).status).toBe(422)
 
     await seedWithHold({ status: 'confirmed', completed_at: null })
     expect((await postReq({ action: 'send_link' })).status).toBe(422)
+    expect(mockRefreshLink).not.toHaveBeenCalled()
+  })
+
+  it('the server refuses send_link and retry on a cancelled or no-show booking even when the state would allow it (T2)', async () => {
+    for (const status of ['cancelled', 'no_show']) {
+      seed({ status, payment_state: 'failed', hold_payment_intent_id: null })
+      expect((await postReq({ action: 'send_link' })).status).toBe(422)
+      expect((await postReq({ action: 'retry' })).status).toBe(422)
+    }
+    expect(mockRefreshLink).not.toHaveBeenCalled()
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
   })
 
   it('no link could be created -> 502 link_failed and no email', async () => {

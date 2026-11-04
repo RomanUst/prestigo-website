@@ -413,6 +413,8 @@ function refundFailedBanner(p: PaymentSnapshot): BannerSpec {
 function computeBanner(data: PaymentResponse, nowMs: number): BannerSpec | null {
   const p = data.payment
   if (data.refund_failed) return refundFailedBanner(p)
+  // 88-REVIEW T2 (C-WR-03): a cancelled / no-show trip asks for no hold and no payment, so no hold banner applies.
+  if (p.status === 'cancelled' || p.status === 'no_show') return null
   if (p.state === 'failed') {
     const retryAt = p.payment_retry_at && p.payment_retry_count < 1 ? formatPragueFull(p.payment_retry_at) : null
     return {

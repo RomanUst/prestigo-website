@@ -34,8 +34,13 @@ const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFi
 const CAPTURE_STATES: ReadonlySet<string> = new Set(['authorized', 'expired', 'failed', 'card_saved'])
 const RETRY_STATES: ReadonlySet<string> = new Set(['card_saved', 'expired', 'failed'])
 const RELEASE_STATES: ReadonlySet<string> = new Set(['card_saved', 'authorized', 'failed', 'expired', 'checkout_pending'])
+// 88-REVIEW T2 (A-CR-02, C-WR-03): a payment link is offered only for a debt the engine will NOT collect by itself
+// and that the recovery webhook can close (failed, balance_due). A completed trip in authorized / card_saved / expired
+// is still settled automatically (tick step C, the completion event): the operator action there is capture, never a
+// link the client could pay on top of the capture.
 const LINK_STATES: ReadonlySet<string> = new Set(['failed', 'balance_due'])
-const LINK_STATES_COMPLETED: ReadonlySet<string> = new Set(['expired', 'card_saved', 'authorized'])
+/** Terminal trip statuses: no hold is placed, no money is asked for; only a hold that is still live can be released. */
+const CLOSED_STATUSES: ReadonlySet<string> = new Set(['cancelled', 'no_show'])
 
 /** The trip is over for the operator's purposes: its status is completed. */
 const isCompleted = (booking: BookingRow): boolean => booking.status === 'completed'
@@ -46,15 +51,20 @@ const isCompleted = (booking: BookingRow): boolean => booking.status === 'comple
  *   retry      card_saved | expired | failed (place the hold now before completion, re-run the charge after it)
  *   release    before completion, in card_saved | authorized | failed | expired | checkout_pending
  *   waive      balance_due
- *   send_link  failed | balance_due, or a completed trip in expired | card_saved | authorized
+ *   send_link  failed | balance_due (never where the engine still collects by itself)
  * Nothing while a worker holds the lease (placing_hold, capturing), nothing after captured / released, and
  * nothing for a booking that is not a card hold (pay-now, partner bookings have no Prestigo money flow).
+ * A cancelled or no-show booking gets release only (to free a hold or saved card that is still there): never a new
+ * hold, a capture or a payment link (Phase 89 owns cancellation / no-show fees).
+ * The admin POST re-checks this matrix on a fresh row before running any action (server-side, not only the UI).
  */
 export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
   if (booking.payment_mode !== 'card_hold') return []
   if (isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })) return []
 
   const state = str(booking.payment_state)
+  if (CLOSED_STATUSES.has(str(booking.status))) return RELEASE_STATES.has(state) ? ['release'] : []
+
   const completed = isCompleted(booking)
   const actions: PaymentAction[] = []
 
@@ -62,7 +72,7 @@ export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
   if (RETRY_STATES.has(state)) actions.push('retry')
   if (!completed && RELEASE_STATES.has(state)) actions.push('release')
   if (state === 'balance_due') actions.push('waive')
-  if (LINK_STATES.has(state) || (completed && LINK_STATES_COMPLETED.has(state))) actions.push('send_link')
+  if (LINK_STATES.has(state)) actions.push('send_link')
   return actions
 }
 
