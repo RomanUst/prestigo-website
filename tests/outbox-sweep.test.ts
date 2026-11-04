@@ -342,7 +342,7 @@ describe('outbox-sweep wiring', () => {
     expect(src).not.toMatch(/lead-sync|espocrm/i)
   })
 
-  it('vercel.json keeps the three existing crons and adds the daily sweep', () => {
+  it('vercel.json keeps the existing crons and adds the daily sweep (and, since Phase 88, the payment tick)', () => {
     const cfg = JSON.parse(readFileSync(join(process.cwd(), 'vercel.json'), 'utf8')) as {
       crons: Array<{ path: string; schedule: string }>
     }
@@ -351,6 +351,7 @@ describe('outbox-sweep wiring', () => {
       { path: '/api/cron/reminder-24h', schedule: '0 6 * * *' },
       { path: '/api/cron/indexnow', schedule: '0 7 * * *' },
       { path: '/api/cron/outbox-sweep', schedule: '0 4 * * *' },
+      { path: '/api/cron/payment-tick', schedule: '0 3 * * *' },
     ])
   })
 })
