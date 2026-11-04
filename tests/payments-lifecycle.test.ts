@@ -289,7 +289,8 @@ const piCreates = () => fake.callsTo('paymentIntents.create')
 /** init -> intent: one unpaid card_hold booking, a SetupIntent, nothing charged. */
 async function startBooking() {
   const init = await initPOST(jsonRequest('http://localhost/api/card-checkout/init', { bookingData: bookingData(), currency: 'eur' }))
-  expect(await init.json()).toMatchObject({ eligible: true, mode: 'setup', holdDateIso: '2027-01-13', currency: 'eur', amountMinor: serverAmount() })
+  const initOut = (await init.json()) as Record<string, unknown>
+  expect(initOut).toMatchObject({ eligible: true, mode: 'setup', holdDateIso: '2027-01-13', currency: 'eur', amountMinor: serverAmount() })
 
   const res = await intentPOST(
     jsonRequest('http://localhost/api/card-checkout/intent', {
@@ -298,6 +299,8 @@ async function startBooking() {
       mode: 'setup',
       consent: true,
       displayedAmountMinor: serverAmount(),
+      // 88-REVIEW B-WR-05: the client sends back the hold date its consent showed (from init).
+      displayedHoldDateIso: initOut.holdDateIso,
     }),
   )
   expect(res.status).toBe(200)
