@@ -962,5 +962,61 @@
   },
   "InquiryNotice": {
     "stored": "We store your request to reply to it — <privacy>Privacy Policy</privacy>"
+  },
+  "PaymentEmails": {
+    "common": {
+      "referenceLabel": "Booking reference",
+      "journeyLabel": "Your journey",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "dateLabel": "Date",
+      "vehicleLabel": "Vehicle",
+      "passengersLabel": "Passengers",
+      "assistanceLabel": "Need assistance?",
+      "assistanceText": "For any queries, contact us at {contact}",
+      "calendarCta": "Add to calendar",
+      "howPaymentWorksLabel": "How payment works",
+      "whatNextLabel": "What happens next",
+      "receiptLabel": "Receipt",
+      "paySecurelyLabel": "Pay securely",
+      "tagline": "PRESTIGE IN EVERY MILE"
+    },
+    "cardSaved": {
+      "subject": "Your PRESTIGO booking is confirmed — {reference}",
+      "h1": "Your booking is confirmed.",
+      "intro": "Your card is saved. Nothing has been charged.",
+      "lineToday": "Today: your card is saved.",
+      "lineHoldDay": "{holdDate}: we hold {amount} on your card. A hold is not a charge.",
+      "lineAfterTrip": "After your trip: the hold becomes the final charge."
+    },
+    "holdPlacedAtCheckout": {
+      "subject": "Your PRESTIGO booking is confirmed — {reference}",
+      "h1": "Your booking is confirmed.",
+      "intro": "We've placed a hold of {amount} on your card. This is not a charge.",
+      "lineToday": "Today: {amount} is held on your card.",
+      "lineAfterTrip": "After your trip: the held amount is charged. If the final price is lower, only the lower amount is taken."
+    },
+    "holdPlacedScheduled": {
+      "subject": "We've placed a hold on your card — {reference}",
+      "h1": "A hold has been placed on your card.",
+      "intro": "We've held {amount} on your card for your trip on {pickupDate}. This is not a charge. The money stays in your account.",
+      "next": "After your trip, the held amount is charged. Need to change or cancel? Contact us before your trip."
+    },
+    "charged": {
+      "subject": "Payment received — {reference}",
+      "h1": "Thank you for travelling with Prestigo.",
+      "intro": "We've charged {amount} to your card for your trip on {pickupDate}.",
+      "total": "Total charged: {amount}",
+      "includesDiff": "Includes {diff} for changes to your booking."
+    },
+    "paymentFailed": {
+      "subject": "Action needed: payment for your PRESTIGO trip — {reference}",
+      "h1Declined": "We couldn't take your payment.",
+      "introDeclined": "We couldn't charge {amount} to your card for your trip on {pickupDate}. Please pay securely with the button below so your booking stays in place.",
+      "h1AuthRequired": "Your bank needs you to confirm this payment.",
+      "introAuthRequired": "We couldn't charge {amount} to your card for your trip on {pickupDate} because your bank asked for extra confirmation. Please confirm with the button below.",
+      "body": "The link opens a secure Stripe payment page. If you pay with the link, we won't try your card again. If you have already paid, ignore this email.",
+      "cta": "Pay {amount} securely"
+    }
   }
 }

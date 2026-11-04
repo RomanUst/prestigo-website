@@ -11,7 +11,7 @@ export const CUSTOMER_REPLY_TO = 'bookings@rideprestigo.com'
 
 // Footer contact pair shared by the transactional email templates (Phase 78 D-21):
 // the phone follows the single business-number constant.
-const EMAIL_CONTACT_LINE = `info@rideprestigo.com or ${BUSINESS_PHONE_DISPLAY}`
+export const EMAIL_CONTACT_LINE = `info@rideprestigo.com or ${BUSINESS_PHONE_DISPLAY}`
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
 // Wordmark as a static raster image — letter-spaced inline spans render
@@ -19,7 +19,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
 // webmail preview panes), so transactional emails use this fixed asset instead.
 // The host is read at call time (not frozen at module load) so the address is
 // always the one configured for the running environment.
-function emailLogoImg(heightPx: number): string {
+export function emailLogoImg(heightPx: number): string {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
   const width = Math.round(heightPx * (1112 / 224))
   return `<img src="${base}/brand/wordmark-email-dark.png" alt="PRESTIGO" width="${width}" height="${heightPx}" style="display: block; margin: 0 auto; border: 0;" />`
@@ -66,7 +66,7 @@ export interface BookingEmailData {
 }
 
 /** Escape user-supplied strings before embedding in HTML */
-function escapeHtml(str: string): string {
+export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -88,7 +88,7 @@ function formatPickupDate(dateStr: string): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-function buildGoogleCalendarUrl(data: BookingEmailData): string {
+export function buildGoogleCalendarUrl(data: BookingEmailData): string {
   const title = `PRESTIGO Transfer — ${data.bookingReference}`
   const details = `Booking ${data.bookingReference}. ${data.originAddress} to ${data.destinationAddress}. Vehicle: ${data.vehicleClass}.`
   const location = data.originAddress
