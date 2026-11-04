@@ -20,6 +20,8 @@ const CSRF_PROTECTED_PREFIXES = [
   // authenticated by the operator's Chatwoot token. CSRF is defence in depth,
   // so it is deliberately NOT in CSRF_STRICT_ORIGIN_REQUIRED below.
   '/api/chatwoot/dashboard-app',
+  // Phase 88 (T-88-16): public card-on-file checkout (init / intent), browser-only caller.
+  '/api/card-checkout',
 ]
 
 // Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also
@@ -31,6 +33,9 @@ const CSRF_PROTECTED_PREFIXES = [
 const CSRF_STRICT_ORIGIN_REQUIRED = [
   '/api/admin',
   '/api/create-payment-intent',
+  // Phase 88: public card checkout, browser-only caller, Origin required. /api/cron/payment-tick and
+  // /api/webhooks/stripe stay out of both lists (server-to-server, authenticated by secret / signature).
+  '/api/card-checkout',
 ]
 
 /**
