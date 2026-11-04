@@ -1138,9 +1138,9 @@ describe('TripScreen: sheet handle, details and driver note (D-21)', () => {
     return screen.getByRole('button', { name: /(Show|Hide) trip details/ })
   }
 
-  function swipe(el: Element, fromY: number, toY: number) {
-    fireEvent.touchStart(el, { touches: [{ clientY: fromY }] })
-    fireEvent.touchEnd(el, { changedTouches: [{ clientY: toY }] })
+  function swipe(el: Element, fromY: number, toY: number, dx = 0) {
+    fireEvent.touchStart(el, { touches: [{ clientX: 100, clientY: fromY }] })
+    fireEvent.touchEnd(el, { changedTouches: [{ clientX: 100 + dx, clientY: toY }] })
   }
 
   it('a short swipe up on the handle opens the details, a swipe down closes them', () => {
@@ -1158,6 +1158,26 @@ describe('TripScreen: sheet handle, details and driver note (D-21)', () => {
     const timeRow = screen.getByText(/Tue|Mon|Wed|Thu|Fri|Sat|Sun/).closest('div')!.parentElement!
     swipe(timeRow, 500, 450)
     expect(handle()).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('a mostly horizontal drag does nothing', () => {
+    render(<TripScreen {...makeProps()} />)
+    swipe(handle(), 400, 360, 80)
+    expect(handle()).toHaveAttribute('aria-expanded', 'false')
+  })
+
+  it('a downward drag while the page is scrolled scrolls, it does not close the details', () => {
+    render(<TripScreen {...makeProps()} />)
+    swipe(handle(), 400, 340)
+    expect(handle()).toHaveAttribute('aria-expanded', 'true')
+    const prev = window.scrollY
+    Object.defineProperty(window, 'scrollY', { value: 200, configurable: true })
+    try {
+      swipe(handle(), 340, 400)
+      expect(handle()).toHaveAttribute('aria-expanded', 'true')
+    } finally {
+      Object.defineProperty(window, 'scrollY', { value: prev, configurable: true })
+    }
   })
 
   it('a movement under the threshold does nothing, and the click after a swipe does not undo it', () => {

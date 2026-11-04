@@ -5,10 +5,12 @@ const { supabaseServiceStub } = vi.hoisted(() => {
   // Chainable select stub
   const selectStub = {
     eq: vi.fn(),
+    is: vi.fn(),
     gte: vi.fn(),
     limit: vi.fn(),
   }
   selectStub.eq.mockReturnValue(selectStub)
+  selectStub.is.mockReturnValue(selectStub)
   selectStub.gte.mockReturnValue(selectStub)
   selectStub.limit.mockResolvedValue({ data: [], error: null })
 
@@ -46,6 +48,7 @@ describe('NOTIF-01/03: logEmail dedup helper', () => {
     // Reset chainable select stub
     const selectStub = supabaseServiceStub._selectStub
     selectStub.eq.mockReturnValue(selectStub)
+    selectStub.is.mockReturnValue(selectStub)
     selectStub.gte.mockReturnValue(selectStub)
     selectStub.limit.mockResolvedValue({ data: [], error: null })
 
@@ -60,6 +63,21 @@ describe('NOTIF-01/03: logEmail dedup helper', () => {
 
     // Reset createSupabaseServiceClient mock
     ;(createSupabaseServiceClient as ReturnType<typeof vi.fn>).mockReturnValue(supabaseServiceStub)
+  })
+
+  it('a null booking id filters with .is(booking_id, null), never .eq (eq.null never matches)', async () => {
+    const sel = supabaseServiceStub._selectStub
+    await logEmail({ bookingId: null, emailType: 'driver_accepted:a1', recipient: 'd@example.com' })
+    expect(sel.is).toHaveBeenCalledWith('booking_id', null)
+    expect(sel.eq).not.toHaveBeenCalledWith('booking_id', null)
+    expect(sel.eq).toHaveBeenCalledWith('email_type', 'driver_accepted:a1')
+  })
+
+  it('a booking id still filters with .eq', async () => {
+    const sel = supabaseServiceStub._selectStub
+    await logEmail({ bookingId: 'b1', emailType: 'confirmed', recipient: 'c@example.com' })
+    expect(sel.eq).toHaveBeenCalledWith('booking_id', 'b1')
+    expect(sel.is).not.toHaveBeenCalled()
   })
 
   it('Test 1: returns true when no duplicate exists (SELECT returns empty, INSERT succeeds)', async () => {
