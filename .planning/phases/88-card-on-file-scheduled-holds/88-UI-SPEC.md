@@ -91,7 +91,7 @@ Surface `--anthracite-mid`, 1px `--anthracite-light` border, radius 4px, padding
 ### Consent checkbox (HOLD-01)
 
 - Native `<input type="checkbox">`, **unticked on every mount and every remount**, never prefilled, never written to the Zustand store or sessionStorage, never remembered across reloads.
-- Visual box 20x20, `accent-color: var(--copper)`; the whole row (checkbox + label) is one `<label>` with `min-height: 44px`, `padding: 12px 0`, `display: flex`, `gap: 12px`, so the tap target is the full row. Focus ring: 2px `--copper` outline, 2px offset (same as the legacy input focus).
+- Visual box 20x20, `accent-color: var(--copper)`; the whole row (checkbox + label) is one `<label>` with `min-height: 44px`, `padding: 8px 0`, `display: flex`, `gap: 16px`, so the tap target is the full row. Focus ring: 2px `--copper` outline, 2px offset (same as the legacy input focus).
 - Label text 14px/300, `--offwhite`, line-height 1.5 (this is the consent text, hashed and stored). EN drafts, one per variant:
   - setup: "I authorise Prestigo to save this card and to hold {amount} on it on {holdDate}, then charge it after my trip is completed. If the agreed price of my booking changes, I authorise Prestigo to charge or release the difference."
   - held now: "I authorise Prestigo to hold {amount} on this card now, to save this card for this purpose, and to charge it after my trip is completed. If the agreed price of my booking changes, I authorise Prestigo to charge or release the difference."
@@ -179,7 +179,7 @@ Section label above the card, same style as the neighbouring "Payment Link" labe
 | Balance due | booked minus captured | state `captured`, `balance_due` or `failed`, and > 0 |
 | Last error | friendly text from the code (table below) | `last_payment_error` set |
 | Automatic retry | "Once, at Thu 12 Nov, 14:05" or "No more automatic retries" | state `failed` |
-| Payment link | "Sent" + **Copy** button (icon `Copy`, 44px, `aria-label="Copy payment link"`, shows `Check` and "Copied" for 2s) | `recovery_link_url` set |
+| Payment link | "Sent" + **Copy link** button (icon `Copy` + visible text "Copy link", 44px, shows `Check` and "Copied" for 2s) | `recovery_link_url` set |
 
 **Last-error friendly text** (code in muted parentheses after it): `card_declined` "Card declined"; `insufficient_funds` "Insufficient funds"; `expired_card` "Card expired"; `authentication_required` "Bank needs 3D Secure, so the client must pay through the link"; `processing_error` "Bank processing error"; any other code "Payment error". The raw Stripe code is always shown after the friendly text so the operator can quote it.
 
@@ -225,16 +225,16 @@ Rendered **from the server's `allowed_actions` array** in the GET response; the 
 
 **Confirm modal** (existing `Modal`, one per action; all money actions confirm, none run on the first click). Title Heading token; body Body token; amounts and the booking reference are shown so the operator confirms the exact figure. Buttons stacked on phones, side by side at >= 640px, 44px: primary then secondary.
 
-| Action | Primary button | Primary style |
-|--------|----------------|---------------|
-| Capture | "Capture {amount}" | `--admin-accent` fill, `--admin-on-accent` text |
-| Place hold now | "Place hold" | accent |
-| Retry charge | "Charge {amount}" | accent |
-| Send payment link | "Send link" | accent |
-| Release hold | "Release hold" | `--admin-danger-solid` fill, `--admin-on-danger` text |
-| Waive balance | "Waive balance" | danger |
+| Action | Primary button | Primary style | Secondary button (dismiss) |
+|--------|----------------|---------------|----------------------------|
+| Capture | "Capture {amount}" | `--admin-accent` fill, `--admin-on-accent` text | "Don't capture" |
+| Place hold now | "Place hold" | accent | "Don't place hold" |
+| Retry charge | "Charge {amount}" | accent | "Don't charge" |
+| Send payment link | "Send link" | accent | "Don't send link" |
+| Release hold | "Release hold" | `--admin-danger-solid` fill, `--admin-on-danger` text | "Keep hold" |
+| Waive balance | "Waive balance" | danger | "Keep balance" |
 
-Secondary is always neutral outline: "Cancel" for the accent actions; "Keep hold" for Release; "Keep balance" for Waive. Initial focus on the secondary (safe default for money actions). While submitting: both disabled, primary shows `LoaderCircle` + "Working…", the modal cannot be dismissed. Result handling:
+Secondary is always a neutral outline button with the action-specific dismissal from the table above (no generic "Cancel" in any modal). Initial focus on the secondary (safe default for money actions). While submitting: both disabled, primary shows `LoaderCircle` + "Working…", the modal cannot be dismissed. Result handling:
 
 | Response | Behaviour |
 |----------|-----------|
@@ -251,7 +251,7 @@ Secondary is always neutral outline: "Cancel" for the accent actions; "Keep hold
 - Rows are `<ul>`: below 640px each row is a two-line stack (event + amount on line 1, time + actor + error on line 2); at >= 640px a four-column grid: Time | Event | Amount | By. Row separator 1px `--admin-border`. Row padding 8px 0.
 - Time "12 Nov, 14:05" (Prague, `font-variant-numeric: tabular-nums`). Amount right-aligned in the grid, hidden when null. By: "System", "Stripe" (webhook) or "Admin" (`actor_type`); for Admin the `actor_id` is appended in muted text and ellipsised at one line. `error_code`, when present, shows in muted text after the event. A transition `from_state → to_state` is not shown in the row (the event label already names it).
 - Event labels (EN, hard-coded; admin is `lang="en"`): `setup_started` "Card setup started", `setup_succeeded` "Card saved", `hold_scheduled` "Hold scheduled", `hold_started` "Placing hold", `hold_authorized` "Hold placed", `hold_failed` "Hold failed", `hold_released` "Hold released", `hold_expired` "Hold expired", `capture_started` "Capture started", `captured` "Captured", `charge_succeeded` "Card charged", `charge_failed` "Charge failed", `difference_charged` "Price difference charged", `difference_failed` "Price difference declined", `recovery_link_created` "Payment link created", `recovery_paid` "Payment link paid", `alert_sent` "Operator alert sent", `email_sent` "Client email sent", `admin_action` "Operator action", `refund_observed` "Refund seen in Stripe", `edit_reevaluated` "Booking edited, payment re-checked", `waived` "Balance waived", `refund_failed` "Refund failed". Unknown kind: the raw kind, never throws.
-- Empty: "No payment events yet." Loading: three skeleton rows (`--admin-hover`, 16px high, 8px gap) in a reserved block so the panel does not jump. Load error: danger line "Could not load payment details." plus a neutral outline **Retry** button.
+- Empty: "No payment events yet." Loading: three skeleton rows (`--admin-hover`, 16px high, 8px gap) in a reserved block so the panel does not jump. Load error: danger line "Could not load payment details." plus a neutral outline **Reload payment details** button.
 
 ### "Refund failed" (D-20) — any payment mode
 
@@ -365,7 +365,7 @@ Declared values (all multiples of 4):
 | 3xl | 64px | (reserved, not used on these surfaces) |
 
 Exceptions:
-- Touch targets are **44px minimum** on every surface (checkbox row, submit button, admin action buttons, radio tiles, Copy button, "Show all" button). This matches the existing admin and `btn-primary` floor; the driver screen's 48px rule does not apply here.
+- Touch targets are **44px minimum** on every surface (checkbox row, submit button, admin action buttons, radio tiles, Copy link button, "Show all" button). This matches the existing admin and `btn-primary` floor; the driver screen's 48px rule does not apply here.
 - Checkbox box 20x20 (a multiple of 4; the 44px row around it is the target).
 - Radio dot 8px, badge dot 6px (the existing `StatusBadge` dot, reused).
 - 1px borders; 2px focus outline with 2px offset; email 3px leading border and 2px gold line copied from `lib/email.ts`.
@@ -378,16 +378,15 @@ Exceptions:
 
 Three surfaces, each with its own scale. Each surface declares exactly four sizes (three on the public step) and two weights.
 
-**Public checkout** (matches `Step6Payment`): sizes 11 / 14 / 20; weights 300 and 400. No 28px here.
+**Public checkout** (matches `Step6Payment`): exactly three sizes, 11 / 14 / 20; weights 300 and 400. The page H1 above the step is outside this contract.
 
 | Role | Size | Weight | Line Height | Used for |
 |------|------|--------|-------------|----------|
 | Label | 11px | 400 | 1.4 | `.label` captions (uppercase, tracked, `ar`/`hi` reset), trust line (normal case, weight 300) |
 | Body | 14px | 300 (400 for the hold date and amount inside body text) | 1.5 | Explainer rows, consent label, notices and errors, links line, button text via `btn-primary` (11px/400 as the class defines) |
 | Heading | 20px | 400 | 1.2 | Explainer headline |
-| Display | 28px | 400 | 1.1 | Not used in this step (inherited by the page H1 only) |
 
-**Admin** (Phase 86 tokens, unchanged; no new size or weight): Label `--admin-fs-label` (12 light / 11 dark), Body `--admin-fs-body` (14 / 13), Heading `--admin-fs-heading` 20, Display `--admin-fs-display` 28 (not used by these components). Weights through `--admin-fw-strong` (500 light / 400 dark) and `--admin-fw-heading`. Tabular numerals on amounts, times and the ledger.
+**Admin** (Phase 86 tokens, unchanged; no new size or weight). The four-size / two-weight limit is **per theme**, inherited from Phase 86: light uses 12 / 14 / 20 / 28 at weights 400 and 500, dark uses 11 / 13 / 20 / 28 at weights 300 and 400. Label `--admin-fs-label` (12 light / 11 dark), Body `--admin-fs-body` (14 / 13), Heading `--admin-fs-heading` 20, Display `--admin-fs-display` 28 (not used by these components). Weights through `--admin-fw-strong` (500 light / 400 dark) and `--admin-fw-heading` (500 light / 300 dark); both resolve to one of the two declared weights of the active theme, so no third weight appears. Tabular numerals on amounts, times and the ledger.
 
 **Emails**: sizes 11 / 14 / 22 / 28; weights 400 and 600; line-heights 1.4 labels, 1.6 body, 1.2 headings. 11px is used for labels in all locales because the existing 9px label is too small for Arabic, Hindi and Chinese glyphs.
 
@@ -418,6 +417,17 @@ Accent reserved for: (1) the `btn-primary` border and hover fill of the submit b
 Accent reserved for: (1) the primary button of the non-destructive confirm modals (Capture, Place hold, Charge, Send link); (2) the selected radio tile (border, tint, dot) in `CardFlowSettings`; (3) the "Show all" text button (`--admin-accent-text`); (4) focus rings (`--admin-focus`). Destructive reserved for: the confirm button of **Release hold** and **Waive balance**, and the existing cancel confirmation. Status colours only through `--status-*` via `PaymentStateBadge` and banners. Row action buttons are never accent or red.
 
 **Emails**: dominant `#0F1D2C`, secondary `#17293B`, accent `#BFA06A` / `#E6D6B0` (gradient line, labels, reference, leading borders, outlined CTAs, the one filled button), text `#F3EEE3`, muted `#A9AEB0`, divider `#2B4056`. No red in client emails (a payment problem is calm, not alarming).
+
+---
+
+## Primary Visual Anchor (one per surface)
+
+| Surface | Anchor | Why |
+|---------|--------|-----|
+| Checkout | The "How payment works" explainer panel (20px headline "Nothing is charged now." on the `--anthracite-mid` surface with the gold leading rule), then the submit button as the single action | The client's first question is "will I be charged now?"; the answer must be the first thing seen, ahead of the card form. |
+| Admin payment panel | The `PaymentStateBadge` in the panel header, plus the single alert banner when one applies | The operator scans for state first and needs the red failed / balance due / refund failed signal before any detail. |
+| Admin settings | The "Card payment" radiogroup (selected tile with accent border, tint and dot) | It is the one switch that changes what clients see; hold lead and allowlist are secondary. |
+| Emails | The booking reference box (gold leading border) for `card_saved`, `hold_placed` and `charged`; the filled gold "Pay {amount} securely" button for `payment_failed` | A client must find the booking reference at a glance; in the failure email the only task is paying. |
 
 ---
 
@@ -452,16 +462,16 @@ All checkout and email strings are **EN source + real translations in ru, es, fr
 | Admin banner, hold expires soon | Title "Hold expires soon". Body: "The hold ends on {date}. Complete the trip before then or place a new hold." |
 | Admin banner, no valid hold | Title "No valid hold". Body: "Pickup is within 24 hours and this booking has no valid hold or payment." |
 | Admin banner, refund failed | Title "Refund failed". Body: "Booking {reference} was cancelled, but the refund of {amount} did not go through. Refund it manually in the Stripe Dashboard. The operator alert was emailed to you." |
-| Admin error, load | "Could not load payment details." + Retry |
+| Admin error, load | "Could not load payment details." + button "Reload payment details" |
 | Admin error, action (generic) | "Could not complete the action. Nothing was changed. Try again." |
 | Admin error, busy | "Payment is being processed. Wait a moment and try again." |
 | Admin error, settings | Save: "Failed to save — try again". Lead: "Enter a whole number from 6 to 96." Email: `"{value}" is not a valid email address.` / "Add no more than 20 addresses." |
 | Destructive confirmation: Release hold | Title "Release hold". Body: "Release the hold of {amount} for booking {reference}? Nothing will be charged and the client's card is released. This cannot be undone." Buttons "Release hold" / "Keep hold". |
 | Destructive confirmation: Waive balance | Title "Waive balance". Body: "Write off the unpaid {amount} for booking {reference}? The client will not be asked to pay it. This cannot be undone." Buttons "Waive balance" / "Keep balance". |
-| Confirmation: Capture | Title "Capture payment". Body: "Charge {amount} to the client's card for booking {reference} now? The hold becomes the final charge. Refunds are made in Stripe." Buttons "Capture {amount}" / "Cancel". |
-| Confirmation: Place hold now | Title "Place hold now". Body: "Hold {amount} on the client's saved card for booking {reference}? A hold is not a charge." Buttons "Place hold" / "Cancel". |
-| Confirmation: Retry charge | Title "Retry charge". Body: "Charge {amount} to the client's saved card for booking {reference}? If it is declined, the client gets a payment link." Buttons "Charge {amount}" / "Cancel". |
-| Confirmation: Send payment link | Title "Send payment link". Body: "Email a payment link for {amount} to {email}? Any older link stops working." Buttons "Send link" / "Cancel". |
+| Confirmation: Capture | Title "Capture payment". Body: "Charge {amount} to the client's card for booking {reference} now? The hold becomes the final charge. Refunds are made in Stripe." Buttons "Capture {amount}" / "Don't capture". |
+| Confirmation: Place hold now | Title "Place hold now". Body: "Hold {amount} on the client's saved card for booking {reference}? A hold is not a charge." Buttons "Place hold" / "Don't place hold". |
+| Confirmation: Retry charge | Title "Retry charge". Body: "Charge {amount} to the client's saved card for booking {reference}? If it is declined, the client gets a payment link." Buttons "Charge {amount}" / "Don't charge". |
+| Confirmation: Send payment link | Title "Send payment link". Body: "Email a payment link for {amount} to {email}? Any older link stops working." Buttons "Send link" / "Don't send link". |
 | Cancel dialog (card booking) | "Cancelling releases the hold on the client's card. Nothing is charged. This action cannot be undone." Button "Confirm Cancel + Release Hold" |
 | Settings headings and helpers | See Surface 3 |
 | Email copy | See the table in Surface 4 |
@@ -476,7 +486,7 @@ Destructive actions in this phase: Release hold, Waive balance, Cancel (card boo
 - Disabled submit is explained: `aria-describedby` points at the consent label; the live region announces consent invalidation.
 - Notices use `role="status"`, errors `role="alert"`. Moving focus to a notice (`MODE_CHANGED`) uses `tabIndex={-1}` on the notice.
 - Admin modals reuse `Modal` (focus return, Escape); money-action modals override initial focus to the secondary button. The state badge always carries a text label. Banners pair an icon with text. The radiogroup uses roving tabindex with arrow keys.
-- Copy button announces "Copied" through the result line (`role="status"`).
+- The "Copy link" button announces "Copied" through the result line (`role="status"`).
 - RTL: the checkout inherits the page `dir`; explainer rule and consent row use logical properties (`border-inline-start`, `gap`); the Stripe Elements locale follows `STRIPE_ELEMENTS_LOCALE`. Emails set `dir="rtl"` for `ar`.
 - Contrast: checkout text on `#17293B` meets 4.5:1 (`--offwhite` about 12:1, `--warmgrey` about 6.6:1, `#f87171` about 6.2:1 on `#0F1D2C`). Admin uses theme tokens already contrast-tested by `tests/admin-theme-css.test.ts`. Email gold-on-navy labels and `#A9AEB0` on `#0F1D2C` pass 4.5:1.
 - `prefers-reduced-motion`: the only motion is the spinner in `LoaderCircle`; it is static under reduced motion.
@@ -505,7 +515,7 @@ Applicable state considerations resolved: 21 covered, 3 backstop, 3 unresolved, 
 | error | E1 init gate | ✅ covered | Any init failure falls open to the legacy `Step6Payment`; the card flow never blocks checkout |
 | empty | E8 history | ✅ covered | "No payment events yet." |
 | loading | E7 panel | ✅ covered | Three skeleton rows in a reserved block, no layout shift |
-| error | E7 panel | ✅ covered | "Could not load payment details." with a Retry button |
+| error | E7 panel | ✅ covered | "Could not load payment details." with a "Reload payment details" button |
 | partial | E7 facts | ✅ covered | A fact with a null value is not rendered; no empty captions (no hold yet, no capture yet, no link) |
 | long-text | E2 explainer (ru, es, fr, hi) | 🧪 backstop | Long translated rows wrap inside the panel without overflow; held-out visual check at 360px |
 | overflow | E2, E4 in `ar` (RTL) | 🧪 backstop | Leading rule and consent row mirror via logical properties; held-out visual check in `ar` |
@@ -551,7 +561,7 @@ Empty-state and error-state copy lives in the Copywriting Contract and is not re
 
 - `/api/card-checkout/init` returns `{ eligible, mode, holdAtIso (Prague date source), amountMinor, currency }` and never reveals why a client is ineligible.
 - `GET /api/admin/bookings/[id]/payment` returns state, mode, amounts, `hold_at`, `capture_before`, `last_payment_error`, retry info, `recovery_link_url` presence/url, `allowed_actions`, `refund_failed`, and up to 100 ledger rows; POST returns `outcome: 'ok' | 'declined'`.
-- Ledger kind `refund_failed` (or an equivalent persisted marker) must be added to the migration 085 CHECK.
+- **Ledger kinds (D-20):** the 22 kinds in `88-RESEARCH.md` Pattern 1 do not include a refund-failure event. Add `refund_failed` to the `booking_payment_events.kind` CHECK in migration 085 (and to the ledger label map), or provide an equivalent persisted marker; the payment GET returns `refund_failed: boolean` for every payment mode.
 - Admin trip-edit PATCH returns `payment_effect`.
 
 ---
