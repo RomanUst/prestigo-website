@@ -109,6 +109,10 @@ function nextAction(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAle
       return 'Contact the client or place a hold from the booking.'
     case 'refund_failed': {
       const amount = formatMinor(d.amountMinor ?? 0, currency)
+      // Plan 88-16: a card booking's hold could not be released after the cancel applied.
+      if (d.note === 'release') {
+        return `The booking is cancelled. Cancel the ${amount} hold manually in the Stripe Dashboard so the card is not blocked.`
+      }
       return `The booking is cancelled. Refund ${amount} manually in the Stripe Dashboard.`
     }
     case 'dispute':
