@@ -165,7 +165,7 @@ async function recordDefinitiveFailure(
 }
 
 /** Cancel a PaymentIntent by id; an already-canceled one counts as success. Any other error is rethrown. */
-async function cancelPaymentIntent(piId: string, idempotencyKey: string): Promise<void> {
+export async function cancelPaymentIntent(piId: string, idempotencyKey: string): Promise<void> {
   const stripe = getPaymentsStripe()
   try {
     await stripe.paymentIntents.cancel(piId, { cancellation_reason: 'requested_by_customer' }, { idempotencyKey })
@@ -330,7 +330,10 @@ export async function placeHold(
 /**
  * Release a booking's hold/card without taking money (admin, cancellation, waiver):
  *   authorized                       -> cancel the PaymentIntent (requested by us), released
- *   card_saved/failed/expired/checkout_pending -> released, no Stripe call
+ *   checkout_pending                 -> cancel the hold-now PaymentIntent if the checkout created one (88-REVIEW T6:
+ *                                       the client could still finish 3DS and leave a full authorization on a
+ *                                       released booking), released
+ *   card_saved/failed/expired        -> released, no Stripe call
  *   balance_due + reason 'waive'     -> released with a waived ledger row
  *   placing_hold / capturing         -> 'busy' (a worker holds the lease)
  *   anything else                    -> 'noop' (captured and released are terminal; partner bookings have no money flow)
@@ -361,7 +364,14 @@ export async function releaseHold(
     const piId = str(booking.hold_payment_intent_id)
     from = ['authorized']
     event = { key: `hold_released:${piId}`, kind: 'hold_released', stripeObjectId: piId || undefined, actor: opts.actor }
-  } else if (state === 'card_saved' || state === 'failed' || state === 'expired' || state === 'checkout_pending') {
+  } else if (state === 'checkout_pending') {
+    // A hold-now checkout already created its PaymentIntent (the client holds its secret). Void it first, so a
+    // 3DS completed later can not authorize anything; a failure throws and the caller reports it (D-20).
+    const piId = str(booking.hold_payment_intent_id)
+    if (piId) await cancelPaymentIntent(piId, stripeKeys.voidHoldNow(piId))
+    from = ['checkout_pending']
+    event = { key: `hold_released:checkout_pending:${bookingId}`, kind: 'hold_released', stripeObjectId: piId || undefined, actor: opts.actor }
+  } else if (state === 'card_saved' || state === 'failed' || state === 'expired') {
     from = [state]
     event = { key: `hold_released:${state}:${bookingId}`, kind: 'hold_released', actor: opts.actor }
   } else if (state === 'balance_due' && opts.reason === 'waive') {

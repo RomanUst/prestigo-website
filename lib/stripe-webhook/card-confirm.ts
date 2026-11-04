@@ -17,7 +17,8 @@ import type Stripe from 'stripe'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { getPaymentsStripe } from '@/lib/payments/stripe'
+import { getPaymentsStripe, stripeKeys } from '@/lib/payments/stripe'
+import { cancelPaymentIntent } from '@/lib/payments/hold'
 import { applyTransition, appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { sendPaymentEmail, bookingEmailDataFromRow } from '@/lib/payments/emails/send'
 import { sendManagerAlert } from '@/lib/email'
@@ -299,14 +300,56 @@ async function captureBeforeIso(pi: Stripe.PaymentIntent): Promise<string | null
 }
 
 /**
+ * Void a hold-now authorization the booking does not own (88-REVIEW T6: B-CR-03, A-WR-05, C-WR-02, B-WR-01) and
+ * record it once (key hold_void:<pi>). An already-canceled PaymentIntent counts as voided. A void that fails throws,
+ * so Stripe redelivers the event (the tick reconcile retries on its next run) instead of leaving the client's money
+ * frozen on a cancelled or superseded checkout.
+ */
+async function voidUnownedHoldNow(
+  bookingId: string,
+  piId: string,
+  reason: 'superseded' | 'booking_cancelled' | 'state_moved',
+  actor: LedgerActor,
+): Promise<void> {
+  try {
+    await cancelPaymentIntent(piId, stripeKeys.voidHoldNow(piId))
+  } catch (err) {
+    console.error('[webhook] unowned hold-now authorization not voided', { bookingId, stripeObjectId: piId, reason })
+    throw err
+  }
+  try {
+    await appendPaymentEvent(bookingId, {
+      key: `hold_void:${piId}`,
+      kind: 'hold_released',
+      stripeObjectId: piId,
+      errorCode: reason,
+      actor,
+    })
+  } catch {
+    console.error('[webhook] hold_void row not written', { bookingId, stripeObjectId: piId })
+  }
+}
+
+/**
  * Hold-at-checkout authorized (kind card_hold_now, payment_intent.amount_capturable_updated): confirm the
  * booking once and move checkout_pending -> authorized with the hold's PaymentIntent, amount and capture_before.
  * The hold is NOT a collected payment: the booking's collected-payment column stays NULL until a capture.
  * A booking cancelled meanwhile moves to released and is not re-confirmed.
+ *
+ * The booking owns exactly one hold-now PaymentIntent: the one in hold_payment_intent_id. A PaymentIntent that a
+ * later checkout attempt replaced, one that authorized after the booking was cancelled or released, and one that lost
+ * the checkout_pending -> authorized race is voided (never adopted and never left authorized).
  */
 export async function applyHoldNowAuthorized(pi: Stripe.PaymentIntent, actor: LedgerActor): Promise<void> {
   const booking = await resolveBooking('payment_intent.amount_capturable_updated', pi.id, pi.metadata)
   if (!booking) return
+
+  // B-WR-01: a superseded PaymentIntent (the checkout created a newer one) never confirms or holds anything.
+  const currentHold = typeof booking.hold_payment_intent_id === 'string' ? booking.hold_payment_intent_id : ''
+  if (currentHold && currentHold !== pi.id) {
+    await voidUnownedHoldNow(booking.id, pi.id, 'superseded', actor)
+    return
+  }
 
   const outcome = await confirmCardBooking(booking, 'card_hold_now')
   const cancelled = outcome === 'cancelled'
@@ -346,8 +389,16 @@ export async function applyHoldNowAuthorized(pi: Stripe.PaymentIntent, actor: Le
     },
   })
 
-  if (cancelled) return
-  if (!moved.applied && moved.duplicate !== true) return
+  // B-CR-03 / A-WR-05: the booking was cancelled meanwhile, or it left checkout_pending another way (released by
+  // the cancel route, or another PaymentIntent won): nobody owns this authorization, so it is voided now.
+  if (cancelled) {
+    await voidUnownedHoldNow(booking.id, pi.id, 'booking_cancelled', actor)
+    return
+  }
+  if (!moved.applied && moved.duplicate !== true) {
+    await voidUnownedHoldNow(booking.id, pi.id, 'state_moved', actor)
+    return
+  }
 
   const row: BookingRow = { ...booking, ...(moved.booking ?? {}) }
   if (moved.applied) {

@@ -308,6 +308,31 @@ describe('releaseHold and cancelHoldIntent', () => {
     expect(ledger('hold_released')).toHaveLength(1)
   })
 
+  it('checkout_pending with a hold-now PaymentIntent voids it (key pi_void:<pi>) before releasing (88-REVIEW T6)', async () => {
+    const pi = (await fake.stripe.paymentIntents.create({
+      amount: 12000,
+      currency: 'eur',
+      capture_method: 'manual',
+      metadata: { kind: 'card_hold_now', cofBookingId: ID },
+    })) as { id: string }
+    seed({ payment_state: 'checkout_pending', status: 'unpaid', payment_lease_until: null, hold_payment_intent_id: pi.id })
+    fake.calls.length = 0
+    expect(await releaseHold(fresh(), { actor: ACTOR, reason: 'cancel' })).toBe('released')
+    const cancels = fake.callsTo('paymentIntents.cancel')
+    expect(cancels).toHaveLength(1)
+    expect(cancels[0].targetId).toBe(pi.id)
+    expect(cancels[0].idempotencyKey).toBe(`pi_void:${pi.id}`)
+    expect(fake.state.paymentIntents.get(pi.id)!.status).toBe('canceled')
+    // A 3DS completed afterwards can not authorize: the PaymentIntent is canceled at Stripe.
+    expect(row().payment_state).toBe('released')
+  })
+
+  it('checkout_pending whose PaymentIntent can not be voided throws and stays checkout_pending', async () => {
+    seed({ payment_state: 'checkout_pending', status: 'unpaid', payment_lease_until: null, hold_payment_intent_id: 'pi_missing' })
+    await expect(releaseHold(fresh(), { actor: ACTOR, reason: 'cancel' })).rejects.toThrow()
+    expect(row().payment_state).toBe('checkout_pending')
+  })
+
   it('balance_due with reason waive -> released with a waived ledger row', async () => {
     seed({ payment_state: 'balance_due', payment_lease_until: null })
     expect(await releaseHold(fresh(), { actor: { type: 'admin', id: 'ops' }, reason: 'waive' })).toBe('released')

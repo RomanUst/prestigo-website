@@ -11,7 +11,7 @@ import { REQUIRED_EVENTS, KEPT_EVENTS } from '../infra/stripe/webhook-events.mjs
  * localized emails exactly once. The legacy suites (webhooks-stripe*.test.ts) stay unmodified and green.
  */
 
-const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend, mockPiRetrieve, mockLinkCreate, mockDeactivate } = vi.hoisted(() => ({
+const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend, mockPiRetrieve, mockPiCancel, mockRefundCreate, mockLinkCreate, mockDeactivate } = vi.hoisted(() => ({
   stripeStub: { constructEvent: vi.fn() },
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
@@ -21,6 +21,8 @@ const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend, mockPiRe
   mockClaimPromo: vi.fn(),
   mockResendSend: vi.fn(),
   mockPiRetrieve: vi.fn(),
+  mockPiCancel: vi.fn(),
+  mockRefundCreate: vi.fn(),
   mockLinkCreate: vi.fn(),
   mockDeactivate: vi.fn(),
 }))
@@ -100,7 +102,11 @@ vi.mock('@/lib/email', async (importActual) => ({
 }))
 vi.mock('@/lib/payments/stripe', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/payments/stripe')>()),
-  getPaymentsStripe: () => ({ paymentIntents: { retrieve: mockPiRetrieve }, paymentLinks: { create: mockLinkCreate } }),
+  getPaymentsStripe: () => ({
+    paymentIntents: { retrieve: mockPiRetrieve, cancel: mockPiCancel },
+    paymentLinks: { create: mockLinkCreate },
+    refunds: { create: mockRefundCreate },
+  }),
 }))
 vi.mock('@/lib/stripe-payment-links', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/stripe-payment-links')>()),
@@ -210,6 +216,8 @@ beforeEach(() => {
   mockResendSend.mockResolvedValue({ data: { id: 'email_1' }, error: null })
   mockLinkCreate.mockResolvedValue({ id: 'plink_new', url: 'https://buy.stripe.test/plink_new' })
   mockDeactivate.mockResolvedValue(undefined)
+  mockPiCancel.mockImplementation(async (id: string) => ({ id, status: 'canceled' }))
+  mockRefundCreate.mockImplementation(async (params: { payment_intent: string }) => ({ id: `re_${params.payment_intent}`, status: 'succeeded' }))
   process.env.RESEND_API_KEY = 're_test'
   process.env.MANAGER_EMAIL = 'owner@example.com'
   // The real status service needs the advance_booking_status RPC; here it is a faithful compare-and-set on the fake row.
@@ -644,13 +652,55 @@ describe('hold-at-checkout confirmation (HOLD-03)', () => {
     expect(ledger('hold_authorized')).toHaveLength(1)
   })
 
-  it('a booking cancelled meanwhile moves to released with no email and is not re-confirmed', async () => {
+  it('a booking cancelled meanwhile moves to released with no email, is not re-confirmed and the authorization is voided', async () => {
     bookingRow().status = 'cancelled'
     await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi()))
     expect(bookingRow().status).toBe('cancelled')
     expect(bookingRow().payment_state).toBe('released')
     expect(emails()).toHaveLength(0)
     expect(sendGa4Purchase).not.toHaveBeenCalled()
+    // 88-REVIEW T6 (B-CR-03): nobody owns the authorization, so it is voided instead of freezing the fare ~7 days.
+    expect(mockPiCancel).toHaveBeenCalledWith('pi_hold', expect.anything(), { idempotencyKey: 'pi_void:pi_hold' })
+    expect(ledger('hold_released').map((e) => [e.event_key, e.error_code])).toEqual([['hold_void:pi_hold', 'booking_cancelled']])
+  })
+
+  it('a booking already released by the cancel route (checkout_pending -> released) gets its late authorization voided (A-WR-05)', async () => {
+    Object.assign(bookingRow(), { status: 'cancelled', payment_state: 'released', hold_payment_intent_id: 'pi_hold' })
+    const { status } = await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi()))
+    expect(status).toBe(200)
+    expect(bookingRow().payment_state).toBe('released')
+    expect(mockPiCancel).toHaveBeenCalledWith('pi_hold', expect.anything(), { idempotencyKey: 'pi_void:pi_hold' })
+    expect(emails()).toHaveLength(0)
+  })
+
+  it('a hold-now PaymentIntent that lost the race to another state is voided, not adopted', async () => {
+    Object.assign(bookingRow(), { payment_state: 'card_saved', hold_payment_intent_id: 'pi_hold' })
+    await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi()))
+    expect(bookingRow().payment_state).toBe('card_saved')
+    expect(mockPiCancel).toHaveBeenCalledWith('pi_hold', expect.anything(), { idempotencyKey: 'pi_void:pi_hold' })
+    expect(ledger('hold_released')[0].error_code).toBe('state_moved')
+  })
+
+  it('a superseded hold-now PaymentIntent (the checkout replaced it) is voided and confirms nothing (B-WR-01)', async () => {
+    bookingRow().hold_payment_intent_id = 'pi_newer'
+    const { status } = await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi()))
+    expect(status).toBe(200)
+    expect(mockAdvance).not.toHaveBeenCalled()
+    expect(bookingRow()).toMatchObject({ status: 'unpaid', payment_state: 'checkout_pending', hold_payment_intent_id: 'pi_newer' })
+    expect(mockPiCancel).toHaveBeenCalledWith('pi_hold', expect.anything(), { idempotencyKey: 'pi_void:pi_hold' })
+    expect(ledger('hold_released')[0].error_code).toBe('superseded')
+    expect(emails()).toHaveLength(0)
+  })
+
+  it('a void that fails answers 500 so Stripe redelivers; the redelivery voids it', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    bookingRow().status = 'cancelled'
+    mockPiCancel.mockRejectedValueOnce(Object.assign(new Error('down'), { type: 'StripeAPIError', statusCode: 500 }))
+    mockPiRetrieve.mockResolvedValueOnce({ id: 'pi_hold', status: 'requires_capture' })
+    expect((await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi(), 'evt_v1'))).status).toBe(500)
+    expect((await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi(), 'evt_v1'))).status).toBe(200)
+    expect(mockPiCancel).toHaveBeenCalledTimes(2)
+    expect(ledger('hold_released')).toHaveLength(1)
   })
 
   it('a hold event for a card_hold (scheduled) PaymentIntent is acknowledged without a handler or write', async () => {
