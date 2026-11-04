@@ -1,7 +1,8 @@
 ---
 phase: "88"
 slug: "card-on-file-scheduled-holds"
-status: draft
+status: approved
+reviewed_at: "2026-11-04"
 shadcn_initialized: false
 preset: none
 created: "2026-11-04"
