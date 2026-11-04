@@ -6,7 +6,8 @@
 //                                                          response was lost (same ledger key as the tick)
 //   payment_intent.canceled, reason expired | automatic   authorized -> expired (the authorization lapsed)
 //   payment_intent.canceled, reason requested_by_customer our own release: one observation row, no state change
-//   payment_intent.payment_failed (card_hold)             placing_hold -> failed (backup for the synchronous failure)
+//   payment_intent.payment_failed (card_hold)             placing_hold -> failed (backup for the synchronous failure),
+//                                                          then the recovery link / email / operator alert (88-14)
 //
 // Rules: the booking is found through metadata.cofBookingId; only legal from-states move; an event for a booking
 // that is no longer in the expected state (captured, released, already authorized, ...) changes nothing, so a late
@@ -18,6 +19,7 @@ import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-sta
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { captureBeforeIso, holdFailurePatch } from '@/lib/payments/hold'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
+import { handlePaymentFailure } from '@/lib/payments/recovery'
 import { applyTransition, appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
@@ -162,7 +164,7 @@ export async function handleHoldFailed(event: Stripe.Event): Promise<void> {
 
   const err = pi.last_payment_error
   const code = (err?.decline_code || err?.code || 'unknown').slice(0, 60)
-  await applyTransition({
+  const moved = await applyTransition({
     bookingId: booking.id,
     from: ['placing_hold'],
     to: 'failed',
@@ -175,4 +177,22 @@ export async function handleHoldFailed(event: Stripe.Event): Promise<void> {
       actor: WEBHOOK_ACTOR,
     },
   })
+
+  // HOLD-05: whichever writer (the tick's synchronous answer or this webhook) moves the row runs the recovery step;
+  // its ledger keys (attempt = hold_attempts after the failure) make a second call send nothing twice.
+  if (moved.applied) {
+    try {
+      await handlePaymentFailure(
+        { ...booking, ...(moved.booking ?? {}) },
+        {
+          phase: 'hold',
+          code,
+          amountMinor: typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : 0,
+          attempt: attemptsOf(booking) + 1,
+        },
+      )
+    } catch {
+      console.error('[webhook] hold failure recovery step failed', { bookingId: booking.id })
+    }
+  }
 }

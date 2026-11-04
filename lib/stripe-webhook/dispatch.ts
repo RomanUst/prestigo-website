@@ -26,6 +26,7 @@ import { appendPaymentEvent } from '@/lib/payments/state'
 import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
 import { handleCardChargeFailed, handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
 import { handleHoldAuthorized, handleHoldCanceled, handleHoldFailed } from '@/lib/stripe-webhook/hold-events'
+import { handleDispute, handleRecoveryPaid } from '@/lib/stripe-webhook/recovery-events'
 
 /** The six event types the card flow adds to the endpoint (infra/stripe/webhook-events.mjs REQUIRED_EVENTS). */
 export const CARD_EVENT_TYPES = [
@@ -68,7 +69,7 @@ async function handlePaymentFailed(event: Stripe.Event): Promise<void> {
 /**
  * Route -> handler. 88-09 registered the three confirmation routes; 88-11 adds the hold lifecycle routes
  * (hold_authorized, pi_canceled, pi_failed); 88-13 adds charge_succeeded and chains the charge / difference
- * failures into pi_failed; later plans add recovery_paid and dispute (88-14).
+ * failures into pi_failed; 88-14 adds recovery_paid and dispute.
  * A classified route without a handler is logged and acknowledged.
  */
 export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
@@ -79,6 +80,10 @@ export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
   pi_canceled: handleHoldCanceled,
   pi_failed: handlePaymentFailed,
   charge_succeeded: handleCardChargeSucceeded,
+  // 88-14: a paid recovery link closes the failed booking (session and PaymentIntent events share one ledger key);
+  // a dispute on a card booking alerts the operator. Both route here before the legacy chain.
+  recovery_paid: handleRecoveryPaid,
+  dispute: handleDispute,
 }
 
 function metadataOf(event: Stripe.Event): Record<string, unknown> {

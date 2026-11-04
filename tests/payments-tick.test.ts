@@ -14,7 +14,7 @@ import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 const CRON_SECRET = 'test-cron-secret'
 process.env.CRON_SECRET = CRON_SECRET
 
-const { world, mockSendEmail, mockSetupSucceeded, mockHoldNowAuthorized, mockVerify } = vi.hoisted(() => ({
+const { world, mockSendEmail, mockSetupSucceeded, mockHoldNowAuthorized, mockVerify, mockFailure, mockResendSend } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
@@ -24,7 +24,11 @@ const { world, mockSendEmail, mockSetupSucceeded, mockHoldNowAuthorized, mockVer
   mockSetupSucceeded: vi.fn(),
   mockHoldNowAuthorized: vi.fn(),
   mockVerify: vi.fn(),
+  mockFailure: vi.fn(),
+  mockResendSend: vi.fn(),
 }))
+
+process.env.RESEND_API_KEY = 're_test'
 
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: () => ({
@@ -49,6 +53,15 @@ vi.mock('@/lib/payments/emails/send', () => ({
 vi.mock('@/lib/stripe-webhook/card-confirm', () => ({
   applySetupSucceeded: mockSetupSucceeded,
   applyHoldNowAuthorized: mockHoldNowAuthorized,
+}))
+
+// The link / email / alert of a declined hold or charge are covered by tests/payments-failure.test.ts.
+vi.mock('@/lib/payments/recovery', () => ({ handlePaymentFailure: mockFailure }))
+// The operator alerts of step D run for real (ledger claim included); only Resend is a double.
+vi.mock('resend', () => ({
+  Resend: vi.fn().mockImplementation(function () {
+    return { emails: { send: mockResendSend } }
+  }),
 }))
 
 vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: vi.fn().mockResolvedValue(undefined) }))
@@ -134,6 +147,9 @@ beforeEach(() => {
   fake = createFakeStripe()
   world.stripe = withExpandedCharge(fake)
   mockSendEmail.mockResolvedValue('sent')
+  mockFailure.mockResolvedValue(undefined)
+  mockResendSend.mockResolvedValue({ data: { id: 'em_1' }, error: null })
+  process.env.MANAGER_EMAIL = 'owner@example.com'
   seed([dueBooking()])
 })
 
@@ -238,7 +254,7 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
     seed([])
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, errors: [] })
+    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, errors: [] })
   })
 
   it('a booking whose pickup instant cannot be computed is never held', async () => {
@@ -272,8 +288,8 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
 })
 
 describe('TICK_STEPS', () => {
-  it('registers step A (place holds), step C (settle completed trips, 88-13) then step E (reconcile)', () => {
-    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'C', 'E'])
+  it('registers A (place holds), B (auto retry), C (settle completed trips), D (alerts) then E (reconcile)', () => {
+    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E'])
   })
 })
 
@@ -652,5 +668,216 @@ describe('retry timestamp helper stays aligned with timing.ts', () => {
   it('retryAt is the shared clamp (12 h later, never later than 2 h before pickup)', () => {
     const t = Date.now()
     expect(retryAt(t, t + 100 * HOUR)).toBe(t + 12 * HOUR)
+  })
+})
+
+// ── plan 88-14: step B (the one automatic retry, D-13) and step D (operator alerts, D-15) ──────────────────────────
+
+const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000).toISOString()
+const hoursAhead = (h: number) => new Date(Date.now() + h * HOUR).toISOString()
+const operatorMails = () =>
+  mockResendSend.mock.calls.map((c) => c[0] as { to: string[]; subject: string; text: string }).filter((m) => m.to[0] === 'owner@example.com')
+
+/** A hold that was declined once: failed, one attempt used, the retry instant already passed. */
+function failedHold(over: Record<string, unknown> = {}) {
+  return dueBooking({
+    payment_state: 'failed',
+    hold_at: minutesAgo(13 * 60),
+    hold_attempts: 1,
+    last_payment_error: 'insufficient_funds',
+    payment_failed_at: minutesAgo(12 * 60 + 1),
+    payment_retry_at: minutesAgo(1),
+    payment_retry_count: 0,
+    pickup_utc: hoursAhead(40),
+    ...over,
+  })
+}
+
+describe('step B: the one automatic retry (D-13)', () => {
+  it('a declined hold whose retry instant has passed is retried once: a fresh key, the retry marked used', async () => {
+    seed([failedHold()])
+    const res = await (await GET(okRequest())).json()
+    expect(res).toMatchObject({ ok: true, retried: 1, placed: 1, errors: [] })
+
+    const b = row()
+    expect(b.payment_state).toBe('authorized')
+    expect(b.payment_retry_count).toBe(1)
+    expect(b.payment_retry_at).toBeNull()
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates).toHaveLength(1)
+    expect(creates[0].idempotencyKey).toBe(`hold:${BOOKING_ID}:1`)
+  })
+
+  it('the retry declining again -> failed with no retry instant, attempt 2 reported, never retried a third time', async () => {
+    seed([failedHold({ stripe_payment_method_id: 'pm_decline_insufficient' })])
+    const first = await (await GET(okRequest())).json()
+    expect(first).toMatchObject({ retried: 1, failed: 1 })
+
+    const b = row()
+    expect(b.payment_state).toBe('failed')
+    expect(b.hold_attempts).toBe(2)
+    expect(b.payment_retry_count).toBe(1)
+    expect(b.payment_retry_at).toBeNull()
+    expect(mockFailure).toHaveBeenCalledTimes(1)
+    expect(mockFailure.mock.calls[0][1]).toEqual({ phase: 'hold', code: 'insufficient_funds', amountMinor: 12000, attempt: 2 })
+
+    const second = await (await GET(okRequest())).json()
+    expect(second).toMatchObject({ retried: 0 })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+  })
+
+  it('payment_retry_count 1 is never retried again, even with a passed retry instant', async () => {
+    seed([failedHold({ payment_retry_count: 1 })])
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row().payment_state).toBe('failed')
+  })
+
+  it('a booking the client paid through the link (captured) is not retried', async () => {
+    seed([failedHold({ payment_state: 'captured', captured_amount_minor: 12000 })])
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row().payment_state).toBe('captured')
+  })
+
+  it('no retry instant (pickup too close) and a retry instant still ahead are not retried', async () => {
+    seed([
+      failedHold({ id: '33333333-3333-4333-8333-333333333331', payment_retry_at: null }),
+      failedHold({ id: '33333333-3333-4333-8333-333333333332', payment_retry_at: hoursAhead(5) }),
+    ])
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('a failed trip that is completed is settled once (charge of the saved card), not held again', async () => {
+    seed([
+      failedHold({
+        status: 'completed',
+        completed_at: minutesAgo(30),
+        pickup_utc: hoursAhead(-14),
+        hold_payment_intent_id: null,
+        charge_attempts: 1,
+      }),
+    ])
+    const res = await (await GET(okRequest())).json()
+    expect(res).toMatchObject({ retried: 1, captured: 1, errors: [] })
+
+    const b = row()
+    expect(b.payment_state).toBe('captured')
+    expect(b.payment_retry_count).toBe(1)
+    expect(b.captured_amount_minor).toBe(12000)
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates).toHaveLength(1)
+    expect(creates[0].idempotencyKey).toBe(`chg:${BOOKING_ID}:1`)
+    expect(creates[0].params.capture_method).toBeUndefined()
+  })
+
+  it('a cancelled booking is never retried and no step changes bookings.status', async () => {
+    seed([
+      failedHold({ id: '33333333-3333-4333-8333-333333333331', status: 'cancelled' }),
+      failedHold({ id: '33333333-3333-4333-8333-333333333332', stripe_payment_method_id: 'pm_decline_insufficient' }),
+    ])
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+    expect(row('33333333-3333-4333-8333-333333333331').status).toBe('cancelled')
+    expect(row('33333333-3333-4333-8333-333333333331').payment_state).toBe('failed')
+    expect(row('33333333-3333-4333-8333-333333333332').status).toBe('confirmed')
+  })
+
+  it('two overlapping ticks retry a declined hold exactly once', async () => {
+    seed([failedHold()])
+    await Promise.all([GET(okRequest()), GET(okRequest())])
+    expect(fake.callsTo('paymentIntents.create').filter((c) => !c.replayed)).toHaveLength(1)
+    expect(row().payment_state).toBe('authorized')
+  })
+})
+
+describe('step D: operator alerts before pickup and before a hold lapses (D-15)', () => {
+  it('card_saved with pickup in 20 h -> one "no valid hold" alert; the next tick sends no second one', async () => {
+    seed([dueBooking({ hold_at: hoursAhead(1), pickup_utc: hoursAhead(20) })])
+    const first = await (await GET(okRequest())).json()
+    expect(first).toMatchObject({ alerts: 1, errors: [] })
+
+    expect(operatorMails()).toHaveLength(1)
+    expect(operatorMails()[0].subject).toBe('[Payment] No valid hold, pickup within 24 h — PRG-20261201-ABC123')
+    expect(operatorMails()[0].text).toContain('Contact the client or place a hold from the booking.')
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:no_valid_hold_24h:${BOOKING_ID}`])
+
+    await GET(okRequest())
+    expect(operatorMails()).toHaveLength(1)
+    expect(ledger('alert_sent')).toHaveLength(1)
+    // D-15: nothing cancels or changes the booking.
+    expect(row().status).toBe('confirmed')
+    expect(row().payment_state).toBe('card_saved')
+  })
+
+  it('failed and expired bookings inside 24 h alert too; an authorized one does not', async () => {
+    seed([
+      dueBooking({ id: '44444444-4444-4444-8444-444444444441', payment_state: 'failed', hold_at: hoursAhead(1), pickup_utc: hoursAhead(10), payment_retry_at: null }),
+      dueBooking({ id: '44444444-4444-4444-8444-444444444442', payment_state: 'expired', hold_at: hoursAhead(1), pickup_utc: hoursAhead(10) }),
+      dueBooking({ id: '44444444-4444-4444-8444-444444444443', payment_state: 'authorized', hold_at: hoursAhead(1), pickup_utc: hoursAhead(10) }),
+    ])
+    await GET(okRequest())
+    expect(operatorMails()).toHaveLength(2)
+  })
+
+  it('a booking with pickup beyond 24 h and one that already passed are not alerted', async () => {
+    seed([
+      dueBooking({ id: '44444444-4444-4444-8444-444444444441', hold_at: hoursAhead(1), pickup_utc: hoursAhead(30) }),
+      dueBooking({ id: '44444444-4444-4444-8444-444444444442', hold_at: hoursAhead(1), pickup_utc: hoursAhead(-2) }),
+    ])
+    await GET(okRequest())
+    expect(operatorMails()).toHaveLength(0)
+  })
+
+  it('checkout_pending older than 30 minutes alerts; a younger one does not', async () => {
+    seed([
+      dueBooking({ id: '44444444-4444-4444-8444-444444444441', payment_state: 'checkout_pending', hold_at: null, pickup_utc: hoursAhead(10), created_at: minutesAgo(40) }),
+      dueBooking({ id: '44444444-4444-4444-8444-444444444442', payment_state: 'checkout_pending', hold_at: null, pickup_utc: hoursAhead(10), created_at: minutesAgo(5) }),
+    ])
+    await GET(okRequest())
+    expect(operatorMails()).toHaveLength(1)
+    expect(ledger('alert_sent', '44444444-4444-4444-8444-444444444441')).toHaveLength(1)
+    expect(ledger('alert_sent', '44444444-4444-4444-8444-444444444442')).toHaveLength(0)
+  })
+
+  it('an authorized hold whose capture_before is 10 h away on an open trip -> one "hold expires soon" alert', async () => {
+    seed([
+      dueBooking({
+        payment_state: 'authorized',
+        hold_payment_intent_id: 'pi_hold_1',
+        hold_at: minutesAgo(60),
+        pickup_utc: hoursAhead(50),
+        capture_before: hoursAhead(10),
+      }),
+    ])
+    await GET(okRequest())
+    expect(operatorMails()).toHaveLength(1)
+    expect(operatorMails()[0].subject).toBe('[Payment] Hold expires soon — PRG-20261201-ABC123')
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:hold_expiring:${BOOKING_ID}:pi_hold_1`])
+
+    await GET(okRequest())
+    expect(operatorMails()).toHaveLength(1)
+  })
+
+  it('no expiring alert for a far capture_before, a completed trip or a cancelled booking', async () => {
+    const authorized = { payment_state: 'authorized', hold_payment_intent_id: 'pi_hold_1', pickup_utc: hoursAhead(50) }
+    seed([
+      dueBooking({ ...authorized, id: '44444444-4444-4444-8444-444444444441', capture_before: hoursAhead(72) }),
+      dueBooking({ ...authorized, id: '44444444-4444-4444-8444-444444444442', capture_before: hoursAhead(10), completed_at: minutesAgo(5), status: 'completed' }),
+      dueBooking({ ...authorized, id: '44444444-4444-4444-8444-444444444443', capture_before: hoursAhead(10), status: 'cancelled' }),
+    ])
+    await GET(okRequest())
+    expect(operatorMails().filter((m) => m.subject.includes('Hold expires soon'))).toHaveLength(0)
+  })
+
+  it('without MANAGER_EMAIL the tick still finishes and nothing is claimed in the ledger', async () => {
+    delete process.env.MANAGER_EMAIL
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    seed([dueBooking({ hold_at: hoursAhead(1), pickup_utc: hoursAhead(20) })])
+    const res = await GET(okRequest())
+    expect(res.status).toBe(200)
+    expect(mockResendSend).not.toHaveBeenCalled()
+    expect(ledger('alert_sent')).toHaveLength(0)
   })
 })
