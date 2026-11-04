@@ -234,11 +234,11 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
     expect(row().payment_state).toBe('authorized')
   })
 
-  it('with nothing due answers { ok:true, placed:0, failed:0, reconciled:0, errors:[] }', async () => {
+  it('with nothing due answers { ok:true, placed:0, captured:0, failed:0, reconciled:0, errors:[] }', async () => {
     seed([])
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, placed: 0, failed: 0, reconciled: 0, errors: [] })
+    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, errors: [] })
   })
 
   it('a booking whose pickup instant cannot be computed is never held', async () => {
@@ -272,8 +272,8 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
 })
 
 describe('TICK_STEPS', () => {
-  it('this plan registers step A then step E', () => {
-    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'E'])
+  it('registers step A (place holds), step C (settle completed trips, 88-13) then step E (reconcile)', () => {
+    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'C', 'E'])
   })
 })
 
@@ -447,6 +447,204 @@ describe('step isolation and reconcile (step E)', () => {
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ ok: true, placed: 1, errors: ['E'] })
+  })
+})
+
+describe('step C: completion sweep (HOLD-04, Phase 87 hand-off: a lost after() never loses a capture)', () => {
+  const ids = [1, 2, 3, 4, 5, 6].map((n) => `55555555-5555-4555-8555-55555555555${n}`)
+
+  async function holdFor(bookingId: string, amount = 12000) {
+    const pi = (await fake.stripe.paymentIntents.create({
+      amount,
+      currency: 'eur',
+      customer: 'cus_1',
+      payment_method: 'pm_ok',
+      capture_method: 'manual',
+      off_session: true,
+      confirm: true,
+      metadata: { kind: 'card_hold', cofBookingId: bookingId, attempt: '0' },
+    })) as { id: string }
+    return pi.id
+  }
+
+  async function completed(id: string, over: Record<string, unknown> = {}) {
+    return {
+      id,
+      status: 'completed',
+      completed_at: new Date(Date.now() - 2 * HOUR).toISOString(),
+      booking_source: 'web',
+      payment_mode: 'card_hold',
+      payment_state: 'authorized',
+      booking_reference: 'PRG-20261101-SWEEP1',
+      client_email: 'anna@example.com',
+      locale: 'en',
+      pickup_date: '2026-11-01',
+      pickup_time: '14:00',
+      pickup_utc: new Date(Date.now() - 5 * HOUR).toISOString(),
+      payment_currency: 'eur',
+      payment_amount_minor: 12000,
+      stripe_customer_id: 'cus_1',
+      stripe_payment_method_id: 'pm_ok',
+      hold_payment_intent_id: await holdFor(id),
+      hold_amount_minor: 12000,
+      ...over,
+    }
+  }
+
+  const captureCalls = () => fake.callsTo('paymentIntents.capture')
+
+  it('a completed booking whose after() never ran (still authorized) is captured by the next tick, actor tick_sweep', async () => {
+    seed([await completed(ids[0])])
+    const res = await GET(okRequest())
+    expect(await res.json()).toMatchObject({ ok: true, captured: 1, failed: 0, errors: [] })
+    expect(row(ids[0]).payment_state).toBe('captured')
+    expect(row(ids[0]).captured_amount_minor).toBe(12000)
+    expect(captureCalls()).toHaveLength(1)
+    expect(ledger('capture_started', ids[0])[0].actor_id).toBe('tick_sweep')
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['expired', 'card_saved'])('a completed booking in %s is settled with the saved card', async (payment_state) => {
+    seed([await completed(ids[0], { payment_state, hold_payment_intent_id: null, hold_amount_minor: null })])
+    const res = await GET(okRequest())
+    expect(await res.json()).toMatchObject({ captured: 1 })
+    expect(row(ids[0]).payment_state).toBe('captured')
+    expect(fake.callsTo('paymentIntents.create').filter((c) => c.idempotencyKey === `chg:${ids[0]}:0`)).toHaveLength(1)
+  })
+
+  it('a failed completed booking is NOT re-charged by step C (the single retry rule belongs to 88-14)', async () => {
+    seed([await completed(ids[0], { payment_state: 'failed', charge_attempts: 1 })])
+    const res = await GET(okRequest())
+    expect(await res.json()).toMatchObject({ captured: 0, failed: 0 })
+    expect(row(ids[0]).payment_state).toBe('failed')
+    expect(captureCalls()).toHaveLength(0)
+  })
+
+  it('a booking with status completed but completed_at NULL (historic) is not selected', async () => {
+    seed([await completed(ids[0], { completed_at: null })])
+    const res = await GET(okRequest())
+    expect(await res.json()).toMatchObject({ captured: 0 })
+    expect(row(ids[0]).payment_state).toBe('authorized')
+    expect(captureCalls()).toHaveLength(0)
+  })
+
+  it('a cancelled booking and a not-yet-completed booking are never selected', async () => {
+    seed([
+      await completed(ids[0], { status: 'cancelled' }),
+      await completed(ids[1], { status: 'confirmed', completed_at: null }),
+    ])
+    await GET(okRequest())
+    expect(captureCalls()).toHaveLength(0)
+    expect(row(ids[0]).payment_state).toBe('authorized')
+    expect(row(ids[1]).payment_state).toBe('authorized')
+  })
+
+  it('a pay_now and a partner booking are never selected', async () => {
+    seed([
+      await completed(ids[0], { payment_mode: 'pay_now', payment_state: 'none' }),
+      await completed(ids[1], { booking_source: 'gnet', payment_mode: 'partner', payment_state: 'none' }),
+    ])
+    await GET(okRequest())
+    expect(captureCalls()).toHaveLength(0)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(2) // only the two seed holds
+  })
+
+  it('a capturing row whose lease expired is finished; a live lease is left alone', async () => {
+    const expired = await completed(ids[0], { payment_state: 'capturing', payment_lease_until: new Date(Date.now() - 60_000).toISOString() })
+    const live = await completed(ids[1], { payment_state: 'capturing', payment_lease_until: new Date(Date.now() + 120_000).toISOString() })
+    seed([expired, live])
+    const res = await GET(okRequest())
+    expect(await res.json()).toMatchObject({ captured: 1 })
+    expect(row(ids[0]).payment_state).toBe('captured')
+    expect(row(ids[1]).payment_state).toBe('capturing')
+    expect(captureCalls()).toHaveLength(1)
+  })
+
+  it('two overlapping ticks capture a completed booking exactly once', async () => {
+    seed([await completed(ids[0])])
+    await Promise.all([GET(okRequest()), GET(okRequest())])
+    expect(captureCalls()).toHaveLength(1)
+    expect(ledger('captured', ids[0])).toHaveLength(1)
+    expect(row(ids[0]).captured_amount_minor).toBe(12000)
+  })
+
+  it('settles at most HOLD_CLAIM_LIMIT bookings per run (oldest completion first); the rest wait for the next run', async () => {
+    const rows = []
+    for (let i = 0; i < 22; i += 1) {
+      const id = `66666666-6666-4666-8666-6666666666${String(i).padStart(2, '0')}`
+      rows.push(await completed(id, { completed_at: new Date(Date.now() - (30 - i) * 60_000).toISOString() }))
+    }
+    seed(rows)
+    const first = await (await GET(okRequest())).json()
+    expect(first.captured).toBe(20)
+    const second = await (await GET(okRequest())).json()
+    expect(second.captured).toBe(2)
+  })
+
+  it('counts a declined fallback charge as failed and keeps the other bookings going', async () => {
+    seed([
+      await completed(ids[0], { payment_state: 'expired', hold_payment_intent_id: null, stripe_payment_method_id: 'pm_decline_insufficient' }),
+      await completed(ids[1]),
+    ])
+    const res = await GET(okRequest())
+    expect(await res.json()).toMatchObject({ captured: 1, failed: 1, errors: [] })
+    expect(row(ids[0]).payment_state).toBe('failed')
+    expect(row(ids[1]).payment_state).toBe('captured')
+  })
+
+  it('a settle that throws for one booking adds "C" and the other bookings are still settled', async () => {
+    seed([await completed(ids[0]), await completed(ids[1])])
+    const rpc = db.client.rpc.bind(db.client)
+    let thrown = false
+    vi.spyOn(db.client, 'rpc').mockImplementation(async (name: string, args?: Record<string, unknown>) => {
+      if (name === 'apply_payment_transition' && !thrown) {
+        thrown = true
+        return { data: null, error: { message: 'boom' } }
+      }
+      return rpc(name, args)
+    })
+    const res = await GET(okRequest())
+    expect(await res.json()).toMatchObject({ ok: true, captured: 1, errors: ['C'] })
+  })
+
+  it('step C throwing adds "C" and step E still runs', async () => {
+    const stepC = TICK_STEPS.find((s) => s.code === 'C')!
+    vi.spyOn(stepC, 'run').mockRejectedValue(new Error('x'))
+    mockSetupSucceeded.mockResolvedValue(undefined)
+    seed([
+      {
+        id: ids[2],
+        status: 'unpaid',
+        booking_source: 'web',
+        payment_mode: 'card_hold',
+        payment_state: 'checkout_pending',
+        setup_intent_id: 'seti_c',
+        created_at: new Date(Date.now() - 20 * 60_000).toISOString(),
+        pickup_utc: new Date(Date.now() + 100 * HOUR).toISOString(),
+      },
+    ])
+    fake.state.setupIntents.set('seti_c', {
+      id: 'seti_c',
+      object: 'setup_intent',
+      status: 'succeeded',
+      customer: 'cus_1',
+      payment_method: 'pm_1',
+      metadata: { kind: 'card_setup', cofBookingId: ids[2] },
+    })
+    try {
+      const res = await GET(okRequest())
+      expect(res.status).toBe(200)
+      expect(await res.json()).toMatchObject({ ok: true, errors: ['C'], reconciled: 1 })
+    } finally {
+      vi.mocked(stepC.run).mockRestore()
+    }
+  })
+
+  it('never reads the card-flow settings (D-09a): zero pricing_globals reads', async () => {
+    seed([await completed(ids[0])])
+    world.tables = []
+    await GET(okRequest())
+    expect(world.tables).not.toContain('pricing_globals')
   })
 })
 

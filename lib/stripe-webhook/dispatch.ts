@@ -24,6 +24,7 @@ import type Stripe from 'stripe'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { appendPaymentEvent } from '@/lib/payments/state'
 import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
+import { handleCardChargeFailed, handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
 import { handleHoldAuthorized, handleHoldCanceled, handleHoldFailed } from '@/lib/stripe-webhook/hold-events'
 
 /** The six event types the card flow adds to the endpoint (infra/stripe/webhook-events.mjs REQUIRED_EVENTS). */
@@ -57,10 +58,17 @@ export interface PaymentEventClass {
 
 type EventHandler = (event: Stripe.Event) => Promise<void>
 
+/** payment_intent.payment_failed: the scheduled hold (card_hold) or an off-session charge / difference (88-13). */
+async function handlePaymentFailed(event: Stripe.Event): Promise<void> {
+  const kind = metadataOf(event).kind
+  if (kind === 'card_charge' || kind === 'card_difference') return handleCardChargeFailed(event)
+  return handleHoldFailed(event)
+}
+
 /**
  * Route -> handler. 88-09 registered the three confirmation routes; 88-11 adds the hold lifecycle routes
- * (hold_authorized, pi_canceled, pi_failed); later plans add charge_succeeded (88-13), recovery_paid and
- * dispute (88-14).
+ * (hold_authorized, pi_canceled, pi_failed); 88-13 adds charge_succeeded and chains the charge / difference
+ * failures into pi_failed; later plans add recovery_paid and dispute (88-14).
  * A classified route without a handler is logged and acknowledged.
  */
 export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
@@ -69,7 +77,8 @@ export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
   hold_now_authorized: handleHoldNowAuthorized,
   hold_authorized: handleHoldAuthorized,
   pi_canceled: handleHoldCanceled,
-  pi_failed: handleHoldFailed,
+  pi_failed: handlePaymentFailed,
+  charge_succeeded: handleCardChargeSucceeded,
 }
 
 function metadataOf(event: Stripe.Event): Record<string, unknown> {

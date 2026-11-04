@@ -937,6 +937,104 @@ describe('hold lifecycle events (88-11)', () => {
   })
 })
 
+describe('card charge observation (plan 88-13, HOLD-04, PAYF-03)', () => {
+  const KINDS = ['card_hold', 'card_hold_now', 'card_charge', 'card_difference'] as const
+
+  function chargePi(kind: string, over: Record<string, unknown> = {}) {
+    return {
+      id: `pi_${kind}`,
+      object: 'payment_intent',
+      amount: 12000,
+      amount_received: 12000,
+      currency: 'eur',
+      status: 'succeeded',
+      // The legacy booking-id key is deliberately present: the card route must still never reach the legacy chain.
+      metadata: { kind, cofBookingId: BOOKING_ID, attempt: '0', bookingReference: REF, bookingId: 'legacy-key' },
+      ...over,
+    }
+  }
+
+  function setBookingState(over: Record<string, unknown>) {
+    Object.assign(bookingRow(), over)
+  }
+
+  it.each(KINDS)('payment_intent.succeeded %s -> one charge_succeeded row, no state change, never the legacy chain', async (kind) => {
+    setBookingState({ status: 'completed', payment_state: 'captured' })
+    const { status } = await deliver(eventOf('payment_intent.succeeded', chargePi(kind), 'evt_s1'))
+    expect(status).toBe(200)
+    const rows = ledger('charge_succeeded')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].event_key).toBe(`charge_succeeded:pi_${kind}`)
+    expect(rows[0].stripe_object_id).toBe(`pi_${kind}`)
+    expect(rows[0].amount_minor).toBe(12000)
+    expect(rows[0].currency).toBe('eur')
+    expect(rows[0].actor_type).toBe('webhook')
+    expect(bookingRow().payment_state).toBe('captured')
+    expect(bookingRow().status).toBe('completed')
+    expect(saveBooking).not.toHaveBeenCalled()
+    expect(reconcileBookingByIdToConfirmed).not.toHaveBeenCalled()
+    expect(sendClientConfirmation).not.toHaveBeenCalled()
+    expect(sendManagerAlert).not.toHaveBeenCalled()
+  })
+
+  it('a replay of the same PaymentIntent (same or new event id) adds no second row', async () => {
+    setBookingState({ payment_state: 'captured' })
+    await deliver(eventOf('payment_intent.succeeded', chargePi('card_charge'), 'evt_r1'))
+    await deliver(eventOf('payment_intent.succeeded', chargePi('card_charge'), 'evt_r1'))
+    await deliver(eventOf('payment_intent.succeeded', chargePi('card_charge'), 'evt_r2'))
+    expect(ledger('charge_succeeded')).toHaveLength(1)
+  })
+
+  it('a captured hold reports the amount actually received (a lowered capture is not the authorized amount)', async () => {
+    setBookingState({ payment_state: 'captured' })
+    await deliver(eventOf('payment_intent.succeeded', chargePi('card_hold', { amount: 12000, amount_received: 9000 }), 'evt_a1'))
+    expect(ledger('charge_succeeded')[0].amount_minor).toBe(9000)
+  })
+
+  it('an unknown booking and a partner booking are acknowledged with no write', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const unknown = chargePi('card_charge', {
+      metadata: { kind: 'card_charge', cofBookingId: '99999999-9999-4999-8999-999999999999', attempt: '0' },
+    })
+    expect((await deliver(eventOf('payment_intent.succeeded', unknown, 'evt_u1'))).status).toBe(200)
+    setBookingState({ booking_source: 'gnet' })
+    expect((await deliver(eventOf('payment_intent.succeeded', chargePi('card_charge'), 'evt_u2'))).status).toBe(200)
+    expect(ledger()).toHaveLength(0)
+  })
+
+  it('payment_intent.payment_failed on card_charge / card_difference adds one observation row and leaves the state alone', async () => {
+    setBookingState({ payment_state: 'failed' })
+    const failed = (kind: string) =>
+      chargePi(kind, { status: 'requires_payment_method', last_payment_error: { code: 'card_declined', decline_code: 'insufficient_funds' } })
+    await deliver(eventOf('payment_intent.payment_failed', failed('card_charge'), 'evt_f1'))
+    await deliver(eventOf('payment_intent.payment_failed', failed('card_charge'), 'evt_f2'))
+    await deliver(eventOf('payment_intent.payment_failed', failed('card_difference'), 'evt_f3'))
+    expect(ledger('charge_failed').map((e) => e.event_key)).toEqual(['charge_failed_obs:pi_card_charge'])
+    expect(ledger('difference_failed').map((e) => e.event_key)).toEqual(['difference_failed_obs:pi_card_difference'])
+    expect(ledger('charge_failed')[0].error_code).toBe('insufficient_funds')
+    expect(bookingRow().payment_state).toBe('failed')
+    expect(saveBooking).not.toHaveBeenCalled()
+  })
+
+  it('payment_failed on a scheduled card_hold still runs the hold failure backup (unchanged)', async () => {
+    setBookingState({ payment_state: 'placing_hold', hold_attempts: 0 })
+    await deliver(
+      eventOf(
+        'payment_intent.payment_failed',
+        chargePi('card_hold', { status: 'requires_payment_method', last_payment_error: { code: 'card_declined', decline_code: 'insufficient_funds' } }),
+        'evt_h1',
+      ),
+    )
+    expect(bookingRow().payment_state).toBe('failed')
+    expect(ledger('hold_failed')).toHaveLength(1)
+  })
+
+  it('the charge-events source never names the card-flow settings (D-09a)', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '..', 'lib/stripe-webhook/charge-events.ts'), 'utf8')
+    expect(src).not.toMatch(/card_flow_mode|card_flow_canary_emails|payment_hold_lead_hours|getPaymentSettings/)
+  })
+})
+
 describe('event list parity (PAYF-04)', () => {
   const subscribed = new Set<string>([...REQUIRED_EVENTS, ...KEPT_EVENTS])
 
