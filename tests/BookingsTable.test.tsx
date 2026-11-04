@@ -1552,6 +1552,16 @@ describe('BookingsTable card payments: list badge, cancel variant, refund failed
     expect(screen.queryByText(/full refund/i)).toBeNull()
   })
 
+  it('cancel dialog for a card booking already paid by card (captured) announces a full refund (88-REVIEW T4)', async () => {
+    stubCardFetch([cardBooking({ payment_state: 'captured' })])
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await openCancelDialog()
+    expect(screen.getByText("This booking was already paid by card. Cancelling will issue a full refund to the client's card. This action cannot be undone.")).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Confirm Cancel + Refund' })).toBeDefined()
+    expect(screen.queryByText('The card hold will be released.')).toBeNull()
+  })
+
   it('cancel dialog for a paid pay_now booking keeps the refund variant', async () => {
     stubCardFetch([makeBooking({ id: 'b-pn2', booking_reference: 'PRE-PN2', payment_mode: 'pay_now' })])
     await renderTable()

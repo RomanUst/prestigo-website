@@ -2909,7 +2909,31 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
               Cancel Booking
             </h2>
 
-            {pendingCancel.payment_mode === 'card_hold' ? (
+            {pendingCancel.payment_mode === 'card_hold' && (pendingCancel.payment_state === 'captured' || pendingCancel.payment_state === 'balance_due') ? (
+              /* Variant E (88-REVIEW T4): card booking already paid (recovery link) before the trip — full refund */
+              <>
+                <p style={{
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  marginTop: '16px',
+                  lineHeight: 1.8,
+                }}>
+                  This booking was already paid by card. Cancelling will issue a full refund to the client&apos;s card. This action cannot be undone.
+                </p>
+                <p style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 500,
+                  textTransform: 'uppercase',
+                  color: 'var(--status-danger-fg)',
+                  marginTop: '12px',
+                }}>
+                  A full Stripe refund will be issued.
+                </p>
+              </>
+            ) : pendingCancel.payment_mode === 'card_hold' ? (
               /* Variant D (Phase 88 D-04): card on file, nothing collected yet — release the hold */
               <>
                 <p style={{
@@ -3097,7 +3121,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 {cancelling
                   ? 'Cancelling...'
                   : pendingCancel.payment_mode === 'card_hold'
-                    ? 'Confirm Cancel + Release Hold'
+                    ? (pendingCancel.payment_state === 'captured' || pendingCancel.payment_state === 'balance_due'
+                        ? 'Confirm Cancel + Refund'
+                        : 'Confirm Cancel + Release Hold')
                     : pendingCancel.payment_intent_id !== null && pendingCancel.booking_source !== 'gnet'
                       ? 'Confirm Cancel + Refund'
                       : 'Cancel Booking'}

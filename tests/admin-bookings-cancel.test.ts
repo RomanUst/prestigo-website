@@ -571,6 +571,52 @@ describe('POST /api/admin/bookings/cancel', () => {
       expect(await res.json()).toEqual({ ok: true })
     })
 
+    // 88-REVIEW T4 (C-CR-01): a card booking the client already paid (recovery link) before the trip.
+    it('captured before the trip: CAS first, then a full refund of the collected payment -> 200; no release', async () => {
+      const { rpcFn } = wireSupabase({
+        booking: holdBooking('captured', { payment_intent_id: 'pi_rec', captured_amount_minor: 12000 }),
+      })
+      mockRefundsCreate.mockResolvedValue({ id: 're_card_1' })
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(200)
+      expect(await res.json()).toEqual({ ok: true, refund_id: 're_card_1' })
+      expect(mockRefundsCreate).toHaveBeenCalledWith({ payment_intent: 'pi_rec' }, { idempotencyKey: `refund:${ID}:full` })
+      expect(rpcFn.mock.invocationCallOrder[0]).toBeLessThan(mockRefundsCreate.mock.invocationCallOrder[0])
+      expect(mockReleaseHold).not.toHaveBeenCalled()
+      expect(mockAlert).not.toHaveBeenCalled()
+      expectNoSideEffects()
+    })
+
+    it('captured, refund fails: the booking stays cancelled, 502 with the collected amount, refund_failed row + alert (D-20)', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      wireSupabase({
+        booking: holdBooking('captured', { payment_intent_id: 'pi_rec', captured_amount_minor: 9000, payment_currency: 'czk' }),
+      })
+      mockRefundsCreate.mockRejectedValue(Object.assign(new Error('no'), { code: 'charge_disputed' }))
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(502)
+      expect(await res.json()).toEqual({ error: 'refund_failed', cancelled: true, amount_minor: 9000, currency: 'czk' })
+      expect(statusCalls()).toHaveLength(1)
+      expect((ledgerCalls()[0][1] as { p_event: Record<string, unknown> }).p_event).toMatchObject({
+        kind: 'refund_failed',
+        amount_minor: 9000,
+        currency: 'czk',
+        error_code: 'charge_disputed',
+      })
+      expect(mockAlert).toHaveBeenCalledWith('refund_failed', expect.anything(), expect.objectContaining({ amountMinor: 9000, note: undefined }))
+      errorSpy.mockRestore()
+    })
+
+    it('captured without a payment id: never answers ok, the operator refunds by hand', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      wireSupabase({ booking: holdBooking('captured', { payment_intent_id: null, captured_amount_minor: 12000 }) })
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(502)
+      expect((ledgerCalls()[0][1] as { p_event: Record<string, unknown> }).p_event).toMatchObject({ error_code: 'no_payment_intent' })
+      expect(mockRefundsCreate).not.toHaveBeenCalled()
+      errorSpy.mockRestore()
+    })
+
     // 88-REVIEW C-WR-01: the tick claimed the row between the route's read and the status CAS.
     it('releases from the payment state read AFTER the status CAS, not the stale snapshot', async () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})

@@ -25,15 +25,25 @@ const BOOKING_COLUMNS =
   'id, status, payment_intent_id, outbound_amount_czk, return_amount_czk, payment_mode, payment_state, ' +
   'payment_currency, payment_amount_minor, booking_reference, booking_source, amount_eur, amount_czk, ' +
   'client_first_name, client_last_name, pickup_date, pickup_time, ' +
-  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id'
+  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, captured_amount_minor'
 
 /** The payment side of the row after the status compare-and-set (88-REVIEW C-WR-01). */
 const PAYMENT_COLUMNS =
   'payment_mode, payment_state, payment_currency, payment_amount_minor, payment_intent_id, ' +
-  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id'
+  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, captured_amount_minor'
 
 /** Payment states in which a cancelled card booking holds nothing: the cancel is complete. */
 const NOTHING_HELD: ReadonlySet<string> = new Set(['released', 'none'])
+
+/**
+ * 88-REVIEW T4 (C-CR-01): money a card booking already COLLECTED before the trip (the client paid the recovery link
+ * of a declined hold: failed -> captured while the status is still confirmed). Cancelling it refunds that payment.
+ */
+function collectedMinor(row: BookingRow): number {
+  const captured = num(row.captured_amount_minor) ?? 0
+  if (captured > 0) return captured
+  return row.payment_state === 'captured' || row.payment_state === 'balance_due' ? (num(row.payment_amount_minor) ?? 0) : 0
+}
 
 const num = (v: unknown): number | null => {
   const n = typeof v === 'string' ? Number(v) : v
@@ -44,13 +54,18 @@ const num = (v: unknown): number | null => {
  * What the failed money step was about, in minor units of the booking's money currency:
  *   leg refund        -> the leg amount in EUR cents (what the refund request carried)
  *   card hold release -> the held amount (or the booking amount) in the booking's payment currency
+ *   card refund       -> the amount the card booking already collected, in its payment currency (T4)
  *   full refund       -> the booking's EUR amount (the pay-now charge is in EUR)
  */
 function failedAmount(
   booking: BookingRow,
   legAmountCents: number | null,
   isHold: boolean,
+  cardCollectedMinor: number | null = null,
 ): { amount_minor: number; currency: 'eur' | 'czk' } {
+  if (isHold && cardCollectedMinor !== null) {
+    return { amount_minor: cardCollectedMinor, currency: booking.payment_currency === 'czk' ? 'czk' : 'eur' }
+  }
   if (isHold) {
     const minor = num(booking.hold_amount_minor) ?? num(booking.payment_amount_minor) ?? 0
     return { amount_minor: minor, currency: booking.payment_currency === 'czk' ? 'czk' : 'eur' }
@@ -168,12 +183,12 @@ export async function POST(request: Request) {
 
   // The cancel applied. From here a money failure never rolls it back: it leaves a refund_failed ledger row and an
   // operator alert instead (D-20).
-  const moneyFailed = async (err: unknown, kind: 'refund' | 'release') => {
+  const moneyFailed = async (err: unknown, kind: 'refund' | 'release', cardCollected: number | null = null) => {
     const code =
-      kind === 'release' && err instanceof Error && (err.message === 'busy' || err.message === 'state_moved')
+      err instanceof Error && ['busy', 'state_moved', 'no_payment_intent'].includes(err.message)
         ? err.message
         : stripeErrorCode(err)
-    const { amount_minor, currency } = failedAmount(booking, legAmountCents, isHold)
+    const { amount_minor, currency } = failedAmount(booking, legAmountCents, isHold, cardCollected)
     console.error('[cancel] money step failed after the cancel applied', { bookingId: booking.id, kind, code })
     try {
       await appendPaymentEvent(String(booking.id), {
@@ -223,6 +238,24 @@ export async function POST(request: Request) {
     } catch {
       // Fall back to the snapshot: releaseHold's own compare-and-set still refuses a stale state.
       console.error('[cancel] fresh payment read failed', { bookingId: booking.id })
+    }
+
+    // T4 (C-CR-01): the card booking already collected money (a paid recovery link before the trip). D-20: the
+    // cancel stands; the payment is refunded in full (deterministic key refund:<id>:full, the same key a retry of this
+    // cancel would use); a refund that fails leaves the refund_failed row + operator alert and answers 502.
+    const collected = collectedMinor(current)
+    if (collected > 0) {
+      const paymentIntentId = typeof current.payment_intent_id === 'string' ? current.payment_intent_id : ''
+      try {
+        if (!paymentIntentId) throw new Error('no_payment_intent')
+        const refund = await getPaymentsStripe().refunds.create(
+          { payment_intent: paymentIntentId },
+          { idempotencyKey: stripeKeys.refund(String(booking.id), legKey) },
+        )
+        return NextResponse.json({ ok: true, refund_id: refund.id })
+      } catch (err) {
+        return moneyFailed(err, 'refund', collected)
+      }
     }
 
     // D-04: release the hold (authorized -> PaymentIntent cancelled; any other state -> released without Stripe).
