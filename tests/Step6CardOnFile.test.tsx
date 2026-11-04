@@ -99,6 +99,7 @@ vi.mock('@/lib/booking-store', () => {
   return { useBookingStore }
 })
 
+import type { CardMode } from '@/components/booking/steps/cardCheckoutApi'
 import Step6Checkout from '@/components/booking/steps/Step6Checkout'
 import { SUPPORTED_MODES } from '@/components/booking/steps/Step6CardOnFile'
 
@@ -109,6 +110,7 @@ import { SUPPORTED_MODES } from '@/components/booking/steps/Step6CardOnFile'
 type Reply = { status?: number; body?: unknown } | Error
 let initReplies: Reply[] = []
 let intentReplies: Reply[] = []
+let promoReply: Reply = { body: { valid: true, discountPct: 10 } }
 let fetchCalls: Array<{ url: string; body: Record<string, unknown> | null }> = []
 
 function respond(r: Reply) {
@@ -143,6 +145,7 @@ beforeEach(() => {
   initReplies = [{ body: eligibleInit() }]
   intentReplies = [{ body: { clientSecret: 'seti_1_secret_x', mode: 'setup', bookingReference: 'PRG-20261112-ABC123', amountMinor: 12000, currency: 'eur' } }]
   fetchCalls = []
+  promoReply = { body: { valid: true, discountPct: 10 } }
   global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
     const body = init?.body ? (JSON.parse(String(init.body)) as Record<string, unknown>) : null
@@ -155,6 +158,7 @@ beforeEach(() => {
       const r = intentReplies.length > 1 ? intentReplies.shift()! : intentReplies[0]
       return respond(r)
     }
+    if (url.startsWith('/api/validate-promo')) return respond(promoReply)
     return respond({ body: {} })
   }) as unknown as typeof fetch
   // jsdom cannot navigate; capture assignments to location.href
@@ -414,5 +418,272 @@ describe('submit flow: elements.submit -> intent -> confirmSetup -> confirmation
     await act(async () => { fireEvent.click(submitButton()) })
     await waitFor(() => expect(h.confirmSetupMock).toHaveBeenCalled())
     expect(window.sessionStorage.getItem('prestigo-card-attempt')).toBe(storeRef.current.attemptId)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Task 2: promo / currency re-init, consent invalidation, every error and notice state
+// ---------------------------------------------------------------------------
+
+const step6En = en.Booking.step6 as unknown as Record<string, string> & { errors: Record<string, string> }
+const invalidPhone = (enMessages as unknown as { Booking: { validation: { invalidPhone: string } } }).Booking.validation.invalidPhone
+
+async function tickAndSubmit() {
+  const box = await ready()
+  if (!(box as HTMLInputElement).checked) fireEvent.click(box)
+  await act(async () => { fireEvent.click(submitButton()) })
+}
+
+describe('currency and promo re-init', () => {
+  it('switching to czk re-calls init, remounts Elements, clears a ticked box and announces it', async () => {
+    initReplies = [{ body: eligibleInit() }, { body: eligibleInit({ currency: 'czk', amountMinor: 300000 }) }]
+    await renderGate()
+    const first = (await ready()) as HTMLInputElement
+    fireEvent.click(first)
+    expect(first.checked).toBe(true)
+
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: step6En.czkLabel })) })
+
+    const inits = fetchCalls.filter((c) => c.url === '/api/card-checkout/init')
+    expect(inits).toHaveLength(2)
+    expect((inits[1].body as { currency: string }).currency).toBe('czk')
+    expect((inits[1].body as { bookingData: { currency: string } }).bookingData.currency).toBe('czk')
+
+    const box = (await screen.findByRole('checkbox')) as HTMLInputElement
+    expect(box.checked).toBe(false)
+    expect(screen.getByText(cof.noticeDetailsChanged)).toBeInTheDocument()
+    // formatCZK uses non-breaking spaces; testing-library normalises the node text but not the matcher
+    expect(screen.getByText(cof.setupHoldDay.replace('{amount}', formatMinor(300000, 'czk')).replace(/\s/g, ' '))).toBeInTheDocument()
+    expect(h.elementsOptionsCapture[h.elementsOptionsCapture.length - 1]).toMatchObject({ mode: 'setup', currency: 'czk' })
+  })
+
+  it('does not announce when the box was not ticked', async () => {
+    initReplies = [{ body: eligibleInit() }, { body: eligibleInit({ currency: 'czk', amountMinor: 300000 }) }]
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: step6En.czkLabel })) })
+    await screen.findByRole('checkbox')
+    expect(screen.queryByText(cof.noticeDetailsChanged)).toBeNull()
+  })
+
+  it('a valid promo re-calls init with the promo code', async () => {
+    initReplies = [{ body: eligibleInit() }, { body: eligibleInit({ amountMinor: 10800 }) }]
+    await renderGate()
+    await ready()
+    fireEvent.change(screen.getByPlaceholderText(step6En.promoPlaceholder), { target: { value: 'save10' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: step6En.applyCode })) })
+    await waitFor(() => expect(fetchCalls.filter((c) => c.url === '/api/card-checkout/init')).toHaveLength(2))
+    expect(storeRef.current.setPromoCode).toHaveBeenCalledWith('SAVE10')
+    expect(storeRef.current.setPromoDiscount).toHaveBeenCalledWith(10)
+    const second = fetchCalls.filter((c) => c.url === '/api/card-checkout/init')[1]
+    expect((second.body as { bookingData: { promoCode: string } }).bookingData.promoCode).toBe('SAVE10')
+    expect(await screen.findByText(cof.setupHoldDay.replace('{amount}', formatMinor(10800, 'eur')))).toBeInTheDocument()
+  })
+
+  it('an invalid promo shows the existing promo error message and does not re-init', async () => {
+    promoReply = { body: { valid: false, code: 'PROMO_INVALID' } }
+    await renderGate()
+    await ready()
+    fireEvent.change(screen.getByPlaceholderText(step6En.promoPlaceholder), { target: { value: 'bad' } })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: step6En.applyCode })) })
+    expect(await screen.findByText(step6En.errors.PROMO_INVALID)).toBeInTheDocument()
+    expect(fetchCalls.filter((c) => c.url === '/api/card-checkout/init')).toHaveLength(1)
+  })
+
+  it('a re-init that comes back ineligible falls back to legacy Step6Payment', async () => {
+    initReplies = [{ body: eligibleInit() }, { body: { eligible: false } }]
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: step6En.czkLabel })) })
+    expect(await screen.findByTestId('legacy-payment')).toBeInTheDocument()
+  })
+})
+
+describe('409 notices', () => {
+  it('PRICE_CHANGED updates the amount, clears the tick, shows the notice, then submits the new amount', async () => {
+    intentReplies = [
+      { status: 409, body: { code: 'PRICE_CHANGED', amountMinor: 13000 } },
+      { body: { clientSecret: 'seti_1_secret_x', mode: 'setup', bookingReference: 'PRG-20261112-ABC123', amountMinor: 13000, currency: 'eur' } },
+    ]
+    await renderGate()
+    await tickAndSubmit()
+
+    const notice = await screen.findByText(cof.noticePriceChanged.replace('{amount}', formatMinor(13000, 'eur')))
+    expect(notice).toHaveAttribute('role', 'status')
+    expect(screen.getByText(cof.setupHoldDay.replace('{amount}', formatMinor(13000, 'eur')))).toBeInTheDocument()
+    const box = screen.getByRole('checkbox') as HTMLInputElement
+    expect(box.checked).toBe(false)
+    expect(submitButton()).toBeDisabled()
+    expect(h.confirmSetupMock).not.toHaveBeenCalled()
+
+    fireEvent.click(box)
+    expect(submitButton()).toBeEnabled()
+    await act(async () => { fireEvent.click(submitButton()) })
+    await waitFor(() => expect(h.confirmSetupMock).toHaveBeenCalled())
+    const intents = fetchCalls.filter((c) => c.url === '/api/card-checkout/intent')
+    expect((intents[1].body as { displayedAmountMinor: number }).displayedAmountMinor).toBe(13000)
+  })
+
+  it('MODE_CHANGED to an unsupported mode falls back to legacy Step6Payment', async () => {
+    intentReplies = [{ status: 409, body: { code: 'MODE_CHANGED', mode: 'hold_now', holdAtIso: null, holdDateIso: null } }]
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByTestId('legacy-payment')).toBeInTheDocument()
+  })
+
+  it('MODE_CHANGED to a supported mode remounts, clears the tick, updates the explainer and focuses the notice', async () => {
+    const modes = SUPPORTED_MODES as CardMode[]
+    modes.push('hold_now')
+    try {
+      intentReplies = [{ status: 409, body: { code: 'MODE_CHANGED', mode: 'hold_now', holdAtIso: null, holdDateIso: null } }]
+      await renderGate()
+      await tickAndSubmit()
+      const notice = await screen.findByText(cof.noticeModeChanged)
+      expect(screen.getByText(cof.headlineHoldNow)).toBeInTheDocument()
+      expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
+      expect(notice).toHaveAttribute('tabindex', '-1')
+      await waitFor(() => expect(document.activeElement).toBe(notice))
+    } finally {
+      modes.pop()
+    }
+  })
+})
+
+describe('error states', () => {
+  it('setup_intent_authentication_failure shows the bank-verification message and keeps the card editable', async () => {
+    h.confirmSetupMock.mockResolvedValue({ error: { type: 'card_error', code: 'setup_intent_authentication_failure', message: 'Auth failed' } })
+    await renderGate()
+    await tickAndSubmit()
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(cof.errorBankVerification)
+    expect(alert).not.toHaveTextContent('Auth failed')
+    expect(screen.getByTestId('payment-element')).toBeInTheDocument()
+    expect(submitButton()).toBeEnabled()
+  })
+
+  it('a card error shows paymentUnsuccessful with the Stripe message', async () => {
+    h.confirmSetupMock.mockResolvedValue({ error: { type: 'card_error', code: 'card_declined', message: 'Your card was declined.' } })
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Payment unsuccessful. Your card was declined.')
+  })
+
+  it('a card error without a message falls back to paymentGenericError', async () => {
+    h.confirmSetupMock.mockResolvedValue({ error: { type: 'card_error', code: 'card_declined' } })
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByRole('alert')).toHaveTextContent(step6En.paymentGenericError)
+  })
+
+  it('422 CONSENT_REQUIRED shows the consent error, a red row border and focuses the checkbox', async () => {
+    intentReplies = [{ status: 422, body: { code: 'CONSENT_REQUIRED' } }]
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByRole('alert')).toHaveTextContent(cof.errorConsentRequired)
+    const box = screen.getByRole('checkbox') as HTMLInputElement
+    await waitFor(() => expect(document.activeElement).toBe(box))
+    expect((box.closest('label') as HTMLElement).getAttribute('style')).toMatch(/border: 1px solid (#f87171|rgb\(248, 113, 113\))/i)
+    expect(box.checked).toBe(false)
+  })
+
+  it('422 NOT_ELIGIBLE falls back to legacy Step6Payment and rotates the attempt id', async () => {
+    intentReplies = [{ status: 422, body: { code: 'NOT_ELIGIBLE' } }]
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByTestId('legacy-payment')).toBeInTheDocument()
+    expect(storeRef.current.setAttemptId).toHaveBeenCalledTimes(1)
+    expect(storeRef.current.setAttemptId.mock.calls[0][0]).not.toBe('a1b2c3d4-0000-4000-8000-000000000001')
+  })
+
+  it('an init-time fallback with no card attempt keeps the attempt id', async () => {
+    initReplies = [{ body: { eligible: false } }]
+    await renderGate()
+    await screen.findByTestId('legacy-payment')
+    expect(storeRef.current.setAttemptId).not.toHaveBeenCalled()
+  })
+
+  it('422 INVALID_PHONE shows the phone message and returns to step 5', async () => {
+    intentReplies = [{ status: 422, body: { code: 'INVALID_PHONE' } }]
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByRole('alert')).toHaveTextContent(invalidPhone)
+    expect(storeRef.current.goToStep).toHaveBeenCalledWith(5)
+  })
+
+  it('429 shows the RATE_LIMITED message', async () => {
+    intentReplies = [{ status: 429, body: { code: 'RATE_LIMITED' } }]
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByRole('alert')).toHaveTextContent(step6En.errors.RATE_LIMITED)
+  })
+
+  it('a network failure on the intent call shows networkError', async () => {
+    intentReplies = [new Error('offline')]
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByRole('alert')).toHaveTextContent(step6En.networkError)
+  })
+
+  it('an unknown server code shows paymentInitFailed, never raw server text', async () => {
+    intentReplies = [{ status: 500, body: { code: 'SOMETHING_ELSE', error: 'raw database failure' } }]
+    await renderGate()
+    await tickAndSubmit()
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(step6En.paymentInitFailed)
+    expect(alert).not.toHaveTextContent('raw database failure')
+  })
+
+  it('an Elements load error shows paymentFormLoadError and keeps the button disabled', async () => {
+    h.loadError.value = { error: { message: 'iframe blocked' } }
+    await renderGate()
+    const box = await screen.findByRole('checkbox')
+    await act(async () => {})
+    fireEvent.click(box)
+    expect(await screen.findByRole('alert')).toHaveTextContent(step6En.paymentFormLoadError)
+    expect(screen.getByRole('button', { name: cof.ctaSetup })).toBeDisabled()
+  })
+})
+
+describe('submitting state and accessibility', () => {
+  it('reads Confirming..., is disabled with aria-busy and ignores Escape while the challenge is open', async () => {
+    let finish: (v: unknown) => void = () => {}
+    h.confirmSetupMock.mockImplementation(() => new Promise((res) => { finish = res }))
+    await renderGate()
+    await tickAndSubmit()
+    const busy = await screen.findByRole('button', { name: cof.ctaBusy })
+    expect(busy).toBeDisabled()
+    expect(busy).toHaveAttribute('aria-busy', 'true')
+    const form = busy.closest('form') as HTMLFormElement
+    const ev = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    await act(async () => { form.dispatchEvent(ev) })
+    expect(ev.defaultPrevented).toBe(true)
+    expect(screen.getByRole('button', { name: cof.ctaBusy })).toBeDisabled()
+    await act(async () => { finish({ setupIntent: { status: 'succeeded' } }) })
+    await waitFor(() => expect(window.location.href).toMatch(/\/book\/confirmation\?ref=/))
+  })
+
+  it('the submit button is a real submit button described by the consent label', async () => {
+    await renderGate()
+    const box = await ready()
+    const button = submitButton()
+    expect(button).toHaveAttribute('type', 'submit')
+    const describedBy = button.getAttribute('aria-describedby') as string
+    expect(document.getElementById(describedBy)?.textContent).toBe((box.closest('label') as HTMLElement).textContent)
+  })
+
+  it('keeps the visual order promo, currency, Elements, consent, links, submit', async () => {
+    await renderGate()
+    await ready()
+    const nodes = [
+      screen.getByPlaceholderText(step6En.promoPlaceholder),
+      screen.getByRole('button', { name: step6En.czkLabel }),
+      screen.getByTestId('payment-element'),
+      screen.getByRole('checkbox'),
+      screen.getByRole('link', { name: cof.termsLink }),
+      submitButton(),
+    ]
+    for (let i = 0; i < nodes.length - 1; i++) {
+      expect(nodes[i].compareDocumentPosition(nodes[i + 1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
   })
 })

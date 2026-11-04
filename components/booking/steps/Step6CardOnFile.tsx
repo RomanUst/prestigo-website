@@ -7,8 +7,12 @@
 // /book/confirmation. Nothing is charged. The consent checkbox is a native, unticked input on every mount and
 // remount; it is never prefilled, never stored. The label text equals the string the server hashes
 // (consentMessageKey + consentVars from lib/payments/consent-text.ts).
+//
+// Structure: the outer component owns what survives an Elements remount (init result, promo / currency, the
+// notice slot, the polite live region); CardForm lives inside <Elements key={mode + currency}> and owns the
+// consent tick, so a remount can never carry a tick over.
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
@@ -21,11 +25,14 @@ import { STRIPE_ELEMENTS_LOCALE } from '@/lib/booking-locale'
 import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
 import { consentMessageKey, consentVars } from '@/lib/payments/consent-text'
+import { formatMinor } from '@/lib/payments/money'
 import BookingSummaryBlock from '../BookingSummaryBlock'
 import CardPaymentExplainer from '../CardPaymentExplainer'
+import PromoCodeField from './PromoCodeField'
 import {
   buildCardCheckoutBody,
   ensureAttemptId,
+  fetchCardInit,
   markCardAttempt,
   type CardCurrency,
   type CardMode,
@@ -37,7 +44,8 @@ export const SUPPORTED_MODES: readonly CardMode[] = ['setup']
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
-// Stripe error codes mapped to catalog messages; unknown / missing codes fall back to paymentInitFailed.
+// Server codes with a matching Booking.step6.errors.<code> catalog message; anything else falls back to
+// paymentInitFailed, never raw server text.
 const KNOWN_STEP6_ERROR_CODES = new Set([
   'RATE_LIMITED',
   'INVALID_REQUEST',
@@ -51,6 +59,9 @@ const KNOWN_STEP6_ERROR_CODES = new Set([
   'INTERNAL',
   'NO_CODE',
 ])
+
+// Stripe error codes for a failed or abandoned 3DS challenge.
+const AUTH_FAILURE_CODES = new Set(['setup_intent_authentication_failure', 'payment_intent_authentication_failure'])
 
 // Stripe Elements renders inside a cross-origin iframe and cannot read the page's CSS custom properties, so these
 // must be literal hex, kept in sync with the navy + champagne-gold tokens in globals.css (same as Step6Payment).
@@ -87,6 +98,8 @@ export interface SlotMessage {
   text: string
   /** Move focus to the notice (MODE_CHANGED). */
   focus?: boolean
+  /** The message is the consent error (422 CONSENT_REQUIRED): red row border, focus on the checkbox. */
+  field?: 'consent'
 }
 
 interface AnalyticsItem {
@@ -105,6 +118,13 @@ interface CardFormProps {
   holdDateIso: string | null
   message: SlotMessage | null
   setMessage: (m: SlotMessage | null) => void
+  /** Server told us a different amount / mode / hold date: update the parent's init (does not clear the tick itself). */
+  onServerPatch: (patch: Partial<InitEligible>) => void
+  onFallback: () => void
+  /** The tick was cleared because what it authorises changed: announce it politely. */
+  onConsentInvalidated: () => void
+  onConsentTicked: (ticked: boolean) => void
+  onBusyChange: (busy: boolean) => void
   totalEur: number
   analyticsItems: AnalyticsItem[]
 }
@@ -116,6 +136,11 @@ function CardForm({
   holdDateIso,
   message,
   setMessage,
+  onServerPatch,
+  onFallback,
+  onConsentInvalidated,
+  onConsentTicked,
+  onBusyChange,
   totalEur,
   analyticsItems,
 }: CardFormProps) {
@@ -127,38 +152,114 @@ function CardForm({
   const elements = useElements()
 
   // HOLD-01: starts false on every mount (the form remounts with the Elements key), never read from storage.
-  const [consent, setConsent] = useState(false)
+  const [consent, setConsentState] = useState(false)
+  const consentRef = useRef(false)
   const [elementReady, setElementReady] = useState(false)
-  const [elementError, setElementError] = useState<string | null>(null)
+  const [elementError, setElementError] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const checkboxRef = useRef<HTMLInputElement>(null)
+  const noticeRef = useRef<HTMLDivElement>(null)
+
+  const setConsent = useCallback(
+    (value: boolean) => {
+      consentRef.current = value
+      setConsentState(value)
+      onConsentTicked(value)
+    },
+    [onConsentTicked],
+  )
+
+  // Invalidation rule: any change of what the consent authorises (amount, currency, mode, hold date) clears the
+  // tick and announces it. PRICE_CHANGED clears the tick itself first, so this stays silent for it (the notice
+  // already speaks).
+  const consentKey = `${amountMinor}|${currency}|${mode}|${holdDateIso ?? ''}`
+  const previousKey = useRef(consentKey)
+  useEffect(() => {
+    if (previousKey.current === consentKey) return
+    previousKey.current = consentKey
+    if (consentRef.current) {
+      setConsent(false)
+      onConsentInvalidated()
+    }
+  }, [consentKey, setConsent, onConsentInvalidated])
+
+  // Focus management: the MODE_CHANGED notice (this form just remounted) and the consent error.
+  useEffect(() => {
+    if (message?.focus) noticeRef.current?.focus()
+    if (message?.field === 'consent') checkboxRef.current?.focus()
+  }, [message])
+
+  useEffect(() => {
+    onBusyChange(submitting)
+  }, [submitting, onBusyChange])
 
   const consentTextId = 'card-consent-text'
   const vars = consentVars({ amountMinor, currency, holdDateIso, locale })
 
-  const cardErrorMessage = (error: { message?: string }) =>
-    error.message ? t('paymentUnsuccessful', { message: error.message }) : t('paymentGenericError')
+  const cardErrorMessage = (error: { code?: string; message?: string }) => {
+    if (error.code && AUTH_FAILURE_CODES.has(error.code)) return tc('errorBankVerification')
+    return error.message ? t('paymentUnsuccessful', { message: error.message }) : t('paymentGenericError')
+  }
 
   const navigateToConfirmation = (bookingReference: string) => {
     const localizedConfirmPath = getPathname({ locale, href: `/book/confirmation?ref=${bookingReference}` })
     window.location.href = `${window.location.origin}${localizedConfirmPath}`
   }
 
-  const handleServerError = (data: { code?: string }) => {
-    const code = data.code
+  /** Returns true when the failure was handled by leaving the step (fallback) and the form must not touch state. */
+  const handleServerError = (status: number, data: Record<string, unknown>): boolean => {
+    const code = typeof data.code === 'string' ? data.code : status === 429 ? 'RATE_LIMITED' : undefined
+
+    if (status === 409 && code === 'PRICE_CHANGED' && typeof data.amountMinor === 'number') {
+      setConsent(false)
+      onServerPatch({ amountMinor: data.amountMinor })
+      setMessage({ kind: 'notice', text: tc('noticePriceChanged', { amount: formatMinor(data.amountMinor, currency) }) })
+      return false
+    }
+
+    if (status === 409 && code === 'MODE_CHANGED') {
+      const nextMode = data.mode
+      if ((nextMode !== 'setup' && nextMode !== 'hold_now') || !SUPPORTED_MODES.includes(nextMode)) {
+        onFallback()
+        return true
+      }
+      setConsent(false)
+      onServerPatch({
+        mode: nextMode,
+        holdAtIso: typeof data.holdAtIso === 'string' ? data.holdAtIso : null,
+        holdDateIso: typeof data.holdDateIso === 'string' ? data.holdDateIso : null,
+      })
+      setMessage({ kind: 'notice', text: tc('noticeModeChanged'), focus: true })
+      return false
+    }
+
+    if (code === 'NOT_ELIGIBLE' || code === 'MODE_UNSUPPORTED') {
+      onFallback()
+      return true
+    }
+
+    if (code === 'CONSENT_REQUIRED') {
+      setConsent(false)
+      setMessage({ kind: 'error', text: tc('errorConsentRequired'), field: 'consent' })
+      return false
+    }
+
     if (code === 'INVALID_PHONE') {
       setMessage({ kind: 'error', text: tb('validation.invalidPhone') })
       useBookingStore.getState().goToStep?.(5)
-      return
+      return false
     }
+
     setMessage({
       kind: 'error',
       text: code && KNOWN_STEP6_ERROR_CODES.has(code) ? t(`errors.${code}`) : t('paymentInitFailed'),
     })
+    return false
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stripe || !elements || !consent || !elementReady || submitting) return
+    if (!stripe || !elements || !consentRef.current || !elementReady || submitting) return
 
     setSubmitting(true)
     setMessage(null)
@@ -198,8 +299,8 @@ function CardForm({
     }
 
     if (!res.ok) {
-      handleServerError(data as { code?: string })
-      setSubmitting(false)
+      const left = handleServerError(res.status, data)
+      if (!left) setSubmitting(false)
       return
     }
 
@@ -244,7 +345,16 @@ function CardForm({
         : tc('ctaHoldNow', { amount: vars.amount })
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form
+      onSubmit={handleSubmit}
+      onKeyDown={(e) => {
+        // Escape must not interrupt a submit in flight (server call, Stripe confirm, open 3DS challenge).
+        if (submitting && e.key === 'Escape') {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
+    >
       <PaymentElement
         options={{
           layout: 'tabs',
@@ -252,14 +362,17 @@ function CardForm({
           wallets: { applePay: 'auto', googlePay: 'auto' },
         }}
         onReady={() => setElementReady(true)}
-        onLoadError={(e) =>
-          setElementError((e as { error?: { message?: string } })?.error?.message ?? t('paymentFormLoadError'))
-        }
+        onLoadError={() => {
+          setElementError(true)
+          setMessage({ kind: 'error', text: t('paymentFormLoadError') })
+        }}
       />
 
       {message && (
         <div
+          ref={noticeRef}
           role={message.kind === 'error' ? 'alert' : 'status'}
+          tabIndex={message.kind === 'notice' ? -1 : undefined}
           style={{
             marginTop: 16,
             fontSize: 14,
@@ -290,9 +403,11 @@ function CardForm({
           padding: '8px 0',
           marginTop: 24,
           cursor: 'pointer',
+          ...(message?.field === 'consent' ? { border: '1px solid #f87171', borderRadius: 4 } : {}),
         }}
       >
         <input
+          ref={checkboxRef}
           type="checkbox"
           checked={consent}
           onChange={(e) => setConsent(e.target.checked)}
@@ -379,7 +494,6 @@ function CardForm({
   )
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function Step6CardOnFile({ init, onFallback }: { init: InitEligible; onFallback: () => void }) {
   const t = useTranslations('Booking.step6')
   const tc = useTranslations('Booking.step6.cardOnFile')
@@ -391,10 +505,17 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
   const extras = useBookingStore((s) => s.extras)
   const tripType = useBookingStore((s) => s.tripType)
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
+  const promoCode = useBookingStore((s) => s.promoCode)
   const promoDiscount = useBookingStore((s) => s.promoDiscount)
 
-  const [current] = useState<InitEligible>(init)
+  const [current, setCurrent] = useState<InitEligible>(init)
+  const [selectedCurrency, setSelectedCurrency] = useState<CardCurrency>(init.currency)
+  const [reiniting, setReiniting] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<SlotMessage | null>(null)
+  const [liveMessage, setLiveMessage] = useState('')
+  const consentTickedRef = useRef(false)
+  const reinitSeq = useRef(0)
 
   // Same total the legacy step reports to GA4 (EUR); the server amount (current.amountMinor) is what is authorised.
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
@@ -431,34 +552,175 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
     [current.currency, locale],
   )
 
+  const announce = useCallback(() => setLiveMessage(tc('noticeDetailsChanged')), [tc])
+  const handleConsentTicked = useCallback((ticked: boolean) => {
+    consentTickedRef.current = ticked
+  }, [])
+  const handleServerPatch = useCallback((patch: Partial<InitEligible>) => {
+    setCurrent((prev) => ({ ...prev, ...patch }))
+  }, [])
+
+  /**
+   * Re-call init after a currency or promo change. The Elements form unmounts while the new server amount is
+   * fetched (so the tick cannot survive), and a result the step cannot render falls back to the legacy step.
+   */
+  const reinit = async (over: { currency?: CardCurrency; promoCode?: string | null }) => {
+    const seq = ++reinitSeq.current
+    if (consentTickedRef.current) {
+      consentTickedRef.current = false
+      setLiveMessage('')
+      announce()
+    }
+    setReiniting(true)
+    setMessage(null)
+
+    const state = useBookingStore.getState()
+    const currency = over.currency ?? selectedCurrency
+    const promo = 'promoCode' in over ? (over.promoCode ?? null) : state.promoCode
+    const result = await fetchCardInit({
+      ...buildCardCheckoutBody(state, { attemptId: ensureAttemptId(), currency, promoCode: promo, locale }),
+      currency,
+    })
+    if (seq !== reinitSeq.current) return
+    if (!result || !result.eligible || !SUPPORTED_MODES.includes(result.mode)) {
+      onFallback()
+      return
+    }
+    setCurrent(result)
+    setSelectedCurrency(result.currency)
+    setReiniting(false)
+  }
+
+  const handleCurrency = (cur: CardCurrency) => {
+    if (cur === selectedCurrency || busy || reiniting) return
+    setSelectedCurrency(cur)
+    void reinit({ currency: cur })
+  }
+
+  const handlePromoApplied = (code: string, pct: number) => {
+    const state = useBookingStore.getState()
+    state.setPromoCode(code)
+    state.setPromoDiscount(pct)
+    void reinit({ promoCode: code })
+  }
+
+  const handlePromoRemoved = () => {
+    const state = useBookingStore.getState()
+    state.setPromoCode(null)
+    state.setPromoDiscount(0)
+    void reinit({ promoCode: null })
+  }
+
   return (
     <div className="max-w-[560px] mx-auto">
-      <BookingSummaryBlock selectedCurrency={current.currency} />
+      <BookingSummaryBlock selectedCurrency={selectedCurrency} />
 
-      <div style={{ marginTop: 32 }}>
-        <CardPaymentExplainer
-          mode={current.mode}
-          amountMinor={current.amountMinor}
-          currency={current.currency}
-          holdDateIso={current.holdDateIso}
-        />
+      <PromoCodeField
+        promoCode={promoCode}
+        discountPct={promoDiscount}
+        disabled={busy || reiniting}
+        onApplied={handlePromoApplied}
+        onRemoved={handlePromoRemoved}
+      />
+
+      <div style={{ borderTop: '1px solid var(--anthracite-light)', margin: '32px 0' }} />
+
+      <div style={{ marginBottom: 32 }}>
+        <span className="label" style={{ display: 'block', marginBottom: 12 }}>
+          {t('payInLabel')}
+        </span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {(['eur', 'czk'] as const).map((cur) => (
+            <button
+              key={cur}
+              type="button"
+              onClick={() => handleCurrency(cur)}
+              disabled={busy || reiniting}
+              aria-pressed={selectedCurrency === cur}
+              style={{
+                padding: '8px 20px',
+                minHeight: 44,
+                fontSize: 10,
+                fontWeight: 400,
+                letterSpacing: '0.3em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-montserrat)',
+                background: 'transparent',
+                border: selectedCurrency === cur ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
+                color: selectedCurrency === cur ? 'var(--offwhite)' : 'var(--warmgrey)',
+                borderRadius: 4,
+                cursor: busy || reiniting ? 'not-allowed' : 'pointer',
+                transition: 'border-color 0.2s ease, color 0.2s ease',
+              }}
+            >
+              {cur === 'eur' ? t('eurLabel') : t('czkLabel')}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <span className="label">{tc('cardDetailsLabel')}</span>
-
-      <div style={{ marginTop: 24 }}>
-        <Elements key={`${current.mode}-${current.currency}`} stripe={stripePromise} options={elementsOptions}>
-          <CardForm
+      {reiniting ? (
+        <p
+          style={{
+            fontSize: 14,
+            fontWeight: 300,
+            color: 'var(--warmgrey)',
+            fontFamily: 'var(--font-montserrat)',
+          }}
+        >
+          {t('loadingPayment')}
+        </p>
+      ) : (
+        <>
+          <CardPaymentExplainer
             mode={current.mode}
             amountMinor={current.amountMinor}
             currency={current.currency}
             holdDateIso={current.holdDateIso}
-            message={message}
-            setMessage={setMessage}
-            totalEur={discountedTotalEur}
-            analyticsItems={analyticsItems}
           />
-        </Elements>
+
+          <span className="label">{tc('cardDetailsLabel')}</span>
+
+          <div style={{ marginTop: 24 }}>
+            <Elements key={`${current.mode}-${current.currency}`} stripe={stripePromise} options={elementsOptions}>
+              <CardForm
+                mode={current.mode}
+                amountMinor={current.amountMinor}
+                currency={current.currency}
+                holdDateIso={current.holdDateIso}
+                message={message}
+                setMessage={setMessage}
+                onServerPatch={handleServerPatch}
+                onFallback={onFallback}
+                onConsentInvalidated={announce}
+                onConsentTicked={handleConsentTicked}
+                onBusyChange={setBusy}
+                totalEur={discountedTotalEur}
+                analyticsItems={analyticsItems}
+              />
+            </Elements>
+          </div>
+        </>
+      )}
+
+      {/* Polite live region: consent invalidation announcements. Visually hidden, always mounted. */}
+      <div
+        aria-live="polite"
+        role="status"
+        data-testid="card-live-region"
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          margin: -1,
+          padding: 0,
+          overflow: 'hidden',
+          clip: 'rect(0 0 0 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        {liveMessage}
       </div>
     </div>
   )
