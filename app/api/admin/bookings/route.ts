@@ -16,6 +16,7 @@ import { BOOKING_STATUSES } from '@/lib/booking-status'
 import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
+import { assertEditablePrecheck, reevaluateAfterEdit } from '@/lib/payments/edit-hook'
 
 // The status change itself (VALID_TRANSITIONS check, write, side effects) lives in
 // lib/booking-status-service.ts (Phase 87 D-01). VALID_TRANSITIONS is the canonical
@@ -374,6 +375,10 @@ export async function PATCH(request: Request) {
       )
     }
 
+    // Phase 88 T-88-52: a card booking whose checkout, hold placement or capture is running is not editable.
+    const inFlight = assertEditablePrecheck(current)
+    if (inFlight) return NextResponse.json(inFlight.body, { status: inFlight.status })
+
     // CR-02: a live Stripe Payment Link is a static object — its unit_amount
     // can never be updated after creation. Editing the price on a booking
     // that still carries a live payment_link_url would silently desync the
@@ -621,6 +626,28 @@ export async function PATCH(request: Request) {
       ))
     }
 
+    // Phase 88 D-16/D-17/D-18: keep a card booking's amount, planned hold date and hold consistent with the
+    // saved row. Never fails the edit; the result (if any) is shown to the operator as payment_effect.
+    const toNum = (v: unknown): number | null => {
+      const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v
+      return typeof n === 'number' && Number.isFinite(n) ? n : null
+    }
+    const clock = (v: unknown): string => (typeof v === 'string' ? v.slice(0, 5) : '')
+    const priceChanged =
+      hasPriceField &&
+      (toNum(tripUpdatePayload.amount_czk) !== toNum(current.amount_czk) ||
+        toNum(tripUpdatePayload.amount_eur) !== toNum(current.amount_eur))
+    const pickupChanged =
+      (tripUpdatePayload.pickup_date !== undefined && tripUpdatePayload.pickup_date !== current.pickup_date) ||
+      (tripUpdatePayload.pickup_time !== undefined && clock(tripUpdatePayload.pickup_time) !== clock(current.pickup_time))
+    const paymentEffect = await reevaluateAfterEdit({
+      bookingId: parsed.data.id,
+      before: current,
+      priceChanged,
+      pickupChanged,
+      actor: { type: 'admin', id: user?.id ?? null },
+    })
+
     // Post-update view: the notification recipient and email body must reflect the
     // MERGED post-update state, not the stale `current` row. Critical when the edited
     // field IS client_email — otherwise the "your booking changed" notice (and its
@@ -679,7 +706,7 @@ export async function PATCH(request: Request) {
       ))
     }
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json(paymentEffect ? { ok: true, payment_effect: paymentEffect } : { ok: true })
   }
 
   const updatePayload: Record<string, unknown> = {}
