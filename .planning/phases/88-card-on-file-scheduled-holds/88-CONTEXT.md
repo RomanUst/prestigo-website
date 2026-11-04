@@ -46,6 +46,14 @@ Not in this phase: policy-driven cancellation fees, cash guarantee, no-show char
 - **D-17:** Operator **lowers the price**: capture the new amount with `amount_to_capture`; the rest of the hold is released by Stripe. (No user decision needed; recorded for completeness.)
 - **D-18:** Pickup **moved later** so the current hold would expire before the trip (or the new pickup is outside the lead window): **release the old hold immediately** and let the scheduler place a new one at new pickup − lead. Pickup moved earlier into the window with no hold yet: the next scheduler run places it (catch-up). Timing is always computed from the pickup instant (Europe/Prague, DST-safe: 2027-03-28, 2027-10-31).
 
+### Owner answers after research (2026-11-04)
+- **D-19:** D-10 narrowed: card-on-file covers one-way `transfer` and `hourly` only. `round_trip` (two legs sharing one PaymentIntent) and `daily` stay on today's pay-now flow even when the flag is on; they move later.
+- **D-20:** WR-01 fix is CAS-first: the cancel route sets the status first, then releases the hold or refunds. If the Stripe refund/release fails after the cancel applied, the booking stays cancelled, admin shows "refund failed", the operator gets an alert email and refunds manually in the Stripe Dashboard. No rollback of the cancel.
+- **D-21:** D-12 stands (exact hold date). QStash 15-min payment-tick schedule is **required** before the canary (owner creates it with the script; quota fits the Free plan: ~96 msgs/day of 1,000, 1 of 10 schedules). The daily Vercel cron stays a backstop only.
+- **D-22:** `bookings.pickup_utc` is live as `GENERATED ALWAYS AS prestigo_text_to_utc(pickup_date, pickup_time)` (verified via Supabase 2026-11-04, DST-correct: 2027-03-28 02:30 → 01:30Z, 2027-10-31 02:30 → 01:30Z). It is always fresh after admin pickup edits; SQL may use it, TS uses `pickupInstantMs()`; `hold_at` is still stored.
+- **D-23:** Erasure of the new PII (consent IP / user agent, Stripe Customer) is not covered by the migration-075 erasure function — a Phase 89 public go-live blocker, not built here unless cheap.
+- **D-24:** UI-SPEC is produced before planning (`/gsd-ui-phase 88`) for the checkout step and the admin payment panel.
+
 ### Claude's Discretion
 - Exact retry delay (≈12 h, clamped so it lands before pickup), scheduler cadence, and how the QStash schedule and daily cron share work.
 - Stripe Customer handling for guest checkouts, `confirmSetup` inside the existing PaymentElement, ledger schema, webhook routing by metadata purpose.
