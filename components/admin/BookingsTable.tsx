@@ -11,6 +11,9 @@ import {
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronDown, ChevronUp, Search, X, Copy, Send } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
+import PaymentPanel, { formatPragueFull } from './PaymentPanel'
+import { PaymentStateBadge } from './PaymentStateBadge'
+import { formatMinor } from '@/lib/payments/money'
 import { NoShowBanner, NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
 import { ConfirmNoShowModal } from './ConfirmNoShowModal'
 import { STATUS_CONFLICT_STYLE, statusConflictMessage } from './statusConflict'
@@ -86,6 +89,10 @@ interface Booking {
   // Phase 87 D-16(a): when the driver asked for a no-show (migration 084). Arrives through
   // admin_search_bookings to_jsonb; null/absent = no open request.
   no_show_requested_at?: string | null
+  // Phase 88 (migration 085): arrive through admin_search_bookings to_jsonb. Old rows and test
+  // fixtures may omit them; only 'card_hold' bookings show the payment badge and panel.
+  payment_mode?: string | null
+  payment_state?: string | null
 }
 
 const vehicleClassMap: Record<string, string> = {
@@ -174,6 +181,79 @@ class PatchError extends Error {
     this.submittedCzk = extra?.submittedCzk
     this.currentStatus = extra?.currentStatus
   }
+}
+
+// Phase 88 D-20: the cancel route answers 502 { error: 'refund_failed', cancelled: true } when the
+// cancel applied but the refund or release did not. The booking IS cancelled; the operator refunds
+// by hand. Thrown by handleCancel so the dialog shows the line and stays open.
+class CancelRefundFailedError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'CancelRefundFailedError'
+  }
+}
+
+function refundFailedLine(amountMinor: unknown, currency: unknown): string {
+  const amount = typeof amountMinor === 'number' && Number.isFinite(amountMinor) && (currency === 'eur' || currency === 'czk')
+    ? formatMinor(amountMinor, currency)
+    : null
+  return `The booking was cancelled, but the refund failed. Refund ${amount ?? 'it'} manually in the Stripe Dashboard.`
+}
+
+// Phase 88 D-16/D-17/D-18: the trip-edit PATCH may carry the payment effect of the change.
+const PAYMENT_IN_PROGRESS_COPY = 'Payment is being processed for this booking. Wait a moment and try again.'
+
+/** A Prague calendar date (YYYY-MM-DD) as "Thu 12 Nov", without inventing a time of day. */
+function formatPragueDay(dateIso: string): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateIso)
+  if (!m) return null
+  // Noon UTC is the same calendar day in Prague all year round.
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12))
+  return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Prague', weekday: 'short', day: 'numeric', month: 'short' }).format(d).replace(',', '')
+}
+
+function paymentEffectMessage(result: unknown): string | null {
+  const effect = (result as { payment_effect?: Record<string, unknown> } | null)?.payment_effect
+  if (!effect || typeof effect !== 'object') return null
+  const currency = effect.currency === 'czk' ? 'czk' : effect.currency === 'eur' ? 'eur' : null
+  const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+  if (effect.kind === 'amount_raised') {
+    const held = num(effect.held_minor)
+    const diff = num(effect.diff_minor)
+    if (!currency || held === null || diff === null) return null
+    return `Price updated. The held ${formatMinor(held, currency)} is captured after the trip and the extra ${formatMinor(diff, currency)} is charged to the saved card.`
+  }
+  if (effect.kind === 'amount_lowered') {
+    const amount = num(effect.amount_minor)
+    if (!currency || amount === null) return null
+    return `Price updated. Only ${formatMinor(amount, currency)} will be captured after the trip. The rest of the hold is released.`
+  }
+  if (effect.kind === 'amount_kept') {
+    // 88-REVIEW A-WR-11: a card booking keeps the price the client agreed to unless the operator enters an amount.
+    const amount = num(effect.amount_minor)
+    const standard = num(effect.standard_czk)
+    return `Card booking: the client's agreed price${amount !== null && currency ? ` of ${formatMinor(amount, currency)}` : ''} stays (promo included).${standard !== null ? ` The standard rate would be ${standard} CZK.` : ''} To charge a different price, enter it as the amount in the price review.`
+  }
+  if (effect.kind === 'hold_released') {
+    // 88-REVIEW C-WR-06: hold_date_iso is a calendar date (no time); the instant is hold_at_iso. A hold whose time has
+    // already come is placed by the next scheduled run, not on a date.
+    const atMs = typeof effect.hold_at_iso === 'string' ? Date.parse(effect.hold_at_iso) : NaN
+    if (Number.isFinite(atMs)) {
+      if (atMs <= Date.now()) return 'Pickup moved. The current hold was released. A new hold is placed on the next scheduled run (within 15 minutes).'
+      return `Pickup moved. The current hold was released. A new hold is placed on ${formatPragueFull(effect.hold_at_iso as string)}.`
+    }
+    const day = typeof effect.hold_date_iso === 'string' ? formatPragueDay(effect.hold_date_iso) : null
+    return day
+      ? `Pickup moved. The current hold was released. A new hold is placed on ${day}.`
+      : 'Pickup moved. The current hold was released.'
+  }
+  return null
+}
+
+/** Error text for a failed trip-edit PATCH: the friendly copy for payment_in_progress, else the message. */
+function tripEditErrorText(err: unknown, fallback: string): string {
+  if (err instanceof PatchError && err.status === 409 && err.message === 'payment_in_progress') return PAYMENT_IN_PROGRESS_COPY
+  return err instanceof Error ? err.message : fallback
 }
 
 type FieldGroupKey = 'datetime' | 'name' | 'email' | 'phone' | 'flight'
@@ -294,6 +374,8 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
       : null
   )
   const [priceReview, setPriceReview] = useState<PriceReviewState | null>(null)
+  // Phase 88: what the edit did to the card payment (price raised / lowered, hold released).
+  const [paymentNote, setPaymentNote] = useState<string | null>(null)
 
   const saveGroup = useCallback(async (group: FieldGroupKey) => {
     let validationError: string | null = null
@@ -337,15 +419,17 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
       bookingPatch.flight_number = patch.flight_number
     }
 
+    setPaymentNote(null)
     try {
-      await patchBooking(patch)
+      const result = await patchBooking(patch)
+      setPaymentNote(paymentEffectMessage(result))
       onUpdated(booking.id, bookingPatch)
       setFieldSaving(prev => ({ ...prev, [group]: 'saved' }))
       setTimeout(() => {
         setFieldSaving(prev => prev[group] === 'saved' ? { ...prev, [group]: 'idle' } : prev)
       }, 2000)
     } catch (err) {
-      setFieldErrors(prev => ({ ...prev, [group]: err instanceof Error ? err.message : 'Save failed' }))
+      setFieldErrors(prev => ({ ...prev, [group]: tripEditErrorText(err, 'Save failed') }))
       setFieldSaving(prev => ({ ...prev, [group]: 'error' }))
     }
   }, [fields, booking.id, patchBooking, onUpdated])
@@ -392,8 +476,11 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
         return
       }
       const newAmountCzk = eurToCzk(priceEur)
+      // 88-REVIEW A-WR-11: a card booking is charged its stored amount after the trip. The standard rate above knows no
+      // promo code, so the review starts from the agreed price; only an amount the operator enters changes it.
+      const startValue = booking.payment_mode === 'card_hold' ? booking.amount_czk : newAmountCzk
       setPriceReview(prev => prev ? {
-        ...prev, status: 'ready', newAmountCzk, distanceKm: data.distanceKm ?? null, overrideValue: String(newAmountCzk),
+        ...prev, status: 'ready', newAmountCzk, distanceKm: data.distanceKm ?? null, overrideValue: String(startValue),
       } : prev)
     } catch {
       setPriceReview(prev => prev ? { ...prev, status: 'error', errorMessage: 'Price calculation failed.' } : prev)
@@ -418,8 +505,10 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
     }
     if (priceReview.overrideActive || priceReview.mismatch) patch.override_price = true
 
+    setPaymentNote(null)
     try {
-      await patchBooking(patch)
+      const result = await patchBooking(patch)
+      setPaymentNote(paymentEffectMessage(result))
       const bookingPatch: Partial<Booking> = { amount_czk: amount }
       if (patch.vehicle_class) bookingPatch.vehicle_class = patch.vehicle_class
       if (patch.origin_address !== undefined) {
@@ -443,7 +532,7 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
           errorMessage: 'Price mismatch — server recompute diverges from the submitted amount. Review and override if intentional.',
         } : prev)
       } else {
-        setPriceReview(prev => prev ? { ...prev, status: 'ready', errorMessage: err instanceof Error ? err.message : 'Save failed.' } : prev)
+        setPriceReview(prev => prev ? { ...prev, status: 'ready', errorMessage: tripEditErrorText(err, 'Save failed.') } : prev)
       }
     }
   }, [priceReview, booking.id, booking.vehicle_class, vehicleClass, originPlace, destinationPlace, patchBooking, onUpdated])
@@ -473,6 +562,12 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
           <button type="button" onClick={() => setEditOpen(o => !o)} style={ghostCopperButtonStyle}>
             {editOpen ? 'Close Edit Mode' : 'Edit Trip Details'}
           </button>
+
+          {paymentNote && (
+            <div role="status" style={{ marginTop: 8, fontSize: 13, fontFamily: 'var(--font-montserrat)', color: 'var(--status-ok-fg)' }}>
+              {paymentNote}
+            </div>
+          )}
 
           {editOpen && (
             <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -688,6 +783,12 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
                         <span style={{ color: 'var(--warmgrey)' }}>→</span>
                         <span style={{ color: 'var(--copper)', fontWeight: 500 }}>{priceReview.newAmountCzk} CZK</span>
                       </div>
+
+                      {booking.payment_mode === 'card_hold' && (
+                        <div data-testid="card-price-note" style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)', marginTop: 8 }}>
+                          Card booking: the client keeps the agreed price of {booking.amount_czk} CZK (promo included) unless you enter a different amount below. A higher amount is charged to the saved card after the trip.
+                        </div>
+                      )}
 
                       {priceReview.mismatch && (
                         <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--status-danger-fg)', marginTop: 8 }}>
@@ -1156,6 +1257,10 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
+  // D-20: the cancel applied but the refund failed; the dialog keeps its line and cannot cancel again.
+  const [cancelRefundFailed, setCancelRefundFailed] = useState(false)
+  // Phase 88-07: per-booking counter that makes an open PaymentPanel refetch after a trip edit.
+  const [paymentRefreshKeys, setPaymentRefreshKeys] = useState<Record<string, number>>({})
 
   // Mobile detection
   useEffect(() => {
@@ -1170,6 +1275,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     if (!pendingCancel) {
       setCancelling(false)
       setCancelError(null)
+      setCancelRefundFailed(false)
     }
   }, [pendingCancel])
 
@@ -1195,11 +1301,23 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   // the fields that were actually saved, mirroring handleStatusChange's pattern.
   const handleTripUpdated = useCallback((bookingId: string, patch: Partial<Booking>) => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
+    // Phase 88-07: a trip edit can change the payment (price, pickup); the panel refetches.
+    setPaymentRefreshKeys(prev => ({ ...prev, [bookingId]: (prev[bookingId] ?? 0) + 1 }))
   }, [])
 
   // D-05: sink for PaymentLinkSection's row-level "Generate Payment Link"
   // action — the route also flips a 'pending' source booking to 'unpaid'
   // directly (Pitfall 2), so both fields are optimistically updated here.
+  // 88-REVIEW C-WR-04: the open PaymentPanel reports the state after every (re)load, so the row badge follows panel
+  // actions and the refetch after a cancel.
+  const handlePaymentState = useCallback((bookingId: string, state: string) => {
+    setBookings(prev => prev.map(b => (b.id === bookingId && b.payment_state !== state ? { ...b, payment_state: state } : b)))
+  }, [])
+
+  const bumpPayment = useCallback((bookingId: string) => {
+    setPaymentRefreshKeys(prev => ({ ...prev, [bookingId]: (prev[bookingId] ?? 0) + 1 }))
+  }, [])
+
   const handlePaymentLinkGenerated = useCallback((bookingId: string, url: string) => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, payment_link_url: url, status: 'unpaid' } : b))
   }, [])
@@ -1234,6 +1352,12 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const requestStatusChange = useCallback((booking: Booking, newStatus: string) => {
     if (newStatus === 'no_show') {
       setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
+      return
+    }
+    // 88-REVIEW T5: a card booking is cancelled through the payment-aware cancel dialog (release / refund), never
+    // by a bare status change (the server answers 422 use_cancel_route to that).
+    if (newStatus === 'cancelled' && booking.payment_mode === 'card_hold') {
+      setPendingCancel(booking)
       return
     }
     handleStatusChange(booking.id, newStatus, booking.status)
@@ -1332,17 +1456,32 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({ error: 'Unknown error' }))
+      if (res.status === 502 && data.error === 'refund_failed' && data.cancelled === true) {
+        // Phase 88 D-20: the cancel applied (the row is cancelled now) but the refund / release failed.
+        setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
+        // C-WR-04: the panel refetches (refund-failed banner, current payment state).
+        bumpPayment(booking.id)
+        throw new CancelRefundFailedError(refundFailedLine(data.amount_minor, data.currency))
+      }
       if (res.status === 409 && data.error === 'status_conflict') {
-        // Lost the compare-and-set race: same copy as the status select, plus the refund fact.
-        const refundNote = data.refund_id ? ' The refund was already issued.' : ''
-        throw new Error(statusConflictMessage(data.currentStatus) + refundNote)
+        // Lost the compare-and-set race. The cancel route now applies the status change before it
+        // refunds, so a 409 means nothing was refunded: same copy as the status select, no refund note.
+        throw new Error(statusConflictMessage(data.currentStatus))
+      }
+      if (res.status === 409 && data.error === 'payment_busy') {
+        // A hold or capture is in flight for this card booking; nothing was cancelled or released.
+        throw new Error('A card payment is being processed for this booking. Nothing was cancelled. Try again in a minute.')
       }
       throw new Error(data.error ?? 'Cancel failed')
     }
-    // Optimistic update
-    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
+    // Optimistic update. C-WR-04: a released hold shows as released at once; the panel refetches the rest.
+    const done = (await res.json().catch(() => ({}))) as { released?: boolean }
+    setBookings(prev => prev.map(b => b.id === booking.id
+      ? { ...b, status: 'cancelled', ...(done.released === true ? { payment_state: 'released' } : {}) }
+      : b))
+    bumpPayment(booking.id)
     setPendingCancel(null)
-  }, [])
+  }, [bumpPayment])
 
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
@@ -1552,12 +1691,15 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       header: 'Status',
       size: 120,
       cell: ({ row }) => (
-        <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px' }}>
-          <StatusBadge
-            variant={row.original.status as BookingStatus}
-            label={STATUS_LABELS[row.original.status] ?? row.original.status}
-          />
-          {hasOpenNoShowRequest(row.original) && <NoShowChip />}
+        <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px', maxWidth: '100%' }}>
+          <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px' }}>
+            <StatusBadge
+              variant={row.original.status as BookingStatus}
+              label={STATUS_LABELS[row.original.status] ?? row.original.status}
+            />
+            {hasOpenNoShowRequest(row.original) && <NoShowChip />}
+          </span>
+          {row.original.payment_mode === 'card_hold' && <PaymentStateBadge state={row.original.payment_state ?? 'none'} />}
         </span>
       ),
     },
@@ -1952,12 +2094,15 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         </span>
                       )}
                     </span>
-                    <span style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: '4px' }}>
-                      <StatusBadge
-                        variant={booking.status as BookingStatus}
-                        label={STATUS_LABELS[booking.status] ?? booking.status}
-                      />
-                      {hasOpenNoShowRequest(booking) && <NoShowChip />}
+                    <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', maxWidth: '100%' }}>
+                      <span style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: '4px' }}>
+                        <StatusBadge
+                          variant={booking.status as BookingStatus}
+                          label={STATUS_LABELS[booking.status] ?? booking.status}
+                        />
+                        {hasOpenNoShowRequest(booking) && <NoShowChip />}
+                      </span>
+                      {booking.payment_mode === 'card_hold' && <PaymentStateBadge state={booking.payment_state ?? 'none'} />}
                     </span>
                   </div>
 
@@ -2164,6 +2309,14 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
                         />
                       </div>
+
+                      {/* Payment panel (Phase 88 HOLD-07) */}
+                      <PaymentPanel
+                        bookingId={booking.id}
+                        refreshKey={paymentRefreshKeys[booking.id] ?? 0}
+                        paymentMode={booking.payment_mode ?? null}
+                        onPaymentState={(state) => handlePaymentState(booking.id, state)}
+                      />
 
                       {/* Payment Link (D-05) */}
                       <PaymentLinkSection
@@ -2619,6 +2772,14 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           }}
                         />
 
+                        {/* Payment panel (Phase 88 HOLD-07) */}
+                        <PaymentPanel
+                          bookingId={row.original.id}
+                          refreshKey={paymentRefreshKeys[row.original.id] ?? 0}
+                          paymentMode={row.original.payment_mode ?? null}
+                          onPaymentState={(state) => handlePaymentState(row.original.id, state)}
+                        />
+
                         {/* Payment Link (D-05) */}
                         <PaymentLinkSection
                           bookingId={row.original.id}
@@ -2803,7 +2964,55 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
               Cancel Booking
             </h2>
 
-            {pendingCancel.payment_intent_id !== null && pendingCancel.leg !== null && pendingCancel.linked_booking_id !== null && pendingCancel.booking_source !== 'gnet' ? (
+            {pendingCancel.payment_mode === 'card_hold' && (pendingCancel.payment_state === 'captured' || pendingCancel.payment_state === 'balance_due') ? (
+              /* Variant E (88-REVIEW T4): card booking already paid (recovery link) before the trip — full refund */
+              <>
+                <p style={{
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  marginTop: '16px',
+                  lineHeight: 1.8,
+                }}>
+                  This booking was already paid by card. Cancelling will issue a full refund to the client&apos;s card. This action cannot be undone.
+                </p>
+                <p style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 500,
+                  textTransform: 'uppercase',
+                  color: 'var(--status-danger-fg)',
+                  marginTop: '12px',
+                }}>
+                  A full Stripe refund will be issued.
+                </p>
+              </>
+            ) : pendingCancel.payment_mode === 'card_hold' ? (
+              /* Variant D (Phase 88 D-04): card on file, nothing collected yet — release the hold */
+              <>
+                <p style={{
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  marginTop: '16px',
+                  lineHeight: 1.8,
+                }}>
+                  Cancelling releases the hold on the client&apos;s card. Nothing is charged. This action cannot be undone.
+                </p>
+                <p style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 500,
+                  textTransform: 'uppercase',
+                  color: 'var(--status-danger-fg)',
+                  marginTop: '12px',
+                }}>
+                  The card hold will be released.
+                </p>
+              </>
+            ) : pendingCancel.payment_intent_id !== null && pendingCancel.leg !== null && pendingCancel.linked_booking_id !== null && pendingCancel.booking_source !== 'gnet' ? (
               /* Variant C: Stripe-paid round-trip leg — partial refund */
               (() => {
                 const legAmountCzk = pendingCancel.leg === 'outbound'
@@ -2941,12 +3150,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                   try {
                     await handleCancel(pendingCancel)
                   } catch (err) {
+                    if (err instanceof CancelRefundFailedError) setCancelRefundFailed(true)
                     setCancelError(err instanceof Error ? err.message : 'Cancel failed')
                   } finally {
                     setCancelling(false)
                   }
                 }}
-                disabled={cancelling}
+                disabled={cancelling || cancelRefundFailed}
                 style={{
                   border: '1px solid var(--copper)',
                   color: 'var(--copper)',
@@ -2959,15 +3169,19 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                   letterSpacing: '3px',
                   textTransform: 'uppercase',
                   borderRadius: '2px',
-                  cursor: cancelling ? 'not-allowed' : 'pointer',
-                  opacity: cancelling ? 0.7 : 1,
+                  cursor: cancelling || cancelRefundFailed ? 'not-allowed' : 'pointer',
+                  opacity: cancelling || cancelRefundFailed ? 0.7 : 1,
                 }}
               >
                 {cancelling
                   ? 'Cancelling...'
-                  : pendingCancel.payment_intent_id !== null && pendingCancel.booking_source !== 'gnet'
-                    ? 'Confirm Cancel + Refund'
-                    : 'Cancel Booking'}
+                  : pendingCancel.payment_mode === 'card_hold'
+                    ? (pendingCancel.payment_state === 'captured' || pendingCancel.payment_state === 'balance_due'
+                        ? 'Confirm Cancel + Refund'
+                        : 'Confirm Cancel + Release Hold')
+                    : pendingCancel.payment_intent_id !== null && pendingCancel.booking_source !== 'gnet'
+                      ? 'Confirm Cancel + Refund'
+                      : 'Cancel Booking'}
               </button>
             </div>
 

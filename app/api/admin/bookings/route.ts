@@ -16,6 +16,7 @@ import { BOOKING_STATUSES } from '@/lib/booking-status'
 import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
+import { assertEditablePrecheck, reevaluateAfterEdit } from '@/lib/payments/edit-hook'
 
 // The status change itself (VALID_TRANSITIONS check, write, side effects) lives in
 // lib/booking-status-service.ts (Phase 87 D-01). VALID_TRANSITIONS is the canonical
@@ -328,6 +329,26 @@ export async function PATCH(request: Request) {
     if (parsed.data.operator_notes !== undefined) patch.operator_notes = parsed.data.operator_notes
     if (parsed.data.driver_price_czk !== undefined) patch.driver_price_czk = parsed.data.driver_price_czk
 
+    // 88-REVIEW T5 (C-CR-03): a card-on-file booking is cancelled only through POST /api/admin/bookings/cancel, the
+    // payment-aware path (release the hold or refund, D-20 trail). The status select here would cancel it with the
+    // hold still live and the recovery link still payable. The row read here is handed to the status service, so
+    // the guard costs no extra query.
+    let current: Record<string, unknown> | undefined
+    if (parsed.data.status === 'cancelled') {
+      const { data: row, error: rowError } = await supabase.from('bookings').select('*').eq('id', parsed.data.id).single()
+      if (rowError || !row) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+      current = row as Record<string, unknown>
+      if (current.payment_mode === 'card_hold') {
+        return NextResponse.json(
+          {
+            error: 'use_cancel_route',
+            message: 'Card bookings are cancelled with Cancel booking, so the card hold is released or the payment refunded.',
+          },
+          { status: 422 },
+        )
+      }
+    }
+
     const result = await advanceBookingStatus({
       bookingId: parsed.data.id,
       to: parsed.data.status,
@@ -336,6 +357,7 @@ export async function PATCH(request: Request) {
       profile: 'full',
       expectedFrom: parsed.data.expected_status,
       patch,
+      ...(current ? { current } : {}),
     })
 
     const failure = advanceResultToResponse(result)
@@ -374,6 +396,10 @@ export async function PATCH(request: Request) {
       )
     }
 
+    // Phase 88 T-88-52: a card booking whose checkout, hold placement or capture is running is not editable.
+    const inFlight = assertEditablePrecheck(current)
+    if (inFlight) return NextResponse.json(inFlight.body, { status: inFlight.status })
+
     // CR-02: a live Stripe Payment Link is a static object — its unit_amount
     // can never be updated after creation. Editing the price on a booking
     // that still carries a live payment_link_url would silently desync the
@@ -409,6 +435,8 @@ export async function PATCH(request: Request) {
     // the price level (Pitfall 2) — no second geocode call is made here.
     let priceEntries: BookingChangeEntry[] = []
     let priceAuditRows: Array<{ field: string; old_value: string | null; new_value: string | null }> = []
+    // 88-REVIEW A-WR-11: what a card booking keeps when the operator did not set the amount explicitly.
+    let amountKept: { kind: 'amount_kept'; currency: 'eur' | 'czk'; amount_minor: number | null; standard_czk: number } | null = null
 
     if (hasPriceField) {
       let rates
@@ -505,7 +533,14 @@ export async function PATCH(request: Request) {
       const submittedAmountCzk = parsed.data.amount_czk as number
       const priceDiverges = Math.abs(computedTotalCzk - submittedAmountCzk) > ADMIN_PRICE_TOLERANCE_CZK
 
-      if (priceDiverges && !parsed.data.override_price) {
+      // 88-REVIEW A-WR-11: the recompute above knows neither the client's promo code nor the price they agreed to at
+      // checkout, and since Phase 88 a card booking's amount is what the engine charges after the trip (a raise is
+      // charged to the saved card, D-16). A card booking therefore keeps its agreed amount unless the operator set the
+      // amount explicitly (override_price): an address fix or a vehicle edit alone never changes what the client pays.
+      const cardKeepsAgreed = current.payment_mode === 'card_hold' && parsed.data.override_price !== true
+      const cardExplicit = current.payment_mode === 'card_hold' && parsed.data.override_price === true
+
+      if (priceDiverges && !parsed.data.override_price && !cardKeepsAgreed) {
         return NextResponse.json(
           {
             error: 'Price mismatch — server recompute diverges from submitted amount',
@@ -516,9 +551,27 @@ export async function PATCH(request: Request) {
         )
       }
 
-      // Authoritative amount = recompute unless the operator explicitly overrode it.
-      const authoritativeAmountCzk = priceDiverges ? submittedAmountCzk : computedTotalCzk
-      const amount_eur = priceDiverges ? czkToEur(submittedAmountCzk) : computedTotalEur
+      // Authoritative amount = recompute unless the operator explicitly overrode it. A card booking: its agreed amount,
+      // or exactly the amount the operator entered.
+      const currentAmountCzk = typeof current.amount_czk === 'number' ? current.amount_czk : Number(current.amount_czk)
+      const authoritativeAmountCzk = cardKeepsAgreed
+        ? currentAmountCzk
+        : priceDiverges || cardExplicit
+          ? submittedAmountCzk
+          : computedTotalCzk
+      const amount_eur = cardKeepsAgreed
+        ? (current.amount_eur as number | null)
+        : priceDiverges || cardExplicit
+          ? czkToEur(submittedAmountCzk)
+          : computedTotalEur
+      if (cardKeepsAgreed && computedTotalCzk !== currentAmountCzk) {
+        amountKept = {
+          kind: 'amount_kept',
+          currency: current.payment_currency === 'czk' ? 'czk' : 'eur',
+          amount_minor: typeof current.payment_amount_minor === 'number' ? current.payment_amount_minor : null,
+          standard_czk: computedTotalCzk,
+        }
+      }
 
       // Raw price-affecting fields (mass-assignment guard — never spread the body).
       if (parsed.data.vehicle_class !== undefined) tripUpdatePayload.vehicle_class = parsed.data.vehicle_class
@@ -529,10 +582,12 @@ export async function PATCH(request: Request) {
       if (parsed.data.destination_lat !== undefined) tripUpdatePayload.destination_lat = parsed.data.destination_lat
       if (parsed.data.destination_lng !== undefined) tripUpdatePayload.destination_lng = parsed.data.destination_lng
       if (parsed.data.distance_km !== undefined) tripUpdatePayload.distance_km = parsed.data.distance_km
-      tripUpdatePayload.amount_czk = authoritativeAmountCzk
-      tripUpdatePayload.amount_eur = amount_eur
+      if (!cardKeepsAgreed) {
+        tripUpdatePayload.amount_czk = authoritativeAmountCzk
+        tripUpdatePayload.amount_eur = amount_eur
+      }
 
-      if (priceDiverges) {
+      if (priceDiverges && !cardKeepsAgreed) {
         // D-05: Phase 63 only RECORDS the new amount — no payment link, no
         // auto-charge, no top-up. The override note is an audit trail, not a
         // collection action.
@@ -621,6 +676,28 @@ export async function PATCH(request: Request) {
       ))
     }
 
+    // Phase 88 D-16/D-17/D-18: keep a card booking's amount, planned hold date and hold consistent with the
+    // saved row. Never fails the edit; the result (if any) is shown to the operator as payment_effect.
+    const toNum = (v: unknown): number | null => {
+      const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v
+      return typeof n === 'number' && Number.isFinite(n) ? n : null
+    }
+    const clock = (v: unknown): string => (typeof v === 'string' ? v.slice(0, 5) : '')
+    const priceChanged =
+      hasPriceField &&
+      (toNum(tripUpdatePayload.amount_czk) !== toNum(current.amount_czk) ||
+        toNum(tripUpdatePayload.amount_eur) !== toNum(current.amount_eur))
+    const pickupChanged =
+      (tripUpdatePayload.pickup_date !== undefined && tripUpdatePayload.pickup_date !== current.pickup_date) ||
+      (tripUpdatePayload.pickup_time !== undefined && clock(tripUpdatePayload.pickup_time) !== clock(current.pickup_time))
+    const paymentEffect = await reevaluateAfterEdit({
+      bookingId: parsed.data.id,
+      before: current,
+      priceChanged,
+      pickupChanged,
+      actor: { type: 'admin', id: user?.id ?? null },
+    })
+
     // Post-update view: the notification recipient and email body must reflect the
     // MERGED post-update state, not the stale `current` row. Critical when the edited
     // field IS client_email — otherwise the "your booking changed" notice (and its
@@ -679,7 +756,8 @@ export async function PATCH(request: Request) {
       ))
     }
 
-    return NextResponse.json({ ok: true })
+    const effect = paymentEffect ?? amountKept
+    return NextResponse.json(effect ? { ok: true, payment_effect: effect } : { ok: true })
   }
 
   const updatePayload: Record<string, unknown> = {}

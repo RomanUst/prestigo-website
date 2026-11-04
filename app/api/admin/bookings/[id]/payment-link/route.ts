@@ -38,6 +38,7 @@ interface PaymentLinkBookingRow {
   pickup_time: string
   vehicle_class: string
   flight_number: string | null
+  payment_mode?: string | null
 }
 
 export async function POST(
@@ -77,7 +78,7 @@ export async function POST(
   const { data: bookingData, error: bookingError } = await supabase
     .from('bookings')
     .select(
-      'id, booking_reference, status, amount_eur, leg, payment_intent_id, payment_link_url, payment_link_id, client_email, client_first_name, client_last_name, origin_address, destination_address, pickup_date, pickup_time, vehicle_class, flight_number'
+      'id, booking_reference, status, amount_eur, leg, payment_intent_id, payment_link_url, payment_link_id, client_email, client_first_name, client_last_name, origin_address, destination_address, pickup_date, pickup_time, vehicle_class, flight_number, payment_mode'
     )
     .eq('id', bookingId)
     .single()
@@ -87,6 +88,15 @@ export async function POST(
   }
 
   const booking = bookingData as unknown as PaymentLinkBookingRow
+
+  // 88-REVIEW B-WR-02: a card-on-file booking is collected by the card engine (hold, capture, recovery link). A legacy
+  // payment link would let the client pay on top of the hold, and its webhook would confirm the row as pay-now.
+  if (booking.payment_mode === 'card_hold') {
+    return NextResponse.json(
+      { error: 'Card bookings are collected through the payment panel, not a payment link' },
+      { status: 409 }
+    )
+  }
 
   // Round-trip sibling detection (64-RESEARCH.md Pitfall 3): key on the
   // shared (stale) payment_intent_id — linked_booking_id is never populated

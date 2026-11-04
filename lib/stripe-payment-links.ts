@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { cardMetadata, getPaymentsStripe, stripeKeys } from '@/lib/payments/stripe'
 
 // Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview.
 // Verbatim pattern from app/api/create-payment-intent/route.ts:26-37.
@@ -85,4 +86,60 @@ export async function createBookingPaymentLink(
  */
 export async function deactivateBookingPaymentLink(paymentLinkId: string): Promise<void> {
   await getStripe().paymentLinks.update(paymentLinkId, { active: false })
+}
+
+export interface CreateRecoveryPaymentLinkParams {
+  bookingId: string
+  bookingReference: string
+  /** Outstanding amount in integer minor units of `currency`, computed from the booking row (T-88-42). */
+  amountMinor: number
+  currency: 'eur' | 'czk'
+  /** Attempt tag: becomes metadata.attempt and the idempotency key link:<bookingId>:<tag>. */
+  tag: string | number
+}
+
+/**
+ * Create the recovery Payment Link of a declined card hold / charge / difference (Phase 88 HOLD-05, D-13).
+ *
+ * Separate from createBookingPaymentLink on purpose: it carries the card-flow metadata only (kind card_recovery,
+ * cofBookingId, attempt, bookingReference) and never the legacy booking-id key, so the legacy checkout /
+ * payment_intent webhook branches can never pick it up and build a booking from it (T-88-43). Metadata is set on
+ * the link AND on payment_intent_data, because a Payment Link's metadata is not copied to the PaymentIntent.
+ * One completed session at most (the link deactivates itself after the first payment), card only, and the amount
+ * and currency of the booking row in minor units. The Stripe create carries the deterministic idempotency key, so
+ * a replayed create returns the same link instead of a second one.
+ */
+export async function createRecoveryPaymentLink(
+  params: CreateRecoveryPaymentLinkParams,
+): Promise<{ url: string; id: string }> {
+  if (!Number.isInteger(params.amountMinor) || params.amountMinor <= 0) {
+    throw new Error('recovery link amount must be a positive integer of minor units')
+  }
+  const metadata = cardMetadata('card_recovery', {
+    bookingId: params.bookingId,
+    attempt: String(params.tag),
+    bookingReference: params.bookingReference,
+  })
+
+  const paymentLink = await getPaymentsStripe().paymentLinks.create(
+    {
+      line_items: [
+        {
+          price_data: {
+            currency: params.currency,
+            unit_amount: params.amountMinor,
+            product_data: { name: `PRESTIGO Transfer — ${params.bookingReference}` },
+          },
+          quantity: 1,
+        },
+      ],
+      payment_method_types: ['card'],
+      restrictions: { completed_sessions: { limit: 1 } },
+      metadata,
+      payment_intent_data: { metadata },
+    },
+    { idempotencyKey: stripeKeys.link(params.bookingId, params.tag) },
+  )
+
+  return { url: paymentLink.url, id: paymentLink.id }
 }

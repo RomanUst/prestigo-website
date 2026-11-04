@@ -128,6 +128,31 @@
         "PRICING_UNAVAILABLE": "La configuración de precios no está disponible temporalmente",
         "INTERNAL": "No se pudo crear el pago. Inténtelo de nuevo.",
         "NO_CODE": "No se proporcionó ningún código."
+      },
+      "cardOnFile": {
+        "headlineSetup": "Ahora no se cobra nada.",
+        "headlineHoldNow": "El importe se retiene ahora y se cobra después de su viaje.",
+        "captionToday": "Hoy",
+        "captionAfterTrip": "Después del viaje",
+        "setupToday": "Guardamos su tarjeta de forma segura con Stripe. Es posible que su banco le pida confirmarlo.",
+        "setupHoldDay": "Retenemos {amount} en su tarjeta. Una retención no es un cobro, pero su banco puede mostrarla como pendiente.",
+        "setupAfterTrip": "La retención se convierte en el cobro final de su viaje. Si el precio cambia, solo se cobra el importe acordado.",
+        "holdNowToday": "Retenemos {amount} en su tarjeta. Una retención no es un cobro, pero su banco puede mostrarla como pendiente.",
+        "holdNowAfterTrip": "Se cobra el importe retenido. Si el precio final es inferior, solo se cobra el importe menor y el resto se libera.",
+        "cardDetailsLabel": "DATOS DE LA TARJETA",
+        "consentSetup": "Autorizo a Prestigo a guardar esta tarjeta y a retener {amount} en ella el {holdDate}, y a cobrarlos después de que se complete mi viaje. Si el precio acordado de mi reserva cambia, autorizo a Prestigo a cobrar o liberar la diferencia.",
+        "consentHoldNow": "Autorizo a Prestigo a retener {amount} en esta tarjeta ahora, a guardar esta tarjeta con este fin y a cobrarlos después de que se complete mi viaje. Si el precio acordado de mi reserva cambia, autorizo a Prestigo a cobrar o liberar la diferencia.",
+        "termsLink": "Términos y condiciones",
+        "privacyLink": "Política de privacidad",
+        "trustLine": "Los datos de la tarjeta van directamente a Stripe. Prestigo nunca ve el número de su tarjeta.",
+        "ctaSetup": "Guardar tarjeta y reservar",
+        "ctaHoldNow": "Retener {amount} y reservar",
+        "ctaBusy": "Confirmando...",
+        "noticePriceChanged": "El precio de su viaje es ahora {amount}. Revíselo y marque de nuevo la casilla.",
+        "noticeModeChanged": "Su viaje está ahora más cerca, por lo que ha cambiado el momento del pago. Revise los datos anteriores e introduzca de nuevo su tarjeta.",
+        "noticeDetailsChanged": "Los datos del pago han cambiado. Revíselos y marque de nuevo la casilla.",
+        "errorConsentRequired": "Marque la casilla para continuar.",
+        "errorBankVerification": "Su banco no ha podido verificar esta tarjeta. Inténtelo de nuevo o utilice otra tarjeta."
       }
     },
     "tripTypeTabs": {
@@ -1012,5 +1037,61 @@
   },
   "InquiryNotice": {
     "stored": "Guardamos su solicitud para poder responderle — <privacy>Política de privacidad</privacy>"
+  },
+  "PaymentEmails": {
+    "common": {
+      "referenceLabel": "Referencia de la reserva",
+      "journeyLabel": "Su trayecto",
+      "fromLabel": "Origen",
+      "toLabel": "Destino",
+      "dateLabel": "Fecha",
+      "vehicleLabel": "Vehículo",
+      "passengersLabel": "Pasajeros",
+      "assistanceLabel": "¿Necesita ayuda?",
+      "assistanceText": "Para cualquier consulta, contáctenos en {contact}",
+      "calendarCta": "Añadir al calendario",
+      "howPaymentWorksLabel": "Cómo funciona el pago",
+      "whatNextLabel": "Qué ocurre a continuación",
+      "receiptLabel": "Recibo",
+      "paySecurelyLabel": "Pago seguro",
+      "tagline": "PRESTIGE IN EVERY MILE"
+    },
+    "cardSaved": {
+      "subject": "Su reserva de PRESTIGO está confirmada — {reference}",
+      "h1": "Su reserva está confirmada.",
+      "intro": "Su tarjeta está guardada. No se ha cobrado nada.",
+      "lineToday": "Hoy: su tarjeta queda guardada.",
+      "lineHoldDay": "{holdDate}: retenemos {amount} en su tarjeta. Una retención no es un cobro.",
+      "lineAfterTrip": "Después del viaje: la retención se convierte en el cobro final."
+    },
+    "holdPlacedAtCheckout": {
+      "subject": "Su reserva de PRESTIGO está confirmada — {reference}",
+      "h1": "Su reserva está confirmada.",
+      "intro": "Hemos retenido {amount} en su tarjeta. Esto no es un cobro.",
+      "lineToday": "Hoy: {amount} retenidos en su tarjeta.",
+      "lineAfterTrip": "Después del viaje: se cobra el importe retenido. Si el precio final es inferior, solo se cobra el importe menor."
+    },
+    "holdPlacedScheduled": {
+      "subject": "Hemos retenido un importe en su tarjeta — {reference}",
+      "h1": "Se ha realizado una retención en su tarjeta.",
+      "intro": "Hemos retenido {amount} en su tarjeta para su viaje del {pickupDate}. Esto no es un cobro. El dinero sigue en su cuenta.",
+      "next": "Después del viaje, se cobra el importe retenido. ¿Necesita modificar o cancelar? Contáctenos antes de su viaje."
+    },
+    "charged": {
+      "subject": "Pago recibido — {reference}",
+      "h1": "Gracias por viajar con Prestigo.",
+      "intro": "Hemos cobrado {amount} en su tarjeta por su viaje del {pickupDate}.",
+      "total": "Total cobrado: {amount}",
+      "includesDiff": "Incluye {diff} por los cambios en su reserva."
+    },
+    "paymentFailed": {
+      "subject": "Acción necesaria: pago de su viaje con PRESTIGO — {reference}",
+      "h1Declined": "No hemos podido procesar su pago.",
+      "introDeclined": "No hemos podido cobrar {amount} en su tarjeta por su viaje del {pickupDate}. Pague de forma segura con el botón de abajo para que su reserva se mantenga.",
+      "h1AuthRequired": "Su banco necesita que confirme este pago.",
+      "introAuthRequired": "No hemos podido cobrar {amount} en su tarjeta por su viaje del {pickupDate} porque su banco ha solicitado una confirmación adicional. Confírmelo con el botón de abajo.",
+      "body": "El enlace abre una página de pago segura de Stripe. Si paga con el enlace, no volveremos a intentar cobrar su tarjeta. Si ya ha pagado, ignore este correo.",
+      "cta": "Pagar {amount} de forma segura"
+    }
   }
 }

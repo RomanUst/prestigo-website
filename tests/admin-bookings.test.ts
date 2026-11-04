@@ -127,6 +127,14 @@ vi.mock('stripe', () => {
   return { default: MockStripeDefault }
 })
 
+// Phase 88-16 (D-20): the cancel route refunds through the shared payments Stripe client and alerts the operator
+// when a refund fails after the cancel applied.
+vi.mock('@/lib/payments/stripe', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/payments/stripe')>('@/lib/payments/stripe')
+  return { ...actual, getPaymentsStripe: () => ({ refunds: stripeRefundsStub }) }
+})
+vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: vi.fn().mockResolvedValue('sent') }))
+
 import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
 import { POST as CANCEL_POST } from '@/app/api/admin/bookings/cancel/route'
 import { GET as AUDIT_LOG_GET } from '@/app/api/admin/bookings/[id]/audit-log/route'
@@ -726,6 +734,26 @@ describe('PATCH /api/admin/bookings', () => {
     expect(stubLogEmail).not.toHaveBeenCalled()
     expect(stubPushGnetStatus).not.toHaveBeenCalled()
     expect(stubDeactivateBookingPaymentLink).not.toHaveBeenCalled()
+  })
+
+  // 88-REVIEW T5 (C-CR-03): a card booking is never cancelled by a bare status change.
+  it('88-review T5: status cancelled on a card_hold booking is 422 use_cancel_route with no write and no side effect', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'confirmed', client_email: 'a@b.com', payment_mode: 'card_hold', payment_state: 'authorized' })
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'cancelled' }))
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'use_cancel_route' })
+    expect(supabaseServiceStub.rpc).not.toHaveBeenCalled()
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    expect(stubDeactivateBookingPaymentLink).not.toHaveBeenCalled()
+  })
+
+  it('88-review T5: a pay-now booking is still cancelled through PATCH, with the row read once', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'confirmed', client_email: 'a@b.com', payment_mode: 'pay_now' })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'cancelled' }))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.from.mock.calls.filter((c: unknown[]) => c[0] === 'bookings')).toHaveLength(1)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith('advance_booking_status', expect.objectContaining({ p_from: 'confirmed', p_to: 'cancelled' }))
   })
 
   it('87-03: expected_status different from the stored status is 409 before any write', async () => {
@@ -1952,26 +1980,39 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toMatchObject({ ok: true, refund_id: 're_test123' })
-    expect(stripeRefundsStub.create).toHaveBeenCalledWith({ payment_intent: 'pi_xxx' })
+    // D-20: the status compare-and-set runs first, then the refund with its idempotency key
+    expect(stripeRefundsStub.create).toHaveBeenCalledWith(
+      { payment_intent: 'pi_xxx' },
+      { idempotencyKey: 'refund:a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:full' },
+    )
+    expect(supabaseServiceStub.rpc.mock.invocationCallOrder[0]).toBeLessThan(stripeRefundsStub.create.mock.invocationCallOrder[0])
     expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
       'advance_booking_status',
       expect.objectContaining({ p_to: 'cancelled', p_actor_type: 'admin', p_source: 'admin_cancel' }),
     )
   })
 
-  it('Test 8: returns 502 when stripe.refunds.create throws, booking status NOT updated', async () => {
+  it('Test 8: returns 502 refund_failed when stripe.refunds.create throws — the cancel already applied and stays (D-20)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const singleFn = vi.fn().mockResolvedValue({ data: { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'pending', payment_intent_id: 'pi_xxx' }, error: null })
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
     supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.rpc.mockImplementation(async (name: string) =>
+      name === 'append_payment_event' ? { data: { inserted: true }, error: null } : { data: { applied: true }, error: null },
+    )
 
     stripeRefundsStub.create.mockRejectedValue(new Error('charge_already_refunded'))
 
     const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(502)
-    // DB update should NOT have been called (only 1 supabase.from call for the select)
-    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+    expect(await res.json()).toMatchObject({ error: 'refund_failed', cancelled: true })
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'advance_booking_status',
+      expect.objectContaining({ p_to: 'cancelled' }),
+    )
+    errorSpy.mockRestore()
   })
 
   it('Test 9: partial refund with leg=outbound — calls Stripe with per-leg amount + metadata.leg', async () => {
@@ -2001,11 +2042,14 @@ describe('POST /api/admin/bookings/cancel', () => {
     const json = await res.json()
     expect(json).toMatchObject({ ok: true, refund_id: 're_test123' })
     // czkToEur(5000) = 200 EUR -> 200 * 100 = 20000 cents
-    expect(stripeRefundsStub.create).toHaveBeenCalledWith({
-      payment_intent: 'pi_xxx',
-      amount: 20000,
-      metadata: { leg: 'outbound' },
-    })
+    expect(stripeRefundsStub.create).toHaveBeenCalledWith(
+      {
+        payment_intent: 'pi_xxx',
+        amount: 20000,
+        metadata: { leg: 'outbound' },
+      },
+      { idempotencyKey: 'refund:a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:outbound' },
+    )
     expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
       'advance_booking_status',
       expect.objectContaining({ p_from: 'confirmed', p_to: 'cancelled', p_source: 'admin_cancel' }),
@@ -2039,11 +2083,14 @@ describe('POST /api/admin/bookings/cancel', () => {
     }))
     expect(res.status).toBe(200)
     // czkToEur(4500) = Math.round(4500 * 0.04) = 180 EUR -> 180 * 100 = 18000 cents
-    expect(stripeRefundsStub.create).toHaveBeenCalledWith({
-      payment_intent: 'pi_yyy',
-      amount: 18000,
-      metadata: { leg: 'return' },
-    })
+    expect(stripeRefundsStub.create).toHaveBeenCalledWith(
+      {
+        payment_intent: 'pi_yyy',
+        amount: 18000,
+        metadata: { leg: 'return' },
+      },
+      { idempotencyKey: 'refund:a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:return' },
+    )
   })
 
   it('Test 11: DB update after partial refund is scoped to id, never payment_intent_id', async () => {
@@ -2079,7 +2126,8 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(JSON.stringify(rpcArgs)).not.toContain('pi_shared_round_trip')
   })
 
-  it('Test 12: returns 422 (not 502) when Stripe throws StripeInvalidRequestError (over-refund)', async () => {
+  it('Test 12: a Stripe over-refund error after the cancel applied is a 502 refund_failed (booking stays cancelled, D-20)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const singleFn = vi.fn().mockResolvedValue({
       data: {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
@@ -2094,20 +2142,19 @@ describe('POST /api/admin/bookings/cancel', () => {
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
     supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.rpc.mockImplementation(async (name: string) =>
+      name === 'append_payment_event' ? { data: { inserted: true }, error: null } : { data: { applied: true }, error: null },
+    )
 
-    // Throw the mocked error class so route's instanceof check matches
-    const overRefundError = new MockStripeInvalidRequestError('Amount exceeds remaining refundable')
-    stripeRefundsStub.create.mockRejectedValue(overRefundError)
+    stripeRefundsStub.create.mockRejectedValue(new MockStripeInvalidRequestError('Amount exceeds remaining refundable'))
 
     const res = await CANCEL_POST(makeCancelRequest({
       id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
       leg: 'outbound',
     }))
-    expect(res.status).toBe(422)
-    const json = await res.json()
-    expect(json.error).toBe('Refund amount exceeds remaining refundable balance. Contact Stripe support.')
-    // DB update NOT called — only 1 supabase.from call (the select)
-    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+    expect(res.status).toBe(502)
+    expect(await res.json()).toMatchObject({ error: 'refund_failed', cancelled: true, amount_minor: 20000, currency: 'eur' })
+    errorSpy.mockRestore()
   })
 
   it('Test 13: returns 422 when leg is present but leg amount column is null', async () => {

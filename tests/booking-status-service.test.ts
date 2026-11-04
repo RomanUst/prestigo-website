@@ -17,6 +17,7 @@ const {
   mockSupabaseFrom,
   mockRpc,
   mockEmitCompleted,
+  mockSettleBooking,
   mockGnetBookingsUpdate,
 } = vi.hoisted(() => ({
   mockPushGnetStatus: vi.fn(),
@@ -29,6 +30,7 @@ const {
   mockSupabaseFrom: vi.fn(),
   mockRpc: vi.fn(),
   mockEmitCompleted: vi.fn(),
+  mockSettleBooking: vi.fn(),
   mockGnetBookingsUpdate: vi.fn(),
 }))
 
@@ -47,6 +49,9 @@ vi.mock('@/lib/supabase', () => ({
 }))
 
 vi.mock('@/lib/booking-events', () => ({ emitBookingCompleted: mockEmitCompleted }))
+
+// The real booking-events module (importActual below) awaits this one money consumer (Phase 88 plan 88-13).
+vi.mock('@/lib/payments/settle', () => ({ settleBooking: mockSettleBooking }))
 
 vi.mock('@/lib/email-log', () => ({ logEmail: mockLogEmail }))
 
@@ -839,18 +844,26 @@ describe('advanceBookingStatus — completion event (D-05, D-06)', () => {
 })
 
 describe('emitBookingCompleted (booking-events module)', () => {
-  it('returns the event and logs ids only: no client name, email, phone or amount', async () => {
+  const event = (over: Record<string, unknown> = {}) => ({
+    bookingId: BOOKING_ID,
+    completedAt: '2026-11-03T10:00:00.000Z',
+    partner: true,
+    actorType: 'driver' as const,
+    source: 'driver_trip',
+    ...over,
+  })
+
+  beforeEach(() => {
+    mockSettleBooking.mockReset()
+    mockSettleBooking.mockResolvedValue({ outcome: 'captured' })
+  })
+
+  it('resolves with the event and logs ids only: no client name, email, phone or amount', async () => {
     const actual = await vi.importActual<typeof import('@/lib/booking-events')>('@/lib/booking-events')
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const event = {
-      bookingId: BOOKING_ID,
-      completedAt: '2026-11-03T10:00:00.000Z',
-      partner: true,
-      actorType: 'driver' as const,
-      source: 'driver_trip',
-    }
-    const returned = actual.emitBookingCompleted(event)
-    expect(returned).toBe(event)
+    const input = event()
+    const returned = await actual.emitBookingCompleted(input)
+    expect(returned).toBe(input)
     expect(logSpy).toHaveBeenCalledTimes(1)
     const line = String(logSpy.mock.calls[0][0])
     expect(line).toContain('[booking-events] completed')
@@ -858,6 +871,46 @@ describe('emitBookingCompleted (booking-events module)', () => {
     expect(line).toContain('partner=true')
     expect(line).not.toMatch(/@|\+420|amount|name/i)
     logSpy.mockRestore()
+  })
+
+  it('a partner booking never reaches the money consumer', async () => {
+    const actual = await vi.importActual<typeof import('@/lib/booking-events')>('@/lib/booking-events')
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    await actual.emitBookingCompleted(event({ partner: true }))
+    expect(mockSettleBooking).not.toHaveBeenCalled()
+    logSpy.mockRestore()
+  })
+
+  it('a non-partner booking awaits settleBooking with the completion_event system actor (D-06)', async () => {
+    const actual = await vi.importActual<typeof import('@/lib/booking-events')>('@/lib/booking-events')
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    let settled = false
+    mockSettleBooking.mockImplementation(async () => {
+      await Promise.resolve()
+      settled = true
+      return { outcome: 'captured' }
+    })
+    const input = event({ partner: false })
+    const returned = await actual.emitBookingCompleted(input)
+    expect(settled).toBe(true)
+    expect(mockSettleBooking).toHaveBeenCalledTimes(1)
+    expect(mockSettleBooking).toHaveBeenCalledWith(BOOKING_ID, { type: 'system', id: 'completion_event' })
+    expect(returned).toBe(input)
+    logSpy.mockRestore()
+  })
+
+  it('a settle that throws is caught: the promise resolves, the error log carries the booking id only', async () => {
+    const actual = await vi.importActual<typeof import('@/lib/booking-events')>('@/lib/booking-events')
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockSettleBooking.mockRejectedValue(new Error('anna@example.com +420123456789 stripe down'))
+    const input = event({ partner: false })
+    await expect(actual.emitBookingCompleted(input)).resolves.toBe(input)
+    expect(errSpy).toHaveBeenCalledTimes(1)
+    expect(JSON.stringify(errSpy.mock.calls[0])).toContain(BOOKING_ID)
+    expect(JSON.stringify(errSpy.mock.calls[0])).not.toMatch(/@|\+420|stripe down/)
+    logSpy.mockRestore()
+    errSpy.mockRestore()
   })
 })
 
@@ -904,5 +957,53 @@ describe('advanceResultToResponse', () => {
     })
     expect(res?.status).toBe(409)
     expect(await res?.json()).toEqual({ error: 'status_conflict', currentStatus: 'assigned' })
+  })
+})
+
+describe('advanceBookingStatus — profile payment-engine (Phase 88 card webhook)', () => {
+  const unpaidRow = {
+    ...baseRow,
+    status: 'unpaid',
+    booking_source: 'web',
+    payment_link_id: 'plink_stale',
+    pickup_utc: '2026-12-01T10:00:00.000Z',
+  }
+  const systemActor = { type: 'system', id: 'stripe_webhook' } as const
+
+  it('moves unpaid -> confirmed with no email, no QStash reminder, no link deactivation and no GNet push', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({ bookingData: unpaidRow })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: systemActor,
+      source: 'card_setup',
+      profile: 'payment-engine',
+      expectedFrom: 'unpaid',
+    })
+    expect(result).toMatchObject({ ok: true, previous: 'unpaid', current: 'confirmed' })
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+    expect(mockRpc.mock.calls[0][1]).toMatchObject({ p_from: 'unpaid', p_to: 'confirmed', p_source: 'card_setup' })
+    await flushAfterCallbacks()
+    expect(afterCallbacks.length).toBe(0)
+    expect(mockSendConfirmed).not.toHaveBeenCalled()
+    expect(mockLogEmail).not.toHaveBeenCalled()
+    expect(mockScheduleQStash).not.toHaveBeenCalled()
+    expect(mockDeactivateLink).not.toHaveBeenCalled()
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('a booking cancelled meanwhile is a conflict carrying the stored status (no RPC call)', async () => {
+    buildSupabaseMock({ bookingData: { ...unpaidRow, status: 'cancelled' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: systemActor,
+      source: 'card_setup',
+      profile: 'payment-engine',
+      expectedFrom: 'unpaid',
+    })
+    expect(result).toMatchObject({ ok: false, code: 'conflict', currentStatus: 'cancelled' })
+    expect(mockRpc).not.toHaveBeenCalled()
   })
 })

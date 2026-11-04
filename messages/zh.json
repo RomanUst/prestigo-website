@@ -128,6 +128,31 @@
         "PRICING_UNAVAILABLE": "定价配置暂时不可用",
         "INTERNAL": "创建付款失败,请重试。",
         "NO_CODE": "未提供优惠码。"
+      },
+      "cardOnFile": {
+        "headlineSetup": "现在不会扣除任何款项。",
+        "headlineHoldNow": "金额现在冻结，行程结束后扣款。",
+        "captionToday": "今天",
+        "captionAfterTrip": "行程结束后",
+        "setupToday": "我们通过 Stripe 安全地保存您的银行卡。您的银行可能会要求您确认。",
+        "setupHoldDay": "我们会在您的银行卡上冻结 {amount}。冻结不是扣款，但您的银行可能会将其显示为待处理。",
+        "setupAfterTrip": "冻结的金额将成为您行程的最终扣款。如果价格发生变化，只会扣除约定的金额。",
+        "holdNowToday": "我们会在您的银行卡上冻结 {amount}。冻结不是扣款，但您的银行可能会将其显示为待处理。",
+        "holdNowAfterTrip": "将扣除冻结的金额。如果最终价格更低，只会扣除较低的金额，其余部分将被释放。",
+        "cardDetailsLabel": "银行卡信息",
+        "consentSetup": "我授权 Prestigo 保存此银行卡，在 {holdDate} 于该卡上冻结 {amount}，并在我的行程完成后扣款。如果我预订的约定价格发生变化，我授权 Prestigo 扣除或释放差额。",
+        "consentHoldNow": "我授权 Prestigo 现在在此银行卡上冻结 {amount}，为此目的保存此银行卡，并在我的行程完成后扣款。如果我预订的约定价格发生变化，我授权 Prestigo 扣除或释放差额。",
+        "termsLink": "条款与条件",
+        "privacyLink": "隐私政策",
+        "trustLine": "银行卡信息将直接发送至 Stripe。Prestigo 不会看到您的银行卡号。",
+        "ctaSetup": "保存银行卡并预订",
+        "ctaHoldNow": "冻结 {amount} 并预订",
+        "ctaBusy": "正在确认...",
+        "noticePriceChanged": "您的行程价格现为 {amount}。请核对后再次勾选复选框。",
+        "noticeModeChanged": "您的行程已临近，因此付款时间有所调整。请核对上方信息并重新输入您的银行卡。",
+        "noticeDetailsChanged": "付款详情已更改。请核对后再次勾选复选框。",
+        "errorConsentRequired": "请勾选复选框以继续。",
+        "errorBankVerification": "您的银行无法验证此银行卡。请重试或使用其他银行卡。"
       }
     },
     "tripTypeTabs": {
@@ -1012,5 +1037,61 @@
   },
   "InquiryNotice": {
     "stored": "我们会保存您的请求以便回复您 — <privacy>隐私政策</privacy>"
+  },
+  "PaymentEmails": {
+    "common": {
+      "referenceLabel": "预订编号",
+      "journeyLabel": "您的行程",
+      "fromLabel": "出发地",
+      "toLabel": "目的地",
+      "dateLabel": "日期",
+      "vehicleLabel": "车辆",
+      "passengersLabel": "乘客",
+      "assistanceLabel": "需要帮助？",
+      "assistanceText": "如有任何疑问，请通过 {contact} 联系我们",
+      "calendarCta": "添加到日历",
+      "howPaymentWorksLabel": "付款方式说明",
+      "whatNextLabel": "接下来会怎样",
+      "receiptLabel": "收据",
+      "paySecurelyLabel": "安全付款",
+      "tagline": "PRESTIGE IN EVERY MILE"
+    },
+    "cardSaved": {
+      "subject": "您的 PRESTIGO 预订已确认 — {reference}",
+      "h1": "您的预订已确认。",
+      "intro": "您的银行卡已保存，目前未扣除任何款项。",
+      "lineToday": "今天：已保存您的银行卡。",
+      "lineHoldDay": "{holdDate}：我们将在您的银行卡上冻结 {amount}。冻结不是扣款。",
+      "lineAfterTrip": "行程结束后：冻结的金额将转为最终扣款。"
+    },
+    "holdPlacedAtCheckout": {
+      "subject": "您的 PRESTIGO 预订已确认 — {reference}",
+      "h1": "您的预订已确认。",
+      "intro": "我们已在您的银行卡上冻结 {amount}。这不是扣款。",
+      "lineToday": "今天：您的银行卡上已冻结 {amount}。",
+      "lineAfterTrip": "行程结束后：将扣除已冻结的金额。如果最终价格更低，则只扣除较低的金额。"
+    },
+    "holdPlacedScheduled": {
+      "subject": "我们已在您的银行卡上冻结了一笔款项 — {reference}",
+      "h1": "您的银行卡上已冻结一笔款项。",
+      "intro": "我们已为您 {pickupDate} 的行程在银行卡上冻结 {amount}。这不是扣款，款项仍在您的账户中。",
+      "next": "行程结束后，将扣除已冻结的金额。需要更改或取消？请在行程前联系我们。"
+    },
+    "charged": {
+      "subject": "已收到付款 — {reference}",
+      "h1": "感谢您选择 Prestigo 出行。",
+      "intro": "我们已就您 {pickupDate} 的行程从您的银行卡扣款 {amount}。",
+      "total": "扣款总额：{amount}",
+      "includesDiff": "其中包含因您的预订变更产生的 {diff}。"
+    },
+    "paymentFailed": {
+      "subject": "需要您处理：您的 PRESTIGO 行程付款 — {reference}",
+      "h1Declined": "我们未能完成扣款。",
+      "introDeclined": "我们未能就您 {pickupDate} 的行程从您的银行卡扣除 {amount}。请通过下方按钮安全付款，以保留您的预订。",
+      "h1AuthRequired": "您的银行需要您确认这笔付款。",
+      "introAuthRequired": "由于您的银行要求额外确认，我们未能就您 {pickupDate} 的行程从您的银行卡扣除 {amount}。请通过下方按钮进行确认。",
+      "body": "该链接将打开 Stripe 的安全支付页面。如果您通过链接付款，我们将不会再次尝试扣款。如果您已付款，请忽略此邮件。",
+      "cta": "安全支付 {amount}"
+    }
   }
 }

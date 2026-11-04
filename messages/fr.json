@@ -128,6 +128,31 @@
         "PRICING_UNAVAILABLE": "La configuration des tarifs est temporairement indisponible",
         "INTERNAL": "Impossible de créer le paiement. Veuillez réessayer.",
         "NO_CODE": "Aucun code fourni."
+      },
+      "cardOnFile": {
+        "headlineSetup": "Aucun montant n'est débité maintenant.",
+        "headlineHoldNow": "Le montant est bloqué maintenant et débité après votre trajet.",
+        "captionToday": "Aujourd'hui",
+        "captionAfterTrip": "Après votre trajet",
+        "setupToday": "Nous enregistrons votre carte en toute sécurité avec Stripe. Votre banque peut vous demander de le confirmer.",
+        "setupHoldDay": "Nous bloquons {amount} sur votre carte. Un blocage n'est pas un débit, mais votre banque peut l'afficher comme étant en attente.",
+        "setupAfterTrip": "Le montant bloqué devient le débit final de votre trajet. Si le prix change, seul le montant convenu est prélevé.",
+        "holdNowToday": "Nous bloquons {amount} sur votre carte. Un blocage n'est pas un débit, mais votre banque peut l'afficher comme étant en attente.",
+        "holdNowAfterTrip": "Le montant bloqué est débité. Si le prix final est inférieur, seul le montant le plus bas est prélevé et le reste est libéré.",
+        "cardDetailsLabel": "DONNÉES DE LA CARTE",
+        "consentSetup": "J'autorise Prestigo à enregistrer cette carte et à y bloquer {amount} le {holdDate}, puis à la débiter une fois mon trajet effectué. Si le prix convenu de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
+        "consentHoldNow": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte à cette fin et à la débiter une fois mon trajet effectué. Si le prix convenu de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
+        "termsLink": "Conditions générales",
+        "privacyLink": "Politique de confidentialité",
+        "trustLine": "Les données de la carte sont transmises directement à Stripe. Prestigo ne voit jamais votre numéro de carte.",
+        "ctaSetup": "Enregistrer la carte et réserver",
+        "ctaHoldNow": "Bloquer {amount} et réserver",
+        "ctaBusy": "Confirmation...",
+        "noticePriceChanged": "Le prix de votre trajet est désormais de {amount}. Veuillez le vérifier et cocher à nouveau la case.",
+        "noticeModeChanged": "Votre trajet approche, le moment du paiement a donc changé. Veuillez vérifier les informations ci-dessus et saisir à nouveau votre carte.",
+        "noticeDetailsChanged": "Les informations de paiement ont changé. Veuillez les vérifier et cocher à nouveau la case.",
+        "errorConsentRequired": "Veuillez cocher la case pour continuer.",
+        "errorBankVerification": "Votre banque n'a pas pu vérifier cette carte. Veuillez réessayer ou utiliser une autre carte."
       }
     },
     "tripTypeTabs": {
@@ -1012,5 +1037,61 @@
   },
   "InquiryNotice": {
     "stored": "Nous conservons votre demande afin d'y répondre — <privacy>Politique de confidentialité</privacy>"
+  },
+  "PaymentEmails": {
+    "common": {
+      "referenceLabel": "Référence de réservation",
+      "journeyLabel": "Votre trajet",
+      "fromLabel": "Départ",
+      "toLabel": "Arrivée",
+      "dateLabel": "Date",
+      "vehicleLabel": "Véhicule",
+      "passengersLabel": "Passagers",
+      "assistanceLabel": "Besoin d'aide ?",
+      "assistanceText": "Pour toute question, contactez-nous à {contact}",
+      "calendarCta": "Ajouter au calendrier",
+      "howPaymentWorksLabel": "Comment fonctionne le paiement",
+      "whatNextLabel": "La suite",
+      "receiptLabel": "Reçu",
+      "paySecurelyLabel": "Payer en toute sécurité",
+      "tagline": "PRESTIGE IN EVERY MILE"
+    },
+    "cardSaved": {
+      "subject": "Votre réservation PRESTIGO est confirmée — {reference}",
+      "h1": "Votre réservation est confirmée.",
+      "intro": "Votre carte est enregistrée. Aucun montant n'a été débité.",
+      "lineToday": "Aujourd'hui : votre carte est enregistrée.",
+      "lineHoldDay": "{holdDate} : nous bloquons {amount} sur votre carte. Un blocage n'est pas un débit.",
+      "lineAfterTrip": "Après votre trajet : le montant bloqué devient le débit final."
+    },
+    "holdPlacedAtCheckout": {
+      "subject": "Votre réservation PRESTIGO est confirmée — {reference}",
+      "h1": "Votre réservation est confirmée.",
+      "intro": "Nous avons bloqué {amount} sur votre carte. Il ne s'agit pas d'un débit.",
+      "lineToday": "Aujourd'hui : {amount} sont bloqués sur votre carte.",
+      "lineAfterTrip": "Après votre trajet : le montant bloqué est débité. Si le prix final est inférieur, seul le montant le plus bas est prélevé."
+    },
+    "holdPlacedScheduled": {
+      "subject": "Nous avons bloqué un montant sur votre carte — {reference}",
+      "h1": "Un montant a été bloqué sur votre carte.",
+      "intro": "Nous avons bloqué {amount} sur votre carte pour votre trajet du {pickupDate}. Il ne s'agit pas d'un débit. L'argent reste sur votre compte.",
+      "next": "Après votre trajet, le montant bloqué est débité. Besoin de modifier ou d'annuler ? Contactez-nous avant votre trajet."
+    },
+    "charged": {
+      "subject": "Paiement reçu — {reference}",
+      "h1": "Merci de voyager avec Prestigo.",
+      "intro": "Nous avons débité {amount} de votre carte pour votre trajet du {pickupDate}.",
+      "total": "Total débité : {amount}",
+      "includesDiff": "Comprend {diff} pour les modifications de votre réservation."
+    },
+    "paymentFailed": {
+      "subject": "Action requise : paiement de votre trajet PRESTIGO — {reference}",
+      "h1Declined": "Nous n'avons pas pu encaisser votre paiement.",
+      "introDeclined": "Nous n'avons pas pu débiter {amount} de votre carte pour votre trajet du {pickupDate}. Veuillez payer en toute sécurité avec le bouton ci-dessous afin que votre réservation soit maintenue.",
+      "h1AuthRequired": "Votre banque vous demande de confirmer ce paiement.",
+      "introAuthRequired": "Nous n'avons pas pu débiter {amount} de votre carte pour votre trajet du {pickupDate}, car votre banque a demandé une confirmation supplémentaire. Veuillez confirmer avec le bouton ci-dessous.",
+      "body": "Le lien ouvre une page de paiement Stripe sécurisée. Si vous payez avec ce lien, nous n'essaierons pas de débiter à nouveau votre carte. Si vous avez déjà payé, ignorez cet e-mail.",
+      "cta": "Payer {amount} en toute sécurité"
+    }
   }
 }

@@ -25,6 +25,8 @@ const LIMITS: Record<string, number> = {
   '/api/contact':                 3, // 3 contact form submissions per minute
   '/api/create-payment-intent':  10, // prevent cost abuse and promo-code enumeration
   '/api/validate-promo':         20, // prevent promo code enumeration
+  '/api/card-checkout/init':     30, // Phase 88: re-called on promo / currency change; also bounds allowlist probing (T-88-13)
+  '/api/card-checkout/intent':   10, // Phase 88: card-testing guard, creates Stripe objects (Research Pitfall 7)
   '/admin/login':                 5, // prevent brute force on admin credentials
   '/login':                       5, // customer auth: prevent magic-link / password brute force
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota

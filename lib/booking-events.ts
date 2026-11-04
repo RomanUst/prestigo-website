@@ -6,8 +6,9 @@
  * compare-and-set (advance_booking_status RPC) that moved the booking to
  * 'completed' was APPLIED, for any actor (admin PATCH or the driver). It is
  * never called on a conflict, a 4xx, a db error or another target status.
- * Today it only records and returns the fact; it moves no money and calls no
- * payment provider.
+ * It records the fact and, for a Prestigo (non-partner) booking, awaits the one
+ * money consumer, settleBooking (Phase 88 D-06: the capture of a card hold, or the
+ * saved-card charge, happens on this event and on no other status write).
  *
  * Durable facts (the event itself is best effort, after() can die):
  *   - bookings.completed_at, set by the RPC only on the applying call
@@ -17,17 +18,18 @@
  * bookings (isPartnerBooking in lib/booking-status.ts). A partner booking has
  * no Prestigo money flow.
  *
- * HANDOFF TO PHASE 88 / 89 (obligations, nothing here enforces them yet):
- *   - EVERY Phase 88 money entry point (the pre-trip hold AND the capture that
- *     consumes this event) and EVERY Phase 89 entry point (the no-show charge)
- *     MUST call assertMoneyEligible(booking) from lib/booking-status.ts
- *     BEFORE acting. It throws PartnerBookingMoneyError for partner bookings.
- *   - Phase 88 MUST also sweep bookings with completed_at IS NOT NULL that
- *     were never captured, so a lost after() never loses a capture. A NULL
- *     completed_at on a historic completed row means unknown, not not-completed.
- *   - Phase 88 extends this module (a consumer called from emitBookingCompleted);
- *     it does not add a second completion hook.
+ * HANDOFF (Phase 88 done here, Phase 89 still open):
+ *   - EVERY money entry point (the pre-trip hold, the capture below, and the
+ *     Phase 89 no-show charge) calls assertMoneyEligible(booking) from
+ *     lib/booking-status.ts BEFORE acting. settleBooking does.
+ *   - The durable backstop for a lost after() is tick step C
+ *     (lib/payments/tick.ts): it settles card_hold bookings with
+ *     completed_at IS NOT NULL that were never captured. A NULL completed_at on
+ *     a historic completed row means unknown, not not-completed.
+ *   - This module is the only completion hook; consumers are called from here.
  */
+
+import { settleBooking } from '@/lib/payments/settle'
 
 export interface BookingCompletedEvent {
   bookingId: string
@@ -41,12 +43,22 @@ export interface BookingCompletedEvent {
 }
 
 /**
- * Logs one line with ids only (no client name, email, phone or amount) and
- * returns the event unchanged.
+ * Logs one line with ids only (no client name, email, phone or amount), then
+ * lets settleBooking collect the money of a card booking. Never throws into
+ * after(): a settle problem is logged with the booking id only and the tick
+ * sweep (step C) picks the booking up again. Pay-now bookings are skipped by
+ * settleBooking itself (payment_mode check); partner bookings never reach it.
+ * Resolves with the event unchanged.
  */
-export function emitBookingCompleted(event: BookingCompletedEvent): BookingCompletedEvent {
+export async function emitBookingCompleted(event: BookingCompletedEvent): Promise<BookingCompletedEvent> {
   console.log(
     `[booking-events] completed bookingId=${event.bookingId} partner=${event.partner} actorType=${event.actorType} source=${event.source}`,
   )
+  if (event.partner) return event
+  try {
+    await settleBooking(event.bookingId, { type: 'system', id: 'completion_event' })
+  } catch {
+    console.error('[booking-events] settle failed', { bookingId: event.bookingId })
+  }
   return event
 }

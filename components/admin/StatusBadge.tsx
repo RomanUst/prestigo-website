@@ -33,8 +33,15 @@ export const STATUS_FAMILY: Record<Variant, StatusFamily> = {
   en_route: 'violet',
 }
 
+// Visual shell shared by StatusBadge and PaymentStateBadge (Phase 88-07). The neutral family
+// has fg/bg/border tokens in both themes (admin-theme.css) but no booking-status variant uses it.
+export type BadgeFamily = StatusFamily | 'neutral'
+
 export function StatusBadge({ variant, label }: StatusBadgeProps) {
-  const family = STATUS_FAMILY[variant]
+  return <BadgeShell family={STATUS_FAMILY[variant]} label={label} />
+}
+
+export function BadgeShell({ family, label }: { family: BadgeFamily; label: string }) {
   const fg = `var(--status-${family}-fg)`
   return (
     <span style={{

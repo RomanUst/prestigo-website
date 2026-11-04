@@ -79,3 +79,25 @@ describe('panel API limiter (Phase 84)', () => {
     err.mockRestore()
   })
 })
+
+describe('card checkout limits (Phase 88)', () => {
+  beforeEach(() => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    vi.useFakeTimers()
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it.each([
+    ['/api/card-checkout/init', 30],
+    ['/api/card-checkout/intent', 10],
+  ])('%s allows %i per IP per minute and denies the next', async (path, limit) => {
+    const ip = `203.0.113.${limit}`
+    for (let i = 0; i < limit; i++) {
+      const r = await checkRateLimit(path, ip)
+      expect(r.allowed).toBe(true)
+      expect(r.limit).toBe(limit)
+    }
+    expect((await checkRateLimit(path, ip)).allowed).toBe(false)
+  })
+})

@@ -214,17 +214,39 @@ export async function reconcileBookingByIdToConfirmed(
  * Returns the affected row (one element) on insert/update, or an empty array
  * on the confirmed no-op.
  */
+export class AttemptFlowConflictError extends Error {
+  constructor() {
+    super('attempt belongs to another payment flow')
+    this.name = 'AttemptFlowConflictError'
+  }
+}
+
+/**
+ * Phase 88 (88-REVIEW B-WR-02): one payment flow per attempt, enforced on the server. A pay-now capture never
+ * overwrites a card_hold row (it would keep payment_mode card_hold and the SetupIntent, so the card engine would later
+ * hold and charge a booking that was already paid), and a card capture never overwrites a pay-now row (it would drop
+ * its payment_intent_id). A value that was not read (undefined) is not a conflict.
+ */
+function flowConflict(existing: { payment_mode?: unknown; payment_intent_id?: unknown }, flow: 'pay_now' | 'card_hold'): boolean {
+  if (flow === 'pay_now') return existing.payment_mode === 'card_hold'
+  const otherMode = typeof existing.payment_mode === 'string' && existing.payment_mode !== 'card_hold'
+  const paidIntent = typeof existing.payment_intent_id === 'string' && existing.payment_intent_id.length > 0
+  return otherMode || paidIntent
+}
+
 export async function captureUnpaidBooking(
   row: ReturnType<typeof buildBookingRow>,
   attemptId: string,
-  leg: 'outbound' | 'return'
+  leg: 'outbound' | 'return',
+  /** The flow capturing the row: an existing unpaid row of the other flow throws AttemptFlowConflictError. */
+  flow?: 'pay_now' | 'card_hold'
 ): Promise<{ id: string }[]> {
   const supabase = createSupabaseServiceClient()
   const rowWithAttempt = { ...row, attempt_id: attemptId }
 
   const { data: existing, error: selectError } = await supabase
     .from('bookings')
-    .select('id, status')
+    .select('id, status, payment_mode, payment_intent_id')
     .eq('attempt_id', attemptId)
     .eq('leg', leg)
     .maybeSingle()
@@ -245,12 +267,13 @@ export async function captureUnpaidBooking(
       if ((error as { code?: string }).code === '23505') {
         const { data: raced } = await supabase
           .from('bookings')
-          .select('id, status')
+          .select('id, status, payment_mode, payment_intent_id')
           .eq('attempt_id', attemptId)
           .eq('leg', leg)
           .maybeSingle()
-        const racedRow = raced as { id: string; status: string } | null
+        const racedRow = raced as { id: string; status: string; payment_mode?: unknown; payment_intent_id?: unknown } | null
         if (racedRow && racedRow.status === 'unpaid') {
+          if (flow && flowConflict(racedRow, flow)) throw new AttemptFlowConflictError()
           const { data: upd, error: updErr } = await supabase
             .from('bookings')
             .update(rowWithAttempt)
@@ -269,12 +292,13 @@ export async function captureUnpaidBooking(
     return data ?? []
   }
 
-  const existingRow = existing as { id: string; status: string }
+  const existingRow = existing as { id: string; status: string; payment_mode?: unknown; payment_intent_id?: unknown }
   if (existingRow.status !== 'unpaid') {
     // Already confirmed (or some other terminal state) — never mutate via
     // a client-supplied attempt_id once the booking has been paid.
     return []
   }
+  if (flow && flowConflict(existingRow, flow)) throw new AttemptFlowConflictError()
 
   const { data, error } = await supabase
     .from('bookings')
