@@ -35,8 +35,10 @@ export type StatusActor =
  *                    deduped status email, 2 h QStash reminder on confirmed, GNet push
  *  - 'cancel-route': the admin cancel route — no side effect at all (today's behaviour)
  *  - 'assign-route': the admin assign route — GNet push only
+ *  - 'payment-engine': the card-on-file webhook / tick confirming a booking in place (Phase 88) —
+ *                    no side effect at all; the payment engine sends its own ledger-keyed emails
  */
-export type StatusSideEffectProfile = 'full' | 'cancel-route' | 'assign-route'
+export type StatusSideEffectProfile = 'full' | 'cancel-route' | 'assign-route' | 'payment-engine'
 
 export interface AdvanceBookingStatusInput {
   bookingId: string
@@ -209,8 +211,9 @@ export async function advanceBookingStatus(
   }
 
   // 'cancel-route': no side effect at all (today's cancel route sends no email,
-  // deactivates no link and pushes nothing to GNet).
-  if (profile === 'cancel-route') return result
+  // deactivates no link and pushes nothing to GNet). 'payment-engine' (Phase 88) is the same: the
+  // card-flow webhook sends its own exactly-once emails, reminder and GA4 event.
+  if (profile === 'cancel-route' || profile === 'payment-engine') return result
 
   // 'assign-route': the GNet push only. Scheduled last so the caller's next query
   // keeps its place in the call order.
