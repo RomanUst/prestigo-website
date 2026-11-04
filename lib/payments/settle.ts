@@ -27,8 +27,9 @@
 import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { LEASE_SEARCH_AFTER_MS, LEASE_SECONDS } from '@/lib/payments/config'
+import { LEASE_SEARCH_AFTER_MS, LEASE_SECONDS, RETRY_DELAY_MS } from '@/lib/payments/config'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
+import { handlePaymentFailure } from '@/lib/payments/recovery'
 import {
   appendPaymentEvent,
   applyTransition,
@@ -227,7 +228,9 @@ async function recordFailure(
   nowMs: number,
 ): Promise<SettleResult> {
   const code = info.code.slice(0, 60)
-  await applyTransition({
+  // D-13: one automatic retry 12 h after the failure (the trip is over, so no pickup clamp); none once it was used.
+  const retriesUsed = typeof ctx.booking.payment_retry_count === 'number' ? ctx.booking.payment_retry_count : 0
+  const moved = await applyTransition({
     bookingId: ctx.bookingId,
     from: ['capturing'],
     to: 'failed',
@@ -235,6 +238,7 @@ async function recordFailure(
       charge_attempts: ctx.attempt + 1,
       last_payment_error: code,
       payment_failed_at: new Date(nowMs).toISOString(),
+      payment_retry_at: retriesUsed >= 1 ? null : new Date(nowMs + RETRY_DELAY_MS).toISOString(),
       payment_lease_until: null,
     },
     event: {
@@ -247,7 +251,19 @@ async function recordFailure(
       actor: ctx.actor,
     },
   })
-  // The client recovery link, the client email and the operator alert for this branch are added by plan 88-14.
+  // HOLD-05, D-13, D-14: recovery link for what is still owed, the client email and the operator alert, once per
+  // attempt. Only the writer that moved the row does it; a recovery problem never changes the settle outcome.
+  if (moved.applied) {
+    const capturedSoFar = typeof ctx.booking.captured_amount_minor === 'number' ? ctx.booking.captured_amount_minor : 0
+    try {
+      await handlePaymentFailure(
+        { ...ctx.booking, ...(moved.booking ?? {}) },
+        { phase: 'charge', code, amountMinor: Math.max(ctx.dueMinor - capturedSoFar, 0), attempt: ctx.attempt + 1 },
+      )
+    } catch {
+      console.error('[settle] failure recovery step failed', { bookingId: ctx.bookingId })
+    }
+  }
   return { outcome: 'failed', code }
 }
 
@@ -272,7 +288,7 @@ async function recordDifferenceFailure(
     currency: ctx.currency,
     actor: ctx.actor,
   })
-  await applyTransition({
+  const moved = await applyTransition({
     bookingId: ctx.bookingId,
     from: ['capturing'],
     to: 'balance_due',
@@ -283,6 +299,9 @@ async function recordDifferenceFailure(
       charge_attempts: ctx.attempt + 1,
       last_payment_error: code,
       payment_failed_at: new Date(nowMs).toISOString(),
+      // No automatic retry for a declined difference: balance_due is settled for the engine (SETTLED_STATES); the
+      // client pays the recovery link or the operator acts.
+      payment_retry_at: null,
       payment_lease_until: null,
     },
     event: {
@@ -295,11 +314,27 @@ async function recordDifferenceFailure(
       actor: ctx.actor,
     },
   })
-  // The recovery link for the difference, the client email and the operator alert are added by plan 88-14.
+  // HOLD-05, D-13, D-14: the link, the email and the alert are for the difference only (the main amount is paid).
+  // The recovery payment gets its own ledger key (recovery_paid:<pi>); captured:<mainPi> is already used above.
+  if (moved.applied) {
+    try {
+      await handlePaymentFailure(
+        { ...ctx.booking, ...(moved.booking ?? {}) },
+        { phase: 'difference', code, amountMinor: ctx.dueMinor - mainMinor, attempt: ctx.attempt + 1 },
+      )
+    } catch {
+      console.error('[settle] failure recovery step failed', { bookingId: ctx.bookingId })
+    }
+  }
   return { outcome: 'balance_due', code, capturedMinor: mainMinor, diffMinor: 0 }
 }
 
-export async function settleBooking(bookingId: string, actor: LedgerActor): Promise<SettleResult> {
+export async function settleBooking(
+  bookingId: string,
+  actor: LedgerActor,
+  /** Extra columns written in the claim transition (the automatic retry marks payment_retry_count here, D-13). */
+  opts: { claimPatch?: PaymentPatch } = {},
+): Promise<SettleResult> {
   const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
   if (error) throw new Error('settle booking lookup failed')
   const loaded = (data as BookingRow | null) ?? null
@@ -325,7 +360,7 @@ export async function settleBooking(bookingId: string, actor: LedgerActor): Prom
     bookingId,
     from: CLAIMABLE,
     to: 'capturing',
-    patch: { payment_lease_until: new Date(nowMs + LEASE_SECONDS * 1000).toISOString() },
+    patch: { ...(opts.claimPatch ?? {}), payment_lease_until: new Date(nowMs + LEASE_SECONDS * 1000).toISOString() },
     // Unique per claim (a re-claim after a lease expiry is a new row); the attempt number stays in the key.
     event: { key: `capture_started:${attemptsOf(loaded)}:${nowMs}`, kind: 'capture_started', actor },
   })

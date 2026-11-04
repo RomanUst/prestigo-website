@@ -40,7 +40,15 @@ vi.mock('@/lib/stripe-payment-links', async (importActual) => ({
   deactivateBookingPaymentLink: mockDeactivateLink,
 }))
 
+// The checkout reconcile of step E is not under test here.
+vi.mock('@/lib/stripe-webhook/card-confirm', () => ({
+  applySetupSucceeded: vi.fn(),
+  applyHoldNowAuthorized: vi.fn(),
+}))
+
 import { placeHold } from '@/lib/payments/hold'
+import { settleBooking } from '@/lib/payments/settle'
+import { runPaymentTick } from '@/lib/payments/tick'
 import { handlePaymentFailure, refreshRecoveryLink } from '@/lib/payments/recovery'
 import { sendPaymentOperatorAlert, OPERATOR_ALERT_KINDS } from '@/lib/payments/alerts'
 import { createRecoveryPaymentLink } from '@/lib/stripe-payment-links'
@@ -299,5 +307,126 @@ describe('recovery link (Pitfall 12, T-88-42, T-88-43)', () => {
     seed({ payment_state: 'failed', recovery_link_id: 'plink_stale' })
     const link = await refreshRecoveryLink(fresh(), 9000, 2)
     expect(link).not.toBeNull()
+  })
+})
+
+describe('declined charge and difference (settle failure branches)', () => {
+  function completedBooking(over: Record<string, unknown> = {}) {
+    return {
+      status: 'completed',
+      completed_at: new Date(Date.now() - HOUR).toISOString(),
+      pickup_utc: new Date(Date.now() - 5 * HOUR).toISOString(),
+      payment_state: 'expired',
+      payment_lease_until: null,
+      charge_attempts: 0,
+      locale: 'en',
+      ...over,
+    }
+  }
+
+  it('a declined fallback charge: link for the amount owed, email, "Charge failed" alert with the retry time', async () => {
+    seed(completedBooking())
+    const res = await settleBooking(ID, ACTOR)
+    expect(res).toEqual({ outcome: 'failed', code: 'insufficient_funds' })
+
+    const create = fake.callsTo('paymentLinks.create')
+    expect(create).toHaveLength(1)
+    expect(create[0].idempotencyKey).toBe(`link:${ID}:c1`)
+    expect((create[0].params.line_items as Array<{ price_data: { unit_amount: number } }>)[0].price_data.unit_amount).toBe(12000)
+    expect((create[0].params.metadata as Record<string, string>).attempt).toBe('c1')
+    expect(row().recovery_link_id).toBe([...fake.state.paymentLinks.keys()][0])
+
+    expect(clientMails()).toHaveLength(1)
+    expect(operatorMails()).toHaveLength(1)
+    expect(operatorMails()[0].subject).toBe(`[Payment] Charge failed — ${REF}`)
+    expect(operatorMails()[0].text).toContain('Retry or send the link again from the booking.')
+    expect(operatorMails()[0].text).toContain('One automatic retry runs at ')
+    expect(ledger('email_sent').map((e) => e.event_key)).toContain(`email:payment_failed:${ID}:charge:1`)
+    expect(ledger('alert_sent').map((e) => e.event_key)).toContain(`alert:charge_failed:${ID}:1`)
+  })
+
+  it('a declined price difference: link, email and alert are for the difference only', async () => {
+    const hold = (await fake.stripe.paymentIntents.create({
+      amount: 12000,
+      currency: 'eur',
+      customer: 'cus_1',
+      payment_method: 'pm_ok',
+      capture_method: 'manual',
+      off_session: true,
+      confirm: true,
+      metadata: { kind: 'card_hold', cofBookingId: ID, attempt: '0', bookingReference: REF },
+    })) as { id: string }
+    seed(
+      completedBooking({
+        payment_state: 'authorized',
+        hold_payment_intent_id: hold.id,
+        hold_amount_minor: 12000,
+        payment_amount_minor: 15000,
+      }),
+    )
+    const res = await settleBooking(ID, ACTOR)
+    expect(res.outcome).toBe('balance_due')
+    expect(row().payment_state).toBe('balance_due')
+    expect(row().captured_amount_minor).toBe(12000)
+
+    const create = fake.callsTo('paymentLinks.create')
+    expect(create).toHaveLength(1)
+    expect(create[0].idempotencyKey).toBe(`link:${ID}:d1`)
+    expect((create[0].params.line_items as Array<{ price_data: { unit_amount: number } }>)[0].price_data.unit_amount).toBe(3000)
+    expect(row().recovery_link_url).toBe(`https://buy.stripe.test/${[...fake.state.paymentLinks.keys()][0]}`)
+
+    expect(clientMails()).toHaveLength(1)
+    expect(operatorMails()[0].subject).toBe(`[Payment] Balance unpaid — ${REF}`)
+    expect(operatorMails()[0].text).toContain('The trip amount was captured. The extra')
+    expect(operatorMails()[0].text).toContain('€30')
+    expect(operatorMails()[0].text).not.toContain('automatic retry')
+    // The recovery payment will need its own ledger key: the captured:<mainPi> row is already taken.
+    expect(ledger('captured').map((e) => e.event_key)).toEqual([`captured:${hold.id}`])
+  })
+})
+
+describe('the automatic retry end to end (D-13, D-15)', () => {
+  it('a retry that declines again emails and alerts once more and says no retry is left; nothing is cancelled', async () => {
+    seed({
+      payment_state: 'failed',
+      locale: 'en',
+      hold_attempts: 1,
+      last_payment_error: 'insufficient_funds',
+      payment_failed_at: new Date(Date.now() - 12 * HOUR - 60_000).toISOString(),
+      payment_retry_at: new Date(Date.now() - 60_000).toISOString(),
+      payment_retry_count: 0,
+      payment_lease_until: null,
+      hold_at: new Date(Date.now() - 13 * HOUR).toISOString(),
+      pickup_utc: new Date(Date.now() + 40 * HOUR).toISOString(),
+    })
+    const res = await runPaymentTick()
+    expect(res).toMatchObject({ retried: 1, failed: 1, errors: [] })
+
+    expect(row().payment_state).toBe('failed')
+    expect(row().hold_attempts).toBe(2)
+    expect(row().payment_retry_at).toBeNull()
+    expect(row().status).toBe('confirmed')
+
+    // Attempt 2: its own link (key link:<id>:2), its own email and alert keys.
+    expect(fake.callsTo('paymentLinks.create').map((c) => c.idempotencyKey)).toEqual([`link:${ID}:2`])
+    expect(clientMails()).toHaveLength(1)
+    expect(operatorMails()).toHaveLength(1)
+    expect(operatorMails()[0].text).toContain('No automatic retries are left. Use Retry or Send payment link.')
+    expect(operatorMails()[0].text).not.toContain('One automatic retry runs')
+    expect(ledger('alert_sent').map((e) => e.event_key)).toContain(`alert:hold_failed:${ID}:2`)
+
+    // A further tick does nothing more.
+    await runPaymentTick()
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+    expect(clientMails()).toHaveLength(1)
+  })
+
+  it('the source never cancels a booking from the retry, alert or recovery code (D-15)', async () => {
+    const fs = await import('fs')
+    const path = await import('path')
+    for (const file of ['lib/payments/tick.ts', 'lib/payments/recovery.ts', 'lib/payments/alerts.ts']) {
+      const src = fs.readFileSync(path.resolve(__dirname, '..', file), 'utf8')
+      expect(src.match(/\.update\(\{[^}]*status:/g)).toBeNull()
+    }
   })
 })

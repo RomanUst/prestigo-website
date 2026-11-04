@@ -9,12 +9,13 @@ import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
  * separately, and never collects twice (CAS claim, attempt-numbered idempotency keys, ledger event keys).
  */
 
-const { world, mockSendEmail } = vi.hoisted(() => ({
+const { world, mockSendEmail, mockFailure } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
   },
   mockSendEmail: vi.fn(),
+  mockFailure: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -28,6 +29,8 @@ vi.mock('@/lib/payments/stripe', async (importActual) => ({
   getPaymentsStripe: () => world.stripe,
 }))
 vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: mockSendEmail, bookingEmailDataFromRow: (r: unknown) => r }))
+// The link / email / alert of a declined charge are covered by tests/payments-failure.test.ts; here only the call is pinned.
+vi.mock('@/lib/payments/recovery', () => ({ handlePaymentFailure: mockFailure }))
 
 import { settleBooking } from '@/lib/payments/settle'
 
@@ -95,6 +98,7 @@ beforeEach(() => {
   fake = createFakeStripe()
   world.stripe = fake.stripe
   mockSendEmail.mockResolvedValue('sent')
+  mockFailure.mockResolvedValue(undefined)
 })
 
 describe('tracer: completed card booking in authorized -> capture the hold -> captured + charged email (HOLD-04, D-06)', () => {
@@ -519,6 +523,29 @@ describe('failure states record the decline for recovery (T-88-41)', () => {
     expect(ledger('charge_failed')[0].error_code).toBe('insufficient_funds')
     expect(mockSendEmail).not.toHaveBeenCalled()
     expect(collectedTotal()).toBe(0)
+
+    // D-13: one automatic retry 12 h after the failure; the recovery step gets the amount still owed and the new attempt.
+    expect(Date.parse(b.payment_retry_at as string) - Date.parse(b.payment_failed_at as string)).toBe(12 * HOUR)
+    expect(mockFailure).toHaveBeenCalledTimes(1)
+    expect(mockFailure.mock.calls[0][0]).toMatchObject({ id: ID, payment_state: 'failed' })
+    expect(mockFailure.mock.calls[0][1]).toEqual({ phase: 'charge', code: 'insufficient_funds', amountMinor: 12000, attempt: 1 })
+  })
+
+  it('a failed retry (payment_retry_count 1) schedules no further retry and reports attempt 2', async () => {
+    seed({ payment_state: 'failed', charge_attempts: 1, payment_retry_count: 1, stripe_payment_method_id: 'pm_decline_insufficient' })
+    const res = await settleBooking(ID, ACTOR, { claimPatch: { payment_retry_count: 1, payment_retry_at: null } })
+    expect(res).toEqual({ outcome: 'failed', code: 'insufficient_funds' })
+    expect(row().payment_retry_at).toBeNull()
+    expect(row().payment_retry_count).toBe(1)
+    expect(mockFailure.mock.calls[0][1]).toEqual({ phase: 'charge', code: 'insufficient_funds', amountMinor: 12000, attempt: 2 })
+  })
+
+  it('a recovery step that throws never changes the settle outcome', async () => {
+    mockFailure.mockRejectedValue(new Error('recovery down'))
+    seed({ payment_state: 'expired', stripe_payment_method_id: 'pm_decline_insufficient' })
+    const res = await settleBooking(ID, ACTOR)
+    expect(res).toEqual({ outcome: 'failed', code: 'insufficient_funds' })
+    expect(row().payment_state).toBe('failed')
   })
 
   it('authentication_required on the fallback -> failed with that code', async () => {
@@ -545,6 +572,7 @@ describe('failure states record the decline for recovery (T-88-41)', () => {
     const res = await settleBooking(ID, ACTOR)
     expect(res).toEqual({ outcome: 'failed', code: 'missing_payment_details' })
     expect(fake.calls).toHaveLength(0)
+    expect(mockFailure).toHaveBeenCalledTimes(1)
   })
 
   it('difference declined after the main capture -> balance_due with the main PI, the held amount, charge_attempts 1 and no charged email', async () => {
@@ -564,6 +592,12 @@ describe('failure states record the decline for recovery (T-88-41)', () => {
     expect(ledger('difference_charged')).toHaveLength(0)
     expect(mockSendEmail).not.toHaveBeenCalled()
     expect(collectedTotal()).toBe(12000)
+
+    // The link, email and alert are for the 3000 difference only; no automatic retry for a difference.
+    expect(b.payment_retry_at).toBeNull()
+    expect(mockFailure).toHaveBeenCalledTimes(1)
+    expect(mockFailure.mock.calls[0][0]).toMatchObject({ id: ID, payment_state: 'balance_due', payment_intent_id: holdId })
+    expect(mockFailure.mock.calls[0][1]).toEqual({ phase: 'difference', code: 'insufficient_funds', amountMinor: 3000, attempt: 1 })
   })
 
   it('a balance_due booking is left alone by a later settle (recovery owns it)', async () => {
