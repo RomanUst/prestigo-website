@@ -485,6 +485,59 @@ function AlertBanner({ spec }: { spec: BannerSpec }) {
   )
 }
 
+/**
+ * 88-REVIEW C-WR-05: the refund-failed flag is cleared by the operator once the refund (or hold release) was done by
+ * hand in the Stripe Dashboard. Two steps (ask, then confirm); one audit row on the server, no money moves.
+ */
+function ResolveRefundControl({ bookingId, onDone }: { bookingId: string; onDone: () => void }) {
+  const [step, setStep] = useState<'idle' | 'confirm' | 'saving' | 'error'>('idle')
+
+  async function resolve() {
+    setStep('saving')
+    try {
+      const res = await fetch(`/api/admin/bookings/${bookingId}/payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'resolve_refund' }),
+      })
+      if (res.ok || res.status === 422) {
+        // 422: already resolved (another tab): the refetch shows the current state either way.
+        setStep('idle')
+        onDone()
+        return
+      }
+      setStep('error')
+    } catch {
+      setStep('error')
+    }
+  }
+
+  return (
+    <div data-testid="resolve-refund" style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+      {step === 'confirm' || step === 'saving' ? (
+        <>
+          <span style={bodyStyle}>Confirm only after the refund or release was done in the Stripe Dashboard.</span>
+          <button type="button" style={outlineButtonStyle} disabled={step === 'saving'} onClick={() => { void resolve() }}>
+            {step === 'saving' ? 'Saving…' : 'Yes, it is resolved'}
+          </button>
+          <button type="button" style={outlineButtonStyle} disabled={step === 'saving'} onClick={() => setStep('idle')}>
+            Not yet
+          </button>
+        </>
+      ) : (
+        <>
+          <button type="button" style={outlineButtonStyle} onClick={() => setStep('confirm')}>
+            Mark refund resolved
+          </button>
+          {step === 'error' && (
+            <span role="alert" style={{ ...bodyStyle, color: 'var(--status-danger-fg)' }}>Could not save. Try again.</span>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── actions and confirm modals (HOLD-07, T-88-17) ────────────────────────────
 
 interface ConfirmCopy {
@@ -717,6 +770,7 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode }:
       <div data-testid="payment-refund-failed" onClick={(e) => e.stopPropagation()}>
         <div style={{ marginTop: '16px' }}><RefundFailedBadge /></div>
         <AlertBanner spec={refundFailedBanner(data.payment)} />
+        <ResolveRefundControl bookingId={bookingId} onDone={() => setReloadTick(t => t + 1)} />
       </div>
     )
   }
@@ -823,6 +877,7 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
       </PanelHeader>
 
       {banner && <AlertBanner spec={banner} />}
+      {data.refund_failed && <ResolveRefundControl bookingId={bookingId} onDone={onRefetch} />}
 
       <FactsGrid
         facts={buildFacts(p, { copied: copyState === 'copied', manual: copyState === 'manual', onCopy: copyLink, fallbackId: linkFallbackId })}

@@ -550,6 +550,32 @@ describe('PaymentPanel alert banners (D-14, HOLD-05)', () => {
     expect(screen.getAllByText('Refund failed').length).toBeGreaterThanOrEqual(2)
   })
 
+  it('88-REVIEW C-WR-05: Mark refund resolved asks first, posts resolve_refund and refetches', async () => {
+    let getBody = makeBody({ refund_failed: true, payment: { state: 'released' } })
+    const fetchMock = vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        getBody = makeBody({ refund_failed: false, payment: { state: 'released' } })
+        return Promise.resolve(okResponse({ outcome: 'ok' }))
+      }
+      return Promise.resolve(okResponse(getBody))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<PaymentPanel bookingId="b-1" />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Mark refund resolved' }))
+    expect(posts(fetchMock)).toHaveLength(0)
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, it is resolved' }))
+    await waitFor(() => expect(posts(fetchMock)).toHaveLength(1))
+    expect(JSON.parse(String((posts(fetchMock)[0][1] as RequestInit).body))).toEqual({ action: 'resolve_refund' })
+    await waitFor(() => expect(screen.queryByText('Refund failed', { selector: 'strong' })).toBeNull())
+    expect(screen.queryByRole('button', { name: 'Mark refund resolved' })).toBeNull()
+  })
+
+  it('88-REVIEW C-WR-05: a pay-now booking with a refund failure can be resolved too', async () => {
+    stubRouted(makeBody({ refund_failed: true, payment: { mode: 'pay_now', state: 'none' } }))
+    render(<PaymentPanel bookingId="b-1" paymentMode="pay_now" />)
+    expect(await screen.findByRole('button', { name: 'Mark refund resolved' })).toBeDefined()
+  })
+
   it('failed: shows the retry time when one is scheduled, else the no-retries sentence', async () => {
     stubFetch(makeBody({ payment: { state: 'failed', payment_retry_at: '2026-11-12T13:05:00Z', payment_retry_count: 0 } }))
     const first = render(<PaymentPanel bookingId="b-1" />)

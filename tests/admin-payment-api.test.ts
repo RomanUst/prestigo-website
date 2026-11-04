@@ -296,6 +296,44 @@ describe('GET: payment facts, allowed actions and ledger (HOLD-07, PAYF-01)', ()
     expect(body.events).toHaveLength(1)
   })
 
+  it('88-REVIEW C-WR-05: resolve_refund closes an open refund failure; a later failure opens it again', async () => {
+    seed({ payment_mode: 'pay_now', payment_state: 'none' })
+    const failure = (id: number, created_at: string) => ({
+      id,
+      booking_id: ID,
+      event_key: `refund_failed:re_${id}`,
+      kind: 'refund_failed',
+      stripe_object_id: null,
+      amount_minor: 5000,
+      currency: 'eur',
+      from_state: 'none',
+      to_state: 'none',
+      actor_type: 'webhook',
+      actor_id: null,
+      error_code: 'charge_already_refunded',
+      created_at,
+    })
+    db.state.booking_payment_events.push(failure(501, new Date(db.state.nowMs - 60_000).toISOString()))
+    expect((await (await getReq()).json()).refund_failed).toBe(true)
+
+    const res = await postReq({ action: 'resolve_refund' })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'ok' })
+    const audit = db.state.booking_payment_events.find((e) => e.kind === 'admin_action' && e.error_code === 'refund_resolved')
+    expect(audit).toMatchObject({ actor_type: 'admin' })
+    expect((await (await getReq()).json()).refund_failed).toBe(false)
+    // Nothing open any more: a second resolve is not allowed.
+    expect((await postReq({ action: 'resolve_refund' })).status).toBe(422)
+
+    db.state.booking_payment_events.push(failure(502, new Date(db.state.nowMs + 60_000).toISOString()))
+    expect((await (await getReq()).json()).refund_failed).toBe(true)
+  })
+
+  it('88-REVIEW C-WR-05: resolve_refund without any refund failure -> 422', async () => {
+    seed()
+    expect((await postReq({ action: 'resolve_refund' })).status).toBe(422)
+  })
+
   it('a pay_now booking without ledger rows -> empty events and refund_failed false', async () => {
     seed({ payment_mode: 'pay_now', payment_state: 'none' })
     const body = await (await getReq()).json()

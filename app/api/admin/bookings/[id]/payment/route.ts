@@ -4,12 +4,15 @@ import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { allowedPaymentActions, runPaymentAction, toPaymentFacts } from '@/lib/payments/actions'
+import { appendPaymentEvent } from '@/lib/payments/state'
 
 // Admin payment API of a card-hold booking (Phase 88, plan 88-15; HOLD-07, PAYF-01), the data source and the action
 // endpoint of components/admin/PaymentPanel.tsx (contract: plan 88-07).
 //
 //   GET   -> { payment, allowed_actions, refund_failed, events, events_total }
 //   POST  { action } -> 200 { outcome: 'ok' | 'declined' } | 409 { error: 'payment_busy' } | 422 { error: 'action_not_allowed' }
+//   POST  { action: 'resolve_refund' } -> 200 { outcome: 'ok' } | 422: the operator confirms an open refund failure was
+//         handled by hand in Stripe (88-REVIEW C-WR-05). Any payment mode; it moves no money, it writes one audit row.
 //
 // Guard order (project API patterns): enforceMaxBody -> admin session (401 / 403) -> await params -> id is a uuid (400)
 // -> JSON parse (400) -> strict schema on the action (400) -> booking (404) -> action allowed (422) -> engine
@@ -27,7 +30,35 @@ const actionSchema = z.discriminatedUnion('action', [
   z.strictObject({ action: z.literal('release') }),
   z.strictObject({ action: z.literal('waive') }),
   z.strictObject({ action: z.literal('send_link') }),
+  z.strictObject({ action: z.literal('resolve_refund') }),
 ])
+
+/** error_code of the admin_action ledger row that closes the refund failures before it (88-REVIEW C-WR-05). */
+const REFUND_RESOLVED = 'refund_resolved'
+
+/**
+ * A refund failure is open when the newest refund_failed row is newer than the newest "refund resolved" admin row.
+ * The ledger is append-only, so a resolution is a later row, never a deletion (created_at, then id, decides).
+ */
+async function refundFailureOpen(bookingId: string): Promise<boolean> {
+  const supabase = createSupabaseServiceClient()
+  const newest = (kind: string, errorCode?: string) => {
+    let q = supabase.from('booking_payment_events').select('id, created_at').eq('booking_id', bookingId).eq('kind', kind)
+    if (errorCode) q = q.eq('error_code', errorCode)
+    return q.order('created_at', { ascending: false }).order('id', { ascending: false }).limit(1)
+  }
+  const [failed, resolved] = await Promise.all([newest('refund_failed'), newest('admin_action', REFUND_RESOLVED)])
+  if (failed.error || resolved.error) throw new Error('refund ledger read failed')
+  type Row = { id?: number; created_at?: string }
+  const lastFailed = (Array.isArray(failed.data) ? failed.data[0] : null) as Row | null
+  if (!lastFailed) return false
+  const lastResolved = (Array.isArray(resolved.data) ? resolved.data[0] : null) as Row | null
+  if (!lastResolved) return true
+  const f = Date.parse(lastFailed.created_at ?? '')
+  const r = Date.parse(lastResolved.created_at ?? '')
+  if (Number.isFinite(f) && Number.isFinite(r) && r !== f) return f > r
+  return (lastFailed.id ?? 0) > (lastResolved.id ?? 0)
+}
 
 const EVENT_COLUMNS = 'id, created_at, kind, amount_minor, currency, actor_type, actor_id, error_code'
 
@@ -80,7 +111,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
   const supabase = createSupabaseServiceClient()
-  const [events, refundFailed] = await Promise.all([
+  // Asked separately: a refund failure older than the 100 newest rows must still raise the flag (D-20); a later
+  // "refund resolved" row clears it (C-WR-05).
+  const [events, refundOpen] = await Promise.all([
     supabase
       .from('booking_payment_events')
       .select(EVENT_COLUMNS, { count: 'exact' })
@@ -88,10 +121,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
       .limit(EVENT_LIMIT),
-    // Asked separately: a refund failure older than the 100 newest rows must still raise the flag (D-20).
-    supabase.from('booking_payment_events').select('id').eq('booking_id', bookingId).eq('kind', 'refund_failed').limit(1),
+    refundFailureOpen(bookingId).catch(() => null),
   ])
-  if (events.error || refundFailed.error) {
+  if (events.error || refundOpen === null) {
     console.error('[admin/bookings/[id]/payment] ledger read failed', { bookingId })
     return NextResponse.json({ error: 'Failed to load payment history' }, { status: 500 })
   }
@@ -100,7 +132,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   return NextResponse.json({
     payment: toPaymentFacts(booking),
     allowed_actions: allowedPaymentActions(booking),
-    refund_failed: Array.isArray(refundFailed.data) && refundFailed.data.length > 0,
+    refund_failed: refundOpen,
     events: rows.map(toEvent),
     events_total: typeof events.count === 'number' ? events.count : rows.length,
   })
@@ -149,6 +181,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { booking, failed } = await loadBooking(bookingId)
   if (failed) return NextResponse.json({ error: 'Failed to load booking' }, { status: 500 })
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+
+  // C-WR-05: the operator closes a refund failure they handled in the Stripe Dashboard. Any payment mode (a pay-now
+  // refund can fail too); allowed only while a failure is open; one admin_action audit row, no money moves.
+  if (action === 'resolve_refund') {
+    try {
+      if (!(await refundFailureOpen(bookingId))) return NextResponse.json({ error: 'action_not_allowed' }, { status: 422 })
+      await appendPaymentEvent(bookingId, {
+        key: `refund_resolved:${bookingId}:${Date.now()}`,
+        kind: 'admin_action',
+        errorCode: REFUND_RESOLVED,
+        actor: { type: 'admin', id: user.id },
+      })
+      return NextResponse.json({ outcome: 'ok' })
+    } catch {
+      console.error('[admin/bookings/[id]/payment] refund resolution failed', { bookingId })
+      return NextResponse.json({ error: 'Payment action failed' }, { status: 500 })
+    }
+  }
 
   if (!allowedPaymentActions(booking).includes(action)) {
     return NextResponse.json({ error: 'action_not_allowed' }, { status: 422 })
