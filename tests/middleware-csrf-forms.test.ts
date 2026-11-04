@@ -82,3 +82,35 @@ describe('Webhook receivers stay outside the CSRF Origin check (Phase 83)', () =
     expect(res.headers.get('location')).toBeNull()
   })
 })
+
+// Phase 88 (T-88-16, Research Pitfall 8): the public card checkout is browser-only, so a missing
+// Origin is refused too. The cron tick and the Stripe webhook are server-to-server and stay outside.
+const CARD_ROUTES = ['/api/card-checkout/init', '/api/card-checkout/intent']
+const SERVER_TO_SERVER_ROUTES = ['/api/cron/payment-tick', '/api/webhooks/stripe']
+
+describe('CSRF Origin check on the card checkout endpoints (Phase 88)', () => {
+  it.each(CARD_ROUTES)('%s: a cross-site Origin is refused with 403', async (path) => {
+    const res = await middleware(post(path, 'https://evil.example'))
+    expect(res.status).toBe(403)
+  })
+
+  it.each(CARD_ROUTES)('%s: a missing Origin is refused with 403 (strict)', async (path) => {
+    const res = await middleware(post(path, null))
+    expect(res.status).toBe(403)
+  })
+
+  it.each(CARD_ROUTES)('%s: the site origin passes', async (path) => {
+    const res = await middleware(post(path, 'https://prestigo.cz'))
+    expect(res.status).not.toBe(403)
+  })
+
+  it.each(SERVER_TO_SERVER_ROUTES)('%s: no Origin is not answered 403 (server-to-server)', async (path) => {
+    const res = await middleware(post(path, null))
+    expect(res.status).not.toBe(403)
+  })
+
+  it.each(SERVER_TO_SERVER_ROUTES)('%s: a foreign Origin is not answered 403 (server-to-server)', async (path) => {
+    const res = await middleware(post(path, 'https://evil.example'))
+    expect(res.status).not.toBe(403)
+  })
+})
