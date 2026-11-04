@@ -169,9 +169,36 @@ const stepE: TickStep = {
  * booking whose trip is completed (completed_at IS NOT NULL, never the status alone) and that is still authorized,
  * expired or card_saved is settled here, plus capturing / placing_hold rows whose lease expired (a settle or a hold
  * placement that died mid-flight).
- * Failed rows are NOT selected here: their single retry belongs to step B. settleBooking claims
- * each row first, so this sweep, the completion event and the admin capture can never collect twice.
+ * A `failed` row is selected only for its FIRST post-trip settle (88-REVIEW A-WR-08): a pre-trip hold failure whose
+ * retry was used, or that had no retry left (pickup too close), used to depend on the completion event alone, and
+ * after() can die. Such a row is settled here once, when the ledger has no capture_started at or after completed_at;
+ * any later retry of a failed charge belongs to step B. settleBooking claims each row first, so this sweep, the
+ * completion event and the admin capture can never collect twice.
  */
+/**
+ * A-WR-08: the failed, completed rows that never had a settle after their trip (no capture_started ledger row created at
+ * or after completed_at). A ledger read failure selects nothing (the next run tries again); never settles blind twice.
+ */
+async function failedWithoutPostTripSettle(rows: Array<{ id: string; completed_at?: string | null }>): Promise<string[]> {
+  const candidates = rows.filter((r) => typeof r.id === 'string' && typeof r.completed_at === 'string')
+  if (candidates.length === 0) return []
+  const { data, error } = await createSupabaseServiceClient()
+    .from('booking_payment_events')
+    .select('booking_id, created_at')
+    .in('booking_id', candidates.map((r) => r.id))
+    .eq('kind', 'capture_started')
+  if (error) throw new Error('settle sweep ledger lookup failed')
+  const started = (Array.isArray(data) ? data : []) as Array<{ booking_id?: unknown; created_at?: unknown }>
+  return candidates
+    .filter((r) => {
+      const doneMs = Date.parse(r.completed_at as string)
+      return !started.some(
+        (e) => e.booking_id === r.id && typeof e.created_at === 'string' && Date.parse(e.created_at) >= doneMs,
+      )
+    })
+    .map((r) => r.id)
+}
+
 const stepC: TickStep = {
   code: 'C',
   async run(ctx) {
@@ -186,19 +213,24 @@ const stepC: TickStep = {
         .neq('status', 'no_show')
 
     const nowIso = ctx.now.toISOString()
-    const [waiting, stuck, stuckPlacing] = await Promise.all([
+    const [waiting, stuck, stuckPlacing, failedDone] = await Promise.all([
       base().in('payment_state', ['authorized', 'expired', 'card_saved']).order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
       base().eq('payment_state', 'capturing').lt('payment_lease_until', nowIso).order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
       // 88-REVIEW A-WR-06: a hold placement that died near pickup (the scheduled claim only re-takes it before pickup).
       base().eq('payment_state', 'placing_hold').lt('payment_lease_until', nowIso).order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
+      base().eq('payment_state', 'failed').order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
     ])
-    if (waiting.error || stuck.error || stuckPlacing.error) throw new Error('settle sweep lookup failed')
+    if (waiting.error || stuck.error || stuckPlacing.error || failedDone.error) throw new Error('settle sweep lookup failed')
+    const neverSettled = await failedWithoutPostTripSettle(
+      (failedDone.data ?? []) as Array<{ id: string; completed_at?: string | null }>,
+    )
 
     const ids: string[] = []
     for (const r of [
       ...((waiting.data ?? []) as Array<{ id: string }>),
       ...((stuck.data ?? []) as Array<{ id: string }>),
       ...((stuckPlacing.data ?? []) as Array<{ id: string }>),
+      ...neverSettled.map((id) => ({ id })),
     ]) {
       if (typeof r.id === 'string' && !ids.includes(r.id)) ids.push(r.id)
     }

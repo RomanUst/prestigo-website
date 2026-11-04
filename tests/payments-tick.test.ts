@@ -528,12 +528,58 @@ describe('step C: completion sweep (HOLD-04, Phase 87 hand-off: a lost after() n
     expect(fake.callsTo('paymentIntents.create').filter((c) => c.idempotencyKey === `chg:${ids[0]}:0`)).toHaveLength(1)
   })
 
-  it('a failed completed booking is NOT re-charged by step C (the single retry rule belongs to 88-14)', async () => {
-    seed([await completed(ids[0], { payment_state: 'failed', charge_attempts: 1 })])
+  it('a failed completed booking whose post-trip settle already ran is NOT re-charged by step C (the retry belongs to step B)', async () => {
+    const b = await completed(ids[0], { payment_state: 'failed', charge_attempts: 1 })
+    seed([b])
+    db.state.booking_payment_events.push({
+      id: 9200,
+      booking_id: ids[0],
+      event_key: 'capture_started:0:1',
+      kind: 'capture_started',
+      from_state: 'authorized',
+      to_state: 'capturing',
+      actor_type: 'system',
+      created_at: new Date(Date.parse(String(b.completed_at)) + 1000).toISOString(),
+    })
     const res = await GET(okRequest())
     expect(await res.json()).toMatchObject({ captured: 0, failed: 0 })
     expect(row(ids[0]).payment_state).toBe('failed')
     expect(captureCalls()).toHaveLength(0)
+  })
+
+  it('88-REVIEW A-WR-08: a failed completed booking that never had a post-trip settle is charged once by step C', async () => {
+    const b = await completed(ids[0], { payment_state: 'failed', hold_payment_intent_id: null, hold_amount_minor: null, payment_retry_count: 1 })
+    seed([b])
+    // A pre-trip settle attempt does not count: only one at or after completed_at does.
+    db.state.booking_payment_events.push({
+      id: 9201,
+      booking_id: ids[0],
+      event_key: 'capture_started:0:0',
+      kind: 'capture_started',
+      from_state: 'failed',
+      to_state: 'capturing',
+      actor_type: 'system',
+      created_at: new Date(Date.parse(String(b.completed_at)) - 60_000).toISOString(),
+    })
+    const first = await GET(okRequest())
+    expect(await first.json()).toMatchObject({ captured: 1 })
+    expect(row(ids[0]).payment_state).toBe('captured')
+    expect(fake.callsTo('paymentIntents.create').filter((c) => c.idempotencyKey === `chg:${ids[0]}:0`)).toHaveLength(1)
+  })
+
+  it('88-REVIEW A-WR-08: a post-trip settle that fails again is not repeated by step C', async () => {
+    const b = await completed(ids[0], {
+      payment_state: 'failed',
+      hold_payment_intent_id: null,
+      hold_amount_minor: null,
+      payment_retry_count: 1,
+      stripe_payment_method_id: 'pm_decline_insufficient',
+    })
+    seed([b])
+    await GET(okRequest())
+    expect(row(ids[0]).payment_state).toBe('failed')
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create').filter((c) => String(c.idempotencyKey).startsWith(`chg:${ids[0]}:`))).toHaveLength(1)
   })
 
   it('a booking with status completed but completed_at NULL (historic) is not selected', async () => {
