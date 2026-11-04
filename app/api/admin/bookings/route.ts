@@ -329,6 +329,26 @@ export async function PATCH(request: Request) {
     if (parsed.data.operator_notes !== undefined) patch.operator_notes = parsed.data.operator_notes
     if (parsed.data.driver_price_czk !== undefined) patch.driver_price_czk = parsed.data.driver_price_czk
 
+    // 88-REVIEW T5 (C-CR-03): a card-on-file booking is cancelled only through POST /api/admin/bookings/cancel, the
+    // payment-aware path (release the hold or refund, D-20 trail). The status select here would cancel it with the
+    // hold still live and the recovery link still payable. The row read here is handed to the status service, so
+    // the guard costs no extra query.
+    let current: Record<string, unknown> | undefined
+    if (parsed.data.status === 'cancelled') {
+      const { data: row, error: rowError } = await supabase.from('bookings').select('*').eq('id', parsed.data.id).single()
+      if (rowError || !row) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+      current = row as Record<string, unknown>
+      if (current.payment_mode === 'card_hold') {
+        return NextResponse.json(
+          {
+            error: 'use_cancel_route',
+            message: 'Card bookings are cancelled with Cancel booking, so the card hold is released or the payment refunded.',
+          },
+          { status: 422 },
+        )
+      }
+    }
+
     const result = await advanceBookingStatus({
       bookingId: parsed.data.id,
       to: parsed.data.status,
@@ -337,6 +357,7 @@ export async function PATCH(request: Request) {
       profile: 'full',
       expectedFrom: parsed.data.expected_status,
       patch,
+      ...(current ? { current } : {}),
     })
 
     const failure = advanceResultToResponse(result)

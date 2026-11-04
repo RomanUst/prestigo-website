@@ -736,6 +736,26 @@ describe('PATCH /api/admin/bookings', () => {
     expect(stubDeactivateBookingPaymentLink).not.toHaveBeenCalled()
   })
 
+  // 88-REVIEW T5 (C-CR-03): a card booking is never cancelled by a bare status change.
+  it('88-review T5: status cancelled on a card_hold booking is 422 use_cancel_route with no write and no side effect', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'confirmed', client_email: 'a@b.com', payment_mode: 'card_hold', payment_state: 'authorized' })
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'cancelled' }))
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'use_cancel_route' })
+    expect(supabaseServiceStub.rpc).not.toHaveBeenCalled()
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    expect(stubDeactivateBookingPaymentLink).not.toHaveBeenCalled()
+  })
+
+  it('88-review T5: a pay-now booking is still cancelled through PATCH, with the row read once', async () => {
+    wireStatusRow({ id: PATCH_ID, status: 'confirmed', client_email: 'a@b.com', payment_mode: 'pay_now' })
+    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
+    const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'cancelled' }))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.from.mock.calls.filter((c: unknown[]) => c[0] === 'bookings')).toHaveLength(1)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith('advance_booking_status', expect.objectContaining({ p_from: 'confirmed', p_to: 'cancelled' }))
+  })
+
   it('87-03: expected_status different from the stored status is 409 before any write', async () => {
     wireStatusRow({ id: PATCH_ID, status: 'en_route', client_email: 'a@b.com' })
 

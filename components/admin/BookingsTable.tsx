@@ -1313,6 +1313,12 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
       return
     }
+    // 88-REVIEW T5: a card booking is cancelled through the payment-aware cancel dialog (release / refund), never
+    // by a bare status change (the server answers 422 use_cancel_route to that).
+    if (newStatus === 'cancelled' && booking.payment_mode === 'card_hold') {
+      setPendingCancel(booking)
+      return
+    }
     handleStatusChange(booking.id, newStatus, booking.status)
   }, [handleStatusChange])
 

@@ -1562,6 +1562,19 @@ describe('BookingsTable card payments: list badge, cancel variant, refund failed
     expect(screen.queryByText('The card hold will be released.')).toBeNull()
   })
 
+  it('choosing Cancelled in the status select of a card booking opens the payment-aware cancel dialog, no PATCH (88-REVIEW T5)', async () => {
+    const fetchMock = stubCardFetch([cardBooking({ status: 'confirmed' })])
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    const select = Array.from(document.querySelectorAll('select')).find((el) =>
+      Array.from(el.options).some((o) => o.value === 'cancelled'),
+    ) as HTMLSelectElement
+    expect(select).toBeDefined()
+    fireEvent.change(select, { target: { value: 'cancelled' } })
+    expect(await screen.findByRole('button', { name: 'Confirm Cancel + Release Hold' })).toBeDefined()
+    expect(fetchMock.mock.calls.some((c) => (c[1] as RequestInit | undefined)?.method === 'PATCH')).toBe(false)
+  })
+
   it('cancel dialog for a paid pay_now booking keeps the refund variant', async () => {
     stubCardFetch([makeBooking({ id: 'b-pn2', booking_reference: 'PRE-PN2', payment_mode: 'pay_now' })])
     await renderTable()
