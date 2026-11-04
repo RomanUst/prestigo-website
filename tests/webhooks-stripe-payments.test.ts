@@ -11,7 +11,7 @@ import { REQUIRED_EVENTS, KEPT_EVENTS } from '../infra/stripe/webhook-events.mjs
  * localized emails exactly once. The legacy suites (webhooks-stripe*.test.ts) stay unmodified and green.
  */
 
-const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend, mockPiRetrieve } = vi.hoisted(() => ({
+const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend, mockPiRetrieve, mockLinkCreate, mockDeactivate } = vi.hoisted(() => ({
   stripeStub: { constructEvent: vi.fn() },
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
@@ -21,6 +21,8 @@ const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend, mockPiRe
   mockClaimPromo: vi.fn(),
   mockResendSend: vi.fn(),
   mockPiRetrieve: vi.fn(),
+  mockLinkCreate: vi.fn(),
+  mockDeactivate: vi.fn(),
 }))
 
 vi.mock('next/server', async () => {
@@ -98,7 +100,11 @@ vi.mock('@/lib/email', async (importActual) => ({
 }))
 vi.mock('@/lib/payments/stripe', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/payments/stripe')>()),
-  getPaymentsStripe: () => ({ paymentIntents: { retrieve: mockPiRetrieve } }),
+  getPaymentsStripe: () => ({ paymentIntents: { retrieve: mockPiRetrieve }, paymentLinks: { create: mockLinkCreate } }),
+}))
+vi.mock('@/lib/stripe-payment-links', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/stripe-payment-links')>()),
+  deactivateBookingPaymentLink: mockDeactivate,
 }))
 vi.mock('resend', () => ({
   Resend: class {
@@ -202,7 +208,10 @@ beforeEach(() => {
   world.db = db
   mockClaimPromo.mockResolvedValue({ data: null, error: null })
   mockResendSend.mockResolvedValue({ data: { id: 'email_1' }, error: null })
+  mockLinkCreate.mockResolvedValue({ id: 'plink_new', url: 'https://buy.stripe.test/plink_new' })
+  mockDeactivate.mockResolvedValue(undefined)
   process.env.RESEND_API_KEY = 're_test'
+  process.env.MANAGER_EMAIL = 'owner@example.com'
   // The real status service needs the advance_booking_status RPC; here it is a faithful compare-and-set on the fake row.
   mockAdvance.mockImplementation(async (input: { bookingId: string; to: string; expectedFrom?: string }) => {
     const row = db.state.bookings.find((b) => b.id === input.bookingId)
@@ -1032,6 +1041,273 @@ describe('card charge observation (plan 88-13, HOLD-04, PAYF-03)', () => {
   it('the charge-events source never names the card-flow settings (D-09a)', () => {
     const src = fs.readFileSync(path.resolve(__dirname, '..', 'lib/stripe-webhook/charge-events.ts'), 'utf8')
     expect(src).not.toMatch(/card_flow_mode|card_flow_canary_emails|payment_hold_lead_hours|getPaymentSettings/)
+  })
+})
+
+describe('recovery link payment and disputes (plan 88-14, HOLD-05, PAYF-03)', () => {
+  const RECOVERY_PI = 'pi_rec_1'
+
+  function recoverySession(over: Record<string, unknown> = {}, metadata: Record<string, string> = {}) {
+    return {
+      id: 'cs_rec_1',
+      object: 'checkout.session',
+      payment_status: 'paid',
+      payment_intent: RECOVERY_PI,
+      amount_total: 12000,
+      currency: 'eur',
+      // The legacy booking-id key is deliberately absent: a recovery link never carries it.
+      metadata: { kind: 'card_recovery', cofBookingId: BOOKING_ID, attempt: '1', bookingReference: REF, ...metadata },
+      ...over,
+    }
+  }
+
+  function recoveryPi(over: Record<string, unknown> = {}) {
+    return {
+      id: RECOVERY_PI,
+      object: 'payment_intent',
+      status: 'succeeded',
+      amount: 12000,
+      amount_received: 12000,
+      currency: 'eur',
+      metadata: { kind: 'card_recovery', cofBookingId: BOOKING_ID, attempt: '1', bookingReference: REF },
+      ...over,
+    }
+  }
+
+  function setBooking(over: Record<string, unknown>) {
+    Object.assign(bookingRow(), { status: 'confirmed', payment_lease_until: null, ...over })
+  }
+
+  function failedBooking(over: Record<string, unknown> = {}) {
+    setBooking({
+      payment_state: 'failed',
+      payment_amount_minor: 12000,
+      captured_amount_minor: 0,
+      payment_intent_id: null,
+      recovery_link_id: 'plink_rec',
+      recovery_link_url: 'https://buy.stripe.test/plink_rec',
+      payment_failed_at: new Date().toISOString(),
+      last_payment_error: 'insufficient_funds',
+      payment_retry_at: new Date(Date.now() + 3_600_000).toISOString(),
+      ...over,
+    })
+  }
+
+  const clientMails = () =>
+    mockResendSend.mock.calls.map((c) => c[0] as { to: string[]; subject: string; html?: string; text?: string }).filter((m) => m.to[0] === 'anna@example.com')
+  const operatorMails = () =>
+    mockResendSend.mock.calls.map((c) => c[0] as { to: string[]; subject: string; html?: string; text?: string }).filter((m) => m.to[0] === 'owner@example.com')
+
+  describe('checkout.session.completed with kind card_recovery', () => {
+    it('a paid recovery session closes a failed booking: captured, the amount, the PaymentIntent, link deactivated, charged email once', async () => {
+      failedBooking()
+      const { status, json } = await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r1'))
+      expect(status).toBe(200)
+      expect(json).toEqual({ received: true })
+
+      const b = bookingRow()
+      expect(b.payment_state).toBe('captured')
+      expect(b.captured_amount_minor).toBe(12000)
+      expect(b.payment_intent_id).toBe(RECOVERY_PI)
+      expect(b.last_payment_error).toBeNull()
+      expect(b.payment_failed_at).toBeNull()
+      expect(b.payment_retry_at).toBeNull()
+      expect(b.status).toBe('confirmed')
+
+      expect(ledger('recovery_paid')).toHaveLength(1)
+      expect(ledger('recovery_paid')[0].event_key).toBe(`recovery_paid:${RECOVERY_PI}`)
+      expect(ledger('recovery_paid')[0].amount_minor).toBe(12000)
+      expect(ledger('recovery_paid')[0].actor_type).toBe('webhook')
+      expect(mockDeactivate).toHaveBeenCalledWith('plink_rec')
+
+      expect(mockResendSend).toHaveBeenCalledTimes(1)
+      expect(clientMails()).toHaveLength(1)
+      expect(ledger('email_sent').map((e) => e.event_key)).toEqual([`email:charged:${BOOKING_ID}`])
+
+      // The legacy checkout.session.completed handler never runs for a card object.
+      expect(saveBooking).not.toHaveBeenCalled()
+      expect(reconcileBookingByIdToConfirmed).not.toHaveBeenCalled()
+      expect(sendClientConfirmation).not.toHaveBeenCalled()
+      expect(sendManagerAlert).not.toHaveBeenCalled()
+    })
+
+    it('a balance_due booking paying the 3000 difference becomes captured with 15000; payment_intent_id stays the main capture', async () => {
+      failedBooking({
+        payment_state: 'balance_due',
+        payment_amount_minor: 15000,
+        captured_amount_minor: 12000,
+        payment_intent_id: 'pi_main',
+        payment_retry_at: null,
+      })
+      await deliver(eventOf('checkout.session.completed', recoverySession({ amount_total: 3000 }), 'evt_r2'))
+
+      const b = bookingRow()
+      expect(b.payment_state).toBe('captured')
+      expect(b.captured_amount_minor).toBe(15000)
+      expect(b.payment_intent_id).toBe('pi_main')
+      expect(ledger('recovery_paid')[0].amount_minor).toBe(3000)
+      expect(clientMails()).toHaveLength(1)
+    })
+
+    it('the payment_intent.succeeded of the same payment afterwards changes nothing and sends nothing', async () => {
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+      failedBooking()
+      await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r3'))
+      const mailsBefore = mockResendSend.mock.calls.length
+      const ledgerBefore = ledger().length
+
+      const { status } = await deliver(eventOf('payment_intent.succeeded', recoveryPi(), 'evt_r4'))
+      expect(status).toBe(200)
+      expect(bookingRow().captured_amount_minor).toBe(12000)
+      expect(bookingRow().payment_state).toBe('captured')
+      expect(mockResendSend.mock.calls.length).toBe(mailsBefore)
+      expect(ledger().length).toBe(ledgerBefore)
+      expect(errors).not.toHaveBeenCalledWith(expect.stringContaining('not payable'), expect.anything())
+    })
+
+    it('a payment_intent.succeeded alone also closes the booking (the session event was lost)', async () => {
+      failedBooking()
+      await deliver(eventOf('payment_intent.succeeded', recoveryPi(), 'evt_r5'))
+      expect(bookingRow().payment_state).toBe('captured')
+      expect(bookingRow().captured_amount_minor).toBe(12000)
+      expect(bookingRow().payment_intent_id).toBe(RECOVERY_PI)
+      expect(clientMails()).toHaveLength(1)
+    })
+
+    it('a session that is not paid is acknowledged with no ledger row and no state change', async () => {
+      failedBooking()
+      const { status } = await deliver(eventOf('checkout.session.completed', recoverySession({ payment_status: 'unpaid' }), 'evt_r6'))
+      expect(status).toBe(200)
+      expect(bookingRow().payment_state).toBe('failed')
+      expect(ledger()).toHaveLength(0)
+      expect(mockResendSend).not.toHaveBeenCalled()
+    })
+
+    it('money for a booking that is already captured is parked in the ledger and logged, never applied twice', async () => {
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+      failedBooking({ payment_state: 'captured', captured_amount_minor: 12000, payment_intent_id: 'pi_other' })
+      await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r7'))
+      expect(bookingRow().captured_amount_minor).toBe(12000)
+      expect(ledger('recovery_paid')).toHaveLength(1)
+      expect(errors).toHaveBeenCalledWith(expect.stringContaining('not payable'), expect.objectContaining({ bookingId: BOOKING_ID }))
+      expect(mockResendSend).not.toHaveBeenCalled()
+    })
+
+    it('a booking that is busy (capturing) makes the webhook answer 500 so Stripe redelivers', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      failedBooking({ payment_state: 'capturing' })
+      const { status } = await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r8'))
+      expect(status).toBe(500)
+      expect(ledger()).toHaveLength(0)
+    })
+
+    it('an unknown booking and a partner booking are acknowledged with no write', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const unknown = recoverySession({}, { cofBookingId: '99999999-9999-4999-8999-999999999999' })
+      expect((await deliver(eventOf('checkout.session.completed', unknown, 'evt_r9'))).status).toBe(200)
+      failedBooking({ booking_source: 'gnet' })
+      expect((await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r10'))).status).toBe(200)
+      expect(bookingRow().payment_state).toBe('failed')
+      expect(ledger()).toHaveLength(0)
+    })
+  })
+
+  describe('payment_intent.payment_failed on a scheduled card_hold (backup path)', () => {
+    const failedHoldEvent = (id: string) =>
+      eventOf(
+        'payment_intent.payment_failed',
+        {
+          id: 'pi_hold_f',
+          object: 'payment_intent',
+          status: 'requires_payment_method',
+          amount: 10000,
+          currency: 'eur',
+          metadata: { kind: 'card_hold', cofBookingId: BOOKING_ID, attempt: '0', bookingReference: REF },
+          last_payment_error: { code: 'card_declined', decline_code: 'insufficient_funds' },
+        },
+        id,
+      )
+
+    it('placing_hold -> failed, then the recovery link, the payment_failed email and the operator alert once', async () => {
+      setBooking({ payment_state: 'placing_hold', hold_attempts: 0, payment_amount_minor: 10000, payment_lease_until: new Date(Date.now() + 300_000).toISOString() })
+      const { status } = await deliver(failedHoldEvent('evt_h1'))
+      expect(status).toBe(200)
+
+      expect(bookingRow().payment_state).toBe('failed')
+      expect(bookingRow().hold_attempts).toBe(1)
+      expect(mockLinkCreate).toHaveBeenCalledTimes(1)
+      expect(mockLinkCreate.mock.calls[0][1]).toEqual({ idempotencyKey: `link:${BOOKING_ID}:1` })
+      expect(bookingRow().recovery_link_id).toBe('plink_new')
+      expect(clientMails()).toHaveLength(1)
+      expect(operatorMails()).toHaveLength(1)
+      expect(operatorMails()[0].subject).toBe(`[Payment] Hold failed — ${REF}`)
+    })
+
+    it('the same failure again (new event id, or the synchronous path later) sends nothing twice', async () => {
+      setBooking({ payment_state: 'placing_hold', hold_attempts: 0, payment_amount_minor: 10000, payment_lease_until: new Date(Date.now() + 300_000).toISOString() })
+      await deliver(failedHoldEvent('evt_h2'))
+      await deliver(failedHoldEvent('evt_h3'))
+      expect(mockResendSend).toHaveBeenCalledTimes(2)
+      expect(mockLinkCreate).toHaveBeenCalledTimes(1)
+
+      const { handlePaymentFailure } = await import('@/lib/payments/recovery')
+      await handlePaymentFailure({ ...bookingRow() }, { phase: 'hold', code: 'insufficient_funds', amountMinor: 10000, attempt: 1 })
+      expect(mockResendSend).toHaveBeenCalledTimes(2)
+      expect(ledger('recovery_link_created')).toHaveLength(1)
+    })
+  })
+
+  describe('charge.dispute.created', () => {
+    const dispute = (over: Record<string, unknown> = {}) => ({
+      id: 'dp_1',
+      object: 'dispute',
+      charge: 'ch_1',
+      payment_intent: 'pi_main',
+      amount: 12000,
+      currency: 'eur',
+      reason: 'fraudulent',
+      ...over,
+    })
+
+    it('a dispute on a card booking sends one operator alert and changes no state', async () => {
+      setBooking({ payment_state: 'captured', payment_intent_id: 'pi_main', captured_amount_minor: 10000 })
+      const { status } = await deliver(eventOf('charge.dispute.created', dispute(), 'evt_d1'))
+      expect(status).toBe(200)
+
+      expect(operatorMails()).toHaveLength(1)
+      expect(operatorMails()[0].subject).toBe(`[Payment] Dispute opened — ${REF}`)
+      expect(operatorMails()[0].text).toContain('Reason code: fraudulent')
+      expect(bookingRow().payment_state).toBe('captured')
+      expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:dispute:${BOOKING_ID}:dp_1`])
+
+      await deliver(eventOf('charge.dispute.created', dispute(), 'evt_d2'))
+      expect(operatorMails()).toHaveLength(1)
+    })
+
+    it('finds the booking through the hold PaymentIntent too', async () => {
+      setBooking({ payment_state: 'captured', payment_intent_id: null, hold_payment_intent_id: 'pi_main' })
+      await deliver(eventOf('charge.dispute.created', dispute(), 'evt_d3'))
+      expect(operatorMails()).toHaveLength(1)
+    })
+
+    it('a dispute that belongs to no card booking is acknowledged without an alert', async () => {
+      setBooking({ payment_state: 'captured', payment_intent_id: 'pi_main' })
+      const { status } = await deliver(eventOf('charge.dispute.created', dispute({ payment_intent: 'pi_somebody_else' }), 'evt_d4'))
+      expect(status).toBe(200)
+      expect(mockResendSend).not.toHaveBeenCalled()
+    })
+
+    it('a pay-now booking is not alerted through this path', async () => {
+      setBooking({ payment_mode: 'pay_now', payment_state: 'none', payment_intent_id: 'pi_main' })
+      await deliver(eventOf('charge.dispute.created', dispute(), 'evt_d5'))
+      expect(mockResendSend).not.toHaveBeenCalled()
+    })
+  })
+
+  it('the recovery-events source never names the card-flow settings (D-09a) nor the legacy booking-id key', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '..', 'lib/stripe-webhook/recovery-events.ts'), 'utf8')
+    expect(src).not.toMatch(/card_flow_mode|card_flow_canary_emails|payment_hold_lead_hours|getPaymentSettings/)
+    expect(src).not.toMatch(/metadata\??\.bookingId\b/)
   })
 })
 
