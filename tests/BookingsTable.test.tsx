@@ -1606,6 +1606,22 @@ describe('BookingsTable card payments: list badge, cancel variant, refund failed
     expect(confirm.disabled).toBe(true)
   })
 
+  it('88-REVIEW C-WR-04: a cancel that released the hold updates the row badge and makes the open panel refetch', async () => {
+    const fetchMock = stubCardFetch([cardBooking({ id: 'b-rel', booking_reference: 'PRE-REL' })], {
+      cancel: { ok: true, status: 200, body: { ok: true, released: true } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-REL')
+    const panelGets = () => fetchMock.mock.calls.filter(([u, init]) => String(u).endsWith('/payment') && (init as RequestInit | undefined)?.method !== 'POST').length
+    await waitFor(() => expect(panelGets()).toBeGreaterThan(0))
+    const before = panelGets()
+    await openCancelDialog()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Cancel + Release Hold' }))
+    await waitFor(() => expect(panelGets()).toBeGreaterThan(before))
+    const row = screen.getByTestId('desktop-table').querySelector('tbody tr') as HTMLElement
+    await waitFor(() => expect(within(row).getAllByText('Released').length).toBeGreaterThan(0))
+  })
+
   it('cancel 502 refund_failed without an amount still tells the operator to refund manually', async () => {
     stubCardFetch([cardBooking({ id: 'b-502b', booking_reference: 'PRE-502B' })], {
       cancel: { ok: false, status: 502, body: { error: 'refund_failed', cancelled: true } },

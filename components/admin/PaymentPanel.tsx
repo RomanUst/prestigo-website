@@ -67,6 +67,11 @@ interface PaymentPanelProps {
    * Omit it to treat the booking as a card booking.
    */
   paymentMode?: string | null
+  /**
+   * 88-REVIEW C-WR-04: told the payment state every time the panel (re)loads, so the booking list can keep its row badge
+   * in step with an action taken here (release, capture, waive, ...).
+   */
+  onPaymentState?: (state: string) => void
 }
 
 // ── formatting ───────────────────────────────────────────────────────────────
@@ -622,6 +627,9 @@ function confirmCopy(action: PaymentActionName, p: PaymentSnapshot): ConfirmCopy
 
 const COPY_BUSY = 'Payment is being processed. Wait a moment and try again.'
 const COPY_GENERIC = 'Could not complete the action. Nothing was changed. Try again.'
+// 88-REVIEW C-WR-04: a 5xx (or a lost answer) may come after part of the action ran (an audit row, a new payment link
+// whose email failed): never claim that nothing changed, and show the current state.
+const COPY_PARTIAL = 'The action may have partly completed. The panel now shows the current state.'
 const COPY_SESSION = 'Your session has ended. Sign in again.'
 const COPY_GONE = 'That action is no longer available. The panel shows the current state.'
 const COPY_DONE = 'Done. The payment history is updated.'
@@ -698,9 +706,16 @@ function isPaymentResponse(value: unknown): value is PaymentResponse {
   return !!v.payment && typeof v.payment === 'object' && Array.isArray(v.events)
 }
 
-export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode }: PaymentPanelProps) {
+export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, onPaymentState }: PaymentPanelProps) {
   const [load, setLoad] = useState<LoadState>({ status: 'loading' })
   const [reloadTick, setReloadTick] = useState(0)
+
+  const loadedState = load.status === 'ready' ? load.data.payment.state : null
+  const reportRef = useRef(onPaymentState)
+  reportRef.current = onPaymentState
+  useEffect(() => {
+    if (loadedState) reportRef.current?.(loadedState)
+  }, [loadedState])
 
   // A known non-card booking never shows a skeleton or a load error: its panel only exists for a
   // refund_failed answer (D-20).
@@ -848,11 +863,17 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
         onRefetch()
       } else if (res.status === 401 || res.status === 403) {
         setModalError(COPY_SESSION)
+      } else if (res.status >= 500) {
+        // e.g. send_link 502 email_failed: the new link exists (the old one is deactivated). Refetch so the facts grid
+        // never offers the deactivated link for copying.
+        setModalError(COPY_PARTIAL)
+        onRefetch()
       } else {
         setModalError(COPY_GENERIC)
       }
     } catch {
-      setModalError(COPY_GENERIC)
+      setModalError(COPY_PARTIAL)
+      onRefetch()
     } finally {
       inFlight.current = false
       setSubmitting(false)

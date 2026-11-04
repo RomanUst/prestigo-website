@@ -1308,6 +1308,16 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   // D-05: sink for PaymentLinkSection's row-level "Generate Payment Link"
   // action — the route also flips a 'pending' source booking to 'unpaid'
   // directly (Pitfall 2), so both fields are optimistically updated here.
+  // 88-REVIEW C-WR-04: the open PaymentPanel reports the state after every (re)load, so the row badge follows panel
+  // actions and the refetch after a cancel.
+  const handlePaymentState = useCallback((bookingId: string, state: string) => {
+    setBookings(prev => prev.map(b => (b.id === bookingId && b.payment_state !== state ? { ...b, payment_state: state } : b)))
+  }, [])
+
+  const bumpPayment = useCallback((bookingId: string) => {
+    setPaymentRefreshKeys(prev => ({ ...prev, [bookingId]: (prev[bookingId] ?? 0) + 1 }))
+  }, [])
+
   const handlePaymentLinkGenerated = useCallback((bookingId: string, url: string) => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, payment_link_url: url, status: 'unpaid' } : b))
   }, [])
@@ -1449,6 +1459,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       if (res.status === 502 && data.error === 'refund_failed' && data.cancelled === true) {
         // Phase 88 D-20: the cancel applied (the row is cancelled now) but the refund / release failed.
         setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
+        // C-WR-04: the panel refetches (refund-failed banner, current payment state).
+        bumpPayment(booking.id)
         throw new CancelRefundFailedError(refundFailedLine(data.amount_minor, data.currency))
       }
       if (res.status === 409 && data.error === 'status_conflict') {
@@ -1462,10 +1474,14 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       }
       throw new Error(data.error ?? 'Cancel failed')
     }
-    // Optimistic update
-    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
+    // Optimistic update. C-WR-04: a released hold shows as released at once; the panel refetches the rest.
+    const done = (await res.json().catch(() => ({}))) as { released?: boolean }
+    setBookings(prev => prev.map(b => b.id === booking.id
+      ? { ...b, status: 'cancelled', ...(done.released === true ? { payment_state: 'released' } : {}) }
+      : b))
+    bumpPayment(booking.id)
     setPendingCancel(null)
-  }, [])
+  }, [bumpPayment])
 
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
@@ -2299,6 +2315,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         bookingId={booking.id}
                         refreshKey={paymentRefreshKeys[booking.id] ?? 0}
                         paymentMode={booking.payment_mode ?? null}
+                        onPaymentState={(state) => handlePaymentState(booking.id, state)}
                       />
 
                       {/* Payment Link (D-05) */}
@@ -2760,6 +2777,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           bookingId={row.original.id}
                           refreshKey={paymentRefreshKeys[row.original.id] ?? 0}
                           paymentMode={row.original.payment_mode ?? null}
+                          onPaymentState={(state) => handlePaymentState(row.original.id, state)}
                         />
 
                         {/* Payment Link (D-05) */}

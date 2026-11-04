@@ -491,13 +491,35 @@ describe('PaymentPanel actions come from allowed_actions only (HOLD-07)', () => 
     }
   })
 
-  it('a network failure keeps the modal open with the generic line', async () => {
-    stubRouted(makeBody({ allowed: ['capture'], payment: { completed: true } }), () => Promise.reject(new Error('offline')))
+  it('88-REVIEW C-WR-04: a network failure keeps the modal open, never claims nothing changed, and refetches', async () => {
+    const fetchMock = stubRouted(makeBody({ allowed: ['capture'], payment: { completed: true } }), () => Promise.reject(new Error('offline')))
     render(<PaymentPanel bookingId="b-1" />)
     const dialog = await openAction('Capture')
+    const before = gets(fetchMock).length
     fireEvent.click(within(dialog).getByRole('button', { name: /^Capture / }))
-    expect(await within(dialog).findByText('Could not complete the action. Nothing was changed. Try again.')).toBeDefined()
+    expect(await within(dialog).findByText('The action may have partly completed. The panel now shows the current state.')).toBeDefined()
     expect(screen.getByRole('dialog')).toBeDefined()
+    await waitFor(() => expect(gets(fetchMock).length).toBeGreaterThan(before))
+  })
+
+  it('88-REVIEW C-WR-04: send_link 502 email_failed refetches, so the copy link is the new one, not the deactivated one', async () => {
+    let link = 'https://buy.stripe.test/plink_old'
+    const body = () => makeBody({ allowed: ['send_link'], payment: { state: 'failed', recovery_link_url: link } })
+    const fetchMock = vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        link = 'https://buy.stripe.test/plink_new'
+        return Promise.resolve(okResponse({ error: 'email_failed' }, 502))
+      }
+      return Promise.resolve(okResponse(body()))
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const states: string[] = []
+    render(<PaymentPanel bookingId="b-1" onPaymentState={(s) => states.push(s)} />)
+    const dialog = await openAction('Send payment link')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Send link' }))
+    expect(await within(dialog).findByText('The action may have partly completed. The panel now shows the current state.')).toBeDefined()
+    await waitFor(() => expect(gets(fetchMock).length).toBe(2))
+    expect(states).toContain('failed')
   })
 
   it('while submitting both modal buttons and every panel button are disabled, the primary shows Working…, Escape does not close', async () => {
