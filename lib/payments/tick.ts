@@ -14,6 +14,7 @@
 // their lifecycle whatever the owner's switch says now (D-09a, tests/payment-state-writers-gate.test.ts).
 
 import type Stripe from 'stripe'
+import { CALENDAR_ACTIVE_STATUSES } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import {
@@ -61,8 +62,14 @@ const TICK_ACTOR: LedgerActor = { type: 'system', id: 'payment_tick' }
 const RECONCILE_ACTOR: LedgerActor = { type: 'system', id: 'tick_reconcile' }
 const SWEEP_ACTOR: LedgerActor = { type: 'system', id: 'tick_sweep' }
 const RETRY_ACTOR: LedgerActor = { type: 'system', id: 'payment_retry' }
-/** Statuses of a booking whose trip is still ahead (the ones the hold claim works on). */
-const ACTIVE_STATUSES = ['confirmed', 'assigned', 'en_route', 'on_location']
+/**
+ * Statuses of a booking whose trip is still ahead: the ones claim_due_payment_work (migration 085) works on. Derived
+ * from the shared vocabulary (tests/booking-status-parity.test.ts forbids a hand-written list): the calendar-active
+ * statuses without the trip-in-progress and finished ones.
+ */
+const ACTIVE_STATUSES: string[] = [...CALENDAR_ACTIVE_STATUSES].filter(
+  (s) => s !== 'on_board' && s !== 'completed' && s !== 'no_show',
+)
 /** A checkout_pending booking this old, inside 24 h of pickup, has no card on file in practice: alert (D-15). */
 const PENDING_CHECKOUT_ALERT_AGE_MS = 30 * 60_000
 /** Checkouts examined per run (oldest first); the rest wait for the next run. */
