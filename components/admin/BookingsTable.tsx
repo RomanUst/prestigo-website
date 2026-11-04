@@ -11,6 +11,7 @@ import {
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronDown, ChevronUp, Search, X, Copy, Send } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
+import PaymentPanel from './PaymentPanel'
 import { NoShowBanner, NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
 import { ConfirmNoShowModal } from './ConfirmNoShowModal'
 import { STATUS_CONFLICT_STYLE, statusConflictMessage } from './statusConflict'
@@ -86,6 +87,10 @@ interface Booking {
   // Phase 87 D-16(a): when the driver asked for a no-show (migration 084). Arrives through
   // admin_search_bookings to_jsonb; null/absent = no open request.
   no_show_requested_at?: string | null
+  // Phase 88 (migration 085): arrive through admin_search_bookings to_jsonb. Old rows and test
+  // fixtures may omit them; only 'card_hold' bookings show the payment badge and panel.
+  payment_mode?: string | null
+  payment_state?: string | null
 }
 
 const vehicleClassMap: Record<string, string> = {
@@ -1156,6 +1161,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
+  // Phase 88-07: per-booking counter that makes an open PaymentPanel refetch after a trip edit.
+  const [paymentRefreshKeys, setPaymentRefreshKeys] = useState<Record<string, number>>({})
 
   // Mobile detection
   useEffect(() => {
@@ -1195,6 +1202,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   // the fields that were actually saved, mirroring handleStatusChange's pattern.
   const handleTripUpdated = useCallback((bookingId: string, patch: Partial<Booking>) => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
+    // Phase 88-07: a trip edit can change the payment (price, pickup); the panel refetches.
+    setPaymentRefreshKeys(prev => ({ ...prev, [bookingId]: (prev[bookingId] ?? 0) + 1 }))
   }, [])
 
   // D-05: sink for PaymentLinkSection's row-level "Generate Payment Link"
@@ -2165,6 +2174,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         />
                       </div>
 
+                      {/* Payment panel (Phase 88 HOLD-07) */}
+                      <PaymentPanel
+                        bookingId={booking.id}
+                        refreshKey={paymentRefreshKeys[booking.id] ?? 0}
+                        paymentMode={booking.payment_mode ?? null}
+                      />
+
                       {/* Payment Link (D-05) */}
                       <PaymentLinkSection
                         bookingId={booking.id}
@@ -2617,6 +2633,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                               prev.map(b => b.id === row.original.id ? { ...b, status: newStatus } : b)
                             )
                           }}
+                        />
+
+                        {/* Payment panel (Phase 88 HOLD-07) */}
+                        <PaymentPanel
+                          bookingId={row.original.id}
+                          refreshKey={paymentRefreshKeys[row.original.id] ?? 0}
+                          paymentMode={row.original.payment_mode ?? null}
                         />
 
                         {/* Payment Link (D-05) */}
