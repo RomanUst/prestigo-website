@@ -32,6 +32,7 @@ import {
   stripeErrorCode,
   stripeKeys,
 } from '@/lib/payments/stripe'
+import { handlePaymentFailure } from '@/lib/payments/recovery'
 import { retryAt } from '@/lib/payments/timing'
 import { deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 
@@ -89,7 +90,9 @@ export async function captureBeforeIso(pi: Stripe.PaymentIntent): Promise<string
  */
 export function holdFailurePatch(booking: BookingRow, code: string, nowMs: number): PaymentPatch {
   const pickupMs = pickupOf(booking)
-  const retry = pickupMs === null ? null : retryAt(nowMs, pickupMs)
+  // D-13: exactly one automatic retry. Once it has been claimed (payment_retry_count >= 1) no further retry is scheduled.
+  const retriesUsed = typeof booking.payment_retry_count === 'number' ? booking.payment_retry_count : 0
+  const retry = pickupMs === null || retriesUsed >= 1 ? null : retryAt(nowMs, pickupMs)
   return {
     hold_attempts: attemptsOf(booking) + 1,
     last_payment_error: code.slice(0, 60),
@@ -106,13 +109,15 @@ export function holdFailurePatch(booking: BookingRow, code: string, nowMs: numbe
 export async function claimForHold(
   bookingId: string,
   actor: LedgerActor,
+  /** Extra columns written in the same transition (the automatic retry marks payment_retry_count here, D-13). */
+  extraPatch: PaymentPatch = {},
 ): Promise<{ applied: boolean; booking?: BookingRow }> {
   const nowMs = Date.now()
   const moved = await applyTransition({
     bookingId,
     from: ['card_saved', 'expired', 'failed'],
     to: 'placing_hold',
-    patch: { payment_lease_until: new Date(nowMs + LEASE_SECONDS * 1000).toISOString() },
+    patch: { ...extraPatch, payment_lease_until: new Date(nowMs + LEASE_SECONDS * 1000).toISOString() },
     event: { key: `hold_started:${actor.type}:${nowMs}`, kind: 'hold_started', actor },
   })
   return moved.applied ? { applied: true, booking: moved.booking } : { applied: false }
@@ -125,7 +130,7 @@ async function recordDefinitiveFailure(
   actor: LedgerActor,
   nowMs: number,
 ): Promise<{ outcome: 'failed'; code: string }> {
-  await applyTransition({
+  const moved = await applyTransition({
     bookingId: str(booking.id),
     from: ['placing_hold'],
     to: 'failed',
@@ -138,7 +143,24 @@ async function recordDefinitiveFailure(
       actor,
     },
   })
-  // The client recovery link and the operator alert for this branch are added by the failure-recovery plan (D-13).
+  // HOLD-05, D-13, D-14: recovery link + localized email + operator alert, once per attempt. Only the writer that
+  // actually moved the row does this (the webhook backup runs the same step on its own win); a recovery problem
+  // never throws out of the tick.
+  if (moved.applied) {
+    try {
+      await handlePaymentFailure(
+        { ...booking, ...(moved.booking ?? {}) },
+        {
+          phase: 'hold',
+          code: info.code,
+          amountMinor: typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : 0,
+          attempt: attemptsOf(booking) + 1,
+        },
+      )
+    } catch {
+      console.error('[hold] failure recovery step failed', { bookingId: str(booking.id) })
+    }
+  }
   return { outcome: 'failed', code: info.code }
 }
 
