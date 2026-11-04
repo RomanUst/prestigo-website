@@ -32,10 +32,11 @@ vi.mock('@/lib/payments/stripe', async (importOriginal) => ({
 }))
 
 import { POST } from '@/app/api/card-checkout/intent/route'
+import { AttemptFlowConflictError, buildBookingRow, captureUnpaidBooking } from '@/lib/supabase'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
 import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 import { computeCombinedTotalMinor, computeOutboundLegTotal } from '@/lib/server-pricing'
-import { computeHoldAt } from '@/lib/payments/timing'
+import { computeHoldAt, holdDateIso } from '@/lib/payments/timing'
 import { ensureStripeCustomer } from '@/lib/payments/customer'
 import { cardMetadata, classifyStripeError, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { pickupInstantMs } from '@/lib/prague-date'
@@ -106,13 +107,21 @@ function bookingData(over: Record<string, string> = {}) {
   }
 }
 
+/** The hold date the client's consent shows for a booking (lead 72 h, the fake's default setting). */
+function shownHoldDate(data: { pickupDate: string; pickupTime: string }): string | null {
+  const pickupMs = pickupInstantMs({ pickup_utc: null, pickup_date: data.pickupDate, pickup_time: data.pickupTime })
+  return pickupMs === null ? null : holdDateIso(computeHoldAt(pickupMs, 72).holdAtMs)
+}
+
 function body(over: Record<string, unknown> = {}, data: Record<string, string> = {}) {
+  const bd = bookingData(data)
   return {
-    bookingData: bookingData(data),
+    bookingData: bd,
     currency: 'eur',
     mode: 'setup',
     consent: true,
     displayedAmountMinor: serverAmount(),
+    displayedHoldDateIso: shownHoldDate(bd),
     ...over,
   }
 }
@@ -625,6 +634,22 @@ describe('POST /api/card-checkout/intent: price and mode cross-checks', () => {
     expectNoWrites()
   })
 
+  it('88-REVIEW B-WR-05: a hold date other than the server one -> 409 HOLD_DATE_CHANGED with the new date, no write', async () => {
+    const { status, body: out } = await call(body({ displayedHoldDateIso: '2027-01-14' }))
+    expect(status).toBe(409)
+    expect(out).toMatchObject({ code: 'HOLD_DATE_CHANGED', mode: 'setup', holdDateIso: '2027-01-13' })
+    expectNoWrites()
+  })
+
+  it('88-REVIEW B-WR-05: a setup checkout that names no hold date is refused the same way', async () => {
+    const payload = body()
+    delete (payload as Record<string, unknown>).displayedHoldDateIso
+    const { status, body: out } = await call(payload)
+    expect(status).toBe(409)
+    expect(out).toMatchObject({ code: 'HOLD_DATE_CHANGED', holdDateIso: '2027-01-13' })
+    expectNoWrites()
+  })
+
   it('a client that sends no amount at all is a malformed request, not a free booking', async () => {
     const payload = body()
     delete (payload as Record<string, unknown>).displayedAmountMinor
@@ -756,6 +781,53 @@ describe('POST /api/card-checkout/intent: retries and replay safety', () => {
     expect(updates).toHaveLength(1)
     expect(updates[0].params).toEqual({ email: 'other@example.com' })
     expect(updates[0].idempotencyKey).toBeUndefined()
+  })
+
+  it('88-REVIEW B-WR-03: a cancelled booking for that attemptId -> 409 ATTEMPT_CLOSED, never "already confirmed"', async () => {
+    const cancelled = createFakePaymentsDb({
+      nowMs: NOW,
+      bookings: [{ attempt_id: ATTEMPT, leg: 'outbound', status: 'cancelled', booking_reference: 'PRG-20270101-CANCEL' }],
+    })
+    cancelled.state.pricing_globals[0] = db.state.pricing_globals[0]
+    db = cancelled
+    dbHolder.client = loggingClient(db.client)
+    const { status, body: out } = await call(body())
+    expect(status).toBe(409)
+    expect(out).toMatchObject({ code: 'ATTEMPT_CLOSED' })
+    expect(out).not.toHaveProperty('bookingReference')
+    expect(fake.calls).toHaveLength(0)
+    expect(bookings()[0].status).toBe('cancelled')
+  })
+
+  it('88-REVIEW B-WR-02: an unpaid pay-now row of that attemptId is never overwritten by the card flow -> 409 ATTEMPT_CLOSED', async () => {
+    const payNow = createFakePaymentsDb({
+      nowMs: NOW,
+      bookings: [
+        { attempt_id: ATTEMPT, leg: 'outbound', status: 'unpaid', payment_mode: 'pay_now', payment_intent_id: 'pi_paynow', booking_reference: 'PRG-PAYNOW' },
+      ],
+    })
+    payNow.state.pricing_globals[0] = db.state.pricing_globals[0]
+    db = payNow
+    dbHolder.client = loggingClient(db.client)
+    const { status, body: out } = await call(body())
+    expect(status).toBe(409)
+    expect(out).toMatchObject({ code: 'ATTEMPT_CLOSED' })
+    expect(bookings()[0]).toMatchObject({ payment_mode: 'pay_now', payment_intent_id: 'pi_paynow', payment_state: 'none' })
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it('88-REVIEW B-WR-02: a pay-now capture never overwrites the card_hold row of the same attempt', async () => {
+    const card = createFakePaymentsDb({
+      nowMs: NOW,
+      bookings: [
+        { attempt_id: ATTEMPT, leg: 'outbound', status: 'unpaid', payment_mode: 'card_hold', payment_state: 'checkout_pending', setup_intent_id: 'seti_1', booking_reference: 'PRG-CARD' },
+      ],
+    })
+    db = card
+    dbHolder.client = loggingClient(db.client)
+    const row = buildBookingRow({ bookingReference: 'PRG-PAYNOW2', tripType: 'transfer', passengers: '1', luggage: '0' }, 'pi_new', 'unpaid')
+    await expect(captureUnpaidBooking(row, ATTEMPT, 'outbound', 'pay_now')).rejects.toBeInstanceOf(AttemptFlowConflictError)
+    expect(bookings()[0]).toMatchObject({ payment_mode: 'card_hold', booking_reference: 'PRG-CARD', payment_intent_id: null })
   })
 
   it('a booking already confirmed for that attemptId -> 200 alreadyConfirmed and no Stripe call', async () => {

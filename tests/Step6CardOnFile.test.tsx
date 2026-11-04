@@ -525,6 +525,30 @@ describe('409 notices', () => {
     expect((intents[1].body as { displayedAmountMinor: number }).displayedAmountMinor).toBe(13000)
   })
 
+  it('88-REVIEW B-WR-05: sends the hold date it showed; HOLD_DATE_CHANGED shows the new date, clears the tick and notices', async () => {
+    intentReplies = [
+      { status: 409, body: { code: 'HOLD_DATE_CHANGED', mode: 'setup', holdAtIso: '2026-11-13T06:00:00.000Z', holdDateIso: '2026-11-13' } },
+    ]
+    await renderGate()
+    await tickAndSubmit()
+    const intents = fetchCalls.filter((c) => c.url === '/api/card-checkout/intent')
+    expect((intents[0].body as { displayedHoldDateIso: string }).displayedHoldDateIso).toBe('2026-11-12')
+    expect(await screen.findByText(cof.noticeDetailsChanged)).toBeInTheDocument()
+    expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
+    const newDate = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: '2026-11-13', locale: 'en' }).holdDate
+    expect(document.body.textContent).toContain(newDate)
+    expect(h.confirmSetupMock).not.toHaveBeenCalled()
+  })
+
+  it('88-REVIEW B-WR-03: ATTEMPT_CLOSED starts a new attempt and never navigates to the confirmation', async () => {
+    intentReplies = [{ status: 409, body: { code: 'ATTEMPT_CLOSED' } }]
+    await renderGate()
+    await tickAndSubmit()
+    expect(await screen.findByRole('alert')).toHaveTextContent(step6En.paymentGenericError)
+    expect(storeRef.current.setAttemptId).toHaveBeenCalledTimes(1)
+    expect(h.confirmSetupMock).not.toHaveBeenCalled()
+  })
+
   it('MODE_CHANGED to an unsupported mode falls back to legacy Step6Payment', async () => {
     intentReplies = [{ status: 409, body: { code: 'MODE_CHANGED', mode: 'bogus', holdAtIso: null, holdDateIso: null } }]
     await renderGate()

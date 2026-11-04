@@ -259,6 +259,19 @@ describe('POST /api/admin/bookings/[id]/payment-link (D-05 attach-later + resend
     expect(updateStub.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'unpaid' }))
   })
 
+  it('88-REVIEW B-WR-02: a card_hold booking never gets a legacy payment link (generate or resend) — 409, no Stripe call', async () => {
+    const card = { ...UNPAID_BOOKING, id: 'booking-card-1', payment_mode: 'card_hold', payment_link_url: 'https://buy.stripe.com/x' }
+    supabaseServiceStub.from.mockReturnValueOnce(makeBookingFetchStub({ ...card, payment_link_url: null }))
+    const gen = await PAYMENT_LINK_POST(makeRequest(card.id), makeParams(card.id))
+    expect(gen.status).toBe(409)
+
+    supabaseServiceStub.from.mockReturnValueOnce(makeBookingFetchStub(card))
+    const resend = await PAYMENT_LINK_POST(makeRequest(card.id, { resend: true }), makeParams(card.id))
+    expect(resend.status).toBe(409)
+    expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
+    expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
+  })
+
   it('Test 5: reject when status=confirmed — 4xx, no Stripe call', async () => {
     supabaseServiceStub.from.mockReturnValueOnce(makeBookingFetchStub(CONFIRMED_BOOKING))
 

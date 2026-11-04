@@ -170,3 +170,18 @@ export function rotateAttemptIfCardUsed(): void {
     }
   }
 }
+
+/**
+ * 88-REVIEW B-WR-02 / B-WR-03: the server answered 409 ATTEMPT_CLOSED (the attempt was cancelled or belongs to the
+ * pay-now flow). The next submit starts a brand-new attempt (and so a new booking row).
+ */
+export function startNewAttempt(): string {
+  const id = crypto.randomUUID()
+  useBookingStore.getState().setAttemptId(id)
+  try {
+    window.sessionStorage.removeItem(CARD_ATTEMPT_MARKER)
+  } catch {
+    /* ignore */
+  }
+  return id
+}

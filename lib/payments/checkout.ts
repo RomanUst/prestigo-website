@@ -12,7 +12,7 @@
 // The caller (the intent route) has already validated, priced, checked eligibility and decided the mode.
 
 import { generateBookingReference } from '@/lib/booking-reference'
-import { buildBookingRow, captureUnpaidBooking, createSupabaseServiceClient } from '@/lib/supabase'
+import { AttemptFlowConflictError, buildBookingRow, captureUnpaidBooking, createSupabaseServiceClient } from '@/lib/supabase'
 import { buildCheckoutMeta, type CheckoutBookingData, type PricedCheckout } from '@/lib/checkout/compute'
 import { normalizeSiteLocale } from '@/i18n/locales'
 import { buildConsentText, consentSha256 } from '@/lib/payments/consent'
@@ -94,6 +94,14 @@ export interface CardCheckoutIntentInput {
 export type CardCheckoutIntentResult =
   | { kind: 'secret'; clientSecret: string; bookingReference: string }
   | { kind: 'already_confirmed'; bookingReference: string }
+  /**
+   * 88-REVIEW B-WR-02 / B-WR-03: this attemptId can not become a card booking (it was cancelled, or it belongs to the
+   * pay-now flow). The client must start a new attempt; it is never told that a booking exists.
+   */
+  | { kind: 'attempt_closed' }
+
+/** Booking statuses after which an attempt is over without a booking the client can rely on. */
+const CLOSED_STATUSES: ReadonlySet<string> = new Set(['cancelled', 'no_show'])
 
 interface CapturedBooking {
   id: string
@@ -119,14 +127,26 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
   // A retry of the same attempt keeps its reference; a row that is no longer unpaid is never touched (T-62-01).
   const { data: existingData, error: existingError } = await supabase
     .from('bookings')
-    .select('id, status, booking_reference')
+    .select('id, status, booking_reference, payment_mode, payment_intent_id')
     .eq('attempt_id', attemptId)
     .eq('leg', 'outbound')
     .maybeSingle()
   if (existingError) throw new Error('card checkout lookup failed')
-  const existing = existingData as { id: string; status: string; booking_reference: string } | null
+  const existing = existingData as {
+    id: string
+    status: string
+    booking_reference: string
+    payment_mode?: string | null
+    payment_intent_id?: string | null
+  } | null
+  // B-WR-03: a cancelled booking is never reported as confirmed (the client would see "Booking confirmed").
+  if (existing && CLOSED_STATUSES.has(existing.status)) return { kind: 'attempt_closed' }
   if (existing && existing.status !== 'unpaid') {
     return { kind: 'already_confirmed', bookingReference: existing.booking_reference }
+  }
+  // B-WR-02: an unpaid pay-now row of this attempt is never turned into a card booking.
+  if (existing && ((existing.payment_mode && existing.payment_mode !== 'card_hold') || existing.payment_intent_id)) {
+    return { kind: 'attempt_closed' }
   }
   const bookingReference = existing?.booking_reference || generateBookingReference()
 
@@ -138,9 +158,18 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
     authenticatedUserId: input.authenticatedUserId,
   })
   const row = { ...buildBookingRow(meta, null, 'unpaid'), payment_mode: 'card_hold' }
-  const affected = await captureUnpaidBooking(row, attemptId, 'outbound')
+  let affected: { id: string }[]
+  try {
+    affected = await captureUnpaidBooking(row, attemptId, 'outbound', 'card_hold')
+  } catch (err) {
+    if (err instanceof AttemptFlowConflictError) return { kind: 'attempt_closed' }
+    throw err
+  }
   if (affected.length === 0) {
-    // The row was confirmed between the lookup and the write.
+    // The row left unpaid between the lookup and the write: confirmed (already_confirmed) or cancelled (closed).
+    const { data: after } = await supabase.from('bookings').select('status').eq('attempt_id', attemptId).eq('leg', 'outbound').maybeSingle()
+    const status = (after as { status?: string } | null)?.status
+    if (status && CLOSED_STATUSES.has(status)) return { kind: 'attempt_closed' }
     return { kind: 'already_confirmed', bookingReference }
   }
 
@@ -219,7 +248,9 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
     },
   })
   if (!moved.applied && !moved.duplicate) {
-    // The money flow already moved past checkout (for example the card was saved by a parallel tab).
+    // The money flow already moved past checkout (for example the card was saved by a parallel tab). A released row
+    // was cancelled meanwhile (B-WR-03): never reported as confirmed.
+    if (moved.currentState === 'released') return { kind: 'attempt_closed' }
     if (moved.currentState && moved.currentState !== 'none' && moved.currentState !== 'checkout_pending') {
       return { kind: 'already_confirmed', bookingReference }
     }
@@ -332,6 +363,7 @@ async function createHoldNowIntent(args: HoldNowArgs): Promise<CardCheckoutInten
     },
   })
   if (!moved.applied && !moved.duplicate) {
+    if (moved.currentState === 'released') return { kind: 'attempt_closed' }
     if (moved.currentState && moved.currentState !== 'none' && moved.currentState !== 'checkout_pending') {
       return { kind: 'already_confirmed', bookingReference }
     }

@@ -39,6 +39,7 @@ import {
   ensureAttemptId,
   fetchCardInit,
   markCardAttempt,
+  startNewAttempt,
   type CardCurrency,
   type CardMode,
   type InitEligible,
@@ -242,6 +243,27 @@ function CardForm({
       return false
     }
 
+    // 88-REVIEW B-WR-05: the hold date the consent names changed on the server (same mode): show the new date and ask
+    // for the tick again, so the stored consent is the text the client accepted.
+    if (status === 409 && code === 'HOLD_DATE_CHANGED') {
+      setConsent(false)
+      onServerPatch({
+        holdAtIso: typeof data.holdAtIso === 'string' ? data.holdAtIso : null,
+        holdDateIso: typeof data.holdDateIso === 'string' ? data.holdDateIso : null,
+      })
+      setMessage({ kind: 'notice', text: tc('noticeDetailsChanged'), focus: true })
+      return false
+    }
+
+    // 88-REVIEW B-WR-02 / B-WR-03: this attempt can no longer become a booking (cancelled meanwhile, or used by the
+    // pay-now flow). Never shown as confirmed: a fresh attempt is started and the client simply tries again.
+    if (status === 409 && code === 'ATTEMPT_CLOSED') {
+      startNewAttempt()
+      setConsent(false)
+      setMessage({ kind: 'error', text: t('paymentGenericError') })
+      return false
+    }
+
     if (code === 'NOT_ELIGIBLE' || code === 'MODE_UNSUPPORTED') {
       onFallback()
       return true
@@ -298,6 +320,8 @@ function CardForm({
           mode,
           consent: true,
           displayedAmountMinor: amountMinor,
+          // B-WR-05: the hold date the consent text named; the server refuses a different one.
+          displayedHoldDateIso: mode === 'setup' ? holdDateIso : null,
         }),
       })
       data = (await res.json().catch(() => ({}))) as Record<string, unknown>

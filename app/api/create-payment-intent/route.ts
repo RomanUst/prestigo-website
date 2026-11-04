@@ -139,11 +139,13 @@ export async function POST(req: Request) {
             paymentIntent.id,
             'unpaid'
           )
-          await captureUnpaidBooking(outboundUnpaid, bookingData.attemptId, 'outbound')
-          await captureUnpaidBooking(returnUnpaid, bookingData.attemptId, 'return')
+          await captureUnpaidBooking(outboundUnpaid, bookingData.attemptId, 'outbound', 'pay_now')
+          await captureUnpaidBooking(returnUnpaid, bookingData.attemptId, 'return', 'pay_now')
         } else {
           const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
-          await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound')
+          // 88-REVIEW B-WR-02: an attempt the card flow already captured is never overwritten (AttemptFlowConflictError,
+          // logged below); the pay-now booking is then created by the webhook's defensive insert on payment.
+          await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound', 'pay_now')
         }
       } catch (captureErr) {
         console.error(

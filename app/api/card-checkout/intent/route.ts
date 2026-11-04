@@ -27,6 +27,8 @@ const intentSchema = checkoutBookingSchema.extend({
   mode: z.enum(['setup', 'hold_now']),
   consent: z.unknown(),
   displayedAmountMinor: z.number().int().positive().max(100_000_000),
+  // 88-REVIEW B-WR-05: the hold date (Prague YYYY-MM-DD) the client's consent text named; setup mode only.
+  displayedHoldDateIso: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
 })
 
 /** The wizard sends the step-5 email as typed; surrounding spaces would fail the strict format check. */
@@ -72,7 +74,7 @@ export async function POST(req: Request) {
   if (!parsed.success || !parsed.data.bookingData.attemptId) {
     return fail(400, 'INVALID_REQUEST', 'Invalid request body')
   }
-  const { bookingData, currency, mode: clientMode, consent, displayedAmountMinor } = parsed.data
+  const { bookingData, currency, mode: clientMode, consent, displayedAmountMinor, displayedHoldDateIso } = parsed.data
   const attemptId = bookingData.attemptId as string
 
   try {
@@ -119,6 +121,15 @@ export async function POST(req: Request) {
         holdDateIso: serverMode === 'setup' ? holdDateIso(holdAtMs) : null,
       })
     }
+    // B-WR-05: the consent names the hold date. Recorded consent text must be the text the client ticked, so a hold date
+    // that moved since init (the owner changed the lead time) is a 409 with the new date; the client re-asks the tick.
+    if (serverMode === 'setup' && displayedHoldDateIso !== holdDateIso(holdAtMs)) {
+      return fail(409, 'HOLD_DATE_CHANGED', 'The hold date has changed', {
+        mode: serverMode,
+        holdAtIso: new Date(holdAtMs).toISOString(),
+        holdDateIso: holdDateIso(holdAtMs),
+      })
+    }
     // A signed-in account is resolved server-side, never from the body. Best effort: a guest checkout is normal.
     let authenticatedUserId: string | null = null
     try {
@@ -143,6 +154,10 @@ export async function POST(req: Request) {
       userAgent: req.headers.get('user-agent') ?? '',
     })
 
+    if (result.kind === 'attempt_closed') {
+      // 88-REVIEW B-WR-02 / B-WR-03: this attemptId is over (cancelled, or a pay-now attempt). The client starts a new one.
+      return fail(409, 'ATTEMPT_CLOSED', 'This checkout attempt can no longer be used')
+    }
     if (result.kind === 'already_confirmed') {
       return NextResponse.json({ alreadyConfirmed: true, bookingReference: result.bookingReference })
     }
