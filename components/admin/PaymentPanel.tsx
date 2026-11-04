@@ -713,6 +713,7 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode }:
   if (!isCard) {
     return (
       <div data-testid="payment-refund-failed" onClick={(e) => e.stopPropagation()}>
+        <div style={{ marginTop: '16px' }}><RefundFailedBadge /></div>
         <AlertBanner spec={refundFailedBanner(data.payment)} />
       </div>
     )
