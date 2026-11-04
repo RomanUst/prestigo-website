@@ -10,7 +10,7 @@ findings:
   info: 21
   total: 52
   unique_critical_themes: 6
-status: issues_found
+status: fixed (critical 9/9, warning 22/22; info partial)
 ---
 
 # Phase 88 — Code Review (consolidated)
@@ -38,3 +38,10 @@ Several Critical findings were found independently by two or three slices; they 
 ## Info
 
 21 items across slices (A-IN-01..09, B-IN-01..07, C-IN-01..05); see slice files. Deferred unless trivially fixed alongside a theme.
+
+## Fix log (2026-11-04)
+
+- Critical T1–T6 + A-WR-04/05, B-WR-01, C-WR-01/02/03: commits 6c1258c9..4d439d62; migration 086 (status-gated `apply_payment_transition`) applied live and smoke-checked (status_blocked writes nothing; EXECUTE only service_role).
+- Remaining warnings A-WR-01/02/03/06–11, B-WR-02–05, C-WR-04–06 + C-IN-01, A-IN-08, A-IN-09: commits a536e175..e18d36d0, no migration.
+- Gates: tsc baseline only; vitest 9896 passed (one flaky failure on a first loaded run, green on rerun); `npm run build` OK.
+- Left open (owner-visible, pre-Phase-89): no_show via PATCH keeps hold until it lapses; retry from `expired` may replay the old hold key (A-IN-04, money safe via fallback charge); notice retry window 20 h; `alert:new_booking` and admin `send_link` emails still claim before send; remaining Info items.
