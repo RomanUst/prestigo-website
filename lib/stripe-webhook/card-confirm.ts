@@ -17,6 +17,7 @@ import type Stripe from 'stripe'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { getPaymentsStripe } from '@/lib/payments/stripe'
 import { applyTransition, appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { sendPaymentEmail, bookingEmailDataFromRow } from '@/lib/payments/emails/send'
 import { sendManagerAlert } from '@/lib/email'
@@ -274,4 +275,103 @@ export async function applySetupSucceeded(si: Stripe.SetupIntent, actor: LedgerA
 
 export async function handleSetupSucceeded(event: Stripe.Event): Promise<void> {
   await applySetupSucceeded(event.data.object as Stripe.SetupIntent, WEBHOOK_ACTOR)
+}
+
+/** The latest charge's card capture_before (seconds) as an ISO instant, expanding the PaymentIntent when needed. */
+async function captureBeforeIso(pi: Stripe.PaymentIntent): Promise<string | null> {
+  const fromCharge = (charge: unknown): string | null => {
+    const seconds = (charge as { payment_method_details?: { card?: { capture_before?: unknown } } } | null)
+      ?.payment_method_details?.card?.capture_before
+    return typeof seconds === 'number' && Number.isFinite(seconds) ? new Date(seconds * 1000).toISOString() : null
+  }
+  if (pi.latest_charge && typeof pi.latest_charge === 'object') {
+    const direct = fromCharge(pi.latest_charge)
+    if (direct) return direct
+  }
+  try {
+    const full = await getPaymentsStripe().paymentIntents.retrieve(pi.id, { expand: ['latest_charge'] })
+    return fromCharge(full.latest_charge)
+  } catch {
+    // capture_before is informational (the tick re-places a hold before it passes); never block the confirmation.
+    console.error('[webhook] capture_before lookup failed', { stripeObjectId: pi.id })
+    return null
+  }
+}
+
+/**
+ * Hold-at-checkout authorized (kind card_hold_now, payment_intent.amount_capturable_updated): confirm the
+ * booking once and move checkout_pending -> authorized with the hold's PaymentIntent, amount and capture_before.
+ * The hold is NOT a collected payment: the booking's collected-payment column stays NULL until a capture.
+ * A booking cancelled meanwhile moves to released and is not re-confirmed.
+ */
+export async function applyHoldNowAuthorized(pi: Stripe.PaymentIntent, actor: LedgerActor): Promise<void> {
+  const booking = await resolveBooking('payment_intent.amount_capturable_updated', pi.id, pi.metadata)
+  if (!booking) return
+
+  const outcome = await confirmCardBooking(booking, 'card_hold_now')
+  const cancelled = outcome === 'cancelled'
+
+  const hold_payment_intent_id = pi.id
+  const amountMinor = pi.amount_capturable || pi.amount
+  const currency = pi.currency === 'czk' ? 'czk' : pi.currency === 'eur' ? 'eur' : undefined
+  const captureBefore = cancelled ? null : await captureBeforeIso(pi)
+
+  const moved = await applyTransition({
+    bookingId: booking.id,
+    from: ['checkout_pending'],
+    to: cancelled ? 'released' : 'authorized',
+    patch: cancelled
+      ? { hold_payment_intent_id }
+      : {
+          hold_payment_intent_id,
+          hold_amount_minor: amountMinor,
+          hold_placed_at: new Date().toISOString(),
+          capture_before: captureBefore,
+        },
+    event: {
+      key: `hold_authorized:${pi.id}`,
+      kind: 'hold_authorized',
+      stripeObjectId: pi.id,
+      amountMinor,
+      currency,
+      actor,
+      errorCode: cancelled ? 'booking_cancelled' : undefined,
+    },
+  })
+
+  if (cancelled) return
+  if (!moved.applied && moved.duplicate !== true) return
+
+  const row: BookingRow = { ...booking, ...(moved.booking ?? {}) }
+  if (moved.applied) {
+    await firstTimeEffects(row, { promoCode: metaString(pi.metadata, 'promoCode'), holdScheduledKey: null, actor })
+  }
+  await ledgerGuardedEffects(row, {
+    consent: { column: 'payment_intent_id', value: pi.id },
+    email: { kind: 'hold_placed', variant: 'at_checkout', eventKey: `email:hold_placed_at_checkout:${booking.id}` },
+  })
+}
+
+export async function handleHoldNowAuthorized(event: Stripe.Event): Promise<void> {
+  await applyHoldNowAuthorized(event.data.object as Stripe.PaymentIntent, WEBHOOK_ACTOR)
+}
+
+/**
+ * SetupIntent failed (kind card_setup): one ledger row with the error code. The payment state stays
+ * checkout_pending, so the client can retry the same checkout; no email is sent (a declined card on the page
+ * already shows the reason). Keyed by the event id: one SetupIntent can fail several times.
+ */
+export async function handleSetupFailed(event: Stripe.Event): Promise<void> {
+  const si = event.data.object as Stripe.SetupIntent
+  const booking = await resolveBooking('setup_intent.setup_failed', si.id, si.metadata)
+  if (!booking) return
+  const err = si.last_setup_error
+  const code = (err?.decline_code || err?.code || 'unknown').slice(0, 60)
+  await appendPaymentEvent(booking.id, {
+    key: `setup_failed:${event.id}`,
+    kind: 'setup_failed',
+    stripeObjectId: si.id,
+    errorCode: code,
+    actor: WEBHOOK_ACTOR,
+  })
 }

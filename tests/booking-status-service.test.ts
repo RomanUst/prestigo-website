@@ -906,3 +906,51 @@ describe('advanceResultToResponse', () => {
     expect(await res?.json()).toEqual({ error: 'status_conflict', currentStatus: 'assigned' })
   })
 })
+
+describe('advanceBookingStatus — profile payment-engine (Phase 88 card webhook)', () => {
+  const unpaidRow = {
+    ...baseRow,
+    status: 'unpaid',
+    booking_source: 'web',
+    payment_link_id: 'plink_stale',
+    pickup_utc: '2026-12-01T10:00:00.000Z',
+  }
+  const systemActor = { type: 'system', id: 'stripe_webhook' } as const
+
+  it('moves unpaid -> confirmed with no email, no QStash reminder, no link deactivation and no GNet push', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({ bookingData: unpaidRow })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: systemActor,
+      source: 'card_setup',
+      profile: 'payment-engine',
+      expectedFrom: 'unpaid',
+    })
+    expect(result).toMatchObject({ ok: true, previous: 'unpaid', current: 'confirmed' })
+    expect(mockRpc).toHaveBeenCalledTimes(1)
+    expect(mockRpc.mock.calls[0][1]).toMatchObject({ p_from: 'unpaid', p_to: 'confirmed', p_source: 'card_setup' })
+    await flushAfterCallbacks()
+    expect(afterCallbacks.length).toBe(0)
+    expect(mockSendConfirmed).not.toHaveBeenCalled()
+    expect(mockLogEmail).not.toHaveBeenCalled()
+    expect(mockScheduleQStash).not.toHaveBeenCalled()
+    expect(mockDeactivateLink).not.toHaveBeenCalled()
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('a booking cancelled meanwhile is a conflict carrying the stored status (no RPC call)', async () => {
+    buildSupabaseMock({ bookingData: { ...unpaidRow, status: 'cancelled' } })
+    const result = await advanceBookingStatus({
+      bookingId: BOOKING_ID,
+      to: 'confirmed',
+      actor: systemActor,
+      source: 'card_setup',
+      profile: 'payment-engine',
+      expectedFrom: 'unpaid',
+    })
+    expect(result).toMatchObject({ ok: false, code: 'conflict', currentStatus: 'cancelled' })
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+})

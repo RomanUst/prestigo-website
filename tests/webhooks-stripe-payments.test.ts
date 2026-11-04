@@ -1,6 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import fs from 'fs'
+import path from 'path'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
+import { REQUIRED_EVENTS, KEPT_EVENTS } from '../infra/stripe/webhook-events.mjs'
 
 /**
  * Phase 88 plan 88-09 (PAYF-03, HOLD-01, HOLD-03, MAIL-01): the Stripe webhook routes card-flow events by
@@ -8,7 +11,7 @@ import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-paymen
  * localized emails exactly once. The legacy suites (webhooks-stripe*.test.ts) stay unmodified and green.
  */
 
-const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend } = vi.hoisted(() => ({
+const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend, mockPiRetrieve } = vi.hoisted(() => ({
   stripeStub: { constructEvent: vi.fn() },
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
@@ -17,6 +20,7 @@ const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend } = vi.ho
   mockAdvance: vi.fn(),
   mockClaimPromo: vi.fn(),
   mockResendSend: vi.fn(),
+  mockPiRetrieve: vi.fn(),
 }))
 
 vi.mock('next/server', async () => {
@@ -56,7 +60,23 @@ vi.mock('@/lib/supabase', () => {
     reconcileRoundTripToConfirmed: vi.fn().mockResolvedValue([]),
     reconcileBookingByIdToConfirmed: vi.fn().mockResolvedValue([]),
     createSupabaseServiceClient: vi.fn(() => ({
-      from: (table: string) => (table === 'stripe_processed_events' ? processedTable : world.db!.client.from(table)),
+      from: (table: string) => {
+        if (table === 'stripe_processed_events') return processedTable
+        const query = world.db!.client.from(table) as { not: (c: string, o: string, v: string) => unknown; neq: (c: string, v: string) => unknown }
+        if (table !== 'bookings') return query
+        // The fake query builder has no not('in'); the shipped refund handler uses it to protect finished trips.
+        return new Proxy(query, {
+          get(target, prop, receiver) {
+            if (prop !== 'not') return Reflect.get(target, prop, receiver)
+            return (col: string, op: string, val: string) => {
+              if (op !== 'in') return target.not(col, op, val)
+              let q: unknown = target
+              for (const v of val.replace(/[()]/g, '').split(',')) q = (q as typeof target).neq(col, v)
+              return q
+            }
+          },
+        })
+      },
       rpc: (name: string, args?: Record<string, unknown>) =>
         name === 'claim_promo_code' ? mockClaimPromo(args) : world.db!.client.rpc(name, args),
     })),
@@ -75,6 +95,10 @@ vi.mock('@/lib/email', async (importActual) => ({
   sendRoundTripManagerAlert: vi.fn().mockResolvedValue(undefined),
   sendGroupClientConfirmation: vi.fn().mockResolvedValue(undefined),
   sendGroupManagerAlert: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('@/lib/payments/stripe', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/payments/stripe')>()),
+  getPaymentsStripe: () => ({ paymentIntents: { retrieve: mockPiRetrieve } }),
 }))
 vi.mock('resend', () => ({
   Resend: class {
@@ -525,5 +549,199 @@ describe('setup success side effects (HOLD-01, MAIL-01)', () => {
     await deliver(eventOf('setup_intent.succeeded', setupIntent()))
     expect(emails()).toHaveLength(1)
     expect(emails()[0].html).toContain('lang="en"')
+  })
+})
+
+describe('hold-at-checkout confirmation (HOLD-03)', () => {
+  const CAPTURE_BEFORE_S = 1_800_000_000
+
+  function holdPi(over: Record<string, unknown> = {}) {
+    return {
+      id: 'pi_hold',
+      object: 'payment_intent',
+      amount: 10000,
+      amount_capturable: 10000,
+      currency: 'eur',
+      latest_charge: 'ch_1',
+      metadata: { kind: 'card_hold_now', cofBookingId: BOOKING_ID, attempt: '1', bookingReference: REF },
+      ...over,
+    }
+  }
+  const emails = () => mockResendSend.mock.calls.map((c) => c[0] as { html: string })
+
+  beforeEach(() => {
+    db.state.booking_payment_consents.push({
+      id: 'consent-hn',
+      booking_id: BOOKING_ID,
+      payment_intent_id: 'pi_hold',
+      mode: 'hold_now',
+      confirmed_at: null,
+    })
+    mockPiRetrieve.mockResolvedValue({
+      id: 'pi_hold',
+      latest_charge: { id: 'ch_1', payment_method_details: { card: { capture_before: CAPTURE_BEFORE_S } } },
+    })
+  })
+
+  it('confirms once and moves checkout_pending -> authorized with the hold fields, never setting payment_intent_id', async () => {
+    const { status } = await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi()))
+    expect(status).toBe(200)
+    expect(mockAdvance).toHaveBeenCalledTimes(1)
+    expect(mockAdvance).toHaveBeenCalledWith(
+      expect.objectContaining({ to: 'confirmed', profile: 'payment-engine', expectedFrom: 'unpaid', source: 'card_hold_now' }),
+    )
+    const row = bookingRow()
+    expect(row.status).toBe('confirmed')
+    expect(row.payment_state).toBe('authorized')
+    expect(row.hold_payment_intent_id).toBe('pi_hold')
+    expect(row.hold_amount_minor).toBe(10000)
+    expect(row.hold_placed_at).toBeTruthy()
+    expect(row.capture_before).toBe(new Date(CAPTURE_BEFORE_S * 1000).toISOString())
+    expect(row.payment_intent_id).toBeNull()
+    expect(mockPiRetrieve).toHaveBeenCalledWith('pi_hold', { expand: ['latest_charge'] })
+    expect(ledger('hold_authorized').map((e) => e.event_key)).toEqual(['hold_authorized:pi_hold'])
+    expect(saveBooking).not.toHaveBeenCalled()
+  })
+
+  it('reads capture_before from an expanded latest_charge without a second Stripe call', async () => {
+    await deliver(
+      eventOf(
+        'payment_intent.amount_capturable_updated',
+        holdPi({ latest_charge: { id: 'ch_1', payment_method_details: { card: { capture_before: CAPTURE_BEFORE_S } } } }),
+      ),
+    )
+    expect(mockPiRetrieve).not.toHaveBeenCalled()
+    expect(bookingRow().capture_before).toBe(new Date(CAPTURE_BEFORE_S * 1000).toISOString())
+  })
+
+  it('still authorizes when the capture_before lookup fails', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockPiRetrieve.mockRejectedValue(new Error('stripe down'))
+    await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi()))
+    expect(bookingRow().payment_state).toBe('authorized')
+    expect(bookingRow().capture_before).toBeNull()
+  })
+
+  it('sends the hold_placed at_checkout email once, confirms the consent and alerts the operator once', async () => {
+    await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi(), 'evt_h1'))
+    await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi(), 'evt_h2'))
+    expect(emails()).toHaveLength(1)
+    expect(emails()[0].html).toContain('lang="ru"')
+    expect(ledger('email_sent').map((e) => e.event_key)).toEqual([`email:hold_placed_at_checkout:${BOOKING_ID}`])
+    expect(db.state.booking_payment_consents[0].confirmed_at).toBeTruthy()
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+    expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    expect(scheduleQStashReminder).toHaveBeenCalledTimes(1)
+    expect(ledger('hold_authorized')).toHaveLength(1)
+  })
+
+  it('a booking cancelled meanwhile moves to released with no email and is not re-confirmed', async () => {
+    bookingRow().status = 'cancelled'
+    await deliver(eventOf('payment_intent.amount_capturable_updated', holdPi()))
+    expect(bookingRow().status).toBe('cancelled')
+    expect(bookingRow().payment_state).toBe('released')
+    expect(emails()).toHaveLength(0)
+    expect(sendGa4Purchase).not.toHaveBeenCalled()
+  })
+
+  it('a hold event for a card_hold (scheduled) PaymentIntent is acknowledged without a handler or write', async () => {
+    const { status } = await deliver(
+      eventOf(
+        'payment_intent.amount_capturable_updated',
+        holdPi({ metadata: { kind: 'card_hold', cofBookingId: BOOKING_ID } }),
+      ),
+    )
+    expect(status).toBe(200)
+    expect(mockAdvance).not.toHaveBeenCalled()
+    expect(bookingRow().payment_state).toBe('checkout_pending')
+  })
+})
+
+describe('setup_intent.setup_failed', () => {
+  it('appends one setup_failed row with the error code, leaves the state alone and sends no email', async () => {
+    const si = setupIntent({ last_setup_error: { code: 'setup_intent_authentication_failure', decline_code: 'do_not_honor' } })
+    await deliver(eventOf('setup_intent.setup_failed', si, 'evt_f1'))
+    await deliver(eventOf('setup_intent.setup_failed', si, 'evt_f1'))
+    const rows = ledger('setup_failed')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].error_code).toBe('do_not_honor')
+    expect(bookingRow().payment_state).toBe('checkout_pending')
+    expect(bookingRow().status).toBe('unpaid')
+    expect(mockResendSend).not.toHaveBeenCalled()
+    expect(mockAdvance).not.toHaveBeenCalled()
+  })
+
+  it('falls back to the error code, then to unknown', async () => {
+    await deliver(eventOf('setup_intent.setup_failed', setupIntent({ last_setup_error: { code: 'card_declined' } }), 'evt_f2'))
+    await deliver(eventOf('setup_intent.setup_failed', setupIntent({ last_setup_error: null }), 'evt_f3'))
+    expect(ledger('setup_failed').map((e) => e.error_code)).toEqual(['card_declined', 'unknown'])
+  })
+})
+
+describe('charge.refunded on a card_hold booking (PAYF-03 observer)', () => {
+  function refundEvent(id = 'evt_r1') {
+    return eventOf(
+      'charge.refunded',
+      {
+        id: 'ch_9',
+        payment_intent: 'pi_cap',
+        refunded: true,
+        amount: 10000,
+        amount_refunded: 4000,
+        currency: 'eur',
+        refunds: { data: [{ id: 're_1', amount: 4000, metadata: {} }] },
+      },
+      id,
+    )
+  }
+
+  beforeEach(() => {
+    Object.assign(bookingRow(), { status: 'completed', payment_state: 'captured', payment_intent_id: 'pi_cap' })
+  })
+
+  it('appends one refund_observed row, runs the shipped handler and keeps the completed trip', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { status } = await deliver(refundEvent())
+    expect(status).toBe(200)
+    const rows = ledger('refund_observed')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].event_key).toBe('refund_observed:ch_9:4000')
+    expect(rows[0].amount_minor).toBe(4000)
+    expect(rows[0].actor_type).toBe('webhook')
+    // The shipped handler ran (it logs the finished-trip guard) and did not cancel the trip.
+    expect(console.warn).toHaveBeenCalledWith(
+      'charge.refunded: refund on a finished trip, status kept',
+      expect.objectContaining({ paymentIntentId: 'pi_cap' }),
+    )
+    expect(bookingRow().status).toBe('completed')
+  })
+
+  it('the same event again adds no second ledger row', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await deliver(refundEvent('evt_r1'))
+    await deliver(refundEvent('evt_r2'))
+    expect(ledger('refund_observed')).toHaveLength(1)
+  })
+
+  it('a refund on a pay-now booking records nothing in the card ledger', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    bookingRow().payment_mode = 'pay_now'
+    await deliver(refundEvent())
+    expect(ledger('refund_observed')).toHaveLength(0)
+  })
+})
+
+describe('event list parity (PAYF-04)', () => {
+  const subscribed = new Set<string>([...REQUIRED_EVENTS, ...KEPT_EVENTS])
+
+  it('every card event type is subscribed by the owner script', () => {
+    for (const type of CARD_EVENT_TYPES) expect(subscribed.has(type)).toBe(true)
+  })
+
+  it('every event type the dispatcher routes is in REQUIRED_EVENTS or KEPT_EVENTS', () => {
+    const source = fs.readFileSync(path.resolve(__dirname, '..', 'lib/stripe-webhook/dispatch.ts'), 'utf8')
+    const routed = [...source.matchAll(/case '([a-z_]+\.[a-z_.]+)':/g)].map((m) => m[1])
+    expect(routed.length).toBeGreaterThanOrEqual(8)
+    for (const type of routed) expect(subscribed.has(type), `${type} is routed but not subscribed`).toBe(true)
   })
 })

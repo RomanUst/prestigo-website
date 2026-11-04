@@ -22,7 +22,8 @@
 import { NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
+import { appendPaymentEvent } from '@/lib/payments/state'
+import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
 
 /** The six event types the card flow adds to the endpoint (infra/stripe/webhook-events.mjs REQUIRED_EVENTS). */
 export const CARD_EVENT_TYPES = [
@@ -62,6 +63,8 @@ type EventHandler = (event: Stripe.Event) => Promise<void>
  */
 export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
   setup_succeeded: handleSetupSucceeded,
+  setup_failed: handleSetupFailed,
+  hold_now_authorized: handleHoldNowAuthorized,
 }
 
 function metadataOf(event: Stripe.Event): Record<string, unknown> {
@@ -150,6 +153,37 @@ export async function once(event: Stripe.Event, handler: EventHandler): Promise<
   return NextResponse.json({ received: true })
 }
 
+/**
+ * charge.refunded on a card_hold booking: one refund_observed ledger row (key refund_observed:<charge>:<amount>,
+ * so the same event again adds nothing). Observation only: it never short-circuits the shipped refund handler,
+ * which still runs and keeps completed / no_show trips as they are. Errors are logged and swallowed for that reason.
+ */
+async function observeRefund(event: Stripe.Event): Promise<void> {
+  const charge = event.data.object as Stripe.Charge
+  const paymentIntentId =
+    typeof charge.payment_intent === 'string'
+      ? charge.payment_intent
+      : ((charge.payment_intent as { id?: string } | null)?.id ?? null)
+  if (!paymentIntentId || !charge.id) return
+
+  const { data } = await createSupabaseServiceClient()
+    .from('bookings')
+    .select('id, payment_mode')
+    .eq('payment_intent_id', paymentIntentId)
+  const rows = Array.isArray(data) ? (data as Array<{ id: string; payment_mode?: string | null }>) : []
+  const currency = charge.currency === 'czk' ? 'czk' : charge.currency === 'eur' ? 'eur' : undefined
+  for (const row of rows.filter((r) => r.payment_mode === 'card_hold')) {
+    await appendPaymentEvent(row.id, {
+      key: `refund_observed:${charge.id}:${charge.amount_refunded}`,
+      kind: 'refund_observed',
+      stripeObjectId: charge.id,
+      amountMinor: charge.amount_refunded,
+      currency,
+      actor: { type: 'webhook', id: null },
+    })
+  }
+}
+
 export async function dispatchPaymentEvent(
   event: Stripe.Event,
 ): Promise<{ handled: true; response: NextResponse } | { handled: false }> {
@@ -157,7 +191,14 @@ export async function dispatchPaymentEvent(
   if (!cls) return { handled: false }
 
   // A refund is observed for card bookings, but the shipped refund handler still runs afterwards.
-  if (cls.route === 'refund_observe') return { handled: false }
+  if (cls.route === 'refund_observe') {
+    try {
+      await observeRefund(event)
+    } catch {
+      console.error('[webhook] refund observation failed', { eventId: event.id })
+    }
+    return { handled: false }
+  }
 
   const handler = ROUTES[cls.route]
   if (!handler) {
