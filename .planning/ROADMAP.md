@@ -249,7 +249,42 @@ Plans:
   4. The operator sees each card booking's payment state, hold expiry and an append-only ledger of every money event in admin, can capture, release, retry or send a payment link, and the client's payment emails (card saved, hold placed, charged, payment failed with link) arrive in the booking language in all 7 locales.
   5. Rollout is safe: the Stripe webhook routes each event by purpose with no duplicate bookings or false alerts and a partial refund never cancels a completed trip; the owner can run a script that subscribes the live webhook to the new events; a working test-mode path exists; and the owner's own canary booking passes end to end behind an admin feature flag before anyone else can use the flow.
 
-**Plans**: TBD
+**Plans**: 17 plans
+Plans:
+**Wave 1**
+- [ ] 88-01-PLAN.md — Payment data model: migration 085 (payment_mode / payment_state, append-only ledger, consent record, card-flow settings, CAS + claim RPCs), lib/payments/state.ts single writer, [BLOCKING] owner schema confirmation + live apply (tracer)
+- [ ] 88-02-PLAN.md — Behaviour-preserving extraction of the checkout price / validation path into lib/checkout/compute.ts
+- [ ] 88-03-PLAN.md — Language-aware payment email renderer (4 templates), checkout card-on-file copy and consent text builder (EN)
+- [ ] 88-04-PLAN.md — Owner scripts: webhook-events subscription, QStash payment-tick schedule, Stripe test-mode smoke, owner runbook
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 88-05-PLAN.md — Real translations (ru, es, fr, ar, hi, zh) of the card-flow checkout and payment email copy + 7-locale parity
+- [ ] 88-06-PLAN.md — Owner canary flag + eligibility endpoint (/api/card-checkout/init), DST-safe hold timing, CSRF / rate limits, CardFlowSettings
+- [ ] 88-07-PLAN.md — Admin payment panel (badge, facts, actions, append-only history), list badge, card cancel variant, refund-failed and trip-edit feedback
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 88-08-PLAN.md — Card checkout intent (setup mode): one unpaid card booking, per-booking Stripe Customer, consent record, SetupIntent; fake Stripe helper
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 88-09-PLAN.md — Webhook routing by purpose; setup-succeeded and hold-at-checkout confirmation once; localized card_saved email
+- [ ] 88-10-PLAN.md — Checkout step: init gate + save-card step with exact hold date, unticked consent, confirmSetup
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 88-11-PLAN.md — Payment tick (QStash 15 min + Vercel daily backstop), scheduled off-session hold, reconcile, release primitives, hold webhook events
+- [ ] 88-12-PLAN.md — Hold at checkout inside the hold window (manual-capture PaymentIntent, held-now UI variant)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 88-13-PLAN.md — Capture on completion with fallback and difference charges, never twice; completion sweep; charged email
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 88-14-PLAN.md — Failure recovery: payment link, payment_failed email, Resend operator alert, one auto-retry, 24 h alerts, link paid -> captured
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 88-15-PLAN.md — Admin payment API (ledger view; capture / retry / release / waive / send link)
+- [ ] 88-16-PLAN.md — Cancel CAS-first (WR-01, D-20) + card hold release on cancel + trip-edit hook for price / pickup changes
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 88-17-PLAN.md — End-to-end lifecycle test + gates + verify pre-pr; [BLOCKING] merge, owner scripts, Dashboard checks; [BLOCKING] owner canary A / B / C
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix (card mandate, off-session charges, webhook routing, scheduler endpoint auth, capture trigger).
 **Decided 2026-11-02:** configurable 72 h hold lead (never 120 h). **Owner checkpoints**: confirm the ~6-day cutoff for an on-session hold at checkout, and that multi-day quotes never use one long hold; run the webhook-subscription script; create/verify the QStash schedule (free-plan quota unverified, daily Vercel cron stays the backstop); run the canary booking; confirm Stripe pricing plan and MCC in the Dashboard.
