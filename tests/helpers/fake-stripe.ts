@@ -12,6 +12,7 @@
  *    error (insufficient_funds), 'pm_auth_required' throws authentication_required with the
  *    PaymentIntent left in requires_action.
  *  - paymentLinks.create / update
+ *  - refunds.create (full or partial refund of a succeeded PaymentIntent; amount_refunded is tracked on it)
  *  - an idempotency store: the same key with the same params replays the saved result (thrown errors
  *    included), the same key with different params throws a StripeIdempotencyError, and a connection
  *    failure is never stored.
@@ -67,6 +68,7 @@ export interface FakeStripeState {
   setupIntents: Map<string, Obj>
   paymentIntents: Map<string, Obj>
   paymentLinks: Map<string, Obj>
+  refunds: Map<string, Obj>
   /** key -> saved outcome. Connection failures never land here. */
   idempotency: Map<string, { fingerprint: string; outcome: { ok: true; value: unknown } | { ok: false; error: FakeStripeError } }>
 }
@@ -100,6 +102,7 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
     setupIntents: new Map(),
     paymentIntents: new Map(),
     paymentLinks: new Map(),
+    refunds: new Map(),
     idempotency: new Map(),
   }
   const calls: FakeStripeCall[] = []
@@ -350,7 +353,38 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
       }),
   }
 
-  const stripe = { customers, setupIntents, paymentIntents, paymentLinks }
+  // ── refunds ────────────────────────────────────────────────────────────────
+  const refunds = {
+    create: async (params: Params, options?: Options) =>
+      request('refunds.create', null, params, options, () => {
+        const piId = params.payment_intent
+        const pi = typeof piId === 'string' ? state.paymentIntents.get(piId) : undefined
+        if (!pi) throw badRequest(`No such payment_intent: '${String(piId)}'`, 'resource_missing')
+        if (pi.status !== 'succeeded') {
+          throw badRequest('This PaymentIntent does not have a successful charge to refund.', 'charge_not_refundable')
+        }
+        const received = (pi.amount_received as number) ?? 0
+        const already = typeof pi.amount_refunded === 'number' ? pi.amount_refunded : 0
+        const amount = params.amount === undefined ? received - already : params.amount
+        if (typeof amount !== 'number' || !Number.isInteger(amount) || amount <= 0 || already + amount > received) {
+          throw badRequest('The refund amount is greater than the unrefunded amount.', 'charge_already_refunded')
+        }
+        pi.amount_refunded = already + amount
+        const refund: Obj = {
+          id: nextId('re'),
+          object: 'refund',
+          status: 'succeeded',
+          metadata: {},
+          ...clone(params),
+          amount,
+          payment_intent: piId as string,
+        }
+        state.refunds.set(refund.id, refund)
+        return clone(refund)
+      }),
+  }
+
+  const stripe = { customers, setupIntents, paymentIntents, paymentLinks, refunds }
 
   return {
     stripe,

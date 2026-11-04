@@ -33,8 +33,8 @@ import {
   stripeKeys,
 } from '@/lib/payments/stripe'
 import { handlePaymentFailure } from '@/lib/payments/recovery'
+import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
 import { retryAt } from '@/lib/payments/timing'
-import { deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 
 type BookingRow = Record<string, unknown>
 
@@ -292,6 +292,8 @@ export async function placeHold(
       hold_placed_at: now.toISOString(),
       capture_before: captureBefore,
       payment_lease_until: null,
+      // T1: the hold secures the money, so a recovery link from an earlier decline must not stay payable.
+      ...RECOVERY_LINK_CLEARED,
     },
     event: {
       key: `hold_authorized:${pi.id}`,
@@ -312,6 +314,7 @@ export async function placeHold(
     }
     return { outcome: 'skipped', code: 'state_moved' }
   }
+  await retireRecoveryLink(booking)
 
   try {
     await sendPaymentEmail({
@@ -385,7 +388,7 @@ export async function releaseHold(
     bookingId,
     from,
     to: 'released',
-    patch: { payment_lease_until: null },
+    patch: { payment_lease_until: null, ...RECOVERY_LINK_CLEARED },
     event,
   })
 
@@ -393,13 +396,6 @@ export async function releaseHold(
     return moved.currentState === 'placing_hold' || moved.currentState === 'capturing' ? 'busy' : 'noop'
   }
 
-  const linkId = str(booking.recovery_link_id)
-  if (linkId) {
-    try {
-      await deactivateBookingPaymentLink(linkId)
-    } catch {
-      console.error('[hold] recovery link not deactivated', { bookingId })
-    }
-  }
+  await retireRecoveryLink(booking)
   return 'released'
 }

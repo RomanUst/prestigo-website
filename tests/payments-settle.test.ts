@@ -9,13 +9,14 @@ import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
  * separately, and never collects twice (CAS claim, attempt-numbered idempotency keys, ledger event keys).
  */
 
-const { world, mockSendEmail, mockFailure } = vi.hoisted(() => ({
+const { world, mockSendEmail, mockFailure, mockDeactivateLink } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
   },
   mockSendEmail: vi.fn(),
   mockFailure: vi.fn(),
+  mockDeactivateLink: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -31,6 +32,7 @@ vi.mock('@/lib/payments/stripe', async (importActual) => ({
 vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: mockSendEmail, bookingEmailDataFromRow: (r: unknown) => r }))
 // The link / email / alert of a declined charge are covered by tests/payments-failure.test.ts; here only the call is pinned.
 vi.mock('@/lib/payments/recovery', () => ({ handlePaymentFailure: mockFailure }))
+vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: mockDeactivateLink }))
 
 import { settleBooking } from '@/lib/payments/settle'
 
@@ -99,6 +101,23 @@ beforeEach(() => {
   world.stripe = fake.stripe
   mockSendEmail.mockResolvedValue('sent')
   mockFailure.mockResolvedValue(undefined)
+  mockDeactivateLink.mockResolvedValue(undefined)
+})
+
+describe('a collected settle retires the recovery link (88-REVIEW T1)', () => {
+  it('a failed booking charged at completion clears and deactivates its recovery link', async () => {
+    seed({ payment_state: 'failed', recovery_link_id: 'plink_rec', recovery_link_url: 'https://buy.stripe.test/plink_rec' })
+    expect((await settleBooking(ID, ACTOR)).outcome).toBe('captured')
+    expect(row()).toMatchObject({ payment_state: 'captured', recovery_link_id: null, recovery_link_url: null })
+    expect(mockDeactivateLink).toHaveBeenCalledWith('plink_rec')
+  })
+
+  it('a declined settle leaves the link to the failure step', async () => {
+    seed({ payment_state: 'failed', recovery_link_id: 'plink_rec', stripe_payment_method_id: 'pm_decline_insufficient' })
+    expect((await settleBooking(ID, ACTOR)).outcome).toBe('failed')
+    expect(mockDeactivateLink).not.toHaveBeenCalled()
+    expect(mockFailure).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('tracer: completed card booking in authorized -> capture the hold -> captured + charged email (HOLD-04, D-06)', () => {

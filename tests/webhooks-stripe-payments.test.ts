@@ -1233,14 +1233,72 @@ describe('recovery link payment and disputes (plan 88-14, HOLD-05, PAYF-03)', ()
       expect(mockResendSend).not.toHaveBeenCalled()
     })
 
-    it('money for a booking that is already captured is parked in the ledger and logged, never applied twice', async () => {
+    // 88-REVIEW T1 (A-CR-01, B-CR-02, C-CR-02): a link payment for a booking whose debt is already secured or gone is
+    // a second payment. It is refunded automatically, recorded once and always alerted; the booking is never changed.
+    it('money for a booking that is already captured is refunded in full, recorded once and alerted, never applied twice', async () => {
       const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
       failedBooking({ payment_state: 'captured', captured_amount_minor: 12000, payment_intent_id: 'pi_other' })
       await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r7'))
       expect(bookingRow().captured_amount_minor).toBe(12000)
+      expect(bookingRow().payment_intent_id).toBe('pi_other')
+      expect(bookingRow().payment_state).toBe('captured')
+      expect(mockRefundCreate).toHaveBeenCalledTimes(1)
+      expect(mockRefundCreate).toHaveBeenCalledWith(
+        { payment_intent: RECOVERY_PI },
+        { idempotencyKey: `refund:${BOOKING_ID}:recovery:${RECOVERY_PI}` },
+      )
       expect(ledger('recovery_paid')).toHaveLength(1)
+      expect(ledger('recovery_paid')[0].error_code).toBe('duplicate_refunded')
+      expect(ledger('refund_failed')).toHaveLength(0)
       expect(errors).toHaveBeenCalledWith(expect.stringContaining('not payable'), expect.objectContaining({ bookingId: BOOKING_ID }))
-      expect(mockResendSend).not.toHaveBeenCalled()
+      expect(clientMails()).toHaveLength(0)
+      expect(operatorMails()).toHaveLength(1)
+      expect(operatorMails()[0].subject).toContain('Duplicate payment')
+      expect(operatorMails()[0].text).toContain('refunded automatically')
+
+      // The payment_intent.succeeded of the same payment: no second refund, no second alert.
+      await deliver(eventOf('payment_intent.succeeded', recoveryPi(), 'evt_r7b'))
+      expect(mockRefundCreate).toHaveBeenCalledTimes(1)
+      expect(operatorMails()).toHaveLength(1)
+      expect(ledger('recovery_paid')).toHaveLength(1)
+    })
+
+    it.each(['authorized', 'released', 'card_saved', 'expired'])(
+      'a link payment while the booking is %s is refunded and alerted; the state is unchanged',
+      async (state) => {
+        vi.spyOn(console, 'error').mockImplementation(() => {})
+        failedBooking({ payment_state: state, hold_payment_intent_id: state === 'authorized' ? 'pi_hold_live' : null })
+        const { status } = await deliver(eventOf('payment_intent.succeeded', recoveryPi(), `evt_dup_${state}`))
+        expect(status).toBe(200)
+        expect(bookingRow().payment_state).toBe(state)
+        expect(bookingRow().captured_amount_minor).toBe(0)
+        expect(bookingRow().payment_intent_id).toBeNull()
+        expect(mockRefundCreate).toHaveBeenCalledTimes(1)
+        expect(operatorMails()).toHaveLength(1)
+      },
+    )
+
+    it('a refund that fails writes refund_failed, tells the operator to refund manually and changes nothing else', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      failedBooking({ payment_state: 'authorized' })
+      mockRefundCreate.mockRejectedValueOnce(Object.assign(new Error('nope'), { type: 'StripeInvalidRequestError', code: 'charge_disputed' }))
+      const { status } = await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r7c'))
+      expect(status).toBe(200)
+      expect(ledger('recovery_paid')[0].error_code).toBe('duplicate_not_refunded')
+      expect(ledger('refund_failed')).toHaveLength(1)
+      expect(ledger('refund_failed')[0].error_code).toBe('charge_disputed')
+      expect(operatorMails()).toHaveLength(1)
+      expect(operatorMails()[0].text).toContain('refund')
+      expect(operatorMails()[0].text).toContain('manually')
+      expect(bookingRow().payment_state).toBe('authorized')
+    })
+
+    it('a paid link that closes a failed booking clears the stored link (T1)', async () => {
+      failedBooking()
+      await deliver(eventOf('checkout.session.completed', recoverySession(), 'evt_r1c'))
+      expect(bookingRow().recovery_link_id).toBeNull()
+      expect(bookingRow().recovery_link_url).toBeNull()
+      expect(mockRefundCreate).not.toHaveBeenCalled()
     })
 
     it('a booking that is busy (capturing) makes the webhook answer 500 so Stripe redelivers', async () => {

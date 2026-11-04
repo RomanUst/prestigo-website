@@ -253,6 +253,7 @@ describe('tracer: a declined scheduled hold', () => {
       'no_valid_hold_24h',
       'refund_failed',
       'dispute',
+      'duplicate_payment',
     ])
   })
 })

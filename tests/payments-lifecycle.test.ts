@@ -744,3 +744,57 @@ describe('hold at checkout keeps the saved card (88-REVIEW T3: A-CR-03, B-CR-01)
     expect(ledger(id).map((e) => e.kind)).not.toContain('difference_failed')
   })
 })
+
+describe('a recovery link never outlives the debt (88-REVIEW T1: A-CR-01, B-CR-02, C-CR-02)', () => {
+  it('declined hold -> link -> the automatic retry holds -> link deactivated; a late link payment is refunded; one capture', async () => {
+    const t = await startBooking()
+    setNow(NOW0 + 5 * MINUTE)
+    await saveCard(t.setupIntentId)
+    // The scheduled hold declines: failed, a recovery link and a payment_failed email.
+    rowOf(t.id).stripe_payment_method_id = 'pm_decline_insufficient'
+    setNow(HOLD_AT_MS + MINUTE)
+    expect((await runTick()).json).toMatchObject({ ok: true, failed: 1 })
+    const failed = rowOf(t.id)
+    expect(failed.payment_state).toBe('failed')
+    const linkId = failed.recovery_link_id as string
+    expect(fake.state.paymentLinks.get(linkId)!.active).toBe(true)
+
+    // The client opens the link's checkout page but does not pay yet. The card works again; the one automatic
+    // retry 12 h later places the hold, and the link is deactivated in the same step.
+    rowOf(t.id).stripe_payment_method_id = 'pm_ok'
+    setNow(HOLD_AT_MS + 12 * HOUR + 2 * MINUTE)
+    expect((await runTick()).json).toMatchObject({ ok: true, errors: [] })
+    const held = rowOf(t.id)
+    expect(held).toMatchObject({ payment_state: 'authorized', recovery_link_id: null, recovery_link_url: null })
+    expect(fake.state.paymentLinks.get(linkId)!.active).toBe(false)
+
+    // The checkout page opened before the deactivation is paid anyway: a second payment for the same debt.
+    const recoveryPi = (await fake.stripe.paymentIntents.create({
+      amount: serverAmount(),
+      currency: 'eur',
+      payment_method: 'pm_ok',
+      confirm: true,
+      metadata: cardMetadata('card_recovery', { bookingId: t.id, attempt: '1', bookingReference: t.reference }),
+    })) as { id: string }
+    const paid = fake.buildEvent('checkout.session.completed', {
+      id: 'cs_late_1',
+      object: 'checkout.session',
+      payment_status: 'paid',
+      payment_intent: recoveryPi.id,
+      amount_total: serverAmount(),
+      metadata: cardMetadata('card_recovery', { bookingId: t.id, attempt: '1', bookingReference: t.reference }),
+    })
+    expect((await deliver(paid)).status).toBe(200)
+    expect(fake.callsTo('refunds.create')).toHaveLength(1)
+    expect(fake.state.paymentIntents.get(recoveryPi.id)!.amount_refunded).toBe(serverAmount())
+    expect(rowOf(t.id).payment_state).toBe('authorized')
+    expect(mailsTo(MANAGER).some((c) => String((c[0] as { subject: string }).subject).includes('Duplicate payment'))).toBe(true)
+
+    // The trip is completed: the hold is captured once, the client paid exactly once in total.
+    setNow(PICKUP_MS + 2 * HOUR)
+    expect((await completeTrip(t.id)).status).toBe(200)
+    expect(rowOf(t.id)).toMatchObject({ payment_state: 'captured', captured_amount_minor: serverAmount() })
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(1)
+    expect(fake.callsTo('refunds.create')).toHaveLength(1)
+  })
+})

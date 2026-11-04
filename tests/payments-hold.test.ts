@@ -95,6 +95,15 @@ describe('placeHold: success', () => {
   })
 })
 
+describe('placeHold: an earlier recovery link (88-REVIEW T1)', () => {
+  it('a placed hold clears the stored recovery link in the same transition and deactivates it', async () => {
+    seed({ recovery_link_id: 'plink_old', recovery_link_url: 'https://buy.stripe.test/plink_old' })
+    expect(await placeHold(fresh(), ACTOR)).toEqual({ outcome: 'authorized' })
+    expect(row()).toMatchObject({ payment_state: 'authorized', recovery_link_id: null, recovery_link_url: null })
+    expect(mockDeactivateLink).toHaveBeenCalledWith('plink_old')
+  })
+})
+
 describe('placeHold: failures and attempts (Pitfall 2)', () => {
   it('a connection failure returns the row to card_saved with the SAME attempt; the next tick replays the same key', async () => {
     fake.failNextWith('paymentIntents.create', 'connection')
@@ -368,10 +377,11 @@ describe('releaseHold and cancelHoldIntent', () => {
     expect(row().payment_state).toBe('capturing')
   })
 
-  it('a recovery link on the booking is deactivated after the release', async () => {
-    seed({ payment_state: 'failed', payment_lease_until: null, recovery_link_id: 'plink_123' })
+  it('a recovery link on the booking is deactivated after the release and cleared from the row', async () => {
+    seed({ payment_state: 'failed', payment_lease_until: null, recovery_link_id: 'plink_123', recovery_link_url: 'https://x' })
     expect(await releaseHold(fresh(), { actor: ACTOR, reason: 'cancel' })).toBe('released')
     expect(mockDeactivateLink).toHaveBeenCalledWith('plink_123')
+    expect(row()).toMatchObject({ recovery_link_id: null, recovery_link_url: null })
   })
 
   it('a release replay changes nothing (ledger key)', async () => {

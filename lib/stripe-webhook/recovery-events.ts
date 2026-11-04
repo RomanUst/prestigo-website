@@ -9,10 +9,22 @@
 // handleDispute: charge.dispute.created on a card booking's payment sends one operator alert. No state change.
 //
 // Rules: the booking is found through metadata.cofBookingId (dispute: through the PaymentIntent); only a failed or
-// balance_due booking is closed by a recovery payment. Money that arrives for a booking in another state is never
-// dropped silently: it gets a recovery_paid ledger row and an error log (ids only), and a booking that is mid-flight
-// (placing_hold, capturing, ...) makes the handler throw so Stripe redelivers once the state settles. Nothing here asks
-// whether the card flow is switched on for the client (D-09a).
+// balance_due booking is closed by a recovery payment. A booking that is mid-flight (placing_hold, capturing, ...)
+// makes the handler throw so Stripe redelivers once the state settles. Nothing here asks whether the card flow is
+// switched on for the client (D-09a).
+//
+// Duplicate payments (88-REVIEW T1: A-CR-01, B-CR-02, C-CR-02). Every engine path that secures the money another way
+// deactivates the recovery link, but a Checkout Session the client opened before that can still be paid. Money that
+// arrives for a booking in any other state (authorized, captured, released, card_saved, expired, ...) is therefore a
+// SECOND payment for the same debt. The chosen behaviour, the same in every such state:
+//   - the engine's own collection stays the source of truth (the hold is captured at completion, a captured booking
+//     stays as it is, a released / cancelled booking owes nothing), so nothing about the booking changes;
+//   - the link payment is refunded in full automatically (key refund:<bookingId>:recovery:<pi>, deterministic, so a
+//     redelivery or the second event of the same payment replays the same refund instead of a second one);
+//   - one recovery_paid ledger row records it, plus a refund_failed row when the refund did not go through (the admin
+//     panel then shows the refund-failed banner), and the operator always gets a duplicate_payment alert.
+// Adopting the link payment instead (releasing the hold, moving authorized -> captured) was rejected: it collects
+// before the trip, can not cover a changed amount and needs a second Stripe call that can fail half-way.
 
 import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
@@ -20,7 +32,8 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { appendPaymentEvent, applyTransition, type LedgerActor, type PaymentPatch } from '@/lib/payments/state'
-import { getPaymentsStripe } from '@/lib/payments/stripe'
+import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
+import { RECOVERY_LINK_CLEARED } from '@/lib/payments/recovery-link'
 import { deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 
 const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
@@ -127,6 +140,7 @@ export async function handleRecoveryPaid(event: Stripe.Event): Promise<void> {
       last_payment_error: null,
       payment_retry_at: null,
       payment_lease_until: null,
+      ...RECOVERY_LINK_CLEARED,
       // The main capture of a balance_due booking already set it; a failed booking collects for the first time here.
       ...(!str(booking.payment_intent_id) && paid.paymentIntentId ? { payment_intent_id: paid.paymentIntentId } : {}),
     }
@@ -169,37 +183,103 @@ export async function handleRecoveryPaid(event: Stripe.Event): Promise<void> {
     }
     if (moved.duplicate === true) return // the other event of the same payment already closed the booking
     if (BUSY_STATES.has(moved.currentState ?? '')) throw new Error('recovery payment while the booking is busy')
-    await parkUnmatchedPayment(booking.id, paid, ledgerKey, currency, moved.currentState ?? state)
+    await refundDuplicatePayment(booking, paid, ledgerKey, currency, moved.currentState ?? state)
     return
   }
 
   if (BUSY_STATES.has(state)) throw new Error('recovery payment while the booking is busy')
-  await parkUnmatchedPayment(booking.id, paid, ledgerKey, currency, state)
+  await refundDuplicatePayment(booking, paid, ledgerKey, currency, state)
 }
 
-/** Money arrived for a booking that is not payable (already captured, released, ...): visible in the ledger and the log. */
-async function parkUnmatchedPayment(
-  bookingId: string,
+/** True when this payment already has its recovery_paid row (it closed the booking, or it was refunded before). */
+async function paymentRecorded(bookingId: string, ledgerKey: string): Promise<boolean> {
+  const { data, error } = await createSupabaseServiceClient()
+    .from('booking_payment_events')
+    .select('id')
+    .eq('booking_id', bookingId)
+    .eq('event_key', ledgerKey)
+    .limit(1)
+  if (error) throw new Error('recovery ledger lookup failed')
+  return Array.isArray(data) && data.length > 0
+}
+
+/**
+ * Money arrived for a booking whose debt is already secured or gone (see the header): refund it in full, record it and
+ * alert the operator. The booking itself is never changed. Never refunds the same payment twice: the second event of
+ * one payment finds its ledger row, and the refund key is deterministic per PaymentIntent.
+ */
+async function refundDuplicatePayment(
+  booking: BookingRow,
   paid: RecoveryPayment,
   ledgerKey: string,
   currency: 'eur' | 'czk' | undefined,
   state: string,
 ): Promise<void> {
-  const { inserted } = await appendPaymentEvent(bookingId, {
+  // The other event of the same payment (session / PaymentIntent) closed the booking or was refunded already.
+  if (await paymentRecorded(booking.id, ledgerKey)) return
+
+  let refunded = false
+  let code = 'no_payment_intent'
+  if (paid.paymentIntentId) {
+    try {
+      await getPaymentsStripe().refunds.create(
+        { payment_intent: paid.paymentIntentId },
+        { idempotencyKey: stripeKeys.refund(booking.id, `recovery:${paid.paymentIntentId}`) },
+      )
+      refunded = true
+    } catch (err) {
+      code = stripeErrorCode(err)
+    }
+  }
+
+  const { inserted } = await appendPaymentEvent(booking.id, {
     key: ledgerKey,
     kind: 'recovery_paid',
     stripeObjectId: paid.stripeObjectId,
     amountMinor: paid.paidMinor,
     currency,
+    errorCode: refunded ? 'duplicate_refunded' : 'duplicate_not_refunded',
     actor: WEBHOOK_ACTOR,
   })
-  // The key already exists: the other event of the same payment (session / PaymentIntent) closed the booking earlier.
+  // A concurrent delivery of the same payment got here first (its refund used the same key): nothing more to do.
   if (!inserted) return
-  console.error('[webhook] recovery payment for a booking that is not payable, review in the Stripe Dashboard', {
-    bookingId,
+
+  if (!refunded) {
+    try {
+      await appendPaymentEvent(booking.id, {
+        key: `refund_failed:${booking.id}:recovery:${paid.stripeObjectId}`,
+        kind: 'refund_failed',
+        stripeObjectId: paid.stripeObjectId,
+        amountMinor: paid.paidMinor,
+        currency,
+        errorCode: code,
+        actor: WEBHOOK_ACTOR,
+      })
+    } catch {
+      console.error('[webhook] duplicate payment refund_failed row not written', { bookingId: booking.id })
+    }
+  }
+
+  console.error('[webhook] recovery payment for a booking that is not payable', {
+    bookingId: booking.id,
     stripeObjectId: paid.stripeObjectId,
     state,
+    refunded,
   })
+  try {
+    await sendPaymentOperatorAlert(
+      'duplicate_payment',
+      { ...booking, ...(currency ? { payment_currency: currency } : {}) },
+      {
+        eventKey: `alert:duplicate_payment:${booking.id}:${paid.stripeObjectId}`,
+        code: refunded ? 'refunded' : code,
+        amountMinor: paid.paidMinor,
+        note: refunded ? 'refunded' : 'refund_failed',
+      },
+    )
+  } catch {
+    console.error('[webhook] duplicate payment alert failed', { bookingId: booking.id })
+  }
 }
 
 /** The booking(s) a disputed charge belongs to: through the charge's PaymentIntent. */

@@ -21,6 +21,7 @@ export const OPERATOR_ALERT_KINDS = [
   'no_valid_hold_24h',
   'refund_failed',
   'dispute',
+  'duplicate_payment',
 ] as const
 export type OperatorAlertKind = (typeof OPERATOR_ALERT_KINDS)[number]
 
@@ -35,7 +36,10 @@ export interface OperatorAlertDetails {
   retryAtIso?: string | null
   /** The declined price difference (balance_unpaid). */
   diffMinor?: number
-  /** `link_failed`: the recovery link could not be created, so the client was not emailed. */
+  /**
+   * `link_failed`: the recovery link could not be created, so the client was not emailed. `release`: a hold (not a
+   * payment) could not be released. `refunded` / `refund_failed`: the outcome of a duplicate payment's automatic refund.
+   */
   note?: string
 }
 
@@ -62,6 +66,7 @@ const TITLES: Record<OperatorAlertKind, string> = {
   no_valid_hold_24h: 'No valid hold, pickup within 24 h',
   refund_failed: 'Refund failed',
   dispute: 'Dispute opened',
+  duplicate_payment: 'Duplicate payment',
 }
 
 /** A Prague wall-clock rendering of an instant, e.g. "12 Dec 2026, 14:00". */
@@ -117,6 +122,14 @@ function nextAction(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAle
     }
     case 'dispute':
       return 'A dispute was opened on the card payment. Review it in the Stripe Dashboard and respond before the deadline.'
+    case 'duplicate_payment': {
+      // 88-REVIEW T1: a recovery link was paid after the money was already secured another way.
+      const amount = formatMinor(d.amountMinor ?? 0, currency)
+      const lead = `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${str(booking.payment_state) || 'n/a'}).`
+      return d.note === 'refunded'
+        ? `${lead} The link payment was refunded automatically; the booking is unchanged.`
+        : `${lead} The automatic refund failed: refund ${amount} manually in the Stripe Dashboard.`
+    }
   }
 }
 

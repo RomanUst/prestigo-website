@@ -20,6 +20,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { captureBeforeIso, holdFailurePatch } from '@/lib/payments/hold'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { handlePaymentFailure } from '@/lib/payments/recovery'
+import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
 import { applyTransition, appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
@@ -89,6 +90,8 @@ export async function handleHoldAuthorized(event: Stripe.Event): Promise<void> {
       hold_placed_at: new Date().toISOString(),
       capture_before: captureBefore,
       payment_lease_until: null,
+      // 88-REVIEW T1: the hold secures the money; an earlier recovery link must not stay payable.
+      ...RECOVERY_LINK_CLEARED,
     },
     event: {
       key: `hold_authorized:${pi.id}`,
@@ -100,6 +103,7 @@ export async function handleHoldAuthorized(event: Stripe.Event): Promise<void> {
     },
   })
   if (!moved.applied && moved.duplicate !== true) return
+  await retireRecoveryLink(booking)
 
   // Same ledger key as the tick's email: whichever of the two reaches it first sends, the other is a duplicate.
   try {

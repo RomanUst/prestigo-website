@@ -30,6 +30,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { LEASE_SEARCH_AFTER_MS, LEASE_SECONDS, RETRY_DELAY_MS } from '@/lib/payments/config'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { handlePaymentFailure } from '@/lib/payments/recovery'
+import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
 import {
   appendPaymentEvent,
   applyTransition,
@@ -425,6 +426,8 @@ export async function settleBooking(
     payment_lease_until: null,
     last_payment_error: null,
     payment_failed_at: null,
+    // 88-REVIEW T1: the money is collected; a recovery link from an earlier decline must not stay payable.
+    ...RECOVERY_LINK_CLEARED,
   }
   const moved = await applyTransition({
     bookingId,
@@ -443,6 +446,7 @@ export async function settleBooking(
   if (!moved.applied && moved.duplicate !== true) {
     return SETTLED_STATES.has(moved.currentState ?? '') ? { outcome: 'noop', code: moved.currentState } : { outcome: 'busy' }
   }
+  await retireRecoveryLink(booking)
 
   try {
     await sendPaymentEmail({
