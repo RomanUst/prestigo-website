@@ -24,6 +24,7 @@ import type Stripe from 'stripe'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { appendPaymentEvent } from '@/lib/payments/state'
 import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
+import { handleHoldAuthorized, handleHoldCanceled, handleHoldFailed } from '@/lib/stripe-webhook/hold-events'
 
 /** The six event types the card flow adds to the endpoint (infra/stripe/webhook-events.mjs REQUIRED_EVENTS). */
 export const CARD_EVENT_TYPES = [
@@ -57,14 +58,18 @@ export interface PaymentEventClass {
 type EventHandler = (event: Stripe.Event) => Promise<void>
 
 /**
- * Route -> handler. This plan registers the three confirmation routes; later plans add hold_authorized,
- * pi_canceled, pi_failed (88-11 / 88-14), charge_succeeded (88-13), recovery_paid and dispute (88-14).
+ * Route -> handler. 88-09 registered the three confirmation routes; 88-11 adds the hold lifecycle routes
+ * (hold_authorized, pi_canceled, pi_failed); later plans add charge_succeeded (88-13), recovery_paid and
+ * dispute (88-14).
  * A classified route without a handler is logged and acknowledged.
  */
 export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
   setup_succeeded: handleSetupSucceeded,
   setup_failed: handleSetupFailed,
   hold_now_authorized: handleHoldNowAuthorized,
+  hold_authorized: handleHoldAuthorized,
+  pi_canceled: handleHoldCanceled,
+  pi_failed: handleHoldFailed,
 }
 
 function metadataOf(event: Stripe.Event): Record<string, unknown> {
