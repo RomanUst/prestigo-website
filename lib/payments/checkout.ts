@@ -191,6 +191,13 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
   )
   if (!si.client_secret) throw new Error('setup intent has no client secret')
 
+  // The webhook confirms the consent by this id (card-confirm ledgerGuardedEffects): store it before the secret leaves.
+  const { error: consentError } = await createSupabaseServiceClient()
+    .from('booking_payment_consents')
+    .update({ setup_intent_id: si.id })
+    .eq('id', consentId)
+  if (consentError) throw new Error('consent setup intent link failed')
+
   const moved = await applyTransition({
     bookingId: booking.id,
     from: ['none', 'checkout_pending'],

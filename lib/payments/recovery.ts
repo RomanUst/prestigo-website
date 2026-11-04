@@ -13,6 +13,7 @@
 // Pitfall 12: a recovery link is a static URL for one amount. refreshRecoveryLink therefore deactivates the link
 // it replaces, so a stale link can never charge an outdated amount.
 
+import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { sendPaymentOperatorAlert, type OperatorAlertKind } from '@/lib/payments/alerts'
 import { applyTransition, isLegalTransition, type PaymentState } from '@/lib/payments/state'
@@ -134,6 +135,18 @@ const ALERT_KIND: Record<FailurePhase, OperatorAlertKind> = {
  */
 export async function handlePaymentFailure(booking: BookingRow, input: PaymentFailureInput): Promise<void> {
   const bookingId = str(booking.id)
+  // Money-eligibility gate (assumption-delta invariant): a partner booking has no Prestigo money flow and only a
+  // card_hold booking has a recovery link; nothing below (Stripe link, client email) runs for any other booking.
+  try {
+    assertMoneyEligible({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })
+  } catch (err) {
+    if (err instanceof PartnerBookingMoneyError) {
+      console.warn('[recovery] partner booking skipped', { bookingId })
+      return
+    }
+    throw err
+  }
+  if (booking.payment_mode !== 'card_hold') return
   const kind = ALERT_KIND[input.phase]
   const tag = linkTag(input.phase, input.attempt)
 

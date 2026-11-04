@@ -347,6 +347,9 @@ export async function releaseHold(
     throw err
   }
 
+  // Only a card_hold booking has a hold or a saved card to release (a pay-now booking never leaves 'none').
+  if (booking.payment_mode !== 'card_hold') return 'noop'
+
   const state = booking.payment_state as PaymentState
   if (state === 'placing_hold' || state === 'capturing') return 'busy'
 
