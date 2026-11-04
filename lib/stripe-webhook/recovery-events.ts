@@ -282,6 +282,24 @@ async function refundDuplicatePayment(
   }
 }
 
+/**
+ * 88-REVIEW B-WR-04: the card booking a PaymentIntent was created for, read from its own metadata (kind card_*,
+ * cofBookingId). The off-session difference charge (card_difference) is only in the ledger, never in a bookings
+ * column, so a dispute or refund on it is matched this way. null when the PaymentIntent is not a card-flow object or
+ * can not be read.
+ */
+export async function cardBookingIdForPaymentIntent(paymentIntentId: string): Promise<string | null> {
+  try {
+    const pi = (await getPaymentsStripe().paymentIntents.retrieve(paymentIntentId)) as Stripe.PaymentIntent
+    const kind = typeof pi.metadata?.kind === 'string' ? pi.metadata.kind : ''
+    const bookingId = typeof pi.metadata?.cofBookingId === 'string' ? pi.metadata.cofBookingId : ''
+    return kind.startsWith('card_') && bookingId ? bookingId : null
+  } catch {
+    console.error('[webhook] payment intent lookup failed', { stripeObjectId: paymentIntentId })
+    return null
+  }
+}
+
 /** The booking(s) a disputed charge belongs to: through the charge's PaymentIntent. */
 async function findDisputedBookings(dispute: Stripe.Dispute): Promise<BookingRow[]> {
   let paymentIntentId = idOf(dispute.payment_intent)
@@ -303,6 +321,15 @@ async function findDisputedBookings(dispute: Stripe.Dispute): Promise<BookingRow
     if (error) throw new Error('dispute booking lookup failed')
     for (const row of Array.isArray(data) ? (data as BookingRow[]) : []) {
       if (!rows.some((r) => r.id === row.id)) rows.push(row)
+    }
+  }
+  if (rows.length === 0) {
+    // B-WR-04: a difference charge (or any other card PaymentIntent the row does not name) is matched by its metadata.
+    const bookingId = await cardBookingIdForPaymentIntent(paymentIntentId)
+    if (bookingId) {
+      const { data, error } = await supabase.from('bookings').select('*').eq('id', bookingId).maybeSingle()
+      if (error) throw new Error('dispute booking lookup failed')
+      if (data) rows.push(data as BookingRow)
     }
   }
   return rows

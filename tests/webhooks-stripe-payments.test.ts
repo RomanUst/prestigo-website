@@ -758,6 +758,16 @@ describe('charge.refunded on a card_hold booking (PAYF-03 observer)', () => {
     Object.assign(bookingRow(), { status: 'completed', payment_state: 'captured', payment_intent_id: 'pi_cap' })
   })
 
+  it('88-REVIEW B-WR-04: a refund of a difference charge (named by no column) is observed on its booking', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockPiRetrieve.mockResolvedValueOnce({ id: 'pi_diff', metadata: { kind: 'card_difference', cofBookingId: BOOKING_ID, attempt: '0' } })
+    const ev = refundEvent('evt_r_diff')
+    Object.assign((ev.data as { object: Record<string, unknown> }).object, { id: 'ch_diff', payment_intent: 'pi_diff', amount: 3000, amount_refunded: 3000 })
+    const { status } = await deliver(ev)
+    expect(status).toBe(200)
+    expect(ledger('refund_observed').map((e) => e.event_key)).toEqual(['refund_observed:ch_diff:3000'])
+  })
+
   it('appends one refund_observed row, runs the shipped handler and keeps the completed trip', async () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { status } = await deliver(refundEvent())
@@ -1416,6 +1426,15 @@ describe('recovery link payment and disputes (plan 88-14, HOLD-05, PAYF-03)', ()
       setBooking({ payment_state: 'captured', payment_intent_id: null, hold_payment_intent_id: 'pi_main' })
       await deliver(eventOf('charge.dispute.created', dispute(), 'evt_d3'))
       expect(operatorMails()).toHaveLength(1)
+    })
+
+    it('88-REVIEW B-WR-04: a dispute on a difference charge is matched through the PaymentIntent metadata', async () => {
+      setBooking({ payment_state: 'captured', payment_intent_id: 'pi_main' })
+      mockPiRetrieve.mockResolvedValueOnce({ id: 'pi_diff', metadata: { kind: 'card_difference', cofBookingId: BOOKING_ID, attempt: '0' } })
+      await deliver(eventOf('charge.dispute.created', dispute({ id: 'dp_diff', payment_intent: 'pi_diff', amount: 3000 }), 'evt_d6'))
+      expect(mockPiRetrieve).toHaveBeenCalledWith('pi_diff')
+      expect(operatorMails()).toHaveLength(1)
+      expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:dispute:${BOOKING_ID}:dp_diff`])
     })
 
     it('a dispute that belongs to no card booking is acknowledged without an alert', async () => {

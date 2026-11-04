@@ -26,7 +26,7 @@ import { appendPaymentEvent } from '@/lib/payments/state'
 import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
 import { handleCardChargeFailed, handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
 import { handleHoldAuthorized, handleHoldCanceled, handleHoldFailed } from '@/lib/stripe-webhook/hold-events'
-import { handleDispute, handleRecoveryPaid } from '@/lib/stripe-webhook/recovery-events'
+import { cardBookingIdForPaymentIntent, handleDispute, handleRecoveryPaid } from '@/lib/stripe-webhook/recovery-events'
 
 /** The six event types the card flow adds to the endpoint (infra/stripe/webhook-events.mjs REQUIRED_EVENTS). */
 export const CARD_EVENT_TYPES = [
@@ -185,11 +185,20 @@ async function observeRefund(event: Stripe.Event): Promise<void> {
       : ((charge.payment_intent as { id?: string } | null)?.id ?? null)
   if (!paymentIntentId || !charge.id) return
 
-  const { data } = await createSupabaseServiceClient()
+  const supabase = createSupabaseServiceClient()
+  const { data } = await supabase
     .from('bookings')
     .select('id, payment_mode')
     .eq('payment_intent_id', paymentIntentId)
-  const rows = Array.isArray(data) ? (data as Array<{ id: string; payment_mode?: string | null }>) : []
+  let rows = Array.isArray(data) ? (data as Array<{ id: string; payment_mode?: string | null }>) : []
+  if (rows.length === 0) {
+    // 88-REVIEW B-WR-04: a refund of a difference charge (only in the ledger) is matched through the PaymentIntent.
+    const bookingId = await cardBookingIdForPaymentIntent(paymentIntentId)
+    if (bookingId) {
+      const { data: byId } = await supabase.from('bookings').select('id, payment_mode').eq('id', bookingId)
+      rows = Array.isArray(byId) ? (byId as Array<{ id: string; payment_mode?: string | null }>) : []
+    }
+  }
   const currency = charge.currency === 'czk' ? 'czk' : charge.currency === 'eur' ? 'eur' : undefined
   for (const row of rows.filter((r) => r.payment_mode === 'card_hold')) {
     await appendPaymentEvent(row.id, {
