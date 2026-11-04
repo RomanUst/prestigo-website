@@ -731,6 +731,212 @@ describe('charge.refunded on a card_hold booking (PAYF-03 observer)', () => {
   })
 })
 
+// ── Plan 88-11: scheduled hold lifecycle (HOLD-02, PAYF-03) ───────────────────────────────────────────────
+
+describe('hold lifecycle events (88-11)', () => {
+  const PI_ID = 'pi_hold_1'
+  const CAPTURE_BEFORE_S = Math.floor(Date.now() / 1000) + 6 * 24 * 3600
+
+  function holdPi(over: Record<string, unknown> = {}, metadata: Record<string, string> = {}) {
+    return {
+      id: PI_ID,
+      object: 'payment_intent',
+      status: 'requires_capture',
+      amount: 10000,
+      amount_capturable: 10000,
+      currency: 'eur',
+      cancellation_reason: null,
+      latest_charge: { id: 'ch_1', payment_method_details: { card: { capture_before: CAPTURE_BEFORE_S } } },
+      metadata: { kind: 'card_hold', cofBookingId: BOOKING_ID, attempt: '0', bookingReference: REF, ...metadata },
+      ...over,
+    }
+  }
+
+  function setBooking(over: Record<string, unknown>) {
+    Object.assign(bookingRow(), { status: 'confirmed', payment_lease_until: null, ...over })
+  }
+
+  const capturable = (id = 'evt_c1', over: Record<string, unknown> = {}, metadata: Record<string, string> = {}) =>
+    eventOf('payment_intent.amount_capturable_updated', holdPi(over, metadata), id)
+  const canceled = (reason: string | null, id = 'evt_x1') =>
+    eventOf('payment_intent.canceled', holdPi({ status: 'canceled', amount_capturable: 0, cancellation_reason: reason }), id)
+  const failedEvent = (id = 'evt_f1', metadata: Record<string, string> = {}) =>
+    eventOf(
+      'payment_intent.payment_failed',
+      holdPi(
+        {
+          status: 'requires_payment_method',
+          amount_capturable: 0,
+          last_payment_error: { code: 'card_declined', decline_code: 'insufficient_funds' },
+        },
+        metadata,
+      ),
+      id,
+    )
+
+  describe('payment_intent.amount_capturable_updated (card_hold)', () => {
+    it('a booking still in placing_hold (lost synchronous response) becomes authorized with the hold fields and one email', async () => {
+      setBooking({ payment_state: 'placing_hold', payment_lease_until: new Date(Date.now() + 300_000).toISOString() })
+      const { status } = await deliver(capturable())
+      expect(status).toBe(200)
+      const b = bookingRow()
+      expect(b.payment_state).toBe('authorized')
+      expect(b.hold_payment_intent_id).toBe(PI_ID)
+      expect(b.hold_amount_minor).toBe(10000)
+      expect(b.capture_before).toBe(new Date(CAPTURE_BEFORE_S * 1000).toISOString())
+      expect(b.payment_lease_until).toBeNull()
+      expect(b.payment_intent_id).toBeNull()
+      expect(ledger('hold_authorized')).toHaveLength(1)
+      expect(ledger('hold_authorized')[0].event_key).toBe(`hold_authorized:${PI_ID}`)
+      expect(ledger('hold_authorized')[0].actor_type).toBe('webhook')
+      expect(mockResendSend).toHaveBeenCalledTimes(1)
+    })
+
+    it('the same PaymentIntent again (new event id) changes nothing and sends no second email', async () => {
+      setBooking({ payment_state: 'placing_hold' })
+      await deliver(capturable('evt_c1'))
+      await deliver(capturable('evt_c2'))
+      expect(ledger('hold_authorized')).toHaveLength(1)
+      expect(mockResendSend).toHaveBeenCalledTimes(1)
+    })
+
+    it('an already authorized booking is left alone: no change, no second ledger row', async () => {
+      setBooking({ payment_state: 'authorized', hold_payment_intent_id: PI_ID, hold_amount_minor: 10000 })
+      await deliver(capturable())
+      expect(bookingRow().payment_state).toBe('authorized')
+      expect(ledger()).toHaveLength(0)
+      expect(mockResendSend).not.toHaveBeenCalled()
+    })
+
+    it('an event of an earlier attempt does not authorize the current one', async () => {
+      setBooking({ payment_state: 'placing_hold', hold_attempts: 2 })
+      await deliver(capturable('evt_c1', {}, { attempt: '1' }))
+      expect(bookingRow().payment_state).toBe('placing_hold')
+      expect(ledger()).toHaveLength(0)
+    })
+
+    it('a hold-now PaymentIntent (card_hold_now) is not handled here', async () => {
+      setBooking({ payment_state: 'placing_hold' })
+      await deliver(capturable('evt_c1', {}, { kind: 'card_hold_now' }))
+      expect(bookingRow().payment_state).toBe('placing_hold')
+    })
+  })
+
+  describe('payment_intent.canceled', () => {
+    it.each(['expired', 'automatic'])('reason %s on the current hold of an authorized booking -> expired with a hold_expired row', async (reason) => {
+      setBooking({ payment_state: 'authorized', hold_payment_intent_id: PI_ID, hold_amount_minor: 10000 })
+      const { status } = await deliver(canceled(reason))
+      expect(status).toBe(200)
+      expect(bookingRow().payment_state).toBe('expired')
+      expect(ledger('hold_expired')).toHaveLength(1)
+      expect(ledger('hold_expired')[0].event_key).toBe(`hold_expired:${PI_ID}`)
+    })
+
+    it('a replay of the expiry changes nothing more', async () => {
+      setBooking({ payment_state: 'authorized', hold_payment_intent_id: PI_ID })
+      await deliver(canceled('expired', 'evt_x1'))
+      await deliver(canceled('expired', 'evt_x2'))
+      expect(ledger('hold_expired')).toHaveLength(1)
+      expect(bookingRow().payment_state).toBe('expired')
+    })
+
+    it("a PaymentIntent that is not the booking's current hold is a ledger-free no-op", async () => {
+      setBooking({ payment_state: 'authorized', hold_payment_intent_id: 'pi_other' })
+      await deliver(canceled('expired'))
+      expect(bookingRow().payment_state).toBe('authorized')
+      expect(ledger()).toHaveLength(0)
+    })
+
+    it('reason requested_by_customer (our own release) changes no state, at most one observation row', async () => {
+      setBooking({ payment_state: 'released', hold_payment_intent_id: PI_ID })
+      await deliver(canceled('requested_by_customer', 'evt_x1'))
+      await deliver(canceled('requested_by_customer', 'evt_x2'))
+      expect(bookingRow().payment_state).toBe('released')
+      expect(ledger('hold_released')).toHaveLength(1)
+      expect(ledger('hold_released')[0].event_key).toBe(`hold_released_obs:${PI_ID}`)
+    })
+
+    it('requested_by_customer on a still authorized booking does not move it (releaseHold owns the state)', async () => {
+      setBooking({ payment_state: 'authorized', hold_payment_intent_id: PI_ID })
+      await deliver(canceled('requested_by_customer'))
+      expect(bookingRow().payment_state).toBe('authorized')
+    })
+
+    it('an expiry for a booking that is no longer authorized never moves it', async () => {
+      setBooking({ payment_state: 'released', hold_payment_intent_id: PI_ID })
+      await deliver(canceled('expired'))
+      expect(bookingRow().payment_state).toBe('released')
+      expect(ledger('hold_expired')).toHaveLength(0)
+    })
+  })
+
+  describe('payment_intent.payment_failed (card_hold)', () => {
+    it('a placing_hold booking fails with the same patch as the synchronous failure', async () => {
+      setBooking({ payment_state: 'placing_hold', payment_lease_until: new Date(Date.now() + 300_000).toISOString() })
+      const before = Date.now()
+      await deliver(failedEvent())
+      const b = bookingRow()
+      expect(b.payment_state).toBe('failed')
+      expect(b.hold_attempts).toBe(1)
+      expect(b.last_payment_error).toBe('insufficient_funds')
+      expect(b.payment_lease_until).toBeNull()
+      expect(Date.parse(b.payment_failed_at as string)).toBeGreaterThanOrEqual(before - 1000)
+      expect(typeof b.payment_retry_at).toBe('string')
+      expect(ledger('hold_failed')).toHaveLength(1)
+      expect(ledger('hold_failed')[0].event_key).toBe(`hold_failed:${PI_ID}:0`)
+    })
+
+    it('a booking that already failed or was authorized is left alone', async () => {
+      setBooking({ payment_state: 'failed', hold_attempts: 1, last_payment_error: 'card_declined' })
+      await deliver(failedEvent('evt_f1'))
+      expect(bookingRow().payment_state).toBe('failed')
+      expect(bookingRow().hold_attempts).toBe(1)
+      setBooking({ payment_state: 'authorized', hold_payment_intent_id: PI_ID })
+      await deliver(failedEvent('evt_f2'))
+      expect(bookingRow().payment_state).toBe('authorized')
+      expect(ledger()).toHaveLength(0)
+    })
+
+    it('a failed hold-now PaymentIntent (card_hold_now) is not handled here', async () => {
+      setBooking({ payment_state: 'placing_hold' })
+      await deliver(failedEvent('evt_f1', { kind: 'card_hold_now' }))
+      expect(bookingRow().payment_state).toBe('placing_hold')
+    })
+  })
+
+  describe('no backwards transitions', () => {
+    it.each([
+      ['capturable', () => capturable()],
+      ['expired', () => canceled('expired')],
+      ['automatic', () => canceled('automatic')],
+      ['failed', () => failedEvent()],
+    ])('a %s event for a captured booking never moves it', async (_name, make) => {
+      setBooking({ payment_state: 'captured', hold_payment_intent_id: PI_ID, payment_intent_id: 'pi_cap' })
+      const { status } = await deliver(make())
+      expect(status).toBe(200)
+      expect(bookingRow().payment_state).toBe('captured')
+      expect(ledger('hold_authorized')).toHaveLength(0)
+      expect(ledger('hold_expired')).toHaveLength(0)
+      expect(ledger('hold_failed')).toHaveLength(0)
+    })
+  })
+
+  it('a hold event for a partner booking is ignored', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    setBooking({ payment_state: 'placing_hold', booking_source: 'gnet' })
+    await deliver(capturable())
+    expect(bookingRow().payment_state).toBe('placing_hold')
+    expect(ledger()).toHaveLength(0)
+  })
+
+  it('the hold-events source never names the card-flow settings (D-09a)', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '..', 'lib/stripe-webhook/hold-events.ts'), 'utf8')
+    expect(src).not.toMatch(/card_flow_mode|card_flow_canary_emails|payment_hold_lead_hours|getPaymentSettings/)
+    expect(src).toMatch(/'expired'/)
+    expect(src).toMatch(/'automatic'/)
+  })
+})
+
 describe('event list parity (PAYF-04)', () => {
   const subscribed = new Set<string>([...REQUIRED_EVENTS, ...KEPT_EVENTS])
 
