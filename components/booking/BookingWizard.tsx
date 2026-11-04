@@ -21,7 +21,7 @@ import Step3Vehicle from './steps/Step3Vehicle'
 import Step3Auth from './steps/Step3Auth'
 import Step4Extras from './steps/Step4Extras'
 import Step5Passenger from './steps/Step5Passenger'
-import Step6Payment from './steps/Step6Payment'
+import Step6Checkout from './steps/Step6Checkout'
 
 export default function BookingWizard() {
   const t = useTranslations('Booking.bookingWizard')
@@ -241,7 +241,7 @@ export default function BookingWizard() {
       case 5:
         return <Step5Passenger />
       case 6:
-        return <Step6Payment />
+        return <Step6Checkout />
       default:
         return <StepStub step={currentStep} />
     }
