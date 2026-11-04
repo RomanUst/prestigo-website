@@ -46,6 +46,9 @@ vi.mock('@/lib/payments/recovery', () => ({ handlePaymentFailure: mockFailure, r
 vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: mockDeactivateLink }))
 
 import { GET, POST } from '@/app/api/admin/bookings/[id]/payment/route'
+import { allowedPaymentActions, runPaymentAction, type PaymentAction } from '@/lib/payments/actions'
+import { settleBooking } from '@/lib/payments/settle'
+import { PAYMENT_STATES } from '@/lib/payments/state'
 
 const ID = '77777777-7777-4777-8777-777777777777'
 const HOUR = 3_600_000
@@ -485,4 +488,367 @@ describe('tracer: POST capture runs settleBooking with the admin actor (HOLD-07,
     expect(res.status).toBe(200)
     expect(fake.callsTo('paymentIntents.capture')[0].params).toEqual({ amount_to_capture: 9000 })
   })
+})
+
+// ── Task 2: the full action matrix, retry / release / waive / send_link, concurrency and replay ──────────────
+
+/** Not-yet-completed card booking with a saved card and a pickup three days ahead. */
+function seedUpcoming(over: Record<string, unknown> = {}) {
+  seed({
+    status: 'confirmed',
+    completed_at: null,
+    pickup_utc: new Date(Date.now() + 72 * HOUR).toISOString(),
+    payment_state: 'card_saved',
+    hold_payment_intent_id: null,
+    hold_amount_minor: null,
+    hold_at: new Date(Date.now() - 60_000).toISOString(),
+    ...over,
+  })
+}
+
+const adminRows = () => ledger('admin_action')
+
+describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Actions)', () => {
+  // state: [actions while the trip is not completed, actions once it is completed]
+  const EXPECTED: Record<string, { open: PaymentAction[]; done: PaymentAction[] }> = {
+    none: { open: [], done: [] },
+    checkout_pending: { open: ['release'], done: [] },
+    card_saved: { open: ['retry', 'release'], done: ['capture', 'retry', 'send_link'] },
+    placing_hold: { open: [], done: [] },
+    authorized: { open: ['release'], done: ['capture', 'send_link'] },
+    capturing: { open: [], done: [] },
+    captured: { open: [], done: [] },
+    balance_due: { open: ['waive', 'send_link'], done: ['waive', 'send_link'] },
+    failed: { open: ['retry', 'release', 'send_link'], done: ['capture', 'retry', 'send_link'] },
+    expired: { open: ['retry', 'release'], done: ['capture', 'retry', 'send_link'] },
+    released: { open: [], done: [] },
+  }
+
+  it('covers every payment state', () => {
+    expect(Object.keys(EXPECTED).sort()).toEqual([...PAYMENT_STATES].sort())
+  })
+
+  for (const state of PAYMENT_STATES) {
+    it(`card_hold + ${state}: not completed -> [${EXPECTED[state].open}], completed -> [${EXPECTED[state].done}]`, () => {
+      expect(allowedPaymentActions({ payment_mode: 'card_hold', payment_state: state, status: 'confirmed' })).toEqual(EXPECTED[state].open)
+      expect(allowedPaymentActions({ payment_mode: 'card_hold', payment_state: state, status: 'completed' })).toEqual(EXPECTED[state].done)
+    })
+
+    it(`pay_now + ${state}: nothing, completed or not`, () => {
+      expect(allowedPaymentActions({ payment_mode: 'pay_now', payment_state: state, status: 'confirmed' })).toEqual([])
+      expect(allowedPaymentActions({ payment_mode: 'pay_now', payment_state: state, status: 'completed' })).toEqual([])
+    })
+  }
+
+  it('a partner (gnet) booking has no actions', () => {
+    expect(
+      allowedPaymentActions({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'completed', booking_source: 'gnet' }),
+    ).toEqual([])
+  })
+
+  it('HOLD-07 adjacency: capture is offered for authorized but not for capturing or captured; release is gone once completed', () => {
+    const done = (payment_state: string) => allowedPaymentActions({ payment_mode: 'card_hold', payment_state, status: 'completed' })
+    expect(done('authorized')).toContain('capture')
+    expect(done('capturing')).not.toContain('capture')
+    expect(done('captured')).not.toContain('capture')
+    expect(done('authorized')).not.toContain('release')
+  })
+})
+
+describe('POST retry (HOLD-07, D-02, D-13)', () => {
+  it('before completion in card_saved -> claim + placeHold -> authorized -> ok, hold placed once with the admin actor', async () => {
+    seedUpcoming()
+    const res = await postReq({ action: 'retry' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'ok' })
+    expect(row().payment_state).toBe('authorized')
+    expect(row().hold_amount_minor).toBe(12000)
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates).toHaveLength(1)
+    expect(creates[0].params).toMatchObject({ amount: 12000, capture_method: 'manual', off_session: true, confirm: true })
+    expect(creates[0].idempotencyKey).toBe(`hold:${ID}:0`)
+
+    expect(adminRows()).toHaveLength(1)
+    expect(adminRows()[0].actor_id).toBe(ADMIN_ID)
+    expect(ledger('hold_started')[0].actor_type).toBe('admin')
+    expect(ledger('hold_authorized')[0].actor_id).toBe(ADMIN_ID)
+  })
+
+  it('works from expired and failed too', async () => {
+    seedUpcoming({ payment_state: 'expired' })
+    expect((await postReq({ action: 'retry' })).status).toBe(200)
+    expect(row().payment_state).toBe('authorized')
+
+    seedUpcoming({ payment_state: 'failed', last_payment_error: 'card_declined' })
+    expect((await postReq({ action: 'retry' })).status).toBe(200)
+    expect(row().payment_state).toBe('authorized')
+  })
+
+  it('placeHold declined -> 200 declined and the row is failed', async () => {
+    seedUpcoming({ stripe_payment_method_id: 'pm_decline_insufficient' })
+    const res = await postReq({ action: 'retry' })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'declined' })
+    expect(row().payment_state).toBe('failed')
+    expect(mockFailure).toHaveBeenCalledTimes(1)
+  })
+
+  it('placeHold transient -> 409 payment_busy and the row is back in card_saved with the same attempt', async () => {
+    seedUpcoming()
+    fake.failNextWith('paymentIntents.create', 'connection')
+    const res = await postReq({ action: 'retry' })
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'payment_busy' })
+    expect(row().payment_state).toBe('card_saved')
+    expect(row().hold_attempts).toBe(0)
+  })
+
+  it('claimForHold not applied (a worker holds the row) -> 409 and no Stripe call', async () => {
+    // The route's copy of the row says card_saved; the database row is already being placed by the tick.
+    seedUpcoming({ payment_state: 'placing_hold', payment_lease_until: new Date(Date.now() + 300_000).toISOString() })
+    const stale = { ...row(), payment_state: 'card_saved' }
+    const res = await runPaymentAction(stale, 'retry', { id: ADMIN_ID })
+    expect(res).toEqual({ status: 409, error: 'payment_busy' })
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it('the pickup has passed -> nothing is placed: 422 and the row is back in card_saved', async () => {
+    seedUpcoming({ pickup_utc: new Date(Date.now() - HOUR).toISOString() })
+    const res = await postReq({ action: 'retry' })
+    expect(res.status).toBe(422)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row().payment_state).toBe('card_saved')
+  })
+
+  it('after completion in failed -> settleBooking: collected -> ok', async () => {
+    seed({ payment_state: 'failed', hold_payment_intent_id: null, last_payment_error: 'card_declined' })
+    const res = await postReq({ action: 'retry' })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'ok' })
+    expect(row().payment_state).toBe('captured')
+    const charges = fake.callsTo('paymentIntents.create')
+    expect(charges).toHaveLength(1)
+    expect(charges[0].params).toMatchObject({ amount: 12000, off_session: true, confirm: true })
+    expect(ledger('capture_started')[0].actor_id).toBe(ADMIN_ID)
+    expect(adminRows()).toHaveLength(1)
+  })
+
+  it('after completion in failed -> settleBooking: declined again -> 200 declined', async () => {
+    seed({ payment_state: 'failed', hold_payment_intent_id: null, stripe_payment_method_id: 'pm_decline_insufficient' })
+    const res = await postReq({ action: 'retry' })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'declined' })
+    expect(row().payment_state).toBe('failed')
+    expect(row().charge_attempts).toBe(1)
+  })
+})
+
+describe('POST release and waive (HOLD-07, D-04)', () => {
+  it('release an authorized hold before completion -> hold cancelled at Stripe, released, ok', async () => {
+    const holdId = await seedWithHold({ status: 'confirmed', completed_at: null, pickup_utc: new Date(Date.now() + 72 * HOUR).toISOString() })
+    const res = await postReq({ action: 'release' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'ok' })
+    expect(row().payment_state).toBe('released')
+    const cancels = fake.callsTo('paymentIntents.cancel')
+    expect(cancels).toHaveLength(1)
+    expect(cancels[0].targetId).toBe(holdId)
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
+
+    expect(ledger('hold_released')).toHaveLength(1)
+    expect(ledger('hold_released')[0].actor_id).toBe(ADMIN_ID)
+    expect(adminRows()).toHaveLength(1)
+    expect(adminRows()[0].actor_id).toBe(ADMIN_ID)
+  })
+
+  it('release a card_saved booking -> released without a Stripe call', async () => {
+    seedUpcoming()
+    const res = await postReq({ action: 'release' })
+    expect(res.status).toBe(200)
+    expect(row().payment_state).toBe('released')
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it('release on a completed booking -> 422 and the hold is untouched', async () => {
+    await seedWithHold()
+    const res = await postReq({ action: 'release' })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed' })
+    expect(row().payment_state).toBe('authorized')
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect(adminRows()).toHaveLength(0)
+  })
+
+  it('release while a worker holds the row -> 409 payment_busy', async () => {
+    seedUpcoming({ payment_state: 'placing_hold', payment_lease_until: new Date(Date.now() + 300_000).toISOString() })
+    const res = await runPaymentAction(row(), 'release', { id: ADMIN_ID })
+    expect(res).toEqual({ status: 409, error: 'payment_busy' })
+  })
+
+  it('release of an already-settled row -> 422 (noop)', async () => {
+    seedUpcoming({ payment_state: 'captured', captured_amount_minor: 12000 })
+    const res = await runPaymentAction(row(), 'release', { id: ADMIN_ID })
+    expect(res).toEqual({ status: 422, error: 'action_not_allowed' })
+  })
+
+  it('waive a balance_due -> released with a waived ledger row, ok', async () => {
+    seed({ payment_state: 'balance_due', payment_amount_minor: 15000, captured_amount_minor: 12000 })
+    const res = await postReq({ action: 'waive' })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'ok' })
+    expect(row().payment_state).toBe('released')
+    expect(ledger('waived')).toHaveLength(1)
+    expect(ledger('waived')[0].actor_id).toBe(ADMIN_ID)
+    expect(fake.calls).toHaveLength(0)
+    expect(adminRows()).toHaveLength(1)
+  })
+
+  it('waive on a booking that is not in balance_due -> 422', async () => {
+    await seedWithHold()
+    expect((await postReq({ action: 'waive' })).status).toBe(422)
+  })
+})
+
+describe('POST send_link (HOLD-07, D-14, Pitfall 12)', () => {
+  it('failed, due 12000, captured 0 -> link for 12000 with an admin- tag, then the payment_failed email', async () => {
+    seed({ payment_state: 'failed', hold_payment_intent_id: null, last_payment_error: 'card_declined' })
+    const res = await postReq({ action: 'send_link' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'ok' })
+    expect(mockRefreshLink).toHaveBeenCalledTimes(1)
+    const [linkBooking, amount, tag] = mockRefreshLink.mock.calls[0]
+    expect(linkBooking.id).toBe(ID)
+    expect(amount).toBe(12000)
+    expect(String(tag)).toMatch(/^admin-\d+$/)
+
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+    const mail = mockSendEmail.mock.calls[0][0]
+    expect(mail.kind).toBe('payment_failed')
+    expect(mail.variant).toBe('declined')
+    expect(mail.eventKey).toBe(`email:payment_failed:${ID}:admin:${tag}`)
+    expect(mail.payUrl).toBe('https://pay.example/recovery')
+    expect(mail.booking.payment_amount_minor).toBe(12000)
+    expect(adminRows()).toHaveLength(1)
+    expect(adminRows()[0].actor_id).toBe(ADMIN_ID)
+  })
+
+  it('balance_due, due 15000, captured 12000 -> link for the 3000 still owed', async () => {
+    seed({ payment_state: 'balance_due', payment_amount_minor: 15000, captured_amount_minor: 12000 })
+    const res = await postReq({ action: 'send_link' })
+    expect(res.status).toBe(200)
+    expect(mockRefreshLink.mock.calls[0][1]).toBe(3000)
+    expect(mockSendEmail.mock.calls[0][0].booking.payment_amount_minor).toBe(3000)
+  })
+
+  it('a completed trip still in authorized may be sent a link; an upcoming one in authorized may not', async () => {
+    await seedWithHold()
+    expect((await postReq({ action: 'send_link' })).status).toBe(200)
+
+    await seedWithHold({ status: 'confirmed', completed_at: null })
+    expect((await postReq({ action: 'send_link' })).status).toBe(422)
+  })
+
+  it('no link could be created -> 502 link_failed and no email', async () => {
+    seed({ payment_state: 'failed', hold_payment_intent_id: null })
+    mockRefreshLink.mockResolvedValue(null)
+    const res = await postReq({ action: 'send_link' })
+    expect(res.status).toBe(502)
+    expect(await res.json()).toEqual({ error: 'link_failed' })
+    expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+
+  it('the email could not be sent -> 502 email_failed', async () => {
+    seed({ payment_state: 'failed', hold_payment_intent_id: null })
+    mockSendEmail.mockResolvedValue('failed')
+    const res = await postReq({ action: 'send_link' })
+    expect(res.status).toBe(502)
+    expect(await res.json()).toEqual({ error: 'email_failed' })
+  })
+
+  it('nothing is owed -> 422 and no link', async () => {
+    seed({ payment_state: 'failed', hold_payment_intent_id: null, captured_amount_minor: 12000 })
+    const res = await postReq({ action: 'send_link' })
+    expect(res.status).toBe(422)
+    expect(mockRefreshLink).not.toHaveBeenCalled()
+  })
+})
+
+describe('concurrency and replay (T-88-49)', () => {
+  it('two concurrent capture calls on one booking -> exactly one Stripe capture, one 200 and one 409', async () => {
+    await seedWithHold()
+    const [a, b] = await Promise.all([postReq({ action: 'capture' }), postReq({ action: 'capture' })])
+
+    expect([a.status, b.status].sort()).toEqual([200, 409])
+    const loser = a.status === 409 ? a : b
+    expect(await loser.json()).toEqual({ error: 'payment_busy' })
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(1)
+    expect(row().payment_state).toBe('captured')
+    expect(row().captured_amount_minor).toBe(12000)
+    expect(ledger('captured')).toHaveLength(1)
+    expect(adminRows().length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('an admin capture racing the completion consumer produces one Stripe capture', async () => {
+    await seedWithHold()
+    const [res, other] = await Promise.all([
+      postReq({ action: 'capture' }),
+      settleBooking(ID, { type: 'system', id: 'completion_event' }),
+    ])
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(1)
+    expect(row().payment_state).toBe('captured')
+    // Exactly one of the two collected; the other lost the CAS claim.
+    expect([res.status === 200, other.outcome === 'captured'].filter(Boolean)).toHaveLength(1)
+    // The loser answers 409 while the winner is mid-flight, or 422 when the winner had already finished.
+    expect([200, 409, 422]).toContain(res.status)
+  })
+
+  it('a capture whose settle is transient answers 409 and the sweep finishes it with the same idempotency key', async () => {
+    await seedWithHold()
+    fake.failNextWith('paymentIntents.capture', 'connection')
+    expect((await postReq({ action: 'capture' })).status).toBe(409)
+    expect(row().payment_state).toBe('capturing')
+
+    // The lease runs out; the sweep (a system settle) re-claims with the same attempt number.
+    db.state.nowMs += 400_000
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    const swept = await settleBooking(ID, { type: 'system', id: 'payment_tick' })
+    expect(swept.outcome).toBe('captured')
+    const captures = fake.callsTo('paymentIntents.capture')
+    expect(new Set(captures.map((c) => c.idempotencyKey))).toEqual(new Set([`cap:${ID}:0`]))
+    const received = [...fake.state.paymentIntents.values()].reduce((sum, pi) => sum + (pi.amount_received as number), 0)
+    expect(received).toBe(12000)
+  })
+
+  it('a repeated capture after success is a 422 with no Stripe call', async () => {
+    await seedWithHold()
+    expect((await postReq({ action: 'capture' })).status).toBe(200)
+    const before = fake.calls.length
+    const again = await postReq({ action: 'capture' })
+    expect(again.status).toBe(422)
+    expect(fake.calls.length).toBe(before)
+  })
+})
+
+describe('every action records exactly one admin_action row with the admin id (T-88-48)', () => {
+  const cases: Array<[PaymentAction, () => Promise<void> | void]> = [
+    ['capture', async () => { await seedWithHold() }],
+    ['retry', () => seedUpcoming()],
+    ['release', () => seedUpcoming()],
+    ['waive', () => seed({ payment_state: 'balance_due', payment_amount_minor: 15000, captured_amount_minor: 12000 })],
+    ['send_link', () => seed({ payment_state: 'failed', hold_payment_intent_id: null })],
+  ]
+  for (const [action, setup] of cases) {
+    it(action, async () => {
+      await setup()
+      const res = await postReq({ action })
+      expect(res.status).toBe(200)
+      expect(adminRows()).toHaveLength(1)
+      expect(adminRows()[0].actor_type).toBe('admin')
+      expect(adminRows()[0].actor_id).toBe(ADMIN_ID)
+      expect(String(adminRows()[0].event_key)).toMatch(new RegExp(`^admin:${action}:${ID}:\\d+$`))
+    })
+  }
 })

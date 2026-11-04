@@ -12,7 +12,10 @@
 
 import { isPartnerBooking } from '@/lib/booking-status'
 import { pickupInstantMs } from '@/lib/prague-date'
+import { claimForHold, placeHold, releaseHold } from '@/lib/payments/hold'
+import { refreshRecoveryLink } from '@/lib/payments/recovery'
 import { settleBooking, type SettleResult } from '@/lib/payments/settle'
+import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 type BookingRow = Record<string, unknown>
@@ -136,7 +139,56 @@ export async function runPaymentAction(
   switch (action) {
     case 'capture':
       return fromSettle(await settleBooking(bookingId, actor))
-    default:
-      return NOT_ALLOWED
+
+    case 'retry': {
+      // After the trip: re-run the charge (the settle claims the row with its own CAS and attempt-numbered keys).
+      if (isCompleted(booking)) return fromSettle(await settleBooking(bookingId, actor))
+
+      // Before the trip: "place hold now" (D-02). claimForHold is the CAS: a row the tick or another operator already
+      // took is not applied and answers busy; placeHold then runs on the claimed row only.
+      const claim = await claimForHold(bookingId, actor)
+      if (!claim.applied) return BUSY
+      const placed = await placeHold({ ...booking, ...(claim.booking ?? {}) }, actor)
+      switch (placed.outcome) {
+        case 'authorized':
+          return { status: 200, outcome: 'ok' }
+        case 'failed':
+          return { status: 200, outcome: 'declined' }
+        case 'transient':
+          return BUSY
+        default:
+          // skipped: the pickup passed or is unknown, partner booking, state moved. Nothing was placed.
+          return NOT_ALLOWED
+      }
+    }
+
+    case 'release':
+    case 'waive': {
+      // D-04: release is the canary cancel path (no money taken); waive writes off a balance_due.
+      const released = await releaseHold(booking, { actor, reason: action === 'waive' ? 'waive' : 'operator' })
+      if (released === 'released') return { status: 200, outcome: 'ok' }
+      return released === 'busy' ? BUSY : NOT_ALLOWED
+    }
+
+    case 'send_link': {
+      // The outstanding amount comes from the row only (Pitfall 12: a link is a static URL for one amount).
+      const dueMinor = (num(booking.payment_amount_minor) ?? 0) - (num(booking.captured_amount_minor) ?? 0)
+      if (!Number.isInteger(dueMinor) || dueMinor <= 0) return NOT_ALLOWED
+
+      const tag = `admin-${Date.now()}`
+      const link = await refreshRecoveryLink(booking, dueMinor, tag)
+      if (!link) return { status: 502, error: 'link_failed' }
+
+      const sent = await sendPaymentEmail({
+        kind: 'payment_failed',
+        variant: 'declined',
+        // The email shows the outstanding amount, not the booking total (same as the automatic failure email).
+        booking: { ...booking, payment_amount_minor: dueMinor },
+        eventKey: `email:payment_failed:${bookingId}:admin:${tag}`,
+        payUrl: link.url,
+      })
+      if (sent === 'failed') return { status: 502, error: 'email_failed' }
+      return { status: 200, outcome: 'ok' }
+    }
   }
 }
