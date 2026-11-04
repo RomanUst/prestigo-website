@@ -51,6 +51,28 @@ export function latestFunctionBody(name: string): string {
   return found
 }
 
+/**
+ * Values of the last `<constraintName> CHECK (<column> IN (...))` in filename order (Phase 88:
+ * payment_state, payment_mode and ledger kind lists are pinned to TypeScript the same way as the
+ * booking status list). Quoted lowercase literals only. Throws when no migration defines it.
+ */
+export function latestCheckValues(constraintName: string, column: string): string[] {
+  let values: string[] | null = null
+  const re = new RegExp(
+    `${constraintName}\\s+CHECK\\s*\\(\\s*${column}\\s+IN\\s*\\(([\\s\\S]*?)\\)\\s*\\)`,
+    'g',
+  )
+  for (const file of migrationFiles()) {
+    const sql = loadMigration(file)
+    let m: RegExpExecArray | null
+    while ((m = re.exec(sql)) !== null) {
+      values = [...m[1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1])
+    }
+  }
+  if (values === null) throw new Error(`${constraintName} is not defined in any migration`)
+  return values
+}
+
 /** Values of the last `bookings_status_check CHECK (status IN (...))` in filename order. */
 export function latestStatusCheckValues(): string[] {
   let values: string[] | null = null
