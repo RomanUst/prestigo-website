@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { formatMinor } from '@/lib/payments/money'
+import { formatPragueFull } from '@/components/admin/PaymentPanel'
 
 // AddressInput is a next-intl consumer; the trip-edit panel mounts it when edit mode opens.
 vi.mock('@/components/booking/AddressInput', () => ({
@@ -1663,16 +1664,36 @@ describe('BookingsTable card payments: list badge, cancel variant, refund failed
     ).toBeDefined()
   })
 
-  it('trip edit hold_released shows the moved-pickup message with the new hold date in Prague time', async () => {
+  it('trip edit hold_released shows the moved-pickup message with the new hold instant in Prague time', async () => {
     stubCardFetch([cardBooking()], {
-      patch: { ok: true, status: 200, body: { booking: {}, payment_effect: { kind: 'hold_released', currency: 'eur', hold_date_iso: '2026-11-12T13:05:00Z' } } },
+      patch: { ok: true, status: 200, body: { booking: {}, payment_effect: { kind: 'hold_released', currency: 'eur', hold_date_iso: '2099-11-12', hold_at_iso: '2099-11-12T13:05:00Z' } } },
     })
     await renderTable()
     await expandDesktop('PRE-CARD')
     await saveDateTime()
     expect(
-      await screen.findByText('Pickup moved. The current hold was released. A new hold is placed on Thu 12 Nov, 14:05.'),
+      await screen.findByText(`Pickup moved. The current hold was released. A new hold is placed on ${formatPragueFull('2099-11-12T13:05:00Z')}.`),
     ).toBeDefined()
+  })
+
+  it('88-REVIEW C-WR-06: a date-only hold_date_iso is shown without a made-up time', async () => {
+    stubCardFetch([cardBooking()], {
+      patch: { ok: true, status: 200, body: { booking: {}, payment_effect: { kind: 'hold_released', currency: 'eur', hold_date_iso: '2026-11-12' } } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    expect(await screen.findByText('Pickup moved. The current hold was released. A new hold is placed on Thu 12 Nov.')).toBeDefined()
+  })
+
+  it('88-REVIEW C-WR-06: a hold whose time has passed is placed on the next run', async () => {
+    stubCardFetch([cardBooking()], {
+      patch: { ok: true, status: 200, body: { booking: {}, payment_effect: { kind: 'hold_released', currency: 'eur', hold_date_iso: '2020-01-01', hold_at_iso: '2020-01-01T10:00:00Z' } } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    expect(await screen.findByText('Pickup moved. The current hold was released. A new hold is placed on the next scheduled run (within 15 minutes).')).toBeDefined()
   })
 
   it('88-REVIEW A-WR-11: trip edit amount_kept tells the operator the agreed card price stays', async () => {

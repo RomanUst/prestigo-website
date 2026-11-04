@@ -203,6 +203,15 @@ function refundFailedLine(amountMinor: unknown, currency: unknown): string {
 // Phase 88 D-16/D-17/D-18: the trip-edit PATCH may carry the payment effect of the change.
 const PAYMENT_IN_PROGRESS_COPY = 'Payment is being processed for this booking. Wait a moment and try again.'
 
+/** A Prague calendar date (YYYY-MM-DD) as "Thu 12 Nov", without inventing a time of day. */
+function formatPragueDay(dateIso: string): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateIso)
+  if (!m) return null
+  // Noon UTC is the same calendar day in Prague all year round.
+  const d = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12))
+  return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Prague', weekday: 'short', day: 'numeric', month: 'short' }).format(d).replace(',', '')
+}
+
 function paymentEffectMessage(result: unknown): string | null {
   const effect = (result as { payment_effect?: Record<string, unknown> } | null)?.payment_effect
   if (!effect || typeof effect !== 'object') return null
@@ -226,9 +235,16 @@ function paymentEffectMessage(result: unknown): string | null {
     return `Card booking: the client's agreed price${amount !== null && currency ? ` of ${formatMinor(amount, currency)}` : ''} stays (promo included).${standard !== null ? ` The standard rate would be ${standard} CZK.` : ''} To charge a different price, enter it as the amount in the price review.`
   }
   if (effect.kind === 'hold_released') {
-    const when = typeof effect.hold_date_iso === 'string' ? formatPragueFull(effect.hold_date_iso) : null
-    return when
-      ? `Pickup moved. The current hold was released. A new hold is placed on ${when}.`
+    // 88-REVIEW C-WR-06: hold_date_iso is a calendar date (no time); the instant is hold_at_iso. A hold whose time has
+    // already come is placed by the next scheduled run, not on a date.
+    const atMs = typeof effect.hold_at_iso === 'string' ? Date.parse(effect.hold_at_iso) : NaN
+    if (Number.isFinite(atMs)) {
+      if (atMs <= Date.now()) return 'Pickup moved. The current hold was released. A new hold is placed on the next scheduled run (within 15 minutes).'
+      return `Pickup moved. The current hold was released. A new hold is placed on ${formatPragueFull(effect.hold_at_iso as string)}.`
+    }
+    const day = typeof effect.hold_date_iso === 'string' ? formatPragueDay(effect.hold_date_iso) : null
+    return day
+      ? `Pickup moved. The current hold was released. A new hold is placed on ${day}.`
       : 'Pickup moved. The current hold was released.'
   }
   return null

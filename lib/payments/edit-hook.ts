@@ -35,7 +35,8 @@ type Currency = 'eur' | 'czk'
 export type PaymentEffect =
   | { kind: 'amount_raised'; currency: Currency; held_minor: number; diff_minor: number }
   | { kind: 'amount_lowered'; currency: Currency; amount_minor: number }
-  | { kind: 'hold_released'; currency: Currency; hold_date_iso: string }
+  /** hold_at_iso: the instant the new hold is due (88-REVIEW C-WR-06); hold_date_iso is its Prague calendar date only. */
+  | { kind: 'hold_released'; currency: Currency; hold_date_iso: string; hold_at_iso: string }
 
 const IN_FLIGHT: readonly string[] = ['checkout_pending', 'placing_hold', 'capturing']
 
@@ -209,7 +210,12 @@ export async function reevaluateAfterEdit(input: {
             return null
           }
           await recordEdit(bookingId, actor, undefined, currency, newAmount ?? undefined)
-          return { kind: 'hold_released', currency, hold_date_iso: holdDateIso(newHoldAtMs) }
+          return {
+            kind: 'hold_released',
+            currency,
+            hold_date_iso: holdDateIso(newHoldAtMs),
+            hold_at_iso: new Date(newHoldAtMs).toISOString(),
+          }
         }
       }
 

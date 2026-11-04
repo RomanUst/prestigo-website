@@ -260,7 +260,8 @@ describe('PATCH trip-edit — card booking payment hook', () => {
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({
       ok: true,
-      payment_effect: { kind: 'hold_released', currency: 'eur', hold_date_iso: '2026-11-06' },
+      // 88-REVIEW C-WR-06: the instant (pickup 2026-11-09 12:00 Prague minus 72 h) next to the date.
+      payment_effect: { kind: 'hold_released', currency: 'eur', hold_date_iso: '2026-11-06', hold_at_iso: '2026-11-06T11:00:00.000Z' },
     })
     expect(mockCancelHoldIntent).toHaveBeenCalledTimes(1)
     expect(mockCancelHoldIntent).toHaveBeenCalledWith(expect.objectContaining({ id: ID, hold_payment_intent_id: 'pi_hold' }))
