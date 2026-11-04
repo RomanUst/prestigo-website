@@ -700,3 +700,47 @@ describe('partner and non-card bookings never reach Stripe', () => {
     expect(ledger(id)).toEqual([])
   })
 })
+
+describe('hold at checkout keeps the saved card (88-REVIEW T3: A-CR-03, B-CR-01)', () => {
+  it('a price raise after a hold-now authorization is charged as a difference to the card the hold saved', async () => {
+    // Pickup 48 h away: inside the 72 h lead, so the checkout authorizes the amount right away (D-11).
+    setNow(PICKUP_MS - 48 * HOUR)
+    const init = await initPOST(jsonRequest('http://localhost/api/card-checkout/init', { bookingData: bookingData(), currency: 'eur' }))
+    expect(await init.json()).toMatchObject({ eligible: true, mode: 'hold_now' })
+    const res = await intentPOST(
+      jsonRequest('http://localhost/api/card-checkout/intent', {
+        bookingData: bookingData(),
+        currency: 'eur',
+        mode: 'hold_now',
+        consent: true,
+        displayedAmountMinor: serverAmount(),
+      }),
+    )
+    expect(res.status).toBe(200)
+    const booking = db.state.bookings[0]
+    booking.pickup_utc = PICKUP_UTC
+    const id = booking.id as string
+    const holdId = booking.hold_payment_intent_id as string
+    expect(holdId).toMatch(/^pi_/)
+
+    // The browser confirms the PaymentIntent with a good card; Stripe reports the authorization.
+    const pi = fake.state.paymentIntents.get(holdId)!
+    Object.assign(pi, { status: 'requires_capture', amount_capturable: pi.amount, payment_method: 'pm_ok' })
+    expect((await deliver(fake.buildEvent('payment_intent.amount_capturable_updated', pi))).status).toBe(200)
+    expect(rowOf(id)).toMatchObject({ status: 'confirmed', payment_state: 'authorized', stripe_payment_method_id: 'pm_ok' })
+    expect(rowOf(id).stripe_customer_id).toBe(pi.customer)
+
+    // The operator raises the agreed amount by 20.00 after the hold (D-16).
+    rowOf(id).payment_amount_minor = serverAmount() + 2000
+
+    setNow(PICKUP_MS + 2 * HOUR)
+    expect((await completeTrip(id)).status).toBe(200)
+    const b = rowOf(id)
+    expect(b.payment_state).toBe('captured')
+    expect(b.captured_amount_minor).toBe(serverAmount() + 2000)
+    const diff = piCreates().find((c) => (c.params.metadata as Record<string, string>).kind === 'card_difference')
+    expect(diff).toBeDefined()
+    expect(diff!.params).toMatchObject({ amount: 2000, payment_method: 'pm_ok', customer: pi.customer, off_session: true })
+    expect(ledger(id).map((e) => e.kind)).not.toContain('difference_failed')
+  })
+})

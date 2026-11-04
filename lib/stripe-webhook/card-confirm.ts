@@ -315,6 +315,8 @@ export async function applyHoldNowAuthorized(pi: Stripe.PaymentIntent, actor: Le
   const amountMinor = pi.amount_capturable || pi.amount
   const currency = pi.currency === 'czk' ? 'czk' : pi.currency === 'eur' ? 'eur' : undefined
   const captureBefore = cancelled ? null : await captureBeforeIso(pi)
+  const customerId = idOf(pi.customer)
+  const paymentMethodId = idOf(pi.payment_method)
 
   const moved = await applyTransition({
     bookingId: booking.id,
@@ -327,6 +329,11 @@ export async function applyHoldNowAuthorized(pi: Stripe.PaymentIntent, actor: Le
           hold_amount_minor: amountMinor,
           hold_placed_at: new Date().toISOString(),
           capture_before: captureBefore,
+          // 88-REVIEW T3: the hold-now PaymentIntent saved the card for later off-session use
+          // (setup_future_usage). Without these ids every later fallback charge, D-16 difference charge
+          // and D-18 re-hold would fail with missing_payment_details.
+          ...(customerId ? { stripe_customer_id: customerId } : {}),
+          ...(paymentMethodId ? { stripe_payment_method_id: paymentMethodId } : {}),
         },
     event: {
       key: `hold_authorized:${pi.id}`,
