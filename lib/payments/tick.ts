@@ -63,7 +63,7 @@ const RECONCILE_ACTOR: LedgerActor = { type: 'system', id: 'tick_reconcile' }
 const SWEEP_ACTOR: LedgerActor = { type: 'system', id: 'tick_sweep' }
 const RETRY_ACTOR: LedgerActor = { type: 'system', id: 'payment_retry' }
 /**
- * Statuses of a booking whose trip is still ahead: the ones claim_due_payment_work (migration 085) works on. Derived
+ * Statuses of a booking whose trip is still ahead: the ones the scheduled-hold claim (migration 085) works on. Derived
  * from the shared vocabulary (tests/booking-status-parity.test.ts forbids a hand-written list): the calendar-active
  * statuses without the trip-in-progress and finished ones.
  */
