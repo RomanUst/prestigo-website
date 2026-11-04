@@ -27,6 +27,7 @@ import { safePiiSummary } from '@/lib/request-guards'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { sendGa4Purchase } from '@/lib/analytics-server'
 import { logEmail } from '@/lib/email-log'
+import { dispatchPaymentEvent } from '@/lib/stripe-webhook/dispatch'
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -67,6 +68,12 @@ export async function POST(request: Request) {
     console.error('Webhook signature verification failed:', message)
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
   }
+
+  // Phase 88 (PAYF-03): card-on-file events are routed by metadata.kind BEFORE the legacy chain below, which
+  // builds bookings from payment events and must never see a card object. Anything that is not a card event
+  // returns { handled: false } and falls through to the shipped chain unchanged.
+  const handled = await dispatchPaymentEvent(event)
+  if (handled.handled) return handled.response
 
   // ── charge.refunded (SEC-10 / WR-02): run the side effect FIRST, claim the
   // idempotency row AFTER — same ordering as payment_intent.succeeded below.
