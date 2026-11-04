@@ -1419,6 +1419,10 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
         // refunds, so a 409 means nothing was refunded: same copy as the status select, no refund note.
         throw new Error(statusConflictMessage(data.currentStatus))
       }
+      if (res.status === 409 && data.error === 'payment_busy') {
+        // A hold or capture is in flight for this card booking; nothing was cancelled or released.
+        throw new Error('A card payment is being processed for this booking. Nothing was cancelled. Try again in a minute.')
+      }
       throw new Error(data.error ?? 'Cancel failed')
     }
     // Optimistic update
