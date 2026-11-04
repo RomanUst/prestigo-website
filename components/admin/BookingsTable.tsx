@@ -219,6 +219,12 @@ function paymentEffectMessage(result: unknown): string | null {
     if (!currency || amount === null) return null
     return `Price updated. Only ${formatMinor(amount, currency)} will be captured after the trip. The rest of the hold is released.`
   }
+  if (effect.kind === 'amount_kept') {
+    // 88-REVIEW A-WR-11: a card booking keeps the price the client agreed to unless the operator enters an amount.
+    const amount = num(effect.amount_minor)
+    const standard = num(effect.standard_czk)
+    return `Card booking: the client's agreed price${amount !== null && currency ? ` of ${formatMinor(amount, currency)}` : ''} stays (promo included).${standard !== null ? ` The standard rate would be ${standard} CZK.` : ''} To charge a different price, enter it as the amount in the price review.`
+  }
   if (effect.kind === 'hold_released') {
     const when = typeof effect.hold_date_iso === 'string' ? formatPragueFull(effect.hold_date_iso) : null
     return when
@@ -454,8 +460,11 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
         return
       }
       const newAmountCzk = eurToCzk(priceEur)
+      // 88-REVIEW A-WR-11: a card booking is charged its stored amount after the trip. The standard rate above knows no
+      // promo code, so the review starts from the agreed price; only an amount the operator enters changes it.
+      const startValue = booking.payment_mode === 'card_hold' ? booking.amount_czk : newAmountCzk
       setPriceReview(prev => prev ? {
-        ...prev, status: 'ready', newAmountCzk, distanceKm: data.distanceKm ?? null, overrideValue: String(newAmountCzk),
+        ...prev, status: 'ready', newAmountCzk, distanceKm: data.distanceKm ?? null, overrideValue: String(startValue),
       } : prev)
     } catch {
       setPriceReview(prev => prev ? { ...prev, status: 'error', errorMessage: 'Price calculation failed.' } : prev)
@@ -758,6 +767,12 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
                         <span style={{ color: 'var(--warmgrey)' }}>→</span>
                         <span style={{ color: 'var(--copper)', fontWeight: 500 }}>{priceReview.newAmountCzk} CZK</span>
                       </div>
+
+                      {booking.payment_mode === 'card_hold' && (
+                        <div data-testid="card-price-note" style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)', marginTop: 8 }}>
+                          Card booking: the client keeps the agreed price of {booking.amount_czk} CZK (promo included) unless you enter a different amount below. A higher amount is charged to the saved card after the trip.
+                        </div>
+                      )}
 
                       {priceReview.mismatch && (
                         <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--status-danger-fg)', marginTop: 8 }}>

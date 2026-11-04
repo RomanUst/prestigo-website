@@ -435,6 +435,8 @@ export async function PATCH(request: Request) {
     // the price level (Pitfall 2) — no second geocode call is made here.
     let priceEntries: BookingChangeEntry[] = []
     let priceAuditRows: Array<{ field: string; old_value: string | null; new_value: string | null }> = []
+    // 88-REVIEW A-WR-11: what a card booking keeps when the operator did not set the amount explicitly.
+    let amountKept: { kind: 'amount_kept'; currency: 'eur' | 'czk'; amount_minor: number | null; standard_czk: number } | null = null
 
     if (hasPriceField) {
       let rates
@@ -531,7 +533,14 @@ export async function PATCH(request: Request) {
       const submittedAmountCzk = parsed.data.amount_czk as number
       const priceDiverges = Math.abs(computedTotalCzk - submittedAmountCzk) > ADMIN_PRICE_TOLERANCE_CZK
 
-      if (priceDiverges && !parsed.data.override_price) {
+      // 88-REVIEW A-WR-11: the recompute above knows neither the client's promo code nor the price they agreed to at
+      // checkout, and since Phase 88 a card booking's amount is what the engine charges after the trip (a raise is
+      // charged to the saved card, D-16). A card booking therefore keeps its agreed amount unless the operator set the
+      // amount explicitly (override_price): an address fix or a vehicle edit alone never changes what the client pays.
+      const cardKeepsAgreed = current.payment_mode === 'card_hold' && parsed.data.override_price !== true
+      const cardExplicit = current.payment_mode === 'card_hold' && parsed.data.override_price === true
+
+      if (priceDiverges && !parsed.data.override_price && !cardKeepsAgreed) {
         return NextResponse.json(
           {
             error: 'Price mismatch — server recompute diverges from submitted amount',
@@ -542,9 +551,27 @@ export async function PATCH(request: Request) {
         )
       }
 
-      // Authoritative amount = recompute unless the operator explicitly overrode it.
-      const authoritativeAmountCzk = priceDiverges ? submittedAmountCzk : computedTotalCzk
-      const amount_eur = priceDiverges ? czkToEur(submittedAmountCzk) : computedTotalEur
+      // Authoritative amount = recompute unless the operator explicitly overrode it. A card booking: its agreed amount,
+      // or exactly the amount the operator entered.
+      const currentAmountCzk = typeof current.amount_czk === 'number' ? current.amount_czk : Number(current.amount_czk)
+      const authoritativeAmountCzk = cardKeepsAgreed
+        ? currentAmountCzk
+        : priceDiverges || cardExplicit
+          ? submittedAmountCzk
+          : computedTotalCzk
+      const amount_eur = cardKeepsAgreed
+        ? (current.amount_eur as number | null)
+        : priceDiverges || cardExplicit
+          ? czkToEur(submittedAmountCzk)
+          : computedTotalEur
+      if (cardKeepsAgreed && computedTotalCzk !== currentAmountCzk) {
+        amountKept = {
+          kind: 'amount_kept',
+          currency: current.payment_currency === 'czk' ? 'czk' : 'eur',
+          amount_minor: typeof current.payment_amount_minor === 'number' ? current.payment_amount_minor : null,
+          standard_czk: computedTotalCzk,
+        }
+      }
 
       // Raw price-affecting fields (mass-assignment guard — never spread the body).
       if (parsed.data.vehicle_class !== undefined) tripUpdatePayload.vehicle_class = parsed.data.vehicle_class
@@ -555,10 +582,12 @@ export async function PATCH(request: Request) {
       if (parsed.data.destination_lat !== undefined) tripUpdatePayload.destination_lat = parsed.data.destination_lat
       if (parsed.data.destination_lng !== undefined) tripUpdatePayload.destination_lng = parsed.data.destination_lng
       if (parsed.data.distance_km !== undefined) tripUpdatePayload.distance_km = parsed.data.distance_km
-      tripUpdatePayload.amount_czk = authoritativeAmountCzk
-      tripUpdatePayload.amount_eur = amount_eur
+      if (!cardKeepsAgreed) {
+        tripUpdatePayload.amount_czk = authoritativeAmountCzk
+        tripUpdatePayload.amount_eur = amount_eur
+      }
 
-      if (priceDiverges) {
+      if (priceDiverges && !cardKeepsAgreed) {
         // D-05: Phase 63 only RECORDS the new amount — no payment link, no
         // auto-charge, no top-up. The override note is an audit trail, not a
         // collection action.
@@ -727,7 +756,8 @@ export async function PATCH(request: Request) {
       ))
     }
 
-    return NextResponse.json(paymentEffect ? { ok: true, payment_effect: paymentEffect } : { ok: true })
+    const effect = paymentEffect ?? amountKept
+    return NextResponse.json(effect ? { ok: true, payment_effect: effect } : { ok: true })
   }
 
   const updatePayload: Record<string, unknown> = {}

@@ -59,7 +59,7 @@ vi.mock('@/lib/payments/state', async (importActual) => {
   const actual = await importActual<typeof import('@/lib/payments/state')>()
   return { ...actual, applyTransition: mockApplyTransition, appendPaymentEvent: mockAppendEvent }
 })
-vi.mock('@/lib/payments/hold', () => ({ cancelHoldIntent: mockCancelHoldIntent }))
+vi.mock('@/lib/payments/hold', () => ({ cancelHoldIntent: mockCancelHoldIntent, voidHoldAttempt: vi.fn().mockResolvedValue(true) }))
 vi.mock('@/lib/payments/recovery', () => ({ refreshRecoveryLink: mockRefreshRecoveryLink }))
 vi.mock('@/lib/payments/config', async (importActual) => {
   const actual = await importActual<typeof import('@/lib/payments/config')>()
@@ -177,6 +177,34 @@ describe('PATCH trip-edit — card booking payment hook', () => {
       expect(mockApplyTransition).not.toHaveBeenCalled()
     },
   )
+
+  it('88-REVIEW A-WR-11: a route / vehicle edit without an explicit amount keeps the agreed card price (no auto difference)', async () => {
+    // The recompute (1500 CZK, no promo) differs from the agreed 3000 CZK, and the submitted amount is the agreed one.
+    wire(cardBooking())
+    const res = await PATCH(patchRequest({ id: ID, origin_address: 'Prague Airport Terminal 2', amount_czk: 3000 }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.payment_effect).toEqual({ kind: 'amount_kept', currency: 'eur', amount_minor: 12000, standard_czk: 1500 })
+    expect(updates[0]).toMatchObject({ origin_address: 'Prague Airport Terminal 2' })
+    expect(updates[0]).not.toHaveProperty('amount_czk')
+    expect(updates[0]).not.toHaveProperty('amount_eur')
+    expect(mockApplyTransition).not.toHaveBeenCalled()
+  })
+
+  it('88-REVIEW A-WR-11: even a submitted list-price amount does not re-price a card booking without override_price', async () => {
+    wire(cardBooking())
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 1500 }))
+    expect(res.status).toBe(200)
+    expect(updates[0]).not.toHaveProperty('amount_czk')
+    expect(mockApplyTransition).not.toHaveBeenCalled()
+  })
+
+  it('88-REVIEW A-WR-11: an explicit amount (override_price) inside the tolerance is taken exactly as entered', async () => {
+    wire(cardBooking(), cardBooking({ amount_czk: 1510, amount_eur: 60 }))
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 1510, override_price: true }))
+    expect(res.status).toBe(200)
+    expect(updates[0]).toMatchObject({ amount_czk: 1510 })
+  })
 
   it('authorized hold 12000 eur, price edit to 150 eur: payment_amount_minor 15000, hold untouched, amount_raised', async () => {
     wire(cardBooking(), cardBooking({ amount_czk: 3750, amount_eur: 150 }))

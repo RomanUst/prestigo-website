@@ -1675,6 +1675,20 @@ describe('BookingsTable card payments: list badge, cancel variant, refund failed
     ).toBeDefined()
   })
 
+  it('88-REVIEW A-WR-11: trip edit amount_kept tells the operator the agreed card price stays', async () => {
+    stubCardFetch([cardBooking()], {
+      patch: { ok: true, status: 200, body: { ok: true, payment_effect: { kind: 'amount_kept', currency: 'eur', amount_minor: 12000, standard_czk: 3600 } } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    expect(
+      await screen.findByText(
+        `Card booking: the client's agreed price of ${formatMinor(12000, 'eur')} stays (promo included). The standard rate would be 3600 CZK. To charge a different price, enter it as the amount in the price review.`,
+      ),
+    ).toBeDefined()
+  })
+
   it('trip edit without payment_effect shows no payment message', async () => {
     stubCardFetch([cardBooking()])
     await renderTable()
