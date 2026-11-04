@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { formatMinor } from '@/lib/payments/money'
+
+// AddressInput is a next-intl consumer; the trip-edit panel mounts it when edit mode opens.
+vi.mock('@/components/booking/AddressInput', () => ({
+  default: () => null,
+}))
 
 // Mock @tanstack/react-table (passthrough)
 vi.mock('@tanstack/react-table', async (importOriginal) => {
@@ -47,6 +53,8 @@ type PartialBooking = {
   linked_booking: { booking_reference: string } | null
   locale?: string | null
   no_show_requested_at?: string | null
+  payment_mode?: string | null
+  payment_state?: string | null
 }
 
 function makeBooking(overrides: Partial<PartialBooking> = {}): PartialBooking {
@@ -1043,13 +1051,13 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
     expect(within(rowEl).getByText('Assigned')).toBeDefined()
   })
 
-  it('cancel modal: a 409 status_conflict shows the conflict copy and the refund fact, not the raw code', async () => {
+  it('cancel modal: a 409 status_conflict shows the conflict copy with no refund note, not the raw code (Phase 88: CAS first, nothing was refunded)', async () => {
     const fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
       if (typeof url === 'string' && url.includes('/api/admin/bookings/cancel') && init?.method === 'POST') {
         return Promise.resolve({
           ok: false,
           status: 409,
-          json: () => Promise.resolve({ error: 'status_conflict', currentStatus: 'on_board', refund_id: 're_1' }),
+          json: () => Promise.resolve({ error: 'status_conflict', currentStatus: 'on_board' }),
         })
       }
       if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
@@ -1072,9 +1080,10 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
 
     expect(
       await screen.findByText(
-        'This booking was just changed to On Board by the driver. Reload to see the latest state. The refund was already issued.',
+        'This booking was just changed to On Board by the driver. Reload to see the latest state.',
       ),
     ).toBeDefined()
+    expect(screen.queryByText(/refund was already issued/i)).toBeNull()
     expect(screen.queryByText('status_conflict')).toBeNull()
   })
 
@@ -1388,5 +1397,293 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
     const dialog = await screen.findByRole('dialog')
     expect(within(dialog).getByText(/Mark booking PRE-SELM as a no-show\?/)).toBeDefined()
     expect(patches(fetchMock)).toHaveLength(0)
+  })
+})
+
+describe('BookingsTable card payments: list badge, cancel variant, refund failed, payment effect — Phase 88 plan 07', () => {
+  const PAYMENT_BODY = (over: Record<string, unknown> = {}, extra: Record<string, unknown> = {}) => ({
+    payment: {
+      mode: 'card_hold', state: 'authorized', currency: 'eur', amount_minor: 12000, hold_amount_minor: 12000,
+      captured_amount_minor: 0, hold_at: null, capture_before: '2026-12-12T13:05:00Z', card_saved: true,
+      last_payment_error: null, payment_retry_at: null, payment_retry_count: 0, recovery_link_url: null,
+      pickup_at: '2026-12-20T09:00:00Z', status: 'confirmed', completed: false,
+      booking_reference: 'PRE-CARD', client_email: 'ivan@example.com', ...over,
+    },
+    allowed_actions: [], refund_failed: false, events: [], events_total: 0, ...extra,
+  })
+
+  type Reply = { ok: boolean; status: number; body: unknown }
+
+  function stubCardFetch(
+    bookings: PartialBooking[],
+    opts: { payment?: unknown; cancel?: Reply; patch?: Reply } = {},
+  ) {
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+      const u = String(url)
+      if (u.endsWith('/payment') && init?.method !== 'POST') {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(opts.payment ?? PAYMENT_BODY()) })
+      }
+      if (u.includes('/api/admin/bookings/cancel') && init?.method === 'POST') {
+        const r = opts.cancel ?? { ok: true, status: 200, body: { ok: true } }
+        return Promise.resolve({ ok: r.ok, status: r.status, json: () => Promise.resolve(r.body) })
+      }
+      if (init?.method === 'PATCH') {
+        const r = opts.patch ?? { ok: true, status: 200, body: { booking: {} } }
+        return Promise.resolve({ ok: r.ok, status: r.status, json: () => Promise.resolve(r.body) })
+      }
+      if (u.includes('/api/admin/bookings')) {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ bookings, total: bookings.length, page: 0, limit: 20 }) })
+      }
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  const cardBooking = (over: Partial<PartialBooking> = {}) =>
+    makeBooking({
+      id: 'b-card', booking_reference: 'PRE-CARD', payment_intent_id: null,
+      payment_mode: 'card_hold', payment_state: 'authorized', ...over,
+    })
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  async function renderTable() {
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    return render(<BookingsTable />)
+  }
+
+  async function expandDesktop(ref: string) {
+    const table = within(screen.getByTestId('desktop-table'))
+    const refCell = await table.findByText(ref)
+    fireEvent.click(refCell.closest('tr') as HTMLElement)
+  }
+
+  async function openCancelDialog() {
+    const openBtn = (await screen.findAllByRole('button', { name: /cancel booking/i })).find(b => !b.textContent?.includes('Keep'))
+    fireEvent.click(openBtn as HTMLElement)
+    await screen.findByRole('button', { name: /keep booking/i })
+  }
+
+  // ── list badge ──────────────────────────────────────────────────────────
+
+  it('desktop: a card_hold row shows its payment badge under the status badge; a pay_now row shows none', async () => {
+    stubCardFetch([
+      cardBooking({ id: 'b-failed', booking_reference: 'PRE-FAILED', payment_state: 'failed' }),
+      makeBooking({ id: 'b-paynow', booking_reference: 'PRE-PAYNOW', payment_mode: 'pay_now', payment_state: 'none' }),
+    ])
+    await renderTable()
+    const table = within(screen.getByTestId('desktop-table'))
+    const failedRow = (await table.findByText('PRE-FAILED')).closest('tr') as HTMLElement
+    const payNowRow = (await table.findByText('PRE-PAYNOW')).closest('tr') as HTMLElement
+    expect(within(failedRow).getByText('Payment failed')).toBeDefined()
+    expect(within(payNowRow).queryByText('No payment')).toBeNull()
+    expect(within(payNowRow).queryByText('Payment failed')).toBeNull()
+  })
+
+  it('mobile: a card_hold card shows its payment badge', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+    stubCardFetch([cardBooking({ id: 'b-m', booking_reference: 'PRE-CARD-M', payment_state: 'authorized' })])
+    await renderTable()
+    const cards = within(screen.getByTestId('mobile-cards'))
+    await cards.findByText('PRE-CARD-M')
+    expect(cards.getByText('Hold active')).toBeDefined()
+  })
+
+  // ── expanded detail mounts the panel ────────────────────────────────────
+
+  it('desktop: expanding a card_hold row mounts the PaymentPanel', async () => {
+    const fetchMock = stubCardFetch([cardBooking()])
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    expect(await screen.findByTestId('payment-panel')).toBeDefined()
+    expect(fetchMock.mock.calls.some(([u]) => String(u) === '/api/admin/bookings/b-card/payment')).toBe(true)
+  })
+
+  it('desktop: expanding a pay_now row renders no panel', async () => {
+    stubCardFetch([makeBooking({ id: 'b-pn', booking_reference: 'PRE-PN', payment_mode: 'pay_now' })], {
+      payment: PAYMENT_BODY({ mode: 'pay_now', state: 'none' }),
+    })
+    await renderTable()
+    await expandDesktop('PRE-PN')
+    await screen.findByText('Edit Trip Details')
+    expect(screen.queryByTestId('payment-panel')).toBeNull()
+  })
+
+  it('desktop: a pay_now booking whose payment GET reports refund_failed shows only the Refund failed banner with reference and amount', async () => {
+    stubCardFetch([makeBooking({ id: 'b-rf', booking_reference: 'PRE-RF', payment_mode: 'pay_now', status: 'cancelled' })], {
+      payment: PAYMENT_BODY(
+        { mode: 'pay_now', state: 'none', booking_reference: 'PRE-RF', amount_minor: 4500, currency: 'eur', card_saved: false },
+        { refund_failed: true, allowed_actions: ['capture'] },
+      ),
+    })
+    await renderTable()
+    await expandDesktop('PRE-RF')
+    const banner = await screen.findByRole('alert')
+    expect(banner.textContent).toContain('Refund failed')
+    expect(banner.textContent).toContain('Booking PRE-RF was cancelled, but the refund of')
+    expect(banner.textContent).toContain(formatMinor(4500, 'eur'))
+    // the Refund failed badge shows for any payment mode (badge + banner title)
+    expect(screen.getAllByText('Refund failed').length).toBe(2)
+    // nothing else of the panel: no facts, no history, no actions
+    expect(screen.queryByTestId('payment-panel')).toBeNull()
+    expect(screen.queryByText('Payment history')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Capture' })).toBeNull()
+  })
+
+  // ── cancel dialog ───────────────────────────────────────────────────────
+
+  it('cancel dialog for a card_hold booking releases the hold and charges nothing (variant D)', async () => {
+    stubCardFetch([cardBooking()])
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await openCancelDialog()
+    expect(screen.getByText("Cancelling releases the hold on the client's card. Nothing is charged. This action cannot be undone.")).toBeDefined()
+    expect(screen.getByText('The card hold will be released.')).toBeDefined()
+    expect(screen.getByRole('button', { name: 'Confirm Cancel + Release Hold' })).toBeDefined()
+    expect(screen.queryByText(/full refund/i)).toBeNull()
+  })
+
+  it('cancel dialog for a paid pay_now booking keeps the refund variant', async () => {
+    stubCardFetch([makeBooking({ id: 'b-pn2', booking_reference: 'PRE-PN2', payment_mode: 'pay_now' })])
+    await renderTable()
+    await expandDesktop('PRE-PN2')
+    await openCancelDialog()
+    expect(screen.getByRole('button', { name: 'Confirm Cancel + Refund' })).toBeDefined()
+    expect(screen.queryByText('The card hold will be released.')).toBeNull()
+  })
+
+  it('cancel answered 502 refund_failed with cancelled:true shows the manual-refund line and the row turns cancelled', async () => {
+    stubCardFetch([makeBooking({ id: 'b-502', booking_reference: 'PRE-502', payment_mode: 'pay_now' })], {
+      cancel: { ok: false, status: 502, body: { error: 'refund_failed', cancelled: true, amount_minor: 12000, currency: 'eur' } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-502')
+    await openCancelDialog()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Cancel + Refund' }))
+
+    expect(
+      await screen.findByText(`The booking was cancelled, but the refund failed. Refund ${formatMinor(12000, 'eur')} manually in the Stripe Dashboard.`),
+    ).toBeDefined()
+    // the dialog stays open until dismissed; the row now reads Cancelled
+    expect(screen.getByRole('button', { name: /keep booking/i })).toBeDefined()
+    const row = screen.getByTestId('desktop-table').querySelector('tbody tr') as HTMLElement
+    expect(within(row).getAllByText('Cancelled').length).toBeGreaterThan(0)
+    // the confirm button cannot fire a second cancel
+    const confirm = screen.getByRole('button', { name: 'Confirm Cancel + Refund' }) as HTMLButtonElement
+    expect(confirm.disabled).toBe(true)
+  })
+
+  it('cancel 502 refund_failed without an amount still tells the operator to refund manually', async () => {
+    stubCardFetch([cardBooking({ id: 'b-502b', booking_reference: 'PRE-502B' })], {
+      cancel: { ok: false, status: 502, body: { error: 'refund_failed', cancelled: true } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-502B')
+    await openCancelDialog()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Cancel + Release Hold' }))
+    expect(
+      await screen.findByText('The booking was cancelled, but the refund failed. Refund it manually in the Stripe Dashboard.'),
+    ).toBeDefined()
+  })
+
+  it('cancel 502 without cancelled:true is not treated as a cancelled booking', async () => {
+    stubCardFetch([cardBooking({ id: 'b-502c', booking_reference: 'PRE-502C' })], {
+      cancel: { ok: false, status: 502, body: { error: 'cancel_failed' } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-502C')
+    await openCancelDialog()
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Cancel + Release Hold' }))
+    expect(await screen.findByText('cancel_failed')).toBeDefined()
+    const row = screen.getByTestId('desktop-table').querySelector('tbody tr') as HTMLElement
+    expect(within(row).queryByText('Cancelled')).toBeNull()
+  })
+
+  // ── trip edit payment feedback ──────────────────────────────────────────
+
+  async function saveDateTime() {
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit Trip Details' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Save Date & Time' }))
+  }
+
+  it('trip edit amount_raised shows the captured-plus-extra message', async () => {
+    stubCardFetch([cardBooking()], {
+      patch: { ok: true, status: 200, body: { booking: {}, payment_effect: { kind: 'amount_raised', currency: 'eur', held_minor: 12000, diff_minor: 3000 } } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    expect(
+      await screen.findByText(`Price updated. The held ${formatMinor(12000, 'eur')} is captured after the trip and the extra ${formatMinor(3000, 'eur')} is charged to the saved card.`),
+    ).toBeDefined()
+  })
+
+  it('trip edit amount_lowered shows the lower-capture message', async () => {
+    stubCardFetch([cardBooking()], {
+      patch: { ok: true, status: 200, body: { booking: {}, payment_effect: { kind: 'amount_lowered', currency: 'czk', amount_minor: 800000 } } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    expect(
+      // formatCZK uses a no-break space; Testing Library collapses whitespace in the DOM text
+      await screen.findByText(`Price updated. Only ${formatMinor(800000, 'czk')} will be captured after the trip. The rest of the hold is released.`.replace(/\s+/g, ' ')),
+    ).toBeDefined()
+  })
+
+  it('trip edit hold_released shows the moved-pickup message with the new hold date in Prague time', async () => {
+    stubCardFetch([cardBooking()], {
+      patch: { ok: true, status: 200, body: { booking: {}, payment_effect: { kind: 'hold_released', currency: 'eur', hold_date_iso: '2026-11-12T13:05:00Z' } } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    expect(
+      await screen.findByText('Pickup moved. The current hold was released. A new hold is placed on Thu 12 Nov, 14:05.'),
+    ).toBeDefined()
+  })
+
+  it('trip edit without payment_effect shows no payment message', async () => {
+    stubCardFetch([cardBooking()])
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    await screen.findByText('Saved')
+    expect(screen.queryByText(/^Price updated\./)).toBeNull()
+    expect(screen.queryByText(/^Pickup moved\./)).toBeNull()
+  })
+
+  it('trip edit 409 payment_in_progress shows the friendly copy, not the raw code', async () => {
+    stubCardFetch([cardBooking()], {
+      patch: { ok: false, status: 409, body: { error: 'payment_in_progress' } },
+    })
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await saveDateTime()
+    expect(
+      await screen.findByText('Payment is being processed for this booking. Wait a moment and try again.'),
+    ).toBeDefined()
+    expect(screen.queryByText('payment_in_progress')).toBeNull()
+  })
+
+  it('a trip edit refetches the open payment panel', async () => {
+    const fetchMock = stubCardFetch([cardBooking()])
+    await renderTable()
+    await expandDesktop('PRE-CARD')
+    await screen.findByTestId('payment-panel')
+    const before = fetchMock.mock.calls.filter(([u]) => String(u).endsWith('/payment')).length
+    await saveDateTime()
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.filter(([u]) => String(u).endsWith('/payment')).length).toBeGreaterThan(before)
+    })
   })
 })
