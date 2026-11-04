@@ -2,7 +2,7 @@
  * In-memory Supabase double for the Phase 88 payment engine (plan 88-01).
  *
  * It mirrors the SQL semantics of migration 085 so later plans can test engine code without a
- * database: the three payment RPCs (apply_payment_transition, append_payment_event,
+ * database: the three payment RPCs (apply_payment_transition with the 086 status gate, append_payment_event,
  * claim_due_payment_work) and the bookings / booking_payment_events / booking_payment_consents /
  * pricing_globals tables behind a small supabase-js query-builder surface. Its own behaviour is
  * pinned in tests/payments-migration-085.test.ts next to the SQL text it mirrors.
@@ -255,6 +255,12 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
 
     if (eventExists(bookingId, event.key)) {
       return { applied: false, duplicate: true, current_state: prev }
+    }
+
+    // Migration 086: the optional booking status gate, checked under the same lock as the payment state.
+    const requireStatus = args.p_require_status as string[] | null | undefined
+    if (Array.isArray(requireStatus) && !requireStatus.includes(booking.status as string)) {
+      return { applied: false, status_blocked: true, current_state: prev, current_status: booking.status ?? null }
     }
 
     const lease = booking.payment_lease_until

@@ -833,6 +833,26 @@ describe('hold lifecycle events (88-11)', () => {
       id,
     )
 
+  // 88-REVIEW A-WR-04: the webhook backup applies the same status gate as the tick.
+  it('amount_capturable_updated for a booking cancelled during the placement voids the hold and releases', async () => {
+    setBooking({ status: 'cancelled', payment_state: 'placing_hold', hold_attempts: 0 })
+    const { status } = await deliver(capturable('evt_gate1'))
+    expect(status).toBe(200)
+    expect(bookingRow().payment_state).toBe('released')
+    expect(mockPiCancel).toHaveBeenCalledWith(PI_ID, expect.anything(), { idempotencyKey: `pi_void:${PI_ID}` })
+    expect(ledger('hold_authorized')).toHaveLength(0)
+    expect(mockResendSend).not.toHaveBeenCalled()
+  })
+
+  it('payment_failed for a booking cancelled during the placement releases with no recovery link or email', async () => {
+    setBooking({ status: 'cancelled', payment_state: 'placing_hold', hold_attempts: 0 })
+    await deliver(failedEvent('evt_gate2'))
+    expect(bookingRow().payment_state).toBe('released')
+    expect(ledger('hold_failed')).toHaveLength(0)
+    expect(mockLinkCreate).not.toHaveBeenCalled()
+    expect(mockResendSend).not.toHaveBeenCalled()
+  })
+
   describe('payment_intent.amount_capturable_updated (card_hold)', () => {
     it('a booking still in placing_hold (lost synchronous response) becomes authorized with the hold fields and one email', async () => {
       setBooking({ payment_state: 'placing_hold', payment_lease_until: new Date(Date.now() + 300_000).toISOString() })

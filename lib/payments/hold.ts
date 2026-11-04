@@ -15,11 +15,13 @@
 //   - every state change goes through applyTransition (single writer), the ledger event keys make a replay a no-op.
 
 import type Stripe from 'stripe'
-import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
+import { assertMoneyEligible, BOOKING_STATUSES, CALENDAR_ACTIVE_STATUSES, PartnerBookingMoneyError } from '@/lib/booking-status'
+import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { LEASE_SECONDS } from '@/lib/payments/config'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import {
+  appendPaymentEvent,
   applyTransition,
   type LedgerActor,
   type PaymentPatch,
@@ -43,6 +45,24 @@ export type HoldOutcome = 'authorized' | 'transient' | 'failed' | 'skipped'
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 const attemptsOf = (b: BookingRow): number =>
   typeof b.hold_attempts === 'number' && Number.isInteger(b.hold_attempts) && b.hold_attempts >= 0 ? b.hold_attempts : 0
+
+/**
+ * Statuses of a booking whose trip is still ahead: the only ones a hold may be claimed for (the same set the
+ * scheduled-hold claim of migration 085 filters on, derived from the shared vocabulary). 88-REVIEW A-WR-04 / C-WR-01:
+ * the admin / retry claim passes it as requireStatus, so the status is checked INSIDE the compare-and-set (migration
+ * 086, under the row lock); the exits of placing_hold pass HOLD_OPEN_STATUSES, so a cancel that lands while Stripe is
+ * authorizing can never end in a live hold.
+ */
+export const HOLD_ACTIVE_STATUSES: readonly string[] = [...CALENDAR_ACTIVE_STATUSES].filter(
+  (s) => s !== 'on_board' && s !== 'completed' && s !== 'no_show',
+)
+
+/**
+ * Statuses in which a hold that is already being placed may still settle (authorized / failed): every status except
+ * the closed ones. A trip that started (on_board) or completed while Stripe answered keeps its authorization, because
+ * the settle captures it; only a cancelled or no-show booking is refused and released (abandonHoldForClosedBooking).
+ */
+export const HOLD_OPEN_STATUSES: readonly string[] = BOOKING_STATUSES.filter((s) => s !== 'cancelled' && s !== 'no_show')
 
 function pickupOf(b: BookingRow): number | null {
   return pickupInstantMs({
@@ -119,8 +139,76 @@ export async function claimForHold(
     to: 'placing_hold',
     patch: { ...extraPatch, payment_lease_until: new Date(nowMs + LEASE_SECONDS * 1000).toISOString() },
     event: { key: `hold_started:${actor.type}:${nowMs}`, kind: 'hold_started', actor },
+    // A cancelled / no-show booking is never claimed for a hold (A-WR-04), checked under the row lock.
+    requireStatus: HOLD_ACTIVE_STATUSES,
   })
   return moved.applied ? { applied: true, booking: moved.booking } : { applied: false }
+}
+
+/**
+ * The booking was cancelled or marked no-show while its hold was being placed (the status-gated transition out of
+ * placing_hold was refused): void whatever PaymentIntent this attempt produced, move placing_hold -> released and drop
+ * the recovery link. A void that fails leaves the D-20 trail (refund_failed ledger row + operator alert to cancel the
+ * hold by hand); the state still says released, because the booking owes nothing.
+ */
+export async function abandonHoldForClosedBooking(
+  booking: BookingRow,
+  paymentIntentId: string | null,
+  actor: LedgerActor,
+): Promise<void> {
+  const bookingId = str(booking.id)
+  let voidError: string | null = null
+  if (paymentIntentId) {
+    try {
+      await cancelPaymentIntent(paymentIntentId, stripeKeys.voidHoldNow(paymentIntentId))
+    } catch (err) {
+      voidError = stripeErrorCode(err)
+      console.error('[hold] authorization on a closed booking not voided', { bookingId, stripeObjectId: paymentIntentId })
+    }
+  }
+
+  const moved = await applyTransition({
+    bookingId,
+    from: ['placing_hold'],
+    to: 'released',
+    patch: { payment_lease_until: null, ...RECOVERY_LINK_CLEARED },
+    event: {
+      key: `hold_released:closed:${paymentIntentId ?? `${bookingId}:${attemptsOf(booking)}`}`,
+      kind: 'hold_released',
+      stripeObjectId: paymentIntentId ?? undefined,
+      errorCode: 'booking_closed',
+      actor,
+    },
+  })
+  if (moved.applied) await retireRecoveryLink(booking)
+
+  if (voidError && paymentIntentId) {
+    const amountMinor = typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : undefined
+    const currency = booking.payment_currency === 'czk' ? 'czk' : 'eur'
+    try {
+      await appendPaymentEvent(bookingId, {
+        key: `refund_failed:${bookingId}:hold:${paymentIntentId}`,
+        kind: 'refund_failed',
+        stripeObjectId: paymentIntentId,
+        amountMinor,
+        currency,
+        errorCode: voidError,
+        actor,
+      })
+    } catch {
+      console.error('[hold] refund_failed row not written', { bookingId })
+    }
+    try {
+      await sendPaymentOperatorAlert('refund_failed', booking, {
+        eventKey: `alert:refund_failed:${bookingId}:hold:${paymentIntentId}`,
+        code: voidError,
+        amountMinor,
+        note: 'release',
+      })
+    } catch {
+      console.error('[hold] closed-booking hold alert failed', { bookingId })
+    }
+  }
 }
 
 /** placing_hold -> failed with the shared patch and one hold_failed ledger row (key unique per PaymentIntent and attempt). */
@@ -129,7 +217,7 @@ async function recordDefinitiveFailure(
   info: { code: string; paymentIntentId: string | null },
   actor: LedgerActor,
   nowMs: number,
-): Promise<{ outcome: 'failed'; code: string }> {
+): Promise<{ outcome: 'failed' | 'skipped'; code: string }> {
   const moved = await applyTransition({
     bookingId: str(booking.id),
     from: ['placing_hold'],
@@ -142,7 +230,13 @@ async function recordDefinitiveFailure(
       errorCode: info.code.slice(0, 60),
       actor,
     },
+    // A booking cancelled meanwhile gets no "payment failed" email and no recovery link (A-WR-04).
+    requireStatus: HOLD_OPEN_STATUSES,
   })
+  if (moved.statusBlocked) {
+    await abandonHoldForClosedBooking(booking, info.paymentIntentId, actor)
+    return { outcome: 'skipped', code: 'booking_closed' }
+  }
   // HOLD-05, D-13, D-14: recovery link + localized email + operator alert, once per attempt. Only the writer that
   // actually moved the row does this (the webhook backup runs the same step on its own win); a recovery problem
   // never throws out of the tick.
@@ -303,8 +397,14 @@ export async function placeHold(
       currency,
       actor,
     },
+    // A-WR-04 / C-WR-01: the booking was cancelled (or marked no-show) during the Stripe call -> never authorized.
+    requireStatus: HOLD_OPEN_STATUSES,
   })
 
+  if (moved.statusBlocked) {
+    await abandonHoldForClosedBooking(booking, pi.id, actor)
+    return { outcome: 'skipped', code: 'booking_closed' }
+  }
   if (!moved.applied && moved.duplicate !== true) {
     // The booking left placing_hold meanwhile (released, cancelled): the authorization has no owner. Void it.
     try {

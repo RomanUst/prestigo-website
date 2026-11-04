@@ -17,7 +17,7 @@
 import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { captureBeforeIso, holdFailurePatch } from '@/lib/payments/hold'
+import { abandonHoldForClosedBooking, captureBeforeIso, HOLD_OPEN_STATUSES, holdFailurePatch } from '@/lib/payments/hold'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { handlePaymentFailure } from '@/lib/payments/recovery'
 import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
@@ -101,7 +101,13 @@ export async function handleHoldAuthorized(event: Stripe.Event): Promise<void> {
       currency,
       actor: WEBHOOK_ACTOR,
     },
+    // 88-REVIEW A-WR-04: never authorize a cancelled / no-show booking (status checked under the row lock).
+    requireStatus: HOLD_OPEN_STATUSES,
   })
+  if (moved.statusBlocked) {
+    await abandonHoldForClosedBooking(booking, pi.id, WEBHOOK_ACTOR)
+    return
+  }
   if (!moved.applied && moved.duplicate !== true) return
   await retireRecoveryLink(booking)
 
@@ -180,7 +186,13 @@ export async function handleHoldFailed(event: Stripe.Event): Promise<void> {
       errorCode: code,
       actor: WEBHOOK_ACTOR,
     },
+    // A cancelled booking gets no "payment failed" email or recovery link (A-WR-04).
+    requireStatus: HOLD_OPEN_STATUSES,
   })
+  if (moved.statusBlocked) {
+    await abandonHoldForClosedBooking(booking, pi.id, WEBHOOK_ACTOR)
+    return
+  }
 
   // HOLD-05: whichever writer (the tick's synchronous answer or this webhook) moves the row runs the recovery step;
   // its ledger keys (attempt = hold_attempts after the failure) make a second call send nothing twice.

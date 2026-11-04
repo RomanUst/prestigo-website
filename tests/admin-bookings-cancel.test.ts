@@ -99,6 +99,8 @@ function wireSupabase(opts: {
   selectError?: unknown
   updateError?: unknown
   rpcResult?: unknown
+  /** The payment columns read again after the status CAS (88-REVIEW C-WR-01); default: the same booking. */
+  fresh?: Record<string, unknown> | null
 }) {
   const singleFn = vi.fn().mockResolvedValue({
     data: opts.booking,
@@ -106,8 +108,10 @@ function wireSupabase(opts: {
   })
   const selectEq = vi.fn().mockReturnValue({ single: singleFn })
   const selectFn = vi.fn().mockReturnValue({ eq: selectEq })
+  const freshMaybe = vi.fn().mockResolvedValue({ data: opts.fresh === undefined ? opts.booking : opts.fresh, error: null })
+  const freshSelect = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle: freshMaybe }) })
 
-  mockSupabaseFrom.mockReturnValueOnce({ select: selectFn })
+  mockSupabaseFrom.mockReturnValueOnce({ select: selectFn }).mockReturnValue({ select: freshSelect })
   mockRpc.mockImplementation(async (name: string) => {
     if (name === 'append_payment_event') return { data: { inserted: true }, error: null }
     if (opts.updateError) return { data: null, error: opts.updateError }
@@ -561,6 +565,38 @@ describe('POST /api/admin/bookings/cancel', () => {
 
     it('a noop release (nothing to release) still answers 200 { ok }', async () => {
       wireSupabase({ booking: holdBooking('none') })
+      mockReleaseHold.mockResolvedValue('noop')
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(200)
+      expect(await res.json()).toEqual({ ok: true })
+    })
+
+    // 88-REVIEW C-WR-01: the tick claimed the row between the route's read and the status CAS.
+    it('releases from the payment state read AFTER the status CAS, not the stale snapshot', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      wireSupabase({ booking: holdBooking('card_saved'), fresh: { payment_state: 'placing_hold', payment_mode: 'card_hold' } })
+      mockReleaseHold.mockResolvedValue('busy')
+      const res = await POST(makeRequest({ id: ID }))
+      expect(mockReleaseHold).toHaveBeenCalledWith(expect.objectContaining({ payment_state: 'placing_hold' }), expect.anything())
+      expect(res.status).toBe(502)
+      expect(mockAlert).toHaveBeenCalledTimes(1)
+      errorSpy.mockRestore()
+    })
+
+    it('a noop release while a hold is still live is never answered ok (D-20 trail instead)', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      wireSupabase({ booking: holdBooking('card_saved'), fresh: { payment_state: 'authorized', payment_mode: 'card_hold' } })
+      mockReleaseHold.mockResolvedValue('noop')
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(502)
+      expect(await res.json()).toMatchObject({ error: 'refund_failed', cancelled: true })
+      expect((ledgerCalls()[0][1] as { p_event: Record<string, unknown> }).p_event).toMatchObject({ error_code: 'state_moved' })
+      expect(mockAlert).toHaveBeenCalledWith('refund_failed', expect.anything(), expect.objectContaining({ note: 'release' }))
+      errorSpy.mockRestore()
+    })
+
+    it('a noop release on an already released booking answers 200 { ok }', async () => {
+      wireSupabase({ booking: holdBooking('card_saved'), fresh: { payment_state: 'released', payment_mode: 'card_hold' } })
       mockReleaseHold.mockResolvedValue('noop')
       const res = await POST(makeRequest({ id: ID }))
       expect(res.status).toBe(200)

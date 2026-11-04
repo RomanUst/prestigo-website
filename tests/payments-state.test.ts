@@ -143,6 +143,35 @@ describe('applyTransition', () => {
     expect(res.currentState).toBe('captured')
   })
 
+  it('requireStatus is sent as p_require_status and a blocked answer maps to statusBlocked (migration 086)', async () => {
+    rpcMock.mockResolvedValue({
+      data: { applied: false, status_blocked: true, current_state: 'card_saved', current_status: 'cancelled' },
+      error: null,
+    })
+    const res = await applyTransition({
+      bookingId: BOOKING,
+      from: ['card_saved'],
+      to: 'placing_hold',
+      event,
+      requireStatus: ['confirmed', 'assigned'],
+    })
+    expect(rpcMock.mock.calls[0][1]).toMatchObject({ p_require_status: ['confirmed', 'assigned'] })
+    expect(res).toEqual({ applied: false, statusBlocked: true, currentState: 'card_saved', currentStatus: 'cancelled' })
+  })
+
+  it('without requireStatus no p_require_status is sent (the 085 call shape)', async () => {
+    rpcMock.mockResolvedValue({ data: { applied: true }, error: null })
+    await applyTransition({ bookingId: BOOKING, from: ['none'], to: 'checkout_pending', event })
+    expect(rpcMock.mock.calls[0][1]).not.toHaveProperty('p_require_status')
+  })
+
+  it('an empty requireStatus is refused before any rpc call', async () => {
+    await expect(
+      applyTransition({ bookingId: BOOKING, from: ['card_saved'], to: 'placing_hold', event, requireStatus: [] }),
+    ).rejects.toThrow('illegal payment transition')
+    expect(rpcMock).not.toHaveBeenCalled()
+  })
+
   it('throws payment transition failed on an rpc error', async () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: 'boom' } })
     await expect(

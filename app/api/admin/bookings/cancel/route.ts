@@ -21,6 +21,20 @@ const NON_CANCELLABLE_STATUSES = ['cancelled', 'completed', 'no_show']
 
 type BookingRow = Record<string, unknown>
 
+const BOOKING_COLUMNS =
+  'id, status, payment_intent_id, outbound_amount_czk, return_amount_czk, payment_mode, payment_state, ' +
+  'payment_currency, payment_amount_minor, booking_reference, booking_source, amount_eur, amount_czk, ' +
+  'client_first_name, client_last_name, pickup_date, pickup_time, ' +
+  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id'
+
+/** The payment side of the row after the status compare-and-set (88-REVIEW C-WR-01). */
+const PAYMENT_COLUMNS =
+  'payment_mode, payment_state, payment_currency, payment_amount_minor, payment_intent_id, ' +
+  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id'
+
+/** Payment states in which a cancelled card booking holds nothing: the cancel is complete. */
+const NOTHING_HELD: ReadonlySet<string> = new Set(['released', 'none'])
+
 const num = (v: unknown): number | null => {
   const n = typeof v === 'string' ? Number(v) : v
   return typeof n === 'number' && Number.isFinite(n) ? n : null
@@ -73,12 +87,7 @@ export async function POST(request: Request) {
 
   const { data: booking, error: fetchError } = await supabase
     .from('bookings')
-    .select(
-      'id, status, payment_intent_id, outbound_amount_czk, return_amount_czk, payment_mode, payment_state, ' +
-        'payment_currency, payment_amount_minor, booking_reference, booking_source, amount_eur, amount_czk, ' +
-        'client_first_name, client_last_name, pickup_date, pickup_time, ' +
-        'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id',
-    )
+    .select(BOOKING_COLUMNS)
     .eq('id', parsed.data.id)
     .single<BookingRow & { status: string }>()
 
@@ -160,7 +169,10 @@ export async function POST(request: Request) {
   // The cancel applied. From here a money failure never rolls it back: it leaves a refund_failed ledger row and an
   // operator alert instead (D-20).
   const moneyFailed = async (err: unknown, kind: 'refund' | 'release') => {
-    const code = kind === 'release' && err instanceof Error && err.message === 'busy' ? 'busy' : stripeErrorCode(err)
+    const code =
+      kind === 'release' && err instanceof Error && (err.message === 'busy' || err.message === 'state_moved')
+        ? err.message
+        : stripeErrorCode(err)
     const { amount_minor, currency } = failedAmount(booking, legAmountCents, isHold)
     console.error('[cancel] money step failed after the cancel applied', { bookingId: booking.id, kind, code })
     try {
@@ -196,11 +208,31 @@ export async function POST(request: Request) {
   }
 
   if (isHold) {
+    // C-WR-01: the payment snapshot read above predates the status compare-and-set, and the payment tick may have
+    // claimed the row in between (card_saved -> placing_hold). Release from a fresh read. The hold engine itself
+    // refuses to authorize a cancelled booking (status-gated transition, migration 086), so a placement that was in
+    // flight voids its own authorization; 'busy' still alerts the operator in case that worker died mid-call.
+    let current: BookingRow = booking
+    try {
+      const { data: fresh, error: freshError } = await supabase
+        .from('bookings')
+        .select(PAYMENT_COLUMNS)
+        .eq('id', parsed.data.id)
+        .maybeSingle<BookingRow>()
+      if (!freshError && fresh) current = { ...booking, ...fresh }
+    } catch {
+      // Fall back to the snapshot: releaseHold's own compare-and-set still refuses a stale state.
+      console.error('[cancel] fresh payment read failed', { bookingId: booking.id })
+    }
+
     // D-04: release the hold (authorized -> PaymentIntent cancelled; any other state -> released without Stripe).
     try {
-      const released = await releaseHold(booking, { actor, reason: 'cancel' })
+      const released = await releaseHold(current, { actor, reason: 'cancel' })
       if (released === 'busy') throw new Error('busy')
-      return NextResponse.json(released === 'released' ? { ok: true, released: true } : { ok: true })
+      if (released === 'released') return NextResponse.json({ ok: true, released: true })
+      // noop: fine only when nothing is held any more; never answer ok while a hold or card is still live.
+      if (!NOTHING_HELD.has(String(current.payment_state ?? 'none'))) throw new Error('state_moved')
+      return NextResponse.json({ ok: true })
     } catch (err) {
       return moneyFailed(err, 'release')
     }

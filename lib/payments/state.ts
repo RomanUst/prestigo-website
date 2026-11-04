@@ -110,7 +110,8 @@ export const TRANSITIONS: Record<PaymentState, readonly PaymentState[]> = {
   none: ['checkout_pending'],
   checkout_pending: ['checkout_pending', 'card_saved', 'authorized', 'released'],
   card_saved: ['card_saved', 'placing_hold', 'capturing', 'released'],
-  placing_hold: ['authorized', 'card_saved', 'failed', 'placing_hold'],
+  // released: the booking was cancelled / marked no-show while its hold was being placed (88-REVIEW A-WR-04).
+  placing_hold: ['authorized', 'card_saved', 'failed', 'placing_hold', 'released'],
   authorized: ['authorized', 'card_saved', 'expired', 'capturing', 'released'],
   capturing: ['captured', 'balance_due', 'failed', 'capturing'],
   balance_due: ['balance_due', 'captured', 'released'],
@@ -142,7 +143,10 @@ function serializeEvent(event: LedgerEvent): Record<string, unknown> {
 export interface ApplyTransitionResult {
   applied: boolean
   duplicate?: boolean
+  /** requireStatus was given and the booking status is not one of them (migration 086): nothing was written. */
+  statusBlocked?: boolean
   currentState?: PaymentState
+  currentStatus?: string
   booking?: Record<string, unknown>
 }
 
@@ -153,6 +157,9 @@ export interface ApplyTransitionResult {
  * - Lost race: { applied: false, currentState }.
  * - Event key already recorded for this booking: { applied: false, duplicate: true, currentState }
  *   and the state change was rolled back by the database.
+ * - requireStatus given and bookings.status not in it: { applied: false, statusBlocked: true, currentState,
+ *   currentStatus }. The status is read under the same row lock as payment_state (migration 086), so a concurrent
+ *   status change can never slip between the check and the write (88-REVIEW A-WR-04, C-WR-01).
  */
 export async function applyTransition(args: {
   bookingId: string
@@ -160,8 +167,11 @@ export async function applyTransition(args: {
   to: PaymentState
   patch?: PaymentPatch
   event: LedgerEvent
+  /** Booking statuses the transition requires (checked inside the compare-and-set). */
+  requireStatus?: readonly string[]
 }): Promise<ApplyTransitionResult> {
   if (!isLegalTransition(args.from, args.to)) throw new Error('illegal payment transition')
+  if (args.requireStatus !== undefined && args.requireStatus.length === 0) throw new Error('illegal payment transition')
 
   const { data, error } = await createSupabaseServiceClient().rpc('apply_payment_transition', {
     p_booking_id: args.bookingId,
@@ -169,13 +179,16 @@ export async function applyTransition(args: {
     p_to: args.to,
     p_patch: args.patch ?? {},
     p_event: serializeEvent(args.event),
+    ...(args.requireStatus ? { p_require_status: [...args.requireStatus] } : {}),
   })
 
   const result = data as
     | {
         applied?: unknown
         duplicate?: boolean
+        status_blocked?: boolean
         current_state?: PaymentState | null
+        current_status?: string | null
         booking?: Record<string, unknown> | null
       }
     | null
@@ -187,7 +200,9 @@ export async function applyTransition(args: {
 
   const out: ApplyTransitionResult = { applied: result.applied }
   if (result.duplicate === true) out.duplicate = true
+  if (result.status_blocked === true) out.statusBlocked = true
   if (result.current_state) out.currentState = result.current_state
+  if (result.current_status) out.currentStatus = result.current_status
   if (result.booking) out.booking = result.booking
   return out
 }

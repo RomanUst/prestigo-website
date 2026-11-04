@@ -243,6 +243,62 @@ describe('holdFailurePatch', () => {
   })
 })
 
+describe('a cancelled or no-show booking never ends with a hold (88-REVIEW A-WR-04, C-WR-01, migration 086)', () => {
+  it('cancelled while Stripe authorized: the authorization is voided, placing_hold -> released, no hold_placed email', async () => {
+    // The tick claimed the row while it was confirmed (the snapshot below); the cancel landed during the Stripe call.
+    const claimed = fresh()
+    row().status = 'cancelled'
+    const res = await placeHold(claimed, ACTOR)
+    expect(res).toEqual({ outcome: 'skipped', code: 'booking_closed' })
+    expect(row().payment_state).toBe('released')
+    const created = fake.callsTo('paymentIntents.create')
+    expect(created).toHaveLength(1)
+    const piId = [...fake.state.paymentIntents.keys()][0]
+    expect(fake.state.paymentIntents.get(piId)!.status).toBe('canceled')
+    expect(fake.callsTo('paymentIntents.cancel')[0].idempotencyKey).toBe(`pi_void:${piId}`)
+    expect(ledger('hold_authorized')).toHaveLength(0)
+    expect(ledger('hold_released')[0]).toMatchObject({ error_code: 'booking_closed', to_state: 'released' })
+    expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+
+  it('no_show while a declined hold is recorded: released, no payment_failed email and no recovery link', async () => {
+    seed({ stripe_payment_method_id: 'pm_decline_insufficient' })
+    const claimed = fresh()
+    row().status = 'no_show'
+    const res = await placeHold(claimed, ACTOR)
+    expect(res).toEqual({ outcome: 'skipped', code: 'booking_closed' })
+    expect(row().payment_state).toBe('released')
+    expect(ledger('hold_failed')).toHaveLength(0)
+    expect(fake.callsTo('paymentLinks.create')).toHaveLength(0)
+    expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+
+  it('a void that fails still releases and leaves the refund_failed trail for the operator', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const claimed = fresh()
+    row().status = 'cancelled'
+    fake.failNextWith('paymentIntents.cancel', 'connection')
+    expect((await placeHold(claimed, ACTOR)).code).toBe('booking_closed')
+    expect(row().payment_state).toBe('released')
+    expect(ledger('refund_failed')).toHaveLength(1)
+    expect(String(ledger('refund_failed')[0].event_key)).toMatch(/^refund_failed:.*:hold:pi_/)
+  })
+
+  it('a trip that started (on_board) while Stripe answered keeps its authorization: the settle captures it', async () => {
+    const claimed = fresh()
+    row().status = 'on_board'
+    expect(await placeHold(claimed, ACTOR)).toEqual({ outcome: 'authorized' })
+    expect(row().payment_state).toBe('authorized')
+  })
+
+  it.each(['cancelled', 'no_show'])('claimForHold refuses a %s booking inside the compare-and-set', async (status) => {
+    seed({ payment_state: 'card_saved', payment_lease_until: null, status })
+    expect(await claimForHold(ID, { type: 'admin', id: 'ops' })).toEqual({ applied: false })
+    expect(row().payment_state).toBe('card_saved')
+    expect(ledger('hold_started')).toHaveLength(0)
+  })
+})
+
 describe('claimForHold (admin "Place hold now")', () => {
   it.each(['card_saved', 'expired', 'failed'])('%s -> placing_hold with a lease', async (state) => {
     seed({ payment_state: state, payment_lease_until: null })
