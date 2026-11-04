@@ -8,7 +8,7 @@ import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-paymen
  * localized emails exactly once. The legacy suites (webhooks-stripe*.test.ts) stay unmodified and green.
  */
 
-const { stripeStub, world, mockAdvance, mockClaimPromo } = vi.hoisted(() => ({
+const { stripeStub, world, mockAdvance, mockClaimPromo, mockResendSend } = vi.hoisted(() => ({
   stripeStub: { constructEvent: vi.fn() },
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
@@ -16,6 +16,7 @@ const { stripeStub, world, mockAdvance, mockClaimPromo } = vi.hoisted(() => ({
   },
   mockAdvance: vi.fn(),
   mockClaimPromo: vi.fn(),
+  mockResendSend: vi.fn(),
 }))
 
 vi.mock('next/server', async () => {
@@ -64,7 +65,9 @@ vi.mock('@/lib/supabase', () => {
 
 vi.mock('@/lib/booking-status-service', () => ({ advanceBookingStatus: mockAdvance }))
 
-vi.mock('@/lib/email', () => ({
+// The real module stays (render.ts and the calendar link import from it); only the senders are spies.
+vi.mock('@/lib/email', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/email')>()),
   sendClientConfirmation: vi.fn().mockResolvedValue(undefined),
   sendManagerAlert: vi.fn().mockResolvedValue(undefined),
   sendEmergencyAlert: vi.fn().mockResolvedValue(undefined),
@@ -72,6 +75,11 @@ vi.mock('@/lib/email', () => ({
   sendRoundTripManagerAlert: vi.fn().mockResolvedValue(undefined),
   sendGroupClientConfirmation: vi.fn().mockResolvedValue(undefined),
   sendGroupManagerAlert: vi.fn().mockResolvedValue(undefined),
+}))
+vi.mock('resend', () => ({
+  Resend: class {
+    emails = { send: mockResendSend }
+  },
 }))
 vi.mock('@/lib/ics', () => ({ buildIcs: vi.fn().mockReturnValue('STUB-ICS') }))
 vi.mock('@/lib/qstash', () => ({ scheduleQStashReminder: vi.fn().mockResolvedValue(undefined) }))
@@ -88,6 +96,8 @@ import {
   reconcileBookingByIdToConfirmed,
 } from '@/lib/supabase'
 import { sendClientConfirmation, sendManagerAlert } from '@/lib/email'
+import { scheduleQStashReminder } from '@/lib/qstash'
+import { sendGa4Purchase } from '@/lib/analytics-server'
 import { classifyPaymentEvent, CARD_EVENT_TYPES } from '@/lib/stripe-webhook/dispatch'
 import { POST } from '@/app/api/webhooks/stripe/route'
 import type Stripe from 'stripe'
@@ -167,6 +177,8 @@ beforeEach(() => {
   db = createFakePaymentsDb({ bookings: [seedBooking()] })
   world.db = db
   mockClaimPromo.mockResolvedValue({ data: null, error: null })
+  mockResendSend.mockResolvedValue({ data: { id: 'email_1' }, error: null })
+  process.env.RESEND_API_KEY = 're_test'
   // The real status service needs the advance_booking_status RPC; here it is a faithful compare-and-set on the fake row.
   mockAdvance.mockImplementation(async (input: { bookingId: string; to: string; expectedFrom?: string }) => {
     const row = db.state.bookings.find((b) => b.id === input.bookingId)
@@ -386,5 +398,132 @@ describe('payment routing adjacency (PAYF-03)', () => {
     expect(status).toBe(200)
     expect(saveBooking).toHaveBeenCalledTimes(1)
     expect(mockAdvance).not.toHaveBeenCalled()
+  })
+})
+
+describe('setup success side effects (HOLD-01, MAIL-01)', () => {
+  const emails = () => mockResendSend.mock.calls.map((c) => c[0] as { to: string[]; subject: string; html: string; replyTo: string; from: string })
+
+  beforeEach(() => {
+    db.state.booking_payment_consents.push({
+      id: 'consent-1',
+      booking_id: BOOKING_ID,
+      setup_intent_id: 'seti_1',
+      mode: 'setup',
+      confirmed_at: null,
+    })
+  })
+
+  it('sends one card_saved email to the client in the booking locale and one English operator alert', async () => {
+    await deliver(eventOf('setup_intent.succeeded', setupIntent()))
+    expect(emails()).toHaveLength(1)
+    const mail = emails()[0]
+    expect(mail.to).toEqual(['anna@example.com'])
+    expect(mail.from).toContain('bookings@rideprestigo.com')
+    expect(mail.replyTo).toBe('bookings@rideprestigo.com')
+    expect(mail.html).toContain('lang="ru"')
+    // The hold day (hold_at in Prague time) is shown, formatted for the locale.
+    const { formatLocaleDate } = await import('@/lib/locale-date')
+    const { holdDateIso } = await import('@/lib/payments/timing')
+    expect(mail.html).toContain(formatLocaleDate(holdDateIso(Date.parse('2026-11-28T13:00:00.000Z')), 'ru'))
+    expect(ledger('email_sent').map((e) => e.event_key)).toEqual([`email:card_saved:${BOOKING_ID}`])
+
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+    expect(sendManagerAlert).toHaveBeenCalledWith(expect.objectContaining({ bookingReference: REF, email: 'anna@example.com' }))
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:new_booking:${BOOKING_ID}`])
+    expect(sendClientConfirmation).not.toHaveBeenCalled()
+  })
+
+  it('confirms the consent row of this SetupIntent', async () => {
+    await deliver(eventOf('setup_intent.succeeded', setupIntent()))
+    expect(db.state.booking_payment_consents[0].confirmed_at).toBeTruthy()
+  })
+
+  it('claims the promo code once, schedules GA4 and the reminder once, and records hold_scheduled', async () => {
+    await deliver(
+      eventOf(
+        'setup_intent.succeeded',
+        setupIntent({}, { kind: 'card_setup', cofBookingId: BOOKING_ID, attempt: '1', bookingReference: REF, promoCode: 'WELCOME10' }),
+      ),
+    )
+    expect(mockClaimPromo).toHaveBeenCalledTimes(1)
+    expect(mockClaimPromo).toHaveBeenCalledWith({ p_code: 'WELCOME10' })
+    expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    expect(sendGa4Purchase).toHaveBeenCalledWith(expect.objectContaining({ transactionId: REF, valueEur: 100, currency: 'EUR' }))
+    expect(scheduleQStashReminder).toHaveBeenCalledTimes(1)
+    expect(scheduleQStashReminder).toHaveBeenCalledWith(BOOKING_ID, Date.parse('2026-12-01T13:00:00.000Z'))
+    const scheduled = ledger('hold_scheduled')
+    expect(scheduled).toHaveLength(1)
+    expect(scheduled[0].event_key).toBe('hold_scheduled:seti_1')
+    expect(scheduled[0].amount_minor).toBe(10000)
+    expect(scheduled[0].currency).toBe('eur')
+  })
+
+  it('a redelivery of the same SetupIntent sends nothing twice', async () => {
+    const withPromo = setupIntent({}, { kind: 'card_setup', cofBookingId: BOOKING_ID, attempt: '1', bookingReference: REF, promoCode: 'WELCOME10' })
+    await deliver(eventOf('setup_intent.succeeded', withPromo, 'evt_a'))
+    await deliver(eventOf('setup_intent.succeeded', withPromo, 'evt_b'))
+    expect(emails()).toHaveLength(1)
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+    expect(mockClaimPromo).toHaveBeenCalledTimes(1)
+    expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    expect(scheduleQStashReminder).toHaveBeenCalledTimes(1)
+  })
+
+  it('a retry after a crash between the transition and the emails finishes them once', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    // Delivery 1: the transition applies, then the consent write throws -> 500, Stripe retries.
+    const originalFrom = db.client.from
+    let thrown = false
+    db.client.from = (table: string) => {
+      if (table === 'booking_payment_consents' && !thrown) {
+        thrown = true
+        throw new Error('simulated crash')
+      }
+      return originalFrom(table)
+    }
+    const first = await deliver(eventOf('setup_intent.succeeded', setupIntent(), 'evt_crash'))
+    expect(first.status).toBe(500)
+    expect(bookingRow().payment_state).toBe('card_saved')
+    expect(emails()).toHaveLength(0)
+
+    const retry = await deliver(eventOf('setup_intent.succeeded', setupIntent(), 'evt_crash'))
+    expect(retry.status).toBe(200)
+    expect(emails()).toHaveLength(1)
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+    // The once-per-confirmation effects ran on the first delivery only.
+    expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    expect(scheduleQStashReminder).toHaveBeenCalledTimes(1)
+  })
+
+  it('a Resend error returns failed, writes a send_failed row and still answers 200', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResendSend.mockResolvedValue({ data: null, error: { message: 'to anna@example.com rejected' } })
+    const { status } = await deliver(eventOf('setup_intent.succeeded', setupIntent()))
+    expect(status).toBe(200)
+    const rows = ledger('email_sent')
+    expect(rows.map((e) => e.event_key)).toContain(`email:card_saved:${BOOKING_ID}:send_failed`)
+    expect(rows.find((e) => String(e.event_key).endsWith(':send_failed'))?.error_code).toBe('send_failed')
+    expect(JSON.stringify(err.mock.calls)).not.toContain('anna@example.com')
+    // The booking is still confirmed and the operator is still alerted.
+    expect(bookingRow().payment_state).toBe('card_saved')
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+  })
+
+  it('a booking cancelled meanwhile gets no client email, no GA4 and no reminder', async () => {
+    bookingRow().status = 'cancelled'
+    await deliver(eventOf('setup_intent.succeeded', setupIntent()))
+    expect(emails()).toHaveLength(0)
+    expect(sendManagerAlert).not.toHaveBeenCalled()
+    expect(sendGa4Purchase).not.toHaveBeenCalled()
+    expect(scheduleQStashReminder).not.toHaveBeenCalled()
+    expect(db.state.booking_payment_consents[0].confirmed_at).toBeNull()
+  })
+
+  it('falls back to English for a locale whose catalog has no payment emails', async () => {
+    bookingRow().locale = 'xx'
+    await deliver(eventOf('setup_intent.succeeded', setupIntent()))
+    expect(emails()).toHaveLength(1)
+    expect(emails()[0].html).toContain('lang="en"')
   })
 })

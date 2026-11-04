@@ -12,17 +12,31 @@
 // applySetupSucceeded / applyHoldNowAuthorized hold the whole effect so the payment tick (plan 88-11) can
 // reconcile a missed webhook through the same code with actor 'system'.
 
+import { after } from 'next/server'
 import type Stripe from 'stripe'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { applyTransition, type LedgerActor } from '@/lib/payments/state'
+import { applyTransition, appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
+import { sendPaymentEmail, bookingEmailDataFromRow } from '@/lib/payments/emails/send'
+import { sendManagerAlert } from '@/lib/email'
+import { scheduleQStashReminder } from '@/lib/qstash'
+import { sendGa4Purchase } from '@/lib/analytics-server'
+import { pickupInstantMs } from '@/lib/prague-date'
 
 export type ConfirmOutcome = 'confirmed' | 'already_confirmed' | 'cancelled'
 
 export const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
 
 type BookingRow = Record<string, unknown> & { id: string }
+
+const SYSTEM_ACTOR: LedgerActor = { type: 'system', id: null }
+
+const VEHICLE_LABELS: Record<string, string> = {
+  business: 'Business',
+  first_class: 'First Class',
+  business_van: 'Business Van',
+}
 
 /** Stripe expandable field -> id string (or null). */
 function idOf(value: unknown): string | null {
@@ -102,6 +116,118 @@ async function resolveBooking(
 }
 
 /**
+ * Effects that must run once per booking confirmation: they run only when this delivery is the one whose
+ * transition applied (a replay of the same event, or the tick reconcile after a webhook, applies nothing).
+ * Each step is isolated: the booking is already confirmed and charged with nothing, so none may throw.
+ */
+async function firstTimeEffects(
+  row: BookingRow,
+  opts: { promoCode: string | null; holdScheduledKey: string | null; actor: LedgerActor },
+): Promise<void> {
+  // SEC-01: the promo code is claimed only now that the booking is confirmed (same rule as pay-now).
+  if (opts.promoCode) {
+    try {
+      const { error } = await createSupabaseServiceClient().rpc('claim_promo_code', { p_code: opts.promoCode })
+      if (error) console.error('[webhook] claim_promo_code failed', { bookingId: row.id })
+    } catch {
+      console.error('[webhook] claim_promo_code failed', { bookingId: row.id })
+    }
+  }
+
+  const reference = typeof row.booking_reference === 'string' ? row.booking_reference : ''
+  const vehicleClass = (typeof row.vehicle_class === 'string' && row.vehicle_class) || 'transfer'
+  const tripType = (typeof row.trip_type === 'string' && row.trip_type) || 'transfer'
+  const valueEur = typeof row.amount_eur === 'number' ? row.amount_eur : 0
+  try {
+    after(() =>
+      sendGa4Purchase({
+        transactionId: reference,
+        valueEur,
+        currency: 'EUR',
+        items: [
+          {
+            item_id: vehicleClass,
+            item_name: VEHICLE_LABELS[vehicleClass] ?? 'Chauffeur Transfer',
+            item_category: tripType,
+            item_variant: tripType,
+            price: valueEur,
+            quantity: 1,
+          },
+        ],
+        siteLocale: typeof row.locale === 'string' ? row.locale : undefined,
+      }),
+    )
+  } catch {
+    console.error('[webhook] GA4 purchase not scheduled', { bookingId: row.id })
+  }
+
+  const pickupMs = pickupInstantMs({
+    pickup_utc: typeof row.pickup_utc === 'string' ? row.pickup_utc : null,
+    pickup_date: typeof row.pickup_date === 'string' ? row.pickup_date : '',
+    pickup_time: typeof row.pickup_time === 'string' ? row.pickup_time : '',
+  })
+  if (pickupMs !== null) {
+    try {
+      const bookingId = row.id
+      after(() => scheduleQStashReminder(bookingId, pickupMs))
+    } catch {
+      console.error('[webhook] reminder not scheduled', { bookingId: row.id })
+    }
+  }
+
+  if (opts.holdScheduledKey) {
+    try {
+      await appendPaymentEvent(row.id, {
+        key: opts.holdScheduledKey,
+        kind: 'hold_scheduled',
+        amountMinor: typeof row.payment_amount_minor === 'number' ? row.payment_amount_minor : undefined,
+        currency: row.payment_currency === 'czk' ? 'czk' : row.payment_currency === 'eur' ? 'eur' : undefined,
+        actor: opts.actor,
+      })
+    } catch {
+      console.error('[webhook] hold_scheduled row not written', { bookingId: row.id })
+    }
+  }
+}
+
+/**
+ * Effects that are idempotent by themselves (an update with a null guard, or a ledger event_key claimed
+ * before the send), so they also run on a redelivery that finds the transition already applied: if a
+ * crash cut a previous delivery short, the retry finishes the job without ever doubling a message.
+ */
+async function ledgerGuardedEffects(
+  row: BookingRow,
+  opts: {
+    consent: { column: 'setup_intent_id' | 'payment_intent_id'; value: string }
+    email: { kind: 'card_saved' | 'hold_placed'; eventKey: string; variant?: 'at_checkout' }
+  },
+): Promise<void> {
+  // The consent the client accepted is now backed by a saved card / placed hold.
+  const { error } = await createSupabaseServiceClient()
+    .from('booking_payment_consents')
+    .update({ confirmed_at: new Date().toISOString() })
+    .eq(opts.consent.column, opts.consent.value)
+    .is('confirmed_at', null)
+  if (error) console.error('[webhook] consent confirmation failed', { bookingId: row.id })
+
+  await sendPaymentEmail({ booking: row, ...opts.email })
+
+  // English operator alert, once per card booking, claimed in the ledger before it is sent.
+  const claim = await appendPaymentEvent(row.id, {
+    key: `alert:new_booking:${row.id}`,
+    kind: 'alert_sent',
+    actor: SYSTEM_ACTOR,
+  })
+  if (claim.inserted) {
+    try {
+      await sendManagerAlert(bookingEmailDataFromRow(row))
+    } catch {
+      console.error('[webhook] operator alert failed', { bookingId: row.id })
+    }
+  }
+}
+
+/**
  * SetupIntent succeeded (kind card_setup): confirm the booking once and move the payment
  * checkout_pending -> card_saved with the Customer and PaymentMethod ids. A booking cancelled meanwhile
  * moves checkout_pending -> released instead and is never re-confirmed.
@@ -113,7 +239,7 @@ export async function applySetupSucceeded(si: Stripe.SetupIntent, actor: LedgerA
   const outcome = await confirmCardBooking(booking, 'card_setup')
   const cancelled = outcome === 'cancelled'
 
-  await applyTransition({
+  const moved = await applyTransition({
     bookingId: booking.id,
     from: ['checkout_pending'],
     to: cancelled ? 'released' : 'card_saved',
@@ -129,6 +255,20 @@ export async function applySetupSucceeded(si: Stripe.SetupIntent, actor: LedgerA
       actor,
       errorCode: cancelled ? 'booking_cancelled' : undefined,
     },
+  })
+
+  // A booking cancelled meanwhile gets no email, no analytics and no reminder.
+  if (cancelled) return
+  // Lost race or a state that already moved on: nothing of ours to finish.
+  if (!moved.applied && moved.duplicate !== true) return
+
+  const row: BookingRow = { ...booking, ...(moved.booking ?? {}) }
+  if (moved.applied) {
+    await firstTimeEffects(row, { promoCode: metaString(si.metadata, 'promoCode'), holdScheduledKey: `hold_scheduled:${si.id}`, actor })
+  }
+  await ledgerGuardedEffects(row, {
+    consent: { column: 'setup_intent_id', value: si.id },
+    email: { kind: 'card_saved', eventKey: `email:card_saved:${booking.id}` },
   })
 }
 
