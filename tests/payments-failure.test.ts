@@ -254,6 +254,7 @@ describe('tracer: a declined scheduled hold', () => {
       'refund_failed',
       'dispute',
       'duplicate_payment',
+      'stripe_config',
     ])
   })
 })
@@ -381,8 +382,8 @@ describe('declined charge and difference (settle failure branches)', () => {
     expect(operatorMails()[0].text).toContain('The trip amount was captured. The extra')
     expect(operatorMails()[0].text).toContain('€30')
     expect(operatorMails()[0].text).not.toContain('automatic retry')
-    // The recovery payment will need its own ledger key: the captured:<mainPi> row is already taken.
-    expect(ledger('captured').map((e) => e.event_key)).toEqual([`captured:${hold.id}`])
+    // 88-REVIEW A-WR-07: the main capture is recorded under its own key, never the final captured:<mainPi> key.
+    expect(ledger('captured').map((e) => e.event_key)).toEqual([`main_captured:${hold.id}`])
   })
 })
 

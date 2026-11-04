@@ -907,7 +907,18 @@ describe('lib/payments/stripe conventions', () => {
     expect(classifyStripeError(err('StripeAPIError', { statusCode: 503 }))).toBe('transient')
     expect(classifyStripeError(err('StripeAPIError', { statusCode: 400 }))).toBe('invalid')
     expect(classifyStripeError(err('StripeInvalidRequestError'))).toBe('invalid')
-    expect(classifyStripeError(err('StripeIdempotencyError'))).toBe('invalid')
+    // 88-REVIEW A-WR-03: a key reused with other parameters is its own class (look up, void, next attempt).
+    expect(classifyStripeError(err('StripeIdempotencyError'))).toBe('idempotency')
+    // 88-REVIEW A-WR-01: the same key still in flight elsewhere (409) is busy, never a definitive failure.
+    expect(classifyStripeError(err('StripeIdempotencyError', { statusCode: 409 }))).toBe('transient')
+    expect(classifyStripeError(err('StripeInvalidRequestError', { statusCode: 409, code: 'idempotency_key_in_use' }))).toBe('transient')
+    expect(classifyStripeError(err('StripeInvalidRequestError', { code: 'lock_timeout' }))).toBe('transient')
+    expect(classifyStripeError(err('StripeRateLimitError', { statusCode: 429 }))).toBe('transient')
+    // 88-REVIEW A-WR-02: our own key refused is configuration, never a client decline.
+    expect(classifyStripeError(err('StripeAuthenticationError', { statusCode: 401 }))).toBe('config')
+    expect(classifyStripeError(err('StripePermissionError', { statusCode: 403 }))).toBe('config')
+    expect(classifyStripeError(err('StripeInvalidRequestError', { code: 'api_key_expired' }))).toBe('config')
+    expect(classifyStripeError(err('SomethingElse', { statusCode: 401 }))).toBe('config')
     expect(classifyStripeError(new Error('plain'))).toBe('invalid')
     expect(classifyStripeError(null)).toBe('invalid')
   })

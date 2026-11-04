@@ -75,14 +75,27 @@ const PENDING_CHECKOUT_ALERT_AGE_MS = 30 * 60_000
 /** Checkouts examined per run (oldest first); the rest wait for the next run. */
 const RECONCILE_LIMIT = 50
 
-/** Step A: claim the due holds and place them one after the other (sequential Stripe calls, T-88-34). */
+/**
+ * Step A: claim the due holds ONE AT A TIME and place them one after the other (sequential Stripe calls, T-88-34).
+ * 88-REVIEW A-WR-01: each claim takes its own fresh lease right before its own Stripe calls. A booking that comes back
+ * in the same run (a transient / configuration problem returned it to card_saved, so it is due again at once) is left
+ * in its new lease and skipped: the next claim passes it by (its lease is live) and a later run retries it with the
+ * same idempotency key once the lease lapses.
+ */
 const stepA: TickStep = {
   code: 'A',
   async run(ctx) {
-    const rows = await claimDueHolds(HOLD_CLAIM_LIMIT, LEASE_SECONDS)
     let placed = 0
     let failed = 0
-    for (const row of rows) {
+    let processed = 0
+    const seen = new Set<string>()
+    for (let i = 0; i < HOLD_CLAIM_LIMIT * 2 && processed < HOLD_CLAIM_LIMIT; i += 1) {
+      const [row] = await claimDueHolds(1, LEASE_SECONDS)
+      if (!row) break
+      const rowId = typeof row.id === 'string' ? row.id : ''
+      if (seen.has(rowId)) continue
+      seen.add(rowId)
+      processed += 1
       try {
         const result = await placeHold(row, TICK_ACTOR, ctx.now)
         if (result.outcome === 'authorized') placed += 1
@@ -154,7 +167,8 @@ const stepE: TickStep = {
 /**
  * Step C: the durable backstop of the completion event (Phase 87 hand-off). after() can die, so every card_hold
  * booking whose trip is completed (completed_at IS NOT NULL, never the status alone) and that is still authorized,
- * expired or card_saved is settled here, plus capturing rows whose lease expired (a settle that died mid-flight).
+ * expired or card_saved is settled here, plus capturing / placing_hold rows whose lease expired (a settle or a hold
+ * placement that died mid-flight).
  * Failed rows are NOT selected here: their single retry belongs to step B. settleBooking claims
  * each row first, so this sweep, the completion event and the admin capture can never collect twice.
  */
@@ -171,14 +185,21 @@ const stepC: TickStep = {
         .neq('status', 'cancelled')
         .neq('status', 'no_show')
 
-    const [waiting, stuck] = await Promise.all([
+    const nowIso = ctx.now.toISOString()
+    const [waiting, stuck, stuckPlacing] = await Promise.all([
       base().in('payment_state', ['authorized', 'expired', 'card_saved']).order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
-      base().eq('payment_state', 'capturing').lt('payment_lease_until', ctx.now.toISOString()).order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
+      base().eq('payment_state', 'capturing').lt('payment_lease_until', nowIso).order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
+      // 88-REVIEW A-WR-06: a hold placement that died near pickup (the scheduled claim only re-takes it before pickup).
+      base().eq('payment_state', 'placing_hold').lt('payment_lease_until', nowIso).order('completed_at', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
     ])
-    if (waiting.error || stuck.error) throw new Error('settle sweep lookup failed')
+    if (waiting.error || stuck.error || stuckPlacing.error) throw new Error('settle sweep lookup failed')
 
     const ids: string[] = []
-    for (const r of [...((waiting.data ?? []) as Array<{ id: string }>), ...((stuck.data ?? []) as Array<{ id: string }>)]) {
+    for (const r of [
+      ...((waiting.data ?? []) as Array<{ id: string }>),
+      ...((stuck.data ?? []) as Array<{ id: string }>),
+      ...((stuckPlacing.data ?? []) as Array<{ id: string }>),
+    ]) {
       if (typeof r.id === 'string' && !ids.includes(r.id)) ids.push(r.id)
     }
 

@@ -17,7 +17,7 @@ import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-sta
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { getPaymentSettings } from '@/lib/payments/config'
-import { cancelHoldIntent } from '@/lib/payments/hold'
+import { cancelHoldIntent, voidHoldAttempt } from '@/lib/payments/hold'
 import { refreshRecoveryLink } from '@/lib/payments/recovery'
 import { stripeErrorCode } from '@/lib/payments/stripe'
 import { computeHoldAt, holdDateIso, needsReplace } from '@/lib/payments/timing'
@@ -244,6 +244,16 @@ export async function reevaluateAfterEdit(input: {
 
     // ── card_saved / failed / expired: no hold to protect, the next tick places it with the new values ──
     if (Object.keys(patch).length === 0) return null
+
+    // 88-REVIEW A-WR-03: a transient hold error leaves card_saved with the SAME attempt, so the next tick replays the
+    // key hold:<id>:<n>. With a new amount that replay would meet a request that may already have authorized the old
+    // amount. Void whatever this attempt created and move to the next attempt number in the same write; when Stripe
+    // can not be searched the number stays, and placeHold recovers from the key reuse itself (void, next attempt).
+    const oldAmount = num(row.payment_amount_minor)
+    if (state === 'card_saved' && newAmount !== null && newAmount !== oldAmount) {
+      const attempts = num(row.hold_attempts) ?? 0
+      if (await voidHoldAttempt(bookingId, attempts)) patch.hold_attempts = attempts + 1
+    }
     const moved = await applyTransition({
       bookingId,
       from: [state],

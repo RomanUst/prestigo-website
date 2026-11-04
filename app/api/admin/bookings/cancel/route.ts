@@ -9,7 +9,7 @@ import { enforceMaxBody } from '@/lib/request-guards'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
-import { releaseHold } from '@/lib/payments/hold'
+import { leaseLapsed, releaseHold } from '@/lib/payments/hold'
 
 const cancelSchema = z.object({
   id: z.string().uuid(),
@@ -25,12 +25,12 @@ const BOOKING_COLUMNS =
   'id, status, payment_intent_id, outbound_amount_czk, return_amount_czk, payment_mode, payment_state, ' +
   'payment_currency, payment_amount_minor, booking_reference, booking_source, amount_eur, amount_czk, ' +
   'client_first_name, client_last_name, pickup_date, pickup_time, ' +
-  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, captured_amount_minor'
+  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, captured_amount_minor, payment_lease_until'
 
 /** The payment side of the row after the status compare-and-set (88-REVIEW C-WR-01). */
 const PAYMENT_COLUMNS =
   'payment_mode, payment_state, payment_currency, payment_amount_minor, payment_intent_id, ' +
-  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, captured_amount_minor'
+  'hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, captured_amount_minor, payment_lease_until'
 
 /** Payment states in which a cancelled card booking holds nothing: the cancel is complete. */
 const NOTHING_HELD: ReadonlySet<string> = new Set(['released', 'none'])
@@ -121,8 +121,12 @@ export async function POST(request: Request) {
   const refundsPayNow = !isHold && Boolean(booking.payment_intent_id)
 
   // D-04: a card booking whose hold is being placed or whose capture is running holds a lease; cancelling now
-  // would race that worker. Nothing is written.
-  if (isHold && (booking.payment_state === 'placing_hold' || booking.payment_state === 'capturing')) {
+  // would race that worker. Nothing is written. 88-REVIEW A-WR-06: a hold placement whose lease lapsed (its worker
+  // died) no longer blocks the cancel: releaseHold voids what it may have authorized.
+  if (
+    isHold &&
+    (booking.payment_state === 'capturing' || (booking.payment_state === 'placing_hold' && !leaseLapsed(booking)))
+  ) {
     return NextResponse.json({ error: 'payment_busy' }, { status: 409 })
   }
 

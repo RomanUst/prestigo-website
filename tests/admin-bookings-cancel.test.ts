@@ -59,7 +59,10 @@ vi.mock('@/lib/payments/stripe', async (importActual) => {
   return { ...actual, getPaymentsStripe: () => ({ refunds: { create: mockRefundsCreate } }) }
 })
 vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: mockAlert }))
-vi.mock('@/lib/payments/hold', () => ({ releaseHold: mockReleaseHold }))
+vi.mock('@/lib/payments/hold', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/payments/hold')>()),
+  releaseHold: mockReleaseHold,
+}))
 
 vi.mock('@/lib/email-log', () => ({ logEmail: mockLogEmail }))
 vi.mock('@/lib/email', () => ({
@@ -657,6 +660,25 @@ describe('POST /api/admin/bookings/cancel', () => {
       expect(mockRpc).not.toHaveBeenCalled()
       expect(mockReleaseHold).not.toHaveBeenCalled()
       expect(mockRefundsCreate).not.toHaveBeenCalled()
+    })
+
+    it('88-REVIEW A-WR-06: placing_hold whose lease lapsed (dead worker) is no longer busy: the cancel releases it', async () => {
+      wireSupabase({
+        booking: holdBooking('placing_hold', { payment_lease_until: new Date(Date.now() - 60_000).toISOString() }),
+      })
+      mockReleaseHold.mockResolvedValue('released')
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(200)
+      expect(mockReleaseHold).toHaveBeenCalledWith(expect.objectContaining({ payment_state: 'placing_hold' }), expect.anything())
+    })
+
+    it('88-REVIEW A-WR-06: placing_hold with a live lease stays busy', async () => {
+      wireSupabase({
+        booking: holdBooking('placing_hold', { payment_lease_until: new Date(Date.now() + 60_000).toISOString() }),
+      })
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(409)
+      expect(mockReleaseHold).not.toHaveBeenCalled()
     })
 
     it('lost race: 409 status_conflict and the hold is NOT released', async () => {

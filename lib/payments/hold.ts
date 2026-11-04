@@ -64,6 +64,16 @@ export const HOLD_ACTIVE_STATUSES: readonly string[] = [...CALENDAR_ACTIVE_STATU
  */
 export const HOLD_OPEN_STATUSES: readonly string[] = BOOKING_STATUSES.filter((s) => s !== 'cancelled' && s !== 'no_show')
 
+/**
+ * 88-REVIEW A-WR-06: a placing_hold / capturing row whose worker died keeps its state, but its lease runs out. True when
+ * the row carries an expired (or missing) lease; a row read without the lease column counts as leased (never guess).
+ */
+export function leaseLapsed(b: BookingRow, nowMs: number = Date.now()): boolean {
+  if (!('payment_lease_until' in b)) return false
+  const until = typeof b.payment_lease_until === 'string' ? Date.parse(b.payment_lease_until) : NaN
+  return !Number.isFinite(until) || until <= nowMs
+}
+
 function pickupOf(b: BookingRow): number | null {
   return pickupInstantMs({
     pickup_utc: typeof b.pickup_utc === 'string' ? b.pickup_utc : null,
@@ -258,6 +268,97 @@ async function recordDefinitiveFailure(
   return { outcome: 'failed', code: info.code }
 }
 
+/**
+ * 88-REVIEW A-WR-02: Stripe refused OUR key (revoked, expired, restricted). Once per booking, phase and attempt the
+ * operator is told; the client never is. Never throws.
+ */
+export async function alertStripeConfig(
+  booking: BookingRow,
+  phase: 'hold' | 'charge',
+  attempt: number,
+  code: string,
+): Promise<void> {
+  const bookingId = str(booking.id)
+  try {
+    await sendPaymentOperatorAlert('stripe_config', booking, {
+      eventKey: `alert:stripe_config:${bookingId}:${phase}:${attempt}`,
+      code,
+    })
+  } catch {
+    console.error('[hold] stripe configuration alert failed', { bookingId })
+  }
+}
+
+/** PaymentIntent states that still block (or may still block) money on the client's card. */
+const VOIDABLE_STATUSES: ReadonlySet<string> = new Set([
+  'requires_capture',
+  'requires_confirmation',
+  'requires_action',
+  'requires_payment_method',
+  'processing',
+])
+
+/**
+ * Void every PaymentIntent that the scheduled-hold attempt `attempt` of a booking created (found by its metadata), so
+ * a request whose answer was lost can never leave an authorization behind (88-REVIEW A-WR-03). Returns false when
+ * Stripe could not be searched or a void failed: the caller must then keep the attempt number, so the next try meets
+ * the same key again instead of placing a second hold.
+ */
+export async function voidHoldAttempt(bookingId: string, attempt: number): Promise<boolean> {
+  const stripe = getPaymentsStripe()
+  let found: Stripe.PaymentIntent[]
+  try {
+    const result = await stripe.paymentIntents.search({
+      query: `metadata['cofBookingId']:'${bookingId}' AND metadata['attempt']:'${attempt}' AND metadata['kind']:'card_hold'`,
+      limit: 10,
+    })
+    found = result.data
+  } catch {
+    console.error('[hold] attempt lookup failed', { bookingId, attempt })
+    return false
+  }
+  let ok = true
+  for (const pi of found) {
+    if (!VOIDABLE_STATUSES.has(pi.status)) continue
+    try {
+      await cancelPaymentIntent(pi.id, stripeKeys.voidHoldNow(pi.id))
+    } catch {
+      ok = false
+      console.error('[hold] earlier attempt authorization not voided', { bookingId, stripeObjectId: pi.id })
+    }
+  }
+  return ok
+}
+
+/**
+ * The hold key of this attempt was already used with different parameters (StripeIdempotencyError): the earlier
+ * request executed, for another amount. Its PaymentIntent is voided and the booking goes back to card_saved with the
+ * NEXT attempt number, so the following run creates a fresh hold for the current amount. No client email: nothing
+ * was declined. When the earlier PaymentIntent can not be voided the attempt number stays (the next run tries again).
+ */
+async function recoverFromKeyReuse(
+  booking: BookingRow,
+  actor: LedgerActor,
+  nowMs: number,
+): Promise<{ outcome: HoldOutcome; code: string }> {
+  const bookingId = str(booking.id)
+  const attempts = attemptsOf(booking)
+  const voided = await voidHoldAttempt(bookingId, attempts)
+  await applyTransition({
+    bookingId,
+    from: ['placing_hold'],
+    to: 'card_saved',
+    patch: { payment_lease_until: null, ...(voided ? { hold_attempts: attempts + 1 } : {}) },
+    event: {
+      key: `hold_failed:key_reused:${attempts}:${nowMs}`,
+      kind: 'hold_failed',
+      errorCode: voided ? 'idempotency_key_reused' : 'idempotency_void_pending',
+      actor,
+    },
+  })
+  return { outcome: 'transient', code: 'key_reused' }
+}
+
 /** Cancel a PaymentIntent by id; an already-canceled one counts as success. Any other error is rethrown. */
 export async function cancelPaymentIntent(piId: string, idempotencyKey: string): Promise<void> {
   const stripe = getPaymentsStripe()
@@ -352,16 +453,22 @@ export async function placeHold(
     )
   } catch (err) {
     const kind = classifyStripeError(err)
-    if (kind === 'transient') {
-      // Same attempt number: the next tick replays the same idempotency key.
+    // 88-REVIEW A-WR-03: the key of this attempt already ran with other parameters (the price changed after a request
+    // that may have authorized): void what that request created, then move to a fresh key.
+    if (kind === 'idempotency') return recoverFromKeyReuse(booking, actor, nowMs)
+    if (kind === 'transient' || kind === 'config') {
+      // Same attempt number: the next tick replays the same idempotency key. 88-REVIEW A-WR-01 / A-WR-02: a busy key
+      // (409) or a broken Stripe key is not the client's decline: no attempt is used up and the client is not emailed.
+      const code = kind === 'config' ? 'stripe_config' : 'transient'
       await applyTransition({
         bookingId,
         from: ['placing_hold'],
         to: 'card_saved',
         patch: { payment_lease_until: null },
-        event: { key: `hold_failed:transient:${attempts}:${nowMs}`, kind: 'hold_failed', errorCode: 'transient', actor },
+        event: { key: `hold_failed:${code}:${attempts}:${nowMs}`, kind: 'hold_failed', errorCode: code, actor },
       })
-      return { outcome: 'transient', code: 'transient' }
+      if (kind === 'config') await alertStripeConfig(booking, 'hold', attempts, stripeErrorCode(err))
+      return { outcome: 'transient', code }
     }
     const failedIntent = (err as { payment_intent?: unknown } | null)?.payment_intent
     const code = kind === 'auth_required' ? 'authentication_required' : stripeErrorCode(err)
@@ -438,6 +545,7 @@ export async function placeHold(
  *                                       released booking), released
  *   card_saved/failed/expired        -> released, no Stripe call
  *   balance_due + reason 'waive'     -> released with a waived ledger row
+ *   placing_hold, lease lapsed       -> void what the dead attempt may have authorized, released (88-REVIEW A-WR-06)
  *   placing_hold / capturing         -> 'busy' (a worker holds the lease)
  *   anything else                    -> 'noop' (captured and released are terminal; partner bookings have no money flow)
  */
@@ -457,7 +565,8 @@ export async function releaseHold(
   if (booking.payment_mode !== 'card_hold') return 'noop'
 
   const state = booking.payment_state as PaymentState
-  if (state === 'placing_hold' || state === 'capturing') return 'busy'
+  if (state === 'capturing') return 'busy'
+  if (state === 'placing_hold' && !leaseLapsed(booking)) return 'busy'
 
   let from: PaymentState[]
   let event: Parameters<typeof applyTransition>[0]['event']
@@ -474,6 +583,12 @@ export async function releaseHold(
     if (piId) await cancelPaymentIntent(piId, stripeKeys.voidHoldNow(piId))
     from = ['checkout_pending']
     event = { key: `hold_released:checkout_pending:${bookingId}`, kind: 'hold_released', stripeObjectId: piId || undefined, actor: opts.actor }
+  } else if (state === 'placing_hold') {
+    // The lease lapsed: the worker that was placing this hold is gone. Whatever its request authorized is voided first;
+    // a void that can not be confirmed answers busy (the caller alerts, nothing is released blind).
+    if (!(await voidHoldAttempt(bookingId, attemptsOf(booking)))) return 'busy'
+    from = ['placing_hold']
+    event = { key: `hold_released:stale_lease:${bookingId}:${attemptsOf(booking)}`, kind: 'hold_released', errorCode: 'lease_lapsed', actor: opts.actor }
   } else if (state === 'card_saved' || state === 'failed' || state === 'expired') {
     from = [state]
     event = { key: `hold_released:${state}:${bookingId}`, kind: 'hold_released', actor: opts.actor }

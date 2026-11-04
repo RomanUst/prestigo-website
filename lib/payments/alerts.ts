@@ -22,6 +22,7 @@ export const OPERATOR_ALERT_KINDS = [
   'refund_failed',
   'dispute',
   'duplicate_payment',
+  'stripe_config',
 ] as const
 export type OperatorAlertKind = (typeof OPERATOR_ALERT_KINDS)[number]
 
@@ -67,6 +68,7 @@ const TITLES: Record<OperatorAlertKind, string> = {
   refund_failed: 'Refund failed',
   dispute: 'Dispute opened',
   duplicate_payment: 'Duplicate payment',
+  stripe_config: 'Stripe key problem',
 }
 
 /** A Prague wall-clock rendering of an instant, e.g. "12 Dec 2026, 14:00". */
@@ -130,6 +132,9 @@ function nextAction(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAle
         ? `${lead} The link payment was refunded automatically; the booking is unchanged.`
         : `${lead} The automatic refund failed: refund ${amount} manually in the Stripe Dashboard.`
     }
+    case 'stripe_config':
+      // 88-REVIEW A-WR-02: Stripe refused our key, not the client's card. Nothing was charged and the client was not emailed.
+      return 'Stripe refused the API key (revoked, expired or missing a permission). The client was NOT emailed and no attempt was used; the engine retries on every run. Check STRIPE_SECRET_KEY in Vercel.'
   }
 }
 

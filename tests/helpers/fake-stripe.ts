@@ -32,6 +32,9 @@ export type FakeStripeErrorType =
   | 'StripeInvalidRequestError'
   | 'StripeIdempotencyError'
   | 'StripeAPIError'
+  | 'StripeAuthenticationError'
+  | 'StripePermissionError'
+  | 'StripeRateLimitError'
 
 export class FakeStripeError extends Error {
   type: FakeStripeErrorType
@@ -106,7 +109,7 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
     idempotency: new Map(),
   }
   const calls: FakeStripeCall[] = []
-  const failures: Array<{ method: string; kind: 'connection' }> = []
+  const failures: Array<{ method: string; kind: 'connection' | 'error'; error?: FakeStripeError }> = []
   let seq = 0
   const nextId = (prefix: string) => {
     seq += 1
@@ -134,8 +137,9 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
 
     const idx = failures.findIndex((f) => f.method === method)
     if (idx >= 0) {
-      failures.splice(idx, 1)
+      const [failure] = failures.splice(idx, 1)
       // Nothing executed, nothing stored: a retry with the same key runs for real.
+      if (failure.kind === 'error' && failure.error) throw failure.error
       throw new FakeStripeError('StripeConnectionError', 'An error occurred with our connection to Stripe.')
     }
 
@@ -409,6 +413,13 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
     /** The next call to `method` throws a connection error (executes nothing, stores nothing). */
     failNextWith(method: string, kind: 'connection') {
       failures.push({ method, kind })
+    },
+    /**
+     * The next call to `method` throws this scripted Stripe error without executing or storing anything (a 409 for a
+     * key still in flight, a 401 for a revoked key, ...).
+     */
+    failNextWithError(method: string, error: FakeStripeError) {
+      failures.push({ method, kind: 'error', error })
     },
     /** A Stripe webhook event envelope around an object (signature handling is the route test's job). */
     buildEvent(type: string, object: Record<string, unknown>) {

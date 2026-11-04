@@ -111,7 +111,8 @@ export const TRANSITIONS: Record<PaymentState, readonly PaymentState[]> = {
   checkout_pending: ['checkout_pending', 'card_saved', 'authorized', 'released'],
   card_saved: ['card_saved', 'placing_hold', 'capturing', 'released'],
   // released: the booking was cancelled / marked no-show while its hold was being placed (88-REVIEW A-WR-04).
-  placing_hold: ['authorized', 'card_saved', 'failed', 'placing_hold', 'released'],
+  // capturing: a completed trip whose hold placement died adopts the row once its lease lapsed (88-REVIEW A-WR-06).
+  placing_hold: ['authorized', 'card_saved', 'failed', 'placing_hold', 'released', 'capturing'],
   authorized: ['authorized', 'card_saved', 'expired', 'capturing', 'released'],
   capturing: ['captured', 'balance_due', 'failed', 'capturing'],
   balance_due: ['balance_due', 'captured', 'released'],

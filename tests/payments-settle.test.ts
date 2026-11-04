@@ -234,11 +234,11 @@ function collectedTotal(): number {
   return [...fake.state.paymentIntents.values()].reduce((sum, pi) => sum + (pi.amount_received as number), 0)
 }
 /**
- * Crosses the 300 s capturing lease on the virtual database clock. The real clock moves on by a few ms too, so the
+ * Crosses the capturing lease (LEASE_SECONDS, 600 s) on the virtual database clock. The real clock moves on by a few ms too, so the
  * re-claim's ledger key (capture_started:<attempt>:<epoch ms>) is a new one, as it is a lease apart in production.
  */
 async function expireLease() {
-  db.state.nowMs += 400_000
+  db.state.nowMs += 700_000
   await new Promise((resolve) => setTimeout(resolve, 5))
 }
 const creates = () => fake.callsTo('paymentIntents.create')

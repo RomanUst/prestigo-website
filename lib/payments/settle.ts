@@ -31,6 +31,7 @@ import { LEASE_SEARCH_AFTER_MS, LEASE_SECONDS, RETRY_DELAY_MS } from '@/lib/paym
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { handlePaymentFailure } from '@/lib/payments/recovery'
 import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
+import { alertStripeConfig } from '@/lib/payments/hold'
 import {
   appendPaymentEvent,
   applyTransition,
@@ -42,8 +43,10 @@ import {
   cardMetadata,
   classifyStripeError,
   getPaymentsStripe,
+  isNotTheClientsFault,
   stripeErrorCode,
   stripeKeys,
+  type StripeErrorClass,
 } from '@/lib/payments/stripe'
 
 type BookingRow = Record<string, unknown>
@@ -61,8 +64,13 @@ const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 const attemptsOf = (b: BookingRow): number =>
   typeof b.charge_attempts === 'number' && Number.isInteger(b.charge_attempts) && b.charge_attempts >= 0 ? b.charge_attempts : 0
 
-/** States a settle may claim. 'capturing' is claimable only after its lease expired (SQL lease rule). */
-const CLAIMABLE: PaymentState[] = ['authorized', 'expired', 'card_saved', 'failed', 'capturing']
+/**
+ * States a settle may claim. 'capturing' and 'placing_hold' are claimable only after their lease expired (SQL lease
+ * rule: a leased state never moves to another leased state while the lease is live). 88-REVIEW A-WR-06: a hold placement
+ * that died near pickup used to leave the row in placing_hold for good; the settle now adopts it once the lease lapsed
+ * (and finds the authorization the dead worker may have created, see findAttemptHold).
+ */
+const CLAIMABLE: PaymentState[] = ['authorized', 'expired', 'card_saved', 'failed', 'capturing', 'placing_hold']
 /** States in which there is nothing left to collect (or nothing a settle may do). */
 const SETTLED_STATES: ReadonlySet<string> = new Set(['captured', 'released', 'balance_due'])
 
@@ -90,8 +98,27 @@ type Collected =
   | { kind: 'ok'; pi: Stripe.PaymentIntent; capturedMinor: number }
   /** The hold can not be captured (lapsed, released, never placed): the saved card is charged instead. */
   | { kind: 'gone' }
-  | { kind: 'transient' }
+  /** Retry later with the same keys. `configCode`: Stripe refused our key (88-REVIEW A-WR-02), the operator is alerted. */
+  | { kind: 'transient'; configCode?: string }
   | { kind: 'failed'; code: string; paymentIntentId: string | null }
+
+/**
+ * A Stripe error that is not a decline (busy 409 key, network, rate limit, 5xx, our own key refused, a key reused with
+ * other parameters): never a client failure, never an attempt used up (88-REVIEW A-WR-01, A-WR-02).
+ */
+function notTheClients(err: unknown, errorClass: StripeErrorClass = classifyStripeError(err)): Collected | null {
+  if (!isNotTheClientsFault(errorClass)) return null
+  if (errorClass === 'idempotency') console.error('[settle] idempotency key reused with other parameters', { code: stripeErrorCode(err) })
+  return errorClass === 'config' ? { kind: 'transient', configCode: stripeErrorCode(err) } : { kind: 'transient' }
+}
+
+/** The authorization lapsed at the card network although Stripe has not cancelled it yet (88-REVIEW A-WR-09). */
+function authorizationLapsed(ctx: Ctx, pi: Stripe.PaymentIntent | null, err: unknown): boolean {
+  if (stripeErrorCode(err) === 'charge_expired_for_capture') return true
+  if (!pi || pi.status !== 'requires_capture') return false
+  const before = typeof ctx.booking.capture_before === 'string' ? Date.parse(ctx.booking.capture_before) : NaN
+  return Number.isFinite(before) && before <= Date.now()
+}
 
 interface Ctx {
   booking: BookingRow
@@ -112,7 +139,8 @@ async function collectFromHold(ctx: Ctx, holdId: string): Promise<Collected> {
   try {
     pi = (await stripe.paymentIntents.retrieve(holdId)) as Stripe.PaymentIntent
   } catch (err) {
-    if (classifyStripeError(err) === 'transient') return { kind: 'transient' }
+    const busy = notTheClients(err)
+    if (busy) return busy
     if (stripeErrorCode(err) === 'resource_missing') return { kind: 'gone' }
     return { kind: 'failed', code: stripeErrorCode(err), paymentIntentId: holdId }
   }
@@ -133,14 +161,26 @@ async function collectFromHold(ctx: Ctx, holdId: string): Promise<Collected> {
       )) as Stripe.PaymentIntent
       return { kind: 'ok', pi: captured, capturedMinor: captured.amount_received }
     } catch (err) {
-      if (classifyStripeError(err) === 'transient') return { kind: 'transient' }
+      const busy = notTheClients(err)
+      if (busy) return busy
       // A concurrent path may have captured it, or the hold lapsed in between: look once more before failing.
+      let again: Stripe.PaymentIntent | null = null
       try {
-        const again = (await stripe.paymentIntents.retrieve(pi.id)) as Stripe.PaymentIntent
+        again = (await stripe.paymentIntents.retrieve(pi.id)) as Stripe.PaymentIntent
         if (again.status === 'succeeded') return { kind: 'ok', pi: again, capturedMinor: again.amount_received }
         if (again.status === 'canceled') return { kind: 'gone' }
       } catch {
         // fall through to the original failure
+      }
+      // A-WR-09 (HOLD-04): an authorization that lapsed before Stripe cancelled it is a gone hold, not a decline: void
+      // it (best effort, it holds nothing any more) and charge the saved card instead.
+      if (authorizationLapsed(ctx, again, err)) {
+        try {
+          await stripe.paymentIntents.cancel(pi.id, {}, { idempotencyKey: stripeKeys.voidHoldNow(pi.id) })
+        } catch {
+          console.error('[settle] lapsed authorization not voided', { bookingId: ctx.bookingId, stripeObjectId: pi.id })
+        }
+        return { kind: 'gone' }
       }
       return { kind: 'failed', code: stripeErrorCode(err), paymentIntentId: pi.id }
     }
@@ -199,7 +239,8 @@ async function chargeSavedCard(ctx: Ctx, kind: 'card_charge' | 'card_difference'
     return { kind: 'failed', code, paymentIntentId: pi.id }
   } catch (err) {
     const errorClass = classifyStripeError(err)
-    if (errorClass === 'transient') return { kind: 'transient' }
+    const busy = notTheClients(err, errorClass)
+    if (busy) return busy
     const code = errorClass === 'auth_required' ? 'authentication_required' : stripeErrorCode(err)
     return { kind: 'failed', code, paymentIntentId: idOf((err as { payment_intent?: unknown } | null)?.payment_intent) }
   }
@@ -280,9 +321,12 @@ async function recordDifferenceFailure(
   nowMs: number,
 ): Promise<SettleResult> {
   const code = info.code.slice(0, 60)
-  // The capture itself happened: keep it visible in the ledger (same key the final captured row would use).
+  // The capture itself happened: keep it visible in the ledger. 88-REVIEW A-WR-07: its own key (main_captured:), never
+  // the key of the final captured transition, so a later successful settle of this row can not mistake this row for
+  // its own (the event key is checked before the state, so a shared key made a capture that never moved the row look
+  // like a success).
   await appendPaymentEvent(ctx.bookingId, {
-    key: `captured:${mainPi.id}`,
+    key: `main_captured:${mainPi.id}`,
     kind: 'captured',
     stripeObjectId: mainPi.id,
     amountMinor: mainMinor,
@@ -316,7 +360,7 @@ async function recordDifferenceFailure(
     },
   })
   // HOLD-05, D-13, D-14: the link, the email and the alert are for the difference only (the main amount is paid).
-  // The recovery payment gets its own ledger key (recovery_paid:<pi>); captured:<mainPi> is already used above.
+  // The recovery payment gets its own ledger key (recovery_paid:<pi>).
   if (moved.applied) {
     try {
       await handlePaymentFailure(
@@ -328,6 +372,34 @@ async function recordDifferenceFailure(
     }
   }
   return { outcome: 'balance_due', code, capturedMinor: mainMinor, diffMinor: 0 }
+}
+
+/** A transient settle: the row keeps its lease and attempt; a refused Stripe key also alerts the operator once. */
+async function stillTransient(ctx: Ctx, collected: Collected | null): Promise<SettleResult> {
+  const configCode = collected?.kind === 'transient' ? collected.configCode : undefined
+  if (configCode) await alertStripeConfig(ctx.booking, 'charge', ctx.attempt, configCode)
+  return { outcome: 'transient', code: configCode ? 'stripe_config' : 'transient' }
+}
+
+/**
+ * The authorization a dead hold placement may have created (88-REVIEW A-WR-06): the hold PaymentIntent of the row's
+ * current hold attempt, found by its metadata. Returns its id when it can still be captured, null when there is none
+ * (the saved card is charged instead), 'unknown' when Stripe could not be searched (retry later, never charge blind).
+ */
+async function findAttemptHold(bookingId: string, booking: BookingRow): Promise<string | null | 'unknown'> {
+  const attempt =
+    typeof booking.hold_attempts === 'number' && Number.isInteger(booking.hold_attempts) ? booking.hold_attempts : 0
+  try {
+    const found = await getPaymentsStripe().paymentIntents.search({
+      query: `metadata['cofBookingId']:'${bookingId}' AND metadata['attempt']:'${attempt}' AND metadata['kind']:'card_hold'`,
+      limit: 10,
+    })
+    const live = found.data.find((p) => p.status === 'requires_capture' || p.status === 'succeeded')
+    return live ? live.id : null
+  } catch {
+    console.error('[settle] hold attempt lookup failed', { bookingId })
+    return 'unknown'
+  }
 }
 
 export async function settleBooking(
@@ -355,6 +427,8 @@ export async function settleBooking(
 
   const loadedState = str(loaded.payment_state)
   if (SETTLED_STATES.has(loadedState)) return { outcome: 'noop', code: loadedState }
+  // 88-REVIEW A-IN-08: a checkout the client never finished has no card and no hold; nothing a capture could do.
+  if (loadedState === 'checkout_pending' || loadedState === 'none') return { outcome: 'skipped', code: 'not_confirmed' }
 
   const nowMs = Date.now()
   const claim = await applyTransition({
@@ -390,12 +464,18 @@ export async function settleBooking(
   }
   ctx.searchFirst = await attemptIsStale(bookingId, attempt, nowMs)
 
-  const holdId = str(booking.hold_payment_intent_id)
+  // A-WR-06: adopted from a dead hold placement: the authorization it may have created is not on the row yet.
+  let holdId = str(booking.hold_payment_intent_id)
+  if (!holdId && loadedState === 'placing_hold') {
+    const found = await findAttemptHold(bookingId, booking)
+    if (found === 'unknown') return stillTransient(ctx, null)
+    holdId = found ?? ''
+  }
   let collected: Collected = holdId ? await collectFromHold(ctx, holdId) : { kind: 'gone' }
   if (collected.kind === 'gone') collected = await chargeSavedCard(ctx, 'card_charge', ctx.dueMinor)
 
   if (collected.kind === 'failed') return recordFailure(ctx, collected, nowMs)
-  if (collected.kind !== 'ok') return { outcome: 'transient', code: 'transient' }
+  if (collected.kind !== 'ok') return stillTransient(ctx, collected)
 
   const mainPi = collected.pi
   const mainMinor = collected.capturedMinor
@@ -406,7 +486,7 @@ export async function settleBooking(
   if (wanted > 0) {
     const diff = await chargeSavedCard(ctx, 'card_difference', wanted)
     if (diff.kind === 'failed') return recordDifferenceFailure(ctx, mainPi, mainMinor, diff, nowMs)
-    if (diff.kind !== 'ok') return { outcome: 'transient', code: 'transient' }
+    if (diff.kind !== 'ok') return stillTransient(ctx, diff)
     diffMinor = diff.capturedMinor
     await appendPaymentEvent(bookingId, {
       key: `difference_charged:${diff.pi.id}`,
@@ -445,6 +525,12 @@ export async function settleBooking(
   })
   if (!moved.applied && moved.duplicate !== true) {
     return SETTLED_STATES.has(moved.currentState ?? '') ? { outcome: 'noop', code: moved.currentState } : { outcome: 'busy' }
+  }
+  // A-WR-07: the ledger key is checked before the state, so a duplicate alone proves nothing. Only a row that really is
+  // captured is a success; anything else stays with its lease for the next sweep (and is logged).
+  if (moved.duplicate === true && moved.currentState !== 'captured') {
+    console.error('[settle] captured key already recorded but the row did not move', { bookingId, state: moved.currentState ?? null })
+    return { outcome: 'busy' }
   }
   await retireRecoveryLink(booking)
 

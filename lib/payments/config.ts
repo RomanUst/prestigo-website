@@ -27,8 +27,14 @@ export const CARD_FLOW_TRIP_TYPES = ['transfer', 'hourly'] as const
 
 /** Bookings claimed per tick run. */
 export const HOLD_CLAIM_LIMIT = 20
-/** How long a claimed booking stays leased to one tick run. */
-export const LEASE_SECONDS = 300
+/**
+ * How long a claimed booking stays leased to one worker (88-REVIEW A-WR-01). One booking makes at most
+ * STRIPE_CALLS_PER_LEASE Stripe calls, each at worst (retries + 1) x the client timeout (lib/payments/stripe.ts):
+ * 5 x 3 x 20 s = 300 s, plus the ledger writes and an email. 600 s leaves that much again as margin, so a lease never
+ * lapses while its worker still waits on Stripe. Step A claims one booking at a time, so every claimed row gets the
+ * whole lease (a batch claim made the last rows of a batch start with most of their lease already gone).
+ */
+export const LEASE_SECONDS = 600
 /** Alert when a booking inside this window before pickup still has no valid hold. */
 export const NO_VALID_HOLD_ALERT_MS = 24 * HOUR_MS
 /** Alert when an authorized hold expires within this window and has not been replaced. */

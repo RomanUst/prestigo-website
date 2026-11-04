@@ -15,6 +15,17 @@ import Stripe from 'stripe'
 
 let _stripe: Stripe | null = null
 
+/**
+ * Per-request timeout and automatic retries of the payments client (88-REVIEW A-WR-01). The worst case of ONE engine
+ * call is (STRIPE_MAX_NETWORK_RETRIES + 1) x STRIPE_TIMEOUT_MS plus the SDK's short backoff; the engine lease
+ * (lib/payments/config.ts LEASE_SECONDS) is sized for the longest call chain of one booking with that worst case, so a
+ * lease can not lapse while its worker still waits on Stripe (tests/payments-stripe-errors.test.ts pins the sum).
+ */
+export const STRIPE_TIMEOUT_MS = 20_000
+export const STRIPE_MAX_NETWORK_RETRIES = 2
+/** The most Stripe calls one booking makes under one lease (settle: retrieve, capture, retrieve, search, difference). */
+export const STRIPE_CALLS_PER_LEASE = 5
+
 /** Lazy client: STRIPE_SECRET_KEY is Production-only, so nothing may touch it at module load. */
 export function getPaymentsStripe(): Stripe {
   if (!_stripe) {
@@ -22,7 +33,8 @@ export function getPaymentsStripe(): Stripe {
     _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
       httpClient: Stripe.createFetchHttpClient(),
       // Safe only because every create carries an idempotency key (stripeKeys below).
-      maxNetworkRetries: 2,
+      maxNetworkRetries: STRIPE_MAX_NETWORK_RETRIES,
+      timeout: STRIPE_TIMEOUT_MS,
     })
   }
   return _stripe
@@ -73,7 +85,17 @@ export function cardMetadata(
   return meta
 }
 
-export type StripeErrorClass = 'card_declined' | 'auth_required' | 'transient' | 'invalid'
+/**
+ *   card_declined / auth_required  the client's card said no: the only classes that may email the client
+ *   transient    retry later with the SAME idempotency key: network, rate limit, Stripe 5xx, and a 409 / lock (the
+ *                same key is still in flight in another request, 88-REVIEW A-WR-01)
+ *   config       our side is broken (revoked / expired / restricted key, 401 / 403): retry later, alert the operator,
+ *                never charge an attempt to the client (88-REVIEW A-WR-02)
+ *   idempotency  the key was already used with DIFFERENT parameters (for example the amount changed since a request
+ *                that may have executed): the caller must look for what that request created and move to a new key
+ *   invalid      anything else: a definitive failure
+ */
+export type StripeErrorClass = 'card_declined' | 'auth_required' | 'transient' | 'config' | 'idempotency' | 'invalid'
 
 interface StripeErrorShape {
   type?: unknown
@@ -86,6 +108,17 @@ function asShape(err: unknown): StripeErrorShape {
   return err && typeof err === 'object' ? (err as StripeErrorShape) : {}
 }
 
+/** Codes of a request that collided with the same key (or object) still being processed: busy, not failed. */
+const BUSY_CODES: ReadonlySet<string> = new Set(['idempotency_key_in_use', 'lock_timeout', 'rate_limit'])
+/** Codes of a key problem on our side (Stripe answers some of them as invalid_request_error). */
+const CONFIG_CODES: ReadonlySet<string> = new Set([
+  'api_key_expired',
+  'secret_key_required',
+  'platform_api_key_expired',
+  'testmode_charges_only',
+  'livemode_mismatch',
+])
+
 /**
  * Duck-typed on the stripe-node error `type` (its class name), so it works with the real SDK, with a
  * mocked SDK and with the in-memory fake. Unknown errors are 'invalid': never retried blindly.
@@ -93,22 +126,38 @@ function asShape(err: unknown): StripeErrorShape {
 export function classifyStripeError(err: unknown): StripeErrorClass {
   const e = asShape(err)
   const status = typeof e.statusCode === 'number' ? e.statusCode : undefined
+  const code = typeof e.code === 'string' ? e.code : ''
+  if (e.type === 'StripeCardError') {
+    return e.code === 'authentication_required' || e.decline_code === 'authentication_required'
+      ? 'auth_required'
+      : 'card_declined'
+  }
+  // A 409 is the same idempotency key (or the same object) still in flight elsewhere: busy, never a failure.
+  if (status === 409) return 'transient'
+  // Any other idempotency error is a key reused with different parameters (HTTP 400, type idempotency_error).
+  if (e.type === 'StripeIdempotencyError') return 'idempotency'
+  if (BUSY_CODES.has(code)) return 'transient'
+  if (CONFIG_CODES.has(code)) return 'config'
   switch (e.type) {
-    case 'StripeCardError':
-      return e.code === 'authentication_required' || e.decline_code === 'authentication_required'
-        ? 'auth_required'
-        : 'card_declined'
     case 'StripeConnectionError':
     case 'StripeRateLimitError':
       return 'transient'
+    case 'StripeAuthenticationError':
+    case 'StripePermissionError':
+      return 'config'
     case 'StripeAPIError':
       return status === undefined || status >= 500 ? 'transient' : 'invalid'
     case 'StripeInvalidRequestError':
-    case 'StripeIdempotencyError':
       return 'invalid'
     default:
+      if (status === 401 || status === 403) return 'config'
       return status !== undefined && status >= 500 ? 'transient' : 'invalid'
   }
+}
+
+/** A Stripe error that says nothing about the client's card: it must never use up an attempt or email the client. */
+export function isNotTheClientsFault(kind: StripeErrorClass): boolean {
+  return kind === 'transient' || kind === 'config' || kind === 'idempotency'
 }
 
 /** The decline code, else the error code, else 'unknown'. At most 60 characters; never a message. */

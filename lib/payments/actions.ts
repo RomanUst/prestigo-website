@@ -12,7 +12,7 @@
 
 import { isPartnerBooking } from '@/lib/booking-status'
 import { pickupInstantMs } from '@/lib/prague-date'
-import { claimForHold, placeHold, releaseHold } from '@/lib/payments/hold'
+import { claimForHold, leaseLapsed, placeHold, releaseHold } from '@/lib/payments/hold'
 import { refreshRecoveryLink } from '@/lib/payments/recovery'
 import { settleBooking, type SettleResult } from '@/lib/payments/settle'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
@@ -52,7 +52,8 @@ const isCompleted = (booking: BookingRow): boolean => booking.status === 'comple
  *   release    before completion, in card_saved | authorized | failed | expired | checkout_pending
  *   waive      balance_due
  *   send_link  failed | balance_due (never where the engine still collects by itself)
- * Nothing while a worker holds the lease (placing_hold, capturing), nothing after captured / released, and
+ * Nothing while a worker holds the lease (placing_hold, capturing; a placing_hold whose lease lapsed gets release, and
+ * capture after the trip), nothing after captured / released, and
  * nothing for a booking that is not a card hold (pay-now, partner bookings have no Prestigo money flow).
  * A cancelled or no-show booking gets release only (to free a hold or saved card that is still there): never a new
  * hold, a capture or a payment link (Phase 89 owns cancellation / no-show fees).
@@ -63,11 +64,15 @@ export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
   if (isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })) return []
 
   const state = str(booking.payment_state)
-  if (CLOSED_STATUSES.has(str(booking.status))) return RELEASE_STATES.has(state) ? ['release'] : []
+  // 88-REVIEW A-WR-06: a hold placement whose lease lapsed (its worker died) is no longer busy: it can be released, and
+  // after the trip captured (the settle adopts the row and finds the authorization the dead worker may have created).
+  const stalePlacement = state === 'placing_hold' && leaseLapsed(booking)
+  if (CLOSED_STATUSES.has(str(booking.status))) return RELEASE_STATES.has(state) || stalePlacement ? ['release'] : []
 
   const completed = isCompleted(booking)
   const actions: PaymentAction[] = []
 
+  if (stalePlacement) return completed ? ['capture', 'release'] : ['release']
   if (completed && CAPTURE_STATES.has(state)) actions.push('capture')
   if (RETRY_STATES.has(state)) actions.push('retry')
   if (!completed && RELEASE_STATES.has(state)) actions.push('release')

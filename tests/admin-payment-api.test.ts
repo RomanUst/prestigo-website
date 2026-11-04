@@ -847,7 +847,7 @@ describe('concurrency and replay (T-88-49)', () => {
     expect(row().payment_state).toBe('capturing')
 
     // The lease runs out; the sweep (a system settle) re-claims with the same attempt number.
-    db.state.nowMs += 400_000
+    db.state.nowMs += 700_000
     await new Promise((resolve) => setTimeout(resolve, 5))
     const swept = await settleBooking(ID, { type: 'system', id: 'payment_tick' })
     expect(swept.outcome).toBe('captured')
