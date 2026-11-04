@@ -7,8 +7,8 @@
 //
 // Steps are isolated like the outbox sweep: a step that throws adds its code to `errors` and the next step still
 // runs. Registered steps, in order: A (place due holds), B (the one automatic retry of a declined hold / charge,
-// D-13), C (settle completed trips, 88-13), D (operator alerts 24 h before pickup and before a hold lapses, D-15)
-// and E (reconcile stuck checkouts).
+// D-13), C (settle completed trips, 88-13), D (operator alerts 24 h before pickup and before a hold lapses, D-15),
+// E (reconcile stuck checkouts) and F (re-drive undelivered failure notices, 88-REVIEW A-WR-10).
 //
 // Nothing here asks whether the client-facing card flow is switched on: bookings that already hold a card keep
 // their lifecycle whatever the owner's switch says now (D-09a, tests/payment-state-writers-gate.test.ts).
@@ -21,17 +21,19 @@ import {
   CHECKOUT_RECONCILE_MAX_AGE_MS,
   EXPIRING_HOLD_ALERT_MS,
   HOLD_CLAIM_LIMIT,
+  LEASE_SEARCH_AFTER_MS,
   LEASE_SECONDS,
   NO_VALID_HOLD_ALERT_MS,
   STALE_CHECKOUT_MS,
 } from '@/lib/payments/config'
 import { claimForHold, placeHold } from '@/lib/payments/hold'
+import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery'
 import { settleBooking } from '@/lib/payments/settle'
-import { claimDueHolds, type LedgerActor } from '@/lib/payments/state'
+import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe } from '@/lib/payments/stripe'
 import { applyHoldNowAuthorized, applySetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
 
-export type TickStepCode = 'A' | 'B' | 'C' | 'D' | 'E'
+export type TickStepCode = 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
 
 export type TickCounts = Record<string, number>
 
@@ -319,8 +321,9 @@ const stepB: TickStep = {
  *     placing_hold, or checkout_pending older than 30 min): alert key alert:no_valid_hold_24h:<id>
  *   - an authorized hold whose capture_before is within EXPIRING_HOLD_ALERT_MS (12 h) on a trip that is not completed:
  *     alert key alert:hold_expiring:<id>:<hold PaymentIntent> (a replacement hold has its own PaymentIntent, so it can alert again)
- * The pickup is read through the live generated column pickup_utc (D-22). sendPaymentOperatorAlert claims the ledger key
- * before sending, so a tick that sees the same booking again sends nothing.
+ * The pickup is read through the live generated column pickup_utc (D-22). sendPaymentOperatorAlert records the ledger key
+ * once the alert is delivered, so a tick that sees the same booking again sends nothing, and one whose send failed sends
+ * it on the next run.
  */
 const stepD: TickStep = {
   code: 'D',
@@ -388,7 +391,86 @@ const stepD: TickStep = {
   },
 }
 
-export const TICK_STEPS: TickStep[] = [stepA, stepB, stepC, stepD, stepE]
+const FAILURE_ALERT_KIND: Record<FailurePhase, 'hold_failed' | 'charge_failed' | 'balance_unpaid'> = {
+  hold: 'hold_failed',
+  charge: 'charge_failed',
+  difference: 'balance_unpaid',
+}
+
+/** The phase and attempt of the failure that put the row where it is (null when the ledger can not tell). */
+async function lastFailure(row: Record<string, unknown> & { id: string }): Promise<{ phase: FailurePhase; attempt: number } | null> {
+  const counter = (v: unknown) => (typeof v === 'number' && Number.isInteger(v) && v >= 0 ? v : 0)
+  if (row.payment_state === 'balance_due') return { phase: 'difference', attempt: counter(row.charge_attempts) }
+  const { data, error } = await createSupabaseServiceClient()
+    .from('booking_payment_events')
+    .select('kind, created_at')
+    .eq('booking_id', row.id)
+    .in('kind', ['hold_failed', 'charge_failed'])
+    .eq('to_state', 'failed')
+    .order('created_at', { ascending: false })
+    .limit(1)
+  if (error) throw new Error('failure ledger lookup failed')
+  const latest = (Array.isArray(data) ? data[0] : null) as { kind?: unknown } | null
+  if (!latest) return null
+  return latest.kind === 'hold_failed'
+    ? { phase: 'hold', attempt: counter(row.hold_attempts) }
+    : { phase: 'charge', attempt: counter(row.charge_attempts) }
+}
+
+/**
+ * Step F (88-REVIEW A-WR-10): the failure notices of D-13 / D-14 are durable. The recovery step (link, client email,
+ * operator alert) runs once, inside the failure transition's writer; a Resend outage there used to lose the email and
+ * the alert for good. For a card booking still failed / balance_due whose failure is recent (inside the window in which
+ * the recovery link create still replays at Stripe), the notices of that failure are looked up by their ledger keys; if
+ * one of them was never delivered the recovery step runs again. It is idempotent: the link create replays the same
+ * link, delivered notices are skipped by their keys, only the missing one goes out.
+ */
+const stepF: TickStep = {
+  code: 'F',
+  async run(ctx) {
+    const nowMs = ctx.now.getTime()
+    const { data, error } = await createSupabaseServiceClient()
+      .from('bookings')
+      .select('*')
+      .eq('payment_mode', 'card_hold')
+      .in('payment_state', ['failed', 'balance_due'])
+      .neq('status', 'cancelled')
+      .neq('status', 'no_show')
+      .gte('payment_failed_at', new Date(nowMs - LEASE_SEARCH_AFTER_MS).toISOString())
+      .order('payment_failed_at', { ascending: true })
+      .limit(HOLD_CLAIM_LIMIT)
+    if (error) throw new Error('failure notice lookup failed')
+
+    let redriven = 0
+    for (const row of (Array.isArray(data) ? data : []) as Array<Record<string, unknown> & { id: string }>) {
+      try {
+        const failure = await lastFailure(row)
+        if (!failure) continue
+        const kind = FAILURE_ALERT_KIND[failure.phase]
+        const [emailDone, alertDone] = await Promise.all([
+          paymentEventRecorded(row.id, `email:payment_failed:${row.id}:${failure.phase}:${failure.attempt}`),
+          paymentEventRecorded(row.id, `alert:${kind}:${row.id}:${failure.attempt}`),
+        ])
+        if (emailDone && alertDone) continue
+        const due = typeof row.payment_amount_minor === 'number' ? row.payment_amount_minor : 0
+        const captured = typeof row.captured_amount_minor === 'number' ? row.captured_amount_minor : 0
+        await handlePaymentFailure(row, {
+          phase: failure.phase,
+          code: typeof row.last_payment_error === 'string' && row.last_payment_error ? row.last_payment_error : 'unknown',
+          amountMinor: failure.phase === 'hold' ? due : Math.max(due - captured, 0),
+          attempt: failure.attempt,
+        })
+        redriven += 1
+      } catch {
+        console.error('[payment-tick] failure notice re-drive failed', { bookingId: row.id })
+        ctx.errors.add('F')
+      }
+    }
+    return { notices_redriven: redriven }
+  },
+}
+
+export const TICK_STEPS: TickStep[] = [stepA, stepB, stepC, stepD, stepE, stepF]
 
 /** Never throws: every step is isolated and the result always carries the counts and the failed step codes. */
 export async function runPaymentTick(now: Date = new Date()): Promise<TickResult> {

@@ -228,6 +228,21 @@ export async function appendPaymentEvent(
 }
 
 /**
+ * True when the (booking, key) ledger row exists. Read-only: the notification senders use it to skip a message that was
+ * already delivered and recorded (lib/payments/notify.ts, 88-REVIEW A-WR-10).
+ */
+export async function paymentEventRecorded(bookingId: string, key: string): Promise<boolean> {
+  const { data, error } = await createSupabaseServiceClient()
+    .from('booking_payment_events')
+    .select('id')
+    .eq('booking_id', bookingId)
+    .eq('event_key', key)
+    .limit(1)
+  if (error) throw new Error('payment event lookup failed')
+  return Array.isArray(data) && data.length > 0
+}
+
+/**
  * Claim up to `limit` card_hold bookings whose hold time has come (card_saved, hold_at <= now, or
  * placing_hold with an expired lease), oldest hold_at first, with a lease of `leaseSeconds`.
  * Overlapping ticks never claim the same row (FOR UPDATE SKIP LOCKED).

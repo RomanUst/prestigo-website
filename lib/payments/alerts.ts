@@ -10,7 +10,7 @@
 // Server-only by use. Lazy Resend client like lib/email.ts (RESEND_API_KEY is not present in every environment).
 
 import { Resend } from 'resend'
-import { appendPaymentEvent } from '@/lib/payments/state'
+import { deliverOnce } from '@/lib/payments/notify'
 import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
 
 export const OPERATOR_ALERT_KINDS = [
@@ -54,8 +54,6 @@ function getResend(): Resend {
   }
   return _resend
 }
-
-const SYSTEM_ACTOR = { type: 'system', id: null } as const
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 
@@ -161,11 +159,9 @@ function buildBody(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAler
 
 /**
  * Send one operator alert. Never throws: the result says what happened.
- *   'sent'       the ledger claim was new and Resend accepted the message
- *   'duplicate'  the event key was already claimed (nothing sent)
- *   'failed'     MANAGER_EMAIL missing, the claim could not be written, or Resend rejected the message
- * A missing MANAGER_EMAIL is checked BEFORE the claim, so the alert is not lost for good: once the variable is set,
- * a later run of the same step sends it.
+ *   'sent'       Resend accepted the message and it is recorded under the event key
+ *   'duplicate'  the event key was already delivered (nothing sent)
+ *   'failed'     MANAGER_EMAIL missing, or Resend rejected the message on every try (a later caller retries)
  */
 export async function sendPaymentOperatorAlert(
   kind: OperatorAlertKind,
@@ -184,48 +180,29 @@ export async function sendPaymentOperatorAlert(
     return 'failed'
   }
 
-  let inserted: boolean
-  try {
-    const amountMinor =
-      details.amountMinor ?? (typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : undefined)
-    const claim = await appendPaymentEvent(bookingId, {
-      key: details.eventKey,
-      kind: 'alert_sent',
+  const amountMinor =
+    details.amountMinor ?? (typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : undefined)
+  // 88-REVIEW A-WR-10: send, then record (lib/payments/notify.ts); the ledger key doubles as the Resend idempotency key.
+  return deliverOnce({
+    bookingId,
+    eventKey: details.eventKey,
+    kind: 'alert_sent',
+    label: 'payment-alert',
+    record: {
       amountMinor: typeof amountMinor === 'number' && Number.isFinite(amountMinor) ? amountMinor : undefined,
       currency: currencyOf(booking),
       errorCode: details.code ? details.code.slice(0, 60) : undefined,
-      actor: SYSTEM_ACTOR,
-    })
-    inserted = claim.inserted
-  } catch {
-    console.error('[payment-alert] ledger claim failed', { bookingId, kind })
-    return 'failed'
-  }
-  if (!inserted) return 'duplicate'
-
-  try {
-    const { error } = await getResend().emails.send({
-      from: 'PRESTIGO System <bookings@rideprestigo.com>',
-      to: [manager],
-      replyTo: manager,
-      subject: `[Payment] ${TITLES[kind]} — ${str(booking.booking_reference) || bookingId}`,
-      text: buildBody(kind, booking, details),
-    })
-    if (error) throw new Error('resend rejected the message')
-    return 'sent'
-  } catch {
-    // Ids and the kind only: the message text never reaches the log.
-    console.error('[payment-alert] send failed', { bookingId, kind })
-    try {
-      await appendPaymentEvent(bookingId, {
-        key: `${details.eventKey}:send_failed`,
-        kind: 'alert_sent',
-        errorCode: 'send_failed',
-        actor: SYSTEM_ACTOR,
-      })
-    } catch {
-      console.error('[payment-alert] send_failed row not written', { bookingId, kind })
-    }
-    return 'failed'
-  }
+    },
+    send: (idempotencyKey) =>
+      getResend().emails.send(
+        {
+          from: 'PRESTIGO System <bookings@rideprestigo.com>',
+          to: [manager],
+          replyTo: manager,
+          subject: `[Payment] ${TITLES[kind]} — ${str(booking.booking_reference) || bookingId}`,
+          text: buildBody(kind, booking, details),
+        },
+        { idempotencyKey },
+      ),
+  })
 }

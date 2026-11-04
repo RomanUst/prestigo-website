@@ -254,7 +254,7 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
     seed([])
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, errors: [] })
+    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, notices_redriven: 0, errors: [] })
   })
 
   it('a booking whose pickup instant cannot be computed is never held', async () => {
@@ -289,7 +289,7 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
 
 describe('TICK_STEPS', () => {
   it('registers A (place holds), B (auto retry), C (settle completed trips), D (alerts) then E (reconcile)', () => {
-    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E'])
+    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
   })
 })
 
@@ -764,8 +764,11 @@ describe('step B: the one automatic retry (D-13)', () => {
     expect(b.hold_attempts).toBe(2)
     expect(b.payment_retry_count).toBe(1)
     expect(b.payment_retry_at).toBeNull()
-    expect(mockFailure).toHaveBeenCalledTimes(1)
-    expect(mockFailure.mock.calls[0][1]).toEqual({ phase: 'hold', code: 'insufficient_funds', amountMinor: 12000, attempt: 2 })
+    // The recovery step is mocked here, so nothing is recorded as delivered: step F (A-WR-10) re-drives the same notice.
+    expect(mockFailure).toHaveBeenCalled()
+    for (const call of mockFailure.mock.calls) {
+      expect(call[1]).toEqual({ phase: 'hold', code: 'insufficient_funds', amountMinor: 12000, attempt: 2 })
+    }
 
     const second = await (await GET(okRequest())).json()
     expect(second).toMatchObject({ retried: 0 })

@@ -234,14 +234,29 @@ describe('tracer: a declined scheduled hold', () => {
     expect(operatorMails()).toHaveLength(0)
   })
 
-  it('a failed Resend send keeps the claim: the alert is not sent twice and the failure is in the ledger', async () => {
+  it('88-REVIEW A-WR-10: a transient Resend failure is retried in the same call, with the ledger key as idempotency key', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     mockResendSend.mockResolvedValueOnce({ data: null, error: { message: 'rejected' } })
+    const result = await sendPaymentOperatorAlert('dispute', fresh(), { eventKey: `alert:dispute:${ID}:dp_1`, code: 'fraudulent' })
+    expect(result).toBe('sent')
+    expect(mockResendSend).toHaveBeenCalledTimes(2)
+    for (const call of mockResendSend.mock.calls) expect(call[1]).toEqual({ idempotencyKey: `alert:dispute:${ID}:dp_1` })
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:dispute:${ID}:dp_1`])
+  })
+
+  it('88-REVIEW A-WR-10: a send that fails on every try is recorded as send_failed and NOT lost: the next caller sends it', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResendSend.mockResolvedValue({ data: null, error: { message: 'rejected' } })
     const first = await sendPaymentOperatorAlert('dispute', fresh(), { eventKey: `alert:dispute:${ID}:dp_1`, code: 'fraudulent' })
     expect(first).toBe('failed')
-    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:dispute:${ID}:dp_1`, `alert:dispute:${ID}:dp_1:send_failed`])
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:dispute:${ID}:dp_1:send_failed`])
+
+    mockResendSend.mockResolvedValue({ data: { id: 'em_1' }, error: null })
     const second = await sendPaymentOperatorAlert('dispute', fresh(), { eventKey: `alert:dispute:${ID}:dp_1`, code: 'fraudulent' })
-    expect(second).toBe('duplicate')
+    expect(second).toBe('sent')
+    const third = await sendPaymentOperatorAlert('dispute', fresh(), { eventKey: `alert:dispute:${ID}:dp_1`, code: 'fraudulent' })
+    expect(third).toBe('duplicate')
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:dispute:${ID}:dp_1:send_failed`, `alert:dispute:${ID}:dp_1`])
   })
 
   it('exposes every operator alert kind of the contract', () => {
@@ -384,6 +399,34 @@ describe('declined charge and difference (settle failure branches)', () => {
     expect(operatorMails()[0].text).not.toContain('automatic retry')
     // 88-REVIEW A-WR-07: the main capture is recorded under its own key, never the final captured:<mainPi> key.
     expect(ledger('captured').map((e) => e.event_key)).toEqual([`main_captured:${hold.id}`])
+  })
+})
+
+describe('88-REVIEW A-WR-10: failure notices survive a Resend outage (tick step F)', () => {
+  it('a decline during an outage: the next tick delivers the client email and the operator alert once', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResendSend.mockResolvedValue({ data: null, error: { message: 'resend down' } })
+    expect((await placeHold(fresh(), ACTOR)).outcome).toBe('failed')
+    expect(ledger('email_sent').map((e) => e.event_key)).toEqual([`email:payment_failed:${ID}:hold:1:send_failed`])
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:hold_failed:${ID}:1:send_failed`])
+
+    // Resend is back. Push the automatic retry out so step B does not run in this tick.
+    row().payment_retry_at = new Date(Date.now() + 12 * HOUR).toISOString()
+    mockResendSend.mockClear()
+    mockResendSend.mockResolvedValue({ data: { id: 'em_2' }, error: null })
+    const tick = await runPaymentTick(new Date())
+    expect(tick.notices_redriven).toBe(1)
+    expect(clientMails()).toHaveLength(1)
+    expect(clientMails()[0].html).toContain(String(row().recovery_link_url))
+    expect(operatorMails().filter((m) => m.subject.includes('Hold failed'))).toHaveLength(1)
+    // One link only: the re-drive replays the same link create.
+    expect(fake.executed('paymentLinks.create')).toBe(1)
+
+    // Everything is delivered now: the next run sends nothing.
+    mockResendSend.mockClear()
+    const again = await runPaymentTick(new Date())
+    expect(again.notices_redriven).toBe(0)
+    expect(clientMails()).toHaveLength(0)
   })
 })
 

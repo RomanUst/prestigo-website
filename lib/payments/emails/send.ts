@@ -1,17 +1,15 @@
 // Sender for the card-on-file client emails (Phase 88, plan 88-09; MAIL-01).
 //
-// Exactly once: the payment ledger event_key is claimed (appendPaymentEvent) BEFORE the send, so a replayed
-// webhook or a re-driven sweep that reaches the same key gets 'duplicate' and sends nothing. The shipped email
-// log helper (lib/email-log.ts) is deliberately NOT used: its dedupe is a 10-minute window, not exactly-once
-// (Research Pitfall 10).
-// A failed send keeps its claim and appends one `<key>:send_failed` row, so the failure is visible in the ledger
-// and the client is never emailed twice.
+// Exactly once per payment ledger event_key, send-then-record (lib/payments/notify.ts, 88-REVIEW A-WR-10): a replayed
+// webhook or a re-driven sweep that reaches a key already delivered gets 'duplicate' and sends nothing, while a send
+// that failed is retried by the next caller instead of being lost. The shipped email log helper (lib/email-log.ts)
+// is deliberately NOT used: its dedupe is a 10-minute window, not exactly-once (Research Pitfall 10).
 //
 // Server-only by use. Creates its own lazy Resend client the same way lib/email.ts does (RESEND_API_KEY is
 // not present in every environment, so nothing may touch it at module load).
 
 import { Resend } from 'resend'
-import { appendPaymentEvent } from '@/lib/payments/state'
+import { deliverOnce } from '@/lib/payments/notify'
 import { renderPaymentEmail, type PaymentEmailKind, type PaymentEmailVars } from '@/lib/payments/emails/render'
 import { holdDateIso } from '@/lib/payments/timing'
 import { eurToCzk } from '@/lib/currency'
@@ -25,8 +23,6 @@ function getResend(): Resend {
   }
   return _resend
 }
-
-const SYSTEM_ACTOR = { type: 'system', id: null } as const
 
 type BookingRow = Record<string, unknown>
 
@@ -96,7 +92,7 @@ function emailVarsFromRow(
 export async function sendPaymentEmail(input: {
   kind: PaymentEmailKind
   booking: BookingRow
-  /** The ledger key, `email:<kind>:<bookingId>[:<attempt>]`; claimed before the send. */
+  /** The ledger key, `email:<kind>:<bookingId>[:<attempt>]`; recorded once the message is delivered. */
   eventKey: string
   variant?: PaymentEmailVars['variant']
   diffMinor?: number
@@ -110,37 +106,34 @@ export async function sendPaymentEmail(input: {
     return 'failed'
   }
 
-  const claim = await appendPaymentEvent(bookingId, { key: eventKey, kind: 'email_sent', actor: SYSTEM_ACTOR })
-  if (!claim.inserted) return 'duplicate'
-
+  let rendered: { subject: string; html: string }
   try {
-    const rendered = await renderPaymentEmail(
+    rendered = await renderPaymentEmail(
       kind,
       booking.locale,
       emailVarsFromRow(booking, { variant: input.variant, diffMinor: input.diffMinor, payUrl: input.payUrl }),
     )
-    const { error } = await getResend().emails.send({
-      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
-      to: [to],
-      replyTo: CUSTOMER_REPLY_TO,
-      subject: rendered.subject,
-      html: rendered.html,
-    })
-    if (error) throw new Error('resend rejected the message')
-    return 'sent'
   } catch {
-    // Ids and the kind only: the recipient and the message text never reach the log.
-    console.error('[payment-email] send failed', { bookingId, kind })
-    try {
-      await appendPaymentEvent(bookingId, {
-        key: `${eventKey}:send_failed`,
-        kind: 'email_sent',
-        errorCode: 'send_failed',
-        actor: SYSTEM_ACTOR,
-      })
-    } catch {
-      console.error('[payment-email] send_failed row not written', { bookingId, kind })
-    }
+    console.error('[payment-email] render failed', { bookingId, kind })
     return 'failed'
   }
+
+  // 88-REVIEW A-WR-10: send, then record (lib/payments/notify.ts); the ledger key doubles as the Resend idempotency key.
+  return deliverOnce({
+    bookingId,
+    eventKey,
+    kind: 'email_sent',
+    label: 'payment-email',
+    send: (idempotencyKey) =>
+      getResend().emails.send(
+        {
+          from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+          to: [to],
+          replyTo: CUSTOMER_REPLY_TO,
+          subject: rendered.subject,
+          html: rendered.html,
+        },
+        { idempotencyKey },
+      ),
+  })
 }
