@@ -343,6 +343,225 @@ function expectNoWrites() {
   expect(fake.calls).toHaveLength(0)
 }
 
+// ── Plan 88-12 (HOLD-03, D-11): hold_now ────────────────────────────────────────
+// now = 2027-01-10 10:00 Prague; pickup 2027-01-12 12:00 is 50 h away, inside the 72 h hold lead.
+const NEAR = { pickupDate: '2027-01-12', pickupTime: '12:00' }
+
+function nearAmount(promoPct = 0) {
+  return serverAmount('2027-01-12', '12:00', promoPct)
+}
+
+function holdNowBody(over: Record<string, unknown> = {}, data: Record<string, string> = {}) {
+  return body({ mode: 'hold_now', displayedAmountMinor: nearAmount(), ...over }, { ...NEAR, ...data })
+}
+
+describe('POST /api/card-checkout/intent: hold_now mode (HOLD-03, tracer)', () => {
+  it('creates one on-session manual-capture PaymentIntent for the full server amount and no SetupIntent', async () => {
+    const { status, body: out } = await call(holdNowBody(), { 'user-agent': 'Mozilla/5.0 (test)' })
+    expect(status).toBe(200)
+    expect(out).toMatchObject({ mode: 'hold_now', currency: 'eur', amountMinor: nearAmount() })
+    expect(out.clientSecret).toMatch(/_secret_/)
+
+    expect(fake.executed('paymentIntents.create')).toBe(1)
+    expect(fake.calls.filter((c) => c.method.startsWith('setupIntents.'))).toHaveLength(0)
+    const b = bookings()[0]
+    const pi = fake.callsTo('paymentIntents.create')[0]
+    expect(pi.params).toMatchObject({
+      amount: nearAmount(),
+      currency: 'eur',
+      customer: b.stripe_customer_id,
+      payment_method_types: ['card'],
+      capture_method: 'manual',
+      setup_future_usage: 'off_session',
+    })
+    expect(pi.params).not.toHaveProperty('confirm')
+    expect(pi.params.metadata).toEqual({
+      kind: 'card_hold_now',
+      cofBookingId: b.id,
+      attempt: '1',
+      bookingReference: b.booking_reference,
+    })
+    expect(pi.idempotencyKey).toBe(`pi_now:${b.id}:${consents()[0].id}`)
+  })
+
+  it('leaves the booking checkout_pending with the hold id and amount, hold_at null, payment_intent_id null', async () => {
+    await call(holdNowBody())
+    const piId = fake.state.paymentIntents.keys().next().value
+    expect(bookings()).toHaveLength(1)
+    expect(bookings()[0]).toMatchObject({
+      status: 'unpaid',
+      payment_mode: 'card_hold',
+      payment_state: 'checkout_pending',
+      payment_currency: 'eur',
+      payment_amount_minor: nearAmount(),
+      hold_payment_intent_id: piId,
+      hold_amount_minor: nearAmount(),
+      hold_at: null,
+      payment_intent_id: null,
+      setup_intent_id: null,
+    })
+    expect(db.state.booking_payment_events).toHaveLength(1)
+    expect(db.state.booking_payment_events[0]).toMatchObject({
+      kind: 'setup_started',
+      from_state: 'none',
+      to_state: 'checkout_pending',
+    })
+  })
+
+  it('stores the held-now consent with the PaymentIntent id and the server-rendered text (no hold date)', async () => {
+    await call(holdNowBody())
+    const piId = fake.state.paymentIntents.keys().next().value
+    expect(consents()).toHaveLength(1)
+    const text = await buildConsentText({
+      locale: 'en',
+      mode: 'hold_now',
+      amountMinor: nearAmount(),
+      currency: 'eur',
+      holdDateIso: null,
+    })
+    expect(consents()[0]).toMatchObject({
+      booking_id: bookings()[0].id,
+      mode: 'hold_now',
+      payment_intent_id: piId,
+      text_version: CARD_CONSENT_VERSION,
+      text_rendered: text,
+      text_sha256: consentSha256(text),
+      planned_hold_at: null,
+      amount_minor: nearAmount(),
+    })
+  })
+
+  it('writes the consent before the PaymentIntent and the transition after it', async () => {
+    const original = fake.stripe.paymentIntents.create
+    fake.stripe.paymentIntents.create = async (...a: Parameters<typeof original>) => {
+      log.push('stripe:paymentIntents.create')
+      return original(...a)
+    }
+    await call(holdNowBody())
+    const consentAt = log.indexOf('insert:booking_payment_consents')
+    const piAt = log.indexOf('stripe:paymentIntents.create')
+    const transitionAt = log.indexOf('rpc:apply_payment_transition')
+    expect(consentAt).toBeGreaterThanOrEqual(0)
+    expect(consentAt).toBeLessThan(piAt)
+    expect(piAt).toBeLessThan(transitionAt)
+  })
+
+  it('adds promoCode to the PaymentIntent metadata only when a promo applied', async () => {
+    promoState.row = { discount_value: 10, max_uses: null, current_uses: 0, is_active: true }
+    const withPromo = holdNowBody({ displayedAmountMinor: nearAmount(10) }, { promoCode: 'welcome10' })
+    expect((await call(withPromo)).status).toBe(200)
+    expect(fake.callsTo('paymentIntents.create')[0].params.metadata).toMatchObject({ promoCode: 'WELCOME10' })
+  })
+
+  it('sends no personal data in the PaymentIntent params, metadata or key', async () => {
+    await call(holdNowBody())
+    const c = fake.callsTo('paymentIntents.create')[0]
+    expect(c.idempotencyKey ?? '').not.toMatch(/Anna|Novak|owner|example|\+420/)
+    for (const p of ['Anna', 'Novak', OWNER, PHONE]) expect(JSON.stringify(c.params)).not.toContain(p)
+  })
+
+  it('a hold_now consent is still required', async () => {
+    const { status, body: out } = await call(holdNowBody({ consent: false }))
+    expect(status).toBe(422)
+    expect(out.code).toBe('CONSENT_REQUIRED')
+    expectNoWrites()
+  })
+
+  it('the 422 MODE_UNSUPPORTED answer no longer exists', async () => {
+    const { body: out } = await call(holdNowBody())
+    expect(out.code).not.toBe('MODE_UNSUPPORTED')
+  })
+})
+
+describe('POST /api/card-checkout/intent: hold_now never double-holds (T-88-36)', () => {
+  it('an existing hold PaymentIntent in requires_capture -> alreadyConfirmed, no new create, no cancel, no new consent', async () => {
+    await call(holdNowBody())
+    const piId = fake.state.paymentIntents.keys().next().value as string
+    const pi = fake.state.paymentIntents.get(piId)!
+    pi.status = 'requires_capture'
+    pi.amount_capturable = pi.amount
+
+    const { status, body: out } = await call(holdNowBody())
+    expect(status).toBe(200)
+    expect(out).toEqual({ alreadyConfirmed: true, bookingReference: bookings()[0].booking_reference })
+    expect(fake.executed('paymentIntents.create')).toBe(1)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect(consents()).toHaveLength(1)
+  })
+
+  it('an unconfirmed earlier PaymentIntent is cancelled with the pi_void key, then a new one is created', async () => {
+    await call(holdNowBody())
+    const firstId = fake.state.paymentIntents.keys().next().value as string
+    const { status, body: out } = await call(holdNowBody())
+    expect(status).toBe(200)
+    expect(out.clientSecret).toBeTruthy()
+
+    const cancel = fake.callsTo('paymentIntents.cancel')
+    expect(cancel).toHaveLength(1)
+    expect(cancel[0].idempotencyKey).toBe(`pi_void:${firstId}`)
+    expect(fake.state.paymentIntents.get(firstId)!.status).toBe('canceled')
+    expect(fake.executed('paymentIntents.create')).toBe(2)
+
+    const ids = [...fake.state.paymentIntents.keys()]
+    expect(bookings()).toHaveLength(1)
+    expect(bookings()[0].hold_payment_intent_id).toBe(ids[1])
+    expect(consents()).toHaveLength(2)
+    expect(consents()[0].id).not.toBe(consents()[1].id)
+    expect(consents()[1].payment_intent_id).toBe(ids[1])
+    // The second create used the second consent's key, never the first one's.
+    expect(fake.callsTo('paymentIntents.create')[1].idempotencyKey).toBe(
+      `pi_now:${bookings()[0].id}:${consents()[1].id}`,
+    )
+  })
+
+  it('a failed cancel of the predecessor does not stop the new hold', async () => {
+    await call(holdNowBody())
+    fake.failNextWith('paymentIntents.cancel', 'connection')
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { status } = await call(holdNowBody())
+    spy.mockRestore()
+    expect(status).toBe(200)
+    expect(fake.executed('paymentIntents.create')).toBe(2)
+  })
+
+  it('a stale hold id that Stripe does not know is ignored and a new PaymentIntent is created', async () => {
+    await call(holdNowBody())
+    const firstId = fake.state.paymentIntents.keys().next().value as string
+    fake.state.paymentIntents.delete(firstId)
+    const { status } = await call(holdNowBody())
+    expect(status).toBe(200)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect(fake.state.paymentIntents.size).toBe(1)
+  })
+
+  it('a PaymentIntent connection failure -> 500 INTERNAL and the booking never reaches a hold id', async () => {
+    fake.failNextWith('paymentIntents.create', 'connection')
+    const { status, body: out } = await call(holdNowBody())
+    expect(status).toBe(500)
+    expect(out.code).toBe('INTERNAL')
+    expect(out).not.toHaveProperty('clientSecret')
+    expect(bookings()[0]).toMatchObject({ payment_state: 'none', hold_payment_intent_id: null })
+
+    const retry = await call(holdNowBody())
+    expect(retry.status).toBe(200)
+    expect(bookings()[0].payment_state).toBe('checkout_pending')
+  })
+
+  it('a booking already confirmed for that attempt -> 200 alreadyConfirmed and no Stripe call', async () => {
+    const confirmed = createFakePaymentsDb({
+      nowMs: NOW,
+      bookings: [{ attempt_id: ATTEMPT, leg: 'outbound', status: 'confirmed', booking_reference: 'PRG-20270101-ABCDEF' }],
+    })
+    confirmed.state.pricing_globals[0] = db.state.pricing_globals[0]
+    db = confirmed
+    dbHolder.client = loggingClient(db.client)
+    const { status, body: out } = await call(holdNowBody())
+    expect(status).toBe(200)
+    expect(out).toEqual({ alreadyConfirmed: true, bookingReference: 'PRG-20270101-ABCDEF' })
+    expect(fake.calls).toHaveLength(0)
+  })
+})
+
 describe('POST /api/card-checkout/intent: consent', () => {
   it.each([
     ['false', { consent: false }],
@@ -429,16 +648,6 @@ describe('POST /api/card-checkout/intent: price and mode cross-checks', () => {
       holdAtIso: '2027-01-13T09:00:00.000Z',
       holdDateIso: '2027-01-13',
     })
-    expectNoWrites()
-  })
-
-  it("client 'hold_now' and server hold_now -> 422 MODE_UNSUPPORTED until plan 88-12", async () => {
-    const near = { pickupDate: '2027-01-12', pickupTime: '12:00' }
-    const { status, body: out } = await call(
-      body({ mode: 'hold_now', displayedAmountMinor: serverAmount('2027-01-12', '12:00') }, near),
-    )
-    expect(status).toBe(422)
-    expect(out.code).toBe('MODE_UNSUPPORTED')
     expectNoWrites()
   })
 

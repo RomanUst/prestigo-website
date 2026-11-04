@@ -13,7 +13,9 @@ import { createClient } from '@/lib/supabase/server'
 // POST /api/card-checkout/intent (Phase 88, plan 88-08; HOLD-01, D-05, D-09a, D-11, D-12).
 //
 // Setup mode: recompute the price, capture one unpaid card_hold booking per attemptId, ensure the Stripe
-// Customer, store the consent record and create a SetupIntent. Nothing is charged. The amount comes from
+// Customer, store the consent record and create a SetupIntent. Nothing is charged.
+// hold_now mode (plan 88-12, HOLD-03): the pickup is inside the hold lead, so an on-session manual-capture
+// PaymentIntent for the full server amount is created instead (still nothing is captured). The amount comes from
 // priceCheckout only; displayedAmountMinor is a cross-check (409 PRICE_CHANGED). The mode is decided by
 // the server (decideHoldMode); the client's mode is a cross-check (409 MODE_CHANGED).
 //
@@ -117,11 +119,6 @@ export async function POST(req: Request) {
         holdDateIso: serverMode === 'setup' ? holdDateIso(holdAtMs) : null,
       })
     }
-    if (serverMode === 'hold_now') {
-      // Implemented by plan 88-12.
-      return fail(422, 'MODE_UNSUPPORTED', 'This payment mode is not available yet')
-    }
-
     // A signed-in account is resolved server-side, never from the body. Best effort: a guest checkout is normal.
     let authenticatedUserId: string | null = null
     try {
@@ -135,6 +132,7 @@ export async function POST(req: Request) {
     }
 
     const result = await createCardCheckoutIntent({
+      mode: serverMode,
       bookingData,
       priced,
       currency,

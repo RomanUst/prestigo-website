@@ -1,10 +1,15 @@
 'use client'
 
-// Save-card checkout step (Phase 88, plan 88-10; HOLD-01, D-09, D-12). Built to 88-UI-SPEC.md Surface 1.
+// Card checkout step (Phase 88, plans 88-10 and 88-12; HOLD-01, HOLD-03, D-09, D-11, D-12). Built to 88-UI-SPEC.md Surface 1.
 // DRAFT legal copy (Booking.step6.cardOnFile.*), pending the Phase 89 review.
 //
-// Flow: elements.submit() -> POST /api/card-checkout/intent -> stripe.confirmSetup (3DS in the browser) ->
-// /book/confirmation. Nothing is charged. The consent checkbox is a native, unticked input on every mount and
+// Two variants, decided by the server (init, then cross-checked by the intent route):
+//   - setup: elements.submit() -> POST /api/card-checkout/intent -> stripe.confirmSetup (3DS in the browser) ->
+//     /book/confirmation. Nothing is charged.
+//   - hold_now (pickup inside the hold lead, D-11): Elements in mode 'payment' with manual capture, then
+//     stripe.confirmPayment (on-session 3DS). The amount is held now and charged after the trip; the booking is
+//     confirmed by the webhook, never by this component.
+//  The consent checkbox is a native, unticked input on every mount and
 // remount; it is never prefilled, never stored. The label text equals the string the server hashes
 // (consentMessageKey + consentVars from lib/payments/consent-text.ts).
 //
@@ -39,8 +44,12 @@ import {
   type InitEligible,
 } from './cardCheckoutApi'
 
-/** Modes this step implements. 'hold_now' is added by plan 88-12; an init result in any other mode renders the legacy step. */
-export const SUPPORTED_MODES: readonly CardMode[] = ['setup']
+/** Modes this step implements; an init result in any other mode renders the legacy step. */
+export const SUPPORTED_MODES: readonly CardMode[] = ['setup', 'hold_now']
+
+// PaymentIntent statuses after confirmPayment that mean the client is done: a manual-capture hold ends in
+// requires_capture, a slow bank method in processing. Anything else is not an authorisation.
+const HOLD_DONE_STATUSES = new Set(['requires_capture', 'processing', 'succeeded'])
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -315,21 +324,36 @@ function CardForm({
     }
 
     const localizedConfirmPath = getPathname({ locale, href: `/book/confirmation?ref=${bookingReference}` })
-    const { error, setupIntent } = await stripe.confirmSetup({
+    const confirmArgs = {
       elements,
       clientSecret: String(data.clientSecret ?? ''),
       confirmParams: { return_url: `${window.location.origin}${localizedConfirmPath}` },
-      redirect: 'if_required',
-    })
-
-    if (error) {
-      setMessage({ kind: 'error', text: cardErrorMessage(error) })
-      setSubmitting(false)
-      return
+      redirect: 'if_required' as const,
     }
-    if (setupIntent && (setupIntent.status === 'succeeded' || setupIntent.status === 'processing')) {
-      navigateToConfirmation(bookingReference)
-      return
+
+    if (mode === 'hold_now') {
+      // The server decides the mode and answered with a PaymentIntent secret for the manual-capture hold.
+      const { error, paymentIntent } = await stripe.confirmPayment(confirmArgs)
+      if (error) {
+        setMessage({ kind: 'error', text: cardErrorMessage(error) })
+        setSubmitting(false)
+        return
+      }
+      if (paymentIntent && HOLD_DONE_STATUSES.has(paymentIntent.status)) {
+        navigateToConfirmation(bookingReference)
+        return
+      }
+    } else {
+      const { error, setupIntent } = await stripe.confirmSetup(confirmArgs)
+      if (error) {
+        setMessage({ kind: 'error', text: cardErrorMessage(error) })
+        setSubmitting(false)
+        return
+      }
+      if (setupIntent && (setupIntent.status === 'succeeded' || setupIntent.status === 'processing')) {
+        navigateToConfirmation(bookingReference)
+        return
+      }
     }
     setMessage({ kind: 'error', text: t('paymentGenericError') })
     setSubmitting(false)
@@ -541,15 +565,30 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
     [vehicleClass, tripType, discountedTotalEur, tb, t],
   )
 
+  // Elements options must match the server-side intent exactly (Research Pitfall 3): a SetupIntent for 'setup',
+  // a manual-capture PaymentIntent for 'hold_now' (amount, capture and future-usage included). The Elements key
+  // below remounts on a mode or currency change; an amount change is a supported in-place update.
   const elementsOptions = useMemo(
-    () => ({
-      mode: 'setup' as const,
-      currency: current.currency,
-      paymentMethodTypes: ['card'],
-      appearance,
-      locale: STRIPE_ELEMENTS_LOCALE[locale],
-    }),
-    [current.currency, locale],
+    () =>
+      current.mode === 'hold_now'
+        ? {
+            mode: 'payment' as const,
+            amount: current.amountMinor,
+            currency: current.currency,
+            captureMethod: 'manual' as const,
+            setupFutureUsage: 'off_session' as const,
+            paymentMethodTypes: ['card'],
+            appearance,
+            locale: STRIPE_ELEMENTS_LOCALE[locale],
+          }
+        : {
+            mode: 'setup' as const,
+            currency: current.currency,
+            paymentMethodTypes: ['card'],
+            appearance,
+            locale: STRIPE_ELEMENTS_LOCALE[locale],
+          },
+    [current.mode, current.amountMinor, current.currency, locale],
   )
 
   const announce = useCallback(() => setLiveMessage(tc('noticeDetailsChanged')), [tc])
