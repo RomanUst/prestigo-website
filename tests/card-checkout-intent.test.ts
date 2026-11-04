@@ -246,6 +246,8 @@ describe('POST /api/card-checkout/intent: setup mode happy path (tracer)', () =>
     })
     expect(c).toMatchObject({
       booking_id: bookings()[0].id,
+      // The webhook confirms the consent by this id (found by the 88-17 lifecycle test: it was never stored).
+      setup_intent_id: bookings()[0].setup_intent_id,
       mode: 'setup',
       text_version: CARD_CONSENT_VERSION,
       text_rendered: text,

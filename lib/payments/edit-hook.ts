@@ -13,6 +13,7 @@
 //
 // Server-only by use. State changes go through applyTransition (single writer, lib/payments/state.ts).
 
+import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { getPaymentSettings } from '@/lib/payments/config'
@@ -89,6 +90,13 @@ export async function reevaluateAfterEdit(input: {
   actor: LedgerActor
 }): Promise<PaymentEffect | null> {
   const { bookingId, before, priceChanged, pickupChanged, actor } = input
+  // Money-eligibility gate (assumption-delta invariant): a partner booking has no Prestigo money flow.
+  try {
+    assertMoneyEligible({ booking_source: typeof before.booking_source === 'string' ? before.booking_source : null })
+  } catch (err) {
+    if (err instanceof PartnerBookingMoneyError) return null
+    throw err
+  }
   if (before.payment_mode !== 'card_hold') return null
   if (!priceChanged && !pickupChanged) return null
 

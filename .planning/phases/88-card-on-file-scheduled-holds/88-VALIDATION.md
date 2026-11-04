@@ -1,10 +1,10 @@
 ---
 phase: "88"
 slug: "card-on-file-scheduled-holds"
-# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+# status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6; set by plan 88-17 Task 1)
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-11-04"
 ---
 
@@ -41,17 +41,19 @@ Filled by the planner per task; requirement → test mapping:
 
 | Requirement | Behavior | Test Type | Automated Command | File Exists | Status |
 |-------------|----------|-----------|-------------------|-------------|--------|
-| PAYF-01 | Migration 085 contract; `TRANSITIONS` ⇔ CHECK parity; only `lib/payments/state.ts` writes `payment_state`; ledger idempotent by `event_key` | contract + gate + unit | `npx vitest run tests/payments-migration-085.test.ts tests/payments-state.test.ts tests/payment-state-writers-gate.test.ts` | ❌ W0 | ⬜ pending |
-| PAYF-03 | `card_*` kinds never reach legacy `saveBooking`; legacy PI still makes exactly one booking; replay no-op; refund on completed card booking keeps status + `refund_observed` | route unit | `npx vitest run tests/webhooks-stripe-payments.test.ts tests/webhooks-stripe.test.ts` | ❌ W0 / ✅ | ⬜ pending |
-| PAYF-04 | Webhook-events + QStash schedule owner scripts: idempotent, dry-run, never print keys | script + fake client | `npx vitest run tests/infra-stripe-webhook-events.test.ts tests/infra-qstash-schedule.test.ts` | ❌ W0 | ⬜ pending |
-| PAYF-05 | Eligibility off/canary/allowlist; settings rejects `'on'`, lead outside 6–96 | route + component | `npx vitest run tests/card-checkout-init.test.ts tests/admin-settings.test.ts tests/CardFlowSettings.test.tsx` | ❌ W0 / ✅ | ⬜ pending |
-| HOLD-01 | Intent route 400/422, consent required + stored (version, sha256, locale, IP, UA), one booking per attempt, 409 `PRICE_CHANGED`/`MODE_CHANGED`, CSRF + rate limit; consent text parity 7 locales; Step6CardOnFile unticked checkbox + exact hold date | route + unit + component | `npx vitest run tests/card-checkout-intent.test.ts tests/payments-consent.test.ts tests/Step6CardOnFile.test.tsx tests/middleware-csrf-forms.test.ts` | ❌ W0 / ✅ | ⬜ pending |
-| HOLD-02 | `computeHoldAt` DST fixtures 2027-03-28 / 2027-10-31; tick places overdue holds once, partner never held, auth, pickup edit moves `hold_at` | pure + route | `npx vitest run tests/payments-timing.test.ts tests/payments-tick.test.ts` | ❌ W0 | ⬜ pending |
-| HOLD-03 | In-window manual-capture PI at checkout; `amount_capturable_updated` confirms once | route + webhook | `npx vitest run tests/card-checkout-intent.test.ts tests/webhooks-stripe-payments.test.ts` | ❌ W0 | ⬜ pending |
-| HOLD-04 | Capture `amount_to_capture` (D-17); expired hold (mocked `expireHold`) ⇒ fallback charge; difference charge (D-16); concurrent settle ⇒ one Stripe create | unit (fake Stripe) | `npx vitest run tests/payments-settle.test.ts tests/booking-status-service.test.ts` | ❌ W0 / ✅ | ⬜ pending |
-| HOLD-05 | Decline ⇒ recovery link + localized client email + operator email; one retry; 24 h alert once; link paid ⇒ captured | unit + webhook | `npx vitest run tests/payments-failure.test.ts tests/webhooks-stripe-payments.test.ts` | ❌ W0 | ⬜ pending |
-| HOLD-07 | Admin payment API guard order + action matrix; edit hook D-16/17/18; cancel CAS-first (WR-01); PaymentPanel render | route + component | `npx vitest run tests/admin-payment-api.test.ts tests/admin-bookings-edit-payment.test.ts tests/admin-bookings-cancel.test.ts tests/PaymentPanel.test.tsx` | ❌ W0 / ✅ | ⬜ pending |
-| MAIL-01 | 4 templates × 7 locales, key parity, `rtl` for ar, NULL locale ⇒ en | unit | `npx vitest run tests/payments-emails.test.ts` | ❌ W0 | ⬜ pending |
+| PAYF-01 | Migration 085 contract; `TRANSITIONS` ⇔ CHECK parity; only `lib/payments/state.ts` writes `payment_state`; ledger idempotent by `event_key` | contract + gate + unit | `npx vitest run tests/payments-migration-085.test.ts tests/payments-state.test.ts tests/payment-state-writers-gate.test.ts` | ✅ | ✅ green |
+| PAYF-03 | `card_*` kinds never reach legacy `saveBooking`; legacy PI still makes exactly one booking; replay no-op; refund on completed card booking keeps status + `refund_observed` | route unit | `npx vitest run tests/webhooks-stripe-payments.test.ts tests/webhooks-stripe.test.ts` | ✅ | ✅ green |
+| PAYF-04 | Webhook-events + QStash schedule owner scripts: idempotent, dry-run, never print keys | script + fake client | `npx vitest run tests/infra-stripe-webhook-events.test.ts tests/infra-qstash-schedule.test.ts` | ✅ | ✅ green |
+| PAYF-05 | Eligibility off/canary/allowlist; settings rejects `'on'`, lead outside 6–96 | route + component | `npx vitest run tests/card-checkout-init.test.ts tests/admin-settings.test.ts tests/CardFlowSettings.test.tsx` | ✅ | ✅ green |
+| HOLD-01 | Intent route 400/422, consent required + stored (version, sha256, locale, IP, UA), one booking per attempt, 409 `PRICE_CHANGED`/`MODE_CHANGED`, CSRF + rate limit; consent text parity 7 locales; Step6CardOnFile unticked checkbox + exact hold date | route + unit + component | `npx vitest run tests/card-checkout-intent.test.ts tests/payments-consent.test.ts tests/Step6CardOnFile.test.tsx tests/middleware-csrf-forms.test.ts` | ✅ | ✅ green |
+| HOLD-02 | `computeHoldAt` DST fixtures 2027-03-28 / 2027-10-31; tick places overdue holds once, partner never held, auth, pickup edit moves `hold_at` | pure + route | `npx vitest run tests/payments-timing.test.ts tests/payments-tick.test.ts` | ✅ | ✅ green |
+| HOLD-03 | In-window manual-capture PI at checkout; `amount_capturable_updated` confirms once | route + webhook | `npx vitest run tests/card-checkout-intent.test.ts tests/webhooks-stripe-payments.test.ts` | ✅ | ✅ green |
+| HOLD-04 | Capture `amount_to_capture` (D-17); expired hold (mocked `expireHold`) ⇒ fallback charge; difference charge (D-16); concurrent settle ⇒ one Stripe create | unit (fake Stripe) | `npx vitest run tests/payments-settle.test.ts tests/booking-status-service.test.ts` | ✅ | ✅ green |
+| HOLD-05 | Decline ⇒ recovery link + localized client email + operator email; one retry; 24 h alert once; link paid ⇒ captured | unit + webhook | `npx vitest run tests/payments-failure.test.ts tests/webhooks-stripe-payments.test.ts` | ✅ | ✅ green |
+| HOLD-07 | Admin payment API guard order + action matrix; edit hook D-16/17/18; cancel CAS-first (WR-01); PaymentPanel render | route + component | `npx vitest run tests/admin-payment-api.test.ts tests/admin-bookings-edit-payment.test.ts tests/admin-bookings-cancel.test.ts tests/PaymentPanel.test.tsx` | ✅ | ✅ green |
+| MAIL-01 | 4 templates × 7 locales, key parity, `rtl` for ar, NULL locale ⇒ en | unit | `npx vitest run tests/payments-emails.test.ts` | ✅ | ✅ green |
+| SC1-SC4 (lifecycle) | init -> intent -> setup webhook -> tick hold -> admin completion -> capture -> admin GET ledger newest first; expired hold -> fallback charge; declined fallback -> failed + recovery link + client email + operator alert -> paid link -> captured; partner / pay-now never reach Stripe | e2e over fake Stripe + fake DB (real routes) | `npx vitest run tests/payments-lifecycle.test.ts` | ✅ | ✅ green |
+| PAYF-03 / D-02 (engine gates) | placeHold, releaseHold, settleBooking, handlePaymentFailure, reevaluateAfterEdit call `assertMoneyEligible` and check `payment_mode` `card_hold` before any Stripe call; no legacy booking-id metadata key; no typed euro amount in phase files | source gate | `npx vitest run tests/payments-engine-gates.test.ts tests/payment-state-writers-gate.test.ts tests/status-writers-gate.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -59,11 +61,11 @@ Filled by the planner per task; requirement → test mapping:
 
 ## Wave 0 Requirements
 
-- [ ] `tests/helpers/fake-stripe.ts` — in-memory Stripe with PI status machine, `amount_to_capture`, idempotency store that replays errors, scripted declines, `expireHold(piId)`
-- [ ] `tests/helpers/fake-payments-db.ts` — `apply_payment_transition` / `claim_due_payment_work` / ledger uniqueness semantics
-- [ ] Failing stubs for every new test file in the map above
-- [ ] `tests/booking-status-service.test.ts` — update `emitBookingCompleted` assertions for async signature
-- [ ] `tests/admin-bookings-cancel.test.ts` — rewrite for CAS-first order
+- [x] `tests/helpers/fake-stripe.ts` — in-memory Stripe with PI status machine, `amount_to_capture`, idempotency store that replays errors, scripted declines, `expireHold(piId)`
+- [x] `tests/helpers/fake-payments-db.ts` — `apply_payment_transition` / `claim_due_payment_work` / ledger uniqueness semantics
+- [x] Failing stubs for every new test file in the map above
+- [x] `tests/booking-status-service.test.ts` — update `emitBookingCompleted` assertions for async signature
+- [x] `tests/admin-bookings-cancel.test.ts` — rewrite for CAS-first order
 - [x] Live `bookings.pickup_utc` check (orchestrator, 2026-11-04): GENERATED ALWAYS AS `prestigo_text_to_utc(pickup_date, pickup_time)`; DST-correct (2027-03-28 02:30 → 01:30Z, 2027-10-31 02:30 → 01:30Z)
 
 ---
@@ -82,11 +84,11 @@ Filled by the planner per task; requirement → test mapping:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90 s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90 s
+- [x] nyquist flag set to true in frontmatter
 
-**Approval:** pending
+**Approval:** automated validation signed off by plan 88-17 Task 1 (2026-11-04). Manual-only rows above (webhook events, QStash schedule, smoke, canary, real hold expiry) stay owner/orchestrator steps in plan 88-17 Tasks 2 and 3.
