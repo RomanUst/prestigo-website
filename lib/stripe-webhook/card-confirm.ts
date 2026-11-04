@@ -17,8 +17,9 @@ import type Stripe from 'stripe'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { getPaymentsStripe, stripeKeys } from '@/lib/payments/stripe'
-import { cancelPaymentIntent } from '@/lib/payments/hold'
+import { stripeKeys } from '@/lib/payments/stripe'
+// 88-REVIEW A-IN-09: the one capture_before reader (it used to be duplicated here).
+import { cancelPaymentIntent, captureBeforeIso } from '@/lib/payments/hold'
 import { applyTransition, appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { sendPaymentEmail, bookingEmailDataFromRow } from '@/lib/payments/emails/send'
 import { sendManagerAlert } from '@/lib/email'
@@ -276,27 +277,6 @@ export async function applySetupSucceeded(si: Stripe.SetupIntent, actor: LedgerA
 
 export async function handleSetupSucceeded(event: Stripe.Event): Promise<void> {
   await applySetupSucceeded(event.data.object as Stripe.SetupIntent, WEBHOOK_ACTOR)
-}
-
-/** The latest charge's card capture_before (seconds) as an ISO instant, expanding the PaymentIntent when needed. */
-async function captureBeforeIso(pi: Stripe.PaymentIntent): Promise<string | null> {
-  const fromCharge = (charge: unknown): string | null => {
-    const seconds = (charge as { payment_method_details?: { card?: { capture_before?: unknown } } } | null)
-      ?.payment_method_details?.card?.capture_before
-    return typeof seconds === 'number' && Number.isFinite(seconds) ? new Date(seconds * 1000).toISOString() : null
-  }
-  if (pi.latest_charge && typeof pi.latest_charge === 'object') {
-    const direct = fromCharge(pi.latest_charge)
-    if (direct) return direct
-  }
-  try {
-    const full = await getPaymentsStripe().paymentIntents.retrieve(pi.id, { expand: ['latest_charge'] })
-    return fromCharge(full.latest_charge)
-  } catch {
-    // capture_before is informational (the tick re-places a hold before it passes); never block the confirmation.
-    console.error('[webhook] capture_before lookup failed', { stripeObjectId: pi.id })
-    return null
-  }
 }
 
 /**

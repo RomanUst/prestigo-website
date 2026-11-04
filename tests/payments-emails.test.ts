@@ -120,6 +120,13 @@ describe('renderPaymentEmail: shell rules', () => {
     expect(out.html).toContain(`<bdi dir="ltr">${formatMinor(12000, 'eur')}</bdi>`)
   })
 
+  it('88-REVIEW C-IN-01: localized dates are isolated with dir=auto (Arabic reads them in order), times stay ltr', async () => {
+    const out = await renderPaymentEmail('card_saved', 'ar', baseVars())
+    expect(out.html).toContain(`<bdi dir="auto">${formatLocaleDate('2026-11-12', 'ar')}</bdi>`)
+    expect(out.html).toContain(`<bdi dir="auto">${formatLocaleDate('2026-11-15', 'ar')}</bdi>, <bdi dir="ltr">10:00</bdi>`)
+    expect(out.html).not.toContain(`<bdi dir="ltr">${formatLocaleDate('2026-11-12', 'ar')}</bdi>`)
+  })
+
   it('uses no non-standard named HTML entities', async () => {
     for (const c of CASES) {
       const out = await renderPaymentEmail(c.kind, 'en', baseVars({ variant: c.variant, payUrl: PAY_URL, ...c.extra }))

@@ -10,7 +10,7 @@
  * Rules enforced here (88-UI-SPEC Surface 4):
  * - locale = normalizeSiteLocale(input), English for null / empty / unknown
  * - amounts via formatMinor, dates via formatLocaleDate (Latin digits)
- * - amounts, dates, references, contact line in <bdi dir="ltr">; addresses in
+ * - amounts, times, references, contact line in <bdi dir="ltr">; localized dates and addresses in
  *   <bdi dir="auto"> so Latin text inside Arabic keeps its order
  * - every user-supplied string HTML-escaped; UTF-8 only, no named entities
  * - payment_failed is the only email with a filled button
@@ -99,11 +99,20 @@ function text(t: Translator, key: string, params: Record<string, string> = {}): 
   return t(key, safe)
 }
 
-/** HTML message: catalog text escaped, parameters inserted as bdi ltr. */
+/**
+ * Parameters that are localized words (a long date such as "12 نوفمبر 2026"), isolated with dir="auto" so an RTL reader
+ * reads them in their own order (88-REVIEW C-IN-01). Amounts, references and times stay ltr.
+ */
+const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate'])
+
+/** HTML message: catalog text escaped, parameters inserted as bdi ltr (localized dates: bdi auto). */
 function html(t: Translator, key: string, params: Record<string, string> = {}): string {
   const tokens = Object.fromEntries(Object.keys(params).map((k) => [k, `${TOKEN_OPEN}${k}${TOKEN_CLOSE}`]))
   const out = escapeHtml(t(key, tokens))
-  return out.replace(TOKEN_RE, (_m, name: string) => `<bdi dir="ltr">${escapeHtml(params[name] ?? '')}</bdi>`)
+  return out.replace(
+    TOKEN_RE,
+    (_m, name: string) => `<bdi dir="${AUTO_DIR_PARAMS.has(name) ? 'auto' : 'ltr'}">${escapeHtml(params[name] ?? '')}</bdi>`,
+  )
 }
 
 function safeHttpsUrl(value: string, what: string): string {
@@ -253,7 +262,8 @@ function buildShell(args: {
 
   const reference = `<bdi dir="ltr">${escapeHtml(vars.reference)}</bdi>`
   const date = formatLocaleDate(vars.pickupDateIso, locale)
-  const dateTime = `<bdi dir="ltr">${escapeHtml(`${date}, ${vars.pickupTime}`)}</bdi>`
+  // C-IN-01: the localized date reads in its own direction; the clock time stays ltr.
+  const dateTime = `<bdi dir="auto">${escapeHtml(date)}</bdi>, <bdi dir="ltr">${escapeHtml(vars.pickupTime)}</bdi>`
 
   const row = (label: string, value: string) => `
           <tr>
