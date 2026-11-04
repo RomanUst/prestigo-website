@@ -36,6 +36,8 @@ import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-paymen
 import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 import { computeCombinedTotalMinor, computeOutboundLegTotal } from '@/lib/server-pricing'
 import { computeHoldAt } from '@/lib/payments/timing'
+import { ensureStripeCustomer } from '@/lib/payments/customer'
+import { cardMetadata, classifyStripeError, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { buildConsentText, consentSha256 } from '@/lib/payments/consent'
 import { CARD_CONSENT_VERSION } from '@/lib/payments/consent-text'
@@ -330,5 +332,428 @@ describe('POST /api/card-checkout/intent: setup mode happy path (tracer)', () =>
     expect(bookingAt).toBeGreaterThanOrEqual(0)
     expect(bookingAt).toBeLessThan(consentAt)
     expect(bookings()[0].payment_state).toBe('checkout_pending')
+  })
+})
+
+/** Nothing was written anywhere: no booking, no consent, no ledger row, no Stripe call. */
+function expectNoWrites() {
+  expect(bookings()).toHaveLength(0)
+  expect(consents()).toHaveLength(0)
+  expect(db.state.booking_payment_events).toHaveLength(0)
+  expect(fake.calls).toHaveLength(0)
+}
+
+describe('POST /api/card-checkout/intent: consent', () => {
+  it.each([
+    ['false', { consent: false }],
+    ['missing', { consent: undefined }],
+    ["the string 'true'", { consent: 'true' }],
+    ['the number 1', { consent: 1 }],
+    ['an object', { consent: { accepted: true } }],
+    ['null', { consent: null }],
+  ])('consent %s -> 422 CONSENT_REQUIRED with no booking, consent row or Stripe call', async (_label, over) => {
+    const { status, body: out } = await call(body(over))
+    expect(status).toBe(422)
+    expect(out.code).toBe('CONSENT_REQUIRED')
+    expectNoWrites()
+  })
+
+  it('a client-supplied consent text is ignored: the stored text is the server rendering', async () => {
+    await call({ ...body(), consentText: 'I agree to anything', text: 'forged' })
+    expect(consents()[0].text_rendered).not.toContain('forged')
+    expect(consents()[0].text_rendered).not.toContain('I agree to anything')
+  })
+})
+
+describe('POST /api/card-checkout/intent: eligibility (D-09a)', () => {
+  it('flag switched off between init and intent -> 422 NOT_ELIGIBLE, no write', async () => {
+    seedSettings({ card_flow_mode: 'off' })
+    const { status, body: out } = await call(body())
+    expect(status).toBe(422)
+    expect(out.code).toBe('NOT_ELIGIBLE')
+    expectNoWrites()
+  })
+
+  it('email removed from the allowlist -> 422 NOT_ELIGIBLE, no write', async () => {
+    seedSettings({ card_flow_canary_emails: ['someone-else@example.com'] })
+    expect((await call(body())).body.code).toBe('NOT_ELIGIBLE')
+    expectNoWrites()
+  })
+
+  it('an empty email -> 422 NOT_ELIGIBLE', async () => {
+    const payload = body()
+    delete (payload.bookingData as Record<string, string | undefined>).email
+    const { status, body: out } = await call(payload)
+    expect(status).toBe(422)
+    expect(out.code).toBe('NOT_ELIGIBLE')
+    expectNoWrites()
+  })
+
+  it.each(['round_trip', 'daily'])('%s is never eligible', async (tripType) => {
+    const { body: out } = await call(body({}, { tripType, returnDate: '2027-01-18', returnTime: '10:00' }))
+    expect(out.code).toBe('NOT_ELIGIBLE')
+    expectNoWrites()
+  })
+})
+
+describe('POST /api/card-checkout/intent: price and mode cross-checks', () => {
+  it('displayedAmountMinor differs from the server amount -> 409 PRICE_CHANGED with the server amount, no write', async () => {
+    const { status, body: out } = await call(body({ displayedAmountMinor: serverAmount() + 100 }))
+    expect(status).toBe(409)
+    expect(out).toMatchObject({ code: 'PRICE_CHANGED', amountMinor: serverAmount() })
+    expectNoWrites()
+  })
+
+  it('a client that sends no amount at all is a malformed request, not a free booking', async () => {
+    const payload = body()
+    delete (payload as Record<string, unknown>).displayedAmountMinor
+    expect((await call(payload)).status).toBe(400)
+    expectNoWrites()
+  })
+
+  it("client 'setup' while the server decides hold_now -> 409 MODE_CHANGED with hold_now and null hold fields", async () => {
+    // now + 50 h: the 72 h hold instant has already passed.
+    const near = { pickupDate: '2027-01-12', pickupTime: '12:00' }
+    const { status, body: out } = await call(body({ displayedAmountMinor: serverAmount('2027-01-12', '12:00') }, near))
+    expect(status).toBe(409)
+    expect(out).toMatchObject({ code: 'MODE_CHANGED', mode: 'hold_now', holdAtIso: null, holdDateIso: null })
+    expectNoWrites()
+  })
+
+  it("client 'hold_now' while the server decides setup -> 409 MODE_CHANGED with the setup hold date", async () => {
+    const { status, body: out } = await call(body({ mode: 'hold_now' }))
+    expect(status).toBe(409)
+    expect(out).toMatchObject({
+      code: 'MODE_CHANGED',
+      mode: 'setup',
+      holdAtIso: '2027-01-13T09:00:00.000Z',
+      holdDateIso: '2027-01-13',
+    })
+    expectNoWrites()
+  })
+
+  it("client 'hold_now' and server hold_now -> 422 MODE_UNSUPPORTED until plan 88-12", async () => {
+    const near = { pickupDate: '2027-01-12', pickupTime: '12:00' }
+    const { status, body: out } = await call(
+      body({ mode: 'hold_now', displayedAmountMinor: serverAmount('2027-01-12', '12:00') }, near),
+    )
+    expect(status).toBe(422)
+    expect(out.code).toBe('MODE_UNSUPPORTED')
+    expectNoWrites()
+  })
+
+  it('the price is recomputed from the server price table, whatever bookingData claims', async () => {
+    const { body: out } = await call(body({}, { amountEur: '1', combinedTotal: '1', amountMinor: '1' }))
+    expect(out.amountMinor).toBe(serverAmount())
+    expect(bookings()[0].payment_amount_minor).toBe(serverAmount())
+  })
+})
+
+describe('POST /api/card-checkout/intent: validation and shape', () => {
+  it('a phone without a country code -> 422 INVALID_PHONE', async () => {
+    const { status, body: out } = await call(body({}, { phone: '0725986855' }))
+    expect(status).toBe(422)
+    expect(out.code).toBe('INVALID_PHONE')
+    expectNoWrites()
+  })
+
+  it('pickup 11 h out -> 422 LEAD_TIME', async () => {
+    // now = 10:00 Prague on 2027-01-10; 21:00 the same day is 11 h away.
+    const { status, body: out } = await call(body({}, { pickupDate: '2027-01-10', pickupTime: '21:00' }))
+    expect(status).toBe(422)
+    expect(out.code).toBe('LEAD_TIME')
+    expectNoWrites()
+  })
+
+  it('pickup 13 h out passes the lead rule (it then fails the price cross-check, not the lead)', async () => {
+    const { body: out } = await call(body({}, { pickupDate: '2027-01-10', pickupTime: '23:00' }))
+    expect(out.code).not.toBe('LEAD_TIME')
+  })
+
+  it('malformed JSON -> 400 INVALID_REQUEST', async () => {
+    const res = await POST(req(null, {}, '{not json'))
+    expect(res.status).toBe(400)
+    expect((await res.json()).code).toBe('INVALID_REQUEST')
+    expectNoWrites()
+  })
+
+  it.each([
+    ['an unsupported currency', { currency: 'usd' }],
+    ['an unknown mode', { mode: 'now' }],
+    ['a non-integer amount', { displayedAmountMinor: 12.5 }],
+    ['a zero amount', { displayedAmountMinor: 0 }],
+  ])('%s -> 400 INVALID_REQUEST', async (_label, over) => {
+    const { status, body: out } = await call(body(over))
+    expect(status).toBe(400)
+    expect(out.code).toBe('INVALID_REQUEST')
+    expectNoWrites()
+  })
+
+  it('a missing attemptId -> 400 INVALID_REQUEST (one booking per attempt needs the key)', async () => {
+    const payload = body()
+    delete (payload.bookingData as Record<string, string | undefined>).attemptId
+    expect((await call(payload)).status).toBe(400)
+    expectNoWrites()
+  })
+
+  it('rate limited -> 429 and nothing is read or written', async () => {
+    rateLimitMock.mockResolvedValue({ allowed: false, remaining: 0, limit: 10 })
+    const { status, body: out } = await call(body())
+    expect(status).toBe(429)
+    expect(out.code).toBe('RATE_LIMITED')
+    expect(rateLimitMock).toHaveBeenCalledWith('/api/card-checkout/intent', '203.0.113.7')
+    expectNoWrites()
+  })
+
+  it('a missing user agent stores an empty string', async () => {
+    await call(body())
+    expect(consents()[0].user_agent).toBe('')
+  })
+})
+
+describe('POST /api/card-checkout/intent: retries and replay safety', () => {
+  it('a second POST for the same attemptId updates the same booking, reuses the Customer and makes a new consent and SetupIntent', async () => {
+    const first = await call(body({ displayedAmountMinor: serverAmount() + 1 }))
+    expect(first.status).toBe(409) // PRICE_CHANGED: nothing written yet
+    expect(bookings()).toHaveLength(0)
+
+    const a = await call(body())
+    const b = await call(body())
+    expect(a.status).toBe(200)
+    expect(b.status).toBe(200)
+    expect(bookings()).toHaveLength(1)
+    expect(b.body.bookingReference).toBe(a.body.bookingReference)
+
+    expect(fake.executed('customers.create')).toBe(1)
+    expect(fake.callsTo('customers.update')).toHaveLength(0) // details unchanged
+    expect(fake.executed('setupIntents.create')).toBe(2)
+    expect(consents()).toHaveLength(2)
+    expect(consents()[0].id).not.toBe(consents()[1].id)
+
+    const siIds = [...fake.state.setupIntents.keys()]
+    expect(bookings()[0].setup_intent_id).toBe(siIds[1])
+    expect(bookings()[0].payment_state).toBe('checkout_pending')
+    expect(db.state.booking_payment_events.filter((e) => e.kind === 'setup_started')).toHaveLength(2)
+  })
+
+  it('updates the Customer only when email, name or phone changed', async () => {
+    seedSettings({ card_flow_canary_emails: [OWNER, 'other@example.com'] })
+    await call(body())
+    await call(body({}, { email: 'other@example.com' }))
+    expect(fake.executed('customers.create')).toBe(1)
+    const updates = fake.callsTo('customers.update')
+    expect(updates).toHaveLength(1)
+    expect(updates[0].params).toEqual({ email: 'other@example.com' })
+    expect(updates[0].idempotencyKey).toBeUndefined()
+  })
+
+  it('a booking already confirmed for that attemptId -> 200 alreadyConfirmed and no Stripe call', async () => {
+    const confirmed = createFakePaymentsDb({
+      nowMs: NOW,
+      bookings: [{ attempt_id: ATTEMPT, leg: 'outbound', status: 'confirmed', booking_reference: 'PRG-20270101-ABCDEF' }],
+    })
+    confirmed.state.pricing_globals[0] = db.state.pricing_globals[0]
+    db = confirmed
+    dbHolder.client = loggingClient(db.client)
+    const { status, body: out } = await call(body())
+    expect(status).toBe(200)
+    expect(out).toEqual({ alreadyConfirmed: true, bookingReference: 'PRG-20270101-ABCDEF' })
+    expect(fake.calls).toHaveLength(0)
+    expect(consents()).toHaveLength(0)
+    expect(bookings()[0].status).toBe('confirmed')
+  })
+
+  it('a SetupIntent connection failure -> 500 INTERNAL; the booking stays captured and never reaches checkout_pending', async () => {
+    fake.failNextWith('setupIntents.create', 'connection')
+    const { status, body: out } = await call(body())
+    expect(status).toBe(500)
+    expect(out.code).toBe('INTERNAL')
+    expect(out).not.toHaveProperty('clientSecret')
+    expect(bookings()).toHaveLength(1)
+    expect(bookings()[0]).toMatchObject({ status: 'unpaid', payment_state: 'none', setup_intent_id: null })
+    expect(db.state.booking_payment_events).toHaveLength(0)
+    expect(fake.state.setupIntents.size).toBe(0)
+
+    // The client retries: the Customer create replays by its key (one Customer), the checkout proceeds.
+    const retry = await call(body())
+    expect(retry.status).toBe(200)
+    expect(bookings()).toHaveLength(1)
+    expect(bookings()[0].payment_state).toBe('checkout_pending')
+    expect(fake.state.customers.size).toBe(1)
+    expect(fake.callsTo('customers.create')[1].replayed).toBe(true)
+  })
+
+  it('the 500 body and the log carry no personal data', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    fake.failNextWith('setupIntents.create', 'connection')
+    const { body: out } = await call(body())
+    const logged = JSON.stringify(spy.mock.calls)
+    spy.mockRestore()
+    for (const p of ['Anna', 'Novak', OWNER, PHONE]) {
+      expect(JSON.stringify(out)).not.toContain(p)
+      expect(logged).not.toContain(p)
+    }
+  })
+})
+
+describe('ensureStripeCustomer', () => {
+  const booking = {
+    id: 'b0000000-0000-4000-8000-000000000001',
+    client_first_name: 'Anna',
+    client_last_name: 'Novak',
+    client_email: 'a@example.com',
+    client_phone: PHONE,
+  }
+
+  beforeEach(() => {
+    fake = createFakeStripe()
+    stripeHolder.stripe = fake.stripe
+  })
+
+  it('creates a Customer with the booking id as its only metadata and the deterministic key', async () => {
+    const id = await ensureStripeCustomer(booking)
+    const c = fake.callsTo('customers.create')[0]
+    expect(c.params).toEqual({ email: 'a@example.com', name: 'Anna Novak', phone: PHONE, metadata: { prestigoBookingId: booking.id } })
+    expect(c.idempotencyKey).toBe(`cus:${booking.id}`)
+    expect(fake.state.customers.has(id)).toBe(true)
+  })
+
+  it('retrying the create after a lost response replays the same Customer', async () => {
+    const a = await ensureStripeCustomer(booking)
+    const b = await ensureStripeCustomer(booking)
+    expect(b).toBe(a)
+    expect(fake.state.customers.size).toBe(1)
+  })
+
+  it('reuses an existing id and sends no update when nothing changed', async () => {
+    const id = await ensureStripeCustomer(booking)
+    expect(await ensureStripeCustomer({ ...booking, stripe_customer_id: id })).toBe(id)
+    expect(fake.callsTo('customers.update')).toHaveLength(0)
+    expect(fake.executed('customers.create')).toBe(1)
+  })
+
+  it('updates only the changed fields', async () => {
+    const id = await ensureStripeCustomer(booking)
+    await ensureStripeCustomer({ ...booking, stripe_customer_id: id, client_phone: '+420111222333', client_last_name: 'Svoboda' })
+    const u = fake.callsTo('customers.update')
+    expect(u).toHaveLength(1)
+    expect(u[0].params).toEqual({ name: 'Anna Svoboda', phone: '+420111222333' })
+  })
+
+  it('recovers when the same key was used with other details (client changed the email before the id was saved)', async () => {
+    await ensureStripeCustomer(booking)
+    const id2 = await ensureStripeCustomer({ ...booking, client_email: 'changed@example.com' })
+    expect(fake.state.customers.size).toBe(2)
+    expect(fake.state.customers.get(id2)?.email).toBe('changed@example.com')
+    const keys = fake.callsTo('customers.create').map((c) => c.idempotencyKey)
+    expect(keys[0]).toBe(`cus:${booking.id}`)
+    expect(keys[2]).toMatch(new RegExp(`^cus:${booking.id}:r[0-9a-f]{8}$`))
+  })
+
+  it('does not swallow other Stripe errors', async () => {
+    fake.failNextWith('customers.create', 'connection')
+    await expect(ensureStripeCustomer(booking)).rejects.toMatchObject({ type: 'StripeConnectionError' })
+  })
+})
+
+describe('lib/payments/stripe conventions', () => {
+  it('idempotency keys have the documented shapes and carry ids only', () => {
+    const id = 'b0000000-0000-4000-8000-000000000001'
+    expect(stripeKeys.customer(id)).toBe(`cus:${id}`)
+    expect(stripeKeys.setup(id, 'c1')).toBe(`si:${id}:c1`)
+    expect(stripeKeys.holdNow(id, 'c1')).toBe(`pi_now:${id}:c1`)
+    expect(stripeKeys.voidHoldNow('pi_1')).toBe('pi_void:pi_1')
+    expect(stripeKeys.hold(id, 2)).toBe(`hold:${id}:2`)
+    expect(stripeKeys.release(id, 2)).toBe(`rel:${id}:2`)
+    expect(stripeKeys.capture(id, 2)).toBe(`cap:${id}:2`)
+    expect(stripeKeys.charge(id, 2)).toBe(`chg:${id}:2`)
+    expect(stripeKeys.difference(id, 2)).toBe(`diff:${id}:2`)
+    expect(stripeKeys.refund(id, 'full')).toBe(`refund:${id}:full`)
+    expect(stripeKeys.link(id, 3)).toBe(`link:${id}:3`)
+    expect(stripeKeys.link(id, 'r1')).toBe(`link:${id}:r1`)
+  })
+
+  it('cardMetadata is kind, booking id, attempt and reference, plus a promo code only when non-empty', () => {
+    const input = { bookingId: 'b1', attempt: 2, bookingReference: 'PRG-1' }
+    expect(cardMetadata('card_hold', input)).toEqual({
+      kind: 'card_hold',
+      cofBookingId: 'b1',
+      attempt: '2',
+      bookingReference: 'PRG-1',
+    })
+    expect(cardMetadata('card_hold', { ...input, promoCode: '' })).not.toHaveProperty('promoCode')
+    expect(cardMetadata('card_hold', { ...input, promoCode: 'WELCOME10' })).toHaveProperty('promoCode', 'WELCOME10')
+    // The legacy webhook routes on this key; a card object must never carry it.
+    expect(cardMetadata('card_setup', input)).not.toHaveProperty('bookingId')
+  })
+
+  it('classifies Stripe errors', () => {
+    const err = (type: string, extra: Record<string, unknown> = {}) => Object.assign(new Error('x'), { type, ...extra })
+    expect(classifyStripeError(err('StripeCardError', { code: 'card_declined' }))).toBe('card_declined')
+    expect(classifyStripeError(err('StripeCardError', { code: 'authentication_required' }))).toBe('auth_required')
+    expect(classifyStripeError(err('StripeConnectionError'))).toBe('transient')
+    expect(classifyStripeError(err('StripeAPIError'))).toBe('transient')
+    expect(classifyStripeError(err('StripeAPIError', { statusCode: 503 }))).toBe('transient')
+    expect(classifyStripeError(err('StripeAPIError', { statusCode: 400 }))).toBe('invalid')
+    expect(classifyStripeError(err('StripeInvalidRequestError'))).toBe('invalid')
+    expect(classifyStripeError(err('StripeIdempotencyError'))).toBe('invalid')
+    expect(classifyStripeError(new Error('plain'))).toBe('invalid')
+    expect(classifyStripeError(null)).toBe('invalid')
+  })
+
+  it('stripeErrorCode is the decline code, else the code, else unknown, clamped to 60', () => {
+    expect(stripeErrorCode({ decline_code: 'insufficient_funds', code: 'card_declined' })).toBe('insufficient_funds')
+    expect(stripeErrorCode({ code: 'card_declined' })).toBe('card_declined')
+    expect(stripeErrorCode(new Error('boom'))).toBe('unknown')
+    expect(stripeErrorCode({ code: 'x'.repeat(100) })).toHaveLength(60)
+  })
+})
+
+describe('fake Stripe self-checks (the double every later plan trusts)', () => {
+  it('replays the same key and params, rejects different params, never stores a connection failure', async () => {
+    const f = createFakeStripe()
+    const a = await f.stripe.customers.create({ metadata: { k: '1' } }, { idempotencyKey: 'k1' })
+    const b = await f.stripe.customers.create({ metadata: { k: '1' } }, { idempotencyKey: 'k1' })
+    expect(b.id).toBe(a.id)
+    await expect(f.stripe.customers.create({ metadata: { k: '2' } }, { idempotencyKey: 'k1' })).rejects.toMatchObject({
+      type: 'StripeIdempotencyError',
+    })
+    f.failNextWith('customers.create', 'connection')
+    await expect(f.stripe.customers.create({}, { idempotencyKey: 'k2' })).rejects.toMatchObject({ type: 'StripeConnectionError' })
+    expect(f.state.idempotency.has('k2')).toBe(false)
+    const c = await f.stripe.customers.create({}, { idempotencyKey: 'k2' })
+    expect(c.id).not.toBe(a.id)
+  })
+
+  it('manual-capture holds: pm_ok authorises, one capture only, amount_to_capture bounded, expiry cancels', async () => {
+    const f = createFakeStripe()
+    const pi = await f.stripe.paymentIntents.create(
+      { amount: 10_000, currency: 'eur', capture_method: 'manual', confirm: true, off_session: true, payment_method: 'pm_ok', customer: 'cus_x', metadata: { kind: 'card_hold', cofBookingId: 'b1' } },
+      { idempotencyKey: 'hold:b1:1' },
+    )
+    expect(pi).toMatchObject({ status: 'requires_capture', amount_capturable: 10_000 })
+    await expect(f.stripe.paymentIntents.capture(pi.id, { amount_to_capture: 10_001 })).rejects.toMatchObject({ type: 'StripeInvalidRequestError' })
+    const done = await f.stripe.paymentIntents.capture(pi.id, { amount_to_capture: 9_000 })
+    expect(done).toMatchObject({ status: 'succeeded', amount_received: 9_000 })
+    await expect(f.stripe.paymentIntents.capture(pi.id, {})).rejects.toMatchObject({ code: 'payment_intent_unexpected_state' })
+
+    const held = await f.stripe.paymentIntents.create({ amount: 500, currency: 'eur', capture_method: 'manual', confirm: true, payment_method: 'pm_ok', metadata: { cofBookingId: 'b2' } })
+    f.expireHold(held.id, 'expired')
+    expect((await f.stripe.paymentIntents.retrieve(held.id)).status).toBe('canceled')
+    const found = await f.stripe.paymentIntents.search({ query: "metadata['cofBookingId']:'b1'" })
+    expect(found.data.map((p: { id: string }) => p.id)).toEqual([pi.id])
+  })
+
+  it('scripted off-session outcomes: insufficient funds and authentication required', async () => {
+    const f = createFakeStripe()
+    const create = (pm: string) =>
+      f.stripe.paymentIntents.create({ amount: 100, currency: 'eur', confirm: true, off_session: true, payment_method: pm })
+    const declined = await create('pm_decline_insufficient').catch((e) => e)
+    expect(classifyStripeError(declined)).toBe('card_declined')
+    expect(stripeErrorCode(declined)).toBe('insufficient_funds')
+    const auth = await create('pm_auth_required').catch((e) => e)
+    expect(classifyStripeError(auth)).toBe('auth_required')
+    expect(auth.payment_intent.status).toBe('requires_action')
+    expect((await create('pm_ok')).status).toBe('succeeded')
   })
 })

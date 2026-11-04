@@ -16,6 +16,7 @@ import { buildConsentText, consentSha256 } from '@/lib/payments/consent'
 import { CARD_CONSENT_VERSION, type ConsentMode } from '@/lib/payments/consent-text'
 import type { PaymentCurrency } from '@/lib/payments/money'
 import { applyTransition } from '@/lib/payments/state'
+import { ensureStripeCustomer } from '@/lib/payments/customer'
 import { cardMetadata, getPaymentsStripe, stripeKeys } from '@/lib/payments/stripe'
 import { holdDateIso } from '@/lib/payments/timing'
 
@@ -143,7 +144,7 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
   const booking = capturedData as CapturedBooking
   const stripe = getPaymentsStripe()
 
-  const customerId = await ensureCustomer(stripe, booking)
+  const customerId = await ensureStripeCustomer(booking)
 
   const holdAtIso = new Date(holdAtMs).toISOString()
   const { consentId } = await recordConsent({
@@ -204,20 +205,4 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
   }
 
   return { kind: 'secret', clientSecret: si.client_secret, bookingReference }
-}
-
-/** Task 1 minimal Customer handling; plan task 2 moves it to lib/payments/customer.ts. */
-async function ensureCustomer(stripe: ReturnType<typeof getPaymentsStripe>, booking: CapturedBooking): Promise<string> {
-  if (booking.stripe_customer_id) return booking.stripe_customer_id
-  const name = [booking.client_first_name, booking.client_last_name].filter(Boolean).join(' ')
-  const customer = await stripe.customers.create(
-    {
-      ...(booking.client_email ? { email: booking.client_email } : {}),
-      ...(name ? { name } : {}),
-      ...(booking.client_phone ? { phone: booking.client_phone } : {}),
-      metadata: { prestigoBookingId: booking.id },
-    },
-    { idempotencyKey: stripeKeys.customer(booking.id) },
-  )
-  return customer.id
 }
