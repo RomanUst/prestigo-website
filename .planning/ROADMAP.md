@@ -249,13 +249,13 @@ Plans:
   4. The operator sees each card booking's payment state, hold expiry and an append-only ledger of every money event in admin, can capture, release, retry or send a payment link, and the client's payment emails (card saved, hold placed, charged, payment failed with link) arrive in the booking language in all 7 locales.
   5. Rollout is safe: the Stripe webhook routes each event by purpose with no duplicate bookings or false alerts and a partial refund never cancels a completed trip; the owner can run a script that subscribes the live webhook to the new events; a working test-mode path exists; and the owner's own canary booking passes end to end behind an admin feature flag before anyone else can use the flow.
 
-**Plans**: 17 plans
+**Plans**: 4/17 plans executed
 Plans:
 **Wave 1**
-- [ ] 88-01-PLAN.md — Payment data model: migration 085 (payment_mode / payment_state, append-only ledger, consent record, card-flow settings, CAS + claim RPCs), lib/payments/state.ts single writer, [BLOCKING] owner schema confirmation + live apply (tracer)
-- [ ] 88-02-PLAN.md — Behaviour-preserving extraction of the checkout price / validation path into lib/checkout/compute.ts
-- [ ] 88-03-PLAN.md — Language-aware payment email renderer (4 templates), checkout card-on-file copy and consent text builder (EN)
-- [ ] 88-04-PLAN.md — Owner scripts: webhook-events subscription, QStash payment-tick schedule, Stripe test-mode smoke, owner runbook
+- [x] 88-01-PLAN.md — Payment data model: migration 085 (payment_mode / payment_state, append-only ledger, consent record, card-flow settings, CAS + claim RPCs), lib/payments/state.ts single writer, [BLOCKING] owner schema confirmation + live apply (tracer)
+- [x] 88-02-PLAN.md — Behaviour-preserving extraction of the checkout price / validation path into lib/checkout/compute.ts
+- [x] 88-03-PLAN.md — Language-aware payment email renderer (4 templates), checkout card-on-file copy and consent text builder (EN)
+- [x] 88-04-PLAN.md — Owner scripts: webhook-events subscription, QStash payment-tick schedule, Stripe test-mode smoke, owner runbook
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 88-05-PLAN.md — Real translations (ru, es, fr, ar, hi, zh) of the card-flow checkout and payment email copy + 7-locale parity
@@ -285,6 +285,7 @@ Plans:
 
 **Wave 9** *(blocked on Wave 8 completion)*
 - [ ] 88-17-PLAN.md — End-to-end lifecycle test + gates + verify pre-pr; [BLOCKING] merge, owner scripts, Dashboard checks; [BLOCKING] owner canary A / B / C
+
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix (card mandate, off-session charges, webhook routing, scheduler endpoint auth, capture trigger).
 **Decided 2026-11-02:** configurable 72 h hold lead (never 120 h). **Owner checkpoints**: confirm the ~6-day cutoff for an on-session hold at checkout, and that multi-day quotes never use one long hold; run the webhook-subscription script; create/verify the QStash schedule (free-plan quota unverified, daily Vercel cron stays the backstop); run the canary booking; confirm Stripe pricing plan and MCC in the Dashboard.
@@ -507,7 +508,7 @@ Plans:
 | 85. Statistics | v4.0 | 6/6 | Complete    | 2026-11-01 |
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
 | 87. Status Service & Driver Step Flow | v5.0 | 20/20 | In Progress|  |
-| 88. Card on File & Scheduled Holds | v5.0 | 0/0 | Not started | - |
+| 88. Card on File & Scheduled Holds | v5.0 | 4/17 | In Progress|  |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
