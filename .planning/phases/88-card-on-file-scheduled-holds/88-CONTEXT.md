@@ -29,6 +29,7 @@ Not in this phase: policy-driven cancellation fees, cash guarantee, no-show char
 
 ### Checkout mode
 - **D-09:** When the flag is on for a client, checkout offers **only** "save card, pay after the trip" — the pay-now PaymentIntent path is not shown alongside it (one path, Blacklane-style). With the flag off, today's pay-now flow is unchanged. — **Reversibility:** reversible — adding a pay-now choice later is a UI branch over the existing flow.
+- **D-09a:** The admin flag is an owner-controlled switch that can be turned on and off at any time. Turning it off only changes what **new** checkouts see (back to pay-now); card bookings already made keep their full lifecycle (scheduled hold, capture, fallback charge, failure recovery) — the scheduler and capture never read the flag. Until Phase 89 the "on" state is limited to the owner's canary (allowlist); "on for everyone" opens after Phase 89.
 - **D-10:** Card-on-file applies to **both transfers and hourly bookings** (every online-paid booking from `/book`). Multi-day stays a quote request.
 
 ### Hold timing at checkout
