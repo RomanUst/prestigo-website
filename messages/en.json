@@ -128,6 +128,31 @@
         "PRICING_UNAVAILABLE": "Pricing configuration unavailable",
         "INTERNAL": "Failed to create payment intent. Please try again.",
         "NO_CODE": "No code provided."
+      },
+      "cardOnFile": {
+        "headlineSetup": "Nothing is charged now.",
+        "headlineHoldNow": "The amount is held now and charged after your trip.",
+        "captionToday": "Today",
+        "captionAfterTrip": "After your trip",
+        "setupToday": "We save your card securely with Stripe. Your bank may ask you to confirm it.",
+        "setupHoldDay": "We hold {amount} on your card. A hold is not a charge, but your bank may show it as pending.",
+        "setupAfterTrip": "The hold becomes the final charge for your trip. If the price changes, only the agreed amount is taken.",
+        "holdNowToday": "We hold {amount} on your card. A hold is not a charge, but your bank may show it as pending.",
+        "holdNowAfterTrip": "The held amount is charged. If the final price is lower, only the lower amount is taken and the rest is released.",
+        "cardDetailsLabel": "CARD DETAILS",
+        "consentSetup": "I authorise Prestigo to save this card and to hold {amount} on it on {holdDate}, then charge it after my trip is completed. If the agreed price of my booking changes, I authorise Prestigo to charge or release the difference.",
+        "consentHoldNow": "I authorise Prestigo to hold {amount} on this card now, to save this card for this purpose, and to charge it after my trip is completed. If the agreed price of my booking changes, I authorise Prestigo to charge or release the difference.",
+        "termsLink": "Terms & Conditions",
+        "privacyLink": "Privacy Policy",
+        "trustLine": "Card details go straight to Stripe. Prestigo never sees your card number.",
+        "ctaSetup": "Save card & book",
+        "ctaHoldNow": "Hold {amount} & book",
+        "ctaBusy": "Confirming...",
+        "noticePriceChanged": "The price of your trip is now {amount}. Please review it and tick the box again.",
+        "noticeModeChanged": "Your trip is now closer, so the payment timing has changed. Please check the details above and enter your card again.",
+        "noticeDetailsChanged": "The payment details changed. Please review and tick the box again.",
+        "errorConsentRequired": "Please tick the box to continue.",
+        "errorBankVerification": "Your bank could not verify this card. Please try again or use another card."
       }
     },
     "tripTypeTabs": {
