@@ -22,6 +22,7 @@ const h = vi.hoisted(() => ({
   elementsKeys: [] as string[],
   submitMock: vi.fn(),
   confirmSetupMock: vi.fn(),
+  confirmPaymentMock: vi.fn(),
   readyControl: { auto: true },
   loadError: { value: null as unknown },
   snapshotMock: vi.fn(),
@@ -42,7 +43,7 @@ vi.mock('@stripe/react-stripe-js', async () => {
       }, [])
       return React.createElement('div', { 'data-testid': 'payment-element' })
     },
-    useStripe: () => ({ confirmSetup: h.confirmSetupMock }),
+    useStripe: () => ({ confirmSetup: h.confirmSetupMock, confirmPayment: h.confirmPaymentMock }),
     useElements: () => ({ submit: h.submitMock }),
   }
 })
@@ -99,7 +100,6 @@ vi.mock('@/lib/booking-store', () => {
   return { useBookingStore }
 })
 
-import type { CardMode } from '@/components/booking/steps/cardCheckoutApi'
 import Step6Checkout from '@/components/booking/steps/Step6Checkout'
 import { SUPPORTED_MODES } from '@/components/booking/steps/Step6CardOnFile'
 
@@ -138,6 +138,7 @@ beforeEach(() => {
   h.loadError.value = null
   h.submitMock.mockResolvedValue({})
   h.confirmSetupMock.mockResolvedValue({ setupIntent: { status: 'succeeded' } })
+  h.confirmPaymentMock.mockResolvedValue({ paymentIntent: { status: 'requires_capture' } })
   storeRef.current.promoCode = null
   storeRef.current.promoDiscount = 0
   storeRef.current.attemptId = 'a1b2c3d4-0000-4000-8000-000000000001'
@@ -239,9 +240,9 @@ describe('Step6Checkout gate (D-09, UI E1)', () => {
     expect(body.bookingData.pickupDate).toBe('2026-12-01')
   })
 
-  it('init in an unsupported mode (hold_now) renders legacy Step6Payment', async () => {
-    expect(SUPPORTED_MODES).toEqual(['setup'])
-    initReplies = [{ body: eligibleInit({ mode: 'hold_now', holdAtIso: null, holdDateIso: null }) }]
+  it('init in an unknown mode renders legacy Step6Payment', async () => {
+    expect(SUPPORTED_MODES).toEqual(['setup', 'hold_now'])
+    initReplies = [{ body: eligibleInit({ mode: 'bogus', holdAtIso: null, holdDateIso: null }) }]
     await renderGate()
     expect(await screen.findByTestId('legacy-payment')).toBeInTheDocument()
     expect(screen.queryByRole('checkbox')).toBeNull()
@@ -525,27 +526,21 @@ describe('409 notices', () => {
   })
 
   it('MODE_CHANGED to an unsupported mode falls back to legacy Step6Payment', async () => {
-    intentReplies = [{ status: 409, body: { code: 'MODE_CHANGED', mode: 'hold_now', holdAtIso: null, holdDateIso: null } }]
+    intentReplies = [{ status: 409, body: { code: 'MODE_CHANGED', mode: 'bogus', holdAtIso: null, holdDateIso: null } }]
     await renderGate()
     await tickAndSubmit()
     expect(await screen.findByTestId('legacy-payment')).toBeInTheDocument()
   })
 
   it('MODE_CHANGED to a supported mode remounts, clears the tick, updates the explainer and focuses the notice', async () => {
-    const modes = SUPPORTED_MODES as CardMode[]
-    modes.push('hold_now')
-    try {
-      intentReplies = [{ status: 409, body: { code: 'MODE_CHANGED', mode: 'hold_now', holdAtIso: null, holdDateIso: null } }]
-      await renderGate()
-      await tickAndSubmit()
-      const notice = await screen.findByText(cof.noticeModeChanged)
-      expect(screen.getByText(cof.headlineHoldNow)).toBeInTheDocument()
-      expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
-      expect(notice).toHaveAttribute('tabindex', '-1')
-      await waitFor(() => expect(document.activeElement).toBe(notice))
-    } finally {
-      modes.pop()
-    }
+    intentReplies = [{ status: 409, body: { code: 'MODE_CHANGED', mode: 'hold_now', holdAtIso: null, holdDateIso: null } }]
+    await renderGate()
+    await tickAndSubmit()
+    const notice = await screen.findByText(cof.noticeModeChanged)
+    expect(screen.getByText(cof.headlineHoldNow)).toBeInTheDocument()
+    expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
+    expect(notice).toHaveAttribute('tabindex', '-1')
+    await waitFor(() => expect(document.activeElement).toBe(notice))
   })
 })
 
@@ -685,5 +680,198 @@ describe('submitting state and accessibility', () => {
     for (let i = 0; i < nodes.length - 1; i++) {
       expect(nodes[i].compareDocumentPosition(nodes[i + 1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Plan 88-12 (HOLD-03): held-now variant, Elements mode 'payment', confirmPayment
+// ---------------------------------------------------------------------------
+
+function holdNowInit(over: Record<string, unknown> = {}) {
+  return eligibleInit({ mode: 'hold_now', holdAtIso: null, holdDateIso: null, amountMinor: 9000, currency: 'czk', ...over })
+}
+
+function holdNowButton(amountMinor = 9000, currency: 'czk' | 'eur' = 'czk') {
+  return screen.getByRole('button', { name: cof.ctaHoldNow.replace('{amount}', formatMinor(amountMinor, currency)) })
+}
+
+async function tickAndSubmitHoldNow() {
+  const box = await ready()
+  if (!(box as HTMLInputElement).checked) fireEvent.click(box)
+  await act(async () => { fireEvent.click(holdNowButton()) })
+}
+
+describe('held-now variant (HOLD-03, D-11)', () => {
+  beforeEach(() => {
+    initReplies = [{ body: holdNowInit() }]
+    intentReplies = [
+      { body: { clientSecret: 'pi_1_secret_x', mode: 'hold_now', bookingReference: 'PRG-20261112-ABC123', amountMinor: 9000, currency: 'czk' } },
+    ]
+  })
+
+  it('shows the held-now headline and the two held-now rows, with no hold date', async () => {
+    await renderGate()
+    await ready()
+    expect(screen.getByText(cof.headlineHoldNow)).toBeInTheDocument()
+    expect(screen.getByText(cof.holdNowToday.replace('{amount}', formatMinor(9000, 'czk')))).toBeInTheDocument()
+    expect(screen.getByText(cof.holdNowAfterTrip)).toBeInTheDocument()
+    expect(screen.queryByText(cof.headlineSetup)).toBeNull()
+  })
+
+  it("creates Elements in payment mode with the intent's amount, currency, manual capture and off_session", async () => {
+    await renderGate()
+    await ready()
+    const opts = h.elementsOptionsCapture[h.elementsOptionsCapture.length - 1]
+    expect(opts).toMatchObject({
+      mode: 'payment',
+      amount: 9000,
+      currency: 'czk',
+      captureMethod: 'manual',
+      setupFutureUsage: 'off_session',
+      paymentMethodTypes: ['card'],
+      locale: 'en',
+    })
+    expect((opts as { appearance?: { theme?: string } }).appearance?.theme).toBe('night')
+  })
+
+  it('the button reads Hold <amount> & book and stays disabled until ticked', async () => {
+    await renderGate()
+    const box = await ready()
+    expect(holdNowButton()).toBeDisabled()
+    fireEvent.click(box)
+    expect(holdNowButton()).toBeEnabled()
+  })
+
+  it('the consent label equals the held-now consent string with the formatted amount (no date)', async () => {
+    await renderGate()
+    const box = await ready()
+    const label = box.closest('label') as HTMLLabelElement
+    const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: null, locale: 'en' })
+    expect(label.textContent).toBe(cof[consentMessageKey('hold_now')].replace('{amount}', vars.amount))
+    expect(label.textContent).toContain(formatMinor(9000, 'czk'))
+  })
+
+  it('submits elements.submit, the intent with mode hold_now, the snapshot, then confirmPayment (never confirmSetup)', async () => {
+    const order: string[] = []
+    h.submitMock.mockImplementation(async () => { order.push('submit'); return {} })
+    h.snapshotMock.mockImplementation(() => { order.push('snapshot') })
+    h.confirmPaymentMock.mockImplementation(async () => { order.push('confirm'); return { paymentIntent: { status: 'requires_capture' } } })
+
+    await renderGate()
+    await tickAndSubmitHoldNow()
+
+    await waitFor(() => expect(h.confirmPaymentMock).toHaveBeenCalled())
+    expect(order).toEqual(['submit', 'snapshot', 'confirm'])
+    expect(h.confirmSetupMock).not.toHaveBeenCalled()
+
+    const intent = fetchCalls.find((c) => c.url === '/api/card-checkout/intent')!
+    expect(intent.body).toMatchObject({ consent: true, mode: 'hold_now', currency: 'czk', displayedAmountMinor: 9000 })
+
+    const arg = h.confirmPaymentMock.mock.calls[0][0]
+    expect(arg.clientSecret).toBe('pi_1_secret_x')
+    expect(arg.redirect).toBe('if_required')
+    expect(arg.confirmParams.return_url).toMatch(/\/book\/confirmation\?ref=PRG-20261112-ABC123$/)
+    await waitFor(() => expect(window.location.href).toMatch(/\/book\/confirmation\?ref=PRG-20261112-ABC123$/))
+    expect(h.snapshotMock.mock.calls[0][0]).toMatchObject({ ref: 'PRG-20261112-ABC123' })
+  })
+
+  it('alreadyConfirmed navigates without confirmPayment', async () => {
+    intentReplies = [{ body: { alreadyConfirmed: true, bookingReference: 'PRG-20261112-ABC123' } }]
+    await renderGate()
+    await tickAndSubmitHoldNow()
+    await waitFor(() => expect(window.location.href).toMatch(/\/book\/confirmation\?ref=PRG-20261112-ABC123$/))
+    expect(h.confirmPaymentMock).not.toHaveBeenCalled()
+  })
+
+  it('payment_intent_authentication_failure shows the bank-verification message and keeps the card editable', async () => {
+    h.confirmPaymentMock.mockResolvedValue({ error: { type: 'card_error', code: 'payment_intent_authentication_failure', message: 'Auth failed' } })
+    await renderGate()
+    await tickAndSubmitHoldNow()
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(cof.errorBankVerification)
+    expect(alert).not.toHaveTextContent('Auth failed')
+    expect(screen.getByTestId('payment-element')).toBeInTheDocument()
+    expect(holdNowButton()).toBeEnabled()
+  })
+
+  it('a declined card shows the Stripe message and does not navigate', async () => {
+    h.confirmPaymentMock.mockResolvedValue({ error: { type: 'card_error', code: 'card_declined', message: 'Your card was declined.' } })
+    await renderGate()
+    await tickAndSubmitHoldNow()
+    expect(await screen.findByRole('alert')).toHaveTextContent('Your card was declined.')
+    expect(window.location.href).toBe('http://localhost/en/book')
+  })
+
+  it('a PaymentIntent that is not authorised yet (requires_payment_method) shows the generic error', async () => {
+    h.confirmPaymentMock.mockResolvedValue({ paymentIntent: { status: 'requires_payment_method' } })
+    await renderGate()
+    await tickAndSubmitHoldNow()
+    expect(await screen.findByRole('alert')).toHaveTextContent(step6En.paymentGenericError)
+  })
+
+  it('PRICE_CHANGED keeps hold_now, updates the Elements amount and clears the tick', async () => {
+    intentReplies = [{ status: 409, body: { code: 'PRICE_CHANGED', amountMinor: 9500 } }]
+    await renderGate()
+    await tickAndSubmitHoldNow()
+    await waitFor(() => {
+      const opts = h.elementsOptionsCapture[h.elementsOptionsCapture.length - 1]
+      expect(opts).toMatchObject({ mode: 'payment', amount: 9500 })
+    })
+    expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
+    expect(h.confirmPaymentMock).not.toHaveBeenCalled()
+  })
+
+  it('MODE_CHANGED to setup remounts in setup mode with the setup copy, the date, a cleared tick and a focused notice', async () => {
+    intentReplies = [
+      { status: 409, body: { code: 'MODE_CHANGED', mode: 'setup', holdAtIso: '2026-11-12T06:00:00.000Z', holdDateIso: '2026-11-12' } },
+    ]
+    await renderGate()
+    await tickAndSubmitHoldNow()
+
+    const notice = await screen.findByText(cof.noticeModeChanged)
+    expect(screen.queryByTestId('legacy-payment')).toBeNull()
+    expect(screen.getByText(cof.headlineSetup)).toBeInTheDocument()
+    expect(screen.getByText(formatLocaleDate('2026-11-12', 'en'))).toBeInTheDocument()
+    const box = screen.getByRole('checkbox') as HTMLInputElement
+    expect(box.checked).toBe(false)
+    const label = box.closest('label') as HTMLLabelElement
+    const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: '2026-11-12', locale: 'en' })
+    expect(label.textContent).toBe(cof[consentMessageKey('setup')].replace('{amount}', vars.amount).replace('{holdDate}', vars.holdDate))
+    await waitFor(() => expect(document.activeElement).toBe(notice))
+    const opts = h.elementsOptionsCapture[h.elementsOptionsCapture.length - 1]
+    expect(opts).toMatchObject({ mode: 'setup', currency: 'czk' })
+    expect(opts).not.toHaveProperty('amount')
+    expect(opts).not.toHaveProperty('captureMethod')
+    expect(screen.getByRole('button', { name: cof.ctaSetup })).toBeDisabled()
+  })
+
+  it('setup -> hold_now switch (the reverse direction) stays in the card step and confirms through confirmPayment', async () => {
+    initReplies = [{ body: eligibleInit({ currency: 'eur', amountMinor: 12000 }) }]
+    intentReplies = [
+      { status: 409, body: { code: 'MODE_CHANGED', mode: 'hold_now', holdAtIso: null, holdDateIso: null } },
+      { body: { clientSecret: 'pi_2_secret_x', mode: 'hold_now', bookingReference: 'PRG-20261112-ABC123', amountMinor: 12000, currency: 'eur' } },
+    ]
+    await renderGate()
+    await tickAndSubmit()
+    await screen.findByText(cof.noticeModeChanged)
+    expect(screen.queryByTestId('legacy-payment')).toBeNull()
+    expect(screen.getByText(cof.headlineHoldNow)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('checkbox'))
+    await act(async () => { fireEvent.click(holdNowButton(12000, 'eur')) })
+    await waitFor(() => expect(h.confirmPaymentMock).toHaveBeenCalled())
+    expect(h.confirmSetupMock).not.toHaveBeenCalled()
+    const second = fetchCalls.filter((c) => c.url === '/api/card-checkout/intent')[1]
+    expect(second.body).toMatchObject({ mode: 'hold_now', consent: true })
+  })
+
+  it('shows Confirming..., is disabled with aria-busy while the 3DS challenge is open', async () => {
+    let finish: (v: unknown) => void = () => {}
+    h.confirmPaymentMock.mockImplementation(() => new Promise((res) => { finish = res }))
+    await renderGate()
+    await tickAndSubmitHoldNow()
+    const busy = await screen.findByRole('button', { name: cof.ctaBusy })
+    expect(busy).toBeDisabled()
+    expect(busy).toHaveAttribute('aria-busy', 'true')
+    await act(async () => { finish({ paymentIntent: { status: 'requires_capture' } }) })
   })
 })
