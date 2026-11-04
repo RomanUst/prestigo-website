@@ -12,7 +12,7 @@
 
 type Row = Record<string, unknown>
 type DbError = { message: string; code?: string }
-type DbResult = { data: unknown; error: DbError | null }
+type DbResult = { data: unknown; error: DbError | null; count?: number }
 
 /** The vocabulary the fake enforces; tests/payments-migration-085.test.ts pins it to the latest CHECKs. */
 export const FAKE_PAYMENT_VOCABULARY = {
@@ -360,12 +360,15 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     private orders: Array<{ col: string; asc: boolean }> = []
     private max: number | null = null
     private wantsRows = false
+    private wantsCount = false
     private singleMode: 'single' | 'maybe' | null = null
 
     constructor(private readonly table: TableName) {}
 
-    select(_columns?: string): this {
+    select(_columns?: string, opts?: { count?: 'exact' | 'planned' | 'estimated'; head?: boolean }): this {
       this.wantsRows = true
+      // supabase-js count: the number of matching rows before limit(), returned next to data.
+      if (opts?.count) this.wantsCount = true
       return this
     }
     insert(rows: Row | Row[]): this {
@@ -478,6 +481,7 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
       for (const o of [...this.orders].reverse()) {
         out = [...out].sort((a, b) => (o.asc ? 1 : -1) * compare(a[o.col], b[o.col]))
       }
+      const totalMatched = out.length
       if (this.max !== null) out = out.slice(0, this.max)
       const copy = out.map((r) => ({ ...r }))
 
@@ -490,7 +494,7 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
         return { data: copy[0] ?? null, error: null }
       }
       if (this.mode !== 'select' && !this.wantsRows) return { data: null, error: null }
-      return { data: copy, error: null }
+      return this.wantsCount ? { data: copy, error: null, count: totalMatched } : { data: copy, error: null }
     }
 
     private insertEvent(input: Row): { row: Row } | { error: string } {
