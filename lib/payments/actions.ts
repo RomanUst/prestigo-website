@@ -5,13 +5,18 @@
 // the engine with the admin actor. Server-only: the caller (the admin payment route) authenticates first.
 //
 // Money safety (T-88-47, T-88-49):
-//   - no function here takes an amount: every amount is derived from the booking row by the engine;
+//   - no function here takes an amount: every amount is derived from the booking row by the engine. The one deliberate
+//     exception lives elsewhere: POST /api/admin/bookings/[id]/fee (Phase 89, D-14) takes an amount from an operator,
+//     validated against the fee case. The five Phase 89 names of PaymentAction below (charge_fee, waive_fee,
+//     charge_saved_card, mark_cash_settled, reopen_cash) are DISPLAY names for that route: runPaymentAction does not
+//     run them and the payment route's schema does not accept them;
 //   - every action first appends an admin_action ledger row (the audit trail survives an engine failure);
 //   - capture / retry go through the engine's CAS claim, so a double click or a race with the completion consumer or
 //     the tick sweep produces one Stripe call and the loser answers 409 payment_busy.
 
-import { isPartnerBooking } from '@/lib/booking-status'
+import { CALENDAR_ACTIVE_STATUSES, isPartnerBooking, type BookingStatus } from '@/lib/booking-status'
 import { pickupInstantMs } from '@/lib/prague-date'
+import { isFeeEligible } from '@/lib/payments/fee'
 import { claimForHold, leaseLapsed, placeHold, releaseHold } from '@/lib/payments/hold'
 import { refreshRecoveryLink } from '@/lib/payments/recovery'
 import { settleBooking, type SettleResult } from '@/lib/payments/settle'
@@ -20,7 +25,11 @@ import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 type BookingRow = Record<string, unknown>
 
-export type PaymentAction = 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
+/** The actions runPaymentAction executes (the payment route's schema accepts exactly these). */
+export type ExecutablePaymentAction = 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
+/** Phase 89 decisions: shown by the matrix, executed by the fee route (they may carry an amount or a note). */
+export type FeeRouteAction = 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash'
+export type PaymentAction = ExecutablePaymentAction | FeeRouteAction
 
 export type PaymentActionResult =
   | { status: 200; outcome: 'ok' | 'declined' }
@@ -46,6 +55,14 @@ const CLOSED_STATUSES: ReadonlySet<string> = new Set(['cancelled', 'no_show'])
 const isCompleted = (booking: BookingRow): boolean => booking.status === 'completed'
 
 /**
+ * Statuses of a trip that is on (or done), in which cash can be collected or a saved card charged for a cash booking:
+ * confirmed, assigned, en_route, on_location, on_board, completed. Derived from the shared vocabulary (no_show is a
+ * calendar status but a closed one, so it is removed).
+ */
+const isTripStatus = (status: string): boolean =>
+  CALENDAR_ACTIVE_STATUSES.has(status as BookingStatus) && status !== 'no_show'
+
+/**
  * The single action matrix (UI-SPEC "Actions", Research Pattern 12):
  *   capture    a completed trip in authorized | expired | failed | card_saved
  *   retry      card_saved | expired | failed (place the hold now before completion, re-run the charge after it)
@@ -55,19 +72,52 @@ const isCompleted = (booking: BookingRow): boolean => booking.status === 'comple
  * Nothing while a worker holds the lease (placing_hold, capturing; a placing_hold whose lease lapsed gets release, and
  * capture after the trip), nothing after captured / released, and
  * nothing for a booking that is not a card hold (pay-now, partner bookings have no Prestigo money flow).
- * A cancelled or no-show booking gets release only (to free a hold or saved card that is still there): never a new
- * hold, a capture or a payment link (Phase 89 owns cancellation / no-show fees).
+ *
+ * Phase 89 (display names, executed by the fee route):
+ *   charge_fee, waive_fee   a cancelled or no-show booking with a PENDING fee case whose money can still be taken or was
+ *                           collected (isFeeEligible). Release is NOT offered next to them: it would destroy the fee.
+ *                           A closed booking with no case keeps release only (to free a hold or card that is still there).
+ *   cash booking            card_saved | failed on a trip that is on or done: charge_saved_card and mark_cash_settled
+ *                           (a failed card during the trip is paid to the driver in cash, D-21); cash_settled:
+ *                           reopen_cash (D-22); before completion also release; a failed row keeps send_link only after
+ *                           the trip (during it, nothing is sent to the passenger).
  * The admin POST re-checks this matrix on a fresh row before running any action (server-side, not only the UI).
  */
 export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
-  if (booking.payment_mode !== 'card_hold') return []
   if (isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })) return []
 
+  const mode = booking.payment_mode
+  if (mode !== 'card_hold' && mode !== 'cash_guarantee' && mode !== 'pay_now') return []
+
   const state = str(booking.payment_state)
+  const status = str(booking.status)
   // 88-REVIEW A-WR-06: a hold placement whose lease lapsed (its worker died) is no longer busy: it can be released, and
   // after the trip captured (the settle adopts the row and finds the authorization the dead worker may have created).
   const stalePlacement = state === 'placing_hold' && leaseLapsed(booking)
-  if (CLOSED_STATUSES.has(str(booking.status))) return RELEASE_STATES.has(state) || stalePlacement ? ['release'] : []
+  const closed = CLOSED_STATUSES.has(status)
+
+  // Phase 89: a pending fee case on a closed booking is decided by a person; nothing else is offered next to it.
+  if (closed && booking.fee_case_status === 'pending' && isFeeEligible(booking)) {
+    const busy = state === 'capturing' || (state === 'placing_hold' && !stalePlacement)
+    return busy ? [] : ['charge_fee', 'waive_fee']
+  }
+
+  if (mode === 'pay_now') return []
+
+  if (mode === 'cash_guarantee') {
+    if (state === 'cash_settled') return ['reopen_cash']
+    if (closed) return RELEASE_STATES.has(state) ? ['release'] : []
+    const cashActions: PaymentAction[] = []
+    const completed = isCompleted(booking)
+    if ((state === 'card_saved' || state === 'failed') && isTripStatus(status)) {
+      cashActions.push('charge_saved_card', 'mark_cash_settled')
+    }
+    if (!completed && RELEASE_STATES.has(state)) cashActions.push('release')
+    if (completed && state === 'failed') cashActions.push('send_link')
+    return cashActions
+  }
+
+  if (closed) return RELEASE_STATES.has(state) || stalePlacement ? ['release'] : []
 
   const completed = isCompleted(booking)
   const actions: PaymentAction[] = []
@@ -138,7 +188,7 @@ function fromSettle(result: SettleResult): PaymentActionResult {
  */
 export async function runPaymentAction(
   booking: BookingRow,
-  action: PaymentAction,
+  action: ExecutablePaymentAction,
   admin: { id: string },
 ): Promise<PaymentActionResult> {
   const bookingId = str(booking.id)
