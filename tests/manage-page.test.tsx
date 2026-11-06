@@ -84,6 +84,12 @@ vi.mock('@/lib/supabase/server', () => ({
 
 vi.mock('@/components/Nav', () => ({ default: () => null }))
 
+// The client island (plan 89-28) reads the app router; a page render needs none of it.
+vi.mock('next/navigation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/navigation')>()
+  return { ...actual, useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }) }
+})
+
 import { buildManageView, MANAGE_BOOKING_COLUMNS, type ManageView } from '@/lib/manage-view'
 import ManageBookingPage, { generateMetadata } from '@/app/[locale]/manage/[token]/page'
 import ManageLoading from '@/app/[locale]/manage/[token]/loading'

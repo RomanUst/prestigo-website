@@ -35,6 +35,7 @@ vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: mockAlert })
 vi.mock('@/lib/supabase', () => ({ createSupabaseServiceClient: () => ({ from: mockFrom }) }))
 
 import { POST as cancelPOST } from '@/app/api/manage/cancel/route'
+import { POST as changePOST } from '@/app/api/manage/change-request/route'
 
 const REPO_ROOT = path.resolve(__dirname, '..')
 const TOKEN = 'A'.repeat(43)
@@ -49,6 +50,7 @@ function post(url: string, body: unknown, raw?: string): Request {
 }
 
 const cancelReq = (body: unknown, raw?: string) => post('/api/manage/cancel', body, raw)
+const changeReq = (body: unknown, raw?: string) => post('/api/manage/change-request', body, raw)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -222,5 +224,153 @@ describe('POST /api/manage/cancel (tracer)', () => {
     expect(limits).toContain("'/api/manage/cancel'")
     expect(limits).toContain("'/api/manage/change-request'")
     expect(fs.readFileSync(path.join(REPO_ROOT, 'middleware.ts'), 'utf8')).toContain("'/api/manage'")
+  })
+})
+
+// ── change request ───────────────────────────────────────────────────────────────────────────────────────────────────
+
+const BOOKING_ROW = {
+  id: BOOKING_ID,
+  booking_reference: 'PRG-1001',
+  status: 'confirmed',
+  client_first_name: 'Ada',
+  client_last_name: 'Lovelace',
+  pickup_date: '2030-05-01',
+  pickup_time: '10:00',
+  payment_currency: 'eur',
+  payment_amount_minor: 12000,
+}
+
+function stubBookingRead(row: Record<string, unknown> | null, error: unknown = null) {
+  mockFrom.mockImplementation(() => {
+    const chain = {
+      select: vi.fn(() => chain),
+      eq: vi.fn(() => chain),
+      maybeSingle: vi.fn(() => Promise.resolve({ data: row, error })),
+    }
+    return chain
+  })
+}
+
+describe('POST /api/manage/change-request', () => {
+  beforeEach(() => {
+    mockAlert.mockResolvedValue('sent')
+    stubBookingRead(BOOKING_ROW)
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('mails the operator with the message and answers ok', async () => {
+    const res = await changePOST(changeReq({ token: TOKEN, message: '  Please move the pickup to 11:00.  ' }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(mockAlert).toHaveBeenCalledTimes(1)
+    const [kind, booking, details] = mockAlert.mock.calls[0]
+    expect(kind).toBe('change_request')
+    expect(booking.booking_reference).toBe('PRG-1001')
+    expect(details.message).toBe('Please move the pickup to 11:00.')
+    expect(details.eventKey).toMatch(new RegExp(`^alert:change_request:${BOOKING_ID}:\\d+:[0-9a-f]{8}$`))
+    expect(mockRate).toHaveBeenCalledWith('/api/manage/change-request', '203.0.113.9')
+  })
+
+  it('the same message inside one 10-minute bucket has the same key, a later bucket a new one', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2030-04-01T10:01:00Z'))
+    await changePOST(changeReq({ token: TOKEN, message: 'Hello' }))
+    vi.setSystemTime(new Date('2030-04-01T10:08:00Z'))
+    await changePOST(changeReq({ token: TOKEN, message: 'Hello' }))
+    vi.setSystemTime(new Date('2030-04-01T10:11:00Z'))
+    await changePOST(changeReq({ token: TOKEN, message: 'Hello' }))
+    const keys = mockAlert.mock.calls.map((c) => c[2].eventKey as string)
+    expect(keys[0]).toBe(keys[1])
+    expect(keys[2]).not.toBe(keys[0])
+  })
+
+  it('a different message in the same bucket is not swallowed as a duplicate', async () => {
+    await changePOST(changeReq({ token: TOKEN, message: 'Move to 11:00' }))
+    await changePOST(changeReq({ token: TOKEN, message: 'Actually 12:00' }))
+    const keys = mockAlert.mock.calls.map((c) => c[2].eventKey as string)
+    expect(keys[0]).not.toBe(keys[1])
+  })
+
+  it('a duplicate (the alert says so) is still a success to the client', async () => {
+    mockAlert.mockResolvedValue('duplicate')
+    const res = await changePOST(changeReq({ token: TOKEN, message: 'Hello' }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+  })
+
+  it('a mail that could not be sent is an error, so the client keeps the text', async () => {
+    mockAlert.mockResolvedValue('failed')
+    const res = await changePOST(changeReq({ token: TOKEN, message: 'Hello' }))
+    expect(res.status).toBe(502)
+    expect(await res.json()).toEqual({ error: 'send_failed' })
+  })
+
+  it('1 to 1000 characters: empty, blank and 1001 are 400; 1000 passes', async () => {
+    for (const message of ['', '   \n  ', 'x'.repeat(1001), 5, null]) {
+      const res = await changePOST(changeReq({ token: TOKEN, message }))
+      expect(res.status).toBe(400)
+    }
+    expect(mockAlert).not.toHaveBeenCalled()
+    const ok = await changePOST(changeReq({ token: TOKEN, message: 'x'.repeat(1000) }))
+    expect(ok.status).toBe(200)
+  })
+
+  it('a malformed token is 400 with no database call; unknown tokens get one uniform 404', async () => {
+    expect((await changePOST(changeReq({ token: 'nope', message: 'Hi' }))).status).toBe(400)
+    expect(mockResolve).not.toHaveBeenCalled()
+    mockResolve.mockResolvedValue(null)
+    const res = await changePOST(changeReq({ token: TOKEN, message: 'Hi' }))
+    const cancelRes = await cancelPOST(cancelReq({ token: TOKEN, acknowledge: 'free' }))
+    expect(res.status).toBe(404)
+    expect(await res.json()).toEqual(await cancelRes.json())
+    expect(mockAlert).not.toHaveBeenCalled()
+  })
+
+  it('strict body: extra keys are refused', async () => {
+    const res = await changePOST(changeReq({ token: TOKEN, message: 'Hi', bookingId: BOOKING_ID }))
+    expect(res.status).toBe(400)
+    expect((await changePOST(changeReq(null, 'nope{'))).status).toBe(400)
+  })
+
+  it('refuses a booking that can no longer change (cancelled, completed, on board) and a missing row', async () => {
+    for (const status of ['cancelled', 'completed', 'no_show', 'on_board']) {
+      stubBookingRead({ ...BOOKING_ROW, status })
+      const res = await changePOST(changeReq({ token: TOKEN, message: 'Hi' }))
+      expect(res.status).toBe(409)
+      expect(await res.json()).toEqual({ error: 'not_changeable' })
+    }
+    stubBookingRead(null)
+    expect((await changePOST(changeReq({ token: TOKEN, message: 'Hi' }))).status).toBe(404)
+    stubBookingRead(null, { message: 'db down' })
+    expect((await changePOST(changeReq({ token: TOKEN, message: 'Hi' }))).status).toBe(500)
+    expect(mockAlert).not.toHaveBeenCalled()
+  })
+
+  it('rate limit is 429 under its own key', async () => {
+    mockRate.mockResolvedValue({ allowed: false, remaining: 0, limit: 5 })
+    const res = await changePOST(changeReq({ token: TOKEN, message: 'Hi' }))
+    expect(res.status).toBe(429)
+    expect(mockAlert).not.toHaveBeenCalled()
+  })
+
+  it('the message never reaches a log, and the route writes nothing to the booking or the ledger (T-89-53)', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    mockAlert.mockRejectedValue(new Error('smtp down'))
+    const secret = 'my secret request text'
+    const res = await changePOST(changeReq({ token: TOKEN, message: secret }))
+    expect(res.status).toBe(502)
+    expect(JSON.stringify([...spy.mock.calls, ...logSpy.mock.calls])).not.toContain(secret)
+    expect(JSON.stringify([...spy.mock.calls, ...logSpy.mock.calls])).not.toContain(TOKEN)
+    spy.mockRestore()
+    logSpy.mockRestore()
+
+    const src = fs.readFileSync(path.join(REPO_ROOT, 'app/api/manage/change-request/route.ts'), 'utf8')
+    expect(src).not.toMatch(/\.from\([^)]*\)\s*\.(insert|update|upsert|delete)\(/)
+    expect(src).not.toContain('appendPaymentEvent')
+    expect(src).not.toContain('advanceBookingStatus')
   })
 })
