@@ -22,6 +22,7 @@
 
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 declare global {
   interface Window {
@@ -35,6 +36,14 @@ function send(event: string, params: Record<string, unknown>) {
 }
 
 export default function EngagementTracker() {
+  const pathname = usePathname()
+  // Phase 89 (D-02): no events from private link paths (/admin, /driver, /manage); the guard
+  // wraps the hook-bearing body so hook order stays stable.
+  if (isPrivateLinkPath(pathname)) return null
+  return <EngagementTrackerInner />
+}
+
+function EngagementTrackerInner() {
   const pathname = usePathname()
   const startRef = useRef<number>(0)
 

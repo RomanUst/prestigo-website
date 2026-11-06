@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { siteLocaleFromPathname } from '@/i18n/locales'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 /**
  * SPA page_view tracker for GA4.
@@ -18,8 +19,8 @@ import { siteLocaleFromPathname } from '@/i18n/locales'
  * an up-to-date page_location and page_title, matching what gtag.js does for
  * multi-page sites.
  *
- * Skips /admin paths (kept consistent with GoogleAnalytics.tsx which already
- * skips admin from gtag('config', ...)).
+ * Skips private link paths (/admin, /driver, /manage and their locale-prefixed
+ * forms) via isPrivateLinkPath — kept consistent with GoogleAnalytics.tsx.
  */
 function PageViewInner() {
   const pathname = usePathname()
@@ -27,7 +28,8 @@ function PageViewInner() {
 
   useEffect(() => {
     if (!pathname) return
-    if (pathname.startsWith('/admin')) return
+    // Phase 89 (D-02): /admin, /driver and /manage URLs are private (token in the path).
+    if (isPrivateLinkPath(pathname)) return
     if (typeof window === 'undefined') return
 
     const w = window as typeof window & {

@@ -22,6 +22,9 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/chatwoot/dashboard-app',
   // Phase 88 (T-88-16): public card-on-file checkout (init / intent), browser-only caller.
   '/api/card-checkout',
+  // Phase 89 (T-89-06): public guest self-service (cancel / change request), authenticated by the
+  // token in the body, browser-only caller.
+  '/api/manage',
 ]
 
 // Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also
@@ -36,6 +39,8 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
   // Phase 88: public card checkout, browser-only caller, Origin required. /api/cron/payment-tick and
   // /api/webhooks/stripe stay out of both lists (server-to-server, authenticated by secret / signature).
   '/api/card-checkout',
+  // Phase 89: public manage routes, browser-only caller, Origin required.
+  '/api/manage',
 ]
 
 /**
