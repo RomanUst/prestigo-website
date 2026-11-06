@@ -129,6 +129,15 @@
         "INTERNAL": "Impossible de créer le paiement. Veuillez réessayer.",
         "NO_CODE": "Aucun code fourni."
       },
+      "cancellation": {
+        "label": "ANNULATION",
+        "rowFree": "Annulation gratuite jusqu'au <bdi>{freeUntil}</bdi>.",
+        "rowFreeUnavailable": "L'annulation gratuite n'est pas disponible pour ce trajet, car la prise en charge a lieu dans moins de {hours, plural, one {{hours} heure} other {{hours} heures}}.",
+        "rowFee": "Passé ce délai, {percent} % du tarif (<bdi>{amount}</bdi>) s'applique. Une personne chez Prestigo décide de chaque débit et peut y renoncer.",
+        "rowNoShow": "Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin, plural, one {{waitMin} minute} other {{waitMin} minutes}}.",
+        "termsLink": "Conditions d'annulation",
+        "acceptance": "En payant, vous acceptez les conditions d'annulation ci-dessus et nos <terms>Conditions générales</terms>."
+      },
       "cardOnFile": {
         "headlineSetup": "Aucun montant n'est débité maintenant.",
         "headlineHoldNow": "Le montant est bloqué maintenant et débité après votre trajet.",

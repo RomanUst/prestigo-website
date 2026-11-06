@@ -119,6 +119,17 @@ function respond(r: Reply) {
   return Promise.resolve({ ok: status >= 200 && status < 300, status, json: () => Promise.resolve(r.body ?? {}) } as Response)
 }
 
+// Phase 89: init always carries the cancellation policy of the booking (an eligible answer without it is not usable).
+const POLICY = {
+  version: '2026-11-1',
+  freeUntilIso: '2026-11-30T08:30:00.000Z',
+  freeUntilPassed: false,
+  hours: 24,
+  percent: 100,
+  feeMinor: 12000,
+  waitMin: 45,
+}
+
 function eligibleInit(over: Record<string, unknown> = {}) {
   return {
     eligible: true,
@@ -127,6 +138,8 @@ function eligibleInit(over: Record<string, unknown> = {}) {
     holdDateIso: '2026-11-12',
     amountMinor: 12000,
     currency: 'eur',
+    policy: POLICY,
+    cashAvailable: false,
     ...over,
   }
 }

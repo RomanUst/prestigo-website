@@ -129,6 +129,15 @@
         "INTERNAL": "No se pudo crear el pago. Inténtelo de nuevo.",
         "NO_CODE": "No se proporcionó ningún código."
       },
+      "cancellation": {
+        "label": "CANCELACIÓN",
+        "rowFree": "Cancelación gratuita hasta el <bdi>{freeUntil}</bdi>.",
+        "rowFreeUnavailable": "La cancelación gratuita no está disponible para este viaje porque faltan menos de {hours, plural, one {{hours} hora} other {{hours} horas}} para la recogida.",
+        "rowFee": "Después se aplica el {percent}% de la tarifa (<bdi>{amount}</bdi>). Una persona de Prestigo decide cada cobro y puede anularlo.",
+        "rowNoShow": "Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin, plural, one {{waitMin} minuto} other {{waitMin} minutos}}.",
+        "termsLink": "Condiciones de cancelación",
+        "acceptance": "Al pagar, acepta las condiciones de cancelación indicadas arriba y nuestros <terms>Términos y condiciones</terms>."
+      },
       "cardOnFile": {
         "headlineSetup": "Ahora no se cobra nada.",
         "headlineHoldNow": "El importe se retiene ahora y se cobra después de su viaje.",

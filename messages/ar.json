@@ -129,6 +129,15 @@
         "INTERNAL": "تعذّر إنشاء عملية الدفع. يرجى المحاولة مرة أخرى.",
         "NO_CODE": "لم يتم تقديم رمز."
       },
+      "cancellation": {
+        "label": "الإلغاء",
+        "rowFree": "الإلغاء مجاني حتى <bdi>{freeUntil}</bdi>.",
+        "rowFreeUnavailable": "الإلغاء المجاني غير متاح لهذه الرحلة لأن موعد الاستلام بعد أقل من {hours, plural, zero {{hours} ساعة} one {ساعة واحدة} two {ساعتين} few {{hours} ساعات} many {{hours} ساعة} other {{hours} ساعة}}.",
+        "rowFee": "بعد ذلك تُطبَّق نسبة {percent}% من الأجرة (<bdi>{amount}</bdi>). يقرّر أحد موظفي Prestigo كل عملية خصم، ويجوز له التنازل عنها.",
+        "rowNoShow": "إذا لم تحضر، تُطبَّق الأجرة كاملة بعد أن ينتظر السائق {waitMin, plural, zero {{waitMin} دقيقة} one {دقيقة واحدة} two {دقيقتين} few {{waitMin} دقائق} many {{waitMin} دقيقة} other {{waitMin} دقيقة}}.",
+        "termsLink": "شروط الإلغاء",
+        "acceptance": "بالدفع، فإنك توافق على شروط الإلغاء الواردة أعلاه وعلى <terms>الشروط والأحكام</terms> الخاصة بنا."
+      },
       "cardOnFile": {
         "headlineSetup": "لن يُخصم أي مبلغ الآن.",
         "headlineHoldNow": "يُجمَّد المبلغ الآن ويُخصم بعد رحلتك.",

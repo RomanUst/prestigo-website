@@ -129,6 +129,15 @@
         "INTERNAL": "Failed to create payment intent. Please try again.",
         "NO_CODE": "No code provided."
       },
+      "cancellation": {
+        "label": "CANCELLATION",
+        "rowFree": "Free cancellation until <bdi>{freeUntil}</bdi>.",
+        "rowFreeUnavailable": "Free cancellation is not available for this trip because pickup is less than {hours, plural, one {{hours} hour} other {{hours} hours}} away.",
+        "rowFee": "After that, {percent}% of the fare (<bdi>{amount}</bdi>) applies. A person at Prestigo decides every charge and may waive it.",
+        "rowNoShow": "If you do not show up, the full fare applies once the driver has waited {waitMin, plural, one {{waitMin} minute} other {{waitMin} minutes}}.",
+        "termsLink": "Cancellation terms",
+        "acceptance": "By paying, you accept the cancellation terms above and our <terms>Terms & Conditions</terms>."
+      },
       "cardOnFile": {
         "headlineSetup": "Nothing is charged now.",
         "headlineHoldNow": "The amount is held now and charged after your trip.",

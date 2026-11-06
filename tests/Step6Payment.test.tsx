@@ -336,6 +336,75 @@ describe('D-07: Step6Payment promo error shows translated message keyed by the s
   })
 })
 
+describe('Phase 89 (D-18): cancellation note and acceptance line on the pay-now step', () => {
+  const policy = {
+    version: '2026-11-1',
+    freeUntilIso: '2026-05-31T08:30:00.000Z',
+    freeUntilPassed: false,
+    hours: 24,
+    percent: 100,
+    feeMinor: 10000,
+    waitMin: 45,
+  }
+
+  it('no policy: no note, no acceptance line, the step renders as before Phase 89', async () => {
+    const { container } = render(<Step6Payment />, { locale: 'en' })
+    await waitFor(() => expect(onReadyRef.current).not.toBeNull())
+    expect(screen.queryByTestId('cancellation-note')).toBeNull()
+    expect(screen.queryByTestId('cancellation-acceptance')).toBeNull()
+    expect(screen.queryByText('CANCELLATION')).toBeNull()
+    expect(container.textContent).not.toContain('Free cancellation')
+    expect(container.textContent).not.toContain('By paying, you accept')
+    // the explicit null the gate passes for a client with nothing public behaves the same
+    const second = render(<Step6Payment policy={null} />, { locale: 'en' })
+    expect(second.container.querySelector('[data-testid="cancellation-note"]')).toBeNull()
+  })
+
+  it('with a policy: the note sits between the currency selector and the payment form, the acceptance line directly above the pay button', async () => {
+    const { container } = render(<Step6Payment policy={policy} />, { locale: 'en' })
+    await waitFor(() => expect(container.querySelector('button[type="submit"]')).not.toBeNull())
+
+    const note = screen.getByTestId('cancellation-note')
+    expect(note.textContent).toContain('Free cancellation until')
+    expect(note.textContent).toContain('After that, 100% of the fare (€100) applies.')
+
+    const acceptance = screen.getByTestId('cancellation-acceptance')
+    expect(acceptance.textContent).toBe('By paying, you accept the cancellation terms above and our Terms & Conditions.')
+    expect(container.querySelector('input[type="checkbox"]')).toBeNull()
+
+    const submit = container.querySelector('button[type="submit"]') as HTMLButtonElement
+    const order = (a: Node, b: Node) => Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    const secure = screen.getByText('SECURE PAYMENT')
+    expect(order(note, secure)).toBe(true)
+    expect(order(secure, acceptance)).toBe(true)
+    expect(order(acceptance, submit)).toBe(true)
+    // directly above the button: nothing but the acceptance line sits between the form fields and the button
+    expect(submit.previousElementSibling).toBe(acceptance)
+  })
+
+  it('the CZK toggle shows the fee in CZK', async () => {
+    const { container } = render(<Step6Payment policy={policy} />, { locale: 'en' })
+    await waitFor(() => expect(container.querySelector('button[type="submit"]')).not.toBeNull())
+    fireEvent.click(screen.getByText('CZK — Kč'))
+    expect(screen.getByTestId('cancellation-note').textContent).toContain('Kč')
+    expect(screen.getByTestId('cancellation-note').textContent).not.toContain('€')
+  })
+
+  it('still creates the payment intent and confirms payment as before (no consent gate on pay-now)', async () => {
+    render(<Step6Payment policy={policy} />, { locale: 'en' })
+    await waitFor(() => expect(onReadyRef.current).not.toBeNull())
+    act(() => { onReadyRef.current?.() })
+    const button = await waitFor(() => {
+      const el = document.querySelector('button[type="submit"]')
+      if (!el) throw new Error('submit button not found yet')
+      return el as HTMLButtonElement
+    })
+    await waitFor(() => expect(button).not.toBeDisabled())
+    fireEvent.click(button)
+    await waitFor(() => expect(confirmPaymentMock).toHaveBeenCalledTimes(1))
+  })
+})
+
 describe('STEP6-01: Full booking summary shown before card input', () => {
   it.todo('renders route origin and destination from store')
   it.todo('renders pickup date and time from store')

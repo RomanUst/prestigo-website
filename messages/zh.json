@@ -129,6 +129,15 @@
         "INTERNAL": "创建付款失败,请重试。",
         "NO_CODE": "未提供优惠码。"
       },
+      "cancellation": {
+        "label": "取消",
+        "rowFree": "<bdi>{freeUntil}</bdi> 前可免费取消。",
+        "rowFreeUnavailable": "此行程无法免费取消，因为距离上车时间不足 {hours} 小时。",
+        "rowFee": "此后将按车费的 {percent}%（<bdi>{amount}</bdi>）收取。每一笔扣款均由 Prestigo 的工作人员决定，并可予以免除。",
+        "rowNoShow": "如果您未现身乘车，则在司机等待 {waitMin} 分钟后按全额车费收取。",
+        "termsLink": "取消条款",
+        "acceptance": "付款即表示您接受上述取消条款以及我们的<terms>条款与条件</terms>。"
+      },
       "cardOnFile": {
         "headlineSetup": "现在不会扣除任何款项。",
         "headlineHoldNow": "金额现在冻结，行程结束后扣款。",
