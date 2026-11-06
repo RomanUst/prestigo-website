@@ -94,6 +94,6 @@ Existing infrastructure covers every other requirement.
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 90s
-- [x] `nyquist_compliant: true` set in frontmatter
+- [x] nyquist_compliant set to true in the frontmatter
 
 **Approval:** approved 2026-11-07
