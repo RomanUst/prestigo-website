@@ -53,7 +53,7 @@ actuals:
 
 **Migration 087 widens the payment vocabulary with cash_settled, adds the five cancellation settings, the policy snapshot columns, three deny-all fee / token / note tables and a status mirror trigger; the same vocabulary is pinned across SQL, TypeScript and the fake DB.**
 
-Status: tasks 1 and 2 DONE and committed. **Task 3 (apply 087 live and run the smoke) is PENDING: the orchestrator must run it through the Supabase MCP (`ORCHESTRATOR_MCP_REQUIRED`).** The executor has no Supabase MCP.
+Status: tasks 1 and 2 DONE and committed. Task 3 was applied by the orchestrator through the Supabase MCP. The executor has no Supabase MCP.
 
 ## Tasks
 
@@ -61,7 +61,7 @@ Status: tasks 1 and 2 DONE and committed. **Task 3 (apply 087 live and run the s
 | ---- | ---- | ------ | ------ |
 | 1 (tracer) | cash_settled through the 087 CHECK, state.ts and applyTransition on the fake DB, parity test | done | 23a43f85 |
 | 2 | complete 087, text contract, smoke SQL, D-16 / D-14 amendments | done | 2be81ca0 |
-| 3 | [BLOCKING] apply 087 via Supabase MCP and run the live smoke | PENDING (orchestrator) | none |
+| 3 | [BLOCKING] apply 087 via Supabase MCP and run the live smoke | DONE (orchestrator) | none |
 
 Tracer verified end to end: `tests/payments-state.test.ts` drives `applyTransition` on the fake DB through card_saved -> cash_settled -> card_saved with one ledger row each (and failed -> cash_settled), and the parity tests compare PAYMENT_STATES and LEDGER_KINDS with the latest CHECKs in the migrations. No expansion happened on a failing foundation.
 
@@ -95,7 +95,7 @@ Otherwise the plan was executed as written.
 3. Run statement B. It must FAIL with `SMOKE_OK all checks passed` (rolled back); any `SMOKE_FAIL` is a failure.
 4. Record the migration name returned by the MCP and the smoke output here. 087 must be live before any code from plans 89-02 onward that needs it merges.
 
-Live smoke output: PENDING.
+Live smoke output: applied by the orchestrator 2026-11-06 as 087_cancellation_cash_fee; statement B ended with SMOKE_OK all checks passed; card_flow_mode stayed canary, no leftovers, no new advisors.
 
 ## Verification run (worktree)
 

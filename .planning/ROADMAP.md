@@ -307,12 +307,12 @@ Plans:
   4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges any amount up to 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
   5. The operator can mark a cash booking as settled in cash, a settled or cancelled booking can no longer be charged, and GNet bookings are never offered the cash guarantee or a no-show charge.
 
-**Plans**: 28 plans (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
+**Plans**: 3/28 plans executed (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
 Plans:
 **Wave 1**
-- [ ] 89-01-PLAN.md — Migration 087, payment vocabulary, D-16 document amendments
-- [ ] 89-02-PLAN.md — Private link guard: analytics, chat, headers, CSRF, rate limits
-- [ ] 89-03-PLAN.md — Policy engine and admin policy settings
+- [x] 89-01-PLAN.md — Migration 087, payment vocabulary, D-16 document amendments
+- [x] 89-02-PLAN.md — Private link guard: analytics, chat, headers, CSRF, rate limits
+- [x] 89-03-PLAN.md — Policy engine and admin policy settings
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 89-04-PLAN.md — Manage token, policy box and manage button in 7 locales
@@ -566,7 +566,7 @@ Plans:
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
 | 87. Status Service & Driver Step Flow | v5.0 | 20/20 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
-| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 0/0 | Not started | - |
+| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 3/28 | In Progress|  |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
