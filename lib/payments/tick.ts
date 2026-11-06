@@ -33,7 +33,8 @@ import {
   STALE_CHECKOUT_MS,
 } from '@/lib/payments/config'
 import { claimForHold, placeHold } from '@/lib/payments/hold'
-import type { FeeCaseRow } from '@/lib/payments/fee'
+import { sendPaymentEmail } from '@/lib/payments/emails/send'
+import { markFeeCharged, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
 import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery'
 import { settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
@@ -120,7 +121,7 @@ const stepA: TickStep = {
 }
 
 /**
- * Step E: a checkout_pending booking older than STALE_CHECKOUT_MS and younger than CHECKOUT_RECONCILE_MAX_AGE_MS
+ * Step E: a checkout_pending booking (card or cash guarantee) older than STALE_CHECKOUT_MS and younger than CHECKOUT_RECONCILE_MAX_AGE_MS
  * is looked up in Stripe; when the SetupIntent succeeded (or the hold-now PaymentIntent reached requires_capture)
  * the booking is confirmed by the very code the webhook runs. Covers a webhook that never arrived.
  */
@@ -132,7 +133,8 @@ const stepE: TickStep = {
       .from('bookings')
       .select('id, setup_intent_id, hold_payment_intent_id, created_at')
       .eq('payment_state', 'checkout_pending')
-      .eq('payment_mode', 'card_hold')
+      // Phase 89 (89-10 hand-off): a cash booking's SetupIntent is confirmed by the very same code as a card booking's.
+      .in('payment_mode', ['card_hold', 'cash_guarantee'])
       .lt('created_at', new Date(nowMs - STALE_CHECKOUT_MS).toISOString())
       .gt('created_at', new Date(nowMs - CHECKOUT_RECONCILE_MAX_AGE_MS).toISOString())
       .order('created_at', { ascending: true })
@@ -545,12 +547,106 @@ function reminderDue({ booking, caseRow }: PendingFee, nowMs: number): boolean {
   return Number.isFinite(endsMs) && endsMs <= nowMs + EXPIRING_HOLD_ALERT_MS
 }
 
+const isMinor = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v > 0
+const isLapsedLease = (b: BookingRow, nowMs: number): boolean =>
+  typeof b.payment_lease_until === 'string' && Date.parse(b.payment_lease_until) < nowMs
+
+async function reloadBooking(fallback: BookingRow): Promise<BookingRow> {
+  const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', fallback.id).maybeSingle()
+  return !error && data ? (data as BookingRow) : fallback
+}
+
+/** A mail problem never undoes collected money; the ledger event key makes a repeat a no-op. */
+async function sendReceipt(args: Parameters<typeof sendPaymentEmail>[0]): Promise<void> {
+  try {
+    await sendPaymentEmail(args)
+  } catch {
+    console.error('[payment-tick] fee receipt email failed', { bookingId: String(args.booking.id), kind: args.kind })
+  }
+}
+
+/**
+ * The fee is collected: close the case as charged (conditional on pending, so a replay changes nothing) and send the
+ * receipt once. Same wording as the operator's own click (lib/payments/fee.ts); the operator who chose the amount is on
+ * record in the admin_action ledger row of that click, the sweep only stamps itself as the one that closed the case.
+ */
+async function closeFeeCase({ booking, caseRow }: PendingFee, amountMinor: number): Promise<void> {
+  await markFeeCharged(caseRow.id, { decidedBy: SWEEP_ACTOR.id ?? 'tick_sweep', decidedMinor: amountMinor })
+  await sendReceipt({
+    kind: 'fee_charged',
+    variant: caseRow.kind === 'no_show' ? 'no_show' : 'late_cancel',
+    booking: await reloadBooking(booking),
+    eventKey: `email:fee_charged:${caseRow.id}`,
+    feeMinor: amountMinor,
+    ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
+  })
+}
+
+/**
+ * A fee charge an operator started (the amount is locked on the case: charge_requested_at + decided_minor) whose settle
+ * died: the row sits in `capturing` and its lease ran out. The very same settle runs again with the amount from the locked
+ * case, so the attempt number and with it the Stripe key (feecap: / fee:<caseId>:<attempt>) are the interrupted attempt's.
+ * Returns what happened: 'finished' (collected and closed), 'declined' (the card said no; the amount is unlocked, the
+ * failure step of settle has told the client and the operator), or 'waiting' (busy, transient: the next tick repeats it).
+ */
+async function redriveFee(item: PendingFee): Promise<'finished' | 'declined' | 'waiting'> {
+  const { booking, caseRow } = item
+  const amountMinor = caseRow.decided_minor as number
+  const result = await settleBooking(booking.id, SWEEP_ACTOR, {
+    collect: { kind: 'fee', caseId: caseRow.id, amountMinor, feeLabel: caseRow.kind === 'no_show' ? 'no_show' : 'cancellation' },
+  })
+  switch (result.outcome) {
+    case 'captured':
+      await closeFeeCase(item, amountMinor)
+      return 'finished'
+    case 'failed':
+    case 'balance_due':
+      await unlockFeeAmount(caseRow.id)
+      return 'declined'
+    case 'noop': {
+      // The money arrived in an earlier run whose answer was lost before the case was closed.
+      const fresh = await reloadBooking(booking)
+      if (result.code === 'captured' && fresh.payment_state === 'captured' && fresh.captured_amount_minor === amountMinor) {
+        await closeFeeCase(item, amountMinor)
+        return 'finished'
+      }
+      return 'waiting'
+    }
+    default:
+      return 'waiting'
+  }
+}
+
+/**
+ * A cash booking's card charge (D-21) an operator started and a crash interrupted: the row sits in `capturing` with a
+ * lapsed lease and has no fee case. The same settle runs again (the ordinary chg:<id>:<attempt> key) and the receipt goes
+ * out once. A cash row nobody started charging is in card_saved / cash_settled and never selected: no code path charges it.
+ */
+async function redriveCashCard(booking: BookingRow): Promise<boolean> {
+  const result = await settleBooking(booking.id, SWEEP_ACTOR, { collect: { kind: 'cash_card' } })
+  if (result.outcome !== 'captured') return false
+  const fresh = await reloadBooking(booking)
+  const completed = fresh.status === 'completed' || (typeof fresh.completed_at === 'string' && fresh.completed_at.length > 0)
+  await sendReceipt({
+    kind: 'fee_charged',
+    variant: completed ? 'cash_unpaid' : 'cash_card',
+    booking: fresh,
+    eventKey: `email:fee_charged:${booking.id}`,
+  })
+  return true
+}
+
 /**
  * Step R (Phase 89; D-15, D-19, D-21; CASH-03, HOLD-06): the background half of the operator decision on a fee case.
- *   - one fee_pending_24h reminder per case still pending after 24 h, earlier when the hold ends sooner (key
- *     alert:fee_pending:<caseId>, recorded once delivered). It only tells the operator; nothing is charged or changed.
- * Selection starts from bookings.fee_case_status, so a booking without a case (an unpaid booking, a completed cash booking
- * the driver never confirmed) is never looked at: no case, no reminder, no status change.
+ *   1. a fee charge interrupted mid-flight (case locked by an operator click, row capturing, lease lapsed) is finished with
+ *      the same keys; a decline unlocks the amount and nothing is charged again without a person;
+ *   2. a case whose money arrived (row captured for exactly the locked fee) but was not closed is closed, no Stripe call;
+ *   3. a cash card charge interrupted the same way is finished;
+ *   4. one fee_pending_24h reminder per case still pending after 24 h, earlier when the hold ends sooner (key
+ *      alert:fee_pending:<caseId>, recorded once delivered). It only tells the operator.
+ * Selection of 1, 2 and 4 starts from bookings.fee_case_status, so a booking without a case (an unpaid booking, a
+ * completed cash booking the driver never confirmed) is never looked at: no case, no reminder, no status change (D-19, D-21).
+ * Each row is isolated; a problem adds 'R' to the errors and the next row still runs.
  */
 const stepR: TickStep = {
   code: 'R',
@@ -558,11 +654,56 @@ const stepR: TickStep = {
     const nowMs = ctx.now.getTime()
     const pending = await loadPendingFees()
 
+    let finished = 0
+    let repaired = 0
+    const closed = new Set<string>()
+    for (const item of pending) {
+      const { booking, caseRow } = item
+      // T-89-45: only a charge a person asked for (amount locked on the case) is ever finished or closed here.
+      if (!caseRow.charge_requested_at || !isMinor(caseRow.decided_minor)) continue
+      try {
+        const collectable = booking.payment_mode === 'card_hold' || booking.payment_mode === 'cash_guarantee'
+        if (collectable && booking.payment_state === 'capturing' && isLapsedLease(booking, nowMs)) {
+          if ((await redriveFee(item)) === 'finished') {
+            finished += 1
+            closed.add(caseRow.id)
+          }
+        } else if (booking.payment_state === 'captured' && booking.captured_amount_minor === caseRow.decided_minor) {
+          await closeFeeCase(item, caseRow.decided_minor)
+          repaired += 1
+          closed.add(caseRow.id)
+        }
+      } catch {
+        console.error('[payment-tick] fee case re-drive failed unexpectedly', { bookingId: booking.id })
+        ctx.errors.add('R')
+      }
+    }
+
+    // The cash card charge has no case; its only marker is the row in `capturing`.
+    const cash = await createSupabaseServiceClient()
+      .from('bookings')
+      .select('*')
+      .eq('payment_mode', 'cash_guarantee')
+      .eq('payment_state', 'capturing')
+      .is('fee_case_status', null)
+      .lt('payment_lease_until', ctx.now.toISOString())
+      .order('payment_lease_until', { ascending: true })
+      .limit(HOLD_CLAIM_LIMIT)
+    if (cash.error) throw new Error('cash card charge lookup failed')
+    for (const booking of (Array.isArray(cash.data) ? cash.data : []) as BookingRow[]) {
+      try {
+        if (await redriveCashCard(booking)) finished += 1
+      } catch {
+        console.error('[payment-tick] cash card charge re-drive failed unexpectedly', { bookingId: booking.id })
+        ctx.errors.add('R')
+      }
+    }
+
     let reminders = 0
     for (const item of pending) {
       const { booking, caseRow } = item
       try {
-        if (!reminderDue(item, nowMs)) continue
+        if (closed.has(caseRow.id) || !reminderDue(item, nowMs)) continue
         const noShow = caseRow.kind === 'no_show'
         const result = await sendPaymentOperatorAlert('fee_pending_24h', booking, {
           eventKey: `alert:fee_pending:${caseRow.id}`,
@@ -583,7 +724,7 @@ const stepR: TickStep = {
         ctx.errors.add('R')
       }
     }
-    return { fee_reminders: reminders }
+    return { fee_reminders: reminders, fees_finished: finished, fee_cases_repaired: repaired }
   },
 }
 

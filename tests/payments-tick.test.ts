@@ -73,6 +73,7 @@ vi.mock('@upstash/qstash', () => ({
 }))
 
 import { GET, POST, maxDuration } from '@/app/api/cron/payment-tick/route'
+import { runFeeCharge, type FeeCaseRow } from '@/lib/payments/fee'
 import { runPaymentTick, TICK_STEPS } from '@/lib/payments/tick'
 import { retryAt } from '@/lib/payments/timing'
 
@@ -254,7 +255,7 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
     seed([])
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, notices_redriven: 0, fee_reminders: 0, errors: [] })
+    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, notices_redriven: 0, fee_reminders: 0, fees_finished: 0, fee_cases_repaired: 0, errors: [] })
   })
 
   it('a booking whose pickup instant cannot be computed is never held', async () => {
@@ -1072,5 +1073,240 @@ describe('step R tracer (D-15): a case 25 h old reaches one fee_pending_24h remi
     const src = fs.readFileSync(path.join(process.cwd(), 'lib/payments/tick.ts'), 'utf8')
     expect(src).not.toMatch(/card_flow_mode/)
     expect(src).toContain('fee_pending_24h')
+  })
+})
+
+describe('step R: finish interrupted charges, repair closed money, reconcile cash checkouts (T-89-45, T-89-46)', () => {
+  const ADMIN = { type: 'admin', id: 'admin-1' } as const
+  const CASH_ID = '99999999-9999-4999-8999-999999999992'
+  const lapsed = () => hoursAhead(-1)
+
+  /** A full-amount hold at the fake Stripe for the seeded booking. */
+  async function feeHold(): Promise<string> {
+    const pi = (await fake.stripe.paymentIntents.create({
+      amount: 12000,
+      currency: 'eur',
+      customer: 'cus_1',
+      payment_method: 'pm_ok',
+      capture_method: 'manual',
+      off_session: true,
+      confirm: true,
+      metadata: { kind: 'card_hold', cofBookingId: BOOKING_ID, attempt: '0' },
+    })) as { id: string }
+    return pi.id
+  }
+
+  const theCase = () => db.state.booking_fee_cases[0] as unknown as FeeCaseRow
+  const receipts = () => mockSendEmail.mock.calls.map((c) => c[0] as Record<string, unknown>).filter((a) => a.kind === 'fee_charged')
+
+  /** The operator clicked "charge 40": the amount is locked, the capture died on a connection error, the lease lapsed. */
+  async function interruptedFee(): Promise<string> {
+    const hold = await feeHold()
+    seedFeeCase(26, { booking: { hold_payment_intent_id: hold, hold_amount_minor: 12000 } })
+    fake.failNextWith('paymentIntents.capture', 'connection')
+    const click = await runFeeCharge({ booking: row(), caseRow: theCase(), amountMinor: 4000, actor: ADMIN })
+    expect(click).toEqual({ error: 'payment_busy' })
+    expect(row().payment_state).toBe('capturing')
+    row().payment_lease_until = lapsed()
+    // The claim ledger key carries the millisecond (capture_started:<attempt>:<ms>); a real tick never runs in the click's ms.
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    return hold
+  }
+
+  it('a fee capture that died mid-flight finishes on the next tick with the SAME Stripe key; the case closes and fee_charged goes out once', async () => {
+    await interruptedFee()
+    expect(theCase().charge_requested_at).not.toBeNull()
+    expect(theCase().decided_minor).toBe(4000)
+
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fees_finished: 1, errors: [] })
+
+    const captures = fake.callsTo('paymentIntents.capture')
+    expect(captures).toHaveLength(2)
+    expect(captures[1].idempotencyKey).toBe(`feecap:${CASE_ID}:0`)
+    expect(captures[1].idempotencyKey).toBe(captures[0].idempotencyKey)
+    expect(captures[1].params).toMatchObject({ amount_to_capture: 4000 })
+    expect(row().payment_state).toBe('captured')
+    expect(row().captured_amount_minor).toBe(4000)
+    expect(theCase()).toMatchObject({ status: 'charged', decided_minor: 4000, decided_by: 'tick_sweep' })
+    expect(row().fee_case_status).toBe('charged')
+    expect(receipts()).toHaveLength(1)
+    expect(receipts()[0]).toMatchObject({ variant: 'late_cancel', eventKey: `email:fee_charged:${CASE_ID}`, feeMinor: 4000 })
+    // The case closed in this very run, so no "still undecided" reminder follows it.
+    expect(feeMails()).toHaveLength(0)
+
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(2)
+    expect(receipts()).toHaveLength(1)
+  })
+
+  it('T-89-45: a capturing row whose case has no charge_requested_at is not charged by the sweep', async () => {
+    const hold = await feeHold()
+    seedFeeCase(2, { booking: { hold_payment_intent_id: hold, hold_amount_minor: 12000, payment_state: 'capturing', payment_lease_until: lapsed() } })
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fees_finished: 0, errors: [] })
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1) // only the hold seeded by the test
+    expect(row().payment_state).toBe('capturing')
+    expect(theCase().status).toBe('pending')
+  })
+
+  it('a live lease is left alone', async () => {
+    await interruptedFee()
+    row().payment_lease_until = hoursAhead(1)
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(1)
+    expect(row().payment_state).toBe('capturing')
+    expect(theCase().status).toBe('pending')
+  })
+
+  it('T-89-46: two overlapping ticks finish the fee once', async () => {
+    await interruptedFee()
+    await Promise.all([GET(okRequest()), GET(okRequest())])
+    expect(theCase().status).toBe('charged')
+    expect(row().captured_amount_minor).toBe(4000)
+    expect(receipts()).toHaveLength(1)
+    // The interrupted click plus exactly one finish: the second tick lost the claim and never reached Stripe.
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(2)
+  })
+
+  it('a re-driven fee that the card declines unlocks the case and charges nothing again on later ticks', async () => {
+    seedFeeCase(26, {
+      booking: {
+        payment_state: 'capturing',
+        payment_lease_until: lapsed(),
+        stripe_payment_method_id: 'pm_decline_insufficient',
+        hold_payment_intent_id: null,
+      },
+      caseRow: { decided_minor: 4000, charge_requested_at: hoursAhead(-1) },
+    })
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fees_finished: 0, errors: [] })
+    expect(fake.callsTo('paymentIntents.create').map((c) => c.idempotencyKey)).toEqual([`fee:${CASE_ID}:0`])
+    expect(row().payment_state).toBe('failed')
+    expect(mockFailure).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ phase: 'fee' }))
+    expect(theCase()).toMatchObject({ status: 'pending', charge_requested_at: null })
+    expect(receipts()).toHaveLength(0)
+
+    await GET(okRequest())
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+  })
+
+  it('a captured row whose pending case holds exactly the captured fee closes the case with no Stripe call', async () => {
+    seedFeeCase(26, {
+      booking: { payment_state: 'captured', captured_amount_minor: 4000, payment_intent_id: 'pi_done' },
+      caseRow: { decided_minor: 4000, charge_requested_at: hoursAhead(-1) },
+    })
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fee_cases_repaired: 1, errors: [] })
+    expect(fake.calls).toHaveLength(0)
+    expect(theCase()).toMatchObject({ status: 'charged', decided_minor: 4000, decided_by: 'tick_sweep' })
+    expect(row().fee_case_status).toBe('charged')
+    expect(receipts()).toHaveLength(1)
+    expect(feeMails()).toHaveLength(0)
+
+    await GET(okRequest())
+    expect(receipts()).toHaveLength(1)
+  })
+
+  it('a captured row whose captured amount is not the decided fee, or whose case was never locked, is left alone', async () => {
+    seedFeeCase(2, {
+      booking: { payment_state: 'captured', captured_amount_minor: 12000, payment_intent_id: 'pi_trip' },
+      caseRow: { decided_minor: 4000, charge_requested_at: hoursAhead(-1) },
+    })
+    await GET(okRequest())
+    expect(theCase().status).toBe('pending')
+    seedFeeCase(2, { booking: { payment_state: 'captured', captured_amount_minor: 4000, payment_intent_id: 'pi_x' } })
+    await GET(okRequest())
+    expect(theCase().status).toBe('pending')
+    expect(receipts()).toHaveLength(0)
+  })
+
+  function cashRow(over: Record<string, unknown> = {}) {
+    return dueBooking({
+      id: CASH_ID,
+      payment_mode: 'cash_guarantee',
+      payment_state: 'capturing',
+      payment_lease_until: lapsed(),
+      status: 'on_board',
+      hold_at: null,
+      hold_payment_intent_id: null,
+      charge_attempts: 0,
+      ...over,
+    })
+  }
+
+  it('a cash card charge the operator started and a crash interrupted is finished: settle cash_card, the ordinary chg key, one receipt', async () => {
+    seed([cashRow()])
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fees_finished: 1, errors: [] })
+    expect(fake.callsTo('paymentIntents.create').map((c) => c.idempotencyKey)).toEqual([`chg:${CASH_ID}:0`])
+    expect(row(CASH_ID).payment_state).toBe('captured')
+    expect(row(CASH_ID).captured_amount_minor).toBe(12000)
+    expect(receipts()).toHaveLength(1)
+    expect(receipts()[0]).toMatchObject({ variant: 'cash_card', eventKey: `email:fee_charged:${CASH_ID}` })
+
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+    expect(receipts()).toHaveLength(1)
+  })
+
+  it('D-21: cash rows that nobody started charging stay untouched (card_saved, completed or not; live lease)', async () => {
+    const A = '99999999-9999-4999-8999-999999999993'
+    const B = '99999999-9999-4999-8999-999999999994'
+    seed([
+      cashRow({ id: CASH_ID, payment_state: 'card_saved', payment_lease_until: null, status: 'completed', completed_at: hoursAhead(-30) }),
+      cashRow({ id: A, payment_state: 'card_saved', payment_lease_until: null, status: 'on_board' }),
+      cashRow({ id: B, payment_lease_until: hoursAhead(1) }),
+    ])
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fees_finished: 0, errors: [] })
+    expect(fake.calls).toHaveLength(0)
+    expect(row(CASH_ID).payment_state).toBe('card_saved')
+    expect(row(A).payment_state).toBe('card_saved')
+    expect(row(B).payment_state).toBe('capturing')
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+    expect(operatorMails()).toHaveLength(0)
+  })
+
+  it('step E reconciles a cash checkout like a card checkout (actor tick_reconcile)', async () => {
+    seed([
+      {
+        id: CASH_ID,
+        status: 'unpaid',
+        booking_source: 'web',
+        payment_mode: 'cash_guarantee',
+        payment_state: 'checkout_pending',
+        setup_intent_id: 'seti_cash',
+        created_at: minutesAgo(20),
+        pickup_utc: hoursAhead(100),
+      },
+    ])
+    fake.state.setupIntents.set('seti_cash', {
+      id: 'seti_cash',
+      object: 'setup_intent',
+      status: 'succeeded',
+      customer: 'cus_1',
+      payment_method: 'pm_1',
+      metadata: { kind: 'card_setup', cofBookingId: CASH_ID },
+    })
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ reconciled: 1, errors: [] })
+    expect(mockSetupSucceeded).toHaveBeenCalledTimes(1)
+    expect(mockSetupSucceeded.mock.calls[0][1]).toEqual({ type: 'system', id: 'tick_reconcile' })
+  })
+
+  it('a problem reading the fee cases adds "R" and the other steps still run', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    seedFeeCase(2)
+    const from = db.client.from.bind(db.client)
+    vi.spyOn(db.client, 'from').mockImplementation(((table: string) => {
+      if (table === 'booking_fee_cases') throw new Error('boom')
+      return from(table)
+    }) as never)
+    const res = await GET(okRequest())
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ ok: true, errors: ['R'] })
   })
 })
