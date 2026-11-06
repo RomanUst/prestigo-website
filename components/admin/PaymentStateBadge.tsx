@@ -18,6 +18,8 @@ export const PAYMENT_STATE_BADGE: Record<PaymentState, { label: string; family: 
   failed: { label: 'Payment failed', family: 'danger' },
   expired: { label: 'Hold expired', family: 'warn' },
   released: { label: 'Released', family: 'neutral' },
+  // Phase 89: the driver was paid in cash. Mode-aware labels come in plan 89-17.
+  cash_settled: { label: 'Paid in cash', family: 'ok' },
 }
 
 export function PaymentStateBadge({ state }: { state: string }) {

@@ -27,6 +27,7 @@ export const PAYMENT_STATES = [
   'failed',
   'expired',
   'released',
+  'cash_settled',
 ] as const
 export type PaymentState = (typeof PAYMENT_STATES)[number]
 
@@ -58,6 +59,9 @@ export const LEDGER_KINDS = [
   'refund_failed',
   'edit_reevaluated',
   'waived',
+  'fee_opened',
+  'cash_settled',
+  'cash_reopened',
 ] as const
 export type LedgerKind = (typeof LEDGER_KINDS)[number]
 
@@ -104,22 +108,25 @@ export interface PaymentPatch {
 
 /**
  * from -> allowed targets. Self-loops exist for edit re-evaluation and checkout re-submit only.
- * captured and released are terminal in Phase 88.
+ * captured and released are terminal. cash_settled (Phase 89) is not: the operator can reverse it to card_saved (D-22).
+ * A cash booking settles from card_saved, or from failed when the card failed during the trip and the client paid the
+ * driver (D-21).
  */
 export const TRANSITIONS: Record<PaymentState, readonly PaymentState[]> = {
   none: ['checkout_pending'],
   checkout_pending: ['checkout_pending', 'card_saved', 'authorized', 'released'],
-  card_saved: ['card_saved', 'placing_hold', 'capturing', 'released'],
+  card_saved: ['card_saved', 'placing_hold', 'capturing', 'released', 'cash_settled'],
   // released: the booking was cancelled / marked no-show while its hold was being placed (88-REVIEW A-WR-04).
   // capturing: a completed trip whose hold placement died adopts the row once its lease lapsed (88-REVIEW A-WR-06).
   placing_hold: ['authorized', 'card_saved', 'failed', 'placing_hold', 'released', 'capturing'],
   authorized: ['authorized', 'card_saved', 'expired', 'capturing', 'released'],
   capturing: ['captured', 'balance_due', 'failed', 'capturing'],
   balance_due: ['balance_due', 'captured', 'released'],
-  failed: ['failed', 'placing_hold', 'capturing', 'captured', 'released'],
+  failed: ['failed', 'placing_hold', 'capturing', 'captured', 'released', 'cash_settled'],
   expired: ['expired', 'placing_hold', 'capturing', 'released'],
   captured: [],
   released: [],
+  cash_settled: ['card_saved'],
 }
 
 /** True when every state in `from` may move to `to`. An empty `from` is never legal. */
