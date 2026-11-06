@@ -523,6 +523,90 @@ describe('change request (D-01, E6)', () => {
 })
 
 // ---------------------------------------------------------------------------------------------------------------------
+describe('Manage.actions in 7 locales', () => {
+  type Json = string | { [k: string]: Json }
+  const flatten = (node: Json | undefined, prefix = ''): Record<string, string> => {
+    if (node === undefined) return {}
+    if (typeof node === 'string') return { [prefix]: node }
+    return Object.assign({}, ...Object.entries(node).map(([k, v]) => flatten(v, prefix ? `${prefix}.${k}` : k)))
+  }
+  const actionsOf = (loc: string) => flatten((ALL_MESSAGES[loc] as { Manage: { actions: Json } }).Manage.actions)
+  // ICU arguments and rich tags, order-free.
+  const params = (s: string) =>
+    Array.from(s.matchAll(/\{(\w+)[,}]|<(\/?\w+)>/g), (m) => m[1] ?? m[2])
+      .filter((p) => !p.startsWith('/'))
+      .sort()
+      .join(',')
+  const others = ['ru', 'es', 'fr', 'ar', 'hi', 'zh']
+  const en = actionsOf('en')
+
+  it('English carries the whole action vocabulary', () => {
+    expect(Object.keys(en).length).toBe(32)
+    expect(params(en['cancel.tickLate'])).toBe('amount,bdi,bdi,freeUntil,percent')
+    expect(params(en['error.generic'])).toBe('phone,tel')
+  })
+
+  it.each(others)('%s has the same Manage.actions keys and ICU parameters as English', (loc) => {
+    const flat = actionsOf(loc)
+    expect(Object.keys(flat).sort()).toEqual(Object.keys(en).sort())
+    for (const [key, value] of Object.entries(flat)) {
+      expect(params(value), `${loc} ${key}`).toBe(params(en[key]))
+      expect(value.trim().length, `${loc} ${key}`).toBeGreaterThan(0)
+      expect(value, `${loc} ${key}`).not.toMatch(/[€]|\bCZK\b|\bKč\b|\bEUR\b/)
+    }
+  })
+
+  it.each(others)('%s: no action string equals its English value (real translations)', (loc) => {
+    for (const [key, value] of Object.entries(actionsOf(loc))) {
+      const onlyParams = en[key].replace(/<\/?\w+>|\{\w+\}|[\s.,:;()%]/g, '') === ''
+      if (onlyParams) continue
+      expect(value, `${loc} ${key}`).not.toBe(en[key])
+    }
+  })
+
+  it.each(['en', ...others])('%s: the confirm region, the late tick and the change form render with no missing-message marker', async (loc) => {
+    const p = await renderPage(lateRow(), loc)
+    const flat = actionsOf(loc)
+    await p.user.click(p.container.querySelector('[data-manage-slot="cancel-region"] button') as HTMLElement)
+    const group = p.screen.getByRole('group')
+    expect(group.textContent).toContain(flat['cancel.heading'])
+    const buttons = group.querySelectorAll('button')
+    expect(buttons[0].textContent).toBe(flat['cancel.keep'])
+    expect(buttons[1].textContent).toBe(flat['cancel.confirm'])
+    expect(group.querySelector('label')?.textContent).not.toMatch(/\{|\}|<|>/)
+    await p.user.click(p.container.querySelector('[data-manage-slot="change-request"] button') as HTMLElement)
+    const region = p.screen.getByTestId('manage-change-region')
+    expect(region.textContent).toContain(flat['change.label'])
+    expect(region.textContent).toContain(flat['change.helper'])
+    expect(region.querySelector('a')?.getAttribute('href')).toMatch(/^tel:/)
+    expect(p.container.textContent).not.toMatch(/Manage\.actions|actions\.(cancel|result|error|change)/)
+  })
+
+  it('ar: the confirm region keeps Latin digits for the percent, the amount and the dates, and reads right to left', async () => {
+    const p = await renderPage(lateRow(), 'ar')
+    await p.user.click(p.container.querySelector('[data-manage-slot="cancel-region"] button') as HTMLElement)
+    const group = p.screen.getByRole('group')
+    const text = group.textContent ?? ''
+    expect(text).toMatch(/50/)
+    expect(text).toMatch(/90/)
+    expect(text).not.toMatch(/[٠-٩۰-۹]/)
+    expect(text).toMatch(/[؀-ۿ]{3,}/)
+    // Amounts and dates are isolated, so they keep their direction inside the Arabic sentence.
+    expect(group.querySelectorAll('bdi').length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('ru: a failure shows the Russian call-us line with a working tel link', async () => {
+    mockFetch.mockImplementation(() => reply({ error: 'cancel_failed' }, 500))
+    const p = await renderPage(row(), 'ru')
+    await p.user.click(p.container.querySelector('[data-manage-slot="cancel-region"] button') as HTMLElement)
+    await p.user.click(p.screen.getByRole('button', { name: actionsOf('ru')['cancel.confirm'] }))
+    const alert = await p.screen.findByRole('alert')
+    expect(alert.textContent).toContain('Не удалось отменить бронирование')
+    expect(alert.querySelector('a')?.getAttribute('href')).toMatch(/^tel:/)
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
 describe('source rules', () => {
   const src = readFileSync(join(process.cwd(), 'app/[locale]/manage/[token]/ManageActions.tsx'), 'utf8')
 
