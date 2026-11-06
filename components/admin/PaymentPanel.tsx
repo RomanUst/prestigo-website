@@ -4,6 +4,7 @@ import { Check, Copy, LoaderCircle, TriangleAlert } from 'lucide-react'
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
 import { FeeChargeModal } from './FeeChargeModal'
 import { FeeDecisionBanner } from './FeeDecisionBanner'
+import { FeeWaiveModal } from './FeeWaiveModal'
 import { Modal } from './Modal'
 import { AlertBanner, type BannerSpec, type DecisionResult } from './paymentParts'
 import {
@@ -972,6 +973,18 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
           />
         )}
       </Modal>
+
+      {feeCase && (
+        <FeeWaiveModal
+          isOpen={modal === 'waive_fee'}
+          bookingId={bookingId}
+          payment={p}
+          feeCase={feeCase}
+          onClose={closeDialog}
+          onResult={showResult}
+          onRefetch={onRefetch}
+        />
+      )}
 
       {feeCase && (
         <FeeChargeModal

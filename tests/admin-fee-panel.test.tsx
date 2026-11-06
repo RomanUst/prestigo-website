@@ -469,3 +469,169 @@ describe('FeeChargeModal (E15)', () => {
     }
   })
 })
+
+// ── Surface 4.4: waive dialog (E16) ──────────────────────────────────────────
+
+async function openWaive() {
+  fireEvent.click(await screen.findByRole('button', { name: 'Waive fee…' }))
+  return screen.findByRole('dialog')
+}
+
+describe('FeeWaiveModal (E16)', () => {
+  it('names what happens to the money in each of the three cases', async () => {
+    stubFetch(() => makeBody())
+    const hold = render(<PaymentPanel bookingId="b-1" />)
+    let dialog = await openWaive()
+    expect(dialog.textContent).toContain(`Waive the fee for booking PRE-FEE1? The hold of ${eur(10000)} is released. This cannot be undone.`)
+    hold.unmount()
+
+    stubFetch(() => makeBody({ payment: { mode: 'pay_now', state: 'none', hold_amount_minor: null } }))
+    const paid = render(<PaymentPanel bookingId="b-1" />)
+    dialog = await openWaive()
+    expect(dialog.textContent).toContain(`${eur(10000)} is refunded to the client.`)
+    paid.unmount()
+
+    stubFetch(() => makeBody({ payment: { state: 'card_saved', hold_amount_minor: null } }))
+    render(<PaymentPanel bookingId="b-1" />)
+    dialog = await openWaive()
+    expect(dialog.textContent).toContain('The client is not charged.')
+  })
+
+  it('focuses the reason, and the waive request can not be sent with an empty reason', async () => {
+    const { posts } = stubFetch(() => makeBody())
+    render(<PaymentPanel bookingId="b-1" />)
+    const dialog = await openWaive()
+    const reason = within(dialog).getByLabelText('Reason') as HTMLInputElement
+    await waitFor(() => expect(document.activeElement).toBe(reason))
+    const primary = within(dialog).getByRole('button', { name: 'Waive fee' }) as HTMLButtonElement
+    expect(primary.disabled).toBe(true)
+    fireEvent.click(primary)
+    fireEvent.change(reason, { target: { value: '   ' } })
+    expect(primary.disabled).toBe(true)
+    fireEvent.click(primary)
+    expect(posts()).toHaveLength(0)
+  })
+
+  it('suggestion buttons fill the reason and the text stays editable', async () => {
+    const { posts } = stubFetch(() => makeBody())
+    render(<PaymentPanel bookingId="b-1" />)
+    const dialog = await openWaive()
+    const reason = within(dialog).getByLabelText('Reason') as HTMLInputElement
+    for (const text of ['Flight cancelled', 'Regular client', 'Prestigo error']) {
+      fireEvent.click(within(dialog).getByRole('button', { name: text }))
+      expect(reason.value).toBe(text)
+    }
+    fireEvent.change(reason, { target: { value: 'Prestigo error, late pickup' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Waive fee' }))
+    await waitFor(() => expect(posts()).toHaveLength(1))
+    expect(posts()[0].body).toEqual({ action: 'waive', reason: 'Prestigo error, late pickup' })
+  })
+
+  it('closes, refetches and shows the ok line', async () => {
+    const { calls } = stubFetch(() => makeBody())
+    render(<PaymentPanel bookingId="b-1" />)
+    const dialog = await openWaive()
+    fireEvent.change(within(dialog).getByLabelText('Reason'), { target: { value: 'Flight cancelled' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Waive fee' }))
+    expect(await screen.findByText('Done. The fee was waived and the client was emailed.')).toBeDefined()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await waitFor(() => expect(calls.filter(c => c.method === 'GET')).toHaveLength(2))
+  })
+
+  it('502 refund_failed stays open and says what to do next', async () => {
+    stubFetch(() => makeBody(), { status: 502, body: { error: 'refund_failed' } })
+    render(<PaymentPanel bookingId="b-1" />)
+    const dialog = await openWaive()
+    fireEvent.change(within(dialog).getByLabelText('Reason'), { target: { value: 'Flight cancelled' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Waive fee' }))
+    const line = (await within(dialog).findByRole('alert')).textContent ?? ''
+    expect(line).toContain('The refund did not go through, so the case stays open.')
+    expect(line).toContain('Press Waive fee again to retry')
+    expect(screen.queryByRole('dialog')).not.toBeNull()
+  })
+
+  it('409 payment_busy and 422 behave like the charge dialog', async () => {
+    stubFetch(() => makeBody(), { status: 409, body: { error: 'payment_busy' } })
+    const busy = render(<PaymentPanel bookingId="b-1" />)
+    let dialog = await openWaive()
+    fireEvent.change(within(dialog).getByLabelText('Reason'), { target: { value: 'Regular client' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Waive fee' }))
+    expect((await within(dialog).findByRole('alert')).textContent).toBe('Payment is being processed. Wait a moment and try again.')
+    busy.unmount()
+
+    stubFetch(() => makeBody(), { status: 422, body: { error: 'action_not_allowed' } })
+    render(<PaymentPanel bookingId="b-1" />)
+    dialog = await openWaive()
+    fireEvent.change(within(dialog).getByLabelText('Reason'), { target: { value: 'Regular client' } })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Waive fee' }))
+    expect(await screen.findByText('That decision is no longer available. The panel shows the current state.')).toBeDefined()
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+})
+
+// ── Surface 5.6: ledger labels, notes never in the list ──────────────────────
+
+function ev(id: number, kind: string, over: Record<string, unknown> = {}) {
+  return {
+    id,
+    created_at: '2026-11-20T10:00:00Z',
+    kind,
+    amount_minor: null,
+    currency: null,
+    actor_type: 'admin',
+    actor_id: 'op@example.com',
+    error_code: null,
+    ...over,
+  }
+}
+
+describe('payment history labels (UI-SPEC 5.6)', () => {
+  it('labels fee_opened, cash_settled, cash_reopened and shows the short code of admin_action rows', async () => {
+    stubFetch(() => makeBody({
+      allowed: [],
+      fee_case: null,
+      events: [
+        ev(1, 'fee_opened', { actor_type: 'system', actor_id: null, error_code: 'late_cancel' }),
+        ev(2, 'cash_settled'),
+        ev(3, 'cash_reopened'),
+        ev(4, 'admin_action', { error_code: 'fee_charge' }),
+      ],
+    }))
+    render(<PaymentPanel bookingId="b-1" />)
+    const list = await screen.findByRole('list', { name: 'Payment history' })
+    expect(within(list).getByText('Fee decision opened')).toBeDefined()
+    expect(within(list).getByText('Paid in cash')).toBeDefined()
+    expect(within(list).getByText('Cash confirmation reversed')).toBeDefined()
+    expect(within(list).getByText('Operator action')).toBeDefined()
+    expect(within(list).getByText('fee_charge')).toBeDefined()
+  })
+
+  it('waived reads "Fee waived" with a case and "Balance waived" without one', async () => {
+    stubFetch(() => makeBody({
+      allowed: [],
+      fee_case: makeCase({ status: 'waived', reason: 'Flight cancelled' }),
+      events: [ev(1, 'waived')],
+    }))
+    const withCase = render(<PaymentPanel bookingId="b-1" />)
+    expect(await within(await screen.findByRole('list', { name: 'Payment history' })).findByText('Fee waived')).toBeDefined()
+    withCase.unmount()
+
+    stubFetch(() => makeBody({ allowed: [], fee_case: null, events: [ev(1, 'waived')] }))
+    render(<PaymentPanel bookingId="b-1" />)
+    expect(await within(await screen.findByRole('list', { name: 'Payment history' })).findByText('Balance waived')).toBeDefined()
+  })
+
+  it('the operator reason shows in the Fee facts and never inside the history list', async () => {
+    stubFetch(() => makeBody({
+      allowed: [],
+      fee_case: makeCase({ status: 'waived', reason: 'Secret waive reason', contact_note: 'Secret contact note' }),
+      events: [ev(1, 'waived'), ev(2, 'admin_action', { error_code: 'fee_waive' })],
+    }))
+    render(<PaymentPanel bookingId="b-1" />)
+    const block = await screen.findByTestId('fee-block')
+    expect(within(block).getByText('Secret waive reason')).toBeDefined()
+    const list = screen.getByRole('list', { name: 'Payment history' })
+    expect(list.textContent).not.toContain('Secret waive reason')
+    expect(list.textContent).not.toContain('Secret contact note')
+  })
+})
