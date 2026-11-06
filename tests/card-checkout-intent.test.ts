@@ -209,6 +209,44 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+describe('POST /api/card-checkout/intent: cancellation terms are stored on the row (Phase 89, D-18)', () => {
+  it('canary-listed client: the unpaid card row carries the version and the settings snapshot from the same read', async () => {
+    Object.assign(db.state.pricing_globals[0], {
+      cancel_free_km_threshold: 60,
+      cancel_free_hours_short: 2,
+      cancel_free_hours_long: 24,
+      cancel_free_hours_hourly: 8,
+      cancel_fee_percent: 75,
+    })
+    const { status } = await call(body())
+    expect(status).toBe(200)
+    expect(bookings()[0].cancel_policy_version).toBe('2026-11-1')
+    expect(bookings()[0].cancel_policy).toEqual({
+      version: '2026-11-1',
+      kmThreshold: 60,
+      freeHoursShort: 2,
+      freeHoursLong: 24,
+      freeHoursHourly: 8,
+      feePercent: 75,
+    })
+  })
+
+  it('mode on: a client who is not on any list gets the terms stored as well', async () => {
+    seedSettings({ card_flow_mode: 'on', card_flow_canary_emails: [] })
+    const { status } = await call(body({}, { email: 'stranger@example.com' }))
+    expect(status).toBe(200)
+    expect(bookings()[0].cancel_policy_version).toBe('2026-11-1')
+  })
+
+  it('a client-supplied policy field in the body is ignored (T-89-23)', async () => {
+    const payload = body({ cancelPolicy: { version: 'evil', freeHoursLong: 0 }, cancel_policy_version: 'evil' })
+    const { status } = await call(payload)
+    expect(status).toBe(200)
+    expect(bookings()[0].cancel_policy_version).toBe('2026-11-1')
+    expect((bookings()[0].cancel_policy as Record<string, unknown>).freeHoursLong).toBe(12)
+  })
+})
+
 describe('POST /api/card-checkout/intent: setup mode happy path (tracer)', () => {
   it('returns a client secret and leaves one unpaid card_hold booking with nothing charged', async () => {
     const { status, body: out } = await call(body(), { 'user-agent': 'Mozilla/5.0 (test)' })

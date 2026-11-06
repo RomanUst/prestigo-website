@@ -3,7 +3,8 @@ import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { checkoutBookingSchema, validateCheckoutBooking, priceCheckout } from '@/lib/checkout/compute'
-import { getPaymentSettings, isCardFlowEligible } from '@/lib/payments/config'
+import { getPaymentSettings, isCardFlowEligible, isPolicyPublic } from '@/lib/payments/config'
+import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
 import { computeHoldAt, decideHoldMode, holdDateIso, meetsBookingLeadTime } from '@/lib/payments/timing'
 import { createCardCheckoutIntent } from '@/lib/payments/checkout'
 import { classifyStripeError } from '@/lib/payments/stripe'
@@ -83,6 +84,11 @@ export async function POST(req: Request) {
     if (!isCardFlowEligible(settings, { email: bookingData.email ?? '', tripType: bookingData.tripType })) {
       return fail(422, 'NOT_ELIGIBLE', 'Card checkout is not available for this booking')
     }
+    // Phase 89 D-18: the terms stored on the booking come from this one read, built server-side. Card eligibility
+    // implies the policy is public for this client; the check stays explicit so the two can never drift apart.
+    const cancelPolicy = isPolicyPublic(settings, bookingData.email ?? '')
+      ? buildPolicySnapshot(await getCancellationPolicy())
+      : null
 
     // Only the JSON boolean true is a consent. The stored text is the server rendering, never a client string.
     const consented = consent === true
@@ -150,6 +156,7 @@ export async function POST(req: Request) {
       attemptId,
       holdAtMs,
       authenticatedUserId,
+      cancelPolicy,
       ip: getClientIp(req),
       userAgent: req.headers.get('user-agent') ?? '',
     })

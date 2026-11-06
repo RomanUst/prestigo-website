@@ -17,6 +17,8 @@ import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/st
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 import { assertEditablePrecheck, reevaluateAfterEdit } from '@/lib/payments/edit-hook'
+import { getPaymentSettings, isPolicyPublic } from '@/lib/payments/config'
+import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
 
 // The status change itself (VALID_TRANSITIONS check, write, side effects) lives in
 // lib/booking-status-service.ts (Phase 87 D-01). VALID_TRANSITIONS is the canonical
@@ -1019,10 +1021,22 @@ export async function POST(request: Request) {
       : null,
   }
 
+  // Phase 89 D-18: store the terms when the policy is public for this client (mode on, or canary with the email
+  // listed). Built server-side; a read failure leaves the columns NULL (legacy terms), never a failed create.
+  let policyColumns: { cancel_policy_version: string; cancel_policy: Record<string, string | number> } | null = null
+  try {
+    if (isPolicyPublic(await getPaymentSettings(), d.client_email)) {
+      const { version, snapshot } = buildPolicySnapshot(await getCancellationPolicy())
+      policyColumns = { cancel_policy_version: version, cancel_policy: snapshot }
+    }
+  } catch (policyErr) {
+    console.error('[admin/bookings.POST] policy snapshot skipped:', policyErr instanceof Error ? policyErr.message : String(policyErr))
+  }
+
   const supabase = createSupabaseServiceClient()
   const { data, error: dbError } = await supabase
     .from('bookings')
-    .insert([row])
+    .insert([policyColumns ? { ...row, ...policyColumns } : row])
     .select()
     .single()
 

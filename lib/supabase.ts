@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { czkToEur, eurToCzk } from '@/lib/currency'
+import { LEGACY_POLICY, policyFromSnapshot } from '@/lib/cancellation-policy'
 
 export function createSupabaseServiceClient() {
   return createClient(
@@ -59,6 +60,37 @@ export async function withRetry<T>(
   throw lastError
 }
 
+/**
+ * The cancellation terms stored with a booking (Phase 89, D-18). meta.cancelPolicy is the compact JSON that
+ * buildCheckoutMeta writes from a server-built snapshot. Anything missing, unparseable or out of bounds is null:
+ * the booking then carries no terms and the legacy terms apply (policyFromSnapshot).
+ */
+export function parseCancelPolicyMeta(
+  raw: string | undefined
+): { cancel_policy_version: string; cancel_policy: Record<string, unknown> } | { cancel_policy_version: null; cancel_policy: null } {
+  const none = { cancel_policy_version: null, cancel_policy: null } as const
+  if (!raw) return none
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return none
+  }
+  const policy = policyFromSnapshot(parsed)
+  if (policy === LEGACY_POLICY) return none
+  return {
+    cancel_policy_version: policy.version,
+    cancel_policy: {
+      version: policy.version,
+      kmThreshold: policy.kmThreshold,
+      freeHoursShort: policy.freeHoursShort,
+      freeHoursLong: policy.freeHoursLong,
+      freeHoursHourly: policy.freeHoursHourly,
+      feePercent: policy.feePercent,
+    },
+  }
+}
+
 export function buildBookingRow(
   meta: Record<string, string>,
   paymentIntentId: string | null,
@@ -113,6 +145,8 @@ export function buildBookingRow(
     terminal: meta.terminal || null,
     special_requests: meta.specialRequests || null,
     user_id: meta.userId || null,
+    // Phase 89 D-18: the terms the client saw; null while the policy is not public (legacy terms apply).
+    ...parseCancelPolicyMeta(meta.cancelPolicy),
   }
 }
 
@@ -438,6 +472,8 @@ export function buildBookingRows(
     terminal: null,
     special_requests: meta.specialRequests || null,
     user_id: meta.userId || null,
+    // Phase 89 D-18, D-24: the policy applies per leg row, so the return leg carries the same terms.
+    ...parseCancelPolicyMeta(meta.cancelPolicy),
     // Double-cast: `leg: 'return'` is intentionally incompatible with the
     // outbound-shape leg: 'outbound' literal from buildBookingRow, so a
     // direct `as` is rejected by TS strict mode. The runtime shape is

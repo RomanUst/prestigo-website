@@ -2,10 +2,21 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody } from '@/lib/request-guards'
-import { checkoutBookingSchema, validateCheckoutBooking, priceCheckout } from '@/lib/checkout/compute'
-import { getPaymentSettings, isCardFlowEligible } from '@/lib/payments/config'
+import {
+  checkoutBookingSchema,
+  validateCheckoutBooking,
+  priceCheckout,
+  type CheckoutBookingData,
+  type PricedCheckout,
+  type ValidatedCheckout,
+} from '@/lib/checkout/compute'
+import { getPaymentSettings, isCardFlowEligible, isPolicyPublic } from '@/lib/payments/config'
 import { computeHoldAt, decideHoldMode, holdDateIso, meetsBookingLeadTime } from '@/lib/payments/timing'
 import { pickupInstantMs } from '@/lib/prague-date'
+import { evaluateCancellation, freeHoursFor, proposedFeeMinor } from '@/lib/cancellation-policy'
+import { getCancellationPolicy } from '@/lib/cancellation-settings'
+import { createSupabaseServiceClient } from '@/lib/supabase'
+import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show'
 
 // POST /api/card-checkout/init (Phase 88, plan 88-06; PAYF-05, D-09, D-10, D-11, D-12, D-19).
 //
@@ -14,6 +25,10 @@ import { pickupInstantMs } from '@/lib/prague-date'
 // eligible (flag off, email not on the allowlist, trip type, bad data, too close to pickup, a pricing
 // or settings error) gets the same opaque { eligible: false }, so the endpoint reveals neither the
 // flag state nor allowlist membership (T-88-13). The intent route (88-08) re-evaluates everything.
+//
+// Phase 89 (plan 89-07; D-18, D-24): a client for whom the cancellation policy is public (isPolicyPublic) also gets a
+// policy preview, in the eligible answer and in { eligible: false, policy } when only the card flow is closed to them
+// (round trip, daily, inside the lead rule). A client for whom nothing is public gets exactly the old answer.
 
 const INELIGIBLE = { eligible: false } as const
 
@@ -32,6 +47,54 @@ function trimEmail(body: unknown): unknown {
   const email = (data as { email?: unknown }).email
   if (typeof email !== 'string') return body
   return { ...body, bookingData: { ...data, email: email.trim() } }
+}
+
+const asNumber = (v: string | undefined): number | null => {
+  if (v === undefined || v === '') return null
+  const n = Number(v)
+  return Number.isFinite(n) ? n : null
+}
+
+/**
+ * The terms the client would book under, from the same policy read the intent route stores. The base of the fee is
+ * the priced amount; for a round trip it is the outbound leg's share and the deadline is the outbound pickup
+ * (D-24: the policy applies per leg row). waitMin is the free waiting time at this pickup (airport or city).
+ */
+async function buildPolicyPreview(input: {
+  bookingData: CheckoutBookingData
+  validated: ValidatedCheckout
+  priced: PricedCheckout
+  pickupMs: number
+  nowMs: number
+}) {
+  const { bookingData, validated, priced, pickupMs, nowMs } = input
+  const policy = await getCancellationPolicy()
+  const facts = { tripType: validated.tripType, distanceKm: validated.distanceKm, pickupMs }
+  const outcome = evaluateCancellation(policy, facts, nowMs)
+
+  let baseMinor = priced.combined.stripeAmountMinor
+  if (validated.tripType === 'round_trip') {
+    const outbound = priced.outboundLegEur + priced.extrasTotalEur
+    const total = outbound + priced.returnLegEur
+    if (total > 0) baseMinor = Math.max(1, Math.round((baseMinor * outbound) / total))
+  }
+
+  const thresholds = await getNoShowThresholds(createSupabaseServiceClient())
+  const airport = isAirportPickup({
+    origin_lat: asNumber(bookingData.originLat),
+    origin_lng: asNumber(bookingData.originLng),
+    origin_address: bookingData.originAddress ?? null,
+  })
+
+  return {
+    version: policy.version,
+    freeUntilIso: new Date(outcome.freeUntilMs).toISOString(),
+    freeUntilPassed: outcome.kind !== 'free',
+    hours: freeHoursFor(policy, facts),
+    percent: policy.feePercent,
+    feeMinor: proposedFeeMinor(baseMinor, policy.feePercent),
+    waitMin: airport ? thresholds.airportMin : thresholds.cityMin,
+  }
 }
 
 function ineligible() {
@@ -70,9 +133,11 @@ export async function POST(req: Request) {
   const { bookingData, currency } = parsed.data
 
   try {
-    // Eligibility first: with the flag off nothing below (pricing, promo lookup) runs.
+    // Eligibility first: when nothing is public for this client nothing below (pricing, promo lookup) runs.
     const settings = await getPaymentSettings()
-    if (!isCardFlowEligible(settings, { email: bookingData.email ?? '', tripType: bookingData.tripType })) {
+    const email = bookingData.email ?? ''
+    const cardEligible = isCardFlowEligible(settings, { email, tripType: bookingData.tripType })
+    if (!cardEligible && !isPolicyPublic(settings, email)) {
       return ineligible()
     }
 
@@ -86,10 +151,17 @@ export async function POST(req: Request) {
       pickup_time: bookingData.pickupTime ?? '',
     })
     const nowMs = Date.now()
-    if (pickupMs === null || !meetsBookingLeadTime(pickupMs, nowMs)) return ineligible()
+    if (pickupMs === null) return ineligible()
 
     const priced = await priceCheckout({ bookingData, validated, currency })
     if (!priced.ok) return ineligible()
+
+    // The policy is public for this client (card eligibility implies it), so the preview is always built here.
+    const policy = await buildPolicyPreview({ bookingData, validated, priced, pickupMs, nowMs })
+
+    if (!cardEligible || !meetsBookingLeadTime(pickupMs, nowMs)) {
+      return NextResponse.json({ eligible: false, policy })
+    }
 
     const { holdAtMs, rawHoldAtMs } = computeHoldAt(pickupMs, settings.leadHours)
     const mode = decideHoldMode(rawHoldAtMs, nowMs)
@@ -101,6 +173,7 @@ export async function POST(req: Request) {
       holdDateIso: mode === 'setup' ? holdDateIso(holdAtMs) : null,
       amountMinor: priced.combined.stripeAmountMinor,
       currency,
+      policy,
     })
   } catch (err) {
     console.error('card-checkout/init failed:', err instanceof Error ? err.message : 'unknown')
