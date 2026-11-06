@@ -259,6 +259,15 @@ describe('lib/email — D-11 full classification (Phase 77-02, Task 2)', () => {
       expect(sendStub.mock.calls[0][0].replyTo).toBe(CUSTOMER_REPLY_TO)
     })
 
+    it('sendStatusCancelledEmail says what happened to the money', async () => {
+      await sendStatusCancelledEmail(BASE_STATUS_BOOKING, 'refund')
+      expect(sendStub.mock.calls.at(-1)?.[0].html).toContain('Your payment is being refunded to your card.')
+      await sendStatusCancelledEmail(BASE_STATUS_BOOKING, 'no_charge')
+      expect(sendStub.mock.calls.at(-1)?.[0].html).toContain('Nothing has been charged to your card')
+      await sendStatusCancelledEmail(BASE_STATUS_BOOKING)
+      expect(sendStub.mock.calls.at(-1)?.[0].html).not.toContain('your card')
+    })
+
     it('sendStatusCancelledEmail', async () => {
       await sendStatusCancelledEmail(BASE_STATUS_BOOKING)
       expect(sendStub.mock.calls[0][0].replyTo).toBe(CUSTOMER_REPLY_TO)

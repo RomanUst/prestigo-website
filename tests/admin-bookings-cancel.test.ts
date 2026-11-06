@@ -4,8 +4,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // Phase 87 Plan 01 characterized the route; Phase 88 plan 16 (D-20, Phase 87 WR-01) rewrote the order:
 // the status compare-and-set runs FIRST, only the writer whose cancel applied refunds (pay-now) or releases the
 // hold (card_hold), and a money failure after the cancel keeps the booking cancelled (502 refund_failed + ledger
-// row + operator alert). The route still sends no email, deactivates no link, schedules nothing and pushes
-// nothing to GNet.
+// row + operator alert). After the money step succeeded the client gets the cancelled email; the route still
+// deactivates no link, schedules nothing and pushes nothing to GNet.
 
 const {
   mockGetAdminUser,
@@ -514,7 +514,78 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(mockAlert).not.toHaveBeenCalled()
   })
 
-  it('runs no email, payment-link deactivation, QStash or GNet push on any successful cancel path', async () => {
+  describe('client email', () => {
+    const CLIENT = { client_email: 'client@example.com', booking_reference: 'PR-1' }
+
+    /** Runs the deferred email work against the given notification flags. */
+    async function runDeferredEmail(flags: Record<string, boolean> | null = null) {
+      mockSupabaseFrom.mockReturnValue({
+        select: () => ({ eq: () => ({ single: async () => ({ data: { notification_flags: flags } }) }) }),
+      })
+      mockLogEmail.mockResolvedValue(true)
+      expect(mockAfter).toHaveBeenCalledTimes(1)
+      await (mockAfter.mock.calls[0][0] as () => Promise<void>)()
+    }
+
+    it('pay-now refund: says the payment is being refunded', async () => {
+      wireSupabase({ booking: { id: ID, status: 'confirmed', payment_intent_id: 'pi_xxx', ...CLIENT } })
+      mockRefundsCreate.mockResolvedValue({ id: 're_1' })
+      await POST(makeRequest({ id: ID }))
+      await runDeferredEmail()
+      expect(mockLogEmail).toHaveBeenCalledWith({
+        bookingId: ID,
+        emailType: 'booking_cancelled',
+        recipient: 'client@example.com',
+      })
+      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), 'refund')
+    })
+
+    it('card hold released: says nothing was charged', async () => {
+      const booking = { id: ID, status: 'confirmed', payment_mode: 'card_hold', payment_state: 'card_saved', ...CLIENT }
+      wireSupabase({ booking })
+      mockReleaseHold.mockResolvedValue('released')
+      await POST(makeRequest({ id: ID }))
+      await runDeferredEmail()
+      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), 'no_charge')
+    })
+
+    it('manual booking: the plain email, no money line', async () => {
+      wireSupabase({ booking: { id: ID, status: 'confirmed', payment_intent_id: null, ...CLIENT } })
+      await POST(makeRequest({ id: ID }))
+      await runDeferredEmail()
+      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), null)
+    })
+
+    it('a failed refund promises nothing: no email', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      wireSupabase({ booking: { id: ID, status: 'confirmed', payment_intent_id: 'pi_xxx', ...CLIENT } })
+      mockRefundsCreate.mockRejectedValue(new Error('stripe down'))
+      const res = await POST(makeRequest({ id: ID }))
+      expect(res.status).toBe(502)
+      expect(mockAfter).not.toHaveBeenCalled()
+      errorSpy.mockRestore()
+    })
+
+    it('respects the cancelled notification flag', async () => {
+      wireSupabase({ booking: { id: ID, status: 'confirmed', payment_intent_id: 'pi_xxx', ...CLIENT } })
+      mockRefundsCreate.mockResolvedValue({ id: 're_1' })
+      await POST(makeRequest({ id: ID }))
+      await runDeferredEmail({ cancelled: false })
+      expect(mockLogEmail).not.toHaveBeenCalled()
+      expect(mockSendCancelled).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      ['an abandoned unpaid checkout', { status: 'unpaid' }],
+      ['a partner passenger', { status: 'confirmed', booking_source: 'gnet' }],
+    ])('sends nothing to %s', async (_name, extra) => {
+      wireSupabase({ booking: { id: ID, payment_intent_id: null, ...CLIENT, ...extra } })
+      await POST(makeRequest({ id: ID }))
+      expect(mockAfter).not.toHaveBeenCalled()
+    })
+  })
+
+  it('runs no payment-link deactivation, QStash or GNet push on any successful cancel path', async () => {
     wireSupabase({
       booking: { id: ID, status: 'confirmed', payment_intent_id: 'pi_xxx' },
     })

@@ -1327,14 +1327,26 @@ export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Pro
   }
 }
 
-export async function sendStatusCancelledEmail(booking: StatusEmailBooking): Promise<void> {
+/** What the admin cancel did with the client's money: the line the cancelled email adds. */
+export type CancelMoneyOutcome = 'refund' | 'no_charge'
+
+const CANCEL_MONEY_LINES: Record<CancelMoneyOutcome, string> = {
+  refund: 'Your payment is being refunded to your card. It may take a few days to appear.',
+  no_charge: 'Nothing has been charged to your card, and any hold on it has been released.',
+}
+
+export async function sendStatusCancelledEmail(
+  booking: StatusEmailBooking,
+  money: CancelMoneyOutcome | null = null,
+): Promise<void> {
+  const closingLine = 'If you have any questions, please contact us.'
   try {
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
       replyTo: CUSTOMER_REPLY_TO,
       subject: `Booking ${booking.booking_reference} cancelled — Prestigo`,
-      html: buildStatusEmailHtml(booking, 'Booking Cancelled', 'If you have any questions, please contact us.'),
+      html: buildStatusEmailHtml(booking, 'Booking Cancelled', money ? `${CANCEL_MONEY_LINES[money]} ${closingLine}` : closingLine),
     })
     if (error) console.error('[booking-notify] cancelled email error:', error)
   } catch (err) {
