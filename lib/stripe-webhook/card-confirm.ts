@@ -202,7 +202,7 @@ async function ledgerGuardedEffects(
   row: BookingRow,
   opts: {
     consent: { column: 'setup_intent_id' | 'payment_intent_id'; value: string }
-    email: { kind: 'card_saved' | 'hold_placed'; eventKey: string; variant?: 'at_checkout' }
+    email: { kind: 'card_saved' | 'hold_placed'; eventKey: string; variant?: 'at_checkout' | 'cash' }
   },
 ): Promise<void> {
   // The consent the client accepted is now backed by a saved card / placed hold.
@@ -266,12 +266,22 @@ export async function applySetupSucceeded(si: Stripe.SetupIntent, actor: LedgerA
   if (!moved.applied && moved.duplicate !== true) return
 
   const row: BookingRow = { ...booking, ...(moved.booking ?? {}) }
+  // Phase 89 (89-10, CASH-01, D-09): a cash booking has no hold to schedule and its email says "pay the driver in cash".
+  const cash = row.payment_mode === 'cash_guarantee'
   if (moved.applied) {
-    await firstTimeEffects(row, { promoCode: metaString(si.metadata, 'promoCode'), holdScheduledKey: `hold_scheduled:${si.id}`, actor })
+    await firstTimeEffects(row, {
+      promoCode: metaString(si.metadata, 'promoCode'),
+      holdScheduledKey: cash ? null : `hold_scheduled:${si.id}`,
+      actor,
+    })
   }
   await ledgerGuardedEffects(row, {
     consent: { column: 'setup_intent_id', value: si.id },
-    email: { kind: 'card_saved', eventKey: `email:card_saved:${booking.id}` },
+    email: {
+      kind: 'card_saved',
+      ...(cash ? { variant: 'cash' as const } : {}),
+      eventKey: `email:card_saved:${booking.id}`,
+    },
   })
 }
 

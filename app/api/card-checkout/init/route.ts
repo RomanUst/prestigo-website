@@ -29,6 +29,7 @@ import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show'
 // Phase 89 (plan 89-07; D-18, D-24): a client for whom the cancellation policy is public (isPolicyPublic) also gets a
 // policy preview, in the eligible answer and in { eligible: false, policy } when only the card flow is closed to them
 // (round trip, daily, inside the lead rule). A client for whom nothing is public gets exactly the old answer.
+// Phase 89 (plan 89-10; D-08): an eligible answer also says cashAvailable (pay cash to the driver).
 
 const INELIGIBLE = { eligible: false } as const
 
@@ -174,6 +175,9 @@ export async function POST(req: Request) {
       amountMinor: priced.combined.stripeAmountMinor,
       currency,
       policy,
+      // Phase 89 D-08: pay cash to the driver is offered exactly where the card flow is (same eligibility, no amount
+      // limit). A round trip, a daily booking or a closed flow never reach this answer, so they never get it.
+      cashAvailable: true,
     })
   } catch (err) {
     console.error('card-checkout/init failed:', err instanceof Error ? err.message : 'unknown')

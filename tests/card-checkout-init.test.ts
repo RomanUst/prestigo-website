@@ -148,6 +148,8 @@ describe('POST /api/card-checkout/init: eligible', () => {
         feeMinor: expected,
         waitMin: 30,
       },
+      // Phase 89 D-08: pay cash to the driver is offered wherever the card flow is.
+      cashAvailable: true,
     })
     expect(Number.isInteger(body.amountMinor)).toBe(true)
     expect(body.amountMinor).toBeGreaterThan(0)
