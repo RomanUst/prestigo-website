@@ -1054,7 +1054,9 @@
       "whatNextLabel": "接下来会怎样",
       "receiptLabel": "收据",
       "paySecurelyLabel": "安全付款",
-      "tagline": "PRESTIGE IN EVERY MILE"
+      "tagline": "PRESTIGE IN EVERY MILE",
+      "bookAgainCta": "预订另一趟行程",
+      "decides": "每一笔费用均由 Prestigo 的工作人员决定。"
     },
     "cardSaved": {
       "subject": "您的 PRESTIGO 预订已确认 — {reference}",
@@ -1062,7 +1064,11 @@
       "intro": "您的银行卡已保存，目前未扣除任何款项。",
       "lineToday": "今天：已保存您的银行卡。",
       "lineHoldDay": "{holdDate}：我们将在您的银行卡上冻结 {amount}。冻结不是扣款。",
-      "lineAfterTrip": "行程结束后：冻结的金额将转为最终扣款。"
+      "lineAfterTrip": "行程结束后：冻结的金额将转为最终扣款。",
+      "introCash": "您的银行卡已作为担保保存。目前未扣除任何款项，也未冻结任何金额。",
+      "cashLineToday": "今天：已保存您的银行卡。不冻结，不扣款。",
+      "cashLineDay": "行程当天：请向司机支付 {amount} 现金。",
+      "cashLineIfNeeded": "仅在必要时：如果您在 {freeUntil} 之后取消、未出现，或未向司机付款，我们会从已保存的银行卡扣款。扣款前先由 Prestigo 的工作人员决定。"
     },
     "holdPlacedAtCheckout": {
       "subject": "您的 PRESTIGO 预订已确认 — {reference}",
@@ -1091,15 +1097,55 @@
       "h1AuthRequired": "您的银行需要您确认这笔付款。",
       "introAuthRequired": "由于您的银行要求额外确认，我们未能就您 {pickupDate} 的行程从您的银行卡扣除 {amount}。请通过下方按钮进行确认。",
       "body": "该链接将打开 Stripe 的安全支付页面。如果您通过链接付款，我们将不会再次尝试扣款。如果您已付款，请忽略此邮件。",
-      "cta": "安全支付 {amount}"
+      "cta": "安全支付 {amount}",
+      "subjectFee": "需要您处理：您的 PRESTIGO 预订付款 — {reference}",
+      "h1Fee": "我们未能从您的银行卡扣款。",
+      "introFeeCancellation": "我们未能就取消费用从您的银行卡扣除 {amount}。请通过下方按钮安全付款。",
+      "introFeeNoShow": "我们未能就未到场费用从您的银行卡扣除 {amount}。请通过下方按钮安全付款。",
+      "introFeeTrip": "我们未能就您的行程从您的银行卡扣除 {amount}。请通过下方按钮安全付款。"
     },
     "policyBox": {
       "label": "取消政策",
-      "body": "{freeUntil}前可免费取消。此后将收取车费的 {percent}%（{amount}）。如果您未出现，司机等候 {waitMin} 分钟后将收取全额车费。每一笔费用均由 Prestigo 的工作人员决定。"
+      "body": "{freeUntil}前可免费取消。此后将收取车费的 {percent}%（{amount}）。如果您未出现，司机等候 {waitMin} 分钟后将收取全额车费。每一笔费用均由 Prestigo 的工作人员决定。",
+      "cash": "您向司机支付 {amount} 现金。您的银行卡仅作为担保。"
     },
     "manage": {
       "cta": "管理预订",
       "note": "可取消、申请更改或预订另一趟行程。请勿将此链接告诉他人。"
+    },
+    "contactOr": "或",
+    "money": {
+      "nothing": "未扣除任何款项。",
+      "released": "您银行卡上的冻结已解除。",
+      "refunded": "我们已将 {amount} 退回您的银行卡。银行通常会在 5 至 10 个工作日内显示到账。"
+    },
+    "cancelled": {
+      "subject": "您的 PRESTIGO 预订已取消 — {reference}",
+      "h1": "您的预订已取消。",
+      "h1ByPrestigo": "我们不得不取消您的预订。",
+      "introSorry": "非常抱歉。您的预订已取消，不会向您收取任何费用。",
+      "introLate": "您在 {freeUntil} 之后取消了预订，因此可能会收取最高 {amount} 的取消费用。由 Prestigo 的工作人员决定，并通过邮件通知您。目前尚未扣除任何款项。",
+      "lateNext": "我们会通过邮件告知您我们的决定。如果您的计划因不可控的原因而改变，例如航班被取消，请回复此邮件告诉我们。"
+    },
+    "feeCharged": {
+      "subjectLateCancel": "您的 PRESTIGO 预订的取消费用 — {reference}",
+      "h1LateCancel": "我们已收取取消费用。",
+      "introLateCancel": "您在 {freeUntil} 之后取消了预订 {reference}。我们已从您的银行卡扣除 {amount}。",
+      "reasonLateCancel": "原因：{freeUntil} 之后取消",
+      "subjectNoShow": "您的 PRESTIGO 预订的未到场费用 — {reference}",
+      "h1NoShow": "我们已收取未到场费用。",
+      "introNoShow": "司机在接送地点等候了 {waitMin} 分钟，未能与您会合。我们已从您的银行卡扣除 {amount}。",
+      "reasonNoShow": "原因：未到场，司机等候了 {waitMin} 分钟",
+      "subjectCashUnpaid": "您的 PRESTIGO 行程付款 — {reference}",
+      "h1CashUnpaid": "我们已从您保存的银行卡扣款。",
+      "introCashUnpaid": "您 {pickupDate} 的行程未以现金支付，因此我们已从您保存的银行卡扣除 {amount}。",
+      "reasonCashUnpaid": "原因：行程未以现金支付",
+      "introCashCard": "您选择了刷卡支付，因此我们已从您保存的银行卡扣除 {amount}。"
+    },
+    "feeWaived": {
+      "subject": "您的 PRESTIGO 预订无需付费 — {reference}",
+      "h1": "您的预订无需付费。",
+      "intro": "我们决定不收取取消费用。"
     }
   }
 }

@@ -6,12 +6,17 @@
 // nothing. A failed send keeps its claim and appends one `<key>:send_failed` row, the same contract as the client
 // emails (lib/payments/emails/send.ts); the failure is visible in the ledger and in the log (ids only).
 //
+// Phase 89 (plan 89-25, UI-SPEC 8.3) adds the fee case mails (subject prefix [Fee]) and the client-action mails
+// (prefix [Booking]); the Phase 88 kinds keep [Payment]. A client's change-request message is HTML-escaped in the body and
+// never reaches the ledger row (the row carries amount, currency and a code only).
+//
 // No card data and no client contact details beyond the name: the owner needs the name and the pickup to act.
 // Server-only by use. Lazy Resend client like lib/email.ts (RESEND_API_KEY is not present in every environment).
 
 import { Resend } from 'resend'
 import { deliverOnce } from '@/lib/payments/notify'
 import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
+import { escapeHtml } from '@/lib/email'
 
 export const OPERATOR_ALERT_KINDS = [
   'hold_failed',
@@ -23,8 +28,23 @@ export const OPERATOR_ALERT_KINDS = [
   'dispute',
   'duplicate_payment',
   'stripe_config',
+  'fee_decision_needed',
+  'fee_no_show_needed',
+  'fee_pending_24h',
+  'client_cancelled',
+  'change_request',
 ] as const
 export type OperatorAlertKind = (typeof OPERATOR_ALERT_KINDS)[number]
+
+/** Fee case kinds: the owner must charge or waive (prefix [Fee]). */
+const FEE_ALERT_KINDS = ['fee_decision_needed', 'fee_no_show_needed', 'fee_pending_24h'] as const
+type FeeAlertKind = (typeof FEE_ALERT_KINDS)[number]
+const isFeeAlert = (kind: OperatorAlertKind): kind is FeeAlertKind => (FEE_ALERT_KINDS as readonly string[]).includes(kind)
+
+type LegacyAlertKind = Exclude<OperatorAlertKind, FeeAlertKind | 'client_cancelled' | 'change_request'>
+
+/** Longest client message the mail carries (the route caps it earlier; this is the last line of defence). */
+const CHANGE_MESSAGE_MAX = 2000
 
 export interface OperatorAlertDetails {
   /** The ledger key, unique per booking: `alert:<kind>:<bookingId>[:<attempt>]`. */
@@ -42,6 +62,27 @@ export interface OperatorAlertDetails {
    * payment) could not be released. `refunded` / `refund_failed`: the outcome of a duplicate payment's automatic refund.
    */
   note?: string
+  // --- Phase 89, UI-SPEC 8.3. Instants are ISO strings (shown on the Prague wall clock); a missing field is omitted. ---
+  /** End of the free cancellation period. */
+  freeUntil?: string | null
+  /** The fee the case proposes (minor units of the booking currency). */
+  proposedMinor?: number
+  /** When the card hold ends (booking.capture_before is used when absent). */
+  captureBefore?: string | null
+  /** When the client cancelled. */
+  cancelledAt?: string | null
+  /** No-show: when the driver reported arriving. */
+  arrivedAt?: string | null
+  /** No-show: when the driver asked for the no-show. */
+  requestedAt?: string | null
+  /** No-show: minutes the driver had to wait. */
+  thresholdMin?: number
+  /** fee_pending_24h: when the case was opened. */
+  openedAt?: string | null
+  /** client_cancelled: what happened to the money (default 'none'). */
+  moneyOutcome?: 'released' | 'refunded' | 'none'
+  /** change_request: the client's own words. Escaped in the mail, never written to the ledger. */
+  message?: string
 }
 
 type BookingRow = Record<string, unknown>
@@ -67,6 +108,18 @@ const TITLES: Record<OperatorAlertKind, string> = {
   dispute: 'Dispute opened',
   duplicate_payment: 'Duplicate payment',
   stripe_config: 'Stripe key problem',
+  fee_decision_needed: 'Decision needed',
+  fee_no_show_needed: 'No-show, decision needed',
+  fee_pending_24h: 'Still undecided after 24 h',
+  client_cancelled: 'Cancelled by client',
+  change_request: 'Change request',
+}
+
+/** Subject prefix per kind (UI-SPEC 8.3): the owner filters on it. */
+function subjectPrefix(kind: OperatorAlertKind): string {
+  if (isFeeAlert(kind)) return '[Fee]'
+  if (kind === 'client_cancelled' || kind === 'change_request') return '[Booking]'
+  return '[Payment]'
 }
 
 /** A Prague wall-clock rendering of an instant, e.g. "12 Dec 2026, 14:00". */
@@ -88,7 +141,7 @@ function currencyOf(booking: BookingRow): PaymentCurrency {
   return booking.payment_currency === 'czk' ? 'czk' : 'eur'
 }
 
-function nextAction(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAlertDetails): string {
+function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlertDetails): string {
   const currency = currencyOf(booking)
   const retryLine = d.retryAtIso
     ? `One automatic retry runs at ${pragueTime(d.retryAtIso)}.`
@@ -136,10 +189,91 @@ function nextAction(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAle
   }
 }
 
+/** `Label: value` when the value is a usable instant, else nothing (a missing field is simply omitted). */
+function instantLine(label: string, iso: string | null | undefined): string[] {
+  return typeof iso === 'string' && iso.length > 0 ? [`${label}: ${pragueTime(iso)}`] : []
+}
+
+const siteBase = (): string => (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com').trim()
+
+function clientName(booking: BookingRow): string {
+  return [str(booking.client_first_name), str(booking.client_last_name)].filter(Boolean).join(' ') || 'n/a'
+}
+
+function pickupOf(booking: BookingRow): string {
+  return [str(booking.pickup_date), str(booking.pickup_time)].filter(Boolean).join(' ') || 'n/a'
+}
+
+/** Late cancel, no-show and the 24 h reminder: the case facts the owner needs to charge or waive. */
+function buildFeeBody(kind: FeeAlertKind, booking: BookingRow, d: OperatorAlertDetails): string {
+  const currency = currencyOf(booking)
+  const captureBefore = d.captureBefore ?? (typeof booking.capture_before === 'string' ? booking.capture_before : null)
+  return [
+    `Booking reference: ${str(booking.booking_reference) || 'n/a'}`,
+    `Client name: ${clientName(booking)}`,
+    `Pickup (Prague): ${pickupOf(booking)}`,
+    ...instantLine('Cancelled at', d.cancelledAt),
+    ...instantLine('Free period ended', d.freeUntil),
+    ...(typeof d.proposedMinor === 'number' ? [`Proposed fee: ${formatMinor(d.proposedMinor, currency)}`] : []),
+    ...instantLine('Hold ends', captureBefore),
+    ...(kind === 'fee_no_show_needed'
+      ? [
+          ...instantLine('Driver arrived', d.arrivedAt),
+          ...instantLine('No-show requested', d.requestedAt),
+          ...(typeof d.thresholdMin === 'number' ? [`Wait threshold: ${d.thresholdMin} minutes`] : []),
+        ]
+      : []),
+    ...(kind === 'fee_pending_24h' ? instantLine('Open since', d.openedAt) : []),
+    `Open in admin: ${siteBase()}/admin/bookings`,
+    '',
+    kind === 'fee_pending_24h'
+      ? 'Nothing is charged until you decide. Charge or waive the fee from the booking.'
+      : 'Charge or waive the fee from the booking.',
+  ].join('\n')
+}
+
+function buildClientCancelledBody(booking: BookingRow, d: OperatorAlertDetails): string {
+  const amountMinor =
+    d.amountMinor ?? (typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : undefined)
+  const outcome = d.moneyOutcome ?? 'none'
+  const money =
+    outcome === 'released'
+      ? 'Hold released.'
+      : outcome === 'refunded'
+        ? `Refund of ${typeof amountMinor === 'number' ? formatMinor(amountMinor, currencyOf(booking)) : 'n/a'} issued.`
+        : 'Nothing to refund.'
+  return [
+    `Booking reference: ${str(booking.booking_reference) || 'n/a'}`,
+    `Client name: ${clientName(booking)}`,
+    `Pickup (Prague): ${pickupOf(booking)}`,
+    '',
+    `Free cancellation. ${money}`,
+  ].join('\n')
+}
+
+function buildChangeRequestBody(booking: BookingRow, d: OperatorAlertDetails): string {
+  // The client's own words, escaped (T-89-72): the mail is plain text, but a client may read it forwarded as HTML.
+  const message = escapeHtml((d.message ?? '').slice(0, CHANGE_MESSAGE_MAX))
+  return [
+    `Booking reference: ${str(booking.booking_reference) || 'n/a'}`,
+    `Client name: ${clientName(booking)}`,
+    `Pickup (Prague): ${pickupOf(booking)}`,
+    '',
+    `Client message: ${message || 'n/a'}`,
+    '',
+    'Edit the booking in admin and reply to the client.',
+    `Open in admin: ${siteBase()}/admin/bookings`,
+  ].join('\n')
+}
+
 function buildBody(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAlertDetails): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com').trim()
-  const name = [str(booking.client_first_name), str(booking.client_last_name)].filter(Boolean).join(' ') || 'n/a'
-  const pickup = [str(booking.pickup_date), str(booking.pickup_time)].filter(Boolean).join(' ') || 'n/a'
+  if (isFeeAlert(kind)) return buildFeeBody(kind, booking, d)
+  if (kind === 'client_cancelled') return buildClientCancelledBody(booking, d)
+  if (kind === 'change_request') return buildChangeRequestBody(booking, d)
+
+  const base = siteBase()
+  const name = clientName(booking)
+  const pickup = pickupOf(booking)
   const amountMinor =
     d.amountMinor ?? (typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : undefined)
   const amount = typeof amountMinor === 'number' ? formatMinor(amountMinor, currencyOf(booking)) : 'n/a'
@@ -199,7 +333,7 @@ export async function sendPaymentOperatorAlert(
           from: 'PRESTIGO System <bookings@rideprestigo.com>',
           to: [manager],
           replyTo: manager,
-          subject: `[Payment] ${TITLES[kind]} — ${str(booking.booking_reference) || bookingId}`,
+          subject: `${subjectPrefix(kind)} ${TITLES[kind]} — ${str(booking.booking_reference) || bookingId}`,
           text: buildBody(kind, booking, details),
         },
         { idempotencyKey },

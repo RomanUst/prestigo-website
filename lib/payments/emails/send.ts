@@ -12,7 +12,7 @@ import { Resend } from 'resend'
 import { deliverOnce } from '@/lib/payments/notify'
 import { renderPaymentEmail, type PaymentEmailKind, type PaymentEmailVars, type PolicyBoxVars } from '@/lib/payments/emails/render'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { buildManageUrl, ensureManageToken } from '@/lib/manage-link'
+import { buildBookUrl, buildManageUrl, ensureManageToken } from '@/lib/manage-link'
 import { evaluateCancellation, policyFromSnapshot, proposedFeeMinor, tripFactsFromRow } from '@/lib/cancellation-policy'
 import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show-wait'
 import { holdDateIso } from '@/lib/payments/timing'
@@ -118,10 +118,41 @@ async function manageUrlFromRow(booking: BookingRow): Promise<string | undefined
   }
 }
 
-export async function emailVarsFromRow(
-  booking: BookingRow,
-  extra: { kind?: PaymentEmailKind; variant?: PaymentEmailVars['variant']; diffMinor?: number; payUrl?: string },
-): Promise<PaymentEmailVars> {
+/** The localized "Book another ride" URL; a failure drops the button, never the email. */
+function bookAgainUrlFromRow(booking: BookingRow): string | undefined {
+  try {
+    const url = buildBookUrl(booking.locale)
+    return new URL(url).protocol === 'https:' ? url : undefined
+  } catch {
+    console.error('[payment-email] book link dropped', { bookingId: str(booking.id) })
+    return undefined
+  }
+}
+
+/**
+ * What an engine plan may hand the sender besides the kind: the variant and the facts of the Phase 89 mails
+ * (UI-SPEC 8.2). There is deliberately no reason or note field (T-89-13): operator text never reaches a client.
+ */
+export interface PaymentEmailExtra {
+  kind?: PaymentEmailKind
+  variant?: PaymentEmailVars['variant']
+  diffMinor?: number
+  payUrl?: string
+  /** Fee or charge the mail is about (minor units): cancelled late proposal, fee_charged amount, payment_failed fee. */
+  feeMinor?: number
+  /** Amount refunded when moneyOutcome is 'refunded'. */
+  refundMinor?: number
+  /** cancelled and fee_waived: hold released, payment refunded, or nothing taken. */
+  moneyOutcome?: PaymentEmailVars['moneyOutcome']
+  /** payment_failed fee: cancellation fee, no-show fee or the trip itself. */
+  feeLabel?: PaymentEmailVars['feeLabel']
+  /** End of the free period (epoch ms or ISO); taken from the booking's stored policy when absent. */
+  freeUntil?: number | string
+  /** Minutes the driver waited; taken from the no-show thresholds of the stored policy when absent. */
+  waitMin?: number
+}
+
+export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailExtra): Promise<PaymentEmailVars> {
   const holdAtMs = typeof booking.hold_at === 'string' ? Date.parse(booking.hold_at) : NaN
   const currency = booking.payment_currency === 'czk' ? 'czk' : 'eur'
   let calendarUrl: string | undefined
@@ -136,6 +167,24 @@ export async function emailVarsFromRow(
   const [policy, manageUrl] = confirmation
     ? await Promise.all([policyBoxFromRow(booking, amountMinor), manageUrlFromRow(booking)])
     : [null, undefined]
+
+  // Phase 89 kinds: the engine names the kind and the amounts; the free period, the wait and the proposed fee come
+  // from the policy the booking was made under (never today's settings) unless the caller passes them.
+  const lateCancel = extra.kind === 'cancelled' && extra.variant === 'late'
+  const termsKind = extra.kind === 'cancelled' || extra.kind === 'fee_charged'
+  let terms: PolicyBoxVars | null = policy
+  if (
+    !terms &&
+    termsKind &&
+    (extra.freeUntil === undefined || extra.waitMin === undefined || (lateCancel && extra.feeMinor === undefined))
+  ) {
+    terms = await policyBoxFromRow(booking, amountMinor)
+  }
+  const freeUntil = extra.freeUntil ?? terms?.freeUntilMs
+  const waitMin = extra.waitMin ?? terms?.waitMin
+  const feeMinor = extra.feeMinor ?? (lateCancel ? terms?.feeAmountMinor : undefined)
+  const bookAgainUrl =
+    extra.kind === 'cancelled' || extra.kind === 'fee_waived' ? bookAgainUrlFromRow(booking) : undefined
   return {
     reference: str(booking.booking_reference),
     amountMinor,
@@ -153,18 +202,24 @@ export async function emailVarsFromRow(
     calendarUrl,
     ...(manageUrl ? { manageUrl } : {}),
     ...(policy ? { policy } : {}),
+    ...(feeMinor !== undefined ? { feeMinor } : {}),
+    ...(extra.refundMinor !== undefined ? { refundMinor: extra.refundMinor } : {}),
+    ...(extra.moneyOutcome ? { moneyOutcome: extra.moneyOutcome } : {}),
+    ...(extra.feeLabel ? { feeLabel: extra.feeLabel } : {}),
+    ...(freeUntil !== undefined ? { freeUntil } : {}),
+    ...(waitMin !== undefined ? { waitMin } : {}),
+    ...(bookAgainUrl ? { bookAgainUrl } : {}),
   }
 }
 
-export async function sendPaymentEmail(input: {
-  kind: PaymentEmailKind
-  booking: BookingRow
-  /** The ledger key, `email:<kind>:<bookingId>[:<attempt>]`; recorded once the message is delivered. */
-  eventKey: string
-  variant?: PaymentEmailVars['variant']
-  diffMinor?: number
-  payUrl?: string
-}): Promise<'sent' | 'duplicate' | 'failed'> {
+export async function sendPaymentEmail(
+  input: PaymentEmailExtra & {
+    kind: PaymentEmailKind
+    booking: BookingRow
+    /** The ledger key, `email:<kind>:<bookingId>[:<attempt>]`; recorded once the message is delivered. */
+    eventKey: string
+  },
+): Promise<'sent' | 'duplicate' | 'failed'> {
   const { kind, booking, eventKey } = input
   const bookingId = str(booking.id)
   const to = str(booking.client_email)
@@ -183,6 +238,12 @@ export async function sendPaymentEmail(input: {
         variant: input.variant,
         diffMinor: input.diffMinor,
         payUrl: input.payUrl,
+        feeMinor: input.feeMinor,
+        refundMinor: input.refundMinor,
+        moneyOutcome: input.moneyOutcome,
+        feeLabel: input.feeLabel,
+        freeUntil: input.freeUntil,
+        waitMin: input.waitMin,
       }),
     )
   } catch {

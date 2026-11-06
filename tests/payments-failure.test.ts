@@ -270,6 +270,12 @@ describe('tracer: a declined scheduled hold', () => {
       'dispute',
       'duplicate_payment',
       'stripe_config',
+      // Phase 89 plan 89-25 (UI-SPEC 8.3)
+      'fee_decision_needed',
+      'fee_no_show_needed',
+      'fee_pending_24h',
+      'client_cancelled',
+      'change_request',
     ])
   })
 })

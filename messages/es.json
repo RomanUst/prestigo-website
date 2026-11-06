@@ -1054,7 +1054,9 @@
       "whatNextLabel": "Qué ocurre a continuación",
       "receiptLabel": "Recibo",
       "paySecurelyLabel": "Pago seguro",
-      "tagline": "PRESTIGE IN EVERY MILE"
+      "tagline": "PRESTIGE IN EVERY MILE",
+      "bookAgainCta": "Reservar otro viaje",
+      "decides": "Una persona de Prestigo decide cada cargo."
     },
     "cardSaved": {
       "subject": "Su reserva de PRESTIGO está confirmada — {reference}",
@@ -1062,7 +1064,11 @@
       "intro": "Su tarjeta está guardada. No se ha cobrado nada.",
       "lineToday": "Hoy: su tarjeta queda guardada.",
       "lineHoldDay": "{holdDate}: retenemos {amount} en su tarjeta. Una retención no es un cobro.",
-      "lineAfterTrip": "Después del viaje: la retención se convierte en el cobro final."
+      "lineAfterTrip": "Después del viaje: la retención se convierte en el cobro final.",
+      "introCash": "Su tarjeta queda guardada como garantía. No se ha cobrado nada y no se ha retenido ningún importe.",
+      "cashLineToday": "Hoy: su tarjeta queda guardada. Sin retención y sin cobro.",
+      "cashLineDay": "El día del viaje: pague {amount} en efectivo al conductor.",
+      "cashLineIfNeeded": "Solo si es necesario: cobramos la tarjeta guardada si cancela después del {freeUntil}, no se presenta o no paga al conductor. Antes decide una persona de Prestigo."
     },
     "holdPlacedAtCheckout": {
       "subject": "Su reserva de PRESTIGO está confirmada — {reference}",
@@ -1091,15 +1097,55 @@
       "h1AuthRequired": "Su banco necesita que confirme este pago.",
       "introAuthRequired": "No hemos podido cobrar {amount} en su tarjeta por su viaje del {pickupDate} porque su banco ha solicitado una confirmación adicional. Confírmelo con el botón de abajo.",
       "body": "El enlace abre una página de pago segura de Stripe. Si paga con el enlace, no volveremos a intentar cobrar su tarjeta. Si ya ha pagado, ignore este correo.",
-      "cta": "Pagar {amount} de forma segura"
+      "cta": "Pagar {amount} de forma segura",
+      "subjectFee": "Acción necesaria: pago de su reserva PRESTIGO — {reference}",
+      "h1Fee": "No hemos podido cobrar su tarjeta.",
+      "introFeeCancellation": "No hemos podido cobrar {amount} en su tarjeta por la tarifa de cancelación. Pague de forma segura con el botón de abajo.",
+      "introFeeNoShow": "No hemos podido cobrar {amount} en su tarjeta por la tarifa de no presentación. Pague de forma segura con el botón de abajo.",
+      "introFeeTrip": "No hemos podido cobrar {amount} en su tarjeta por su viaje. Pague de forma segura con el botón de abajo."
     },
     "policyBox": {
       "label": "Cancelación",
-      "body": "Cancelación gratuita hasta el {freeUntil}. Después, se aplica el {percent}% de la tarifa ({amount}). Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin} min. Una persona de Prestigo decide cada cargo."
+      "body": "Cancelación gratuita hasta el {freeUntil}. Después, se aplica el {percent}% de la tarifa ({amount}). Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin} min. Una persona de Prestigo decide cada cargo.",
+      "cash": "Usted paga {amount} en efectivo al conductor. Su tarjeta es solo una garantía."
     },
     "manage": {
       "cta": "Gestionar la reserva",
       "note": "Cancele, solicite un cambio o reserve otro viaje. Mantenga este enlace en privado."
+    },
+    "contactOr": "o",
+    "money": {
+      "nothing": "No se ha cobrado nada.",
+      "released": "La retención en su tarjeta se ha liberado.",
+      "refunded": "Hemos reembolsado {amount} a su tarjeta. Su banco suele mostrarlo en un plazo de 5 a 10 días hábiles."
+    },
+    "cancelled": {
+      "subject": "Su reserva PRESTIGO está cancelada — {reference}",
+      "h1": "Su reserva está cancelada.",
+      "h1ByPrestigo": "Hemos tenido que cancelar su reserva.",
+      "introSorry": "Lo sentimos. Su reserva está cancelada y no se le cobra nada.",
+      "introLate": "Ha cancelado después del {freeUntil}, por lo que puede aplicarse una tarifa de cancelación de hasta {amount}. Una persona de Prestigo decide y se lo comunica por correo. Todavía no se ha cobrado nada.",
+      "lateNext": "Le enviaremos nuestra decisión por correo. Si sus planes han cambiado por algo ajeno a su control, como un vuelo cancelado, díganoslo respondiendo a este correo."
+    },
+    "feeCharged": {
+      "subjectLateCancel": "Tarifa de cancelación de su reserva PRESTIGO — {reference}",
+      "h1LateCancel": "Hemos cobrado una tarifa de cancelación.",
+      "introLateCancel": "Canceló la reserva {reference} después del {freeUntil}. Hemos cobrado {amount} en su tarjeta.",
+      "reasonLateCancel": "Motivo: cancelación después del {freeUntil}",
+      "subjectNoShow": "Tarifa por no presentación en su reserva PRESTIGO — {reference}",
+      "h1NoShow": "Hemos cobrado una tarifa por no presentación.",
+      "introNoShow": "Su conductor esperó {waitMin} minutos en el punto de recogida y no pudo encontrarle. Hemos cobrado {amount} en su tarjeta.",
+      "reasonNoShow": "Motivo: no presentación, el conductor esperó {waitMin} minutos",
+      "subjectCashUnpaid": "Pago de su viaje PRESTIGO — {reference}",
+      "h1CashUnpaid": "Hemos cobrado su tarjeta guardada.",
+      "introCashUnpaid": "Su viaje del {pickupDate} no se pagó en efectivo, así que hemos cobrado {amount} en la tarjeta que guardó.",
+      "reasonCashUnpaid": "Motivo: el viaje no se pagó en efectivo",
+      "introCashCard": "Eligió pagar con tarjeta, así que hemos cobrado {amount} en la tarjeta que guardó."
+    },
+    "feeWaived": {
+      "subject": "Sin tarifa en su reserva PRESTIGO — {reference}",
+      "h1": "Sin tarifa en su reserva.",
+      "intro": "Hemos decidido no cobrar una tarifa de cancelación."
     }
   }
 }

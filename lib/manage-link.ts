@@ -142,6 +142,12 @@ export function buildManageUrl(token: string, localeInput?: unknown): string {
   return `${siteBaseUrl()}${getPathname({ locale, href: `/manage/${token}` })}`
 }
 
+/** Localized absolute URL of the booking page (the "Book another ride" button of the cancelled and waived emails). */
+export function buildBookUrl(localeInput?: unknown): string {
+  const locale = normalizeSiteLocale(localeInput)
+  return `${siteBaseUrl()}${getPathname({ locale, href: '/book' })}`
+}
+
 /** Revoke a booking's link deliberately (erasure, abuse). True when a live token was revoked. */
 export async function revokeManageToken(bookingId: string): Promise<boolean> {
   if (typeof bookingId !== 'string' || bookingId.length === 0) return false
