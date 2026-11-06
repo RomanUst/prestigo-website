@@ -14,7 +14,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createTranslator, type AbstractIntlMessages } from 'next-intl'
 import { locales } from '@/i18n/locales'
-import { formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
+import { PRAGUE_TIME_LABEL, formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
 import { formatMinor } from '@/lib/payments/money'
 import {
   CARD_CONSENT_VERSION,
@@ -51,6 +51,14 @@ const CONSENT_KEYS = [
 const PINNED_EN_CONSENT_DIGEST: Record<string, string> = {
   '2026-11-draft-1': '673efc07665c3d17b18df116fb116fd6ad2d46d721beade1a3ba4d5a90980f65',
   '2026-11-1': '2298be1c5dd717f6abe01e95faf7920fd68410d6badfdd675a3f6d74a51afb8f',
+  // 2026-11-2 (review WR-04): the catalog strings are unchanged; the rendered deadline now ends in the Prague time label.
+  '2026-11-2': '2298be1c5dd717f6abe01e95faf7920fd68410d6badfdd675a3f6d74a51afb8f',
+}
+
+// The Prague time-zone label is part of the rendered (hashed, stored) consent text, so it is pinned to the version too.
+const PRAGUE_LABEL_ORDER = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
+const PINNED_PRAGUE_LABEL_DIGEST: Record<string, string> = {
+  '2026-11-2': 'e8e891aa50e20b3f17c42c9f6b563b9241b41f725588563a711d68238cc2d81b',
 }
 
 const MODES: ConsentMode[] = ['setup', 'hold_now', 'cash_setup']
@@ -58,8 +66,15 @@ const FREE_UNTIL_MS = Date.parse('2027-01-16T08:00:00Z')
 
 describe('CARD_CONSENT_VERSION', () => {
   it('is the final version constant, with no draft marker (D-16)', () => {
-    expect(CARD_CONSENT_VERSION).toBe('2026-11-1')
+    expect(CARD_CONSENT_VERSION).toBe('2026-11-2')
     expect(CARD_CONSENT_VERSION).not.toMatch(/draft/i)
+  })
+
+  it('is pinned to the Prague time labels appended to the deadline (label change without a bump fails)', () => {
+    const digest = createHash('sha256')
+      .update(PRAGUE_LABEL_ORDER.map((l) => `${l}=${PRAGUE_TIME_LABEL[l]}`).join('\n').normalize('NFC'), 'utf8')
+      .digest('hex')
+    expect(PINNED_PRAGUE_LABEL_DIGEST[CARD_CONSENT_VERSION]).toBe(digest)
   })
 
   it('is pinned to the EN consent strings (copy change without a bump fails)', () => {
@@ -96,6 +111,16 @@ describe('consentMessageKey / consentVars', () => {
     const v = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: null, locale: 'en' })
     expect(v.holdDate).toBe('')
     expect(v.freeUntil).toBe('')
+  })
+
+  it('WR-04: the free-until deadline carries the Prague time label in the locale language (client and stored text)', () => {
+    for (const locale of locales) {
+      const { freeUntil } = consentVars({ amountMinor: 100, currency: 'eur', holdDateIso: null, locale, freeUntilMs: FREE_UNTIL_MS })
+      expect(freeUntil, locale).toContain(PRAGUE_TIME_LABEL[locale])
+    }
+    expect(PRAGUE_TIME_LABEL.en).toBe('Prague time')
+    // Every language has its own wording, not the English one.
+    for (const locale of locales.filter((l) => l !== 'en')) expect(PRAGUE_TIME_LABEL[locale]).not.toBe(PRAGUE_TIME_LABEL.en)
   })
 
   it('freeUntil uses Latin digits in ar, hi and zh', () => {
@@ -186,6 +211,11 @@ describe('buildConsentText', () => {
         const text = await buildConsentText({ locale: 'en', mode, ...base })
         expect(text).not.toContain('cash')
       }
+    })
+
+    it('WR-04: the stored English consent text names the deadline with the Prague time label', async () => {
+      const text = await buildConsentText({ locale: 'en', mode: 'cash_setup', ...base })
+      expect(text).toContain('09:00 (Prague time)')
     })
 
     it('the NoFree variants drop the deadline wording', async () => {

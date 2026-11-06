@@ -259,6 +259,8 @@ describe('renderPaymentEmail: cancellation box and Manage booking button (en)', 
     const out = await renderPaymentEmail('card_saved', 'en', baseVars({ manageUrl: MANAGE_URL, policy: POLICY }))
     expect(out.html).toContain('Free cancellation until')
     expect(out.html).toContain(`<bdi dir="auto">${formatLocaleDateTime(POLICY.freeUntilMs, 'en')}</bdi>`)
+    // WR-04: the deadline in the email names the Prague time zone.
+    expect(out.html).toContain('09:05 (Prague time)</bdi>')
     expect(out.html).toContain('<bdi dir="ltr">50</bdi>%')
     expect(out.html).toContain(`<bdi dir="ltr">${formatMinor(6000, 'eur')}</bdi>`)
     expect(out.html).toContain('<bdi dir="ltr">30</bdi> minutes')

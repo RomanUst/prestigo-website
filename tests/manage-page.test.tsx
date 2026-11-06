@@ -323,6 +323,8 @@ describe('manage page, state table (E3 populated)', () => {
     expect(container.textContent).toContain('PR-4821')
     expect(getByTestId('manage-details').textContent).toContain('Vienna International Airport')
     expect(getByTestId('manage-panel-free').textContent).toMatch(/Free cancellation until/)
+    // WR-04: the deadline of the panel names the Prague time zone.
+    expect(getByTestId('manage-panel-free').querySelector('h2')?.textContent).toMatch(/\(Prague time\)$/)
     expect(container.querySelector('[data-manage-slot="cancel-region"]')).not.toBeNull()
     expect(container.querySelector('[data-manage-slot="change-request"]')).not.toBeNull()
   })
