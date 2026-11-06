@@ -25,6 +25,9 @@ vi.mock('@/components/booking/RouteMap', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => '/',
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }))
 
 // buildTripView consults the Maps-backed start gate; the page test decides the answer.
