@@ -307,7 +307,7 @@ Plans:
   4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges any amount up to 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
   5. The operator can mark a cash booking as settled in cash, a settled or cancelled booking can no longer be charged, and GNet bookings are never offered the cash guarantee or a no-show charge.
 
-**Plans**: 7/28 plans executed (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
+**Plans**: 9/28 plans executed (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
 Plans:
 **Wave 1**
 - [x] 89-01-PLAN.md — Migration 087, payment vocabulary, D-16 document amendments
@@ -323,8 +323,8 @@ Plans:
 - [x] 89-25-PLAN.md — Client email kinds in 7 locales and operator alert kinds
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 89-06-PLAN.md — Fee engine in the single collector
-- [ ] 89-10-PLAN.md — Cash checkout server and final consent wording
+- [x] 89-06-PLAN.md — Fee engine in the single collector
+- [x] 89-10-PLAN.md — Cash checkout server and final consent wording
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 89-08-PLAN.md — Cancellation orchestrator, money matrix and admin cancel route
@@ -566,7 +566,7 @@ Plans:
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
 | 87. Status Service & Driver Step Flow | v5.0 | 20/20 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
-| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 7/28 | In Progress|  |
+| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 9/28 | In Progress|  |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
