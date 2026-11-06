@@ -460,6 +460,12 @@ export function CancelBookingDialog({ booking, onClose, onCancelled, onRefundFai
             )}
           </div>
 
+          {booking.booking_source === 'gnet' && (
+            <p style={{ ...mutedText, marginTop: '12px' }}>
+              This booking was received from a GNet partner. Billing is handled directly by the GNet partner, and the CANCEL status is pushed to GNet.
+            </p>
+          )}
+
           {/* Round-trip leg: the paired booking is untouched (Phase 66 sentences, moved in). */}
           {isLeg && (
             <div style={{ marginTop: '12px' }}>

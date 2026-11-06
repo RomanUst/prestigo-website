@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { formatMinor } from '@/lib/payments/money'
 import { formatPragueFull } from '@/components/admin/PaymentPanel'
+import { FeeCaseBadge, CashChip, hasPendingFeeCase } from '@/components/admin/FeeCaseBadge'
 import {
   CancelBookingDialog,
   outcomeFor,
@@ -395,6 +396,37 @@ describe('CancelBookingDialog: submit and errors', () => {
     rerender(<CancelBookingDialog booking={makeBooking({ id: 'b2' })} {...props} />)
     for (const r of screen.getAllByRole('radio')) expect(r.getAttribute('aria-checked')).toBe('false')
     expect((primary() as HTMLButtonElement).disabled).toBe(true)
+  })
+})
+
+describe('FeeCaseBadge and CashChip', () => {
+  it('Fee decision is a danger-family badge with text and dot, no age', () => {
+    const { container } = render(<FeeCaseBadge />)
+    expect(screen.getByText('Fee decision')).toBeDefined()
+    const style = (container.firstElementChild as HTMLElement).getAttribute('style') ?? ''
+    expect(style).toContain('var(--status-danger-bg)')
+    expect(style).toContain('var(--status-danger-border)')
+    expect(container.textContent).toBe('Fee decision')
+  })
+
+  it('Cash is a neutral chip', () => {
+    const { container } = render(<CashChip />)
+    expect(container.textContent).toBe('Cash')
+    expect((container.firstElementChild as HTMLElement).getAttribute('style') ?? '').toContain('var(--status-neutral-bg)')
+  })
+
+  it('only a pending case of a non-partner booking shows the badge', () => {
+    expect(hasPendingFeeCase({ fee_case_status: 'pending', booking_source: 'online' })).toBe(true)
+    expect(hasPendingFeeCase({ fee_case_status: 'pending' })).toBe(true)
+    expect(hasPendingFeeCase({ fee_case_status: 'pending', booking_source: 'gnet' })).toBe(false)
+    for (const status of ['charged', 'waived', null, undefined]) {
+      expect(hasPendingFeeCase({ fee_case_status: status, booking_source: 'online' })).toBe(false)
+    }
+  })
+
+  it('FeeCaseBadge is built on BadgeShell', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '..', 'components/admin/FeeCaseBadge.tsx'), 'utf8')
+    expect(src).toContain('BadgeShell')
   })
 })
 
