@@ -852,6 +852,7 @@
       "emptyHeading": "No trips yet",
       "emptyBody": "Your booked transfers will appear here. Ready to travel?",
       "emptyCta": "Book a transfer",
+      "manage": "Manage booking",
       "statusLabels": {
         "confirmed": "CONFIRMED",
         "pending": "PENDING",
@@ -1123,5 +1124,91 @@
       "intro": "We decided not to charge a cancellation fee."
     },
     "contactOr": "or"
+  },
+  "Manage": {
+    "meta": {
+      "title": "Your booking"
+    },
+    "header": {
+      "homeAriaLabel": "Prestigo home"
+    },
+    "loading": "Loading your booking",
+    "eyebrow": "Your booking",
+    "title": {
+      "trip": "Your trip on <bdi>{pickupDate}</bdi>",
+      "onBoard": "Enjoy your ride",
+      "completed": "Trip completed",
+      "cancelled": "Booking cancelled",
+      "noShow": "We could not meet you"
+    },
+    "titleLine": {
+      "completed": "Thank you for travelling with Prestigo.",
+      "noShow": "The driver waited at the pick-up point. We will email you about the next steps."
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "assigned": "Driver assigned",
+      "enRoute": "Driver on the way",
+      "onLocation": "Driver at pickup",
+      "onBoard": "On the way",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "noShow": "Pickup missed",
+      "unpaid": "Awaiting payment"
+    },
+    "reference": "Booking reference",
+    "details": {
+      "from": "From",
+      "to": "To",
+      "pickup": "Pickup",
+      "pragueTime": "Prague time",
+      "vehicle": "Vehicle",
+      "passengers": "Passengers",
+      "fare": "Fare",
+      "payment": "Payment"
+    },
+    "payment": {
+      "paidCard": "Paid by card: <bdi>{amount}</bdi>.",
+      "cardSaved": "Your card is saved. We hold <bdi>{amount}</bdi> on <bdi>{holdDate}</bdi> and charge it after your trip.",
+      "holdActive": "A hold of <bdi>{amount}</bdi> is on your card. It is charged after your trip.",
+      "cash": "Pay <bdi>{amount}</bdi> in cash to your driver. Your card is saved only as a guarantee."
+    },
+    "panel": {
+      "freeHeading": "Free cancellation until <bdi>{freeUntil}</bdi>",
+      "freeIntro": "You can cancel this booking for free until then.",
+      "freeHold": "Your card hold is released.",
+      "freeRefund": "We refund <bdi>{amount}</bdi> to your card.",
+      "freeNone": "Nothing has been charged.",
+      "bankNote": "Your bank usually shows a refund within 5 to 10 business days.",
+      "lateHeading": "Free cancellation has ended",
+      "late1": "Free cancellation ended on <bdi>{freeUntil}</bdi>.",
+      "late2": "If you cancel now, {percent}% of the fare (<bdi>{amount}</bdi>) applies. Your booking is cancelled right away and your driver is told.",
+      "late3": "A person at Prestigo decides the final charge, and may waive it, for example if your flight was cancelled. Nothing is charged until we email you.",
+      "lateNoFee": "If you cancel now, your booking is cancelled right away and your driver is told. Nothing will be charged.",
+      "tooLate": "Pickup time has passed. To cancel now, please call us."
+    },
+    "cancelled": {
+      "heading": "Cancelled on <bdi>{cancelledDate}</bdi>",
+      "none": "Nothing was charged.",
+      "refunded": "We refunded <bdi>{amount}</bdi>.",
+      "pending": "A cancellation fee of up to <bdi>{amount}</bdi> may apply. We will email you our decision.",
+      "charged": "We charged <bdi>{amount}</bdi> for cancelling after <bdi>{freeUntil}</bdi>.",
+      "chargedLate": "We charged <bdi>{amount}</bdi> for cancelling late.",
+      "waived": "We decided not to charge a cancellation fee."
+    },
+    "bookNew": "Book a new ride",
+    "bookRide": "Book a ride",
+    "callUs": "Call us",
+    "emailUs": "Email us",
+    "contact": {
+      "label": "Need help?",
+      "privacy": "This page is private. Anyone with this link can manage this booking, so do not share it.",
+      "terms": "Terms & Conditions"
+    },
+    "invalid": {
+      "title": "This link is not valid",
+      "body": "Check that you copied the whole link from your booking email. If it still does not work, contact us and we will help."
+    }
   }
 }
