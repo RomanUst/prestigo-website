@@ -14,15 +14,19 @@
  *   <bdi dir="auto"> so Latin text inside Arabic keeps its order
  * - every user-supplied string HTML-escaped; UTF-8 only, no named entities
  * - payment_failed is the only email with a filled button
- * - no email states a cancellation fee, a refund promise or a cancellation
- *   threat (Phase 89 owns the policy)
+ * - fee and refund wording is a positive allow-list (Phase 89, replaces the Phase 88 blanket ban): only the
+ *   cancellation box (`policyBox.*` keys, rendered for templates flagged `policyBox` when the booking stored a
+ *   policy) and the kinds plan 89-25 adds may state a fee, a percent or a refund. Every other line of card_saved,
+ *   hold_placed and charged stays free of it; tests/payments-copy-i18n.test.ts enforces the list per locale.
+ * - the Manage booking button is outlined (payment_failed stays the only filled button) and is present only when
+ *   vars.manageUrl is set, which the sender does only for a booking that stored a policy (D-18)
  *
  * Server-only by usage (loads catalogs through dynamic imports and renders
  * HTML for Resend); it imports nothing that needs the browser.
  */
 import { createTranslator, type AbstractIntlMessages } from 'next-intl'
 import { normalizeSiteLocale, rtlLocales, type AppLocale } from '@/i18n/locales'
-import { formatLocaleDate } from '@/lib/locale-date'
+import { formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
 import { EMAIL_CONTACT_LINE, emailLogoImg, escapeHtml } from '@/lib/email'
 import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
 
@@ -43,6 +47,21 @@ export interface PaymentEmailVars {
   diffMinor?: number
   payUrl?: string
   calendarUrl?: string
+  /** Localized absolute https URL of the manage page; absent unless the booking stored a policy (D-18). */
+  manageUrl?: string
+  /** Terms for the cancellation box, from the booking's stored policy; absent when it stored none. */
+  policy?: PolicyBoxVars
+}
+
+export interface PolicyBoxVars {
+  /** End of free cancellation, epoch ms; shown on the Europe/Prague wall clock. */
+  freeUntilMs: number
+  /** Share of the fare that applies after the free period, 1..100. */
+  percent: number
+  /** That share in minor units of vars.currency (never typed in the catalog). */
+  feeAmountMinor: number
+  /** Minutes the driver waits before a no-show. */
+  waitMin: number
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +122,7 @@ function text(t: Translator, key: string, params: Record<string, string> = {}): 
  * Parameters that are localized words (a long date such as "12 نوفمبر 2026"), isolated with dir="auto" so an RTL reader
  * reads them in their own order (88-REVIEW C-IN-01). Amounts, references and times stay ltr.
  */
-const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate'])
+const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate', 'freeUntil'])
 
 /**
  * HTML message: catalog text escaped, parameters inserted as bdi ltr (localized dates: bdi auto).
@@ -156,6 +175,8 @@ interface Template {
   highlightLabel: string
   lines: string[]
   cta?: 'calendar' | 'pay'
+  /** Confirmation family: carries the cancellation box and the Manage booking button when the vars have them. */
+  policyBox?: boolean
 }
 
 const TEMPLATES: Record<string, (c: Ctx) => Template> = {
@@ -170,6 +191,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
       html(c.t, 'cardSaved.lineAfterTrip'),
     ],
     cta: 'calendar',
+    policyBox: true,
   }),
   'hold_placed:at_checkout': (c) => ({
     subject: text(c.t, 'holdPlacedAtCheckout.subject', { reference: c.vars.reference }),
@@ -181,6 +203,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
       html(c.t, 'holdPlacedAtCheckout.lineAfterTrip'),
     ],
     cta: 'calendar',
+    policyBox: true,
   }),
   'hold_placed:scheduled': (c) => ({
     subject: text(c.t, 'holdPlacedScheduled.subject', { reference: c.vars.reference }),
@@ -188,6 +211,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
     intro: html(c.t, 'holdPlacedScheduled.intro', { amount: c.amount, pickupDate: c.pickupDate }),
     highlightLabel: html(c.t, 'common.whatNextLabel'),
     lines: [html(c.t, 'holdPlacedScheduled.next')],
+    policyBox: true,
   }),
   charged: (c) => ({
     subject: text(c.t, 'charged.subject', { reference: c.vars.reference }),
@@ -309,11 +333,38 @@ function buildShell(args: {
       .join(''),
   )
 
+  // Cancellation box (UI-SPEC 8.1): only for a confirmation-family template whose booking stored a policy.
+  let policyBox = ''
+  if (tpl.policyBox && vars.policy) {
+    const p = vars.policy
+    const body = html(t, 'policyBox.body', {
+      freeUntil: formatLocaleDateTime(p.freeUntilMs, locale),
+      percent: String(p.percent),
+      amount: formatMinor(p.feeAmountMinor, vars.currency),
+      waitMin: String(p.waitMin),
+    })
+    policyBox = box(
+      html(t, 'policyBox.label'),
+      `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6;">${body}</div>`,
+    )
+  }
+
+  // Manage booking: outlined, below Add to calendar (16px apart) when that button exists.
+  const manageHref = tpl.policyBox && vars.manageUrl ? escapeHtml(safeHttpsUrl(vars.manageUrl, 'manageUrl')) : null
+  const hasCalendar = tpl.cta === 'calendar' && Boolean(vars.calendarUrl)
+  const manage = manageHref
+    ? `
+      <div style="text-align: center; padding: ${hasCalendar ? '0' : '8px'} 32px 24px;">
+        <a href="${manageHref}" style="display: inline-block; border: 1px solid #BFA06A; color: #E6D6B0; padding: 16px 32px; text-decoration: none; font-size: 14px; font-weight: 400; letter-spacing: normal; font-family: 'Inter', Arial, sans-serif;">${html(t, 'manage.cta')}</a>
+        <div style="font-size: 11px; font-weight: 400; color: #A9AEB0; line-height: 1.6; margin-top: 8px;">${html(t, 'manage.note')}</div>
+      </div>`
+    : ''
+
   let cta = ''
   if (tpl.cta === 'calendar' && vars.calendarUrl) {
     const href = escapeHtml(safeHttpsUrl(vars.calendarUrl, 'calendarUrl'))
     cta = `
-      <div style="text-align: center; padding: 8px 32px 24px;">
+      <div style="text-align: center; padding: 8px 32px ${manageHref ? '16px' : '24px'};">
         <a href="${href}" style="display: inline-block; border: 1px solid #BFA06A; color: #BFA06A; padding: 12px 24px; text-decoration: none; font-size: 11px; font-weight: 400; ${upper ? 'letter-spacing: 2px; text-transform: uppercase;' : 'letter-spacing: normal;'} font-family: 'Inter', Arial, sans-serif;">${html(t, 'common.calendarCta')}</a>
       </div>`
   } else if (tpl.cta === 'pay') {
@@ -362,7 +413,8 @@ ${highlightBox}
         <table role="presentation" style="width: 100%; border-collapse: collapse;">${journey}
         </table>
       </div>
-${cta}
+${policyBox}
+${cta}${manage}
 ${assistance}
 
       <div style="padding-top: 32px; padding-bottom: 32px;">

@@ -1042,6 +1042,14 @@
       "introAuthRequired": "We couldn't charge {amount} to your card for your trip on {pickupDate} because your bank asked for extra confirmation. Please confirm with the button below.",
       "body": "The link opens a secure Stripe payment page. If you pay with the link, we won't try your card again. If you have already paid, ignore this email.",
       "cta": "Pay {amount} securely"
+    },
+    "policyBox": {
+      "label": "Cancellation",
+      "body": "Free cancellation until {freeUntil}. After that, {percent}% of the fare ({amount}) applies. If you do not show up, the full fare applies once the driver has waited {waitMin} minutes. A person at Prestigo decides every charge."
+    },
+    "manage": {
+      "cta": "Manage booking",
+      "note": "Cancel, ask for a change or book another ride. Keep this link private."
     }
   }
 }
