@@ -1092,6 +1092,14 @@
       "introAuthRequired": "No hemos podido cobrar {amount} en su tarjeta por su viaje del {pickupDate} porque su banco ha solicitado una confirmación adicional. Confírmelo con el botón de abajo.",
       "body": "El enlace abre una página de pago segura de Stripe. Si paga con el enlace, no volveremos a intentar cobrar su tarjeta. Si ya ha pagado, ignore este correo.",
       "cta": "Pagar {amount} de forma segura"
+    },
+    "policyBox": {
+      "label": "Cancelación",
+      "body": "Cancelación gratuita hasta el {freeUntil}. Después, se aplica el {percent}% de la tarifa ({amount}). Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin} min. Una persona de Prestigo decide cada cargo."
+    },
+    "manage": {
+      "cta": "Gestionar la reserva",
+      "note": "Cancele, solicite un cambio o reserve otro viaje. Mantenga este enlace en privado."
     }
   }
 }

@@ -1092,6 +1092,14 @@
       "introAuthRequired": "Nous n'avons pas pu débiter {amount} de votre carte pour votre trajet du {pickupDate}, car votre banque a demandé une confirmation supplémentaire. Veuillez confirmer avec le bouton ci-dessous.",
       "body": "Le lien ouvre une page de paiement Stripe sécurisée. Si vous payez avec ce lien, nous n'essaierons pas de débiter à nouveau votre carte. Si vous avez déjà payé, ignorez cet e-mail.",
       "cta": "Payer {amount} en toute sécurité"
+    },
+    "policyBox": {
+      "label": "Annulation",
+      "body": "Annulation gratuite jusqu'au {freeUntil}. Passé ce délai, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit."
+    },
+    "manage": {
+      "cta": "Gérer la réservation",
+      "note": "Annulez, demandez une modification ou réservez un autre trajet. Gardez ce lien confidentiel."
     }
   }
 }

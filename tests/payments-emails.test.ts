@@ -315,6 +315,76 @@ describe('renderPaymentEmail: cancellation box and Manage booking button (en)', 
   })
 })
 
+/** The static text around the ICU parameters of a catalog leaf, HTML-escaped as the renderer escapes it. */
+function staticFragments(locale: string, key: 'body' | 'label'): string[] {
+  const m = JSON.parse(readFileSync(join(process.cwd(), 'messages', `${locale}.json`), 'utf8')) as {
+    PaymentEmails: { policyBox: Record<string, string> }
+  }
+  return m.PaymentEmails.policyBox[key]
+    .split(/\{[A-Za-z]+\}/)
+    .map((f) => f.trim())
+    .filter((f) => f.length > 3)
+    .map(escapeHtml)
+}
+
+describe.each(catalogLocales())('cancellation box and Manage booking button per locale: %s', (locale) => {
+  const WITH = { manageUrl: MANAGE_URL, policy: POLICY }
+  const FAMILY: Case[] = [
+    { kind: 'card_saved' },
+    { kind: 'hold_placed', variant: 'at_checkout' },
+    { kind: 'hold_placed', variant: 'scheduled' },
+  ]
+
+  it.each(FAMILY.map((c) => [`${c.kind}${c.variant ? `/${c.variant}` : ''}`, c] as const))(
+    '%s carries the box and the button with every parameter resolved',
+    async (_name, c) => {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant, ...WITH }))
+      expect(out.html).not.toMatch(/\{[A-Za-z]+\}/)
+      for (const fragment of [...staticFragments(locale, 'body'), ...staticFragments(locale, 'label')]) {
+        expect(out.html).toContain(fragment)
+      }
+      expect(out.html).toContain(`<bdi dir="auto">${formatLocaleDateTime(POLICY.freeUntilMs, locale)}</bdi>`)
+      expect(out.html).toContain('<bdi dir="ltr">50</bdi>')
+      expect(out.html).toContain(`<bdi dir="ltr">${formatMinor(6000, 'eur')}</bdi>`)
+      expect(out.html).toContain('<bdi dir="ltr">30</bdi>')
+      expect(out.html).toContain(`href="${MANAGE_URL}"`)
+      expect(out.html).toContain('border: 1px solid #BFA06A; color: #E6D6B0')
+      // Latin digits whatever the locale.
+      expect(out.html).not.toMatch(/[٠-٩۰-۹०-९]/)
+      const rtl = (rtlLocales as readonly string[]).includes(locale)
+      if (rtl) expect(out.html).toContain('<html lang="' + locale + '" dir="rtl">')
+      else expect(out.html).not.toContain('dir="rtl"')
+      expect(out.html.match(FILLED_BUTTON) ?? []).toHaveLength(0)
+    },
+  )
+
+  it('the same emails carry neither the box nor the button without a stored policy', async () => {
+    for (const c of FAMILY) {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant }))
+      expect(out.html).not.toContain('/manage/')
+      for (const fragment of staticFragments(locale, 'body')) expect(out.html).not.toContain(fragment)
+    }
+  })
+
+  it('charged and payment_failed never carry the box, even when the vars have it', async () => {
+    const charged = await renderPaymentEmail('charged', locale, baseVars(WITH))
+    const failed = await renderPaymentEmail('payment_failed', locale, baseVars({ variant: 'declined', payUrl: PAY_URL, ...WITH }))
+    for (const out of [charged, failed]) {
+      expect(out.html).not.toContain('/manage/')
+      for (const fragment of staticFragments(locale, 'body')) expect(out.html).not.toContain(fragment)
+    }
+  })
+
+  it('fee and refund wording appears only in the box: the email without it states none', async () => {
+    // Phase 88 guard as a positive allow-list: the same kinds minus the box carry no percent and no fee sentence.
+    for (const c of [...FAMILY, { kind: 'charged' } as Case]) {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant }))
+      const visibleText = out.html.replace(/<[^>]+>/g, ' ')
+      expect(visibleText).not.toMatch(/\d\s?%|%\s?\d/)
+    }
+  })
+})
+
 describe('emailVarsFromRow: stored-terms gate (tracer, D-18)', () => {
   let db: FakePaymentsDb
 
