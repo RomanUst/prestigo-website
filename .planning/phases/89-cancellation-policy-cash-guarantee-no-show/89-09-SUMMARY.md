@@ -82,7 +82,7 @@ Read the route: no terminal check preceded the `driver_assignments` insert (the 
 
 - `npx vitest run` on admin-no-show (46), admin-no-show-confirm (9), driver-no-show, admin-bookings-status-gates (12), admin-bookings, admin-bookings-edit-payment, admin-bookings-cancel, admin-bookings-payment-link, admin-assignment, gnet-status-push, booking-status-service: 11 files, 384 passed. Also card-checkout-init, card-checkout-cash, driver-trip, payments-lifecycle, noshow-alert: 123 passed.
 - `npx tsc --noEmit`: no error outside `tests/`; the 8 baseline errors in `tests/` are unchanged. `npx eslint --quiet` on every touched source and test file exits 0.
-- `grep -c assertNoShowConfirmable lib/no-show.ts` prints 2; `grep -c use_no_show_route app/api/admin/bookings/route.ts` prints 2; `grep -c TERMINAL_BOOKING_STATUSES` on the assign route prints 2.
+- `grep -c assertNoShowConfirmable lib/no-show.ts` prints 3; `grep -c use_no_show_route app/api/admin/bookings/route.ts` prints 1; `grep -c TERMINAL_BOOKING_STATUSES` on the assign route prints 2.
 
 ## Deviations from Plan
 
