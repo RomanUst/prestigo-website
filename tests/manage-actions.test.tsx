@@ -61,8 +61,9 @@ vi.mock('@/lib/manage-view', async (importOriginal) => {
   return { ...actual, loadManageView: mockLoad }
 })
 
-vi.mock('next/navigation', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('next/navigation')>()
+// The locale-aware router of the island (the next/navigation one drops the locale, tests/locale-links-backstop).
+vi.mock('@/i18n/routing', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/i18n/routing')>()
   return { ...actual, useRouter: () => ({ refresh: mockRefresh, push: vi.fn(), replace: vi.fn() }) }
 })
 

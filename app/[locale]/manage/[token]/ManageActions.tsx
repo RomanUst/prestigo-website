@@ -12,7 +12,7 @@
 // - Types for the strings live here; the page imports them with `import type`.
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { LoaderCircle } from 'lucide-react'
 
 export type ManageCancelVariant = 'free' | 'late'
