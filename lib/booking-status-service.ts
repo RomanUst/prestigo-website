@@ -1,7 +1,7 @@
 import { NextResponse, after } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { logEmail } from '@/lib/email-log'
-import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail } from '@/lib/email'
+import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail, type CancelMoneyOutcome } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
@@ -33,7 +33,8 @@ export type StatusActor =
  * Which side effects follow a successful write.
  *  - 'full':         admin PATCH — stale payment-link clear + deactivate, flag-gated
  *                    deduped status email, 2 h QStash reminder on confirmed, GNet push
- *  - 'cancel-route': the admin cancel route — no side effect at all (today's behaviour)
+ *  - 'cancel-route': the admin cancel route — no side effect here; the route calls scheduleCancelRouteEmail
+ *                    once the money step has succeeded, so the email can say what happened to the money
  *  - 'assign-route': the admin assign route — GNet push only
  *  - 'payment-engine': the card-on-file webhook / tick confirming a booking in place (Phase 88) —
  *                    no side effect at all; the payment engine sends its own ledger-keyed emails
@@ -341,4 +342,40 @@ export function advanceResultToResponse(
     case 'db_error':
       return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
   }
+}
+
+/**
+ * The client's cancelled email for the admin cancel route, after its refund or release succeeded. Same rules as the
+ * 'full' profile: the notification flag, the dedup log and no email to partner passengers. An `unpaid` row is an
+ * abandoned checkout the client never completed, so it gets none. Never throws into the route: the cancel stands.
+ */
+export function scheduleCancelRouteEmail(
+  booking: Record<string, unknown>,
+  previousStatus: string,
+  money: CancelMoneyOutcome | null,
+): void {
+  const recipient = booking.client_email
+  if (typeof recipient !== 'string' || !recipient) return
+  if (previousStatus === 'unpaid' || isPartnerBooking(booking as { booking_source?: string | null })) return
+
+  after(async () => {
+    try {
+      const { data: flagsRow } = await createSupabaseServiceClient()
+        .from('pricing_globals')
+        .select('notification_flags')
+        .eq('id', 1)
+        .single()
+      const flags = flagsRow?.notification_flags as Record<string, boolean> | null
+      if (flags && flags.cancelled === false) return
+
+      const shouldSend = await logEmail({
+        bookingId: booking.id as string,
+        emailType: 'booking_cancelled',
+        recipient,
+      })
+      if (shouldSend) await sendStatusCancelledEmail(booking as unknown as StatusEmailInput, money)
+    } catch (err) {
+      console.error('[booking-notify] cancelled:', err)
+    }
+  })
 }
