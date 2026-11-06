@@ -76,6 +76,7 @@ import { POST as webhookPOST } from '@/app/api/webhooks/stripe/route'
 import { GET as tickGET } from '@/app/api/cron/payment-tick/route'
 import { AttemptFlowConflictError, buildBookingRow, captureUnpaidBooking } from '@/lib/supabase'
 import { claimDueHolds } from '@/lib/payments/state'
+import { reevaluateAfterEdit } from '@/lib/payments/edit-hook'
 import { buildConsentText, consentSha256 } from '@/lib/payments/consent'
 import { CARD_CONSENT_VERSION } from '@/lib/payments/consent-text'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
@@ -571,6 +572,82 @@ describe('one payment flow per attempt, symmetric (Pitfall 5, T-89-36)', () => {
     const row = { ...buildBookingRow(minimalMeta(), null, 'unpaid'), payment_mode: 'cash_guarantee' }
     await expect(captureUnpaidBooking(row, ATTEMPT, 'outbound', 'cash_guarantee')).rejects.toBeInstanceOf(AttemptFlowConflictError)
     expect(rows()[0].payment_intent_id).toBe('pi_paid')
+  })
+})
+
+describe('a price edit on a cash booking keeps the amount the driver will see (D-12)', () => {
+  async function confirmedCash() {
+    const initOut = await init()
+    await intent(intentBody(initOut, 'cash'))
+    const b = rows()[0]
+    booking_pickup(b)
+    setNow(NOW0 + 5 * MINUTE)
+    await saveCard(b.setup_intent_id as string)
+    return b
+  }
+
+  const actor = { type: 'admin' as const, id: 'admin-1' }
+
+  it('card_saved: payment_amount_minor follows amount_eur through a card_saved self-loop with an edit_reevaluated row', async () => {
+    const b = await confirmedCash()
+    b.amount_eur = 140.5
+    const effect = await reevaluateAfterEdit({ bookingId: b.id as string, before: { ...b, amount_eur: 125 }, priceChanged: true, pickupChanged: false, actor })
+    expect(effect).toBeNull()
+    expect(rows()[0]).toMatchObject({ payment_state: 'card_saved', payment_amount_minor: 14050, payment_mode: 'cash_guarantee', hold_at: null })
+    const edits = ledger(b.id as string).filter((e) => e.kind === 'edit_reevaluated')
+    expect(edits).toHaveLength(1)
+    expect(edits[0]).toMatchObject({ from_state: 'card_saved', to_state: 'card_saved', amount_minor: 14050 })
+    expect(piCreates()).toHaveLength(0)
+  })
+
+  it('a pickup change on a cash booking never schedules a hold (hold_at stays null)', async () => {
+    const b = await confirmedCash()
+    b.pickup_date = '2027-01-17'
+    const effect = await reevaluateAfterEdit({ bookingId: b.id as string, before: { ...b, pickup_date: '2027-01-16' }, priceChanged: false, pickupChanged: true, actor })
+    expect(effect).toBeNull()
+    expect(rows()[0].hold_at).toBeNull()
+    expect(ledger(b.id as string).filter((e) => e.kind === 'edit_reevaluated')).toHaveLength(0)
+  })
+
+  it('a cash booking that is cash_settled or captured is not changed', async () => {
+    for (const state of ['cash_settled', 'captured'] as const) {
+      const b = await confirmedCash()
+      b.payment_state = state
+      b.amount_eur = 200
+      const before = b.payment_amount_minor
+      const effect = await reevaluateAfterEdit({ bookingId: b.id as string, before: { ...b, amount_eur: 125 }, priceChanged: true, pickupChanged: false, actor })
+      expect(effect).toBeNull()
+      expect(rows().find((r) => r.id === b.id)!.payment_amount_minor).toBe(before)
+      db = createFakePaymentsDb({ nowMs: NOW0 })
+      Object.assign(db.state.pricing_globals[0], { card_flow_mode: 'canary', card_flow_canary_emails: [OWNER], payment_hold_lead_hours: 72 })
+      world.client = lifecycleClient(db)
+      setNow(NOW0)
+    }
+  })
+
+  it('a partner booking never reaches the cash branch', async () => {
+    const b = await confirmedCash()
+    const effect = await reevaluateAfterEdit({
+      bookingId: b.id as string,
+      before: { ...b, booking_source: 'gnet' },
+      priceChanged: true,
+      pickupChanged: false,
+      actor,
+    })
+    expect(effect).toBeNull()
+  })
+
+  it('a card_hold booking is unchanged by the cash branch (authorized keeps its hold)', async () => {
+    const initOut = await init()
+    await intent(intentBody(initOut, 'card'))
+    const b = rows()[0]
+    booking_pickup(b)
+    setNow(NOW0 + 5 * MINUTE)
+    await saveCard(b.setup_intent_id as string)
+    b.amount_eur = 150
+    await reevaluateAfterEdit({ bookingId: b.id as string, before: { ...b, amount_eur: 125 }, priceChanged: true, pickupChanged: false, actor })
+    expect(rows()[0]).toMatchObject({ payment_mode: 'card_hold', payment_state: 'card_saved', payment_amount_minor: 15000 })
+    expect(rows()[0].hold_at).toBe(HOLD_AT)
   })
 })
 
