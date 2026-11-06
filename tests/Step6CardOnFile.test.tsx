@@ -130,6 +130,8 @@ const POLICY = {
   waitMin: 45,
 }
 
+const FREE_MS = Date.parse(POLICY.freeUntilIso)
+
 function eligibleInit(over: Record<string, unknown> = {}) {
   return {
     eligible: true,
@@ -327,8 +329,8 @@ describe('consent checkbox and submit button (HOLD-01)', () => {
     await renderGate()
     const box = await ready()
     const label = box.closest('label') as HTMLLabelElement
-    const vars = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: '2026-11-12', locale: 'en' })
-    // Phase 89-10: the wording now names {freeUntil}; the checkout passes it from the init policy in plan 89-11.
+    const vars = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: '2026-11-12', locale: 'en', freeUntilMs: FREE_MS })
+    // Phase 89: the wording names {freeUntil}, the init policy's moment (Prague clock).
     const expected = cof[consentMessageKey('setup')]
       .replaceAll('{amount}', vars.amount)
       .replace('{holdDate}', vars.holdDate)
@@ -786,7 +788,7 @@ describe('held-now variant (HOLD-03, D-11)', () => {
     await renderGate()
     const box = await ready()
     const label = box.closest('label') as HTMLLabelElement
-    const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: null, locale: 'en' })
+    const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: null, locale: 'en', freeUntilMs: FREE_MS })
     expect(label.textContent).toBe(cof[consentMessageKey('hold_now')].replaceAll('{amount}', vars.amount).replace('{freeUntil}', vars.freeUntil))
     expect(label.textContent).toContain(formatMinor(9000, 'czk'))
   })
@@ -875,7 +877,7 @@ describe('held-now variant (HOLD-03, D-11)', () => {
     const box = screen.getByRole('checkbox') as HTMLInputElement
     expect(box.checked).toBe(false)
     const label = box.closest('label') as HTMLLabelElement
-    const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: '2026-11-12', locale: 'en' })
+    const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: '2026-11-12', locale: 'en', freeUntilMs: FREE_MS })
     expect(label.textContent).toBe(
       cof[consentMessageKey('setup')].replaceAll('{amount}', vars.amount).replace('{holdDate}', vars.holdDate).replace('{freeUntil}', vars.freeUntil),
     )
@@ -915,5 +917,346 @@ describe('held-now variant (HOLD-03, D-11)', () => {
     expect(busy).toBeDisabled()
     expect(busy).toHaveAttribute('aria-busy', 'true')
     await act(async () => { finish({ paymentIntent: { status: 'requires_capture' } }) })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Phase 89 plan 11: payment choice, cash path, cancellation note, free-until in the consent (CASH-01, CANC-02)
+// ---------------------------------------------------------------------------
+
+function cashInit(over: Record<string, unknown> = {}) {
+  return eligibleInit({ cashAvailable: true, ...over })
+}
+
+function cashTile() {
+  return screen.getByRole('radio', { name: new RegExp(cof.choiceCashTitle) })
+}
+function cardTile() {
+  return screen.getByRole('radio', { name: new RegExp(cof.choiceCardTitle) })
+}
+
+const CASH_INTENT = {
+  body: { clientSecret: 'seti_9_secret_x', mode: 'setup', payment: 'cash', bookingReference: 'PRG-20261112-CASH01', amountMinor: 12000, currency: 'eur' },
+}
+
+function whenText(ms = FREE_MS) {
+  return consentVars({ amountMinor: 1, currency: 'eur', holdDateIso: null, locale: 'en', freeUntilMs: ms }).freeUntil
+}
+
+describe('payment choice tiles (E9, D-08)', () => {
+  it('shows no choice when init does not offer cash', async () => {
+    await renderGate()
+    await ready()
+    expect(screen.queryByRole('radiogroup')).toBeNull()
+    expect(screen.queryByText(cof.paymentChoiceLabel)).toBeNull()
+  })
+
+  it('shows two tiles labelled by the heading, card selected by default, setup description on the card tile', async () => {
+    initReplies = [{ body: cashInit() }]
+    await renderGate()
+    await ready()
+    const group = screen.getByRole('radiogroup')
+    expect(group).toHaveAttribute('aria-labelledby')
+    expect(screen.getByText(cof.paymentChoiceLabel)).toBeInTheDocument()
+    expect(cardTile()).toHaveAttribute('aria-checked', 'true')
+    expect(cashTile()).toHaveAttribute('aria-checked', 'false')
+    expect(cardTile()).toHaveTextContent(cof.choiceCardDescSetup)
+    expect(screen.getByText(cof.choiceCashDesc)).toBeInTheDocument()
+    // roving tabindex
+    expect(cardTile()).toHaveAttribute('tabindex', '0')
+    expect(cashTile()).toHaveAttribute('tabindex', '-1')
+  })
+
+  it('the card tile reads the held-now description in the held-now variant', async () => {
+    initReplies = [{ body: cashInit({ mode: 'hold_now', holdAtIso: null, holdDateIso: null }) }]
+    await renderGate()
+    await ready()
+    expect(screen.getByText(cof.choiceCardDescHoldNow)).toBeInTheDocument()
+  })
+
+  it('card is selected again on every mount, even after cash was chosen', async () => {
+    initReplies = [{ body: cashInit() }]
+    const first = await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(cashTile()) })
+    expect(cashTile()).toHaveAttribute('aria-checked', 'true')
+    first.unmount()
+    await renderGate()
+    await ready()
+    expect(cardTile()).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('arrow keys move and select, Space selects the focused tile', async () => {
+    initReplies = [{ body: cashInit() }]
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.keyDown(cardTile(), { key: 'ArrowRight' }) })
+    expect(cashTile()).toHaveAttribute('aria-checked', 'true')
+    expect(document.activeElement).toBe(cashTile())
+    await act(async () => { fireEvent.keyDown(cashTile(), { key: 'ArrowUp' }) })
+    expect(cardTile()).toHaveAttribute('aria-checked', 'true')
+    await act(async () => { fireEvent.keyDown(cardTile(), { key: 'ArrowDown' }) })
+    expect(cashTile()).toHaveAttribute('aria-checked', 'true')
+    await act(async () => { fireEvent.keyDown(cashTile(), { key: ' ' }) })
+    expect(cashTile()).toHaveAttribute('aria-checked', 'true')
+  })
+
+  it('switching clears a ticked box, announces it, remounts Elements and starts a new attempt', async () => {
+    initReplies = [{ body: cashInit() }]
+    await renderGate()
+    const box = (await ready()) as HTMLInputElement
+    fireEvent.click(box)
+    expect(box.checked).toBe(true)
+    const elementsBefore = h.elementsOptionsCapture.length
+    storeRef.current.setAttemptId.mockClear()
+
+    await act(async () => { fireEvent.click(cashTile()) })
+
+    const after = (await screen.findByRole('checkbox')) as HTMLInputElement
+    expect(after.checked).toBe(false)
+    expect(screen.getByTestId('card-live-region')).toHaveTextContent(cof.noticeDetailsChanged)
+    expect(h.elementsOptionsCapture.length).toBeGreaterThan(elementsBefore)
+    expect(storeRef.current.setAttemptId).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not announce a switch when the box was not ticked', async () => {
+    initReplies = [{ body: cashInit() }]
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(cashTile()) })
+    expect(screen.getByTestId('card-live-region')).toHaveTextContent('')
+  })
+
+  it('does not issue another init call when switching', async () => {
+    initReplies = [{ body: cashInit() }]
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(cashTile()) })
+    expect(fetchCalls.filter((c) => c.url === '/api/card-checkout/init')).toHaveLength(1)
+  })
+})
+
+describe('cash path (CASH-01, D-09)', () => {
+  beforeEach(() => {
+    initReplies = [{ body: cashInit() }]
+    intentReplies = [CASH_INTENT]
+  })
+
+  it('replaces the card explainer with the cash explainer and shows no hold date', async () => {
+    await renderGate()
+    await ready()
+    expect(screen.getByRole('heading', { name: cof.headlineSetup })).toBeInTheDocument()
+    await act(async () => { fireEvent.click(cashTile()) })
+    await ready()
+    expect(screen.getByText(cof.headlineCash)).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: cof.headlineSetup })).toBeNull()
+    expect(screen.queryByText(formatLocaleDate('2026-11-12', 'en'))).toBeNull()
+    expect(screen.getByText(cof.cashToday)).toBeInTheDocument()
+    expect(screen.getByText(cof.cashIfNeeded)).toBeInTheDocument()
+    const onTheDay = cof.cashOnTheDay.replace(/<\/?bdi>/g, '').replace('{amount}', formatMinor(12000, 'eur'))
+    expect(screen.getByText((_c, el) => el?.tagName === 'P' && el.textContent === onTheDay)).toBeInTheDocument()
+    expect(screen.queryByText(cof.setupHoldDay.replace('{amount}', formatMinor(12000, 'eur')))).toBeNull()
+  })
+
+  it('inside the hold lead window cash still uses the setup path and never the held-now variant', async () => {
+    initReplies = [{ body: cashInit({ mode: 'hold_now', holdAtIso: null, holdDateIso: null, amountMinor: 9000, currency: 'czk' }) }]
+    await renderGate()
+    await ready()
+    expect(screen.getByText(cof.headlineHoldNow)).toBeInTheDocument()
+    await act(async () => { fireEvent.click(cashTile()) })
+    await ready()
+    expect(screen.getByText(cof.headlineCash)).toBeInTheDocument()
+    expect(screen.queryByText(cof.headlineHoldNow)).toBeNull()
+    const opts = h.elementsOptionsCapture[h.elementsOptionsCapture.length - 1]
+    expect(opts).toMatchObject({ mode: 'setup', currency: 'czk' })
+    expect(opts).not.toHaveProperty('amount')
+    expect(screen.getByRole('button', { name: cof.ctaSetup })).toBeDisabled()
+  })
+
+  it('the consent label is the cash wording with the amount and the free-until moment', async () => {
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(cashTile()) })
+    const box = await ready()
+    const label = box.closest('label') as HTMLLabelElement
+    const vars = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: null, locale: 'en', freeUntilMs: FREE_MS })
+    expect(vars.freeUntil).toContain('09:30')
+    expect(label.textContent).toBe(cof[consentMessageKey('cash_setup')].replaceAll('{amount}', vars.amount).replace('{freeUntil}', vars.freeUntil))
+    expect(label.textContent).toContain('No hold is placed')
+  })
+
+  it('submits payment cash, the setup path, no hold date and the displayed free-until; confirms through confirmSetup', async () => {
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(cashTile()) })
+    fireEvent.click(await ready())
+    await act(async () => { fireEvent.click(submitButton()) })
+    await waitFor(() => expect(h.confirmSetupMock).toHaveBeenCalled())
+    expect(h.confirmPaymentMock).not.toHaveBeenCalled()
+    const intent = fetchCalls.find((c) => c.url === '/api/card-checkout/intent')!
+    expect(intent.body).toMatchObject({
+      payment: 'cash',
+      mode: 'setup',
+      consent: true,
+      displayedAmountMinor: 12000,
+      displayedHoldDateIso: null,
+      displayedFreeUntilIso: POLICY.freeUntilIso,
+      displayedFreeUntilPassed: false,
+    })
+    await waitFor(() => expect(window.location.href).toMatch(/\/book\/confirmation\?ref=PRG-20261112-CASH01$/))
+  })
+
+  it('a card submit sends payment card, the hold date and the displayed free-until', async () => {
+    intentReplies = [{ body: { clientSecret: 'seti_1_secret_x', mode: 'setup', bookingReference: 'PRG-20261112-ABC123', amountMinor: 12000, currency: 'eur' } }]
+    await renderGate()
+    fireEvent.click(await ready())
+    await act(async () => { fireEvent.click(submitButton()) })
+    await waitFor(() => expect(h.confirmSetupMock).toHaveBeenCalled())
+    const intent = fetchCalls.find((c) => c.url === '/api/card-checkout/intent')!
+    expect(intent.body).toMatchObject({
+      payment: 'card',
+      mode: 'setup',
+      displayedHoldDateIso: '2026-11-12',
+      displayedFreeUntilIso: POLICY.freeUntilIso,
+      displayedFreeUntilPassed: false,
+    })
+  })
+
+  it('switching back to card restores the card explainer, the hold date and an unticked card consent', async () => {
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(cashTile()) })
+    await act(async () => { fireEvent.click(cardTile()) })
+    const box = await ready()
+    expect(screen.getByRole('heading', { name: cof.headlineSetup })).toBeInTheDocument()
+    expect(screen.getByText(formatLocaleDate('2026-11-12', 'en'))).toBeInTheDocument()
+    expect((box.closest('label') as HTMLLabelElement).textContent).toContain('hold')
+    expect((box as HTMLInputElement).checked).toBe(false)
+  })
+
+  it('a re-init that stops offering cash returns to the card choice', async () => {
+    initReplies = [{ body: cashInit() }, { body: eligibleInit({ currency: 'czk', amountMinor: 300000, cashAvailable: false }) }]
+    await renderGate()
+    await ready()
+    await act(async () => { fireEvent.click(cashTile()) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: step6En.czkLabel })) })
+    await ready()
+    expect(screen.queryByRole('radiogroup')).toBeNull()
+    expect(screen.getByRole('heading', { name: cof.headlineSetup })).toBeInTheDocument()
+  })
+})
+
+describe('cancellation note and the free-until moment in the consent (CANC-02, D-16)', () => {
+  it('shows the note under the explainer with the exact deadline and the fee from init', async () => {
+    await renderGate()
+    await ready()
+    const note = screen.getByTestId('cancellation-note')
+    expect(note.textContent).toContain(`Free cancellation until ${whenText()}.`)
+    expect(note.textContent).toContain(`100% of the fare (${formatMinor(12000, 'eur')}) applies`)
+    const explainer = screen.getByRole('heading', { name: cof.headlineSetup })
+    expect(explainer.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const cardLabel = screen.getByText(cof.cardDetailsLabel)
+    expect(note.compareDocumentPosition(cardLabel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('the setup consent names the same moment as the note (the very string the server hashes)', async () => {
+    await renderGate()
+    const box = await ready()
+    expect((box.closest('label') as HTMLLabelElement).textContent).toContain(`If I cancel after ${whenText()}`)
+  })
+
+  it('a deadline already passed: the note says it is not available and the consent drops the deadline', async () => {
+    initReplies = [{ body: cashInit({ policy: { ...POLICY, freeUntilPassed: true, hours: 12 } }) }]
+    intentReplies = [CASH_INTENT]
+    await renderGate()
+    const box = await ready()
+    const note = screen.getByTestId('cancellation-note')
+    expect(note.textContent).toContain('Free cancellation is not available for this trip because pickup is less than 12 hours away.')
+    expect(note.textContent).not.toContain('Free cancellation until')
+    const vars = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: '2026-11-12', locale: 'en', freeUntilMs: FREE_MS })
+    const label = box.closest('label') as HTMLLabelElement
+    expect(label.textContent).toBe(cof[consentMessageKey('setup', true)].replaceAll('{amount}', vars.amount).replace('{holdDate}', vars.holdDate))
+    expect(label.textContent).not.toContain('If I cancel after')
+    expect(label.textContent).toContain('If I cancel, or I do not show up')
+    // and the cash wording drops it too
+    await act(async () => { fireEvent.click(cashTile()) })
+    const cashBox = await ready()
+    const cashVars = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: null, locale: 'en', freeUntilMs: FREE_MS })
+    expect((cashBox.closest('label') as HTMLLabelElement).textContent).toBe(
+      cof[consentMessageKey('cash_setup', true)].replaceAll('{amount}', cashVars.amount),
+    )
+    // the submit tells the server it was shown as passed
+    fireEvent.click(cashBox)
+    await act(async () => { fireEvent.click(submitButton()) })
+    const intent = fetchCalls.find((c) => c.url === '/api/card-checkout/intent')!
+    expect(intent.body).toMatchObject({ displayedFreeUntilPassed: true })
+  })
+
+  it('409 POLICY_CHANGED clears the tick, shows the new deadline in the note, tells the client and then submits the new moment', async () => {
+    const newIso = '2026-11-29T08:30:00.000Z'
+    intentReplies = [
+      { status: 409, body: { code: 'POLICY_CHANGED', policy: { version: '2026-11-1', freeUntilIso: newIso, freeUntilPassed: false, hours: 48, percent: 50 } } },
+      { body: { clientSecret: 'seti_1_secret_x', mode: 'setup', bookingReference: 'PRG-20261112-ABC123', amountMinor: 12000, currency: 'eur' } },
+    ]
+    await renderGate()
+    fireEvent.click(await ready())
+    await act(async () => { fireEvent.click(submitButton()) })
+
+    const notice = await screen.findByText(cof.noticePolicyChanged)
+    expect(h.confirmSetupMock).not.toHaveBeenCalled()
+    const box = screen.getByRole('checkbox') as HTMLInputElement
+    expect(box.checked).toBe(false)
+    const newWhen = whenText(Date.parse(newIso))
+    const note = screen.getByTestId('cancellation-note')
+    expect(note.textContent).toContain(`Free cancellation until ${newWhen}.`)
+    expect(note.textContent).toContain(`50% of the fare (${formatMinor(6000, 'eur')})`)
+    expect((box.closest('label') as HTMLLabelElement).textContent).toContain(`after ${newWhen}`)
+    await waitFor(() => expect(document.activeElement).toBe(notice))
+
+    fireEvent.click(box)
+    await act(async () => { fireEvent.click(submitButton()) })
+    await waitFor(() => expect(h.confirmSetupMock).toHaveBeenCalled())
+    const second = fetchCalls.filter((c) => c.url === '/api/card-checkout/intent')[1]
+    expect(second.body).toMatchObject({ displayedFreeUntilIso: newIso, displayedFreeUntilPassed: false })
+  })
+
+  it('a POLICY_CHANGED answer without a usable policy shows the generic error and keeps the tick cleared', async () => {
+    intentReplies = [{ status: 409, body: { code: 'POLICY_CHANGED' } }]
+    await renderGate()
+    fireEvent.click(await ready())
+    await act(async () => { fireEvent.click(submitButton()) })
+    expect(await screen.findByText(step6En.paymentGenericError)).toBeInTheDocument()
+    expect((screen.getByRole('checkbox') as HTMLInputElement).checked).toBe(false)
+  })
+
+  it('PRICE_CHANGED updates the fee shown in the note', async () => {
+    intentReplies = [{ status: 409, body: { code: 'PRICE_CHANGED', amountMinor: 14000 } }]
+    await renderGate()
+    fireEvent.click(await ready())
+    await act(async () => { fireEvent.click(submitButton()) })
+    await screen.findByText(cof.noticePriceChanged.replace('{amount}', formatMinor(14000, 'eur')))
+    expect(screen.getByTestId('cancellation-note').textContent).toContain(`(${formatMinor(14000, 'eur')})`)
+  })
+
+  it('an eligible init without a usable policy renders the legacy step (the card form could only answer 409)', async () => {
+    initReplies = [{ body: eligibleInit({ policy: undefined }) }]
+    await renderGate()
+    expect(await screen.findByTestId('legacy-payment')).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox')).toBeNull()
+  })
+
+  it('init { eligible:false, policy } renders legacy Step6Payment (the policy is handed down, not shown here)', async () => {
+    initReplies = [{ body: { eligible: false, policy: POLICY } }]
+    await renderGate()
+    expect(await screen.findByTestId('legacy-payment')).toBeInTheDocument()
+    expect(screen.queryByTestId('cancellation-note')).toBeNull()
+  })
+
+  it('the note in ar writes the deadline with Latin digits', async () => {
+    await renderGate({ locale: 'ar', messages: arMessages })
+    await ready()
+    const note = screen.getByTestId('cancellation-note')
+    expect(note.textContent).not.toMatch(/[٠-٩]/)
+    expect(note.textContent).toContain('2026')
   })
 })

@@ -165,7 +165,20 @@
         "noticeModeChanged": "Votre trajet approche, le moment du paiement a donc changé. Veuillez vérifier les informations ci-dessus et saisir à nouveau votre carte.",
         "noticeDetailsChanged": "Les informations de paiement ont changé. Veuillez les vérifier et cocher à nouveau la case.",
         "errorConsentRequired": "Veuillez cocher la case pour continuer.",
-        "errorBankVerification": "Votre banque n'a pas pu vérifier cette carte. Veuillez réessayer ou utiliser une autre carte."
+        "errorBankVerification": "Votre banque n'a pas pu vérifier cette carte. Veuillez réessayer ou utiliser une autre carte.",
+        "paymentChoiceLabel": "COMMENT SOUHAITEZ-VOUS PAYER ?",
+        "choiceCardTitle": "Payer par carte après votre trajet",
+        "choiceCardDescSetup": "Aucun montant n'est débité maintenant.",
+        "choiceCardDescHoldNow": "Le montant est bloqué maintenant.",
+        "choiceCashTitle": "Payer en espèces au chauffeur",
+        "choiceCashDesc": "Nous enregistrons votre carte comme garantie. Aucun montant n'est débité maintenant.",
+        "headlineCash": "Payez votre chauffeur en espèces.",
+        "captionOnTheDay": "Le jour du trajet",
+        "captionOnlyIfNeeded": "Seulement si nécessaire",
+        "cashToday": "Nous enregistrons votre carte en toute sécurité avec Stripe. Rien n'est débité et aucun blocage n'est effectué.",
+        "cashOnTheDay": "Payez <bdi>{amount}</bdi> en espèces à votre chauffeur à la fin du trajet.",
+        "cashIfNeeded": "Nous débitons la carte enregistrée uniquement si vous annulez tardivement, si vous ne vous présentez pas ou si vous ne payez pas le chauffeur. Une personne chez Prestigo décide d'abord, et nous ne débitons jamais automatiquement.",
+        "noticePolicyChanged": "Les conditions d'annulation ont changé pendant votre lecture. Veuillez revoir la note ci-dessus et cocher à nouveau la case."
       }
     },
     "tripTypeTabs": {

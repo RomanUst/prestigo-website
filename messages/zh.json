@@ -165,7 +165,20 @@
         "noticeModeChanged": "您的行程已临近，因此付款时间有所调整。请核对上方信息并重新输入您的银行卡。",
         "noticeDetailsChanged": "付款详情已更改。请核对后再次勾选复选框。",
         "errorConsentRequired": "请勾选复选框以继续。",
-        "errorBankVerification": "您的银行无法验证此银行卡。请重试或使用其他银行卡。"
+        "errorBankVerification": "您的银行无法验证此银行卡。请重试或使用其他银行卡。",
+        "paymentChoiceLabel": "您希望如何付款？",
+        "choiceCardTitle": "行程结束后刷卡付款",
+        "choiceCardDescSetup": "现在不会扣除任何款项。",
+        "choiceCardDescHoldNow": "该金额现在会被冻结。",
+        "choiceCashTitle": "向司机现金付款",
+        "choiceCashDesc": "我们会保存您的银行卡作为担保。现在不会扣除任何款项。",
+        "headlineCash": "请向司机现金付款。",
+        "captionOnTheDay": "出行当天",
+        "captionOnlyIfNeeded": "仅在必要时",
+        "cashToday": "我们通过 Stripe 安全地保存您的银行卡。不会扣款，也不会冻结任何金额。",
+        "cashOnTheDay": "行程结束时，请向司机现金支付 <bdi>{amount}</bdi>。",
+        "cashIfNeeded": "仅当您较晚取消、未现身乘车或未向司机付款时，我们才会从已保存的银行卡扣款。扣款前由 Prestigo 工作人员先行决定，我们绝不会自动扣款。",
+        "noticePolicyChanged": "您阅读期间取消条款已更改。请查看上方说明，并再次勾选复选框。"
       }
     },
     "tripTypeTabs": {

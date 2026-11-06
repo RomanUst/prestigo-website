@@ -165,7 +165,20 @@
         "noticeModeChanged": "Your trip is now closer, so the payment timing has changed. Please check the details above and enter your card again.",
         "noticeDetailsChanged": "The payment details changed. Please review and tick the box again.",
         "errorConsentRequired": "Please tick the box to continue.",
-        "errorBankVerification": "Your bank could not verify this card. Please try again or use another card."
+        "errorBankVerification": "Your bank could not verify this card. Please try again or use another card.",
+        "paymentChoiceLabel": "HOW WOULD YOU LIKE TO PAY?",
+        "choiceCardTitle": "Pay by card after your trip",
+        "choiceCardDescSetup": "Nothing is charged now.",
+        "choiceCardDescHoldNow": "The amount is held now.",
+        "choiceCashTitle": "Pay cash to the driver",
+        "choiceCashDesc": "We save your card as a guarantee. Nothing is charged now.",
+        "headlineCash": "Pay your driver in cash.",
+        "captionOnTheDay": "On the day",
+        "captionOnlyIfNeeded": "Only if needed",
+        "cashToday": "We save your card securely with Stripe. Nothing is charged and no hold is placed.",
+        "cashOnTheDay": "Pay <bdi>{amount}</bdi> in cash to your driver at the end of the trip.",
+        "cashIfNeeded": "We charge the saved card only if you cancel late, do not show up, or do not pay the driver. A person at Prestigo decides first, and we never charge it automatically.",
+        "noticePolicyChanged": "The cancellation terms changed while you were reading. Please review the note above and tick the box again."
       }
     },
     "tripTypeTabs": {
