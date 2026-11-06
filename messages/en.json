@@ -224,6 +224,35 @@
       "decreaseAria": "Decrease {label}",
       "increaseAria": "Increase {label}"
     },
+    "confirmation": {
+      "sessionExpired": "Your session has expired. Begin a new booking.",
+      "bookNow": "BOOK NOW",
+      "homeAria": "Prestigo home",
+      "headingBooking": "BOOKING CONFIRMED",
+      "headingQuote": "QUOTE REQUEST SENT",
+      "refBooking": "YOUR BOOKING REFERENCE",
+      "refQuote": "YOUR REFERENCE",
+      "outbound": "OUTBOUND",
+      "return": "RETURN",
+      "quoteBody": "We will be in touch within 2 hours to confirm your journey and pricing.",
+      "journeyDetails": "JOURNEY DETAILS",
+      "outboundJourney": "OUTBOUND JOURNEY",
+      "returnJourney": "RETURN JOURNEY",
+      "hoursLine": "{hours} hours",
+      "dateTime": "{date} at {time}",
+      "atTime": "at {time}",
+      "passengers": "{count, plural, one {{n} passenger} other {{n} passengers}}",
+      "print": "PRINT / SAVE PDF",
+      "printAria": "Print or save as PDF",
+      "calendar": "ADD TO CALENDAR",
+      "calendarAria": "Add this booking to your calendar",
+      "contact": "QUESTIONS? CONTACT US",
+      "contactAria": "Contact us with questions",
+      "bookAnother": "BOOK ANOTHER RIDE",
+      "backHome": "BACK TO HOME",
+      "manageSentence": "We sent your confirmation and a link to manage your booking to your email.",
+      "payCash": "Pay <bdi>{amount}</bdi> in cash to your driver."
+    },
     "vehicleClasses": {
       "business": { "label": "Business" },
       "firstClass": { "label": "First Class" },
@@ -1083,11 +1112,13 @@
     },
     "policyBox": {
       "label": "Cancellation",
+      "labelFor": "Cancellation, booking {reference}",
       "body": "Free cancellation until {freeUntil}. After that, {percent}% of the fare ({amount}) applies. If you do not show up, the full fare applies once the driver has waited {waitMin} minutes. A person at Prestigo decides every charge.",
       "cash": "You pay {amount} in cash to your driver. Your card is only a guarantee."
     },
     "manage": {
       "cta": "Manage booking",
+      "ctaFor": "Manage booking {reference}",
       "note": "Cancel, ask for a change or book another ride. Keep this link private."
     },
     "money": {

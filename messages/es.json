@@ -228,6 +228,35 @@
       "decreaseAria": "Reducir {label}",
       "increaseAria": "Aumentar {label}"
     },
+    "confirmation": {
+      "sessionExpired": "Su sesión ha caducado. Inicie una nueva reserva.",
+      "bookNow": "Reservar ahora",
+      "homeAria": "Prestigo, página de inicio",
+      "headingBooking": "Reserva confirmada",
+      "headingQuote": "Solicitud de presupuesto enviada",
+      "refBooking": "Su referencia de reserva",
+      "refQuote": "Su referencia",
+      "outbound": "Ida",
+      "return": "Vuelta",
+      "quoteBody": "Nos pondremos en contacto con usted en un plazo de 2 horas para confirmar su viaje y el precio.",
+      "journeyDetails": "Detalles del viaje",
+      "outboundJourney": "Viaje de ida",
+      "returnJourney": "Viaje de vuelta",
+      "hoursLine": "{hours} h",
+      "dateTime": "{date} a las {time}",
+      "atTime": "a las {time}",
+      "passengers": "{count, plural, one {{n} pasajero} other {{n} pasajeros}}",
+      "print": "Imprimir / guardar PDF",
+      "printAria": "Imprimir o guardar como PDF",
+      "calendar": "Añadir al calendario",
+      "calendarAria": "Añadir esta reserva a su calendario",
+      "contact": "¿Preguntas? Contáctenos",
+      "contactAria": "Contáctenos si tiene preguntas",
+      "bookAnother": "Reservar otro viaje",
+      "backHome": "Volver al inicio",
+      "manageSentence": "Hemos enviado a su correo la confirmación y un enlace para gestionar su reserva.",
+      "payCash": "Pague <bdi>{amount}</bdi> en efectivo al conductor."
+    },
     "vehicleClasses": {
       "business": {
         "label": "Business"
@@ -1133,11 +1162,13 @@
     },
     "policyBox": {
       "label": "Cancelación",
+      "labelFor": "Cancelación, reserva {reference}",
       "body": "Cancelación gratuita hasta el {freeUntil}. Después, se aplica el {percent}% de la tarifa ({amount}). Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin} min. Una persona de Prestigo decide cada cargo.",
       "cash": "Usted paga {amount} en efectivo al conductor. Su tarjeta es solo una garantía."
     },
     "manage": {
       "cta": "Gestionar la reserva",
+      "ctaFor": "Gestionar la reserva {reference}",
       "note": "Cancele, solicite un cambio o reserve otro viaje. Mantenga este enlace en privado."
     },
     "contactOr": "o",

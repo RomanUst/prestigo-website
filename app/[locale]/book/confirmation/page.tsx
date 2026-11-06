@@ -1,15 +1,18 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useRef, Suspense } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { consumePurchaseSnapshot } from '@/lib/analytics-snapshot'
+import { readConfirmationNotice, type ConfirmationNotice } from '@/lib/confirmation-notice'
 import { Link } from '@/i18n/routing'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { siteLocaleFromPathname } from '@/i18n/locales'
 
+// English names for the analytics item (GA4 reports stay in one language); the page itself shows the localized label.
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
   first_class: 'First Class',
@@ -104,7 +107,11 @@ function isValidRef(ref: string | null): ref is string {
   return /^(PRG|QR)-\d{8}-([A-F0-9]{6}|\d{4})$/.test(ref)
 }
 
+const snakeToCamel = (value: string): string => value.replace(/_([a-z])/g, (_m, c: string) => c.toUpperCase())
+
 function ConfirmationContent() {
+  const t = useTranslations('Booking.confirmation')
+  const tv = useTranslations('Booking.vehicleClasses')
   const searchParams = useSearchParams()
   const type = searchParams.get('type')
   const rawRef = searchParams.get('ref')
@@ -121,6 +128,17 @@ function ConfirmationContent() {
   // Guard against StrictMode double-invocation and hydration re-runs — we
   // must only fire the analytics event once per confirmation page view.
   const analyticsFiredRef = useRef(false)
+
+  // Phase 89 (CANC-02): the two sentences that only a booking with stored terms shows. The checkout step wrote the
+  // notice to sessionStorage before the redirect; reading it clears it, so a reload or a new tab shows neither. The
+  // guard keeps StrictMode's second effect run from replacing the notice with the empty read.
+  const [notice, setNotice] = useState<ConfirmationNotice | null>(null)
+  const noticeReadRef = useRef(false)
+  useEffect(() => {
+    if (noticeReadRef.current || !ref || isQuote) return
+    noticeReadRef.current = true
+    setNotice(readConfirmationNotice(ref))
+  }, [ref, isQuote])
 
   useEffect(() => {
     // Capture the latest state before we reset the store.
@@ -280,7 +298,29 @@ function ConfirmationContent() {
 
   const handlePrint = () => window.print()
 
-  const vehicleLabel = vehicleClass ? (VEHICLE_LABELS[vehicleClass] ?? vehicleClass) : null
+  const vehicleKey = vehicleClass ? `${snakeToCamel(vehicleClass)}.label` : null
+  const vehicleLabel = vehicleClass ? (vehicleKey && tv.has(vehicleKey) ? tv(vehicleKey) : vehicleClass) : null
+  const passengersLabel = t('passengers', { count: passengers, n: String(passengers) })
+  const dateTimeLine = (date: string | null, time: string | null): string =>
+    date && time ? t('dateTime', { date, time }) : date ? date : time ? t('atTime', { time }) : ''
+  const vehicleLine = vehicleLabel ? `${vehicleLabel} \u00b7 ${passengersLabel}` : ''
+
+  // The manage link itself is never on this page (a token in browser history would widen exposure): email and My trips only.
+  const noticeBlock = notice ? (
+    <div style={{ marginBottom: 32 }}>
+      <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, margin: 0 }}>
+        {t('manageSentence')}
+      </p>
+      {notice.cash && (
+        <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, margin: '8px 0 0' }}>
+          {t.rich('payCash', {
+            amount: notice.cash,
+            bdi: (chunks) => <bdi dir="ltr">{chunks}</bdi>,
+          })}
+        </p>
+      )}
+    </div>
+  ) : null
 
   if (!ref) {
     return (
@@ -303,14 +343,14 @@ function ConfirmationContent() {
               marginBottom: 24,
             }}
           >
-            Your session has expired. Begin a new booking.
+            {t('sessionExpired')}
           </p>
           <Link
             href="/book"
             className="btn-primary"
             style={{ display: 'inline-block' }}
           >
-            BOOK NOW
+            {t('bookNow')}
           </Link>
         </div>
       </div>
@@ -328,7 +368,7 @@ function ConfirmationContent() {
           href="/"
           className="wordmark"
           style={{ display: 'block', marginBottom: 32, textDecoration: 'none' }}
-          aria-label="Prestigo home"
+          aria-label={t('homeAria')}
         >
           <span className="wordmark-presti">PRESTI</span>
           <span className="wordmark-go">GO</span>
@@ -336,7 +376,7 @@ function ConfirmationContent() {
 
         {/* Confirmation status — D-14: single h1 on the page */}
         <h1 className="label" style={{ display: 'block', marginBottom: 16, fontFamily: 'inherit', fontWeight: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit' }}>
-          {isQuote ? 'QUOTE REQUEST SENT' : 'BOOKING CONFIRMED'}
+          {isQuote ? t('headingQuote') : t('headingBooking')}
         </h1>
 
         {/* Reference display — D-14: h1 stays BOOKING CONFIRMED above; refs use h2 inside sections */}
@@ -347,7 +387,7 @@ function ConfirmationContent() {
               className="label"
               style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}
             >
-              {isQuote ? 'YOUR REFERENCE' : 'YOUR BOOKING REFERENCE'}
+              {isQuote ? t('refQuote') : t('refBooking')}
             </span>
             <h2
               style={{
@@ -380,7 +420,7 @@ function ConfirmationContent() {
                 className="label"
                 style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}
               >
-                OUTBOUND
+                {t('outbound')}
               </span>
               <h2
                 style={{
@@ -408,7 +448,7 @@ function ConfirmationContent() {
                 className="label"
                 style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}
               >
-                RETURN
+                {t('return')}
               </span>
               <h2
                 style={{
@@ -425,6 +465,8 @@ function ConfirmationContent() {
           </div>
         )}
 
+        {noticeBlock}
+
         {/* Quote body copy — only for quote flow */}
         {isQuote && (
           <p
@@ -436,7 +478,7 @@ function ConfirmationContent() {
               marginBottom: 32,
             }}
           >
-            We will be in touch within 2 hours to confirm your journey and pricing.
+            {t('quoteBody')}
           </p>
         )}
 
@@ -451,7 +493,7 @@ function ConfirmationContent() {
             }}
           >
             <span className="label" style={{ display: 'block', marginBottom: 16 }}>
-              JOURNEY DETAILS
+              {t('journeyDetails')}
             </span>
 
             {/* Route */}
@@ -466,7 +508,7 @@ function ConfirmationContent() {
                 }}
               >
                 {tripType === 'hourly'
-                  ? `${hours} hours`
+                  ? t('hoursLine', { hours: String(hours) })
                   : `${origin?.address ?? ''} \u2192 ${destination?.address ?? ''}`}
               </p>
             )}
@@ -482,7 +524,7 @@ function ConfirmationContent() {
                   marginBottom: 8,
                 }}
               >
-                {[pickupDate, pickupTime ? `at ${pickupTime}` : null].filter(Boolean).join(' ')}
+                {dateTimeLine(pickupDate, pickupTime)}
               </p>
             )}
 
@@ -496,7 +538,7 @@ function ConfirmationContent() {
                   lineHeight: 1.5,
                 }}
               >
-                {vehicleLabel} &middot; {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
+                {vehicleLine}
               </p>
             )}
           </div>
@@ -513,7 +555,7 @@ function ConfirmationContent() {
               }}
             >
               <span className="label" style={{ display: 'block', marginBottom: 16 }}>
-                OUTBOUND JOURNEY
+                {t('outboundJourney')}
               </span>
               {(origin?.address || destination?.address) && (
                 <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
@@ -522,12 +564,12 @@ function ConfirmationContent() {
               )}
               {(pickupDate || pickupTime) && (
                 <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
-                  {[pickupDate, pickupTime ? `at ${pickupTime}` : null].filter(Boolean).join(' ')}
+                  {dateTimeLine(pickupDate, pickupTime)}
                 </p>
               )}
               {vehicleLabel && (
                 <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5 }}>
-                  {vehicleLabel} &middot; {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
+                  {vehicleLine}
                 </p>
               )}
             </div>
@@ -541,7 +583,7 @@ function ConfirmationContent() {
               }}
             >
               <span className="label" style={{ display: 'block', marginBottom: 16 }}>
-                RETURN JOURNEY
+                {t('returnJourney')}
               </span>
               {(origin?.address || destination?.address) && (
                 <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
@@ -550,12 +592,12 @@ function ConfirmationContent() {
               )}
               {(returnDate || returnTime) && (
                 <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
-                  {[returnDate, returnTime ? `at ${returnTime}` : null].filter(Boolean).join(' ')}
+                  {dateTimeLine(returnDate, returnTime)}
                 </p>
               )}
               {vehicleLabel && (
                 <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5 }}>
-                  {vehicleLabel} &middot; {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
+                  {vehicleLine}
                 </p>
               )}
             </div>
@@ -584,31 +626,31 @@ function ConfirmationContent() {
             type="button"
             className="btn-ghost"
             onClick={handlePrint}
-            aria-label="Print or save as PDF"
+            aria-label={t('printAria')}
           >
-            PRINT / SAVE PDF
+            {t('print')}
           </button>
           <button
             type="button"
             className="btn-ghost"
             onClick={handleDownloadICS}
-            aria-label="Add this booking to your calendar"
+            aria-label={t('calendarAria')}
           >
-            ADD TO CALENDAR
+            {t('calendar')}
           </button>
           <a
             href="mailto:info@rideprestigo.com"
             className="btn-ghost"
             style={{ textDecoration: 'none' }}
-            aria-label="Contact us with questions"
+            aria-label={t('contactAria')}
           >
-            QUESTIONS? CONTACT US
+            {t('contact')}
           </a>
           <Link href="/book" className="btn-ghost" style={{ textDecoration: 'none' }}>
-            BOOK ANOTHER RIDE
+            {t('bookAnother')}
           </Link>
           <Link href="/" className="btn-ghost" style={{ textDecoration: 'none' }}>
-            BACK TO HOME
+            {t('backHome')}
           </Link>
         </div>
 

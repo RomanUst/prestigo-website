@@ -64,7 +64,7 @@ export function bookingEmailDataFromRow(row: BookingRow): BookingEmailData {
 }
 
 /** The stored-terms gate (D-18): a booking made before the policy was public has no stored version. */
-function hasStoredPolicy(booking: BookingRow): boolean {
+export function hasStoredPolicy(booking: BookingRow): boolean {
   return typeof booking.cancel_policy_version === 'string' && booking.cancel_policy_version.length > 0
 }
 
@@ -72,7 +72,7 @@ function hasStoredPolicy(booking: BookingRow): boolean {
  * Terms for the cancellation box, from the policy the booking was made under (never today's settings). Null when the
  * booking stored none or any input is unusable; a failure drops the box, never the email.
  */
-async function policyBoxFromRow(booking: BookingRow, amountMinor: number): Promise<PolicyBoxVars | null> {
+export async function policyBoxFromRow(booking: BookingRow, amountMinor: number): Promise<PolicyBoxVars | null> {
   if (!hasStoredPolicy(booking) || amountMinor <= 0) return null
   try {
     const policy = policyFromSnapshot(booking.cancel_policy)
@@ -104,7 +104,7 @@ async function policyBoxFromRow(booking: BookingRow, amountMinor: number): Promi
 }
 
 /** The localized Manage booking URL, only for a booking that stored a policy; a failure drops the button. */
-async function manageUrlFromRow(booking: BookingRow): Promise<string | undefined> {
+export async function manageUrlFromRow(booking: BookingRow): Promise<string | undefined> {
   if (!hasStoredPolicy(booking)) return undefined
   try {
     const token = await ensureManageToken(str(booking.id))

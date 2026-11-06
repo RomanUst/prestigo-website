@@ -228,6 +228,35 @@
       "decreaseAria": "{label} घटाएँ",
       "increaseAria": "{label} बढ़ाएँ"
     },
+    "confirmation": {
+      "sessionExpired": "आपका सत्र समाप्त हो गया है। कृपया नई बुकिंग शुरू करें।",
+      "bookNow": "अभी बुक करें",
+      "homeAria": "Prestigo होम",
+      "headingBooking": "बुकिंग की पुष्टि हो गई",
+      "headingQuote": "कोट अनुरोध भेज दिया गया",
+      "refBooking": "आपका बुकिंग संदर्भ",
+      "refQuote": "आपका संदर्भ",
+      "outbound": "जाना",
+      "return": "वापसी",
+      "quoteBody": "आपकी यात्रा और किराये की पुष्टि के लिए हम 2 घंटे के भीतर आपसे संपर्क करेंगे।",
+      "journeyDetails": "यात्रा का विवरण",
+      "outboundJourney": "जाने की यात्रा",
+      "returnJourney": "वापसी की यात्रा",
+      "hoursLine": "{hours} घंटे",
+      "dateTime": "{date} को {time} बजे",
+      "atTime": "{time} बजे",
+      "passengers": "{count, plural, other {{n} यात्री}}",
+      "print": "प्रिंट / PDF सहेजें",
+      "printAria": "प्रिंट करें या PDF के रूप में सहेजें",
+      "calendar": "कैलेंडर में जोड़ें",
+      "calendarAria": "इस बुकिंग को अपने कैलेंडर में जोड़ें",
+      "contact": "प्रश्न हैं? हमसे संपर्क करें",
+      "contactAria": "प्रश्न होने पर हमसे संपर्क करें",
+      "bookAnother": "एक और सफ़र बुक करें",
+      "backHome": "होम पर वापस जाएँ",
+      "manageSentence": "हमने पुष्टि और आपकी बुकिंग प्रबंधित करने का लिंक आपके ईमेल पर भेज दिया है।",
+      "payCash": "अपने ड्राइवर को <bdi>{amount}</bdi> नकद दें।"
+    },
     "vehicleClasses": {
       "business": {
         "label": "Business"
@@ -1133,11 +1162,13 @@
     },
     "policyBox": {
       "label": "रद्दीकरण",
+      "labelFor": "रद्दीकरण, बुकिंग {reference}",
       "body": "{freeUntil} तक निःशुल्क रद्दीकरण। उसके बाद किराये का {percent}% ({amount}) लागू होता है। यदि आप नहीं पहुँचते हैं, तो ड्राइवर के {waitMin} मिनट प्रतीक्षा कर लेने के बाद पूरा किराया लागू होता है। हर शुल्क का निर्णय Prestigo का एक व्यक्ति लेता है।",
       "cash": "आप अपने ड्राइवर को {amount} नकद देते हैं। आपका कार्ड केवल एक गारंटी है।"
     },
     "manage": {
       "cta": "बुकिंग प्रबंधित करें",
+      "ctaFor": "बुकिंग {reference} प्रबंधित करें",
       "note": "रद्द करें, बदलाव का अनुरोध करें या एक और सफ़र बुक करें। इस लिंक को निजी रखें।"
     },
     "contactOr": "या",

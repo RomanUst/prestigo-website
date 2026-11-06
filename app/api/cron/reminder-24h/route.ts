@@ -5,6 +5,7 @@ import { logEmail } from '@/lib/email-log'
 import { sendClientReminderEmail, sendDriverReminderEmail, getAcceptedDriver } from '@/lib/email'
 import type { ReminderEmailBooking } from '@/lib/email'
 import { purgeQuoteLeads } from '@/lib/purge-quote-leads'
+import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
 
 export const maxDuration = 300
 
@@ -50,6 +51,9 @@ export async function GET(request: Request) {
       id, client_email, booking_reference, pickup_date, pickup_time,
       origin_address, destination_address, vehicle_class,
       client_first_name, client_last_name, client_phone,
+      locale, cancel_policy_version, cancel_policy, trip_type, distance_km, pickup_utc, origin_lat, origin_lng,
+      payment_mode, payment_amount_minor, payment_currency, amount_eur, outbound_amount_czk, return_amount_czk,
+      leg, booking_source, anonymised_at,
       driver_assignments!left(
         status,
         drivers!inner(name, email, vehicle_info)
@@ -89,10 +93,16 @@ export async function GET(request: Request) {
         driver_vehicle_info: driver?.vehicle_info,
       }
 
+      // Phase 89 CANC-02: box and Manage button for the client mail only (a driver never gets the private link).
+      const clientReminder = async (): Promise<void> => {
+        const policyBlockHtml = await buildPolicyBlockHtml(booking as unknown as Record<string, unknown>).catch(() => '')
+        await sendClientReminderEmail(policyBlockHtml ? { ...reminderBooking, policyBlockHtml } : reminderBooking, '24h')
+      }
+
       // Client + driver dedup-check and send in parallel
       await Promise.all([
         logEmail({ bookingId: booking.id, emailType: 'reminder_24h', recipient: booking.client_email })
-          .then(ok => ok ? sendClientReminderEmail(reminderBooking, '24h') : undefined),
+          .then(ok => ok ? clientReminder() : undefined),
         driver?.email
           ? logEmail({ bookingId: booking.id, emailType: 'reminder_24h', recipient: driver.email })
               .then(ok => ok ? sendDriverReminderEmail(reminderBooking, '24h') : undefined)

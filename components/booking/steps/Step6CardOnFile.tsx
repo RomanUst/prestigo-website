@@ -29,6 +29,7 @@ import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { VEHICLE_CLASS_KEY } from '@/types/booking'
 import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
+import { writeConfirmationNotice } from '@/lib/confirmation-notice'
 import { STRIPE_ELEMENTS_LOCALE } from '@/lib/booking-locale'
 import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
@@ -413,6 +414,9 @@ function CardForm({
 
     // Persist the purchase snapshot BEFORE confirming: a 3DS redirect or the reload below wipes in-memory state.
     writePurchaseSnapshot({ ref: bookingReference, value: totalEur, currency: 'EUR', items: analyticsItems })
+    // Phase 89 (CANC-02): a card-flow booking always stores its terms (the step is only reachable with a policy), so
+    // the confirmation page may mention the manage link; a cash booking also names the amount for the driver.
+    writeConfirmationNotice({ ref: bookingReference, ...(cash ? { cash: formatMinor(amountMinor, currency) } : {}) })
 
     if (data.alreadyConfirmed === true) {
       navigateToConfirmation(bookingReference)

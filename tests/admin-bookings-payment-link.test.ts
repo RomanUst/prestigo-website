@@ -529,7 +529,8 @@ describe('POST /api/admin/bookings — send_confirmation', () => {
     const res = await ADMIN_BOOKINGS_POST(makeAdminBookingsPostRequest({ ...basePayload, status: 'confirmed', send_confirmation: true }))
     expect(res.status).toBe(201)
     expect(stubLogEmail).toHaveBeenCalledWith({ bookingId: 'confirm-id', emailType: 'booking_confirmed', recipient: 'petr@example.com' })
-    expect(stubSendStatusConfirmedEmail).toHaveBeenCalledTimes(1)
+    // Phase 89 plan 89-18: the policy block is built inside after() first (a row without a stored policy gets none).
+    await vi.waitFor(() => expect(stubSendStatusConfirmedEmail).toHaveBeenCalledTimes(1))
     expect(stubSendStatusConfirmedEmail).toHaveBeenCalledWith(row)
   })
 

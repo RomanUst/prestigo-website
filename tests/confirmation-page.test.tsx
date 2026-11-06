@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
+// The page translates its strings (Phase 89 plan 89-18): render inside the English catalog.
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import type { ReactNode } from 'react'
 
 // fetch is called with a relative URL (/api/meta-capi) inside a useEffect on the

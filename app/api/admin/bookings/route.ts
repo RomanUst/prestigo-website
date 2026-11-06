@@ -19,6 +19,7 @@ import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 import { assertEditablePrecheck, reevaluateAfterEdit } from '@/lib/payments/edit-hook'
 import { getPaymentSettings, isPolicyPublic } from '@/lib/payments/config'
 import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
+import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
 
 // The status change itself (VALID_TRANSITIONS check, write, side effects) lives in
 // lib/booking-status-service.ts (Phase 87 D-01). VALID_TRANSITIONS is the canonical
@@ -1069,9 +1070,11 @@ export async function POST(request: Request) {
       recipient: d.client_email,
     })
     if (shouldSend) {
-      after(() => sendStatusConfirmedEmail(data).catch(err =>
-        console.error('[admin/bookings.POST] confirmation email:', err)
-      ))
+      // Phase 89 CANC-02: the inserted row carries the stored policy columns when the policy was public for this client.
+      after(() => buildPolicyBlockHtml(data).catch(() => '')
+        .then(policyBlockHtml => sendStatusConfirmedEmail(policyBlockHtml ? { ...data, policyBlockHtml } : data))
+        .catch(err => console.error('[admin/bookings.POST] confirmation email:', err))
+      )
     }
   }
 

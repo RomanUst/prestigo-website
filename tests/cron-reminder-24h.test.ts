@@ -17,6 +17,7 @@ const {
   mockIn,
   mockOrder,
   mockLimit,
+  mockBuildPolicyBlock,
 } = vi.hoisted(() => ({
   mockLogEmail:                  vi.fn(),
   mockSendClientReminderEmail:   vi.fn(),
@@ -29,6 +30,7 @@ const {
   mockIn:                        vi.fn(),
   mockOrder:                     vi.fn(),
   mockLimit:                     vi.fn(),
+  mockBuildPolicyBlock:          vi.fn(),
 }))
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -37,6 +39,11 @@ vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => ({
     from: mockFrom,
   })),
+}))
+
+// Phase 89 plan 89-18: the box and Manage button of a booking that stored a policy ('' otherwise).
+vi.mock('@/lib/payments/emails/policy-block', () => ({
+  buildPolicyBlockHtml: mockBuildPolicyBlock,
 }))
 
 vi.mock('@/lib/email-log', () => ({
@@ -112,6 +119,9 @@ beforeEach(() => {
 
   // Default: logEmail allows send
   mockLogEmail.mockResolvedValue(true)
+
+  // Default: the booking stored no policy, so no block
+  mockBuildPolicyBlock.mockResolvedValue('')
 
   // Default chainable query builder
   // pricing_globals → single()
@@ -231,5 +241,30 @@ describe('NOTIF-04/DRIVER-06: 24h reminder cron', () => {
     const res2 = await GET(makeRequest('Bearer test-cron-secret'))
     expect(res2.status).toBe(200)
     expect(mockSendClientReminderEmail).not.toHaveBeenCalled()
+  })
+
+  it('Phase 89: a booking with a stored policy gets the block in the client mail only, never the driver mail', async () => {
+    mockBuildPolicyBlock.mockResolvedValue('<div>POLICY-BLOCK</div>')
+    mockLimit.mockResolvedValue({ data: [BOOKING_WITH_DRIVER], error: null })
+
+    const res = await GET(makeRequest('Bearer test-cron-secret'))
+    expect(res.status).toBe(200)
+    expect(mockBuildPolicyBlock).toHaveBeenCalledWith(expect.objectContaining({ id: BOOKING_WITH_DRIVER.id }))
+    expect(mockSendClientReminderEmail.mock.calls[0][0]).toMatchObject({ policyBlockHtml: '<div>POLICY-BLOCK</div>' })
+    expect(mockSendDriverReminderEmail.mock.calls[0][0]).not.toHaveProperty('policyBlockHtml')
+  })
+
+  it('Phase 89: no stored policy leaves the reminder data unchanged', async () => {
+    const res = await GET(makeRequest('Bearer test-cron-secret'))
+    expect(res.status).toBe(200)
+    expect(mockSendClientReminderEmail.mock.calls[0][0]).not.toHaveProperty('policyBlockHtml')
+  })
+
+  it('Phase 89: the query reads the policy columns the block needs', async () => {
+    await GET(makeRequest('Bearer test-cron-secret'))
+    const columns = String(mockSelect.mock.calls[0][0])
+    for (const col of ['locale', 'cancel_policy_version', 'cancel_policy', 'pickup_utc', 'payment_mode', 'amount_eur']) {
+      expect(columns).toContain(col)
+    }
   })
 })

@@ -228,6 +228,35 @@
       "decreaseAria": "减少{label}",
       "increaseAria": "增加{label}"
     },
+    "confirmation": {
+      "sessionExpired": "您的会话已过期，请重新开始预订。",
+      "bookNow": "立即预订",
+      "homeAria": "Prestigo 首页",
+      "headingBooking": "预订已确认",
+      "headingQuote": "报价请求已发送",
+      "refBooking": "您的预订编号",
+      "refQuote": "您的参考编号",
+      "outbound": "去程",
+      "return": "返程",
+      "quoteBody": "我们将在 2 小时内与您联系，确认行程和价格。",
+      "journeyDetails": "行程详情",
+      "outboundJourney": "去程行程",
+      "returnJourney": "返程行程",
+      "hoursLine": "{hours} 小时",
+      "dateTime": "{date} {time}",
+      "atTime": "{time}",
+      "passengers": "{count, plural, other {{n} 位乘客}}",
+      "print": "打印 / 保存为 PDF",
+      "printAria": "打印或另存为 PDF",
+      "calendar": "添加到日历",
+      "calendarAria": "将此预订添加到您的日历",
+      "contact": "有疑问？联系我们",
+      "contactAria": "如有疑问，请联系我们",
+      "bookAnother": "再预订一趟行程",
+      "backHome": "返回首页",
+      "manageSentence": "我们已将确认信息和管理预订的链接发送到您的邮箱。",
+      "payCash": "请向司机以现金支付 <bdi>{amount}</bdi>。"
+    },
     "vehicleClasses": {
       "business": {
         "label": "商务级"
@@ -1133,11 +1162,13 @@
     },
     "policyBox": {
       "label": "取消政策",
+      "labelFor": "取消政策，预订 {reference}",
       "body": "{freeUntil}前可免费取消。此后将收取车费的 {percent}%（{amount}）。如果您未出现，司机等候 {waitMin} 分钟后将收取全额车费。每一笔费用均由 Prestigo 的工作人员决定。",
       "cash": "您向司机支付 {amount} 现金。您的银行卡仅作为担保。"
     },
     "manage": {
       "cta": "管理预订",
+      "ctaFor": "管理预订 {reference}",
       "note": "可取消、申请更改或预订另一趟行程。请勿将此链接告诉他人。"
     },
     "contactOr": "或",
