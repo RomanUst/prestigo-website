@@ -254,7 +254,7 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
     seed([])
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, notices_redriven: 0, errors: [] })
+    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, notices_redriven: 0, fee_reminders: 0, errors: [] })
   })
 
   it('a booking whose pickup instant cannot be computed is never held', async () => {
@@ -288,8 +288,8 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
 })
 
 describe('TICK_STEPS', () => {
-  it('registers A (place holds), B (auto retry), C (settle completed trips), D (alerts) then E (reconcile)', () => {
-    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'F'])
+  it('registers A (place holds), B (auto retry), C (settle completed trips), D (alerts), E (reconcile), F (notices) then R (fee cases)', () => {
+    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'R'])
   })
 })
 
@@ -928,5 +928,149 @@ describe('step D: operator alerts before pickup and before a hold lapses (D-15)'
     expect(res.status).toBe(200)
     expect(mockResendSend).not.toHaveBeenCalled()
     expect(ledger('alert_sent')).toHaveLength(0)
+  })
+})
+
+// ── plan 89-13 (CASH-03, HOLD-06, D-15, D-19, D-21): step R, the background half of the operator decision ─────────────
+
+const CASE_ID = '99999999-9999-4999-8999-999999999991'
+
+/** A cancelled card booking with a pending fee case opened `openedHoursAgo` hours ago (the trigger mirror is set too). */
+function seedFeeCase(
+  openedHoursAgo: number,
+  opts: { booking?: Record<string, unknown>; caseRow?: Record<string, unknown> } = {},
+) {
+  seed([
+    dueBooking({
+      status: 'cancelled',
+      payment_state: 'authorized',
+      hold_at: null,
+      pickup_utc: hoursAhead(30),
+      capture_before: null,
+      charge_attempts: 0,
+      ...opts.booking,
+    }),
+  ])
+  const caseRow = {
+    id: CASE_ID,
+    booking_id: BOOKING_ID,
+    kind: 'late_cancel',
+    status: 'pending',
+    currency: 'eur',
+    base_minor: 12000,
+    proposed_minor: 12000,
+    decided_minor: null,
+    charge_requested_at: null,
+    free_until: hoursAhead(-26),
+    evidence: {},
+    reason: null,
+    contact_note: null,
+    opened_at: hoursAhead(-openedHoursAgo),
+    opened_by: 'admin-1',
+    decided_at: null,
+    decided_by: null,
+    ...opts.caseRow,
+  }
+  db.state.booking_fee_cases.push(caseRow as never)
+  row().fee_case_status = caseRow.status as string
+  return caseRow
+}
+
+const feeMails = () => operatorMails().filter((m) => m.subject.startsWith('[Fee]'))
+
+describe('step R tracer (D-15): a case 25 h old reaches one fee_pending_24h reminder', () => {
+  it('registers R after F', () => {
+    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'R'])
+  })
+
+  it('a pending case opened 25 h ago -> one reminder keyed alert:fee_pending:<caseId>; the next tick sends nothing', async () => {
+    seedFeeCase(25)
+    const first = await (await GET(okRequest())).json()
+    expect(first).toMatchObject({ ok: true, fee_reminders: 1, errors: [] })
+
+    expect(feeMails()).toHaveLength(1)
+    expect(feeMails()[0].subject).toBe('[Fee] Still undecided after 24 h — PRG-20261201-ABC123')
+    expect(feeMails()[0].text).toContain('Nothing is charged until you decide.')
+    expect(ledger('alert_sent').map((e) => e.event_key)).toEqual([`alert:fee_pending:${CASE_ID}`])
+
+    await GET(okRequest())
+    expect(feeMails()).toHaveLength(1)
+    expect(ledger('alert_sent')).toHaveLength(1)
+    // Nothing is charged and nothing changes by itself.
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row().payment_state).toBe('authorized')
+    expect(db.state.booking_fee_cases[0].status).toBe('pending')
+  })
+
+  it('a case opened 2 h ago with no hold is not reminded yet', async () => {
+    seedFeeCase(2)
+    await GET(okRequest())
+    expect(feeMails()).toHaveLength(0)
+  })
+
+  it('a case opened 2 h ago whose hold ends within 12 h is reminded now', async () => {
+    seedFeeCase(2, { booking: { capture_before: hoursAhead(10) } })
+    await GET(okRequest())
+    expect(feeMails()).toHaveLength(1)
+    expect(feeMails()[0].text).toContain('Hold ends:')
+  })
+
+  it('a case opened 2 h ago whose hold ends in 3 days is not reminded', async () => {
+    seedFeeCase(2, { booking: { capture_before: hoursAhead(72) } })
+    await GET(okRequest())
+    expect(feeMails()).toHaveLength(0)
+  })
+
+  it('a charged case and a waived case are never reminded', async () => {
+    seedFeeCase(30, { caseRow: { status: 'charged', decided_minor: 12000, decided_at: hoursAhead(-1), decided_by: 'admin-1' } })
+    await GET(okRequest())
+    expect(feeMails()).toHaveLength(0)
+    seedFeeCase(30, { caseRow: { status: 'waived', decided_at: hoursAhead(-1), decided_by: 'admin-1' } })
+    await GET(okRequest())
+    expect(feeMails()).toHaveLength(0)
+  })
+
+  it('D-21: a completed cash booking in card_saved gets no case, no reminder and no change', async () => {
+    seed([
+      dueBooking({
+        payment_mode: 'cash_guarantee',
+        payment_state: 'card_saved',
+        status: 'completed',
+        completed_at: hoursAhead(-30),
+        pickup_utc: hoursAhead(-33),
+        hold_at: null,
+      }),
+    ])
+    const before = JSON.stringify(row())
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, errors: [] })
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+    expect(operatorMails()).toHaveLength(0)
+    expect(JSON.stringify(row())).toBe(before)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
+  })
+
+  it('D-19: an unpaid booking past its alert window keeps its status (the 24 h alert is step D only)', async () => {
+    seed([
+      dueBooking({
+        status: 'unpaid',
+        payment_state: 'checkout_pending',
+        created_at: hoursAhead(-26),
+        pickup_utc: hoursAhead(-1),
+        hold_at: null,
+      }),
+    ])
+    await GET(okRequest())
+    expect(row().status).toBe('unpaid')
+    expect(row().payment_state).toBe('checkout_pending')
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+  })
+
+  it('the tick source reads no card-flow switch', () => {
+    const src = fs.readFileSync(path.join(process.cwd(), 'lib/payments/tick.ts'), 'utf8')
+    expect(src).not.toMatch(/card_flow_mode/)
+    expect(src).toContain('fee_pending_24h')
   })
 })

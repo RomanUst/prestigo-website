@@ -8,7 +8,13 @@
 // Steps are isolated like the outbox sweep: a step that throws adds its code to `errors` and the next step still
 // runs. Registered steps, in order: A (place due holds), B (the one automatic retry of a declined hold / charge,
 // D-13), C (settle completed trips, 88-13), D (operator alerts 24 h before pickup and before a hold lapses, D-15),
-// E (reconcile stuck checkouts) and F (re-drive undelivered failure notices, 88-REVIEW A-WR-10).
+// E (reconcile stuck checkouts, card and cash) and F (re-drive undelivered failure notices, 88-REVIEW A-WR-10), then
+// Phase 89's R (fee cases: one reminder per undecided case, D-15; finish a fee or cash card charge a crash interrupted;
+// close a case whose money arrived).
+//
+// Step R never decides anything: it opens no case, charges nothing a person did not ask for (a re-drive needs the
+// charge_requested_at an operator click set, T-89-45), cancels no booking (D-19) and has no code path for a cash booking
+// whose driver has not confirmed (D-21).
 //
 // Nothing here asks whether the client-facing card flow is switched on: bookings that already hold a card keep
 // their lifecycle whatever the owner's switch says now (D-09a, tests/payment-state-writers-gate.test.ts).
@@ -27,13 +33,14 @@ import {
   STALE_CHECKOUT_MS,
 } from '@/lib/payments/config'
 import { claimForHold, placeHold } from '@/lib/payments/hold'
+import type { FeeCaseRow } from '@/lib/payments/fee'
 import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery'
 import { settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe } from '@/lib/payments/stripe'
 import { applyHoldNowAuthorized, applySetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
 
-export type TickStepCode = 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+export type TickStepCode = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'R'
 
 export type TickCounts = Record<string, number>
 
@@ -475,7 +482,112 @@ const stepF: TickStep = {
   },
 }
 
-export const TICK_STEPS: TickStep[] = [stepA, stepB, stepC, stepD, stepE, stepF]
+/** A pending fee case is reminded about once it has been undecided this long (D-15), earlier when its hold ends sooner. */
+const FEE_PENDING_REMINDER_MS = 24 * 60 * 60_000
+/** Pending fee cases examined per run (oldest pickup first). One operator, so this is far above any real backlog. */
+const FEE_CASE_LIMIT = 100
+
+type BookingRow = Record<string, unknown> & { id: string }
+interface PendingFee {
+  booking: BookingRow
+  caseRow: FeeCaseRow
+}
+
+/**
+ * The bookings that carry a pending fee case (bookings.fee_case_status is the database mirror of the case status) paired
+ * with their case through a second query by booking id. A booking without a readable pending case is dropped.
+ */
+async function loadPendingFees(): Promise<PendingFee[]> {
+  const db = createSupabaseServiceClient()
+  const { data, error } = await db
+    .from('bookings')
+    .select('*')
+    .eq('fee_case_status', 'pending')
+    .order('pickup_utc', { ascending: true })
+    .limit(FEE_CASE_LIMIT)
+  if (error) throw new Error('fee case booking lookup failed')
+  const bookings = (Array.isArray(data) ? data : []) as BookingRow[]
+  if (bookings.length === 0) return []
+
+  const cases = await db
+    .from('booking_fee_cases')
+    .select('*')
+    .in('booking_id', bookings.map((b) => b.id))
+    .eq('status', 'pending')
+  if (cases.error) throw new Error('fee case lookup failed')
+  const byBooking = new Map<string, FeeCaseRow>()
+  for (const c of (Array.isArray(cases.data) ? cases.data : []) as FeeCaseRow[]) byBooking.set(c.booking_id, c)
+
+  const out: PendingFee[] = []
+  for (const booking of bookings) {
+    const caseRow = byBooking.get(booking.id)
+    if (caseRow) out.push({ booking, caseRow })
+  }
+  return out
+}
+
+const evidenceNumber = (c: FeeCaseRow, key: string): number | undefined => {
+  const v = (c.evidence as Record<string, unknown> | null)?.[key]
+  return typeof v === 'number' && Number.isFinite(v) ? v : undefined
+}
+const evidenceInstant = (c: FeeCaseRow, key: string): string | undefined => {
+  const v = (c.evidence as Record<string, unknown> | null)?.[key]
+  return typeof v === 'string' && v ? v : undefined
+}
+
+/** D-15: undecided for 24 h, or the hold of the booking ends within the expiring-hold window, whichever comes first. */
+function reminderDue({ booking, caseRow }: PendingFee, nowMs: number): boolean {
+  const openedMs = Date.parse(caseRow.opened_at)
+  if (Number.isFinite(openedMs) && openedMs <= nowMs - FEE_PENDING_REMINDER_MS) return true
+  // A hold that is still live ends at capture_before; a row that holds nothing has no earlier deadline.
+  if (booking.payment_state !== 'authorized' || typeof booking.capture_before !== 'string') return false
+  const endsMs = Date.parse(booking.capture_before)
+  return Number.isFinite(endsMs) && endsMs <= nowMs + EXPIRING_HOLD_ALERT_MS
+}
+
+/**
+ * Step R (Phase 89; D-15, D-19, D-21; CASH-03, HOLD-06): the background half of the operator decision on a fee case.
+ *   - one fee_pending_24h reminder per case still pending after 24 h, earlier when the hold ends sooner (key
+ *     alert:fee_pending:<caseId>, recorded once delivered). It only tells the operator; nothing is charged or changed.
+ * Selection starts from bookings.fee_case_status, so a booking without a case (an unpaid booking, a completed cash booking
+ * the driver never confirmed) is never looked at: no case, no reminder, no status change.
+ */
+const stepR: TickStep = {
+  code: 'R',
+  async run(ctx) {
+    const nowMs = ctx.now.getTime()
+    const pending = await loadPendingFees()
+
+    let reminders = 0
+    for (const item of pending) {
+      const { booking, caseRow } = item
+      try {
+        if (!reminderDue(item, nowMs)) continue
+        const noShow = caseRow.kind === 'no_show'
+        const result = await sendPaymentOperatorAlert('fee_pending_24h', booking, {
+          eventKey: `alert:fee_pending:${caseRow.id}`,
+          proposedMinor: caseRow.proposed_minor,
+          freeUntil: caseRow.free_until,
+          openedAt: caseRow.opened_at,
+          ...(noShow
+            ? {
+                arrivedAt: evidenceInstant(caseRow, 'on_location_at'),
+                requestedAt: evidenceInstant(caseRow, 'requested_at'),
+                thresholdMin: evidenceNumber(caseRow, 'threshold_min'),
+              }
+            : { cancelledAt: caseRow.opened_at }),
+        })
+        if (result === 'sent') reminders += 1
+      } catch {
+        console.error('[payment-tick] fee reminder failed unexpectedly', { bookingId: booking.id })
+        ctx.errors.add('R')
+      }
+    }
+    return { fee_reminders: reminders }
+  },
+}
+
+export const TICK_STEPS: TickStep[] = [stepA, stepB, stepC, stepD, stepE, stepF, stepR]
 
 /** Never throws: every step is isolated and the result always carries the counts and the failed step codes. */
 export async function runPaymentTick(now: Date = new Date()): Promise<TickResult> {
