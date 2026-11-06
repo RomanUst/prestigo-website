@@ -1100,6 +1100,7 @@
     "manage": {
       "cta": "Gérer la réservation",
       "note": "Annulez, demandez une modification ou réservez un autre trajet. Gardez ce lien confidentiel."
-    }
+    },
+    "contactOr": "ou"
   }
 }

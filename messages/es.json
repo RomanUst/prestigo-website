@@ -1100,6 +1100,7 @@
     "manage": {
       "cta": "Gestionar la reserva",
       "note": "Cancele, solicite un cambio o reserve otro viaje. Mantenga este enlace en privado."
-    }
+    },
+    "contactOr": "o"
   }
 }
