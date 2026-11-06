@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { tripLinkViewState } from '@/lib/trip-token'
 import { formatVehicleLabel } from '@/lib/email'
-import { buildTripView } from '@/lib/driver-trip-step'
+import { buildDriverCash, buildTripView } from '@/lib/driver-trip-step'
 import { getNoShowView } from '@/lib/no-show'
 import type { DriverTripRecord } from '@/lib/driver-trip-step'
 import InvalidTripLinkView from './InvalidTripLinkView'
@@ -50,6 +50,11 @@ interface TripSheetBookingRow {
   no_show_requested_at: string | null
   status: string
   driver_id: string | null
+  // Phase 89 (D-11): read only to build the cash label; none of these four reaches the browser as a number.
+  payment_mode?: string | null
+  payment_state?: string | null
+  payment_amount_minor?: number | null
+  payment_currency?: string | null
 }
 
 interface TripSheetDriverRow {
@@ -66,13 +71,16 @@ interface TripSheetAssignmentRow {
   drivers: TripSheetDriverRow | null
 }
 
-// D-06: the driver never sees an amount, so the booking amount is not selected at all.
+// D-06: the driver never sees an amount, so bookings.amount_eur is not selected at all. The one scoped exception
+// (Phase 89, D-11, D-12) is a cash_guarantee booking: its payment_amount_minor / payment_currency are turned into a
+// formatted label on the server (buildDriverCash), only while the cash is unsettled or just settled.
 const TRIP_SELECT =
   'id, driver_id, status, trip_note, ' +
   'bookings!inner(id, booking_reference, booking_source, pickup_utc, pickup_date, pickup_time, ' +
   'origin_address, destination_address, origin_lat, origin_lng, destination_lat, destination_lng, ' +
   'client_first_name, client_last_name, client_phone, flight_number, flight_iata, special_requests, ' +
-  'vehicle_class, distance_km, completed_at, no_show_requested_at, status, driver_id), ' +
+  'vehicle_class, distance_km, completed_at, no_show_requested_at, status, driver_id, ' +
+  'payment_mode, payment_state, payment_amount_minor, payment_currency), ' +
   'drivers(name, vehicle_info)'
 
 function coords(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
@@ -124,8 +132,28 @@ export default async function TripSheetPage({ params }: PageProps) {
     assignmentStatus: assignment.status,
   })
 
-  if (viewState === 'ended') return <InvalidTripLinkView />
-  if (viewState === 'completed') return <TripCompleted variant="reopened" />
+  // Phase 89 (D-03, UI-SPEC 6.3): a cancelled trip on the CURRENT driver's link says so and shows the reference only.
+  // Unknown, reassigned and declined links keep the uniform view (no enumeration).
+  const isCurrentDriver =
+    booking.driver_id !== null && assignment.driver_id === booking.driver_id && assignment.status !== 'declined'
+  if (viewState === 'ended') {
+    return isCurrentDriver && booking.status === 'cancelled' ? (
+      <InvalidTripLinkView cancelledReference={booking.booking_reference} />
+    ) : (
+      <InvalidTripLinkView />
+    )
+  }
+
+  // D-11: a label string or nothing; non-cash trips get no cash prop at all (the Phase 87 props).
+  const cash = buildDriverCash(booking)
+
+  if (viewState === 'completed') {
+    return cash ? (
+      <TripCompleted variant="reopened" token={parsedToken.data} cash={cash} />
+    ) : (
+      <TripCompleted variant="reopened" />
+    )
+  }
 
   const record: DriverTripRecord['booking'] = {
     id: booking.id,
@@ -171,6 +199,7 @@ export default async function TripSheetPage({ params }: PageProps) {
       }}
       initialNote={assignment.trip_note ?? null}
       noShow={{ availableAt: noShowView.noShowAvailableAt, requestedAt: noShowView.noShowRequestedAt }}
+      {...(cash ? { cash } : {})}
     />
   )
 }

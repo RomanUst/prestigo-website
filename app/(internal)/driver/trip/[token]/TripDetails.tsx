@@ -3,6 +3,8 @@
 import { useId, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
+import { Banknote } from 'lucide-react'
+import { BadgeShell } from '@/components/admin/StatusBadge'
 
 const NOTE_MAX = 2000
 const NOTE_ERROR = 'Could not send the note. Try again.'
@@ -18,6 +20,8 @@ export interface TripDetailsProps {
   vehicleInfo: string | null
   flight: string | null
   clientNotes: string | null
+  /** Phase 89 (UI-SPEC 6.1): a cash_guarantee booking shows the neutral chip, never the amount. */
+  isCash?: boolean
   /** The draft lives in the screen so collapsing the sheet or a router.refresh() never loses it. */
   draft: string
   onDraftChange: (value: string) => void
@@ -62,6 +66,7 @@ export default function TripDetails({
   vehicleInfo,
   flight,
   clientNotes,
+  isCash = false,
   draft,
   onDraftChange,
 }: TripDetailsProps) {
@@ -110,6 +115,14 @@ export default function TripDetails({
       <DetailRow caption="Booking">
         <p style={{ ...valueStyle, fontVariantNumeric: 'tabular-nums' }}>{bookingReference}</p>
       </DetailRow>
+      {isCash ? (
+        <DetailRow caption="Payment">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Banknote size={16} aria-hidden="true" style={{ color: 'var(--status-neutral-fg)', flexShrink: 0 }} />
+            <BadgeShell family="neutral" label="Cash payment" />
+          </span>
+        </DetailRow>
+      ) : null}
       {driverName ? (
         <DetailRow caption="Driver">
           <p style={valueStyle}>{driverName}</p>

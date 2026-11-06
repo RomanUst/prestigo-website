@@ -4,7 +4,11 @@ import type { createSupabaseServiceClient } from '@/lib/supabase'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { pushGnetForTransition } from '@/lib/gnet-push'
 import { getStartGate, type StartGate } from '@/lib/start-gate'
+import { settleCash } from '@/lib/payments/cash'
+import { formatMinor } from '@/lib/payments/money'
 import {
+  PartnerBookingMoneyError,
+  assertMoneyEligible,
   DRIVER_STEPS,
   DRIVER_STEP_TARGET,
   DRIVER_STEP_TRIP_PROGRESS,
@@ -23,6 +27,11 @@ import {
  * 'driver'); the only direct write here is the driver_assignments.trip_progress mirror, applied
  * after the compare-and-set won, and the driver note. The driver can never send an amount: the
  * request schema is a strict { step } or { note }.
+ *
+ * Phase 89 (CASH-04, D-11, D-21): the one scoped exception is confirm_cash. The driver of a completed
+ * cash_guarantee booking says "I received the cash"; that settles the booking through settleCash (the one
+ * writer of payment_state) with the system actor driver_trip. The driver never sends an amount (strict
+ * schema) and settleCash uses none. Nothing here charges a card or refunds.
  */
 
 type ServiceClient = ReturnType<typeof createSupabaseServiceClient>
@@ -32,6 +41,8 @@ export const driverTripRequestSchema = z.union([
   z.object({ note: z.string().max(2000) }).strict(),
   // D-15/D-16: the driver may only ASK for a no-show; the operator alone sets the status.
   z.object({ action: z.literal('request_no_show') }).strict(),
+  // D-11 (Phase 89): the driver confirms the cash was received. No amount field exists, so one is a 400.
+  z.object({ action: z.literal('confirm_cash') }).strict(),
 ])
 
 export type DriverTripRequest = z.infer<typeof driverTripRequestSchema>
@@ -54,6 +65,10 @@ export interface DriverTripRecord {
     origin_address: string | null
     completed_at: string | null
     no_show_requested_at: string | null
+    // Phase 89: only read by confirm_cash; absent in fixtures that predate it.
+    payment_mode?: string | null
+    payment_state?: string | null
+    recovery_link_id?: string | null
   }
 }
 
@@ -91,7 +106,7 @@ export async function loadDriverTripForStep(
   const { data, error } = await supabase
     .from('driver_assignments')
     .select(
-      'id, driver_id, status, bookings!inner(id, status, driver_id, booking_source, amount_eur, pickup_utc, pickup_date, pickup_time, origin_lat, origin_lng, origin_address, completed_at, no_show_requested_at)',
+      'id, driver_id, status, bookings!inner(id, status, driver_id, booking_source, amount_eur, pickup_utc, pickup_date, pickup_time, origin_lat, origin_lng, origin_address, completed_at, no_show_requested_at, payment_mode, payment_state, recovery_link_id)',
     )
     .eq('trip_token', token)
     .single()
@@ -243,6 +258,95 @@ export async function driverTripStep(input: {
     body.completedAt = completedAt
   }
   return { httpStatus: 200, body }
+}
+
+export type DriverConfirmCashResult =
+  | { httpStatus: 200; body: { ok: true; status: string; nextStep: null; cash: 'settled'; replay?: true } }
+  | { httpStatus: 409 | 422; body: { ok: false; error: 'cash_conflict' | 'cash_not_allowed'; status: string; nextStep: null } }
+  | { httpStatus: 400; body: { error: 'invalid_token' } }
+
+/**
+ * D-11: the driver confirms the cash. Identity, partner guard, completed trip, cash_guarantee booking in a state that
+ * can be settled; then settleCash with the driver_trip system actor. 422 for anything else (nothing written), 409 when
+ * the state moved between our read and the compare-and-set, 200 with replay for an already settled booking. There is
+ * deliberately no "did not pay" answer (D-21): the driver calls the office and nothing happens by itself.
+ */
+export async function driverConfirmCash(input: { trip: DriverTripRecord }): Promise<DriverConfirmCashResult> {
+  const { booking } = input.trip
+  if (!hasTripIdentity(input.trip)) return INVALID_TOKEN
+
+  const notAllowed: DriverConfirmCashResult = {
+    httpStatus: 422,
+    body: { ok: false, error: 'cash_not_allowed', status: booking.status, nextStep: null },
+  }
+  try {
+    assertMoneyEligible({ booking_source: booking.booking_source })
+  } catch (err) {
+    if (err instanceof PartnerBookingMoneyError) return notAllowed
+    throw err
+  }
+  if (booking.status !== 'completed') return notAllowed
+  if (booking.payment_mode !== 'cash_guarantee') return notAllowed
+  const state = booking.payment_state
+  if (state !== 'card_saved' && state !== 'failed' && state !== 'cash_settled') return notAllowed
+
+  const result = await settleCash(
+    {
+      id: booking.id,
+      booking_source: booking.booking_source,
+      payment_mode: booking.payment_mode,
+      payment_state: state,
+      recovery_link_id: booking.recovery_link_id ?? null,
+    },
+    { type: 'system', id: 'driver_trip' },
+  )
+
+  switch (result) {
+    case 'settled':
+      return { httpStatus: 200, body: { ok: true, status: booking.status, nextStep: null, cash: 'settled' } }
+    case 'replay':
+      return { httpStatus: 200, body: { ok: true, status: booking.status, nextStep: null, cash: 'settled', replay: true } }
+    case 'not_allowed':
+      return { httpStatus: 409, body: { ok: false, error: 'cash_conflict', status: booking.status, nextStep: null } }
+  }
+}
+
+/**
+ * What the trip page may show about cash (D-11, D-12). A formatted label, never a number: the amount and currency are
+ * the booking's own (payment_amount_minor / payment_currency). null for every trip that is not a cash_guarantee booking
+ * with a payable (card_saved, failed) or settled (cash_settled) cash, so all other trips render as in Phase 87.
+ */
+export interface DriverTripCash {
+  amountLabel: string
+  state: 'due' | 'settled'
+}
+
+export function buildDriverCash(booking: {
+  payment_mode?: string | null
+  payment_state?: string | null
+  payment_amount_minor?: number | null
+  payment_currency?: string | null
+  booking_source?: string | null
+}): DriverTripCash | null {
+  if (booking.payment_mode !== 'cash_guarantee') return null
+  try {
+    assertMoneyEligible({ booking_source: booking.booking_source ?? null })
+  } catch (err) {
+    if (err instanceof PartnerBookingMoneyError) return null
+    throw err
+  }
+  const state =
+    booking.payment_state === 'card_saved' || booking.payment_state === 'failed'
+      ? 'due'
+      : booking.payment_state === 'cash_settled'
+        ? 'settled'
+        : null
+  if (!state) return null
+  const minor = booking.payment_amount_minor
+  const currency = booking.payment_currency
+  if (typeof minor !== 'number' || !Number.isInteger(minor) || minor <= 0) return null
+  if (currency !== 'eur' && currency !== 'czk') return null
+  return { amountLabel: formatMinor(minor, currency), state }
 }
 
 /** D-21: the driver note, independent of steps; active links only (non-terminal booking). */
