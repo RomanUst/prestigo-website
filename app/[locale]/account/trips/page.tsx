@@ -61,13 +61,16 @@ export default async function AccountTripsPage() {
   // Phase 89 (D-02): a non-terminal booking that stored a cancellation policy gets a "Manage booking" link to the same
   // secret-link page guests use. The rows above are already the signed-in client's own (user_id filter plus RLS); the
   // token is then read with the service client inside ensureManageToken, so it never passes through the user client
-  // (the table is deny-all for it). A legacy booking (no stored policy), a terminal one or a failed read gets no link.
+  // (the table is deny-all for it). A legacy booking (no stored policy), a terminal one, an unfinished checkout (`unpaid`) or a failed read gets no link.
   const manageHrefs = new Map<string, string>()
   await Promise.all(
     trips.map(async (trip) => {
       const policyVersion = (trip as { cancel_policy_version?: string | null }).cancel_policy_version
       if (typeof policyVersion !== 'string' || policyVersion === '') return
       if (isBookingStatus(trip.status) && TERMINAL_BOOKING_STATUSES.has(trip.status)) return
+      // An `unpaid` row is a checkout the client has not finished (it already holds the payment intent id): nothing
+      // was paid, so there is nothing to manage yet and no link to hand out (Phase 89 review WR-01).
+      if (trip.status === 'unpaid') return
       try {
         const token = await ensureManageToken(trip.id)
         if (token) manageHrefs.set(trip.id, getPathname({ locale, href: `/manage/${token}` }))

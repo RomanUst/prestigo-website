@@ -155,6 +155,15 @@ function isCardMode(row: Row): boolean {
   return row.payment_mode === 'card_hold' || row.payment_mode === 'cash_guarantee'
 }
 
+/**
+ * True when a pay-now booking has money behind it. create-payment-intent stores an `unpaid` row WITH the payment intent
+ * id before the client pays (an abandoned checkout stays that way), so the id alone proves nothing: the webhook moves
+ * the row out of `unpaid` only when the payment succeeds (Phase 89 review WR-01).
+ */
+function payNowPaid(row: Row): boolean {
+  return str(row.payment_intent_id) !== '' && row.status !== 'unpaid'
+}
+
 /** The fare shown to the client: the card amount in its own currency, else the booking amount in EUR. */
 function fareOf(row: Row): ManageMoney | null {
   const minor = posInt(row.payment_amount_minor)
@@ -171,7 +180,7 @@ function paymentOf(row: Row): ManagePayment | null {
   const state = str(row.payment_state)
   if (mode === 'pay_now') {
     const fare = fareOf(row)
-    return str(row.payment_intent_id) !== '' && fare ? { key: 'paidCard', ...fare, holdAtMs: null } : null
+    return payNowPaid(row) && fare ? { key: 'paidCard', ...fare, holdAtMs: null } : null
   }
   if (mode !== 'card_hold' && mode !== 'cash_guarantee') return null
   const currency = currencyOf(row.payment_currency)
@@ -201,7 +210,7 @@ function paymentOf(row: Row): ManagePayment | null {
 /** What a free cancel does with money, from the payment side of the row. */
 function freeMoneyOf(row: Row): { freeMoney: ManageFreeMoney; refundMinor: number | null } {
   if (row.payment_mode === 'pay_now') {
-    const fare = str(row.payment_intent_id) !== '' ? fareOf(row) : null
+    const fare = payNowPaid(row) ? fareOf(row) : null
     return fare ? { freeMoney: 'refund', refundMinor: fare.amountMinor } : { freeMoney: 'none', refundMinor: null }
   }
   if (isCardMode(row)) {
@@ -250,7 +259,9 @@ export function buildManageView(row: Row, extras: ManageExtras, nowMs: number): 
   let cancel: ManageCancelInfo | null = null
   if (variant === 'active') {
     const money = freeMoneyOf(row)
-    const base = isFeeEligible(row) ? feeBaseOf(row) : null
+    // A pay-now row that was never paid has nothing to keep: no fee is proposed on money that was not taken (WR-01).
+    const unpaidPayNow = row.payment_mode === 'pay_now' && !payNowPaid(row)
+    const base = !unpaidPayNow && isFeeEligible(row) ? feeBaseOf(row) : null
     cancel = {
       // No pickup instant to measure against: the client page promises nothing, as cancelBooking does.
       outcome: evaluated ? evaluated.kind : 'too_late',
