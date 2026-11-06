@@ -1,9 +1,29 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Copy, LoaderCircle, TriangleAlert } from 'lucide-react'
-import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
+import { FeeChargeModal } from './FeeChargeModal'
+import { FeeDecisionBanner } from './FeeDecisionBanner'
 import { Modal } from './Modal'
+import { AlertBanner, type BannerSpec, type DecisionResult } from './paymentParts'
+import {
+  amountStyle,
+  bodyStyle,
+  formatPragueFull,
+  formatPragueShort,
+  labelStyle,
+  money,
+  outlineButtonStyle,
+  FONT,
+  COPY_BUSY,
+  COPY_GENERIC,
+  COPY_GONE,
+  COPY_PARTIAL,
+  COPY_SESSION,
+  type CashFacts,
+  type FeeCaseFacts,
+  type PaymentSnapshot,
+} from './paymentShared'
 import { PaymentStateBadge, RefundFailedBadge } from './PaymentStateBadge'
 
 // Phase 88-07 (HOLD-07, PAYF-01, D-14, D-20): self-contained admin payment panel. It fetches
@@ -11,32 +31,20 @@ import { PaymentStateBadge, RefundFailedBadge } from './PaymentStateBadge'
 // BookingDetailPanel extraction only moves it. No polling: it refetches on mount, when
 // `refreshKey` changes (a trip edit) and after any action.
 //
+// Phase 89-17: the fee decision block, the cash vocabulary and the five fee / cash dialogs. Buttons come only from the
+// server's allowed_actions; the server re-checks everything (T-89-58).
+//
 // Colour comes only from var(--admin-*) / var(--status-*) tokens (tests/admin-no-hardcoded-colors).
+
+export { formatPragueFull }
+export type { PaymentSnapshot, FeeCaseFacts, CashFacts }
 
 // ── API contract ─────────────────────────────────────────────────────────────
 
-export type PaymentActionName = 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
-
-export interface PaymentSnapshot {
-  mode: string
-  state: string
-  currency: PaymentCurrency | null
-  amount_minor: number | null
-  hold_amount_minor: number | null
-  captured_amount_minor: number
-  hold_at: string | null
-  capture_before: string | null
-  card_saved: boolean
-  last_payment_error: string | null
-  payment_retry_at: string | null
-  payment_retry_count: number
-  recovery_link_url: string | null
-  pickup_at: string | null
-  status: string
-  completed: boolean
-  booking_reference: string
-  client_email: string | null
-}
+/** The five executable actions of POST /payment, and the display names executed by POST /fee (plan 89-12). */
+export type PaymentActionName =
+  | 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
+  | 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash'
 
 export interface PaymentEventRow {
   id: number
@@ -55,6 +63,10 @@ export interface PaymentResponse {
   refund_failed: boolean
   events: PaymentEventRow[]
   events_total: number
+  /** Phase 89: the late-cancel / no-show case, null when the booking has none. */
+  fee_case?: FeeCaseFacts | null
+  /** Phase 89: the cash facts of a cash booking, null for other modes. */
+  cash?: CashFacts | null
 }
 
 interface PaymentPanelProps {
@@ -76,42 +88,7 @@ interface PaymentPanelProps {
 
 // ── formatting ───────────────────────────────────────────────────────────────
 
-const PRAGUE_TZ = 'Europe/Prague'
 const HISTORY_PREVIEW = 5
-
-const PRAGUE_FORMAT = new Intl.DateTimeFormat('en-GB', {
-  timeZone: PRAGUE_TZ,
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23',
-})
-
-function pragueStamp(iso: string | null | undefined, withWeekday: boolean): string | null {
-  if (!iso) return null
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return null
-  const parts: Record<string, string> = {}
-  for (const p of PRAGUE_FORMAT.formatToParts(date)) parts[p.type] = p.value
-  const day = `${parts.day} ${parts.month}`
-  return `${withWeekday ? `${parts.weekday} ` : ''}${day}, ${parts.hour}:${parts.minute}`
-}
-
-/** "Thu 12 Nov, 14:05" (Prague). */
-export function formatPragueFull(iso: string | null | undefined): string | null {
-  return pragueStamp(iso, true)
-}
-
-/** "12 Nov, 14:05" (Prague). */
-function formatPragueShort(iso: string | null | undefined): string | null {
-  return pragueStamp(iso, false)
-}
-
-function money(amountMinor: number, currency: string | null | undefined): string {
-  return formatMinor(amountMinor, currency === 'czk' ? 'czk' : 'eur')
-}
 
 // ── copy tables ──────────────────────────────────────────────────────────────
 
@@ -140,6 +117,10 @@ const EVENT_LABELS: Record<string, string> = {
   edit_reevaluated: 'Booking edited, payment re-checked',
   waived: 'Balance waived',
   refund_failed: 'Refund failed',
+  // Phase 89 (UI-SPEC 5.6). `waived` reads "Fee waived" when the booking has a fee case (see eventLabel).
+  fee_opened: 'Fee decision opened',
+  cash_settled: 'Paid in cash',
+  cash_reopened: 'Cash confirmation reversed',
 }
 
 const ERROR_TEXT: Record<string, string> = {
@@ -156,7 +137,9 @@ const ACTOR_LABEL: Record<PaymentEventRow['actor_type'], string> = {
   admin: 'Admin',
 }
 
-function eventLabel(kind: string): string {
+/** `waived` is "Fee waived" on a booking with a fee case and "Balance waived" otherwise (the balance_due write-off). */
+function eventLabel(kind: string, hasFeeCase: boolean): string {
+  if (kind === 'waived' && hasFeeCase) return 'Fee waived'
   return Object.prototype.hasOwnProperty.call(EVENT_LABELS, kind) ? EVENT_LABELS[kind] : kind
 }
 
@@ -165,38 +148,6 @@ function friendlyError(code: string): string {
 }
 
 // ── shared styles (tokens only) ──────────────────────────────────────────────
-
-const FONT = 'var(--font-montserrat)'
-
-const labelStyle: React.CSSProperties = {
-  fontFamily: FONT,
-  fontSize: 'var(--admin-fs-label)',
-  color: 'var(--admin-text-muted)',
-}
-
-const bodyStyle: React.CSSProperties = {
-  fontFamily: FONT,
-  fontSize: 'var(--admin-fs-body)',
-  color: 'var(--admin-text)',
-}
-
-const amountStyle: React.CSSProperties = {
-  whiteSpace: 'nowrap',
-  fontVariantNumeric: 'tabular-nums',
-}
-
-const outlineButtonStyle: React.CSSProperties = {
-  minHeight: '44px',
-  padding: '0 24px',
-  background: 'transparent',
-  border: '1px solid var(--admin-border-strong)',
-  borderRadius: 'var(--admin-radius-md)',
-  color: 'var(--admin-text)',
-  fontFamily: FONT,
-  fontSize: 'var(--admin-fs-body)',
-  fontWeight: 'var(--admin-fw-strong)',
-  cursor: 'pointer',
-}
 
 // ── facts ────────────────────────────────────────────────────────────────────
 
@@ -288,7 +239,7 @@ function FactsGrid({ facts }: { facts: Fact[] }) {
 
 // ── history ──────────────────────────────────────────────────────────────────
 
-function HistoryList({ events, total }: { events: PaymentEventRow[]; total: number }) {
+function HistoryList({ events, total, hasFeeCase }: { events: PaymentEventRow[]; total: number; hasFeeCase: boolean }) {
   const [showAll, setShowAll] = useState(false)
   const count = Math.max(total, events.length)
   const visible = showAll ? events : events.slice(0, HISTORY_PREVIEW)
@@ -323,7 +274,7 @@ function HistoryList({ events, total }: { events: PaymentEventRow[]; total: numb
                   {when ?? ''}
                 </span>
                 <span className="order-1 sm:order-none" style={{ ...bodyStyle, minWidth: 0, overflowWrap: 'anywhere' }}>
-                  {eventLabel(ev.kind)}
+                  {eventLabel(ev.kind, hasFeeCase)}
                   {ev.error_code && (
                     <span style={{ ...labelStyle, marginInlineStart: '8px' }}>{ev.error_code}</span>
                   )}
@@ -387,13 +338,6 @@ function PanelHeader({ children }: { children?: React.ReactNode }) {
 }
 
 // ── alert banner (D-14, HOLD-05, D-20) ───────────────────────────────────────
-
-type BannerFamily = 'danger' | 'amber' | 'warn'
-interface BannerSpec {
-  family: BannerFamily
-  title: string
-  body: string
-}
 
 const HOUR_MS = 3_600_000
 const NO_HOLD_STATES = ['card_saved', 'failed', 'expired', 'placing_hold', 'checkout_pending']
@@ -468,28 +412,6 @@ function computeBanner(data: PaymentResponse, nowMs: number): BannerSpec | null 
   return null
 }
 
-function AlertBanner({ spec }: { spec: BannerSpec }) {
-  return (
-    <div
-      role={spec.family === 'danger' ? 'alert' : 'status'}
-      style={{
-        display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '16px', padding: '16px',
-        background: `var(--status-${spec.family}-bg)`,
-        border: `1px solid var(--status-${spec.family}-border)`,
-        borderRadius: 'var(--admin-radius-md)',
-      }}
-    >
-      <TriangleAlert size={20} aria-hidden="true" style={{ flexShrink: 0, color: `var(--status-${spec.family}-fg)` }} />
-      <div style={{ ...bodyStyle, minWidth: 0 }}>
-        <strong style={{ display: 'block', fontWeight: 'var(--admin-fw-strong)', color: `var(--status-${spec.family}-fg)` }}>
-          {spec.title}
-        </strong>
-        <span style={{ overflowWrap: 'anywhere' }}>{spec.body}</span>
-      </div>
-    </div>
-  )
-}
-
 /**
  * 88-REVIEW C-WR-05: the refund-failed flag is cleared by the operator once the refund (or hold release) was done by
  * hand in the Stripe Dashboard. Two steps (ask, then confirm); one audit row on the server, no money moves.
@@ -560,6 +482,8 @@ function actionButtonLabel(action: PaymentActionName, completed: boolean): strin
     case 'send_link': return 'Send payment link'
     case 'release': return 'Release hold'
     case 'waive': return 'Waive balance'
+    // The fee / cash display names open their own dialogs (actionLabel in PanelBody names them).
+    default: return action
   }
 }
 
@@ -622,16 +546,12 @@ function confirmCopy(action: PaymentActionName, p: PaymentSnapshot): ConfirmCopy
         secondary: 'Keep balance',
         danger: true,
       }
+    default:
+      // Never reached: the fee / cash names open their own dialogs, not this confirmation.
+      return { title: action, body: '', primary: action, secondary: 'Cancel', danger: false }
   }
 }
 
-const COPY_BUSY = 'Payment is being processed. Wait a moment and try again.'
-const COPY_GENERIC = 'Could not complete the action. Nothing was changed. Try again.'
-// 88-REVIEW C-WR-04: a 5xx (or a lost answer) may come after part of the action ran (an audit row, a new payment link
-// whose email failed): never claim that nothing changed, and show the current state.
-const COPY_PARTIAL = 'The action may have partly completed. The panel now shows the current state.'
-const COPY_SESSION = 'Your session has ended. Sign in again.'
-const COPY_GONE = 'That action is no longer available. The panel shows the current state.'
 const COPY_DONE = 'Done. The payment history is updated.'
 const COPY_DECLINED = 'The card was declined. The client was emailed a payment link.'
 
@@ -720,7 +640,7 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
   // A known non-card booking never shows a skeleton or a load error: its panel only exists for a
   // refund_failed answer (D-20).
   // `undefined` = standalone use (unknown): behave as a card booking. `null` = the list has no mode.
-  const quiet = paymentMode !== undefined && paymentMode !== 'card_hold'
+  const quiet = paymentMode !== undefined && paymentMode !== 'card_hold' && paymentMode !== 'cash_guarantee'
 
   const fetchPayment = useCallback(async (signal: { cancelled: boolean }) => {
     try {
@@ -776,11 +696,12 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
   }
 
   const { data } = load
-  const isCard = data.payment.mode === 'card_hold'
-  if (!isCard && !data.refund_failed) return null
+  // Phase 89: a card or cash booking gets the whole panel; any other booking (pay-now) only when it has a fee case.
+  const hasPanel = data.payment.mode === 'card_hold' || data.payment.mode === 'cash_guarantee' || !!data.fee_case
+  if (!hasPanel && !data.refund_failed) return null
 
   // D-20: any payment mode. A non-card booking (legacy pay-now) gets only the Refund failed banner.
-  if (!isCard) {
+  if (!hasPanel) {
     return (
       <div data-testid="payment-refund-failed" onClick={(e) => e.stopPropagation()}>
         <div style={{ marginTop: '16px' }}><RefundFailedBadge /></div>
@@ -799,10 +720,104 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
   )
 }
 
-const KNOWN_ACTIONS: readonly PaymentActionName[] = ['capture', 'retry', 'send_link', 'release', 'waive']
+
+const EXECUTABLE_ACTIONS: readonly PaymentActionName[] = ['capture', 'retry', 'send_link', 'release', 'waive']
+const KNOWN_ACTIONS: readonly PaymentActionName[] = [
+  ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee',
+]
+
+const FEE_CASE_LABEL: Record<string, string> = {
+  late_cancel: 'Late cancellation',
+  no_show: 'No-show',
+  cash_not_paid: 'Cash not paid',
+}
+const FEE_STATUS_LABEL: Record<string, string> = {
+  pending: 'Decision needed',
+  charged: 'Charged',
+  waived: 'Waived',
+}
+
+function evidenceText(evidence: Record<string, unknown>, key: string): string | null {
+  const v = evidence[key]
+  return typeof v === 'string' && v ? v : null
+}
+
+/** The four-row evidence list of a no-show (UI-SPEC 4.2). Rows without a value are not rendered. */
+function EvidenceList({ evidence }: { evidence: Record<string, unknown> }) {
+  const threshold = typeof evidence.threshold_min === 'number' ? evidence.threshold_min : null
+  const kind = typeof evidence.airport === 'boolean' ? (evidence.airport ? 'airport' : 'city') : null
+  const rows: Array<[string, string | null]> = [
+    ['Pickup time', formatPragueFull(evidenceText(evidence, 'pickup_utc'))],
+    ['Driver arrived', formatPragueFull(evidenceText(evidence, 'on_location_at'))],
+    ['No-show requested', formatPragueFull(evidenceText(evidence, 'requested_at'))],
+    ['Wait threshold', threshold !== null ? `${threshold} min${kind ? ` (${kind})` : ''}` : null],
+  ]
+  const shown = rows.filter(([, value]) => value !== null)
+  if (shown.length === 0) return null
+  return (
+    <ul aria-label="Evidence" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+      {shown.map(([caption, value]) => (
+        <li key={caption} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <span style={labelStyle}>{caption}</span>
+          <span style={bodyStyle}>{value}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function buildFeeFacts(c: FeeCaseFacts): Fact[] {
+  const facts: Fact[] = []
+  const push = (key: string, caption: string, value: React.ReactNode | null) => {
+    if (value !== null && value !== undefined && value !== '') facts.push({ key, caption, value })
+  }
+  push('case', 'Case', FEE_CASE_LABEL[c.kind] ?? c.kind)
+  push('status', 'Status', FEE_STATUS_LABEL[c.status] ?? c.status)
+  push('proposed', 'Proposed fee', <span style={amountStyle}>{money(c.proposed_minor, c.currency)}</span>)
+  if (c.charged_minor !== null) {
+    push('charged', 'Charged fee', <span style={amountStyle}>{money(c.charged_minor, c.currency)}</span>)
+  }
+  push('opened', 'Opened', formatPragueFull(c.opened_at))
+  const decidedAt = formatPragueFull(c.decided_at)
+  const decided = [c.decided_by, decidedAt].filter(Boolean).join(', ')
+  push('decided', 'Decided by and when', decided || null)
+  // Operator text: admin-only. It is shown here and nowhere in the payment history.
+  push('reason', 'Reason', c.reason ? <span style={{ overflowWrap: 'anywhere' }}>{c.reason}</span> : null)
+  push('contact', 'Contact attempt', c.contact_note ? <span style={{ overflowWrap: 'anywhere' }}>{c.contact_note}</span> : null)
+  if (c.kind === 'no_show') push('evidence', 'Evidence', <EvidenceList evidence={c.evidence} />)
+  return facts
+}
+
+function FeeBlock({ feeCase }: { feeCase: FeeCaseFacts }) {
+  return (
+    <div data-testid="fee-block" style={{ marginTop: '16px' }}>
+      <h4 style={{
+        margin: 0, fontFamily: FONT, fontSize: 'var(--admin-fs-label)',
+        fontWeight: 'var(--admin-fw-strong)', color: 'var(--admin-text)',
+      }}>
+        Fee
+      </h4>
+      {feeCase.charge_in_flight && (
+        <p role="status" style={{ ...labelStyle, margin: '8px 0 0' }}>
+          A charge is in progress. If this stays, press Charge fee again: the same amount is retried and another amount is refused.
+        </p>
+      )}
+      <FactsGrid facts={buildFeeFacts(feeCase)} />
+    </div>
+  )
+}
+
+function actionLabel(action: PaymentActionName, p: PaymentSnapshot): string {
+  switch (action) {
+    case 'charge_fee': return 'Charge fee…'
+    case 'waive_fee': return 'Waive fee…'
+    default: return actionButtonLabel(action, p.completed)
+  }
+}
 
 function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: PaymentResponse; onRefetch: () => void }) {
   const p = data.payment
+  const feeCase = data.fee_case ?? null
   const [modal, setModal] = useState<PaymentActionName | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
@@ -836,8 +851,12 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
     setModalError(null)
   }
 
+  // The fee / cash dialogs own their request state; they close through here and report one result line.
+  const closeDialog = () => setModal(null)
+  const showResult = (r: DecisionResult) => setResult(r)
+
   async function confirm() {
-    if (!modal || inFlight.current) return
+    if (!modal || !EXECUTABLE_ACTIONS.includes(modal) || inFlight.current) return
     const action = modal
     inFlight.current = true
     setSubmitting(true)
@@ -887,18 +906,24 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
   }
 
   const banner = computeBanner(data, Date.now())
-  const actions = data.allowed_actions.filter(a => KNOWN_ACTIONS.includes(a))
-  const modalCopy = modal ? confirmCopy(modal, p) : null
+  // T-89-58: buttons come only from the server's allowed_actions. A waive is hidden while a charge holds the amount lock.
+  const actions = data.allowed_actions.filter(
+    a => KNOWN_ACTIONS.includes(a) && !(a === 'waive_fee' && feeCase?.charge_in_flight),
+  )
+  const modalCopy = modal && EXECUTABLE_ACTIONS.includes(modal) ? confirmCopy(modal, p) : null
 
   return (
     <div data-testid="payment-panel" style={cardStyle} onClick={(e) => e.stopPropagation()}>
       <PanelHeader>
-        <PaymentStateBadge state={p.state} />
+        {p.mode !== 'pay_now' && <PaymentStateBadge state={p.state} />}
         {data.refund_failed && <RefundFailedBadge />}
       </PanelHeader>
 
+      <FeeDecisionBanner payment={p} feeCase={feeCase} />
       {banner && <AlertBanner spec={banner} />}
       {data.refund_failed && <ResolveRefundControl bookingId={bookingId} onDone={onRefetch} />}
+
+      {feeCase && <FeeBlock feeCase={feeCase} />}
 
       <FactsGrid
         facts={buildFacts(p, { copied: copyState === 'copied', manual: copyState === 'manual', onCopy: copyLink, fallbackId: linkFallbackId })}
@@ -916,7 +941,7 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
               onClick={() => openModal(action)}
               style={{ ...outlineButtonStyle, opacity: submitting ? 0.6 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
             >
-              {actionButtonLabel(action, p.completed)}
+              {actionLabel(action, p)}
             </button>
           ))}
         </div>
@@ -934,9 +959,9 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
         </p>
       )}
 
-      <HistoryList events={data.events} total={data.events_total} />
+      <HistoryList events={data.events} total={data.events_total} hasFeeCase={feeCase !== null} />
 
-      <Modal isOpen={modal !== null} onClose={closeModal} title={modalCopy?.title ?? ''}>
+      <Modal isOpen={modalCopy !== null} onClose={closeModal} title={modalCopy?.title ?? ''}>
         {modalCopy && (
           <ConfirmDialog
             copy={modalCopy}
@@ -947,6 +972,18 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
           />
         )}
       </Modal>
+
+      {feeCase && (
+        <FeeChargeModal
+          isOpen={modal === 'charge_fee'}
+          bookingId={bookingId}
+          payment={p}
+          feeCase={feeCase}
+          onClose={closeDialog}
+          onResult={showResult}
+          onRefetch={onRefetch}
+        />
+      )}
     </div>
   )
 }
