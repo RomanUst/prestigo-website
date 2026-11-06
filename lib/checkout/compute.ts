@@ -321,8 +321,14 @@ export function buildCheckoutMeta(input: {
   bookingReference: string
   returnBookingReference: string
   authenticatedUserId: string | null
+  /**
+   * Phase 89 (D-18): the cancellation terms the client is shown, built server-side (buildPolicySnapshot) and only
+   * when the policy is public for this client. Becomes meta.cancelPolicy, which buildBookingRow stores on the row.
+   * Absent while the policy is closed, so the metadata key set is unchanged for clients then.
+   */
+  cancelPolicy?: { version: string; snapshot: Record<string, string | number> } | null
 }): Record<string, string> {
-  const { bookingData, priced, bookingReference, returnBookingReference, authenticatedUserId } = input
+  const { bookingData, priced, bookingReference, returnBookingReference, authenticatedUserId, cancelPolicy } = input
 
   // Per-leg amounts PRE-promo (for Phase 23 outbound_amount_czk / return_amount_czk columns).
   // Phase 28 refund math: refundRatio = finalTotalCzk / combinedBeforePromoCzk;
@@ -368,5 +374,7 @@ export function buildCheckoutMeta(input: {
     promoCode: priced.promoCode,
     discountPct: String(priced.appliedPromoPct),
     userId: authenticatedUserId ?? '',
+    // A compact JSON string (about 150 chars, inside the 500-char limit; never clamped, a cut JSON is useless).
+    ...(cancelPolicy ? { cancelPolicy: JSON.stringify(cancelPolicy.snapshot) } : {}),
   }
 }

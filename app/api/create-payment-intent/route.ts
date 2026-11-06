@@ -16,6 +16,8 @@ import {
   priceCheckout,
   buildCheckoutMeta,
 } from '@/lib/checkout/compute'
+import { getPaymentSettings, isPolicyPublic } from '@/lib/payments/config'
+import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
 
 // Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
 let _stripe: Stripe | null = null
@@ -106,12 +108,30 @@ export async function POST(req: Request) {
     // Single metadata map — sent to Stripe AND reused (below) as the `meta`
     // input to buildBookingRow for the Phase 62 unpaid-capture write, so the
     // capture row and the PaymentIntent's metadata never drift apart.
+    // Phase 89 D-18, D-24: the stored terms are the go-live gate. Built server-side from pricing_globals and only
+    // while the policy is public for this email (mode on, or canary with the email listed); otherwise the columns stay
+    // NULL and the legacy terms apply. A read failure means no snapshot, never a failed booking.
+    let cancelPolicy: ReturnType<typeof buildPolicySnapshot> | null = null
+    try {
+      const paymentSettings = await getPaymentSettings()
+      if (isPolicyPublic(paymentSettings, bookingData.email ?? '')) {
+        cancelPolicy = buildPolicySnapshot(await getCancellationPolicy())
+      }
+    } catch (policyErr) {
+      console.error(
+        'create-payment-intent policy snapshot skipped:',
+        policyErr instanceof Error ? policyErr.message : String(policyErr)
+      )
+      cancelPolicy = null
+    }
+
     const meta = buildCheckoutMeta({
       bookingData,
       priced,
       bookingReference,
       returnBookingReference,
       authenticatedUserId,
+      cancelPolicy,
     })
 
     const paymentIntent = await getStripe().paymentIntents.create({
