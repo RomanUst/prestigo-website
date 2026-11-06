@@ -59,10 +59,10 @@ export interface PaymentEventClass {
 
 type EventHandler = (event: Stripe.Event) => Promise<void>
 
-/** payment_intent.payment_failed: the scheduled hold (card_hold) or an off-session charge / difference (88-13). */
+/** payment_intent.payment_failed: the scheduled hold (card_hold) or an off-session charge / difference / fee (88-13, 89-26). */
 async function handlePaymentFailed(event: Stripe.Event): Promise<void> {
   const kind = metadataOf(event).kind
-  if (kind === 'card_charge' || kind === 'card_difference') return handleCardChargeFailed(event)
+  if (kind === 'card_charge' || kind === 'card_difference' || kind === 'card_fee') return handleCardChargeFailed(event)
   return handleHoldFailed(event)
 }
 
@@ -127,7 +127,13 @@ export function classifyPaymentEvent(event: Stripe.Event): PaymentEventClass | n
     case 'payment_intent.succeeded':
       if (!isCard) return null
       if (kind === 'card_recovery') return make('recovery_paid')
-      if (kind === 'card_charge' || kind === 'card_hold' || kind === 'card_hold_now' || kind === 'card_difference') {
+      if (
+        kind === 'card_charge' ||
+        kind === 'card_hold' ||
+        kind === 'card_hold_now' ||
+        kind === 'card_difference' ||
+        kind === 'card_fee'
+      ) {
         return make('charge_succeeded')
       }
       return make('unrouted')
@@ -173,7 +179,7 @@ export async function once(event: Stripe.Event, handler: EventHandler): Promise<
 }
 
 /**
- * charge.refunded on a card_hold booking: one refund_observed ledger row (key refund_observed:<charge>:<amount>,
+ * charge.refunded on a card_hold or cash_guarantee booking (89-26: a fee or cash card charge can be refunded): one refund_observed ledger row (key refund_observed:<charge>:<amount>,
  * so the same event again adds nothing). Observation only: it never short-circuits the shipped refund handler,
  * which still runs and keeps completed / no_show trips as they are. Errors are logged and swallowed for that reason.
  */
@@ -200,7 +206,7 @@ async function observeRefund(event: Stripe.Event): Promise<void> {
     }
   }
   const currency = charge.currency === 'czk' ? 'czk' : charge.currency === 'eur' ? 'eur' : undefined
-  for (const row of rows.filter((r) => r.payment_mode === 'card_hold')) {
+  for (const row of rows.filter((r) => r.payment_mode === 'card_hold' || r.payment_mode === 'cash_guarantee')) {
     await appendPaymentEvent(row.id, {
       key: `refund_observed:${charge.id}:${charge.amount_refunded}`,
       kind: 'refund_observed',
