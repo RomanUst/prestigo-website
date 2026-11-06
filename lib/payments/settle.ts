@@ -1,8 +1,10 @@
 // Settle a completed card_hold trip: capture the held amount, or charge the saved card (Phase 88, plan 88-13;
-// HOLD-04, D-05, D-06, D-16, D-17).
+// HOLD-04, D-05, D-06, D-16, D-17). Phase 89 (plan 89-06; CASH-03, D-10, D-14, D-21) adds ONE explicit opt-in,
+// opts.collect, for a fee chosen by a person and for a card charge on a cash booking; see "Collect mode" below.
 //
 // One function, three entry points (the single Phase 87 completion event, the payment tick's completion sweep,
 // the admin "capture" action), all calling settleBooking(bookingId, actor). Nothing else collects client money.
+// Phase 89 adds callers (lib/payments/fee.ts runFeeCharge and runCashCardCharge) that pass opts.collect.
 //
 // Never twice (T-88-38):
 //   1. CAS claim: authorized | expired | card_saved | failed | capturing -> capturing through applyTransition.
@@ -22,14 +24,25 @@
 //   hold <  due (D-16) capture the hold, then a separate off-session charge of the rest (card_difference)
 //   hold >  due (D-17) capture min(due, capturable); Stripe releases the rest of the authorization
 //   hold gone          off-session charge of the full amount (card_charge)
-// No code path collects before the trip is completed.
+// Without opts.collect no code path collects before the trip is completed, from a cancelled or no-show booking, or from
+// anything but a card_hold row: those three Phase 88 gates are unchanged for every caller that does not pass it.
+//
+// Collect mode (opts.collect, assumption delta of Phase 89, Pitfall 6):
+//   fee       a person chose the amount (a late-cancel or no-show fee). Allowed on a cancelled, no-show or completed
+//             booking, on a card_hold or cash_guarantee row. A live hold is partially captured (Stripe releases the
+//             rest); a lapsed or missing hold is replaced by an off-session charge of the fee. The Stripe keys derive
+//             from the CASE id and the attempt, never from the amount (feecap:/fee:<caseId>:<attempt>), and a decline
+//             schedules no automatic retry: nothing is charged again without a person.
+//   cash_card the driver was not paid in cash (D-21): the full row amount is charged to the saved card of a
+//             cash_guarantee booking, under the ordinary chg:<id>:<attempt> key.
+// The caller sends its own receipt; this function sends none in collect mode.
 
 import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { LEASE_SEARCH_AFTER_MS, LEASE_SECONDS, RETRY_DELAY_MS } from '@/lib/payments/config'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
-import { handlePaymentFailure } from '@/lib/payments/recovery'
+import { handlePaymentFailure, type PaymentFailureInput } from '@/lib/payments/recovery'
 import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
 import { alertStripeConfig } from '@/lib/payments/hold'
 import {
@@ -72,7 +85,33 @@ const attemptsOf = (b: BookingRow): number =>
  */
 const CLAIMABLE: PaymentState[] = ['authorized', 'expired', 'card_saved', 'failed', 'capturing', 'placing_hold']
 /** States in which there is nothing left to collect (or nothing a settle may do). */
-const SETTLED_STATES: ReadonlySet<string> = new Set(['captured', 'released', 'balance_due'])
+const SETTLED_STATES: ReadonlySet<string> = new Set(['captured', 'released', 'balance_due', 'cash_settled'])
+
+/**
+ * What an explicit collection asks for (Phase 89). The amount of a fee is chosen by a person and validated by the
+ * caller against the case; the amount of a cash card charge is the row's own payment_amount_minor.
+ */
+export type SettleCollect =
+  | { kind: 'fee'; caseId: string; amountMinor: number; feeLabel?: 'cancellation' | 'no_show' }
+  | { kind: 'cash_card' }
+
+/** Why a collect request is not allowed on this row (null = allowed). Evaluated before any claim. */
+function collectGate(booking: BookingRow, collect: SettleCollect): string | null {
+  const mode = booking.payment_mode
+  const status = booking.status
+  if (collect.kind === 'fee') {
+    if (mode !== 'card_hold' && mode !== 'cash_guarantee') return 'mode_not_allowed'
+    if (status !== 'cancelled' && status !== 'no_show' && status !== 'completed') return 'status_not_allowed'
+    if (!collect.caseId) return 'invalid_case'
+    const base = booking.payment_amount_minor
+    if (!Number.isInteger(collect.amountMinor) || collect.amountMinor <= 0) return 'invalid_amount'
+    if (typeof base !== 'number' || collect.amountMinor > base) return 'invalid_amount'
+    return null
+  }
+  if (mode !== 'cash_guarantee') return 'mode_not_allowed'
+  if (status === 'cancelled' || status === 'no_show') return 'status_not_allowed'
+  return null
+}
 
 /**
  * The trip is over: the status is completed, or the durable completed_at fact is set on a row whose status moved
@@ -129,6 +168,10 @@ interface Ctx {
   actor: LedgerActor
   /** The attempt started more than LEASE_SEARCH_AFTER_MS ago: Stripe may have pruned its idempotency keys. */
   searchFirst: boolean
+  /** Set only for an explicit collection (Phase 89); absent for every Phase 88 caller. */
+  collect?: SettleCollect
+  /** A live hold a fee did not use because it was smaller than the fee: released best effort once the fee is paid. */
+  leftoverHoldId?: string
 }
 
 /** Capture the held PaymentIntent for min(due, capturable), or reconcile one that is already captured. */
@@ -152,12 +195,20 @@ async function collectFromHold(ctx: Ctx, holdId: string): Promise<Collected> {
   if (pi.status === 'processing') return { kind: 'transient' }
 
   if (pi.status === 'requires_capture') {
+    // A fee is always the exact amount the person decided: a hold that can not cover it is not partly used (that
+    // would leave the case short). The fee is charged to the saved card and the small hold is released afterwards.
+    if (ctx.collect?.kind === 'fee' && pi.amount_capturable < ctx.dueMinor) {
+      ctx.leftoverHoldId = pi.id
+      return { kind: 'gone' }
+    }
     const toCapture = Math.min(ctx.dueMinor, pi.amount_capturable)
+    const captureKey =
+      ctx.collect?.kind === 'fee' ? stripeKeys.feeCapture(ctx.collect.caseId, ctx.attempt) : stripeKeys.capture(ctx.bookingId, ctx.attempt)
     try {
       const captured = (await stripe.paymentIntents.capture(
         pi.id,
         { amount_to_capture: toCapture },
-        { idempotencyKey: stripeKeys.capture(ctx.bookingId, ctx.attempt) },
+        { idempotencyKey: captureKey },
       )) as Stripe.PaymentIntent
       return { kind: 'ok', pi: captured, capturedMinor: captured.amount_received }
     } catch (err) {
@@ -195,7 +246,11 @@ async function collectFromHold(ctx: Ctx, holdId: string): Promise<Collected> {
  * price difference (card_difference, key diff:<id>:<attempt>). A search that fails is treated as transient: a
  * PaymentIntent is never created blind when the idempotency keys may have been pruned.
  */
-async function chargeSavedCard(ctx: Ctx, kind: 'card_charge' | 'card_difference', amountMinor: number): Promise<Collected> {
+async function chargeSavedCard(
+  ctx: Ctx,
+  kind: 'card_charge' | 'card_difference' | 'card_fee',
+  amountMinor: number,
+): Promise<Collected> {
   const customer = str(ctx.booking.stripe_customer_id)
   const paymentMethod = str(ctx.booking.stripe_payment_method_id)
   if (!customer || !paymentMethod) return { kind: 'failed', code: 'missing_payment_details', paymentIntentId: null }
@@ -215,7 +270,12 @@ async function chargeSavedCard(ctx: Ctx, kind: 'card_charge' | 'card_difference'
     }
   }
 
-  const key = kind === 'card_charge' ? stripeKeys.charge(ctx.bookingId, ctx.attempt) : stripeKeys.difference(ctx.bookingId, ctx.attempt)
+  const key =
+    kind === 'card_fee' && ctx.collect?.kind === 'fee'
+      ? stripeKeys.feeCharge(ctx.collect.caseId, ctx.attempt)
+      : kind === 'card_charge'
+        ? stripeKeys.charge(ctx.bookingId, ctx.attempt)
+        : stripeKeys.difference(ctx.bookingId, ctx.attempt)
   try {
     const pi = (await stripe.paymentIntents.create(
       {
@@ -280,7 +340,8 @@ async function recordFailure(
       charge_attempts: ctx.attempt + 1,
       last_payment_error: code,
       payment_failed_at: new Date(nowMs).toISOString(),
-      payment_retry_at: retriesUsed >= 1 ? null : new Date(nowMs + RETRY_DELAY_MS).toISOString(),
+      // Collect mode: never an automatic retry, a person decides what happens next (T-89-18).
+      payment_retry_at: ctx.collect || retriesUsed >= 1 ? null : new Date(nowMs + RETRY_DELAY_MS).toISOString(),
       payment_lease_until: null,
     },
     event: {
@@ -297,13 +358,28 @@ async function recordFailure(
   // attempt. Only the writer that moved the row does it; a recovery problem never changes the settle outcome.
   if (moved.applied) {
     const capturedSoFar = typeof ctx.booking.captured_amount_minor === 'number' ? ctx.booking.captured_amount_minor : 0
-    try {
-      await handlePaymentFailure(
-        { ...ctx.booking, ...(moved.booking ?? {}) },
-        { phase: 'charge', code, amountMinor: Math.max(ctx.dueMinor - capturedSoFar, 0), attempt: ctx.attempt + 1 },
-      )
-    } catch {
-      console.error('[settle] failure recovery step failed', { bookingId: ctx.bookingId })
+    const failedRow = { ...ctx.booking, ...(moved.booking ?? {}) }
+    // Phase 89: a fee, or a cash card charge after the trip, goes through the fee phase of the recovery flow. A cash
+    // card charge before the trip is completed does nothing at all (D-21): no link, no email, no alert.
+    const input: PaymentFailureInput | null = !ctx.collect
+      ? { phase: 'charge', code, amountMinor: Math.max(ctx.dueMinor - capturedSoFar, 0), attempt: ctx.attempt + 1 }
+      : ctx.collect.kind === 'fee'
+        ? {
+            phase: 'fee',
+            code,
+            amountMinor: ctx.dueMinor,
+            attempt: ctx.attempt + 1,
+            feeLabel: ctx.collect.feeLabel ?? 'cancellation',
+          }
+        : isCompleted(ctx.booking)
+          ? { phase: 'fee', code, amountMinor: ctx.dueMinor, attempt: ctx.attempt + 1, feeLabel: 'trip' }
+          : null
+    if (input) {
+      try {
+        await handlePaymentFailure(failedRow, input)
+      } catch {
+        console.error('[settle] failure recovery step failed', { bookingId: ctx.bookingId })
+      }
     }
   }
   return { outcome: 'failed', code }
@@ -406,7 +482,11 @@ export async function settleBooking(
   bookingId: string,
   actor: LedgerActor,
   /** Extra columns written in the claim transition (the automatic retry marks payment_retry_count here, D-13). */
-  opts: { claimPatch?: PaymentPatch } = {},
+  opts: {
+    claimPatch?: PaymentPatch
+    /** Phase 89: collect a person-chosen fee, or charge the card of a cash booking. Absent = the Phase 88 rules. */
+    collect?: SettleCollect
+  } = {},
 ): Promise<SettleResult> {
   const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
   if (error) throw new Error('settle booking lookup failed')
@@ -422,8 +502,16 @@ export async function settleBooking(
     }
     throw err
   }
-  if (loaded.payment_mode !== 'card_hold') return { outcome: 'skipped', code: 'not_card_hold' }
-  if (!isCompleted(loaded)) return { outcome: 'skipped', code: 'not_completed' }
+  const collect = opts.collect
+  if (collect) {
+    // Explicit collection: mode and status are checked against what this request may do (T-89-20). The partner gate
+    // above stays first.
+    const refused = collectGate(loaded, collect)
+    if (refused) return { outcome: 'skipped', code: refused }
+  } else {
+    if (loaded.payment_mode !== 'card_hold') return { outcome: 'skipped', code: 'not_card_hold' }
+    if (!isCompleted(loaded)) return { outcome: 'skipped', code: 'not_completed' }
+  }
 
   const loadedState = str(loaded.payment_state)
   if (SETTLED_STATES.has(loadedState)) return { outcome: 'noop', code: loadedState }
@@ -448,7 +536,7 @@ export async function settleBooking(
   // From here this caller owns the row. Work from the claimed row (fresh amounts and counters).
   const booking: BookingRow = { ...loaded, ...(claim.booking ?? {}) }
   const attempt = attemptsOf(booking)
-  const due = booking.payment_amount_minor
+  const due = collect?.kind === 'fee' ? collect.amountMinor : booking.payment_amount_minor
   const currency = booking.payment_currency === 'czk' ? 'czk' : booking.payment_currency === 'eur' ? 'eur' : null
   const ctx: Ctx = {
     booking,
@@ -458,6 +546,7 @@ export async function settleBooking(
     currency: currency ?? 'eur',
     actor,
     searchFirst: false,
+    ...(collect ? { collect } : {}),
   }
   if (typeof due !== 'number' || !Number.isInteger(due) || due <= 0 || !currency) {
     return recordFailure(ctx, { code: 'missing_payment_details', paymentIntentId: null }, nowMs)
@@ -465,14 +554,17 @@ export async function settleBooking(
   ctx.searchFirst = await attemptIsStale(bookingId, attempt, nowMs)
 
   // A-WR-06: adopted from a dead hold placement: the authorization it may have created is not on the row yet.
-  let holdId = str(booking.hold_payment_intent_id)
-  if (!holdId && loadedState === 'placing_hold') {
+  // A cash booking never holds anything (the database filter keeps it out of the hold sweep): its card is charged.
+  let holdId = collect?.kind === 'cash_card' ? '' : str(booking.hold_payment_intent_id)
+  if (!holdId && loadedState === 'placing_hold' && collect?.kind !== 'cash_card') {
     const found = await findAttemptHold(bookingId, booking)
     if (found === 'unknown') return stillTransient(ctx, null)
     holdId = found ?? ''
   }
   let collected: Collected = holdId ? await collectFromHold(ctx, holdId) : { kind: 'gone' }
-  if (collected.kind === 'gone') collected = await chargeSavedCard(ctx, 'card_charge', ctx.dueMinor)
+  if (collected.kind === 'gone') {
+    collected = await chargeSavedCard(ctx, collect?.kind === 'fee' ? 'card_fee' : 'card_charge', ctx.dueMinor)
+  }
 
   if (collected.kind === 'failed') return recordFailure(ctx, collected, nowMs)
   if (collected.kind !== 'ok') return stillTransient(ctx, collected)
@@ -483,7 +575,8 @@ export async function settleBooking(
   // D-16: the agreed amount rose after the hold. The held part is captured above; the rest is a separate charge.
   let diffMinor = 0
   const wanted = ctx.dueMinor - mainMinor
-  if (wanted > 0) {
+  // Collect mode never has a difference: a fee is exactly the decided amount and a cash charge is the full amount.
+  if (wanted > 0 && !collect) {
     const diff = await chargeSavedCard(ctx, 'card_difference', wanted)
     if (diff.kind === 'failed') return recordDifferenceFailure(ctx, mainPi, mainMinor, diff, nowMs)
     if (diff.kind !== 'ok') return stillTransient(ctx, diff)
@@ -534,16 +627,28 @@ export async function settleBooking(
   }
   await retireRecoveryLink(booking)
 
-  try {
-    await sendPaymentEmail({
-      kind: 'charged',
-      booking: { ...booking, ...(moved.booking ?? {}) },
-      eventKey: `email:charged:${bookingId}`,
-      ...(diffMinor > 0 ? { diffMinor } : {}),
-    })
-  } catch {
-    // The money is collected; a mail problem never undoes it (the send keeps its own ledger claim).
-    console.error('[settle] charged email failed', { bookingId })
+  if (ctx.leftoverHoldId) {
+    // The fee went to the saved card because the hold was smaller than the fee: free the client's hold now (best effort).
+    try {
+      await getPaymentsStripe().paymentIntents.cancel(ctx.leftoverHoldId, {}, { idempotencyKey: stripeKeys.voidHoldNow(ctx.leftoverHoldId) })
+    } catch {
+      console.error('[settle] leftover hold not released', { bookingId, stripeObjectId: ctx.leftoverHoldId })
+    }
+  }
+
+  // Collect mode: the caller (fee.ts) sends its own receipt, whose text depends on why money was taken.
+  if (!collect) {
+    try {
+      await sendPaymentEmail({
+        kind: 'charged',
+        booking: { ...booking, ...(moved.booking ?? {}) },
+        eventKey: `email:charged:${bookingId}`,
+        ...(diffMinor > 0 ? { diffMinor } : {}),
+      })
+    } catch {
+      // The money is collected; a mail problem never undoes it (the send keeps its own ledger claim).
+      console.error('[settle] charged email failed', { bookingId })
+    }
   }
   return { outcome: 'captured', capturedMinor: totalMinor, diffMinor }
 }
