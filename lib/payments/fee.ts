@@ -19,6 +19,7 @@
 // Partner bookings never reach any of this: assertMoneyEligible comes first (Pitfall 15). bookings.fee_case_status is
 // a database trigger mirror of the case status; no code here touches it.
 
+import { randomUUID } from 'node:crypto'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { czkToEur } from '@/lib/currency'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
@@ -335,7 +336,7 @@ export async function runFeeCharge(input: {
 
   // T-89-21: on record before anything can fail.
   await appendPaymentEvent(bookingId, {
-    key: `admin:fee_charge:${caseId}:${Date.now()}`,
+    key: `admin:fee_charge:${caseId}:${Date.now()}:${randomUUID().slice(0, 8)}`,
     kind: 'admin_action',
     errorCode: 'fee_charge',
     ...(isMinor(amountMinor) ? { amountMinor } : {}),
@@ -421,7 +422,7 @@ export async function runCashCardCharge(input: {
   if (!bookingId || isPartner(booking) || booking.payment_mode !== 'cash_guarantee') return { error: 'action_not_allowed' }
 
   await appendPaymentEvent(bookingId, {
-    key: `admin:cash_card_charge:${bookingId}:${Date.now()}`,
+    key: `admin:cash_card_charge:${bookingId}:${Date.now()}:${randomUUID().slice(0, 8)}`,
     kind: 'admin_action',
     errorCode: 'cash_card_charge',
     actor,

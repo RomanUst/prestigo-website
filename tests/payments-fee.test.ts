@@ -405,3 +405,208 @@ describe('openFeeCase, isFeeEligible, feeBaseFor', () => {
     expect(feeBaseFor({ payment_mode: 'pay_now' })).toBeNull()
   })
 })
+
+describe('lapsed hold: the saved card pays the fee under the case key', () => {
+  it('an expired hold is replaced by an off-session charge of the fee amount, metadata card_fee', async () => {
+    const holdId = await seedWithHold()
+    fake.expireHold(holdId, 'expired')
+    row().payment_state = 'expired'
+    const c = await openCase()
+
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 3000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
+    const charges = fake.callsTo('paymentIntents.create').filter((x) => (x.params.metadata as Record<string, string>).kind === 'card_fee')
+    expect(charges).toHaveLength(1)
+    expect(charges[0].idempotencyKey).toBe(`fee:${c.id}:0`)
+    expect(charges[0].params).toMatchObject({ amount: 3000, currency: 'eur', off_session: true, confirm: true })
+    expect(charges[0].params.metadata).toMatchObject({ kind: 'card_fee', cofBookingId: ID, attempt: '0' })
+    expect(row()).toMatchObject({ payment_state: 'captured', captured_amount_minor: 3000 })
+    expect((await loadFeeCase(ID))?.status).toBe('charged')
+  })
+
+  it('a booking that never held (card saved only) is charged the same way', async () => {
+    seed({ payment_state: 'card_saved', hold_payment_intent_id: null })
+    const c = await openCase()
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 10000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect(fake.callsTo('paymentIntents.create')[0].idempotencyKey).toBe(`fee:${c.id}:0`)
+  })
+})
+
+describe('a declined fee (T-89-18, T-89-19)', () => {
+  const declined = { stripe_payment_method_id: 'pm_decline_insufficient', payment_state: 'card_saved', hold_payment_intent_id: null }
+
+  it('leaves failed with no retry scheduled, the case pending and unlocked, and hands the fee to the failure step', async () => {
+    seed(declined)
+    const c = await openCase()
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'declined' })
+
+    expect(row()).toMatchObject({ payment_state: 'failed', payment_retry_at: null, charge_attempts: 1, last_payment_error: 'insufficient_funds' })
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'pending', charge_requested_at: null })
+    expect(mockFailure).toHaveBeenCalledTimes(1)
+    expect(mockFailure.mock.calls[0][1]).toEqual({
+      phase: 'fee',
+      code: 'insufficient_funds',
+      amountMinor: 4000,
+      attempt: 1,
+      feeLabel: 'cancellation',
+    })
+    // No receipt for a failure, and nothing re-schedules the charge.
+    expect(mockSendEmail).not.toHaveBeenCalled()
+    expect(ledger('charge_failed')).toHaveLength(1)
+  })
+
+  it('a no-show case reports the no_show label', async () => {
+    seed({ ...declined, status: 'no_show' })
+    const c = await openCase({ kind: 'no_show' })
+    await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })
+    expect(mockFailure.mock.calls[0][1]).toMatchObject({ phase: 'fee', feeLabel: 'no_show' })
+  })
+
+  it('two clicks with different amounts around a decline use two different keys, none derived from the amount', async () => {
+    seed(declined)
+    const c = await openCase()
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'declined' })
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 5500, actor: ADMIN })).toEqual({ outcome: 'declined' })
+
+    const keys = fake.callsTo('paymentIntents.create').map((x) => x.idempotencyKey)
+    expect(keys).toEqual([`fee:${c.id}:0`, `fee:${c.id}:1`])
+    expect(keys.every((k) => /^fee:[0-9a-f-]+:\d$/.test(k ?? ''))).toBe(true)
+    expect(fake.callsTo('paymentIntents.create').map((x) => x.params.amount)).toEqual([4000, 5500])
+    expect(row().charge_attempts).toBe(2)
+  })
+
+  it('the same amount clicked again after a decline is a new attempt with a new key (never a replay of the declined one)', async () => {
+    seed(declined)
+    const c = await openCase()
+    await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })
+    await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })
+    expect(fake.callsTo('paymentIntents.create').map((x) => x.idempotencyKey)).toEqual([`fee:${c.id}:0`, `fee:${c.id}:1`])
+  })
+
+  it('a card that needs authentication is a decline too: no retry, case unlocked', async () => {
+    seed({ ...declined, stripe_payment_method_id: 'pm_auth_required' })
+    const c = await openCase()
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'declined' })
+    expect(mockFailure.mock.calls[0][1]).toMatchObject({ phase: 'fee', code: 'authentication_required' })
+    expect(row().payment_retry_at).toBeNull()
+  })
+})
+
+describe('a transient Stripe error keeps the lease and the lock', () => {
+  it('answers payment_busy, writes no failure, refuses another amount, and replays the same key for the same amount', async () => {
+    seed({ payment_state: 'card_saved', hold_payment_intent_id: null })
+    const c = await openCase()
+    fake.failNextWith('paymentIntents.create', 'connection')
+
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ error: 'payment_busy' })
+    expect(row()).toMatchObject({ payment_state: 'capturing', charge_attempts: 0 })
+    expect(row().payment_lease_until).toBeTruthy()
+    expect(ledger('charge_failed')).toHaveLength(0)
+    expect(mockFailure).not.toHaveBeenCalled()
+    expect((await loadFeeCase(ID))?.charge_requested_at).toBeTruthy()
+
+    // Another amount while the first is in flight: refused, nothing sent to Stripe.
+    const callsBefore = fake.calls.length
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 6000, actor: ADMIN })).toEqual({ error: 'amount_locked' })
+    expect(fake.calls.length).toBe(callsBefore)
+
+    // The same amount while the lease is live: busy. After the lease lapsed: the same key goes out again.
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ error: 'payment_busy' })
+    row().payment_lease_until = new Date(Date.now() - 1000).toISOString()
+    // The claim event key carries the millisecond of the claim: let the clock move on, as it does in production.
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    const keys = fake.callsTo('paymentIntents.create').map((x) => x.idempotencyKey)
+    expect(new Set(keys)).toEqual(new Set([`fee:${c.id}:0`]))
+    expect((await loadFeeCase(ID))?.status).toBe('charged')
+  })
+
+  it('a click whose answer was lost after the money moved closes the case on the next click (noop reconcile)', async () => {
+    await seedWithHold()
+    const c = await openCase()
+    // The first request collected the money and died before the case was closed.
+    await lockFeeAmount(c.id, 4000)
+    expect((await settleBooking(ID, ADMIN, { collect: { kind: 'fee', caseId: c.id, amountMinor: 4000 } })).outcome).toBe('captured')
+    expect((await loadFeeCase(ID))?.status).toBe('pending')
+
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect((await loadFeeCase(ID))?.status).toBe('charged')
+    expect(fake.callsTo('paymentIntents.capture')).toHaveLength(1)
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+  })
+
+  it('a settled booking whose captured amount is not the fee closes nothing', async () => {
+    seed({ payment_state: 'captured', captured_amount_minor: 10000, status: 'completed' })
+    const c = await openCase()
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ error: 'action_not_allowed' })
+    expect((await loadFeeCase(ID))?.status).toBe('pending')
+    expect((await loadFeeCase(ID))?.charge_requested_at).toBeNull()
+    expect(fake.calls).toHaveLength(0)
+  })
+})
+
+describe('cash booking: the card is charged only when a person says so (D-21)', () => {
+  const cash = { payment_mode: 'cash_guarantee', payment_state: 'card_saved', status: 'confirmed', hold_payment_intent_id: null }
+
+  it('success: the full row amount off-session under the standard chg key, receipt cash_card before completion', async () => {
+    seed(cash)
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates).toHaveLength(1)
+    expect(creates[0].idempotencyKey).toBe(`chg:${ID}:0`)
+    expect(creates[0].params).toMatchObject({ amount: 10000, off_session: true })
+    expect(creates[0].params.metadata).toMatchObject({ kind: 'card_charge' })
+    expect(row()).toMatchObject({ payment_state: 'captured', captured_amount_minor: 10000 })
+    expect(ledger('admin_action').some((e) => e.error_code === 'cash_card_charge')).toBe(true)
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_charged', variant: 'cash_card', eventKey: `email:fee_charged:${ID}` })
+  })
+
+  it('success after the trip: the cash_unpaid receipt', async () => {
+    seed({ ...cash, status: 'completed', completed_at: new Date().toISOString() })
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_charged', variant: 'cash_unpaid' })
+  })
+
+  it('D-21: a decline before the trip is completed leaves failed and sends nothing to anyone', async () => {
+    seed({ ...cash, stripe_payment_method_id: 'pm_decline_insufficient' })
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'declined' })
+    expect(row()).toMatchObject({ payment_state: 'failed', payment_retry_at: null, charge_attempts: 1 })
+    expect(mockFailure).not.toHaveBeenCalled()
+    expect(mockSendEmail).not.toHaveBeenCalled()
+    expect(fake.callsTo('paymentLinks.create')).toHaveLength(0)
+  })
+
+  it('after completion a decline goes through the recovery flow as a fee for the trip', async () => {
+    seed({ ...cash, status: 'completed', completed_at: new Date().toISOString(), stripe_payment_method_id: 'pm_decline_insufficient' })
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'declined' })
+    expect(mockFailure).toHaveBeenCalledTimes(1)
+    expect(mockFailure.mock.calls[0][1]).toEqual({
+      phase: 'fee',
+      code: 'insufficient_funds',
+      amountMinor: 10000,
+      attempt: 1,
+      feeLabel: 'trip',
+    })
+    expect(row().payment_retry_at).toBeNull()
+  })
+
+  it('a second attempt after a decline uses attempt 1, and a transient error answers payment_busy', async () => {
+    seed({ ...cash, stripe_payment_method_id: 'pm_decline_insufficient' })
+    await runCashCardCharge({ booking: row(), actor: ADMIN })
+    row().stripe_payment_method_id = 'pm_ok'
+    fake.failNextWith('paymentIntents.create', 'connection')
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'payment_busy' })
+    expect(fake.callsTo('paymentIntents.create').map((x) => x.idempotencyKey)).toEqual([`chg:${ID}:0`, `chg:${ID}:1`])
+  })
+
+  it('refuses a booking that is not cash_guarantee, a cash_settled one, and a cancelled one', async () => {
+    seed({ payment_mode: 'card_hold', payment_state: 'card_saved' })
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'action_not_allowed' })
+    seed({ ...cash, payment_state: 'cash_settled' })
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'action_not_allowed' })
+    seed({ ...cash, status: 'cancelled' })
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'action_not_allowed' })
+    expect(fake.calls).toHaveLength(0)
+  })
+})
