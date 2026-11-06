@@ -7,7 +7,7 @@
  * key sets, identical ICU parameters per leaf, real translations (not stubs,
  * not English copies), no typed amounts and no refund / cancellation-fee
  * wording in any language, except the keys on the FEE_WORDING_ALLOWED
- * allow-list (Phase 89: the cancellation box of plan 89-04, extended by 89-25).
+ * allow-list (Phase 89: the cancellation box of plan 89-04, extended by 89-25 with exactly the kinds of UI-SPEC 8.2).
  */
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
@@ -62,13 +62,33 @@ const COGNATES: Record<string, ReadonlySet<string>> = {
 }
 
 /**
- * Phase 89 (plan 89-04): the Phase 88 blanket ban on fee and refund wording is a positive allow-list. Only these keys
- * may state a fee, a percent or a refund; every other PaymentEmails and cardOnFile leaf must stay free of it. Plan
- * 89-25 extends this list with the new email kinds (cancelled, fee_charged, fee_waived, cash and fee variants).
+ * Phase 89: the Phase 88 blanket ban on fee and refund wording is a positive allow-list. Only these keys may state a
+ * fee, a percent or a refund; every other PaymentEmails and cardOnFile leaf must stay free of it.
+ *  - plan 89-04: the cancellation box (`policyBox.*`);
+ *  - plan 89-25: exactly the kinds of UI-SPEC 8.2 — cancelled, fee_charged, fee_waived, the cash variant of card_saved,
+ *    the fee variant of payment_failed — and the money sentences (`money.*`) that cancelled and fee_waived share.
  */
+const FEE_WORDING_PREFIXES = [
+  'PaymentEmails.policyBox.',
+  'PaymentEmails.cancelled.',
+  'PaymentEmails.feeCharged.',
+  'PaymentEmails.feeWaived.',
+  'PaymentEmails.money.',
+] as const
+const FEE_WORDING_EXTRA_KEYS = [
+  'PaymentEmails.cardSaved.introCash',
+  'PaymentEmails.cardSaved.cashLineToday',
+  'PaymentEmails.cardSaved.cashLineDay',
+  'PaymentEmails.cardSaved.cashLineIfNeeded',
+  'PaymentEmails.paymentFailed.subjectFee',
+  'PaymentEmails.paymentFailed.h1Fee',
+  'PaymentEmails.paymentFailed.introFeeCancellation',
+  'PaymentEmails.paymentFailed.introFeeNoShow',
+  'PaymentEmails.paymentFailed.introFeeTrip',
+] as const
 const FEE_WORDING_ALLOWED: ReadonlySet<string> = new Set([
-  'PaymentEmails.policyBox.label',
-  'PaymentEmails.policyBox.body',
+  ...Object.keys(EN).filter((key) => FEE_WORDING_PREFIXES.some((prefix) => key.startsWith(prefix))),
+  ...FEE_WORDING_EXTRA_KEYS,
 ])
 
 /** Per-locale wording that must never appear outside the allow-list (no refund promise, no cancellation fee). */
@@ -130,6 +150,56 @@ describe.each(NON_EN)('card-flow copy parity: %s', (locale) => {
     }
   })
 
+  it('the Phase 89 keys carry exactly their parameters (amounts, dates, minutes are never typed)', () => {
+    const expected: Record<string, string[]> = {
+      'PaymentEmails.cardSaved.cashLineDay': ['amount'],
+      'PaymentEmails.cardSaved.cashLineIfNeeded': ['freeUntil'],
+      'PaymentEmails.policyBox.cash': ['amount'],
+      'PaymentEmails.money.refunded': ['amount'],
+      'PaymentEmails.cancelled.subject': ['reference'],
+      'PaymentEmails.cancelled.introLate': ['amount', 'freeUntil'],
+      'PaymentEmails.feeCharged.subjectLateCancel': ['reference'],
+      'PaymentEmails.feeCharged.introLateCancel': ['amount', 'freeUntil', 'reference'],
+      'PaymentEmails.feeCharged.reasonLateCancel': ['freeUntil'],
+      'PaymentEmails.feeCharged.subjectNoShow': ['reference'],
+      'PaymentEmails.feeCharged.introNoShow': ['amount', 'waitMin'],
+      'PaymentEmails.feeCharged.reasonNoShow': ['waitMin'],
+      'PaymentEmails.feeCharged.subjectCashUnpaid': ['reference'],
+      'PaymentEmails.feeCharged.introCashUnpaid': ['amount', 'pickupDate'],
+      'PaymentEmails.feeCharged.introCashCard': ['amount'],
+      'PaymentEmails.feeWaived.subject': ['reference'],
+      'PaymentEmails.paymentFailed.subjectFee': ['reference'],
+      'PaymentEmails.paymentFailed.introFeeCancellation': ['amount'],
+      'PaymentEmails.paymentFailed.introFeeNoShow': ['amount'],
+      'PaymentEmails.paymentFailed.introFeeTrip': ['amount'],
+      'PaymentEmails.contactOr': [],
+      'PaymentEmails.common.decides': [],
+    }
+    for (const [key, want] of Object.entries(expected)) {
+      expect({ key, params: params(tr[key] ?? '') }).toEqual({ key, params: want })
+    }
+  })
+
+  it('"or" in the contact line is a real word of the locale, one short token', () => {
+    const word = tr['PaymentEmails.contactOr']
+    expect(word).not.toBe('or')
+    expect(word.length).toBeLessThanOrEqual(4)
+    expect(/[<>&{}]/.test(word)).toBe(false)
+  })
+
+  it('writes Latin digits only, and types a number in the bank delay sentence only', () => {
+    for (const [key, value] of Object.entries(tr)) {
+      if (!key.startsWith('PaymentEmails.')) continue
+      expect({ key, nonLatinDigit: /[٠-٩۰-۹०-९]/.test(value) }).toEqual({ key, nonLatinDigit: false })
+      if (key === 'PaymentEmails.money.refunded') {
+        expect(value).toMatch(/\b5\b.*\b10\b/)
+        continue
+      }
+      if (key === 'PaymentEmails.common.tagline') continue
+      expect({ key, typedNumber: /[0-9]/.test(value) }).toEqual({ key, typedNumber: false })
+    }
+  })
+
   it('the cancellation box and manage keys carry their parameters and type no number', () => {
     expect(params(tr['PaymentEmails.policyBox.body'])).toEqual(['amount', 'freeUntil', 'percent', 'waitMin'])
     for (const key of [
@@ -153,12 +223,30 @@ describe('card-flow copy: EN source is clean', () => {
     }
   })
 
-  it('the allow-list is closed: it names only existing box keys, nothing else', () => {
+  it('the allow-list is closed: only the box and the kinds of UI-SPEC 8.2, every entry an existing key', () => {
     for (const key of FEE_WORDING_ALLOWED) {
-      expect(key.startsWith('PaymentEmails.policyBox.')).toBe(true)
       expect(EN[key]).toBeDefined()
+      const kind = FEE_WORDING_PREFIXES.some((prefix) => key.startsWith(prefix)) || FEE_WORDING_EXTRA_KEYS.includes(key as never)
+      expect({ key, kind }).toEqual({ key, kind: true })
     }
-    expect(FEE_WORDING_ALLOWED.size).toBe(2)
+    // Nothing of the Phase 88 kinds beyond the explicit cash and fee keys is allowed to state a fee.
+    for (const key of Object.keys(EN)) {
+      if (/^PaymentEmails\.(common|charged|holdPlacedAtCheckout|holdPlacedScheduled|manage)\./.test(key)) {
+        expect(FEE_WORDING_ALLOWED.has(key)).toBe(false)
+      }
+    }
+    for (const key of ['cardSaved.subject', 'cardSaved.intro', 'paymentFailed.subject', 'paymentFailed.introDeclined']) {
+      expect(FEE_WORDING_ALLOWED.has(`PaymentEmails.${key}`)).toBe(false)
+    }
+  })
+
+  it('EN: every late and no-show mail says a person decides, and the fee kinds name no operator reason', () => {
+    expect(EN['PaymentEmails.common.decides']).toBe('A person at Prestigo decides every charge.')
+    expect(EN['PaymentEmails.cancelled.introLate']).toMatch(/A person at Prestigo decides/)
+    expect(EN['PaymentEmails.cardSaved.cashLineIfNeeded']).toMatch(/A person at Prestigo decides first\./)
+    for (const key of Object.keys(EN)) {
+      expect({ key, operatorText: /\{(reason|note|adminNote)\}/i.test(EN[key]) }).toEqual({ key, operatorText: false })
+    }
   })
 
   it('the box states the policy: free until, a percent of the fare, the wait, and that a person decides', () => {

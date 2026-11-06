@@ -295,11 +295,12 @@ function moneySentence(c: Ctx, mode: 'free' | 'sorry' | 'waived'): string {
     const minor = c.vars.refundMinor ?? c.vars.amountMinor
     return html(c.t, 'money.refunded', { amount: formatMinor(minor, c.vars.currency) })
   }
-  if (outcome === 'released') return mode === 'free' ? `${nothing} ${released}` : released
+  if (outcome === 'released') return mode === 'free' ? joinSentences(c, [nothing, released]) : released
   return mode === 'sorry' ? '' : nothing
 }
 
-const joinSentences = (parts: string[]): string => parts.filter((p) => p.length > 0).join(' ')
+/** Chinese sentences end in a full stop and take no space; every other locale separates them with one. */
+const joinSentences = (c: Ctx, parts: string[]): string => parts.filter((p) => p.length > 0).join(c.locale === 'zh' ? '' : ' ')
 
 const TEMPLATES: Record<string, (c: Ctx) => Template> = {
   card_saved: (c) => ({
@@ -341,7 +342,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
   'cancelled:by_prestigo': (c) => ({
     subject: text(c.t, 'cancelled.subject', { reference: c.vars.reference }),
     h1: html(c.t, 'cancelled.h1ByPrestigo'),
-    intro: joinSentences([html(c.t, 'cancelled.introSorry'), moneySentence(c, 'sorry')]),
+    intro: joinSentences(c, [html(c.t, 'cancelled.introSorry'), moneySentence(c, 'sorry')]),
     highlightLabel: '',
     lines: [],
     cta: 'book',
@@ -414,7 +415,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
   fee_waived: (c) => ({
     subject: text(c.t, 'feeWaived.subject', { reference: c.vars.reference }),
     h1: html(c.t, 'feeWaived.h1'),
-    intro: joinSentences([html(c.t, 'feeWaived.intro'), moneySentence(c, 'waived')]),
+    intro: joinSentences(c, [html(c.t, 'feeWaived.intro'), moneySentence(c, 'waived')]),
     highlightLabel: '',
     lines: [],
     cta: 'book',

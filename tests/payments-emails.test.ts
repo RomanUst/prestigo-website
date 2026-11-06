@@ -899,3 +899,154 @@ describe('Phase 89 kinds: copy of UI-SPEC 8.2 (English)', () => {
     expect(out.html).toMatch(/info@rideprestigo\.com<\/a><\/bdi> or <bdi dir="ltr"><a href="tel:\+\d+"/)
   })
 })
+
+// ---------------------------------------------------------------------------
+// Phase 89 plan 89-25: the new kinds in all 7 locales
+// ---------------------------------------------------------------------------
+
+/** A PaymentEmails catalog leaf of a locale, by dotted path. */
+function leaf(locale: string, path: string): string {
+  const m = JSON.parse(readFileSync(join(process.cwd(), 'messages', `${locale}.json`), 'utf8')) as {
+    PaymentEmails: Record<string, unknown>
+  }
+  let node: unknown = m.PaymentEmails
+  for (const part of path.split('.')) node = (node as Record<string, unknown>)[part]
+  if (typeof node !== 'string') throw new Error(`no catalog leaf ${path} in ${locale}`)
+  return node
+}
+
+/** The static text of a leaf around its ICU parameters, escaped as the renderer escapes it. */
+function fragments(locale: string, path: string): string[] {
+  return leaf(locale, path)
+    .split(/\{[A-Za-z]+\}/)
+    .map((f) => f.trim())
+    .filter((f) => f.length > 2)
+    .map(escapeHtml)
+}
+
+describe.each(catalogLocales())('Phase 89 kinds per locale: %s', (locale) => {
+  const rtl = (rtlLocales as readonly string[]).includes(locale)
+
+  it.each(NEW_CASES.map((c) => [caseName(c), c] as const))('%s renders a complete email', async (_name, c) => {
+    const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant, ...c.extra }))
+    expect(out.locale).toBe(locale)
+    expect(out.subject.length).toBeGreaterThan(0)
+    expect(out.subject).toContain('PRG-1')
+    expect(out.subject).not.toMatch(/\{[A-Za-z]+\}/)
+    expect(out.html).not.toMatch(/\{[A-Za-z]+\}/)
+    expect(out.html).toContain(`<html lang="${locale}"`)
+    expect(out.html).toContain(formatLocaleDate('2026-11-15', locale))
+    // Latin digits whatever the locale.
+    expect(out.html).not.toMatch(/[٠-٩۰-۹०-९]/)
+    if (rtl) {
+      expect(out.html).toContain('<html lang="' + locale + '" dir="rtl">')
+      expect(out.html).toContain('<body dir="rtl"')
+    } else {
+      expect(out.html).not.toContain('dir="rtl"')
+    }
+    // The amount of the mail is a formatted parameter, never typed text. A release or a plain cancel states none.
+    const statesAmount =
+      c.kind === 'fee_charged' ||
+      c.kind === 'payment_failed' ||
+      (c.kind === 'card_saved' && c.variant === 'cash') ||
+      (c.kind === 'cancelled' && c.variant === 'late') ||
+      c.extra?.moneyOutcome === 'refunded'
+    if (statesAmount) expect(out.html).toContain(formatMinor(c.extra?.feeMinor ?? c.extra?.refundMinor ?? 12000, 'eur'))
+    for (const e of out.html.match(/&[a-zA-Z]+;/g) ?? []) expect(['&amp;', '&lt;', '&gt;', '&quot;']).toContain(e)
+  })
+
+  it('payment_failed is the only email with a filled button, and a fee failure carries the pay link', async () => {
+    for (const c of [...CASES, ...NEW_CASES]) {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant, payUrl: PAY_URL, ...c.extra }))
+      const filled = out.html.match(FILLED_BUTTON) ?? []
+      expect({ name: caseName(c), filled: filled.length }).toEqual({
+        name: caseName(c),
+        filled: c.kind === 'payment_failed' ? 1 : 0,
+      })
+    }
+  })
+
+  it('the contact line says the locale word for "or", never the English one', async () => {
+    const out = await renderPaymentEmail('cancelled', locale, baseVars({ variant: 'by_prestigo', bookAgainUrl: BOOK_URL }))
+    const word = escapeHtml(leaf(locale, 'contactOr'))
+    expect(out.html).toContain(`</a></bdi> ${word} <bdi dir="ltr"><a href="tel:`)
+    if (locale !== 'en') expect(out.html).not.toContain('</a></bdi> or <bdi')
+    // The old shared line is gone from the payment emails.
+    expect(out.html).not.toMatch(/<\/a> or <a href="tel:/)
+  })
+
+  it('"a person at Prestigo decides" is in every late and no-show mail', async () => {
+    const decides = escapeHtml(leaf(locale, 'common.decides'))
+    for (const c of [NEW_CASES.find((n) => n.variant === 'late_cancel')!, NEW_CASES.find((n) => n.variant === 'no_show')!]) {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant, ...c.extra }))
+      expect({ name: caseName(c), ok: out.html.includes(decides) }).toEqual({ name: caseName(c), ok: true })
+    }
+    const late = await renderPaymentEmail('cancelled', locale, baseVars({ variant: 'late', freeUntil: FREE_UNTIL, feeMinor: 6000 }))
+    for (const fragment of fragments(locale, 'cancelled.introLate')) expect(late.html).toContain(fragment)
+    const cash = await renderPaymentEmail('card_saved', locale, baseVars({ variant: 'cash', freeUntil: FREE_UNTIL }))
+    for (const fragment of fragments(locale, 'cardSaved.cashLineIfNeeded')) expect(cash.html).toContain(fragment)
+  })
+
+  it('the three money sentences of cancelled and fee_waived are translated and resolved', async () => {
+    const render = (kind: PaymentEmailKind, variant: PaymentEmailVars['variant'], moneyOutcome: 'released' | 'refunded' | 'none') =>
+      renderPaymentEmail(
+        kind,
+        locale,
+        baseVars({ variant, moneyOutcome, refundMinor: 12000, bookAgainUrl: BOOK_URL }),
+      )
+    for (const [kind, variant] of [
+      ['cancelled', 'free'],
+      ['cancelled', 'by_prestigo'],
+      ['fee_waived', undefined],
+    ] as const) {
+      const released = await render(kind, variant, 'released')
+      for (const f of fragments(locale, 'money.released')) expect(released.html).toContain(f)
+      const refunded = await render(kind, variant, 'refunded')
+      for (const f of fragments(locale, 'money.refunded')) expect(refunded.html).toContain(f)
+      expect(refunded.html).toContain(`<bdi dir="ltr">${formatMinor(12000, 'eur')}</bdi>`)
+      const none = await render(kind, variant, 'none')
+      expect(none.html).not.toContain(fragments(locale, 'money.released')[0])
+      if (!(kind === 'cancelled' && variant === 'by_prestigo')) {
+        for (const f of fragments(locale, 'money.nothing')) expect(none.html).toContain(f)
+      }
+    }
+  })
+
+  it('the cash booking email carries the guarantee wording, the cash line and the cash sentence in the box', async () => {
+    const out = await renderPaymentEmail(
+      'card_saved',
+      locale,
+      baseVars({ variant: 'cash', freeUntil: FREE_UNTIL, policy: POLICY, manageUrl: MANAGE_URL }),
+    )
+    for (const path of ['cardSaved.introCash', 'cardSaved.cashLineToday', 'cardSaved.cashLineDay', 'policyBox.cash']) {
+      for (const f of fragments(locale, path)) expect(out.html).toContain(f)
+    }
+    expect(out.html).toContain(`<bdi dir="auto">${formatLocaleDateTime(FREE_UNTIL, locale)}</bdi>`)
+    expect(out.html).toContain(`<bdi dir="ltr">${formatMinor(12000, 'eur')}</bdi>`)
+    // The card variant of the same email has no cash sentence.
+    const card = await renderPaymentEmail('card_saved', locale, baseVars({ policy: POLICY, manageUrl: MANAGE_URL }))
+    for (const f of fragments(locale, 'policyBox.cash')) expect(card.html).not.toContain(f)
+  })
+
+  it('T-89-13: no operator reason or note reaches any new kind', async () => {
+    const bogus = { reason: 'OPERATOR-REASON-XYZ', note: 'OPERATOR-NOTE-XYZ' } as unknown as Partial<PaymentEmailVars>
+    for (const c of NEW_CASES) {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant, ...c.extra, ...bogus }))
+      expect({ name: caseName(c), leaked: out.html.includes('OPERATOR') }).toEqual({ name: caseName(c), leaked: false })
+    }
+  })
+
+  it('UI E21: long addresses wrap in the journey table', async () => {
+    const long = 'Na Příkopě 1234/56, Praha 1 — Nové Město, Česká republika, '.repeat(6)
+    for (const c of NEW_CASES) {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant, ...c.extra, origin: long, destination: long }))
+      expect(out.html).toContain('word-break: break-word; overflow-wrap: anywhere')
+    }
+  })
+
+  it('labels are uppercase with spacing only in en, es, fr, ru', async () => {
+    const out = await renderPaymentEmail('fee_charged', locale, baseVars({ variant: 'cash_card' }))
+    if (['en', 'es', 'fr', 'ru'].includes(locale)) expect(out.html).toContain('text-transform: uppercase')
+    else expect(out.html).not.toContain('text-transform: uppercase')
+  })
+})

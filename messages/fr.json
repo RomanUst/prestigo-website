@@ -1054,7 +1054,9 @@
       "whatNextLabel": "La suite",
       "receiptLabel": "Reçu",
       "paySecurelyLabel": "Payer en toute sécurité",
-      "tagline": "PRESTIGE IN EVERY MILE"
+      "tagline": "PRESTIGE IN EVERY MILE",
+      "bookAgainCta": "Réserver un autre trajet",
+      "decides": "Une personne de Prestigo décide de chaque débit."
     },
     "cardSaved": {
       "subject": "Votre réservation PRESTIGO est confirmée — {reference}",
@@ -1062,7 +1064,11 @@
       "intro": "Votre carte est enregistrée. Aucun montant n'a été débité.",
       "lineToday": "Aujourd'hui : votre carte est enregistrée.",
       "lineHoldDay": "{holdDate} : nous bloquons {amount} sur votre carte. Un blocage n'est pas un débit.",
-      "lineAfterTrip": "Après votre trajet : le montant bloqué devient le débit final."
+      "lineAfterTrip": "Après votre trajet : le montant bloqué devient le débit final.",
+      "introCash": "Votre carte est enregistrée à titre de garantie. Aucun montant n'a été débité et aucun blocage n'est posé.",
+      "cashLineToday": "Aujourd'hui : votre carte est enregistrée. Pas de blocage, pas de débit.",
+      "cashLineDay": "Le jour du trajet : payez {amount} en espèces à votre chauffeur.",
+      "cashLineIfNeeded": "Seulement si nécessaire : nous débitons la carte enregistrée si vous annulez après le {freeUntil}, ne vous présentez pas ou ne payez pas le chauffeur. Une personne de Prestigo décide d'abord."
     },
     "holdPlacedAtCheckout": {
       "subject": "Votre réservation PRESTIGO est confirmée — {reference}",
@@ -1091,16 +1097,55 @@
       "h1AuthRequired": "Votre banque vous demande de confirmer ce paiement.",
       "introAuthRequired": "Nous n'avons pas pu débiter {amount} de votre carte pour votre trajet du {pickupDate}, car votre banque a demandé une confirmation supplémentaire. Veuillez confirmer avec le bouton ci-dessous.",
       "body": "Le lien ouvre une page de paiement Stripe sécurisée. Si vous payez avec ce lien, nous n'essaierons pas de débiter à nouveau votre carte. Si vous avez déjà payé, ignorez cet e-mail.",
-      "cta": "Payer {amount} en toute sécurité"
+      "cta": "Payer {amount} en toute sécurité",
+      "subjectFee": "Action requise : paiement de votre réservation PRESTIGO — {reference}",
+      "h1Fee": "Nous n'avons pas pu débiter votre carte.",
+      "introFeeCancellation": "Nous n'avons pas pu débiter {amount} sur votre carte pour les frais d'annulation. Veuillez payer en toute sécurité avec le bouton ci-dessous.",
+      "introFeeNoShow": "Nous n'avons pas pu débiter {amount} sur votre carte pour les frais de non-présentation. Veuillez payer en toute sécurité avec le bouton ci-dessous.",
+      "introFeeTrip": "Nous n'avons pas pu débiter {amount} sur votre carte pour votre trajet. Veuillez payer en toute sécurité avec le bouton ci-dessous."
     },
     "policyBox": {
       "label": "Annulation",
-      "body": "Annulation gratuite jusqu'au {freeUntil}. Passé ce délai, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit."
+      "body": "Annulation gratuite jusqu'au {freeUntil}. Passé ce délai, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit.",
+      "cash": "Vous payez {amount} en espèces à votre chauffeur. Votre carte n'est qu'une garantie."
     },
     "manage": {
       "cta": "Gérer la réservation",
       "note": "Annulez, demandez une modification ou réservez un autre trajet. Gardez ce lien confidentiel."
     },
-    "contactOr": "ou"
+    "contactOr": "ou",
+    "money": {
+      "nothing": "Aucun montant n'a été débité.",
+      "released": "Le blocage sur votre carte est levé.",
+      "refunded": "Nous avons remboursé {amount} sur votre carte. Votre banque l'affiche généralement sous 5 à 10 jours ouvrés."
+    },
+    "cancelled": {
+      "subject": "Votre réservation PRESTIGO est annulée — {reference}",
+      "h1": "Votre réservation est annulée.",
+      "h1ByPrestigo": "Nous avons dû annuler votre réservation.",
+      "introSorry": "Nous sommes désolés. Votre réservation est annulée et aucun montant ne vous est débité.",
+      "introLate": "Vous avez annulé après le {freeUntil} ; des frais d'annulation pouvant aller jusqu'à {amount} peuvent donc s'appliquer. Une personne de Prestigo décide et vous répond par e-mail. Aucun montant n'a encore été débité.",
+      "lateNext": "Nous vous envoyons notre décision par e-mail. Si vos plans ont changé pour une raison indépendante de votre volonté, comme un vol annulé, dites-le-nous en répondant à cet e-mail."
+    },
+    "feeCharged": {
+      "subjectLateCancel": "Frais d'annulation de votre réservation PRESTIGO — {reference}",
+      "h1LateCancel": "Nous avons prélevé des frais d'annulation.",
+      "introLateCancel": "Vous avez annulé la réservation {reference} après le {freeUntil}. Nous avons débité {amount} sur votre carte.",
+      "reasonLateCancel": "Motif : annulation après le {freeUntil}",
+      "subjectNoShow": "Frais de non-présentation pour votre réservation PRESTIGO — {reference}",
+      "h1NoShow": "Nous avons prélevé des frais de non-présentation.",
+      "introNoShow": "Votre chauffeur a attendu {waitMin} minutes au point de prise en charge sans pouvoir vous rejoindre. Nous avons débité {amount} sur votre carte.",
+      "reasonNoShow": "Motif : non-présentation, le chauffeur a attendu {waitMin} minutes",
+      "subjectCashUnpaid": "Paiement de votre trajet PRESTIGO — {reference}",
+      "h1CashUnpaid": "Nous avons débité votre carte enregistrée.",
+      "introCashUnpaid": "Votre trajet du {pickupDate} n'a pas été payé en espèces ; nous avons donc débité {amount} sur la carte que vous avez enregistrée.",
+      "reasonCashUnpaid": "Motif : le trajet n'a pas été payé en espèces",
+      "introCashCard": "Vous avez choisi de payer par carte ; nous avons donc débité {amount} sur la carte que vous avez enregistrée."
+    },
+    "feeWaived": {
+      "subject": "Aucun frais pour votre réservation PRESTIGO — {reference}",
+      "h1": "Aucun frais pour votre réservation.",
+      "intro": "Nous avons décidé de ne pas prélever de frais d'annulation."
+    }
   }
 }
