@@ -1,4 +1,8 @@
+'use client'
+
 import Script from 'next/script'
+import { usePathname } from 'next/navigation'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID
 
@@ -16,7 +20,10 @@ const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID
  * nonce-bearing script.
  */
 export default function Clarity() {
-  if (!CLARITY_ID) return null
+  const pathname = usePathname()
+  // Phase 89 (D-02): no session replay on private link paths (/admin, /driver, /manage) — the
+  // page address carries a token. A client component so it can read the path.
+  if (!CLARITY_ID || isPrivateLinkPath(pathname)) return null
 
   return (
     <Script id="clarity-init" strategy="afterInteractive">

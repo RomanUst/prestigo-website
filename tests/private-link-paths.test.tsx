@@ -7,8 +7,12 @@
  * off those paths; the public manage routes are CSRF-guarded and rate-limited.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { cleanup, render } from '@testing-library/react'
+import { act, cleanup, render } from '@testing-library/react'
 import { NextRequest } from 'next/server'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl'
+import enMessages from '@/messages/en.json'
 
 const { mockUsePathname, mockUseSearchParams } = vi.hoisted(() => ({
   mockUsePathname: vi.fn(),
@@ -21,6 +25,14 @@ vi.mock('next/navigation', async (importOriginal) => {
     ...actual,
     usePathname: mockUsePathname,
     useSearchParams: mockUseSearchParams,
+    useRouter: () => ({
+      replace: vi.fn(),
+      push: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    }),
   }
 })
 
@@ -184,4 +196,114 @@ describe('CSRF on /api/manage/*', () => {
       expect(res.status).not.toBe(403)
     },
   )
+})
+
+// ── Chrome render: all seven components stay off private link paths ──────────────────────────
+//
+// The page address of /manage/<token> and /driver/trip/<token> is the credential. Each of these
+// components would send it to a third party (GA4, Meta, Clarity, Chatwoot) or ask for consent
+// on that page, so each must render and do nothing there.
+
+const GUARDED_COMPONENTS = [
+  'AnalyticsPageView',
+  'GoogleAnalytics',
+  'Clarity',
+  'MetaPixel',
+  'CookieBanner',
+  'EngagementTracker',
+  'ChatLauncher',
+] as const
+
+const PRIVATE_PATHS = ['/manage/tok', '/ar/manage/tok', '/driver/trip/tok']
+
+describe('every listed third-party / consent / chat component imports the guard', () => {
+  it.each(GUARDED_COMPONENTS)('components/%s.tsx uses isPrivateLinkPath', (name) => {
+    const src = readFileSync(join(process.cwd(), 'components', `${name}.tsx`), 'utf8')
+    expect(src).toContain('isPrivateLinkPath')
+  })
+})
+
+describe('chrome render on private paths', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_GA_ID', 'G-TEST123')
+    vi.stubEnv('NEXT_PUBLIC_CLARITY_ID', 'clar123')
+    vi.stubEnv('NEXT_PUBLIC_META_PIXEL_ID', '1234567890')
+    mockUseSearchParams.mockReturnValue({ toString: () => '' })
+    window.localStorage.clear()
+    window.sessionStorage.clear()
+    delete (window as { gtag?: unknown }).gtag
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    cleanup()
+    vi.useRealTimers()
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  // consented=true: marketing consent already stored, so MetaPixel would load fbevents if unguarded.
+  // consented=false: no answer yet, so the CookieBanner modal would show if unguarded.
+  async function mountAll(consented: boolean) {
+    if (consented) {
+      window.localStorage.setItem('prestigo_consent_v2', JSON.stringify({ analytics: true, marketing: true }))
+    }
+    vi.resetModules()
+    const [AV, GA, CL, MP, CB, ET, CH] = await Promise.all([
+      import('@/components/AnalyticsPageView'),
+      import('@/components/GoogleAnalytics'),
+      import('@/components/Clarity'),
+      import('@/components/MetaPixel'),
+      import('@/components/CookieBanner'),
+      import('@/components/EngagementTracker'),
+      import('@/components/ChatLauncher'),
+    ])
+    const gtag = vi.fn()
+    ;(window as { gtag?: unknown }).gtag = gtag
+    const utils = render(
+      <NextIntlClientProvider locale="en" messages={enMessages as unknown as AbstractIntlMessages}>
+        <GA.default />
+        <AV.default />
+        <CL.default />
+        <MP.default />
+        <CB.default />
+        <ET.default />
+        <CH.default />
+      </NextIntlClientProvider>,
+    )
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(31_000) // past both time_on_page milestones
+    })
+    return { ...utils, gtag }
+  }
+
+  it.each(PRIVATE_PATHS)('%s: no script (incl. Meta Pixel), no launcher, no event', async (path) => {
+    mockUsePathname.mockReturnValue(path)
+    const { container, gtag } = await mountAll(true)
+    expect(container.querySelectorAll('script').length).toBe(0)
+    expect(container.querySelector('button')).toBeNull()
+    expect(gtag).not.toHaveBeenCalled()
+  })
+
+  it.each(PRIVATE_PATHS)('%s: no consent modal when consent is unanswered', async (path) => {
+    mockUsePathname.mockReturnValue(path)
+    await mountAll(false)
+    expect(document.querySelector('[role="dialog"]')).toBeNull()
+  })
+
+  it('/book: with consent the scripts, Meta Pixel, launcher and engagement events still mount', async () => {
+    mockUsePathname.mockReturnValue('/book')
+    const { container, gtag } = await mountAll(true)
+    const ids = Array.from(container.querySelectorAll('script')).map((s) => s.getAttribute('data-id'))
+    expect(ids).toContain('ga-init')
+    expect(ids).toContain('clarity-init')
+    expect(ids).toContain('meta-pixel')
+    expect(container.querySelector('button')).not.toBeNull()
+    expect(gtag).toHaveBeenCalledWith('event', 'time_on_page', expect.objectContaining({ seconds: 10 }))
+  })
+
+  it('/book: with no consent answer the modal still shows', async () => {
+    mockUsePathname.mockReturnValue('/book')
+    await mountAll(false)
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull()
+  })
 })

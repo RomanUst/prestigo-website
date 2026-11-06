@@ -10,6 +10,7 @@ import { trackMetaEvent } from '@/components/MetaPixel'
 import { WHATSAPP_CHAT_URL, TELEGRAM_CHAT_URL } from '@/lib/contact-channels'
 import { getLandingHref, rememberLandingHref } from '@/lib/chat-visit-context'
 import { getConsent } from '@/components/CookieBanner'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 const MENU_ID = 'chat-launcher-menu'
 
@@ -41,6 +42,14 @@ const FOCUS_RING =
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-copper'
 
 export default function ChatLauncher() {
+  const pathname = usePathname()
+  // Phase 89 (D-02): no launcher (and so no Chatwoot, no landing-URL memory) on private link
+  // paths (/admin, /driver, /manage); the guard wraps the hook-bearing body so hook order stays stable.
+  if (isPrivateLinkPath(pathname)) return null
+  return <ChatLauncherInner />
+}
+
+function ChatLauncherInner() {
   const t = useTranslations('ChatLauncher')
   const locale = useLocale()
   const pathname = usePathname()
