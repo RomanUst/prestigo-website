@@ -177,3 +177,135 @@ describe('files added by the phase hold no typed euro amount', () => {
     })
   }
 })
+
+// ── 4. Phase 89 (plan 89-19, criterion 5): the partner gate over the new entry points ───────────────────────────────
+//
+// The cancellation policy, the fee engine, the cash engine, the manage link and the driver cash step all move money or
+// open a way to it. A partner (gnet) booking has no Prestigo money flow and no client link: each of them must check that
+// BEFORE any Stripe call, any ledger write, any client mail or any token. The runtime proof is
+// tests/payments-policy-lifecycle.test.ts (LC4); these gates keep the check from being deleted unnoticed.
+
+/** The body of a function declared with `export async function <name>(` or `export function <name>(` or `async function`. */
+function anyFunctionBody(src: string, name: string): string {
+  const m = new RegExp(`(?:export\\s+)?(?:async\\s+)?function\\s+${name}\\s*\\(`).exec(src)
+  if (!m) throw new Error(`function ${name} not found`)
+  const end = src.indexOf('\n}\n', m.index)
+  if (end < 0) throw new Error(`end of function ${name} not found`)
+  return src.slice(m.index, end)
+}
+
+// Reaches Stripe, writes the ledger or a note, takes the amount lock, sends mail or creates a token.
+const PHASE89_TOUCH =
+  /getPaymentsStripe\(|\.paymentIntents\.|\.refunds\.|appendPaymentEvent\(|applyTransition\(|addPaymentNote\(|lockFeeAmount\(|settleBooking\(|await settleCash\(|sendPaymentEmail\(|sendPaymentOperatorAlert\(|openFeeCase\(|advanceBookingStatus\(|\.insert\(|\.upsert\(/
+
+describe('Phase 89 entry points check for a partner booking before they touch anything', () => {
+  const GUARDED = [
+    { file: 'lib/payments/fee.ts', fn: 'runFeeCharge', check: /isPartner\(booking\)/ },
+    { file: 'lib/payments/fee.ts', fn: 'runCashCardCharge', check: /isPartner\(booking\)/ },
+    { file: 'lib/payments/fee.ts', fn: 'chargeFromCollected', check: /isPartner\(/ },
+    { file: 'lib/payments/fee.ts', fn: 'waiveFee', check: /isPartner\(/ },
+    { file: 'lib/payments/cash.ts', fn: 'settleCash', check: /isPartner\(booking\)/ },
+    { file: 'lib/payments/cash.ts', fn: 'reopenCash', check: /isPartner\(booking\)/ },
+    { file: 'lib/manage-link.ts', fn: 'ensureManageToken', check: /isEligibleBooking\(/ },
+    { file: 'lib/driver-trip-step.ts', fn: 'driverConfirmCash', check: /assertMoneyEligible\([\s\S]*PartnerBookingMoneyError\)\s*return notAllowed/ },
+  ] as const
+
+  for (const { file, fn, check } of GUARDED) {
+    it(`${fn} (${file}) checks the partner gate first`, () => {
+      const body = anyFunctionBody(read(file), fn)
+      const gate = body.search(check)
+      expect(gate, 'the partner check is missing').toBeGreaterThan(-1)
+      const touch = body.search(PHASE89_TOUCH)
+      expect(touch, 'the function must contain a money-touching call (gate would pass vacuously)').toBeGreaterThan(-1)
+      expect(gate).toBeLessThan(touch)
+    })
+  }
+
+  it('manage-link.ts decides eligibility from the booking source (a partner never gets a token or a hit)', () => {
+    const src = read('lib/manage-link.ts')
+    expect(anyFunctionBody(src, 'isEligibleBooking')).toMatch(/isPartnerBooking\(/)
+    // resolveManageToken must also refuse a partner row that already has a token (a token created before the rule).
+    expect(anyFunctionBody(src, 'resolveManageToken')).toMatch(/isPartnerBooking\(/)
+  })
+
+  it('cancel.ts computes the partner flag before the first status write and gives a client no way through', () => {
+    const body = anyFunctionBody(read('lib/payments/cancel.ts'), 'runCancel')
+    const partner = body.indexOf('isPartner(booking)')
+    const clientRefusal = body.search(/if \(partner\) return \{ kind: 'not_cancellable'/)
+    const statusWrite = body.indexOf('advanceBookingStatus(')
+    expect(partner).toBeGreaterThan(-1)
+    expect(clientRefusal).toBeGreaterThan(partner)
+    expect(statusWrite).toBeGreaterThan(clientRefusal)
+    // Every money step after the status change is behind the partner early return.
+    const afterPartner = body.indexOf('if (partner) {')
+    expect(afterPartner).toBeGreaterThan(statusWrite)
+    expect(body.indexOf('getPaymentsStripe(')).toBeGreaterThan(afterPartner)
+    expect(body.indexOf('openFeeCase(')).toBeGreaterThan(afterPartner)
+  })
+
+  it('the fee route re-checks the action matrix (which refuses partners) before any engine call', () => {
+    const src = read('app/api/admin/bookings/[id]/fee/route.ts')
+    for (const handler of ['handleCharge', 'handleWaive', 'handleChargeSavedCard', 'handleMarkCashSettled', 'handleReopenCash']) {
+      const body = anyFunctionBody(src, handler)
+      const gate = body.indexOf('allowedPaymentActions(booking).includes(')
+      expect(gate, `${handler} must check the matrix`).toBeGreaterThan(-1)
+      const touch = body.search(/loadFeeCase\(|addPaymentNote\(|runFeeCharge\(|runCashCardCharge\(|chargeFromCollected\(|waiveFee\(|settleCash\(|reopenCash\(|recordClick\(/)
+      expect(touch, `${handler} must call the engine`).toBeGreaterThan(-1)
+      expect(gate).toBeLessThan(touch)
+    }
+    expect(read('lib/payments/actions.ts')).toMatch(/isPartnerBooking\(\{ booking_source/)
+  })
+
+  it('the client routes resolve the token before any engine call and map an unknown token to one answer', () => {
+    const cancel = read('app/api/manage/cancel/route.ts')
+    expect(cancel.indexOf('resolveManageToken(')).toBeGreaterThan(-1)
+    expect(cancel.indexOf('resolveManageToken(')).toBeLessThan(cancel.indexOf('cancelBooking('))
+    const change = read('app/api/manage/change-request/route.ts')
+    expect(change.indexOf('resolveManageToken(')).toBeGreaterThan(-1)
+  })
+})
+
+// ── 5. no typed euro amount in any file Phase 89 added under app/ or components/ ──────────────────────────────────
+
+describe('files added by Phase 89 under app/ and components/ hold no typed euro amount', () => {
+  const ADDED = [
+    'app/[locale]/manage/[token]/InvalidManageLinkView.tsx',
+    'app/[locale]/manage/[token]/ManageActions.tsx',
+    'app/[locale]/manage/[token]/ManageHeader.tsx',
+    'app/[locale]/manage/[token]/loading.tsx',
+    'app/[locale]/manage/[token]/page.tsx',
+    'app/api/admin/bookings/[id]/fee/route.ts',
+    'app/api/manage/cancel/route.ts',
+    'app/api/manage/change-request/route.ts',
+    'components/admin/CancelBookingDialog.tsx',
+    'components/admin/CancellationPolicySettings.tsx',
+    'components/admin/CashCardChargeModal.tsx',
+    'components/admin/FeeCaseBadge.tsx',
+    'components/admin/FeeChargeModal.tsx',
+    'components/admin/FeeDecisionBanner.tsx',
+    'components/admin/FeeWaiveModal.tsx',
+    'components/admin/MarkCashModal.tsx',
+    'components/admin/ReopenCashModal.tsx',
+    'components/admin/paymentParts.tsx',
+    'components/admin/paymentShared.ts',
+    'components/booking/CancellationPolicyNote.tsx',
+  ]
+  const TYPED_EURO = /€\s*\d|\d\s*€|\bEUR\s*\d|\d\s*EUR\b/
+
+  it('lists the files that exist (floor)', () => {
+    expect(ADDED.length).toBeGreaterThanOrEqual(20)
+    for (const f of ADDED) expect(fs.existsSync(path.join(REPO_ROOT, f)), f).toBe(true)
+  })
+
+  for (const file of ADDED) {
+    it(`${file} has no typed euro amount`, () => {
+      expect(stripComments(read(file))).not.toMatch(TYPED_EURO)
+    })
+  }
+
+  it('no other file under app/api/manage or app/[locale]/manage has appeared without being listed here', () => {
+    const found = [...listFiles('app/api/manage', ['.ts', '.tsx']), ...listFiles('app/[locale]/manage', ['.ts', '.tsx'])]
+    for (const f of found) expect(ADDED, `${f} must be added to the list above`).toContain(f)
+  })
+})
+
