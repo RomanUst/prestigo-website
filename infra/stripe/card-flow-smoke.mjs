@@ -18,7 +18,7 @@
  *   S2 capture of less than the held amount                    -> succeeded, amount_received = cap
  *   S3 release of a hold (cancel, requested_by_customer)       -> canceled
  *   S4 always-authenticate card, off-session                   -> error authentication_required
- *   S5 SCA card that declines even when set up                 -> decline insufficient_funds
+ *   S5 SCA decline card, attached without 3DS (no browser here) -> error authentication_required
  *   S6 card that attaches fine but fails the charge            -> card_declined
  *   S7 the S1 create repeated with the same idempotency key    -> the same PaymentIntent id
  *   S8 PaymentIntent search on metadata['cofBookingId']        -> finds the S1 PaymentIntent (A7)
@@ -194,10 +194,11 @@ export async function runCardFlowSmoke({
       return { ok: error.code === 'authentication_required', observed: observeError(error) }
     })
 
-    await scenario('S5_insufficient_funds_after_setup', 'decline_code=insufficient_funds', async () => {
+    // Stripe declines this card with insufficient_funds only after a completed 3DS, which a script cannot do.
+    await scenario('S5_sca_decline_card_without_setup', 'code=authentication_required', async () => {
       const { error, pi } = await attachThenHold('pm_card_authenticationRequiredChargeDeclinedInsufficientFunds', 4)
       if (!error) return { ok: false, observed: `no_error,status=${pi?.status}` }
-      return { ok: error.decline_code === 'insufficient_funds', observed: observeError(error) }
+      return { ok: error.code === 'authentication_required', observed: observeError(error) }
     })
 
     await scenario('S6_charge_customer_fail', 'attach_ok,code=card_declined', async () => {

@@ -11,11 +11,11 @@ import { runCardFlowSmoke, isTestKey } from '../infra/stripe/card-flow-smoke.mjs
 const TEST_KEY = 'sk_test_FAKE_key_for_tests_only'
 const NOW = 1_800_000_000_000
 
-type Behaviour = 'ok' | 'authentication_required' | 'insufficient_funds' | 'generic_decline'
+type Behaviour = 'ok' | 'authentication_required' | 'sca_decline' | 'generic_decline'
 const PM_BEHAVIOUR: Record<string, Behaviour> = {
   pm_card_visa: 'ok',
   pm_card_authenticationRequired: 'authentication_required',
-  pm_card_authenticationRequiredChargeDeclinedInsufficientFunds: 'insufficient_funds',
+  pm_card_authenticationRequiredChargeDeclinedInsufficientFunds: 'sca_decline',
   pm_card_chargeCustomerFail: 'generic_decline',
 }
 
@@ -67,7 +67,7 @@ function fakeStripe(overrides: { breakSearch?: boolean; authCardSucceeds?: boole
         if (key && idem.has(key) && !overrides.noReplay) return idem.get(key)
         const behaviour = PM_BEHAVIOUR[pmOwner.get(params.payment_method) ?? ''] ?? 'ok'
         if (behaviour === 'authentication_required' && !overrides.authCardSucceeds) throw cardError('authentication_required')
-        if (behaviour === 'insufficient_funds') throw cardError('card_declined', 'insufficient_funds')
+        if (behaviour === 'sca_decline') throw cardError('authentication_required')
         if (behaviour === 'generic_decline') throw cardError('card_declined', 'generic_decline')
         const pi = {
           id: `pi_${++seq}`,
