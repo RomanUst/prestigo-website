@@ -89,7 +89,16 @@ const PATCH_COLUMNS = [
 
 const ACTIVE_STATUSES = ['confirmed', 'assigned', 'en_route', 'on_location']
 const LEASED = ['placing_hold', 'capturing']
-const TABLES = ['bookings', 'booking_payment_events', 'booking_payment_consents', 'pricing_globals'] as const
+const TABLES = [
+  'bookings',
+  'booking_payment_events',
+  'booking_payment_consents',
+  'pricing_globals',
+  // Migration 087 (Phase 89): deny-all tables, reached only through the service client.
+  'booking_fee_cases',
+  'booking_manage_tokens',
+  'booking_payment_notes',
+] as const
 type TableName = (typeof TABLES)[number]
 
 export interface FakePaymentsState {
@@ -99,6 +108,9 @@ export interface FakePaymentsState {
   booking_payment_events: Row[]
   booking_payment_consents: Row[]
   pricing_globals: Row[]
+  booking_fee_cases: Row[]
+  booking_manage_tokens: Row[]
+  booking_payment_notes: Row[]
 }
 
 export interface FakePaymentsSeed {
@@ -160,7 +172,50 @@ function bookingDefaults(): Row {
     recovery_link_url: null,
     payment_intent_id: null,
     pickup_utc: null,
+    // Migration 087: the policy snapshot and the fee case status mirror.
+    cancel_policy_version: null,
+    cancel_policy: null,
+    fee_case_status: null,
   }
+}
+
+/** Column defaults of booking_fee_cases (migration 087). */
+function feeCaseDefaults(): Row {
+  return {
+    status: 'pending',
+    decided_minor: null,
+    charge_requested_at: null,
+    free_until: null,
+    evidence: {},
+    reason: null,
+    contact_note: null,
+    opened_by: null,
+    decided_at: null,
+    decided_by: null,
+  }
+}
+
+/** The 087 CHECKs of the three new tables that matter to code under test; returns the violated one or null. */
+function checkNewTableRow(table: TableName, row: Row): string | null {
+  if (table === 'booking_fee_cases') {
+    if (!['late_cancel', 'no_show'].includes(row.kind as string)) return 'booking_fee_cases_kind_check'
+    if (!['pending', 'charged', 'waived'].includes(row.status as string)) return 'booking_fee_cases_status_check'
+    if (!['eur', 'czk'].includes(row.currency as string)) return 'booking_fee_cases_currency_check'
+    const base = row.base_minor as number
+    const proposed = row.proposed_minor as number
+    if (!(typeof base === 'number' && base > 0)) return 'booking_fee_cases_base_minor_check'
+    if (!(typeof proposed === 'number' && proposed > 0 && proposed <= base)) return 'booking_fee_cases_proposed_minor_check'
+    const decided = row.decided_minor as number | null
+    if (decided != null && !(decided > 0 && decided <= base)) return 'booking_fee_cases_decided_minor_check'
+  }
+  if (table === 'booking_manage_tokens') {
+    if (typeof row.token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(row.token)) return 'booking_manage_tokens_token_check'
+  }
+  if (table === 'booking_payment_notes') {
+    if (!['cash_card_charge', 'cash_reopen'].includes(row.kind as string)) return 'booking_payment_notes_kind_check'
+    if (typeof row.note !== 'string' || row.note.length > 500) return 'booking_payment_notes_note_check'
+  }
+  return null
 }
 
 function err(message: string, code?: string): DbResult {
@@ -185,14 +240,29 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
         payment_hold_lead_hours: 72,
         card_flow_mode: 'off',
         card_flow_canary_emails: [],
+        // Migration 087 policy settings.
+        cancel_free_km_threshold: 100,
+        cancel_free_hours_short: 1,
+        cancel_free_hours_long: 12,
+        cancel_free_hours_hourly: 12,
+        cancel_fee_percent: 100,
         ...(seed.pricingGlobals ?? {}),
       },
     ],
+    booking_fee_cases: [],
+    booking_manage_tokens: [],
+    booking_payment_notes: [],
   }
 
   let eventSeq = 0
   const nowIso = () => new Date(state.nowMs).toISOString()
   const findBooking = (id: unknown) => state.bookings.find((b) => b.id === id)
+
+  /** Trigger booking_fee_cases_sync_status (087): bookings.fee_case_status always equals the case status. */
+  function mirrorFeeCaseStatus(row: Row): void {
+    const booking = findBooking(row.booking_id)
+    if (booking) booking.fee_case_status = row.status as string
+  }
 
   /** Builds a ledger row from a p_event object, enforcing the table CHECKs that matter. */
   function buildEventRow(bookingId: string, event: Row, fromState: string | null, toState: string | null): Row {
@@ -468,16 +538,48 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
             inserted.push(row.row)
             continue
           }
-          const base = this.table === 'bookings' ? { ...bookingDefaults(), id: nextUuid() } : { id: nextUuid() }
-          const row = { ...base, ...input }
+          const base =
+            this.table === 'bookings'
+              ? { ...bookingDefaults(), id: nextUuid() }
+              : this.table === 'booking_fee_cases'
+                ? { ...feeCaseDefaults(), id: nextUuid(), opened_at: nowIso() }
+                : this.table === 'booking_manage_tokens'
+                  ? { created_at: nowIso(), last_used_at: null, revoked_at: null }
+                  : this.table === 'booking_payment_notes'
+                    ? { id: nextUuid(), created_by: null, created_at: nowIso() }
+                    : { id: nextUuid() }
+          const row: Row = { ...base, ...input }
+          if (this.table === 'booking_fee_cases' || this.table === 'booking_manage_tokens' || this.table === 'booking_payment_notes') {
+            if (!findBooking(row.booking_id)) return err('violates foreign key constraint on booking_id', '23503')
+            const violated = checkNewTableRow(this.table, row)
+            if (violated) return err(`new row violates check constraint "${violated}"`, '23514')
+            const clash =
+              this.table === 'booking_fee_cases' || this.table === 'booking_manage_tokens'
+                ? rows.some((r) => r.booking_id === row.booking_id) ||
+                  (this.table === 'booking_manage_tokens' && rows.some((r) => r.token === row.token))
+                : false
+            if (clash) return err(`duplicate key value violates unique constraint on ${this.table}`, '23505')
+          }
           rows.push(row)
+          if (this.table === 'booking_fee_cases') mirrorFeeCaseStatus(row)
           inserted.push(row)
         }
         out = inserted
       } else if (this.mode === 'update') {
         if (this.table === 'booking_payment_events') return err('booking_payment_events is append-only')
         const targets = this.matches()
-        for (const r of targets) Object.assign(r, this.payload as Row)
+        for (const r of targets) {
+          const before = { ...r }
+          Object.assign(r, this.payload as Row)
+          if (this.table === 'booking_fee_cases') {
+            const violated = checkNewTableRow(this.table, r)
+            if (violated) {
+              Object.assign(r, before)
+              return err(`new row violates check constraint "${violated}"`, '23514')
+            }
+            if ('status' in (this.payload as Row)) mirrorFeeCaseStatus(r)
+          }
+        }
         out = targets
       } else if (this.mode === 'delete') {
         if (this.table === 'booking_payment_events') return err('booking_payment_events is append-only')

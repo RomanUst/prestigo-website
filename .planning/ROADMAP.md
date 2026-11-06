@@ -21,7 +21,7 @@
 - [x] **Phase 86: Admin Shell** - Collapsible sidebar and persistent light theme; every admin screen on theme tokens (completed 2026-11-03)
 - [x] **Phase 87: Status Service & Driver Step Flow** - One trusted status writer; driver moves a trip one strict step at a time and admin sees it immediately (completed 2026-11-03)
 - [x] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
-- [ ] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, counsel-reviewed wording, public go-live
+- [ ] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, owner-accepted wording, public go-live
 - [ ] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh
 - [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
 - [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
@@ -32,7 +32,7 @@
 - **Hold lead time is configurable, default 72 h — never "~5 days".** A hold placed with the customer absent is merchant-initiated and Visa expires it after 4 d 18 h; the saved card plus mandate is the real guarantee, the hold is a convenience (research/SUMMARY.md).
 - **Partner (GNet) bookings skip every money path** — no hold, capture, no-show or extra charge.
 - **All scheduling math uses pickup instants and Prague time**, tested across the DST changes of 2027-03-28 and 2027-10-31.
-- **Payments reach the public only after counsel-reviewed wording** (Phase 89 gate); until then the PAYF-05 feature flag admits only the owner's canary booking.
+- **Payments reach the public only at the Phase 89 go-live, on the owner's decision (no counsel review, risk accepted 2026-11-06, D-16)**; until then the PAYF-05 feature flag admits only the owner's canary booking.
 - **Security-relevant phases (commit with `security:` prefix per CLAUDE.md):** 87 (driver link now changes status), 88 and 89 (card mandate, off-session charges, webhook), 91 (server-side price recompute, extra charges), 92 (quote tokens, deposit).
 - **New strings need real translations in all 7 locales; no typed prices in marketing or tour content** (live from the admin only).
 - **Parallel owner work during 86-87:** Stripe test-mode path (owner-run scripts) and counsel review of the mandate / cancellation / no-show wording.
@@ -297,14 +297,14 @@ Plans:
 
 ### Phase 89: Cancellation Policy, Cash Guarantee & No-Show
 
-**Goal**: Clients get clear, fair terms — cancelling in time costs nothing, cash bookings are guaranteed by a saved card, a no-show is charged only after the operator confirms — and card payments are opened to all clients once counsel has signed off the wording.
+**Goal**: Clients get clear, fair terms — cancelling in time costs nothing, cash bookings are guaranteed by a saved card, a no-show is charged only after the operator confirms — and card payments are opened to all clients once the owner has accepted the wording (no counsel review, D-16).
 **Depends on**: Phase 88
 **Requirements**: HOLD-06, CANC-01, CANC-02, CASH-01, CASH-02, CASH-03, CASH-04
 **Success Criteria** (what must be TRUE):
   1. Cancelling a card booking in time releases an uncaptured hold (no Stripe fee) or refunds a captured payment, and a late cancellation costs 100%, according to the policy: free up to 1 h before pickup for trips up to 100 km and up to 12 h before for longer trips, with the km, hours and percent thresholds editable in admin.
-  2. The cancellation policy and the card-saving consent are shown at checkout, in the confirmation email and in the terms, in all 7 locales, and counsel sign-off on the wording is recorded before card payments are enabled for all clients.
+  2. The cancellation policy and the card-saving consent are shown at checkout, in the confirmation email and in the terms, in all 7 locales, and the owner's decision of 2026-11-06 to launch without counsel review (D-16) is recorded before card payments are enabled for all clients.
   3. A client can choose "pay cash to driver"; the card is saved as a guarantee and no hold is ever placed on it.
-  4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
+  4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges any amount up to 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
   5. The operator can mark a cash booking as settled in cash, a settled or cancelled booking can no longer be charged, and GNet bookings are never offered the cash guarantee or a no-show charge.
 
 **Plans**: 28 plans (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
@@ -366,7 +366,7 @@ Plans:
 
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix (operator-initiated off-session charges, policy-driven refunds and releases, consent records).
-**Legal checkpoint (blocking public go-live)**: Czech counsel or ČOI review of the mandate and consent text, the tiered cancellation schedule and the no-show clause, the withdrawal-exemption disclosure, and Stripe PII erasure vs accounting retention. Start in parallel with Phases 86-87. The consent text version stored per booking (Phase 88) lets wording change without breaking old records.
+**Legal checkpoint**: replaced by the owner's decision of 2026-11-06 (no counsel review, risk accepted by the owner), see D-16 in 89-CONTEXT.md.
 **Owner decisions before planning**: no-show wait thresholds (benchmark: 30 min in the city, 60 min at the airport, counted from the pickup time) . **Decided 2026-11-02:** no-show is operator-charged, never automatic; cancellation policy = free until 1 h before pickup for trips ≤100 km, until 12 h before for trips >100 km, otherwise 100% (thresholds admin-configurable, wording reviewed by counsel). The wait thresholds are admin settings reused by Phase 91.
 **Owner decisions 2026-11-06 (see 89-CONTEXT.md)**: no counsel review, the owner accepts the risk and this replaces the legal checkpoint and the sign-off in criterion 2; client self-cancel from a manage-booking page linked in the confirmation email is added to this phase (changes go to the operator as a request); go-live to everyone at once.
 **Planning notes**: Public go-live (owner flips the flag) happens at the end of this phase, after the owner's own test. Next migration is 087.

@@ -561,6 +561,8 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
     failed: { open: ['retry', 'release', 'send_link'], done: ['capture', 'retry', 'send_link'] },
     expired: { open: ['retry', 'release'], done: ['capture', 'retry'] },
     released: { open: [], done: [] },
+    // Phase 89 (087): a card_hold booking is never cash settled; the matrix offers nothing until plan 89-17 owns the cash actions.
+    cash_settled: { open: [], done: [] },
   }
 
   it('covers every payment state', () => {
@@ -593,6 +595,7 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
     failed: ['release'],
     expired: ['release'],
     released: [],
+    cash_settled: [],
   }
   for (const status of ['cancelled', 'no_show']) {
     it(`${status}: release only, never retry / capture / send_link / waive`, () => {

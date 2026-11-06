@@ -224,3 +224,193 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.apply_payment_transition(uuid, text[], text, jsonb, jsonb, text[]) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.apply_payment_transition(uuid, text[], text, jsonb, jsonb, text[]) TO service_role;
+
+-- == 4. pricing_globals: cancellation policy settings (CANC-01, D-14) ================
+-- Free cancellation window is by trip length: trips up to cancel_free_km_threshold km get cancel_free_hours_short,
+-- longer trips cancel_free_hours_long, hourly bookings cancel_free_hours_hourly. After the window the fee is
+-- cancel_fee_percent of the booking price; the operator can decide any amount up to 100% (D-14). Defaults are the
+-- owner's 2026-11-02 policy: 100 km, 1 h, 12 h, 12 h, 100%.
+ALTER TABLE public.pricing_globals
+  ADD COLUMN IF NOT EXISTS cancel_free_km_threshold integer NOT NULL DEFAULT 100
+    CONSTRAINT pricing_globals_cancel_free_km_threshold_range
+    CHECK (cancel_free_km_threshold BETWEEN 1 AND 1000),
+  ADD COLUMN IF NOT EXISTS cancel_free_hours_short integer NOT NULL DEFAULT 1
+    CONSTRAINT pricing_globals_cancel_free_hours_short_range
+    CHECK (cancel_free_hours_short BETWEEN 0 AND 72),
+  ADD COLUMN IF NOT EXISTS cancel_free_hours_long integer NOT NULL DEFAULT 12
+    CONSTRAINT pricing_globals_cancel_free_hours_long_range
+    CHECK (cancel_free_hours_long BETWEEN 0 AND 72),
+  ADD COLUMN IF NOT EXISTS cancel_free_hours_hourly integer NOT NULL DEFAULT 12
+    CONSTRAINT pricing_globals_cancel_free_hours_hourly_range
+    CHECK (cancel_free_hours_hourly BETWEEN 0 AND 72),
+  ADD COLUMN IF NOT EXISTS cancel_fee_percent integer NOT NULL DEFAULT 100
+    CONSTRAINT pricing_globals_cancel_fee_percent_range
+    CHECK (cancel_fee_percent BETWEEN 1 AND 100);
+
+-- A long trip never gets a shorter free window than a short one.
+ALTER TABLE public.pricing_globals
+  DROP CONSTRAINT IF EXISTS pricing_globals_cancel_free_hours_order;
+ALTER TABLE public.pricing_globals
+  ADD CONSTRAINT pricing_globals_cancel_free_hours_order
+  CHECK (cancel_free_hours_long >= cancel_free_hours_short);
+
+-- card_flow_mode gains 'on' (the Phase 88 D-04 invariant ends with the Phase 89 go-live). The stored value is NOT
+-- changed here: it stays whatever it was, the owner flips it after the live proofs.
+ALTER TABLE public.pricing_globals
+  DROP CONSTRAINT IF EXISTS pricing_globals_card_flow_mode_check;
+ALTER TABLE public.pricing_globals
+  ADD CONSTRAINT pricing_globals_card_flow_mode_check
+  CHECK (card_flow_mode IN ('off', 'canary', 'on'));
+
+-- == 5. booking_payment_consents: cash_setup mode (CASH-01) ========================
+-- The mode CHECK was created inline in 085, so Postgres named it booking_payment_consents_mode_check.
+ALTER TABLE public.booking_payment_consents
+  DROP CONSTRAINT IF EXISTS booking_payment_consents_mode_check;
+ALTER TABLE public.booking_payment_consents
+  ADD CONSTRAINT booking_payment_consents_mode_check
+  CHECK (mode IN ('setup', 'hold_now', 'cash_setup'));
+
+-- == 6. bookings: policy snapshot and fee case status mirror =======================
+-- cancel_policy_version / cancel_policy freeze the terms the client saw at booking time. NULL means a booking made
+-- under the old terms (no snapshot), which the fee logic treats as "no fee" (Pitfall 13).
+-- fee_case_status is a read-only mirror of booking_fee_cases.status kept by the trigger below; it carries a status
+-- word only. bookings_select_own exposes the whole row to the signed-in client, so no amount, note or token is ever
+-- added to bookings (Pitfall 11).
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS cancel_policy_version text,
+  ADD COLUMN IF NOT EXISTS cancel_policy         jsonb,
+  ADD COLUMN IF NOT EXISTS fee_case_status       text;
+
+ALTER TABLE public.bookings
+  DROP CONSTRAINT IF EXISTS bookings_cancel_policy_version_check;
+ALTER TABLE public.bookings
+  ADD CONSTRAINT bookings_cancel_policy_version_check
+  CHECK (cancel_policy_version IS NULL OR char_length(cancel_policy_version) <= 40);
+
+ALTER TABLE public.bookings
+  DROP CONSTRAINT IF EXISTS bookings_fee_case_status_check;
+ALTER TABLE public.bookings
+  ADD CONSTRAINT bookings_fee_case_status_check
+  CHECK (fee_case_status IS NULL OR fee_case_status IN ('pending', 'charged', 'waived'));
+
+CREATE INDEX IF NOT EXISTS bookings_fee_case_pending_idx
+  ON public.bookings (pickup_utc)
+  WHERE fee_case_status = 'pending';
+
+-- == 7. booking_fee_cases: one late-cancel / no-show case per booking (CASH-03, D-14) ==
+-- Deny-all table: the client can read their own bookings row but never a case. proposed_minor is what the policy
+-- suggests, decided_minor is what the operator chose (any amount up to base_minor, 100%).
+CREATE TABLE IF NOT EXISTS public.booking_fee_cases (
+  id                  uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id          uuid        NOT NULL UNIQUE REFERENCES public.bookings(id) ON DELETE CASCADE,
+  kind                text        NOT NULL CHECK (kind IN ('late_cancel', 'no_show')),
+  status              text        NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'charged', 'waived')),
+  currency            text        NOT NULL CHECK (currency IN ('eur', 'czk')),
+  base_minor          bigint      NOT NULL CHECK (base_minor > 0),
+  proposed_minor      bigint      NOT NULL CHECK (proposed_minor > 0 AND proposed_minor <= base_minor),
+  decided_minor       bigint      CHECK (decided_minor IS NULL OR (decided_minor > 0 AND decided_minor <= base_minor)),
+  charge_requested_at timestamptz,
+  free_until          timestamptz,
+  evidence            jsonb       NOT NULL DEFAULT '{}'::jsonb,
+  reason              text        CHECK (reason IS NULL OR char_length(reason) <= 500),
+  contact_note        text        CHECK (contact_note IS NULL OR char_length(contact_note) <= 1000),
+  opened_at           timestamptz NOT NULL DEFAULT now(),
+  opened_by           text        CHECK (opened_by IS NULL OR char_length(opened_by) <= 64),
+  decided_at          timestamptz,
+  decided_by          text        CHECK (decided_by IS NULL OR char_length(decided_by) <= 64)
+);
+
+REVOKE ALL ON public.booking_fee_cases FROM anon, authenticated;
+ALTER TABLE public.booking_fee_cases ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS booking_fee_cases_no_public_read ON public.booking_fee_cases;
+CREATE POLICY booking_fee_cases_no_public_read
+  ON public.booking_fee_cases FOR SELECT
+  USING (false);
+
+DROP POLICY IF EXISTS booking_fee_cases_no_public_insert ON public.booking_fee_cases;
+CREATE POLICY booking_fee_cases_no_public_insert
+  ON public.booking_fee_cases FOR INSERT
+  WITH CHECK (false);
+
+-- == 8. booking_manage_tokens: the manage-booking link secret (CANC-02, D-09) ========
+-- 43 url-safe characters (32 random bytes, base64url). Deny-all: a token in bookings would reach the signed-in
+-- client through bookings_select_own, so it lives here only.
+CREATE TABLE IF NOT EXISTS public.booking_manage_tokens (
+  booking_id   uuid        PRIMARY KEY REFERENCES public.bookings(id) ON DELETE CASCADE,
+  token        text        NOT NULL UNIQUE CHECK (token ~ '^[A-Za-z0-9_-]{43}$'),
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  last_used_at timestamptz,
+  revoked_at   timestamptz
+);
+
+REVOKE ALL ON public.booking_manage_tokens FROM anon, authenticated;
+ALTER TABLE public.booking_manage_tokens ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS booking_manage_tokens_no_public_read ON public.booking_manage_tokens;
+CREATE POLICY booking_manage_tokens_no_public_read
+  ON public.booking_manage_tokens FOR SELECT
+  USING (false);
+
+DROP POLICY IF EXISTS booking_manage_tokens_no_public_insert ON public.booking_manage_tokens;
+CREATE POLICY booking_manage_tokens_no_public_insert
+  ON public.booking_manage_tokens FOR INSERT
+  WITH CHECK (false);
+
+-- == 9. booking_payment_notes: operator notes for cash decisions (D-21, D-22) =======
+-- Free text never goes into the append-only ledger (it is visible to every operator and is never erased), so the
+-- note that explains a card charge on a cash booking or a cash reopen lives here, linked by booking only.
+CREATE TABLE IF NOT EXISTS public.booking_payment_notes (
+  id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id uuid        NOT NULL REFERENCES public.bookings(id) ON DELETE CASCADE,
+  kind       text        NOT NULL CHECK (kind IN ('cash_card_charge', 'cash_reopen')),
+  note       text        NOT NULL CHECK (char_length(note) <= 500),
+  created_by text        CHECK (created_by IS NULL OR char_length(created_by) <= 64),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS booking_payment_notes_booking_idx
+  ON public.booking_payment_notes (booking_id, created_at);
+
+REVOKE ALL ON public.booking_payment_notes FROM anon, authenticated;
+ALTER TABLE public.booking_payment_notes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS booking_payment_notes_no_public_read ON public.booking_payment_notes;
+CREATE POLICY booking_payment_notes_no_public_read
+  ON public.booking_payment_notes FOR SELECT
+  USING (false);
+
+DROP POLICY IF EXISTS booking_payment_notes_no_public_insert ON public.booking_payment_notes;
+CREATE POLICY booking_payment_notes_no_public_insert
+  ON public.booking_payment_notes FOR INSERT
+  WITH CHECK (false);
+
+-- == 10. Status mirror: bookings.fee_case_status always equals the case status ======
+-- The list badge reads bookings.fee_case_status, the case row is the truth; the trigger keeps them equal so the
+-- badge can not drift. No bookings trigger fires on fee_case_status (063, 067, 069, 084 all list their columns),
+-- so this UPDATE sends nothing to the calendar, the CRM or the lead outbox.
+CREATE OR REPLACE FUNCTION public.booking_fee_cases_sync_status()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  UPDATE public.bookings b
+     SET fee_case_status = NEW.status
+   WHERE b.id = NEW.booking_id
+     AND b.fee_case_status IS DISTINCT FROM NEW.status;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.booking_fee_cases_sync_status() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS booking_fee_cases_sync_status ON public.booking_fee_cases;
+CREATE TRIGGER booking_fee_cases_sync_status
+  AFTER INSERT OR UPDATE OF status ON public.booking_fee_cases
+  FOR EACH ROW
+  EXECUTE FUNCTION public.booking_fee_cases_sync_status();
+
+-- claim_due_payment_work is deliberately NOT changed: its payment_mode = 'card_hold' filter is the database
+-- guarantee that no hold is ever placed on a cash_guarantee booking.

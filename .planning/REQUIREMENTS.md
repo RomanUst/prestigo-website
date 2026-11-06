@@ -29,13 +29,13 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 - [ ] **CASH-01**: Client can choose "pay cash to driver"; the card is saved as a guarantee with no hold
 - [ ] **CASH-02**: Driver can mark no-show only after the free waiting time has passed
-- [ ] **CASH-03**: Operator confirms a no-show and charges 100% to the saved card with one action; the evidence (driver timestamps, contact attempt note) is stored
+- [ ] **CASH-03**: Operator confirms a no-show and charges any amount up to 100% to the saved card with one action; the evidence (driver timestamps, contact attempt note) is stored
 - [ ] **CASH-04**: Operator can mark a cash booking as settled in cash
 
 ### Cancellation policy (CANC)
 
 - [ ] **CANC-01**: Free cancellation up to 1 h before pickup for trips up to 100 km, and up to 12 h before for trips over 100 km; later cancellations and no-shows cost 100%. Thresholds (km, hours, percent) are configurable in admin
-- [ ] **CANC-02**: The cancellation policy and the card-saving consent are shown at checkout, in the confirmation email and in the terms, in all 7 locales (wording reviewed by counsel before launch)
+- [ ] **CANC-02**: The cancellation policy and the card-saving consent are shown at checkout, in the confirmation email and in the terms, in all 7 locales (owner's decision of 2026-11-06: no counsel review, the owner accepts the risk)
 
 ### Extra charges (EXTRA)
 
