@@ -3,7 +3,7 @@ import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
 // D-09 / D-11: one neutral view for EVERY ended reason (unknown token, malformed token, cancelled,
 // no_show, reassigned, declined, driverless, orphaned booking). There is no prop and no branch, so
 // the markup is byte-identical for all of them and a link cannot be used to enumerate bookings.
-export default function InvalidTripLinkView() {
+export default function InvalidTripLinkView(_props: { cancelledReference?: string } = {}) {
   return (
     <main
       style={{

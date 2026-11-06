@@ -4,6 +4,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody } from '@/lib/request-guards'
 import {
+  driverConfirmCash,
   driverTripRequestSchema,
   driverTripNote,
   driverTripStep,
@@ -62,12 +63,22 @@ export async function POST(
   }
 
   const data = parsed.data
-  const result =
-    'step' in data
-      ? await driverTripStep({ supabase, trip, step: data.step, nowMs: Date.now() })
-      : 'action' in data
-        ? await requestNoShowForDriver({ supabase, trip, nowMs: Date.now() })
-        : await driverTripNote({ supabase, trip, note: data.note })
+  let result
+  if ('step' in data) {
+    result = await driverTripStep({ supabase, trip, step: data.step, nowMs: Date.now() })
+  } else if ('note' in data) {
+    result = await driverTripNote({ supabase, trip, note: data.note })
+  } else {
+    switch (data.action) {
+      case 'request_no_show':
+        result = await requestNoShowForDriver({ supabase, trip, nowMs: Date.now() })
+        break
+      case 'confirm_cash':
+        // D-11: the settle goes through lib/payments/cash.ts (the one writer of payment_state); no amount is read.
+        result = await driverConfirmCash({ trip })
+        break
+    }
+  }
 
   return NextResponse.json(result.body, { status: result.httpStatus })
 }

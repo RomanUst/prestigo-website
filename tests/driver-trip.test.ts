@@ -311,10 +311,13 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     expect(src).not.toMatch(/\.(update|insert|upsert|delete|rpc)\(/)
   })
 
-  it('does not select the amount of the booking', async () => {
+  it('does not select the fare of the booking (Phase 89: only the cash payment columns are added, D-11)', async () => {
     const { selectFn } = mockSupabaseSingle(makeAssignmentRow())
     await renderPage()
-    expect(String(selectFn.mock.calls[0][0])).not.toMatch(/amount|price/i)
+    const cols = String(selectFn.mock.calls[0][0])
+    expect(cols).not.toMatch(/amount_eur|price/i)
+    // the only amount-like column is the cash one, and tests/driver-trip-cash.test.ts proves it never reaches a non-cash trip
+    expect(cols.match(/\w*amount\w*/gi)).toEqual(['payment_amount_minor'])
   })
 
   it('completed booking renders the "Trip completed" re-opened view with no trip data (D-17)', async () => {

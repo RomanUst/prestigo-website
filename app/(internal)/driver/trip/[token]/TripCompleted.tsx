@@ -1,10 +1,14 @@
 import { CircleCheck } from 'lucide-react'
+import type { DriverTripCash } from '@/lib/driver-trip-step'
 import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
 import { formatPickupDate, formatPragueTime } from '@/lib/driver-trip-format'
 
 export interface TripCompletedProps {
   variant: 'in-session' | 'reopened'
   summary?: { bookingReference: string; pickupDate: string; completedAt: string }
+  /** Phase 89 (D-11): the trip token and the cash facts, present only for a cash_guarantee booking. */
+  token?: string
+  cash?: DriverTripCash
 }
 
 // D-17: shown for a completed trip. The in-session variant (right after the driver completes) adds

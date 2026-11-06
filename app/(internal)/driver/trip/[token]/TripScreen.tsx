@@ -19,6 +19,7 @@ import {
 import { driverHelpConfigPath, openDriverHelpPage, saveDriverHelpConfig } from '@/lib/driver-help-contract'
 import SlideToAdvance from './SlideToAdvance'
 import type { SlideState } from './SlideToAdvance'
+import type { DriverTripCash } from '@/lib/driver-trip-step'
 import ConfirmStepDialog from './ConfirmStepDialog'
 import NavigateChooser from './NavigateChooser'
 import TripCompleted from './TripCompleted'
@@ -54,6 +55,8 @@ export interface TripScreenProps {
   initialNote: string | null
   /** D-15: server-computed unlock instant and the open request (both null outside on_location). */
   noShow: { availableAt: string | null; requestedAt: string | null }
+  /** Phase 89 (D-11): present only for a cash_guarantee booking; a formatted label, never a number. */
+  cash?: DriverTripCash
 }
 
 type BannerKind = 'info' | 'amber' | 'danger'
