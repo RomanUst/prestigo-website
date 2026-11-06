@@ -87,6 +87,11 @@ export interface CardCheckoutIntentInput {
   /** Planned hold instant (computeHoldAt), epoch ms. */
   holdAtMs: number
   authenticatedUserId: string | null
+  /**
+   * Phase 89 D-18: the cancellation terms the client was shown, from the same policy read that decided eligibility
+   * (buildPolicySnapshot). Stored on the booking row through meta.cancelPolicy; absent means no terms are stored.
+   */
+  cancelPolicy?: { version: string; snapshot: Record<string, string | number> } | null
   ip: string
   userAgent: string
 }
@@ -156,6 +161,7 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
     bookingReference,
     returnBookingReference: '',
     authenticatedUserId: input.authenticatedUserId,
+    cancelPolicy: input.cancelPolicy ?? null,
   })
   const row = { ...buildBookingRow(meta, null, 'unpaid'), payment_mode: 'card_hold' }
   let affected: { id: string }[]

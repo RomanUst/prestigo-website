@@ -1793,6 +1793,70 @@ describe('POST /api/admin/bookings', () => {
     )
   })
 
+  // Phase 89 plan 89-07 (D-18): the admin create stores the terms only while the policy is public for the client email.
+  function wirePolicyDb(settings: Record<string, unknown>) {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
+      error: null,
+    })
+    const insertFn = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) })
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table === 'pricing_globals') {
+        const b = { select: () => b, eq: () => b, single: () => Promise.resolve({ data: settings, error: null }) }
+        return b
+      }
+      return { insert: insertFn }
+    })
+    return insertFn
+  }
+  const policySettings = {
+    payment_hold_lead_hours: 72,
+    card_flow_canary_emails: ['canary@example.com'],
+    cancel_free_km_threshold: 100,
+    cancel_free_hours_short: 1,
+    cancel_free_hours_long: 12,
+    cancel_free_hours_hourly: 12,
+    cancel_fee_percent: 100,
+  }
+
+  it('89-07: POST stores the policy snapshot when the policy is public for the client email', async () => {
+    const insertFn = wirePolicyDb({ ...policySettings, card_flow_mode: 'canary' })
+    const res = await POST(makePostRequest({ ...validPostPayload, client_email: 'Canary@Example.com' }))
+    expect(res.status).toBe(201)
+    expect(insertFn.mock.calls[0][0][0]).toMatchObject({
+      cancel_policy_version: '2026-11-1',
+      cancel_policy: {
+        version: '2026-11-1',
+        kmThreshold: 100,
+        freeHoursShort: 1,
+        freeHoursLong: 12,
+        freeHoursHourly: 12,
+        feePercent: 100,
+      },
+    })
+  })
+
+  it('89-07: POST adds no policy columns while the flag is closed or the client is not listed', async () => {
+    for (const settings of [
+      { ...policySettings, card_flow_mode: 'off' },
+      { ...policySettings, card_flow_mode: 'canary' },
+    ]) {
+      const insertFn = wirePolicyDb(settings)
+      const res = await POST(makePostRequest({ ...validPostPayload, client_email: 'stranger@example.com' }))
+      expect(res.status).toBe(201)
+      const row = insertFn.mock.calls[0][0][0]
+      expect('cancel_policy_version' in row).toBe(false)
+      expect('cancel_policy' in row).toBe(false)
+    }
+  })
+
+  it('89-07: POST with mode on stores the snapshot for any client', async () => {
+    const insertFn = wirePolicyDb({ ...policySettings, card_flow_mode: 'on', card_flow_canary_emails: [] })
+    const res = await POST(makePostRequest({ ...validPostPayload, client_email: 'anyone@example.com' }))
+    expect(res.status).toBe(201)
+    expect(insertFn.mock.calls[0][0][0].cancel_policy_version).toBe('2026-11-1')
+  })
+
   // Phase 64 Plan 01 — ANEW-01/02/03/05 (D-01/D-02): collect-payment branch +
   // operator status choice for no-link saves.
 
@@ -1809,9 +1873,13 @@ describe('POST /api/admin/bookings', () => {
 
     // First from('bookings') call is the insert; every subsequent call
     // (the payment-link persist UPDATE) gets the update chain.
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ insert: insertFn })
-      .mockReturnValue({ update: updateFn })
+    // Phase 89 (89-07): the POST also reads pricing_globals (payment settings), which fails closed here.
+    let bookingsCalls = 0
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table !== 'bookings') return {}
+      bookingsCalls += 1
+      return bookingsCalls === 1 ? { insert: insertFn } : { update: updateFn }
+    })
 
     const res = await POST(makePostRequest({ ...validPostPayload, collect_payment: true }))
     expect(res.status).toBe(201)
