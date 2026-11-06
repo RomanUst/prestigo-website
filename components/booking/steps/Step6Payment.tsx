@@ -10,6 +10,7 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { isAirportPlace, VEHICLE_CLASS_KEY } from '@/types/booking'
 import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
+import { writeConfirmationNotice } from '@/lib/confirmation-notice'
 import { STRIPE_ELEMENTS_LOCALE } from '@/lib/booking-locale'
 import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
@@ -129,6 +130,9 @@ function PaymentForm({
       currency: 'EUR',
       items: analyticsItems,
     })
+    // Phase 89 (CANC-02): init returned a policy, so this booking stores its terms and the confirmation email carries
+    // the manage link; the page may say so. Without a policy nothing is written and the page is unchanged.
+    if (showAcceptance) writeConfirmationNotice({ ref: bookingRef })
 
     // D-11: URL param name is `returnRef` (NOT `ref2`). Both validated via isValidRef
     // on the confirmation page.

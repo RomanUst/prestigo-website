@@ -228,6 +228,35 @@
       "decreaseAria": "减少{label}",
       "increaseAria": "增加{label}"
     },
+    "confirmation": {
+      "sessionExpired": "您的会话已过期，请重新开始预订。",
+      "bookNow": "立即预订",
+      "homeAria": "Prestigo 首页",
+      "headingBooking": "预订已确认",
+      "headingQuote": "报价请求已发送",
+      "refBooking": "您的预订编号",
+      "refQuote": "您的参考编号",
+      "outbound": "去程",
+      "return": "返程",
+      "quoteBody": "我们将在 2 小时内与您联系，确认行程和价格。",
+      "journeyDetails": "行程详情",
+      "outboundJourney": "去程行程",
+      "returnJourney": "返程行程",
+      "hoursLine": "{hours} 小时",
+      "dateTime": "{date} {time}",
+      "atTime": "{time}",
+      "passengers": "{count, plural, other {{n} 位乘客}}",
+      "print": "打印 / 保存为 PDF",
+      "printAria": "打印或另存为 PDF",
+      "calendar": "添加到日历",
+      "calendarAria": "将此预订添加到您的日历",
+      "contact": "有疑问？联系我们",
+      "contactAria": "如有疑问，请联系我们",
+      "bookAnother": "再预订一趟行程",
+      "backHome": "返回首页",
+      "manageSentence": "我们已将确认信息和管理预订的链接发送到您的邮箱。",
+      "payCash": "请向司机以现金支付 <bdi>{amount}</bdi>。"
+    },
     "vehicleClasses": {
       "business": {
         "label": "商务级"

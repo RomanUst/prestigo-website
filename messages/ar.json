@@ -228,6 +228,35 @@
       "decreaseAria": "تقليل {label}",
       "increaseAria": "زيادة {label}"
     },
+    "confirmation": {
+      "sessionExpired": "انتهت جلستك. ابدأ حجزًا جديدًا.",
+      "bookNow": "احجز الآن",
+      "homeAria": "Prestigo، الصفحة الرئيسية",
+      "headingBooking": "تم تأكيد الحجز",
+      "headingQuote": "تم إرسال طلب عرض السعر",
+      "refBooking": "رقم مرجع حجزك",
+      "refQuote": "رقم مرجعك",
+      "outbound": "الذهاب",
+      "return": "العودة",
+      "quoteBody": "سنتواصل معك خلال ساعتين لتأكيد رحلتك والسعر.",
+      "journeyDetails": "تفاصيل الرحلة",
+      "outboundJourney": "رحلة الذهاب",
+      "returnJourney": "رحلة العودة",
+      "hoursLine": "عدد الساعات: {hours}",
+      "dateTime": "{date} في {time}",
+      "atTime": "في {time}",
+      "passengers": "{count, plural, one {راكب واحد} two {راكبان} few {{n} ركاب} other {{n} راكبًا}}",
+      "print": "طباعة / حفظ بصيغة PDF",
+      "printAria": "اطبع أو احفظ بصيغة PDF",
+      "calendar": "أضف إلى التقويم",
+      "calendarAria": "أضف هذا الحجز إلى تقويمك",
+      "contact": "هل لديك أسئلة؟ تواصل معنا",
+      "contactAria": "تواصل معنا إذا كانت لديك أسئلة",
+      "bookAnother": "احجز رحلة أخرى",
+      "backHome": "العودة إلى الصفحة الرئيسية",
+      "manageSentence": "أرسلنا التأكيد ورابطًا لإدارة حجزك إلى بريدك الإلكتروني.",
+      "payCash": "ادفع <bdi>{amount}</bdi> نقدًا للسائق."
+    },
     "vehicleClasses": {
       "business": {
         "label": "الأعمال"

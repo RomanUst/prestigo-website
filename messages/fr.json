@@ -228,6 +228,35 @@
       "decreaseAria": "Diminuer {label}",
       "increaseAria": "Augmenter {label}"
     },
+    "confirmation": {
+      "sessionExpired": "Votre session a expiré. Commencez une nouvelle réservation.",
+      "bookNow": "Réserver",
+      "homeAria": "Prestigo, accueil",
+      "headingBooking": "Réservation confirmée",
+      "headingQuote": "Demande de devis envoyée",
+      "refBooking": "Votre référence de réservation",
+      "refQuote": "Votre référence",
+      "outbound": "Aller",
+      "return": "Retour",
+      "quoteBody": "Nous vous contacterons dans les 2 heures pour confirmer votre trajet et le tarif.",
+      "journeyDetails": "Détails du trajet",
+      "outboundJourney": "Trajet aller",
+      "returnJourney": "Trajet retour",
+      "hoursLine": "{hours} h",
+      "dateTime": "{date} à {time}",
+      "atTime": "à {time}",
+      "passengers": "{count, plural, one {{n} passager} other {{n} passagers}}",
+      "print": "Imprimer / enregistrer en PDF",
+      "printAria": "Imprimer ou enregistrer au format PDF",
+      "calendar": "Ajouter au calendrier",
+      "calendarAria": "Ajouter cette réservation à votre calendrier",
+      "contact": "Des questions ? Contactez-nous",
+      "contactAria": "Contactez-nous pour toute question",
+      "bookAnother": "Réserver un autre trajet",
+      "backHome": "Retour à l'accueil",
+      "manageSentence": "Nous avons envoyé à votre adresse e-mail la confirmation et un lien pour gérer votre réservation.",
+      "payCash": "Payez <bdi>{amount}</bdi> en espèces à votre chauffeur."
+    },
     "vehicleClasses": {
       "business": {
         "label": "Business"
