@@ -573,3 +573,72 @@ describe('one payment flow per attempt, symmetric (Pitfall 5, T-89-36)', () => {
     expect(rows()[0].payment_intent_id).toBe('pi_paid')
   })
 })
+
+describe('POLICY_CHANGED: the stored consent is the text the client ticked (D-16, T-89-35)', () => {
+  it('a different displayed free-until moment answers 409 POLICY_CHANGED with the new preview and writes nothing', async () => {
+    const initOut = await init()
+    for (const payment of ['card', 'cash'] as const) {
+      const { status, body } = await intent(
+        intentBody(initOut, payment, { displayedFreeUntilIso: '2027-01-16T07:00:00.000Z' }),
+      )
+      expect(status).toBe(409)
+      expect(body.code).toBe('POLICY_CHANGED')
+      expect(body.policy).toMatchObject({ version: '2026-11-1', freeUntilIso: FREE_UNTIL_ISO, freeUntilPassed: false, hours: 1, percent: 100 })
+    }
+    expect(rows()).toHaveLength(0)
+    expect(consents()).toHaveLength(0)
+    expect(siCreates()).toHaveLength(0)
+    expect(fake.callsTo('customers.create')).toHaveLength(0)
+  })
+
+  it('a missing free-until moment is refused the same way', async () => {
+    const initOut = await init()
+    const payload = intentBody(initOut, 'cash') as Record<string, unknown>
+    delete payload.displayedFreeUntilIso
+    const { status, body } = await intent(payload)
+    expect(status).toBe(409)
+    expect(body.code).toBe('POLICY_CHANGED')
+    expect(rows()).toHaveLength(0)
+  })
+
+  it('an admin change of the free window between display and submit is caught', async () => {
+    const initOut = await init()
+    Object.assign(db.state.pricing_globals[0], { cancel_free_hours_short: 3 })
+    const { status, body } = await intent(intentBody(initOut, 'cash'))
+    expect(status).toBe(409)
+    expect(body.code).toBe('POLICY_CHANGED')
+    expect(body.policy).toMatchObject({ freeUntilIso: '2027-01-16T06:00:00.000Z', hours: 3 })
+    expect(rows()).toHaveLength(0)
+  })
+
+  it('a deadline that passed after display (same moment, different wording variant) is caught', async () => {
+    // A 24 h free window: shown as still free at 24.5 h before pickup, passed at 23.5 h (still inside the 12 h lead rule).
+    Object.assign(db.state.pricing_globals[0], { cancel_free_hours_short: 24 })
+    setNow(PICKUP_MS - 24.5 * HOUR)
+    const initOut = await init()
+    expect(initOut.policy?.freeUntilPassed).toBe(false)
+    setNow(PICKUP_MS - 23.5 * HOUR)
+    const { status, body } = await intent(intentBody(initOut, 'cash'))
+    expect(status).toBe(409)
+    expect(body.code).toBe('POLICY_CHANGED')
+    expect((body.policy as { freeUntilPassed: boolean }).freeUntilPassed).toBe(true)
+  })
+
+  it('a late booking (deadline already passed) stores the NoFree wording, for cash and for the card setup', async () => {
+    // 13 h before pickup: free window of a long trip (12 h) has passed, the 12 h lead rule still allows the booking.
+    setNow(PICKUP_MS - 13 * HOUR)
+    Object.assign(db.state.pricing_globals[0], { cancel_free_hours_short: 24 })
+    const initOut = await init()
+    expect(initOut.policy?.freeUntilPassed).toBe(true)
+    const cash = await intent(intentBody(initOut, 'cash'))
+    expect(cash.status).toBe(200)
+    const text = consents()[0].text_rendered as string
+    expect(text).toContain('if I cancel, if I do not show up')
+    expect(text).not.toContain('after 15 January')
+
+    const other = bookingData({ attemptId: '44444444-4444-4444-8444-444444444444' })
+    const card = await intent(intentBody(initOut, 'card', { mode: 'hold_now', displayedHoldDateIso: null }, other))
+    expect(card.status).toBe(200)
+    expect(consents()[1].text_rendered as string).toContain('If I cancel, or I do not show up')
+  })
+})
