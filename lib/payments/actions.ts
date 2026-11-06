@@ -14,7 +14,8 @@
 //   - capture / retry go through the engine's CAS claim, so a double click or a race with the completion consumer or
 //     the tick sweep produces one Stripe call and the loser answers 409 payment_busy.
 
-import { CALENDAR_ACTIVE_STATUSES, isPartnerBooking, type BookingStatus } from '@/lib/booking-status'
+import { isPartnerBooking } from '@/lib/booking-status'
+import { CASH_TRIP_STATUSES } from '@/lib/payments/cash'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { isFeeEligible } from '@/lib/payments/fee'
 import { claimForHold, leaseLapsed, placeHold, releaseHold } from '@/lib/payments/hold'
@@ -54,13 +55,8 @@ const CLOSED_STATUSES: ReadonlySet<string> = new Set(['cancelled', 'no_show'])
 /** The trip is over for the operator's purposes: its status is completed. */
 const isCompleted = (booking: BookingRow): boolean => booking.status === 'completed'
 
-/**
- * Statuses of a trip that is on (or done), in which cash can be collected or a saved card charged for a cash booking:
- * confirmed, assigned, en_route, on_location, on_board, completed. Derived from the shared vocabulary (no_show is a
- * calendar status but a closed one, so it is removed).
- */
-const isTripStatus = (status: string): boolean =>
-  CALENDAR_ACTIVE_STATUSES.has(status as BookingStatus) && status !== 'no_show'
+/** A cash trip that is on or done (CASH_TRIP_STATUSES: cash can be collected, the saved card charged). */
+const isTripStatus = (status: string): boolean => CASH_TRIP_STATUSES.includes(status)
 
 /**
  * The single action matrix (UI-SPEC "Actions", Research Pattern 12):

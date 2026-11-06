@@ -1,11 +1,21 @@
+import { randomUUID } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { allowedPaymentActions } from '@/lib/payments/actions'
-import { loadFeeCase, runFeeCharge, type FeeChargeResult } from '@/lib/payments/fee'
-import type { LedgerActor } from '@/lib/payments/state'
+import { addPaymentNote, removePaymentNote, reopenCash, settleCash } from '@/lib/payments/cash'
+import {
+  chargeFromCollected,
+  isMoneyCollected,
+  loadFeeCase,
+  runCashCardCharge,
+  runFeeCharge,
+  waiveFee,
+  type FeeDecisionResult,
+} from '@/lib/payments/fee'
+import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 // Operator decisions on money of a cancelled or no-show booking, and the cash decisions of a cash booking
 // (Phase 89, plan 89-12; CASH-03, CASH-04, D-05, D-10, D-13, D-14, D-21, D-22).
@@ -61,7 +71,7 @@ async function loadBooking(bookingId: string): Promise<{ booking: Record<string,
 }
 
 /** engine answer -> HTTP answer. */
-function respond(result: FeeChargeResult | { error: 'refund_failed' }): NextResponse {
+function respond(result: FeeDecisionResult): NextResponse {
   if ('outcome' in result) return NextResponse.json({ outcome: result.outcome })
   switch (result.error) {
     case 'amount_locked':
@@ -95,15 +105,80 @@ async function handleCharge(
   }
   const reason = body.reason?.trim()
 
-  const result = await runFeeCharge({
+  const input = {
     booking,
     caseRow,
     amountMinor: body.amount_minor,
     actor,
     ...(reason ? { reason } : {}),
     ...(contactNote ? { contactNote } : {}),
+  }
+  // Money the client already paid (pay-now, a captured card booking) is never charged again: the rest is refunded.
+  return respond(isMoneyCollected(booking, caseRow) ? await chargeFromCollected(input) : await runFeeCharge(input))
+}
+
+async function handleWaive(
+  booking: Record<string, unknown>,
+  bookingId: string,
+  body: Extract<FeeBody, { action: 'waive' }>,
+  actor: LedgerActor,
+): Promise<NextResponse> {
+  if (!allowedPaymentActions(booking).includes('waive_fee')) return notAllowed()
+  const caseRow = await loadFeeCase(bookingId)
+  if (!caseRow || caseRow.status !== 'pending') return notAllowed()
+  return respond(await waiveFee({ booking, caseRow, reason: body.reason, actor }))
+}
+
+/** An operator click that moves no money by itself is still on record first (T-89-42). */
+async function recordClick(bookingId: string, code: string, actor: LedgerActor): Promise<void> {
+  await appendPaymentEvent(bookingId, {
+    key: `admin:${code}:${bookingId}:${Date.now()}:${randomUUID().slice(0, 8)}`,
+    kind: 'admin_action',
+    errorCode: code,
+    actor,
   })
+}
+
+async function handleChargeSavedCard(
+  booking: Record<string, unknown>,
+  bookingId: string,
+  body: Extract<FeeBody, { action: 'charge_saved_card' }>,
+  actor: LedgerActor,
+): Promise<NextResponse> {
+  if (!allowedPaymentActions(booking).includes('charge_saved_card')) return notAllowed()
+  // D-21: the note is stored with the booking (deny-all table), never in the ledger or a client mail.
+  const noteId = await addPaymentNote(bookingId, 'cash_card_charge', body.note, actor)
+  const result = await runCashCardCharge({ booking, actor })
+  // Nothing was attempted: the history must not describe a charge that never started.
+  if ('error' in result && result.error === 'action_not_allowed') await removePaymentNote(noteId)
   return respond(result)
+}
+
+async function handleMarkCashSettled(
+  booking: Record<string, unknown>,
+  bookingId: string,
+  actor: LedgerActor,
+): Promise<NextResponse> {
+  // A second click on a settled booking answers ok, it does not scare the operator with a 422.
+  if (booking.payment_mode === 'cash_guarantee' && booking.payment_state === 'cash_settled') {
+    return NextResponse.json({ outcome: 'ok' })
+  }
+  if (!allowedPaymentActions(booking).includes('mark_cash_settled')) return notAllowed()
+  await recordClick(bookingId, 'cash_mark', actor)
+  const result = await settleCash(booking, actor)
+  return result === 'not_allowed' ? notAllowed() : NextResponse.json({ outcome: 'ok' })
+}
+
+async function handleReopenCash(
+  booking: Record<string, unknown>,
+  bookingId: string,
+  body: Extract<FeeBody, { action: 'reopen_cash' }>,
+  actor: LedgerActor,
+): Promise<NextResponse> {
+  if (!allowedPaymentActions(booking).includes('reopen_cash')) return notAllowed()
+  await recordClick(bookingId, 'cash_reopen', actor)
+  const result = await reopenCash(booking, actor, body.note)
+  return result === 'not_allowed' ? notAllowed() : NextResponse.json({ outcome: 'ok' })
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -157,8 +232,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     switch (body.action) {
       case 'charge':
         return await handleCharge(booking, bookingId, body, actor)
-      default:
-        return notAllowed()
+      case 'waive':
+        return await handleWaive(booking, bookingId, body, actor)
+      case 'charge_saved_card':
+        return await handleChargeSavedCard(booking, bookingId, body, actor)
+      case 'mark_cash_settled':
+        return await handleMarkCashSettled(booking, bookingId, actor)
+      case 'reopen_cash':
+        return await handleReopenCash(booking, bookingId, body, actor)
     }
   } catch {
     console.error('[admin/bookings/[id]/fee] action failed', { bookingId, action: body.action })
