@@ -34,3 +34,22 @@ export function formatLocaleDate(iso: string, locale: string): string {
   const d = new Date(`${iso}T00:00:00Z`)
   return new Intl.DateTimeFormat(tagFor(locale), OPTIONS).format(d)
 }
+
+const DATE_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'Europe/Prague',
+}
+
+/**
+ * Format an instant (epoch ms) as a long date and 24-hour clock time on the Europe/Prague wall clock, in the
+ * locale's own format with Latin digits (Phase 89: "free cancellation until ..."). An unusable instant gives ''.
+ */
+export function formatLocaleDateTime(ms: number, locale: string): string {
+  if (!Number.isFinite(ms)) return ''
+  return new Intl.DateTimeFormat(tagFor(locale), DATE_TIME_OPTIONS).format(new Date(ms))
+}

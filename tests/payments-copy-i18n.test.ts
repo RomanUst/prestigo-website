@@ -6,7 +6,8 @@
  * Guards the PaymentEmails and Booking.step6.cardOnFile namespaces: identical
  * key sets, identical ICU parameters per leaf, real translations (not stubs,
  * not English copies), no typed amounts and no refund / cancellation-fee
- * wording in any language.
+ * wording in any language, except the keys on the FEE_WORDING_ALLOWED
+ * allow-list (Phase 89: the cancellation box of plan 89-04, extended by 89-25).
  */
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
@@ -60,7 +61,17 @@ const COGNATES: Record<string, ReadonlySet<string>> = {
   fr: new Set(['PaymentEmails.common.dateLabel']),
 }
 
-/** Per-locale wording that must never appear (no refund promise, no cancellation fee). */
+/**
+ * Phase 89 (plan 89-04): the Phase 88 blanket ban on fee and refund wording is a positive allow-list. Only these keys
+ * may state a fee, a percent or a refund; every other PaymentEmails and cardOnFile leaf must stay free of it. Plan
+ * 89-25 extends this list with the new email kinds (cancelled, fee_charged, fee_waived, cash and fee variants).
+ */
+const FEE_WORDING_ALLOWED: ReadonlySet<string> = new Set([
+  'PaymentEmails.policyBox.label',
+  'PaymentEmails.policyBox.body',
+])
+
+/** Per-locale wording that must never appear outside the allow-list (no refund promise, no cancellation fee). */
 const FORBIDDEN: Record<string, RegExp> = {
   en: /refund|cancellation fee|will be cancelled/i,
   ru: /возврат|штраф|плат[аы] за отмен|комисси\S* за отмен/i,
@@ -110,20 +121,52 @@ describe.each(NON_EN)('card-flow copy parity: %s', (locale) => {
     }
   })
 
-  it('promises no refund and names no cancellation fee', () => {
+  it('promises no refund and names no cancellation fee outside the allow-list', () => {
     const rx = FORBIDDEN[locale]
     expect(rx).toBeDefined()
     for (const [key, value] of Object.entries(tr)) {
+      if (FEE_WORDING_ALLOWED.has(key)) continue
       expect({ key, forbidden: rx.test(value) }).toEqual({ key, forbidden: false })
+    }
+  })
+
+  it('the cancellation box and manage keys carry their parameters and type no number', () => {
+    expect(params(tr['PaymentEmails.policyBox.body'])).toEqual(['amount', 'freeUntil', 'percent', 'waitMin'])
+    for (const key of [
+      'PaymentEmails.policyBox.label',
+      'PaymentEmails.policyBox.body',
+      'PaymentEmails.manage.cta',
+      'PaymentEmails.manage.note',
+    ]) {
+      expect({ key, typedNumber: /[0-9٠-٩۰-۹०-९]/.test(tr[key]) }).toEqual({ key, typedNumber: false })
+      expect({ key, rawHtml: /[<>]|&[a-z]+;/i.test(tr[key]) }).toEqual({ key, rawHtml: false })
     }
   })
 })
 
 describe('card-flow copy: EN source is clean', () => {
-  it('types no amount and uses no refund / cancellation-fee wording', () => {
+  it('types no amount and uses no refund / cancellation-fee wording outside the allow-list', () => {
     for (const [key, value] of Object.entries(EN)) {
       expect({ key, amount: /€\s?\d|\d\s?Kč/.test(value) }).toEqual({ key, amount: false })
+      if (FEE_WORDING_ALLOWED.has(key)) continue
       expect({ key, forbidden: FORBIDDEN.en.test(value) }).toEqual({ key, forbidden: false })
     }
+  })
+
+  it('the allow-list is closed: it names only existing box keys, nothing else', () => {
+    for (const key of FEE_WORDING_ALLOWED) {
+      expect(key.startsWith('PaymentEmails.policyBox.')).toBe(true)
+      expect(EN[key]).toBeDefined()
+    }
+    expect(FEE_WORDING_ALLOWED.size).toBe(2)
+  })
+
+  it('the box states the policy: free until, a percent of the fare, the wait, and that a person decides', () => {
+    const body = EN['PaymentEmails.policyBox.body']
+    expect(body).toMatch(/\{freeUntil\}/)
+    expect(body).toMatch(/\{percent\}%/)
+    expect(body).toMatch(/\{amount\}/)
+    expect(body).toMatch(/\{waitMin\}/)
+    expect(body).toMatch(/A person at Prestigo decides every charge\./)
   })
 })
