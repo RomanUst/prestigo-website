@@ -1,16 +1,21 @@
 // Phase 89 plan 11 (CANC-02, D-07, D-18): the cancellation policy note, the pay-now acceptance line and the init policy
-// parsing.
+// parsing. Catalog parity for Booking.step6.cancellation and the new cardOnFile keys is asserted at the end.
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { screen, within } from '@testing-library/react'
 import type { AbstractIntlMessages } from 'next-intl'
 import { renderWithIntl as render } from './helpers/renderWithIntl'
+import { locales } from '@/i18n/locales'
 import { formatLocaleDateTime } from '@/lib/locale-date'
 import { formatMinor } from '@/lib/payments/money'
 import CancellationPolicyNote, { CancellationAcceptanceLine } from '@/components/booking/CancellationPolicyNote'
 import { parseInitPolicy, type InitPolicy } from '@/components/booking/steps/cardCheckoutApi'
+import enMessages from '@/messages/en.json'
 import arMessagesRaw from '@/messages/ar.json'
 import ruMessagesRaw from '@/messages/ru.json'
 
+const en = enMessages as unknown as { Booking: { step6: { cancellation: Record<string, string> } } }
 const arMessages = arMessagesRaw as unknown as AbstractIntlMessages
 const ruMessages = ruMessagesRaw as unknown as AbstractIntlMessages
 
@@ -104,6 +109,17 @@ describe('CancellationPolicyNote (UI-SPEC 2.3)', () => {
     expect(passed.container.textContent).not.toMatch(/[٠-٩]/)
   })
 
+  it('uses logical properties only: leading rule on the inline start, no physical left/right borders or margins', () => {
+    render(<CancellationPolicyNote policy={policy()} feeMinor={12000} currency="eur" />, { locale: 'ar', messages: arMessages })
+    const note = screen.getByTestId('cancellation-note')
+    const css = note.getAttribute('style') ?? ''
+    expect(css).toMatch(/border-inline-start/)
+    expect(css).not.toMatch(/border-left|border-right|margin-left|margin-right|padding-left|padding-right/)
+    for (const el of Array.from(note.querySelectorAll('[style]'))) {
+      expect(el.getAttribute('style') ?? '').not.toMatch(/(?:left|right):/)
+    }
+  })
+
   it('in ru the plural of hours and minutes follows the locale', () => {
     const { container } = render(
       <CancellationPolicyNote policy={policy({ freeUntilPassed: true, hours: 22, waitMin: 21 })} feeMinor={12000} currency="eur" />,
@@ -142,5 +158,111 @@ describe('parseInitPolicy (strict shape)', () => {
     ['missing waitMin', { ...policy(), waitMin: undefined }],
   ])('ignores %s', (_label, raw) => {
     expect(parseInitPolicy(raw)).toBeNull()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Catalog parity (Task 3): Booking.step6.cancellation and the Phase 89-11 cardOnFile keys, 7 locales
+// ---------------------------------------------------------------------------
+
+type Json = string | { [k: string]: Json }
+function catalog(locale: string): { Booking: { step6: { cancellation: Record<string, string>; cardOnFile: Record<string, string> } } } {
+  return JSON.parse(readFileSync(join(process.cwd(), 'messages', `${locale}.json`), 'utf8')) as never
+}
+
+/** Argument names of an ICU message, including those used inside plural branches. */
+function argNames(s: string): string[] {
+  return [...new Set([...s.matchAll(/\{\s*([A-Za-z][A-Za-z0-9_]*)\s*[,}]/g)].map((m) => m[1]))].sort()
+}
+function tags(s: string): string[] {
+  return [...s.matchAll(/<\/?([a-z]+)>/g)].map((m) => m[0])
+}
+
+const CHOICE_KEYS = [
+  'paymentChoiceLabel',
+  'choiceCardTitle',
+  'choiceCardDescSetup',
+  'choiceCardDescHoldNow',
+  'choiceCashTitle',
+  'choiceCashDesc',
+  'headlineCash',
+  'captionOnTheDay',
+  'captionOnlyIfNeeded',
+  'cashToday',
+  'cashOnTheDay',
+  'cashIfNeeded',
+  'noticePolicyChanged',
+] as const
+const CANCELLATION_KEYS = ['label', 'rowFree', 'rowFreeUnavailable', 'rowFee', 'rowNoShow', 'termsLink', 'acceptance'] as const
+
+describe('the EN source of the Phase 89-11 keys', () => {
+  it('has every key, and the UI-SPEC wording for the rows', () => {
+    const c = catalog('en')
+    expect(Object.keys(c.Booking.step6.cancellation).sort()).toEqual([...CANCELLATION_KEYS].sort())
+    for (const k of CHOICE_KEYS) expect(typeof c.Booking.step6.cardOnFile[k]).toBe('string')
+    expect(en.Booking.step6.cancellation.rowFree).toBe('Free cancellation until <bdi>{freeUntil}</bdi>.')
+    expect(c.Booking.step6.cardOnFile.choiceCardTitle).toBe('Pay by card after your trip')
+    expect(c.Booking.step6.cardOnFile.choiceCashTitle).toBe('Pay cash to the driver')
+  })
+})
+
+describe.each(locales.filter((l) => l !== 'en'))('Phase 89-11 checkout copy parity: %s', (locale) => {
+  const base = catalog('en').Booking.step6
+  const tr = catalog(locale).Booking.step6
+
+  it('has the same keys and the same ICU arguments and rich tags as EN', () => {
+    expect(Object.keys(tr.cancellation).sort()).toEqual(Object.keys(base.cancellation).sort())
+    for (const k of CANCELLATION_KEYS) {
+      expect({ k, args: argNames(tr.cancellation[k]) }).toEqual({ k, args: argNames(base.cancellation[k]) })
+      expect({ k, tags: tags(tr.cancellation[k]) }).toEqual({ k, tags: tags(base.cancellation[k]) })
+    }
+    for (const k of CHOICE_KEYS) {
+      expect({ k, args: argNames(tr.cardOnFile[k] ?? '') }).toEqual({ k, args: argNames(base.cardOnFile[k]) })
+    }
+  })
+
+  it('is a real translation: no stub, no English copy', () => {
+    for (const k of CANCELLATION_KEYS) {
+      const v = tr.cancellation[k]
+      expect({ k, stub: /^\[[A-Z]{2}\]/.test(v), same: v === base.cancellation[k] }).toEqual({ k, stub: false, same: false })
+    }
+    for (const k of CHOICE_KEYS) {
+      const v = tr.cardOnFile[k]
+      expect({ k, stub: /^\[[A-Z]{2}\]/.test(v), same: v === base.cardOnFile[k] }).toEqual({ k, stub: false, same: false })
+    }
+  })
+
+  it('types no amount and keeps the brand spelling', () => {
+    const all: string[] = [
+      ...CANCELLATION_KEYS.map((k) => tr.cancellation[k]),
+      ...CHOICE_KEYS.map((k) => tr.cardOnFile[k]),
+    ]
+    for (const v of all) {
+      expect(/€\s?\d|\d\s?Kč/.test(v)).toBe(false)
+      expect(/Prestigio/i.test(v)).toBe(false)
+    }
+  })
+
+  it('ar, hi and zh type no non-Latin digit', () => {
+    for (const k of CANCELLATION_KEYS) expect(/[٠-٩۰-۹०-९]/.test(tr.cancellation[k])).toBe(false)
+  })
+})
+
+describe('plural branches of the cancellation rows cover every category of the locale', () => {
+  it.each(locales.filter((l) => l !== 'en'))('%s renders hours and minutes for 0, 1, 2, 5, 11, 22, 100 without an empty branch', async (locale) => {
+    const messages = locale === 'ar' ? arMessages : (await import(`@/messages/${locale}.json`)).default
+    const { unmount } = render(<span />, { locale, messages })
+    unmount()
+    for (const n of [0, 1, 2, 5, 11, 22, 100]) {
+      const { container, unmount: u } = render(
+        <CancellationPolicyNote policy={policy({ freeUntilPassed: true, hours: n, waitMin: n })} feeMinor={12000} currency="eur" />,
+        { locale, messages },
+      )
+      const text = container.textContent ?? ''
+      // the number is present and no ICU syntax leaked into the page
+      expect(text).toContain(String(n))
+      expect(text).not.toMatch(/plural|\{|\}/)
+      u()
+    }
   })
 })
