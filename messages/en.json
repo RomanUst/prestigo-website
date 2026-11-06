@@ -1209,6 +1209,48 @@
     "invalid": {
       "title": "This link is not valid",
       "body": "Check that you copied the whole link from your booking email. If it still does not work, contact us and we will help."
+    },
+    "actions": {
+      "cancel": {
+        "open": "Cancel booking",
+        "heading": "Cancel this booking?",
+        "keep": "Keep my booking",
+        "confirm": "Yes, cancel booking",
+        "busy": "Cancelling…",
+        "summaryFree": "Nothing will be charged.",
+        "summaryLate": "{percent}% of the fare (<bdi>{amount}</bdi>) applies.",
+        "tickLate": "I understand that {percent}% of the fare (<bdi>{amount}</bdi>) applies because I am cancelling after <bdi>{freeUntil}</bdi>.",
+        "tickLateNoFee": "I understand that free cancellation ended on <bdi>{freeUntil}</bdi>."
+      },
+      "result": {
+        "freeHold": "Your booking is cancelled. Nothing was charged. The hold on your card is released; your bank may take a few days to show it.",
+        "freeRefunded": "Your booking is cancelled. We refunded <bdi>{amount}</bdi>. Your bank usually shows it within 5 to 10 business days.",
+        "freeNone": "Your booking is cancelled. Nothing was charged.",
+        "late": "Your booking is cancelled and your driver is told. Nothing has been charged yet. Because you cancelled after <bdi>{freeUntil}</bdi>, up to <bdi>{amount}</bdi> may be charged. We will email you our decision.",
+        "lateNoFee": "Your booking is cancelled and your driver is told. Nothing will be charged.",
+        "manual": "Your booking is cancelled. We need to finish your refund by hand and will email you when it is done.",
+        "generic": "Your booking is cancelled.",
+        "emailSent": "We sent you an email."
+      },
+      "error": {
+        "policyChanged": "The cancellation terms changed while you were reading. Please review and confirm again.",
+        "busy": "We are processing a payment for this booking. Please try again in a minute.",
+        "rateLimit": "Too many attempts. Please wait a few minutes and try again.",
+        "network": "We could not reach the server. Nothing was changed. Please try again.",
+        "generic": "We could not cancel your booking. Nothing was changed. Please try again or call us: <tel>{phone}</tel>."
+      },
+      "change": {
+        "open": "Ask for a change",
+        "label": "What would you like to change?",
+        "helper": "Date, time, address, vehicle or passengers. We will reply by email and tell you if the price changes. Nothing changes until we confirm.",
+        "phone": "In a hurry? Call us on <tel>{phone}</tel>.",
+        "send": "Send request",
+        "sending": "Sending…",
+        "sent": "Request sent. We will reply by email.",
+        "errorEmpty": "Please write what you would like to change.",
+        "errorRate": "You already sent a request a moment ago. We will reply soon.",
+        "errorGeneric": "We could not send your request. Please try again or call us: <tel>{phone}</tel>."
+      }
     }
   }
 }

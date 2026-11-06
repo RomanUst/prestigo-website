@@ -1259,6 +1259,48 @@
     "invalid": {
       "title": "Este enlace no es válido",
       "body": "Compruebe que ha copiado el enlace completo del correo de su reserva. Si sigue sin funcionar, contáctenos y le ayudaremos."
+    },
+    "actions": {
+      "cancel": {
+        "open": "Cancelar la reserva",
+        "heading": "¿Cancelar esta reserva?",
+        "keep": "Mantener mi reserva",
+        "confirm": "Sí, cancelar la reserva",
+        "busy": "Cancelando…",
+        "summaryFree": "No se cobrará nada.",
+        "summaryLate": "Se aplica el {percent}% de la tarifa (<bdi>{amount}</bdi>).",
+        "tickLate": "Entiendo que se aplica el {percent}% de la tarifa (<bdi>{amount}</bdi>) porque cancelo después del <bdi>{freeUntil}</bdi>.",
+        "tickLateNoFee": "Entiendo que la cancelación gratuita terminó el <bdi>{freeUntil}</bdi>."
+      },
+      "result": {
+        "freeHold": "Su reserva está cancelada. No se ha cobrado nada. La retención en su tarjeta se libera; su banco puede tardar unos días en reflejarlo.",
+        "freeRefunded": "Su reserva está cancelada. Le hemos reembolsado <bdi>{amount}</bdi>. Su banco suele mostrarlo en 5 a 10 días laborables.",
+        "freeNone": "Su reserva está cancelada. No se ha cobrado nada.",
+        "late": "Su reserva está cancelada y se ha avisado al conductor. Todavía no se ha cobrado nada. Como ha cancelado después del <bdi>{freeUntil}</bdi>, se podrá cobrar hasta <bdi>{amount}</bdi>. Le enviaremos nuestra decisión por correo.",
+        "lateNoFee": "Su reserva está cancelada y se ha avisado al conductor. No se cobrará nada.",
+        "manual": "Su reserva está cancelada. Tenemos que completar su reembolso manualmente y le escribiremos cuando esté hecho.",
+        "generic": "Su reserva está cancelada.",
+        "emailSent": "Le hemos enviado un correo."
+      },
+      "error": {
+        "policyChanged": "Las condiciones de cancelación cambiaron mientras leía. Revíselas y confirme de nuevo.",
+        "busy": "Estamos procesando un pago de esta reserva. Inténtelo de nuevo en un minuto.",
+        "rateLimit": "Demasiados intentos. Espere unos minutos e inténtelo de nuevo.",
+        "network": "No hemos podido conectar con el servidor. No se ha cambiado nada. Inténtelo de nuevo.",
+        "generic": "No hemos podido cancelar su reserva. No se ha cambiado nada. Inténtelo de nuevo o llámenos: <tel>{phone}</tel>."
+      },
+      "change": {
+        "open": "Solicitar un cambio",
+        "label": "¿Qué le gustaría cambiar?",
+        "helper": "Fecha, hora, dirección, vehículo o pasajeros. Le responderemos por correo y le diremos si cambia el precio. Nada cambia hasta que lo confirmemos.",
+        "phone": "¿Tiene prisa? Llámenos al <tel>{phone}</tel>.",
+        "send": "Enviar solicitud",
+        "sending": "Enviando…",
+        "sent": "Solicitud enviada. Le responderemos por correo.",
+        "errorEmpty": "Escriba qué le gustaría cambiar.",
+        "errorRate": "Ya envió una solicitud hace un momento. Le responderemos pronto.",
+        "errorGeneric": "No hemos podido enviar su solicitud. Inténtelo de nuevo o llámenos: <tel>{phone}</tel>."
+      }
     }
   }
 }

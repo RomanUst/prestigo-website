@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { TriangleAlert } from 'lucide-react'
 import { resolveManageToken } from '@/lib/manage-link'
-import { loadManageView, type ManageView, type ManagePayment } from '@/lib/manage-view'
+import { loadManageView, type ManageView, type ManagePayment, type ManageCancelInfo } from '@/lib/manage-view'
 import { formatMinor } from '@/lib/payments/money'
 import { formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
 import { localizedHref } from '@/lib/localized-href'
@@ -11,6 +11,7 @@ import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL } from '@/lib/contact-channels
 import { VEHICLE_CLASS_KEY, type VehicleClass } from '@/types/booking'
 import { normalizeSiteLocale, type AppLocale } from '@/i18n/locales'
 import ManageHeader from './ManageHeader'
+import ManageActions, { ManageTitle, type ManageCancelCopy, type ManageChangeCopy } from './ManageActions'
 import InvalidManageLinkView, { MANAGE_CONTACT_EMAIL } from './InvalidManageLinkView'
 
 // Client's manage-booking page (Phase 89, plan 89-15; UI-SPEC Surface 1; D-01, D-02, HOLD-06, CANC-01).
@@ -18,7 +19,7 @@ import InvalidManageLinkView, { MANAGE_CONTACT_EMAIL } from './InvalidManageLink
 // - Localized route (not under (internal)), so ar, hi and zh keep their fonts and dir.
 // - Dynamic rendering (the export below): the booking is read per request with the service client, never at build time.
 // - GET changes nothing. Mail scanners prefetch links, so every change is an explicit POST from a button (plan 89-28
-//   mounts the cancel control and the change-request form into the two named slots below).
+//   mounts the ManageActions client island, with ready-made strings, into the two named slots below).
 // - The token is resolved FIRST (resolveManageToken); only then is the booking read. Any failure, in any step, renders the
 //   one invalid view. Nothing here logs or echoes the token.
 // - The page receives the client-safe ManageView only: no email, phone, name, driver, reason or operator note exists in it.
@@ -103,8 +104,9 @@ function DetailRow({ label, children, strong }: { label: string; children: React
 }
 
 /** The booking, rendered. An async function (called by the page), so a test can await the element. */
-async function ManageBookingView({ view, locale }: { view: ManageView; locale: AppLocale }) {
+async function ManageBookingView({ view, locale, token }: { view: ManageView; locale: AppLocale; token: string }) {
   const t = await getTranslations({ locale, namespace: 'Manage' })
+  const ta = await getTranslations({ locale, namespace: 'Manage.actions' })
   const vt = await getTranslations({ locale, namespace: 'Booking.vehicleClasses' })
 
   const pickupDate = validIsoDate(view.pickupDate) ? formatLocaleDate(view.pickupDate, locale) : ''
@@ -146,6 +148,71 @@ async function ManageBookingView({ view, locale }: { view: ManageView; locale: A
       bdi,
     })
 
+  // ── strings of the client island (ManageActions): ready-made here, in the booking's language ────────────────────────
+  const tel = (chunks: ReactNode) => (
+    <a href={BUSINESS_TEL_URL} style={{ color: 'var(--copper-light)', textDecoration: 'underline' }}>
+      <bdi dir="ltr">{chunks}</bdi>
+    </a>
+  )
+  const phoneValues = { phone: BUSINESS_PHONE_DISPLAY, tel }
+
+  /** Both variants are prepared: a 409 POLICY_CHANGED switches the region without a round trip. */
+  const cancelCopy = (c: ManageCancelInfo): ManageCancelCopy => {
+    const moneyCurrency = view.payment?.currency ?? view.fare?.currency ?? 'eur'
+    const freeUntil = c.freeUntilMs !== null ? formatLocaleDateTime(c.freeUntilMs, locale) : ''
+    const fee = c.proposedFeeMinor !== null && c.currency !== null ? formatMinor(c.proposedFeeMinor, c.currency) : null
+    const refund = c.freeMoney === 'refund' && c.refundMinor !== null ? formatMinor(c.refundMinor, moneyCurrency) : null
+    return {
+      open: ta('cancel.open'),
+      heading: ta('cancel.heading'),
+      keep: ta('cancel.keep'),
+      confirm: ta('cancel.confirm'),
+      busy: ta('cancel.busy'),
+      variants: {
+        free: { summary: ta('cancel.summaryFree'), tick: null },
+        late: {
+          summary: fee !== null ? ta.rich('cancel.summaryLate', { percent: c.feePercent, amount: fee, bdi }) : ta('cancel.summaryFree'),
+          tick:
+            fee !== null
+              ? ta.rich('cancel.tickLate', { percent: c.feePercent, amount: fee, freeUntil, bdi })
+              : ta.rich('cancel.tickLateNoFee', { freeUntil, bdi }),
+        },
+      },
+      results: {
+        freeHold: ta('result.freeHold'),
+        freeRefunded: refund !== null ? ta.rich('result.freeRefunded', { amount: refund, bdi }) : null,
+        freeNone: ta('result.freeNone'),
+        late: fee !== null ? ta.rich('result.late', { freeUntil, amount: fee, bdi }) : ta('result.lateNoFee'),
+        manual: ta('result.manual'),
+        generic: ta('result.generic'),
+        emailSent: ta('result.emailSent'),
+      },
+      errors: {
+        policyChanged: ta('error.policyChanged'),
+        busy: ta('error.busy'),
+        rateLimit: ta('error.rateLimit'),
+        network: ta('error.network'),
+        generic: ta.rich('error.generic', phoneValues),
+      },
+      cancelledTitle: t('title.cancelled'),
+    }
+  }
+
+  const changeCopy: ManageChangeCopy = {
+    open: ta('change.open'),
+    label: ta('change.label'),
+    helper: ta('change.helper'),
+    phone: ta.rich('change.phone', phoneValues),
+    send: ta('change.send'),
+    sending: ta('change.sending'),
+    sent: ta('change.sent'),
+    errors: {
+      empty: ta('change.errorEmpty'),
+      rateLimit: ta('change.errorRate'),
+      generic: ta.rich('change.errorGeneric', phoneValues),
+    },
+  }
+
   // ── block 5: the cancellation panel (anchor of the page) ───────────────────────────────────────────────────────────
   const callButton = (
     <a href={BUSINESS_TEL_URL} className="btn-secondary" style={{ ...buttonStyle, marginTop: 16, gap: 8 }}>
@@ -176,8 +243,9 @@ async function ManageBookingView({ view, locale }: { view: ManageView; locale: A
             {t('panel.freeIntro')} {moneySentence}
             {c.payNow ? ` ${t('panel.bankNote')}` : ''}
           </p>
-          {/* Plan 89-28 mounts the Cancel booking control and its confirm region here. */}
-          <div data-manage-slot="cancel-region" />
+          <div data-manage-slot="cancel-region">
+            <ManageActions region="cancel" token={token} variant="free" copy={cancelCopy(c)} />
+          </div>
         </section>
       )
     } else if (c.outcome === 'late') {
@@ -199,8 +267,9 @@ async function ManageBookingView({ view, locale }: { view: ManageView; locale: A
               <p style={bodyStyle}>{t('panel.lateNoFee')}</p>
             )}
           </div>
-          {/* Plan 89-28 mounts the Cancel booking control and its confirm region here. */}
-          <div data-manage-slot="cancel-region" />
+          <div data-manage-slot="cancel-region">
+            <ManageActions region="cancel" token={token} variant="late" copy={cancelCopy(c)} />
+          </div>
         </section>
       )
     } else {
@@ -288,7 +357,9 @@ async function ManageBookingView({ view, locale }: { view: ManageView; locale: A
             overflowWrap: 'anywhere',
           }}
         >
-          {h1}
+          <ManageTitle token={token} cancelledTitle={t('title.cancelled')}>
+            {h1}
+          </ManageTitle>
         </h1>
         {h1Line ? <p style={{ ...bodyStyle, marginTop: 8, color: 'var(--warmgrey)' }}>{h1Line}</p> : null}
 
@@ -364,8 +435,9 @@ async function ManageBookingView({ view, locale }: { view: ManageView; locale: A
 
         {showChangeSlot ? (
           <div style={{ marginTop: 16 }}>
-            {/* Plan 89-28 mounts the change request form here. */}
-            <div data-manage-slot="change-request" />
+            <div data-manage-slot="change-request">
+              <ManageActions region="change-request" token={token} copy={changeCopy} />
+            </div>
           </div>
         ) : null}
 
@@ -432,5 +504,5 @@ export default async function ManageBookingPage({ params }: PageProps) {
   }
 
   if (!view) return InvalidManageLinkView({ locale })
-  return ManageBookingView({ view, locale })
+  return ManageBookingView({ view, locale, token })
 }

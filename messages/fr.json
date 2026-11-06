@@ -1259,6 +1259,48 @@
     "invalid": {
       "title": "Ce lien n'est pas valide",
       "body": "Vérifiez que vous avez copié l'intégralité du lien de votre e-mail de réservation. S'il ne fonctionne toujours pas, contactez-nous et nous vous aiderons."
+    },
+    "actions": {
+      "cancel": {
+        "open": "Annuler la réservation",
+        "heading": "Annuler cette réservation ?",
+        "keep": "Conserver ma réservation",
+        "confirm": "Oui, annuler la réservation",
+        "busy": "Annulation…",
+        "summaryFree": "Rien ne sera débité.",
+        "summaryLate": "{percent} % du tarif (<bdi>{amount}</bdi>) s'applique.",
+        "tickLate": "Je comprends que {percent} % du tarif (<bdi>{amount}</bdi>) s'applique parce que j'annule après le <bdi>{freeUntil}</bdi>.",
+        "tickLateNoFee": "Je comprends que l'annulation gratuite s'est terminée le <bdi>{freeUntil}</bdi>."
+      },
+      "result": {
+        "freeHold": "Votre réservation est annulée. Rien n'a été débité. Le blocage sur votre carte est levé ; votre banque peut mettre quelques jours à l'afficher.",
+        "freeRefunded": "Votre réservation est annulée. Nous vous avons remboursé <bdi>{amount}</bdi>. Votre banque l'affiche généralement sous 5 à 10 jours ouvrés.",
+        "freeNone": "Votre réservation est annulée. Rien n'a été débité.",
+        "late": "Votre réservation est annulée et votre chauffeur est prévenu. Rien n'a encore été débité. Comme vous avez annulé après le <bdi>{freeUntil}</bdi>, jusqu'à <bdi>{amount}</bdi> peuvent être débités. Nous vous enverrons notre décision par e-mail.",
+        "lateNoFee": "Votre réservation est annulée et votre chauffeur est prévenu. Rien ne sera débité.",
+        "manual": "Votre réservation est annulée. Nous devons finaliser votre remboursement manuellement et nous vous écrirons dès que ce sera fait.",
+        "generic": "Votre réservation est annulée.",
+        "emailSent": "Nous vous avons envoyé un e-mail."
+      },
+      "error": {
+        "policyChanged": "Les conditions d'annulation ont changé pendant votre lecture. Veuillez les relire et confirmer de nouveau.",
+        "busy": "Nous traitons un paiement pour cette réservation. Veuillez réessayer dans une minute.",
+        "rateLimit": "Trop de tentatives. Veuillez patienter quelques minutes et réessayer.",
+        "network": "Nous n'avons pas pu joindre le serveur. Rien n'a été modifié. Veuillez réessayer.",
+        "generic": "Nous n'avons pas pu annuler votre réservation. Rien n'a été modifié. Veuillez réessayer ou nous appeler : <tel>{phone}</tel>."
+      },
+      "change": {
+        "open": "Demander une modification",
+        "label": "Que souhaitez-vous modifier ?",
+        "helper": "Date, heure, adresse, véhicule ou passagers. Nous vous répondrons par e-mail et vous dirons si le prix change. Rien ne change tant que nous n'avons pas confirmé.",
+        "phone": "Pressé ? Appelez-nous au <tel>{phone}</tel>.",
+        "send": "Envoyer la demande",
+        "sending": "Envoi…",
+        "sent": "Demande envoyée. Nous vous répondrons par e-mail.",
+        "errorEmpty": "Veuillez écrire ce que vous souhaitez modifier.",
+        "errorRate": "Vous avez déjà envoyé une demande à l'instant. Nous vous répondrons bientôt.",
+        "errorGeneric": "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer ou nous appeler : <tel>{phone}</tel>."
+      }
     }
   }
 }
