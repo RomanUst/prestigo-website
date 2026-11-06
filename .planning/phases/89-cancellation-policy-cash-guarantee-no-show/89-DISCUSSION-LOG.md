@@ -39,6 +39,13 @@
 - Public wording: **with go-live, FAQ too** (recommended plus FAQ).
 - Unpaid booking: **operator decides** (recommended). Rejected: auto cancel.
 
+## After research
+
+- Operator cancels: **choice in the dialog, client or Prestigo** (recommended).
+- Cash with no driver confirmation: **free text**, the driver is responsible for the money; card only if the client changes their mind, the driver calls the operator, who charges while the client is there; if the card fails the client pays cash. Rejected: 24 h automatic case.
+- Reverse a cash confirmation: **yes, with a note** (recommended).
+- Stats: **later** (recommended).
+
 ## Claude's Discretion
 
 Link token design, dialog and screen layout, client email set, change-request channel, declined charge handling.

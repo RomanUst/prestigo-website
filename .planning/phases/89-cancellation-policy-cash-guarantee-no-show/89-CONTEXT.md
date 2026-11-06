@@ -53,6 +53,13 @@ Added by the owner in this discussion: client self-cancel through a manage-booki
 - **D-18:** Public wording changes together with go-live: terms, FAQ, checkout, emails, `lib/llms-content.ts`, in all 7 locales. Each booking stores the policy version it was made under; older bookings keep their terms. — **Reversibility:** one-way — a booking's accepted terms cannot be changed afterwards.
 - **D-19:** An unpaid booking is never cancelled automatically: the operator decides, with the existing 24 h alert (closes the question left open by 88 D-15).
 
+### Owner answers after research (2026-11-06)
+- **D-20:** The admin cancel dialog asks who cancelled: the client or Prestigo. Cancelled by Prestigo is always free for the client. Cancelled by the client follows the policy (D-05).
+- **D-21:** On a cash booking the driver is responsible for taking the money. Card payment on a cash booking happens only if the client changes their mind during the trip: the driver contacts the operator, who charges the saved card while the client is still with the driver, so this action must work before the booking is completed. If the card fails, the client pays the driver in cash. This narrows D-10 and replaces the research idea of an automatic 24 h case: no automatic case or reminder for a cash booking without a driver confirmation; admin only shows that it is unconfirmed.
+- **D-22:** The operator can reverse a driver's cash confirmation with a note; the booking is unpaid again and the ledger keeps both rows.
+- **D-23:** Charged fees are recorded in the ledger now. Showing them as revenue in stats is a later task.
+- **D-24:** Taken from research without asking: policy numbers in wording are placeholders filled from settings; the policy applies per leg row on pay-now round trips; D-16 is recorded by amending REQUIREMENTS CANC-02 and CASH-03 in the first plan.
+
 ### Claude's Discretion
 - Link token design, expiry after the trip, rate limits, and how the page reads in all 7 locales.
 - Layout of the operator's charge or waive dialog and of the cash step on the trip screen.
@@ -117,6 +124,7 @@ No external specs: requirements are captured in the decisions above.
 ## Deferred Ideas
 
 - Full self-service editing of a booking (date, address, vehicle, with repricing): its own phase.
+- Fees as revenue in admin stats: later task (D-23).
 - Staged rollout to a client list: rejected for now.
 
 ### Must be settled before go-live, carried from Phase 88
