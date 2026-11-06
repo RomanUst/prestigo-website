@@ -313,7 +313,7 @@ describe('POST /api/admin/erasure/confirm', () => {
     expect(confirmMock).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['actor_mismatch', 'already_in_progress', 'expired', 'not_previewed', 'not_found'])(
+  it.each(['actor_mismatch', 'already_in_progress', 'expired', 'not_previewed', 'not_found', 'payment_open'])(
     '422 %s from the confirm RPC; nothing published',
     async (outcome) => {
       asAdmin()

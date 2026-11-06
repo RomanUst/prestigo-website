@@ -16,6 +16,8 @@ interface ErasureConfirmFormProps {
 
 const CONFIRM_ERROR = 'Could not start the erasure. Nothing was deleted. Try again.'
 const IN_PROGRESS = 'An erasure for this person is already in progress.'
+const PAYMENT_OPEN =
+  'This person still has a card hold, a pending cancellation fee or an upcoming trip with a card on file. Resolve or cancel those bookings first, then try again. Nothing was deleted.'
 const UNCONFIGURED = 'Erasure is not set up on this server yet. Ask your developer to configure it.'
 
 const DESTRUCTIVE = 'var(--admin-danger-solid)'
@@ -66,6 +68,7 @@ export function ErasureConfirmForm({ requestId, email, upcoming, onQueued, onKee
       } else {
         const json = (await res.json().catch(() => ({}))) as { error?: unknown }
         if (res.status === 422 && json.error === 'already_in_progress') message = IN_PROGRESS
+        else if (res.status === 422 && json.error === 'payment_open') message = PAYMENT_OPEN
         else if (res.status === 503 && json.error === 'erasure_unconfigured') message = UNCONFIGURED
         else message = CONFIRM_ERROR
       }

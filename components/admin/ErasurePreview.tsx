@@ -16,6 +16,7 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
   const { counts } = preview
   const inquiries = counts.inquiries + counts.quoteLeads
   const bookings = plural(counts.bookings, 'booking', 'bookings')
+  const paymentOpen = counts.paymentOpen ?? 0
 
   return (
     <section aria-labelledby="erasure-preview-heading" style={{ margin: '32px 0 0' }}>
@@ -44,11 +45,37 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
         </Row>
         <Row label="Chatwoot">The contact and all of its conversations will be deleted.</Row>
         <Row label="EspoCRM">{`The contact and its leads will be deleted. ${bookings} will be anonymised.`}</Row>
+        <Row label="Stripe">
+          The Stripe customer (name, email, phone and saved cards) will be deleted. Charges stay in Stripe for accounting.
+        </Row>
         <Row muted>
-          Not covered: the email mailbox archive, Stripe and Resend records, and encrypted backups (kept until they rotate
+          Not covered: the email mailbox archive, Resend records, and encrypted backups (kept until they rotate
           out, up to 6 months). Handle these by hand if needed.
         </Row>
       </div>
+
+      {paymentOpen > 0 && (
+        <div
+          role="note"
+          style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'flex-start',
+            margin: '16px 0 0',
+            padding: '16px',
+            background: 'var(--status-danger-bg)',
+            border: '1px solid var(--status-danger-fg)',
+            borderRadius: '4px',
+            color: 'var(--status-danger-fg)',
+            ...bodyText,
+          }}
+        >
+          <ShieldAlert size={20} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} />
+          <p style={{ margin: 0 }}>
+            {`${plural(paymentOpen, 'booking has', 'bookings have')} a payment still in play: a card hold, a pending cancellation fee, or an upcoming trip with a card on file. Erasure is refused until these are resolved or cancelled.`}
+          </p>
+        </div>
+      )}
 
       {counts.upcoming > 0 && (
         <div
@@ -74,7 +101,12 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
       )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '24px 0 0' }}>
-        <button type="button" onClick={onErase} style={destructiveOutlined}>
+        <button
+          type="button"
+          onClick={onErase}
+          disabled={paymentOpen > 0}
+          style={{ ...destructiveOutlined, opacity: paymentOpen > 0 ? 0.5 : 1, cursor: paymentOpen > 0 ? 'not-allowed' : 'pointer' }}
+        >
           Erase this person...
         </button>
         <button type="button" onClick={onDiscard} style={secondaryButton}>
