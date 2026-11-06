@@ -5,10 +5,10 @@
 // completed by the tick sweep replaying the same idempotency key. These handlers therefore only OBSERVE what
 // Stripe reports out of band, as one append-only ledger row per PaymentIntent, with no state change and never
 // through the legacy chain (a card object must not build a booking):
-//   payment_intent.succeeded, kind card_hold | card_hold_now | card_charge | card_difference
+//   payment_intent.succeeded, kind card_hold | card_hold_now | card_charge | card_difference | card_fee
 //                                      -> charge_succeeded:<pi>
-//   payment_intent.payment_failed, kind card_charge | card_difference
-//                                      -> charge_failed_obs:<pi> / difference_failed_obs:<pi>
+//   payment_intent.payment_failed, kind card_charge | card_difference | card_fee (89-26)
+//                                      -> charge_failed_obs:<pi> / difference_failed_obs:<pi> / fee_failed_obs:<pi>
 // The observation keys differ from settle's own keys (captured:<pi>, charge_failed:<pi>:<n>, ...), so an
 // observation can never roll a settle transition back as a duplicate, and a replayed event adds no second row.
 
@@ -19,7 +19,7 @@ import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
 
-const SUCCEEDED_KINDS: readonly string[] = ['card_hold', 'card_hold_now', 'card_charge', 'card_difference']
+const SUCCEEDED_KINDS: readonly string[] = ['card_hold', 'card_hold_now', 'card_charge', 'card_difference', 'card_fee']
 
 /** The booking the PaymentIntent belongs to (metadata.cofBookingId), or null (logged with ids only) when there is nothing to record. */
 async function resolveBookingId(label: string, pi: Stripe.PaymentIntent): Promise<string | null> {
@@ -73,7 +73,7 @@ export async function handleCardChargeSucceeded(event: Stripe.Event): Promise<vo
 }
 
 /**
- * payment_intent.payment_failed on a card_charge / card_difference PaymentIntent: the decline is already
+ * payment_intent.payment_failed on a card_charge / card_difference / card_fee PaymentIntent: the decline is already
  * recorded by settleBooking from the synchronous answer (and a lost answer is replayed by the sweep with the same
  * idempotency key, which returns the same decline). This only adds an observation row; plan 88-14 attaches the
  * recovery link, client email and operator alert to the settle failure branches.
@@ -81,7 +81,7 @@ export async function handleCardChargeSucceeded(event: Stripe.Event): Promise<vo
 export async function handleCardChargeFailed(event: Stripe.Event): Promise<void> {
   const pi = event.data.object as Stripe.PaymentIntent
   const kind = pi.metadata?.kind
-  if (kind !== 'card_charge' && kind !== 'card_difference') return
+  if (kind !== 'card_charge' && kind !== 'card_difference' && kind !== 'card_fee') return
 
   const bookingId = await resolveBookingId('payment_intent.payment_failed', pi)
   if (!bookingId) return
@@ -89,8 +89,8 @@ export async function handleCardChargeFailed(event: Stripe.Event): Promise<void>
   const err = pi.last_payment_error
   const code = (err?.decline_code || err?.code || 'unknown').slice(0, 60)
   await appendPaymentEvent(bookingId, {
-    key: `${kind === 'card_charge' ? 'charge_failed_obs' : 'difference_failed_obs'}:${pi.id}`,
-    kind: kind === 'card_charge' ? 'charge_failed' : 'difference_failed',
+    key: `${kind === 'card_difference' ? 'difference_failed_obs' : kind === 'card_fee' ? 'fee_failed_obs' : 'charge_failed_obs'}:${pi.id}`,
+    kind: kind === 'card_difference' ? 'difference_failed' : 'charge_failed',
     stripeObjectId: pi.id,
     amountMinor: pi.amount,
     currency: currencyOf(pi),
