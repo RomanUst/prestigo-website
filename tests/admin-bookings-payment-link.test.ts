@@ -478,7 +478,8 @@ describe('POST /api/admin/bookings — ANEW-05 no-link invariant', () => {
     expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
     expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
     expect(stubSendStatusConfirmedEmail).not.toHaveBeenCalled()
-    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+    // Only one bookings write (Phase 89 also reads pricing_globals for the policy gate; that is not a bookings call).
+    expect(supabaseServiceStub.from.mock.calls.filter((c: unknown[]) => c[0] === 'bookings')).toHaveLength(1)
   })
 })
 
