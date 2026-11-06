@@ -928,3 +928,335 @@ describe('every action records exactly one admin_action row with the admin id (T
     })
   }
 })
+
+// ── Phase 89 plan 89-12: fee case and cash facts, and the matrix for the operator decisions ────────────────────────────
+
+describe('Phase 89 matrix: pending fee case, cash bookings (D-05, D-21, D-22)', () => {
+  const PENDING = { fee_case_status: 'pending' }
+  const pending = (over: Record<string, unknown>) => allowedPaymentActions({ ...PENDING, ...over })
+
+  describe('a pending case on a closed booking: charge_fee and waive_fee, never release (release would destroy the fee)', () => {
+    const FEE: PaymentAction[] = ['charge_fee', 'waive_fee']
+    for (const status of ['cancelled', 'no_show']) {
+      it(`${status} card_hold: authorized, card_saved, failed, expired, captured, balance_due`, () => {
+        for (const payment_state of ['authorized', 'card_saved', 'failed', 'expired', 'captured', 'balance_due']) {
+          expect(
+            pending({ payment_mode: 'card_hold', payment_state, status, hold_payment_intent_id: 'pi_1', stripe_payment_method_id: 'pm_1' }),
+            `${status} ${payment_state}`,
+          ).toEqual(FEE)
+        }
+      })
+
+      it(`${status} cash_guarantee with a saved card`, () => {
+        expect(pending({ payment_mode: 'cash_guarantee', payment_state: 'card_saved', status, stripe_payment_method_id: 'pm_1' })).toEqual(FEE)
+      })
+
+      it(`${status} pay_now with a payment intent`, () => {
+        expect(pending({ payment_mode: 'pay_now', payment_state: 'none', status, payment_intent_id: 'pi_paid' })).toEqual(FEE)
+      })
+    }
+
+    it('nothing while a worker holds the row (capturing, a fresh placing_hold)', () => {
+      expect(pending({ payment_mode: 'card_hold', payment_state: 'capturing', status: 'cancelled', hold_payment_intent_id: 'pi_1' })).toEqual([])
+      expect(
+        pending({
+          payment_mode: 'card_hold',
+          payment_state: 'placing_hold',
+          status: 'cancelled',
+          hold_payment_intent_id: 'pi_1',
+          payment_lease_until: new Date(Date.now() + 60_000).toISOString(),
+        }),
+      ).toEqual([])
+    })
+
+    it('nothing where there is nothing to take: released, cash_settled, pay_now without a payment, partner', () => {
+      expect(pending({ payment_mode: 'card_hold', payment_state: 'released', status: 'cancelled', stripe_payment_method_id: 'pm_1' })).toEqual([])
+      expect(pending({ payment_mode: 'cash_guarantee', payment_state: 'cash_settled', status: 'cancelled' })).toEqual(['reopen_cash'])
+      expect(pending({ payment_mode: 'pay_now', payment_state: 'none', status: 'cancelled' })).toEqual([])
+      expect(pending({ payment_mode: 'partner', payment_state: 'none', status: 'cancelled', booking_source: 'gnet' })).toEqual([])
+      expect(pending({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'cancelled', booking_source: 'gnet' })).toEqual([])
+    })
+
+    it('a case that is not pending (or a booking that is not closed) offers no fee action', () => {
+      expect(
+        allowedPaymentActions({ fee_case_status: 'charged', payment_mode: 'card_hold', payment_state: 'authorized', status: 'cancelled', hold_payment_intent_id: 'pi_1' }),
+      ).toEqual(['release'])
+      expect(
+        allowedPaymentActions({ fee_case_status: 'waived', payment_mode: 'card_hold', payment_state: 'captured', status: 'no_show' }),
+      ).toEqual([])
+      expect(pending({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'confirmed', hold_payment_intent_id: 'pi_1' })).not.toContain('charge_fee')
+    })
+  })
+
+  describe('a closed booking with no case keeps release only', () => {
+    it('card_hold authorized, cash card_saved', () => {
+      expect(allowedPaymentActions({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'cancelled' })).toEqual(['release'])
+      expect(allowedPaymentActions({ payment_mode: 'cash_guarantee', payment_state: 'card_saved', status: 'no_show' })).toEqual(['release'])
+      expect(allowedPaymentActions({ payment_mode: 'pay_now', payment_state: 'none', status: 'cancelled', payment_intent_id: 'pi_paid' })).toEqual([])
+    })
+  })
+
+  describe('cash_guarantee', () => {
+    const cash = (payment_state: string, status: string) => allowedPaymentActions({ payment_mode: 'cash_guarantee', payment_state, status })
+    // [state, status]: expected actions
+    const TABLE: Array<[string, string, PaymentAction[]]> = [
+      ['card_saved', 'confirmed', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['card_saved', 'assigned', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['card_saved', 'en_route', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['card_saved', 'on_location', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['card_saved', 'on_board', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['card_saved', 'completed', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'pending', ['release']],
+      ['card_saved', 'cancelled', ['release']],
+      ['card_saved', 'no_show', ['release']],
+      // The card failed during the trip: the client pays the driver (D-21). A link goes out only after the trip.
+      ['failed', 'on_board', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['failed', 'completed', ['charge_saved_card', 'mark_cash_settled', 'send_link']],
+      ['failed', 'cancelled', ['release']],
+      ['cash_settled', 'completed', ['reopen_cash']],
+      ['cash_settled', 'on_board', ['reopen_cash']],
+      ['checkout_pending', 'confirmed', ['release']],
+      ['checkout_pending', 'completed', []],
+      ['captured', 'completed', []],
+      ['released', 'cancelled', []],
+      ['none', 'confirmed', []],
+      ['authorized', 'confirmed', ['release']],
+    ]
+    for (const [state, status, expected] of TABLE) {
+      it(`${state} + ${status} -> [${expected}]`, () => {
+        expect(cash(state, status)).toEqual(expected)
+      })
+    }
+
+    it('never offers capture, retry, waive or the fee actions (no case)', () => {
+      for (const state of PAYMENT_STATES) {
+        for (const status of ['confirmed', 'completed', 'cancelled', 'no_show']) {
+          const actions = cash(state, status)
+          for (const forbidden of ['capture', 'retry', 'waive', 'charge_fee', 'waive_fee'] as PaymentAction[]) {
+            expect(actions, `${state} ${status}`).not.toContain(forbidden)
+          }
+        }
+      }
+    })
+
+    it('a partner booking has no actions, whatever its mode says', () => {
+      expect(allowedPaymentActions({ payment_mode: 'cash_guarantee', payment_state: 'card_saved', status: 'completed', booking_source: 'gnet' })).toEqual([])
+    })
+  })
+
+  it('card_hold actions are otherwise unchanged by a booking that has no case', () => {
+    expect(allowedPaymentActions({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'completed' })).toEqual(['capture'])
+    expect(allowedPaymentActions({ payment_mode: 'card_hold', payment_state: 'card_saved', status: 'confirmed' })).toEqual(['retry', 'release'])
+    expect(allowedPaymentActions({ payment_mode: 'card_hold', payment_state: 'cash_settled', status: 'completed' })).toEqual([])
+  })
+
+  it('the payment route still refuses the five new action names and every amount (strict schema)', async () => {
+    seed({ status: 'cancelled', fee_case_status: 'pending', payment_state: 'authorized' })
+    for (const action of ['charge_fee', 'waive_fee', 'charge_saved_card', 'mark_cash_settled', 'reopen_cash']) {
+      expect((await postReq({ action })).status, action).toBe(400)
+    }
+    expect((await postReq({ action: 'release', amount_minor: 1 })).status).toBe(400)
+  })
+
+  it('release is not runnable through the payment route when a case is pending (it would destroy the fee)', async () => {
+    await seedWithHold({ status: 'cancelled', fee_case_status: 'pending' })
+    const res = await postReq({ action: 'release' })
+    expect(res.status).toBe(422)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect(row().payment_state).toBe('authorized')
+  })
+})
+
+describe('GET: fee_case and cash facts (admin only)', () => {
+  it('a booking with no case and a card hold -> fee_case null, cash null', async () => {
+    await seedWithHold()
+    const body = await (await getReq()).json()
+    expect(body.fee_case).toBeNull()
+    expect(body.cash).toBeNull()
+  })
+
+  it('a pending late-cancel case -> facts with kind, status, proposed, base, charged null, reason and note empty; charge_fee and waive_fee offered', async () => {
+    await seedWithHold({ status: 'cancelled', fee_case_status: 'pending' })
+    db.state.booking_fee_cases.push({
+      id: 'c0000000-0000-4000-8000-000000000001',
+      booking_id: ID,
+      kind: 'late_cancel',
+      status: 'pending',
+      currency: 'eur',
+      base_minor: 12000,
+      proposed_minor: 12000,
+      decided_minor: null,
+      charge_requested_at: null,
+      free_until: '2026-11-01T10:00:00.000Z',
+      evidence: { cancelledMinBeforePickup: 120 },
+      reason: null,
+      contact_note: null,
+      opened_at: '2026-11-01T11:00:00.000Z',
+      opened_by: 'system',
+      decided_at: null,
+      decided_by: null,
+    })
+    const body = await (await getReq()).json()
+    expect(body.allowed_actions).toEqual(['charge_fee', 'waive_fee'])
+    expect(body.fee_case).toEqual({
+      kind: 'late_cancel',
+      status: 'pending',
+      currency: 'eur',
+      proposed_minor: 12000,
+      base_minor: 12000,
+      charged_minor: null,
+      charge_in_flight: false,
+      free_until: '2026-11-01T10:00:00.000Z',
+      opened_at: '2026-11-01T11:00:00.000Z',
+      decided_by: null,
+      decided_at: null,
+      reason: null,
+      contact_note: null,
+      evidence: { cancelledMinBeforePickup: 120 },
+    })
+  })
+
+  it('a charged no-show case carries the charged amount, the decider, the reason and the contact note (admin only)', async () => {
+    await seedWithHold({ status: 'no_show', fee_case_status: 'charged', payment_state: 'captured', captured_amount_minor: 5000 })
+    db.state.booking_fee_cases.push({
+      id: 'c0000000-0000-4000-8000-000000000002',
+      booking_id: ID,
+      kind: 'no_show',
+      status: 'charged',
+      currency: 'eur',
+      base_minor: 12000,
+      proposed_minor: 12000,
+      decided_minor: 5000,
+      charge_requested_at: '2026-11-01T12:00:00.000Z',
+      free_until: null,
+      evidence: { threshold_min: 20 },
+      reason: 'client unreachable',
+      contact_note: 'called twice, no answer',
+      opened_at: '2026-11-01T11:00:00.000Z',
+      opened_by: 'admin-1',
+      decided_at: '2026-11-01T12:00:00.000Z',
+      decided_by: ADMIN_ID,
+    })
+    const body = await (await getReq()).json()
+    expect(body.fee_case).toMatchObject({
+      kind: 'no_show',
+      status: 'charged',
+      charged_minor: 5000,
+      charge_in_flight: false,
+      decided_by: ADMIN_ID,
+      decided_at: '2026-11-01T12:00:00.000Z',
+      reason: 'client unreachable',
+      contact_note: 'called twice, no answer',
+    })
+    expect(body.allowed_actions).toEqual([])
+    // A decided case is never an amount owed: the captured row is below the booking amount and nothing more is due.
+    expect(body.payment.captured_amount_minor).toBe(5000)
+    expect(body.payment.amount_minor).toBe(12000)
+    // The operator's text is on the case; the ledger rows of the same response carry none of it.
+    expect(JSON.stringify(body.events)).not.toContain('client unreachable')
+    expect(JSON.stringify(body.events)).not.toContain('called twice')
+  })
+
+  it('a charge in flight on a pending case is reported', async () => {
+    await seedWithHold({ status: 'cancelled', fee_case_status: 'pending' })
+    db.state.booking_fee_cases.push({
+      id: 'c0000000-0000-4000-8000-000000000003',
+      booking_id: ID,
+      kind: 'late_cancel',
+      status: 'pending',
+      currency: 'eur',
+      base_minor: 12000,
+      proposed_minor: 12000,
+      decided_minor: 4000,
+      charge_requested_at: '2026-11-01T12:00:00.000Z',
+      free_until: null,
+      evidence: {},
+      reason: null,
+      contact_note: null,
+      opened_at: '2026-11-01T11:00:00.000Z',
+      opened_by: 'system',
+      decided_at: null,
+      decided_by: null,
+    })
+    const body = await (await getReq()).json()
+    expect(body.fee_case).toMatchObject({ status: 'pending', charge_in_flight: true, charged_minor: null })
+  })
+
+  describe('cash', () => {
+    const cashSeed = (over: Record<string, unknown> = {}) =>
+      seed({ payment_mode: 'cash_guarantee', payment_state: 'card_saved', status: 'completed', payment_amount_minor: 8000, hold_amount_minor: null, ...over })
+
+    it('unconfirmed is true only for a completed cash booking in card_saved, and nothing else follows from it', async () => {
+      const unconfirmed = async (over: Record<string, unknown>) => {
+        cashSeed(over)
+        return (await (await getReq()).json()) as { cash: { unconfirmed: boolean } | null; allowed_actions: string[] }
+      }
+
+      const done = await unconfirmed({})
+      expect(done.cash?.unconfirmed).toBe(true)
+      // D-21: it is information. The only actions are the operator's choices; nothing is scheduled or sent.
+      expect(done.allowed_actions).toEqual(['charge_saved_card', 'mark_cash_settled'])
+      expect(fake.calls).toHaveLength(0)
+      expect(mockSendEmail).not.toHaveBeenCalled()
+      expect(db.state.booking_fee_cases).toHaveLength(0)
+
+      expect((await unconfirmed({ status: 'en_route' })).cash?.unconfirmed).toBe(false)
+      expect((await unconfirmed({ payment_state: 'failed' })).cash?.unconfirmed).toBe(false)
+      expect((await unconfirmed({ payment_state: 'cash_settled' })).cash?.unconfirmed).toBe(false)
+      expect((await unconfirmed({ payment_state: 'captured' })).cash?.unconfirmed).toBe(false)
+    })
+
+    it('cash_settled by the driver: confirmed_by driver, the time of the newest cash_settled row, reopen offered', async () => {
+      cashSeed({ payment_state: 'cash_settled' })
+      db.state.booking_payment_events.push(
+        {
+          id: 1, booking_id: ID, event_key: `cash_settled:${ID}:0`, kind: 'cash_settled', stripe_object_id: null, amount_minor: null, currency: null,
+          from_state: 'card_saved', to_state: 'cash_settled', actor_type: 'system', actor_id: 'driver_trip', error_code: null, created_at: '2026-11-02T10:00:00.000Z',
+        },
+        {
+          id: 2, booking_id: ID, event_key: `cash_reopened:${ID}:1`, kind: 'cash_reopened', stripe_object_id: null, amount_minor: null, currency: null,
+          from_state: 'cash_settled', to_state: 'card_saved', actor_type: 'admin', actor_id: ADMIN_ID, error_code: null, created_at: '2026-11-02T11:00:00.000Z',
+        },
+        {
+          id: 3, booking_id: ID, event_key: `cash_settled:${ID}:1`, kind: 'cash_settled', stripe_object_id: null, amount_minor: null, currency: null,
+          from_state: 'card_saved', to_state: 'cash_settled', actor_type: 'admin', actor_id: ADMIN_ID, error_code: null, created_at: '2026-11-02T12:00:00.000Z',
+        },
+      )
+      const body = await (await getReq()).json()
+      expect(body.allowed_actions).toEqual(['reopen_cash'])
+      expect(body.cash).toMatchObject({ unconfirmed: false, confirmed_by: 'admin', confirmed_at: '2026-11-02T12:00:00.000Z', notes: [] })
+    })
+
+    it('a driver confirmation is reported as driver', async () => {
+      cashSeed({ payment_state: 'cash_settled' })
+      db.state.booking_payment_events.push({
+        id: 1, booking_id: ID, event_key: `cash_settled:${ID}:0`, kind: 'cash_settled', stripe_object_id: null, amount_minor: null, currency: null,
+        from_state: 'card_saved', to_state: 'cash_settled', actor_type: 'system', actor_id: 'driver_trip', error_code: null, created_at: '2026-11-02T10:00:00.000Z',
+      })
+      const body = await (await getReq()).json()
+      expect(body.cash).toMatchObject({ confirmed_by: 'driver', confirmed_at: '2026-11-02T10:00:00.000Z' })
+    })
+
+    it('not settled: no confirmation facts; notes are listed oldest first with their kind and author', async () => {
+      cashSeed()
+      db.state.booking_payment_notes.push(
+        { id: 'n2', booking_id: ID, kind: 'cash_reopen', note: 'second', created_by: ADMIN_ID, created_at: '2026-11-02T12:00:00.000Z' },
+        { id: 'n1', booking_id: ID, kind: 'cash_card_charge', note: 'first', created_by: ADMIN_ID, created_at: '2026-11-02T10:00:00.000Z' },
+      )
+      const body = await (await getReq()).json()
+      expect(body.cash.confirmed_by).toBeNull()
+      expect(body.cash.confirmed_at).toBeNull()
+      expect(body.cash.notes).toEqual([
+        { kind: 'cash_card_charge', note: 'first', created_by: ADMIN_ID, created_at: '2026-11-02T10:00:00.000Z' },
+        { kind: 'cash_reopen', note: 'second', created_by: ADMIN_ID, created_at: '2026-11-02T12:00:00.000Z' },
+      ])
+    })
+
+    it('the cash view never carries stripe ids', async () => {
+      cashSeed({ stripe_payment_method_id: 'pm_secret', stripe_customer_id: 'cus_secret' })
+      const text = JSON.stringify(await (await getReq()).json())
+      expect(text).not.toContain('pm_secret')
+      expect(text).not.toContain('cus_secret')
+    })
+  })
+})

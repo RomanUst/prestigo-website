@@ -4,12 +4,18 @@ import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { allowedPaymentActions, runPaymentAction, toPaymentFacts } from '@/lib/payments/actions'
+import { loadFeeCase, type FeeCaseRow } from '@/lib/payments/fee'
 import { appendPaymentEvent } from '@/lib/payments/state'
 
 // Admin payment API of a card-hold booking (Phase 88, plan 88-15; HOLD-07, PAYF-01), the data source and the action
 // endpoint of components/admin/PaymentPanel.tsx (contract: plan 88-07).
 //
-//   GET   -> { payment, allowed_actions, refund_failed, events, events_total }
+//   GET   -> { payment, allowed_actions, refund_failed, events, events_total, fee_case, cash }
+//         (Phase 89: fee_case = the late-cancel / no-show case with the operator's reason and contact note, cash = the
+//         cash facts and notes of a cash booking. This route is admin-only, so operator text may appear here and nowhere
+//         else: never in the ledger rows above, never on a client page or mail. allowed_actions also names the five
+//         Phase 89 decisions; they are executed by POST /api/admin/bookings/[id]/fee, and this route's POST schema still
+//         refuses them and every amount.)
 //   POST  { action } -> 200 { outcome: 'ok' | 'declined' } | 409 { error: 'payment_busy' } | 422 { error: 'action_not_allowed' }
 //   POST  { action: 'resolve_refund' } -> 200 { outcome: 'ok' } | 422: the operator confirms an open refund failure was
 //         handled by hand in Stripe (88-REVIEW C-WR-05). Any payment mode; it moves no money, it writes one audit row.
@@ -87,6 +93,78 @@ function toEvent(r: LedgerRow) {
   }
 }
 
+/** The fee case as the panel needs it. Operator text (reason, contact note) is admin-only, see the header. */
+function toFeeCaseFacts(c: FeeCaseRow) {
+  return {
+    kind: c.kind,
+    status: c.status,
+    currency: c.currency,
+    proposed_minor: c.proposed_minor,
+    base_minor: c.base_minor,
+    // The amount actually charged: only once the case is charged (decided_minor is also the lock of a charge in flight).
+    charged_minor: c.status === 'charged' ? c.decided_minor : null,
+    charge_in_flight: c.status === 'pending' && c.charge_requested_at !== null,
+    free_until: c.free_until,
+    opened_at: c.opened_at,
+    decided_by: c.decided_by,
+    decided_at: c.decided_at,
+    reason: c.reason,
+    contact_note: c.contact_note,
+    evidence: c.evidence ?? {},
+  }
+}
+
+interface NoteRow {
+  kind: string
+  note: string
+  created_by: string | null
+  created_at: string
+}
+
+/**
+ * The cash facts of a cash booking (UI-SPEC Surface 5). `unconfirmed` is information only: a completed trip whose cash
+ * nobody confirmed (D-21: nothing happens automatically because of it). `confirmed_by` is read from the newest
+ * cash_settled ledger row while the booking is settled: the driver tap (system actor driver_trip) or an operator.
+ */
+async function loadCashFacts(booking: Record<string, unknown>, bookingId: string) {
+  const supabase = createSupabaseServiceClient()
+  const settled = booking.payment_state === 'cash_settled'
+  const [confirmation, notes] = await Promise.all([
+    settled
+      ? supabase
+          .from('booking_payment_events')
+          .select('actor_type, actor_id, created_at')
+          .eq('booking_id', bookingId)
+          .eq('kind', 'cash_settled')
+          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
+          .limit(1)
+      : Promise.resolve({ data: null, error: null }),
+    supabase
+      .from('booking_payment_notes')
+      .select('kind, note, created_by, created_at')
+      .eq('booking_id', bookingId)
+      .order('created_at', { ascending: true }),
+  ])
+  if (confirmation.error || notes.error) throw new Error('cash facts read failed')
+
+  const last = (Array.isArray(confirmation.data) ? confirmation.data[0] : null) as
+    | { actor_type?: string; actor_id?: string | null; created_at?: string }
+    | null
+  const confirmedBy = !last ? null : last.actor_type === 'admin' ? 'admin' : last.actor_id === 'driver_trip' ? 'driver' : 'system'
+  return {
+    unconfirmed: booking.status === 'completed' && booking.payment_state === 'card_saved',
+    confirmed_by: confirmedBy,
+    confirmed_at: last?.created_at ?? null,
+    notes: ((Array.isArray(notes.data) ? notes.data : []) as unknown as NoteRow[]).map((n) => ({
+      kind: n.kind,
+      note: n.note,
+      created_by: n.created_by ?? null,
+      created_at: n.created_at,
+    })),
+  }
+}
+
 const unauthorized = () => NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 const forbidden = () => NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -113,7 +191,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const supabase = createSupabaseServiceClient()
   // Asked separately: a refund failure older than the 100 newest rows must still raise the flag (D-20); a later
   // "refund resolved" row clears it (C-WR-05).
-  const [events, refundOpen] = await Promise.all([
+  const isCash = booking.payment_mode === 'cash_guarantee'
+  const [events, refundOpen, feeCase, cash] = await Promise.all([
     supabase
       .from('booking_payment_events')
       .select(EVENT_COLUMNS, { count: 'exact' })
@@ -122,8 +201,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       .order('id', { ascending: false })
       .limit(EVENT_LIMIT),
     refundFailureOpen(bookingId).catch(() => null),
+    loadFeeCase(bookingId).catch(() => undefined),
+    isCash ? loadCashFacts(booking, bookingId).catch(() => undefined) : Promise.resolve(null),
   ])
-  if (events.error || refundOpen === null) {
+  if (events.error || refundOpen === null || feeCase === undefined || cash === undefined) {
     console.error('[admin/bookings/[id]/payment] ledger read failed', { bookingId })
     return NextResponse.json({ error: 'Failed to load payment history' }, { status: 500 })
   }
@@ -135,6 +216,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     refund_failed: refundOpen,
     events: rows.map(toEvent),
     events_total: typeof events.count === 'number' ? events.count : rows.length,
+    fee_case: feeCase ? toFeeCaseFacts(feeCase) : null,
+    cash,
   })
 }
 
