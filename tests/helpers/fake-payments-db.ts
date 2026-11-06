@@ -28,6 +28,7 @@ export const FAKE_PAYMENT_VOCABULARY = {
     'failed',
     'expired',
     'released',
+    'cash_settled',
   ],
   kinds: [
     'setup_started',
@@ -54,6 +55,9 @@ export const FAKE_PAYMENT_VOCABULARY = {
     'refund_failed',
     'edit_reevaluated',
     'waived',
+    'fee_opened',
+    'cash_settled',
+    'cash_reopened',
   ],
 } as const
 
