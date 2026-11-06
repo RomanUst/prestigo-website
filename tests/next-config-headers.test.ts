@@ -91,4 +91,28 @@ describe('next.config.ts headers() — X-Frame-Options excluded for /embed', () 
       expect(headerOf(hit, 'X-Frame-Options')).toBe('DENY')
     },
   )
+
+  // Phase 89 (T-89-05): the manage URL carries the guest's bearer token.
+  it.each([
+    '/manage/tok',
+    '/ru/manage/tok',
+    '/es/manage/tok',
+    '/fr/manage/tok',
+    '/ar/manage/tok',
+    '/hi/manage/tok',
+    '/zh/manage/tok',
+  ])('%s: Referrer-Policy is no-referrer, no-store, X-Frame-Options stays DENY', async (pathname) => {
+    const hit = matching(await loadEntries(), pathname)
+    expect(headerOf(hit, 'Referrer-Policy')).toBe('no-referrer')
+    expect(headerOf(hit, 'Cache-Control')).toBe('no-store')
+    expect(headerOf(hit, 'X-Frame-Options')).toBe('DENY')
+  })
+
+  it.each(['/managed', '/ru/book', '/blog/manage-your-booking'])(
+    '%s: ordinary pages keep the global Referrer-Policy',
+    async (pathname) => {
+      const hit = matching(await loadEntries(), pathname)
+      expect(headerOf(hit, 'Referrer-Policy')).toBe('strict-origin-when-cross-origin')
+    },
+  )
 })

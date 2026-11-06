@@ -27,6 +27,8 @@ const LIMITS: Record<string, number> = {
   '/api/validate-promo':         20, // prevent promo code enumeration
   '/api/card-checkout/init':     30, // Phase 88: re-called on promo / currency change; also bounds allowlist probing (T-88-13)
   '/api/card-checkout/intent':   10, // Phase 88: card-testing guard, creates Stripe objects (Research Pitfall 7)
+  '/api/manage/cancel':          10, // Phase 89 (T-89-07): public, token-authenticated; bounds token guessing and refund attempts
+  '/api/manage/change-request':   5, // Phase 89 (T-89-07): each call mails the operator, so keep it low
   '/admin/login':                 5, // prevent brute force on admin credentials
   '/login':                       5, // customer auth: prevent magic-link / password brute force
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota

@@ -1,5 +1,9 @@
+'use client'
+
 import Script from 'next/script'
+import { usePathname } from 'next/navigation'
 import { locales } from '@/i18n/locales'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 const CONSENT_KEY = 'prestigo_cookie_consent'
@@ -32,7 +36,10 @@ const LOCALES_JSON = JSON.stringify(locales)
 // dynamic routes, so no nonce prop is needed. On static marketing routes the
 // CSP uses 'unsafe-inline' and needs no nonce at all.
 export default function GoogleAnalytics() {
-  if (!GA_ID) return null
+  const pathname = usePathname()
+  // Phase 89 (D-02): /admin, /driver and /manage URLs are private (token in the path) — load
+  // nothing on them. A client component so it can read the path; the layout is static.
+  if (!GA_ID || isPrivateLinkPath(pathname)) return null
 
   return (
     <>
@@ -72,21 +79,20 @@ export default function GoogleAnalytics() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          // Skip tracking on admin pages to keep GA4 data clean.
+          // Private link paths (/admin, /driver, /manage) never reach this script: the
+          // component returns null for them (isPrivateLinkPath).
           // send_page_view: false — AnalyticsPageView fires page_view on every
           // client-side route change (including the initial load) so we don't
           // double-count.
-          if (!window.location.pathname.startsWith('/admin')) {
-            // D-10: site_locale, derived from the pathname's first segment
-            // against the static locale allow-list below (never browser
-            // language) — set BEFORE gtag('config', ...) so it is applied
-            // to every GA4 event, including the very first page_view.
-            var __locales = ${LOCALES_JSON};
-            var __seg = window.location.pathname.split('/').filter(Boolean)[0];
-            var __siteLocale = (__seg && __locales.indexOf(__seg) !== -1) ? __seg : 'en';
-            gtag('set', { site_locale: __siteLocale });
-            gtag('config', '${GA_ID}', { send_page_view: false });
-          }
+          // D-10: site_locale, derived from the pathname's first segment
+          // against the static locale allow-list below (never browser
+          // language) — set BEFORE gtag('config', ...) so it is applied
+          // to every GA4 event, including the very first page_view.
+          var __locales = ${LOCALES_JSON};
+          var __seg = window.location.pathname.split('/').filter(Boolean)[0];
+          var __siteLocale = (__seg && __locales.indexOf(__seg) !== -1) ? __seg : 'en';
+          gtag('set', { site_locale: __siteLocale });
+          gtag('config', '${GA_ID}', { send_page_view: false });
         `}
       </Script>
     </>
