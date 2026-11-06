@@ -2,6 +2,7 @@ import NotificationToggles from '@/components/admin/NotificationToggles'
 import DispatchDefault from '@/components/admin/DispatchDefault'
 import NoShowWaitSettings from '@/components/admin/NoShowWaitSettings'
 import CardFlowSettings from '@/components/admin/CardFlowSettings'
+import CancellationPolicySettings from '@/components/admin/CancellationPolicySettings'
 import { cookies } from 'next/headers'
 
 export default async function SettingsPage() {
@@ -62,6 +63,13 @@ export default async function SettingsPage() {
         initialMode={data.card_flow_mode}
         initialLeadHours={data.payment_hold_lead_hours}
         initialEmails={data.card_flow_canary_emails}
+      />
+      <CancellationPolicySettings
+        initialKm={data.cancel_free_km_threshold}
+        initialShortHours={data.cancel_free_hours_short}
+        initialLongHours={data.cancel_free_hours_long}
+        initialHourlyHours={data.cancel_free_hours_hourly}
+        initialPercent={data.cancel_fee_percent}
       />
     </div>
   )
