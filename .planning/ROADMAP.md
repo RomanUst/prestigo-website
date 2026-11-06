@@ -307,7 +307,63 @@ Plans:
   4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
   5. The operator can mark a cash booking as settled in cash, a settled or cancelled booking can no longer be charged, and GNet bookings are never offered the cash guarantee or a no-show charge.
 
-**Plans**: TBD
+**Plans**: 28 plans (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
+Plans:
+**Wave 1**
+- [ ] 89-01-PLAN.md — Migration 087, payment vocabulary, D-16 document amendments
+- [ ] 89-02-PLAN.md — Private link guard: analytics, chat, headers, CSRF, rate limits
+- [ ] 89-03-PLAN.md — Policy engine and admin policy settings
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 89-04-PLAN.md — Manage token, policy box and manage button in 7 locales
+- [ ] 89-05-PLAN.md — Migration 088 and Stripe Customer erasure
+- [ ] 89-07-PLAN.md — Stored terms per booking and the public-policy gate
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 89-25-PLAN.md — Client email kinds in 7 locales and operator alert kinds
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 89-06-PLAN.md — Fee engine in the single collector
+- [ ] 89-10-PLAN.md — Cash checkout server and final consent wording
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 89-08-PLAN.md — Cancellation orchestrator, money matrix and admin cancel route
+- [ ] 89-09-PLAN.md — No-show gate and evidence (WR-02, WR-04)
+- [ ] 89-11-PLAN.md — Checkout UI: choice, cash explainer, policy note
+- [ ] 89-13-PLAN.md — Fee reminder and interrupted charge recovery in the tick
+- [ ] 89-26-PLAN.md — Fee webhook routing, recovery closes the case, disputes on cash
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 89-12-PLAN.md — Operator fee and cash decisions on the server
+- [ ] 89-15-PLAN.md — Manage page read side and My trips link
+- [ ] 89-27-PLAN.md — Notices after a cancel: client, driver, operator
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 89-14-PLAN.md — Driver cash step
+- [ ] 89-16-PLAN.md — Admin cancel dialog and fee badge
+- [ ] 89-17-PLAN.md — Admin fee and cash panels
+- [ ] 89-28-PLAN.md — Manage page actions: cancel and change request
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 89-18-PLAN.md — Policy in the legacy emails and localized confirmation page
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 89-19-PLAN.md — Lifecycle tests, full gate, dark production merge
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 89-20-PLAN.md — Terms and FAQ wording in 7 locales (unmerged until go-live)
+- [ ] 89-21-PLAN.md — Public pages and llms wording in 7 locales (unmerged until go-live)
+- [ ] 89-24-PLAN.md — Blog line, settings value and All clients tile (unmerged until go-live)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+- [ ] 89-22-PLAN.md — Go-live checklist and owner live tests
+
+**Wave 12** *(blocked on Wave 11 completion)*
+- [ ] 89-23-PLAN.md — Go-live decision, wording merge, flag flip, owner live test
+
+**Cross-cutting constraints:**
+- No text in this plan reaches main before plan 89-23
+
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix (operator-initiated off-session charges, policy-driven refunds and releases, consent records).
 **Legal checkpoint (blocking public go-live)**: Czech counsel or ČOI review of the mandate and consent text, the tiered cancellation schedule and the no-show clause, the withdrawal-exemption disclosure, and Stripe PII erasure vs accounting retention. Start in parallel with Phases 86-87. The consent text version stored per booking (Phase 88) lets wording change without breaking old records.

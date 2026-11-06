@@ -1,0 +1,3 @@
+# API Coverage — Phase 89
+
+No external API integration: Phase 89 adds no new external API surface. It reuses the Stripe SDK 21.0.1 calls shipped in Phase 88 (PaymentIntent capture with amount_to_capture, off-session PaymentIntent create, Refund create, Payment Link create and deactivate, SetupIntent create) and one call already documented in the erasure runbook (Customer delete). No new Stripe event type is subscribed; fee PaymentIntents ride the existing payment_intent.succeeded and payment_intent.payment_failed events through a new metadata kind. Resend, QStash and Supabase are used exactly as before.
