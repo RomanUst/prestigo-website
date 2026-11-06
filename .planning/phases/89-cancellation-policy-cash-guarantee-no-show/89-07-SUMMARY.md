@@ -80,7 +80,7 @@ Tracer verified end to end: `tests/booking-policy-snapshot.test.ts` posts to the
 
 - `npx vitest run` over the touched areas: booking-policy-snapshot (22), payments-timing, create-payment-intent, checkout-compute, payment-state-writers-gate (D-09a still green: no engine module reads the mode), webhooks-stripe-payments, card-checkout-init (38), card-checkout-intent (74), admin-bookings (107): all pass.
 - `npx tsc --noEmit`: no errors outside `tests/` (baseline). `npx eslint --quiet` on the touched source files: clean.
-- Full suite: see the orchestrator note below.
+- Full suite (after the test fix): 353 files passed, 10065 tests passed. 5 files (account-trips, auth-customer, login-actions, passenger-actions, profile-actions) fail at load with `ERR_MODULE_NOT_FOUND` for `next-intl/dist/esm/development/server.react-server.js`: the node_modules symlink of this worktree, not code of this plan (none of them touch the changed files); expected to pass in the main checkout.
 
 ## Deviations from Plan
 
