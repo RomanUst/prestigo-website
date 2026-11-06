@@ -106,6 +106,13 @@ describe('renderPaymentEmail: card_saved in English (tracer)', () => {
 })
 
 describe('renderPaymentEmail: shell rules', () => {
+  it('keeps the bdi-carrying intro out of a p and gives the contact line gold links', async () => {
+    const { html } = await renderPaymentEmail('hold_placed', 'en', baseVars({ variant: 'scheduled' }))
+    expect(html).not.toMatch(/<p[\s>]/)
+    expect(html).toContain('<a href="mailto:info@rideprestigo.com" style="color: #BFA06A;')
+    expect(html).toMatch(/<a href="tel:\+\d+" style="color: #BFA06A;/)
+  })
+
   it('escapes user-supplied strings and wraps amounts, references and addresses in bdi', async () => {
     const out = await renderPaymentEmail(
       'card_saved',
