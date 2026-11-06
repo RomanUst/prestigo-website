@@ -208,7 +208,7 @@ describe('TripScreen: one next step', () => {
     expect(screen.getByText('Wenceslas Square')).toBeInTheDocument()
   })
 
-  it('renders no price, amount or currency anywhere', () => {
+  it('renders no price, amount or currency on a non-cash trip (Phase 89: an amount only for cash, see the cash blocks below)', () => {
     const { container } = render(<TripScreen {...makeProps()} />)
     expect(container.textContent ?? '').not.toMatch(/€|EUR|CZK|\bprice\b|amount/i)
   })
@@ -406,6 +406,7 @@ describe('TripScreen: completing the trip in session (D-17)', () => {
     for (const secret of ['Alice', 'Smith', '+420123456789', 'Prague Airport', 'Wenceslas Square', 'Mercedes']) {
       expect(text).not.toContain(secret)
     }
+    // non-cash trip: no amount unless cash (the cash trip is covered by the Phase 89 blocks at the end of this file)
     expect(text).not.toMatch(/€|EUR|CZK|\bprice\b|amount/i)
     // The closed link would answer "completed" (details hidden) on a refresh, which drops the summary.
     expect(refreshMock).not.toHaveBeenCalled()
@@ -1584,5 +1585,207 @@ describe('NavigateChooser behaviour (87-UAT gap 2)', () => {
     ]) {
       expect(el).toHaveStyle({ minHeight: '48px' })
     }
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Phase 89 plan 89-14 (CASH-04, D-11, D-21, D-22): the driver's cash step, UI-SPEC Surface 6
+// ---------------------------------------------------------------------------------------------------------------------
+
+const CASH_DUE = { amountLabel: 'EUR 80 (label)', state: 'due' as const }
+const CASH_SETTLED = { amountLabel: 'EUR 80 (label)', state: 'settled' as const }
+
+describe('TripScreen: cash chip and completion warning (UI-SPEC 6.1)', () => {
+  it('a cash trip shows the neutral "Cash payment" chip in the details and never the amount before completion', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<TripScreen {...makeProps()} cash={CASH_DUE} />)
+    expect(screen.queryByText('Cash payment')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Show trip details' }))
+    expect(screen.getByText('Cash payment')).toBeInTheDocument()
+    expect(container.textContent ?? '').not.toContain(CASH_DUE.amountLabel)
+  })
+
+  it('a non-cash trip shows no chip', async () => {
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps()} />)
+    await user.click(screen.getByRole('button', { name: 'Show trip details' }))
+    expect(screen.queryByText('Cash payment')).not.toBeInTheDocument()
+  })
+
+  it('the final step dialog shows the warning block with the amount and both sentences; completion is not blocked', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, { ok: true, status: 'completed', nextStep: null, completedAt: '2026-11-04T09:41:00Z' }))
+    const user = userEvent.setup()
+    render(<TripScreen {...makeProps({ status: 'on_board', nextStep: 'completed' })} cash={CASH_DUE} />)
+    await openStepDialog(user)
+
+    const dialog = screen.getByRole('dialog')
+    const warning = within(dialog).getByRole('status')
+    expect(within(warning).getByText('CASH TO COLLECT')).toBeInTheDocument()
+    expect(within(warning).getByText(CASH_DUE.amountLabel)).toBeInTheDocument()
+    expect(within(warning).getByText('Collect this amount in cash from the passenger before you finish.')).toBeInTheDocument()
+    expect(
+      within(warning).getByText('If the passenger wants to pay by card instead, call the office before you complete the trip.'),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText('You cannot undo this. If a step is wrong, the office can fix it.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Not yet' })).toHaveFocus()
+
+    // completion works unchanged and sends only the step
+    await user.click(within(dialog).getByRole('button', { name: 'Yes, complete trip' }))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ step: 'completed' })
+    await waitFor(() => expect(screen.getByText('Trip completed')).toBeInTheDocument())
+    // the cash card follows the completion
+    expect(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` })).toBeInTheDocument()
+  })
+
+  it('the warning is only on the final step and only while the cash is due', async () => {
+    const user = userEvent.setup()
+    const first = render(<TripScreen {...makeProps()} cash={CASH_DUE} />)
+    await openStepDialog(user)
+    expect(within(screen.getByRole('dialog')).queryByText('CASH TO COLLECT')).not.toBeInTheDocument()
+    first.unmount()
+
+    const settled = render(<TripScreen {...makeProps({ status: 'on_board', nextStep: 'completed' })} cash={CASH_SETTLED} />)
+    await openStepDialog(user)
+    expect(within(screen.getByRole('dialog')).queryByText('CASH TO COLLECT')).not.toBeInTheDocument()
+    settled.unmount()
+
+    render(<TripScreen {...makeProps({ status: 'on_board', nextStep: 'completed' })} />)
+    await openStepDialog(user)
+    expect(within(screen.getByRole('dialog')).queryByText('CASH TO COLLECT')).not.toBeInTheDocument()
+  })
+})
+
+describe('TripCompleted: the cash card (UI-SPEC 6.2, D-11, D-21)', () => {
+  const SUMMARY = { bookingReference: 'PRG-1', pickupDate: '2026-11-04', completedAt: '2026-11-04T09:41:00Z' }
+
+  it.each([
+    ['in-session', { variant: 'in-session' as const, summary: SUMMARY }],
+    ['reopened', { variant: 'reopened' as const }],
+  ])('%s variant shows the amount, the question, the button and the call-the-office line', (_name, base) => {
+    render(<TripCompleted {...base} token={TOKEN} cash={CASH_DUE} />)
+    expect(screen.getByText('CASH TO COLLECT')).toBeInTheDocument()
+    expect(screen.getByText(CASH_DUE.amountLabel)).toBeInTheDocument()
+    expect(screen.getByText('Did the passenger pay you this amount in cash?')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` })).toBeInTheDocument()
+    expect(screen.getByText('If the passenger did not pay, call the office.')).toBeInTheDocument()
+    // the existing help, and no second answer (D-21)
+    expect(screen.getByRole('link', { name: 'Call the office' })).toHaveAttribute('href', BUSINESS_TEL_URL)
+    expect(screen.queryByRole('button', { name: /did not pay/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('The passenger did not pay')).not.toBeInTheDocument()
+  })
+
+  it('opens the confirm dialog with initial focus on "Not yet" and sends nothing until the primary button', async () => {
+    const user = userEvent.setup()
+    render(<TripCompleted variant="reopened" token={TOKEN} cash={CASH_DUE} />)
+    await user.click(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByText('Confirm cash received')).toBeInTheDocument()
+    expect(within(dialog).getByText(`You received ${CASH_DUE.amountLabel} in cash from the passenger?`)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Not yet' })).toHaveFocus()
+    expect(fetchMock).not.toHaveBeenCalled()
+
+    await user.click(screen.getByRole('button', { name: 'Not yet' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('Escape cancels the dialog with no request', async () => {
+    const user = userEvent.setup()
+    render(<TripCompleted variant="reopened" token={TOKEN} cash={CASH_DUE} />)
+    await user.click(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` }))
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('confirming posts exactly { action: confirm_cash } (no amount) and turns the card into the ok line', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, { ok: true, status: 'completed', nextStep: null, cash: 'settled' }))
+    const user = userEvent.setup()
+    render(<TripCompleted variant="reopened" token={TOKEN} cash={CASH_DUE} />)
+    await user.click(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` }))
+    await user.click(screen.getByRole('button', { name: `Yes, I received ${CASH_DUE.amountLabel}` }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`/api/driver/trip/${TOKEN}/progress`)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual({ action: 'confirm_cash' })
+
+    const line = await screen.findByText(`Cash received: ${CASH_DUE.amountLabel}. Thank you.`)
+    expect(line).toHaveAttribute('role', 'status')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /I received/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('If the passenger did not pay, call the office.')).not.toBeInTheDocument()
+  })
+
+  it('a replay (200 with replay) shows the same line', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, { ok: true, status: 'completed', nextStep: null, cash: 'settled', replay: true }))
+    const user = userEvent.setup()
+    render(<TripCompleted variant="reopened" token={TOKEN} cash={CASH_DUE} />)
+    await user.click(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` }))
+    await user.click(screen.getByRole('button', { name: `Yes, I received ${CASH_DUE.amountLabel}` }))
+    expect(await screen.findByText(`Cash received: ${CASH_DUE.amountLabel}. Thank you.`)).toBeInTheDocument()
+  })
+
+  it('an already settled booking opens on the ok line with no buttons', () => {
+    render(<TripCompleted variant="reopened" token={TOKEN} cash={CASH_SETTLED} />)
+    expect(screen.getByText(`Cash received: ${CASH_SETTLED.amountLabel}. Thank you.`)).toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [409, 'This booking changed. Reload the page.'],
+    [422, 'This booking changed. Reload the page.'],
+    [429, 'Too many taps. Wait a moment.'],
+    [500, 'Could not send your answer. Try again.'],
+  ])('a %s answer shows its copy with role alert and keeps the card', async (status, copy) => {
+    fetchMock.mockReturnValue(jsonResponse(status, {}))
+    const user = userEvent.setup()
+    render(<TripCompleted variant="reopened" token={TOKEN} cash={CASH_DUE} />)
+    await user.click(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` }))
+    await user.click(screen.getByRole('button', { name: `Yes, I received ${CASH_DUE.amountLabel}` }))
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(copy)
+    expect(screen.queryByText(/Cash received:/)).not.toBeInTheDocument()
+  })
+
+  it('a network failure shows the generic copy and the driver can try again', async () => {
+    fetchMock.mockImplementationOnce(() => Promise.reject(new Error('network')))
+    fetchMock.mockImplementationOnce(() => jsonResponse(200, { ok: true, status: 'completed', nextStep: null, cash: 'settled' }))
+    const user = userEvent.setup()
+    render(<TripCompleted variant="reopened" token={TOKEN} cash={CASH_DUE} />)
+    await user.click(screen.getByRole('button', { name: `I received ${CASH_DUE.amountLabel}` }))
+    await user.click(screen.getByRole('button', { name: `Yes, I received ${CASH_DUE.amountLabel}` }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('Could not send your answer. Try again.')
+    await user.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByText(`Cash received: ${CASH_DUE.amountLabel}. Thank you.`)).toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('a non-cash trip is unchanged: no card, no amount, no extra line', () => {
+    const { container } = render(<TripCompleted variant="reopened" />)
+    expect(screen.queryByText('CASH TO COLLECT')).not.toBeInTheDocument()
+    expect(screen.queryByText('If the passenger did not pay, call the office.')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(container.textContent ?? '').not.toMatch(/€|EUR|CZK|amount|cash/i)
+  })
+})
+
+describe('InvalidTripLinkView: the cancelled line (UI-SPEC 6.3)', () => {
+  it('says the trip was cancelled and shows the reference only', () => {
+    const { container } = render(<InvalidTripLinkView cancelledReference="PRG-100" />)
+    expect(screen.getByText('This trip was cancelled. You do not need to go.')).toBeInTheDocument()
+    expect(screen.getByText('Booking PRG-100')).toBeInTheDocument()
+    expect(screen.queryByText('This trip link is no longer active.')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Call the office' })).toHaveAttribute('href', BUSINESS_TEL_URL)
+    expect(container.textContent ?? '').not.toMatch(/Alice|Smith|Prague Airport|€|EUR|CZK/)
+  })
+
+  it('without a reference it stays the uniform view', () => {
+    const { container } = render(<InvalidTripLinkView />)
+    expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
+    expect(container.textContent ?? '').not.toMatch(/cancelled|Booking/)
   })
 })

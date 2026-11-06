@@ -339,10 +339,15 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     expect(stubSupabaseFrom).not.toHaveBeenCalled()
   })
 
-  it('cancelled, no_show, reassigned, declined, unknown and malformed tokens render byte-identical ended HTML (D-09, T-87-33)', async () => {
+  it('no_show, reassigned (even when cancelled), declined, unknown and malformed tokens render byte-identical ended HTML (D-09, T-87-33)', async () => {
+    // Phase 89 (UI-SPEC 6.3): a cancelled trip on the CURRENT driver's own link is the one exception, see the next test.
     const arrangements: Array<{ arrange: () => void; token: string }> = [
-      { arrange: () => mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'cancelled' })), token: validToken },
       { arrange: () => mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'no_show' })), token: validToken },
+      {
+        arrange: () =>
+          mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'cancelled', assignmentDriverId: driverId, bookingDriverId: otherDriverId })),
+        token: validToken,
+      },
       {
         arrange: () =>
           mockSupabaseSingle(makeAssignmentRow({ assignmentDriverId: driverId, bookingDriverId: otherDriverId })),
@@ -367,6 +372,18 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
       expect(html).toBe(htmls[0])
       expect(html).not.toContain('PRG-100')
       expect(html).not.toContain('Alice')
+    }
+  })
+
+  it('a cancelled trip on the current driver link says so and shows the reference only (Phase 89, D-03)', async () => {
+    mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'cancelled' }))
+    const { container } = await renderPage()
+    expect(screen.getByText('This trip was cancelled. You do not need to go.')).toBeInTheDocument()
+    expect(screen.getByText('Booking PRG-100')).toBeInTheDocument()
+    expect(screen.queryByText('This trip link is no longer active.')).not.toBeInTheDocument()
+    const text = container.textContent ?? ''
+    for (const secret of ['Alice', 'Smith', '+420123456789', 'Prague Airport', 'Wenceslas Square', '2026-09-01']) {
+      expect(text).not.toContain(secret)
     }
   })
 

@@ -116,7 +116,7 @@ interface StepResponseBody {
 
 const SWIPE_MIN_PX = 24
 
-export default function TripScreen({ token, view, trip, initialNote, noShow }: TripScreenProps) {
+export default function TripScreen({ token, view, trip, initialNote, noShow, cash }: TripScreenProps) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
@@ -510,6 +510,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
           pickupDate: trip.pickupDate,
           completedAt,
         }}
+        {...(cash ? { token, cash } : {})}
       />
     )
   }
@@ -707,6 +708,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
             vehicleInfo={trip.vehicleInfo}
             flight={trip.flight}
             clientNotes={trip.clientNotes}
+            isCash={cash !== undefined}
             draft={noteDraft}
             onDraftChange={setNoteDraft}
           />
@@ -797,6 +799,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
           mode="step"
           stepLabel={DRIVER_STEP_LABEL[nextStep]}
           isFinal={nextStep === 'completed'}
+          cash={cash && cash.state === 'due' ? { amountLabel: cash.amountLabel } : undefined}
           submitting={submitting}
           error={dialogError}
           onConfirm={submit}

@@ -1,9 +1,11 @@
 import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 // D-09 / D-11: one neutral view for EVERY ended reason (unknown token, malformed token, cancelled,
-// no_show, reassigned, declined, driverless, orphaned booking). There is no prop and no branch, so
-// the markup is byte-identical for all of them and a link cannot be used to enumerate bookings.
-export default function InvalidTripLinkView(_props: { cancelledReference?: string } = {}) {
+// no_show, reassigned, declined, driverless, orphaned booking), so a link cannot be used to enumerate
+// bookings. The single exception (Phase 89, D-03, UI-SPEC 6.3): the page passes cancelledReference only
+// for a cancelled booking on the CURRENT driver's own link; the view then says the trip was cancelled
+// and shows the booking reference, nothing else (no passenger, address or amount).
+export default function InvalidTripLinkView({ cancelledReference }: { cancelledReference?: string } = {}) {
   return (
     <main
       style={{
@@ -43,8 +45,22 @@ export default function InvalidTripLinkView(_props: { cancelledReference?: strin
             color: 'var(--admin-text-muted)',
           }}
         >
-          This trip link is no longer active.
+          {cancelledReference ? 'This trip was cancelled. You do not need to go.' : 'This trip link is no longer active.'}
         </p>
+        {cancelledReference ? (
+          <p
+            style={{
+              margin: '8px 0 0',
+              fontSize: 'var(--driver-fs-body)',
+              fontWeight: 500,
+              lineHeight: 1.5,
+              fontVariantNumeric: 'tabular-nums',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {`Booking ${cancelledReference}`}
+          </p>
+        ) : null}
         <p
           style={{
             margin: '8px 0 0',
