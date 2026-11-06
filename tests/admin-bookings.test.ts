@@ -164,11 +164,13 @@ function makePostRequest(body: Record<string, unknown>): Request {
   })
 }
 
+// Phase 89 D-20: the cancel route requires who cancelled. These Phase 27/87 tests are about the in-time money paths,
+// which a Prestigo cancel always is (free whatever the time); see tests/admin-bookings-cancel.test.ts for the rule itself.
 function makeCancelRequest(body: Record<string, unknown>): Request {
   return new Request('http://localhost/api/admin/bookings/cancel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ cancelled_by: 'prestigo', ...body }),
   })
 }
 
@@ -2187,8 +2189,11 @@ describe('POST /api/admin/bookings/cancel', () => {
 
     // CRITICAL regression guard: the status write targets the booking id only, never the shared
     // payment_intent_id (the paired round-trip leg must stay untouched).
-    expect(supabaseServiceStub.rpc).toHaveBeenCalledTimes(1)
-    const rpcArgs = supabaseServiceStub.rpc.mock.calls[0][1] as Record<string, unknown>
+    // (Phase 89: the operator's choice is also recorded as an admin_action ledger row, a second RPC; one status write.)
+    const statusWrites = supabaseServiceStub.rpc.mock.calls.filter((c) => c[0] === 'advance_booking_status')
+    expect(statusWrites).toHaveLength(1)
+    expect(supabaseServiceStub.rpc.mock.calls[0][0]).toBe('advance_booking_status')
+    const rpcArgs = statusWrites[0][1] as Record<string, unknown>
     expect(rpcArgs.p_booking_id).toBe('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d')
     expect(JSON.stringify(rpcArgs)).not.toContain('payment_intent_id')
     expect(JSON.stringify(rpcArgs)).not.toContain('pi_shared_round_trip')
