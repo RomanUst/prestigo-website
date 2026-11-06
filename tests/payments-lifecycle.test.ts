@@ -301,6 +301,9 @@ async function startBooking() {
       displayedAmountMinor: serverAmount(),
       // 88-REVIEW B-WR-05: the client sends back the hold date its consent showed (from init).
       displayedHoldDateIso: initOut.holdDateIso,
+      // Phase 89 D-16: ... and the free-until moment its consent named (from the init policy preview).
+      displayedFreeUntilIso: (initOut.policy as { freeUntilIso: string }).freeUntilIso,
+      displayedFreeUntilPassed: (initOut.policy as { freeUntilPassed: boolean }).freeUntilPassed,
     }),
   )
   expect(res.status).toBe(200)
@@ -709,7 +712,8 @@ describe('hold at checkout keeps the saved card (88-REVIEW T3: A-CR-03, B-CR-01)
     // Pickup 48 h away: inside the 72 h lead, so the checkout authorizes the amount right away (D-11).
     setNow(PICKUP_MS - 48 * HOUR)
     const init = await initPOST(jsonRequest('http://localhost/api/card-checkout/init', { bookingData: bookingData(), currency: 'eur' }))
-    expect(await init.json()).toMatchObject({ eligible: true, mode: 'hold_now' })
+    const initOut = (await init.json()) as { policy: { freeUntilIso: string; freeUntilPassed: boolean } }
+    expect(initOut).toMatchObject({ eligible: true, mode: 'hold_now' })
     const res = await intentPOST(
       jsonRequest('http://localhost/api/card-checkout/intent', {
         bookingData: bookingData(),
@@ -717,6 +721,8 @@ describe('hold at checkout keeps the saved card (88-REVIEW T3: A-CR-03, B-CR-01)
         mode: 'hold_now',
         consent: true,
         displayedAmountMinor: serverAmount(),
+        displayedFreeUntilIso: initOut.policy.freeUntilIso,
+        displayedFreeUntilPassed: initOut.policy.freeUntilPassed,
       }),
     )
     expect(res.status).toBe(200)

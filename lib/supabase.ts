@@ -255,15 +255,21 @@ export class AttemptFlowConflictError extends Error {
   }
 }
 
+/** The payment flow that captures an unpaid row (Phase 89: cash_guarantee joins pay_now and card_hold). */
+export type CaptureFlow = 'pay_now' | 'card_hold' | 'cash_guarantee'
+
 /**
- * Phase 88 (88-REVIEW B-WR-02): one payment flow per attempt, enforced on the server. A pay-now capture never
- * overwrites a card_hold row (it would keep payment_mode card_hold and the SetupIntent, so the card engine would later
- * hold and charge a booking that was already paid), and a card capture never overwrites a pay-now row (it would drop
- * its payment_intent_id). A value that was not read (undefined) is not a conflict.
+ * Phase 88 (88-REVIEW B-WR-02), widened in Phase 89 (89-10, Pitfall 5): one payment flow per attempt, enforced on the
+ * server, symmetric across the three flows. A pay-now capture never overwrites a card_hold or cash_guarantee row (it
+ * would keep payment_mode and the SetupIntent, so the card engine would later hold and charge a booking that was
+ * already paid); a card capture never overwrites a pay-now or cash row, and a cash capture never overwrites a pay-now or
+ * card row (it would drop its payment_intent_id or turn a card booking into a cash one under the same attempt). A client
+ * who switches between card and cash therefore needs a new attempt. A value that was not read (undefined) is not a
+ * conflict.
  */
-function flowConflict(existing: { payment_mode?: unknown; payment_intent_id?: unknown }, flow: 'pay_now' | 'card_hold'): boolean {
-  if (flow === 'pay_now') return existing.payment_mode === 'card_hold'
-  const otherMode = typeof existing.payment_mode === 'string' && existing.payment_mode !== 'card_hold'
+function flowConflict(existing: { payment_mode?: unknown; payment_intent_id?: unknown }, flow: CaptureFlow): boolean {
+  if (flow === 'pay_now') return existing.payment_mode === 'card_hold' || existing.payment_mode === 'cash_guarantee'
+  const otherMode = typeof existing.payment_mode === 'string' && existing.payment_mode !== flow
   const paidIntent = typeof existing.payment_intent_id === 'string' && existing.payment_intent_id.length > 0
   return otherMode || paidIntent
 }
@@ -273,7 +279,7 @@ export async function captureUnpaidBooking(
   attemptId: string,
   leg: 'outbound' | 'return',
   /** The flow capturing the row: an existing unpaid row of the other flow throws AttemptFlowConflictError. */
-  flow?: 'pay_now' | 'card_hold'
+  flow?: CaptureFlow
 ): Promise<{ id: string }[]> {
   const supabase = createSupabaseServiceClient()
   const rowWithAttempt = { ...row, attempt_id: attemptId }

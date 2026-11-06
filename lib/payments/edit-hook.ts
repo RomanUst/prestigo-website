@@ -46,11 +46,17 @@ const num = (v: unknown): number | null => {
   return typeof n === 'number' && Number.isFinite(n) ? n : null
 }
 
-/** A card booking whose money is in flight can not be edited: the worker holding the lease owns the amounts. */
+/**
+ * A card or cash booking whose money is in flight can not be edited: the worker holding the lease (or the checkout still
+ * open) owns the amounts. Phase 89 (89-10): cash_guarantee follows the same rule.
+ */
 export function assertEditablePrecheck(
   current: Record<string, unknown>,
 ): null | { status: 409; body: { error: 'payment_in_progress' } } {
-  if (current.payment_mode === 'card_hold' && IN_FLIGHT.includes(str(current.payment_state))) {
+  if (
+    (current.payment_mode === 'card_hold' || current.payment_mode === 'cash_guarantee') &&
+    IN_FLIGHT.includes(str(current.payment_state))
+  ) {
     return { status: 409, body: { error: 'payment_in_progress' } }
   }
   return null
@@ -80,6 +86,68 @@ async function recordEdit(bookingId: string, actor: LedgerActor, errorCode?: str
 }
 
 /**
+ * Phase 89 (89-10, D-12): a price edit on a cash_guarantee booking keeps the amount the driver will see. A cash booking
+ * has no hold to follow, so only the amount matters: in card_saved it moves through a card_saved self-loop (legal) with
+ * an edit_reevaluated ledger row. The booking currency is kept, no conversion. Once the cash is settled or money was
+ * collected the amount is final; a pickup change never schedules anything (hold_at stays NULL). Never throws.
+ */
+async function reevaluateCashAfterEdit(input: {
+  bookingId: string
+  priceChanged: boolean
+  actor: LedgerActor
+}): Promise<null> {
+  const { bookingId, priceChanged, actor } = input
+  if (!priceChanged) return null
+  try {
+    const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).single()
+    if (error || !data) {
+      console.error('[edit-hook] booking re-select failed', { bookingId })
+      return null
+    }
+    const row = data as BookingRow
+    const state = str(row.payment_state) as PaymentState
+    const currency: Currency = row.payment_currency === 'czk' ? 'czk' : 'eur'
+
+    if (state === 'captured' || state === 'balance_due' || state === 'cash_settled') {
+      await recordEdit(bookingId, actor, 'already_collected', currency)
+      return null
+    }
+    if (IN_FLIGHT.includes(state)) {
+      await recordEdit(bookingId, actor, 'payment_in_progress', currency)
+      return null
+    }
+    if (state !== 'card_saved') return null
+
+    const newAmount = deriveAmountMinor(row, currency)
+    if (newAmount === null) {
+      await recordEdit(bookingId, actor, 'amount_invalid', currency)
+      return null
+    }
+    if (newAmount === num(row.payment_amount_minor)) return null
+    const moved = await applyTransition({
+      bookingId,
+      from: ['card_saved'],
+      to: 'card_saved',
+      patch: { payment_amount_minor: newAmount },
+      event: {
+        key: `edit_reevaluated:${bookingId}:${Date.now()}`,
+        kind: 'edit_reevaluated',
+        amountMinor: newAmount,
+        currency,
+        actor,
+      },
+    })
+    if (!moved.applied && moved.duplicate !== true) {
+      console.error('[edit-hook] cash booking moved before the edit was applied', { bookingId })
+    }
+    return null
+  } catch {
+    console.error('[edit-hook] cash re-evaluation failed', { bookingId })
+    return null
+  }
+}
+
+/**
  * Re-evaluate the card payment of a booking after a successful trip edit. Returns what the operator should be told
  * (payment_effect), or null when nothing needs saying. Never throws.
  */
@@ -98,6 +166,7 @@ export async function reevaluateAfterEdit(input: {
     if (err instanceof PartnerBookingMoneyError) return null
     throw err
   }
+  if (before.payment_mode === 'cash_guarantee') return reevaluateCashAfterEdit({ bookingId, priceChanged, actor })
   if (before.payment_mode !== 'card_hold') return null
   if (!priceChanged && !pickupChanged) return null
 

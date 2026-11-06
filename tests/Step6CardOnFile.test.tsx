@@ -314,9 +314,12 @@ describe('consent checkbox and submit button (HOLD-01)', () => {
     await renderGate()
     const box = await ready()
     const label = box.closest('label') as HTMLLabelElement
+    const vars = consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: '2026-11-12', locale: 'en' })
+    // Phase 89-10: the wording now names {freeUntil}; the checkout passes it from the init policy in plan 89-11.
     const expected = cof[consentMessageKey('setup')]
-      .replace('{amount}', consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: '2026-11-12', locale: 'en' }).amount)
-      .replace('{holdDate}', consentVars({ amountMinor: 12000, currency: 'eur', holdDateIso: '2026-11-12', locale: 'en' }).holdDate)
+      .replaceAll('{amount}', vars.amount)
+      .replace('{holdDate}', vars.holdDate)
+      .replace('{freeUntil}', vars.freeUntil)
     expect(label.textContent).toBe(expected)
   })
 
@@ -771,7 +774,7 @@ describe('held-now variant (HOLD-03, D-11)', () => {
     const box = await ready()
     const label = box.closest('label') as HTMLLabelElement
     const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: null, locale: 'en' })
-    expect(label.textContent).toBe(cof[consentMessageKey('hold_now')].replace('{amount}', vars.amount))
+    expect(label.textContent).toBe(cof[consentMessageKey('hold_now')].replaceAll('{amount}', vars.amount).replace('{freeUntil}', vars.freeUntil))
     expect(label.textContent).toContain(formatMinor(9000, 'czk'))
   })
 
@@ -860,7 +863,9 @@ describe('held-now variant (HOLD-03, D-11)', () => {
     expect(box.checked).toBe(false)
     const label = box.closest('label') as HTMLLabelElement
     const vars = consentVars({ amountMinor: 9000, currency: 'czk', holdDateIso: '2026-11-12', locale: 'en' })
-    expect(label.textContent).toBe(cof[consentMessageKey('setup')].replace('{amount}', vars.amount).replace('{holdDate}', vars.holdDate))
+    expect(label.textContent).toBe(
+      cof[consentMessageKey('setup')].replaceAll('{amount}', vars.amount).replace('{holdDate}', vars.holdDate).replace('{freeUntil}', vars.freeUntil),
+    )
     await waitFor(() => expect(document.activeElement).toBe(notice))
     const opts = h.elementsOptionsCapture[h.elementsOptionsCapture.length - 1]
     expect(opts).toMatchObject({ mode: 'setup', currency: 'czk' })

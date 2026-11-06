@@ -9,6 +9,10 @@
 // The booking row and the consent exist BEFORE Stripe talks to the browser, so the webhook (plan 88-09)
 // can confirm exactly one booking by metadata.cofBookingId (Pitfall 13).
 //
+// Phase 89 (89-10, CASH-01, D-08, D-09): the same engine also books "pay cash to the driver". payment 'cash' writes
+// payment_mode cash_guarantee with a SetupIntent only (never hold_now, even inside the hold lead) and hold_at NULL.
+// The tick's claim query selects payment_mode = 'card_hold' only, so no hold can ever be placed on a cash booking.
+//
 // The caller (the intent route) has already validated, priced, checked eligibility and decided the mode.
 
 import { generateBookingReference } from '@/lib/booking-reference'
@@ -34,6 +38,10 @@ export interface RecordConsentInput {
   currency: PaymentCurrency
   holdAtIso: string | null
   holdDateIso: string | null
+  /** The booking's free-cancellation moment (epoch ms) named in the text (89-10, D-16). */
+  freeUntilMs: number | null
+  /** True when that moment has already passed at checkout: the NoFree wording is stored. */
+  freeUntilPassed: boolean
   ip: string
   userAgent: string
 }
@@ -51,6 +59,8 @@ export async function recordConsent(input: RecordConsentInput): Promise<{ consen
     amountMinor: input.amountMinor,
     currency: input.currency,
     holdDateIso: input.holdDateIso,
+    freeUntilMs: input.freeUntilMs,
+    freeUntilPassed: input.freeUntilPassed,
   })
   const textSha256 = consentSha256(text)
 
@@ -78,14 +88,23 @@ export async function recordConsent(input: RecordConsentInput): Promise<{ consen
 }
 
 export interface CardCheckoutIntentInput {
-  /** Decided by the server (decideHoldMode); defaults to the save-card flow. */
-  mode?: ConsentMode
+  /**
+   * Which way the client pays (89-10, D-08): 'card' (default) is the Phase 88 card flow, 'cash' is cash to the driver
+   * with the card saved as a guarantee. Cash ignores `mode`: it is always a SetupIntent, never a hold.
+   */
+  payment?: 'card' | 'cash'
+  /** Decided by the server (decideHoldMode); defaults to the save-card flow. Ignored for cash. */
+  mode?: Exclude<ConsentMode, 'cash_setup'>
   bookingData: CheckoutBookingData
   priced: PricedCheckout
   currency: PaymentCurrency
   attemptId: string
   /** Planned hold instant (computeHoldAt), epoch ms. */
   holdAtMs: number
+  /** The booking's free-cancellation moment (epoch ms), from the same policy read as `cancelPolicy` (89-10, D-16). */
+  freeUntilMs: number
+  /** True when that moment has passed at checkout; the consent drops "after {freeUntil}". */
+  freeUntilPassed: boolean
   authenticatedUserId: string | null
   /**
    * Phase 89 D-18: the cancellation terms the client was shown, from the same policy read that decided eligibility
@@ -126,6 +145,8 @@ function isMissingResource(err: unknown): boolean {
 
 export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): Promise<CardCheckoutIntentResult> {
   const { bookingData, priced, currency, attemptId, holdAtMs } = input
+  const cash = input.payment === 'cash'
+  const flow = cash ? 'cash_guarantee' : 'card_hold'
   const supabase = createSupabaseServiceClient()
   const amountMinor = priced.combined.stripeAmountMinor
 
@@ -149,8 +170,9 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
   if (existing && existing.status !== 'unpaid') {
     return { kind: 'already_confirmed', bookingReference: existing.booking_reference }
   }
-  // B-WR-02: an unpaid pay-now row of this attempt is never turned into a card booking.
-  if (existing && ((existing.payment_mode && existing.payment_mode !== 'card_hold') || existing.payment_intent_id)) {
+  // B-WR-02: an unpaid pay-now row of this attempt is never turned into a card booking, and (89-10, Pitfall 5) a card
+  // row never into a cash booking or the other way round: a client who switches card and cash gets a new attempt.
+  if (existing && ((existing.payment_mode && existing.payment_mode !== flow) || existing.payment_intent_id)) {
     return { kind: 'attempt_closed' }
   }
   const bookingReference = existing?.booking_reference || generateBookingReference()
@@ -163,10 +185,10 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
     authenticatedUserId: input.authenticatedUserId,
     cancelPolicy: input.cancelPolicy ?? null,
   })
-  const row = { ...buildBookingRow(meta, null, 'unpaid'), payment_mode: 'card_hold' }
+  const row = { ...buildBookingRow(meta, null, 'unpaid'), payment_mode: flow }
   let affected: { id: string }[]
   try {
-    affected = await captureUnpaidBooking(row, attemptId, 'outbound', 'card_hold')
+    affected = await captureUnpaidBooking(row, attemptId, 'outbound', flow)
   } catch (err) {
     if (err instanceof AttemptFlowConflictError) return { kind: 'attempt_closed' }
     throw err
@@ -192,19 +214,22 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
 
   const customerId = await ensureStripeCustomer(booking)
 
-  if (input.mode === 'hold_now') {
+  if (!cash && input.mode === 'hold_now') {
     return createHoldNowIntent({ input, booking, bookingReference, customerId, amountMinor, localeSource: meta.locale })
   }
 
-  const holdAtIso = new Date(holdAtMs).toISOString()
+  // Cash: no planned hold at all (hold_at stays NULL, the consent names no hold date). Card: the Phase 88 setup flow.
+  const holdAtIso = cash ? null : new Date(holdAtMs).toISOString()
   const { consentId } = await recordConsent({
     bookingId: booking.id,
-    mode: 'setup',
+    mode: cash ? 'cash_setup' : 'setup',
     locale: meta.locale,
     amountMinor,
     currency,
     holdAtIso,
-    holdDateIso: holdDateIso(holdAtMs),
+    holdDateIso: cash ? null : holdDateIso(holdAtMs),
+    freeUntilMs: input.freeUntilMs,
+    freeUntilPassed: input.freeUntilPassed,
     ip: input.ip,
     userAgent: input.userAgent,
   })
@@ -317,6 +342,8 @@ async function createHoldNowIntent(args: HoldNowArgs): Promise<CardCheckoutInten
     currency,
     holdAtIso: null,
     holdDateIso: null,
+    freeUntilMs: input.freeUntilMs,
+    freeUntilPassed: input.freeUntilPassed,
     ip: input.ip,
     userAgent: input.userAgent,
   })

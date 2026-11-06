@@ -113,8 +113,28 @@ function shownHoldDate(data: { pickupDate: string; pickupTime: string }): string
   return pickupMs === null ? null : holdDateIso(computeHoldAt(pickupMs, 72).holdAtMs)
 }
 
+/**
+ * The free-until moment the client's consent shows (Phase 89 D-16): pickup minus the hours of the policy in the fake's
+ * settings row (the default policy when the row carries no cancel_* columns).
+ */
+function shownFreeUntil(data: { tripType: string; distanceKm: string; pickupDate: string; pickupTime: string }) {
+  const g = db.state.pricing_globals[0] as Record<string, unknown>
+  const num = (v: unknown, d: number) => (typeof v === 'number' ? v : d)
+  const km = Number(data.distanceKm)
+  const hours =
+    data.tripType === 'hourly'
+      ? num(g.cancel_free_hours_hourly, 12)
+      : km <= num(g.cancel_free_km_threshold, 100)
+        ? num(g.cancel_free_hours_short, 1)
+        : num(g.cancel_free_hours_long, 12)
+  const pickupMs = pickupInstantMs({ pickup_utc: null, pickup_date: data.pickupDate, pickup_time: data.pickupTime }) as number
+  const ms = pickupMs - Math.round(hours * 3_600_000)
+  return { iso: new Date(ms).toISOString(), passed: Date.now() > ms }
+}
+
 function body(over: Record<string, unknown> = {}, data: Record<string, string> = {}) {
   const bd = bookingData(data)
+  const free = shownFreeUntil(bd)
   return {
     bookingData: bd,
     currency: 'eur',
@@ -122,6 +142,8 @@ function body(over: Record<string, unknown> = {}, data: Record<string, string> =
     consent: true,
     displayedAmountMinor: serverAmount(),
     displayedHoldDateIso: shownHoldDate(bd),
+    displayedFreeUntilIso: free.iso,
+    displayedFreeUntilPassed: free.passed,
     ...over,
   }
 }
@@ -290,6 +312,8 @@ describe('POST /api/card-checkout/intent: setup mode happy path (tracer)', () =>
       amountMinor: serverAmount(),
       currency: 'eur',
       holdDateIso: '2027-01-13',
+      // 16 Jan 10:00 Prague pickup, one free hour (the default short window for 50 km).
+      freeUntilMs: Date.parse('2027-01-16T08:00:00Z'),
     })
     expect(c).toMatchObject({
       booking_id: bookings()[0].id,
@@ -467,6 +491,7 @@ describe('POST /api/card-checkout/intent: hold_now mode (HOLD-03, tracer)', () =
       amountMinor: nearAmount(),
       currency: 'eur',
       holdDateIso: null,
+      freeUntilMs: Date.parse(shownFreeUntil({ ...bookingData(NEAR) }).iso),
     })
     expect(consents()[0]).toMatchObject({
       booking_id: bookings()[0].id,
