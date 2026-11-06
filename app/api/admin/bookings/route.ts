@@ -336,15 +336,32 @@ export async function PATCH(request: Request) {
     // hold still live and the recovery link still payable. The row read here is handed to the status service, so
     // the guard costs no extra query.
     let current: Record<string, unknown> | undefined
+
+    // Phase 89 WR-04: a no-show is confirmed only through POST /api/admin/bookings/[id]/no-show, which checks the
+    // driver's request and the waiting time and opens the fee case with its evidence. A money-bearing status must
+    // not be reachable from a plain status select.
+    if (parsed.data.status === 'no_show') {
+      return NextResponse.json(
+        {
+          error: 'use_no_show_route',
+          message: 'A no-show is confirmed from the driver request on the booking, after the waiting time.',
+        },
+        { status: 422 },
+      )
+    }
+
     if (parsed.data.status === 'cancelled') {
       const { data: row, error: rowError } = await supabase.from('bookings').select('*').eq('id', parsed.data.id).single()
       if (rowError || !row) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
       current = row as Record<string, unknown>
-      if (current.payment_mode === 'card_hold') {
+      // Card hold, cash guarantee (a saved card behind it) and any booking that carries a payment intent (paid in
+      // full) all have money behind them: only the cancel route releases, refunds or applies the policy.
+      const hasPaymentIntent = typeof current.payment_intent_id === 'string' && current.payment_intent_id !== ''
+      if (current.payment_mode === 'card_hold' || current.payment_mode === 'cash_guarantee' || hasPaymentIntent) {
         return NextResponse.json(
           {
             error: 'use_cancel_route',
-            message: 'Card bookings are cancelled with Cancel booking, so the card hold is released or the payment refunded.',
+            message: 'Bookings with a card or a payment are cancelled with Cancel booking, so the hold is released or the payment refunded.',
           },
           { status: 422 },
         )
@@ -390,8 +407,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Terminal-status gate — completed/cancelled bookings are final and read-only.
-    if (current.status === 'completed' || current.status === 'cancelled') {
+    // Terminal-status gate — completed/cancelled/no_show bookings are final and read-only (WR-02: no_show was missing;
+    // a no-show can carry a fee case, so an edit of its price or pickup would rewrite what a charge is based on).
+    if (current.status === 'completed' || current.status === 'cancelled' || current.status === 'no_show') {
       return NextResponse.json(
         { error: `${current.status} bookings are final and cannot be edited` },
         { status: 422 }

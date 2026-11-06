@@ -6,6 +6,7 @@ import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendDriverAssignmentEmail } from '@/lib/email'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
+import { TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
 
 const assignSchema = z.object({
@@ -64,6 +65,16 @@ export async function POST(
 
   if (bookingError || !booking) {
     return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+  }
+
+  // 5b-bis. WR-02 (Phase 89): a closed booking (completed, cancelled, no_show) can not be assigned. Before this gate the
+  // insert below ran first and only the status logic after it was skipped, so a cancelled booking still got an
+  // assignment row, a live driver trip link and a driver email. Checked before the insert: no row, no email.
+  if ((TERMINAL_BOOKING_STATUSES as ReadonlySet<string>).has(booking.status as string)) {
+    return NextResponse.json(
+      { error: 'booking_closed', message: `A ${booking.status} booking can not be assigned to a driver` },
+      { status: 422 },
+    )
   }
 
   // 5c. Insert assignment (DB generates token + token_expires_at)
