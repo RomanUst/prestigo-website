@@ -2,9 +2,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Copy, LoaderCircle, TriangleAlert } from 'lucide-react'
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
+import { CashCardChargeModal } from './CashCardChargeModal'
 import { FeeChargeModal } from './FeeChargeModal'
 import { FeeDecisionBanner } from './FeeDecisionBanner'
 import { FeeWaiveModal } from './FeeWaiveModal'
+import { MarkCashModal } from './MarkCashModal'
+import { ReopenCashModal } from './ReopenCashModal'
 import { Modal } from './Modal'
 import { AlertBanner, type BannerSpec, type DecisionResult } from './paymentParts'
 import {
@@ -25,7 +28,7 @@ import {
   type FeeCaseFacts,
   type PaymentSnapshot,
 } from './paymentShared'
-import { PaymentStateBadge, RefundFailedBadge } from './PaymentStateBadge'
+import { CashChip, PaymentStateBadge, RefundFailedBadge } from './PaymentStateBadge'
 
 // Phase 88-07 (HOLD-07, PAYF-01, D-14, D-20): self-contained admin payment panel. It fetches
 // GET /api/admin/bookings/[id]/payment itself (route built in plan 88-15) so Phase 90's
@@ -166,8 +169,20 @@ interface LinkCopyState {
   fallbackId: string
 }
 
-function buildFacts(p: PaymentSnapshot, link: LinkCopyState): Fact[] {
+const CASH_NOTE_LABEL: Record<string, string> = {
+  cash_card_charge: 'Why the card was charged',
+  cash_reopen: 'Why the cash confirmation was reversed',
+}
+
+const CASH_CONFIRMER_LABEL: Record<NonNullable<CashFacts['confirmed_by']>, string> = {
+  driver: 'By driver',
+  admin: 'By admin',
+  system: 'By the system',
+}
+
+function buildFacts(p: PaymentSnapshot, link: LinkCopyState, cash: CashFacts | null = null): Fact[] {
   const facts: Fact[] = []
+  const isCash = p.mode === 'cash_guarantee'
   const cur = p.currency
   const push = (key: string, caption: string, value: React.ReactNode | null) => {
     if (value !== null && value !== undefined) facts.push({ key, caption, value })
@@ -177,18 +192,27 @@ function buildFacts(p: PaymentSnapshot, link: LinkCopyState): Fact[] {
     push('booked', 'Booked amount', <span style={amountStyle}>{money(p.amount_minor, cur)}</span>)
   }
   push('card', 'Card on file', p.card_saved ? 'Saved' : 'Not saved')
-  if (p.state === 'card_saved') push('hold_at', 'Hold planned for', formatPragueFull(p.hold_at))
-  if (p.hold_amount_minor !== null) {
+  // UI-SPEC 5.2: no hold is ever placed on a cash booking, so no hold facts.
+  if (isCash && p.amount_minor !== null && (p.state === 'card_saved' || p.state === 'failed')) {
+    push('cash_due', 'Cash to collect', <span style={amountStyle}>{money(p.amount_minor, cur)}</span>)
+  }
+  if (isCash && p.state === 'cash_settled') {
+    const who = cash?.confirmed_by ? CASH_CONFIRMER_LABEL[cash.confirmed_by] : null
+    const when = formatPragueFull(cash?.confirmed_at)
+    push('cash_confirmed', 'Cash confirmed', [who, when].filter(Boolean).join(', ') || null)
+  }
+  if (!isCash && p.state === 'card_saved') push('hold_at', 'Hold planned for', formatPragueFull(p.hold_at))
+  if (!isCash && p.hold_amount_minor !== null) {
     push('held', 'Held amount', <span style={amountStyle}>{money(p.hold_amount_minor, cur)}</span>)
   }
-  if (p.state === 'authorized') {
+  if (!isCash && p.state === 'authorized') {
     const when = formatPragueFull(p.capture_before)
     push('expires', 'Hold expires', when ? `${when} (Prague time)` : null)
   }
   if (p.captured_amount_minor > 0) {
     push('captured', 'Captured', <span style={amountStyle}>{money(p.captured_amount_minor, cur)}</span>)
   }
-  if (['captured', 'balance_due', 'failed'].includes(p.state) && p.amount_minor !== null) {
+  if (!isCash && ['captured', 'balance_due', 'failed'].includes(p.state) && p.amount_minor !== null) {
     const due = p.amount_minor - p.captured_amount_minor
     if (due > 0) push('balance', 'Balance due', <span style={amountStyle}>{money(due, cur)}</span>)
   }
@@ -204,6 +228,19 @@ function buildFacts(p: PaymentSnapshot, link: LinkCopyState): Fact[] {
     // D-13: one automatic retry is scheduled while payment_retry_count is 0 and a time is set.
     const scheduled = p.payment_retry_at && p.payment_retry_count < 1 ? formatPragueFull(p.payment_retry_at) : null
     push('retry', 'Automatic retry', scheduled ? `Once, at ${scheduled}` : 'No more automatic retries')
+  }
+  // Operator notes about the cash decisions: admin-only, shown here and never in the payment history.
+  if (cash && cash.notes.length > 0) {
+    push('cash_notes', 'Notes', (
+      <ul aria-label="Cash notes" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+        {cash.notes.map((n, i) => (
+          <li key={`${n.created_at}-${i}`} style={{ overflowWrap: 'anywhere' }}>
+            <span style={labelStyle}>{CASH_NOTE_LABEL[n.kind] ?? n.kind}: </span>
+            {n.note}
+          </li>
+        ))}
+      </ul>
+    ))
   }
   if (p.recovery_link_url) {
     push('link', 'Payment link', (
@@ -359,12 +396,49 @@ function refundFailedBanner(p: PaymentSnapshot): BannerSpec {
   }
 }
 
+/**
+ * UI-SPEC 5.2, first match. "Cash not confirmed" is information (info family, role status): D-21 says nothing happens
+ * automatically because of it. The "driver reports cash not received" row is not built (D-21 reading, plan 89-14).
+ */
+function computeCashBanner(data: PaymentResponse): BannerSpec | null {
+  const p = data.payment
+  const amount = p.amount_minor !== null ? money(p.amount_minor, p.currency) : 'the amount'
+  if (p.state === 'failed') {
+    return {
+      family: 'danger',
+      title: 'Payment failed',
+      body: p.completed
+        ? 'The card was declined. The client was emailed a payment link.'
+        : `The card was declined. Tell the driver to take ${amount} in cash.`,
+    }
+  }
+  if (p.state === 'card_saved' && (data.cash?.unconfirmed ?? p.completed)) {
+    return {
+      family: 'info',
+      title: 'Cash not confirmed',
+      body: `The driver has not confirmed receiving ${amount} in cash. Nothing happens automatically. Mark it paid in cash, or charge the saved card.`,
+    }
+  }
+  if (p.state === 'cash_settled') {
+    const by = data.cash?.confirmed_by
+    const who = by === 'driver' ? 'driver' : by === 'admin' ? 'operator' : 'system'
+    const when = formatPragueFull(data.cash?.confirmed_at)
+    return {
+      family: 'info',
+      title: 'Paid in cash',
+      body: `${amount} was confirmed in cash by the ${who}${when ? ` on ${when}` : ''}. If this is wrong, you can reopen it.`,
+    }
+  }
+  return null
+}
+
 /** First matching rule wins (UI-SPEC alert banner rules). */
 function computeBanner(data: PaymentResponse, nowMs: number): BannerSpec | null {
   const p = data.payment
   if (data.refund_failed) return refundFailedBanner(p)
   // 88-REVIEW T2 (C-WR-03): a cancelled / no-show trip asks for no hold and no payment, so no hold banner applies.
   if (p.status === 'cancelled' || p.status === 'no_show') return null
+  if (p.mode === 'cash_guarantee') return computeCashBanner(data)
   if (p.state === 'failed') {
     const retryAt = p.payment_retry_at && p.payment_retry_count < 1 ? formatPragueFull(p.payment_retry_at) : null
     return {
@@ -532,6 +606,15 @@ function confirmCopy(action: PaymentActionName, p: PaymentSnapshot): ConfirmCopy
         danger: false,
       }
     case 'release':
+      if (p.mode === 'cash_guarantee') {
+        return {
+          title: 'Release saved card',
+          body: `Release the saved card for booking ${ref}? Nothing will be charged and the client's card is released. This cannot be undone.`,
+          primary: 'Release saved card',
+          secondary: 'Keep saved card',
+          danger: true,
+        }
+      }
       return {
         title: 'Release hold',
         body: `Release the hold of ${text(p.hold_amount_minor ?? p.amount_minor)} for booking ${ref}? Nothing will be charged and the client's card is released. This cannot be undone.`,
@@ -724,7 +807,7 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
 
 const EXECUTABLE_ACTIONS: readonly PaymentActionName[] = ['capture', 'retry', 'send_link', 'release', 'waive']
 const KNOWN_ACTIONS: readonly PaymentActionName[] = [
-  ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee',
+  ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee', 'charge_saved_card', 'mark_cash_settled', 'reopen_cash',
 ]
 
 const FEE_CASE_LABEL: Record<string, string> = {
@@ -812,6 +895,10 @@ function actionLabel(action: PaymentActionName, p: PaymentSnapshot): string {
   switch (action) {
     case 'charge_fee': return 'Charge fee…'
     case 'waive_fee': return 'Waive fee…'
+    case 'charge_saved_card': return 'Charge saved card…'
+    case 'mark_cash_settled': return 'Mark paid in cash…'
+    case 'reopen_cash': return 'Reopen as unpaid…'
+    case 'release': return p.mode === 'cash_guarantee' ? 'Release saved card' : 'Release hold'
     default: return actionButtonLabel(action, p.completed)
   }
 }
@@ -916,7 +1003,8 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
   return (
     <div data-testid="payment-panel" style={cardStyle} onClick={(e) => e.stopPropagation()}>
       <PanelHeader>
-        {p.mode !== 'pay_now' && <PaymentStateBadge state={p.state} />}
+        {p.mode === 'cash_guarantee' && <CashChip />}
+        {p.mode !== 'pay_now' && <PaymentStateBadge state={p.state} mode={p.mode} completed={p.completed} />}
         {data.refund_failed && <RefundFailedBadge />}
       </PanelHeader>
 
@@ -927,7 +1015,7 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
       {feeCase && <FeeBlock feeCase={feeCase} />}
 
       <FactsGrid
-        facts={buildFacts(p, { copied: copyState === 'copied', manual: copyState === 'manual', onCopy: copyLink, fallbackId: linkFallbackId })}
+        facts={buildFacts(p, { copied: copyState === 'copied', manual: copyState === 'manual', onCopy: copyLink, fallbackId: linkFallbackId }, data.cash ?? null)}
       />
 
       {actions.length === 0 ? (
@@ -973,6 +1061,31 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
           />
         )}
       </Modal>
+
+      <CashCardChargeModal
+        isOpen={modal === 'charge_saved_card'}
+        bookingId={bookingId}
+        payment={p}
+        onClose={closeDialog}
+        onResult={showResult}
+        onRefetch={onRefetch}
+      />
+      <MarkCashModal
+        isOpen={modal === 'mark_cash_settled'}
+        bookingId={bookingId}
+        payment={p}
+        onClose={closeDialog}
+        onResult={showResult}
+        onRefetch={onRefetch}
+      />
+      <ReopenCashModal
+        isOpen={modal === 'reopen_cash'}
+        bookingId={bookingId}
+        payment={p}
+        onClose={closeDialog}
+        onResult={showResult}
+        onRefetch={onRefetch}
+      />
 
       {feeCase && (
         <FeeWaiveModal

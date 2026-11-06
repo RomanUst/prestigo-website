@@ -168,6 +168,11 @@ export function FeeChargeModal({ isOpen, bookingId, payment, feeCase, onClose, o
             aria-invalid={serverNoteProblem ? true : undefined}
             aria-describedby="fee-note-help"
             onChange={e => setNote(e.target.value)}
+            onFocus={e => {
+              e.currentTarget.style.outline = '2px solid var(--admin-focus)'
+              e.currentTarget.style.outlineOffset = '2px'
+            }}
+            onBlur={e => { e.currentTarget.style.outline = 'none' }}
             style={{ ...inputBaseStyle, fontWeight: 400, resize: 'vertical' }}
           />
           <div id="fee-note-help" style={{ ...labelStyle, marginTop: '4px' }}>

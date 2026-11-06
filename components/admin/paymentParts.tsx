@@ -1,8 +1,10 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Info, LoaderCircle, TriangleAlert } from 'lucide-react'
+import { inputBaseStyle, labelStyle as fieldLabelStyle } from './adminFieldStyles'
 import {
   COPY_PARTIAL,
+  labelStyle,
   amountStyle,
   bodyStyle,
   outlineButtonStyle,
@@ -201,4 +203,49 @@ export function useFocusOnOpen<T extends HTMLElement>(isOpen: boolean) {
     return () => clearTimeout(t)
   }, [isOpen])
   return ref
+}
+
+/** A required operator note (1 to `max`): the textarea of the cash dialogs. Stored on the booking, never shown to the client. */
+export function NoteField({
+  id,
+  label,
+  helper,
+  value,
+  max,
+  disabled,
+  onChange,
+  inputRef,
+}: {
+  id: string
+  label: string
+  helper: string
+  value: string
+  max: number
+  disabled: boolean
+  onChange: (value: string) => void
+  inputRef: React.Ref<HTMLTextAreaElement>
+}) {
+  return (
+    <div style={{ marginTop: '16px' }}>
+      <label htmlFor={id} style={fieldLabelStyle}>{label}</label>
+      <textarea
+        id={id}
+        ref={inputRef}
+        rows={3}
+        value={value}
+        maxLength={max}
+        disabled={disabled}
+        aria-required="true"
+        aria-describedby={`${id}-help`}
+        onChange={e => onChange(e.target.value)}
+        onFocus={e => {
+          e.currentTarget.style.outline = '2px solid var(--admin-focus)'
+          e.currentTarget.style.outlineOffset = '2px'
+        }}
+        onBlur={e => { e.currentTarget.style.outline = 'none' }}
+        style={{ ...inputBaseStyle, fontWeight: 400, resize: 'vertical' }}
+      />
+      <div id={`${id}-help`} style={{ ...labelStyle, marginTop: '4px' }}>{helper}</div>
+    </div>
+  )
 }
