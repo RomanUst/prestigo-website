@@ -60,6 +60,7 @@ export interface OperatorAlertDetails {
   /**
    * `link_failed`: the recovery link could not be created, so the client was not emailed. `release`: a hold (not a
    * payment) could not be released. `refunded` / `refund_failed`: the outcome of a duplicate payment's automatic refund.
+   * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27).
    */
   note?: string
   // --- Phase 89, UI-SPEC 8.3. Instants are ISO strings (shown on the Prague wall clock); a missing field is omitted. ---
@@ -226,9 +227,11 @@ function buildFeeBody(kind: FeeAlertKind, booking: BookingRow, d: OperatorAlertD
     ...(kind === 'fee_pending_24h' ? instantLine('Open since', d.openedAt) : []),
     `Open in admin: ${siteBase()}/admin/bookings`,
     '',
-    kind === 'fee_pending_24h'
-      ? 'Nothing is charged until you decide. Charge or waive the fee from the booking.'
-      : 'Charge or waive the fee from the booking.',
+    d.note === 'case_missing'
+      ? 'The client cancelled after the free period, but the fee case could not be opened, so there is nothing to charge or waive yet. Nothing is charged. Decide from the booking.'
+      : kind === 'fee_pending_24h'
+        ? 'Nothing is charged until you decide. Charge or waive the fee from the booking.'
+        : 'Charge or waive the fee from the booking.',
   ].join('\n')
 }
 

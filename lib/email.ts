@@ -1984,6 +1984,84 @@ export async function sendDriverDeclineNotification(data: DriverDeclineNotificat
   }
 }
 
+/**
+ * What the driver of a cancelled trip is told (Phase 89, D-03, UI-SPEC 8.3). Reference, pickup time and the trip link
+ * only: no amount, no fee, no client name, e-mail or phone (T-89-29).
+ */
+export interface DriverCancelledEmailData {
+  driverEmail: string
+  bookingReference: string
+  pickupDate: string
+  pickupTime: string
+  /** The driver's permanent trip link; the button is left out when the assignment has none. */
+  tripUrl?: string | null
+  /** Who cancelled: the client, or Prestigo itself. Decides the first sentence only. */
+  cancelledBy: 'client' | 'prestigo'
+}
+
+export function buildDriverCancelledEmailHtml(data: DriverCancelledEmailData): string {
+  const formattedDate = formatPickupDate(data.pickupDate)
+  const lead = data.cancelledBy === 'prestigo' ? 'Prestigo cancelled this trip.' : 'The client cancelled this trip.'
+  const tripLink =
+    typeof data.tripUrl === 'string' && data.tripUrl.startsWith('https://')
+      ? `<div style="text-align: center; margin: 24px 0;">
+      <a href="${escapeHtml(data.tripUrl)}" style="display: inline-block; border: 1px solid #BFA06A; color: #BFA06A; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">OPEN TRIP</a>
+    </div>`
+      : ''
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trip Cancelled — ${escapeHtml(data.bookingReference)}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C; font-family: 'Inter', Arial, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 32px; color: #F3EEE3;">
+    <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%); margin-bottom: 32px;"></div>
+    <h1 style="font-size: 20px; font-weight: 400; color: #F3EEE3; margin: 0 0 16px;">Trip Cancelled</h1>
+    <p style="margin: 0 0 24px; font-size: 14px; color: #F3EEE3;">${lead} You do not need to go.</p>
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Booking Reference</td>
+        <td style="font-size: 14px; color: #BFA06A; padding: 8px 0; font-weight: 600;">${escapeHtml(data.bookingReference)}</td>
+      </tr>
+      <tr>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0;">Pickup</td>
+        <td style="font-size: 14px; color: #F3EEE3; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)} (Prague)</td>
+      </tr>
+    </table>
+    ${tripLink}
+    <div style="height: 1px; background-color: #BFA06A; margin: 32px 0 16px;"></div>
+    <div style="text-align: center;">
+      ${emailLogoImg(16)}
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Tell the assigned driver at once that a trip is cancelled (Phase 89, D-03). Non-fatal — catches and logs errors,
+ * does not throw. No replyTo (driver/operator send). Returns true when Resend accepted the message.
+ */
+export async function sendDriverCancelledEmail(data: DriverCancelledEmailData): Promise<boolean> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.driverEmail],
+      subject: `Trip cancelled — ${data.bookingReference}`,
+      html: buildDriverCancelledEmailHtml(data),
+    })
+    if (error) {
+      console.error('[driver-cancel] cancelled email error:', error)
+      return false
+    }
+    return true
+  } catch (err) {
+    console.error('[driver-cancel] cancelled email exception:', err)
+    return false
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // REMINDER EMAILS (Phase 41)
 // ═══════════════════════════════════════════════════════════════════════════

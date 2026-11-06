@@ -90,6 +90,22 @@ const FEE_DETAILS = {
   captureBefore: '2026-12-05T12:00:00Z',
 }
 
+describe('a late cancel whose fee case could not be opened (plan 89-27)', () => {
+  it('says there is no case to charge or waive, instead of pointing at a button that is not there', async () => {
+    const result = await sendPaymentOperatorAlert('fee_decision_needed', row(), {
+      eventKey: `alert:fee_decision_needed:${ID}:case_missing`,
+      note: 'case_missing',
+      ...FEE_DETAILS,
+    })
+    expect(result).toBe('sent')
+    const mail = lastMail()
+    expect(mail.subject).toBe(`[Fee] Decision needed — ${REF}`)
+    expect(mail.text).toContain('the fee case could not be opened')
+    expect(mail.text).toContain('Nothing is charged.')
+    expect(mail.text).not.toContain('Charge or waive the fee from the booking.')
+  })
+})
+
 describe('tracer: a late cancel opens a case and the owner is mailed with the [Fee] prefix', () => {
   it('sends the Surface 8.3 lines to MANAGER_EMAIL', async () => {
     const result = await sendPaymentOperatorAlert('fee_decision_needed', row(), { eventKey: key('fee_decision_needed'), ...FEE_DETAILS })

@@ -1,7 +1,7 @@
 import { NextResponse, after } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { logEmail } from '@/lib/email-log'
-import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail, type CancelMoneyOutcome } from '@/lib/email'
+import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
@@ -345,14 +345,34 @@ export function advanceResultToResponse(
 }
 
 /**
- * The client's cancelled email for the admin cancel route, after its refund or release succeeded. Same rules as the
- * 'full' profile: the notification flag, the dedup log and no email to partner passengers. An `unpaid` row is an
- * abandoned checkout the client never completed, so it gets none. Never throws into the route: the cancel stands.
+ * Which cancelled email the client gets (Phase 89, D-03, D-05, D-20, UI-SPEC 8.2) and what happened to the money:
+ *   free         the client cancelled in time (or an operator cancelled for the client in time)
+ *   by_prestigo  Prestigo cancelled: always free, the apology wording
+ *   late         the free period was over: a person decides about a fee, nothing is charged yet
+ */
+export interface CancelNotice {
+  variant: 'free' | 'by_prestigo' | 'late'
+  /** Hold released, payment refunded, or nothing was taken. */
+  moneyOutcome: 'released' | 'refunded' | 'none'
+  /** Minor units refunded when moneyOutcome is 'refunded' (in the booking's money currency). */
+  refundMinor?: number
+  /** Late only: the fee the case proposes (minor units); the sender falls back to the booking's stored policy. */
+  feeMinor?: number
+  /** Late only: the end of the free period (epoch ms); the sender falls back to the booking's stored policy. */
+  freeUntilMs?: number | null
+}
+
+/**
+ * The client's cancelled email for the cancel orchestrator, once the status change applied (and, on a free cancel,
+ * after its refund or release succeeded). Rendered through the payment email renderer in the booking's language and
+ * delivered once per ledger key `email:cancelled:<bookingId>`. The notification flag `cancelled` still silences it, and
+ * partner passengers get none. An `unpaid` row is an abandoned checkout the client never completed, so it gets none
+ * either. Never throws into the caller: the cancel stands.
  */
 export function scheduleCancelRouteEmail(
   booking: Record<string, unknown>,
   previousStatus: string,
-  money: CancelMoneyOutcome | null,
+  notice: CancelNotice,
 ): void {
   const recipient = booking.client_email
   if (typeof recipient !== 'string' || !recipient) return
@@ -368,12 +388,18 @@ export function scheduleCancelRouteEmail(
       const flags = flagsRow?.notification_flags as Record<string, boolean> | null
       if (flags && flags.cancelled === false) return
 
-      const shouldSend = await logEmail({
-        bookingId: booking.id as string,
-        emailType: 'booking_cancelled',
-        recipient,
+      // Loaded when needed: the renderer pulls in the message catalogs, which the other status paths never use.
+      const { sendPaymentEmail } = await import('@/lib/payments/emails/send')
+      await sendPaymentEmail({
+        kind: 'cancelled',
+        variant: notice.variant,
+        booking,
+        eventKey: `email:cancelled:${String(booking.id)}`,
+        moneyOutcome: notice.moneyOutcome,
+        ...(notice.refundMinor !== undefined ? { refundMinor: notice.refundMinor } : {}),
+        ...(notice.feeMinor !== undefined ? { feeMinor: notice.feeMinor } : {}),
+        ...(typeof notice.freeUntilMs === 'number' ? { freeUntil: notice.freeUntilMs } : {}),
       })
-      if (shouldSend) await sendStatusCancelledEmail(booking as unknown as StatusEmailInput, money)
     } catch (err) {
       console.error('[booking-notify] cancelled:', err)
     }

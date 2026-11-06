@@ -22,6 +22,7 @@ const {
   mockDeactivateLink,
   mockPushGnetStatus,
   mockAfter,
+  mockSendPaymentEmail,
 } = vi.hoisted(() => {
   return {
     mockGetAdminUser: vi.fn(),
@@ -38,6 +39,7 @@ const {
     mockDeactivateLink: vi.fn(),
     mockPushGnetStatus: vi.fn(),
     mockAfter: vi.fn(),
+    mockSendPaymentEmail: vi.fn(),
   }
 })
 
@@ -65,10 +67,14 @@ vi.mock('@/lib/payments/hold', async (importOriginal) => ({
 }))
 
 vi.mock('@/lib/email-log', () => ({ logEmail: mockLogEmail }))
+// Phase 89 plan 89-27: the cancelled email goes through the payment email renderer (booking language).
+vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: mockSendPaymentEmail }))
 vi.mock('@/lib/email', () => ({
   sendStatusConfirmedEmail: mockSendConfirmed,
   sendStatusCancelledEmail: mockSendCancelled,
   sendPostTripEmail: mockSendPostTrip,
+  sendDriverCancelledEmail: vi.fn(),
+  getAcceptedDriver: () => undefined,
 }))
 vi.mock('@/lib/qstash', () => ({ scheduleQStashReminder: mockScheduleQStash }))
 vi.mock('@/lib/stripe-payment-links', () => ({
@@ -142,7 +148,9 @@ function expectNoSideEffects() {
   expect(mockScheduleQStash).not.toHaveBeenCalled()
   expect(mockDeactivateLink).not.toHaveBeenCalled()
   expect(mockPushGnetStatus).not.toHaveBeenCalled()
-  expect(mockAfter).not.toHaveBeenCalled()
+  // The only deferred work of a cancel is the client's mail and the driver / operator notices (plan 89-27).
+  expect(mockAfter.mock.calls.length).toBeLessThanOrEqual(2)
+  expect(mockSendPaymentEmail).not.toHaveBeenCalled()
 }
 
 beforeEach(() => {
@@ -529,7 +537,8 @@ describe('POST /api/admin/bookings/cancel', () => {
         select: () => ({ eq: () => ({ single: async () => ({ data: { notification_flags: flags } }) }) }),
       })
       mockLogEmail.mockResolvedValue(true)
-      expect(mockAfter).toHaveBeenCalledTimes(1)
+      // The client's mail is registered first; the driver / operator notices are a second callback.
+      expect(mockAfter.mock.calls.length).toBeGreaterThanOrEqual(1)
       await (mockAfter.mock.calls[0][0] as () => Promise<void>)()
     }
 
@@ -538,12 +547,17 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockRefundsCreate.mockResolvedValue({ id: 're_1' })
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail()
-      expect(mockLogEmail).toHaveBeenCalledWith({
-        bookingId: ID,
-        emailType: 'booking_cancelled',
-        recipient: 'client@example.com',
-      })
-      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), 'refund')
+      expect(mockSendPaymentEmail).toHaveBeenCalledTimes(1)
+      expect(mockSendPaymentEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: 'cancelled',
+          variant: 'by_prestigo',
+          eventKey: `email:cancelled:${ID}`,
+          moneyOutcome: 'refunded',
+          booking: expect.objectContaining(CLIENT),
+        }),
+      )
+      expect(mockSendCancelled).not.toHaveBeenCalled()
     })
 
     it('card hold released: says nothing was charged', async () => {
@@ -552,14 +566,18 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockReleaseHold.mockResolvedValue('released')
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail()
-      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), 'no_charge')
+      expect(mockSendPaymentEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'cancelled', variant: 'by_prestigo', moneyOutcome: 'released' }),
+      )
     })
 
     it('manual booking: the plain email, no money line', async () => {
       wireSupabase({ booking: { id: ID, status: 'confirmed', payment_intent_id: null, ...CLIENT } })
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail()
-      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), null)
+      expect(mockSendPaymentEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'cancelled', variant: 'by_prestigo', moneyOutcome: 'none' }),
+      )
     })
 
     it('a failed refund promises nothing: no email', async () => {
@@ -568,7 +586,9 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockRefundsCreate.mockRejectedValue(new Error('stripe down'))
       const res = await POST(makeRequest({ id: ID }))
       expect(res.status).toBe(502)
-      expect(mockAfter).not.toHaveBeenCalled()
+      // Only the driver / operator notices are scheduled; the client's mail (registered first) is not.
+      expect(mockAfter).toHaveBeenCalledTimes(1)
+      expect(mockSendPaymentEmail).not.toHaveBeenCalled()
       errorSpy.mockRestore()
     })
 
@@ -577,7 +597,7 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockRefundsCreate.mockResolvedValue({ id: 're_1' })
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail({ cancelled: false })
-      expect(mockLogEmail).not.toHaveBeenCalled()
+      expect(mockSendPaymentEmail).not.toHaveBeenCalled()
       expect(mockSendCancelled).not.toHaveBeenCalled()
     })
 
@@ -587,7 +607,9 @@ describe('POST /api/admin/bookings/cancel', () => {
     ])('sends nothing to %s', async (_name, extra) => {
       wireSupabase({ booking: { id: ID, payment_intent_id: null, ...CLIENT, ...extra } })
       await POST(makeRequest({ id: ID }))
-      expect(mockAfter).not.toHaveBeenCalled()
+      // The client's mail is never registered; only the driver / operator notices are.
+      expect(mockAfter).toHaveBeenCalledTimes(1)
+      expect(mockSendPaymentEmail).not.toHaveBeenCalled()
     })
   })
 

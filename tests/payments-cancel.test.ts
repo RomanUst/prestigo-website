@@ -216,8 +216,12 @@ describe('tracer: an admin client-cancel of a late card booking, through the rou
     expect(ledger('hold_released')).toHaveLength(0)
     expect(ledger('admin_action')[0]).toMatchObject({ error_code: 'cancel_client', actor_type: 'admin', actor_id: 'admin-1' })
     expect(world.advanceCalls[0]).toMatchObject({ p_to: 'cancelled', p_source: 'admin_cancel', p_actor_type: 'admin', p_actor_id: 'admin-1' })
-    // No email promises anything yet: the notices of a late cancel are plan 89-27.
-    expect(mockEmail).not.toHaveBeenCalled()
+    // The client is told it was late and that a person decides; nothing is promised about the money (plan 89-27).
+    expect(mockEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ id: ID }),
+      'confirmed',
+      expect.objectContaining({ variant: 'late', moneyOutcome: 'none', feeMinor: 5000 }),
+    )
   })
 
   it('in time + authorized: the PaymentIntent is cancelled at Stripe, released, answer released', async () => {
@@ -231,7 +235,11 @@ describe('tracer: an admin client-cancel of a late card booking, through the rou
     expect(fake.state.paymentIntents.get(piId)!.status).toBe('canceled')
     expect(row()).toMatchObject({ status: 'cancelled', payment_state: 'released' })
     expect(cases()).toHaveLength(0)
-    expect(mockEmail).toHaveBeenCalledWith(expect.objectContaining({ id: ID }), 'confirmed', 'no_charge')
+    expect(mockEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ id: ID }),
+      'confirmed',
+      expect.objectContaining({ variant: 'free', moneyOutcome: 'released' }),
+    )
   })
 
   it('cancelled by Prestigo is free even 30 minutes before the pickup: released, no case', async () => {
@@ -436,7 +444,8 @@ describe.each(MATRIX)('money matrix: $name', (m) => {
       expect(fake.callsTo('refunds.create')).toHaveLength(0)
       expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
       expect(ledger('hold_released')).toHaveLength(0)
-      expect(mockEmail).not.toHaveBeenCalled()
+      expect(mockEmail).toHaveBeenCalledTimes(1)
+      expect(mockEmail.mock.calls[0][2]).toMatchObject({ variant: 'late', moneyOutcome: 'none' })
     }
   })
 
