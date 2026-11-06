@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
-import { BUSINESS_PHONE_DISPLAY, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 
 // D-11 (Phase 77-02): every customer-facing transactional email replies to the
 // bookings@ Chatwoot inbox, so a customer reply becomes an operator-visible
@@ -11,7 +11,9 @@ export const CUSTOMER_REPLY_TO = 'bookings@rideprestigo.com'
 
 // Footer contact pair shared by the transactional email templates (Phase 78 D-21):
 // the phone follows the single business-number constant.
-export const EMAIL_CONTACT_LINE = `info@rideprestigo.com or ${BUSINESS_PHONE_DISPLAY}`
+// HTML: explicit gold links, otherwise mail apps auto-link the address and the phone in dark blue on the navy background.
+const EMAIL_LINK_STYLE = 'color: #BFA06A; text-decoration: none;'
+export const EMAIL_CONTACT_LINE = `<a href="mailto:info@rideprestigo.com" style="${EMAIL_LINK_STYLE}">info@rideprestigo.com</a> or <a href="${BUSINESS_TEL_URL}" style="${EMAIL_LINK_STYLE}">${BUSINESS_PHONE_DISPLAY}</a>`
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
 // Wordmark as a static raster image — letter-spaced inline spans render

@@ -324,10 +324,15 @@ function ConfirmationContent() {
         <span className="copper-line" style={{ display: 'block', marginBottom: 24 }} />
 
         {/* PRESTIGO wordmark */}
-        <span className="wordmark" style={{ display: 'block', marginBottom: 32 }}>
+        <Link
+          href="/"
+          className="wordmark"
+          style={{ display: 'block', marginBottom: 32, textDecoration: 'none' }}
+          aria-label="Prestigo home"
+        >
           <span className="wordmark-presti">PRESTI</span>
           <span className="wordmark-go">GO</span>
-        </span>
+        </Link>
 
         {/* Confirmation status — D-14: single h1 on the page */}
         <h1 className="label" style={{ display: 'block', marginBottom: 16, fontFamily: 'inherit', fontWeight: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit' }}>
@@ -599,6 +604,12 @@ function ConfirmationContent() {
           >
             QUESTIONS? CONTACT US
           </a>
+          <Link href="/book" className="btn-ghost" style={{ textDecoration: 'none' }}>
+            BOOK ANOTHER RIDE
+          </Link>
+          <Link href="/" className="btn-ghost" style={{ textDecoration: 'none' }}>
+            BACK TO HOME
+          </Link>
         </div>
 
         {/* Bottom copper accent line */}

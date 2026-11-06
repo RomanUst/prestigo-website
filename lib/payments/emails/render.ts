@@ -105,13 +105,23 @@ function text(t: Translator, key: string, params: Record<string, string> = {}): 
  */
 const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate'])
 
-/** HTML message: catalog text escaped, parameters inserted as bdi ltr (localized dates: bdi auto). */
-function html(t: Translator, key: string, params: Record<string, string> = {}): string {
-  const tokens = Object.fromEntries(Object.keys(params).map((k) => [k, `${TOKEN_OPEN}${k}${TOKEN_CLOSE}`]))
+/**
+ * HTML message: catalog text escaped, parameters inserted as bdi ltr (localized dates: bdi auto).
+ * `trustedHtml` parameters are our own markup (the contact links) and are inserted unescaped.
+ */
+function html(
+  t: Translator,
+  key: string,
+  params: Record<string, string> = {},
+  trustedHtml: Record<string, string> = {},
+): string {
+  const names = [...Object.keys(params), ...Object.keys(trustedHtml)]
+  const tokens = Object.fromEntries(names.map((k) => [k, `${TOKEN_OPEN}${k}${TOKEN_CLOSE}`]))
   const out = escapeHtml(t(key, tokens))
   return out.replace(
     TOKEN_RE,
-    (_m, name: string) => `<bdi dir="${AUTO_DIR_PARAMS.has(name) ? 'auto' : 'ltr'}">${escapeHtml(params[name] ?? '')}</bdi>`,
+    (_m, name: string) =>
+      `<bdi dir="${AUTO_DIR_PARAMS.has(name) ? 'auto' : 'ltr'}">${trustedHtml[name] ?? escapeHtml(params[name] ?? '')}</bdi>`,
   )
 }
 
@@ -319,7 +329,7 @@ function buildShell(args: {
   const assistance = `
       <div style="padding: 24px 32px; text-align: ${align};">
         <div style="${goldLabel} margin-bottom: 8px;">${html(t, 'common.assistanceLabel')}</div>
-        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; line-height: 1.6;">${html(t, 'common.assistanceText', { contact: EMAIL_CONTACT_LINE })}</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; line-height: 1.6;">${html(t, 'common.assistanceText', {}, { contact: EMAIL_CONTACT_LINE })}</div>
       </div>`
 
   return `<!DOCTYPE html>
@@ -342,7 +352,8 @@ function buildShell(args: {
 
       <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 16px; padding: 0 32px;">${tpl.h1}</h1>
 
-      <p style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6; padding: 0 32px; margin: 0 0 24px; text-align: ${align};">${tpl.intro}</p>
+      <!-- A div, not a p: some mail apps close a p at the first bdi and leave the rest unstyled (black, no padding). -->
+      <div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6; padding: 0 32px; margin: 0 0 24px; text-align: ${align};">${tpl.intro}</div>
 ${referenceBox}
 ${highlightBox}
 
