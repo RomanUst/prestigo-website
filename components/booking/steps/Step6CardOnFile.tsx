@@ -1,7 +1,10 @@
 'use client'
 
 // Card checkout step (Phase 88, plans 88-10 and 88-12; HOLD-01, HOLD-03, D-09, D-11, D-12). Built to 88-UI-SPEC.md Surface 1.
-// DRAFT legal copy (Booking.step6.cardOnFile.*), pending the Phase 89 review.
+// Phase 89 (plan 89-11; CASH-01, CANC-02, D-08, D-16): final consent wording (no review banner), a payment choice
+// (card or cash to the driver; card is selected on every mount), the cancellation note, and the free-until moment
+// the consent names (init policy, cross-checked by the intent route with 409 POLICY_CHANGED). Cash always uses the
+// SetupIntent path and shows no hold date.
 //
 // Two variants, decided by the server (init, then cross-checked by the intent route):
 //   - setup: elements.submit() -> POST /api/card-checkout/intent -> stripe.confirmSetup (3DS in the browser) ->
@@ -21,7 +24,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import { Lock } from 'lucide-react'
+import { CircleCheck, Lock } from 'lucide-react'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { VEHICLE_CLASS_KEY } from '@/types/booking'
@@ -29,10 +32,12 @@ import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import { STRIPE_ELEMENTS_LOCALE } from '@/lib/booking-locale'
 import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
+import { proposedFeeMinor } from '@/lib/cancellation-policy'
 import { consentMessageKey, consentVars } from '@/lib/payments/consent-text'
 import { formatMinor } from '@/lib/payments/money'
 import BookingSummaryBlock from '../BookingSummaryBlock'
 import CardPaymentExplainer from '../CardPaymentExplainer'
+import CancellationPolicyNote from '../CancellationPolicyNote'
 import PromoCodeField from './PromoCodeField'
 import {
   buildCardCheckoutBody,
@@ -43,7 +48,11 @@ import {
   type CardCurrency,
   type CardMode,
   type InitEligible,
+  type InitPolicy,
 } from './cardCheckoutApi'
+
+/** How the client pays: card (setup or held now, by the server's mode) or cash to the driver (always a SetupIntent). */
+export type PaymentChoice = 'card' | 'cash'
 
 /** Modes this step implements; an init result in any other mode renders the legacy step. */
 export const SUPPORTED_MODES: readonly CardMode[] = ['setup', 'hold_now']
@@ -112,6 +121,33 @@ export interface SlotMessage {
   field?: 'consent'
 }
 
+type PolicyChange = Pick<InitPolicy, 'version' | 'freeUntilIso' | 'freeUntilPassed' | 'hours' | 'percent'>
+
+/** The policy block of a 409 POLICY_CHANGED answer; null when it is not usable. */
+function parsePolicyChange(raw: unknown): PolicyChange | null {
+  if (!raw || typeof raw !== 'object') return null
+  const p = raw as Record<string, unknown>
+  if (
+    typeof p.version !== 'string' ||
+    typeof p.freeUntilIso !== 'string' ||
+    !Number.isFinite(Date.parse(p.freeUntilIso)) ||
+    typeof p.freeUntilPassed !== 'boolean' ||
+    typeof p.hours !== 'number' ||
+    !Number.isFinite(p.hours) ||
+    typeof p.percent !== 'number' ||
+    !Number.isFinite(p.percent)
+  ) {
+    return null
+  }
+  return {
+    version: p.version,
+    freeUntilIso: p.freeUntilIso,
+    freeUntilPassed: p.freeUntilPassed,
+    hours: p.hours,
+    percent: p.percent,
+  }
+}
+
 interface AnalyticsItem {
   item_id: string
   item_name: string
@@ -122,7 +158,10 @@ interface AnalyticsItem {
 }
 
 interface CardFormProps {
+  /** The Stripe path: cash is always 'setup'. */
   mode: CardMode
+  payment: PaymentChoice
+  policy: InitPolicy
   amountMinor: number
   currency: CardCurrency
   holdDateIso: string | null
@@ -130,6 +169,8 @@ interface CardFormProps {
   setMessage: (m: SlotMessage | null) => void
   /** Server told us a different amount / mode / hold date: update the parent's init (does not clear the tick itself). */
   onServerPatch: (patch: Partial<InitEligible>) => void
+  /** 409 POLICY_CHANGED: the server's current free-until moment, percent and hours. */
+  onPolicyChanged: (next: PolicyChange) => void
   onFallback: () => void
   /** The tick was cleared because what it authorises changed: announce it politely. */
   onConsentInvalidated: () => void
@@ -141,12 +182,15 @@ interface CardFormProps {
 
 function CardForm({
   mode,
+  payment,
+  policy,
   amountMinor,
   currency,
   holdDateIso,
   message,
   setMessage,
   onServerPatch,
+  onPolicyChanged,
   onFallback,
   onConsentInvalidated,
   onConsentTicked,
@@ -179,10 +223,10 @@ function CardForm({
     [onConsentTicked],
   )
 
-  // Invalidation rule: any change of what the consent authorises (amount, currency, mode, hold date) clears the
-  // tick and announces it. PRICE_CHANGED clears the tick itself first, so this stays silent for it (the notice
-  // already speaks).
-  const consentKey = `${amountMinor}|${currency}|${mode}|${holdDateIso ?? ''}`
+  // Invalidation rule: any change of what the consent authorises (amount, currency, mode, hold date, the choice or the
+  // free-until moment) clears the tick and announces it. PRICE_CHANGED clears the tick itself first, so this stays
+  // silent for it (the notice already speaks).
+  const consentKey = `${amountMinor}|${currency}|${mode}|${holdDateIso ?? ''}|${payment}|${policy.freeUntilIso}|${policy.freeUntilPassed}`
   const previousKey = useRef(consentKey)
   useEffect(() => {
     if (previousKey.current === consentKey) return
@@ -204,7 +248,17 @@ function CardForm({
   }, [submitting, onBusyChange])
 
   const consentTextId = 'card-consent-text'
-  const vars = consentVars({ amountMinor, currency, holdDateIso, locale })
+  const cash = payment === 'cash'
+  // The label is the string the server hashes: same key function, same variables (consent-text.ts). The free-until
+  // moment is the init policy's, the very value sent back as displayedFreeUntilIso.
+  const vars = consentVars({
+    amountMinor,
+    currency,
+    holdDateIso: cash ? null : holdDateIso,
+    locale,
+    freeUntilMs: Date.parse(policy.freeUntilIso),
+  })
+  const consentKeyName = consentMessageKey(cash ? 'cash_setup' : mode, policy.freeUntilPassed)
 
   const cardErrorMessage = (error: { code?: string; message?: string }) => {
     if (error.code && AUTH_FAILURE_CODES.has(error.code)) return tc('errorBankVerification')
@@ -252,6 +306,20 @@ function CardForm({
         holdDateIso: typeof data.holdDateIso === 'string' ? data.holdDateIso : null,
       })
       setMessage({ kind: 'notice', text: tc('noticeDetailsChanged'), focus: true })
+      return false
+    }
+
+    // Phase 89 (T-89-38): the free-until moment (or whether it already passed) differs from what the consent named.
+    // Show the new deadline in the note, clear the tick and ask for it again; nothing was stored.
+    if (status === 409 && code === 'POLICY_CHANGED') {
+      const next = parsePolicyChange(data.policy)
+      setConsent(false)
+      if (next) {
+        onPolicyChanged(next)
+        setMessage({ kind: 'notice', text: tc('noticePolicyChanged'), focus: true })
+      } else {
+        setMessage({ kind: 'error', text: t('paymentGenericError') })
+      }
       return false
     }
 
@@ -318,10 +386,14 @@ function CardForm({
           ...buildCardCheckoutBody(state, { attemptId, currency, promoCode: state.promoCode, locale }),
           currency,
           mode,
+          payment,
           consent: true,
           displayedAmountMinor: amountMinor,
-          // B-WR-05: the hold date the consent text named; the server refuses a different one.
-          displayedHoldDateIso: mode === 'setup' ? holdDateIso : null,
+          // B-WR-05: the hold date the consent text named; the server refuses a different one. Cash names none.
+          displayedHoldDateIso: !cash && mode === 'setup' ? holdDateIso : null,
+          // Phase 89: the free-until moment the consent named (and whether it read as passed); a different one is 409.
+          displayedFreeUntilIso: policy.freeUntilIso,
+          displayedFreeUntilPassed: policy.freeUntilPassed,
         }),
       })
       data = (await res.json().catch(() => ({}))) as Record<string, unknown>
@@ -389,7 +461,7 @@ function CardForm({
     : !elementReady && !elementError
       ? t('loading')
       : mode === 'setup'
-        ? tc('ctaSetup')
+        ? tc('ctaSetup') // cash reads the same: Save card and book
         : tc('ctaHoldNow', { amount: vars.amount })
 
   return (
@@ -471,7 +543,7 @@ function CardForm({
             fontFamily: 'var(--font-montserrat)',
           }}
         >
-          {tc(consentMessageKey(mode), vars)}
+          {tc(consentKeyName, vars)}
         </span>
       </label>
 
@@ -542,6 +614,128 @@ function CardForm({
   )
 }
 
+/**
+ * Payment choice (UI-SPEC 2.1; D-08): two tiles in a radiogroup. Roving tabindex, arrow keys move and select, Space
+ * selects. Selection is never colour alone (dot before the title and a check at the trailing edge).
+ */
+function PaymentChoiceTiles({
+  value,
+  cardMode,
+  disabled,
+  onChange,
+}: {
+  value: PaymentChoice
+  cardMode: CardMode
+  disabled: boolean
+  onChange: (next: PaymentChoice) => void
+}) {
+  const tc = useTranslations('Booking.step6.cardOnFile')
+  const refs = useRef<Record<PaymentChoice, HTMLButtonElement | null>>({ card: null, cash: null })
+  const options: Array<{ id: PaymentChoice; title: string; description: string }> = [
+    {
+      id: 'card',
+      title: tc('choiceCardTitle'),
+      description: cardMode === 'setup' ? tc('choiceCardDescSetup') : tc('choiceCardDescHoldNow'),
+    },
+    { id: 'cash', title: tc('choiceCashTitle'), description: tc('choiceCashDesc') },
+  ]
+
+  const move = (to: PaymentChoice) => {
+    if (disabled) return
+    onChange(to)
+    refs.current[to]?.focus()
+  }
+
+  const onKeyDown = (e: React.KeyboardEvent, current: PaymentChoice) => {
+    const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl'
+    const forward = rtl ? 'ArrowLeft' : 'ArrowRight'
+    const back = rtl ? 'ArrowRight' : 'ArrowLeft'
+    const other: PaymentChoice = current === 'card' ? 'cash' : 'card'
+    if (e.key === 'ArrowDown' || e.key === forward || e.key === 'ArrowUp' || e.key === back) {
+      e.preventDefault()
+      move(other)
+    } else if (e.key === ' ') {
+      e.preventDefault()
+      if (!disabled) onChange(current)
+    }
+  }
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <span id="payment-choice-label" className="label" style={{ display: 'block', marginBottom: 12 }}>
+        {tc('paymentChoiceLabel')}
+      </span>
+      <div
+        role="radiogroup"
+        aria-labelledby="payment-choice-label"
+        className="grid grid-cols-1 min-[560px]:grid-cols-2"
+        style={{ gap: 16 }}
+      >
+        {options.map((o) => {
+          const selected = value === o.id
+          return (
+            <button
+              key={o.id}
+              ref={(el) => {
+                refs.current[o.id] = el
+              }}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              tabIndex={selected ? 0 : -1}
+              disabled={disabled}
+              onClick={() => onChange(o.id)}
+              onKeyDown={(e) => onKeyDown(e, o.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: 8,
+                minHeight: 64,
+                padding: 16,
+                textAlign: 'start',
+                backgroundColor: selected ? 'rgba(191,160,106,0.09)' : 'var(--anthracite-mid)',
+                border: selected ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
+                borderRadius: 4,
+                color: 'var(--offwhite)',
+                fontFamily: 'var(--font-montserrat)',
+                cursor: disabled ? 'not-allowed' : 'pointer',
+                transition: 'border-color 0.2s ease, background-color 0.2s ease',
+              }}
+            >
+              <span style={{ display: 'block', minWidth: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 400 }}>
+                  {selected && (
+                    <span
+                      aria-hidden="true"
+                      style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, backgroundColor: 'var(--copper)' }}
+                    />
+                  )}
+                  <span style={{ overflowWrap: 'anywhere' }}>{o.title}</span>
+                </span>
+                <span
+                  style={{
+                    display: 'block',
+                    marginTop: 4,
+                    fontSize: 11,
+                    fontWeight: 300,
+                    lineHeight: 1.5,
+                    color: 'var(--offwhite)',
+                    overflowWrap: 'anywhere',
+                  }}
+                >
+                  {o.description}
+                </span>
+              </span>
+              {selected && <CircleCheck size={16} aria-hidden="true" style={{ flexShrink: 0, color: 'var(--copper)' }} />}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function Step6CardOnFile({ init, onFallback }: { init: InitEligible; onFallback: () => void }) {
   const t = useTranslations('Booking.step6')
   const tc = useTranslations('Booking.step6.cardOnFile')
@@ -558,6 +752,8 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
 
   const [current, setCurrent] = useState<InitEligible>(init)
   const [selectedCurrency, setSelectedCurrency] = useState<CardCurrency>(init.currency)
+  // E9: card is the primary flow and is selected on every mount; cash is a deliberate choice, never stored.
+  const [payment, setPayment] = useState<PaymentChoice>('card')
   const [reiniting, setReiniting] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<SlotMessage | null>(null)
@@ -589,12 +785,17 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
     [vehicleClass, tripType, discountedTotalEur, tb, t],
   )
 
+  // Cash always uses the SetupIntent path (D-09), even inside the hold lead window, and names no hold date.
+  const cash = payment === 'cash' && current.cashAvailable
+  const effectiveMode: CardMode = cash ? 'setup' : current.mode
+  const effectiveHoldDateIso = cash ? null : current.holdDateIso
+
   // Elements options must match the server-side intent exactly (Research Pitfall 3): a SetupIntent for 'setup',
   // a manual-capture PaymentIntent for 'hold_now' (amount, capture and future-usage included). The Elements key
-  // below remounts on a mode or currency change; an amount change is a supported in-place update.
+  // below remounts on a mode, currency or payment-choice change; an amount change is a supported in-place update.
   const elementsOptions = useMemo(
     () =>
-      current.mode === 'hold_now'
+      effectiveMode === 'hold_now'
         ? {
             mode: 'payment' as const,
             amount: current.amountMinor,
@@ -612,7 +813,7 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
             appearance,
             locale: STRIPE_ELEMENTS_LOCALE[locale],
           },
-    [current.mode, current.amountMinor, current.currency, locale],
+    [effectiveMode, current.amountMinor, current.currency, locale],
   )
 
   const announce = useCallback(() => setLiveMessage(tc('noticeDetailsChanged')), [tc])
@@ -620,8 +821,37 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
     consentTickedRef.current = ticked
   }, [])
   const handleServerPatch = useCallback((patch: Partial<InitEligible>) => {
-    setCurrent((prev) => ({ ...prev, ...patch }))
+    setCurrent((prev) => {
+      const next = { ...prev, ...patch }
+      // The fee shown in the note follows the fare (one-way and hourly only: the card flow never takes a round trip).
+      if (patch.amountMinor !== undefined && patch.amountMinor !== prev.amountMinor) {
+        next.policy = { ...next.policy, feeMinor: proposedFeeMinor(patch.amountMinor, next.policy.percent) }
+      }
+      return next
+    })
   }, [])
+  const handlePolicyChanged = useCallback(
+    (changed: Pick<InitPolicy, 'version' | 'freeUntilIso' | 'freeUntilPassed' | 'hours' | 'percent'>) => {
+      setCurrent((prev) => ({
+        ...prev,
+        policy: { ...prev.policy, ...changed, feeMinor: proposedFeeMinor(prev.amountMinor, changed.percent) },
+      }))
+    },
+    [],
+  )
+
+  /** Switching clears the tick and says so (the form remounts with the new key), and starts a new attempt (Pitfall 5). */
+  const handlePaymentChange = (next: PaymentChoice) => {
+    if (next === payment || busy || reiniting) return
+    if (consentTickedRef.current) {
+      consentTickedRef.current = false
+      setLiveMessage('')
+      announce()
+    }
+    setMessage(null)
+    startNewAttempt()
+    setPayment(next)
+  }
 
   /**
    * Re-call init after a currency or promo change. The Elements form unmounts while the new server amount is
@@ -650,6 +880,7 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
       return
     }
     setCurrent(result)
+    if (!result.cashAvailable) setPayment('card')
     setSelectedCurrency(result.currency)
     setReiniting(false)
   }
@@ -675,7 +906,8 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
   }
 
   return (
-    <div className="max-w-[560px] mx-auto">
+    // pb-28 on phones: the chat launcher (fixed, bottom-24) must not sit on the consent text and its links (88 deferred).
+    <div className="max-w-[560px] mx-auto pb-28 md:pb-0">
       <BookingSummaryBlock selectedCurrency={selectedCurrency} />
 
       <PromoCodeField
@@ -735,25 +967,48 @@ export default function Step6CardOnFile({ init, onFallback }: { init: InitEligib
         </p>
       ) : (
         <>
+          {current.cashAvailable && (
+            <PaymentChoiceTiles
+              value={cash ? 'cash' : 'card'}
+              cardMode={current.mode}
+              disabled={busy || reiniting}
+              onChange={handlePaymentChange}
+            />
+          )}
+
           <CardPaymentExplainer
-            mode={current.mode}
+            mode={effectiveMode}
+            payment={cash ? 'cash' : 'card'}
             amountMinor={current.amountMinor}
             currency={current.currency}
-            holdDateIso={current.holdDateIso}
+            holdDateIso={effectiveHoldDateIso}
+          />
+
+          <CancellationPolicyNote
+            policy={current.policy}
+            feeMinor={current.policy.feeMinor}
+            currency={current.currency}
           />
 
           <span className="label">{tc('cardDetailsLabel')}</span>
 
           <div style={{ marginTop: 24 }}>
-            <Elements key={`${current.mode}-${current.currency}`} stripe={stripePromise} options={elementsOptions}>
+            <Elements
+              key={`${cash ? 'cash' : 'card'}-${effectiveMode}-${current.currency}`}
+              stripe={stripePromise}
+              options={elementsOptions}
+            >
               <CardForm
-                mode={current.mode}
+                mode={effectiveMode}
+                payment={cash ? 'cash' : 'card'}
+                policy={current.policy}
                 amountMinor={current.amountMinor}
                 currency={current.currency}
-                holdDateIso={current.holdDateIso}
+                holdDateIso={effectiveHoldDateIso}
                 message={message}
                 setMessage={setMessage}
                 onServerPatch={handleServerPatch}
+                onPolicyChanged={handlePolicyChanged}
                 onFallback={onFallback}
                 onConsentInvalidated={announce}
                 onConsentTicked={handleConsentTicked}

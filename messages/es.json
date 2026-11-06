@@ -129,6 +129,15 @@
         "INTERNAL": "No se pudo crear el pago. Inténtelo de nuevo.",
         "NO_CODE": "No se proporcionó ningún código."
       },
+      "cancellation": {
+        "label": "CANCELACIÓN",
+        "rowFree": "Cancelación gratuita hasta el <bdi>{freeUntil}</bdi>.",
+        "rowFreeUnavailable": "La cancelación gratuita no está disponible para este viaje porque faltan menos de {hours, plural, one {{hours} hora} other {{hours} horas}} para la recogida.",
+        "rowFee": "Después se aplica el {percent}% de la tarifa (<bdi>{amount}</bdi>). Una persona de Prestigo decide cada cobro y puede anularlo.",
+        "rowNoShow": "Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin, plural, one {{waitMin} minuto} other {{waitMin} minutos}}.",
+        "termsLink": "Condiciones de cancelación",
+        "acceptance": "Al pagar, acepta las condiciones de cancelación indicadas arriba y nuestros <terms>Términos y condiciones</terms>."
+      },
       "cardOnFile": {
         "headlineSetup": "Ahora no se cobra nada.",
         "headlineHoldNow": "El importe se retiene ahora y se cobra después de su viaje.",
@@ -156,7 +165,20 @@
         "noticeModeChanged": "Su viaje está ahora más cerca, por lo que ha cambiado el momento del pago. Revise los datos anteriores e introduzca de nuevo su tarjeta.",
         "noticeDetailsChanged": "Los datos del pago han cambiado. Revíselos y marque de nuevo la casilla.",
         "errorConsentRequired": "Marque la casilla para continuar.",
-        "errorBankVerification": "Su banco no ha podido verificar esta tarjeta. Inténtelo de nuevo o utilice otra tarjeta."
+        "errorBankVerification": "Su banco no ha podido verificar esta tarjeta. Inténtelo de nuevo o utilice otra tarjeta.",
+        "paymentChoiceLabel": "¿CÓMO DESEA PAGAR?",
+        "choiceCardTitle": "Pagar con tarjeta después del viaje",
+        "choiceCardDescSetup": "Ahora no se cobra nada.",
+        "choiceCardDescHoldNow": "El importe se retiene ahora.",
+        "choiceCashTitle": "Pagar en efectivo al conductor",
+        "choiceCashDesc": "Guardamos su tarjeta como garantía. Ahora no se cobra nada.",
+        "headlineCash": "Pague a su conductor en efectivo.",
+        "captionOnTheDay": "El día del viaje",
+        "captionOnlyIfNeeded": "Solo si es necesario",
+        "cashToday": "Guardamos su tarjeta de forma segura con Stripe. No se cobra nada y no se realiza ninguna retención.",
+        "cashOnTheDay": "Pague <bdi>{amount}</bdi> en efectivo a su conductor al final del viaje.",
+        "cashIfNeeded": "Solo cobramos la tarjeta guardada si cancela tarde, no se presenta o no paga al conductor. Primero decide una persona de Prestigo y nunca cobramos de forma automática.",
+        "noticePolicyChanged": "Las condiciones de cancelación han cambiado mientras leía. Revise la nota de arriba y marque de nuevo la casilla."
       }
     },
     "tripTypeTabs": {

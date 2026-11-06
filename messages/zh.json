@@ -129,6 +129,15 @@
         "INTERNAL": "创建付款失败,请重试。",
         "NO_CODE": "未提供优惠码。"
       },
+      "cancellation": {
+        "label": "取消",
+        "rowFree": "<bdi>{freeUntil}</bdi> 前可免费取消。",
+        "rowFreeUnavailable": "此行程无法免费取消，因为距离上车时间不足 {hours} 小时。",
+        "rowFee": "此后将按车费的 {percent}%（<bdi>{amount}</bdi>）收取。每一笔扣款均由 Prestigo 的工作人员决定，并可予以免除。",
+        "rowNoShow": "如果您未现身乘车，则在司机等待 {waitMin} 分钟后按全额车费收取。",
+        "termsLink": "取消条款",
+        "acceptance": "付款即表示您接受上述取消条款以及我们的<terms>条款与条件</terms>。"
+      },
       "cardOnFile": {
         "headlineSetup": "现在不会扣除任何款项。",
         "headlineHoldNow": "金额现在冻结，行程结束后扣款。",
@@ -156,7 +165,20 @@
         "noticeModeChanged": "您的行程已临近，因此付款时间有所调整。请核对上方信息并重新输入您的银行卡。",
         "noticeDetailsChanged": "付款详情已更改。请核对后再次勾选复选框。",
         "errorConsentRequired": "请勾选复选框以继续。",
-        "errorBankVerification": "您的银行无法验证此银行卡。请重试或使用其他银行卡。"
+        "errorBankVerification": "您的银行无法验证此银行卡。请重试或使用其他银行卡。",
+        "paymentChoiceLabel": "您希望如何付款？",
+        "choiceCardTitle": "行程结束后刷卡付款",
+        "choiceCardDescSetup": "现在不会扣除任何款项。",
+        "choiceCardDescHoldNow": "该金额现在会被冻结。",
+        "choiceCashTitle": "向司机现金付款",
+        "choiceCashDesc": "我们会保存您的银行卡作为担保。现在不会扣除任何款项。",
+        "headlineCash": "请向司机现金付款。",
+        "captionOnTheDay": "出行当天",
+        "captionOnlyIfNeeded": "仅在必要时",
+        "cashToday": "我们通过 Stripe 安全地保存您的银行卡。不会扣款，也不会冻结任何金额。",
+        "cashOnTheDay": "行程结束时，请向司机现金支付 <bdi>{amount}</bdi>。",
+        "cashIfNeeded": "仅当您较晚取消、未现身乘车或未向司机付款时，我们才会从已保存的银行卡扣款。扣款前由 Prestigo 工作人员先行决定，我们绝不会自动扣款。",
+        "noticePolicyChanged": "您阅读期间取消条款已更改。请查看上方说明，并再次勾选复选框。"
       }
     },
     "tripTypeTabs": {

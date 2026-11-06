@@ -9,6 +9,22 @@ import type { BookingStore } from '@/types/booking'
 export type CardMode = 'setup' | 'hold_now'
 export type CardCurrency = 'eur' | 'czk'
 
+/**
+ * The cancellation terms the client would book under (Phase 89, plan 89-07: init `policy`). Display only; the server
+ * recomputes everything and cross-checks `freeUntilIso` / `freeUntilPassed` on the intent call (POLICY_CHANGED).
+ */
+export interface InitPolicy {
+  version: string
+  freeUntilIso: string
+  freeUntilPassed: boolean
+  hours: number
+  percent: number
+  /** The proposed late-cancellation fee, minor units of the init currency. */
+  feeMinor: number
+  /** Free waiting time at this pickup, minutes. */
+  waitMin: number
+}
+
 export interface InitEligible {
   eligible: true
   mode: CardMode
@@ -16,9 +32,44 @@ export interface InitEligible {
   holdDateIso: string | null
   amountMinor: number
   currency: CardCurrency
+  /** Always present on an eligible answer: the card flow cannot book without the policy moment (D-16). */
+  policy: InitPolicy
+  /** Pay cash to the driver is offered (Phase 89 D-08). */
+  cashAvailable: boolean
 }
 
-export type InitResult = InitEligible | { eligible: false }
+export type InitResult = InitEligible | { eligible: false; policy?: InitPolicy }
+
+const isNum = (v: unknown, min = 0): v is number => typeof v === 'number' && Number.isFinite(v) && v >= min
+
+/** Strict shape check of the init `policy`; anything else is ignored (null), never guessed. */
+export function parseInitPolicy(raw: unknown): InitPolicy | null {
+  if (!raw || typeof raw !== 'object') return null
+  const p = raw as Record<string, unknown>
+  if (
+    typeof p.version !== 'string' ||
+    p.version.length === 0 ||
+    typeof p.freeUntilIso !== 'string' ||
+    !Number.isFinite(Date.parse(p.freeUntilIso)) ||
+    typeof p.freeUntilPassed !== 'boolean' ||
+    !isNum(p.hours) ||
+    !isNum(p.percent) ||
+    p.percent > 100 ||
+    !isNum(p.feeMinor) ||
+    !isNum(p.waitMin)
+  ) {
+    return null
+  }
+  return {
+    version: p.version,
+    freeUntilIso: p.freeUntilIso,
+    freeUntilPassed: p.freeUntilPassed,
+    hours: p.hours,
+    percent: p.percent,
+    feeMinor: p.feeMinor,
+    waitMin: p.waitMin,
+  }
+}
 
 /** The slice of the booking store the checkout request body is built from. */
 export type CheckoutStoreState = Pick<
@@ -100,8 +151,9 @@ export async function fetchCardInit(
       body: JSON.stringify(body),
     })
     if (!res.ok) return null
-    const data = (await res.json()) as Partial<InitEligible> & { eligible?: unknown }
-    if (data.eligible !== true) return { eligible: false }
+    const data = (await res.json()) as Partial<InitEligible> & { eligible?: unknown; policy?: unknown }
+    const policy = parseInitPolicy(data.policy)
+    if (data.eligible !== true) return policy ? { eligible: false, policy } : { eligible: false }
     if (
       (data.mode !== 'setup' && data.mode !== 'hold_now') ||
       typeof data.amountMinor !== 'number' ||
@@ -109,6 +161,9 @@ export async function fetchCardInit(
     ) {
       return null
     }
+    // An eligible answer without a usable policy cannot be booked (the intent route needs the free-until moment), so
+    // the client takes the legacy step instead of a card form that would only answer 409.
+    if (!policy) return null
     return {
       eligible: true,
       mode: data.mode,
@@ -116,6 +171,8 @@ export async function fetchCardInit(
       holdDateIso: data.holdDateIso ?? null,
       amountMinor: data.amountMinor,
       currency: data.currency,
+      policy,
+      cashAvailable: data.cashAvailable === true,
     }
   } catch {
     return null

@@ -18,11 +18,14 @@ import {
   fetchCardInit,
   rotateAttemptIfCardUsed,
   type InitEligible,
+  type InitPolicy,
 } from './cardCheckoutApi'
 
 export { buildCardCheckoutBody, fetchCardInit }
 
-type Phase = { kind: 'loading' } | { kind: 'card'; init: InitEligible } | { kind: 'legacy' }
+// `policy` on the legacy branch: the cancellation terms init returned for a client for whom the policy is public
+// (Phase 89 D-18). null means nothing is public for this client, and the legacy step renders exactly as before.
+type Phase = { kind: 'loading' } | { kind: 'card'; init: InitEligible } | { kind: 'legacy'; policy: InitPolicy | null }
 
 export default function Step6Checkout() {
   const t = useTranslations('Booking.step6')
@@ -44,7 +47,7 @@ export default function Step6Checkout() {
         return
       }
       rotateAttemptIfCardUsed()
-      setPhase({ kind: 'legacy' })
+      setPhase({ kind: 'legacy', policy: result?.policy ?? null })
     })
 
     return () => {
@@ -56,10 +59,11 @@ export default function Step6Checkout() {
 
   const handleFallback = useCallback(() => {
     rotateAttemptIfCardUsed()
-    setPhase({ kind: 'legacy' })
+    // The terms of the card init (EUR) stay valid for the pay-now booking that follows.
+    setPhase((prev) => ({ kind: 'legacy', policy: prev.kind === 'card' ? prev.init.policy : null }))
   }, [])
 
-  if (phase.kind === 'legacy') return <Step6Payment />
+  if (phase.kind === 'legacy') return <Step6Payment policy={phase.policy} />
   if (phase.kind === 'card') return <Step6CardOnFile init={phase.init} onFallback={handleFallback} />
 
   return (
