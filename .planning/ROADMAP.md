@@ -307,7 +307,7 @@ Plans:
   4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges any amount up to 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
   5. The operator can mark a cash booking as settled in cash, a settled or cancelled booking can no longer be charged, and GNet bookings are never offered the cash guarantee or a no-show charge.
 
-**Plans**: 14/28 plans executed (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
+**Plans**: 17/28 plans executed (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
 Plans:
 **Wave 1**
 - [x] 89-01-PLAN.md — Migration 087, payment vocabulary, D-16 document amendments
@@ -334,9 +334,9 @@ Plans:
 - [x] 89-26-PLAN.md — Fee webhook routing, recovery closes the case, disputes on cash
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 89-12-PLAN.md — Operator fee and cash decisions on the server
-- [ ] 89-15-PLAN.md — Manage page read side and My trips link
-- [ ] 89-27-PLAN.md — Notices after a cancel: client, driver, operator
+- [x] 89-12-PLAN.md — Operator fee and cash decisions on the server
+- [x] 89-15-PLAN.md — Manage page read side and My trips link
+- [x] 89-27-PLAN.md — Notices after a cancel: client, driver, operator
 
 **Wave 7** *(blocked on Wave 6 completion)*
 - [ ] 89-14-PLAN.md — Driver cash step
@@ -566,7 +566,7 @@ Plans:
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
 | 87. Status Service & Driver Step Flow | v5.0 | 20/20 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
-| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 14/28 | In Progress|  |
+| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 17/28 | In Progress|  |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
