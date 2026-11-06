@@ -20,9 +20,17 @@
 //
 // Partner bookings get a status change only (assertMoneyEligible, Pitfall 15).
 
+import { after } from 'next/server'
 import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
-import { advanceBookingStatus, scheduleCancelRouteEmail, type StatusActor } from '@/lib/booking-status-service'
+import {
+  advanceBookingStatus,
+  scheduleCancelRouteEmail,
+  type CancelNotice,
+  type StatusActor,
+} from '@/lib/booking-status-service'
+import { getAcceptedDriver, sendDriverCancelledEmail } from '@/lib/email'
+import { logEmail } from '@/lib/email-log'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { evaluateCancellation, policyFromSnapshot, proposedFeeMinor, tripFactsFromRow } from '@/lib/cancellation-policy'
 import { czkToEur } from '@/lib/currency'
@@ -87,7 +95,7 @@ const BOOKING_COLUMNS =
   'client_first_name, client_last_name, client_email, origin_address, destination_address, vehicle_class, ' +
   'pickup_date, pickup_time, hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, ' +
   'recovery_link_url, captured_amount_minor, payment_lease_until, cancel_policy, cancel_policy_version, trip_type, ' +
-  'distance_km, pickup_utc, stripe_payment_method_id'
+  'distance_km, pickup_utc, stripe_payment_method_id, locale, capture_before'
 
 /** The payment side of the row after the status compare-and-set (88-REVIEW C-WR-01). */
 const PAYMENT_COLUMNS =
@@ -153,7 +161,132 @@ function isPartner(booking: BookingRow): boolean {
   }
 }
 
+/** What the notices after a cancel need to know; set by runCancel once the status change applied. */
+interface AppliedCancel {
+  booking: BookingRow
+  outcome: 'free' | 'late'
+  freeUntilMs: number | null
+  /** The fee the late-cancel case proposes (minor units), when it could be computed. */
+  proposedMinor: number | null
+}
+
 export async function cancelBooking(input: CancelBookingInput): Promise<CancelResult> {
+  const holder: { applied: AppliedCancel | null } = { applied: null }
+  const result = await runCancel(input, holder)
+  if (holder.applied) scheduleCancelNotices(input, holder.applied, result)
+  return result
+}
+
+/** The client's cancelled email for a free path (the late path builds its own notice). */
+function freeNotice(initiator: CancelInitiator, money: CancelNotice['moneyOutcome'], refundMinor?: number): CancelNotice {
+  return {
+    variant: initiator === 'admin_prestigo' ? 'by_prestigo' : 'free',
+    moneyOutcome: money,
+    ...(refundMinor !== undefined ? { refundMinor } : {}),
+  }
+}
+
+/**
+ * Everyone who must know about a cancel that applied, besides the client's mail (sent inline by runCancel):
+ *   - the assigned driver, at once, on every path (D-03; the trip is cancelled whatever happens to the money);
+ *   - the operator: a late cancel (decision needed), a late cancel whose case could not be opened (the orphan of plan
+ *     89-08: without this alert nobody would ever see it), a client's own in-time cancel (client_cancelled).
+ * All of it runs after the response, each part isolated: a failed email never changes the result of a cancel.
+ */
+function scheduleCancelNotices(input: CancelBookingInput, applied: AppliedCancel, result: CancelResult): void {
+  const nowMs = input.nowMs ?? Date.now()
+  const { booking } = applied
+  const bookingId = input.bookingId
+  const isClient = input.initiator === 'client_token'
+
+  const alerts: Array<() => Promise<unknown>> = []
+  const detailsBase = {
+    cancelledAt: new Date(nowMs).toISOString(),
+    freeUntil: applied.freeUntilMs !== null ? new Date(applied.freeUntilMs).toISOString() : null,
+    ...(applied.proposedMinor !== null ? { proposedMinor: applied.proposedMinor } : {}),
+  }
+  if (result.kind === 'ok' && result.money === 'kept') {
+    alerts.push(() =>
+      sendPaymentOperatorAlert('fee_decision_needed', booking, {
+        eventKey: `alert:fee_decision_needed:${bookingId}`,
+        ...detailsBase,
+      }),
+    )
+  } else if (result.kind === 'db_failed' && result.cancelled) {
+    // The cancel stands but its fee case does not exist: say so, the case is never opened on its own.
+    alerts.push(() =>
+      sendPaymentOperatorAlert('fee_decision_needed', booking, {
+        eventKey: `alert:fee_decision_needed:${bookingId}:case_missing`,
+        note: 'case_missing',
+        ...detailsBase,
+      }),
+    )
+  } else if (result.kind === 'ok' && isClient && result.outcome === 'free') {
+    alerts.push(() =>
+      sendPaymentOperatorAlert('client_cancelled', booking, {
+        eventKey: `alert:client_cancelled:${bookingId}`,
+        moneyOutcome: result.money === 'released' ? 'released' : result.money === 'refunded' ? 'refunded' : 'none',
+        ...(result.money === 'refunded' && result.refundedMinor !== undefined ? { amountMinor: result.refundedMinor } : {}),
+      }),
+    )
+  }
+
+  try {
+    after(async () => {
+      const driverPart = async () => {
+        try {
+          await notifyAssignedDriver(bookingId, booking, input.initiator === 'admin_prestigo' ? 'prestigo' : 'client')
+        } catch (err) {
+          console.error('[cancel] driver notice failed', { bookingId, reason: err instanceof Error ? err.message : 'unknown' })
+        }
+      }
+      const alertPart = async (send: () => Promise<unknown>) => {
+        try {
+          await send()
+        } catch (err) {
+          console.error('[cancel] operator alert failed', { bookingId, reason: err instanceof Error ? err.message : 'unknown' })
+        }
+      }
+      await Promise.all([driverPart(), ...alerts.map(alertPart)])
+    })
+  } catch (err) {
+    console.error('[cancel] notices not scheduled', { bookingId, reason: err instanceof Error ? err.message : 'unknown' })
+  }
+}
+
+/**
+ * The accepted driver of the booking gets one plain email "Trip cancelled" (D-03, T-89-29): the reference, the pickup
+ * time and the trip link. Nothing about money and nothing about the client beyond the reference. No accepted driver,
+ * no mail. Deduped with the email log.
+ */
+async function notifyAssignedDriver(bookingId: string, booking: BookingRow, cancelledBy: 'client' | 'prestigo'): Promise<void> {
+  const { data, error } = await createSupabaseServiceClient()
+    .from('driver_assignments')
+    .select('status, trip_token, drivers!inner(name, email, vehicle_info)')
+    .eq('booking_id', bookingId)
+    .eq('status', 'accepted')
+  if (error) throw new Error('driver lookup failed')
+  const assignments = (data ?? []) as unknown as Array<{ status: string; trip_token?: string | null; drivers?: unknown }>
+  const driver = getAcceptedDriver(assignments)
+  if (!driver?.email) return
+
+  const accepted = assignments.find((a) => a.status === 'accepted')
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com').trim().replace(/\/+$/, '')
+  const tripUrl = accepted?.trip_token ? `${siteUrl}/driver/trip/${accepted.trip_token}` : null
+
+  const allowed = await logEmail({ bookingId, emailType: 'driver_cancelled', recipient: driver.email })
+  if (!allowed) return
+  await sendDriverCancelledEmail({
+    driverEmail: driver.email,
+    bookingReference: str(booking.booking_reference),
+    pickupDate: str(booking.pickup_date),
+    pickupTime: str(booking.pickup_time),
+    tripUrl,
+    cancelledBy,
+  })
+}
+
+async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCancel | null }): Promise<CancelResult> {
   const nowMs = input.nowMs ?? Date.now()
   const { bookingId, initiator, actor } = input
   const isClient = initiator === 'client_token'
@@ -279,9 +412,13 @@ export async function cancelBooking(input: CancelBookingInput): Promise<CancelRe
     }
   }
 
+  // From here the cancel stands and the notices after it are due, whatever happens to the money.
+  const applied: AppliedCancel = { booking, outcome, freeUntilMs, proposedMinor: null }
+  holder.applied = applied
+
   // Partner bookings: the status change was all there was to do.
   if (partner) {
-    scheduleCancelRouteEmail(booking, previousStatus, null)
+    scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'none'))
     return { kind: 'ok', outcome, money: 'none' }
   }
 
@@ -348,19 +485,29 @@ export async function cancelBooking(input: CancelBookingInput): Promise<CancelRe
 
   // ── 3. late: the money option stays alive and a person decides (D-05, D-07, D-09) ─────────────────────────────────
   if (outcome === 'late' && isFeeEligible(current)) {
+    // The client is told it was a late cancel whether or not the case could be opened: the operator hears about a
+    // missing case through the alert scheduleCancelNotices sends for db_failed { cancelled: true }.
+    const lateNotice = (): CancelNotice => ({
+      variant: 'late',
+      moneyOutcome: 'none',
+      ...(applied.proposedMinor !== null ? { feeMinor: applied.proposedMinor } : {}),
+      freeUntilMs,
+    })
     const base = feeCaseBase(current, input.leg)
     if (!base) {
       console.error('[cancel] late cancel without a computable fee base', { bookingId })
+      scheduleCancelRouteEmail(booking, previousStatus, lateNotice())
       return { kind: 'db_failed', cancelled: true }
     }
     try {
       const policy = policyFromSnapshot(booking.cancel_policy)
+      applied.proposedMinor = proposedFeeMinor(base.baseMinor, policy.feePercent)
       const { caseRow } = await openFeeCase({
         booking: current,
         kind: 'late_cancel',
         baseMinor: base.baseMinor,
         currency: base.currency,
-        proposedMinor: proposedFeeMinor(base.baseMinor, policy.feePercent),
+        proposedMinor: applied.proposedMinor,
         freeUntilIso: freeUntilMs !== null ? new Date(freeUntilMs).toISOString() : null,
         evidence: {
           initiator,
@@ -375,8 +522,10 @@ export async function cancelBooking(input: CancelBookingInput): Promise<CancelRe
         bookingId,
         reason: err instanceof Error ? err.message : 'unknown',
       })
+      scheduleCancelRouteEmail(booking, previousStatus, lateNotice())
       return { kind: 'db_failed', cancelled: true }
     }
+    scheduleCancelRouteEmail(booking, previousStatus, lateNotice())
     return { kind: 'ok', outcome: 'late', money: 'kept' }
   }
 
@@ -394,7 +543,7 @@ export async function cancelBooking(input: CancelBookingInput): Promise<CancelRe
           { payment_intent: paymentIntentId },
           { idempotencyKey: stripeKeys.refund(bookingId, legKey) },
         )
-        scheduleCancelRouteEmail(booking, previousStatus, 'refund')
+        scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'refunded', collected))
         return {
           kind: 'ok',
           outcome,
@@ -413,12 +562,12 @@ export async function cancelBooking(input: CancelBookingInput): Promise<CancelRe
       const released = await releaseHold(current, { actor, reason: 'cancel' })
       if (released === 'busy') throw new Error('busy')
       if (released === 'released') {
-        scheduleCancelRouteEmail(booking, previousStatus, 'no_charge')
+        scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'released'))
         return { kind: 'ok', outcome, money: 'released' }
       }
       // noop: fine only when nothing is held any more; never answer ok while a hold or card is still live.
       if (!NOTHING_HELD.has(str(current.payment_state) || 'none')) throw new Error('state_moved')
-      scheduleCancelRouteEmail(booking, previousStatus, 'no_charge')
+      scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'none'))
       return { kind: 'ok', outcome, money: 'none' }
     } catch (err) {
       return moneyFailed(err, 'release')
@@ -430,8 +579,8 @@ export async function cancelBooking(input: CancelBookingInput): Promise<CancelRe
       const refund = await getPaymentsStripe().refunds.create(refundParams, {
         idempotencyKey: stripeKeys.refund(bookingId, legKey),
       })
-      scheduleCancelRouteEmail(booking, previousStatus, 'refund')
       const refunded = failedAmount(booking, legAmountCents, false)
+      scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'refunded', refunded.amount_minor))
       return {
         kind: 'ok',
         outcome,
@@ -446,7 +595,7 @@ export async function cancelBooking(input: CancelBookingInput): Promise<CancelRe
   }
 
   // Manual booking, or a pay-now booking nothing was paid for: the status change was all there was to do.
-  scheduleCancelRouteEmail(booking, previousStatus, null)
+  scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'none'))
   return { kind: 'ok', outcome, money: 'none' }
 }
 
