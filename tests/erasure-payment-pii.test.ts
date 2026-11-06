@@ -178,3 +178,22 @@ describe('088 grants (T-89-17)', () => {
     expect(raw).toMatch(/AFTER 087/)
   })
 })
+
+describe('088 saga step (lib/erasure.ts)', () => {
+  const saga = readFileSync(join(process.cwd(), 'lib', 'erasure.ts'), 'utf8')
+
+  it('deletes the Stripe Customer after the verify pass and before the Supabase step', () => {
+    expect(saga).toContain('customers.del')
+    const verifyAt = saga.indexOf("recordErasureStep(req.id, 'verify'")
+    const stripeAt = saga.indexOf("finish('stripe'")
+    const supabaseAt = saga.indexOf('store.anonymisePerson')
+    expect(verifyAt).toBeGreaterThan(-1)
+    expect(stripeAt).toBeGreaterThan(verifyAt)
+    expect(supabaseAt).toBeGreaterThan(stripeAt)
+  })
+
+  it('treats resource_missing as done and logs a code, never a customer id', () => {
+    expect(saga).toContain("'resource_missing'")
+    expect(saga).toMatch(/logLine\(key, 'stripe', 'error', err\.code\)/)
+  })
+})

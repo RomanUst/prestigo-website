@@ -9,7 +9,7 @@ import { OutboxStoreError } from '@/lib/outbox-store'
 // messages and payloads are never logged (they can hold an address).
 
 export type ErasureStatus = 'previewed' | 'confirmed' | 'running' | 'completed' | 'failed'
-export type ErasureStepName = 'chatwoot' | 'espocrm' | 'verify' | 'supabase' | 'auth'
+export type ErasureStepName = 'chatwoot' | 'espocrm' | 'verify' | 'stripe' | 'supabase' | 'auth'
 
 /** Per-step result: counts and flags only, never an address, name or id of a record. */
 export type ErasureStepResult = Record<string, unknown>
@@ -48,6 +48,12 @@ export interface AnonymiseCounts {
   gnet_payloads_scrubbed: number
   trip_notes_scrubbed: number
   identity_deleted: number
+  /** Phase 89 (migration 088): the payment flow's own personal data. */
+  consents_scrubbed: number
+  manage_tokens_deleted: number
+  payment_notes_deleted: number
+  fee_cases_scrubbed: number
+  stripe_ids_cleared: number
 }
 
 export type ConfirmOutcome =
@@ -57,6 +63,8 @@ export type ConfirmOutcome =
   | 'not_previewed'
   | 'expired'
   | 'actor_mismatch'
+  /** Phase 89 (migration 088): a hold, a pending fee case or an open card flow on a future pickup. */
+  | 'payment_open'
 
 /** What lib/erasure.ts needs from Supabase (the saga's store double implements exactly this). */
 export interface ErasureStore {
@@ -70,6 +78,12 @@ export interface ErasureStore {
     status: 'completed' | 'failed',
   ): Promise<void>
   deleteAuthUser(userId: string): Promise<'deleted' | 'not_found'>
+  /**
+   * Phase 89: the distinct Stripe Customer ids of the person's bookings, read BEFORE the Supabase step clears
+   * them. A customer on a booking whose payment is still live (hold being placed / held / captured, pending
+   * fee case) is left out: deleting it would make the hold unreleasable.
+   */
+  stripeCustomerIds(bookingIds: string[]): Promise<string[]>
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -159,6 +173,11 @@ const COUNT_KEYS: ReadonlyArray<keyof AnonymiseCounts> = [
   'gnet_payloads_scrubbed',
   'trip_notes_scrubbed',
   'identity_deleted',
+  'consents_scrubbed',
+  'manage_tokens_deleted',
+  'payment_notes_deleted',
+  'fee_cases_scrubbed',
+  'stripe_ids_cleared',
 ]
 
 export async function anonymisePerson(requestId: string, client?: SupabaseClient): Promise<AnonymiseCounts> {
@@ -170,6 +189,44 @@ export async function anonymisePerson(requestId: string, client?: SupabaseClient
     counts[key] = typeof value === 'number' && Number.isFinite(value) ? value : 0
   }
   return counts
+}
+
+const LIVE_PAYMENT_STATES: ReadonlySet<string> = new Set(['placing_hold', 'authorized', 'capturing'])
+const BOOKING_CHUNK = 100
+
+/**
+ * The distinct Stripe Customer ids of the given bookings, minus every customer that also sits on a booking
+ * with a live payment (a hold in flight or a pending fee case). Read straight from bookings with the service
+ * client (the table is not deny-all for it); a read error becomes db_error, which the dispatcher retries.
+ */
+export async function stripeCustomerIds(bookingIds: string[], client?: SupabaseClient): Promise<string[]> {
+  if (bookingIds.length === 0) return []
+  try {
+    const db = client ?? createSupabaseServiceClient()
+    const found = new Set<string>()
+    const live = new Set<string>()
+    for (let i = 0; i < bookingIds.length; i += BOOKING_CHUNK) {
+      const { data, error } = await db
+        .from('bookings')
+        .select('stripe_customer_id, payment_state, fee_case_status')
+        .in('id', bookingIds.slice(i, i + BOOKING_CHUNK))
+      if (error) throw new Error('select')
+      for (const row of (data ?? []) as Array<Record<string, unknown>>) {
+        const id = asString(row.stripe_customer_id)
+        if (!id) continue
+        found.add(id)
+        if (
+          (typeof row.payment_state === 'string' && LIVE_PAYMENT_STATES.has(row.payment_state)) ||
+          row.fee_case_status === 'pending'
+        ) {
+          live.add(id)
+        }
+      }
+    }
+    return [...found].filter((id) => !live.has(id))
+  } catch {
+    throw new OutboxStoreError('db_error')
+  }
 }
 
 export async function completeErasure(
@@ -215,6 +272,7 @@ export async function confirmErasure(
     'not_previewed',
     'expired',
     'actor_mismatch',
+    'payment_open',
   ])
   if (!outcomes.has(data)) throw new OutboxStoreError('db_error')
   return data as ConfirmOutcome
@@ -232,7 +290,15 @@ export interface ErasureScopeOk {
   userId: string | null
   bookingIds: string[]
   inquiryIds: string[]
-  counts: { bookings: number; upcoming: number; inquiries: number; quoteLeads: number; hasAccount: boolean }
+  counts: {
+    bookings: number
+    upcoming: number
+    /** Bookings whose payment is still in play (migration 088); erasure is refused while above zero. */
+    paymentOpen: number
+    inquiries: number
+    quoteLeads: number
+    hasAccount: boolean
+  }
 }
 
 export type ErasureScope =
@@ -277,6 +343,7 @@ export async function erasureScope(
         counts: {
           bookings: count(counts.bookings),
           upcoming: count(counts.upcoming),
+          paymentOpen: count(counts.payment_open),
           inquiries: count(counts.inquiries),
           quoteLeads: count(counts.quote_leads),
           hasAccount: counts.has_account === true,
@@ -311,6 +378,7 @@ export async function createErasurePreview(
         counts: {
           bookings: scope.counts.bookings,
           upcoming: scope.counts.upcoming,
+          payment_open: scope.counts.paymentOpen,
           inquiries: scope.counts.inquiries,
           quote_leads: scope.counts.quoteLeads,
           has_account: scope.counts.hasAccount,
@@ -366,4 +434,5 @@ export const supabaseErasureStore: ErasureStore = {
   anonymisePerson: (requestId) => anonymisePerson(requestId),
   completeErasure: (requestId, verified, counts, status) => completeErasure(requestId, verified, counts, status),
   deleteAuthUser: (userId) => deleteAuthUser(userId),
+  stripeCustomerIds: (bookingIds) => stripeCustomerIds(bookingIds),
 }

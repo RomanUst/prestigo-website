@@ -3,6 +3,7 @@ import type { OutboxRow } from '@/lib/outbox-store'
 import { breaker, skip, type DispatchResult } from '@/lib/dispatch-outcomes'
 import { SiteChatwootError, type SiteChatwootClient } from '@/lib/chatwoot-client'
 import { SiteEspoError, type SiteEspoClient } from '@/lib/espocrm-client'
+import { classifyStripeError, getPaymentsStripe, stripeErrorCode, type StripeErrorClass } from '@/lib/payments/stripe'
 import { LEAD_ATTR, leadRefForBooking, leadRefForInquiry } from '@/lib/lead-mapping'
 import { createChatStore, type ChatStore, type ErasureScopeInput } from '@/lib/chat-store'
 import { listStreamNotes } from '@/lib/chat-io'
@@ -22,7 +23,7 @@ import type { DispatchDeps } from '@/lib/lead-sync'
  * erasure_requests row: the saga re-reads that row and a key alone (forged, replayed, or an old
  * sync event) can never erase, anonymise or delete anyone.
  *
- *   freeze (set by erasure_confirm) -> Chatwoot -> EspoCRM -> verify -> Supabase -> auth user -> audit
+ *   freeze (set by erasure_confirm) -> Chatwoot -> EspoCRM -> verify -> Stripe -> Supabase -> auth user -> audit
  *
  * Supabase is anonymised LAST (and only after the verify pass succeeded) because its identity,
  * booking and email rows are the index that finds the CRM and chat records: a retry after a timeout,
@@ -31,7 +32,7 @@ import type { DispatchDeps } from '@/lib/lead-sync'
  * (RESEARCH Pitfall 6), so Contacts and Leads are overwritten with blank personal fields BEFORE they
  * are deleted. The person's CBookings are anonymised in place and kept (no personal data, accounting
  * history stays). Nothing outside Chatwoot, EspoCRM and Supabase is touched; the rest (mail archive,
- * backups, Stripe, Resend) is the runbook's manual checklist (plan 82-15).
+ * backups, Resend) is the runbook's manual checklist (plan 82-15).
  *
  * Phase 83 (D-16): chat strangers are erased like any identity. The chat registry (identity, the
  * identity's Chatwoot contact id and the person's phones) points at the person's chat Leads and
@@ -40,6 +41,13 @@ import type { DispatchDeps } from '@/lib/lead-sync'
  * gone); the registry rows are deleted right before the Supabase anonymisation. A Note the Sync user
  * may not edit (owner-written, 403) is counted as notes_skipped and left for the runbook's manual
  * checklist; it never blocks the erasure.
+ *
+ * Phase 89 (88 D-23, migration 088): the Stripe step deletes the person's Stripe Customer objects (name, email
+ * and phone live there; saved cards go with them) once per distinct customer, AFTER the verify pass and BEFORE
+ * the Supabase step, because the Customer ids are read from the bookings and the Supabase step clears them.
+ * Charges stay in Stripe for the accounting retention. A customer on a booking with a live hold or a pending
+ * fee case is never deleted (the request guard refuses such a person up front; this is the second net).
+ * A person with no Stripe customer needs no Stripe configuration at all.
  *
  * Logs carry the key (ids only), the step, an outcome and a code; never a name, email, phone, id of a
  * record or response body.
@@ -52,6 +60,29 @@ const LOOKUP_CHUNK = 50
 const LIST_SIZE = 200
 const NOT_CONFIRMED = 'erasure_not_confirmed'
 const UNVERIFIED = 'erasure_unverified'
+
+/**
+ * The slice of the Stripe SDK the Stripe step uses (Phase 89). Tests inject a double through
+ * DispatchDeps.erasureStripe; production uses the payments client when STRIPE_SECRET_KEY is set.
+ */
+export interface ErasureStripe {
+  customers: { del(customerId: string): Promise<unknown> }
+}
+
+/** A Stripe delete failed for a reason other than "already gone". Carries the class and code only. */
+class StripeStepError extends Error {
+  constructor(
+    readonly kind: StripeErrorClass,
+    readonly code: string,
+  ) {
+    super(`stripe_${code}`)
+    this.name = 'StripeStepError'
+  }
+}
+
+function defaultErasureStripe(): ErasureStripe | null {
+  return process.env.STRIPE_SECRET_KEY ? getPaymentsStripe() : null
+}
 
 /** Thrown when an invocation nears the 60 s platform limit; turned into a `deadline` reschedule. */
 class DeadlineError extends Error {
@@ -79,7 +110,7 @@ type Ctx = {
 export async function deliverErasure(
   row: OutboxRow,
   d: DispatchDeps,
-  deps: { erasure?: ErasureStore } = {},
+  deps: { erasure?: ErasureStore; stripe?: ErasureStripe } = {},
 ): Promise<DispatchResult> {
   const startMs = d.now().getTime()
   const guard = () => {
@@ -89,7 +120,7 @@ export async function deliverErasure(
 
   let result: DispatchResult
   try {
-    result = await run(row, d, store, guard)
+    result = await run(row, d, store, guard, deps.stripe)
   } catch (err) {
     if (!(err instanceof DeadlineError)) throw err
     result = await rescheduleForDeadline(row, d)
@@ -132,6 +163,7 @@ async function run(
   d: DispatchDeps,
   store: ErasureStore,
   guard: () => void,
+  stripe: ErasureStripe | undefined,
 ): Promise<DispatchResult> {
   const key = row.idempotency_key
   const requestId = parseOutboxKey(key)?.aggregateId
@@ -176,6 +208,29 @@ async function run(
     logLine(key, 'verify', 'done')
   }
 
+  // Phase 89: the Stripe Customers go before the Supabase step clears the ids that name them. No customer =
+  // no Stripe call and no configuration needed; the step is still recorded so a resume skips it.
+  // (Skipped once the Supabase step is recorded: the ids are gone, and that step cannot be recorded before this one.)
+  if (!steps.stripe && !steps.supabase) {
+    guard()
+    const customerIds = [...new Set(await store.stripeCustomerIds(req.bookingIds))]
+    let result: ErasureStepResult = { stripe_customers_deleted: 0, stripe_customers_missing: 0 }
+    if (customerIds.length > 0) {
+      const client = stripe ?? defaultErasureStripe()
+      if (!client) return breaker(row, 'stripe_unconfigured', d)
+      try {
+        result = await stripeStep(client, customerIds, guard)
+      } catch (err) {
+        if (!(err instanceof StripeStepError)) throw err
+        logLine(key, 'stripe', 'error', err.code)
+        // A bad key will not fix itself in seconds: long wait, like the other unconfigured systems.
+        if (err.kind === 'config') return breaker(row, 'stripe_auth', d)
+        throw err
+      }
+    }
+    await finish('stripe', result, false)
+  }
+
   // Supabase last: everything the CRM steps needed to find the person is still here until this call.
   if (!steps.supabase) {
     guard()
@@ -218,6 +273,39 @@ async function failUnverified(ctx: Ctx, steps: ErasureSteps): Promise<DispatchRe
   await d.store.complete(row.idempotency_key, 'failed', UNVERIFIED)
   console.error(`[erasure] ALERT erasure_unverified key=${row.idempotency_key}`)
   return { outcome: 'failed', code: UNVERIFIED }
+}
+
+// ── Stripe ──────────────────────────────────────────────────────────────────
+
+/** Stripe answers 404 / resource_missing for a customer that is already deleted: that is done, not failed. */
+function isAlreadyGone(err: unknown): boolean {
+  const e = recordOf(err)
+  return e?.code === 'resource_missing' || e?.statusCode === 404
+}
+
+/**
+ * Deletes each Customer once (Stripe: "permanently deletes a customer ... removes all credit card details
+ * and prevents any further operations"). Charges and PaymentIntents stay for the accounting retention. Any
+ * other error stops the step; the request resumes from the unfinished step on the next delivery, and the
+ * customers already deleted answer "already gone" then.
+ */
+async function stripeStep(client: ErasureStripe, customerIds: string[], guard: () => void): Promise<ErasureStepResult> {
+  let deleted = 0
+  let missing = 0
+  for (const id of customerIds) {
+    guard()
+    try {
+      await client.customers.del(id)
+      deleted++
+    } catch (err) {
+      if (isAlreadyGone(err)) {
+        missing++
+        continue
+      }
+      throw new StripeStepError(classifyStripeError(err), stripeErrorCode(err))
+    }
+  }
+  return { stripe_customers_deleted: deleted, stripe_customers_missing: missing }
 }
 
 // ── Chatwoot ────────────────────────────────────────────────────────────────
