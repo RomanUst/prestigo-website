@@ -136,3 +136,7 @@ Not covered by 088 (unchanged from the plan): `booking_payment_events` ledger pa
 
 - supabase/migrations/088_erasure_payment_pii.sql, tests/erasure-payment-pii.test.ts, 89-05-smoke.sql: FOUND
 - commits 220140ff, c9cfc212, e93d2b76: FOUND on branch worktree-agent-ae0a6e0222bf56557
+
+## Orchestrator note (2026-11-06)
+
+088 is NOT applied yet, on purpose. `erasure_anonymise_person` now refuses to run until the `stripe` step is recorded, and the saga on production does not record it, so applying 088 now would block every erasure until the deploy. Apply 088 and run its smoke right before the 89-19 merge, in the same sitting.

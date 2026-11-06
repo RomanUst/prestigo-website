@@ -115,3 +115,7 @@ None beyond the plan's register. T-89-23 (snapshot built server-side, client pol
 
 - tests/booking-policy-snapshot.test.ts, this SUMMARY: FOUND
 - commits c7090458, dc3d2c20 and 39c8e927: FOUND on branch worktree-agent-a1b057de30589a905
+
+## Orchestrator note (2026-11-06)
+
+`create_round_trip_bookings` lists its columns and does not copy `cancel_policy_version` or `cancel_policy`. Only a round trip whose unpaid rows were lost before capture is affected: it falls back to the legacy one-hour rule, which is softer for the client. Accepted; listed for the go-live checklist.
