@@ -803,12 +803,11 @@ describe('PATCH /api/admin/bookings', () => {
     )
   })
 
-  it('87-03 D-02: no_show is accepted from on_location and sends no client email', async () => {
-    wireStatusRow({ id: PATCH_ID, status: 'on_location', client_email: 'a@b.com' })
-    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
-
+  it('89-09 WR-04: no_show is no longer reachable from PATCH (422 use_no_show_route, nothing written, no email)', async () => {
     const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'no_show' }))
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'use_no_show_route' })
+    expect(supabaseServiceStub.rpc).not.toHaveBeenCalled()
     expect(stubLogEmail).not.toHaveBeenCalled()
   })
 
