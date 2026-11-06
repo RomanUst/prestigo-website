@@ -164,7 +164,12 @@ describe('Erasure page: preview', () => {
     expect(screen.getByText('The contact and its leads will be deleted. 4 bookings will be anonymised.')).toBeTruthy()
     expect(
       screen.getByText(
-        /Not covered: the email mailbox archive, Stripe and Resend records, and encrypted backups \(kept until they rotate out, up to 6 months\)\. Handle these by hand if needed\./,
+        /Not covered: the email mailbox archive, Resend records, and encrypted backups \(kept until they rotate out, up to 6 months\)\. Handle these by hand if needed\./,
+      ),
+    ).toBeTruthy()
+    expect(
+      screen.getByText(
+        'The Stripe customer (name, email, phone and saved cards) will be deleted. Charges stay in Stripe for accounting.',
       ),
     ).toBeTruthy()
     expect(screen.queryByRole('note')).toBeNull()

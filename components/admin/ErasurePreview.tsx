@@ -45,8 +45,11 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
         </Row>
         <Row label="Chatwoot">The contact and all of its conversations will be deleted.</Row>
         <Row label="EspoCRM">{`The contact and its leads will be deleted. ${bookings} will be anonymised.`}</Row>
+        <Row label="Stripe">
+          The Stripe customer (name, email, phone and saved cards) will be deleted. Charges stay in Stripe for accounting.
+        </Row>
         <Row muted>
-          Not covered: the email mailbox archive, Stripe and Resend records, and encrypted backups (kept until they rotate
+          Not covered: the email mailbox archive, Resend records, and encrypted backups (kept until they rotate
           out, up to 6 months). Handle these by hand if needed.
         </Row>
       </div>
