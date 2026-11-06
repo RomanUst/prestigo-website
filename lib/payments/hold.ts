@@ -17,6 +17,7 @@
 import type Stripe from 'stripe'
 import { assertMoneyEligible, BOOKING_STATUSES, CALENDAR_ACTIVE_STATUSES, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
+import { loadFeeCase } from '@/lib/payments/fee'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { LEASE_SECONDS } from '@/lib/payments/config'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
@@ -157,9 +158,11 @@ export async function claimForHold(
 
 /**
  * The booking was cancelled or marked no-show while its hold was being placed (the status-gated transition out of
- * placing_hold was refused): void whatever PaymentIntent this attempt produced, move placing_hold -> released and drop
- * the recovery link. A void that fails leaves the D-20 trail (refund_failed ledger row + operator alert to cancel the
- * hold by hand); the state still says released, because the booking owes nothing.
+ * placing_hold was refused): void whatever PaymentIntent this attempt produced and leave placing_hold.
+ *   no fee case pending   -> released (terminal) and the recovery link dropped: the booking owes nothing;
+ *   a fee case pending    -> card_saved (89 Pitfall 2): released is terminal and would destroy the saved card the
+ *                            operator may still charge (D-15). Only the authorization of this attempt is voided.
+ * A void that fails leaves the D-20 trail (refund_failed ledger row + operator alert to cancel the hold by hand).
  */
 export async function abandonHoldForClosedBooking(
   booking: BookingRow,
@@ -177,20 +180,44 @@ export async function abandonHoldForClosedBooking(
     }
   }
 
-  const moved = await applyTransition({
-    bookingId,
-    from: ['placing_hold'],
-    to: 'released',
-    patch: { payment_lease_until: null, ...RECOVERY_LINK_CLEARED },
-    event: {
-      key: `hold_released:closed:${paymentIntentId ?? `${bookingId}:${attemptsOf(booking)}`}`,
-      kind: 'hold_released',
-      stripeObjectId: paymentIntentId ?? undefined,
-      errorCode: 'booking_closed',
-      actor,
-    },
-  })
-  if (moved.applied) await retireRecoveryLink(booking)
+  // A lookup that fails keeps the fee option (card_saved): released can not be undone, card_saved can.
+  let keepCard = false
+  try {
+    keepCard = (await loadFeeCase(bookingId))?.status === 'pending'
+  } catch {
+    keepCard = true
+    console.error('[hold] fee case lookup failed, keeping the saved card', { bookingId })
+  }
+
+  const attemptKey = paymentIntentId ?? `${bookingId}:${attemptsOf(booking)}`
+  const moved = keepCard
+    ? await applyTransition({
+        bookingId,
+        from: ['placing_hold'],
+        to: 'card_saved',
+        patch: { payment_lease_until: null },
+        event: {
+          key: `hold_voided:closed:${attemptKey}`,
+          kind: 'hold_released',
+          stripeObjectId: paymentIntentId ?? undefined,
+          errorCode: 'fee_pending',
+          actor,
+        },
+      })
+    : await applyTransition({
+        bookingId,
+        from: ['placing_hold'],
+        to: 'released',
+        patch: { payment_lease_until: null, ...RECOVERY_LINK_CLEARED },
+        event: {
+          key: `hold_released:closed:${attemptKey}`,
+          kind: 'hold_released',
+          stripeObjectId: paymentIntentId ?? undefined,
+          errorCode: 'booking_closed',
+          actor,
+        },
+      })
+  if (moved.applied && !keepCard) await retireRecoveryLink(booking)
 
   if (voidError && paymentIntentId) {
     const amountMinor = typeof booking.payment_amount_minor === 'number' ? booking.payment_amount_minor : undefined
@@ -561,8 +588,9 @@ export async function releaseHold(
     throw err
   }
 
-  // Only a card_hold booking has a hold or a saved card to release (a pay-now booking never leaves 'none').
-  if (booking.payment_mode !== 'card_hold') return 'noop'
+  // Only a card_hold or cash_guarantee booking has a hold or a saved card to release (a pay-now booking never leaves
+  // 'none'). A cash booking never holds money: card_saved, failed, checkout_pending, no Stripe call but the setup void.
+  if (booking.payment_mode !== 'card_hold' && booking.payment_mode !== 'cash_guarantee') return 'noop'
 
   const state = booking.payment_state as PaymentState
   if (state === 'capturing') return 'busy'
