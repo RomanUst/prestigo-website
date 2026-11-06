@@ -1124,7 +1124,8 @@
       "introCash": "Votre carte est enregistrée à titre de garantie. Aucun montant n'a été débité et aucun blocage n'est posé.",
       "cashLineToday": "Aujourd'hui : votre carte est enregistrée. Pas de blocage, pas de débit.",
       "cashLineDay": "Le jour du trajet : payez {amount} en espèces à votre chauffeur.",
-      "cashLineIfNeeded": "Seulement si nécessaire : nous débitons la carte enregistrée si vous annulez après le {freeUntil}, ne vous présentez pas ou ne payez pas le chauffeur. Une personne de Prestigo décide d'abord."
+      "cashLineIfNeeded": "Seulement si nécessaire : nous débitons la carte enregistrée si vous annulez après le {freeUntil}, ne vous présentez pas ou ne payez pas le chauffeur. Une personne de Prestigo décide d'abord.",
+      "cashLineIfNeededNoFree": "Seulement si nécessaire : nous débitons la carte enregistrée si vous annulez, ne vous présentez pas ou ne payez pas le chauffeur. Une personne de Prestigo décide d'abord."
     },
     "holdPlacedAtCheckout": {
       "subject": "Votre réservation PRESTIGO est confirmée — {reference}",
@@ -1164,6 +1165,7 @@
       "label": "Annulation",
       "labelFor": "Annulation, réservation {reference}",
       "body": "Annulation gratuite jusqu'au {freeUntil}. Passé ce délai, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit.",
+      "bodyNoFree": "L'annulation gratuite n'est pas disponible pour ce trajet. Si vous annulez, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit.",
       "cash": "Vous payez {amount} en espèces à votre chauffeur. Votre carte n'est qu'une garantie."
     },
     "manage": {

@@ -1124,7 +1124,8 @@
       "introCash": "Su tarjeta queda guardada como garantía. No se ha cobrado nada y no se ha retenido ningún importe.",
       "cashLineToday": "Hoy: su tarjeta queda guardada. Sin retención y sin cobro.",
       "cashLineDay": "El día del viaje: pague {amount} en efectivo al conductor.",
-      "cashLineIfNeeded": "Solo si es necesario: cobramos la tarjeta guardada si cancela después del {freeUntil}, no se presenta o no paga al conductor. Antes decide una persona de Prestigo."
+      "cashLineIfNeeded": "Solo si es necesario: cobramos la tarjeta guardada si cancela después del {freeUntil}, no se presenta o no paga al conductor. Antes decide una persona de Prestigo.",
+      "cashLineIfNeededNoFree": "Solo si es necesario: cobramos la tarjeta guardada si cancela, no se presenta o no paga al conductor. Antes decide una persona de Prestigo."
     },
     "holdPlacedAtCheckout": {
       "subject": "Su reserva de PRESTIGO está confirmada — {reference}",
@@ -1164,6 +1165,7 @@
       "label": "Cancelación",
       "labelFor": "Cancelación, reserva {reference}",
       "body": "Cancelación gratuita hasta el {freeUntil}. Después, se aplica el {percent}% de la tarifa ({amount}). Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin} min. Una persona de Prestigo decide cada cargo.",
+      "bodyNoFree": "La cancelación gratuita no está disponible para este viaje. Si cancela, se aplica el {percent}% de la tarifa ({amount}). Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin} min. Una persona de Prestigo decide cada cargo.",
       "cash": "Usted paga {amount} en efectivo al conductor. Su tarjeta es solo una garantía."
     },
     "manage": {

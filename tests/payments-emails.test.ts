@@ -5,7 +5,7 @@
  * Per-locale cases run for every messages/<l>.json that has the namespace
  * (en today; plan 88-05 adds the other six without touching this file).
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { locales, rtlLocales } from '@/i18n/locales'
@@ -331,7 +331,7 @@ describe('renderPaymentEmail: cancellation box and Manage booking button (en)', 
 })
 
 /** The static text around the ICU parameters of a catalog leaf, HTML-escaped as the renderer escapes it. */
-function staticFragments(locale: string, key: 'body' | 'label'): string[] {
+function staticFragments(locale: string, key: 'body' | 'bodyNoFree' | 'label'): string[] {
   const m = JSON.parse(readFileSync(join(process.cwd(), 'messages', `${locale}.json`), 'utf8')) as {
     PaymentEmails: { policyBox: Record<string, string> }
   }
@@ -372,6 +372,30 @@ describe.each(catalogLocales())('cancellation box and Manage booking button per 
       expect(out.html.match(FILLED_BUTTON) ?? []).toHaveLength(0)
     },
   )
+
+  it('WR-03: a passed deadline gives the not-available wording, with every parameter resolved and no deadline text', async () => {
+    const passed = { ...POLICY, freeUntilPassed: true }
+    for (const c of FAMILY) {
+      const out = await renderPaymentEmail(c.kind, locale, baseVars({ variant: c.variant, manageUrl: MANAGE_URL, policy: passed }))
+      expect(out.html).not.toMatch(/\{[A-Za-z]+\}/)
+      for (const fragment of staticFragments(locale, 'bodyNoFree')) expect(out.html).toContain(fragment)
+      expect(out.html).not.toContain(formatLocaleDateTime(POLICY.freeUntilMs, locale))
+      expect(out.html).toContain('<bdi dir="ltr">50</bdi>')
+    }
+  })
+
+  it('WR-03: the cash line drops the deadline once it has passed', async () => {
+    const open = await renderPaymentEmail('card_saved', locale, baseVars({ variant: 'cash', manageUrl: MANAGE_URL, policy: POLICY, freeUntil: POLICY.freeUntilMs }))
+    const passed = await renderPaymentEmail(
+      'card_saved',
+      locale,
+      baseVars({ variant: 'cash', manageUrl: MANAGE_URL, policy: { ...POLICY, freeUntilPassed: true } }),
+    )
+    const deadline = `<bdi dir="auto">${formatLocaleDateTime(POLICY.freeUntilMs, locale)}</bdi>`
+    expect(open.html).toContain(deadline)
+    expect(passed.html).not.toContain(formatLocaleDateTime(POLICY.freeUntilMs, locale))
+    expect(passed.html).not.toMatch(/\{[A-Za-z]+\}/)
+  })
 
   it('the same emails carry neither the box nor the button without a stored policy', async () => {
     for (const c of FAMILY) {
@@ -427,8 +451,15 @@ describe('emailVarsFromRow: stored-terms gate (tracer, D-18)', () => {
 
   beforeEach(() => {
     process.env.NEXT_PUBLIC_SITE_URL = 'https://rideprestigo.com'
+    // The box judges the free window against "now" (WR-03): pin the clock, the pickup is 2026-11-15 10:00 Prague.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-07T10:00:00Z'))
     db = createFakePaymentsDb({ bookings: [row()] })
     world.db = db
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('mints a token and flows it into the card_saved email as the Manage booking button and the box', async () => {
@@ -441,6 +472,7 @@ describe('emailVarsFromRow: stored-terms gate (tracer, D-18)', () => {
     // 50 km is the short window: one hour before the 10:00 Prague pickup; the fee is the stored 100 percent.
     expect(vars.policy).toEqual({
       freeUntilMs: Date.parse('2026-11-15T08:00:00Z'),
+      freeUntilPassed: false,
       percent: 100,
       feeAmountMinor: 12000,
       waitMin: 30,
@@ -451,6 +483,41 @@ describe('emailVarsFromRow: stored-terms gate (tracer, D-18)', () => {
     expect(out.html).toContain(`href="${vars.manageUrl}"`)
     expect(out.html).toContain('Free cancellation until')
     expect(out.html).toContain('09:00')
+  })
+
+  it('WR-03: a booking made after its own deadline gets the not-available wording, never "until" a past time', async () => {
+    // 150 km is the long window (12 h): the deadline is 2026-11-14 21:00 Prague; the booking is made 3 hours before pickup.
+    db.state.bookings[0].distance_km = 150
+    vi.setSystemTime(new Date('2026-11-15T04:00:00Z'))
+    const vars = await emailVarsFromRow(db.state.bookings[0], { kind: 'card_saved' })
+    expect(vars.policy?.freeUntilPassed).toBe(true)
+    const out = await renderPaymentEmail('card_saved', 'en', vars)
+    expect(out.html).toContain('Free cancellation is not available for this trip.')
+    expect(out.html).not.toContain('Free cancellation until')
+    expect(out.html).toContain('<bdi dir="ltr">100</bdi>%')
+    expect(out.html).toContain('A person at Prestigo decides every charge.')
+  })
+
+  it('WR-03: the cash confirmation drops "if you cancel after <past time>" too', async () => {
+    db.state.bookings[0].distance_km = 150
+    db.state.bookings[0].payment_mode = 'cash_guarantee'
+    vi.setSystemTime(new Date('2026-11-15T04:00:00Z'))
+    const vars = await emailVarsFromRow(db.state.bookings[0], { kind: 'card_saved', variant: 'cash' })
+    const out = await renderPaymentEmail('card_saved', 'en', { ...vars, variant: 'cash' })
+    expect(out.html).toContain('we charge the saved card if you cancel, do not show up, or do not pay the driver')
+    expect(out.html).not.toContain('if you cancel after')
+    expect(out.html).not.toContain('Free cancellation until')
+  })
+
+  it('WR-03: a reminder sent after the deadline drops the sentence; before it, it stays', async () => {
+    const before = await emailVarsFromRow(db.state.bookings[0], { kind: 'card_saved' })
+    expect(before.policy?.freeUntilPassed).toBe(false)
+    expect((await renderPaymentEmail('card_saved', 'en', before)).html).toContain('Free cancellation until')
+    // 2 hours before pickup the short window (1 h) has not ended; at 30 minutes before it has.
+    vi.setSystemTime(new Date('2026-11-15T08:30:00Z'))
+    const after = await emailVarsFromRow(db.state.bookings[0], { kind: 'card_saved' })
+    expect(after.policy?.freeUntilPassed).toBe(true)
+    expect((await renderPaymentEmail('card_saved', 'en', after)).html).not.toContain('Free cancellation until')
   })
 
   it('a second email for the same booking reuses the token', async () => {

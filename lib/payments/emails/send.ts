@@ -84,7 +84,9 @@ export async function policyBoxFromRow(booking: BookingRow, amountMinor: number)
       pickup_time: str(booking.pickup_time),
     })
     if (!facts) return null
-    const { freeUntilMs } = evaluateCancellation(policy, facts, Date.now())
+    // Judged at send time, like the checkout (card-checkout/init: freeUntilPassed = outcome is not 'free'): a booking made
+    // after its own deadline, and a reminder sent after it, must not promise free cancellation until a moment that is past.
+    const outcome = evaluateCancellation(policy, facts, Date.now())
     const thresholds = await getNoShowThresholds(createSupabaseServiceClient())
     const airport = isAirportPickup({
       origin_lat: num(booking.origin_lat) ?? null,
@@ -92,7 +94,8 @@ export async function policyBoxFromRow(booking: BookingRow, amountMinor: number)
       origin_address: str(booking.origin_address) || null,
     })
     return {
-      freeUntilMs,
+      freeUntilMs: outcome.freeUntilMs,
+      freeUntilPassed: outcome.kind !== 'free',
       percent: policy.feePercent,
       feeAmountMinor: proposedFeeMinor(amountMinor, policy.feePercent),
       waitMin: airport ? thresholds.airportMin : thresholds.cityMin,

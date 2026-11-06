@@ -1074,7 +1074,8 @@
       "introCash": "Your card is saved as a guarantee. Nothing has been charged and no hold is placed.",
       "cashLineToday": "Today: your card is saved. No hold, no charge.",
       "cashLineDay": "On the day: pay {amount} in cash to your driver.",
-      "cashLineIfNeeded": "Only if needed: we charge the saved card if you cancel after {freeUntil}, do not show up, or do not pay the driver. A person at Prestigo decides first."
+      "cashLineIfNeeded": "Only if needed: we charge the saved card if you cancel after {freeUntil}, do not show up, or do not pay the driver. A person at Prestigo decides first.",
+      "cashLineIfNeededNoFree": "Only if needed: we charge the saved card if you cancel, do not show up, or do not pay the driver. A person at Prestigo decides first."
     },
     "holdPlacedAtCheckout": {
       "subject": "Your PRESTIGO booking is confirmed — {reference}",
@@ -1114,6 +1115,7 @@
       "label": "Cancellation",
       "labelFor": "Cancellation, booking {reference}",
       "body": "Free cancellation until {freeUntil}. After that, {percent}% of the fare ({amount}) applies. If you do not show up, the full fare applies once the driver has waited {waitMin} minutes. A person at Prestigo decides every charge.",
+      "bodyNoFree": "Free cancellation is not available for this trip. If you cancel, {percent}% of the fare ({amount}) applies. If you do not show up, the full fare applies once the driver has waited {waitMin} minutes. A person at Prestigo decides every charge.",
       "cash": "You pay {amount} in cash to your driver. Your card is only a guarantee."
     },
     "manage": {

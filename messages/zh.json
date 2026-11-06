@@ -1124,7 +1124,8 @@
       "introCash": "您的银行卡已作为担保保存。目前未扣除任何款项，也未冻结任何金额。",
       "cashLineToday": "今天：已保存您的银行卡。不冻结，不扣款。",
       "cashLineDay": "行程当天：请向司机支付 {amount} 现金。",
-      "cashLineIfNeeded": "仅在必要时：如果您在 {freeUntil} 之后取消、未出现，或未向司机付款，我们会从已保存的银行卡扣款。扣款前先由 Prestigo 的工作人员决定。"
+      "cashLineIfNeeded": "仅在必要时：如果您在 {freeUntil} 之后取消、未出现，或未向司机付款，我们会从已保存的银行卡扣款。扣款前先由 Prestigo 的工作人员决定。",
+      "cashLineIfNeededNoFree": "仅在必要时：如果您取消、未出现，或未向司机付款，我们会从已保存的银行卡扣款。扣款前先由 Prestigo 的工作人员决定。"
     },
     "holdPlacedAtCheckout": {
       "subject": "您的 PRESTIGO 预订已确认 — {reference}",
@@ -1164,6 +1165,7 @@
       "label": "取消政策",
       "labelFor": "取消政策，预订 {reference}",
       "body": "{freeUntil}前可免费取消。此后将收取车费的 {percent}%（{amount}）。如果您未出现，司机等候 {waitMin} 分钟后将收取全额车费。每一笔费用均由 Prestigo 的工作人员决定。",
+      "bodyNoFree": "本次行程不提供免费取消。如果您取消，将收取车费的 {percent}%（{amount}）。如果您未出现，司机等候 {waitMin} 分钟后将收取全额车费。每一笔费用均由 Prestigo 的工作人员决定。",
       "cash": "您向司机支付 {amount} 现金。您的银行卡仅作为担保。"
     },
     "manage": {
