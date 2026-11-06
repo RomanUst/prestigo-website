@@ -61,7 +61,7 @@ was usable; the owner confirmed the emails after the fixes look right.
 
 Owner decisions and Dashboard:
 - Radar for saved payment methods, pricing plan and MCC 4121 notes: not confirmed.
-- `charge.refunded` on the live endpoint: not decided.
+- `charge.refunded` on the live endpoint: added 2026-11-06, the refund of 38C861 reached the ledger.
 - `card_flow_mode` was canary at the end of the canary; the plan's rule stands: no address but the owner's before Phase 89.
 
 Found in the canary:

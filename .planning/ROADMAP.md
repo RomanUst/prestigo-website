@@ -312,7 +312,8 @@ Plans:
 **Security-relevant**: yes — commit with `security:` prefix (operator-initiated off-session charges, policy-driven refunds and releases, consent records).
 **Legal checkpoint (blocking public go-live)**: Czech counsel or ČOI review of the mandate and consent text, the tiered cancellation schedule and the no-show clause, the withdrawal-exemption disclosure, and Stripe PII erasure vs accounting retention. Start in parallel with Phases 86-87. The consent text version stored per booking (Phase 88) lets wording change without breaking old records.
 **Owner decisions before planning**: no-show wait thresholds (benchmark: 30 min in the city, 60 min at the airport, counted from the pickup time) . **Decided 2026-11-02:** no-show is operator-charged, never automatic; cancellation policy = free until 1 h before pickup for trips ≤100 km, until 12 h before for trips >100 km, otherwise 100% (thresholds admin-configurable, wording reviewed by counsel). The wait thresholds are admin settings reused by Phase 91.
-**Planning notes**: Public go-live (owner flips the flag) happens at the end of this phase, after criterion 2 sign-off and a clean canary. Expected migration 086.
+**Owner decisions 2026-11-06 (see 89-CONTEXT.md)**: no counsel review, the owner accepts the risk and this replaces the legal checkpoint and the sign-off in criterion 2; client self-cancel from a manage-booking page linked in the confirmation email is added to this phase (changes go to the operator as a request); go-live to everyone at once.
+**Planning notes**: Public go-live (owner flips the flag) happens at the end of this phase, after the owner's own test. Next migration is 087.
 
 ### Phase 90: Dispatch Views
 
