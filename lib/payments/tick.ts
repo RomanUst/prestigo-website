@@ -395,6 +395,8 @@ const FAILURE_ALERT_KIND: Record<FailurePhase, 'hold_failed' | 'charge_failed' |
   hold: 'hold_failed',
   charge: 'charge_failed',
   difference: 'balance_unpaid',
+  // Never read from the ledger here (a fee failure is handled by its own writer, see stepF); the map is total for the type.
+  fee: 'charge_failed',
 }
 
 /** The phase and attempt of the failure that put the row where it is (null when the ledger can not tell). */
@@ -436,6 +438,9 @@ const stepF: TickStep = {
       .in('payment_state', ['failed', 'balance_due'])
       .neq('status', 'cancelled')
       .neq('status', 'no_show')
+      // Phase 89: a row with a fee case failed on a fee (or on a cash charge) whose notices are keyed by phase 'fee'; the
+      // ledger can not tell that from a trip charge, so a re-drive here would send the wrong notice for the wrong amount.
+      .is('fee_case_status', null)
       .gte('payment_failed_at', new Date(nowMs - LEASE_SEARCH_AFTER_MS).toISOString())
       .order('payment_failed_at', { ascending: true })
       .limit(HOLD_CLAIM_LIMIT)

@@ -54,6 +54,10 @@ export const stripeKeys = {
   capture: (bookingId: string, n: number) => `cap:${bookingId}:${n}`,
   charge: (bookingId: string, n: number) => `chg:${bookingId}:${n}`,
   difference: (bookingId: string, n: number) => `diff:${bookingId}:${n}`,
+  // Phase 89 fee keys: case id + attempt, NEVER the amount (T-89-19). The amount is locked on the case, and a new
+  // amount needs a definitive failure, which advances the attempt and so the key.
+  feeCapture: (caseId: string, n: number) => `feecap:${caseId}:${n}`,
+  feeCharge: (caseId: string, n: number) => `fee:${caseId}:${n}`,
   refund: (bookingId: string, leg: string) => `refund:${bookingId}:${leg}`,
   link: (bookingId: string, tag: string | number) => `link:${bookingId}:${tag}`,
 } as const
@@ -65,6 +69,7 @@ export type CardKind =
   | 'card_charge'
   | 'card_difference'
   | 'card_recovery'
+  | 'card_fee'
 
 /**
  * The only metadata a card-flow Stripe object may carry. Ids and the public booking reference only;
