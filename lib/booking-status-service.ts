@@ -8,6 +8,7 @@ import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { pushGnetForTransition } from '@/lib/gnet-push'
 import { isPartnerBooking } from '@/lib/booking-status'
 import { emitBookingCompleted } from '@/lib/booking-events'
+import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
 
 /**
  * The one writer of bookings.status for admin-driven transitions
@@ -280,9 +281,11 @@ export async function advanceBookingStatus(
         // Use after() so Vercel serverless runtime keeps the promise alive
         // past the response return — void fn() was being killed on response.
         if (to === 'confirmed') {
-          after(() => sendStatusConfirmedEmail(emailBooking).catch(err =>
-            console.error('[booking-notify] confirmed:', err)
-          ))
+          // Phase 89 CANC-02: box and Manage button for a booking that stored a policy ('' otherwise, mail unchanged).
+          after(() => buildPolicyBlockHtml(current).catch(() => '')
+            .then(policyBlockHtml => sendStatusConfirmedEmail(policyBlockHtml ? { ...emailBooking, policyBlockHtml } : emailBooking))
+            .catch(err => console.error('[booking-notify] confirmed:', err))
+          )
         } else if (to === 'cancelled') {
           after(() => sendStatusCancelledEmail(emailBooking).catch(err =>
             console.error('[booking-notify] cancelled:', err)

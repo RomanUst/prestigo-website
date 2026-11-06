@@ -8,12 +8,14 @@ const {
   mockSendDriverReminderEmail,
   mockReceiverVerify,
   mockFrom,
+  mockBuildPolicyBlock,
 } = vi.hoisted(() => ({
   mockLogEmail:                  vi.fn(),
   mockSendClientReminderEmail:   vi.fn(),
   mockSendDriverReminderEmail:   vi.fn(),
   mockReceiverVerify:            vi.fn(),
   mockFrom:                      vi.fn(),
+  mockBuildPolicyBlock:          vi.fn(),
 }))
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -22,6 +24,11 @@ vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => ({
     from: mockFrom,
   })),
+}))
+
+// Phase 89 plan 89-18: the box and Manage button of a booking that stored a policy ('' otherwise).
+vi.mock('@/lib/payments/emails/policy-block', () => ({
+  buildPolicyBlockHtml: mockBuildPolicyBlock,
 }))
 
 vi.mock('@/lib/email-log', () => ({
@@ -120,6 +127,9 @@ beforeEach(() => {
 
   // Default: logEmail allows send
   mockLogEmail.mockResolvedValue(true)
+
+  // Default: the booking stored no policy, so no block
+  mockBuildPolicyBlock.mockResolvedValue('')
 
   // Default chainable query builder for pricing_globals
   const mockSinglePricing = vi.fn().mockResolvedValue({ data: PRICING_GLOBALS_FLAGS_ON, error: null })
@@ -238,5 +248,38 @@ describe('NOTIF-05/DRIVER-07: 2h QStash reminder', () => {
     const res = await POST(makeRequest())
     expect(res.status).toBe(200)
     expect(mockSendDriverReminderEmail).not.toHaveBeenCalled()
+  })
+
+  it('Phase 89: a booking with a stored policy gets the block in the client mail only, never the driver mail', async () => {
+    mockBuildPolicyBlock.mockResolvedValue('<div>POLICY-BLOCK</div>')
+    const mockSingleWithDriver = vi.fn().mockResolvedValue({ data: BOOKING_WITH_DRIVER, error: null })
+    const mockEqWithDriver = vi.fn().mockReturnValue({ single: mockSingleWithDriver })
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'pricing_globals') {
+        const single = vi.fn().mockResolvedValue({ data: PRICING_GLOBALS_FLAGS_ON, error: null })
+        const eq = vi.fn().mockReturnValue({ single })
+        return { select: vi.fn().mockReturnValue({ eq }) }
+      }
+      if (table === 'bookings') return { select: vi.fn().mockReturnValue({ eq: mockEqWithDriver }) }
+      return {}
+    })
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    expect(mockBuildPolicyBlock).toHaveBeenCalledWith(expect.objectContaining({ id: BASE_BOOKING.id }))
+    expect(mockSendClientReminderEmail.mock.calls[0][0]).toMatchObject({ policyBlockHtml: '<div>POLICY-BLOCK</div>' })
+    expect(mockSendDriverReminderEmail.mock.calls[0][0]).not.toHaveProperty('policyBlockHtml')
+  })
+
+  it('Phase 89: no stored policy leaves the reminder data unchanged', async () => {
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    expect(mockSendClientReminderEmail.mock.calls[0][0]).not.toHaveProperty('policyBlockHtml')
+  })
+
+  it('Phase 89: a deduplicated reminder builds no block', async () => {
+    mockLogEmail.mockResolvedValue(false)
+    await POST(makeRequest())
+    expect(mockBuildPolicyBlock).not.toHaveBeenCalled()
   })
 })
