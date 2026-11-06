@@ -902,6 +902,7 @@
       "emptyHeading": "暂无行程",
       "emptyBody": "您预订的接送服务将显示在此处。准备出行了吗？",
       "emptyCta": "预订接送服务",
+      "manage": "管理预订",
       "statusLabels": {
         "confirmed": "已确认",
         "pending": "待确认",
@@ -1172,6 +1173,92 @@
       "subject": "您的 PRESTIGO 预订无需付费 — {reference}",
       "h1": "您的预订无需付费。",
       "intro": "我们决定不收取取消费用。"
+    }
+  },
+  "Manage": {
+    "meta": {
+      "title": "您的预订"
+    },
+    "header": {
+      "homeAriaLabel": "Prestigo 首页"
+    },
+    "loading": "正在加载您的预订",
+    "eyebrow": "您的预订",
+    "title": {
+      "trip": "您在 <bdi>{pickupDate}</bdi> 的行程",
+      "onBoard": "祝您旅途愉快",
+      "completed": "行程已完成",
+      "cancelled": "预订已取消",
+      "noShow": "我们没能接到您"
+    },
+    "titleLine": {
+      "completed": "感谢您选择 Prestigo 出行。",
+      "noShow": "司机已在接客点等候。后续安排我们会通过电子邮件告知您。"
+    },
+    "status": {
+      "pending": "待确认",
+      "confirmed": "已确认",
+      "assigned": "已安排司机",
+      "enRoute": "司机正在赶来",
+      "onLocation": "司机已到达接客点",
+      "onBoard": "行程进行中",
+      "completed": "已完成",
+      "cancelled": "已取消",
+      "noShow": "未能会合",
+      "unpaid": "待付款"
+    },
+    "reference": "预订编号",
+    "details": {
+      "from": "出发地",
+      "to": "目的地",
+      "pickup": "接客时间",
+      "pragueTime": "布拉格时间",
+      "vehicle": "车辆",
+      "passengers": "乘客",
+      "fare": "费用",
+      "payment": "付款"
+    },
+    "payment": {
+      "paidCard": "已用银行卡支付：<bdi>{amount}</bdi>。",
+      "cardSaved": "您的银行卡已保存。我们将于 <bdi>{holdDate}</bdi> 预授权冻结 <bdi>{amount}</bdi>，并在行程结束后扣款。",
+      "holdActive": "您的银行卡上已冻结 <bdi>{amount}</bdi>，行程结束后扣款。",
+      "cash": "请向司机支付现金 <bdi>{amount}</bdi>。您的银行卡仅作为担保保存。"
+    },
+    "panel": {
+      "freeHeading": "<bdi>{freeUntil}</bdi> 前可免费取消",
+      "freeIntro": "在此之前，您可以免费取消本次预订。",
+      "freeHold": "您银行卡上的冻结金额将被释放。",
+      "freeRefund": "我们会将 <bdi>{amount}</bdi> 退回到您的银行卡。",
+      "freeNone": "尚未扣除任何费用。",
+      "bankNote": "银行通常会在 5 至 10 个工作日内显示退款。",
+      "lateHeading": "免费取消期已结束",
+      "late1": "免费取消已于 <bdi>{freeUntil}</bdi> 结束。",
+      "late2": "如果现在取消，将收取费用的 {percent}%（<bdi>{amount}</bdi>）。您的预订会立即取消，并通知司机。",
+      "late3": "最终费用由 Prestigo 的工作人员决定，也可能减免，例如您的航班被取消时。在我们发邮件通知您之前，不会扣除任何费用。",
+      "lateNoFee": "如果现在取消，您的预订会立即取消，并通知司机。不会扣除任何费用。",
+      "tooLate": "接客时间已过。如需现在取消，请致电我们。"
+    },
+    "cancelled": {
+      "heading": "已于 <bdi>{cancelledDate}</bdi> 取消",
+      "none": "未扣除任何费用。",
+      "refunded": "我们已退还 <bdi>{amount}</bdi>。",
+      "pending": "可能会收取最高 <bdi>{amount}</bdi> 的取消费用。我们会通过电子邮件告知您我们的决定。",
+      "charged": "因在 <bdi>{freeUntil}</bdi> 之后取消，我们已扣除 <bdi>{amount}</bdi>。",
+      "chargedLate": "因取消过晚，我们已扣除 <bdi>{amount}</bdi>。",
+      "waived": "我们决定不收取取消费用。"
+    },
+    "bookNew": "预订新的行程",
+    "bookRide": "预订行程",
+    "callUs": "致电我们",
+    "emailUs": "给我们发邮件",
+    "contact": {
+      "label": "需要帮助？",
+      "privacy": "此页面为私密页面。任何拿到此链接的人都可以管理该预订，请勿分享。",
+      "terms": "条款与条件"
+    },
+    "invalid": {
+      "title": "此链接无效",
+      "body": "请确认您已完整复制预订邮件中的链接。如果仍然无法打开，请联系我们，我们会为您处理。"
     }
   }
 }

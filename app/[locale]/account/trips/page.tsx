@@ -5,6 +5,8 @@ import { localizedHref } from '@/lib/localized-href'
 import Nav from '@/components/Nav'
 import { VEHICLE_CLASS_KEY, type VehicleClass } from '@/types/booking'
 import type { AppLocale } from '@/i18n/locales'
+import { TERMINAL_BOOKING_STATUSES, isBookingStatus } from '@/lib/booking-status'
+import { ensureManageToken } from '@/lib/manage-link'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,12 +51,31 @@ export default async function AccountTripsPage() {
 
   const { data: bookings } = await supabase
     .from('bookings')
-    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, vehicle_class, amount_eur, status, leg, trip_type')
+    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, vehicle_class, amount_eur, status, leg, trip_type, cancel_policy_version')
     .eq('user_id', user.id) // defense-in-depth on top of RLS
     .order('pickup_date', { ascending: false })
     .limit(50)
 
   const trips = bookings ?? []
+
+  // Phase 89 (D-02): a non-terminal booking that stored a cancellation policy gets a "Manage booking" link to the same
+  // secret-link page guests use. The rows above are already the signed-in client's own (user_id filter plus RLS); the
+  // token is then read with the service client inside ensureManageToken, so it never passes through the user client
+  // (the table is deny-all for it). A legacy booking (no stored policy), a terminal one or a failed read gets no link.
+  const manageHrefs = new Map<string, string>()
+  await Promise.all(
+    trips.map(async (trip) => {
+      const policyVersion = (trip as { cancel_policy_version?: string | null }).cancel_policy_version
+      if (typeof policyVersion !== 'string' || policyVersion === '') return
+      if (isBookingStatus(trip.status) && TERMINAL_BOOKING_STATUSES.has(trip.status)) return
+      try {
+        const token = await ensureManageToken(trip.id)
+        if (token) manageHrefs.set(trip.id, getPathname({ locale, href: `/manage/${token}` }))
+      } catch {
+        // Best effort: the list still renders without the link.
+      }
+    }),
+  )
 
   return (
     <div
@@ -149,7 +170,7 @@ export default async function AccountTripsPage() {
                   }}
                 >
                   {/* Top row: ref + status */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 12 }}>
                     <span
                       style={{
                         fontFamily: 'var(--font-montserrat)',
@@ -162,18 +183,37 @@ export default async function AccountTripsPage() {
                     >
                       {trip.booking_reference}
                     </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-montserrat)',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        letterSpacing: '0.22em',
-                        color: statusEntry.color,
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {statusLabel}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginInlineStart: 'auto' }}>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-montserrat)',
+                          fontSize: 10,
+                          fontWeight: 600,
+                          letterSpacing: '0.22em',
+                          color: statusEntry.color,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {statusLabel}
+                      </span>
+                      {manageHrefs.has(trip.id) ? (
+                        <a
+                          href={manageHrefs.get(trip.id)}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            minHeight: 44,
+                            fontFamily: 'var(--font-montserrat)',
+                            fontSize: 13,
+                            fontWeight: 400,
+                            color: 'var(--copper-light)',
+                            textDecoration: 'underline',
+                          }}
+                        >
+                          {t('manage')}
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
 
                   {/* Date + class */}
