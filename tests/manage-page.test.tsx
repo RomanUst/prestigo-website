@@ -12,9 +12,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import enMessages from '../messages/en.json'
+import ruMessages from '../messages/ru.json'
+import esMessages from '../messages/es.json'
+import frMessages from '../messages/fr.json'
+import arMessages from '../messages/ar.json'
+import hiMessages from '../messages/hi.json'
+import zhMessages from '../messages/zh.json'
 
 const ALL_MESSAGES: Record<string, unknown> = {
   en: enMessages,
+  ru: ruMessages,
+  es: esMessages,
+  fr: frMessages,
+  ar: arMessages,
+  hi: hiMessages,
+  zh: zhMessages,
 }
 
 const { mockLocaleRef, mockResolve, mockLoad, mockEnsure, mockGetUser, mockBookings, reactServerBuild } = vi.hoisted(() => ({
@@ -75,6 +87,7 @@ vi.mock('@/components/Nav', () => ({ default: () => null }))
 import { buildManageView, MANAGE_BOOKING_COLUMNS, type ManageView } from '@/lib/manage-view'
 import ManageBookingPage, { generateMetadata } from '@/app/[locale]/manage/[token]/page'
 import ManageLoading from '@/app/[locale]/manage/[token]/loading'
+import AccountTripsPage from '@/app/[locale]/account/trips/page'
 
 const TOKEN = 'A'.repeat(43)
 const HOUR = 3_600_000
@@ -389,6 +402,29 @@ describe('manage page, state table (E3 populated)', () => {
     expect(terms?.getAttribute('rel')).toBe('noopener noreferrer')
   })
 
+  it('wraps addresses and the reference in bdi, and amounts keep a direction', async () => {
+    const { container } = await renderPage('ar', view(futureRow(48)))
+    const auto = Array.from(container.querySelectorAll('bdi[dir="auto"]')).map((b) => b.textContent)
+    expect(auto.some((t) => t?.includes('Václavské'))).toBe(true)
+    const ltr = Array.from(container.querySelectorAll('bdi[dir="ltr"]')).map((b) => b.textContent)
+    expect(ltr).toContain('PR-4821')
+  })
+
+  it('renders in every locale without a missing-message marker', async () => {
+    for (const locale of ['ru', 'es', 'fr', 'ar', 'hi', 'zh']) {
+      const { container, unmount } = await renderPage(locale, view(futureRow(5)))
+      expect(container.textContent, locale).not.toMatch(/Manage\.|MISSING_MESSAGE/)
+      expect(container.querySelector('h1')?.textContent?.length, locale).toBeGreaterThan(3)
+      expect(container.textContent, locale).not.toContain('Free cancellation has ended')
+      unmount()
+    }
+  })
+
+  it('ar page links use the locale prefix', async () => {
+    const { container } = await renderPage('ar', view(futureRow(48)))
+    expect(container.querySelector('a[href="/ar/book"]')).not.toBeNull()
+  })
+
   it('metadata: noindex, nofollow and no referrer', async () => {
     const meta = await generateMetadata({ params: Promise.resolve({ locale: 'en', token: TOKEN }) })
     expect(meta.robots).toEqual({ index: false, follow: false })
@@ -433,6 +469,10 @@ describe('invalid link (E1 error, E7 empty)', () => {
     expect(container.querySelector('a[href="/book"]')?.className).toContain('btn-primary')
   })
 
+  it('is localized', async () => {
+    const { getByRole } = await renderPage('fr', null, null)
+    expect(getByRole('heading', { level: 1 }).textContent).toBe('Ce lien n\'est pas valide')
+  })
 })
 
 describe('loading state (E1)', () => {
@@ -468,4 +508,129 @@ describe('page source rules', () => {
 })
 
 // ---------------------------------------------------------------------------------------------------------------------
+describe('My trips Manage link (D-02)', () => {
+  const user = { id: 'user-uuid', email: 'user@example.com' }
+  const trip = (id: string, over: Record<string, unknown> = {}) => ({
+    id,
+    booking_reference: `PR-${id}`,
+    pickup_date: '2026-11-12',
+    pickup_time: '11:00',
+    origin_address: 'A',
+    destination_address: 'B',
+    vehicle_class: 'business',
+    amount_eur: 100,
+    status: 'confirmed',
+    leg: 'outbound',
+    trip_type: 'transfer',
+    cancel_policy_version: '2026-11-1',
+    ...over,
+  })
+
+  beforeEach(() => {
+    mockGetUser.mockResolvedValue({ data: { user } })
+    mockEnsure.mockImplementation(async (id: string) => (id === 'no-token' ? null : `T${id}`.padEnd(43, 'x')))
+  })
+
+  async function renderTrips(locale = 'en') {
+    mockLocaleRef.value = locale
+    const { render } = await import('@testing-library/react')
+    return render(await AccountTripsPage())
+  }
+
+  it('links a non-terminal booking with a stored policy, with the locale prefix', async () => {
+    mockBookings.rows = [trip('a')]
+    const { getByRole } = await renderTrips('ru')
+    const link = getByRole('link', { name: 'Управлять бронированием' })
+    expect(link.getAttribute('href')).toBe(`/ru/manage/${'Ta'.padEnd(43, 'x')}`)
+    expect(mockEnsure).toHaveBeenCalledWith('a')
+  })
+
+  it('reads Manage booking in English', async () => {
+    mockBookings.rows = [trip('a')]
+    const { getByRole } = await renderTrips('en')
+    expect(getByRole('link', { name: 'Manage booking' }).getAttribute('href')).toMatch(/^\/manage\/T/)
+  })
+
+  it('shows no link for a terminal booking, a legacy booking or a booking without a token', async () => {
+    mockBookings.rows = [
+      trip('done', { status: 'completed' }),
+      trip('gone', { status: 'cancelled' }),
+      trip('missed', { status: 'no_show' }),
+      trip('legacy', { cancel_policy_version: null }),
+      trip('no-token'),
+    ]
+    const { queryAllByRole } = await renderTrips('en')
+    expect(queryAllByRole('link', { name: 'Manage booking' })).toHaveLength(0)
+    // Terminal and legacy rows are skipped before any token is minted.
+    expect(mockEnsure).toHaveBeenCalledTimes(1)
+    expect(mockEnsure).toHaveBeenCalledWith('no-token')
+  })
+
+  it('a failing token read drops that link only', async () => {
+    mockBookings.rows = [trip('a'), trip('b')]
+    mockEnsure.mockImplementation(async (id: string) => {
+      if (id === 'a') throw new Error('db')
+      return 'Tb'.padEnd(43, 'x')
+    })
+    const { queryAllByRole } = await renderTrips('en')
+    expect(queryAllByRole('link', { name: 'Manage booking' })).toHaveLength(1)
+  })
+
+  it('the trips page never reads a token column through the user client', () => {
+    const src = readFileSync(join(process.cwd(), 'app/[locale]/account/trips/page.tsx'), 'utf8')
+    expect(src).toContain('ensureManageToken')
+    expect(src).not.toMatch(/booking_manage_tokens/)
+  })
+})
+
 // ---------------------------------------------------------------------------------------------------------------------
+describe('catalog parity (7 locales)', () => {
+  type Json = string | { [k: string]: Json }
+  const flatten = (node: Json | undefined, prefix = ''): Record<string, string> => {
+    if (node === undefined) return {}
+    if (typeof node === 'string') return { [prefix]: node }
+    return Object.assign({}, ...Object.entries(node).map(([k, v]) => flatten(v, prefix ? `${prefix}.${k}` : k)))
+  }
+  const catalog = (loc: string) => ALL_MESSAGES[loc] as { Manage: Json; Account: { trips: { manage: string } } }
+  const params = (s: string) =>
+    Array.from(s.matchAll(/\{(\w+)[,}]|<(\/?\w+)>/g), (m) => m[1] ?? m[2])
+      .filter((p) => !p.startsWith('/'))
+      .sort()
+      .join(',')
+  const others = ['ru', 'es', 'fr', 'ar', 'hi', 'zh']
+  const en = flatten(catalog('en').Manage)
+
+  it('the English namespace is non-trivial and carries Account.trips.manage', () => {
+    expect(Object.keys(en).length).toBeGreaterThan(60)
+    expect(catalog('en').Account.trips.manage).toBe('Manage booking')
+  })
+
+  it.each(others)('%s has the same keys and the same ICU parameters as English', (loc) => {
+    const flat = flatten(catalog(loc).Manage)
+    expect(Object.keys(flat).sort()).toEqual(Object.keys(en).sort())
+    for (const [key, value] of Object.entries(flat)) {
+      expect(params(value), `${loc} ${key}`).toBe(params(en[key]))
+      expect(value.trim().length, `${loc} ${key}`).toBeGreaterThan(0)
+    }
+    expect(params(catalog(loc).Account.trips.manage)).toBe('')
+  })
+
+  it.each(others)('%s: no new key equals its English value (real translations, no stubs)', (loc) => {
+    const flat = flatten(catalog(loc).Manage)
+    for (const [key, value] of Object.entries(flat)) {
+      const onlyParams = en[key].replace(/<\/?bdi>|\{\w+\}|[\s.,:;()%]/g, '') === ''
+      if (onlyParams) continue
+      expect(value, `${loc} ${key}`).not.toBe(en[key])
+    }
+    expect(catalog(loc).Account.trips.manage).not.toBe(catalog('en').Account.trips.manage)
+    expect(JSON.stringify(flat)).not.toMatch(/\[(RU|ES|FR|AR|HI|ZH)\]/)
+  })
+
+  it('no catalog value types an amount', () => {
+    for (const loc of ['en', ...others]) {
+      for (const [key, value] of Object.entries(flatten(catalog(loc).Manage))) {
+        expect(value, `${loc} ${key}`).not.toMatch(/[€]|\bCZK\b|\bKč\b|\bEUR\b/)
+      }
+    }
+  })
+})

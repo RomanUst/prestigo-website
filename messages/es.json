@@ -902,6 +902,7 @@
       "emptyHeading": "Aún no hay viajes",
       "emptyBody": "Sus traslados reservados aparecerán aquí. ¿Preparado para viajar?",
       "emptyCta": "Reservar un traslado",
+      "manage": "Gestionar reserva",
       "statusLabels": {
         "confirmed": "CONFIRMADO",
         "pending": "PENDIENTE",
@@ -1172,6 +1173,92 @@
       "subject": "Sin tarifa en su reserva PRESTIGO — {reference}",
       "h1": "Sin tarifa en su reserva.",
       "intro": "Hemos decidido no cobrar una tarifa de cancelación."
+    }
+  },
+  "Manage": {
+    "meta": {
+      "title": "Su reserva"
+    },
+    "header": {
+      "homeAriaLabel": "Prestigo, inicio"
+    },
+    "loading": "Cargando su reserva",
+    "eyebrow": "Su reserva",
+    "title": {
+      "trip": "Su viaje del <bdi>{pickupDate}</bdi>",
+      "onBoard": "Disfrute del viaje",
+      "completed": "Viaje completado",
+      "cancelled": "Reserva cancelada",
+      "noShow": "No pudimos encontrarle"
+    },
+    "titleLine": {
+      "completed": "Gracias por viajar con Prestigo.",
+      "noShow": "El conductor esperó en el punto de recogida. Le escribiremos por correo con los siguientes pasos."
+    },
+    "status": {
+      "pending": "Pendiente",
+      "confirmed": "Confirmada",
+      "assigned": "Conductor asignado",
+      "enRoute": "Conductor en camino",
+      "onLocation": "Conductor en el punto de recogida",
+      "onBoard": "En trayecto",
+      "completed": "Completada",
+      "cancelled": "Cancelada",
+      "noShow": "Encuentro no realizado",
+      "unpaid": "Pendiente de pago"
+    },
+    "reference": "Referencia de la reserva",
+    "details": {
+      "from": "Origen",
+      "to": "Destino",
+      "pickup": "Recogida",
+      "pragueTime": "Hora de Praga",
+      "vehicle": "Vehículo",
+      "passengers": "Pasajeros",
+      "fare": "Tarifa",
+      "payment": "Pago"
+    },
+    "payment": {
+      "paidCard": "Pagado con tarjeta: <bdi>{amount}</bdi>.",
+      "cardSaved": "Su tarjeta está guardada. Retenemos <bdi>{amount}</bdi> el <bdi>{holdDate}</bdi> y lo cobramos después del viaje.",
+      "holdActive": "Hay una retención de <bdi>{amount}</bdi> en su tarjeta. Se cobra después del viaje.",
+      "cash": "Pague <bdi>{amount}</bdi> en efectivo al conductor. Su tarjeta se guarda solo como garantía."
+    },
+    "panel": {
+      "freeHeading": "Cancelación gratuita hasta el <bdi>{freeUntil}</bdi>",
+      "freeIntro": "Puede cancelar esta reserva gratis hasta ese momento.",
+      "freeHold": "La retención en su tarjeta se libera.",
+      "freeRefund": "Le reembolsamos <bdi>{amount}</bdi> en su tarjeta.",
+      "freeNone": "No se ha cobrado nada.",
+      "bankNote": "Su banco suele mostrar el reembolso en 5 a 10 días laborables.",
+      "lateHeading": "La cancelación gratuita ha terminado",
+      "late1": "La cancelación gratuita terminó el <bdi>{freeUntil}</bdi>.",
+      "late2": "Si cancela ahora, se aplica el {percent}% de la tarifa (<bdi>{amount}</bdi>). Su reserva se cancela de inmediato y se avisa al conductor.",
+      "late3": "Una persona de Prestigo decide el cobro final y puede anularlo, por ejemplo si su vuelo fue cancelado. No se cobra nada hasta que le escribamos.",
+      "lateNoFee": "Si cancela ahora, su reserva se cancela de inmediato y se avisa al conductor. No se cobrará nada.",
+      "tooLate": "La hora de recogida ya pasó. Para cancelar ahora, llámenos."
+    },
+    "cancelled": {
+      "heading": "Cancelada el <bdi>{cancelledDate}</bdi>",
+      "none": "No se cobró nada.",
+      "refunded": "Le reembolsamos <bdi>{amount}</bdi>.",
+      "pending": "Puede aplicarse un cargo por cancelación de hasta <bdi>{amount}</bdi>. Le enviaremos nuestra decisión por correo.",
+      "charged": "Cobramos <bdi>{amount}</bdi> por cancelar después del <bdi>{freeUntil}</bdi>.",
+      "chargedLate": "Cobramos <bdi>{amount}</bdi> por cancelar tarde.",
+      "waived": "Hemos decidido no cobrar ningún cargo por cancelación."
+    },
+    "bookNew": "Reservar un nuevo viaje",
+    "bookRide": "Reservar un viaje",
+    "callUs": "Llámenos",
+    "emailUs": "Escríbanos",
+    "contact": {
+      "label": "¿Necesita ayuda?",
+      "privacy": "Esta página es privada. Cualquiera que tenga este enlace puede gestionar esta reserva, así que no lo comparta.",
+      "terms": "Términos y condiciones"
+    },
+    "invalid": {
+      "title": "Este enlace no es válido",
+      "body": "Compruebe que ha copiado el enlace completo del correo de su reserva. Si sigue sin funcionar, contáctenos y le ayudaremos."
     }
   }
 }
