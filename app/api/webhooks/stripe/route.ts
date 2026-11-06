@@ -28,6 +28,26 @@ import { scheduleQStashReminder } from '@/lib/qstash'
 import { sendGa4Purchase } from '@/lib/analytics-server'
 import { logEmail } from '@/lib/email-log'
 import { dispatchPaymentEvent } from '@/lib/stripe-webhook/dispatch'
+import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
+
+/**
+ * Phase 89 (CANC-02): the cancellation box and Manage booking button for the English confirmation mails, in the
+ * booking language, read from the confirmed row(s). Gated by the checkout metadata (`cancelPolicy` is present only when
+ * the policy was public for this client), so a booking made on legacy terms costs no read and its email is unchanged.
+ * Never throws: a failure sends the email without the block.
+ */
+async function policyBlockForConfirmed(meta: Record<string, string>, ids: string[]): Promise<string> {
+  if (!meta.cancelPolicy || ids.length === 0) return ''
+  try {
+    const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').in('id', ids)
+    if (error || !data || data.length === 0) return ''
+    const rows = (data as Array<Record<string, unknown>>).sort((a, b) => (a.leg === 'return' ? 1 : 0) - (b.leg === 'return' ? 1 : 0))
+    return await buildPolicyBlockHtml(rows)
+  } catch {
+    console.error('[webhook] policy block skipped')
+    return ''
+  }
+}
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -398,7 +418,9 @@ async function handlePaymentLinkSucceeded(
     specialRequests: row.special_requests ?? undefined,
   }
 
-  try { await sendClientConfirmation(emailData) } catch (err) {
+  // Phase 89 CANC-02: box and Manage button when the reconciled row(s) stored a policy; the manager alert never gets it.
+  const policyBlockHtml = await buildPolicyBlockHtml(reconciledRows as unknown as Array<Record<string, unknown>>).catch(() => '')
+  try { await sendClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData) } catch (err) {
     console.error('sendClientConfirmation unexpected error (payment-link):', err)
   }
   try { await sendManagerAlert(emailData) } catch (err) {
@@ -544,7 +566,9 @@ async function handleGroupPaymentSucceeded(
   // on the group (smallest leg id) rather than a single booking.
   const groupKey = [...ids].sort()[0]
   if (emailData.clientEmail && await logEmail({ bookingId: groupKey, emailType: 'group_confirmed', recipient: emailData.clientEmail })) {
-    try { await sendGroupClientConfirmation(emailData) } catch (err) {
+    // Phase 89 CANC-02: one box, one Manage button per booking row; the manager alert never gets them.
+    const policyBlockHtml = await buildPolicyBlockHtml(reconciled as unknown as Array<Record<string, unknown>>, { boxes: 'first' }).catch(() => '')
+    try { await sendGroupClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData) } catch (err) {
       console.error('sendGroupClientConfirmation unexpected error:', err)
     }
   }
@@ -661,7 +685,9 @@ async function handleOneWaySucceeded(
     specialRequests: meta.specialRequests || undefined,
   }
 
-  try { await sendClientConfirmation(emailData) } catch (err) {
+  // Phase 89 CANC-02: box and Manage button in the booking language; the manager alert never gets it.
+  const policyBlockHtml = await policyBlockForConfirmed(meta, confirmedRows.map((r) => r.id))
+  try { await sendClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData) } catch (err) {
     console.error('sendClientConfirmation unexpected error:', err)
   }
   try { await sendManagerAlert(emailData) } catch (err) {
@@ -857,7 +883,9 @@ async function handleRoundTripSucceeded(
   ]
   const ics = buildIcs(icsEvents)
 
-  try { await sendRoundTripClientConfirmation(emailData, ics) } catch (err) {
+  // Phase 89 CANC-02: one box and one Manage button per leg; the manager alert never gets them.
+  const policyBlockHtml = await policyBlockForConfirmed(meta, freshLegIds)
+  try { await sendRoundTripClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData, ics) } catch (err) {
     console.error('sendRoundTripClientConfirmation unexpected error:', err)
   }
   try { await sendRoundTripManagerAlert(emailData) } catch (err) {

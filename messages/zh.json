@@ -1133,11 +1133,13 @@
     },
     "policyBox": {
       "label": "取消政策",
+      "labelFor": "取消政策，预订 {reference}",
       "body": "{freeUntil}前可免费取消。此后将收取车费的 {percent}%（{amount}）。如果您未出现，司机等候 {waitMin} 分钟后将收取全额车费。每一笔费用均由 Prestigo 的工作人员决定。",
       "cash": "您向司机支付 {amount} 现金。您的银行卡仅作为担保。"
     },
     "manage": {
       "cta": "管理预订",
+      "ctaFor": "管理预订 {reference}",
       "note": "可取消、申请更改或预订另一趟行程。请勿将此链接告诉他人。"
     },
     "contactOr": "或",

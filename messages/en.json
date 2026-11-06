@@ -1083,11 +1083,13 @@
     },
     "policyBox": {
       "label": "Cancellation",
+      "labelFor": "Cancellation, booking {reference}",
       "body": "Free cancellation until {freeUntil}. After that, {percent}% of the fare ({amount}) applies. If you do not show up, the full fare applies once the driver has waited {waitMin} minutes. A person at Prestigo decides every charge.",
       "cash": "You pay {amount} in cash to your driver. Your card is only a guarantee."
     },
     "manage": {
       "cta": "Manage booking",
+      "ctaFor": "Manage booking {reference}",
       "note": "Cancel, ask for a change or book another ride. Keep this link private."
     },
     "money": {

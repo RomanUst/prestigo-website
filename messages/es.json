@@ -1133,11 +1133,13 @@
     },
     "policyBox": {
       "label": "Cancelación",
+      "labelFor": "Cancelación, reserva {reference}",
       "body": "Cancelación gratuita hasta el {freeUntil}. Después, se aplica el {percent}% de la tarifa ({amount}). Si no se presenta, se aplica la tarifa completa una vez que el conductor haya esperado {waitMin} min. Una persona de Prestigo decide cada cargo.",
       "cash": "Usted paga {amount} en efectivo al conductor. Su tarjeta es solo una garantía."
     },
     "manage": {
       "cta": "Gestionar la reserva",
+      "ctaFor": "Gestionar la reserva {reference}",
       "note": "Cancele, solicite un cambio o reserve otro viaje. Mantenga este enlace en privado."
     },
     "contactOr": "o",

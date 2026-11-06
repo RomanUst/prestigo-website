@@ -65,6 +65,12 @@ export interface BookingEmailData {
   flightNumber?: string
   terminal?: string
   specialRequests?: string
+  /**
+   * Cancellation box and Manage booking button in the booking language (Phase 89, CANC-02), built by
+   * lib/payments/emails/policy-block.ts; shown below the journey table. Absent for a booking that stored no policy,
+   * and then the email is byte-identical to the one sent before Phase 89.
+   */
+  policyBlockHtml?: string
 }
 
 /** Escape user-supplied strings before embedding in HTML */
@@ -260,7 +266,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       </div>
 
       <!-- RIDE DETAILS section (optional fields) -->
-      ${rideDetailsSection}
+      ${data.policyBlockHtml ?? ''}${rideDetailsSection}
 
       <!-- Extras section (omitted entirely if no extras selected) -->
       ${extrasRows}
@@ -380,6 +386,8 @@ export interface GroupPaymentEmailData {
   clientPhone: string
   amountEur: number
   legs: GroupPaymentLeg[]
+  /** Cancellation box and one Manage booking button per booking row (Phase 89, CANC-02); see BookingEmailData. */
+  policyBlockHtml?: string
 }
 
 export function buildGroupConfirmationHtml(data: GroupPaymentEmailData): string {
@@ -423,7 +431,7 @@ export function buildGroupConfirmationHtml(data: GroupPaymentEmailData): string 
       <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 12px;">Your bookings are confirmed.</h1>
       <p style="font-size: 14px; color: #A9AEB0; text-align: center; margin: 0 32px 32px;">Payment received for ${data.legs.length} transfer${data.legs.length !== 1 ? 's' : ''}. Driver details will follow before each pickup.</p>
 
-      ${legRows}
+      ${legRows}${data.policyBlockHtml ?? ''}
 
       <div style="border-top: 1px solid #2B4056; padding: 16px 32px; margin-top: 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">TOTAL PAID</div>
@@ -669,6 +677,8 @@ export interface RoundTripEmailData {
   flightNumber?: string
   terminal?: string
   specialRequests?: string
+  /** One cancellation box and one Manage booking button per leg (Phase 89, CANC-02); see BookingEmailData. */
+  policyBlockHtml?: string
 }
 
 /**
@@ -855,7 +865,7 @@ export function buildRoundTripConfirmationHtml(data: RoundTripEmailData): string
       </table>
     </div>
 
-    ${rideDetailsHtml}
+    ${data.policyBlockHtml ?? ''}${rideDetailsHtml}
     ${extrasHtml}
     ${promoHtml}
 
@@ -1217,9 +1227,19 @@ interface StatusEmailBooking {
   client_email: string
   amount_czk: number
   special_requests?: string | null
+  /**
+   * Cancellation box and Manage booking button for the "confirmed" email (Phase 89, CANC-02); built by
+   * lib/payments/emails/policy-block.ts from the booking row. Read only by sendStatusConfirmedEmail.
+   */
+  policyBlockHtml?: string
 }
 
-function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, closingLine: string): string {
+function buildStatusEmailHtml(
+  booking: StatusEmailBooking,
+  heading: string,
+  closingLine: string,
+  policyBlockHtml = '',
+): string {
   const formattedDate = formatPickupDate(booking.pickup_date)
   const route = booking.destination_address
     ? `${escapeHtml(booking.origin_address)} &rarr; ${escapeHtml(booking.destination_address)}`
@@ -1286,7 +1306,7 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
         </table>
       </div>
 
-      <!-- Closing line -->
+      ${policyBlockHtml}<!-- Closing line -->
       <div style="padding: 0 32px 32px; font-size: 14px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">
         ${escapeHtml(closingLine)}
       </div>
@@ -1319,7 +1339,7 @@ export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Pro
       to: [booking.client_email],
       replyTo: CUSTOMER_REPLY_TO,
       subject: `Your booking ${booking.booking_reference} is confirmed — Prestigo`,
-      html: buildStatusEmailHtml(booking, 'Booking Confirmed', 'We look forward to your trip.'),
+      html: buildStatusEmailHtml(booking, 'Booking Confirmed', 'We look forward to your trip.', booking.policyBlockHtml),
     })
     if (error) console.error('[booking-notify] confirmed email error:', error)
   } catch (err) {
@@ -2100,6 +2120,8 @@ export interface ReminderEmailBooking {
   client_first_name?: string
   client_last_name?: string
   client_phone?: string
+  /** Cancellation box and Manage booking button in the booking language (Phase 89, CANC-02); client mail only. */
+  policyBlockHtml?: string
 }
 
 function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' | '2h'): string {
@@ -2181,7 +2203,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
         </table>
       </div>
 
-      ${driverSection}
+      ${driverSection}${booking.policyBlockHtml ?? ''}
 
       <!-- Closing message -->
       <div style="padding: 0 32px 24px;">

@@ -518,6 +518,83 @@ function vehicleLabel(tv: Translator, vehicleClass: string): string {
   return vehicleClass
 }
 
+/** Locale-dependent style bits shared by the shell and the policy block. */
+interface ShellStyle {
+  rtl: boolean
+  upper: boolean
+  align: 'left' | 'right'
+  lead: 'left' | 'right'
+  dirAttr: string
+  goldLabel: string
+  greyLabel: string
+}
+
+function shellStyle(locale: AppLocale): ShellStyle {
+  const rtl = (rtlLocales as readonly string[]).includes(locale)
+  const upper = LABEL_UPPERCASE_LOCALES.includes(locale)
+  const labelBase = upper
+    ? 'font-size: 11px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase;'
+    : 'font-size: 11px; font-weight: 400; letter-spacing: normal;'
+  return {
+    rtl,
+    upper,
+    align: rtl ? 'right' : 'left',
+    lead: rtl ? 'right' : 'left',
+    dirAttr: rtl ? ' dir="rtl"' : '',
+    goldLabel: `${labelBase} color: #BFA06A;`,
+    greyLabel: `${labelBase} color: #A9AEB0;`,
+  }
+}
+
+/** The kind-specific box recipe: #17293B, 3px gold leading border, padding 24px. */
+function boxHtml(st: ShellStyle, label: string, body: string): string {
+  return `
+      <div style="background-color: #17293B; border-${st.lead}: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px; text-align: ${st.align};">
+        <div style="${st.goldLabel} margin-bottom: 8px;">${label}</div>
+        ${body}
+      </div>`
+}
+
+/**
+ * Cancellation box (UI-SPEC 8.1): label plus the policy sentence, plus the cash sentence for a cash booking.
+ * `reference` set (several bookings in one email): the label names the booking.
+ */
+function policyBoxHtml(
+  t: Translator,
+  locale: AppLocale,
+  st: ShellStyle,
+  args: { policy: PolicyBoxVars; currency: PaymentCurrency; cashAmountMinor?: number | null; reference?: string },
+): string {
+  const p = args.policy
+  const body = html(t, 'policyBox.body', {
+    freeUntil: formatLocaleDateTime(p.freeUntilMs, locale),
+    percent: String(p.percent),
+    amount: formatMinor(p.feeAmountMinor, args.currency),
+    waitMin: String(p.waitMin),
+  })
+  // Cash booking (UI-SPEC 8.1): one more sentence, the card is only a guarantee.
+  const cash =
+    typeof args.cashAmountMinor === 'number'
+      ? `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6; margin-top: 8px;">${html(t, 'policyBox.cash', { amount: formatMinor(args.cashAmountMinor, args.currency) })}</div>`
+      : ''
+  const label = args.reference ? html(t, 'policyBox.labelFor', { reference: args.reference }) : html(t, 'policyBox.label')
+  return boxHtml(
+    st,
+    label,
+    `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6;">${body}</div>${cash}`,
+  )
+}
+
+/** Outlined Manage booking button with its muted note; `reference` set: the label names the booking. */
+function manageButtonHtml(t: Translator, href: string, topPadding: string, reference?: string): string {
+  const label = reference ? html(t, 'manage.ctaFor', { reference }) : html(t, 'manage.cta')
+  return `
+      <div style="text-align: center; padding: ${topPadding} 32px 24px;">
+        <a href="${href}" style="display: inline-block; border: 1px solid #BFA06A; color: #E6D6B0; padding: 16px 32px; text-decoration: none; font-size: 14px; font-weight: 400; letter-spacing: normal; font-family: 'Inter', Arial, sans-serif;">${label}</a>
+        <div style="font-size: 11px; font-weight: 400; color: #A9AEB0; line-height: 1.6; margin-top: 8px;">${html(t, 'manage.note')}</div>
+      </div>`
+}
+
 function buildShell(args: {
   locale: AppLocale
   tpl: Template
@@ -527,17 +604,8 @@ function buildShell(args: {
   subject: string
 }): string {
   const { locale, tpl, t, tv, vars, subject } = args
-  const rtl = (rtlLocales as readonly string[]).includes(locale)
-  const upper = LABEL_UPPERCASE_LOCALES.includes(locale)
-  const align = rtl ? 'right' : 'left'
-  const lead = rtl ? 'right' : 'left'
-  const dirAttr = rtl ? ' dir="rtl"' : ''
-
-  const labelBase = upper
-    ? 'font-size: 11px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase;'
-    : 'font-size: 11px; font-weight: 400; letter-spacing: normal;'
-  const goldLabel = `${labelBase} color: #BFA06A;`
-  const greyLabel = `${labelBase} color: #A9AEB0;`
+  const st = shellStyle(locale)
+  const { upper, align, dirAttr, goldLabel, greyLabel } = st
 
   const reference = `<bdi dir="ltr">${escapeHtml(vars.reference)}</bdi>`
   const date = formatLocaleDate(vars.pickupDateIso, locale)
@@ -558,11 +626,7 @@ function buildShell(args: {
     row(html(t, 'common.passengersLabel'), `<bdi dir="ltr">${escapeHtml(String(vars.passengers))}</bdi>`),
   ].join('')
 
-  const box = (label: string, body: string) => `
-      <div style="background-color: #17293B; border-${lead}: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px; text-align: ${align};">
-        <div style="${goldLabel} margin-bottom: 8px;">${label}</div>
-        ${body}
-      </div>`
+  const box = (label: string, body: string) => boxHtml(st, label, body)
 
   const referenceBox = box(
     html(t, 'common.referenceLabel'),
@@ -582,35 +646,19 @@ function buildShell(args: {
         )
 
   // Cancellation box (UI-SPEC 8.1): only for a confirmation-family template whose booking stored a policy.
-  let policyBox = ''
-  if (tpl.policyBox && vars.policy) {
-    const p = vars.policy
-    const body = html(t, 'policyBox.body', {
-      freeUntil: formatLocaleDateTime(p.freeUntilMs, locale),
-      percent: String(p.percent),
-      amount: formatMinor(p.feeAmountMinor, vars.currency),
-      waitMin: String(p.waitMin),
-    })
-    // Cash booking (UI-SPEC 8.1): one more sentence, the card is only a guarantee.
-    const cash = tpl.cashBox
-      ? `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6; margin-top: 8px;">${html(t, 'policyBox.cash', { amount: formatMinor(vars.amountMinor, vars.currency) })}</div>`
+  const policyBox =
+    tpl.policyBox && vars.policy
+      ? policyBoxHtml(t, locale, st, {
+          policy: vars.policy,
+          currency: vars.currency,
+          cashAmountMinor: tpl.cashBox ? vars.amountMinor : null,
+        })
       : ''
-    policyBox = box(
-      html(t, 'policyBox.label'),
-      `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6;">${body}</div>${cash}`,
-    )
-  }
 
   // Manage booking: outlined, below Add to calendar (16px apart) when that button exists.
   const manageHref = tpl.policyBox && vars.manageUrl ? escapeHtml(safeHttpsUrl(vars.manageUrl, 'manageUrl')) : null
   const hasCalendar = tpl.cta === 'calendar' && Boolean(vars.calendarUrl)
-  const manage = manageHref
-    ? `
-      <div style="text-align: center; padding: ${hasCalendar ? '0' : '8px'} 32px 24px;">
-        <a href="${manageHref}" style="display: inline-block; border: 1px solid #BFA06A; color: #E6D6B0; padding: 16px 32px; text-decoration: none; font-size: 14px; font-weight: 400; letter-spacing: normal; font-family: 'Inter', Arial, sans-serif;">${html(t, 'manage.cta')}</a>
-        <div style="font-size: 11px; font-weight: 400; color: #A9AEB0; line-height: 1.6; margin-top: 8px;">${html(t, 'manage.note')}</div>
-      </div>`
-    : ''
+  const manage = manageHref ? manageButtonHtml(t, manageHref, hasCalendar ? '0' : '8px') : ''
 
   let cta = ''
   if (tpl.cta === 'calendar' && vars.calendarUrl) {
@@ -730,4 +778,73 @@ export async function renderPaymentEmail(
   const tpl = TEMPLATES[templateKey(kind, vars.variant)](ctx)
   const body = buildShell({ locale, tpl, t, tv, vars, subject: tpl.subject })
   return { subject: tpl.subject, html: body, locale }
+}
+
+// ---------------------------------------------------------------------------
+// Policy block for the English legacy emails (Phase 89, plan 89-18; CANC-02, UI-SPEC 8.1)
+// ---------------------------------------------------------------------------
+
+/** One booking's share of a policy block: the terms it was made under and its Manage booking link. */
+export interface PolicyBlockItem {
+  /** Set when one email carries several bookings: the box label and the button name this booking. */
+  reference?: string
+  /** Terms from the booking's stored policy; absent drops the box of this item. */
+  policy?: PolicyBoxVars | null
+  /** Localized absolute https manage URL; absent drops the button of this item. */
+  manageUrl?: string | null
+  currency: PaymentCurrency
+  /** Cash booking: the amount the client pays the driver; adds the cash sentence to the box. */
+  cashAmountMinor?: number | null
+}
+
+/**
+ * The cancellation box(es) and Manage booking button(s) in the booking's language, as one fragment for the
+ * English legacy emails (confirmation, round trip, group, status confirmed, reminders). The fragment carries its own
+ * lang and dir so an English email around it never changes the direction of an Arabic block. Empty string when no
+ * item has a box or a button. `boxes: 'first'` shows only the first item's box (group: one box, one link per booking
+ * row). Throws on a bad URL or catalog problem: callers drop the block, never the email.
+ */
+export async function renderPolicyBlock(
+  localeInput: unknown,
+  items: PolicyBlockItem[],
+  options: { boxes?: 'each' | 'first' } = {},
+): Promise<string> {
+  const withBox = items.filter((i) => i.policy)
+  const withLink = items.filter((i) => i.manageUrl)
+  if (withBox.length === 0 && withLink.length === 0) return ''
+
+  let locale = normalizeSiteLocale(localeInput)
+  let messages = await loadMessages(locale)
+  if (locale !== 'en' && !hasPaymentEmails(messages)) {
+    locale = 'en'
+    messages = await loadMessages('en')
+  }
+  const t = makeTranslator(locale, messages, 'PaymentEmails')
+  const st = shellStyle(locale)
+
+  const boxItems = options.boxes === 'first' ? withBox.slice(0, 1) : withBox
+  const labelled = options.boxes !== 'first' && items.length > 1
+  const boxes = boxItems
+    .map((i) =>
+      policyBoxHtml(t, locale, st, {
+        policy: i.policy as PolicyBoxVars,
+        currency: i.currency,
+        cashAmountMinor: i.cashAmountMinor,
+        reference: labelled ? i.reference : undefined,
+      }),
+    )
+    .join('')
+  const buttons = withLink
+    .map((i) =>
+      manageButtonHtml(
+        t,
+        escapeHtml(safeHttpsUrl(i.manageUrl as string, 'manageUrl')),
+        '8px',
+        items.length > 1 ? i.reference : undefined,
+      ),
+    )
+    .join('')
+
+  return `<div lang="${locale}" dir="${st.rtl ? 'rtl' : 'ltr'}">${boxes}${buttons}
+    </div>`
 }

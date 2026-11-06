@@ -1133,11 +1133,13 @@
     },
     "policyBox": {
       "label": "Annulation",
+      "labelFor": "Annulation, réservation {reference}",
       "body": "Annulation gratuite jusqu'au {freeUntil}. Passé ce délai, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit.",
       "cash": "Vous payez {amount} en espèces à votre chauffeur. Votre carte n'est qu'une garantie."
     },
     "manage": {
       "cta": "Gérer la réservation",
+      "ctaFor": "Gérer la réservation {reference}",
       "note": "Annulez, demandez une modification ou réservez un autre trajet. Gardez ce lien confidentiel."
     },
     "contactOr": "ou",
