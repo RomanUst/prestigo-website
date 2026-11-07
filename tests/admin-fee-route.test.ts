@@ -803,6 +803,34 @@ describe('partner bookings answer action_not_allowed on every action', () => {
   })
 })
 
+describe('money WR-04: no authorization outlives a declined fee', () => {
+  it('a hold smaller than the fee, the card declined, then a waive: the hold is voided, not left blocking the card', async () => {
+    const holdId = await seedWithHold({ stripe_payment_method_id: 'pm_decline_insufficient' }, 3000)
+    await openCase()
+    expect((await post({ action: 'charge', amount_minor: 8000 })).status).toBe(200) // declined: answered 200 outcome declined
+    expect(row().payment_state).toBe('failed')
+    expect(fake.state.paymentIntents.get(holdId)!.status).toBe('requires_capture')
+
+    expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+    expect(fake.state.paymentIntents.get(holdId)!.status).toBe('canceled')
+    expect(row().payment_state).toBe('released')
+  })
+
+  it('a hold id that lapsed or is gone does not stop the release', async () => {
+    await seedWithHold({ payment_state: 'expired' })
+    const c = await openCase()
+    fake.expireHold(row().hold_payment_intent_id as string, 'expired')
+    expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+    expect(row().payment_state).toBe('released')
+    expect(await loadFeeCase(ID)).toMatchObject({ id: c.id, status: 'waived' })
+
+    seed({ payment_state: 'failed', hold_payment_intent_id: 'pi_gone' })
+    await openCase()
+    expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+    expect(row().payment_state).toBe('released')
+  })
+})
+
 describe('money WR-03: a pending case can always be closed, whatever happened to the card', () => {
   it('a case on a released row: only the waive is offered, and it closes with no money step', async () => {
     await seedWithHold({ payment_state: 'released', hold_payment_intent_id: null })

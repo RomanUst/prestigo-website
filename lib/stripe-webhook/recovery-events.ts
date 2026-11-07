@@ -39,6 +39,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { feeReceiptTerms, loadFeeCase, markFeeCharged, type FeeCaseRow } from '@/lib/payments/fee'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
+import { voidLeftoverHold } from '@/lib/payments/hold'
 import { appendPaymentEvent, applyTransition, type LedgerActor, type PaymentPatch } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { RECOVERY_LINK_CLEARED } from '@/lib/payments/recovery-link'
@@ -178,6 +179,15 @@ export async function handleRecoveryPaid(event: Stripe.Event): Promise<void> {
           await deactivateBookingPaymentLink(linkId)
         } catch {
           console.error('[webhook] recovery link not deactivated', { bookingId: booking.id })
+        }
+      }
+      // WR-04: the client paid the debt; an authorization still on the card must not stay blocked on top of it.
+      const leftoverHold = state === 'failed' ? str(booking.hold_payment_intent_id) : ''
+      if (leftoverHold) {
+        try {
+          await voidLeftoverHold(leftoverHold)
+        } catch {
+          console.error('[webhook] leftover hold not voided', { bookingId: booking.id, stripeObjectId: leftoverHold })
         }
       }
       const fresh = { ...booking, ...(moved.booking ?? {}) }

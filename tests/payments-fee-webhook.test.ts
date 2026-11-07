@@ -520,6 +520,38 @@ describe('charge.dispute.created on a fee or cash card charge (T-89-74)', () => 
   })
 })
 
+describe('money WR-04: a paid recovery link frees a hold that is still on the card', () => {
+  const linkPayment = {
+    id: 'pi_fee_link',
+    object: 'payment_intent',
+    status: 'succeeded',
+    currency: 'eur',
+    amount: 4000,
+    amount_received: 4000,
+    metadata: { kind: 'card_recovery', cofBookingId: BOOKING_ID, attempt: 'f1', bookingReference: REF },
+  }
+
+  it('the live authorization is voided after the fee was paid; a problem there changes nothing', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed', hold_payment_intent_id: 'pi_small_hold' })
+    seedCase({ proposed_minor: 4000 })
+    mockPiRetrieve.mockResolvedValue({ id: 'pi_small_hold', status: 'requires_capture' })
+    mockPiCancel.mockResolvedValue({ id: 'pi_small_hold', status: 'canceled' })
+
+    expect((await deliver(eventOf('payment_intent.succeeded', linkPayment, 'evt_hold1'))).status).toBe(200)
+    expect(bookingRow().payment_state).toBe('captured')
+    expect(mockPiCancel).toHaveBeenCalledTimes(1)
+    expect(mockPiCancel.mock.calls[0][0]).toBe('pi_small_hold')
+  })
+
+  it('an authorization that is already gone is left alone', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed', hold_payment_intent_id: 'pi_small_hold' })
+    seedCase({ proposed_minor: 4000 })
+    mockPiRetrieve.mockResolvedValue({ id: 'pi_small_hold', status: 'canceled' })
+    expect((await deliver(eventOf('payment_intent.succeeded', linkPayment, 'evt_hold2'))).status).toBe(200)
+    expect(mockPiCancel).not.toHaveBeenCalled()
+  })
+})
+
 describe('money CR-05: a cash card charge that executed after we gave up on it', () => {
   const lateCharge = (id: string) => ({
     id,

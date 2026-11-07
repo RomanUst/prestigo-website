@@ -421,6 +421,22 @@ export async function cancelPaymentIntent(piId: string, idempotencyKey: string):
   }
 }
 
+/**
+ * Void an authorization that outlived the decision it was for (money WR-04): a failed or expired row can still have a live
+ * hold, for example one smaller than a fee the card then declined. Only a hold that really is live is cancelled; one that
+ * lapsed or no longer exists holds nothing. Any other read or cancel problem is rethrown.
+ */
+export async function voidLeftoverHold(paymentIntentId: string): Promise<void> {
+  let pi: Stripe.PaymentIntent
+  try {
+    pi = (await getPaymentsStripe().paymentIntents.retrieve(paymentIntentId)) as Stripe.PaymentIntent
+  } catch (err) {
+    if (stripeErrorCode(err) === 'resource_missing') return
+    throw err
+  }
+  if (pi.status === 'requires_capture') await cancelPaymentIntent(paymentIntentId, stripeKeys.voidHoldNow(paymentIntentId))
+}
+
 /** Cancel the booking's current hold PaymentIntent (key rel:<bookingId>:<hold_attempts>). */
 export async function cancelHoldIntent(booking: BookingRow): Promise<void> {
   const piId = str(booking.hold_payment_intent_id)
@@ -637,6 +653,9 @@ export async function releaseHold(
     from = ['placing_hold']
     event = { key: `hold_released:stale_lease:${bookingId}:${attemptsOf(booking)}`, kind: 'hold_released', errorCode: 'lease_lapsed', actor: opts.actor }
   } else if (state === 'card_saved' || state === 'failed' || state === 'expired') {
+    // `failed` does not mean nothing is at Stripe: a void that can not be confirmed throws, the caller reports it (D-20).
+    const leftover = str(booking.hold_payment_intent_id)
+    if (leftover && state !== 'card_saved') await voidLeftoverHold(leftover)
     from = [state]
     event = { key: `hold_released:${state}:${bookingId}`, kind: 'hold_released', actor: opts.actor }
   } else if (state === 'balance_due' && opts.reason === 'waive') {
