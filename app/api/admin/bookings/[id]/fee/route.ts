@@ -16,6 +16,7 @@ import {
   waiveFee,
   type FeeDecisionResult,
 } from '@/lib/payments/fee'
+import { openMissingFeeCase } from '@/lib/payments/fee-reopen'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 // Operator decisions on money of a cancelled or no-show booking, and the cash decisions of a cash booking
@@ -27,6 +28,7 @@ import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 //   POST { action: 'mark_cash_settled' }                              the client paid the driver in cash
 //   POST { action: 'reopen_cash', note }                             reverse a cash confirmation
 //   POST { action: 'close_refunded', note }                          the money was settled by hand: close the case, no Stripe call
+//   POST { action: 'open_case' }                                     open a case that failed to open, from the row alone
 //   -> 200 { outcome: 'ok' | 'declined' } | 409 { error: 'amount_locked' | 'payment_busy' }
 //      | 422 { error: 'amount_above_cap' | 'note_required' | 'action_not_allowed' } | 502 { error: 'refund_failed' }
 //
@@ -59,6 +61,7 @@ const bodySchema = z.discriminatedUnion('action', [
   z.strictObject({ action: z.literal('mark_cash_settled') }),
   z.strictObject({ action: z.literal('reopen_cash'), note: z.string().trim().min(1).max(500) }),
   z.strictObject({ action: z.literal('close_refunded'), note: z.string().trim().min(1).max(500) }),
+  z.strictObject({ action: z.literal('open_case') }),
 ])
 
 type FeeBody = z.infer<typeof bodySchema>
@@ -198,6 +201,14 @@ async function handleReopenCash(
   return result === 'not_allowed' ? notAllowed() : NextResponse.json({ outcome: 'ok' })
 }
 
+/** Everything comes from the row: the request names no amount and no kind. The rules live in openMissingFeeCase. */
+async function handleOpenCase(booking: Record<string, unknown>, bookingId: string, actor: LedgerActor): Promise<NextResponse> {
+  await recordClick(bookingId, 'fee_open_case', actor)
+  const result = await openMissingFeeCase(booking, actor)
+  if (result === 'busy') return NextResponse.json({ error: 'payment_busy' }, { status: 409 })
+  return result === 'not_allowed' ? notAllowed() : NextResponse.json({ outcome: 'ok' })
+}
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   // 1. Body size: the header check, then the real length (a chunked body carries no content-length).
   const bodyCheck = enforceMaxBody(request, MAX_BODY_BYTES)
@@ -259,6 +270,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         return await handleReopenCash(booking, bookingId, body, actor)
       case 'close_refunded':
         return await handleCloseRefunded(booking, bookingId, body, actor)
+      case 'open_case':
+        return await handleOpenCase(booking, bookingId, actor)
     }
   } catch {
     console.error('[admin/bookings/[id]/fee] action failed', { bookingId, action: body.action })

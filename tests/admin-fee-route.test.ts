@@ -14,6 +14,7 @@ const { world, mockSendEmail, mockFailure, mockDeactivateLink, mockAlert } = vi.
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
     auth: 'admin' as 'admin' | '401' | '403',
+    cancelledAt: null as string | null,
   },
   mockSendEmail: vi.fn(),
   mockFailure: vi.fn(),
@@ -32,7 +33,19 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: () => ({
-    from: (table: string) => world.db!.client.from(table),
+    from: (table: string) =>
+      table === 'booking_status_log'
+        ? {
+            // The one read of the status log here: when the booking was cancelled.
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  order: () => ({ limit: async () => ({ data: world.cancelledAt ? [{ created_at: world.cancelledAt }] : [], error: null }) }),
+                }),
+              }),
+            }),
+          }
+        : world.db!.client.from(table),
     rpc: (name: string, args?: Record<string, unknown>) => world.db!.client.rpc(name, args),
   }),
 }))
@@ -50,6 +63,7 @@ vi.mock('@/lib/payments/alerts', async (importActual) => ({
 
 import { POST } from '@/app/api/admin/bookings/[id]/fee/route'
 import { POST as PAYMENT_POST } from '@/app/api/admin/bookings/[id]/payment/route'
+import { allowedPaymentActions } from '@/lib/payments/actions'
 import { loadFeeCase, lockFeeAmount, openFeeCase, waiveFee, type FeeCaseRow } from '@/lib/payments/fee'
 
 const ID = '77777777-7777-4777-8777-777777777777'
@@ -786,6 +800,69 @@ describe('partner bookings answer action_not_allowed on every action', () => {
     expect(fake.calls.filter((c) => c.method !== 'paymentIntents.create')).toHaveLength(0)
     expect(ledger()).toHaveLength(0)
     expect(notes()).toHaveLength(0)
+  })
+})
+
+describe('money WR-02: a case that failed to open can still be opened', () => {
+  const noShowLog = () => db.state.booking_fee_cases
+
+  it('a no-show with a live hold and no case: open_case opens it from the row and the fee can be charged', async () => {
+    await seedWithHold({ status: 'no_show' })
+    expect(allowedPaymentActions(row())).toContain('open_fee_case')
+
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()[0]).toMatchObject({ kind: 'no_show', currency: 'eur', base_minor: 10000, proposed_minor: 10000 })
+    expect(typeof (noShowLog()[0].evidence as Record<string, unknown>).threshold_min).toBe('number')
+    expect(ledger('admin_action').some((e) => e.error_code === 'fee_open_case' && e.actor_id === ADMIN_ID)).toBe(true)
+
+    expect((await post({ action: 'charge', amount_minor: 4000, contact_note: 'Called twice, no answer' })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'charged' })
+  })
+
+  it('is idempotent: a second click changes nothing', async () => {
+    await seedWithHold({ status: 'no_show' })
+    await post({ action: 'open_case' })
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()).toHaveLength(1)
+  })
+
+  it('a late cancel: the cancel time decides, with the stored terms, and the case proposes their percent', async () => {
+    const pickup = Date.now() + 2 * HOUR
+    await seedWithHold({ status: 'cancelled', pickup_utc: new Date(pickup).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    world.cancelledAt = new Date(pickup - 30 * 60_000).toISOString()
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()[0]).toMatchObject({ kind: 'late_cancel', base_minor: 10000, proposed_minor: 10000 })
+    expect(noShowLog()[0].free_until).not.toBeNull()
+  })
+
+  it('a cancel that was in time, or by Prestigo, never gets a fee through this door', async () => {
+    const pickup = Date.now() + 48 * HOUR
+    await seedWithHold({ status: 'cancelled', pickup_utc: new Date(pickup).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    world.cancelledAt = new Date(pickup - 24 * HOUR).toISOString()
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+
+    const late = Date.now() + 2 * HOUR
+    await seedWithHold({ status: 'cancelled', pickup_utc: new Date(late).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    world.cancelledAt = new Date(late - 30 * 60_000).toISOString()
+    db.state.booking_payment_events.push({ booking_id: ID, event_key: `admin:cancel:${ID}`, kind: 'admin_action', error_code: 'cancel_prestigo' })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+    expect(noShowLog()).toHaveLength(0)
+  })
+
+  it('a pay-now booking takes its base from the payment; Stripe unreadable is busy and opens nothing', async () => {
+    await seedPayNow({ status: 'no_show' })
+    fake.failNextWith('paymentIntents.retrieve', 'connection')
+    expect((await post({ action: 'open_case' })).status).toBe(409)
+    expect(noShowLog()).toHaveLength(0)
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()[0]).toMatchObject({ base_minor: 12000 })
+  })
+
+  it('takes nothing but the action, and is refused on a live booking', async () => {
+    await seedWithHold({ status: 'no_show' })
+    expect((await post({ action: 'open_case', amount_minor: 100 })).status).toBe(400)
+    Object.assign(row(), { status: 'confirmed' })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
   })
 })
 

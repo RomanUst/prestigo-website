@@ -392,7 +392,8 @@ function alertCaseMissing(booking: Record<string, unknown>): void {
 /**
  * CASH-03, D-13: after the status applied, open the one pending no-show case with the evidence snapshot and raise the
  * operator alert once. Charges nothing and never touches the hold. Never throws and never reverts the status: a
- * failure here is logged with ids and alerted, and the operator can still open the case by hand.
+ * failure here is logged with ids and alerted, and the operator opens the case by hand from the booking (open_case on the
+ * fee route, lib/payments/fee-reopen.ts).
  */
 async function openNoShowCase(input: {
   supabase: ServiceClient
@@ -465,6 +466,7 @@ async function openNoShowCase(input: {
       bookingId,
       error: err instanceof Error ? err.message : 'unknown',
     })
+    alertCaseMissing(booking)
   }
 }
 

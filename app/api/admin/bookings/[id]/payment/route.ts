@@ -5,7 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { allowedPaymentActions, runPaymentAction, toPaymentFacts } from '@/lib/payments/actions'
 import { feeLockIsLive, isMoneyCollected, loadFeeCase, REFUND_RESOLVED, type FeeCaseRow } from '@/lib/payments/fee'
-import { appendPaymentEvent } from '@/lib/payments/state'
+import { appendPaymentEvent, paymentEventRecorded } from '@/lib/payments/state'
 
 // Admin payment API of a card-hold booking (Phase 88, plan 88-15; HOLD-07, PAYF-01), the data source and the action
 // endpoint of components/admin/PaymentPanel.tsx (contract: plan 88-07).
@@ -212,9 +212,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const allowed = allowedPaymentActions(booking)
   // Money CR-04: a failed refund of a pending case can be closed once the operator settled it by hand.
   const closable = refundOpen && feeCase?.status === 'pending' && allowed.includes('waive_fee') && isMoneyCollected(booking, feeCase)
+  // Money WR-02: a cancelled pay-now row whose late-cancel case failed to open. Its alert is the marker: any other cancelled
+  // pay-now row was simply refunded, and offering a fee there would only be noise.
+  const caseMissing =
+    !feeCase &&
+    booking.payment_mode === 'pay_now' &&
+    booking.status === 'cancelled' &&
+    (await paymentEventRecorded(bookingId, `alert:fee_decision_needed:${bookingId}:case_missing`).catch(() => false))
   return NextResponse.json({
     payment: toPaymentFacts(booking),
-    allowed_actions: closable ? [...allowed, 'close_refunded'] : allowed,
+    allowed_actions: [...allowed, ...(closable ? ['close_refunded'] : []), ...(caseMissing ? ['open_fee_case'] : [])],
     refund_failed: refundOpen,
     events: rows.map(toEvent),
     events_total: typeof events.count === 'number' ? events.count : rows.length,

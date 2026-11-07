@@ -29,7 +29,14 @@ type BookingRow = Record<string, unknown>
 /** The actions runPaymentAction executes (the payment route's schema accepts exactly these). */
 export type ExecutablePaymentAction = 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
 /** Phase 89 decisions: shown by the matrix, executed by the fee route (they may carry an amount or a note). */
-export type FeeRouteAction = 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash' | 'close_refunded'
+export type FeeRouteAction =
+  | 'charge_fee'
+  | 'waive_fee'
+  | 'charge_saved_card'
+  | 'mark_cash_settled'
+  | 'reopen_cash'
+  | 'close_refunded'
+  | 'open_fee_case'
 export type PaymentAction = ExecutablePaymentAction | FeeRouteAction
 
 export type PaymentActionResult =
@@ -72,7 +79,10 @@ const isTripStatus = (status: string): boolean => CASH_TRIP_STATUSES.includes(st
  * Phase 89 (display names, executed by the fee route):
  *   charge_fee, waive_fee   a cancelled or no-show booking with a PENDING fee case whose money can still be taken or was
  *                           collected (isFeeEligible). Release is NOT offered next to them: it would destroy the fee.
- *                           A closed booking with no case keeps release only (to free a hold or card that is still there).
+ *                           A closed booking with no case keeps release (to free a hold or card that is still there) and,
+ *                           where a fee could still be taken, open_fee_case: the case failed to open (money WR-02). The fee
+ *                           route decides from the row whether that cancel was late at all. A cancelled pay-now row gets it
+ *                           from the admin GET, only after the case_missing alert: most of those were simply refunded.
  *   cash booking            card_saved | failed on a trip that is on or done: charge_saved_card and mark_cash_settled
  *                           (a failed card during the trip is paid to the driver in cash, D-21); cash_settled:
  *                           reopen_cash (D-22); before completion also release; a failed row keeps send_link only after
@@ -98,11 +108,14 @@ export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
     return busy ? [] : ['charge_fee', 'waive_fee']
   }
 
-  if (mode === 'pay_now') return []
+  const openable: PaymentAction[] =
+    closed && !booking.fee_case_status && isFeeEligible(booking) && state !== 'capturing' ? ['open_fee_case'] : []
+
+  if (mode === 'pay_now') return status === 'no_show' ? openable : []
 
   if (mode === 'cash_guarantee') {
     if (state === 'cash_settled') return ['reopen_cash']
-    if (closed) return RELEASE_STATES.has(state) ? ['release'] : []
+    if (closed) return [...openable, ...(RELEASE_STATES.has(state) ? (['release'] as const) : [])]
     const cashActions: PaymentAction[] = []
     const completed = isCompleted(booking)
     if ((state === 'card_saved' || state === 'failed') && isTripStatus(status)) {
@@ -113,7 +126,7 @@ export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
     return cashActions
   }
 
-  if (closed) return RELEASE_STATES.has(state) || stalePlacement ? ['release'] : []
+  if (closed) return [...openable, ...(RELEASE_STATES.has(state) || stalePlacement ? (['release'] as const) : [])]
 
   const completed = isCompleted(booking)
   const actions: PaymentAction[] = []

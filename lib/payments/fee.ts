@@ -158,11 +158,17 @@ export function feeBaseFor(
 
 /**
  * The base of a new case as it is now. Pay-now: this row's share of what the PaymentIntent received, minus what went back,
- * in its currency (CR-01, CR-03); null when nothing is left to keep. Card and cash rows: feeBaseFor. Throws when Stripe can
- * not be read.
+ * in its currency (CR-01, CR-03); null when nothing is left to keep. Card and cash rows: what was collected (captured or
+ * balance_due), else the row amount. Throws when Stripe can not be read.
  */
 export async function feeBaseNow(booking: BookingRow): Promise<{ baseMinor: number; currency: FeeCurrency } | null> {
-  if (booking.payment_mode !== 'pay_now') return feeBaseFor(booking)
+  if (booking.payment_mode !== 'pay_now') {
+    const state = str(booking.payment_state)
+    const currency = currencyOf(booking.payment_currency)
+    const captured = num(booking.captured_amount_minor) ?? 0
+    const collected = state === 'captured' || state === 'balance_due' ? captured || (num(booking.payment_amount_minor) ?? 0) : 0
+    return collected > 0 && currency ? { baseMinor: collected, currency } : feeBaseFor(booking)
+  }
   const facts = await loadPayNowFacts(booking)
   return facts.collectedMinor > 0 ? { baseMinor: facts.collectedMinor, currency: facts.currency } : null
 }

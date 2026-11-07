@@ -346,6 +346,18 @@ describe('money CR-03: a no-show on a pay-now round trip is capped by the leg, i
     expect(mockAlert.mock.calls[0][1]).toMatchObject({ payment_currency: 'czk' })
   })
 
+  it('money WR-02: Stripe can not be read while the case opens: the status stands and the operator is told', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    await seedPayNowLeg('outbound', 30000, 'eur')
+    fake.failNextWith('paymentIntents.retrieve', 'connection')
+    expect((await confirm()).status).toBe(200)
+    await flush()
+    expect(booking().status).toBe('no_show')
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+    expect(mockAlert.mock.calls[0][2]).toMatchObject({ note: 'case_missing' })
+    spy.mockRestore()
+  })
+
   it('a leg whose money already went back has nothing to keep: no case, and the operator is told', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const pi = await seedPayNowLeg('outbound', 30000, 'eur')

@@ -35,7 +35,7 @@ import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { evaluateCancellation, policyFromSnapshot, proposedFeeMinor, tripFactsFromRow } from '@/lib/cancellation-policy'
 import { czkToEur } from '@/lib/currency'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
-import { feeBaseFor, isFeeEligible, openFeeCase } from '@/lib/payments/fee'
+import { feeBaseNow, isFeeEligible, openFeeCase } from '@/lib/payments/fee'
 import { leaseLapsed, releaseHold } from '@/lib/payments/hold'
 import { loadPayNowFacts, resolvePayNowSplit, type PayNowFacts, type PayNowSplit } from '@/lib/payments/pay-now'
 import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
@@ -514,7 +514,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
     })
     const base = refundsPayNow
       ? payNow && { baseMinor: payNow.collectedMinor, currency: payNow.currency }
-      : feeCaseBase(current)
+      : await feeBaseNow(current)
     if (!base) {
       console.error('[cancel] late cancel without a computable fee base', { bookingId })
       scheduleCancelRouteEmail(moneyRow, previousStatus, lateNotice())
@@ -625,19 +625,6 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
   return { kind: 'ok', outcome, money: 'none' }
 }
 
-/**
- * The amount a late-cancel case of a card or cash row is a share of. Money already collected (captured / balance_due) is
- * the base (what the client paid), otherwise the booking amount (feeBaseFor). A pay-now case takes its base from the
- * PaymentIntent, see runCancel.
- */
-function feeCaseBase(row: BookingRow): { baseMinor: number; currency: 'eur' | 'czk' } | null {
-  const state = str(row.payment_state)
-  if ((row.payment_mode === 'card_hold' || row.payment_mode === 'cash_guarantee') && (state === 'captured' || state === 'balance_due')) {
-    const collected = collectedMinor(row)
-    if (collected > 0) return { baseMinor: collected, currency: row.payment_currency === 'czk' ? 'czk' : 'eur' }
-  }
-  return feeBaseFor(row)
-}
 
 /**
  * A late-cancelled row in a state that can still hold a payable recovery link (a failed hold): drop the link columns in

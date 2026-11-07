@@ -582,7 +582,7 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
   }
 
   // 88-REVIEW T2 (C-WR-03): a cancelled or no-show booking never gets a new hold, a capture or a link; only a hold or
-  // card that is still there can be released.
+  // card that is still there can be released. Collected money with no case can get its fee case opened (money WR-02).
   const CLOSED: Record<string, PaymentAction[]> = {
     none: [],
     checkout_pending: ['release'],
@@ -590,8 +590,8 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
     placing_hold: [],
     authorized: ['release'],
     capturing: [],
-    captured: [],
-    balance_due: [],
+    captured: ['open_fee_case'],
+    balance_due: ['open_fee_case'],
     failed: ['release'],
     expired: ['release'],
     released: [],

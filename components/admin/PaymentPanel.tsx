@@ -9,6 +9,7 @@ import { FeeWaiveModal } from './FeeWaiveModal'
 import { MarkCashModal } from './MarkCashModal'
 import { ReopenCashModal } from './ReopenCashModal'
 import { FeeCloseRefundedModal } from './FeeCloseRefundedModal'
+import { FeeOpenCaseModal } from './FeeOpenCaseModal'
 import { Modal } from './Modal'
 import { AlertBanner, type BannerSpec, type DecisionResult } from './paymentParts'
 import {
@@ -49,7 +50,7 @@ export type { PaymentSnapshot, FeeCaseFacts, CashFacts }
 /** The five executable actions of POST /payment, and the display names executed by POST /fee (plan 89-12). */
 export type PaymentActionName =
   | 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
-  | 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash' | 'close_refunded'
+  | 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash' | 'close_refunded' | 'open_fee_case'
 
 export interface PaymentEventRow {
   id: number
@@ -782,7 +783,11 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
 
   const { data } = load
   // Phase 89: a card or cash booking gets the whole panel; any other booking (pay-now) only when it has a fee case.
-  const hasPanel = data.payment.mode === 'card_hold' || data.payment.mode === 'cash_guarantee' || !!data.fee_case
+  const hasPanel =
+    data.payment.mode === 'card_hold' ||
+    data.payment.mode === 'cash_guarantee' ||
+    !!data.fee_case ||
+    data.allowed_actions.includes('open_fee_case')
   if (!hasPanel && !data.refund_failed) return null
 
   // D-20: any payment mode. A non-card booking (legacy pay-now) gets only the Refund failed banner.
@@ -808,7 +813,7 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
 
 const EXECUTABLE_ACTIONS: readonly PaymentActionName[] = ['capture', 'retry', 'send_link', 'release', 'waive']
 const KNOWN_ACTIONS: readonly PaymentActionName[] = [
-  ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee', 'charge_saved_card', 'mark_cash_settled', 'reopen_cash', 'close_refunded',
+  ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee', 'charge_saved_card', 'mark_cash_settled', 'reopen_cash', 'close_refunded', 'open_fee_case',
 ]
 
 const FEE_CASE_LABEL: Record<string, string> = {
@@ -900,6 +905,7 @@ function actionLabel(action: PaymentActionName, p: PaymentSnapshot): string {
     case 'mark_cash_settled': return 'Mark paid in cash…'
     case 'reopen_cash': return 'Reopen as unpaid…'
     case 'close_refunded': return 'Close: refunded by hand…'
+    case 'open_fee_case': return 'Open fee case…'
     case 'release': return p.mode === 'cash_guarantee' ? 'Release saved card' : 'Release hold'
     default: return actionButtonLabel(action, p.completed)
   }
@@ -1090,6 +1096,13 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
       />
       <FeeCloseRefundedModal
         isOpen={modal === 'close_refunded'}
+        bookingId={bookingId}
+        onClose={closeDialog}
+        onResult={showResult}
+        onRefetch={onRefetch}
+      />
+      <FeeOpenCaseModal
+        isOpen={modal === 'open_fee_case'}
         bookingId={bookingId}
         onClose={closeDialog}
         onResult={showResult}
