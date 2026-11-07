@@ -5,7 +5,7 @@
  * digits (site-wide DNT digit convention), zh uses its native Y年M月D日 order.
  */
 import { describe, expect, it } from 'vitest'
-import { formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
+import { PRAGUE_TIME_LABEL, formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
 import { formatBylineDate } from '@/lib/authors'
 
 const NON_EN = ['ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
@@ -63,6 +63,14 @@ describe('formatLocaleDateTime (Phase 89: free-until instant on the Prague wall 
       expect(out).not.toMatch(NON_LATIN_DIGITS)
     })
   }
+
+  it('WR-04: ends with the Prague time zone label in the locale language, in winter and in summer', () => {
+    expect(formatLocaleDateTime(winter, 'en')).toMatch(/09:05 \(Prague time\)$/)
+    expect(formatLocaleDateTime(summer, 'en')).toMatch(/10:05 \(Prague time\)$/)
+    for (const locale of ['en', ...NON_EN] as const) {
+      expect(formatLocaleDateTime(winter, locale).endsWith(`(${PRAGUE_TIME_LABEL[locale]})`)).toBe(true)
+    }
+  })
 
   it('follows daylight saving time and keeps the day in Prague', () => {
     expect(formatLocaleDateTime(summer, 'en')).toContain('10:05')

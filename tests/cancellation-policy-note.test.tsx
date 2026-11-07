@@ -39,6 +39,8 @@ describe('CancellationPolicyNote (UI-SPEC 2.3)', () => {
     const when = formatLocaleDateTime(Date.parse('2026-11-12T08:30:00.000Z'), 'en')
     expect(when).toContain('09:30')
     expect(text).toContain(`Free cancellation until ${when}.`)
+    // WR-04: the deadline names its time zone, so a client in another zone does not misread it.
+    expect(when).toMatch(/09:30 \(Prague time\)$/)
     expect(text).toContain(`After that, 100% of the fare (${formatMinor(12000, 'eur')}) applies.`)
     expect(text).toContain('A person at Prestigo decides every charge and may waive it.')
     expect(text).toContain('once the driver has waited 45 minutes.')

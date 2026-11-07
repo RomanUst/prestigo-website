@@ -19,8 +19,12 @@ import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
  * pins the EN strings to it. The version is stored with every consent record and the
  * stored text of an older booking never changes (D-16: the owner decided to go without
  * a lawyer review and accepts that risk).
+ *
+ * The rendered text also carries the Prague time-zone label that formatLocaleDateTime appends to the free-until moment
+ * (lib/locale-date.ts PRAGUE_TIME_LABEL): a change to a label is a change to the consent text and bumps this version too.
+ * 2026-11-2: the deadline is labelled "(Prague time)" in the stored text (review WR-04).
  */
-export const CARD_CONSENT_VERSION = '2026-11-1'
+export const CARD_CONSENT_VERSION = '2026-11-2'
 
 /** setup / hold_now: the card flow (Phase 88). cash_setup: pay cash to the driver, card saved as a guarantee (Phase 89). */
 export type ConsentMode = 'setup' | 'hold_now' | 'cash_setup'

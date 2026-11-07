@@ -113,6 +113,11 @@ export interface PaymentEmailVars {
 export interface PolicyBoxVars {
   /** End of free cancellation, epoch ms; shown on the Europe/Prague wall clock. */
   freeUntilMs: number
+  /**
+   * True when that moment has already passed (a late booking, or a reminder sent after it): the box then says free
+   * cancellation is not available instead of "until" a past time, as the checkout and the consent do. Absent = false.
+   */
+  freeUntilPassed?: boolean
   /** Share of the fare that applies after the free period, 1..100. */
   percent: number
   /** That share in minor units of vars.currency (never typed in the catalog). */
@@ -325,7 +330,9 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
     lines: [
       html(c.t, 'cardSaved.cashLineToday'),
       html(c.t, 'cardSaved.cashLineDay', { amount: c.amount }),
-      html(c.t, 'cardSaved.cashLineIfNeeded', { freeUntil: freeUntilText(c, 'card_saved:cash') }),
+      c.vars.policy?.freeUntilPassed
+        ? html(c.t, 'cardSaved.cashLineIfNeededNoFree')
+        : html(c.t, 'cardSaved.cashLineIfNeeded', { freeUntil: freeUntilText(c, 'card_saved:cash') }),
     ],
     cta: 'calendar',
     policyBox: true,
@@ -566,7 +573,7 @@ function policyBoxHtml(
   args: { policy: PolicyBoxVars; currency: PaymentCurrency; cashAmountMinor?: number | null; reference?: string },
 ): string {
   const p = args.policy
-  const body = html(t, 'policyBox.body', {
+  const body = html(t, p.freeUntilPassed ? 'policyBox.bodyNoFree' : 'policyBox.body', {
     freeUntil: formatLocaleDateTime(p.freeUntilMs, locale),
     percent: String(p.percent),
     amount: formatMinor(p.feeAmountMinor, args.currency),

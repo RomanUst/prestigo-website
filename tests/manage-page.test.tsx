@@ -216,6 +216,40 @@ describe('buildManageView (pure view model)', () => {
     expect(v.payment).toMatchObject({ key: 'paidCard', amountMinor: 18000, currency: 'eur' })
   })
 
+  it('WR-01: an unpaid pay-now row (abandoned checkout, payment intent id already stored) shows no payment, no refund and no fee', () => {
+    const v = buildManageView(
+      row({
+        status: 'unpaid',
+        payment_mode: 'pay_now',
+        payment_state: 'none',
+        payment_intent_id: 'pi_abandoned',
+        payment_amount_minor: null,
+        payment_currency: null,
+        pickup_utc: new Date(NOW + 5 * HOUR).toISOString(), // inside the late window
+      }),
+      {},
+      NOW,
+    )
+    expect(v.statusKey).toBe('unpaid')
+    expect(v.payment).toBeNull()
+    expect(v.cancel?.outcome).toBe('late')
+    expect(v.cancel?.freeMoney).toBe('none')
+    expect(v.cancel?.refundMinor).toBeNull()
+    expect(v.cancel?.payNow).toBe(false)
+    expect(v.cancel?.proposedFeeMinor).toBeNull()
+    expect(v.cancel?.currency).toBeNull()
+  })
+
+  it('WR-01: the same row once paid (confirmed) keeps the refund and the fee', () => {
+    const v = buildManageView(
+      row({ status: 'confirmed', payment_mode: 'pay_now', payment_state: 'none', payment_intent_id: 'pi_1', payment_amount_minor: null, payment_currency: null }),
+      {},
+      NOW,
+    )
+    expect(v.payment?.key).toBe('paidCard')
+    expect(v.cancel?.freeMoney).toBe('refund')
+  })
+
   it('payment sentence rows: cash, card saved with its hold date, captured; none for a manual booking', () => {
     expect(buildManageView(row({ payment_mode: 'cash_guarantee', payment_state: 'card_saved' }), {}, NOW).payment?.key).toBe('cash')
     const saved = buildManageView(row(), {}, NOW).payment
@@ -289,8 +323,20 @@ describe('manage page, state table (E3 populated)', () => {
     expect(container.textContent).toContain('PR-4821')
     expect(getByTestId('manage-details').textContent).toContain('Vienna International Airport')
     expect(getByTestId('manage-panel-free').textContent).toMatch(/Free cancellation until/)
+    // WR-04: the deadline of the panel names the Prague time zone.
+    expect(getByTestId('manage-panel-free').querySelector('h2')?.textContent).toMatch(/\(Prague time\)$/)
     expect(container.querySelector('[data-manage-slot="cancel-region"]')).not.toBeNull()
     expect(container.querySelector('[data-manage-slot="change-request"]')).not.toBeNull()
+  })
+
+  it('WR-01: an unpaid pay-now row reads "Awaiting payment" and "Nothing has been charged", never a refund or "Paid by card"', async () => {
+    const unpaid = view(
+      futureRow(48, { status: 'unpaid', payment_mode: 'pay_now', payment_state: 'none', payment_intent_id: 'pi_abandoned', payment_amount_minor: null, payment_currency: null }),
+    )
+    const { container, getByTestId } = await renderPage('en', unpaid)
+    expect(container.textContent).toContain('Awaiting payment')
+    expect(getByTestId('manage-panel-free').textContent).toContain('Nothing has been charged.')
+    expect(container.textContent).not.toMatch(/Paid by card|We refund|refund within/i)
   })
 
   it('resolves the token before it reads any booking', async () => {
@@ -570,6 +616,14 @@ describe('My trips Manage link (D-02)', () => {
     // Terminal and legacy rows are skipped before any token is minted.
     expect(mockEnsure).toHaveBeenCalledTimes(1)
     expect(mockEnsure).toHaveBeenCalledWith('no-token')
+  })
+
+  it('WR-01: shows no link for an unpaid (unfinished checkout) booking and mints no token for it', async () => {
+    mockBookings.rows = [trip('abandoned', { status: 'unpaid' }), trip('paid')]
+    const { queryAllByRole } = await renderTrips('en')
+    expect(queryAllByRole('link', { name: 'Manage booking' })).toHaveLength(1)
+    expect(mockEnsure).toHaveBeenCalledTimes(1)
+    expect(mockEnsure).toHaveBeenCalledWith('paid')
   })
 
   it('a failing token read drops that link only', async () => {
