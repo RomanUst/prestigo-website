@@ -9,8 +9,8 @@ import { isNearAirport } from '@/lib/airport'
 
 type ServiceClient = ReturnType<typeof createSupabaseServiceClient>
 
-const DEFAULT_CITY_MIN = 30
-const DEFAULT_AIRPORT_MIN = 60
+export const DEFAULT_CITY_MIN = 30
+export const DEFAULT_AIRPORT_MIN = 60
 const AIRPORT_ADDRESS = /airport|letiště|letiste|václav havel|\bPRG\b/i
 
 export function isAirportPickup(b: {
