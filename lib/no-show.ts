@@ -4,10 +4,12 @@ import { advanceBookingStatus, type AdvanceBookingStatusResult, type StatusActor
 import { logEmail } from '@/lib/email-log'
 import { sendNoShowRequestAlert } from '@/lib/email'
 import { dispatchAfterResponse, enqueueOutboxEvent, noShowAlertKey } from '@/lib/outbox'
-import { isNearAirport } from '@/lib/airport'
+import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show-wait'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { TERMINAL_BOOKING_STATUSES, nextStepFor } from '@/lib/booking-status'
 import { hasTripIdentity, type DriverTripRecord, type TripStepResponse } from '@/lib/driver-trip-step'
+import { feeBaseNow, isFeeEligible, openFeeCase } from '@/lib/payments/fee'
+import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 
 /**
  * No-show request (Phase 87 D-15, D-16). Server-only.
@@ -25,10 +27,7 @@ import { hasTripIdentity, type DriverTripRecord, type TripStepResponse } from '@
 
 type ServiceClient = ReturnType<typeof createSupabaseServiceClient>
 
-const DEFAULT_CITY_MIN = 30
-const DEFAULT_AIRPORT_MIN = 60
 const MIN_MS = 60_000
-const AIRPORT_ADDRESS = /airport|letiště|letiste|václav havel|\bPRG\b/i
 
 export type NoShowBody = TripStepResponse & {
   noShowAvailableAt?: string
@@ -41,41 +40,8 @@ export type NoShowRequestResult =
 
 const INVALID_TOKEN = { httpStatus: 400, body: { error: 'invalid_token' } } as const
 
-export function isAirportPickup(b: {
-  origin_lat: number | null
-  origin_lng: number | null
-  origin_address: string | null
-}): boolean {
-  if (b.origin_lat !== null && b.origin_lng !== null && isNearAirport({ lat: b.origin_lat, lng: b.origin_lng })) {
-    return true
-  }
-  return b.origin_address ? AIRPORT_ADDRESS.test(b.origin_address) : false
-}
-
-function validMinutes(v: unknown, fallback: number): number {
-  return typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 240 ? v : fallback
-}
-
-/** pricing_globals id 1; the defaults 30 / 60 apply on any read problem. */
-export async function getNoShowThresholds(
-  supabase: ServiceClient,
-): Promise<{ cityMin: number; airportMin: number }> {
-  try {
-    const { data, error } = await supabase
-      .from('pricing_globals')
-      .select('noshow_wait_city_min, noshow_wait_airport_min')
-      .eq('id', 1)
-      .single()
-    if (error || !data) return { cityMin: DEFAULT_CITY_MIN, airportMin: DEFAULT_AIRPORT_MIN }
-    const row = data as { noshow_wait_city_min?: unknown; noshow_wait_airport_min?: unknown }
-    return {
-      cityMin: validMinutes(row.noshow_wait_city_min, DEFAULT_CITY_MIN),
-      airportMin: validMinutes(row.noshow_wait_airport_min, DEFAULT_AIRPORT_MIN),
-    }
-  } catch {
-    return { cityMin: DEFAULT_CITY_MIN, airportMin: DEFAULT_AIRPORT_MIN }
-  }
-}
+// Moved to lib/no-show-wait.ts (Phase 89) so the payment emails can use them without this module's import graph.
+export { getNoShowThresholds, isAirportPickup }
 
 /** Later of the known instants plus the free waiting time; null when neither instant is known. */
 export function noShowAvailableAtMs(input: {
@@ -353,18 +319,220 @@ export async function clearNoShowRequest(input: {
   return { applied: rpc?.applied ?? false, ok: rpc !== null }
 }
 
-/** D-16 a: the operator confirms the no-show; the only path to no_show, through the status service. */
+export type NoShowConfirmCode = 'not_on_location' | 'no_request' | 'wait_not_elapsed'
+
+/**
+ * WR-04: a booking becomes no_show only when it is on_location, the driver asked (no_show_requested_at is set, and
+ * that request was itself checked against the server wait) and, belt and braces, the wait has passed again with the
+ * LIVE thresholds (a threshold raised after the request holds the confirm back). Pure; null means confirmable.
+ * `onLocationMs` is the latest arrival instant from booking_status_log (null when unknown).
+ */
+export function assertNoShowConfirmable(
+  booking: DriverTripRecord['booking'],
+  thresholds: { cityMin: number; airportMin: number },
+  nowMs: number,
+  onLocationMs: number | null,
+): { code: NoShowConfirmCode; availableAtMs?: number } | null {
+  if (booking.status !== 'on_location') return { code: 'not_on_location' }
+  if (!booking.no_show_requested_at) return { code: 'no_request' }
+  const thresholdMin = isAirportPickup(booking) ? thresholds.airportMin : thresholds.cityMin
+  const availableAtMs = noShowAvailableAtMs({ pickupMs: pickupInstantMs(booking), onLocationMs, thresholdMin })
+  // The request itself is the evidence when neither instant is known (same fail-open as the driver's request).
+  if (availableAtMs !== null && nowMs < availableAtMs) return { code: 'wait_not_elapsed', availableAtMs }
+  return null
+}
+
+export type NoShowRefusal = { ok: false; code: NoShowConfirmCode; message: string; noShowAvailableAt?: string }
+
+export type ConfirmNoShowResult = AdvanceBookingStatusResult | NoShowRefusal
+
+export function isNoShowRefusal(r: ConfirmNoShowResult): r is NoShowRefusal {
+  return !r.ok && (r.code === 'not_on_location' || r.code === 'no_request' || r.code === 'wait_not_elapsed')
+}
+
+const iso = (ms: number | null): string | null => (ms !== null && Number.isFinite(ms) ? new Date(ms).toISOString() : null)
+
+/** The newest no_show_requested log row: when it was asked and by whom. Null on a read problem or no row. */
+async function readRequestRow(
+  supabase: ServiceClient,
+  bookingId: string,
+): Promise<{ requestedAt: string | null; driverId: string | null } | null> {
+  try {
+    const { data, error } = await supabase
+      .from('booking_status_log')
+      .select('created_at, actor_type, actor_id')
+      .eq('booking_id', bookingId)
+      .eq('event', 'no_show_requested')
+      .order('created_at', { ascending: false })
+      .limit(1)
+    if (error) return null
+    const row = ((data ?? []) as Array<{ created_at: string; actor_type: string; actor_id: string | null }>)[0]
+    if (!row) return null
+    return { requestedAt: row.created_at, driverId: row.actor_type === 'driver' ? row.actor_id : null }
+  } catch {
+    return null
+  }
+}
+
+/** The no-show stands but no case exists: without this mail nobody would know that a decision is missing. */
+function alertCaseMissing(booking: Record<string, unknown>): void {
+  const bookingId = String(booking.id)
+  after(async () => {
+    try {
+      await sendPaymentOperatorAlert('fee_no_show_needed', booking, {
+        eventKey: `alert:fee_no_show_needed:${bookingId}:case_missing`,
+        note: 'case_missing',
+      })
+    } catch {
+      console.error('[no-show] operator alert failed', { bookingId })
+    }
+  })
+}
+
+/**
+ * CASH-03, D-13: after the status applied, open the one pending no-show case with the evidence snapshot and raise the
+ * operator alert once. Charges nothing and never touches the hold. Never throws and never reverts the status: a
+ * failure here is logged with ids and alerted, and the operator opens the case by hand from the booking (open_case on the
+ * fee route, lib/payments/fee-reopen.ts).
+ */
+async function openNoShowCase(input: {
+  supabase: ServiceClient
+  booking: Record<string, unknown>
+  actor: Extract<StatusActor, { type: 'admin' }>
+  thresholdMin: number
+  onLocationMs: number | null
+  nowMs: number
+}): Promise<void> {
+  const { supabase, booking, actor } = input
+  const bookingId = String(booking.id)
+  try {
+    // Partner bookings and bookings with no card and no money get a status and no case (Pitfall 15).
+    if (!isFeeEligible(booking)) return
+    // CR-03: a pay-now base is this row's share of what the PaymentIntent received, in its currency.
+    const base = await feeBaseNow(booking)
+    if (!base) {
+      // Money review 2, IN-01: a pay-now row with nothing left behind its PaymentIntent (fully refunded, a stale intent) has
+      // no fee to decide, so there is no case and no alert. A card row without an amount is a broken row: the operator is told.
+      if (booking.payment_mode === 'pay_now') {
+        console.warn('[no-show] nothing held for this pay-now booking, no case', { bookingId })
+        return
+      }
+      console.error('[no-show] no fee base, case not opened', { bookingId })
+      alertCaseMissing(booking)
+      return
+    }
+
+    const request = await readRequestRow(supabase, bookingId)
+    const requestedAt =
+      request?.requestedAt ?? (typeof booking.no_show_requested_at === 'string' ? booking.no_show_requested_at : null)
+    const driverId = request?.driverId ?? (typeof booking.driver_id === 'string' ? booking.driver_id : null)
+    const pickupMs = pickupInstantMs(booking as unknown as Parameters<typeof pickupInstantMs>[0])
+    // Short facts only (no names, no free text): a later settings change can not rewrite them.
+    const evidence = {
+      pickup_utc: iso(pickupMs),
+      on_location_at: iso(input.onLocationMs),
+      requested_at: requestedAt,
+      threshold_min: input.thresholdMin,
+      airport: isAirportPickup(booking as unknown as Parameters<typeof isAirportPickup>[0]),
+      confirmed_at: new Date(input.nowMs).toISOString(),
+      driver_id: driverId,
+    }
+
+    const { caseRow, created } = await openFeeCase({
+      booking,
+      kind: 'no_show',
+      baseMinor: base.baseMinor,
+      currency: base.currency,
+      // UI-SPEC 2.3: no-show has no percent setting, the full fare is proposed.
+      proposedMinor: base.baseMinor,
+      evidence,
+      actor: { type: 'admin', id: actor.id },
+    })
+    if (!created) return
+
+    const details = {
+      eventKey: `alert:fee_no_show_needed:${caseRow.id}`,
+      proposedMinor: caseRow.proposed_minor,
+      arrivedAt: evidence.on_location_at,
+      requestedAt,
+      thresholdMin: input.thresholdMin,
+    }
+    // A pay-now row has no payment_currency: the operator reads the currency of the case.
+    const alertRow = { ...booking, payment_currency: caseRow.currency }
+    after(async () => {
+      try {
+        await sendPaymentOperatorAlert('fee_no_show_needed', alertRow, details)
+      } catch {
+        console.error('[no-show] operator alert failed', { bookingId })
+      }
+    })
+  } catch (err) {
+    // The status already applied and stays. The log line carries ids only.
+    console.error('[no-show] fee case not opened after no_show', {
+      bookingId,
+      error: err instanceof Error ? err.message : 'unknown',
+    })
+    alertCaseMissing(booking)
+  }
+}
+
+/**
+ * D-16 a: the operator confirms the no-show; the only path to no_show, through the status service. WR-04 gate first
+ * (assertNoShowConfirmable, live thresholds), then the status, then the pending fee case with its evidence.
+ */
 export async function confirmNoShow(input: {
   bookingId: string
   actor: Extract<StatusActor, { type: 'admin' }>
   expectedFrom?: string
-}): Promise<AdvanceBookingStatusResult> {
-  return advanceBookingStatus({
+}): Promise<ConfirmNoShowResult> {
+  const supabase = createSupabaseServiceClient()
+  const { data, error } = await supabase.from('bookings').select('*').eq('id', input.bookingId).single()
+  if (error || !data) return { ok: false, code: 'not_found', message: 'Booking not found' }
+  const booking = data as DriverTripRecord['booking'] & Record<string, unknown>
+
+  // Stale-view guard first, so a tab that saw another status gets the same status_conflict as everywhere else.
+  if (input.expectedFrom !== undefined && input.expectedFrom !== booking.status) {
+    return { ok: false, code: 'conflict', message: 'status_conflict', currentStatus: booking.status }
+  }
+
+  // A card charge is running on the row (cancelBooking answers busy too): no_show would leave it in capturing for good.
+  if (booking.payment_state === 'capturing') {
+    return { ok: false, code: 'conflict', message: 'status_conflict', currentStatus: booking.status }
+  }
+
+  const nowMs = Date.now()
+  const log = await readOnLocationMs(supabase, input.bookingId)
+  // Money follows this status: an unreadable log is a refusal, not a guess.
+  if (!log.ok) return { ok: false, code: 'db_error', message: 'DB update failed' }
+  const thresholds = await getNoShowThresholds(supabase)
+  const refusal = assertNoShowConfirmable(booking, thresholds, nowMs, log.onLocationMs)
+  if (refusal) {
+    return {
+      ok: false,
+      code: refusal.code,
+      message: refusal.code,
+      ...(refusal.availableAtMs !== undefined ? { noShowAvailableAt: new Date(refusal.availableAtMs).toISOString() } : {}),
+    }
+  }
+
+  const result = await advanceBookingStatus({
     bookingId: input.bookingId,
     to: 'no_show',
-    expectedFrom: input.expectedFrom,
+    expectedFrom: booking.status,
     actor: input.actor,
     source: 'admin_no_show',
     profile: 'full',
+    current: booking,
   })
+  if (!result.ok) return result
+
+  await openNoShowCase({
+    supabase,
+    booking: { ...booking, ...result.booking },
+    actor: input.actor,
+    thresholdMin: isAirportPickup(booking) ? thresholds.airportMin : thresholds.cityMin,
+    onLocationMs: log.onLocationMs,
+    nowMs,
+  })
+  return result
 }

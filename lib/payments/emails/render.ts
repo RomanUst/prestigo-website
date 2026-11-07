@@ -14,19 +14,61 @@
  *   <bdi dir="auto"> so Latin text inside Arabic keeps its order
  * - every user-supplied string HTML-escaped; UTF-8 only, no named entities
  * - payment_failed is the only email with a filled button
- * - no email states a cancellation fee, a refund promise or a cancellation
- *   threat (Phase 89 owns the policy)
+ * - fee and refund wording is a positive allow-list (Phase 89, replaces the Phase 88 blanket ban): only the
+ *   cancellation box (`policyBox.*` keys, rendered for templates flagged `policyBox` when the booking stored a
+ *   policy) and the kinds of UI-SPEC 8.2 (cancelled, fee_charged, fee_waived, card_saved cash, payment_failed fee,
+ *   with the shared `money.*` sentences) may state a fee, a percent or a refund. Every other line of card_saved,
+ *   hold_placed and charged stays free of it; tests/payments-copy-i18n.test.ts enforces the list per locale.
+ * - no template accepts or renders a reason or a note: operator text never reaches a client (T-89-13). A required
+ *   var that is missing (freeUntil, waitMin, feeMinor) makes the render throw instead of leaving a parameter open.
+ * - the contact pair of "Need assistance?" is built here with a localized "or" (`PaymentEmails.contactOr`);
+ *   EMAIL_CONTACT_LINE stays for the English-only legacy emails of lib/email.ts.
+ * - the Manage booking button is outlined (payment_failed stays the only filled button) and is present only when
+ *   vars.manageUrl is set, which the sender does only for a booking that stored a policy (D-18)
  *
  * Server-only by usage (loads catalogs through dynamic imports and renders
  * HTML for Resend); it imports nothing that needs the browser.
  */
 import { createTranslator, type AbstractIntlMessages } from 'next-intl'
 import { normalizeSiteLocale, rtlLocales, type AppLocale } from '@/i18n/locales'
-import { formatLocaleDate } from '@/lib/locale-date'
-import { EMAIL_CONTACT_LINE, emailLogoImg, escapeHtml } from '@/lib/email'
+import { formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
+import { emailLogoImg, escapeHtml } from '@/lib/email'
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL } from '@/lib/contact-channels'
 import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
 
-export type PaymentEmailKind = 'card_saved' | 'hold_placed' | 'charged' | 'payment_failed'
+export type PaymentEmailKind =
+  | 'card_saved'
+  | 'hold_placed'
+  | 'charged'
+  | 'payment_failed'
+  | 'cancelled'
+  | 'fee_charged'
+  | 'fee_waived'
+
+/**
+ * Variants by kind (UI-SPEC 8.2): card_saved cash; cancelled free, by_prestigo, late; fee_charged late_cancel,
+ * no_show, cash_unpaid, cash_card; payment_failed declined, auth_required, fee; hold_placed at_checkout, scheduled.
+ */
+export type PaymentEmailVariant =
+  | 'at_checkout'
+  | 'scheduled'
+  | 'declined'
+  | 'auth_required'
+  | 'cash'
+  | 'free'
+  | 'by_prestigo'
+  | 'late'
+  | 'late_cancel'
+  | 'no_show'
+  | 'cash_unpaid'
+  | 'cash_card'
+  | 'fee'
+
+/** What happened to the client's money when a booking was cancelled or a fee was waived. */
+export type PaymentMoneyOutcome = 'released' | 'refunded' | 'none'
+
+/** What a failed fee charge was for (payment_failed variant fee). */
+export type PaymentFeeLabel = 'cancellation' | 'no_show' | 'trip'
 
 export interface PaymentEmailVars {
   reference: string
@@ -39,10 +81,49 @@ export interface PaymentEmailVars {
   vehicleClass: string
   passengers: number
   holdDateIso?: string | null
-  variant?: 'at_checkout' | 'scheduled' | 'declined' | 'auth_required'
+  variant?: PaymentEmailVariant
   diffMinor?: number
   payUrl?: string
   calendarUrl?: string
+  /** Localized absolute https URL of the manage page; absent unless the booking stored a policy (D-18). */
+  manageUrl?: string
+  /** Terms for the cancellation box, from the booking's stored policy; absent when it stored none. */
+  policy?: PolicyBoxVars
+  /**
+   * Amount of the fee or charge the mail is about, minor units of `currency` (cancelled late: the proposed fee;
+   * fee_charged late_cancel and no_show: the amount charged; payment_failed fee: the amount to pay). When absent,
+   * cash_unpaid, cash_card and a "trip" fee fall back to `amountMinor`; the other variants refuse to render.
+   * There is deliberately no reason or note field: nothing an operator typed can reach a client (T-89-13).
+   */
+  feeMinor?: number
+  /** Amount refunded when moneyOutcome is 'refunded'; falls back to `amountMinor`. */
+  refundMinor?: number
+  /** cancelled and fee_waived: released the hold, refunded a payment, or nothing was taken. Default 'none'. */
+  moneyOutcome?: PaymentMoneyOutcome
+  /** payment_failed fee: what the fee was for. Default 'trip'. */
+  feeLabel?: PaymentFeeLabel
+  /** End of free cancellation: epoch ms or an ISO string. Required by cancelled late and fee_charged late_cancel. */
+  freeUntil?: number | string
+  /** Minutes the driver waited. Required by fee_charged no_show. */
+  waitMin?: number
+  /** Localized absolute https URL of the booking page, for the "Book another ride" button of cancelled and fee_waived. */
+  bookAgainUrl?: string
+}
+
+export interface PolicyBoxVars {
+  /** End of free cancellation, epoch ms; shown on the Europe/Prague wall clock. */
+  freeUntilMs: number
+  /**
+   * True when that moment has already passed (a late booking, or a reminder sent after it): the box then says free
+   * cancellation is not available instead of "until" a past time, as the checkout and the consent do. Absent = false.
+   */
+  freeUntilPassed?: boolean
+  /** Share of the fare that applies after the free period, 1..100. */
+  percent: number
+  /** That share in minor units of vars.currency (never typed in the catalog). */
+  feeAmountMinor: number
+  /** Minutes the driver waits before a no-show. */
+  waitMin: number
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +184,18 @@ function text(t: Translator, key: string, params: Record<string, string> = {}): 
  * Parameters that are localized words (a long date such as "12 نوفمبر 2026"), isolated with dir="auto" so an RTL reader
  * reads them in their own order (88-REVIEW C-IN-01). Amounts, references and times stay ltr.
  */
-const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate'])
+const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate', 'freeUntil', 'contact'])
+
+/**
+ * The contact pair of "Need assistance?" with a localized "or" (88 deferred item: the shared EMAIL_CONTACT_LINE says
+ * an English "or" in every language). Each link is isolated ltr; the word between them sets the direction of the pair.
+ */
+const CONTACT_LINK_STYLE = 'color: #BFA06A; text-decoration: none;'
+function contactLine(t: Translator): string {
+  const mail = `<bdi dir="ltr"><a href="mailto:info@rideprestigo.com" style="${CONTACT_LINK_STYLE}">info@rideprestigo.com</a></bdi>`
+  const phone = `<bdi dir="ltr"><a href="${BUSINESS_TEL_URL}" style="${CONTACT_LINK_STYLE}">${BUSINESS_PHONE_DISPLAY}</a></bdi>`
+  return `${mail} ${escapeHtml(t('contactOr'))} ${phone}`
+}
 
 /**
  * HTML message: catalog text escaped, parameters inserted as bdi ltr (localized dates: bdi auto).
@@ -142,6 +234,7 @@ function safeHttpsUrl(value: string, what: string): string {
 
 interface Ctx {
   t: Translator
+  locale: AppLocale
   vars: PaymentEmailVars
   amount: string
   pickupDate: string
@@ -154,9 +247,65 @@ interface Template {
   h1: string
   intro: string
   highlightLabel: string
+  /** Lines of the kind-specific box; none = no box (cancelled free and by_prestigo, fee_waived). */
   lines: string[]
-  cta?: 'calendar' | 'pay'
+  cta?: 'calendar' | 'pay' | 'book'
+  /** Confirmation family: carries the cancellation box and the Manage booking button when the vars have them. */
+  policyBox?: boolean
+  /** Cash booking: the cancellation box gets the extra "you pay in cash" sentence (UI-SPEC 8.1). */
+  cashBox?: boolean
+  /** Amount on the pay button when it is not the booking amount (payment_failed fee). */
+  payAmountMinor?: number
+  /** Contact line of "Need assistance?" in the primary text colour (cancelled by Prestigo). */
+  emphasiseContact?: boolean
 }
+
+// --- Phase 89 helpers: a missing required var is a render failure, never an unresolved parameter in a client mail. ---
+
+function need<T>(value: T | null | undefined, kind: string, name: string): T {
+  if (value === null || value === undefined) throw new Error(`payment email ${kind} needs ${name}`)
+  return value
+}
+
+function needMinor(c: Ctx, kind: string, name: string, value: number | undefined): string {
+  const minor = need(value, kind, name)
+  if (!Number.isFinite(minor) || minor < 0) throw new Error(`payment email ${kind}: ${name} is not an amount`)
+  return formatMinor(minor, c.vars.currency)
+}
+
+/** End of the free period on the Europe/Prague wall clock, from epoch ms or an ISO string. */
+function freeUntilText(c: Ctx, kind: string): string {
+  const raw = need(c.vars.freeUntil, kind, 'freeUntil')
+  const ms = typeof raw === 'number' ? raw : Date.parse(raw)
+  if (!Number.isFinite(ms)) throw new Error(`payment email ${kind}: freeUntil is not a date`)
+  return formatLocaleDateTime(ms, c.locale)
+}
+
+function waitMinText(c: Ctx, kind: string): string {
+  const min = need(c.vars.waitMin, kind, 'waitMin')
+  if (!Number.isFinite(min) || min <= 0) throw new Error(`payment email ${kind}: waitMin is not a duration`)
+  return String(Math.round(min))
+}
+
+/**
+ * The money sentence of cancelled and fee_waived (UI-SPEC 8.2). `free`: "Nothing was charged. The hold on your card is
+ * released." / refund / "Nothing was charged."; `sorry` (cancelled by Prestigo, already says "you are not charged"):
+ * release or refund only; `waived`: release, refund, or "Nothing was charged."
+ */
+function moneySentence(c: Ctx, mode: 'free' | 'sorry' | 'waived'): string {
+  const outcome = c.vars.moneyOutcome ?? 'none'
+  const nothing = html(c.t, 'money.nothing')
+  const released = html(c.t, 'money.released')
+  if (outcome === 'refunded') {
+    const minor = c.vars.refundMinor ?? c.vars.amountMinor
+    return html(c.t, 'money.refunded', { amount: formatMinor(minor, c.vars.currency) })
+  }
+  if (outcome === 'released') return mode === 'free' ? joinSentences(c, [nothing, released]) : released
+  return mode === 'sorry' ? '' : nothing
+}
+
+/** Chinese sentences end in a full stop and take no space; every other locale separates them with one. */
+const joinSentences = (c: Ctx, parts: string[]): string => parts.filter((p) => p.length > 0).join(c.locale === 'zh' ? '' : ' ')
 
 const TEMPLATES: Record<string, (c: Ctx) => Template> = {
   card_saved: (c) => ({
@@ -170,7 +319,131 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
       html(c.t, 'cardSaved.lineAfterTrip'),
     ],
     cta: 'calendar',
+    policyBox: true,
   }),
+  // Cash booking: the card is only a guarantee (UI-SPEC 8.2). No hold, no charge, no hold date.
+  'card_saved:cash': (c) => ({
+    subject: text(c.t, 'cardSaved.subject', { reference: c.vars.reference }),
+    h1: html(c.t, 'cardSaved.h1'),
+    intro: html(c.t, 'cardSaved.introCash'),
+    highlightLabel: html(c.t, 'common.howPaymentWorksLabel'),
+    lines: [
+      html(c.t, 'cardSaved.cashLineToday'),
+      html(c.t, 'cardSaved.cashLineDay', { amount: c.amount }),
+      c.vars.policy?.freeUntilPassed
+        ? html(c.t, 'cardSaved.cashLineIfNeededNoFree')
+        : html(c.t, 'cardSaved.cashLineIfNeeded', { freeUntil: freeUntilText(c, 'card_saved:cash') }),
+    ],
+    cta: 'calendar',
+    policyBox: true,
+    cashBox: true,
+  }),
+  'cancelled:free': (c) => ({
+    subject: text(c.t, 'cancelled.subject', { reference: c.vars.reference }),
+    h1: html(c.t, 'cancelled.h1'),
+    intro: moneySentence(c, 'free'),
+    highlightLabel: '',
+    lines: [],
+    cta: 'book',
+  }),
+  'cancelled:by_prestigo': (c) => ({
+    subject: text(c.t, 'cancelled.subject', { reference: c.vars.reference }),
+    h1: html(c.t, 'cancelled.h1ByPrestigo'),
+    intro: joinSentences(c, [html(c.t, 'cancelled.introSorry'), moneySentence(c, 'sorry')]),
+    highlightLabel: '',
+    lines: [],
+    cta: 'book',
+    emphasiseContact: true,
+  }),
+  'cancelled:late': (c) => ({
+    subject: text(c.t, 'cancelled.subject', { reference: c.vars.reference }),
+    h1: html(c.t, 'cancelled.h1'),
+    intro: html(c.t, 'cancelled.introLate', {
+      freeUntil: freeUntilText(c, 'cancelled:late'),
+      amount: needMinor(c, 'cancelled:late', 'feeMinor', c.vars.feeMinor),
+    }),
+    highlightLabel: html(c.t, 'common.whatNextLabel'),
+    lines: [html(c.t, 'cancelled.lateNext')],
+    cta: 'book',
+  }),
+  'fee_charged:late_cancel': (c) => {
+    const freeUntil = freeUntilText(c, 'fee_charged:late_cancel')
+    return {
+      subject: text(c.t, 'feeCharged.subjectLateCancel', { reference: c.vars.reference }),
+      h1: html(c.t, 'feeCharged.h1LateCancel'),
+      intro: html(c.t, 'feeCharged.introLateCancel', {
+        reference: c.vars.reference,
+        freeUntil,
+        amount: needMinor(c, 'fee_charged:late_cancel', 'feeMinor', c.vars.feeMinor),
+      }),
+      highlightLabel: html(c.t, 'common.receiptLabel'),
+      lines: [
+        html(c.t, 'charged.total', { amount: needMinor(c, 'fee_charged:late_cancel', 'feeMinor', c.vars.feeMinor) }),
+        html(c.t, 'feeCharged.reasonLateCancel', { freeUntil }),
+        html(c.t, 'common.decides'),
+      ],
+    }
+  },
+  'fee_charged:no_show': (c) => {
+    const waitMin = waitMinText(c, 'fee_charged:no_show')
+    const fee = needMinor(c, 'fee_charged:no_show', 'feeMinor', c.vars.feeMinor)
+    return {
+      subject: text(c.t, 'feeCharged.subjectNoShow', { reference: c.vars.reference }),
+      h1: html(c.t, 'feeCharged.h1NoShow'),
+      intro: html(c.t, 'feeCharged.introNoShow', { waitMin, amount: fee }),
+      highlightLabel: html(c.t, 'common.receiptLabel'),
+      lines: [
+        html(c.t, 'charged.total', { amount: fee }),
+        html(c.t, 'feeCharged.reasonNoShow', { waitMin }),
+        html(c.t, 'common.decides'),
+      ],
+    }
+  },
+  'fee_charged:cash_unpaid': (c) => {
+    const amount = formatMinor(c.vars.feeMinor ?? c.vars.amountMinor, c.vars.currency)
+    return {
+      subject: text(c.t, 'feeCharged.subjectCashUnpaid', { reference: c.vars.reference }),
+      h1: html(c.t, 'feeCharged.h1CashUnpaid'),
+      intro: html(c.t, 'feeCharged.introCashUnpaid', { pickupDate: c.pickupDate, amount }),
+      highlightLabel: html(c.t, 'common.receiptLabel'),
+      lines: [html(c.t, 'charged.total', { amount }), html(c.t, 'feeCharged.reasonCashUnpaid')],
+    }
+  },
+  'fee_charged:cash_card': (c) => {
+    const amount = formatMinor(c.vars.feeMinor ?? c.vars.amountMinor, c.vars.currency)
+    return {
+      subject: text(c.t, 'charged.subject', { reference: c.vars.reference }),
+      h1: html(c.t, 'charged.h1'),
+      intro: html(c.t, 'feeCharged.introCashCard', { amount }),
+      highlightLabel: html(c.t, 'common.receiptLabel'),
+      lines: [html(c.t, 'charged.total', { amount })],
+    }
+  },
+  fee_waived: (c) => ({
+    subject: text(c.t, 'feeWaived.subject', { reference: c.vars.reference }),
+    h1: html(c.t, 'feeWaived.h1'),
+    intro: joinSentences(c, [html(c.t, 'feeWaived.intro'), moneySentence(c, 'waived')]),
+    highlightLabel: '',
+    lines: [],
+    cta: 'book',
+  }),
+  'payment_failed:fee': (c) => {
+    const label = c.vars.feeLabel ?? 'trip'
+    const minor =
+      label === 'trip'
+        ? (c.vars.feeMinor ?? c.vars.amountMinor)
+        : need(c.vars.feeMinor, 'payment_failed:fee', 'feeMinor')
+    const introKey = label === 'cancellation' ? 'introFeeCancellation' : label === 'no_show' ? 'introFeeNoShow' : 'introFeeTrip'
+    return {
+      subject: text(c.t, 'paymentFailed.subjectFee', { reference: c.vars.reference }),
+      h1: html(c.t, 'paymentFailed.h1Fee'),
+      intro: html(c.t, `paymentFailed.${introKey}`, { amount: formatMinor(minor, c.vars.currency) }),
+      highlightLabel: html(c.t, 'common.paySecurelyLabel'),
+      lines: [html(c.t, 'paymentFailed.body')],
+      cta: 'pay',
+      payAmountMinor: minor,
+    }
+  },
   'hold_placed:at_checkout': (c) => ({
     subject: text(c.t, 'holdPlacedAtCheckout.subject', { reference: c.vars.reference }),
     h1: html(c.t, 'holdPlacedAtCheckout.h1'),
@@ -181,6 +454,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
       html(c.t, 'holdPlacedAtCheckout.lineAfterTrip'),
     ],
     cta: 'calendar',
+    policyBox: true,
   }),
   'hold_placed:scheduled': (c) => ({
     subject: text(c.t, 'holdPlacedScheduled.subject', { reference: c.vars.reference }),
@@ -188,6 +462,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
     intro: html(c.t, 'holdPlacedScheduled.intro', { amount: c.amount, pickupDate: c.pickupDate }),
     highlightLabel: html(c.t, 'common.whatNextLabel'),
     lines: [html(c.t, 'holdPlacedScheduled.next')],
+    policyBox: true,
   }),
   charged: (c) => ({
     subject: text(c.t, 'charged.subject', { reference: c.vars.reference }),
@@ -220,6 +495,7 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
 const DEFAULT_VARIANT: Partial<Record<PaymentEmailKind, NonNullable<PaymentEmailVars['variant']>>> = {
   hold_placed: 'at_checkout',
   payment_failed: 'declined',
+  cancelled: 'free',
 }
 
 function templateKey(kind: PaymentEmailKind, variant: PaymentEmailVars['variant']): string {
@@ -249,6 +525,83 @@ function vehicleLabel(tv: Translator, vehicleClass: string): string {
   return vehicleClass
 }
 
+/** Locale-dependent style bits shared by the shell and the policy block. */
+interface ShellStyle {
+  rtl: boolean
+  upper: boolean
+  align: 'left' | 'right'
+  lead: 'left' | 'right'
+  dirAttr: string
+  goldLabel: string
+  greyLabel: string
+}
+
+function shellStyle(locale: AppLocale): ShellStyle {
+  const rtl = (rtlLocales as readonly string[]).includes(locale)
+  const upper = LABEL_UPPERCASE_LOCALES.includes(locale)
+  const labelBase = upper
+    ? 'font-size: 11px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase;'
+    : 'font-size: 11px; font-weight: 400; letter-spacing: normal;'
+  return {
+    rtl,
+    upper,
+    align: rtl ? 'right' : 'left',
+    lead: rtl ? 'right' : 'left',
+    dirAttr: rtl ? ' dir="rtl"' : '',
+    goldLabel: `${labelBase} color: #BFA06A;`,
+    greyLabel: `${labelBase} color: #A9AEB0;`,
+  }
+}
+
+/** The kind-specific box recipe: #17293B, 3px gold leading border, padding 24px. */
+function boxHtml(st: ShellStyle, label: string, body: string): string {
+  return `
+      <div style="background-color: #17293B; border-${st.lead}: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px; text-align: ${st.align};">
+        <div style="${st.goldLabel} margin-bottom: 8px;">${label}</div>
+        ${body}
+      </div>`
+}
+
+/**
+ * Cancellation box (UI-SPEC 8.1): label plus the policy sentence, plus the cash sentence for a cash booking.
+ * `reference` set (several bookings in one email): the label names the booking.
+ */
+function policyBoxHtml(
+  t: Translator,
+  locale: AppLocale,
+  st: ShellStyle,
+  args: { policy: PolicyBoxVars; currency: PaymentCurrency; cashAmountMinor?: number | null; reference?: string },
+): string {
+  const p = args.policy
+  const body = html(t, p.freeUntilPassed ? 'policyBox.bodyNoFree' : 'policyBox.body', {
+    freeUntil: formatLocaleDateTime(p.freeUntilMs, locale),
+    percent: String(p.percent),
+    amount: formatMinor(p.feeAmountMinor, args.currency),
+    waitMin: String(p.waitMin),
+  })
+  // Cash booking (UI-SPEC 8.1): one more sentence, the card is only a guarantee.
+  const cash =
+    typeof args.cashAmountMinor === 'number'
+      ? `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6; margin-top: 8px;">${html(t, 'policyBox.cash', { amount: formatMinor(args.cashAmountMinor, args.currency) })}</div>`
+      : ''
+  const label = args.reference ? html(t, 'policyBox.labelFor', { reference: args.reference }) : html(t, 'policyBox.label')
+  return boxHtml(
+    st,
+    label,
+    `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6;">${body}</div>${cash}`,
+  )
+}
+
+/** Outlined Manage booking button with its muted note; `reference` set: the label names the booking. */
+function manageButtonHtml(t: Translator, href: string, topPadding: string, reference?: string): string {
+  const label = reference ? html(t, 'manage.ctaFor', { reference }) : html(t, 'manage.cta')
+  return `
+      <div style="text-align: center; padding: ${topPadding} 32px 24px;">
+        <a href="${href}" style="display: inline-block; border: 1px solid #BFA06A; color: #E6D6B0; padding: 16px 32px; text-decoration: none; font-size: 14px; font-weight: 400; letter-spacing: normal; font-family: 'Inter', Arial, sans-serif;">${label}</a>
+        <div style="font-size: 11px; font-weight: 400; color: #A9AEB0; line-height: 1.6; margin-top: 8px;">${html(t, 'manage.note')}</div>
+      </div>`
+}
+
 function buildShell(args: {
   locale: AppLocale
   tpl: Template
@@ -258,17 +611,8 @@ function buildShell(args: {
   subject: string
 }): string {
   const { locale, tpl, t, tv, vars, subject } = args
-  const rtl = (rtlLocales as readonly string[]).includes(locale)
-  const upper = LABEL_UPPERCASE_LOCALES.includes(locale)
-  const align = rtl ? 'right' : 'left'
-  const lead = rtl ? 'right' : 'left'
-  const dirAttr = rtl ? ' dir="rtl"' : ''
-
-  const labelBase = upper
-    ? 'font-size: 11px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase;'
-    : 'font-size: 11px; font-weight: 400; letter-spacing: normal;'
-  const goldLabel = `${labelBase} color: #BFA06A;`
-  const greyLabel = `${labelBase} color: #A9AEB0;`
+  const st = shellStyle(locale)
+  const { upper, align, dirAttr, goldLabel, greyLabel } = st
 
   const reference = `<bdi dir="ltr">${escapeHtml(vars.reference)}</bdi>`
   const date = formatLocaleDate(vars.pickupDateIso, locale)
@@ -289,37 +633,60 @@ function buildShell(args: {
     row(html(t, 'common.passengersLabel'), `<bdi dir="ltr">${escapeHtml(String(vars.passengers))}</bdi>`),
   ].join('')
 
-  const box = (label: string, body: string) => `
-      <div style="background-color: #17293B; border-${lead}: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px; text-align: ${align};">
-        <div style="${goldLabel} margin-bottom: 8px;">${label}</div>
-        ${body}
-      </div>`
+  const box = (label: string, body: string) => boxHtml(st, label, body)
 
   const referenceBox = box(
     html(t, 'common.referenceLabel'),
     `<div style="font-size: 22px; font-weight: 600; color: #BFA06A;">${reference}</div>`,
   )
-  const highlightBox = box(
-    tpl.highlightLabel,
-    tpl.lines
-      .map(
-        (line, i) =>
-          `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6;${i > 0 ? ' margin-top: 8px;' : ''}">${line}</div>`,
-      )
-      .join(''),
-  )
+  const highlightBox =
+    tpl.lines.length === 0
+      ? ''
+      : box(
+          tpl.highlightLabel,
+          tpl.lines
+            .map(
+              (line, i) =>
+                `<div style="font-size: 14px; font-weight: 400; color: #F3EEE3; line-height: 1.6;${i > 0 ? ' margin-top: 8px;' : ''}">${line}</div>`,
+            )
+            .join(''),
+        )
+
+  // Cancellation box (UI-SPEC 8.1): only for a confirmation-family template whose booking stored a policy.
+  const policyBox =
+    tpl.policyBox && vars.policy
+      ? policyBoxHtml(t, locale, st, {
+          policy: vars.policy,
+          currency: vars.currency,
+          cashAmountMinor: tpl.cashBox ? vars.amountMinor : null,
+        })
+      : ''
+
+  // Manage booking: outlined, below Add to calendar (16px apart) when that button exists.
+  const manageHref = tpl.policyBox && vars.manageUrl ? escapeHtml(safeHttpsUrl(vars.manageUrl, 'manageUrl')) : null
+  const hasCalendar = tpl.cta === 'calendar' && Boolean(vars.calendarUrl)
+  const manage = manageHref ? manageButtonHtml(t, manageHref, hasCalendar ? '0' : '8px') : ''
 
   let cta = ''
   if (tpl.cta === 'calendar' && vars.calendarUrl) {
     const href = escapeHtml(safeHttpsUrl(vars.calendarUrl, 'calendarUrl'))
     cta = `
-      <div style="text-align: center; padding: 8px 32px 24px;">
+      <div style="text-align: center; padding: 8px 32px ${manageHref ? '16px' : '24px'};">
         <a href="${href}" style="display: inline-block; border: 1px solid #BFA06A; color: #BFA06A; padding: 12px 24px; text-decoration: none; font-size: 11px; font-weight: 400; ${upper ? 'letter-spacing: 2px; text-transform: uppercase;' : 'letter-spacing: normal;'} font-family: 'Inter', Arial, sans-serif;">${html(t, 'common.calendarCta')}</a>
       </div>`
+  } else if (tpl.cta === 'book') {
+    // "Book another ride": outlined like Manage booking, so payment_failed stays the only filled button.
+    if (vars.bookAgainUrl) {
+      const href = escapeHtml(safeHttpsUrl(vars.bookAgainUrl, 'bookAgainUrl'))
+      cta = `
+      <div style="text-align: center; padding: 8px 32px 24px;">
+        <a href="${href}" style="display: inline-block; border: 1px solid #BFA06A; color: #E6D6B0; padding: 16px 32px; text-decoration: none; font-size: 14px; font-weight: 400; letter-spacing: normal; font-family: 'Inter', Arial, sans-serif;">${html(t, 'common.bookAgainCta')}</a>
+      </div>`
+    }
   } else if (tpl.cta === 'pay') {
     if (!vars.payUrl) throw new Error('payUrl is required for payment_failed')
     const href = escapeHtml(safeHttpsUrl(vars.payUrl, 'payUrl'))
-    const label = html(t, 'paymentFailed.cta', { amount: formatMinor(vars.amountMinor, vars.currency) })
+    const label = html(t, 'paymentFailed.cta', { amount: formatMinor(tpl.payAmountMinor ?? vars.amountMinor, vars.currency) })
     cta = `
       <div style="text-align: center; padding: 8px 32px 24px;">
         <a href="${href}" style="display: inline-block; background-color: #BFA06A; color: #0F1D2C; padding: 16px 32px; text-decoration: none; font-size: 14px; font-weight: 600; font-family: 'Inter', Arial, sans-serif;">${label}</a>
@@ -329,7 +696,7 @@ function buildShell(args: {
   const assistance = `
       <div style="padding: 24px 32px; text-align: ${align};">
         <div style="${goldLabel} margin-bottom: 8px;">${html(t, 'common.assistanceLabel')}</div>
-        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; line-height: 1.6;">${html(t, 'common.assistanceText', {}, { contact: EMAIL_CONTACT_LINE })}</div>
+        <div style="font-size: 14px; font-weight: 400; color: ${tpl.emphasiseContact ? '#F3EEE3' : '#A9AEB0'}; line-height: 1.6;">${html(t, 'common.assistanceText', {}, { contact: contactLine(t) })}</div>
       </div>`
 
   return `<!DOCTYPE html>
@@ -362,7 +729,8 @@ ${highlightBox}
         <table role="presentation" style="width: 100%; border-collapse: collapse;">${journey}
         </table>
       </div>
-${cta}
+${policyBox}
+${cta}${manage}
 ${assistance}
 
       <div style="padding-top: 32px; padding-bottom: 32px;">
@@ -406,6 +774,7 @@ export async function renderPaymentEmail(
 
   const ctx: Ctx = {
     t,
+    locale,
     vars,
     amount: formatMinor(vars.amountMinor, vars.currency),
     pickupDate: formatLocaleDate(vars.pickupDateIso, locale),
@@ -416,4 +785,73 @@ export async function renderPaymentEmail(
   const tpl = TEMPLATES[templateKey(kind, vars.variant)](ctx)
   const body = buildShell({ locale, tpl, t, tv, vars, subject: tpl.subject })
   return { subject: tpl.subject, html: body, locale }
+}
+
+// ---------------------------------------------------------------------------
+// Policy block for the English legacy emails (Phase 89, plan 89-18; CANC-02, UI-SPEC 8.1)
+// ---------------------------------------------------------------------------
+
+/** One booking's share of a policy block: the terms it was made under and its Manage booking link. */
+export interface PolicyBlockItem {
+  /** Set when one email carries several bookings: the box label and the button name this booking. */
+  reference?: string
+  /** Terms from the booking's stored policy; absent drops the box of this item. */
+  policy?: PolicyBoxVars | null
+  /** Localized absolute https manage URL; absent drops the button of this item. */
+  manageUrl?: string | null
+  currency: PaymentCurrency
+  /** Cash booking: the amount the client pays the driver; adds the cash sentence to the box. */
+  cashAmountMinor?: number | null
+}
+
+/**
+ * The cancellation box(es) and Manage booking button(s) in the booking's language, as one fragment for the
+ * English legacy emails (confirmation, round trip, group, status confirmed, reminders). The fragment carries its own
+ * lang and dir so an English email around it never changes the direction of an Arabic block. Empty string when no
+ * item has a box or a button. `boxes: 'first'` shows only the first item's box (group: one box, one link per booking
+ * row). Throws on a bad URL or catalog problem: callers drop the block, never the email.
+ */
+export async function renderPolicyBlock(
+  localeInput: unknown,
+  items: PolicyBlockItem[],
+  options: { boxes?: 'each' | 'first' } = {},
+): Promise<string> {
+  const withBox = items.filter((i) => i.policy)
+  const withLink = items.filter((i) => i.manageUrl)
+  if (withBox.length === 0 && withLink.length === 0) return ''
+
+  let locale = normalizeSiteLocale(localeInput)
+  let messages = await loadMessages(locale)
+  if (locale !== 'en' && !hasPaymentEmails(messages)) {
+    locale = 'en'
+    messages = await loadMessages('en')
+  }
+  const t = makeTranslator(locale, messages, 'PaymentEmails')
+  const st = shellStyle(locale)
+
+  const boxItems = options.boxes === 'first' ? withBox.slice(0, 1) : withBox
+  const labelled = options.boxes !== 'first' && items.length > 1
+  const boxes = boxItems
+    .map((i) =>
+      policyBoxHtml(t, locale, st, {
+        policy: i.policy as PolicyBoxVars,
+        currency: i.currency,
+        cashAmountMinor: i.cashAmountMinor,
+        reference: labelled ? i.reference : undefined,
+      }),
+    )
+    .join('')
+  const buttons = withLink
+    .map((i) =>
+      manageButtonHtml(
+        t,
+        escapeHtml(safeHttpsUrl(i.manageUrl as string, 'manageUrl')),
+        '8px',
+        items.length > 1 ? i.reference : undefined,
+      ),
+    )
+    .join('')
+
+  return `<div lang="${locale}" dir="${st.rtl ? 'rtl' : 'ltr'}">${boxes}${buttons}
+    </div>`
 }

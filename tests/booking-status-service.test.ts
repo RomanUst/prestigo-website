@@ -19,6 +19,7 @@ const {
   mockEmitCompleted,
   mockSettleBooking,
   mockGnetBookingsUpdate,
+  mockBuildPolicyBlock,
 } = vi.hoisted(() => ({
   mockPushGnetStatus: vi.fn(),
   mockLogEmail: vi.fn(),
@@ -32,6 +33,7 @@ const {
   mockEmitCompleted: vi.fn(),
   mockSettleBooking: vi.fn(),
   mockGnetBookingsUpdate: vi.fn(),
+  mockBuildPolicyBlock: vi.fn(),
 }))
 
 async function flushAfterCallbacks() {
@@ -54,6 +56,9 @@ vi.mock('@/lib/booking-events', () => ({ emitBookingCompleted: mockEmitCompleted
 vi.mock('@/lib/payments/settle', () => ({ settleBooking: mockSettleBooking }))
 
 vi.mock('@/lib/email-log', () => ({ logEmail: mockLogEmail }))
+
+// Phase 89 plan 89-18: the box and Manage button of a booking that stored a policy ('' otherwise).
+vi.mock('@/lib/payments/emails/policy-block', () => ({ buildPolicyBlockHtml: mockBuildPolicyBlock }))
 
 vi.mock('@/lib/email', () => ({
   sendStatusConfirmedEmail: mockSendConfirmed,
@@ -190,6 +195,7 @@ beforeEach(() => {
   mockSendCancelled.mockResolvedValue(undefined)
   mockSendPostTrip.mockResolvedValue(undefined)
   mockPushGnetStatus.mockResolvedValue(undefined)
+  mockBuildPolicyBlock.mockResolvedValue('')
 })
 
 describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
@@ -320,6 +326,35 @@ describe('advanceBookingStatus — profile full (admin PATCH parity)', () => {
     })
     expect(mockSendConfirmed).toHaveBeenCalledTimes(1)
     expect(mockScheduleQStash).toHaveBeenCalledWith(BOOKING_ID, new Date(pickup).getTime())
+  })
+
+  it('Phase 89: the confirmed email carries the policy block of a booking that stored a policy', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    mockBuildPolicyBlock.mockResolvedValue('<div>POLICY-BLOCK</div>')
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'pending', cancel_policy_version: '2026-11-1' } })
+    await advanceBookingStatus({ bookingId: BOOKING_ID, to: 'confirmed', actor: adminActor, source: 'admin_patch', profile: 'full' })
+    await flushAfterCallbacks()
+    expect(mockBuildPolicyBlock).toHaveBeenCalledWith(expect.objectContaining({ id: BOOKING_ID }))
+    expect(mockSendConfirmed).toHaveBeenCalledTimes(1)
+    expect(mockSendConfirmed.mock.calls[0][0]).toMatchObject({ id: BOOKING_ID, policyBlockHtml: '<div>POLICY-BLOCK</div>' })
+  })
+
+  it('Phase 89: without a stored policy the confirmed email data is the booking row, unchanged', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'pending' } })
+    await advanceBookingStatus({ bookingId: BOOKING_ID, to: 'confirmed', actor: adminActor, source: 'admin_patch', profile: 'full' })
+    await flushAfterCallbacks()
+    expect(mockSendConfirmed.mock.calls[0][0]).not.toHaveProperty('policyBlockHtml')
+  })
+
+  it('Phase 89: a block builder that rejects sends the confirmed email without the block', async () => {
+    mockLogEmail.mockResolvedValue(true)
+    mockBuildPolicyBlock.mockRejectedValue(new Error('boom'))
+    buildSupabaseMock({ bookingData: { ...baseRow, status: 'pending' } })
+    await advanceBookingStatus({ bookingId: BOOKING_ID, to: 'confirmed', actor: adminActor, source: 'admin_patch', profile: 'full' })
+    await flushAfterCallbacks()
+    expect(mockSendConfirmed).toHaveBeenCalledTimes(1)
+    expect(mockSendConfirmed.mock.calls[0][0]).not.toHaveProperty('policyBlockHtml')
   })
 
   it('skips the email when notification_flags disables the status', async () => {

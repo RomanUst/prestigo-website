@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // Phase 87 Plan 09 (D-16 a): the operator's response to a driver's no-show request. GET shows the
 // request state, POST confirm moves on_location -> no_show through the status service, POST
@@ -156,9 +156,63 @@ describe('POST /api/admin/bookings/[id]/no-show: guards', () => {
   })
 })
 
+// Phase 89 plan 89-09 (WR-04): confirmNoShow reads the booking, the arrival row and the live thresholds before it asks
+// the status service. The full money flow (case, evidence, alert) is pinned in tests/admin-no-show-confirm.test.ts;
+// here a cash booking (no case) keeps this file on the route and the status-service contract.
 describe('POST confirm', () => {
+  const NOW = Date.parse('2026-11-12T14:00:00.000Z')
+
+  function listChain(result: unknown) {
+    const c: Record<string, unknown> = {}
+    for (const m of ['select', 'eq', 'order', 'limit']) c[m] = vi.fn(() => c)
+    c.single = vi.fn(async () => result)
+    c.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(result).then(res, rej)
+    return c
+  }
+
+  /** An on_location booking whose driver asked 90 minutes after a 13:00 UTC pickup (city wait 30 min). */
+  function confirmWorld(over: Record<string, unknown> = {}, opts: { arrivalAt?: string | null; logError?: boolean } = {}) {
+    const booking = {
+      id: bookingId,
+      status: 'on_location',
+      booking_source: 'web',
+      payment_mode: 'cash',
+      pickup_utc: '2026-11-12T13:00:00.000Z',
+      pickup_date: '2026-11-12',
+      pickup_time: '14:00',
+      origin_lat: null,
+      origin_lng: null,
+      origin_address: 'Wenceslas Square 1, Prague',
+      no_show_requested_at: REQUESTED_AT,
+      driver_id: driverId,
+      ...over,
+    }
+    const arrival = opts.arrivalAt === undefined ? '2026-11-12T12:55:00.000Z' : opts.arrivalAt
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'bookings') return listChain({ data: booking, error: null })
+      if (table === 'booking_status_log') {
+        if (opts.logError) return listChain({ data: null, error: { message: 'boom' } })
+        return listChain({ data: arrival ? [{ created_at: arrival }] : [], error: null })
+      }
+      if (table === 'pricing_globals') {
+        return listChain({ data: { noshow_wait_city_min: 30, noshow_wait_airport_min: 60 }, error: null })
+      }
+      throw new Error(`unexpected table ${table}`)
+    })
+    return booking
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.setSystemTime(NOW)
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('moves on_location to no_show through the status service as admin_no_show', async () => {
-    mockAdvance.mockResolvedValue({ ok: true, applied: true, previous: 'on_location', current: 'no_show', booking: {} })
+    const booking = confirmWorld()
+    mockAdvance.mockResolvedValue({ ok: true, applied: true, previous: 'on_location', current: 'no_show', booking: { status: 'no_show' } })
     const res = await POST(post({ action: 'confirm', expected_status: 'on_location' }), params())
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true, status: 'no_show' })
@@ -170,38 +224,86 @@ describe('POST confirm', () => {
       actor: { type: 'admin', id: adminId },
       source: 'admin_no_show',
       profile: 'full',
+      current: booking,
     })
     expect(mockRpc).not.toHaveBeenCalled()
   })
 
-  it('works without expected_status', async () => {
+  it('works without expected_status (the stored status is the compare-and-set base)', async () => {
+    confirmWorld()
     mockAdvance.mockResolvedValue({ ok: true, applied: true, previous: 'on_location', current: 'no_show', booking: {} })
     const res = await POST(post({ action: 'confirm' }), params())
     expect(res.status).toBe(200)
-    expect(mockAdvance.mock.calls[0][0].expectedFrom).toBeUndefined()
+    expect(mockAdvance.mock.calls[0][0].expectedFrom).toBe('on_location')
   })
 
-  it('409 status_conflict when the booking moved on', async () => {
+  it('409 status_conflict when the booking moved on, before any gate and with no status write', async () => {
+    confirmWorld({ status: 'on_board' })
+    const res = await POST(post({ action: 'confirm', expected_status: 'on_location' }), params())
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'status_conflict', currentStatus: 'on_board' })
+    expect(mockAdvance).not.toHaveBeenCalled()
+  })
+
+  it('409 status_conflict when the compare-and-set is lost after the gate', async () => {
+    confirmWorld()
     mockAdvance.mockResolvedValue({ ok: false, code: 'conflict', message: 'status_conflict', currentStatus: 'on_board' })
     const res = await POST(post({ action: 'confirm', expected_status: 'on_location' }), params())
     expect(res.status).toBe(409)
     expect(await res.json()).toEqual({ error: 'status_conflict', currentStatus: 'on_board' })
   })
 
-  it('422 with the transition message on a completed booking', async () => {
-    mockAdvance.mockResolvedValue({
-      ok: false,
-      code: 'invalid_transition',
-      message: "Cannot transition from 'completed' to 'no_show'",
-    })
-    const res = await POST(post({ action: 'confirm' }), params())
+  it.each(['completed', 'cancelled', 'no_show', 'assigned', 'confirmed'])(
+    '422 not_on_location for a %s booking, nothing written',
+    async status => {
+      confirmWorld({ status })
+      const res = await POST(post({ action: 'confirm' }), params())
+      expect(res.status).toBe(422)
+      expect(await res.json()).toEqual({ error: 'not_on_location' })
+      expect(mockAdvance).not.toHaveBeenCalled()
+    },
+  )
+
+  it('422 no_request when the driver never asked, nothing written', async () => {
+    confirmWorld({ no_show_requested_at: null })
+    const res = await POST(post({ action: 'confirm', expected_status: 'on_location' }), params())
     expect(res.status).toBe(422)
-    expect((await res.json()).error).toContain("Cannot transition from 'completed' to 'no_show'")
+    expect(await res.json()).toEqual({ error: 'no_request' })
+    expect(mockAdvance).not.toHaveBeenCalled()
   })
 
-  it('404 and 500 pass through from the service', async () => {
-    mockAdvance.mockResolvedValue({ ok: false, code: 'not_found', message: 'Booking not found' })
+  it('409 wait_not_elapsed before the live threshold, with the instant it opens, nothing written', async () => {
+    // Arrival 12:55, pickup 13:00: the later is 13:00; the city wait of 30 minutes ends 13:30. Now is 13:10.
+    vi.setSystemTime(Date.parse('2026-11-12T13:10:00.000Z'))
+    confirmWorld()
+    const res = await POST(post({ action: 'confirm', expected_status: 'on_location' }), params())
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'wait_not_elapsed', noShowAvailableAt: '2026-11-12T13:30:00.000Z' })
+    expect(mockAdvance).not.toHaveBeenCalled()
+  })
+
+  it('uses the airport wait for an airport pickup', async () => {
+    // 60 minute airport wait ends 14:00; now 13:45.
+    vi.setSystemTime(Date.parse('2026-11-12T13:45:00.000Z'))
+    confirmWorld({ origin_address: 'Václav Havel Airport Prague, Terminal 2' })
+    const res = await POST(post({ action: 'confirm' }), params())
+    expect(res.status).toBe(409)
+    expect((await res.json()).noShowAvailableAt).toBe('2026-11-12T14:00:00.000Z')
+    expect(mockAdvance).not.toHaveBeenCalled()
+  })
+
+  it('500 and no status write when the arrival log can not be read (money follows this status)', async () => {
+    confirmWorld({}, { logError: true })
+    const res = await POST(post({ action: 'confirm' }), params())
+    expect(res.status).toBe(500)
+    expect(mockAdvance).not.toHaveBeenCalled()
+  })
+
+  it('404 for an unknown booking; 500 passes through from the service', async () => {
+    mockFrom.mockImplementation(() => listChain({ data: null, error: { message: 'no rows' } }))
     expect((await POST(post({ action: 'confirm' }), params())).status).toBe(404)
+    expect(mockAdvance).not.toHaveBeenCalled()
+    confirmWorld()
     mockAdvance.mockResolvedValue({ ok: false, code: 'db_error', message: 'x' })
     expect((await POST(post({ action: 'confirm' }), params())).status).toBe(500)
   })

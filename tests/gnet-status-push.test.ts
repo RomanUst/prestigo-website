@@ -342,16 +342,17 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     expect(mockGnetBookingsUpdate).not.toHaveBeenCalled()
   })
 
-  it('87-03 D-22: on_location -> on_board and -> no_show push nothing to GNet (no mapping)', async () => {
+  it('87-03 D-22: on_location -> on_board pushes nothing to GNet (no mapping); 89-09: PATCH no_show is refused', async () => {
     buildSupabaseMock({ bookingData: { ...bookingRow, status: 'on_location', booking_source: 'gnet' } })
     const res1 = await PATCH(makePatchRequest({ id: BOOKING_UUID, status: 'on_board' }))
     await flushAfterCallbacks()
     expect(res1.status).toBe(200)
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
 
+    // no_show now goes only through the no-show route (WR-04); PATCH answers use_no_show_route.
     const res2 = await PATCH(makePatchRequest({ id: BOOKING_UUID, status: 'no_show' }))
     await flushAfterCallbacks()
-    expect(res2.status).toBe(200)
+    expect(res2.status).toBe(422)
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
   })
 

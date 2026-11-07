@@ -27,6 +27,10 @@ export async function buildConsentText(input: {
   amountMinor: number
   currency: PaymentCurrency
   holdDateIso: string | null
+  /** The booking's free-cancellation moment (epoch ms); named in the text as {freeUntil} (Phase 89-10, D-16). */
+  freeUntilMs?: number | null
+  /** True when that moment has already passed: the NoFree wording variant is used. */
+  freeUntilPassed?: boolean
 }): Promise<string> {
   let locale = normalizeSiteLocale(input.locale)
   let messages = await loadMessages(locale)
@@ -44,12 +48,13 @@ export async function buildConsentText(input: {
     },
   } as never) as unknown as (key: string, values: Record<string, string>) => string
   return t(
-    consentMessageKey(input.mode),
+    consentMessageKey(input.mode, input.freeUntilPassed === true),
     consentVars({
       amountMinor: input.amountMinor,
       currency: input.currency,
       holdDateIso: input.holdDateIso,
       locale,
+      freeUntilMs: input.freeUntilMs ?? null,
     }),
   )
 }

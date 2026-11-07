@@ -111,7 +111,7 @@ describe('PaymentPanel tracer (HOLD-07, PAYF-01)', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
   })
 
-  it('renders the UI-SPEC label for each of the 11 states and the raw value for an unknown one', () => {
+  it('renders the UI-SPEC label for each of the 12 states and the raw value for an unknown one', () => {
     const expected: Record<string, string> = {
       none: 'No payment',
       checkout_pending: 'Awaiting card',
@@ -124,6 +124,7 @@ describe('PaymentPanel tracer (HOLD-07, PAYF-01)', () => {
       failed: 'Payment failed',
       expired: 'Hold expired',
       released: 'Released',
+      cash_settled: 'Paid in cash',
     }
     expect(Object.keys(PAYMENT_STATE_BADGE).sort()).toEqual(Object.keys(expected).sort())
     for (const [state, label] of Object.entries(expected)) {

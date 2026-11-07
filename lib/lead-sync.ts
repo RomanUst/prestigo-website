@@ -23,7 +23,7 @@ import { deliverHook } from '@/lib/hook-dispatch'
 import { deliverResolve } from '@/lib/sync-resolve'
 import { deliverEspoSync } from '@/lib/crm-sync'
 import { deliverChatwootSync } from '@/lib/chatwoot-sync'
-import { deliverErasure } from '@/lib/erasure'
+import { deliverErasure, type ErasureStripe } from '@/lib/erasure'
 import { deliverNoShowAlert, type NoShowAlertDeps } from '@/lib/noshow-alert'
 import type { ErasureStore } from '@/lib/erasure-store'
 import {
@@ -61,6 +61,8 @@ export interface DispatchDeps {
   chatwootConfig: SiteChatwootConfig | null
   /** Phase 82 (plan 82-12): erasure saga store; undefined = the Supabase RPC store. Tests inject a double. */
   erasure?: ErasureStore
+  /** Phase 89 (plan 89-05): Stripe client slice for the erasure saga's Stripe step; undefined = the payments client. */
+  erasureStripe?: ErasureStripe
   /** Phase 83 (plan 83-07): chat registry store; undefined = the Supabase RPC store. Tests inject a double. */
   chat?: ChatStore
   /** Phase 87 (plan 87-06): no-show alert store and operations conversation; undefined = Supabase / env. */
@@ -93,6 +95,7 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     chatwootAdmin,
     chatwootConfig,
     erasure: deps.erasure,
+    erasureStripe: deps.erasureStripe,
     chat: deps.chat,
     noShowAlert: deps.noShowAlert,
   }
@@ -179,7 +182,7 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
   // is skipped without any configuration and without touching a system.
   if (row.event_type === 'erase.person') {
     try {
-      return await deliverErasure(row, d, { erasure: d.erasure })
+      return await deliverErasure(row, d, { erasure: d.erasure, stripe: d.erasureStripe })
     } catch (err) {
       return handleFailure(row, err, d)
     }

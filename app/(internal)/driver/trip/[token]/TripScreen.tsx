@@ -19,6 +19,7 @@ import {
 import { driverHelpConfigPath, openDriverHelpPage, saveDriverHelpConfig } from '@/lib/driver-help-contract'
 import SlideToAdvance from './SlideToAdvance'
 import type { SlideState } from './SlideToAdvance'
+import type { DriverTripCash } from '@/lib/driver-trip-step'
 import ConfirmStepDialog from './ConfirmStepDialog'
 import NavigateChooser from './NavigateChooser'
 import TripCompleted from './TripCompleted'
@@ -54,6 +55,8 @@ export interface TripScreenProps {
   initialNote: string | null
   /** D-15: server-computed unlock instant and the open request (both null outside on_location). */
   noShow: { availableAt: string | null; requestedAt: string | null }
+  /** Phase 89 (D-11): present only for a cash_guarantee booking; a formatted label, never a number. */
+  cash?: DriverTripCash
 }
 
 type BannerKind = 'info' | 'amber' | 'danger'
@@ -113,7 +116,7 @@ interface StepResponseBody {
 
 const SWIPE_MIN_PX = 24
 
-export default function TripScreen({ token, view, trip, initialNote, noShow }: TripScreenProps) {
+export default function TripScreen({ token, view, trip, initialNote, noShow, cash }: TripScreenProps) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
@@ -507,6 +510,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
           pickupDate: trip.pickupDate,
           completedAt,
         }}
+        {...(cash ? { token, cash } : {})}
       />
     )
   }
@@ -704,6 +708,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
             vehicleInfo={trip.vehicleInfo}
             flight={trip.flight}
             clientNotes={trip.clientNotes}
+            isCash={cash !== undefined}
             draft={noteDraft}
             onDraftChange={setNoteDraft}
           />
@@ -794,6 +799,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow }: T
           mode="step"
           stepLabel={DRIVER_STEP_LABEL[nextStep]}
           isFinal={nextStep === 'completed'}
+          cash={cash && cash.state === 'due' ? { amountLabel: cash.amountLabel } : undefined}
           submitting={submitting}
           error={dialogError}
           onConfirm={submit}

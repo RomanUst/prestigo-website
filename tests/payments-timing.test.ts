@@ -208,4 +208,14 @@ describe('lib/payments/config exports the engine constants (plan contract)', () 
     expect(config.isCardFlowEligible({ ...s, canaryEmails: [] }, { email: 'owner@example.com', tripType: 'hourly' })).toBe(false)
     expect(config.normalizeEmail('  A@X.com ')).toBe('a@x.com')
   })
+
+  it('mode on (Phase 89): eligible for any non-empty email on transfer / hourly, never round_trip or daily', () => {
+    const on = { mode: 'on' as const, leadHours: 72, canaryEmails: [] as string[] }
+    expect(config.isCardFlowEligible(on, { email: 'anyone@example.com', tripType: 'transfer' })).toBe(true)
+    expect(config.isCardFlowEligible(on, { email: 'anyone@example.com', tripType: 'hourly' })).toBe(true)
+    expect(config.isCardFlowEligible(on, { email: 'anyone@example.com', tripType: 'round_trip' })).toBe(false)
+    expect(config.isCardFlowEligible(on, { email: '', tripType: 'transfer' })).toBe(false)
+    expect(config.isPolicyPublic(on, 'anyone@example.com')).toBe(true)
+    expect(config.isPolicyPublic({ ...on, mode: 'off' }, 'anyone@example.com')).toBe(false)
+  })
 })

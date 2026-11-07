@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { Link, usePathname, useRouter, type AppLocale } from '@/i18n/routing'
 import { LOCALE_ENDONYMS } from '@/i18n/locales'
 import { detectSuggestedLocale } from '@/i18n/suggest-locale'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 /**
  * Granular consent modal — two-step design inspired by Blacklane's
@@ -73,6 +74,14 @@ export function getConsent(): ConsentState | null {
 }
 
 export default function CookieBanner() {
+  const pathname = usePathname()
+  // Phase 89 (D-02): no consent modal (and no locale suggestion) on private link paths (/admin,
+  // /driver, /manage); the guard wraps the hook-bearing body so hook order stays stable.
+  if (isPrivateLinkPath(pathname)) return null
+  return <CookieBannerInner />
+}
+
+function CookieBannerInner() {
   const t = useTranslations('CookieBanner')
   const tLang = useTranslations('Common.firstVisitBanner')
   const currentLocale = useLocale()

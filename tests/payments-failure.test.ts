@@ -270,6 +270,14 @@ describe('tracer: a declined scheduled hold', () => {
       'dispute',
       'duplicate_payment',
       'stripe_config',
+      // Phase 89 plan 89-25 (UI-SPEC 8.3)
+      'fee_decision_needed',
+      'fee_no_show_needed',
+      'fee_pending_24h',
+      'client_cancelled',
+      'change_request',
+      // Money review 2, WR-03
+      'refund_unmatched',
     ])
   })
 })
@@ -473,5 +481,133 @@ describe('the automatic retry end to end (D-13, D-15)', () => {
       const src = fs.readFileSync(path.resolve(__dirname, '..', file), 'utf8')
       expect(src.match(/\.update\(\{[^}]*status:/g)).toBeNull()
     }
+  })
+})
+
+describe('Phase 89 plan 89-06: a declined fee or cash card charge (fee phase of the recovery flow)', () => {
+  const FEE = { kind: 'fee', caseId: 'case-0001', amountMinor: 4000, feeLabel: 'cancellation' } as const
+  const decliningCard = {
+    status: 'cancelled',
+    payment_state: 'card_saved',
+    payment_lease_until: null,
+    charge_attempts: 0,
+    locale: 'en',
+    hold_attempts: 0,
+    payment_retry_count: 0,
+  }
+
+  it('a declined late-cancel fee: failed, no retry, link for the fee, fee variant mail, charge_failed alert', async () => {
+    seed(decliningCard)
+    const res = await settleBooking(ID, ACTOR, { collect: FEE })
+    expect(res).toEqual({ outcome: 'failed', code: 'insufficient_funds' })
+    expect(row()).toMatchObject({ payment_state: 'failed', payment_retry_at: null, charge_attempts: 1 })
+
+    const create = fake.callsTo('paymentLinks.create')
+    expect(create).toHaveLength(1)
+    expect(create[0].idempotencyKey).toBe(`link:${ID}:f1`)
+    expect((create[0].params.line_items as Array<{ price_data: { unit_amount: number } }>)[0].price_data.unit_amount).toBe(4000)
+
+    expect(clientMails()).toHaveLength(1)
+    expect(clientMails()[0].subject).toBe(`Action needed: payment for your PRESTIGO booking — ${REF}`)
+    expect(clientMails()[0].html).toContain('We couldn&#39;t charge')
+    expect(clientMails()[0].html).toContain('the cancellation fee')
+    expect(clientMails()[0].html).toContain('€40')
+    expect(operatorMails()).toHaveLength(1)
+    expect(operatorMails()[0].subject).toBe(`[Payment] Charge failed — ${REF}`)
+    expect(operatorMails()[0].text).not.toContain('automatic retry runs')
+    expect(ledger('email_sent').map((e) => e.event_key)).toContain(`email:payment_failed:${ID}:fee:1`)
+    expect(ledger('alert_sent').map((e) => e.event_key)).toContain(`alert:charge_failed:${ID}:1`)
+  })
+
+  it('a no-show fee says no-show fee', async () => {
+    seed({ ...decliningCard, status: 'no_show' })
+    await settleBooking(ID, ACTOR, { collect: { ...FEE, feeLabel: 'no_show' } })
+    expect(clientMails()[0].html).toContain('the no-show fee')
+  })
+
+  it('nothing runs again by itself: a tick after the decline retries nothing and sends nothing more', async () => {
+    seed(decliningCard)
+    await settleBooking(ID, ACTOR, { collect: FEE })
+    const mailsBefore = sent().length
+    const createsBefore = fake.callsTo('paymentIntents.create').length
+    await runPaymentTick()
+    await runPaymentTick()
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(createsBefore)
+    expect(sent()).toHaveLength(mailsBefore)
+    expect(row()).toMatchObject({ payment_state: 'failed', payment_retry_at: null })
+  })
+
+  it('the second click after a decline is attempt 1: new Stripe key, new link tag, one more mail each', async () => {
+    seed(decliningCard)
+    await settleBooking(ID, ACTOR, { collect: FEE })
+    await settleBooking(ID, ACTOR, { collect: { ...FEE, amountMinor: 5000 } })
+    expect(fake.callsTo('paymentIntents.create').map((x) => x.idempotencyKey)).toEqual(['fee:case-0001:0', 'fee:case-0001:1'])
+    expect(fake.callsTo('paymentLinks.create').map((x) => x.idempotencyKey)).toEqual([`link:${ID}:f1`, `link:${ID}:f2`])
+    expect(clientMails()).toHaveLength(2)
+    expect(operatorMails()).toHaveLength(2)
+    // The first link no longer charges the old amount (Pitfall 12).
+    expect(mockDeactivateLink).toHaveBeenCalledTimes(1)
+  })
+
+  it('authentication_required on a fee uses the fee variant, not the auth variant', async () => {
+    seed({ ...decliningCard, stripe_payment_method_id: 'pm_auth_required' })
+    await settleBooking(ID, ACTOR, { collect: FEE })
+    expect(clientMails()).toHaveLength(1)
+    expect(clientMails()[0].html).toContain('We couldn&#39;t charge your card.')
+  })
+
+  it('a cash booking fee goes through the same flow (recovery accepts cash_guarantee for the fee phase only)', async () => {
+    seed({ ...decliningCard, payment_mode: 'cash_guarantee' })
+    expect((await settleBooking(ID, ACTOR, { collect: FEE })).outcome).toBe('failed')
+    expect(fake.callsTo('paymentLinks.create')).toHaveLength(1)
+    expect(clientMails()).toHaveLength(1)
+    // A Phase 88 phase on a cash booking still does nothing.
+    mockResendSend.mockClear()
+    await handlePaymentFailure(fresh(), { phase: 'charge', code: 'insufficient_funds', amountMinor: 1000, attempt: 9 })
+    expect(sent()).toHaveLength(0)
+  })
+
+  it('D-21: a declined cash card charge before the trip is completed creates no link, sends no mail and no alert', async () => {
+    seed({ ...decliningCard, payment_mode: 'cash_guarantee', status: 'confirmed' })
+    const res = await settleBooking(ID, ACTOR, { collect: { kind: 'cash_card' } })
+    expect(res).toEqual({ outcome: 'failed', code: 'insufficient_funds' })
+    expect(row()).toMatchObject({ payment_state: 'failed', payment_retry_at: null, charge_attempts: 1 })
+    expect(fake.callsTo('paymentLinks.create')).toHaveLength(0)
+    expect(sent()).toHaveLength(0)
+    expect(ledger('alert_sent')).toHaveLength(0)
+    expect(ledger('email_sent')).toHaveLength(0)
+  })
+
+  it('after completion a declined cash card charge uses the recovery flow for the trip amount', async () => {
+    seed({
+      ...decliningCard,
+      payment_mode: 'cash_guarantee',
+      status: 'completed',
+      completed_at: new Date(Date.now() - HOUR).toISOString(),
+    })
+    await settleBooking(ID, ACTOR, { collect: { kind: 'cash_card' } })
+    const create = fake.callsTo('paymentLinks.create')
+    expect(create).toHaveLength(1)
+    expect((create[0].params.line_items as Array<{ price_data: { unit_amount: number } }>)[0].price_data.unit_amount).toBe(12000)
+    expect(clientMails()[0].html).toContain('for your trip')
+    expect(operatorMails()).toHaveLength(1)
+  })
+
+  it('the Phase 88 charge decline is unchanged: same link tag, same mail, automatic retry still scheduled', async () => {
+    seed({ ...decliningCard, status: 'completed', completed_at: new Date(Date.now() - HOUR).toISOString(), payment_state: 'expired' })
+    await settleBooking(ID, ACTOR)
+    expect(fake.callsTo('paymentLinks.create')[0].idempotencyKey).toBe(`link:${ID}:c1`)
+    expect(row().payment_retry_at).not.toBeNull()
+    expect(ledger('email_sent').map((e) => e.event_key)).toContain(`email:payment_failed:${ID}:charge:1`)
+  })
+
+  it('tick step F leaves a row with a fee case alone (it would re-send the notice as a trip charge)', async () => {
+    seed({ ...decliningCard, status: 'completed', completed_at: new Date(Date.now() - HOUR).toISOString(), fee_case_status: 'pending' })
+    await settleBooking(ID, ACTOR, { collect: FEE })
+    // Resend outage after the fact: simulate a missing client mail, then tick.
+    const before = sent().length
+    db.state.booking_payment_events = db.state.booking_payment_events.filter((e) => e.kind !== 'email_sent')
+    await runPaymentTick()
+    expect(sent()).toHaveLength(before)
   })
 })

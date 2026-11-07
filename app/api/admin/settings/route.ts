@@ -19,6 +19,12 @@ const settingsPatchSchema = z
     card_flow_mode: z.enum(['off', 'canary']).optional(),
     // Phase 88 (PAYF-05): canary allowlist, normalised (trimmed, lower-cased) then de-duplicated below
     card_flow_canary_emails: z.array(z.string().trim().toLowerCase().max(254).email()).max(20).optional(),
+    // Phase 89 (CANC-01, D-06): cancellation policy numbers; same bounds as the migration 087 CHECKs
+    cancel_free_km_threshold: z.number().int().min(1).max(1000).optional(),
+    cancel_free_hours_short: z.number().int().min(0).max(72).optional(),
+    cancel_free_hours_long: z.number().int().min(0).max(72).optional(),
+    cancel_free_hours_hourly: z.number().int().min(0).max(72).optional(),
+    cancel_fee_percent: z.number().int().min(1).max(100).optional(),
   })
   .refine(
     d =>
@@ -29,7 +35,12 @@ const settingsPatchSchema = z
       d.noshow_wait_airport_min !== undefined ||
       d.payment_hold_lead_hours !== undefined ||
       d.card_flow_mode !== undefined ||
-      d.card_flow_canary_emails !== undefined,
+      d.card_flow_canary_emails !== undefined ||
+      d.cancel_free_km_threshold !== undefined ||
+      d.cancel_free_hours_short !== undefined ||
+      d.cancel_free_hours_long !== undefined ||
+      d.cancel_free_hours_hourly !== undefined ||
+      d.cancel_fee_percent !== undefined,
     { message: 'At least one settings field must be provided' }
   )
 
@@ -42,7 +53,7 @@ export async function GET() {
   const { data, error: dbError } = await supabase
     .from('pricing_globals')
     .select(
-      'notification_flags, dispatch_default_horizon, dispatch_horizon_days, noshow_wait_city_min, noshow_wait_airport_min, payment_hold_lead_hours, card_flow_mode, card_flow_canary_emails'
+      'notification_flags, dispatch_default_horizon, dispatch_horizon_days, noshow_wait_city_min, noshow_wait_airport_min, payment_hold_lead_hours, card_flow_mode, card_flow_canary_emails, cancel_free_km_threshold, cancel_free_hours_short, cancel_free_hours_long, cancel_free_hours_hourly, cancel_fee_percent'
     )
     .eq('id', 1)
     .single()
@@ -58,6 +69,11 @@ export async function GET() {
     payment_hold_lead_hours: data.payment_hold_lead_hours,
     card_flow_mode: data.card_flow_mode,
     card_flow_canary_emails: data.card_flow_canary_emails,
+    cancel_free_km_threshold: data.cancel_free_km_threshold,
+    cancel_free_hours_short: data.cancel_free_hours_short,
+    cancel_free_hours_long: data.cancel_free_hours_long,
+    cancel_free_hours_hourly: data.cancel_free_hours_hourly,
+    cancel_fee_percent: data.cancel_fee_percent,
   })
 }
 
@@ -81,6 +97,41 @@ export async function PATCH(request: Request) {
       { error: 'Invalid payload', issues: parsed.error.issues },
       { status: 400 }
     )
+  }
+
+  // Two-step rule: the schema above is the 400; business rules across fields are 422. When a request
+  // carries only one side of a pair, the other side comes from the stored row (WR-06, CANC-01).
+  const d = parsed.data
+  const hoursPair = [d.cancel_free_hours_short, d.cancel_free_hours_long]
+  const waitPair = [d.noshow_wait_city_min, d.noshow_wait_airport_min]
+  const needsStored = [hoursPair, waitPair].some(([a, b]) => (a === undefined) !== (b === undefined))
+
+  let stored: Record<string, unknown> = {}
+  if (needsStored) {
+    const reader = createSupabaseServiceClient()
+    const { data: row, error: readError } = await reader
+      .from('pricing_globals')
+      .select('noshow_wait_city_min, noshow_wait_airport_min, cancel_free_hours_short, cancel_free_hours_long')
+      .eq('id', 1)
+      .single()
+    if (readError || !row) return NextResponse.json({ error: 'DB read failed' }, { status: 500 })
+    stored = row as Record<string, unknown>
+  }
+  const num = (v: number | undefined, key: string): number | null => {
+    if (v !== undefined) return v
+    const s = stored[key]
+    return typeof s === 'number' ? s : null
+  }
+
+  const shortH = num(d.cancel_free_hours_short, 'cancel_free_hours_short')
+  const longH = num(d.cancel_free_hours_long, 'cancel_free_hours_long')
+  if (shortH !== null && longH !== null && longH < shortH) {
+    return NextResponse.json({ error: 'long_below_short' }, { status: 422 })
+  }
+  const cityMin = num(d.noshow_wait_city_min, 'noshow_wait_city_min')
+  const airportMin = num(d.noshow_wait_airport_min, 'noshow_wait_airport_min')
+  if (cityMin !== null && airportMin !== null && airportMin < cityMin) {
+    return NextResponse.json({ error: 'airport_below_city' }, { status: 422 })
   }
 
   const updates: Record<string, unknown> = {}
@@ -108,6 +159,16 @@ export async function PATCH(request: Request) {
   if (parsed.data.card_flow_canary_emails !== undefined) {
     // First-occurrence order, no duplicates (the schema already trimmed and lower-cased each address)
     updates.card_flow_canary_emails = Array.from(new Set(parsed.data.card_flow_canary_emails))
+  }
+
+  for (const key of [
+    'cancel_free_km_threshold',
+    'cancel_free_hours_short',
+    'cancel_free_hours_long',
+    'cancel_free_hours_hourly',
+    'cancel_fee_percent',
+  ] as const) {
+    if (parsed.data[key] !== undefined) updates[key] = parsed.data[key]
   }
 
   const supabase = createSupabaseServiceClient()

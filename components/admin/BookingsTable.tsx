@@ -13,6 +13,8 @@ import { ChevronDown, ChevronUp, Search, X, Copy, Send } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import PaymentPanel, { formatPragueFull } from './PaymentPanel'
 import { PaymentStateBadge } from './PaymentStateBadge'
+import { FeeCaseBadge, CashChip, hasPendingFeeCase } from './FeeCaseBadge'
+import { CancelBookingDialog, type CancelDoneInfo } from './CancelBookingDialog'
 import { formatMinor } from '@/lib/payments/money'
 import { NoShowBanner, NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
 import { ConfirmNoShowModal } from './ConfirmNoShowModal'
@@ -93,6 +95,28 @@ interface Booking {
   // fixtures may omit them; only 'card_hold' bookings show the payment badge and panel.
   payment_mode?: string | null
   payment_state?: string | null
+  // Phase 89 (migrations 087+): arrive through admin_search_bookings to_jsonb (select b.*), so the red badge and the
+  // cancel dialog's local outcome line need no extra request. Old rows and fixtures may omit them.
+  fee_case_status?: string | null
+  cancel_policy?: unknown
+  pickup_utc?: string | null
+  distance_km?: number | null
+  amount_eur?: number | null
+  payment_currency?: string | null
+  payment_amount_minor?: number | null
+  capture_before?: string | null
+  stripe_payment_method_id?: string | null
+  hold_payment_intent_id?: string | null
+}
+
+// A row whose payment is a card hold or a cash booking carries a payment badge (cash also a chip).
+function showsPaymentBadge(b: { payment_mode?: string | null }): boolean {
+  return b.payment_mode === 'card_hold' || b.payment_mode === 'cash_guarantee'
+}
+
+// Phase 89 plan 16: money that a bare status change would leave behind. The server answers 422 use_cancel_route for these.
+function hasCancelMoney(b: { payment_mode?: string | null; payment_intent_id: string | null }): boolean {
+  return showsPaymentBadge(b) || (typeof b.payment_intent_id === 'string' && b.payment_intent_id !== '')
 }
 
 const vehicleClassMap: Record<string, string> = {
@@ -181,23 +205,6 @@ class PatchError extends Error {
     this.submittedCzk = extra?.submittedCzk
     this.currentStatus = extra?.currentStatus
   }
-}
-
-// Phase 88 D-20: the cancel route answers 502 { error: 'refund_failed', cancelled: true } when the
-// cancel applied but the refund or release did not. The booking IS cancelled; the operator refunds
-// by hand. Thrown by handleCancel so the dialog shows the line and stays open.
-class CancelRefundFailedError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'CancelRefundFailedError'
-  }
-}
-
-function refundFailedLine(amountMinor: unknown, currency: unknown): string {
-  const amount = typeof amountMinor === 'number' && Number.isFinite(amountMinor) && (currency === 'eur' || currency === 'czk')
-    ? formatMinor(amountMinor, currency)
-    : null
-  return `The booking was cancelled, but the refund failed. Refund ${amount ?? 'it'} manually in the Stripe Dashboard.`
 }
 
 // Phase 88 D-16/D-17/D-18: the trip-edit PATCH may carry the payment effect of the change.
@@ -1254,11 +1261,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   // generic status select / buttons; no_show is terminal, so it is never applied directly).
   const [noShowTarget, setNoShowTarget] = useState<{ id: string; reference: string } | null>(null)
 
+  // Phase 89 plan 16: the booking whose cancel dialog is open (CancelBookingDialog owns its own choice and request state).
   const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
-  const [cancelling, setCancelling] = useState(false)
-  const [cancelError, setCancelError] = useState<string | null>(null)
-  // D-20: the cancel applied but the refund failed; the dialog keeps its line and cannot cancel again.
-  const [cancelRefundFailed, setCancelRefundFailed] = useState(false)
   // Phase 88-07: per-booking counter that makes an open PaymentPanel refetch after a trip edit.
   const [paymentRefreshKeys, setPaymentRefreshKeys] = useState<Record<string, number>>({})
 
@@ -1269,15 +1273,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
-
-  // Reset cancel state when modal opens/closes
-  useEffect(() => {
-    if (!pendingCancel) {
-      setCancelling(false)
-      setCancelError(null)
-      setCancelRefundFailed(false)
-    }
-  }, [pendingCancel])
 
   const patchBooking = useCallback(async (body: PatchBody) => {
     const res = await fetch('/api/admin/bookings', {
@@ -1356,7 +1351,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     }
     // 88-REVIEW T5: a card booking is cancelled through the payment-aware cancel dialog (release / refund), never
     // by a bare status change (the server answers 422 use_cancel_route to that).
-    if (newStatus === 'cancelled' && booking.payment_mode === 'card_hold') {
+    // Phase 89 plan 16: the same holds for cash bookings and any booking with money paid online.
+    if (newStatus === 'cancelled' && hasCancelMoney(booking)) {
       setPendingCancel(booking)
       return
     }
@@ -1444,43 +1440,33 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     }
   }, [patchBooking])
 
-  const handleCancel = useCallback(async (booking: Booking) => {
-    const cancelBody: { id: string; leg?: 'outbound' | 'return' } = { id: booking.id }
-    if (booking.leg !== null && booking.linked_booking_id !== null) {
-      cancelBody.leg = booking.leg
-    }
-    const res = await fetch('/api/admin/bookings/cancel', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cancelBody),
-    })
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: 'Unknown error' }))
-      if (res.status === 502 && data.error === 'refund_failed' && data.cancelled === true) {
-        // Phase 88 D-20: the cancel applied (the row is cancelled now) but the refund / release failed.
-        setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
-        // C-WR-04: the panel refetches (refund-failed banner, current payment state).
-        bumpPayment(booking.id)
-        throw new CancelRefundFailedError(refundFailedLine(data.amount_minor, data.currency))
-      }
-      if (res.status === 409 && data.error === 'status_conflict') {
-        // Lost the compare-and-set race. The cancel route now applies the status change before it
-        // refunds, so a 409 means nothing was refunded: same copy as the status select, no refund note.
-        throw new Error(statusConflictMessage(data.currentStatus))
-      }
-      if (res.status === 409 && data.error === 'payment_busy') {
-        // A hold or capture is in flight for this card booking; nothing was cancelled or released.
-        throw new Error('A card payment is being processed for this booking. Nothing was cancelled. Try again in a minute.')
-      }
-      throw new Error(data.error ?? 'Cancel failed')
-    }
-    // Optimistic update. C-WR-04: a released hold shows as released at once; the panel refetches the rest.
-    const done = (await res.json().catch(() => ({}))) as { released?: boolean }
+  // The cancel dialog reports its outcome; the row follows at once and an open panel refetches (C-WR-04).
+  const handleCancelled = useCallback((booking: { id: string }, done: CancelDoneInfo) => {
     setBookings(prev => prev.map(b => b.id === booking.id
-      ? { ...b, status: 'cancelled', ...(done.released === true ? { payment_state: 'released' } : {}) }
+      ? {
+          ...b,
+          status: 'cancelled',
+          // a released hold shows as released at once; a late cancel keeps the money and a fee decision is pending
+          ...(done.released ? { payment_state: 'released' } : {}),
+          ...(done.late ? { fee_case_status: 'pending' } : {}),
+        }
       : b))
     bumpPayment(booking.id)
     setPendingCancel(null)
+  }, [bumpPayment])
+
+  // Phase 88 D-20: the cancel applied (the row is cancelled now) but the refund or release did not. The dialog closes;
+  // the panel refetches and shows the Refund failed banner with the amount to refund by hand.
+  const handleCancelRefundFailed = useCallback((booking: { id: string }) => {
+    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
+    bumpPayment(booking.id)
+    setPendingCancel(null)
+  }, [bumpPayment])
+
+  // The cancel applied but the late-cancel case could not be opened: the row is cancelled, the dialog stays up with its line.
+  const handleCancelledWithoutCase = useCallback((booking: { id: string }) => {
+    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
+    bumpPayment(booking.id)
   }, [bumpPayment])
 
   useEffect(() => {
@@ -1699,7 +1685,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
             />
             {hasOpenNoShowRequest(row.original) && <NoShowChip />}
           </span>
-          {row.original.payment_mode === 'card_hold' && <PaymentStateBadge state={row.original.payment_state ?? 'none'} />}
+          {hasPendingFeeCase(row.original) && <FeeCaseBadge />}
+          {showsPaymentBadge(row.original) && (
+            <span style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px' }}>
+              {row.original.payment_mode === 'cash_guarantee' && <CashChip />}
+              <PaymentStateBadge state={row.original.payment_state ?? 'none'} />
+            </span>
+          )}
         </span>
       ),
     },
@@ -2102,7 +2094,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         />
                         {hasOpenNoShowRequest(booking) && <NoShowChip />}
                       </span>
-                      {booking.payment_mode === 'card_hold' && <PaymentStateBadge state={booking.payment_state ?? 'none'} />}
+                      {hasPendingFeeCase(booking) && <FeeCaseBadge />}
+                      {showsPaymentBadge(booking) && (
+                        <span style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: '4px' }}>
+                          {booking.payment_mode === 'cash_guarantee' && <CashChip />}
+                          <PaymentStateBadge state={booking.payment_state ?? 'none'} />
+                        </span>
+                      )}
                     </span>
                   </div>
 
@@ -2905,302 +2903,14 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
         onConfirmed={() => { if (noShowTarget) handleNoShowConfirmed(noShowTarget.id) }}
       />
 
-      {/* CancellationModal */}
-      {pendingCancel !== null && (
-        <div
-          onClick={() => { if (!cancelling) setPendingCancel(null) }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'var(--admin-scrim)',
-            zIndex: 50,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'var(--admin-surface)',
-              border: '1px solid var(--admin-border)',
-              borderRadius: 'var(--admin-radius-lg)',
-              maxWidth: '480px',
-              width: '100%',
-              padding: 'var(--admin-sheet-padding)',
-              boxShadow: 'var(--admin-shadow-sheet)',
-              position: 'relative',
-            }}
-          >
-            {/* Close button */}
-            <button
-              aria-label="Close"
-              onClick={() => { if (!cancelling) setPendingCancel(null) }}
-              style={{
-                position: 'absolute',
-                top: '24px',
-                right: '24px',
-                background: 'none',
-                border: 'none',
-                color: 'var(--warmgrey)',
-                cursor: 'pointer',
-                padding: 0,
-                display: 'flex',
-                alignItems: 'center',
-              }}
-            >
-              <X size={16} />
-            </button>
-
-            {/* Heading */}
-            <h2 style={{
-              fontFamily: 'var(--admin-font-heading)',
-              fontSize: 'var(--admin-fs-heading)',
-              fontWeight: 'var(--admin-fw-heading)',
-              lineHeight: 1.2,
-              color: 'var(--offwhite)',
-              margin: 0,
-            }}>
-              Cancel Booking
-            </h2>
-
-            {pendingCancel.payment_mode === 'card_hold' && (pendingCancel.payment_state === 'captured' || pendingCancel.payment_state === 'balance_due') ? (
-              /* Variant E (88-REVIEW T4): card booking already paid (recovery link) before the trip — full refund */
-              <>
-                <p style={{
-                  fontSize: '13px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 300,
-                  color: 'var(--warmgrey)',
-                  marginTop: '16px',
-                  lineHeight: 1.8,
-                }}>
-                  This booking was already paid by card. Cancelling will issue a full refund to the client&apos;s card. This action cannot be undone.
-                </p>
-                <p style={{
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  color: 'var(--status-danger-fg)',
-                  marginTop: '12px',
-                }}>
-                  A full Stripe refund will be issued.
-                </p>
-              </>
-            ) : pendingCancel.payment_mode === 'card_hold' ? (
-              /* Variant D (Phase 88 D-04): card on file, nothing collected yet — release the hold */
-              <>
-                <p style={{
-                  fontSize: '13px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 300,
-                  color: 'var(--warmgrey)',
-                  marginTop: '16px',
-                  lineHeight: 1.8,
-                }}>
-                  Cancelling releases the hold on the client&apos;s card. Nothing is charged. This action cannot be undone.
-                </p>
-                <p style={{
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  color: 'var(--status-danger-fg)',
-                  marginTop: '12px',
-                }}>
-                  The card hold will be released.
-                </p>
-              </>
-            ) : pendingCancel.payment_intent_id !== null && pendingCancel.leg !== null && pendingCancel.linked_booking_id !== null && pendingCancel.booking_source !== 'gnet' ? (
-              /* Variant C: Stripe-paid round-trip leg — partial refund */
-              (() => {
-                const legAmountCzk = pendingCancel.leg === 'outbound'
-                  ? pendingCancel.outbound_amount_czk
-                  : pendingCancel.return_amount_czk
-                const pairedLegLabel = pendingCancel.leg === 'outbound' ? 'return' : 'outbound'
-                const pairedRef = pendingCancel.linked_booking?.booking_reference ?? '—'
-                return (
-                  <>
-                    <p style={{
-                      fontSize: '13px',
-                      fontFamily: 'var(--font-montserrat)',
-                      fontWeight: 300,
-                      color: 'var(--warmgrey)',
-                      marginTop: '16px',
-                      lineHeight: 1.8,
-                    }}>
-                      This booking was paid online. Cancelling will issue a partial refund for this leg only. This action cannot be undone.
-                    </p>
-                    <p style={{
-                      fontSize: '13px',
-                      fontFamily: 'var(--font-montserrat)',
-                      fontWeight: 500,
-                      color: 'var(--offwhite)',
-                      marginTop: '12px',
-                    }}>
-                      Refund: {legAmountCzk ?? '—'} CZK for this leg only.
-                    </p>
-                    <p style={{
-                      fontSize: '11px',
-                      fontFamily: 'var(--font-montserrat)',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      color: 'var(--status-danger-fg)',
-                      marginTop: '8px',
-                    }}>
-                      The paired {pairedLegLabel} booking {pairedRef} will NOT be affected and remains active.
-                    </p>
-                    <p style={{
-                      fontSize: '11px',
-                      fontFamily: 'var(--font-montserrat)',
-                      fontWeight: 500,
-                      textTransform: 'uppercase',
-                      color: 'var(--status-danger-fg)',
-                      marginTop: '8px',
-                    }}>
-                      Partial Stripe refund will be issued for this leg.
-                    </p>
-                  </>
-                )
-              })()
-            ) : pendingCancel.payment_intent_id !== null && pendingCancel.booking_source !== 'gnet' ? (
-              /* Variant A: Stripe-paid one-way — full refund (unchanged) */
-              <>
-                <p style={{
-                  fontSize: '13px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 300,
-                  color: 'var(--warmgrey)',
-                  marginTop: '16px',
-                  lineHeight: 1.8,
-                }}>
-                  This booking was paid online. Cancelling will issue a full refund to the client&apos;s card. This action cannot be undone.
-                </p>
-                <p style={{
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 500,
-                  textTransform: 'uppercase',
-                  color: 'var(--status-danger-fg)',
-                  marginTop: '12px',
-                }}>
-                  A full Stripe refund will be issued.
-                </p>
-              </>
-            ) : (
-              /* Variant B: GNet or Manual */
-              pendingCancel.booking_source === 'gnet' ? (
-                <p style={{
-                  fontSize: '13px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 300,
-                  color: 'var(--warmgrey)',
-                  marginTop: '16px',
-                  lineHeight: 1.8,
-                }}>
-                  This booking was received from a GNet partner. Billing is handled directly by the GNet partner. Cancelling will mark the booking as cancelled and push the CANCEL status to GNet.
-                </p>
-              ) : (
-                <p style={{
-                  fontSize: '13px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontWeight: 300,
-                  color: 'var(--warmgrey)',
-                  marginTop: '16px',
-                  lineHeight: 1.8,
-                }}>
-                  This booking was created manually and has no payment record. Cancelling will mark the booking as cancelled.
-                </p>
-              )
-            )}
-
-            {/* Action buttons */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px',
-              marginTop: '24px',
-            }}>
-              <button
-                onClick={() => setPendingCancel(null)}
-                disabled={cancelling}
-                style={{
-                  border: '1px solid var(--anthracite-light)',
-                  color: 'var(--warmgrey)',
-                  background: 'transparent',
-                  minHeight: '44px',
-                  padding: '0 24px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  letterSpacing: '3px',
-                  textTransform: 'uppercase',
-                  borderRadius: '2px',
-                  cursor: cancelling ? 'not-allowed' : 'pointer',
-                  opacity: cancelling ? 0.7 : 1,
-                }}
-              >
-                Keep Booking
-              </button>
-              <button
-                onClick={async () => {
-                  setCancelling(true)
-                  setCancelError(null)
-                  try {
-                    await handleCancel(pendingCancel)
-                  } catch (err) {
-                    if (err instanceof CancelRefundFailedError) setCancelRefundFailed(true)
-                    setCancelError(err instanceof Error ? err.message : 'Cancel failed')
-                  } finally {
-                    setCancelling(false)
-                  }
-                }}
-                disabled={cancelling || cancelRefundFailed}
-                style={{
-                  border: '1px solid var(--copper)',
-                  color: 'var(--copper)',
-                  background: 'transparent',
-                  minHeight: '44px',
-                  padding: '0 24px',
-                  fontFamily: 'var(--font-montserrat)',
-                  fontSize: '11px',
-                  fontWeight: 500,
-                  letterSpacing: '3px',
-                  textTransform: 'uppercase',
-                  borderRadius: '2px',
-                  cursor: cancelling || cancelRefundFailed ? 'not-allowed' : 'pointer',
-                  opacity: cancelling || cancelRefundFailed ? 0.7 : 1,
-                }}
-              >
-                {cancelling
-                  ? 'Cancelling...'
-                  : pendingCancel.payment_mode === 'card_hold'
-                    ? (pendingCancel.payment_state === 'captured' || pendingCancel.payment_state === 'balance_due'
-                        ? 'Confirm Cancel + Refund'
-                        : 'Confirm Cancel + Release Hold')
-                    : pendingCancel.payment_intent_id !== null && pendingCancel.booking_source !== 'gnet'
-                      ? 'Confirm Cancel + Refund'
-                      : 'Cancel Booking'}
-              </button>
-            </div>
-
-            {/* Error message */}
-            {cancelError && (
-              <p style={{
-                fontSize: '11px',
-                fontFamily: 'var(--font-montserrat)',
-                fontWeight: 300,
-                color: 'var(--status-danger-fg)',
-                marginTop: '8px',
-                textAlign: 'right',
-              }}>
-                {cancelError}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Cancel dialog (Phase 89 plan 16, D-20): who cancelled is required, the money effect is shown first */}
+      <CancelBookingDialog
+        booking={pendingCancel}
+        onClose={() => setPendingCancel(null)}
+        onCancelled={handleCancelled}
+        onRefundFailed={handleCancelRefundFailed}
+        onCancelledWithoutCase={handleCancelledWithoutCase}
+      />
     </div>
   )
 }

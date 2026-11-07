@@ -164,7 +164,12 @@ describe('Erasure page: preview', () => {
     expect(screen.getByText('The contact and its leads will be deleted. 4 bookings will be anonymised.')).toBeTruthy()
     expect(
       screen.getByText(
-        /Not covered: the email mailbox archive, Stripe and Resend records, and encrypted backups \(kept until they rotate out, up to 6 months\)\. Handle these by hand if needed\./,
+        /Not covered: the email mailbox archive, Resend records, and encrypted backups \(kept until they rotate out, up to 6 months\)\. Handle these by hand if needed\./,
+      ),
+    ).toBeTruthy()
+    expect(
+      screen.getByText(
+        'The Stripe customer (name, email, phone and saved cards) will be deleted. Charges stay in Stripe for accounting.',
       ),
     ).toBeTruthy()
     expect(screen.queryByRole('note')).toBeNull()
@@ -336,6 +341,26 @@ describe('Erasure page: confirm modal', () => {
     )
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(screen.queryByText('Erasure queued. It usually finishes within a few minutes.')).toBeNull()
+  })
+
+  it('a payment still in play (422 payment_open) says why and deletes nothing', async () => {
+    mockApi({ confirm: () => fail(422, { error: 'payment_open' }) })
+    render(<ErasurePage />)
+    const dialog = await openConfirm()
+    await fillAndSubmit(dialog)
+    const alert = await within(dialog).findByRole('alert')
+    expect(alert.textContent).toMatch(/card hold, a pending cancellation fee/)
+    expect(alert.textContent).toMatch(/Nothing was deleted/)
+    expect(screen.getByRole('dialog')).toBeTruthy()
+  })
+
+  it('the preview warns about open payments and disables the erase button', async () => {
+    mockApi({ preview: () => ok(previewBody({ paymentOpen: 2 })) })
+    render(<ErasurePage />)
+    await search()
+    expect(await screen.findByText(/2 bookings have a payment still in play/)).toBeTruthy()
+    const button = (await screen.findByRole('button', { name: 'Erase this person...' })) as HTMLButtonElement
+    expect(button.disabled).toBe(true)
   })
 
   it('Keep this person closes the modal without a request and keeps the preview', async () => {

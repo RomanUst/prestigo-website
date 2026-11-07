@@ -17,6 +17,9 @@ import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/st
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 import { assertEditablePrecheck, reevaluateAfterEdit } from '@/lib/payments/edit-hook'
+import { getPaymentSettings, isPolicyPublic } from '@/lib/payments/config'
+import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
+import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
 
 // The status change itself (VALID_TRANSITIONS check, write, side effects) lives in
 // lib/booking-status-service.ts (Phase 87 D-01). VALID_TRANSITIONS is the canonical
@@ -334,15 +337,32 @@ export async function PATCH(request: Request) {
     // hold still live and the recovery link still payable. The row read here is handed to the status service, so
     // the guard costs no extra query.
     let current: Record<string, unknown> | undefined
+
+    // Phase 89 WR-04: a no-show is confirmed only through POST /api/admin/bookings/[id]/no-show, which checks the
+    // driver's request and the waiting time and opens the fee case with its evidence. A money-bearing status must
+    // not be reachable from a plain status select.
+    if (parsed.data.status === 'no_show') {
+      return NextResponse.json(
+        {
+          error: 'use_no_show_route',
+          message: 'A no-show is confirmed from the driver request on the booking, after the waiting time.',
+        },
+        { status: 422 },
+      )
+    }
+
     if (parsed.data.status === 'cancelled') {
       const { data: row, error: rowError } = await supabase.from('bookings').select('*').eq('id', parsed.data.id).single()
       if (rowError || !row) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
       current = row as Record<string, unknown>
-      if (current.payment_mode === 'card_hold') {
+      // Card hold, cash guarantee (a saved card behind it) and any booking that carries a payment intent (paid in
+      // full) all have money behind them: only the cancel route releases, refunds or applies the policy.
+      const hasPaymentIntent = typeof current.payment_intent_id === 'string' && current.payment_intent_id !== ''
+      if (current.payment_mode === 'card_hold' || current.payment_mode === 'cash_guarantee' || hasPaymentIntent) {
         return NextResponse.json(
           {
             error: 'use_cancel_route',
-            message: 'Card bookings are cancelled with Cancel booking, so the card hold is released or the payment refunded.',
+            message: 'Bookings with a card or a payment are cancelled with Cancel booking, so the hold is released or the payment refunded.',
           },
           { status: 422 },
         )
@@ -388,8 +408,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    // Terminal-status gate — completed/cancelled bookings are final and read-only.
-    if (current.status === 'completed' || current.status === 'cancelled') {
+    // Terminal-status gate — completed/cancelled/no_show bookings are final and read-only (WR-02: no_show was missing;
+    // a no-show can carry a fee case, so an edit of its price or pickup would rewrite what a charge is based on).
+    if (current.status === 'completed' || current.status === 'cancelled' || current.status === 'no_show') {
       return NextResponse.json(
         { error: `${current.status} bookings are final and cannot be edited` },
         { status: 422 }
@@ -537,8 +558,10 @@ export async function PATCH(request: Request) {
       // checkout, and since Phase 88 a card booking's amount is what the engine charges after the trip (a raise is
       // charged to the saved card, D-16). A card booking therefore keeps its agreed amount unless the operator set the
       // amount explicitly (override_price): an address fix or a vehicle edit alone never changes what the client pays.
-      const cardKeepsAgreed = current.payment_mode === 'card_hold' && parsed.data.override_price !== true
-      const cardExplicit = current.payment_mode === 'card_hold' && parsed.data.override_price === true
+      // Money WR-09: the same for a cash booking, whose amount is what the driver collects and the card can be charged (D-12).
+      const agreedAmount = current.payment_mode === 'card_hold' || current.payment_mode === 'cash_guarantee'
+      const cardKeepsAgreed = agreedAmount && parsed.data.override_price !== true
+      const cardExplicit = agreedAmount && parsed.data.override_price === true
 
       if (priceDiverges && !parsed.data.override_price && !cardKeepsAgreed) {
         return NextResponse.json(
@@ -1019,10 +1042,22 @@ export async function POST(request: Request) {
       : null,
   }
 
+  // Phase 89 D-18: store the terms when the policy is public for this client (mode on, or canary with the email
+  // listed). Built server-side; a read failure leaves the columns NULL (legacy terms), never a failed create.
+  let policyColumns: { cancel_policy_version: string; cancel_policy: Record<string, string | number> } | null = null
+  try {
+    if (isPolicyPublic(await getPaymentSettings(), d.client_email)) {
+      const { version, snapshot } = buildPolicySnapshot(await getCancellationPolicy())
+      policyColumns = { cancel_policy_version: version, cancel_policy: snapshot }
+    }
+  } catch (policyErr) {
+    console.error('[admin/bookings.POST] policy snapshot skipped:', policyErr instanceof Error ? policyErr.message : String(policyErr))
+  }
+
   const supabase = createSupabaseServiceClient()
   const { data, error: dbError } = await supabase
     .from('bookings')
-    .insert([row])
+    .insert([policyColumns ? { ...row, ...policyColumns } : row])
     .select()
     .single()
 
@@ -1037,9 +1072,11 @@ export async function POST(request: Request) {
       recipient: d.client_email,
     })
     if (shouldSend) {
-      after(() => sendStatusConfirmedEmail(data).catch(err =>
-        console.error('[admin/bookings.POST] confirmation email:', err)
-      ))
+      // Phase 89 CANC-02: the inserted row carries the stored policy columns when the policy was public for this client.
+      after(() => buildPolicyBlockHtml(data).catch(() => '')
+        .then(policyBlockHtml => sendStatusConfirmedEmail(policyBlockHtml ? { ...data, policyBlockHtml } : data))
+        .catch(err => console.error('[admin/bookings.POST] confirmation email:', err))
+      )
     }
   }
 

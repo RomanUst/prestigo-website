@@ -32,6 +32,7 @@ vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: moc
 
 import { cancelHoldIntent, claimForHold, holdFailurePatch, placeHold, releaseHold } from '@/lib/payments/hold'
 import { claimDueHolds } from '@/lib/payments/state'
+import { openFeeCase } from '@/lib/payments/fee'
 import { retryAt } from '@/lib/payments/timing'
 import { LEASE_SECONDS } from '@/lib/payments/config'
 
@@ -261,16 +262,26 @@ describe('a cancelled or no-show booking never ends with a hold (88-REVIEW A-WR-
     expect(mockSendEmail).not.toHaveBeenCalled()
   })
 
-  it('no_show while a declined hold is recorded: released, no payment_failed email and no recovery link', async () => {
+  it('no_show while a declined hold is recorded: the card stays for the fee, no payment_failed email and no recovery link', async () => {
     seed({ stripe_payment_method_id: 'pm_decline_insufficient' })
     const claimed = fresh()
     row().status = 'no_show'
     const res = await placeHold(claimed, ACTOR)
     expect(res).toEqual({ outcome: 'skipped', code: 'booking_closed' })
-    expect(row().payment_state).toBe('released')
+    expect(row().payment_state).toBe('card_saved')
     expect(ledger('hold_failed')).toHaveLength(0)
     expect(fake.callsTo('paymentLinks.create')).toHaveLength(0)
     expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+
+  it('money WR-03: a late cancel lands during the placement, before its case exists: the card is kept, the fee stays possible', async () => {
+    seed({ pickup_utc: new Date(Date.now() + 1800_000).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    const claimed = fresh()
+    row().status = 'cancelled'
+    expect((await placeHold(claimed, ACTOR)).code).toBe('booking_closed')
+    expect(row().payment_state).toBe('card_saved')
+    const piId = [...fake.state.paymentIntents.keys()][0]
+    expect(fake.state.paymentIntents.get(piId)!.status).toBe('canceled') // the authorization itself is still voided
   })
 
   it('a void that fails still releases and leaves the refund_failed trail for the operator', async () => {
@@ -282,6 +293,74 @@ describe('a cancelled or no-show booking never ends with a hold (88-REVIEW A-WR-
     expect(row().payment_state).toBe('released')
     expect(ledger('refund_failed')).toHaveLength(1)
     expect(String(ledger('refund_failed')[0].event_key)).toMatch(/^refund_failed:.*:hold:pi_/)
+  })
+
+  // Phase 89 Pitfall 2 / plan 89-08: released is terminal and would destroy the saved card a person may still charge.
+  describe('with a fee case pending (late cancel / no-show)', () => {
+    async function openCase(kind: 'late_cancel' | 'no_show') {
+      await openFeeCase({
+        booking: row(),
+        kind,
+        baseMinor: 12000,
+        currency: 'eur',
+        proposedMinor: 12000,
+        actor: { type: 'admin', id: 'ops' },
+      })
+    }
+
+    it.each([
+      ['cancelled', 'late_cancel'],
+      ['no_show', 'no_show'],
+    ] as const)('a %s booking: the authorization is voided and placing_hold -> card_saved, not released', async (status, kind) => {
+      const claimed = fresh()
+      row().status = status
+      await openCase(kind)
+      const res = await placeHold(claimed, ACTOR)
+      expect(res).toEqual({ outcome: 'skipped', code: 'booking_closed' })
+
+      expect(row()).toMatchObject({ payment_state: 'card_saved', payment_lease_until: null, stripe_payment_method_id: 'pm_ok' })
+      const piId = [...fake.state.paymentIntents.keys()][0]
+      expect(fake.state.paymentIntents.get(piId)!.status).toBe('canceled')
+      expect(fake.callsTo('paymentIntents.cancel')[0].idempotencyKey).toBe(`pi_void:${piId}`)
+      expect(ledger('hold_authorized')).toHaveLength(0)
+      expect(ledger('hold_released')[0]).toMatchObject({ error_code: 'fee_pending', to_state: 'card_saved' })
+      expect(mockSendEmail).not.toHaveBeenCalled()
+    })
+
+    it('the card stays chargeable: the cancelled row can not be claimed for a new hold, and the case stays pending', async () => {
+      const claimed = fresh()
+      row().status = 'cancelled'
+      await openCase('late_cancel')
+      await placeHold(claimed, ACTOR)
+      expect(await claimForHold(ID, { type: 'admin', id: 'ops' })).toEqual({ applied: false })
+      expect(row().payment_state).toBe('card_saved')
+      expect(row().fee_case_status).toBe('pending')
+    })
+
+    it('a decided case (waived) no longer keeps the card: the old release applies', async () => {
+      const claimed = fresh()
+      row().status = 'cancelled'
+      await openCase('late_cancel')
+      db.state.booking_fee_cases[0].status = 'waived'
+      await placeHold(claimed, ACTOR)
+      expect(row().payment_state).toBe('released')
+    })
+
+    it('a case lookup that fails keeps the card (released can not be undone)', async () => {
+      vi.spyOn(console, 'error').mockImplementation(() => {})
+      const claimed = fresh()
+      row().status = 'cancelled'
+      const realFrom = db.client.from.bind(db.client)
+      world.db = {
+        client: {
+          from: (t: string) => (t === 'booking_fee_cases' ? { select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: { message: 'down' } }) }) }) } : realFrom(t)),
+          rpc: (n: string, a?: Record<string, unknown>) => db.client.rpc(n, a),
+        },
+      }
+      await placeHold(claimed, ACTOR)
+      expect(row().payment_state).toBe('card_saved')
+      world.db = db
+    })
   })
 
   it('a trip that started (on_board) while Stripe answered keeps its authorization: the settle captures it', async () => {
@@ -396,6 +475,20 @@ describe('releaseHold and cancelHoldIntent', () => {
     seed({ payment_state: 'checkout_pending', status: 'unpaid', payment_lease_until: null, hold_payment_intent_id: 'pi_missing' })
     await expect(releaseHold(fresh(), { actor: ACTOR, reason: 'cancel' })).rejects.toThrow()
     expect(row().payment_state).toBe('checkout_pending')
+  })
+
+  // Phase 89 (CASH): a cash booking holds a saved card at most; releasing it is the free-cancel path.
+  it.each(['card_saved', 'failed', 'expired', 'checkout_pending'])('cash_guarantee %s -> released without a Stripe call', async (state) => {
+    seed({ payment_mode: 'cash_guarantee', payment_state: state, payment_lease_until: null, hold_at: null })
+    expect(await releaseHold(fresh(), { actor: ACTOR, reason: 'cancel' })).toBe('released')
+    expect(row().payment_state).toBe('released')
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it.each(['pay_now', 'partner', 'quote'])('a %s booking still answers noop', async (mode) => {
+    seed({ payment_mode: mode, payment_state: 'card_saved', payment_lease_until: null })
+    expect(await releaseHold(fresh(), { actor: ACTOR, reason: 'cancel' })).toBe('noop')
+    expect(row().payment_state).toBe('card_saved')
   })
 
   it('balance_due with reason waive -> released with a waived ledger row', async () => {

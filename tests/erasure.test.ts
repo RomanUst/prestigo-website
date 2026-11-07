@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { createFakeChatwoot, FAKE_ADMIN_TOKEN, FAKE_AGENT_TOKEN, type FakeChatwootOptions } from './helpers/fake-chatwoot'
 import { createFakeEspoCRM, type FakeEspoOptions } from './helpers/fake-espocrm'
 import { dispatchOutboxKey, type DispatchDeps } from '@/lib/lead-sync'
+import type { ErasureStripe } from '@/lib/erasure'
 import { createSiteChatwootClient, type SiteChatwootConfig } from '@/lib/chatwoot-client'
 import { createSiteEspoClient } from '@/lib/espocrm-client'
 import type { OutboxRow, OutboxStore } from '@/lib/outbox-store'
@@ -27,6 +28,7 @@ import {
   erasureScope,
   loadErasure,
   recordErasureStep,
+  stripeCustomerIds,
 } from '@/lib/erasure-store'
 
 // Synthetic fixtures only (example/x.test domains, fake names).
@@ -151,7 +153,12 @@ function request(over: Partial<ErasureRequest> = {}): ErasureRequest {
 /** In-memory ErasureStore. anonymisePerson records its own 'supabase' step, like the RPC. */
 function makeErasure(
   initial: ErasureRequest | null,
-  opts: { anonymiseFails?: boolean; onRecord?: (step: ErasureStepName) => void } = {},
+  opts: {
+    anonymiseFails?: boolean
+    onRecord?: (step: ErasureStepName) => void
+    /** Phase 89: the Stripe Customer ids the person's bookings carry. */
+    stripeCustomers?: string[]
+  } = {},
 ) {
   const req: ErasureRequest | null = initial ? structuredClone(initial) : null
   const calls = {
@@ -159,6 +166,7 @@ function makeErasure(
     recorded: [] as ErasureStepName[],
     anonymise: 0,
     deleteAuth: [] as string[],
+    stripeIdsReads: 0,
     complete: [] as Array<{ verified: boolean; counts: Record<string, unknown>; status: string }>,
   }
   const store: ErasureStore = {
@@ -187,6 +195,11 @@ function makeErasure(
         gnet_payloads_scrubbed: 0,
         trip_notes_scrubbed: 0,
         identity_deleted: req?.identity ? 1 : 0,
+        consents_scrubbed: 0,
+        manage_tokens_deleted: 0,
+        payment_notes_deleted: 0,
+        fee_cases_scrubbed: 0,
+        stripe_ids_cleared: 0,
       }
       if (req) {
         req.steps.supabase = { ...counts }
@@ -205,6 +218,10 @@ function makeErasure(
       calls.deleteAuth.push(userId)
       return 'deleted'
     },
+    async stripeCustomerIds() {
+      calls.stripeIdsReads++
+      return [...(opts.stripeCustomers ?? [])]
+    },
   }
   return { store, calls, get req() { return req } }
 }
@@ -217,13 +234,20 @@ interface HarnessOptions {
   rows?: OutboxRow[]
   anonymiseFails?: boolean
   onRecord?: (step: ErasureStepName) => void
+  /** Phase 89: Stripe Customer ids on the person's bookings (default none) and the injected Stripe slice. */
+  stripeCustomers?: string[]
+  stripe?: ErasureStripe
   /** Phase 83: the chat registry double; default = an empty one (the sync never reaches Supabase). */
   chat?: ReturnType<typeof makeChatStoreDouble>
 }
 
 function harness(o: HarnessOptions = {}) {
   const outbox = makeOutbox({ rows: o.rows, now: o.now })
-  const erasure = makeErasure(o.req === undefined ? request() : o.req, { anonymiseFails: o.anonymiseFails, onRecord: o.onRecord })
+  const erasure = makeErasure(o.req === undefined ? request() : o.req, {
+    anonymiseFails: o.anonymiseFails,
+    onRecord: o.onRecord,
+    stripeCustomers: o.stripeCustomers,
+  })
   const fakeCw = createFakeChatwoot(o.cw ?? { contacts: [{ id: 1, email: EMAIL, identifier: USER_ID, name: 'Anna Novak' }] })
   const fakeEspo = createFakeEspoCRM(
     o.espo ?? {
@@ -270,6 +294,7 @@ function harness(o: HarnessOptions = {}) {
     chatwootConfig: CW_CONFIG,
     erasure: erasure.store,
     chat: chatStore,
+    ...(o.stripe ? { erasureStripe: o.stripe } : {}),
   }
   return { outbox, erasure, fakeCw, fakeEspo, publish, deps, now, chat, events, eraseInputs }
 }
@@ -311,12 +336,13 @@ describe('erase.person tracer: confirmed request -> Chatwoot -> EspoCRM -> verif
       'record:chatwoot',
       'record:espocrm',
       'record:verify',
+      'record:stripe',
       'anonymise',
       'auth',
       'record:auth',
       'complete:completed',
     ])
-    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify', 'supabase', 'auth'])
+    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify', 'stripe', 'supabase', 'auth'])
     expect(h.erasure.calls.deleteAuth).toEqual([USER_ID])
     expect(h.erasure.calls.complete[0]).toMatchObject({ verified: true, status: 'completed' })
     expect(h.erasure.calls.complete[0].counts).toMatchObject({
@@ -518,7 +544,7 @@ describe('erasure resilience: 422, resume, deadline', () => {
 
     expect(second).toEqual({ outcome: 'sent' })
     expect(h.fakeCw.requests.filter((r) => r.method === 'DELETE')).toHaveLength(2)
-    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify', 'supabase', 'auth'])
+    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify', 'stripe', 'supabase', 'auth'])
   })
 
   it('422: a retry after the chatwoot step was recorded resumes at the espocrm step (chatwoot is not repeated)', async () => {
@@ -540,7 +566,7 @@ describe('erasure resilience: 422, resume, deadline', () => {
     t = new Date(NOW.getTime() + 3_600_000)
     expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
     expect(h.fakeCw.requests.filter((r) => r.method === 'DELETE')).toHaveLength(cwDeletes)
-    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify', 'supabase', 'auth'])
+    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify', 'stripe', 'supabase', 'auth'])
   })
 
   it('resume: with chatwoot and espocrm recorded the run starts at verify', async () => {
@@ -557,7 +583,7 @@ describe('erasure resilience: 422, resume, deadline', () => {
 
     expect(h.fakeCw.requests.filter((r) => r.method === 'DELETE')).toHaveLength(0)
     expect(h.fakeEspo.requests.filter((r) => r.method !== 'GET')).toHaveLength(0)
-    expect(h.erasure.calls.recorded).toEqual(['verify', 'supabase', 'auth'])
+    expect(h.erasure.calls.recorded).toEqual(['verify', 'stripe', 'supabase', 'auth'])
     // Counts of the earlier steps survive in the audit counts.
     expect(h.erasure.calls.complete[0].counts).toMatchObject({ chatwoot_contacts_deleted: 1, espo_contacts_deleted: 1 })
   })
@@ -687,7 +713,7 @@ describe('erasure verify pass', () => {
     })
 
     expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
-    expect(h.erasure.calls.recorded).toEqual(['verify', 'supabase', 'auth'])
+    expect(h.erasure.calls.recorded).toEqual(['verify', 'stripe', 'supabase', 'auth'])
   })
 })
 
@@ -749,7 +775,7 @@ describe('erasure store wrappers', () => {
     user_id: null,
     booking_ids: [BOOKING_1],
     inquiry_ids: [],
-    counts: { bookings: 1, upcoming: 1, inquiries: 0, quote_leads: 2, has_account: false },
+    counts: { bookings: 1, upcoming: 1, payment_open: 2, inquiries: 0, quote_leads: 2, has_account: false },
   }
 
   it('erasureScope maps the ok payload and the refusal outcomes', async () => {
@@ -763,7 +789,7 @@ describe('erasure store wrappers', () => {
       userId: null,
       bookingIds: [BOOKING_1],
       inquiryIds: [],
-      counts: { bookings: 1, upcoming: 1, inquiries: 0, quoteLeads: 2, hasAccount: false },
+      counts: { bookings: 1, upcoming: 1, paymentOpen: 2, inquiries: 0, quoteLeads: 2, hasAccount: false },
     })
     expect(ok.rpc).toHaveBeenCalledWith('erasure_scope', { p_email: EMAIL, p_phone: null })
     expect(await erasureScope(null, PHONE, rpcClient({ outcome: 'shared_phone', identities: 2 }).client)).toEqual({
@@ -785,11 +811,12 @@ describe('erasure store wrappers', () => {
     const call = c.rpc.mock.calls[0] as unknown as [string, { p_scope: Record<string, unknown> } & Record<string, unknown>]
     expect(call[0]).toBe('erasure_preview_create')
     expect(call[1]).toMatchObject({ p_actor: ADMIN, p_email_hmac: 'b'.repeat(64), p_ttl_seconds: 600 })
-    expect(call[1].p_scope).toMatchObject({ outcome: 'ok', inquiry_ids: [INQUIRY_1], counts: { quote_leads: 2, has_account: false } })
+    expect(call[1].p_scope).toMatchObject({ outcome: 'ok', inquiry_ids: [INQUIRY_1], counts: { quote_leads: 2, payment_open: 2, has_account: false } })
   })
 
   it('confirmErasure returns the RPC outcome and rejects an unknown one', async () => {
     expect(await confirmErasure(REQ, ADMIN, rpcClient('already_in_progress').client)).toBe('already_in_progress')
+    expect(await confirmErasure(REQ, ADMIN, rpcClient('payment_open').client)).toBe('payment_open')
     await expect(confirmErasure(REQ, ADMIN, rpcClient('nonsense').client)).rejects.toBeInstanceOf(OutboxStoreError)
   })
 
@@ -1086,5 +1113,198 @@ describe('D-16 erasure: chat Leads, chat-created Contacts, history Notes and reg
     expect(h.erasure.calls.anonymise).toBe(0)
     expect(h.events).toEqual([])
     expect(h.chat.state.leads).toHaveLength(4)
+  })
+})
+
+// ── Phase 89 (plan 89-05, 88 D-23): the Stripe step ─────────────────────────
+
+const CUS_1 = 'cus_TESTONE0001'
+const CUS_2 = 'cus_TESTTWO0002'
+
+function stripeDouble(over: { fail?: Record<string, unknown> } = {}) {
+  const del = vi.fn(async (id: string) => {
+    if (over.fail && id in over.fail) throw over.fail[id]
+    return { id, deleted: true }
+  })
+  const stripe: ErasureStripe = { customers: { del } }
+  return { stripe, del }
+}
+
+const stripeError = (props: Record<string, unknown>) => Object.assign(new Error('stripe says no'), props)
+
+describe('Stripe step: the Customer objects are deleted before Supabase clears the ids', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('deletes each distinct Customer once, after verify and before the Supabase step, and records counts only', async () => {
+    const s = stripeDouble()
+    const h = harness({ stripeCustomers: [CUS_1, CUS_2, CUS_1], stripe: s.stripe })
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+
+    expect(s.del.mock.calls.map((c) => c[0])).toEqual([CUS_1, CUS_2])
+    expect(h.erasure.calls.order).toEqual([
+      'record:chatwoot',
+      'record:espocrm',
+      'record:verify',
+      'record:stripe',
+      'anonymise',
+      'auth',
+      'record:auth',
+      'complete:completed',
+    ])
+    expect(h.erasure.req?.steps.stripe).toMatchObject({ stripe_customers_deleted: 2, stripe_customers_missing: 0 })
+    expect(h.erasure.calls.complete[0].counts).toMatchObject({ stripe_customers_deleted: 2 })
+    // Logs name steps and codes, never a customer id or an address.
+    const logged = log.mock.calls.map((c) => c.join(' ')).join('\n')
+    expect(logged).toContain('step=stripe')
+    expect(logged).not.toContain('cus_')
+    expect(logged).not.toContain(EMAIL)
+  })
+
+  it('a person with no Stripe Customer needs no Stripe client and no key: the step is recorded with zero', async () => {
+    vi.stubEnv('STRIPE_SECRET_KEY', '')
+    const h = harness()
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+
+    expect(h.erasure.calls.stripeIdsReads).toBe(1)
+    expect(h.erasure.req?.steps.stripe).toMatchObject({ stripe_customers_deleted: 0 })
+  })
+
+  it('resource_missing (already deleted) counts as done', async () => {
+    const s = stripeDouble({
+      fail: { [CUS_1]: stripeError({ type: 'StripeInvalidRequestError', code: 'resource_missing', statusCode: 404 }) },
+    })
+    const h = harness({ stripeCustomers: [CUS_1, CUS_2], stripe: s.stripe })
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+
+    expect(s.del).toHaveBeenCalledTimes(2)
+    expect(h.erasure.req?.steps.stripe).toMatchObject({ stripe_customers_deleted: 1, stripe_customers_missing: 1 })
+  })
+
+  it('any other Stripe error fails the step: nothing is recorded, Supabase is untouched, the next delivery resumes', async () => {
+    let t = NOW
+    const failing = stripeDouble({ fail: { [CUS_2]: stripeError({ type: 'StripeAPIError', statusCode: 500 }) } })
+    const h = harness({ now: () => t, stripeCustomers: [CUS_1, CUS_2], stripe: failing.stripe })
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    const first = await dispatchOutboxKey(KEY, h.deps)
+
+    expect(first).toMatchObject({ outcome: 'rescheduled', code: 'internal_error' })
+    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify'])
+    expect(h.erasure.calls.anonymise).toBe(0)
+    expect(log.mock.calls.map((c) => c.join(' ')).join('\n')).not.toContain('cus_')
+
+    // Stripe is back: the same row resumes at the unfinished stripe step; the CRM steps are not repeated.
+    const working = stripeDouble({
+      fail: { [CUS_1]: stripeError({ type: 'StripeInvalidRequestError', code: 'resource_missing', statusCode: 404 }) },
+    })
+    t = new Date(NOW.getTime() + 3_600_000)
+    const resumed = await dispatchOutboxKey(KEY, { ...h.deps, erasureStripe: working.stripe })
+
+    expect(resumed).toEqual({ outcome: 'sent' })
+    expect(working.del.mock.calls.map((c) => c[0])).toEqual([CUS_1, CUS_2])
+    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify', 'stripe', 'supabase', 'auth'])
+    expect(h.fakeCw.requests.filter((r) => r.method === 'DELETE')).toHaveLength(1)
+  })
+
+  it('a resumed run with the stripe step recorded neither reads the ids nor calls Stripe again', async () => {
+    const s = stripeDouble()
+    const h = harness({
+      req: request({
+        steps: {
+          chatwoot: { chatwoot_contacts_deleted: 1 },
+          espocrm: { espo_contacts_deleted: 1 },
+          verify: { verified: true, verify_remaining: 0 },
+          stripe: { stripe_customers_deleted: 2, stripe_customers_missing: 0 },
+        },
+        status: 'running',
+      }),
+      stripeCustomers: [CUS_1],
+      stripe: s.stripe,
+    })
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+
+    expect(s.del).not.toHaveBeenCalled()
+    expect(h.erasure.calls.stripeIdsReads).toBe(0)
+    expect(h.erasure.calls.recorded).toEqual(['supabase', 'auth'])
+    expect(h.erasure.calls.complete[0].counts).toMatchObject({ stripe_customers_deleted: 2 })
+  })
+
+  it('Customers to delete but no Stripe key: the breaker waits, Supabase is untouched', async () => {
+    vi.stubEnv('STRIPE_SECRET_KEY', '')
+    const h = harness({ stripeCustomers: [CUS_1] })
+
+    const result = await dispatchOutboxKey(KEY, h.deps)
+
+    expect(result).toEqual({ outcome: 'breaker', code: 'stripe_unconfigured' })
+    expect(h.erasure.calls.anonymise).toBe(0)
+    expect(h.erasure.calls.recorded).toEqual(['chatwoot', 'espocrm', 'verify'])
+  })
+
+  it('a rejected Stripe key opens the breaker instead of retrying quickly', async () => {
+    const s = stripeDouble({ fail: { [CUS_1]: stripeError({ type: 'StripeAuthenticationError', statusCode: 401 }) } })
+    const h = harness({ stripeCustomers: [CUS_1], stripe: s.stripe })
+
+    const result = await dispatchOutboxKey(KEY, h.deps)
+
+    expect(result).toEqual({ outcome: 'breaker', code: 'stripe_auth' })
+    expect(h.erasure.calls.anonymise).toBe(0)
+  })
+
+  it('a request already past the Supabase step skips the stripe step (the ids are gone)', async () => {
+    const h = harness({
+      req: request({
+        identity: null,
+        steps: {
+          chatwoot: { chatwoot_contacts_deleted: 1 },
+          espocrm: { espo_contacts_deleted: 1 },
+          verify: { verified: true, verify_remaining: 0 },
+          supabase: { bookings_anonymised: 1 },
+        },
+        status: 'running',
+      }),
+      stripeCustomers: [CUS_1],
+    })
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+    expect(h.erasure.calls.stripeIdsReads).toBe(0)
+  })
+})
+
+describe('stripeCustomerIds (store read)', () => {
+  function bookingsClient(rows: Array<Record<string, unknown>>) {
+    const inFn = vi.fn(async () => ({ data: rows, error: null }))
+    const select = vi.fn(() => ({ in: inFn }))
+    const from = vi.fn(() => ({ select }))
+    return { client: { from } as unknown as SupabaseClient, from, select, inFn }
+  }
+
+  it('returns distinct ids and leaves out every customer that sits on a live hold or a pending fee case', async () => {
+    const { client, from } = bookingsClient([
+      { stripe_customer_id: 'cus_A', payment_state: 'captured', fee_case_status: null },
+      { stripe_customer_id: 'cus_A', payment_state: 'released', fee_case_status: null },
+      { stripe_customer_id: 'cus_B', payment_state: 'authorized', fee_case_status: null },
+      { stripe_customer_id: 'cus_C', payment_state: 'card_saved', fee_case_status: 'pending' },
+      { stripe_customer_id: 'cus_D', payment_state: 'cash_settled', fee_case_status: 'charged' },
+      { stripe_customer_id: null, payment_state: 'none', fee_case_status: null },
+    ])
+    expect((await stripeCustomerIds([BOOKING_1, BOOKING_2], client)).sort()).toEqual(['cus_A', 'cus_D'])
+    expect(from).toHaveBeenCalledWith('bookings')
+  })
+
+  it('reads nothing for no bookings and turns a read error into db_error', async () => {
+    const { client, from } = bookingsClient([])
+    expect(await stripeCustomerIds([], client)).toEqual([])
+    expect(from).not.toHaveBeenCalled()
+    const failing = {
+      from: () => ({ select: () => ({ in: async () => ({ data: null, error: { message: 'x' } }) }) }),
+    } as unknown as SupabaseClient
+    await expect(stripeCustomerIds([BOOKING_1], failing)).rejects.toBeInstanceOf(OutboxStoreError)
   })
 })

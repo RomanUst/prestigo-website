@@ -129,6 +129,15 @@
         "INTERNAL": "Failed to create payment intent. Please try again.",
         "NO_CODE": "No code provided."
       },
+      "cancellation": {
+        "label": "CANCELLATION",
+        "rowFree": "Free cancellation until <bdi>{freeUntil}</bdi>.",
+        "rowFreeUnavailable": "Free cancellation is not available for this trip because pickup is less than {hours, plural, one {{hours} hour} other {{hours} hours}} away.",
+        "rowFee": "After that, {percent}% of the fare (<bdi>{amount}</bdi>) applies. A person at Prestigo decides every charge and may waive it.",
+        "rowNoShow": "If you do not show up, the full fare applies once the driver has waited {waitMin, plural, one {{waitMin} minute} other {{waitMin} minutes}}.",
+        "termsLink": "Cancellation terms",
+        "acceptance": "By paying, you accept the cancellation terms above and our <terms>Terms & Conditions</terms>."
+      },
       "cardOnFile": {
         "headlineSetup": "Nothing is charged now.",
         "headlineHoldNow": "The amount is held now and charged after your trip.",
@@ -140,8 +149,12 @@
         "holdNowToday": "We hold {amount} on your card. A hold is not a charge, but your bank may show it as pending.",
         "holdNowAfterTrip": "The held amount is charged. If the final price is lower, only the lower amount is taken and the rest is released.",
         "cardDetailsLabel": "CARD DETAILS",
-        "consentSetup": "I authorise Prestigo to save this card and to hold {amount} on it on {holdDate}, then charge it after my trip is completed. If the agreed price of my booking changes, I authorise Prestigo to charge or release the difference.",
-        "consentHoldNow": "I authorise Prestigo to hold {amount} on this card now, to save this card for this purpose, and to charge it after my trip is completed. If the agreed price of my booking changes, I authorise Prestigo to charge or release the difference.",
+        "consentSetup": "I authorise Prestigo to save this card, to hold {amount} on it on {holdDate} and to charge it after my trip. If I cancel after {freeUntil}, or I do not show up, I authorise Prestigo to charge up to the full fare of {amount} to this card; a person at Prestigo decides each charge. If the price of my booking changes, I authorise Prestigo to charge or release the difference.",
+        "consentSetupNoFree": "I authorise Prestigo to save this card, to hold {amount} on it on {holdDate} and to charge it after my trip. If I cancel, or I do not show up, I authorise Prestigo to charge up to the full fare of {amount} to this card; a person at Prestigo decides each charge. If the price of my booking changes, I authorise Prestigo to charge or release the difference.",
+        "consentHoldNow": "I authorise Prestigo to hold {amount} on this card now, to save this card and to charge it after my trip. If I cancel after {freeUntil}, or I do not show up, I authorise Prestigo to charge up to the full fare of {amount} to this card; a person at Prestigo decides each charge. If the price of my booking changes, I authorise Prestigo to charge or release the difference.",
+        "consentHoldNowNoFree": "I authorise Prestigo to hold {amount} on this card now, to save this card and to charge it after my trip. If I cancel, or I do not show up, I authorise Prestigo to charge up to the full fare of {amount} to this card; a person at Prestigo decides each charge. If the price of my booking changes, I authorise Prestigo to charge or release the difference.",
+        "consentCash": "I will pay {amount} in cash to the driver. I authorise Prestigo to save this card and to charge it, up to {amount}, if I cancel after {freeUntil}, if I do not show up, or if I do not pay the driver. A person at Prestigo decides each charge. No hold is placed and nothing is charged now.",
+        "consentCashNoFree": "I will pay {amount} in cash to the driver. I authorise Prestigo to save this card and to charge it, up to {amount}, if I cancel, if I do not show up, or if I do not pay the driver. A person at Prestigo decides each charge. No hold is placed and nothing is charged now.",
         "termsLink": "Terms & Conditions",
         "privacyLink": "Privacy Policy",
         "trustLine": "Card details go straight to Stripe. Prestigo never sees your card number.",
@@ -152,7 +165,20 @@
         "noticeModeChanged": "Your trip is now closer, so the payment timing has changed. Please check the details above and enter your card again.",
         "noticeDetailsChanged": "The payment details changed. Please review and tick the box again.",
         "errorConsentRequired": "Please tick the box to continue.",
-        "errorBankVerification": "Your bank could not verify this card. Please try again or use another card."
+        "errorBankVerification": "Your bank could not verify this card. Please try again or use another card.",
+        "paymentChoiceLabel": "HOW WOULD YOU LIKE TO PAY?",
+        "choiceCardTitle": "Pay by card after your trip",
+        "choiceCardDescSetup": "Nothing is charged now.",
+        "choiceCardDescHoldNow": "The amount is held now.",
+        "choiceCashTitle": "Pay cash to the driver",
+        "choiceCashDesc": "We save your card as a guarantee. Nothing is charged now.",
+        "headlineCash": "Pay your driver in cash.",
+        "captionOnTheDay": "On the day",
+        "captionOnlyIfNeeded": "Only if needed",
+        "cashToday": "We save your card securely with Stripe. Nothing is charged and no hold is placed.",
+        "cashOnTheDay": "Pay <bdi>{amount}</bdi> in cash to your driver at the end of the trip.",
+        "cashIfNeeded": "We charge the saved card only if you cancel late, do not show up, or do not pay the driver. A person at Prestigo decides first, and we never charge it automatically.",
+        "noticePolicyChanged": "The cancellation terms changed while you were reading. Please review the note above and tick the box again."
       }
     },
     "tripTypeTabs": {
@@ -197,6 +223,35 @@
     "stepper": {
       "decreaseAria": "Decrease {label}",
       "increaseAria": "Increase {label}"
+    },
+    "confirmation": {
+      "sessionExpired": "Your session has expired. Begin a new booking.",
+      "bookNow": "BOOK NOW",
+      "homeAria": "Prestigo home",
+      "headingBooking": "BOOKING CONFIRMED",
+      "headingQuote": "QUOTE REQUEST SENT",
+      "refBooking": "YOUR BOOKING REFERENCE",
+      "refQuote": "YOUR REFERENCE",
+      "outbound": "OUTBOUND",
+      "return": "RETURN",
+      "quoteBody": "We will be in touch within 2 hours to confirm your journey and pricing.",
+      "journeyDetails": "JOURNEY DETAILS",
+      "outboundJourney": "OUTBOUND JOURNEY",
+      "returnJourney": "RETURN JOURNEY",
+      "hoursLine": "{hours} hours",
+      "dateTime": "{date} at {time}",
+      "atTime": "at {time}",
+      "passengers": "{count, plural, one {{n} passenger} other {{n} passengers}}",
+      "print": "PRINT / SAVE PDF",
+      "printAria": "Print or save as PDF",
+      "calendar": "ADD TO CALENDAR",
+      "calendarAria": "Add this booking to your calendar",
+      "contact": "QUESTIONS? CONTACT US",
+      "contactAria": "Contact us with questions",
+      "bookAnother": "BOOK ANOTHER RIDE",
+      "backHome": "BACK TO HOME",
+      "manageSentence": "We sent your confirmation and a link to manage your booking to your email.",
+      "payCash": "Pay <bdi>{amount}</bdi> in cash to your driver."
     },
     "vehicleClasses": {
       "business": { "label": "Business" },
@@ -826,6 +881,7 @@
       "emptyHeading": "No trips yet",
       "emptyBody": "Your booked transfers will appear here. Ready to travel?",
       "emptyCta": "Book a transfer",
+      "manage": "Manage booking",
       "statusLabels": {
         "confirmed": "CONFIRMED",
         "pending": "PENDING",
@@ -1004,7 +1060,9 @@
       "whatNextLabel": "What happens next",
       "receiptLabel": "Receipt",
       "paySecurelyLabel": "Pay securely",
-      "tagline": "PRESTIGE IN EVERY MILE"
+      "tagline": "PRESTIGE IN EVERY MILE",
+      "bookAgainCta": "Book another ride",
+      "decides": "A person at Prestigo decides every charge."
     },
     "cardSaved": {
       "subject": "Your PRESTIGO booking is confirmed — {reference}",
@@ -1012,7 +1070,12 @@
       "intro": "Your card is saved. Nothing has been charged.",
       "lineToday": "Today: your card is saved.",
       "lineHoldDay": "{holdDate}: we hold {amount} on your card. A hold is not a charge.",
-      "lineAfterTrip": "After your trip: the hold becomes the final charge."
+      "lineAfterTrip": "After your trip: the hold becomes the final charge.",
+      "introCash": "Your card is saved as a guarantee. Nothing has been charged and no hold is placed.",
+      "cashLineToday": "Today: your card is saved. No hold, no charge.",
+      "cashLineDay": "On the day: pay {amount} in cash to your driver.",
+      "cashLineIfNeeded": "Only if needed: we charge the saved card if you cancel after {freeUntil}, do not show up, or do not pay the driver. A person at Prestigo decides first.",
+      "cashLineIfNeededNoFree": "Only if needed: we charge the saved card if you cancel, do not show up, or do not pay the driver. A person at Prestigo decides first."
     },
     "holdPlacedAtCheckout": {
       "subject": "Your PRESTIGO booking is confirmed — {reference}",
@@ -1041,7 +1104,186 @@
       "h1AuthRequired": "Your bank needs you to confirm this payment.",
       "introAuthRequired": "We couldn't charge {amount} to your card for your trip on {pickupDate} because your bank asked for extra confirmation. Please confirm with the button below.",
       "body": "The link opens a secure Stripe payment page. If you pay with the link, we won't try your card again. If you have already paid, ignore this email.",
-      "cta": "Pay {amount} securely"
+      "cta": "Pay {amount} securely",
+      "subjectFee": "Action needed: payment for your PRESTIGO booking — {reference}",
+      "h1Fee": "We couldn't charge your card.",
+      "introFeeCancellation": "We couldn't charge {amount} to your card for the cancellation fee. Please pay securely with the button below.",
+      "introFeeNoShow": "We couldn't charge {amount} to your card for the no-show fee. Please pay securely with the button below.",
+      "introFeeTrip": "We couldn't charge {amount} to your card for your trip. Please pay securely with the button below."
+    },
+    "policyBox": {
+      "label": "Cancellation",
+      "labelFor": "Cancellation, booking {reference}",
+      "body": "Free cancellation until {freeUntil}. After that, {percent}% of the fare ({amount}) applies. If you do not show up, the full fare applies once the driver has waited {waitMin} minutes. A person at Prestigo decides every charge.",
+      "bodyNoFree": "Free cancellation is not available for this trip. If you cancel, {percent}% of the fare ({amount}) applies. If you do not show up, the full fare applies once the driver has waited {waitMin} minutes. A person at Prestigo decides every charge.",
+      "cash": "You pay {amount} in cash to your driver. Your card is only a guarantee."
+    },
+    "manage": {
+      "cta": "Manage booking",
+      "ctaFor": "Manage booking {reference}",
+      "note": "Cancel, ask for a change or book another ride. Keep this link private."
+    },
+    "money": {
+      "nothing": "Nothing was charged.",
+      "released": "The hold on your card is released.",
+      "refunded": "We refunded {amount} to your card. Your bank usually shows it within 5 to 10 business days."
+    },
+    "cancelled": {
+      "subject": "Your PRESTIGO booking is cancelled — {reference}",
+      "h1": "Your booking is cancelled.",
+      "h1ByPrestigo": "We had to cancel your booking.",
+      "introSorry": "We are sorry. Your booking is cancelled and you are not charged.",
+      "introLate": "You cancelled after {freeUntil}, so a cancellation fee of up to {amount} may apply. A person at Prestigo decides and emails you. Nothing has been charged yet.",
+      "lateNext": "We email you our decision. If your plans changed because of something outside your control, such as a cancelled flight, tell us and reply to this email."
+    },
+    "feeCharged": {
+      "subjectLateCancel": "Cancellation fee for your PRESTIGO booking — {reference}",
+      "h1LateCancel": "We charged a cancellation fee.",
+      "introLateCancel": "You cancelled booking {reference} after {freeUntil}. We charged {amount} to your card.",
+      "reasonLateCancel": "Reason: cancellation after {freeUntil}",
+      "subjectNoShow": "No-show fee for your PRESTIGO booking — {reference}",
+      "h1NoShow": "We charged a no-show fee.",
+      "introNoShow": "Your driver waited {waitMin} minutes at the pick-up point and could not meet you. We charged {amount} to your card.",
+      "reasonNoShow": "Reason: no-show, the driver waited {waitMin} minutes",
+      "subjectCashUnpaid": "Payment for your PRESTIGO trip — {reference}",
+      "h1CashUnpaid": "We charged your saved card.",
+      "introCashUnpaid": "Your trip on {pickupDate} was not paid in cash, so we charged {amount} to the card you saved.",
+      "reasonCashUnpaid": "Reason: the trip was not paid in cash",
+      "introCashCard": "You chose to pay by card, so we charged {amount} to the card you saved."
+    },
+    "feeWaived": {
+      "subject": "No fee for your PRESTIGO booking — {reference}",
+      "h1": "No fee for your booking.",
+      "intro": "We decided not to charge a cancellation fee."
+    },
+    "contactOr": "or"
+  },
+  "Manage": {
+    "meta": {
+      "title": "Your booking"
+    },
+    "header": {
+      "homeAriaLabel": "Prestigo home"
+    },
+    "loading": "Loading your booking",
+    "eyebrow": "Your booking",
+    "title": {
+      "trip": "Your trip on <bdi>{pickupDate}</bdi>",
+      "onBoard": "Enjoy your ride",
+      "completed": "Trip completed",
+      "cancelled": "Booking cancelled",
+      "noShow": "We could not meet you"
+    },
+    "titleLine": {
+      "completed": "Thank you for travelling with Prestigo.",
+      "noShow": "The driver waited at the pick-up point. We will email you about the next steps."
+    },
+    "status": {
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "assigned": "Driver assigned",
+      "enRoute": "Driver on the way",
+      "onLocation": "Driver at pickup",
+      "onBoard": "On the way",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "noShow": "Pickup missed",
+      "unpaid": "Awaiting payment"
+    },
+    "reference": "Booking reference",
+    "details": {
+      "from": "From",
+      "to": "To",
+      "pickup": "Pickup",
+      "pragueTime": "Prague time",
+      "vehicle": "Vehicle",
+      "passengers": "Passengers",
+      "fare": "Fare",
+      "payment": "Payment"
+    },
+    "payment": {
+      "paidCard": "Paid by card: <bdi>{amount}</bdi>.",
+      "cardSaved": "Your card is saved. We hold <bdi>{amount}</bdi> on <bdi>{holdDate}</bdi> and charge it after your trip.",
+      "holdActive": "A hold of <bdi>{amount}</bdi> is on your card. It is charged after your trip.",
+      "cash": "Pay <bdi>{amount}</bdi> in cash to your driver. Your card is saved only as a guarantee."
+    },
+    "panel": {
+      "freeHeading": "Free cancellation until <bdi>{freeUntil}</bdi>",
+      "freeIntro": "You can cancel this booking for free until then.",
+      "freeHold": "Your card hold is released.",
+      "freeRefund": "We refund <bdi>{amount}</bdi> to your card.",
+      "freeNone": "Nothing has been charged.",
+      "bankNote": "Your bank usually shows a refund within 5 to 10 business days.",
+      "lateHeading": "Free cancellation has ended",
+      "late1": "Free cancellation ended on <bdi>{freeUntil}</bdi>.",
+      "late2": "If you cancel now, {percent}% of the fare (<bdi>{amount}</bdi>) applies. Your booking is cancelled right away and your driver is told.",
+      "late3": "A person at Prestigo decides the final charge, and may waive it, for example if your flight was cancelled. Nothing is charged until we email you.",
+      "lateNoFee": "If you cancel now, your booking is cancelled right away and your driver is told. Nothing will be charged.",
+      "tooLate": "Pickup time has passed. To cancel now, please call us."
+    },
+    "cancelled": {
+      "heading": "Cancelled on <bdi>{cancelledDate}</bdi>",
+      "none": "Nothing was charged.",
+      "refunded": "We refunded <bdi>{amount}</bdi>.",
+      "pending": "A cancellation fee of up to <bdi>{amount}</bdi> may apply. We will email you our decision.",
+      "charged": "We charged <bdi>{amount}</bdi> for cancelling after <bdi>{freeUntil}</bdi>.",
+      "chargedLate": "We charged <bdi>{amount}</bdi> for cancelling late.",
+      "waived": "We decided not to charge a cancellation fee."
+    },
+    "bookNew": "Book a new ride",
+    "bookRide": "Book a ride",
+    "callUs": "Call us",
+    "emailUs": "Email us",
+    "contact": {
+      "label": "Need help?",
+      "privacy": "This page is private. Anyone with this link can manage this booking, so do not share it.",
+      "terms": "Terms & Conditions"
+    },
+    "invalid": {
+      "title": "This link is not valid",
+      "body": "Check that you copied the whole link from your booking email. If it still does not work, contact us and we will help."
+    },
+    "actions": {
+      "cancel": {
+        "open": "Cancel booking",
+        "heading": "Cancel this booking?",
+        "keep": "Keep my booking",
+        "confirm": "Yes, cancel booking",
+        "busy": "Cancelling…",
+        "summaryFree": "Nothing will be charged.",
+        "summaryLate": "{percent}% of the fare (<bdi>{amount}</bdi>) applies.",
+        "tickLate": "I understand that {percent}% of the fare (<bdi>{amount}</bdi>) applies because I am cancelling after <bdi>{freeUntil}</bdi>.",
+        "tickLateNoFee": "I understand that free cancellation ended on <bdi>{freeUntil}</bdi>."
+      },
+      "result": {
+        "freeHold": "Your booking is cancelled. Nothing was charged. The hold on your card is released; your bank may take a few days to show it.",
+        "freeRefunded": "Your booking is cancelled. We refunded <bdi>{amount}</bdi>. Your bank usually shows it within 5 to 10 business days.",
+        "freeNone": "Your booking is cancelled. Nothing was charged.",
+        "late": "Your booking is cancelled and your driver is told. Nothing has been charged yet. Because you cancelled after <bdi>{freeUntil}</bdi>, up to <bdi>{amount}</bdi> may be charged. We will email you our decision.",
+        "lateNoFee": "Your booking is cancelled and your driver is told. Nothing will be charged.",
+        "manual": "Your booking is cancelled. We need to finish your refund by hand and will email you when it is done.",
+        "generic": "Your booking is cancelled.",
+        "emailSent": "We sent you an email."
+      },
+      "error": {
+        "policyChanged": "The cancellation terms changed while you were reading. Please review and confirm again.",
+        "busy": "We are processing a payment for this booking. Please try again in a minute.",
+        "rateLimit": "Too many attempts. Please wait a few minutes and try again.",
+        "network": "We could not reach the server. Nothing was changed. Please try again.",
+        "generic": "We could not cancel your booking. Nothing was changed. Please try again or call us: <tel>{phone}</tel>."
+      },
+      "change": {
+        "open": "Ask for a change",
+        "label": "What would you like to change?",
+        "helper": "Date, time, address, vehicle or passengers. We will reply by email and tell you if the price changes. Nothing changes until we confirm.",
+        "phone": "In a hurry? Call us on <tel>{phone}</tel>.",
+        "send": "Send request",
+        "sending": "Sending…",
+        "sent": "Request sent. We will reply by email.",
+        "errorEmpty": "Please write what you would like to change.",
+        "errorRate": "You already sent a request a moment ago. We will reply soon.",
+        "errorGeneric": "We could not send your request. Please try again or call us: <tel>{phone}</tel>."
+      }
     }
   }
 }

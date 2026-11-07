@@ -41,6 +41,13 @@ vi.mock('@/lib/request-guards', () => ({
 
 import { GET, PATCH } from '@/app/api/admin/settings/route'
 
+// .eq() is awaited by the update and followed by .single() by the stored-row read of the cross-checks
+function armEq() {
+  supabaseServiceStub._chain.eq.mockImplementation(() =>
+    Object.assign(Promise.resolve({ error: null }), { single: supabaseServiceStub._chain.single })
+  )
+}
+
 describe('NOTIF-06: admin settings API', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -93,7 +100,7 @@ describe('NOTIF-06: admin settings API', () => {
     expect(body.dispatch_default_horizon).toBe('future')
     expect(body.dispatch_horizon_days).toBe(7)
     expect(supabaseServiceStub._chain.select).toHaveBeenCalledWith(
-      'notification_flags, dispatch_default_horizon, dispatch_horizon_days, noshow_wait_city_min, noshow_wait_airport_min, payment_hold_lead_hours, card_flow_mode, card_flow_canary_emails'
+      'notification_flags, dispatch_default_horizon, dispatch_horizon_days, noshow_wait_city_min, noshow_wait_airport_min, payment_hold_lead_hours, card_flow_mode, card_flow_canary_emails, cancel_free_km_threshold, cancel_free_hours_short, cancel_free_hours_long, cancel_free_hours_hourly, cancel_fee_percent'
     )
   })
 
@@ -267,8 +274,16 @@ describe('Phase 87 D-15: no-show waiting thresholds in the settings API', () => 
     const chainStub = supabaseServiceStub._chain
     chainStub.select.mockReturnValue(chainStub)
     chainStub.update.mockReturnValue(chainStub)
-    chainStub.eq.mockResolvedValue({ error: null })
-    chainStub.single.mockResolvedValue({ data: null, error: null })
+    armEq()
+    chainStub.single.mockResolvedValue({
+      data: {
+        noshow_wait_city_min: 30,
+        noshow_wait_airport_min: 60,
+        cancel_free_hours_short: 1,
+        cancel_free_hours_long: 12,
+      },
+      error: null,
+    })
     supabaseServiceStub.from.mockReturnValue(chainStub)
     getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
   })
@@ -360,7 +375,7 @@ describe('Phase 88 (D-01, PAYF-05): card-flow settings in the settings API', () 
     const chainStub = supabaseServiceStub._chain
     chainStub.select.mockReturnValue(chainStub)
     chainStub.update.mockReturnValue(chainStub)
-    chainStub.eq.mockResolvedValue({ error: null })
+    armEq()
     chainStub.single.mockResolvedValue({ data: null, error: null })
     supabaseServiceStub.from.mockReturnValue(chainStub)
     getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
@@ -480,5 +495,165 @@ describe('Phase 88 (D-01, PAYF-05): card-flow settings in the settings API', () 
     await PATCH(patch({ payment_hold_lead_hours: 48 }))
     const arg = supabaseServiceStub._chain.update.mock.calls[0][0]
     expect(Object.keys(arg)).toEqual(['payment_hold_lead_hours'])
+  })
+})
+
+describe('Phase 89 (CANC-01, D-06, WR-06): cancellation policy and wait cross-check in the settings API', () => {
+  const STORED = {
+    noshow_wait_city_min: 30,
+    noshow_wait_airport_min: 60,
+    cancel_free_hours_short: 1,
+    cancel_free_hours_long: 12,
+  }
+
+  function patch(body: unknown) {
+    return new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    const chainStub = supabaseServiceStub._chain
+    chainStub.select.mockReturnValue(chainStub)
+    chainStub.update.mockReturnValue(chainStub)
+    armEq()
+    chainStub.single.mockResolvedValue({ data: STORED, error: null })
+    supabaseServiceStub.from.mockReturnValue(chainStub)
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+  })
+
+  it('GET returns the five policy fields alongside the existing ones', async () => {
+    supabaseServiceStub._chain.eq.mockReturnValue(supabaseServiceStub._chain)
+    supabaseServiceStub._chain.single.mockResolvedValue({
+      data: {
+        notification_flags: {},
+        cancel_free_km_threshold: 100,
+        cancel_free_hours_short: 1,
+        cancel_free_hours_long: 12,
+        cancel_free_hours_hourly: 12,
+        cancel_fee_percent: 100,
+      },
+      error: null,
+    })
+    const body = await (await GET()).json()
+    expect(body.cancel_free_km_threshold).toBe(100)
+    expect(body.cancel_free_hours_short).toBe(1)
+    expect(body.cancel_free_hours_long).toBe(12)
+    expect(body.cancel_free_hours_hourly).toBe(12)
+    expect(body.cancel_fee_percent).toBe(100)
+  })
+
+  it.each([
+    ['cancel_free_km_threshold', 80],
+    ['cancel_free_hours_short', 2],
+    ['cancel_free_hours_long', 24],
+    ['cancel_free_hours_hourly', 6],
+    ['cancel_fee_percent', 50],
+  ])('PATCH { %s: %d } saves only that key', async (key, value) => {
+    const res = await PATCH(patch({ [key]: value }))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub._chain.update).toHaveBeenCalledWith({ [key]: value })
+  })
+
+  it('accepts the bounds', async () => {
+    expect((await PATCH(patch({ cancel_free_km_threshold: 1 }))).status).toBe(200)
+    expect((await PATCH(patch({ cancel_free_km_threshold: 1000 }))).status).toBe(200)
+    expect((await PATCH(patch({ cancel_free_hours_hourly: 0 }))).status).toBe(200)
+    expect((await PATCH(patch({ cancel_free_hours_hourly: 72 }))).status).toBe(200)
+    expect((await PATCH(patch({ cancel_fee_percent: 1 }))).status).toBe(200)
+    expect((await PATCH(patch({ cancel_fee_percent: 100 }))).status).toBe(200)
+  })
+
+  it.each([
+    { cancel_free_hours_hourly: 73 },
+    { cancel_free_hours_short: 73 },
+    { cancel_free_hours_long: -1 },
+    { cancel_free_km_threshold: 0 },
+    { cancel_free_km_threshold: 1001 },
+    { cancel_fee_percent: 0 },
+    { cancel_fee_percent: 101 },
+    { cancel_fee_percent: 50.5 },
+    { cancel_free_hours_long: '12' },
+    { cancel_fee_percent: null },
+  ])('PATCH %j is 400 Invalid payload and updates nothing', async body => {
+    const res = await PATCH(patch(body))
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('Invalid payload')
+    expect(supabaseServiceStub._chain.update).not.toHaveBeenCalled()
+  })
+
+  it('long below short in one request is 422 long_below_short', async () => {
+    const res = await PATCH(patch({ cancel_free_hours_short: 10, cancel_free_hours_long: 5 }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error).toBe('long_below_short')
+    expect(supabaseServiceStub._chain.update).not.toHaveBeenCalled()
+  })
+
+  it('long equal to short is accepted', async () => {
+    const res = await PATCH(patch({ cancel_free_hours_short: 5, cancel_free_hours_long: 5 }))
+    expect(res.status).toBe(200)
+  })
+
+  it('a short above the stored long is 422 long_below_short (checked against the stored row)', async () => {
+    const res = await PATCH(patch({ cancel_free_hours_short: 20 }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error).toBe('long_below_short')
+    expect(supabaseServiceStub._chain.update).not.toHaveBeenCalled()
+  })
+
+  it('a long below the stored short is 422 long_below_short', async () => {
+    supabaseServiceStub._chain.single.mockResolvedValue({ data: { ...STORED, cancel_free_hours_short: 6 }, error: null })
+    const res = await PATCH(patch({ cancel_free_hours_long: 3 }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error).toBe('long_below_short')
+  })
+
+  it('an airport wait below the stored city wait is 422 airport_below_city', async () => {
+    const res = await PATCH(patch({ noshow_wait_airport_min: 10 }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error).toBe('airport_below_city')
+    expect(supabaseServiceStub._chain.update).not.toHaveBeenCalled()
+  })
+
+  it('a city wait above the stored airport wait is 422 airport_below_city', async () => {
+    const res = await PATCH(patch({ noshow_wait_city_min: 90 }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error).toBe('airport_below_city')
+  })
+
+  it('airport below city within one request is 422 airport_below_city', async () => {
+    const res = await PATCH(patch({ noshow_wait_city_min: 50, noshow_wait_airport_min: 40 }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error).toBe('airport_below_city')
+  })
+
+  it('airport equal to city is accepted', async () => {
+    expect((await PATCH(patch({ noshow_wait_city_min: 40, noshow_wait_airport_min: 40 }))).status).toBe(200)
+  })
+
+  it('a failed stored-row read is 500 and updates nothing', async () => {
+    supabaseServiceStub._chain.single.mockResolvedValue({ data: null, error: { message: 'boom' } })
+    const res = await PATCH(patch({ noshow_wait_airport_min: 90 }))
+    expect(res.status).toBe(500)
+    expect(supabaseServiceStub._chain.update).not.toHaveBeenCalled()
+  })
+
+  it('a field that needs no cross-check does not read the stored row', async () => {
+    await PATCH(patch({ cancel_fee_percent: 40 }))
+    expect(supabaseServiceStub._chain.single).not.toHaveBeenCalled()
+  })
+
+  it('invalid JSON is 400', async () => {
+    const req = new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: '{nope',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe('Invalid JSON')
   })
 })

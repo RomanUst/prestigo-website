@@ -22,6 +22,7 @@ const {
   mockDeactivateLink,
   mockPushGnetStatus,
   mockAfter,
+  mockSendPaymentEmail,
 } = vi.hoisted(() => {
   return {
     mockGetAdminUser: vi.fn(),
@@ -38,6 +39,7 @@ const {
     mockDeactivateLink: vi.fn(),
     mockPushGnetStatus: vi.fn(),
     mockAfter: vi.fn(),
+    mockSendPaymentEmail: vi.fn(),
   }
 })
 
@@ -56,7 +58,14 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/payments/stripe', async (importActual) => {
   const actual = await importActual<typeof import('@/lib/payments/stripe')>()
-  return { ...actual, getPaymentsStripe: () => ({ refunds: { create: mockRefundsCreate } }) }
+  return {
+    ...actual,
+    getPaymentsStripe: () => ({
+      refunds: { create: mockRefundsCreate, list: async () => ({ data: [] }) },
+      // A pay-now payment that went through (money CR-01: its facts come from the PaymentIntent).
+      paymentIntents: { retrieve: async () => ({ status: 'succeeded', currency: 'eur', amount_received: 12000 }) },
+    }),
+  }
 })
 vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: mockAlert }))
 vi.mock('@/lib/payments/hold', async (importOriginal) => ({
@@ -65,10 +74,14 @@ vi.mock('@/lib/payments/hold', async (importOriginal) => ({
 }))
 
 vi.mock('@/lib/email-log', () => ({ logEmail: mockLogEmail }))
+// Phase 89 plan 89-27: the cancelled email goes through the payment email renderer (booking language).
+vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: mockSendPaymentEmail }))
 vi.mock('@/lib/email', () => ({
   sendStatusConfirmedEmail: mockSendConfirmed,
   sendStatusCancelledEmail: mockSendCancelled,
   sendPostTripEmail: mockSendPostTrip,
+  sendDriverCancelledEmail: vi.fn(),
+  getAcceptedDriver: () => undefined,
 }))
 vi.mock('@/lib/qstash', () => ({ scheduleQStashReminder: mockScheduleQStash }))
 vi.mock('@/lib/stripe-payment-links', () => ({
@@ -84,11 +97,14 @@ import { czkToEur } from '@/lib/currency'
 
 const ID = 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'
 
+// Phase 89 D-20: the route requires who cancelled. The Phase 87/88 tests below are all about the money of an in-time
+// cancel, which `prestigo` always is (free whatever the time); a test of the client rules passes cancelled_by itself
+// (undefined drops the field).
 function makeRequest(body: Record<string, unknown>): Request {
   return new Request('http://localhost/api/admin/bookings/cancel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ cancelled_by: 'prestigo', ...body }),
   })
 }
 
@@ -104,6 +120,8 @@ function wireSupabase(opts: {
   rpcResult?: unknown
   /** The payment columns read again after the status CAS (88-REVIEW C-WR-01); default: the same booking. */
   fresh?: Record<string, unknown> | null
+  /** Another row shares this booking's PaymentIntent (a round trip). */
+  sibling?: boolean
 }) {
   const singleFn = vi.fn().mockResolvedValue({
     data: opts.booking,
@@ -112,7 +130,14 @@ function wireSupabase(opts: {
   const selectEq = vi.fn().mockReturnValue({ single: singleFn })
   const selectFn = vi.fn().mockReturnValue({ eq: selectEq })
   const freshMaybe = vi.fn().mockResolvedValue({ data: opts.fresh === undefined ? opts.booking : opts.fresh, error: null })
-  const freshSelect = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle: freshMaybe }) })
+  // eq(trip_type).neq is the sibling lookup of a shared PaymentIntent (round-trip rows only): trip_type says what a row is.
+  const siblingNeq = vi.fn().mockResolvedValue({ data: opts.sibling ? [{ id: 'sibling' }] : [], error: null })
+  const freshSelect = vi.fn().mockReturnValue({
+    eq: vi.fn().mockReturnValue({
+      maybeSingle: freshMaybe,
+      eq: vi.fn().mockReturnValue({ neq: siblingNeq }),
+    }),
+  })
 
   mockSupabaseFrom.mockReturnValueOnce({ select: selectFn }).mockReturnValue({ select: freshSelect })
   mockRpc.mockImplementation(async (name: string) => {
@@ -126,7 +151,10 @@ function wireSupabase(opts: {
 
 /** The advance_booking_status calls only (the ledger append is a second RPC). */
 const statusCalls = () => mockRpc.mock.calls.filter((c) => c[0] === 'advance_booking_status')
-const ledgerCalls = () => mockRpc.mock.calls.filter((c) => c[0] === 'append_payment_event')
+const allLedgerCalls = () => mockRpc.mock.calls.filter((c) => c[0] === 'append_payment_event')
+// The money-failure rows. The admin_action row (who cancelled, Phase 89 T-89-30) has its own helper below.
+const ledgerCalls = () => allLedgerCalls().filter((c) => (c[1] as { p_event: { kind: string } }).p_event.kind !== 'admin_action')
+const adminActionCalls = () => allLedgerCalls().filter((c) => (c[1] as { p_event: { kind: string } }).p_event.kind === 'admin_action')
 
 function expectNoSideEffects() {
   expect(mockLogEmail).not.toHaveBeenCalled()
@@ -136,7 +164,9 @@ function expectNoSideEffects() {
   expect(mockScheduleQStash).not.toHaveBeenCalled()
   expect(mockDeactivateLink).not.toHaveBeenCalled()
   expect(mockPushGnetStatus).not.toHaveBeenCalled()
-  expect(mockAfter).not.toHaveBeenCalled()
+  // The only deferred work of a cancel is the client's mail and the driver / operator notices (plan 89-27).
+  expect(mockAfter.mock.calls.length).toBeLessThanOrEqual(2)
+  expect(mockSendPaymentEmail).not.toHaveBeenCalled()
 }
 
 beforeEach(() => {
@@ -266,25 +296,27 @@ describe('POST /api/admin/bookings/cancel', () => {
     expectNoSideEffects()
   })
 
-  it('leg=return with return_amount_czk 2500: CAS first, then the partial refund amount, metadata.leg and key', async () => {
+  it('the return row, 12000 paid for 5000 + 2500 CZK: CAS first, then its share, metadata.leg and key, with no leg in the request', async () => {
     const { rpcFn } = wireSupabase({
       booking: {
         id: ID,
         status: 'confirmed',
         payment_intent_id: 'pi_rt',
+        leg: 'return',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 2500,
       },
     })
     mockRefundsCreate.mockResolvedValue({ id: 're_leg' })
 
-    const res = await POST(makeRequest({ id: ID, leg: 'return' }))
+    const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true, refund_id: 're_leg' })
     expect(mockRefundsCreate).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_rt',
-        amount: Math.round(czkToEur(2500) * 100),
+        amount: 4000,
         metadata: { leg: 'return' },
       },
       { idempotencyKey: `refund:${ID}:return` },
@@ -298,23 +330,25 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(JSON.stringify(rpcArgs)).not.toContain('pi_rt')
   })
 
-  it('leg=outbound uses outbound_amount_czk', async () => {
+  it('a stale tab that names the other leg changes nothing: the row decides', async () => {
     wireSupabase({
       booking: {
         id: ID,
         status: 'confirmed',
         payment_intent_id: 'pi_rt',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 2500,
       },
     })
     mockRefundsCreate.mockResolvedValue({ id: 're_out' })
 
-    await POST(makeRequest({ id: ID, leg: 'outbound' }))
+    await POST(makeRequest({ id: ID, leg: 'return' }))
     expect(mockRefundsCreate).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_rt',
-        amount: Math.round(czkToEur(5000) * 100),
+        amount: 8000,
         metadata: { leg: 'outbound' },
       },
       { idempotencyKey: `refund:${ID}:outbound` },
@@ -327,18 +361,21 @@ describe('POST /api/admin/bookings/cancel', () => {
         id: ID,
         status: 'confirmed',
         payment_intent_id: 'pi_rt',
+        leg: 'return',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: null,
       },
+      sibling: true,
     })
-    const res = await POST(makeRequest({ id: ID, leg: 'return' }))
+    const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(422)
     expect(await res.json()).toEqual({
       error: 'Cannot compute per-leg refund: missing leg amount',
     })
     expect(mockRefundsCreate).not.toHaveBeenCalled()
     expect(mockRpc).not.toHaveBeenCalled()
-    expect(mockSupabaseFrom).toHaveBeenCalledTimes(1)
+    expect(mockSupabaseFrom).toHaveBeenCalledTimes(2) // reads only: the booking and its sibling
   })
 
   // ── D-20: a money failure after the cancel applied keeps the cancel ─────────────────────────
@@ -390,18 +427,21 @@ describe('POST /api/admin/bookings/cancel', () => {
   it('other Stripe error after the CAS: 502 refund_failed with the leg amount, key refund_failed:<id>:return', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     wireSupabase({
-      booking: { id: ID, status: 'pending', payment_intent_id: 'pi_boom', return_amount_czk: 2500 },
+      booking: {
+        id: ID,
+        status: 'pending',
+        payment_intent_id: 'pi_boom',
+        leg: 'return',
+        trip_type: 'round_trip',
+        outbound_amount_czk: 5000,
+        return_amount_czk: 2500,
+      },
     })
     mockRefundsCreate.mockRejectedValue(new Error('network down'))
 
-    const res = await POST(makeRequest({ id: ID, leg: 'return' }))
+    const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(502)
-    expect(await res.json()).toEqual({
-      error: 'refund_failed',
-      cancelled: true,
-      amount_minor: Math.round(czkToEur(2500) * 100),
-      currency: 'eur',
-    })
+    expect(await res.json()).toEqual({ error: 'refund_failed', cancelled: true, amount_minor: 4000, currency: 'eur' })
     expect(statusCalls()).toHaveLength(1)
     expect(ledgerCalls()).toHaveLength(1)
     expect((ledgerCalls()[0][1] as { p_event: { key: string; error_code: string } }).p_event).toMatchObject({
@@ -523,7 +563,8 @@ describe('POST /api/admin/bookings/cancel', () => {
         select: () => ({ eq: () => ({ single: async () => ({ data: { notification_flags: flags } }) }) }),
       })
       mockLogEmail.mockResolvedValue(true)
-      expect(mockAfter).toHaveBeenCalledTimes(1)
+      // The client's mail is registered first; the driver / operator notices are a second callback.
+      expect(mockAfter.mock.calls.length).toBeGreaterThanOrEqual(1)
       await (mockAfter.mock.calls[0][0] as () => Promise<void>)()
     }
 
@@ -532,12 +573,17 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockRefundsCreate.mockResolvedValue({ id: 're_1' })
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail()
-      expect(mockLogEmail).toHaveBeenCalledWith({
-        bookingId: ID,
-        emailType: 'booking_cancelled',
-        recipient: 'client@example.com',
-      })
-      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), 'refund')
+      expect(mockSendPaymentEmail).toHaveBeenCalledTimes(1)
+      expect(mockSendPaymentEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: 'cancelled',
+          variant: 'by_prestigo',
+          eventKey: `email:cancelled:${ID}`,
+          moneyOutcome: 'refunded',
+          booking: expect.objectContaining(CLIENT),
+        }),
+      )
+      expect(mockSendCancelled).not.toHaveBeenCalled()
     })
 
     it('card hold released: says nothing was charged', async () => {
@@ -546,14 +592,18 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockReleaseHold.mockResolvedValue('released')
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail()
-      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), 'no_charge')
+      expect(mockSendPaymentEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'cancelled', variant: 'by_prestigo', moneyOutcome: 'released' }),
+      )
     })
 
     it('manual booking: the plain email, no money line', async () => {
       wireSupabase({ booking: { id: ID, status: 'confirmed', payment_intent_id: null, ...CLIENT } })
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail()
-      expect(mockSendCancelled).toHaveBeenCalledWith(expect.objectContaining(CLIENT), null)
+      expect(mockSendPaymentEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ kind: 'cancelled', variant: 'by_prestigo', moneyOutcome: 'none' }),
+      )
     })
 
     it('a failed refund promises nothing: no email', async () => {
@@ -562,7 +612,9 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockRefundsCreate.mockRejectedValue(new Error('stripe down'))
       const res = await POST(makeRequest({ id: ID }))
       expect(res.status).toBe(502)
-      expect(mockAfter).not.toHaveBeenCalled()
+      // Only the driver / operator notices are scheduled; the client's mail (registered first) is not.
+      expect(mockAfter).toHaveBeenCalledTimes(1)
+      expect(mockSendPaymentEmail).not.toHaveBeenCalled()
       errorSpy.mockRestore()
     })
 
@@ -571,7 +623,7 @@ describe('POST /api/admin/bookings/cancel', () => {
       mockRefundsCreate.mockResolvedValue({ id: 're_1' })
       await POST(makeRequest({ id: ID }))
       await runDeferredEmail({ cancelled: false })
-      expect(mockLogEmail).not.toHaveBeenCalled()
+      expect(mockSendPaymentEmail).not.toHaveBeenCalled()
       expect(mockSendCancelled).not.toHaveBeenCalled()
     })
 
@@ -581,7 +633,9 @@ describe('POST /api/admin/bookings/cancel', () => {
     ])('sends nothing to %s', async (_name, extra) => {
       wireSupabase({ booking: { id: ID, payment_intent_id: null, ...CLIENT, ...extra } })
       await POST(makeRequest({ id: ID }))
-      expect(mockAfter).not.toHaveBeenCalled()
+      // The client's mail is never registered; only the driver / operator notices are.
+      expect(mockAfter).toHaveBeenCalledTimes(1)
+      expect(mockSendPaymentEmail).not.toHaveBeenCalled()
     })
   })
 
@@ -800,3 +854,76 @@ describe('POST /api/admin/bookings/cancel', () => {
     })
   })
 })
+
+// ── Phase 89 plan 89-08: who cancelled (D-20, T-89-28, T-89-30) ───────────────────────────────────────────────────
+// The orchestrator (lib/payments/cancel.ts) and the late-cancel money matrix are covered in tests/payments-cancel.test.ts;
+// here the route's own rules: the field is required and the operator's choice is on record.
+
+describe('who cancelled (Phase 89)', () => {
+  const PICKUP_FAR = new Date(Date.now() + 10 * 24 * 3_600_000)
+  const inTime = {
+    id: ID,
+    status: 'confirmed',
+    payment_mode: 'card_hold',
+    payment_state: 'card_saved',
+    payment_currency: 'eur',
+    payment_amount_minor: 12000,
+    trip_type: 'transfer',
+    distance_km: 40,
+    pickup_utc: PICKUP_FAR.toISOString(),
+    pickup_date: PICKUP_FAR.toISOString().slice(0, 10),
+    pickup_time: '10:00',
+  }
+
+  it.each([undefined, 'admin', '', 'Client', null])('cancelled_by %j is refused with 400: nothing read, nothing written', async (value) => {
+    const res = await POST(makeRequest({ id: ID, cancelled_by: value }))
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'Invalid payload' })
+    expect(mockSupabaseFrom).not.toHaveBeenCalled()
+    expect(mockRpc).not.toHaveBeenCalled()
+  })
+
+  it('a client cancel in time is free: the hold is released and the choice is on the ledger as cancel_client', async () => {
+    wireSupabase({ booking: inTime })
+    mockReleaseHold.mockResolvedValue('released')
+    const res = await POST(makeRequest({ id: ID, cancelled_by: 'client' }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true, released: true })
+    expect(mockReleaseHold).toHaveBeenCalledTimes(1)
+    expect(adminActionCalls()).toHaveLength(1)
+    expect((adminActionCalls()[0][1] as { p_event: Record<string, unknown> }).p_event).toMatchObject({
+      kind: 'admin_action',
+      error_code: 'cancel_client',
+      actor_type: 'admin',
+      actor_id: 'admin-1',
+    })
+    expect(statusCalls()[0][1]).toMatchObject({ p_source: 'admin_cancel', p_actor_type: 'admin', p_actor_id: 'admin-1' })
+  })
+
+  it('cancelled by Prestigo is free whatever the pickup time (already past): released, ledger cancel_prestigo, no case', async () => {
+    wireSupabase({ booking: { ...inTime, pickup_utc: '2020-01-01T10:00:00Z', pickup_date: '2020-01-01' } })
+    mockReleaseHold.mockResolvedValue('released')
+    const res = await POST(makeRequest({ id: ID, cancelled_by: 'prestigo' }))
+    expect(await res.json()).toEqual({ ok: true, released: true })
+    expect(mockReleaseHold).toHaveBeenCalledTimes(1)
+    expect((adminActionCalls()[0][1] as { p_event: Record<string, unknown> }).p_event).toMatchObject({ error_code: 'cancel_prestigo' })
+    // No fee case: every from() call is the booking select or the fresh payment read, which wireSupabase serves.
+    expect(mockSupabaseFrom).toHaveBeenCalledTimes(2)
+  })
+
+  it('a manual booking cancelled by the client writes no payment ledger row at all', async () => {
+    wireSupabase({ booking: { id: ID, status: 'confirmed', payment_intent_id: null } })
+    const res = await POST(makeRequest({ id: ID, cancelled_by: 'client' }))
+    expect(await res.json()).toEqual({ ok: true })
+    expect(allLedgerCalls()).toHaveLength(0)
+  })
+
+  it('a lost status race writes no admin_action row and moves no money', async () => {
+    wireSupabase({ booking: inTime, rpcResult: { applied: false, current_status: 'completed' } })
+    const res = await POST(makeRequest({ id: ID, cancelled_by: 'client' }))
+    expect(res.status).toBe(409)
+    expect(allLedgerCalls()).toHaveLength(0)
+    expect(mockReleaseHold).not.toHaveBeenCalled()
+  })
+})
+

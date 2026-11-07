@@ -10,7 +10,11 @@
 
 import { Resend } from 'resend'
 import { deliverOnce } from '@/lib/payments/notify'
-import { renderPaymentEmail, type PaymentEmailKind, type PaymentEmailVars } from '@/lib/payments/emails/render'
+import { renderPaymentEmail, type PaymentEmailKind, type PaymentEmailVars, type PolicyBoxVars } from '@/lib/payments/emails/render'
+import { createSupabaseServiceClient } from '@/lib/supabase'
+import { buildBookUrl, buildManageUrl, ensureManageToken } from '@/lib/manage-link'
+import { evaluateCancellation, policyFromSnapshot, proposedFeeMinor, tripFactsFromRow } from '@/lib/cancellation-policy'
+import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show-wait'
 import { holdDateIso } from '@/lib/payments/timing'
 import { eurToCzk } from '@/lib/currency'
 import { CUSTOMER_REPLY_TO, buildGoogleCalendarUrl, type BookingEmailData } from '@/lib/email'
@@ -59,10 +63,99 @@ export function bookingEmailDataFromRow(row: BookingRow): BookingEmailData {
   }
 }
 
-function emailVarsFromRow(
-  booking: BookingRow,
-  extra: { variant?: PaymentEmailVars['variant']; diffMinor?: number; payUrl?: string },
-): PaymentEmailVars {
+/** The stored-terms gate (D-18): a booking made before the policy was public has no stored version. */
+export function hasStoredPolicy(booking: BookingRow): boolean {
+  return typeof booking.cancel_policy_version === 'string' && booking.cancel_policy_version.length > 0
+}
+
+/**
+ * Terms for the cancellation box, from the policy the booking was made under (never today's settings). Null when the
+ * booking stored none or any input is unusable; a failure drops the box, never the email.
+ */
+export async function policyBoxFromRow(booking: BookingRow, amountMinor: number): Promise<PolicyBoxVars | null> {
+  if (!hasStoredPolicy(booking) || amountMinor <= 0) return null
+  try {
+    const policy = policyFromSnapshot(booking.cancel_policy)
+    const facts = tripFactsFromRow({
+      trip_type: str(booking.trip_type),
+      distance_km: num(booking.distance_km) ?? null,
+      pickup_utc: str(booking.pickup_utc) || null,
+      pickup_date: str(booking.pickup_date),
+      pickup_time: str(booking.pickup_time),
+    })
+    if (!facts) return null
+    // Judged at send time, like the checkout (card-checkout/init: freeUntilPassed = outcome is not 'free'): a booking made
+    // after its own deadline, and a reminder sent after it, must not promise free cancellation until a moment that is past.
+    const outcome = evaluateCancellation(policy, facts, Date.now())
+    const thresholds = await getNoShowThresholds(createSupabaseServiceClient())
+    const airport = isAirportPickup({
+      origin_lat: num(booking.origin_lat) ?? null,
+      origin_lng: num(booking.origin_lng) ?? null,
+      origin_address: str(booking.origin_address) || null,
+    })
+    return {
+      freeUntilMs: outcome.freeUntilMs,
+      freeUntilPassed: outcome.kind !== 'free',
+      percent: policy.feePercent,
+      feeAmountMinor: proposedFeeMinor(amountMinor, policy.feePercent),
+      waitMin: airport ? thresholds.airportMin : thresholds.cityMin,
+    }
+  } catch {
+    console.error('[payment-email] policy box dropped', { bookingId: str(booking.id) })
+    return null
+  }
+}
+
+/** The localized Manage booking URL, only for a booking that stored a policy; a failure drops the button. */
+export async function manageUrlFromRow(booking: BookingRow): Promise<string | undefined> {
+  if (!hasStoredPolicy(booking)) return undefined
+  try {
+    const token = await ensureManageToken(str(booking.id))
+    if (!token) return undefined
+    const url = buildManageUrl(token, booking.locale)
+    // The renderer only accepts https; a misconfigured site URL must not cost the client the whole email.
+    return new URL(url).protocol === 'https:' ? url : undefined
+  } catch {
+    console.error('[payment-email] manage link dropped', { bookingId: str(booking.id) })
+    return undefined
+  }
+}
+
+/** The localized "Book another ride" URL; a failure drops the button, never the email. */
+function bookAgainUrlFromRow(booking: BookingRow): string | undefined {
+  try {
+    const url = buildBookUrl(booking.locale)
+    return new URL(url).protocol === 'https:' ? url : undefined
+  } catch {
+    console.error('[payment-email] book link dropped', { bookingId: str(booking.id) })
+    return undefined
+  }
+}
+
+/**
+ * What an engine plan may hand the sender besides the kind: the variant and the facts of the Phase 89 mails
+ * (UI-SPEC 8.2). There is deliberately no reason or note field (T-89-13): operator text never reaches a client.
+ */
+export interface PaymentEmailExtra {
+  kind?: PaymentEmailKind
+  variant?: PaymentEmailVars['variant']
+  diffMinor?: number
+  payUrl?: string
+  /** Fee or charge the mail is about (minor units): cancelled late proposal, fee_charged amount, payment_failed fee. */
+  feeMinor?: number
+  /** Amount refunded when moneyOutcome is 'refunded'. */
+  refundMinor?: number
+  /** cancelled and fee_waived: hold released, payment refunded, or nothing taken. */
+  moneyOutcome?: PaymentEmailVars['moneyOutcome']
+  /** payment_failed fee: cancellation fee, no-show fee or the trip itself. */
+  feeLabel?: PaymentEmailVars['feeLabel']
+  /** End of the free period (epoch ms or ISO); taken from the booking's stored policy when absent. */
+  freeUntil?: number | string
+  /** Minutes the driver waited; taken from the no-show thresholds of the stored policy when absent. */
+  waitMin?: number
+}
+
+export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailExtra): Promise<PaymentEmailVars> {
   const holdAtMs = typeof booking.hold_at === 'string' ? Date.parse(booking.hold_at) : NaN
   const currency = booking.payment_currency === 'czk' ? 'czk' : 'eur'
   let calendarUrl: string | undefined
@@ -71,9 +164,33 @@ function emailVarsFromRow(
   } catch {
     calendarUrl = undefined
   }
+  const amountMinor = num(booking.payment_amount_minor) ?? 0
+  // Only the confirmation family carries the box and the button; no token is minted for a charged or failed mail.
+  const confirmation = extra.kind === undefined || extra.kind === 'card_saved' || extra.kind === 'hold_placed'
+  const [policy, manageUrl] = confirmation
+    ? await Promise.all([policyBoxFromRow(booking, amountMinor), manageUrlFromRow(booking)])
+    : [null, undefined]
+
+  // Phase 89 kinds: the engine names the kind and the amounts; the free period, the wait and the proposed fee come
+  // from the policy the booking was made under (never today's settings) unless the caller passes them.
+  const lateCancel = extra.kind === 'cancelled' && extra.variant === 'late'
+  const termsKind = extra.kind === 'cancelled' || extra.kind === 'fee_charged'
+  let terms: PolicyBoxVars | null = policy
+  if (
+    !terms &&
+    termsKind &&
+    (extra.freeUntil === undefined || extra.waitMin === undefined || (lateCancel && extra.feeMinor === undefined))
+  ) {
+    terms = await policyBoxFromRow(booking, amountMinor)
+  }
+  const freeUntil = extra.freeUntil ?? terms?.freeUntilMs
+  const waitMin = extra.waitMin ?? terms?.waitMin
+  const feeMinor = extra.feeMinor ?? (lateCancel ? terms?.feeAmountMinor : undefined)
+  const bookAgainUrl =
+    extra.kind === 'cancelled' || extra.kind === 'fee_waived' ? bookAgainUrlFromRow(booking) : undefined
   return {
     reference: str(booking.booking_reference),
-    amountMinor: num(booking.payment_amount_minor) ?? 0,
+    amountMinor,
     currency,
     pickupDateIso: str(booking.pickup_date),
     pickupTime: str(booking.pickup_time),
@@ -86,18 +203,26 @@ function emailVarsFromRow(
     diffMinor: extra.diffMinor,
     payUrl: extra.payUrl,
     calendarUrl,
+    ...(manageUrl ? { manageUrl } : {}),
+    ...(policy ? { policy } : {}),
+    ...(feeMinor !== undefined ? { feeMinor } : {}),
+    ...(extra.refundMinor !== undefined ? { refundMinor: extra.refundMinor } : {}),
+    ...(extra.moneyOutcome ? { moneyOutcome: extra.moneyOutcome } : {}),
+    ...(extra.feeLabel ? { feeLabel: extra.feeLabel } : {}),
+    ...(freeUntil !== undefined ? { freeUntil } : {}),
+    ...(waitMin !== undefined ? { waitMin } : {}),
+    ...(bookAgainUrl ? { bookAgainUrl } : {}),
   }
 }
 
-export async function sendPaymentEmail(input: {
-  kind: PaymentEmailKind
-  booking: BookingRow
-  /** The ledger key, `email:<kind>:<bookingId>[:<attempt>]`; recorded once the message is delivered. */
-  eventKey: string
-  variant?: PaymentEmailVars['variant']
-  diffMinor?: number
-  payUrl?: string
-}): Promise<'sent' | 'duplicate' | 'failed'> {
+export async function sendPaymentEmail(
+  input: PaymentEmailExtra & {
+    kind: PaymentEmailKind
+    booking: BookingRow
+    /** The ledger key, `email:<kind>:<bookingId>[:<attempt>]`; recorded once the message is delivered. */
+    eventKey: string
+  },
+): Promise<'sent' | 'duplicate' | 'failed'> {
   const { kind, booking, eventKey } = input
   const bookingId = str(booking.id)
   const to = str(booking.client_email)
@@ -111,7 +236,18 @@ export async function sendPaymentEmail(input: {
     rendered = await renderPaymentEmail(
       kind,
       booking.locale,
-      emailVarsFromRow(booking, { variant: input.variant, diffMinor: input.diffMinor, payUrl: input.payUrl }),
+      await emailVarsFromRow(booking, {
+        kind,
+        variant: input.variant,
+        diffMinor: input.diffMinor,
+        payUrl: input.payUrl,
+        feeMinor: input.feeMinor,
+        refundMinor: input.refundMinor,
+        moneyOutcome: input.moneyOutcome,
+        feeLabel: input.feeLabel,
+        freeUntil: input.freeUntil,
+        waitMin: input.waitMin,
+      }),
     )
   } catch {
     console.error('[payment-email] render failed', { bookingId, kind })

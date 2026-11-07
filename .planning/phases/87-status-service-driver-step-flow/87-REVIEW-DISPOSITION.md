@@ -10,7 +10,7 @@ Owner triage 2026-11-03: fix WR-03, WR-05 and the Cancel-button conflict message
 
 | ID | Severity | File | Finding | Disposition | Note |
 |----|----------|------|---------|-------------|------|
-| WR-01 | warning | app/api/admin/bookings/cancel/route.ts | Refund issued before the CAS; a lost race leaves a refund with a 409 | open | |
+| WR-01 | warning | app/api/admin/bookings/cancel/route.ts | Refund issued before the CAS; a lost race leaves a refund with a 409 | fixed | 88-16, commit 392d7916: status CAS runs first; test "lost race on a paid booking (WR-01)" |
 | WR-02 | warning | app/api/admin/bookings/route.ts, assign route | Edit/assign gates ignore terminal `no_show` | open | |
 | WR-03 | warning | lib/booking-status-service.ts | Status emails (post-trip, confirmed, cancelled) have no partner (GNet) guard; driver "Complete trip" now emails GNet passengers / noreply@gnet.local | fixed | pre-existing on admin path, newly reachable from the driver flow — live in production |
 | WR-04 | warning | lib/no-show.ts | Admin confirm / PATCH to no_show skip the wait threshold and open-request check | open | latent until Phase 89 charging |

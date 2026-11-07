@@ -2,18 +2,23 @@
 
 import { useEffect, useId, useRef } from 'react'
 import type { CSSProperties, KeyboardEvent } from 'react'
-import { LoaderCircle, MessageCircle } from 'lucide-react'
+import { LoaderCircle, MessageCircle, TriangleAlert } from 'lucide-react'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 export interface ConfirmStepDialogProps {
   /** 'no-show' asks the office to try the passenger (D-15); it changes no status and charges nothing. */
-  mode: 'step' | 'help' | 'no-show'
+  mode: 'step' | 'help' | 'no-show' | 'cash-received'
   stepLabel?: string
   isFinal?: boolean
   submitting: boolean
   error: string | null
   onConfirm: () => void
   onCancel: () => void
+  /**
+   * Phase 89 (D-11): the formatted cash label (a string built on the server). With mode 'step' on the final step it adds
+   * the cash warning block; with mode 'cash-received' it fills the confirm texts. Completion is never blocked by it.
+   */
+  cash?: { amountLabel: string }
   /** Help mode only (87-UAT gap 3): the primary "Chat with the office" button. */
   chat?: { state: 'idle' | 'opening' | 'error'; onOpen: () => void }
 }
@@ -52,7 +57,7 @@ const FOCUSABLE = 'button:not([disabled]), a[href]'
  * button is pressed, and focus returns to the invoking control on close.
  */
 export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
-  const { mode, stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel, chat } = props
+  const { mode, stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel, chat, cash } = props
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -91,7 +96,15 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
 
   const isHelp = mode === 'help'
   const isNoShow = mode === 'no-show'
-  const primaryLabel = error ? 'Try again' : isNoShow ? 'Send request' : (CONFIRM_BUTTON[stepLabel] ?? 'Confirm')
+  const isCashReceived = mode === 'cash-received'
+  const cashAmount = cash?.amountLabel ?? ''
+  const primaryLabel = error
+    ? 'Try again'
+    : isNoShow
+      ? 'Send request'
+      : isCashReceived
+        ? `Yes, I received ${cashAmount}`
+        : (CONFIRM_BUTTON[stepLabel] ?? 'Confirm')
 
   return (
     <div
@@ -140,14 +153,20 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
             lineHeight: 1.2,
           }}
         >
-          {isHelp ? 'Need help?' : isNoShow ? 'Request a no-show' : `Confirm: ${stepLabel}`}
+          {isHelp ? 'Need help?' : isNoShow ? 'Request a no-show' : isCashReceived ? 'Confirm cash received' : `Confirm: ${stepLabel}`}
         </h2>
+
+        {mode === 'step' && isFinal && cash ? <CashWarning amountLabel={cash.amountLabel} /> : null}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {isHelp ? (
             <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
               Chat with the office or call if you cannot find the passenger, the trip details look wrong, or a
               step was tapped by mistake.
+            </p>
+          ) : isCashReceived ? (
+            <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
+              {`You received ${cashAmount} in cash from the passenger?`}
             </p>
           ) : isNoShow ? (
             <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
@@ -160,7 +179,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               {'?'}
             </p>
           )}
-          {!isHelp && !isNoShow && isFinal ? (
+          {!isHelp && !isNoShow && !isCashReceived && isFinal ? (
             <p
               style={{
                 margin: 0,
@@ -294,6 +313,60 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
             {isHelp ? 'Close' : 'Not yet'}
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * UI-SPEC 6.1: the warning above the standard text of the final step. The amount is the server's label; the second
+ * sentence tells the driver the office can still charge the saved card while the client is there (D-21).
+ */
+function CashWarning({ amountLabel }: { amountLabel: string }) {
+  return (
+    <div
+      role="status"
+      style={{
+        boxSizing: 'border-box',
+        padding: 16,
+        borderRadius: 'var(--admin-radius-md)',
+        background: 'var(--status-warn-bg)',
+        color: 'var(--status-warn-fg)',
+        display: 'flex',
+        gap: 12,
+        alignItems: 'flex-start',
+      }}
+    >
+      <TriangleAlert size={20} aria-hidden="true" style={{ flexShrink: 0, marginTop: 2 }} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+        <span style={{ fontSize: 'var(--driver-fs-label)', fontWeight: 500, lineHeight: 1.4, letterSpacing: '0.08em' }}>
+          CASH TO COLLECT
+        </span>
+        <span
+          style={{
+            fontSize: 'var(--driver-fs-display)',
+            fontWeight: 500,
+            lineHeight: 1.1,
+            fontVariantNumeric: 'tabular-nums',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {amountLabel}
+        </span>
+        <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
+          Collect this amount in cash from the passenger before you finish.
+        </p>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 'var(--driver-fs-label)',
+            fontWeight: 400,
+            lineHeight: 1.4,
+            color: 'var(--admin-text-muted)',
+          }}
+        >
+          If the passenger wants to pay by card instead, call the office before you complete the trip.
+        </p>
       </div>
     </div>
   )

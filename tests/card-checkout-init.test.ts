@@ -138,6 +138,18 @@ describe('POST /api/card-checkout/init: eligible', () => {
       holdDateIso: '2027-01-13',
       amountMinor: expected,
       currency: 'eur',
+      // Phase 89: the policy preview for a client for whom the terms are public (defaults: 100 km, 1 h short, 100%)
+      policy: {
+        version: '2026-11-1',
+        freeUntilIso: '2027-01-16T08:00:00.000Z',
+        freeUntilPassed: false,
+        hours: 1,
+        percent: 100,
+        feeMinor: expected,
+        waitMin: 30,
+      },
+      // Phase 89 D-08: pay cash to the driver is offered wherever the card flow is.
+      cashAvailable: true,
     })
     expect(Number.isInteger(body.amountMinor)).toBe(true)
     expect(body.amountMinor).toBeGreaterThan(0)
@@ -182,13 +194,30 @@ describe('POST /api/card-checkout/init: every other case is exactly { eligible: 
     expect(state.queried).toEqual(['pricing_globals'])
   })
 
-  it("an unknown mode ('on') is treated as off", async () => {
-    state.globals = settingsRow({ card_flow_mode: 'on' })
+  it("an unknown mode is treated as off", async () => {
+    state.globals = settingsRow({ card_flow_mode: 'bogus' })
     expect((await call(bookingData())).body).toEqual({ eligible: false })
   })
 
-  it.each(['round_trip', 'daily'])('%s is never eligible (D-19)', async (tripType) => {
+  it('init stays opaque: a canary client who is not on the list gets exactly { eligible: false } and no pricing runs', async () => {
+    const { body } = await call(bookingData({ email: 'stranger@example.com' }))
+    expect(body).toEqual({ eligible: false })
+    expect(Object.keys(body)).toEqual(['eligible'])
+    expect(pricingConfigMock).not.toHaveBeenCalled()
+    expect(state.queried).toEqual(['pricing_globals'])
+  })
+
+  it.each(['round_trip', 'daily'])('%s is never card-eligible (D-19), a listed client only gets the policy', async (tripType) => {
     const { body } = await call(bookingData({ tripType, returnDate: '2027-01-18', returnTime: '10:00' }))
+    expect(body.eligible).toBe(false)
+    expect(Object.keys(body).sort()).toEqual(['eligible', 'policy'])
+    expect(body.policy.version).toBe('2026-11-1')
+  })
+
+  it.each(['round_trip', 'daily'])('%s for a client who is not on the list: exactly { eligible: false }, no pricing', async (tripType) => {
+    const { body } = await call(
+      bookingData({ tripType, email: 'stranger@example.com', returnDate: '2027-01-18', returnTime: '10:00' }),
+    )
     expect(body).toEqual({ eligible: false })
     expect(pricingConfigMock).not.toHaveBeenCalled()
   })
@@ -235,7 +264,8 @@ describe('POST /api/card-checkout/init: every other case is exactly { eligible: 
   it('pickup 11 hours out -> ineligible (12 h card-flow lead rule)', async () => {
     // now 09:00Z + 11 h = 20:00Z = 21:00 Prague
     const { body } = await call(bookingData({ pickupDate: '2027-01-10', pickupTime: '21:00' }))
-    expect(body).toEqual({ eligible: false })
+    expect(body.eligible).toBe(false)
+    expect(Object.keys(body).sort()).toEqual(['eligible', 'policy'])
   })
 
   it('pickup exactly 12 hours out is allowed (boundary)', async () => {
@@ -262,7 +292,7 @@ describe('POST /api/card-checkout/init: every other case is exactly { eligible: 
       },
       async () => {
         state.globals = settingsRow()
-        return call(bookingData({ tripType: 'daily' }))
+        return call(bookingData({ tripType: 'daily', email: 'stranger@example.com' }))
       },
     ]
     for (const run of cases) {
@@ -306,6 +336,76 @@ describe('POST /api/card-checkout/init: transport', () => {
 
   it('is side-effect free: only pricing_globals is read (no bookings / ledger access)', async () => {
     await call(bookingData())
+    expect(new Set(state.queried)).toEqual(new Set(['pricing_globals']))
+  })
+})
+
+describe('POST /api/card-checkout/init: policy preview (Phase 89, D-18, D-24)', () => {
+  it('mode on: a client who is not on any list is eligible and gets the preview', async () => {
+    state.globals = settingsRow({ card_flow_mode: 'on', card_flow_canary_emails: [] })
+    const { body } = await call(bookingData({ email: 'stranger@example.com' }))
+    expect(body.eligible).toBe(true)
+    expect(body.policy).toMatchObject({ version: '2026-11-1', hours: 1, percent: 100, waitMin: 30 })
+  })
+
+  it('uses the configured numbers: long window above the km threshold, percent, and the fee on the priced amount', async () => {
+    state.globals = settingsRow({
+      cancel_free_km_threshold: 40,
+      cancel_free_hours_short: 2,
+      cancel_free_hours_long: 24,
+      cancel_fee_percent: 50,
+    })
+    const { body } = await call(bookingData()) // 50 km > 40 km threshold -> long window
+    expect(body.policy).toMatchObject({
+      hours: 24,
+      percent: 50,
+      // pickup 2027-01-16 09:00Z minus 24 h
+      freeUntilIso: '2027-01-15T09:00:00.000Z',
+      freeUntilPassed: false,
+      feeMinor: Math.round(body.amountMinor / 2),
+    })
+  })
+
+  it('hourly trips use the hourly window', async () => {
+    state.globals = settingsRow({ cancel_free_hours_hourly: 6 })
+    const { body } = await call(bookingData({ tripType: 'hourly', hours: '3', distanceKm: '' }))
+    expect(body.policy).toMatchObject({ hours: 6, freeUntilIso: '2027-01-16T03:00:00.000Z' })
+  })
+
+  it('an airport pickup uses the airport waiting time, a city pickup the city one', async () => {
+    state.globals = settingsRow({ noshow_wait_city_min: 20, noshow_wait_airport_min: 75 })
+    const city = await call(bookingData())
+    expect(city.body.policy.waitMin).toBe(20)
+    const airport = await call(bookingData({ originAddress: 'Prague Airport Terminal 2' }))
+    expect(airport.body.policy.waitMin).toBe(75)
+  })
+
+  it('freeUntilPassed is true when the free window has already closed', async () => {
+    // pickup 2027-01-10 19:00 Prague = 18:00Z (9 h out), 150 km -> 12 h long window closed at 06:00Z
+    const { body } = await call(bookingData({ pickupDate: '2027-01-10', pickupTime: '19:00', distanceKm: '150' }))
+    expect(body.eligible).toBe(false)
+    expect(body.policy).toMatchObject({ freeUntilIso: '2027-01-10T06:00:00.000Z', freeUntilPassed: true, hours: 12 })
+  })
+
+  it('a round trip previews the outbound leg: its deadline and its share of the price', async () => {
+    const { body } = await call(
+      bookingData({ tripType: 'round_trip', returnDate: '2027-01-18', returnTime: '10:00' }),
+    )
+    expect(body.eligible).toBe(false)
+    expect(body.policy.freeUntilIso).toBe('2027-01-16T08:00:00.000Z')
+    expect(body.policy.feeMinor).toBeGreaterThan(0)
+  })
+
+  it('validation or pricing failure for a public client is still exactly { eligible: false }', async () => {
+    expect((await call(bookingData({ phone: '12345' }))).body).toEqual({ eligible: false })
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    pricingConfigMock.mockRejectedValue(new Error('db down'))
+    expect((await call(bookingData())).body).toEqual({ eligible: false })
+    errSpy.mockRestore()
+  })
+
+  it('stays side-effect free: only pricing_globals is read', async () => {
+    await call(bookingData({ tripType: 'round_trip', returnDate: '2027-01-18', returnTime: '10:00' }))
     expect(new Set(state.queried)).toEqual(new Set(['pricing_globals']))
   })
 })

@@ -25,6 +25,9 @@ vi.mock('@/components/booking/RouteMap', () => ({
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => '/',
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }))
 
 // buildTripView consults the Maps-backed start gate; the page test decides the answer.
@@ -308,10 +311,13 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     expect(src).not.toMatch(/\.(update|insert|upsert|delete|rpc)\(/)
   })
 
-  it('does not select the amount of the booking', async () => {
+  it('does not select the fare of the booking (Phase 89: only the cash payment columns are added, D-11)', async () => {
     const { selectFn } = mockSupabaseSingle(makeAssignmentRow())
     await renderPage()
-    expect(String(selectFn.mock.calls[0][0])).not.toMatch(/amount|price/i)
+    const cols = String(selectFn.mock.calls[0][0])
+    expect(cols).not.toMatch(/amount_eur|price/i)
+    // the only amount-like column is the cash one, and tests/driver-trip-cash.test.ts proves it never reaches a non-cash trip
+    expect(cols.match(/\w*amount\w*/gi)).toEqual(['payment_amount_minor'])
   })
 
   it('completed booking renders the "Trip completed" re-opened view with no trip data (D-17)', async () => {
@@ -333,10 +339,15 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     expect(stubSupabaseFrom).not.toHaveBeenCalled()
   })
 
-  it('cancelled, no_show, reassigned, declined, unknown and malformed tokens render byte-identical ended HTML (D-09, T-87-33)', async () => {
+  it('no_show, reassigned (even when cancelled), declined, unknown and malformed tokens render byte-identical ended HTML (D-09, T-87-33)', async () => {
+    // Phase 89 (UI-SPEC 6.3): a cancelled trip on the CURRENT driver's own link is the one exception, see the next test.
     const arrangements: Array<{ arrange: () => void; token: string }> = [
-      { arrange: () => mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'cancelled' })), token: validToken },
       { arrange: () => mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'no_show' })), token: validToken },
+      {
+        arrange: () =>
+          mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'cancelled', assignmentDriverId: driverId, bookingDriverId: otherDriverId })),
+        token: validToken,
+      },
       {
         arrange: () =>
           mockSupabaseSingle(makeAssignmentRow({ assignmentDriverId: driverId, bookingDriverId: otherDriverId })),
@@ -361,6 +372,18 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
       expect(html).toBe(htmls[0])
       expect(html).not.toContain('PRG-100')
       expect(html).not.toContain('Alice')
+    }
+  })
+
+  it('a cancelled trip on the current driver link says so and shows the reference only (Phase 89, D-03)', async () => {
+    mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'cancelled' }))
+    const { container } = await renderPage()
+    expect(screen.getByText('This trip was cancelled. You do not need to go.')).toBeInTheDocument()
+    expect(screen.getByText('Booking PRG-100')).toBeInTheDocument()
+    expect(screen.queryByText('This trip link is no longer active.')).not.toBeInTheDocument()
+    const text = container.textContent ?? ''
+    for (const secret of ['Alice', 'Smith', '+420123456789', 'Prague Airport', 'Wenceslas Square', '2026-09-01']) {
+      expect(text).not.toContain(secret)
     }
   })
 

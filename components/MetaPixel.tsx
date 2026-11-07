@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { locales, siteLocaleFromPathname } from '@/i18n/locales'
 import { normalizeMetaPixelId } from '@/lib/meta-pixel-id'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 // WINDOWS #15: trim + digits-only so a whitespace-polluted env value can't
 // break the inline fbq init script (an invalid ID renders no pixel at all).
@@ -66,6 +67,14 @@ export function trackMetaEvent(
  * with a POST to /api/meta-capi using the same eventId.
  */
 export default function MetaPixel() {
+  const pathname = usePathname()
+  // Phase 89 (D-02): nothing mounts on private link paths (/admin, /driver, /manage); the guard
+  // wraps the hook-bearing body so hook order stays stable.
+  if (isPrivateLinkPath(pathname)) return null
+  return <MetaPixelInner />
+}
+
+function MetaPixelInner() {
   const [consented, setConsented] = useState(false)
   const pathname = usePathname()
   const isFirstRender = useRef(true)

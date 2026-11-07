@@ -113,8 +113,28 @@ function shownHoldDate(data: { pickupDate: string; pickupTime: string }): string
   return pickupMs === null ? null : holdDateIso(computeHoldAt(pickupMs, 72).holdAtMs)
 }
 
+/**
+ * The free-until moment the client's consent shows (Phase 89 D-16): pickup minus the hours of the policy in the fake's
+ * settings row (the default policy when the row carries no cancel_* columns).
+ */
+function shownFreeUntil(data: { tripType: string; distanceKm: string; pickupDate: string; pickupTime: string }) {
+  const g = db.state.pricing_globals[0] as Record<string, unknown>
+  const num = (v: unknown, d: number) => (typeof v === 'number' ? v : d)
+  const km = Number(data.distanceKm)
+  const hours =
+    data.tripType === 'hourly'
+      ? num(g.cancel_free_hours_hourly, 12)
+      : km <= num(g.cancel_free_km_threshold, 100)
+        ? num(g.cancel_free_hours_short, 1)
+        : num(g.cancel_free_hours_long, 12)
+  const pickupMs = pickupInstantMs({ pickup_utc: null, pickup_date: data.pickupDate, pickup_time: data.pickupTime }) as number
+  const ms = pickupMs - Math.round(hours * 3_600_000)
+  return { iso: new Date(ms).toISOString(), passed: Date.now() > ms }
+}
+
 function body(over: Record<string, unknown> = {}, data: Record<string, string> = {}) {
   const bd = bookingData(data)
+  const free = shownFreeUntil(bd)
   return {
     bookingData: bd,
     currency: 'eur',
@@ -122,6 +142,8 @@ function body(over: Record<string, unknown> = {}, data: Record<string, string> =
     consent: true,
     displayedAmountMinor: serverAmount(),
     displayedHoldDateIso: shownHoldDate(bd),
+    displayedFreeUntilIso: free.iso,
+    displayedFreeUntilPassed: free.passed,
     ...over,
   }
 }
@@ -209,6 +231,44 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
+describe('POST /api/card-checkout/intent: cancellation terms are stored on the row (Phase 89, D-18)', () => {
+  it('canary-listed client: the unpaid card row carries the version and the settings snapshot from the same read', async () => {
+    Object.assign(db.state.pricing_globals[0], {
+      cancel_free_km_threshold: 60,
+      cancel_free_hours_short: 2,
+      cancel_free_hours_long: 24,
+      cancel_free_hours_hourly: 8,
+      cancel_fee_percent: 75,
+    })
+    const { status } = await call(body())
+    expect(status).toBe(200)
+    expect(bookings()[0].cancel_policy_version).toBe('2026-11-1')
+    expect(bookings()[0].cancel_policy).toEqual({
+      version: '2026-11-1',
+      kmThreshold: 60,
+      freeHoursShort: 2,
+      freeHoursLong: 24,
+      freeHoursHourly: 8,
+      feePercent: 75,
+    })
+  })
+
+  it('mode on: a client who is not on any list gets the terms stored as well', async () => {
+    seedSettings({ card_flow_mode: 'on', card_flow_canary_emails: [] })
+    const { status } = await call(body({}, { email: 'stranger@example.com' }))
+    expect(status).toBe(200)
+    expect(bookings()[0].cancel_policy_version).toBe('2026-11-1')
+  })
+
+  it('a client-supplied policy field in the body is ignored (T-89-23)', async () => {
+    const payload = body({ cancelPolicy: { version: 'evil', freeHoursLong: 0 }, cancel_policy_version: 'evil' })
+    const { status } = await call(payload)
+    expect(status).toBe(200)
+    expect(bookings()[0].cancel_policy_version).toBe('2026-11-1')
+    expect((bookings()[0].cancel_policy as Record<string, unknown>).freeHoursLong).toBe(12)
+  })
+})
+
 describe('POST /api/card-checkout/intent: setup mode happy path (tracer)', () => {
   it('returns a client secret and leaves one unpaid card_hold booking with nothing charged', async () => {
     const { status, body: out } = await call(body(), { 'user-agent': 'Mozilla/5.0 (test)' })
@@ -252,6 +312,8 @@ describe('POST /api/card-checkout/intent: setup mode happy path (tracer)', () =>
       amountMinor: serverAmount(),
       currency: 'eur',
       holdDateIso: '2027-01-13',
+      // 16 Jan 10:00 Prague pickup, one free hour (the default short window for 50 km).
+      freeUntilMs: Date.parse('2027-01-16T08:00:00Z'),
     })
     expect(c).toMatchObject({
       booking_id: bookings()[0].id,
@@ -429,6 +491,7 @@ describe('POST /api/card-checkout/intent: hold_now mode (HOLD-03, tracer)', () =
       amountMinor: nearAmount(),
       currency: 'eur',
       holdDateIso: null,
+      freeUntilMs: Date.parse(shownFreeUntil({ ...bookingData(NEAR) }).iso),
     })
     expect(consents()[0]).toMatchObject({
       booking_id: bookings()[0].id,

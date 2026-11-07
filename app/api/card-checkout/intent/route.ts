@@ -3,7 +3,9 @@ import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { checkoutBookingSchema, validateCheckoutBooking, priceCheckout } from '@/lib/checkout/compute'
-import { getPaymentSettings, isCardFlowEligible } from '@/lib/payments/config'
+import { getPaymentSettings, isCardFlowEligible, isPolicyPublic } from '@/lib/payments/config'
+import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
+import { evaluateCancellation, freeHoursFor } from '@/lib/cancellation-policy'
 import { computeHoldAt, decideHoldMode, holdDateIso, meetsBookingLeadTime } from '@/lib/payments/timing'
 import { createCardCheckoutIntent } from '@/lib/payments/checkout'
 import { classifyStripeError } from '@/lib/payments/stripe'
@@ -19,16 +21,27 @@ import { createClient } from '@/lib/supabase/server'
 // priceCheckout only; displayedAmountMinor is a cross-check (409 PRICE_CHANGED). The mode is decided by
 // the server (decideHoldMode); the client's mode is a cross-check (409 MODE_CHANGED).
 //
+// Phase 89 (89-10, CASH-01, D-08, D-09): `payment: 'cash'` books pay cash to the driver. Cash is always a SetupIntent
+// (never a hold, even inside the hold lead), so the MODE_CHANGED and HOLD_DATE_CHANGED cross-checks do not apply to it.
+// Both card and cash consent texts name the booking's free-until moment: displayedFreeUntilIso is a cross-check
+// (409 POLICY_CHANGED), the stored text is always the server rendering.
+//
 // Two-step parse: a malformed body is 400 INVALID_REQUEST, every business failure is 422 or 409.
 // Logs carry ids and codes only, never the request body.
 
 const intentSchema = checkoutBookingSchema.extend({
   currency: z.enum(['eur', 'czk']),
   mode: z.enum(['setup', 'hold_now']),
+  // Phase 89 D-08: how the client pays. Absent means the card flow (Phase 88 clients).
+  payment: z.enum(['card', 'cash']).default('card'),
   consent: z.unknown(),
   displayedAmountMinor: z.number().int().positive().max(100_000_000),
   // 88-REVIEW B-WR-05: the hold date (Prague YYYY-MM-DD) the client's consent text named; setup mode only.
   displayedHoldDateIso: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  // Phase 89 (89-10, D-16): the free-until moment (ISO instant) the consent text named, and whether it was shown as
+  // already passed (the NoFree wording). The server refuses a different one so the stored text is what was ticked.
+  displayedFreeUntilIso: z.string().min(10).max(40).optional(),
+  displayedFreeUntilPassed: z.boolean().optional(),
 })
 
 /** The wizard sends the step-5 email as typed; surrounding spaces would fail the strict format check. */
@@ -74,7 +87,18 @@ export async function POST(req: Request) {
   if (!parsed.success || !parsed.data.bookingData.attemptId) {
     return fail(400, 'INVALID_REQUEST', 'Invalid request body')
   }
-  const { bookingData, currency, mode: clientMode, consent, displayedAmountMinor, displayedHoldDateIso } = parsed.data
+  const {
+    bookingData,
+    currency,
+    mode: clientMode,
+    payment,
+    consent,
+    displayedAmountMinor,
+    displayedHoldDateIso,
+    displayedFreeUntilIso,
+    displayedFreeUntilPassed,
+  } = parsed.data
+  const cash = payment === 'cash'
   const attemptId = bookingData.attemptId as string
 
   try {
@@ -83,6 +107,10 @@ export async function POST(req: Request) {
     if (!isCardFlowEligible(settings, { email: bookingData.email ?? '', tripType: bookingData.tripType })) {
       return fail(422, 'NOT_ELIGIBLE', 'Card checkout is not available for this booking')
     }
+    // Phase 89 D-18: the terms stored on the booking come from this one read, built server-side. Card eligibility
+    // implies the policy is public for this client; the check stays explicit so the two can never drift apart.
+    const policy = isPolicyPublic(settings, bookingData.email ?? '') ? await getCancellationPolicy() : null
+    const cancelPolicy = policy ? buildPolicySnapshot(policy) : null
 
     // Only the JSON boolean true is a consent. The stored text is the server rendering, never a client string.
     const consented = consent === true
@@ -114,7 +142,19 @@ export async function POST(req: Request) {
 
     const { holdAtMs, rawHoldAtMs } = computeHoldAt(pickupMs, settings.leadHours)
     const serverMode = decideHoldMode(rawHoldAtMs, nowMs)
-    if (clientMode !== serverMode) {
+
+    // D-16: the consent names the booking's free-until moment (from the one policy read that is also stored on the row).
+    // Card eligibility implies a public policy, so `policy` is set here; a missing one can not be consented to.
+    if (!policy) return fail(422, 'NOT_ELIGIBLE', 'Card checkout is not available for this booking')
+    const outcome = evaluateCancellation(
+      policy,
+      { tripType: validated.tripType, distanceKm: validated.distanceKm, pickupMs },
+      nowMs,
+    )
+    const freeUntilPassed = outcome.kind !== 'free'
+    const freeUntilIso = new Date(outcome.freeUntilMs).toISOString()
+    // Cash is always a SetupIntent: no mode cross-check and no hold date apply (D-09).
+    if (!cash && clientMode !== serverMode) {
       return fail(409, 'MODE_CHANGED', 'The payment mode has changed', {
         mode: serverMode,
         holdAtIso: serverMode === 'setup' ? new Date(holdAtMs).toISOString() : null,
@@ -123,11 +163,26 @@ export async function POST(req: Request) {
     }
     // B-WR-05: the consent names the hold date. Recorded consent text must be the text the client ticked, so a hold date
     // that moved since init (the owner changed the lead time) is a 409 with the new date; the client re-asks the tick.
-    if (serverMode === 'setup' && displayedHoldDateIso !== holdDateIso(holdAtMs)) {
+    if (!cash && serverMode === 'setup' && displayedHoldDateIso !== holdDateIso(holdAtMs)) {
       return fail(409, 'HOLD_DATE_CHANGED', 'The hold date has changed', {
         mode: serverMode,
         holdAtIso: new Date(holdAtMs).toISOString(),
         holdDateIso: holdDateIso(holdAtMs),
+      })
+    }
+    if (
+      displayedFreeUntilIso === undefined ||
+      Date.parse(displayedFreeUntilIso) !== outcome.freeUntilMs ||
+      (displayedFreeUntilPassed ?? false) !== freeUntilPassed
+    ) {
+      return fail(409, 'POLICY_CHANGED', 'The cancellation terms have changed', {
+        policy: {
+          version: policy.version,
+          freeUntilIso,
+          freeUntilPassed,
+          hours: freeHoursFor(policy, { tripType: validated.tripType, distanceKm: validated.distanceKm }),
+          percent: policy.feePercent,
+        },
       })
     }
     // A signed-in account is resolved server-side, never from the body. Best effort: a guest checkout is normal.
@@ -143,13 +198,17 @@ export async function POST(req: Request) {
     }
 
     const result = await createCardCheckoutIntent({
+      payment,
       mode: serverMode,
       bookingData,
       priced,
       currency,
       attemptId,
       holdAtMs,
+      freeUntilMs: outcome.freeUntilMs,
+      freeUntilPassed,
       authenticatedUserId,
+      cancelPolicy,
       ip: getClientIp(req),
       userAgent: req.headers.get('user-agent') ?? '',
     })
@@ -163,7 +222,8 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({
       clientSecret: result.clientSecret,
-      mode: serverMode,
+      mode: cash ? 'setup' : serverMode,
+      payment,
       bookingReference: result.bookingReference,
       amountMinor: serverAmountMinor,
       currency,

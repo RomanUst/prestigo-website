@@ -478,7 +478,8 @@ describe('POST /api/admin/bookings — ANEW-05 no-link invariant', () => {
     expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
     expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
     expect(stubSendStatusConfirmedEmail).not.toHaveBeenCalled()
-    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+    // Only one bookings write (Phase 89 also reads pricing_globals for the policy gate; that is not a bookings call).
+    expect(supabaseServiceStub.from.mock.calls.filter((c: unknown[]) => c[0] === 'bookings')).toHaveLength(1)
   })
 })
 
@@ -528,7 +529,8 @@ describe('POST /api/admin/bookings — send_confirmation', () => {
     const res = await ADMIN_BOOKINGS_POST(makeAdminBookingsPostRequest({ ...basePayload, status: 'confirmed', send_confirmation: true }))
     expect(res.status).toBe(201)
     expect(stubLogEmail).toHaveBeenCalledWith({ bookingId: 'confirm-id', emailType: 'booking_confirmed', recipient: 'petr@example.com' })
-    expect(stubSendStatusConfirmedEmail).toHaveBeenCalledTimes(1)
+    // Phase 89 plan 89-18: the policy block is built inside after() first (a row without a stored policy gets none).
+    await vi.waitFor(() => expect(stubSendStatusConfirmedEmail).toHaveBeenCalledTimes(1))
     expect(stubSendStatusConfirmedEmail).toHaveBeenCalledWith(row)
   })
 

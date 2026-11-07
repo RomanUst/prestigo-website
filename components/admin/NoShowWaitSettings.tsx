@@ -19,6 +19,7 @@ const DEFAULT_AIRPORT_MIN = 60
 const MIN_WAIT = 1
 const MAX_WAIT = 240
 const RANGE_ERROR = 'Enter a whole number from 1 to 240.'
+const AIRPORT_BELOW_CITY = 'Airport wait must be at least the city wait.'
 
 type FieldKey = 'city' | 'airport'
 type Feedback = { type: 'success' | 'error'; message: string } | null
@@ -40,6 +41,12 @@ function initialValue(v: number | null | undefined, fallback: number): number {
   return typeof v === 'number' && Number.isInteger(v) && v >= MIN_WAIT && v <= MAX_WAIT ? v : fallback
 }
 
+class SaveError extends Error {
+  constructor(readonly code: string | null) {
+    super('Save failed')
+  }
+}
+
 const labelTextStyle: CSSProperties = {
   display: 'block',
   fontFamily: 'var(--font-montserrat)',
@@ -59,6 +66,7 @@ export default function NoShowWaitSettings({ initialCityMin, initialAirportMin }
     airport: String(initialValue(initialAirportMin, DEFAULT_AIRPORT_MIN)),
   })
   const [invalid, setInvalid] = useState<Record<FieldKey, boolean>>({ city: false, airport: false })
+  const [crossError, setCrossError] = useState(false)
   const [feedback, setFeedback] = useState<Feedback>(null)
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -80,12 +88,25 @@ export default function NoShowWaitSettings({ initialCityMin, initialAirportMin }
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
-    if (!res.ok) throw new Error('Save failed')
+    if (!res.ok) {
+      // WR-06: the server refuses an airport wait below the city wait with a 422 and a code
+      let code: string | null = null
+      if (res.status === 422) {
+        try {
+          const json = (await res.json()) as { error?: unknown }
+          code = typeof json.error === 'string' ? json.error : null
+        } catch {
+          code = null
+        }
+      }
+      throw new SaveError(code)
+    }
   }
 
   function handleChange(key: FieldKey, value: string) {
     setInputs(prev => ({ ...prev, [key]: value }))
     if (invalid[key]) setInvalid(prev => ({ ...prev, [key]: false }))
+    if (crossError) setCrossError(false)
   }
 
   async function handleBlur(key: FieldKey, raw: string) {
@@ -104,8 +125,15 @@ export default function NoShowWaitSettings({ initialCityMin, initialAirportMin }
     setSaved(prev => ({ ...prev, [key]: parsed }))
     try {
       await persist({ [SETTINGS_KEY[key]]: parsed })
+      setCrossError(false)
       showFeedback({ type: 'success', message: 'Saved' })
-    } catch {
+    } catch (err) {
+      if (err instanceof SaveError && err.code === 'airport_below_city') {
+        // Refused by the server: the typed text stays next to the explanation, nothing was stored
+        setSaved(prev => ({ ...prev, [key]: previous }))
+        setCrossError(true)
+        return
+      }
       // Revert on error
       setSaved(prev => ({ ...prev, [key]: previous }))
       setInputs(prev => ({ ...prev, [key]: String(previous) }))
@@ -115,6 +143,7 @@ export default function NoShowWaitSettings({ initialCityMin, initialAirportMin }
 
   function renderField(key: FieldKey, id: string, label: string) {
     const hasError = invalid[key]
+    const hasCross = key === 'airport' && crossError && !hasError
     return (
       <div style={{ flex: '1 1 200px', minWidth: 0 }}>
         <label htmlFor={id} style={labelTextStyle}>
@@ -128,8 +157,8 @@ export default function NoShowWaitSettings({ initialCityMin, initialAirportMin }
           max={MAX_WAIT}
           step={1}
           value={inputs[key]}
-          aria-invalid={hasError}
-          aria-describedby={hasError ? `${id}-error` : undefined}
+          aria-invalid={hasError || hasCross}
+          aria-describedby={hasError || hasCross ? `${id}-error` : undefined}
           onChange={e => handleChange(key, e.target.value)}
           onFocus={focusRingHandlers.onFocus}
           onBlur={(e: FocusEvent<HTMLInputElement>) => {
@@ -141,6 +170,11 @@ export default function NoShowWaitSettings({ initialCityMin, initialAirportMin }
         {hasError && (
           <div id={`${id}-error`} role="alert" style={errorStyle}>
             {RANGE_ERROR}
+          </div>
+        )}
+        {hasCross && (
+          <div id={`${id}-error`} role="alert" style={errorStyle}>
+            {AIRPORT_BELOW_CITY}
           </div>
         )}
       </div>

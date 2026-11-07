@@ -131,9 +131,22 @@ vi.mock('stripe', () => {
 // when a refund fails after the cancel applied.
 vi.mock('@/lib/payments/stripe', async () => {
   const actual = await vi.importActual<typeof import('@/lib/payments/stripe')>('@/lib/payments/stripe')
-  return { ...actual, getPaymentsStripe: () => ({ refunds: stripeRefundsStub }) }
+  return {
+    ...actual,
+    getPaymentsStripe: () => ({
+      refunds: { ...stripeRefundsStub, list: async () => ({ data: [] }) },
+      // Pay-now money facts come from the PaymentIntent (money CR-01): 19,000 cents paid.
+      paymentIntents: { retrieve: async () => ({ status: 'succeeded', currency: 'eur', amount_received: 19000 }) },
+    }),
+  }
 })
 vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: vi.fn().mockResolvedValue('sent') }))
+
+/** The lookup of a row sharing the PaymentIntent (money CR-02). trip_type says what a row is when there is none. */
+// The sibling of a round-trip leg: same payment_intent_id, trip_type round_trip, another id.
+const siblingLookup = (rows: Array<{ id: string }> = []) => ({
+  select: () => ({ eq: () => ({ eq: () => ({ neq: async () => ({ data: rows, error: null }) }) }) }),
+})
 
 import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
 import { POST as CANCEL_POST } from '@/app/api/admin/bookings/cancel/route'
@@ -164,11 +177,13 @@ function makePostRequest(body: Record<string, unknown>): Request {
   })
 }
 
+// Phase 89 D-20: the cancel route requires who cancelled. These Phase 27/87 tests are about the in-time money paths,
+// which a Prestigo cancel always is (free whatever the time); see tests/admin-bookings-cancel.test.ts for the rule itself.
 function makeCancelRequest(body: Record<string, unknown>): Request {
   return new Request('http://localhost/api/admin/bookings/cancel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ cancelled_by: 'prestigo', ...body }),
   })
 }
 
@@ -801,12 +816,11 @@ describe('PATCH /api/admin/bookings', () => {
     )
   })
 
-  it('87-03 D-02: no_show is accepted from on_location and sends no client email', async () => {
-    wireStatusRow({ id: PATCH_ID, status: 'on_location', client_email: 'a@b.com' })
-    supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
-
+  it('89-09 WR-04: no_show is no longer reachable from PATCH (422 use_no_show_route, nothing written, no email)', async () => {
     const res = await PATCH(makePatchRequest({ id: PATCH_ID, status: 'no_show' }))
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'use_no_show_route' })
+    expect(supabaseServiceStub.rpc).not.toHaveBeenCalled()
     expect(stubLogEmail).not.toHaveBeenCalled()
   })
 
@@ -1793,6 +1807,70 @@ describe('POST /api/admin/bookings', () => {
     )
   })
 
+  // Phase 89 plan 89-07 (D-18): the admin create stores the terms only while the policy is public for the client email.
+  function wirePolicyDb(settings: Record<string, unknown>) {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
+      error: null,
+    })
+    const insertFn = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) })
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table === 'pricing_globals') {
+        const b = { select: () => b, eq: () => b, single: () => Promise.resolve({ data: settings, error: null }) }
+        return b
+      }
+      return { insert: insertFn }
+    })
+    return insertFn
+  }
+  const policySettings = {
+    payment_hold_lead_hours: 72,
+    card_flow_canary_emails: ['canary@example.com'],
+    cancel_free_km_threshold: 100,
+    cancel_free_hours_short: 1,
+    cancel_free_hours_long: 12,
+    cancel_free_hours_hourly: 12,
+    cancel_fee_percent: 100,
+  }
+
+  it('89-07: POST stores the policy snapshot when the policy is public for the client email', async () => {
+    const insertFn = wirePolicyDb({ ...policySettings, card_flow_mode: 'canary' })
+    const res = await POST(makePostRequest({ ...validPostPayload, client_email: 'Canary@Example.com' }))
+    expect(res.status).toBe(201)
+    expect(insertFn.mock.calls[0][0][0]).toMatchObject({
+      cancel_policy_version: '2026-11-1',
+      cancel_policy: {
+        version: '2026-11-1',
+        kmThreshold: 100,
+        freeHoursShort: 1,
+        freeHoursLong: 12,
+        freeHoursHourly: 12,
+        feePercent: 100,
+      },
+    })
+  })
+
+  it('89-07: POST adds no policy columns while the flag is closed or the client is not listed', async () => {
+    for (const settings of [
+      { ...policySettings, card_flow_mode: 'off' },
+      { ...policySettings, card_flow_mode: 'canary' },
+    ]) {
+      const insertFn = wirePolicyDb(settings)
+      const res = await POST(makePostRequest({ ...validPostPayload, client_email: 'stranger@example.com' }))
+      expect(res.status).toBe(201)
+      const row = insertFn.mock.calls[0][0][0]
+      expect('cancel_policy_version' in row).toBe(false)
+      expect('cancel_policy' in row).toBe(false)
+    }
+  })
+
+  it('89-07: POST with mode on stores the snapshot for any client', async () => {
+    const insertFn = wirePolicyDb({ ...policySettings, card_flow_mode: 'on', card_flow_canary_emails: [] })
+    const res = await POST(makePostRequest({ ...validPostPayload, client_email: 'anyone@example.com' }))
+    expect(res.status).toBe(201)
+    expect(insertFn.mock.calls[0][0][0].cancel_policy_version).toBe('2026-11-1')
+  })
+
   // Phase 64 Plan 01 — ANEW-01/02/03/05 (D-01/D-02): collect-payment branch +
   // operator status choice for no-link saves.
 
@@ -1809,9 +1887,13 @@ describe('POST /api/admin/bookings', () => {
 
     // First from('bookings') call is the insert; every subsequent call
     // (the payment-link persist UPDATE) gets the update chain.
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ insert: insertFn })
-      .mockReturnValue({ update: updateFn })
+    // Phase 89 (89-07): the POST also reads pricing_globals (payment settings), which fails closed here.
+    let bookingsCalls = 0
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table !== 'bookings') return {}
+      bookingsCalls += 1
+      return bookingsCalls === 1 ? { insert: insertFn } : { update: updateFn }
+    })
 
     const res = await POST(makePostRequest({ ...validPostPayload, collect_payment: true }))
     expect(res.status).toBe(201)
@@ -2015,12 +2097,14 @@ describe('POST /api/admin/bookings/cancel', () => {
     errorSpy.mockRestore()
   })
 
-  it('Test 9: partial refund with leg=outbound — calls Stripe with per-leg amount + metadata.leg', async () => {
+  it('Test 9: the outbound row of a round trip — Stripe gets its share of what was paid + metadata.leg', async () => {
     const singleFn = vi.fn().mockResolvedValue({
       data: {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_xxx',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 4500,
       },
@@ -2029,23 +2113,20 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup())
     supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_test123' })
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'outbound',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toMatchObject({ ok: true, refund_id: 're_test123' })
-    // czkToEur(5000) = 200 EUR -> 200 * 100 = 20000 cents
+    // 19,000 cents paid, 5000 of 9500 CZK: 10,000 cents
     expect(stripeRefundsStub.create).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_xxx',
-        amount: 20000,
+        amount: 10000,
         metadata: { leg: 'outbound' },
       },
       { idempotencyKey: 'refund:a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:outbound' },
@@ -2058,12 +2139,14 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(supabaseServiceStub.rpc.mock.calls[0][1]).toMatchObject({ p_booking_id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' })
   })
 
-  it('Test 10: partial refund with leg=return — uses return_amount_czk', async () => {
+  it('Test 10: the return row of a round trip — its share is the rest of the payment', async () => {
     const singleFn = vi.fn().mockResolvedValue({
       data: {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_yyy',
+        leg: 'return',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 4500,
       },
@@ -2072,21 +2155,18 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup())
     supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_test456' })
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'return',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(200)
-    // czkToEur(4500) = Math.round(4500 * 0.04) = 180 EUR -> 180 * 100 = 18000 cents
+    // 19,000 cents paid minus the outbound 10,000
     expect(stripeRefundsStub.create).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_yyy',
-        amount: 18000,
+        amount: 9000,
         metadata: { leg: 'return' },
       },
       { idempotencyKey: 'refund:a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:return' },
@@ -2119,8 +2199,11 @@ describe('POST /api/admin/bookings/cancel', () => {
 
     // CRITICAL regression guard: the status write targets the booking id only, never the shared
     // payment_intent_id (the paired round-trip leg must stay untouched).
-    expect(supabaseServiceStub.rpc).toHaveBeenCalledTimes(1)
-    const rpcArgs = supabaseServiceStub.rpc.mock.calls[0][1] as Record<string, unknown>
+    // (Phase 89: the operator's choice is also recorded as an admin_action ledger row, a second RPC; one status write.)
+    const statusWrites = supabaseServiceStub.rpc.mock.calls.filter((c) => c[0] === 'advance_booking_status')
+    expect(statusWrites).toHaveLength(1)
+    expect(supabaseServiceStub.rpc.mock.calls[0][0]).toBe('advance_booking_status')
+    const rpcArgs = statusWrites[0][1] as Record<string, unknown>
     expect(rpcArgs.p_booking_id).toBe('a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d')
     expect(JSON.stringify(rpcArgs)).not.toContain('payment_intent_id')
     expect(JSON.stringify(rpcArgs)).not.toContain('pi_shared_round_trip')
@@ -2133,6 +2216,8 @@ describe('POST /api/admin/bookings/cancel', () => {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_overrefund',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 4500,
       },
@@ -2141,28 +2226,27 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup())
     supabaseServiceStub.rpc.mockImplementation(async (name: string) =>
       name === 'append_payment_event' ? { data: { inserted: true }, error: null } : { data: { applied: true }, error: null },
     )
 
     stripeRefundsStub.create.mockRejectedValue(new MockStripeInvalidRequestError('Amount exceeds remaining refundable'))
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'outbound',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(502)
-    expect(await res.json()).toMatchObject({ error: 'refund_failed', cancelled: true, amount_minor: 20000, currency: 'eur' })
+    expect(await res.json()).toMatchObject({ error: 'refund_failed', cancelled: true, amount_minor: 10000, currency: 'eur' })
     errorSpy.mockRestore()
   })
 
-  it('Test 13: returns 422 when leg is present but leg amount column is null', async () => {
+  it('Test 13: returns 422 when the row shares its payment with a sibling but the leg amounts are null', async () => {
     const singleFn = vi.fn().mockResolvedValue({
       data: {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_missing_amount',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: null,
         return_amount_czk: null,
       },
@@ -2171,19 +2255,16 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup([{ id: 'return-row' }]))
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'outbound',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(422)
     const json = await res.json()
     expect(json.error).toBe('Cannot compute per-leg refund: missing leg amount')
     // Stripe NOT called
     expect(stripeRefundsStub.create).not.toHaveBeenCalled()
     // DB update NOT called — only 1 supabase.from call (the select)
-    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(2) // reads only: the booking and its sibling
   })
 })
 

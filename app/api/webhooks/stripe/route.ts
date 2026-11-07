@@ -28,6 +28,26 @@ import { scheduleQStashReminder } from '@/lib/qstash'
 import { sendGa4Purchase } from '@/lib/analytics-server'
 import { logEmail } from '@/lib/email-log'
 import { dispatchPaymentEvent } from '@/lib/stripe-webhook/dispatch'
+import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
+
+/**
+ * Phase 89 (CANC-02): the cancellation box and Manage booking button for the English confirmation mails, in the
+ * booking language, read from the confirmed row(s). Gated by the checkout metadata (`cancelPolicy` is present only when
+ * the policy was public for this client), so a booking made on legacy terms costs no read and its email is unchanged.
+ * Never throws: a failure sends the email without the block.
+ */
+async function policyBlockForConfirmed(meta: Record<string, string>, ids: string[]): Promise<string> {
+  if (!meta.cancelPolicy || ids.length === 0) return ''
+  try {
+    const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').in('id', ids)
+    if (error || !data || data.length === 0) return ''
+    const rows = (data as Array<Record<string, unknown>>).sort((a, b) => (a.leg === 'return' ? 1 : 0) - (b.leg === 'return' ? 1 : 0))
+    return await buildPolicyBlockHtml(rows)
+  } catch {
+    console.error('[webhook] policy block skipped')
+    return ''
+  }
+}
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -398,7 +418,9 @@ async function handlePaymentLinkSucceeded(
     specialRequests: row.special_requests ?? undefined,
   }
 
-  try { await sendClientConfirmation(emailData) } catch (err) {
+  // Phase 89 CANC-02: box and Manage button when the reconciled row(s) stored a policy; the manager alert never gets it.
+  const policyBlockHtml = await buildPolicyBlockHtml(reconciledRows as unknown as Array<Record<string, unknown>>).catch(() => '')
+  try { await sendClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData) } catch (err) {
     console.error('sendClientConfirmation unexpected error (payment-link):', err)
   }
   try { await sendManagerAlert(emailData) } catch (err) {
@@ -544,7 +566,9 @@ async function handleGroupPaymentSucceeded(
   // on the group (smallest leg id) rather than a single booking.
   const groupKey = [...ids].sort()[0]
   if (emailData.clientEmail && await logEmail({ bookingId: groupKey, emailType: 'group_confirmed', recipient: emailData.clientEmail })) {
-    try { await sendGroupClientConfirmation(emailData) } catch (err) {
+    // Phase 89 CANC-02: one box, one Manage button per booking row; the manager alert never gets them.
+    const policyBlockHtml = await buildPolicyBlockHtml(reconciled as unknown as Array<Record<string, unknown>>, { boxes: 'first' }).catch(() => '')
+    try { await sendGroupClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData) } catch (err) {
       console.error('sendGroupClientConfirmation unexpected error:', err)
     }
   }
@@ -661,7 +685,9 @@ async function handleOneWaySucceeded(
     specialRequests: meta.specialRequests || undefined,
   }
 
-  try { await sendClientConfirmation(emailData) } catch (err) {
+  // Phase 89 CANC-02: box and Manage button in the booking language; the manager alert never gets it.
+  const policyBlockHtml = await policyBlockForConfirmed(meta, confirmedRows.map((r) => r.id))
+  try { await sendClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData) } catch (err) {
     console.error('sendClientConfirmation unexpected error:', err)
   }
   try { await sendManagerAlert(emailData) } catch (err) {
@@ -857,7 +883,9 @@ async function handleRoundTripSucceeded(
   ]
   const ics = buildIcs(icsEvents)
 
-  try { await sendRoundTripClientConfirmation(emailData, ics) } catch (err) {
+  // Phase 89 CANC-02: one box and one Manage button per leg; the manager alert never gets them.
+  const policyBlockHtml = await policyBlockForConfirmed(meta, freshLegIds)
+  try { await sendRoundTripClientConfirmation(policyBlockHtml ? { ...emailData, policyBlockHtml } : emailData, ics) } catch (err) {
     console.error('sendRoundTripClientConfirmation unexpected error:', err)
   }
   try { await sendRoundTripManagerAlert(emailData) } catch (err) {
@@ -916,7 +944,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
   const supabase = createSupabaseServiceClient()
   const { data: rows, error: fetchErr } = await supabase
     .from('bookings')
-    .select('id, leg, amount_czk, outbound_amount_czk, return_amount_czk, status')
+    .select('id, leg, amount_czk, outbound_amount_czk, return_amount_czk, status, payment_mode')
     .eq('payment_intent_id', pi)
 
   if (fetchErr) {
@@ -940,6 +968,20 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     })
   }
 
+  // Money review 2, CR-01: a card-flow booking (card hold, cash guarantee) is cancelled from admin or the manage page, never
+  // by a refund. The way back for a cash card charge the client also paid in cash is a Dashboard refund, and that must not
+  // cancel the trip the client is on. The refund itself is recorded by the card observer (refund_observed).
+  const cardFlow = (rows as Array<{ id: string; payment_mode?: string | null }>).filter(
+    (r) => r.payment_mode === 'card_hold' || r.payment_mode === 'cash_guarantee',
+  )
+  if (cardFlow.length > 0) {
+    console.warn('charge.refunded: refund on a card-flow booking, status kept', {
+      paymentIntentId: pi,
+      bookings: cardFlow.map((r) => r.id),
+    })
+    return
+  }
+
   // D-19 fall-through: one-way (single row) — cancel it regardless of partial/full
   if (rows.length === 1) {
     const { error: updErr } = await supabase
@@ -951,10 +993,18 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     return
   }
 
-  // Round-trip: two rows. Detect full vs partial.
+  // Round-trip: two rows. The refund itself says which leg it is for, so it is read first (money CR-02): the last leg's
+  // refund also brings the charge to "fully refunded", and that must not cancel the other leg. Webhook payloads no longer
+  // carry charge.refunds, so the list comes from Stripe; a read problem throws and Stripe redelivers (never a guess).
+  const refundList = charge.refunds?.data ?? (await getStripe().refunds.list({ charge: charge.id, limit: 100 })).data
+  const latestRefund = refundList.find((r) => r.status !== 'failed' && r.status !== 'canceled')
+  const legFromMeta = (latestRefund?.metadata?.leg as 'outbound' | 'return' | 'both' | undefined) ?? undefined
+  const taggedLeg = legFromMeta === 'outbound' || legFromMeta === 'return'
+
+  // A full refund nobody tagged (the Stripe Dashboard): the whole trip is off.
   const isFullRefund = charge.amount_refunded >= charge.amount
 
-  if (isFullRefund) {
+  if (isFullRefund && !taggedLeg) {
     // D-17 'both' equivalent — bulk update on PI
     const { error: updErr } = await supabase
       .from('bookings')
@@ -966,8 +1016,6 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
   }
 
   // Partial refund path
-  const latestRefund = charge.refunds?.data?.[0]
-  const legFromMeta = (latestRefund?.metadata?.leg as 'outbound' | 'return' | 'both' | undefined) ?? undefined
 
   // D-17 explicit 'both' signal
   if (legFromMeta === 'both') {
@@ -980,8 +1028,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     return
   }
 
-  let targetLeg: 'outbound' | 'return' | null =
-    legFromMeta === 'outbound' || legFromMeta === 'return' ? legFromMeta : null
+  let targetLeg: 'outbound' | 'return' | null = taggedLeg ? legFromMeta : null
 
   // D-18 fallback: amount-matching when metadata.leg missing
   if (!targetLeg) {

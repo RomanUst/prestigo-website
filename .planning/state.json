@@ -1,0 +1,213 @@
+{
+  "contract": "1.0.0",
+  "flavor": "core",
+  "milestone": "v5.0 — Payments, Quotes & Day Trips",
+  "phases": [
+    {
+      "number": "54",
+      "name": "MDX Infrastructure",
+      "status": "complete"
+    },
+    {
+      "number": "55",
+      "name": "Blog UI — Listing + Article Pages",
+      "status": "complete"
+    },
+    {
+      "number": "56",
+      "name": "Article Migration + SEO Wiring",
+      "status": "complete"
+    },
+    {
+      "number": "57",
+      "name": "Customer Auth Foundation",
+      "status": "complete"
+    },
+    {
+      "number": "58",
+      "name": "Sign-in UI + Account Dashboard",
+      "status": "complete"
+    },
+    {
+      "number": "59",
+      "name": "Booking Flow Redesign (Blacklane)",
+      "status": "complete"
+    },
+    {
+      "number": "60",
+      "name": "Auth-in-Checkout + Guest Path",
+      "status": "complete"
+    },
+    {
+      "number": "61",
+      "name": "Analytics Preservation & E2E Verify",
+      "status": "complete"
+    },
+    {
+      "number": "62",
+      "name": "Abandoned & Unpaid Booking Capture",
+      "status": "complete"
+    },
+    {
+      "number": "63",
+      "name": "Admin Booking Editing + Change Notification",
+      "status": "complete"
+    },
+    {
+      "number": "64",
+      "name": "Admin-Created Bookings with Payment Link",
+      "status": "complete"
+    },
+    {
+      "number": "65",
+      "name": "Dispatch — Future-First Bookings List",
+      "status": "complete"
+    },
+    {
+      "number": "66",
+      "name": "Driver Trip Portal — Permanent Link & Trip Sheet",
+      "status": "complete"
+    },
+    {
+      "number": "67",
+      "name": "Driver Trip Portal — Status Marking, Notes & Admin Visibility",
+      "status": "complete"
+    },
+    {
+      "number": "68",
+      "name": "i18n Foundation & Routing",
+      "status": "complete"
+    },
+    {
+      "number": "69",
+      "name": "String Externalization — UI Chrome",
+      "status": "complete"
+    },
+    {
+      "number": "70",
+      "name": "String Externalization — Booking & Account",
+      "status": "complete"
+    },
+    {
+      "number": "71",
+      "name": "Content Externalization — Marketing & SEO Pages",
+      "status": "complete"
+    },
+    {
+      "number": "72",
+      "name": "AI Translation Pipeline & Catalogs",
+      "status": "complete"
+    },
+    {
+      "number": "73",
+      "name": "Non-Latin & RTL Infra (AR, HI, ZH)",
+      "status": "complete"
+    },
+    {
+      "number": "74",
+      "name": "SEO — hreflang, Metadata, Sitemap, Switcher",
+      "status": "complete"
+    },
+    {
+      "number": "75",
+      "name": "E2E Verification & Launch",
+      "status": "complete"
+    },
+    {
+      "number": "76",
+      "name": "VPS Infrastructure",
+      "status": "complete"
+    },
+    {
+      "number": "77",
+      "name": "Chatwoot Deployment + Core Channels",
+      "status": "complete"
+    },
+    {
+      "number": "78",
+      "name": "WhatsApp Cloud API Channel (Dedicated Number)",
+      "status": "pending"
+    },
+    {
+      "number": "79",
+      "name": "Instagram + Facebook Channels",
+      "status": "pending"
+    },
+    {
+      "number": "80",
+      "name": "EspoCRM Deployment + Core Entities",
+      "status": "complete"
+    },
+    {
+      "number": "81",
+      "name": "Lead Capture (Site Forms → Supabase + EspoCRM)",
+      "status": "complete"
+    },
+    {
+      "number": "82",
+      "name": "Site ↔ CRM/Chatwoot Sync Foundation",
+      "status": "complete"
+    },
+    {
+      "number": "83",
+      "name": "CRM/Chatwoot → Site Webhooks",
+      "status": "complete"
+    },
+    {
+      "number": "84",
+      "name": "Chatwoot Dashboard App",
+      "status": "complete"
+    },
+    {
+      "number": "85",
+      "name": "Statistics",
+      "status": "complete"
+    },
+    {
+      "number": "86",
+      "name": "Admin Shell",
+      "status": "in_progress"
+    },
+    {
+      "number": "87",
+      "name": "Status Service & Driver Step Flow",
+      "status": "in_progress"
+    },
+    {
+      "number": "88",
+      "name": "Card on File & Scheduled Holds",
+      "status": "complete"
+    },
+    {
+      "number": "89",
+      "name": "Cancellation Policy, Cash Guarantee & No-Show",
+      "status": "pending"
+    },
+    {
+      "number": "90",
+      "name": "Dispatch Views",
+      "status": "pending"
+    },
+    {
+      "number": "91",
+      "name": "Multi-Stop Transfers, Airport Pickup & Waiting Fees",
+      "status": "pending"
+    },
+    {
+      "number": "92",
+      "name": "Quotes",
+      "status": "pending"
+    },
+    {
+      "number": "93",
+      "name": "Day Trips & Custom Tours",
+      "status": "pending"
+    }
+  ],
+  "next": {
+    "command": "/gsd:progress --next",
+    "label": "Advance to the next step",
+    "reason": "Phase 89 of 9 · 0% · executing"
+  },
+  "updated_at": "2026-11-06T19:37:17.201Z"
+}

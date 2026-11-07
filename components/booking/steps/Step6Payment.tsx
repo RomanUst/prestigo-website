@@ -10,10 +10,13 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { isAirportPlace, VEHICLE_CLASS_KEY } from '@/types/booking'
 import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
+import { writeConfirmationNotice } from '@/lib/confirmation-notice'
 import { STRIPE_ELEMENTS_LOCALE } from '@/lib/booking-locale'
 import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
 import BookingSummaryBlock from '../BookingSummaryBlock'
+import CancellationPolicyNote, { CancellationAcceptanceLine } from '../CancellationPolicyNote'
+import type { InitPolicy } from './cardCheckoutApi'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -82,6 +85,8 @@ interface PaymentFormProps {
     price: number
     quantity: number
   }>
+  /** Phase 89 (D-18): the cancellation note is shown, so the acceptance line goes above the pay button. */
+  showAcceptance?: boolean
 }
 
 function PaymentForm({
@@ -90,6 +95,7 @@ function PaymentForm({
   bookingRef,
   returnBookingRef,
   analyticsItems,
+  showAcceptance = false,
 }: PaymentFormProps) {
   const t = useTranslations('Booking.step6')
   const locale = useLocale() as AppLocale
@@ -124,6 +130,9 @@ function PaymentForm({
       currency: 'EUR',
       items: analyticsItems,
     })
+    // Phase 89 (CANC-02): init returned a policy, so this booking stores its terms and the confirmation email carries
+    // the manage link; the page may say so. Without a policy nothing is written and the page is unchanged.
+    if (showAcceptance) writeConfirmationNotice({ ref: bookingRef })
 
     // D-11: URL param name is `returnRef` (NOT `ref2`). Both validated via isValidRef
     // on the confirmation page.
@@ -197,6 +206,8 @@ function PaymentForm({
         </p>
       )}
 
+      {showAcceptance && <CancellationAcceptanceLine />}
+
       <button
         type="submit"
         className="btn-primary"
@@ -214,7 +225,11 @@ function PaymentForm({
   )
 }
 
-export default function Step6Payment() {
+/**
+ * Legacy pay-now step. `policy` (Phase 89, D-18) is the cancellation terms from /api/card-checkout/init, set only when
+ * the policy is public for this client; without it the step renders exactly as it did before Phase 89.
+ */
+export default function Step6Payment({ policy = null }: { policy?: InitPolicy | null }) {
   const t = useTranslations('Booking.step6')
   const tb = useTranslations('Booking')
   const locale = useLocale() as AppLocale
@@ -585,6 +600,15 @@ export default function Step6Payment() {
         </div>
       </div>
 
+      {policy && (
+        <CancellationPolicyNote
+          policy={policy}
+          // init priced in EUR; the CZK toggle converts the displayed fee with the same display rate as the pay button
+          feeMinor={selectedCurrency === 'czk' ? eurToCzk(policy.feeMinor / 100) * 100 : policy.feeMinor}
+          currency={selectedCurrency}
+        />
+      )}
+
       <span className="label">SECURE PAYMENT</span>
 
       <div style={{ marginTop: 24 }}>
@@ -596,6 +620,7 @@ export default function Step6Payment() {
               bookingRef={bookingRef}
               returnBookingRef={returnBookingRef}
               analyticsItems={analyticsItems}
+              showAcceptance={policy !== null}
             />
           </Elements>
         ) : paymentError ? (

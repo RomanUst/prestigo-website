@@ -5,7 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { advanceResultToResponse } from '@/lib/booking-status-service'
 import { BOOKING_STATUSES } from '@/lib/booking-status'
-import { clearNoShowRequest, confirmNoShow } from '@/lib/no-show'
+import { clearNoShowRequest, confirmNoShow, isNoShowRefusal } from '@/lib/no-show'
 
 /**
  * Phase 87 D-16(a): the operator's side of a driver's no-show request. The route lives under
@@ -104,6 +104,16 @@ export async function POST(
       actor,
       expectedFrom: parsed.data.expected_status,
     })
+    // WR-04 refusals: nothing was written. not_on_location / no_request are 422, a wait still running is 409.
+    if (isNoShowRefusal(result)) {
+      if (result.code === 'wait_not_elapsed') {
+        return NextResponse.json(
+          { error: 'wait_not_elapsed', ...(result.noShowAvailableAt ? { noShowAvailableAt: result.noShowAvailableAt } : {}) },
+          { status: 409 },
+        )
+      }
+      return NextResponse.json({ error: result.code }, { status: 422 })
+    }
     const failure = advanceResultToResponse(result)
     if (failure) return failure
     return NextResponse.json({ ok: true, status: 'no_show' })

@@ -10,6 +10,10 @@
 // sweep) sends nothing twice. Nothing here changes payment_state except the recovery-link self-loop, and nothing
 // ever cancels a booking (D-15): the operator decides.
 //
+// Phase 89 (plan 89-06) adds the phase 'fee': a declined late-cancel / no-show fee, or a cash card charge after the trip.
+// It runs the same three steps with the fee variant of the email, link tag f<attempt> and the charge_failed alert, and it
+// accepts a cash_guarantee row. Nothing here retries a charge: a person decides (T-89-18).
+//
 // Pitfall 12: a recovery link is a static URL for one amount. refreshRecoveryLink therefore deactivates the link
 // it replaces, so a stale link can never charge an outdated amount.
 
@@ -21,7 +25,7 @@ import { createRecoveryPaymentLink, deactivateBookingPaymentLink } from '@/lib/s
 
 type BookingRow = Record<string, unknown>
 
-export type FailurePhase = 'hold' | 'charge' | 'difference'
+export type FailurePhase = 'hold' | 'charge' | 'difference' | 'fee'
 
 export interface PaymentFailureInput {
   phase: FailurePhase
@@ -31,6 +35,8 @@ export interface PaymentFailureInput {
   amountMinor: number
   /** The attempt counter AFTER the failure (hold_attempts / charge_attempts as persisted). */
   attempt: number
+  /** Phase 'fee' only: what the amount is for (cancellation fee, no-show fee, or the trip itself on a cash booking). */
+  feeLabel?: 'cancellation' | 'no_show' | 'trip'
 }
 
 const RECOVERY_ACTOR = { type: 'system', id: 'payment_recovery' } as const
@@ -44,7 +50,7 @@ const str = (v: unknown): string => (typeof v === 'string' ? v : '')
  */
 function linkTag(phase: FailurePhase, attempt: number): string | number {
   if (phase === 'hold') return attempt
-  return `${phase === 'charge' ? 'c' : 'd'}${attempt}`
+  return `${phase === 'charge' ? 'c' : phase === 'fee' ? 'f' : 'd'}${attempt}`
 }
 
 /**
@@ -126,6 +132,7 @@ const ALERT_KIND: Record<FailurePhase, OperatorAlertKind> = {
   hold: 'hold_failed',
   charge: 'charge_failed',
   difference: 'balance_unpaid',
+  fee: 'charge_failed',
 }
 
 /**
@@ -146,7 +153,8 @@ export async function handlePaymentFailure(booking: BookingRow, input: PaymentFa
     }
     throw err
   }
-  if (booking.payment_mode !== 'card_hold') return
+  // A cash_guarantee booking reaches the recovery flow only through the fee phase (a fee, or the trip after it ended).
+  if (booking.payment_mode !== 'card_hold' && !(input.phase === 'fee' && booking.payment_mode === 'cash_guarantee')) return
   const kind = ALERT_KIND[input.phase]
   const tag = linkTag(input.phase, input.attempt)
 
@@ -161,11 +169,12 @@ export async function handlePaymentFailure(booking: BookingRow, input: PaymentFa
     try {
       await sendPaymentEmail({
         kind: 'payment_failed',
-        variant: input.code === 'authentication_required' ? 'auth_required' : 'declined',
+        variant: input.phase === 'fee' ? 'fee' : input.code === 'authentication_required' ? 'auth_required' : 'declined',
         // The email shows the outstanding amount (a difference, or the full amount), not the booking total.
         booking: { ...booking, payment_amount_minor: input.amountMinor },
         eventKey: `email:payment_failed:${bookingId}:${input.phase}:${input.attempt}`,
         payUrl: link.url,
+        ...(input.phase === 'fee' ? { feeMinor: input.amountMinor, feeLabel: input.feeLabel ?? 'cancellation' } : {}),
       })
     } catch {
       console.error('[recovery] payment_failed email failed', { bookingId })
@@ -175,6 +184,7 @@ export async function handlePaymentFailure(booking: BookingRow, input: PaymentFa
   // The retry instant only counts while the one automatic retry is still unused (D-13).
   const retryAtIso =
     input.phase !== 'difference' &&
+    input.phase !== 'fee' &&
     (typeof booking.payment_retry_count === 'number' ? booking.payment_retry_count : 0) === 0 &&
     typeof booking.payment_retry_at === 'string'
       ? booking.payment_retry_at

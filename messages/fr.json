@@ -129,6 +129,15 @@
         "INTERNAL": "Impossible de créer le paiement. Veuillez réessayer.",
         "NO_CODE": "Aucun code fourni."
       },
+      "cancellation": {
+        "label": "ANNULATION",
+        "rowFree": "Annulation gratuite jusqu'au <bdi>{freeUntil}</bdi>.",
+        "rowFreeUnavailable": "L'annulation gratuite n'est pas disponible pour ce trajet, car la prise en charge a lieu dans moins de {hours, plural, one {{hours} heure} other {{hours} heures}}.",
+        "rowFee": "Passé ce délai, {percent} % du tarif (<bdi>{amount}</bdi>) s'applique. Une personne chez Prestigo décide de chaque débit et peut y renoncer.",
+        "rowNoShow": "Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin, plural, one {{waitMin} minute} other {{waitMin} minutes}}.",
+        "termsLink": "Conditions d'annulation",
+        "acceptance": "En payant, vous acceptez les conditions d'annulation ci-dessus et nos <terms>Conditions générales</terms>."
+      },
       "cardOnFile": {
         "headlineSetup": "Aucun montant n'est débité maintenant.",
         "headlineHoldNow": "Le montant est bloqué maintenant et débité après votre trajet.",
@@ -140,8 +149,12 @@
         "holdNowToday": "Nous bloquons {amount} sur votre carte. Un blocage n'est pas un débit, mais votre banque peut l'afficher comme étant en attente.",
         "holdNowAfterTrip": "Le montant bloqué est débité. Si le prix final est inférieur, seul le montant le plus bas est prélevé et le reste est libéré.",
         "cardDetailsLabel": "DONNÉES DE LA CARTE",
-        "consentSetup": "J'autorise Prestigo à enregistrer cette carte et à y bloquer {amount} le {holdDate}, puis à la débiter une fois mon trajet effectué. Si le prix convenu de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
-        "consentHoldNow": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte à cette fin et à la débiter une fois mon trajet effectué. Si le prix convenu de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
+        "consentSetup": "J'autorise Prestigo à enregistrer cette carte, à y bloquer {amount} le {holdDate} et à la débiter après mon trajet. Si j'annule après le {freeUntil}, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
+        "consentSetupNoFree": "J'autorise Prestigo à enregistrer cette carte, à y bloquer {amount} le {holdDate} et à la débiter après mon trajet. Si j'annule, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
+        "consentHoldNow": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte et à la débiter après mon trajet. Si j'annule après le {freeUntil}, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
+        "consentHoldNowNoFree": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte et à la débiter après mon trajet. Si j'annule, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
+        "consentCash": "Je paierai {amount} en espèces au chauffeur. J'autorise Prestigo à enregistrer cette carte et à la débiter, jusqu'à {amount}, si j'annule après le {freeUntil}, si je ne me présente pas ou si je ne paie pas le chauffeur. Une personne chez Prestigo décide de chaque débit. Aucun blocage n'est effectué et rien n'est débité maintenant.",
+        "consentCashNoFree": "Je paierai {amount} en espèces au chauffeur. J'autorise Prestigo à enregistrer cette carte et à la débiter, jusqu'à {amount}, si j'annule, si je ne me présente pas ou si je ne paie pas le chauffeur. Une personne chez Prestigo décide de chaque débit. Aucun blocage n'est effectué et rien n'est débité maintenant.",
         "termsLink": "Conditions générales",
         "privacyLink": "Politique de confidentialité",
         "trustLine": "Les données de la carte sont transmises directement à Stripe. Prestigo ne voit jamais votre numéro de carte.",
@@ -152,7 +165,20 @@
         "noticeModeChanged": "Votre trajet approche, le moment du paiement a donc changé. Veuillez vérifier les informations ci-dessus et saisir à nouveau votre carte.",
         "noticeDetailsChanged": "Les informations de paiement ont changé. Veuillez les vérifier et cocher à nouveau la case.",
         "errorConsentRequired": "Veuillez cocher la case pour continuer.",
-        "errorBankVerification": "Votre banque n'a pas pu vérifier cette carte. Veuillez réessayer ou utiliser une autre carte."
+        "errorBankVerification": "Votre banque n'a pas pu vérifier cette carte. Veuillez réessayer ou utiliser une autre carte.",
+        "paymentChoiceLabel": "COMMENT SOUHAITEZ-VOUS PAYER ?",
+        "choiceCardTitle": "Payer par carte après votre trajet",
+        "choiceCardDescSetup": "Aucun montant n'est débité maintenant.",
+        "choiceCardDescHoldNow": "Le montant est bloqué maintenant.",
+        "choiceCashTitle": "Payer en espèces au chauffeur",
+        "choiceCashDesc": "Nous enregistrons votre carte comme garantie. Aucun montant n'est débité maintenant.",
+        "headlineCash": "Payez votre chauffeur en espèces.",
+        "captionOnTheDay": "Le jour du trajet",
+        "captionOnlyIfNeeded": "Seulement si nécessaire",
+        "cashToday": "Nous enregistrons votre carte en toute sécurité avec Stripe. Rien n'est débité et aucun blocage n'est effectué.",
+        "cashOnTheDay": "Payez <bdi>{amount}</bdi> en espèces à votre chauffeur à la fin du trajet.",
+        "cashIfNeeded": "Nous débitons la carte enregistrée uniquement si vous annulez tardivement, si vous ne vous présentez pas ou si vous ne payez pas le chauffeur. Une personne chez Prestigo décide d'abord, et nous ne débitons jamais automatiquement.",
+        "noticePolicyChanged": "Les conditions d'annulation ont changé pendant votre lecture. Veuillez revoir la note ci-dessus et cocher à nouveau la case."
       }
     },
     "tripTypeTabs": {
@@ -201,6 +227,35 @@
     "stepper": {
       "decreaseAria": "Diminuer {label}",
       "increaseAria": "Augmenter {label}"
+    },
+    "confirmation": {
+      "sessionExpired": "Votre session a expiré. Commencez une nouvelle réservation.",
+      "bookNow": "Réserver",
+      "homeAria": "Prestigo, accueil",
+      "headingBooking": "Réservation confirmée",
+      "headingQuote": "Demande de devis envoyée",
+      "refBooking": "Votre référence de réservation",
+      "refQuote": "Votre référence",
+      "outbound": "Aller",
+      "return": "Retour",
+      "quoteBody": "Nous vous contacterons dans les 2 heures pour confirmer votre trajet et le tarif.",
+      "journeyDetails": "Détails du trajet",
+      "outboundJourney": "Trajet aller",
+      "returnJourney": "Trajet retour",
+      "hoursLine": "{hours} h",
+      "dateTime": "{date} à {time}",
+      "atTime": "à {time}",
+      "passengers": "{count, plural, one {{n} passager} other {{n} passagers}}",
+      "print": "Imprimer / enregistrer en PDF",
+      "printAria": "Imprimer ou enregistrer au format PDF",
+      "calendar": "Ajouter au calendrier",
+      "calendarAria": "Ajouter cette réservation à votre calendrier",
+      "contact": "Des questions ? Contactez-nous",
+      "contactAria": "Contactez-nous pour toute question",
+      "bookAnother": "Réserver un autre trajet",
+      "backHome": "Retour à l'accueil",
+      "manageSentence": "Nous avons envoyé à votre adresse e-mail la confirmation et un lien pour gérer votre réservation.",
+      "payCash": "Payez <bdi>{amount}</bdi> en espèces à votre chauffeur."
     },
     "vehicleClasses": {
       "business": {
@@ -876,6 +931,7 @@
       "emptyHeading": "Aucun trajet pour le moment",
       "emptyBody": "Vos transferts réservés apparaîtront ici. Prêt à voyager ?",
       "emptyCta": "Réserver un transfert",
+      "manage": "Gérer la réservation",
       "statusLabels": {
         "confirmed": "CONFIRMÉ",
         "pending": "EN ATTENTE",
@@ -1054,7 +1110,9 @@
       "whatNextLabel": "La suite",
       "receiptLabel": "Reçu",
       "paySecurelyLabel": "Payer en toute sécurité",
-      "tagline": "PRESTIGE IN EVERY MILE"
+      "tagline": "PRESTIGE IN EVERY MILE",
+      "bookAgainCta": "Réserver un autre trajet",
+      "decides": "Une personne de Prestigo décide de chaque débit."
     },
     "cardSaved": {
       "subject": "Votre réservation PRESTIGO est confirmée — {reference}",
@@ -1062,7 +1120,12 @@
       "intro": "Votre carte est enregistrée. Aucun montant n'a été débité.",
       "lineToday": "Aujourd'hui : votre carte est enregistrée.",
       "lineHoldDay": "{holdDate} : nous bloquons {amount} sur votre carte. Un blocage n'est pas un débit.",
-      "lineAfterTrip": "Après votre trajet : le montant bloqué devient le débit final."
+      "lineAfterTrip": "Après votre trajet : le montant bloqué devient le débit final.",
+      "introCash": "Votre carte est enregistrée à titre de garantie. Aucun montant n'a été débité et aucun blocage n'est posé.",
+      "cashLineToday": "Aujourd'hui : votre carte est enregistrée. Pas de blocage, pas de débit.",
+      "cashLineDay": "Le jour du trajet : payez {amount} en espèces à votre chauffeur.",
+      "cashLineIfNeeded": "Seulement si nécessaire : nous débitons la carte enregistrée si vous annulez après le {freeUntil}, ne vous présentez pas ou ne payez pas le chauffeur. Une personne de Prestigo décide d'abord.",
+      "cashLineIfNeededNoFree": "Seulement si nécessaire : nous débitons la carte enregistrée si vous annulez, ne vous présentez pas ou ne payez pas le chauffeur. Une personne de Prestigo décide d'abord."
     },
     "holdPlacedAtCheckout": {
       "subject": "Votre réservation PRESTIGO est confirmée — {reference}",
@@ -1091,7 +1154,186 @@
       "h1AuthRequired": "Votre banque vous demande de confirmer ce paiement.",
       "introAuthRequired": "Nous n'avons pas pu débiter {amount} de votre carte pour votre trajet du {pickupDate}, car votre banque a demandé une confirmation supplémentaire. Veuillez confirmer avec le bouton ci-dessous.",
       "body": "Le lien ouvre une page de paiement Stripe sécurisée. Si vous payez avec ce lien, nous n'essaierons pas de débiter à nouveau votre carte. Si vous avez déjà payé, ignorez cet e-mail.",
-      "cta": "Payer {amount} en toute sécurité"
+      "cta": "Payer {amount} en toute sécurité",
+      "subjectFee": "Action requise : paiement de votre réservation PRESTIGO — {reference}",
+      "h1Fee": "Nous n'avons pas pu débiter votre carte.",
+      "introFeeCancellation": "Nous n'avons pas pu débiter {amount} sur votre carte pour les frais d'annulation. Veuillez payer en toute sécurité avec le bouton ci-dessous.",
+      "introFeeNoShow": "Nous n'avons pas pu débiter {amount} sur votre carte pour les frais de non-présentation. Veuillez payer en toute sécurité avec le bouton ci-dessous.",
+      "introFeeTrip": "Nous n'avons pas pu débiter {amount} sur votre carte pour votre trajet. Veuillez payer en toute sécurité avec le bouton ci-dessous."
+    },
+    "policyBox": {
+      "label": "Annulation",
+      "labelFor": "Annulation, réservation {reference}",
+      "body": "Annulation gratuite jusqu'au {freeUntil}. Passé ce délai, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit.",
+      "bodyNoFree": "L'annulation gratuite n'est pas disponible pour ce trajet. Si vous annulez, {percent} % du tarif ({amount}) s'applique. Si vous ne vous présentez pas, le tarif complet s'applique une fois que le chauffeur a attendu {waitMin} min. Une personne de Prestigo décide de chaque débit.",
+      "cash": "Vous payez {amount} en espèces à votre chauffeur. Votre carte n'est qu'une garantie."
+    },
+    "manage": {
+      "cta": "Gérer la réservation",
+      "ctaFor": "Gérer la réservation {reference}",
+      "note": "Annulez, demandez une modification ou réservez un autre trajet. Gardez ce lien confidentiel."
+    },
+    "contactOr": "ou",
+    "money": {
+      "nothing": "Aucun montant n'a été débité.",
+      "released": "Le blocage sur votre carte est levé.",
+      "refunded": "Nous avons remboursé {amount} sur votre carte. Votre banque l'affiche généralement sous 5 à 10 jours ouvrés."
+    },
+    "cancelled": {
+      "subject": "Votre réservation PRESTIGO est annulée — {reference}",
+      "h1": "Votre réservation est annulée.",
+      "h1ByPrestigo": "Nous avons dû annuler votre réservation.",
+      "introSorry": "Nous sommes désolés. Votre réservation est annulée et aucun montant ne vous est débité.",
+      "introLate": "Vous avez annulé après le {freeUntil} ; des frais d'annulation pouvant aller jusqu'à {amount} peuvent donc s'appliquer. Une personne de Prestigo décide et vous répond par e-mail. Aucun montant n'a encore été débité.",
+      "lateNext": "Nous vous envoyons notre décision par e-mail. Si vos plans ont changé pour une raison indépendante de votre volonté, comme un vol annulé, dites-le-nous en répondant à cet e-mail."
+    },
+    "feeCharged": {
+      "subjectLateCancel": "Frais d'annulation de votre réservation PRESTIGO — {reference}",
+      "h1LateCancel": "Nous avons prélevé des frais d'annulation.",
+      "introLateCancel": "Vous avez annulé la réservation {reference} après le {freeUntil}. Nous avons débité {amount} sur votre carte.",
+      "reasonLateCancel": "Motif : annulation après le {freeUntil}",
+      "subjectNoShow": "Frais de non-présentation pour votre réservation PRESTIGO — {reference}",
+      "h1NoShow": "Nous avons prélevé des frais de non-présentation.",
+      "introNoShow": "Votre chauffeur a attendu {waitMin} minutes au point de prise en charge sans pouvoir vous rejoindre. Nous avons débité {amount} sur votre carte.",
+      "reasonNoShow": "Motif : non-présentation, le chauffeur a attendu {waitMin} minutes",
+      "subjectCashUnpaid": "Paiement de votre trajet PRESTIGO — {reference}",
+      "h1CashUnpaid": "Nous avons débité votre carte enregistrée.",
+      "introCashUnpaid": "Votre trajet du {pickupDate} n'a pas été payé en espèces ; nous avons donc débité {amount} sur la carte que vous avez enregistrée.",
+      "reasonCashUnpaid": "Motif : le trajet n'a pas été payé en espèces",
+      "introCashCard": "Vous avez choisi de payer par carte ; nous avons donc débité {amount} sur la carte que vous avez enregistrée."
+    },
+    "feeWaived": {
+      "subject": "Aucun frais pour votre réservation PRESTIGO — {reference}",
+      "h1": "Aucun frais pour votre réservation.",
+      "intro": "Nous avons décidé de ne pas prélever de frais d'annulation."
+    }
+  },
+  "Manage": {
+    "meta": {
+      "title": "Votre réservation"
+    },
+    "header": {
+      "homeAriaLabel": "Prestigo, accueil"
+    },
+    "loading": "Chargement de votre réservation",
+    "eyebrow": "Votre réservation",
+    "title": {
+      "trip": "Votre trajet du <bdi>{pickupDate}</bdi>",
+      "onBoard": "Bon trajet",
+      "completed": "Trajet terminé",
+      "cancelled": "Réservation annulée",
+      "noShow": "Nous n'avons pas pu vous retrouver"
+    },
+    "titleLine": {
+      "completed": "Merci d'avoir voyagé avec Prestigo.",
+      "noShow": "Le chauffeur a attendu au point de prise en charge. Nous vous écrirons par e-mail pour la suite."
+    },
+    "status": {
+      "pending": "En attente",
+      "confirmed": "Confirmée",
+      "assigned": "Chauffeur attribué",
+      "enRoute": "Chauffeur en route",
+      "onLocation": "Chauffeur sur place",
+      "onBoard": "En cours de trajet",
+      "completed": "Terminée",
+      "cancelled": "Annulée",
+      "noShow": "Rendez-vous manqué",
+      "unpaid": "En attente de paiement"
+    },
+    "reference": "Référence de la réservation",
+    "details": {
+      "from": "Départ",
+      "to": "Arrivée",
+      "pickup": "Prise en charge",
+      "pragueTime": "Heure de Prague",
+      "vehicle": "Véhicule",
+      "passengers": "Passagers",
+      "fare": "Tarif",
+      "payment": "Paiement"
+    },
+    "payment": {
+      "paidCard": "Payé par carte : <bdi>{amount}</bdi>.",
+      "cardSaved": "Votre carte est enregistrée. Nous bloquons <bdi>{amount}</bdi> le <bdi>{holdDate}</bdi> et le prélevons après votre trajet.",
+      "holdActive": "Un montant de <bdi>{amount}</bdi> est bloqué sur votre carte. Il sera prélevé après votre trajet.",
+      "cash": "Payez <bdi>{amount}</bdi> en espèces à votre chauffeur. Votre carte est enregistrée uniquement comme garantie."
+    },
+    "panel": {
+      "freeHeading": "Annulation gratuite jusqu'au <bdi>{freeUntil}</bdi>",
+      "freeIntro": "Vous pouvez annuler cette réservation gratuitement jusque-là.",
+      "freeHold": "Le blocage sur votre carte est levé.",
+      "freeRefund": "Nous vous remboursons <bdi>{amount}</bdi> sur votre carte.",
+      "freeNone": "Rien n'a été débité.",
+      "bankNote": "Votre banque affiche généralement le remboursement sous 5 à 10 jours ouvrés.",
+      "lateHeading": "L'annulation gratuite est terminée",
+      "late1": "L'annulation gratuite s'est terminée le <bdi>{freeUntil}</bdi>.",
+      "late2": "Si vous annulez maintenant, {percent} % du tarif (<bdi>{amount}</bdi>) s'applique. Votre réservation est annulée immédiatement et votre chauffeur est prévenu.",
+      "late3": "Une personne chez Prestigo décide du montant final et peut y renoncer, par exemple si votre vol a été annulé. Rien n'est débité tant que nous ne vous avons pas écrit.",
+      "lateNoFee": "Si vous annulez maintenant, votre réservation est annulée immédiatement et votre chauffeur est prévenu. Rien ne sera débité.",
+      "tooLate": "L'heure de prise en charge est passée. Pour annuler maintenant, appelez-nous."
+    },
+    "cancelled": {
+      "heading": "Annulée le <bdi>{cancelledDate}</bdi>",
+      "none": "Rien n'a été débité.",
+      "refunded": "Nous vous avons remboursé <bdi>{amount}</bdi>.",
+      "pending": "Des frais d'annulation pouvant aller jusqu'à <bdi>{amount}</bdi> peuvent s'appliquer. Nous vous enverrons notre décision par e-mail.",
+      "charged": "Nous avons débité <bdi>{amount}</bdi> pour une annulation après le <bdi>{freeUntil}</bdi>.",
+      "chargedLate": "Nous avons débité <bdi>{amount}</bdi> pour une annulation tardive.",
+      "waived": "Nous avons décidé de ne pas facturer de frais d'annulation."
+    },
+    "bookNew": "Réserver un nouveau trajet",
+    "bookRide": "Réserver un trajet",
+    "callUs": "Appelez-nous",
+    "emailUs": "Écrivez-nous",
+    "contact": {
+      "label": "Besoin d'aide ?",
+      "privacy": "Cette page est privée. Toute personne disposant de ce lien peut gérer cette réservation ; ne le partagez pas.",
+      "terms": "Conditions générales"
+    },
+    "invalid": {
+      "title": "Ce lien n'est pas valide",
+      "body": "Vérifiez que vous avez copié l'intégralité du lien de votre e-mail de réservation. S'il ne fonctionne toujours pas, contactez-nous et nous vous aiderons."
+    },
+    "actions": {
+      "cancel": {
+        "open": "Annuler la réservation",
+        "heading": "Annuler cette réservation ?",
+        "keep": "Conserver ma réservation",
+        "confirm": "Oui, annuler la réservation",
+        "busy": "Annulation…",
+        "summaryFree": "Rien ne sera débité.",
+        "summaryLate": "{percent} % du tarif (<bdi>{amount}</bdi>) s'applique.",
+        "tickLate": "Je comprends que {percent} % du tarif (<bdi>{amount}</bdi>) s'applique parce que j'annule après le <bdi>{freeUntil}</bdi>.",
+        "tickLateNoFee": "Je comprends que l'annulation gratuite s'est terminée le <bdi>{freeUntil}</bdi>."
+      },
+      "result": {
+        "freeHold": "Votre réservation est annulée. Rien n'a été débité. Le blocage sur votre carte est levé ; votre banque peut mettre quelques jours à l'afficher.",
+        "freeRefunded": "Votre réservation est annulée. Nous vous avons remboursé <bdi>{amount}</bdi>. Votre banque l'affiche généralement sous 5 à 10 jours ouvrés.",
+        "freeNone": "Votre réservation est annulée. Rien n'a été débité.",
+        "late": "Votre réservation est annulée et votre chauffeur est prévenu. Rien n'a encore été débité. Comme vous avez annulé après le <bdi>{freeUntil}</bdi>, jusqu'à <bdi>{amount}</bdi> peuvent être débités. Nous vous enverrons notre décision par e-mail.",
+        "lateNoFee": "Votre réservation est annulée et votre chauffeur est prévenu. Rien ne sera débité.",
+        "manual": "Votre réservation est annulée. Nous devons finaliser votre remboursement manuellement et nous vous écrirons dès que ce sera fait.",
+        "generic": "Votre réservation est annulée.",
+        "emailSent": "Nous vous avons envoyé un e-mail."
+      },
+      "error": {
+        "policyChanged": "Les conditions d'annulation ont changé pendant votre lecture. Veuillez les relire et confirmer de nouveau.",
+        "busy": "Nous traitons un paiement pour cette réservation. Veuillez réessayer dans une minute.",
+        "rateLimit": "Trop de tentatives. Veuillez patienter quelques minutes et réessayer.",
+        "network": "Nous n'avons pas pu joindre le serveur. Rien n'a été modifié. Veuillez réessayer.",
+        "generic": "Nous n'avons pas pu annuler votre réservation. Rien n'a été modifié. Veuillez réessayer ou nous appeler : <tel>{phone}</tel>."
+      },
+      "change": {
+        "open": "Demander une modification",
+        "label": "Que souhaitez-vous modifier ?",
+        "helper": "Date, heure, adresse, véhicule ou passagers. Nous vous répondrons par e-mail et vous dirons si le prix change. Rien ne change tant que nous n'avons pas confirmé.",
+        "phone": "Pressé ? Appelez-nous au <tel>{phone}</tel>.",
+        "send": "Envoyer la demande",
+        "sending": "Envoi…",
+        "sent": "Demande envoyée. Nous vous répondrons par e-mail.",
+        "errorEmpty": "Veuillez écrire ce que vous souhaitez modifier.",
+        "errorRate": "Vous avez déjà envoyé une demande à l'instant. Nous vous répondrons bientôt.",
+        "errorGeneric": "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer ou nous appeler : <tel>{phone}</tel>."
+      }
     }
   }
 }

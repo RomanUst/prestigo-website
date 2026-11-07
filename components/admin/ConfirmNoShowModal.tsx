@@ -16,6 +16,12 @@ interface ConfirmNoShowModalProps {
 }
 
 const GENERIC_ERROR = 'Could not confirm the no-show. Reload and try again.'
+// Phase 89 WR-04: the server gate's refusals (lib/no-show.ts assertNoShowConfirmable).
+const REFUSAL_COPY: Record<string, string> = {
+  not_on_location: 'The driver has not marked arrival at the pickup yet.',
+  no_request: 'The driver has not asked for a no-show on this booking.',
+  wait_not_elapsed: 'The free waiting time has not passed yet.',
+}
 
 const BUTTON_BASE = {
   minHeight: '44px',
@@ -67,7 +73,7 @@ export function ConfirmNoShowModal({
       if (res.status === 409 && data?.error === 'status_conflict') {
         setError(statusConflictMessage(typeof data.currentStatus === 'string' ? data.currentStatus : undefined))
       } else {
-        setError(GENERIC_ERROR)
+        setError(REFUSAL_COPY[String(data?.error)] ?? GENERIC_ERROR)
       }
     } catch {
       setError(GENERIC_ERROR)

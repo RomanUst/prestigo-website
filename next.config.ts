@@ -177,6 +177,23 @@ const nextConfig: NextConfig = {
         source: "/driver/:path*",
         headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
       },
+      // Phase 89 (T-89-05): the manage URL carries the guest's bearer token, so no manage page
+      // sends a Referer and none is cached. Unprefixed (EN) plus each of the six locale prefixes.
+      // Listed after the global entry so these values win; X-Frame-Options stays DENY.
+      {
+        source: "/manage/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      },
+      {
+        source: "/:locale(ru|es|fr|ar|hi|zh)/manage/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+        ],
+      },
     ];
   },
 };

@@ -34,3 +34,44 @@ export function formatLocaleDate(iso: string, locale: string): string {
   const d = new Date(`${iso}T00:00:00Z`)
   return new Intl.DateTimeFormat(tagFor(locale), OPTIONS).format(d)
 }
+
+const DATE_TIME_OPTIONS: Intl.DateTimeFormatOptions = {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'Europe/Prague',
+}
+
+/**
+ * The Prague time-zone label, in each site language. It is appended to every date-and-time this module formats, because a
+ * deadline such as "free cancellation until 14:30" is read by clients in other time zones (Phase 89 review WR-04).
+ * The text lands in the stored cancellation consent too (the string is hashed), so any change to a label must come with
+ * a CARD_CONSENT_VERSION bump: tests/payments-consent.test.ts pins this map to the version.
+ */
+export const PRAGUE_TIME_LABEL: Record<AppLocale, string> = {
+  en: 'Prague time',
+  ru: 'по пражскому времени',
+  es: 'hora de Praga',
+  fr: 'heure de Prague',
+  ar: 'بتوقيت براغ',
+  hi: 'प्राग का समय',
+  zh: '布拉格时间',
+}
+
+function pragueLabelFor(locale: string): string {
+  return PRAGUE_TIME_LABEL[(locales as readonly string[]).includes(locale) ? (locale as AppLocale) : 'en']
+}
+
+/**
+ * Format an instant (epoch ms) as a long date and 24-hour clock time on the Europe/Prague wall clock, in the
+ * locale's own format with Latin digits (Phase 89: "free cancellation until ..."), followed by the zone label in the same
+ * language: "12 November 2026, 14:30 (Prague time)". An unusable instant gives ''.
+ */
+export function formatLocaleDateTime(ms: number, locale: string): string {
+  if (!Number.isFinite(ms)) return ''
+  const formatted = new Intl.DateTimeFormat(tagFor(locale), DATE_TIME_OPTIONS).format(new Date(ms))
+  return `${formatted} (${pragueLabelFor(locale)})`
+}

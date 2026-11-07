@@ -6,6 +6,10 @@
 // card can not be stranded by the owner switching the canary off (tests/payment-state-writers-gate.test.ts).
 //
 // Fail closed: any read problem, a missing value or an unknown mode means pay-now for everybody.
+//
+// Phase 89 (plan 89-07; D-18, D-24): mode 'on' opens the card flow and the new cancellation terms to every
+// client. isPolicyPublic below is the go-live gate for the stored terms: until it holds for a client, new
+// bookings keep NULL snapshot columns and legacy terms apply. This module is still the only reader of the mode.
 
 import { createSupabaseServiceClient } from '@/lib/supabase'
 
@@ -51,7 +55,7 @@ export const MIN_HOLD_LEAD_HOURS = 6
 export const MAX_HOLD_LEAD_HOURS = 96
 
 export interface PaymentSettings {
-  mode: 'off' | 'canary'
+  mode: 'off' | 'canary' | 'on'
   leadHours: number
   canaryEmails: string[]
 }
@@ -88,20 +92,34 @@ export async function getPaymentSettings(): Promise<PaymentSettings> {
           .map(normalizeEmail)
           .filter((e) => e.length > 0)
       : []
-    return { mode: row.card_flow_mode === 'canary' ? 'canary' : 'off', leadHours, canaryEmails }
+    const mode: PaymentSettings['mode'] =
+      row.card_flow_mode === 'canary' ? 'canary' : row.card_flow_mode === 'on' ? 'on' : 'off'
+    return { mode, leadHours, canaryEmails }
   } catch {
     return { ...FAIL_CLOSED, canaryEmails: [] }
   }
 }
 
 /**
- * The client may see the card flow only when the owner runs the canary, the (normalised) email is on
- * the allowlist exactly, and the trip is a transfer or hourly. An empty allowlist is nobody.
+ * The cancellation terms are public for a client when the owner runs mode on (any email), or runs the canary and
+ * the (normalised) email is on the allowlist exactly. Off and an unknown mode are never public.
+ * Trip type plays no part: the terms apply to every booking, the card flow has its own trip-type rule.
+ */
+export function isPolicyPublic(s: PaymentSettings, email: string): boolean {
+  if (s.mode === 'on') return true
+  if (s.mode !== 'canary') return false
+  const normalized = normalizeEmail(email)
+  if (!normalized) return false
+  return s.canaryEmails.some((allowed) => normalizeEmail(allowed) === normalized)
+}
+
+/**
+ * The client may see the card flow only when the owner runs mode on, or runs the canary and the email is on
+ * the allowlist exactly, and the trip is a transfer or hourly. An empty allowlist is nobody in canary.
+ * Mode on needs a non-empty email like every other mode.
  */
 export function isCardFlowEligible(s: PaymentSettings, input: { email: string; tripType: string }): boolean {
-  if (s.mode !== 'canary') return false
   if (!(CARD_FLOW_TRIP_TYPES as readonly string[]).includes(input.tripType)) return false
-  const email = normalizeEmail(input.email)
-  if (!email) return false
-  return s.canaryEmails.some((allowed) => normalizeEmail(allowed) === email)
+  if (!normalizeEmail(input.email)) return false
+  return isPolicyPublic(s, input.email)
 }

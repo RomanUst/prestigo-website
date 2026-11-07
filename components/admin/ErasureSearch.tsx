@@ -9,6 +9,8 @@ export interface ErasurePreviewData {
   counts: {
     bookings: number
     upcoming: number
+    /** Bookings whose payment is still in play (a hold, a pending fee case, an open card flow); erasure is refused. */
+    paymentOpen?: number
     inquiries: number
     quoteLeads: number
     hasAccount: boolean
