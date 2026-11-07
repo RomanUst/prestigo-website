@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+// ISR: cancellation answers hold policy numbers from the admin settings (D-24); a changed setting shows within 5 minutes.
+export const revalidate = 300
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -12,6 +13,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 import { localizedHref } from '@/lib/localized-href'
 import { landingPagesFor, type LandingContent } from '@/lib/landing-pages'
+import { fillPolicyDeep, getPolicyNumbers } from '@/lib/cancellation-wording'
 
 type FaqContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -68,7 +70,9 @@ const breadcrumbSchema = {
 
 export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const content = getPageContent('faq', locale) as FaqContent
+  const raw = getPageContent('faq', locale) as FaqContent
+  // One filled copy feeds both the visible answers and the FAQPage JSON-LD, so they stay identical (plain strings).
+  const content: FaqContent = { ...raw, sections: fillPolicyDeep(raw.sections, await getPolicyNumbers(), locale) }
   const faqSchema = buildFaqSchema(content, locale)
   const businessDoc = businessNodeDoc()
   return (

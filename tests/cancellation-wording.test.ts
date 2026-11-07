@@ -236,3 +236,92 @@ describe('terms section 4 wording (EN)', () => {
     expect(JSON.stringify(terms('en').section4)).not.toMatch(/counsel|lawyer|attorney/i)
   })
 })
+
+describe('FAQ cancellation answers (EN)', () => {
+  const faqs = faq('en').sections[FAQ_CANCEL.section].faqs
+
+  it('keeps the cancellation section at index 3 with the four questions', () => {
+    expect(faq('en').sections[FAQ_CANCEL.section].title).toBe('Cancellation')
+    expect(faqs.map((f) => f.q)).toEqual([
+      'Can I cancel my booking?',
+      'Can I change the pickup time?',
+      'What happens if I do not show up?',
+      'Why is my card saved if I pay cash to the driver?',
+    ])
+  })
+
+  it('types no number in the cancellation answers', () => {
+    for (const f of faqs) expect(/\d/.test(`${f.q} ${f.a}`)).toBe(false)
+  })
+
+  it('states the windows, the operator decision, the email link and that a change is a request', () => {
+    expect(policyVariablesIn(faqs[0].a)).toEqual(['freeHoursHourly', 'freeHoursLong', 'freeHoursShort', 'km', 'percent'])
+    expect(faqs[0].a).toMatch(/decides every charge and may waive it/)
+    expect(faqs[0].a).toMatch(/confirmation email/)
+    expect(faqs[1].a).toMatch(/is a request/)
+    expect(faqs[1].a).toMatch(/we confirm it/)
+    expect(policyVariablesIn(faqs[2].a)).toEqual(['waitAirportMin', 'waitCityMin'])
+    expect(faqs[3].a).toMatch(/guarantee/)
+  })
+
+  it('keeps the cancelled-flight promise (full refund or reschedule, D-05)', () => {
+    const q = faq('en').sections[2].faqs.find((f) => f.q === 'What if my flight is cancelled?')
+    expect(q?.a).toMatch(/refund in full/)
+  })
+})
+
+describe('FAQ page: visible text and FAQPage JSON-LD are the same filled copy (CANC-02)', () => {
+  async function renderFaq(n: PolicyNumbers, locale = 'en'): Promise<string> {
+    mocks.getCancellationPolicy.mockResolvedValue({
+      version: 'v',
+      kmThreshold: n.km,
+      freeHoursShort: n.freeHoursShort,
+      freeHoursLong: n.freeHoursLong,
+      freeHoursHourly: n.freeHoursHourly,
+      feePercent: n.percent,
+    })
+    mocks.createClient.mockReturnValue({})
+    mocks.getNoShowThresholds.mockResolvedValue({ cityMin: n.waitCityMin, airportMin: n.waitAirportMin })
+    const { default: FaqPage } = await import('@/app/[locale]/faq/page')
+    const el = await FaqPage({ params: Promise.resolve({ locale }) })
+    return renderToStaticMarkup(createElement('div', null, el))
+  }
+
+  type Schema = { mainEntity: { name: string; acceptedAnswer: { text: string } }[] }
+  function faqSchema(html: string): Schema {
+    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]))
+    const found = blocks.find((b) => b['@type'] === 'FAQPage')
+    expect(found).toBeDefined()
+    return found as Schema
+  }
+
+  const decode = (s: string) =>
+    s.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+  const visibleText = (html: string) =>
+    decode(html.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' '))
+
+  it.each([
+    ['defaults', NUMBERS],
+    ['changed settings', OTHER],
+  ])('%s: each JSON-LD answer is a plain filled string equal to the visible answer', async (_name, numbers) => {
+    const html = await renderFaq(numbers)
+    const schema = faqSchema(html)
+    const text = visibleText(html)
+    for (const e of schema.mainEntity) {
+      expect(typeof e.acceptedAnswer.text).toBe('string')
+      assertNoUnresolved(e.acceptedAnswer.text)
+      expect(text).toContain(e.acceptedAnswer.text.replace(/\s+/g, ' '))
+    }
+    const cancel = schema.mainEntity.find((e) => e.name === 'Can I cancel my booking?')
+    expect(cancel?.acceptedAnswer.text).toContain(`up to ${numbers.km} km`)
+    expect(cancel?.acceptedAnswer.text).toContain(`${numbers.percent}%`)
+    assertNoUnresolved(text)
+  })
+
+  it('a changed setting shows in both places', async () => {
+    const html = await renderFaq(OTHER)
+    const cancel = faqSchema(html).mainEntity.find((e) => e.name === 'Can I cancel my booking?')
+    expect(cancel?.acceptedAnswer.text).toContain('up to 3 hours before pickup on trips of up to 250 km')
+    expect(visibleText(html)).toContain('up to 3 hours before pickup on trips of up to 250 km')
+  })
+})
