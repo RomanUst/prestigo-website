@@ -253,14 +253,25 @@ describe('CR-01: the fee of a pay-now booking is in the currency and amount of t
   it.each([
     ['late', LATE_NOW],
     ['in time', FREE_NOW],
-  ])('a row still unpaid is cancelled %s with no Stripe call and no case, whatever its intent says', async (_label, nowMs) => {
-    // The intent reads as paid on purpose: only the row status can stop this one (a payment whose webhook has not landed
-    // is the webhook's to handle, a direct cancel must not refund or open a case from here).
+  ])('money review 2, WR-02: a row still unpaid whose intent was in fact paid is refunded in full %s, with no case', async (_label, nowMs) => {
+    // The webhook is late or failing, so the row never left unpaid. Its redelivery finds nothing to do after the cancel,
+    // so this cancel is the only chance to give the money back.
     const pi = await paidPi(50000, 'eur')
     seedOneWay(pi, { status: 'unpaid' })
-    expect(await cancel(OUT, 'admin_client', nowMs)).toMatchObject({ kind: 'ok', money: 'none' })
-    expect(fake.calls).toHaveLength(0)
+    expect(await cancel(OUT, 'admin_client', nowMs)).toMatchObject({ kind: 'ok', money: 'refunded', refundedMinor: 50000, currency: 'eur' })
+    expect(refunds()).toHaveLength(1)
+    expect(refunds()[0].params).toEqual({ payment_intent: pi })
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(50000)
     expect(await loadFeeCase(OUT)).toBeNull()
+  })
+
+  it('money review 2, WR-02: Stripe can not be read on an unpaid row: the cancel stands and the operator is told (never a silent "nothing taken")', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi, { status: 'unpaid' })
+    fake.failNextWith('paymentIntents.retrieve', 'connection')
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ kind: 'money_failed' })
+    expect(rowOf(OUT).status).toBe('cancelled')
+    expect(mockAlert.mock.calls.some((c) => c[0] === 'refund_failed')).toBe(true)
   })
 
   it('isFeeEligible: a pay-now row with an intent counts only once it has left unpaid', () => {

@@ -342,9 +342,10 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
 
   const mode = str(booking.payment_mode)
   const isHold = mode === 'card_hold' || mode === 'cash_guarantee'
-  // An unpaid row carries the PaymentIntent of a checkout nobody finished: there is nothing to refund or to keep. The row
-  // has to have left `unpaid` before its intent counts as money (the PaymentIntent itself is still read below).
-  const refundsPayNow = !partner && !isHold && Boolean(booking.payment_intent_id) && previousStatus !== 'unpaid'
+  // Money review 2, WR-02: the PaymentIntent decides, not the row status. An unpaid row usually carries a checkout nobody
+  // finished (paidMinor 0, so payNowEmpty: nothing moves), but it can also be a payment whose webhook is late or failing:
+  // that money is refunded in full. isFeeEligible stays false on an unpaid row, so it is never held as a fee.
+  const refundsPayNow = !partner && !isHold && Boolean(booking.payment_intent_id)
 
   // D-04: a card booking whose hold is being placed or whose capture is running holds a lease; cancelling now would
   // race that worker. Nothing is written. 88-REVIEW A-WR-06: a hold placement whose lease lapsed (its worker died) no
