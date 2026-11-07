@@ -367,10 +367,27 @@ async function loadBooking(bookingId: string, fallback: BookingRow): Promise<Boo
  * Send the receipt once (the ledger event key makes a replay a no-op). A mail problem never undoes collected money.
  */
 async function sendReceipt(args: Parameters<typeof sendPaymentEmail>[0]): Promise<void> {
+  let result: Awaited<ReturnType<typeof sendPaymentEmail>> | 'threw' = 'threw'
   try {
-    await sendPaymentEmail(args)
+    result = await sendPaymentEmail(args)
   } catch {
+    // reported below
+  }
+  if (result === 'threw' || result === 'failed') {
     console.error('[fee] receipt email failed', { bookingId: str(args.booking.id), kind: args.kind })
+  }
+}
+
+/**
+ * What a fee receipt needs from the case itself. The stored policy can not answer it: a pay-now row has no amount for the
+ * policy box and a booking made before the policy went public has no stored policy, so the render would fail and the client
+ * would be charged with no mail (money WR-01).
+ */
+export function feeReceiptTerms(caseRow: FeeCaseRow): { freeUntil?: string; waitMin?: number } {
+  const wait = caseRow.evidence?.threshold_min
+  return {
+    ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
+    ...(typeof wait === 'number' && wait > 0 ? { waitMin: wait } : {}),
   }
 }
 
@@ -469,7 +486,7 @@ async function closeCharged(
     booking: { ...fresh, payment_currency: caseRow.currency },
     eventKey: `email:fee_charged:${caseRow.id}`,
     feeMinor: amountMinor,
-    ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
+    ...feeReceiptTerms(caseRow),
   })
   return { outcome: 'ok' }
 }

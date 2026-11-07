@@ -34,7 +34,7 @@ import {
 } from '@/lib/payments/config'
 import { claimForHold, placeHold } from '@/lib/payments/hold'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
-import { markFeeCharged, sendCashCardReceipt, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
+import { feeReceiptTerms, markFeeCharged, sendCashCardReceipt, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
 import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery'
 import { reconcileCashCharge, settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
@@ -558,9 +558,13 @@ async function reloadBooking(fallback: BookingRow): Promise<BookingRow> {
 
 /** A mail problem never undoes collected money; the ledger event key makes a repeat a no-op. */
 async function sendReceipt(args: Parameters<typeof sendPaymentEmail>[0]): Promise<void> {
+  let result: Awaited<ReturnType<typeof sendPaymentEmail>> | 'threw' = 'threw'
   try {
-    await sendPaymentEmail(args)
+    result = await sendPaymentEmail(args)
   } catch {
+    // reported below
+  }
+  if (result === 'threw' || result === 'failed') {
     console.error('[payment-tick] fee receipt email failed', { bookingId: String(args.booking.id), kind: args.kind })
   }
 }
@@ -578,7 +582,7 @@ async function closeFeeCase({ booking, caseRow }: PendingFee, amountMinor: numbe
     booking: await reloadBooking(booking),
     eventKey: `email:fee_charged:${caseRow.id}`,
     feeMinor: amountMinor,
-    ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
+    ...feeReceiptTerms(caseRow),
   })
 }
 

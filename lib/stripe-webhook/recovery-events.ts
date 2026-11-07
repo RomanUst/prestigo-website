@@ -37,7 +37,7 @@ import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
-import { loadFeeCase, markFeeCharged, type FeeCaseRow } from '@/lib/payments/fee'
+import { feeReceiptTerms, loadFeeCase, markFeeCharged, type FeeCaseRow } from '@/lib/payments/fee'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { appendPaymentEvent, applyTransition, type LedgerActor, type PaymentPatch } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
@@ -226,14 +226,15 @@ async function closeFeeCaseForPayment(feeCase: FeeCaseRow, booking: BookingRow, 
     console.error('[webhook] fee case not closed after a paid recovery link', { bookingId: booking.id, caseId: feeCase.id })
   }
   try {
-    await sendPaymentEmail({
+    const sent = await sendPaymentEmail({
       kind: 'fee_charged',
       variant: feeCase.kind === 'no_show' ? 'no_show' : 'late_cancel',
       booking,
       eventKey: `email:fee_charged:${feeCase.id}`,
       feeMinor: paid.paidMinor,
-      ...(feeCase.free_until ? { freeUntil: feeCase.free_until } : {}),
+      ...feeReceiptTerms(feeCase),
     })
+    if (sent === 'failed') console.error('[webhook] fee_charged email failed', { bookingId: booking.id, caseId: feeCase.id })
   } catch {
     console.error('[webhook] fee_charged email failed', { bookingId: booking.id, caseId: feeCase.id })
   }

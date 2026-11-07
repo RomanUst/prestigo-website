@@ -1210,6 +1210,15 @@ describe('step R: finish interrupted charges, repair closed money, reconcile cas
     expect(receipts()).toHaveLength(1)
   })
 
+  it('money WR-01: the sweep closing a no-show case passes the wait from the evidence to the receipt', async () => {
+    seedFeeCase(2, {
+      booking: { payment_state: 'captured', captured_amount_minor: 4000, payment_intent_id: 'pi_ns' },
+      caseRow: { kind: 'no_show', decided_minor: 4000, charge_requested_at: hoursAhead(-1), evidence: { threshold_min: 60 } },
+    })
+    await GET(okRequest())
+    expect(receipts()[0]).toMatchObject({ variant: 'no_show', waitMin: 60 })
+  })
+
   it('a captured row whose captured amount is not the decided fee, or whose case was never locked, is left alone', async () => {
     seedFeeCase(2, {
       booking: { payment_state: 'captured', captured_amount_minor: 12000, payment_intent_id: 'pi_trip' },

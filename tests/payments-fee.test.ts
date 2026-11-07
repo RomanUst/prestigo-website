@@ -546,6 +546,25 @@ describe('a transient Stripe error keeps the lease and the lock', () => {
   })
 })
 
+describe('money WR-01: the no-show receipt renders on every booking', () => {
+  it('the wait comes from the case evidence, so a booking with no stored policy still gets its receipt', async () => {
+    await seedWithHold({ cancel_policy: null, cancel_policy_version: null })
+    const c = await openCase({ kind: 'no_show', evidence: { threshold_min: 45 }, freeUntilIso: null })
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_charged', variant: 'no_show', waitMin: 45 })
+  })
+
+  it('a receipt that could not go out is logged: the money moved and nobody may think it was mailed', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    await seedWithHold()
+    const c = await openCase()
+    mockSendEmail.mockResolvedValue('failed')
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect(spy).toHaveBeenCalledWith('[fee] receipt email failed', expect.objectContaining({ bookingId: ID, kind: 'fee_charged' }))
+    spy.mockRestore()
+  })
+})
+
 describe('cash booking: the card is charged only when a person says so (D-21)', () => {
   const cash = { payment_mode: 'cash_guarantee', payment_state: 'card_saved', status: 'confirmed', hold_payment_intent_id: null }
 
