@@ -10,8 +10,9 @@
 //               was not cancelled by Prestigo, which is always free (D-20). This action can not turn a free cancel into a fee.
 
 import { evaluateCancellation, policyFromSnapshot, proposedFeeMinor, tripFactsFromRow } from '@/lib/cancellation-policy'
+import { allowedPaymentActions } from '@/lib/payments/actions'
 import { feeBaseNow, isFeeEligible, loadFeeCase, openFeeCase } from '@/lib/payments/fee'
-import type { LedgerActor } from '@/lib/payments/state'
+import { paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
 import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show-wait'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 
@@ -43,6 +44,28 @@ async function cancelledByPrestigo(bookingId: string): Promise<boolean> {
     .limit(1)
   if (error) throw new Error('ledger read failed')
   return Array.isArray(data) && (data[0] as { error_code?: unknown } | undefined)?.error_code === 'cancel_prestigo'
+}
+
+/**
+ * A closed pay-now row whose fee case failed to open: the case_missing alert of its cancel or no-show is the marker. Any other
+ * closed pay-now row was refunded or holds nothing, and offering a fee there would only be noise (money review 2, IN-01).
+ */
+export async function payNowCaseMissing(booking: BookingRow): Promise<boolean> {
+  const bookingId = typeof booking.id === 'string' ? booking.id : ''
+  if (!bookingId || booking.payment_mode !== 'pay_now' || booking.fee_case_status || !isFeeEligible(booking)) return false
+  const key =
+    booking.status === 'cancelled'
+      ? `alert:fee_decision_needed:${bookingId}:case_missing`
+      : booking.status === 'no_show'
+        ? `alert:fee_no_show_needed:${bookingId}:case_missing`
+        : null
+  return key !== null && (await paymentEventRecorded(bookingId, key).catch(() => false))
+}
+
+/** Whether open_case may run on this row: the action matrix, or a pay-now row's case_missing alert (money review 2, IN-02). */
+export async function openCaseOffered(booking: BookingRow): Promise<boolean> {
+  if (allowedPaymentActions(booking).includes('open_fee_case')) return true
+  return payNowCaseMissing(booking)
 }
 
 export async function openMissingFeeCase(booking: BookingRow, actor: LedgerActor): Promise<OpenMissingCaseResult> {

@@ -82,8 +82,9 @@ const isTripStatus = (status: string): boolean => CASH_TRIP_STATUSES.includes(st
  *                           no money step: no case may stay pending for good (money WR-03).
  *                           A closed booking with no case keeps release (to free a hold or card that is still there) and,
  *                           where a fee could still be taken, open_fee_case: the case failed to open (money WR-02). The fee
- *                           route decides from the row whether that cancel was late at all. A cancelled pay-now row gets it
- *                           from the admin GET, only after the case_missing alert: most of those were simply refunded.
+ *                           route decides from the row whether that cancel was late at all. A cancelled or no-show pay-now row
+ *                           gets it from the admin GET, only after its case_missing alert: most of those were simply refunded
+ *                           or hold nothing (money review 2, IN-01). The fee route re-checks the same rule (IN-02).
  *   cash booking            card_saved | failed on a trip that is on or done: charge_saved_card and mark_cash_settled
  *                           (a failed card during the trip is paid to the driver in cash, D-21); cash_settled:
  *                           reopen_cash (D-22); release only once the booking is closed, or for a checkout nobody finished:
@@ -114,7 +115,9 @@ export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
   const openable: PaymentAction[] =
     closed && !booking.fee_case_status && isFeeEligible(booking) && state !== 'capturing' ? ['open_fee_case'] : []
 
-  if (mode === 'pay_now') return status === 'no_show' ? openable : []
+  // A pay-now row gets open_fee_case from the admin GET only after its case_missing alert (lib/payments/fee-reopen.ts
+  // payNowCaseMissing): most closed pay-now rows were refunded or hold nothing, and the button would only answer 422.
+  if (mode === 'pay_now') return []
 
   if (mode === 'cash_guarantee') {
     if (state === 'cash_settled') return ['reopen_cash']

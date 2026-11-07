@@ -956,6 +956,8 @@ describe('money WR-02: a case that failed to open can still be opened', () => {
 
   it('a pay-now booking takes its base from the payment; Stripe unreadable is busy and opens nothing', async () => {
     await seedPayNow({ status: 'no_show' })
+    // A pay-now row is offered open_case only after its case_missing alert (money review 2, IN-01 / IN-02).
+    db.state.booking_payment_events.push({ booking_id: ID, event_key: `alert:fee_no_show_needed:${ID}:case_missing`, kind: 'alert_sent' })
     fake.failNextWith('paymentIntents.retrieve', 'connection')
     expect((await post({ action: 'open_case' })).status).toBe(409)
     expect(noShowLog()).toHaveLength(0)

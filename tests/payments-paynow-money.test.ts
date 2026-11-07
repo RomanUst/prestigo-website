@@ -68,6 +68,7 @@ import { POST as FEE_POST } from '@/app/api/admin/bookings/[id]/fee/route'
 import { cancelBooking, type CancelBookingInput } from '@/lib/payments/cancel'
 import { isFeeEligible, loadFeeCase } from '@/lib/payments/fee'
 import { buildManageView } from '@/lib/manage-view'
+import { openCaseOffered, payNowCaseMissing } from '@/lib/payments/fee-reopen'
 import { attributeUntagged, legShareMinor, resolvePayNowSplit } from '@/lib/payments/pay-now'
 
 const OUT = '77777777-7777-4777-8777-777777777777'
@@ -439,6 +440,26 @@ describe('CR-02 (public CR-01): one leg of a round trip is cancelled and refunde
     }
     expect(legShareMinor(30000, null, 3250, 'return')).toBeNull()
     expect(legShareMinor(30000, 0, 0, 'return')).toBeNull()
+  })
+})
+
+describe('money review 2, IN-01: open_fee_case on a pay-now row only after its case_missing alert', () => {
+  it('no alert, no button; the alert of the matching status turns it on', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi, { status: 'no_show' })
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(false)
+    expect(await openCaseOffered(rowOf(OUT))).toBe(false)
+    // The alert of a cancel does not count for a no-show.
+    db.state.booking_payment_events.push({ booking_id: OUT, event_key: `alert:fee_decision_needed:${OUT}:case_missing`, kind: 'alert_sent' })
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(false)
+    db.state.booking_payment_events.push({ booking_id: OUT, event_key: `alert:fee_no_show_needed:${OUT}:case_missing`, kind: 'alert_sent' })
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(true)
+    expect(await openCaseOffered(rowOf(OUT))).toBe(true)
+
+    rowOf(OUT).status = 'cancelled'
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(true)
+    rowOf(OUT).fee_case_status = 'waived'
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(false)
   })
 })
 
