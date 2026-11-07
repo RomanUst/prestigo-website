@@ -87,8 +87,9 @@ const isTripStatus = (status: string): boolean => CASH_TRIP_STATUSES.includes(st
  *                           from the admin GET, only after the case_missing alert: most of those were simply refunded.
  *   cash booking            card_saved | failed on a trip that is on or done: charge_saved_card and mark_cash_settled
  *                           (a failed card during the trip is paid to the driver in cash, D-21); cash_settled:
- *                           reopen_cash (D-22); before completion also release; a failed row keeps send_link only after
- *                           the trip (during it, nothing is sent to the passenger).
+ *                           reopen_cash (D-22); release only once the booking is closed, or for a checkout nobody finished:
+ *                           released is terminal, so on a live trip it would remove the driver's cash step (money WR-07). A
+ *                           failed row keeps send_link only after the trip (during it, nothing is sent to the passenger).
  * The admin POST re-checks this matrix on a fresh row before running any action (server-side, not only the UI).
  */
 export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
@@ -124,7 +125,7 @@ export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
     if ((state === 'card_saved' || state === 'failed') && isTripStatus(status)) {
       cashActions.push('charge_saved_card', 'mark_cash_settled')
     }
-    if (!completed && RELEASE_STATES.has(state)) cashActions.push('release')
+    if (!completed && state !== 'card_saved' && state !== 'failed' && RELEASE_STATES.has(state)) cashActions.push('release')
     if (completed && state === 'failed') cashActions.push('send_link')
     return cashActions
   }

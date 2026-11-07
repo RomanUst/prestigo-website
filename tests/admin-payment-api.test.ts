@@ -1000,17 +1000,18 @@ describe('Phase 89 matrix: pending fee case, cash bookings (D-05, D-21, D-22)', 
     const cash = (payment_state: string, status: string) => allowedPaymentActions({ payment_mode: 'cash_guarantee', payment_state, status })
     // [state, status]: expected actions
     const TABLE: Array<[string, string, PaymentAction[]]> = [
-      ['card_saved', 'confirmed', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'assigned', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'en_route', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'on_location', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'on_board', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      // Money WR-07: no release on a live cash booking: released is terminal and would remove the driver's cash step.
+      ['card_saved', 'confirmed', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'assigned', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'en_route', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'on_location', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'on_board', ['charge_saved_card', 'mark_cash_settled']],
       ['card_saved', 'completed', ['charge_saved_card', 'mark_cash_settled']],
-      ['card_saved', 'pending', ['release']],
+      ['card_saved', 'pending', []],
       ['card_saved', 'cancelled', ['release']],
       ['card_saved', 'no_show', ['release']],
       // The card failed during the trip: the client pays the driver (D-21). A link goes out only after the trip.
-      ['failed', 'on_board', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['failed', 'on_board', ['charge_saved_card', 'mark_cash_settled']],
       ['failed', 'completed', ['charge_saved_card', 'mark_cash_settled', 'send_link']],
       ['failed', 'cancelled', ['release']],
       ['cash_settled', 'completed', ['reopen_cash']],
