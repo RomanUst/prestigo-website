@@ -582,7 +582,7 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
   }
 
   // 88-REVIEW T2 (C-WR-03): a cancelled or no-show booking never gets a new hold, a capture or a link; only a hold or
-  // card that is still there can be released.
+  // card that is still there can be released. Collected money with no case can get its fee case opened (money WR-02).
   const CLOSED: Record<string, PaymentAction[]> = {
     none: [],
     checkout_pending: ['release'],
@@ -590,8 +590,8 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
     placing_hold: [],
     authorized: ['release'],
     capturing: [],
-    captured: [],
-    balance_due: [],
+    captured: ['open_fee_case'],
+    balance_due: ['open_fee_case'],
     failed: ['release'],
     expired: ['release'],
     released: [],
@@ -969,10 +969,10 @@ describe('Phase 89 matrix: pending fee case, cash bookings (D-05, D-21, D-22)', 
       ).toEqual([])
     })
 
-    it('nothing where there is nothing to take: released, cash_settled, pay_now without a payment, partner', () => {
-      expect(pending({ payment_mode: 'card_hold', payment_state: 'released', status: 'cancelled', stripe_payment_method_id: 'pm_1' })).toEqual([])
-      expect(pending({ payment_mode: 'cash_guarantee', payment_state: 'cash_settled', status: 'cancelled' })).toEqual(['reopen_cash'])
-      expect(pending({ payment_mode: 'pay_now', payment_state: 'none', status: 'cancelled' })).toEqual([])
+    it('nothing to take: only the waive that closes the case (money WR-03: released, cash_settled, pay_now without a payment); partner nothing', () => {
+      expect(pending({ payment_mode: 'card_hold', payment_state: 'released', status: 'cancelled', stripe_payment_method_id: 'pm_1' })).toEqual(['waive_fee'])
+      expect(pending({ payment_mode: 'cash_guarantee', payment_state: 'cash_settled', status: 'cancelled' })).toEqual(['waive_fee'])
+      expect(pending({ payment_mode: 'pay_now', payment_state: 'none', status: 'cancelled' })).toEqual(['waive_fee'])
       expect(pending({ payment_mode: 'partner', payment_state: 'none', status: 'cancelled', booking_source: 'gnet' })).toEqual([])
       expect(pending({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'cancelled', booking_source: 'gnet' })).toEqual([])
     })
@@ -1000,17 +1000,18 @@ describe('Phase 89 matrix: pending fee case, cash bookings (D-05, D-21, D-22)', 
     const cash = (payment_state: string, status: string) => allowedPaymentActions({ payment_mode: 'cash_guarantee', payment_state, status })
     // [state, status]: expected actions
     const TABLE: Array<[string, string, PaymentAction[]]> = [
-      ['card_saved', 'confirmed', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'assigned', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'en_route', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'on_location', ['charge_saved_card', 'mark_cash_settled', 'release']],
-      ['card_saved', 'on_board', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      // Money WR-07: no release on a live cash booking: released is terminal and would remove the driver's cash step.
+      ['card_saved', 'confirmed', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'assigned', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'en_route', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'on_location', ['charge_saved_card', 'mark_cash_settled']],
+      ['card_saved', 'on_board', ['charge_saved_card', 'mark_cash_settled']],
       ['card_saved', 'completed', ['charge_saved_card', 'mark_cash_settled']],
-      ['card_saved', 'pending', ['release']],
+      ['card_saved', 'pending', []],
       ['card_saved', 'cancelled', ['release']],
       ['card_saved', 'no_show', ['release']],
       // The card failed during the trip: the client pays the driver (D-21). A link goes out only after the trip.
-      ['failed', 'on_board', ['charge_saved_card', 'mark_cash_settled', 'release']],
+      ['failed', 'on_board', ['charge_saved_card', 'mark_cash_settled']],
       ['failed', 'completed', ['charge_saved_card', 'mark_cash_settled', 'send_link']],
       ['failed', 'cancelled', ['release']],
       ['cash_settled', 'completed', ['reopen_cash']],
@@ -1168,7 +1169,7 @@ describe('GET: fee_case and cash facts (admin only)', () => {
       base_minor: 12000,
       proposed_minor: 12000,
       decided_minor: 4000,
-      charge_requested_at: '2026-11-01T12:00:00.000Z',
+      charge_requested_at: new Date().toISOString(),
       free_until: null,
       evidence: {},
       reason: null,

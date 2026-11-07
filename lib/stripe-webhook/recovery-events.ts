@@ -8,8 +8,10 @@
 //   second is a duplicate. The key is its own: a declined difference already holds captured:<mainPi>.
 //   Phase 89 (plan 89-26, CASH-03): when the failed booking has a PENDING fee case (a declined late-cancel / no-show fee
 //   whose recovery link the client paid), the same payment also closes the case through markFeeCharged (the only fee-case
-//   writer in the codebase) and the receipt is fee_charged keyed by the case, not the charged email. A recovery payment
-//   without a pending case behaves exactly as before. The case is read BEFORE the transition, so a read problem
+//   writer in the codebase) and the receipt is fee_charged keyed by the case, not the charged email. Only the fee's own link
+//   (tag f<attempt>, lib/payments/recovery.ts) does: an older link paid after the cancel is no decision by a person (D-05)
+//   and is refunded as a duplicate. A recovery payment without a pending case behaves exactly as before. The case is read
+//   BEFORE the transition, so a read problem
 //   throws (Stripe redelivers) while nothing has changed yet; a crash after the transition leaves the case pending, and
 //   the operator's repeat charge click reconciles it (settle answers noop on a row captured for exactly the fee).
 // handleDispute: charge.dispute.created on a card_hold or cash_guarantee booking's payment sends one operator alert
@@ -37,8 +39,9 @@ import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
-import { loadFeeCase, markFeeCharged, type FeeCaseRow } from '@/lib/payments/fee'
+import { feeReceiptTerms, loadFeeCase, markFeeCharged, type FeeCaseRow } from '@/lib/payments/fee'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
+import { voidLeftoverHold } from '@/lib/payments/hold'
 import { appendPaymentEvent, applyTransition, type LedgerActor, type PaymentPatch } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { RECOVERY_LINK_CLEARED } from '@/lib/payments/recovery-link'
@@ -64,7 +67,12 @@ interface RecoveryPayment {
   paymentIntentId: string | null
   /** The object the ledger rows point at: the PaymentIntent, else the session. */
   stripeObjectId: string
+  /** metadata.attempt of the link: its tag, f<n> for the link of a declined fee. */
+  linkTag: string
 }
+
+/** The link a declined fee created (linkTag in lib/payments/recovery.ts). */
+const isFeeLink = (paid: RecoveryPayment): boolean => /^f\d+$/.test(paid.linkTag)
 
 /** What a recovery payment event says, or null when it is not a paid card_recovery payment (acknowledged, no write). */
 function readRecoveryPayment(event: Stripe.Event): RecoveryPayment | null {
@@ -80,7 +88,7 @@ function readRecoveryPayment(event: Stripe.Event): RecoveryPayment | null {
       console.warn('[webhook] recovery session without a usable booking or amount', { stripeObjectId: session.id })
       return null
     }
-    return { bookingId, paidMinor, paymentIntentId, stripeObjectId: paymentIntentId ?? session.id }
+    return { bookingId, paidMinor, paymentIntentId, stripeObjectId: paymentIntentId ?? session.id, linkTag: session.metadata?.attempt ?? '' }
   }
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object as Stripe.PaymentIntent
@@ -91,7 +99,7 @@ function readRecoveryPayment(event: Stripe.Event): RecoveryPayment | null {
       console.warn('[webhook] recovery payment without a usable booking or amount', { stripeObjectId: pi.id })
       return null
     }
-    return { bookingId, paidMinor, paymentIntentId: pi.id, stripeObjectId: pi.id }
+    return { bookingId, paidMinor, paymentIntentId: pi.id, stripeObjectId: pi.id, linkTag: pi.metadata?.attempt ?? '' }
   }
   return null
 }
@@ -144,6 +152,11 @@ export async function handleRecoveryPaid(event: Stripe.Event): Promise<void> {
     // 89-26: a declined fee leaves a failed row with a pending case; read it before anything changes.
     const pendingCase: FeeCaseRow | null =
       state === 'failed' ? await loadPendingFeeCase(booking.id) : null
+    // WR-06: a retired link can still be paid from a Checkout opened earlier. That is not the fee a person decided.
+    if (pendingCase && !isFeeLink(paid)) {
+      await refundDuplicatePayment(booking, paid, ledgerKey, currency, state)
+      return
+    }
 
     const patch: PaymentPatch = {
       captured_amount_minor: capturedBefore + paid.paidMinor,
@@ -178,6 +191,15 @@ export async function handleRecoveryPaid(event: Stripe.Event): Promise<void> {
           await deactivateBookingPaymentLink(linkId)
         } catch {
           console.error('[webhook] recovery link not deactivated', { bookingId: booking.id })
+        }
+      }
+      // WR-04: the client paid the debt; an authorization still on the card must not stay blocked on top of it.
+      const leftoverHold = state === 'failed' ? str(booking.hold_payment_intent_id) : ''
+      if (leftoverHold) {
+        try {
+          await voidLeftoverHold(leftoverHold)
+        } catch {
+          console.error('[webhook] leftover hold not voided', { bookingId: booking.id, stripeObjectId: leftoverHold })
         }
       }
       const fresh = { ...booking, ...(moved.booking ?? {}) }
@@ -226,14 +248,15 @@ async function closeFeeCaseForPayment(feeCase: FeeCaseRow, booking: BookingRow, 
     console.error('[webhook] fee case not closed after a paid recovery link', { bookingId: booking.id, caseId: feeCase.id })
   }
   try {
-    await sendPaymentEmail({
+    const sent = await sendPaymentEmail({
       kind: 'fee_charged',
       variant: feeCase.kind === 'no_show' ? 'no_show' : 'late_cancel',
       booking,
       eventKey: `email:fee_charged:${feeCase.id}`,
       feeMinor: paid.paidMinor,
-      ...(feeCase.free_until ? { freeUntil: feeCase.free_until } : {}),
+      ...feeReceiptTerms(feeCase),
     })
+    if (sent === 'failed') console.error('[webhook] fee_charged email failed', { bookingId: booking.id, caseId: feeCase.id })
   } catch {
     console.error('[webhook] fee_charged email failed', { bookingId: booking.id, caseId: feeCase.id })
   }

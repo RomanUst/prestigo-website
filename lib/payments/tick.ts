@@ -9,12 +9,12 @@
 // runs. Registered steps, in order: A (place due holds), B (the one automatic retry of a declined hold / charge,
 // D-13), C (settle completed trips, 88-13), D (operator alerts 24 h before pickup and before a hold lapses, D-15),
 // E (reconcile stuck checkouts, card and cash) and F (re-drive undelivered failure notices, 88-REVIEW A-WR-10), then
-// Phase 89's R (fee cases: one reminder per undecided case, D-15; finish a fee or cash card charge a crash interrupted;
-// close a case whose money arrived).
+// Phase 89's R (fee cases: one reminder per undecided case, D-15; finish a fee charge a crash interrupted; close a case
+// whose money arrived; reconcile an interrupted cash card charge from Stripe, read only).
 //
 // Step R never decides anything: it opens no case, charges nothing a person did not ask for (a re-drive needs the
-// charge_requested_at an operator click set, T-89-45), cancels no booking (D-19) and has no code path for a cash booking
-// whose driver has not confirmed (D-21).
+// charge_requested_at an operator click set, T-89-45), cancels no booking (D-19), has no code path for a cash booking
+// whose driver has not confirmed (D-21) and never starts or replays a cash card charge (money CR-05).
 //
 // Nothing here asks whether the client-facing card flow is switched on: bookings that already hold a card keep
 // their lifecycle whatever the owner's switch says now (D-09a, tests/payment-state-writers-gate.test.ts).
@@ -34,9 +34,9 @@ import {
 } from '@/lib/payments/config'
 import { claimForHold, placeHold } from '@/lib/payments/hold'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
-import { markFeeCharged, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
+import { feeReceiptTerms, markFeeCharged, sendCashCardReceipt, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
 import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery'
-import { settleBooking } from '@/lib/payments/settle'
+import { reconcileCashCharge, settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe } from '@/lib/payments/stripe'
 import { applyHoldNowAuthorized, applySetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
@@ -222,6 +222,8 @@ const stepC: TickStep = {
         .not('completed_at', 'is', null)
         .neq('status', 'cancelled')
         .neq('status', 'no_show')
+        // Money WR-08: an erased person's row: the Customer is gone and any notice would go to an erased address.
+        .is('anonymised_at', null)
 
     const nowIso = ctx.now.toISOString()
     const [waiting, stuck, stuckPlacing, failedDone] = await Promise.all([
@@ -282,6 +284,7 @@ const stepB: TickStep = {
       .eq('payment_mode', 'card_hold')
       .eq('payment_state', 'failed')
       .eq('payment_retry_count', 0)
+      .is('anonymised_at', null)
       .lte('payment_retry_at', ctx.now.toISOString())
       .order('payment_retry_at', { ascending: true })
       .limit(HOLD_CLAIM_LIMIT)
@@ -450,6 +453,7 @@ const stepF: TickStep = {
       // Phase 89: a row with a fee case failed on a fee (or on a cash charge) whose notices are keyed by phase 'fee'; the
       // ledger can not tell that from a trip charge, so a re-drive here would send the wrong notice for the wrong amount.
       .is('fee_case_status', null)
+      .is('anonymised_at', null)
       .gte('payment_failed_at', new Date(nowMs - LEASE_SEARCH_AFTER_MS).toISOString())
       .order('payment_failed_at', { ascending: true })
       .limit(HOLD_CLAIM_LIMIT)
@@ -558,9 +562,13 @@ async function reloadBooking(fallback: BookingRow): Promise<BookingRow> {
 
 /** A mail problem never undoes collected money; the ledger event key makes a repeat a no-op. */
 async function sendReceipt(args: Parameters<typeof sendPaymentEmail>[0]): Promise<void> {
+  let result: Awaited<ReturnType<typeof sendPaymentEmail>> | 'threw' = 'threw'
   try {
-    await sendPaymentEmail(args)
+    result = await sendPaymentEmail(args)
   } catch {
+    // reported below
+  }
+  if (result === 'threw' || result === 'failed') {
     console.error('[payment-tick] fee receipt email failed', { bookingId: String(args.booking.id), kind: args.kind })
   }
 }
@@ -578,7 +586,7 @@ async function closeFeeCase({ booking, caseRow }: PendingFee, amountMinor: numbe
     booking: await reloadBooking(booking),
     eventKey: `email:fee_charged:${caseRow.id}`,
     feeMinor: amountMinor,
-    ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
+    ...feeReceiptTerms(caseRow),
   })
 }
 
@@ -619,21 +627,23 @@ async function redriveFee(item: PendingFee): Promise<'finished' | 'declined' | '
 
 /**
  * A cash booking's card charge (D-21) an operator started and a crash interrupted: the row sits in `capturing` with a
- * lapsed lease and has no fee case. The same settle runs again (the ordinary chg:<id>:<attempt> key) and the receipt goes
- * out once. A cash row nobody started charging is in card_saved / cash_settled and never selected: no code path charges it.
+ * lapsed lease and has no fee case. Ten minutes on, the client may have paid the driver, so nothing is charged from here
+ * (CR-05): Stripe is only read. A charge that went through is recorded with its receipt; otherwise the row is free again
+ * and the operator is told, a new charge is a new click. A cash row nobody started charging is never selected.
  */
-async function redriveCashCard(booking: BookingRow): Promise<boolean> {
-  const result = await settleBooking(booking.id, SWEEP_ACTOR, { collect: { kind: 'cash_card' } })
-  if (result.outcome !== 'captured') return false
-  const fresh = await reloadBooking(booking)
-  const completed = fresh.status === 'completed' || (typeof fresh.completed_at === 'string' && fresh.completed_at.length > 0)
-  await sendReceipt({
-    kind: 'fee_charged',
-    variant: completed ? 'cash_unpaid' : 'cash_card',
-    booking: fresh,
-    eventKey: `email:fee_charged:${booking.id}`,
+async function reconcileCashCard(booking: BookingRow): Promise<'captured' | 'restored' | 'waiting'> {
+  const result = await reconcileCashCharge(booking.id, SWEEP_ACTOR)
+  if (result.outcome === 'captured') {
+    await sendCashCardReceipt(booking.id, booking)
+    return 'captured'
+  }
+  if (result.outcome !== 'restored') return 'waiting'
+  await sendPaymentOperatorAlert('charge_failed', { ...booking, payment_state: result.state }, {
+    eventKey: `alert:cash_charge_interrupted:${booking.id}:${typeof booking.charge_attempts === 'number' ? booking.charge_attempts : 0}`,
+    code: 'charge_interrupted',
+    note: 'cash_interrupted',
   })
-  return true
+  return 'restored'
 }
 
 /**
@@ -641,7 +651,7 @@ async function redriveCashCard(booking: BookingRow): Promise<boolean> {
  *   1. a fee charge interrupted mid-flight (case locked by an operator click, row capturing, lease lapsed) is finished with
  *      the same keys; a decline unlocks the amount and nothing is charged again without a person;
  *   2. a case whose money arrived (row captured for exactly the locked fee) but was not closed is closed, no Stripe call;
- *   3. a cash card charge interrupted the same way is finished;
+ *   3. a cash card charge interrupted the same way is reconciled from Stripe, read only: never finished (CR-05);
  *   4. one fee_pending_24h reminder per case still pending after 24 h, earlier when the hold ends sooner (key
  *      alert:fee_pending:<caseId>, recorded once delivered). It only tells the operator.
  * Selection of 1, 2 and 4 starts from bookings.fee_case_status, so a booking without a case (an unpaid booking, a
@@ -680,6 +690,7 @@ const stepR: TickStep = {
     }
 
     // The cash card charge has no case; its only marker is the row in `capturing`.
+    let cashRestored = 0
     const cash = await createSupabaseServiceClient()
       .from('bookings')
       .select('*')
@@ -692,9 +703,11 @@ const stepR: TickStep = {
     if (cash.error) throw new Error('cash card charge lookup failed')
     for (const booking of (Array.isArray(cash.data) ? cash.data : []) as BookingRow[]) {
       try {
-        if (await redriveCashCard(booking)) finished += 1
+        const outcome = await reconcileCashCard(booking)
+        if (outcome === 'captured') finished += 1
+        if (outcome === 'restored') cashRestored += 1
       } catch {
-        console.error('[payment-tick] cash card charge re-drive failed unexpectedly', { bookingId: booking.id })
+        console.error('[payment-tick] cash card charge reconcile failed unexpectedly', { bookingId: booking.id })
         ctx.errors.add('R')
       }
     }
@@ -705,7 +718,8 @@ const stepR: TickStep = {
       try {
         if (closed.has(caseRow.id) || !reminderDue(item, nowMs)) continue
         const noShow = caseRow.kind === 'no_show'
-        const result = await sendPaymentOperatorAlert('fee_pending_24h', booking, {
+        // A pay-now row has no payment_currency: the reminder speaks the currency of the case.
+        const result = await sendPaymentOperatorAlert('fee_pending_24h', { ...booking, payment_currency: caseRow.currency }, {
           eventKey: `alert:fee_pending:${caseRow.id}`,
           proposedMinor: caseRow.proposed_minor,
           freeUntil: caseRow.free_until,
@@ -724,7 +738,7 @@ const stepR: TickStep = {
         ctx.errors.add('R')
       }
     }
-    return { fee_reminders: reminders, fees_finished: finished, fee_cases_repaired: repaired }
+    return { fee_reminders: reminders, fees_finished: finished, fee_cases_repaired: repaired, cash_charges_restored: cashRestored }
   },
 }
 

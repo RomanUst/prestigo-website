@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
+import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 
 /**
  * Phase 89 plan 89-09 (CASH-02, CASH-03, D-13, WR-04, Pitfall 15), the tracer: the operator confirms a real driver
@@ -12,6 +13,7 @@ const { world, mockGetAdminUser, mockAlert, mockSettle } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> }; state: { bookings: Array<Record<string, unknown>>; booking_fee_cases: Array<Record<string, unknown>> } },
     log: [] as Array<Record<string, unknown>>,
+    stripe: null as unknown,
   },
   mockGetAdminUser: vi.fn(),
   mockAlert: vi.fn(),
@@ -26,6 +28,10 @@ vi.mock('@/lib/supabase/server', () => ({ createClient: vi.fn(), getAdminUser: m
 vi.mock('@/lib/request-guards', () => ({ enforceMaxBody: () => null }))
 vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: mockAlert }))
 vi.mock('@/lib/payments/settle', () => ({ settleBooking: mockSettle }))
+vi.mock('@/lib/payments/stripe', async importActual => ({
+  ...(await importActual<typeof import('@/lib/payments/stripe')>()),
+  getPaymentsStripe: () => world.stripe,
+}))
 vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: vi.fn(), bookingEmailDataFromRow: (r: unknown) => r }))
 
 /** booking_status_log is not modelled by the payments fake: a tiny filter-order-limit stub over world.log. */
@@ -77,6 +83,7 @@ const NOW = Date.parse('2026-11-12T15:00:00.000Z')
 const iso = (offsetMin: number) => new Date(NOW + offsetMin * 60_000).toISOString()
 
 let db: FakePaymentsDb
+let fake: FakeStripe
 
 function seed(over: Record<string, unknown> = {}) {
   db = createFakePaymentsDb({
@@ -135,6 +142,8 @@ beforeEach(() => {
   vi.setSystemTime(NOW)
   mockGetAdminUser.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
   mockAlert.mockResolvedValue('sent')
+  fake = createFakeStripe()
+  world.stripe = fake.stripe
   seed()
 })
 afterEach(() => {
@@ -264,6 +273,14 @@ describe('bookings that get a status and no case', () => {
     expect(mockAlert).not.toHaveBeenCalled()
   })
 
+  it('money IN-04: a card charge is running on the row: the no-show waits, as a cancel does', async () => {
+    seed({ payment_mode: 'cash_guarantee', payment_state: 'capturing' })
+    const res = await confirm()
+    expect(res.status).toBe(409)
+    expect(booking().status).toBe('on_location')
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+  })
+
   it('a case that can not be opened never reverts the status (logged, 200)', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     seed({ payment_amount_minor: null })
@@ -272,6 +289,92 @@ describe('bookings that get a status and no case', () => {
     expect(booking().status).toBe('no_show')
     expect(db.state.booking_fee_cases).toHaveLength(0)
     expect(spy).toHaveBeenCalledWith('[no-show] no fee base, case not opened', { bookingId: ID })
+    await flush()
+    // Money CR-03: nobody may be left unaware that the decision has no case behind it.
+    expect(mockAlert).toHaveBeenCalledWith(
+      'fee_no_show_needed',
+      expect.objectContaining({ id: ID }),
+      expect.objectContaining({ eventKey: `alert:fee_no_show_needed:${ID}:case_missing`, note: 'case_missing' }),
+    )
+    spy.mockRestore()
+  })
+})
+
+describe('money CR-03: a no-show on a pay-now round trip is capped by the leg, in the payment currency', () => {
+  async function seedPayNowLeg(leg: 'outbound' | 'return', amount: number, currency: 'eur' | 'czk') {
+    const pi = (await fake.stripe.paymentIntents.create({
+      amount,
+      currency,
+      payment_method: 'pm_ok',
+      off_session: true,
+      confirm: true,
+      metadata: {},
+    })) as { id: string }
+    seed({
+      payment_mode: 'pay_now',
+      payment_state: 'none',
+      payment_currency: null,
+      payment_amount_minor: null,
+      stripe_payment_method_id: null,
+      hold_payment_intent_id: null,
+      payment_intent_id: pi.id,
+      trip_type: 'round_trip',
+      leg,
+      // The outbound row's amount_eur is the combined total, the return row has none (buildRoundTripBookings).
+      amount_eur: leg === 'outbound' ? 300 : null,
+      outbound_amount_czk: 4250,
+      return_amount_czk: 3250,
+    })
+    db.state.bookings.push({
+      ...booking(),
+      id: '99999999-9999-4999-8999-999999999990',
+      leg: leg === 'outbound' ? 'return' : 'outbound',
+      status: 'confirmed',
+    })
+    return pi.id
+  }
+
+  it('the outbound leg: the 100% cap is its share, not the combined fare', async () => {
+    await seedPayNowLeg('outbound', 30000, 'eur')
+    expect((await confirm()).status).toBe(200)
+    expect(db.state.booking_fee_cases[0]).toMatchObject({ kind: 'no_show', currency: 'eur', base_minor: 17000, proposed_minor: 17000 })
+  })
+
+  it('the return leg, whose amount_eur is NULL, gets its case', async () => {
+    await seedPayNowLeg('return', 30000, 'eur')
+    expect((await confirm()).status).toBe(200)
+    expect(db.state.booking_fee_cases[0]).toMatchObject({ base_minor: 13000, proposed_minor: 13000 })
+  })
+
+  it('a CZK payment opens the case in CZK and the operator reads CZK', async () => {
+    await seedPayNowLeg('outbound', 750000, 'czk')
+    expect((await confirm()).status).toBe(200)
+    await flush()
+    expect(db.state.booking_fee_cases[0]).toMatchObject({ currency: 'czk', base_minor: 425000 })
+    expect(mockAlert.mock.calls[0][1]).toMatchObject({ payment_currency: 'czk' })
+  })
+
+  it('money WR-02: Stripe can not be read while the case opens: the status stands and the operator is told', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    await seedPayNowLeg('outbound', 30000, 'eur')
+    fake.failNextWith('paymentIntents.retrieve', 'connection')
+    expect((await confirm()).status).toBe(200)
+    await flush()
+    expect(booking().status).toBe('no_show')
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+    expect(mockAlert.mock.calls[0][2]).toMatchObject({ note: 'case_missing' })
+    spy.mockRestore()
+  })
+
+  it('a leg whose money already went back has nothing to keep: no case, and the operator is told', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const pi = await seedPayNowLeg('outbound', 30000, 'eur')
+    fake.manualRefund(pi, 30000)
+    expect((await confirm()).status).toBe(200)
+    await flush()
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+    expect(mockAlert.mock.calls[0][0]).toBe('fee_no_show_needed')
+    expect(mockAlert.mock.calls[0][2]).toMatchObject({ note: 'case_missing' })
     spy.mockRestore()
   })
 })

@@ -214,6 +214,24 @@ describe('fee case bodies', () => {
   })
 })
 
+describe('refund_failed on a booking paid in cash (money WR-10)', () => {
+  it('tells the operator to return the cash, not to refund in Stripe', async () => {
+    await sendPaymentOperatorAlert('refund_failed', row(), { eventKey: key('refund_failed'), amountMinor: 9000, note: 'cash_settled', code: 'cash_settled' })
+    const text = String(sent()[0].text)
+    expect(text).toContain('recorded as paid in cash')
+    expect(text).not.toContain('Stripe Dashboard')
+  })
+})
+
+describe('client_cancelled after the free period (public WR-06)', () => {
+  it('says the cancel was late and that no fee can be taken', async () => {
+    await sendPaymentOperatorAlert('client_cancelled', row(), { eventKey: key('client_cancelled'), moneyOutcome: 'none', late: true })
+    const text = String(sent()[0].text)
+    expect(text).toContain('Late cancellation. No fee can be taken.')
+    expect(text).not.toContain('Free cancellation')
+  })
+})
+
 describe('client_cancelled', () => {
   it.each([
     ['released', 'Free cancellation. Hold released.'],

@@ -519,3 +519,118 @@ describe('charge.dispute.created on a fee or cash card charge (T-89-74)', () => 
     expect(mockResendSend).not.toHaveBeenCalled()
   })
 })
+
+describe('money WR-06: only a fee link closes a fee case', () => {
+  const oldLink = (attempt: string) => ({
+    id: 'pi_old_link',
+    object: 'payment_intent',
+    status: 'succeeded',
+    currency: 'eur',
+    amount: 10000,
+    amount_received: 10000,
+    metadata: { kind: 'card_recovery', cofBookingId: BOOKING_ID, attempt, bookingReference: REF },
+  })
+
+  it.each([['a declined hold', '1'], ['a declined charge', 'c1'], ['an operator link', 'admin-1700000000000']])(
+    'the link of %s paid after a late cancel is refunded: nobody decided a fee (D-05)',
+    async (_what, attempt) => {
+      Object.assign(bookingRow(), { payment_state: 'failed' })
+      seedCase({ proposed_minor: 10000 })
+      mockRefundCreate.mockResolvedValue({ id: 're_old' })
+
+      expect((await deliver(eventOf('payment_intent.succeeded', oldLink(attempt), `evt_old_${attempt}`))).status).toBe(200)
+
+      expect(mockRefundCreate).toHaveBeenCalledTimes(1)
+      expect(mockRefundCreate.mock.calls[0][0]).toEqual({ payment_intent: 'pi_old_link' })
+      expect(caseRow()).toMatchObject({ status: 'pending' })
+      expect(bookingRow().payment_state).toBe('failed')
+    },
+  )
+
+  it('the fee link itself still closes the case', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed' })
+    seedCase({ proposed_minor: 10000 })
+    expect((await deliver(eventOf('payment_intent.succeeded', oldLink('f2'), 'evt_fee_link'))).status).toBe(200)
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+    expect(caseRow()).toMatchObject({ status: 'charged' })
+  })
+
+  it('with no case a link closes the debt as before', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed', status: 'completed' })
+    expect((await deliver(eventOf('payment_intent.succeeded', oldLink('c1'), 'evt_no_case'))).status).toBe(200)
+    expect(bookingRow().payment_state).toBe('captured')
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+  })
+})
+
+describe('money WR-04: a paid recovery link frees a hold that is still on the card', () => {
+  const linkPayment = {
+    id: 'pi_fee_link',
+    object: 'payment_intent',
+    status: 'succeeded',
+    currency: 'eur',
+    amount: 4000,
+    amount_received: 4000,
+    metadata: { kind: 'card_recovery', cofBookingId: BOOKING_ID, attempt: 'f1', bookingReference: REF },
+  }
+
+  it('the live authorization is voided after the fee was paid; a problem there changes nothing', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed', hold_payment_intent_id: 'pi_small_hold' })
+    seedCase({ proposed_minor: 4000 })
+    mockPiRetrieve.mockResolvedValue({ id: 'pi_small_hold', status: 'requires_capture' })
+    mockPiCancel.mockResolvedValue({ id: 'pi_small_hold', status: 'canceled' })
+
+    expect((await deliver(eventOf('payment_intent.succeeded', linkPayment, 'evt_hold1'))).status).toBe(200)
+    expect(bookingRow().payment_state).toBe('captured')
+    expect(mockPiCancel).toHaveBeenCalledTimes(1)
+    expect(mockPiCancel.mock.calls[0][0]).toBe('pi_small_hold')
+  })
+
+  it('an authorization that is already gone is left alone', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed', hold_payment_intent_id: 'pi_small_hold' })
+    seedCase({ proposed_minor: 4000 })
+    mockPiRetrieve.mockResolvedValue({ id: 'pi_small_hold', status: 'canceled' })
+    expect((await deliver(eventOf('payment_intent.succeeded', linkPayment, 'evt_hold2'))).status).toBe(200)
+    expect(mockPiCancel).not.toHaveBeenCalled()
+  })
+})
+
+describe('money CR-05: a cash card charge that executed after we gave up on it', () => {
+  const lateCharge = (id: string) => ({
+    id,
+    object: 'payment_intent',
+    status: 'succeeded',
+    currency: 'eur',
+    amount: 9000,
+    amount_received: 9000,
+    metadata: { kind: 'card_charge', cofBookingId: BOOKING_ID, attempt: '0', bookingReference: 'PRG-CASH' },
+  })
+  const seedCash = (state: string) =>
+    Object.assign(bookingRow(), { payment_mode: 'cash_guarantee', payment_state: state, status: 'on_board', payment_amount_minor: 9000 })
+
+  it('the booking is still unpaid: the payment is recorded and the row is paid', async () => {
+    seedCash('card_saved')
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late'), 'evt_late1'))).status).toBe(200)
+    expect(bookingRow()).toMatchObject({ payment_state: 'captured', payment_intent_id: 'pi_late', captured_amount_minor: 9000 })
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+  })
+
+  it('the driver already confirmed the cash: the card money goes back and the operator is told', async () => {
+    seedCash('cash_settled')
+    mockRefundCreate.mockResolvedValue({ id: 're_dup' })
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late2'), 'evt_late2'))).status).toBe(200)
+    expect(mockRefundCreate).toHaveBeenCalledWith(
+      { payment_intent: 'pi_late2' },
+      { idempotencyKey: `refund:${BOOKING_ID}:cash_dup:pi_late2` },
+    )
+    expect(bookingRow().payment_state).toBe('cash_settled')
+    expect(mockResendSend.mock.calls.some((c) => String(c[0]?.subject).includes('Duplicate payment'))).toBe(true)
+  })
+
+  it('a row still capturing belongs to the settle that owns it: the webhook only observes', async () => {
+    seedCash('capturing')
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late3'), 'evt_late3'))).status).toBe(200)
+    expect(bookingRow().payment_state).toBe('capturing')
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+  })
+})

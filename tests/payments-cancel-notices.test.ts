@@ -423,6 +423,18 @@ describe('the operator (UI-SPEC 8.3)', () => {
     expect(mockAlert.mock.calls.filter((c) => c[0] === 'client_cancelled')).toHaveLength(0)
   })
 
+  it('public WR-06: a client late cancel with no fee case still reaches the operator, flagged as late', async () => {
+    // No card and no payment (a group payment row, a manual booking): nothing a fee could come from.
+    seed({ payment_mode: 'pay_now', payment_state: 'none', payment_currency: null, payment_amount_minor: null, payment_intent_id: null, stripe_payment_method_id: null })
+    vi.setSystemTime(LATE_NOW)
+    const result = await run('client_token', LATE_NOW, { acknowledge: 'late' })
+    expect(result).toMatchObject({ kind: 'ok', outcome: 'late', money: 'none' })
+    await drain()
+    const calls = mockAlert.mock.calls.filter((c) => c[0] === 'client_cancelled')
+    expect(calls).toHaveLength(1)
+    expect(calls[0][2]).toMatchObject({ eventKey: `alert:client_cancelled:${ID}`, moneyOutcome: 'none', late: true })
+  })
+
   it('a client in-time self-cancel: one client_cancelled alert, no fee alert', async () => {
     vi.setSystemTime(FREE_NOW)
     const result = await run('client_token', FREE_NOW, { acknowledge: 'free' })

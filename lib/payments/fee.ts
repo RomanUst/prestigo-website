@@ -24,19 +24,29 @@
 //                         refunded in full, the case becomes waived with the operator's reason (D-05, D-07);
 //   - chargeFromCollected the operator keeps a fee out of money ALREADY collected (a pay-now booking, or a card booking that
 //                         was captured): nothing is charged again, the rest is refunded (D-07).
-// Both refund through one deterministic Stripe key, refund:<bookingId>:fee:<caseId>, so a retry replays. A refund that
-// fails leaves a refund_failed ledger row and an operator alert, and the case stays pending (D-20).
+// Both refund through a deterministic Stripe key, refund:<bookingId>:fee:<caseId>:<amount>: a repeat of one decision replays,
+// another decision gets its own key and never an idempotency error. The refund names its case (metadata.fee_case) and its
+// id goes into the ledger the moment Stripe answers. A refund that fails leaves a refund_failed ledger row and an operator
+// alert, and the case stays pending (D-20).
+//
+// The money of a decision is what Stripe still holds at that moment, never what the case or the row remembers: a refund
+// made by hand in the Dashboard (or an earlier attempt whose answer was lost) lowers it, so a repeat can not refund on top
+// of it. After a definitive refund failure the lock is released, so the operator can waive or choose another amount; it
+// stays only while the request may still have executed (a transient error) and lapses after the lease. When the money was
+// settled outside the site, closeAfterManualRefund ends the case with no Stripe call and a note (money CR-04).
 
 import { randomUUID } from 'node:crypto'
 import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { czkToEur } from '@/lib/currency'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
+import { LEASE_SECONDS } from '@/lib/payments/config'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { releaseHold } from '@/lib/payments/hold'
+import { listPaymentRefunds, loadPayNowFacts, type PaymentLeg } from '@/lib/payments/pay-now'
 import { settleBooking, type SettleResult } from '@/lib/payments/settle'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
-import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
+import { classifyStripeError, getPaymentsStripe, isNotTheClientsFault, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 
 type BookingRow = Record<string, unknown>
@@ -72,6 +82,12 @@ export type FeeChargeResult = { outcome: 'ok' | 'declined' } | { error: FeeCharg
 const TABLE = 'booking_fee_cases'
 const REASON_MAX = 500
 const NOTE_MAX = 1000
+/** error_code of the admin_action ledger row that closes the refund failures before it (88-REVIEW C-WR-05). */
+export const REFUND_RESOLVED = 'refund_resolved'
+/** No request holding the amount lock outlives its lease (lib/payments/stripe.ts sizes it for the longest Stripe chain). */
+const FEE_LOCK_LIVE_MS = LEASE_SECONDS * 1000
+/** Payment states of a card or cash row with nothing a waive would have to free. */
+const NOTHING_TO_RELEASE: ReadonlySet<string> = new Set(['released', 'none', '', 'cash_settled'])
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
@@ -106,7 +122,8 @@ export function isFeeEligible(booking: BookingRow): boolean {
   if (isPartner(booking)) return false
   const mode = booking.payment_mode
   const state = str(booking.payment_state)
-  if (mode === 'pay_now') return str(booking.payment_intent_id) !== ''
+  // An unpaid row has a PaymentIntent from the moment its checkout started, and no money behind it.
+  if (mode === 'pay_now') return str(booking.payment_intent_id) !== '' && booking.status !== 'unpaid'
   if (mode !== 'card_hold' && mode !== 'cash_guarantee') return false
   if (state === 'captured' || state === 'balance_due') return true
   // Nothing saved yet, already released, or settled in cash: there is no card to take a fee from.
@@ -117,9 +134,10 @@ export function isFeeEligible(booking: BookingRow): boolean {
 }
 
 /**
- * The amount a fee is a share of (the case's base_minor) and its currency. Card and cash rows: the row's own
- * payment_amount_minor in its payment_currency. Pay-now: the leg amount in EUR cents when a leg is given (the same
- * czkToEur rounding the cancel route uses for a leg refund), else amount_eur in cents. Null when the facts are missing.
+ * The amount a fee is a share of, from the row alone, and its currency. Card and cash rows: the row's own
+ * payment_amount_minor in its payment_currency, which is the real figure. Pay-now: only an ESTIMATE in EUR cents (the leg
+ * amount when a leg is given, else amount_eur) for a page that can not read Stripe: a pay-now case is never opened from
+ * it, the PaymentIntent decides (lib/payments/pay-now.ts). Null when the facts are missing.
  */
 export function feeBaseFor(
   booking: BookingRow,
@@ -140,6 +158,23 @@ export function feeBaseFor(
   if (eur === null || eur <= 0) return null
   const baseMinor = Math.round(eur * 100)
   return baseMinor > 0 ? { baseMinor, currency: 'eur' } : null
+}
+
+/**
+ * The base of a new case as it is now. Pay-now: this row's share of what the PaymentIntent received, minus what went back,
+ * in its currency (CR-01, CR-03); null when nothing is left to keep. Card and cash rows: what was collected (captured or
+ * balance_due), else the row amount. Throws when Stripe can not be read.
+ */
+export async function feeBaseNow(booking: BookingRow): Promise<{ baseMinor: number; currency: FeeCurrency } | null> {
+  if (booking.payment_mode !== 'pay_now') {
+    const state = str(booking.payment_state)
+    const currency = currencyOf(booking.payment_currency)
+    const captured = num(booking.captured_amount_minor) ?? 0
+    const collected = state === 'captured' || state === 'balance_due' ? captured || (num(booking.payment_amount_minor) ?? 0) : 0
+    return collected > 0 && currency ? { baseMinor: collected, currency } : feeBaseFor(booking)
+  }
+  const facts = await loadPayNowFacts(booking)
+  return facts.collectedMinor > 0 ? { baseMinor: facts.collectedMinor, currency: facts.currency } : null
 }
 
 export async function loadFeeCase(bookingId: string): Promise<FeeCaseRow | null> {
@@ -261,6 +296,33 @@ export async function unlockFeeAmount(caseId: string): Promise<void> {
   if (error) throw new Error('fee amount unlock failed')
 }
 
+/** True while the request that took the amount lock may still be running. */
+export function feeLockIsLive(caseRow: Pick<FeeCaseRow, 'charge_requested_at'>, nowMs: number = Date.now()): boolean {
+  if (!caseRow.charge_requested_at) return false
+  const since = nowMs - Date.parse(caseRow.charge_requested_at)
+  return !(since >= FEE_LOCK_LIVE_MS)
+}
+
+/**
+ * Release a lock nobody can still be working under: its lease time passed and no worker holds the row (a request that
+ * crashed, or a transient answer nobody repeated). A row in `capturing` is left alone: the tick finishes that charge.
+ * Conditional on the same lock, so a click that re-took it meanwhile keeps it. True when no lock remains.
+ */
+async function freeStaleLock(caseId: string, booking: BookingRow): Promise<boolean> {
+  const current = await loadFeeCaseById(caseId)
+  if (!current?.charge_requested_at) return true
+  if (booking.payment_state === 'capturing' || feeLockIsLive(current)) return false
+  const { data, error } = await createSupabaseServiceClient()
+    .from(TABLE)
+    .update({ charge_requested_at: null })
+    .eq('id', caseId)
+    .eq('status', 'pending')
+    .eq('charge_requested_at', current.charge_requested_at)
+    .select('id')
+  if (error) throw new Error('fee amount unlock failed')
+  return Array.isArray(data) && data.length > 0
+}
+
 /**
  * pending -> charged, stamping who decided and when. Conditional on pending, so a replay changes nothing (returns false).
  * `decidedMinor` is stored only when given (the amount actually collected).
@@ -315,10 +377,27 @@ async function loadBooking(bookingId: string, fallback: BookingRow): Promise<Boo
  * Send the receipt once (the ledger event key makes a replay a no-op). A mail problem never undoes collected money.
  */
 async function sendReceipt(args: Parameters<typeof sendPaymentEmail>[0]): Promise<void> {
+  let result: Awaited<ReturnType<typeof sendPaymentEmail>> | 'threw' = 'threw'
   try {
-    await sendPaymentEmail(args)
+    result = await sendPaymentEmail(args)
   } catch {
+    // reported below
+  }
+  if (result === 'threw' || result === 'failed') {
     console.error('[fee] receipt email failed', { bookingId: str(args.booking.id), kind: args.kind })
+  }
+}
+
+/**
+ * What a fee receipt needs from the case itself. The stored policy can not answer it: a pay-now row has no amount for the
+ * policy box and a booking made before the policy went public has no stored policy, so the render would fail and the client
+ * would be charged with no mail (money WR-01).
+ */
+export function feeReceiptTerms(caseRow: FeeCaseRow): { freeUntil?: string; waitMin?: number } {
+  const wait = caseRow.evidence?.threshold_min
+  return {
+    ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
+    ...(typeof wait === 'number' && wait > 0 ? { waitMin: wait } : {}),
   }
 }
 
@@ -356,6 +435,7 @@ export async function runFeeCharge(input: {
     actor,
   })
 
+  await freeStaleLock(caseId, await loadBooking(bookingId, booking))
   const lock = await lockFeeAmount(caseId, amountMinor, { reason: input.reason, contactNote: input.contactNote })
   if (lock !== 'locked') return { error: lock }
 
@@ -412,10 +492,11 @@ async function closeCharged(
   await sendReceipt({
     kind: 'fee_charged',
     variant: caseRow.kind === 'no_show' ? 'no_show' : 'late_cancel',
-    booking: fresh,
+    // A pay-now row has no payment_currency: the receipt speaks the currency of the case.
+    booking: { ...fresh, payment_currency: caseRow.currency },
     eventKey: `email:fee_charged:${caseRow.id}`,
     feeMinor: amountMinor,
-    ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
+    ...feeReceiptTerms(caseRow),
   })
   return { outcome: 'ok' }
 }
@@ -443,35 +524,42 @@ export async function runCashCardCharge(input: {
   const result = await settleBooking(bookingId, actor, { collect: { kind: 'cash_card' } })
 
   switch (result.outcome) {
-    case 'captured': {
-      const fresh = await loadBooking(bookingId, booking)
-      await sendReceipt({
-        kind: 'fee_charged',
-        variant: tripCompleted(fresh) ? 'cash_unpaid' : 'cash_card',
-        booking: fresh,
-        eventKey: `email:fee_charged:${bookingId}`,
-      })
+    case 'captured':
+      await sendCashCardReceipt(bookingId, booking)
       return { outcome: 'ok' }
-    }
     case 'failed':
     case 'balance_due':
       return { outcome: 'declined' }
     case 'busy':
     case 'transient':
+      // A transient answer has released the row (settle reconciles it at once, CR-05): the driver can confirm cash, and a
+      // repeat of this click replays the same Stripe key.
       return { error: 'payment_busy' }
     default:
       return { error: 'action_not_allowed' }
   }
 }
 
+/** The receipt of a cash card charge, once (its ledger key): before the trip ended, or for a trip that was not paid. */
+export async function sendCashCardReceipt(bookingId: string, fallback: BookingRow): Promise<void> {
+  const fresh = await loadBooking(bookingId, fallback)
+  await sendReceipt({
+    kind: 'fee_charged',
+    variant: tripCompleted(fresh) ? 'cash_unpaid' : 'cash_card',
+    booking: fresh,
+    eventKey: `email:fee_charged:${bookingId}`,
+  })
+}
+
 // ── Plan 89-12: waive, and a fee out of money that is already collected ────────────────────────────────────────────────
 
-export type FeeDecisionError = FeeChargeError | 'refund_failed'
+export type FeeDecisionError = FeeChargeError | 'refund_failed' | 'amount_above_cap'
 export type FeeDecisionResult = { outcome: 'ok' | 'declined' } | { error: FeeDecisionError }
 
 /**
- * What the client has already paid for this case, in minor units of the case currency (0 = nothing collected):
- *   pay-now           the case base (the leg amount, or the booking amount) once a payment intent exists;
+ * What the row alone says the client has paid for this case, in minor units of the case currency (0 = nothing collected):
+ *   pay-now           the case base once a payment intent exists: enough to route the decision. The amount that moves is
+ *                     read from the PaymentIntent (moneyHeld), never from here;
  *   card / cash row   captured or balance_due: what was captured (the row amount when no amount is stored).
  * A fee capture of the single collector also lands here (row captured, captured_amount_minor = the fee): the case is then
  * closed by chargeFromCollected on a replay with the same amount, never charged twice. Do NOT derive an amount owed from
@@ -492,28 +580,85 @@ export function isMoneyCollected(booking: BookingRow, caseRow: FeeCaseRow): bool
   return collectedForCase(booking, caseRow) > 0
 }
 
-/** The leg of a pay-now round-trip row; the Phase 27 refund webhook reads it from the refund metadata. */
-function legOf(booking: BookingRow): 'outbound' | 'return' | null {
-  return booking.leg === 'outbound' || booking.leg === 'return' ? booking.leg : null
+interface HeldMoney {
+  /** Money Stripe still holds for this row: what a refund can return and the most a fee can keep. */
+  collectedMinor: number
+  /** What already went back, a refund by hand included. */
+  refundedMinor: number
+  leg: PaymentLeg | null
 }
 
 /**
- * Refund part (or all) of the payment that collected the money, with the deterministic key of the case. `amountMinor`
- * undefined = the whole payment (a pay-now row without a leg only). The leg stays in the metadata of a pay-now leg row.
+ * The money behind a decision, as it is now. Pay-now: read from the PaymentIntent (CR-01), this row's share of it minus what
+ * went back; a case in another currency than the payment moves nothing. A captured card row: what was captured minus the
+ * refunds of its payment (CR-04: a repeat never refunds on top of a hand refund). Throws when Stripe can not be read: the
+ * decision then answers payment_busy and nothing has moved.
  */
-async function refundForCase(booking: BookingRow, caseRow: FeeCaseRow, amountMinor: number | undefined): Promise<string> {
+async function moneyHeld(booking: BookingRow, caseRow: FeeCaseRow): Promise<HeldMoney | 'currency_mismatch'> {
+  const paymentIntentId = str(booking.payment_intent_id)
+  if (booking.payment_mode === 'pay_now' && paymentIntentId) {
+    const facts = await loadPayNowFacts(booking)
+    if (facts.currency !== caseRow.currency) {
+      console.error('[fee] case currency is not the payment currency', { bookingId: str(booking.id), caseId: caseRow.id })
+      return 'currency_mismatch'
+    }
+    return { collectedMinor: facts.collectedMinor, refundedMinor: facts.refundedMinor, leg: facts.leg }
+  }
+  const captured = collectedForCase(booking, caseRow)
+  if (captured <= 0 || !paymentIntentId) return { collectedMinor: captured, refundedMinor: 0, leg: null }
+  const refundedMinor = (await listPaymentRefunds(paymentIntentId)).reduce((sum, r) => sum + r.amountMinor, 0)
+  return { collectedMinor: Math.max(captured - refundedMinor, 0), refundedMinor, leg: null }
+}
+
+/** A failed refund: on record and alerted. Definitive: nothing moved, so the lock goes. Otherwise it may have executed. */
+async function afterRefundFailure(
+  booking: BookingRow,
+  caseRow: FeeCaseRow,
+  amountMinor: number,
+  err: unknown,
+  actor: LedgerActor,
+): Promise<void> {
+  await refundFailed(booking, caseRow, amountMinor, err, actor)
+  if (!isNotTheClientsFault(classifyStripeError(err))) await unlockFeeAmount(caseRow.id)
+}
+
+/**
+ * Refund part of the payment that collected the money, with the deterministic key of this decision and always an explicit
+ * amount in the payment's currency. The refund carries its case, and on a leg row its leg (the Phase 27 webhook reads it
+ * there). Its id is on record as soon as Stripe answers: a crash before the case closes leaves the fact behind.
+ */
+async function refundForCase(
+  booking: BookingRow,
+  caseRow: FeeCaseRow,
+  amountMinor: number,
+  leg: PaymentLeg | null,
+  actor: LedgerActor,
+): Promise<string> {
   const bookingId = str(booking.id)
   const paymentIntentId = str(booking.payment_intent_id)
   if (!paymentIntentId) throw new Error('no_payment_intent')
-  const leg = booking.payment_mode === 'pay_now' ? legOf(booking) : null
   const params: Stripe.RefundCreateParams = {
     payment_intent: paymentIntentId,
-    ...(amountMinor !== undefined ? { amount: amountMinor } : {}),
-    ...(leg ? { metadata: { leg } } : {}),
+    amount: amountMinor,
+    metadata: { fee_case: caseRow.id, ...(leg ? { leg } : {}) },
   }
   const refund = await getPaymentsStripe().refunds.create(params, {
-    idempotencyKey: stripeKeys.refund(bookingId, `fee:${caseRow.id}`),
+    idempotencyKey: stripeKeys.refund(bookingId, `fee:${caseRow.id}:${amountMinor}`),
   })
+  try {
+    await appendPaymentEvent(bookingId, {
+      key: `fee_refund:${refund.id}`,
+      kind: 'admin_action',
+      stripeObjectId: refund.id,
+      amountMinor,
+      currency: caseRow.currency,
+      errorCode: 'fee_refund',
+      actor,
+    })
+  } catch {
+    // The money moved; Stripe keeps the refund with its case, and moneyHeld reads it from there.
+    console.error('[fee] refund id not recorded', { bookingId, caseId: caseRow.id, stripeObjectId: refund.id })
+  }
   return refund.id
 }
 
@@ -530,7 +675,7 @@ async function refundFailed(
   console.error('[fee] refund failed', { bookingId, caseId: caseRow.id, code })
   try {
     await appendPaymentEvent(bookingId, {
-      key: `refund_failed:${bookingId}:fee:${caseRow.id}`,
+      key: `refund_failed:${bookingId}:fee:${caseRow.id}:${amountMinor}`,
       kind: 'refund_failed',
       amountMinor,
       currency: caseRow.currency,
@@ -544,7 +689,7 @@ async function refundFailed(
     await sendPaymentOperatorAlert(
       'refund_failed',
       { ...booking, payment_currency: caseRow.currency },
-      { eventKey: `alert:refund_failed:${bookingId}:fee:${caseRow.id}`, code, amountMinor },
+      { eventKey: `alert:refund_failed:${bookingId}:fee:${caseRow.id}:${amountMinor}`, code, amountMinor },
     )
   } catch {
     console.error('[fee] refund_failed alert not sent', { bookingId })
@@ -555,8 +700,9 @@ async function refundFailed(
  * Charge the amount a person chose out of money the client already paid (pay-now, or a captured card booking): no new
  * charge exists, so the difference between what was collected and the fee is refunded (D-07). A fee equal to what was
  * collected refunds nothing. Same order as runFeeCharge: operator action on record, amount lock, then the money step.
- * Answers ok, refund_failed (case stays pending and locked: a repeat of the same click replays the same refund),
- * amount_locked or action_not_allowed (partner, decided case, nothing collected, amount above what was collected).
+ * Answers ok; refund_failed (the case stays pending; a definitive failure releases the lock, a transient one keeps it and a
+ * repeat of the same click finds out from Stripe what happened); amount_above_cap (less is left than this fee);
+ * amount_locked; payment_busy (Stripe could not be read); action_not_allowed (partner, decided case, nothing collected).
  */
 export async function chargeFromCollected(input: {
   booking: BookingRow
@@ -573,8 +719,17 @@ export async function chargeFromCollected(input: {
 
   // Money moves on the row as it is now, not as the request read it a moment ago.
   const booking = await loadBooking(bookingId, input.booking)
-  const collected = collectedForCase(booking, caseRow)
-  if (collected <= 0 || amountMinor > collected) return { error: 'action_not_allowed' }
+  let held: Awaited<ReturnType<typeof moneyHeld>>
+  try {
+    held = await moneyHeld(booking, caseRow)
+  } catch {
+    console.error('[fee] payment could not be read', { bookingId, caseId: caseRow.id })
+    return { error: 'payment_busy' }
+  }
+  if (held === 'currency_mismatch') return { error: 'action_not_allowed' }
+  const collected = held.collectedMinor
+  if (collected <= 0) return { error: 'action_not_allowed' }
+  if (amountMinor > collected) return { error: 'amount_above_cap' }
 
   await appendPaymentEvent(bookingId, {
     key: `admin:fee_charge:${caseRow.id}:${Date.now()}:${randomUUID().slice(0, 8)}`,
@@ -585,15 +740,16 @@ export async function chargeFromCollected(input: {
     actor,
   })
 
+  await freeStaleLock(caseRow.id, booking)
   const lock = await lockFeeAmount(caseRow.id, amountMinor, { reason: input.reason, contactNote: input.contactNote })
   if (lock !== 'locked') return { error: lock }
 
   const refundMinor = collected - amountMinor
   if (refundMinor > 0) {
     try {
-      await refundForCase(booking, caseRow, refundMinor)
+      await refundForCase(booking, caseRow, refundMinor, held.leg, actor)
     } catch (err) {
-      await refundFailed(booking, caseRow, refundMinor, err, actor)
+      await afterRefundFailure(booking, caseRow, refundMinor, err, actor)
       return { error: 'refund_failed' }
     }
   }
@@ -603,9 +759,11 @@ export async function chargeFromCollected(input: {
 /**
  * Waive the fee of a pending case (D-05): the operator's reason goes on the case row (never the ledger or a client mail).
  *   a live hold or a saved card       released, nothing charged;
- *   money already collected           refunded in full (key refund:<id>:fee:<caseId>); a failed refund leaves refund_failed
+ *   money still held                  refunded in full (key refund:<id>:fee:<caseId>:<amount>); a failed refund leaves refund_failed
  *                                     and an alert and the case stays pending;
- *   a charge for this case in flight  payment_busy (a waive never races a charge that took the amount lock).
+ *   money already back (by hand)      nothing more moves, the case closes;
+ *   a charge for this case in flight  payment_busy (a waive never races a charge that took the amount lock). A lock whose
+ *                                     request can no longer be running is taken over (freeStaleLock).
  * Then a `waived` ledger row (key waived:fee:<caseId>), the case waived, and the fee_waived mail once.
  */
 export async function waiveFee(input: {
@@ -621,7 +779,8 @@ export async function waiveFee(input: {
 
   const current = await loadFeeCaseById(caseRow.id)
   if (!current || current.status !== 'pending') return { error: 'action_not_allowed' }
-  if (current.charge_requested_at) return { error: 'payment_busy' }
+  const booking = await loadBooking(bookingId, input.booking)
+  if (!(await freeStaleLock(caseRow.id, booking))) return { error: 'payment_busy' }
 
   // T-89-42: on record before anything can fail.
   await appendPaymentEvent(bookingId, {
@@ -632,25 +791,40 @@ export async function waiveFee(input: {
     actor,
   })
 
-  const booking = await loadBooking(bookingId, input.booking)
-  const collected = collectedForCase(booking, current)
-  let moneyOutcome: 'released' | 'refunded' = 'released'
+  let held: Awaited<ReturnType<typeof moneyHeld>>
+  try {
+    held = await moneyHeld(booking, current)
+  } catch {
+    console.error('[fee] payment could not be read', { bookingId, caseId: caseRow.id })
+    return { error: 'payment_busy' }
+  }
+  if (held === 'currency_mismatch') return { error: 'action_not_allowed' }
+  const collected = held.collectedMinor
+  let moneyOutcome: 'released' | 'refunded' | 'none' = 'released'
 
   if (collected > 0) {
     try {
-      // A pay-now row without a leg refunds the whole payment; every other row refunds exactly what was collected.
-      const whole = booking.payment_mode === 'pay_now' && legOf(booking) === null
-      await refundForCase(booking, current, whole ? undefined : collected)
+      await refundForCase(booking, current, collected, held.leg, actor)
     } catch (err) {
-      await refundFailed(booking, current, collected, err, actor)
+      await afterRefundFailure(booking, current, collected, err, actor)
       return { error: 'refund_failed' }
     }
     moneyOutcome = 'refunded'
+  } else if (held.refundedMinor > 0) {
+    // Everything went back by hand: no Stripe call, and no second refund.
+    moneyOutcome = 'refunded'
+  } else if (booking.payment_mode === 'pay_now') {
+    moneyOutcome = 'none'
   } else if (booking.payment_mode === 'card_hold' || booking.payment_mode === 'cash_guarantee') {
     const released = await releaseHold(booking, { actor, reason: 'operator' })
     if (released === 'busy') return { error: 'payment_busy' }
-    // noop is fine only when an earlier attempt already released it (a crash before the case was closed).
-    if (released === 'noop' && str(booking.payment_state) !== 'released') return { error: 'action_not_allowed' }
+    // noop is fine only when nothing is held: an earlier attempt released it (a crash before the case was closed), the card
+    // was released under the case (WR-03), or the booking was settled in cash.
+    if (released === 'noop') {
+      const state = str(booking.payment_state)
+      if (!NOTHING_TO_RELEASE.has(state)) return { error: 'action_not_allowed' }
+      if (state !== 'released') moneyOutcome = 'none'
+    }
   } else {
     return { error: 'action_not_allowed' }
   }
@@ -673,10 +847,87 @@ export async function waiveFee(input: {
 
   await sendReceipt({
     kind: 'fee_waived',
-    booking: await loadBooking(bookingId, booking),
+    booking: { ...(await loadBooking(bookingId, booking)), payment_currency: current.currency },
     eventKey: `email:fee_waived:${caseRow.id}`,
     moneyOutcome,
-    ...(moneyOutcome === 'refunded' ? { refundMinor: collected } : {}),
+    ...(moneyOutcome === 'refunded' ? { refundMinor: collected > 0 ? collected + held.refundedMinor : held.refundedMinor } : {}),
+  })
+  return { outcome: 'ok' }
+}
+
+/** True when a refund of this case failed and is on record. */
+async function caseRefundFailed(bookingId: string, caseId: string): Promise<boolean> {
+  const { data, error } = await createSupabaseServiceClient()
+    .from('booking_payment_events')
+    .select('event_key')
+    .eq('booking_id', bookingId)
+    .eq('kind', 'refund_failed')
+  if (error) throw new Error('refund ledger read failed')
+  const prefix = `refund_failed:${bookingId}:fee:${caseId}`
+  return (Array.isArray(data) ? (data as Array<{ event_key?: unknown }>) : []).some(
+    (e) => typeof e.event_key === 'string' && e.event_key.startsWith(prefix),
+  )
+}
+
+/**
+ * The operator settled the money outside the site (a refund by hand in the Stripe Dashboard, a bank transfer, a dispute
+ * that took it back) and closes the case (CR-04). No Stripe money call, no amount in the request and no client mail: whoever
+ * refunded by hand told the client. The note is required and stays on the case row, never in the ledger. Allowed only on
+ * collected money, with a refund failure of this case on record or a refund visible at Stripe, and never while a worker
+ * holds the row. The case ends as waived; to keep part of the money the operator charges what is left instead, which moves
+ * nothing and sends the receipt. The open refund failure is resolved with it.
+ */
+export async function closeAfterManualRefund(input: {
+  booking: BookingRow
+  caseRow: FeeCaseRow
+  note: string
+  actor: LedgerActor
+}): Promise<FeeDecisionResult> {
+  const { caseRow, actor } = input
+  const bookingId = str(input.booking.id)
+  const note = input.note.trim().slice(0, REASON_MAX)
+  if (!bookingId || caseRow.booking_id !== bookingId || isPartner(input.booking) || !note) return { error: 'action_not_allowed' }
+
+  const current = await loadFeeCaseById(caseRow.id)
+  if (!current || current.status !== 'pending') return { error: 'action_not_allowed' }
+  const booking = await loadBooking(bookingId, input.booking)
+  if (booking.payment_state === 'capturing') return { error: 'payment_busy' }
+  if (!isMoneyCollected(booking, current)) return { error: 'action_not_allowed' }
+
+  let held: Awaited<ReturnType<typeof moneyHeld>>
+  try {
+    held = await moneyHeld(booking, current)
+  } catch {
+    console.error('[fee] payment could not be read', { bookingId, caseId: caseRow.id })
+    return { error: 'payment_busy' }
+  }
+  if (held === 'currency_mismatch') return { error: 'action_not_allowed' }
+  if (held.refundedMinor <= 0 && !(await caseRefundFailed(bookingId, caseRow.id))) return { error: 'action_not_allowed' }
+
+  await appendPaymentEvent(bookingId, {
+    key: `admin:fee_close_manual:${caseRow.id}:${Date.now()}:${randomUUID().slice(0, 8)}`,
+    kind: 'admin_action',
+    errorCode: 'fee_close_manual',
+    currency: current.currency,
+    actor,
+  })
+  // The operator's word ends whatever the lock was waiting for.
+  await unlockFeeAmount(caseRow.id)
+  await appendPaymentEvent(bookingId, {
+    key: `waived:fee:${caseRow.id}`,
+    kind: 'waived',
+    amountMinor: current.base_minor,
+    currency: current.currency,
+    errorCode: 'fee_close_manual',
+    actor,
+  })
+  const closed = await markFeeWaived(caseRow.id, { decidedBy: actorLabel(actor), reason: note })
+  if (!closed) return { error: 'payment_busy' }
+  await appendPaymentEvent(bookingId, {
+    key: `refund_resolved:${bookingId}:fee:${caseRow.id}`,
+    kind: 'admin_action',
+    errorCode: REFUND_RESOLVED,
+    actor,
   })
   return { outcome: 'ok' }
 }

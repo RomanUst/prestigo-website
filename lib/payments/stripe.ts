@@ -58,7 +58,9 @@ export const stripeKeys = {
   // amount needs a definitive failure, which advances the attempt and so the key.
   feeCapture: (caseId: string, n: number) => `feecap:${caseId}:${n}`,
   feeCharge: (caseId: string, n: number) => `fee:${caseId}:${n}`,
-  refund: (bookingId: string, leg: string) => `refund:${bookingId}:${leg}`,
+  // `purpose`: full, a leg, recovery:<pi>, or fee:<caseId>:<amount>. A fee refund is the one key with the amount in it: the
+  // operator may decide again with another amount, and the same key would answer an idempotency error (money WR-05).
+  refund: (bookingId: string, purpose: string) => `refund:${bookingId}:${purpose}`,
   link: (bookingId: string, tag: string | number) => `link:${bookingId}:${tag}`,
 } as const
 

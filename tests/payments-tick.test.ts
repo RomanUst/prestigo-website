@@ -255,7 +255,7 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
     seed([])
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, notices_redriven: 0, fee_reminders: 0, fees_finished: 0, fee_cases_repaired: 0, errors: [] })
+    expect(await res.json()).toEqual({ ok: true, placed: 0, captured: 0, failed: 0, reconciled: 0, retried: 0, alerts: 0, notices_redriven: 0, fee_reminders: 0, fees_finished: 0, fee_cases_repaired: 0, cash_charges_restored: 0, errors: [] })
   })
 
   it('a booking whose pickup instant cannot be computed is never held', async () => {
@@ -1210,6 +1210,15 @@ describe('step R: finish interrupted charges, repair closed money, reconcile cas
     expect(receipts()).toHaveLength(1)
   })
 
+  it('money WR-01: the sweep closing a no-show case passes the wait from the evidence to the receipt', async () => {
+    seedFeeCase(2, {
+      booking: { payment_state: 'captured', captured_amount_minor: 4000, payment_intent_id: 'pi_ns' },
+      caseRow: { kind: 'no_show', decided_minor: 4000, charge_requested_at: hoursAhead(-1), evidence: { threshold_min: 60 } },
+    })
+    await GET(okRequest())
+    expect(receipts()[0]).toMatchObject({ variant: 'no_show', waitMin: 60 })
+  })
+
   it('a captured row whose captured amount is not the decided fee, or whose case was never locked, is left alone', async () => {
     seedFeeCase(2, {
       booking: { payment_state: 'captured', captured_amount_minor: 12000, payment_intent_id: 'pi_trip' },
@@ -1237,19 +1246,76 @@ describe('step R: finish interrupted charges, repair closed money, reconcile cas
     })
   }
 
-  it('a cash card charge the operator started and a crash interrupted is finished: settle cash_card, the ordinary chg key, one receipt', async () => {
-    seed([cashRow()])
-    const out = await (await GET(okRequest())).json()
-    expect(out).toMatchObject({ ok: true, fees_finished: 1, errors: [] })
-    expect(fake.callsTo('paymentIntents.create').map((c) => c.idempotencyKey)).toEqual([`chg:${CASH_ID}:0`])
-    expect(row(CASH_ID).payment_state).toBe('captured')
-    expect(row(CASH_ID).captured_amount_minor).toBe(12000)
-    expect(receipts()).toHaveLength(1)
-    expect(receipts()[0]).toMatchObject({ variant: 'cash_card', eventKey: `email:fee_charged:${CASH_ID}` })
+  it('money WR-08: an anonymised booking is left alone: no retry, no settle, no notice to an erased address', async () => {
+    const erased = hoursAhead(-1)
+    const A = '99999999-9999-4999-8999-999999999995'
+    const B = '99999999-9999-4999-8999-999999999996'
+    const C = '99999999-9999-4999-8999-999999999997'
+    seed([
+      // Step B: the one automatic retry is due.
+      dueBooking({ id: A, status: 'completed', completed_at: hoursAhead(-30), payment_state: 'failed', payment_retry_count: 0, payment_retry_at: hoursAhead(-1), anonymised_at: erased }),
+      // Step C: a completed trip waiting to be settled.
+      dueBooking({ id: B, status: 'completed', completed_at: hoursAhead(-2), payment_state: 'card_saved', hold_at: null, anonymised_at: erased }),
+      // Step F: a recent failure whose notices were never delivered.
+      dueBooking({ id: C, status: 'completed', completed_at: hoursAhead(-2), payment_state: 'failed', payment_retry_count: 1, payment_failed_at: hoursAhead(-1), anonymised_at: erased }),
+    ])
+    db.state.booking_payment_events.push({ booking_id: C, event_key: 'charge_failed:none:0', kind: 'charge_failed', to_state: 'failed', created_at: hoursAhead(-1) })
 
     await GET(okRequest())
-    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row(A).payment_state).toBe('failed')
+    expect(row(B).payment_state).toBe('card_saved')
+    expect(mockFailure).not.toHaveBeenCalled()
+  })
+
+  it('CR-05: an interrupted cash card charge with no payment at Stripe is never charged: the row is free again and the operator told', async () => {
+    seed([cashRow()])
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fees_finished: 0, cash_charges_restored: 1, errors: [] })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row(CASH_ID)).toMatchObject({ payment_state: 'card_saved', payment_lease_until: null, charge_attempts: 0 })
+    expect(receipts()).toHaveLength(0)
+    expect(ledger('alert_sent', CASH_ID).map((e) => e.event_key)).toEqual([`alert:cash_charge_interrupted:${CASH_ID}:0`])
+
+    await GET(okRequest())
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('CR-05: a card that had failed before goes back to failed, so the driver can still confirm cash', async () => {
+    seed([cashRow({ payment_failed_at: hoursAhead(-1), last_payment_error: 'card_declined', charge_attempts: 1 })])
+    await GET(okRequest())
+    expect(row(CASH_ID)).toMatchObject({ payment_state: 'failed', charge_attempts: 1 })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('CR-05: a charge that succeeded before the crash is recorded by reading Stripe, with one receipt and no new charge', async () => {
+    seed([cashRow({ stripe_customer_id: 'cus_cash' })])
+    const pi = (await fake.stripe.paymentIntents.create({
+      amount: 12000,
+      currency: 'eur',
+      customer: 'cus_cash',
+      payment_method: 'pm_ok',
+      off_session: true,
+      confirm: true,
+      metadata: { kind: 'card_charge', cofBookingId: CASH_ID, attempt: '0', bookingReference: 'PRG' },
+    })) as { id: string }
+    fake.calls.length = 0
+
+    const out = await (await GET(okRequest())).json()
+    expect(out).toMatchObject({ ok: true, fees_finished: 1, errors: [] })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row(CASH_ID)).toMatchObject({ payment_state: 'captured', captured_amount_minor: 12000, payment_intent_id: pi.id })
     expect(receipts()).toHaveLength(1)
+    expect(receipts()[0]).toMatchObject({ variant: 'cash_card', eventKey: `email:fee_charged:${CASH_ID}` })
+  })
+
+  it('CR-05: Stripe can not be read: the row waits for the next run, nothing is charged and nothing is guessed', async () => {
+    seed([cashRow({ stripe_customer_id: 'cus_cash' })])
+    fake.failNextWith('paymentIntents.list', 'connection')
+    await GET(okRequest())
+    expect(row(CASH_ID).payment_state).toBe('capturing')
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
   })
 
   it('D-21: cash rows that nobody started charging stay untouched (card_saved, completed or not; live lease)', async () => {

@@ -16,9 +16,11 @@
 
 import type Stripe from 'stripe'
 import { assertMoneyEligible, BOOKING_STATUSES, CALENDAR_ACTIVE_STATUSES, PartnerBookingMoneyError } from '@/lib/booking-status'
+import { evaluateCancellation, policyFromSnapshot, tripFactsFromRow } from '@/lib/cancellation-policy'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { loadFeeCase } from '@/lib/payments/fee'
 import { pickupInstantMs } from '@/lib/prague-date'
+import { createSupabaseServiceClient } from '@/lib/supabase'
 import { LEASE_SECONDS } from '@/lib/payments/config'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import {
@@ -157,10 +159,27 @@ export async function claimForHold(
 }
 
 /**
+ * The closing request writes the status first and opens the fee case after it, so a placement that lands in between sees no
+ * case yet. Read fresh: `booking` here is the snapshot from before the close. A no-show always gets a case; a cancel does
+ * when the stored terms make it late now (money WR-03). A cancel by Prestigo inside that window also keeps the card: the
+ * row then offers release, and card_saved can be undone where released can not.
+ */
+async function closedWithFeeComing(bookingId: string): Promise<boolean> {
+  const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
+  if (error) throw new Error('closed booking lookup failed')
+  const row = (data as BookingRow | null) ?? null
+  if (row?.status === 'no_show') return true
+  if (row?.status !== 'cancelled') return false
+  const facts = tripFactsFromRow(row as unknown as Parameters<typeof tripFactsFromRow>[0])
+  return facts !== null && evaluateCancellation(policyFromSnapshot(row.cancel_policy), facts, Date.now()).kind !== 'free'
+}
+
+/**
  * The booking was cancelled or marked no-show while its hold was being placed (the status-gated transition out of
  * placing_hold was refused): void whatever PaymentIntent this attempt produced and leave placing_hold.
- *   no fee case pending   -> released (terminal) and the recovery link dropped: the booking owes nothing;
- *   a fee case pending    -> card_saved (89 Pitfall 2): released is terminal and would destroy the saved card the
+ *   nothing to decide     -> released (terminal) and the recovery link dropped: the booking owes nothing;
+ *   a fee case pending, or about to open
+ *                         -> card_saved (89 Pitfall 2): released is terminal and would destroy the saved card the
  *                            operator may still charge (D-15). Only the authorization of this attempt is voided.
  * A void that fails leaves the D-20 trail (refund_failed ledger row + operator alert to cancel the hold by hand).
  */
@@ -183,7 +202,7 @@ export async function abandonHoldForClosedBooking(
   // A lookup that fails keeps the fee option (card_saved): released can not be undone, card_saved can.
   let keepCard = false
   try {
-    keepCard = (await loadFeeCase(bookingId))?.status === 'pending'
+    keepCard = (await loadFeeCase(bookingId))?.status === 'pending' || (await closedWithFeeComing(bookingId))
   } catch {
     keepCard = true
     console.error('[hold] fee case lookup failed, keeping the saved card', { bookingId })
@@ -402,6 +421,22 @@ export async function cancelPaymentIntent(piId: string, idempotencyKey: string):
   }
 }
 
+/**
+ * Void an authorization that outlived the decision it was for (money WR-04): a failed or expired row can still have a live
+ * hold, for example one smaller than a fee the card then declined. Only a hold that really is live is cancelled; one that
+ * lapsed or no longer exists holds nothing. Any other read or cancel problem is rethrown.
+ */
+export async function voidLeftoverHold(paymentIntentId: string): Promise<void> {
+  let pi: Stripe.PaymentIntent
+  try {
+    pi = (await getPaymentsStripe().paymentIntents.retrieve(paymentIntentId)) as Stripe.PaymentIntent
+  } catch (err) {
+    if (stripeErrorCode(err) === 'resource_missing') return
+    throw err
+  }
+  if (pi.status === 'requires_capture') await cancelPaymentIntent(paymentIntentId, stripeKeys.voidHoldNow(paymentIntentId))
+}
+
 /** Cancel the booking's current hold PaymentIntent (key rel:<bookingId>:<hold_attempts>). */
 export async function cancelHoldIntent(booking: BookingRow): Promise<void> {
   const piId = str(booking.hold_payment_intent_id)
@@ -618,6 +653,9 @@ export async function releaseHold(
     from = ['placing_hold']
     event = { key: `hold_released:stale_lease:${bookingId}:${attemptsOf(booking)}`, kind: 'hold_released', errorCode: 'lease_lapsed', actor: opts.actor }
   } else if (state === 'card_saved' || state === 'failed' || state === 'expired') {
+    // `failed` does not mean nothing is at Stripe: a void that can not be confirmed throws, the caller reports it (D-20).
+    const leftover = str(booking.hold_payment_intent_id)
+    if (leftover && state !== 'card_saved') await voidLeftoverHold(leftover)
     from = [state]
     event = { key: `hold_released:${state}:${bookingId}`, kind: 'hold_released', actor: opts.actor }
   } else if (state === 'balance_due' && opts.reason === 'waive') {

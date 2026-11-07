@@ -548,12 +548,12 @@ describe('the policy a booking was made under (D-18) and the case proposal (D-05
 })
 
 describe('pay-now round trips apply the policy per leg row (D-24)', () => {
-  const LEG = { ...PAY_NOW, return_amount_czk: 2500, outbound_amount_czk: 3000 }
+  const LEG = { ...PAY_NOW, trip_type: 'round_trip', return_amount_czk: 2500, outbound_amount_czk: 3000 }
 
-  it('free, leg=return: a partial refund of that leg only, with the leg key and metadata', async () => {
-    seed({ ...LEG, payment_intent_id: await paidPi(10000) })
-    const result = await run('admin_client', FREE_NOW, { leg: 'return' })
-    const cents = Math.round(czkToEur(2500) * 100)
+  it('free, the return row: a partial refund of that leg only, with the leg key and metadata', async () => {
+    seed({ ...LEG, leg: 'return', payment_intent_id: await paidPi(10000) })
+    const result = await run('admin_client', FREE_NOW)
+    const cents = 10000 - Math.round((10000 * 3000) / 5500) // the leg's share of what was paid
     expect(result).toMatchObject({ kind: 'ok', outcome: 'free', money: 'refunded', refundedMinor: cents, currency: 'eur' })
     const refunds = fake.callsTo('refunds.create')
     expect(refunds).toHaveLength(1)
@@ -561,20 +561,44 @@ describe('pay-now round trips apply the policy per leg row (D-24)', () => {
     expect(refunds[0].idempotencyKey).toBe(`refund:${ID}:return`)
   })
 
-  it('late, leg=outbound: no refund, the case is that leg (base = the leg amount)', async () => {
-    seed({ ...LEG, payment_intent_id: await paidPi(10000) })
-    const result = await run('admin_client', LATE_NOW, { leg: 'outbound' })
-    const cents = Math.round(czkToEur(3000) * 100)
+  it('late, the outbound row: no refund, the case is that leg (base = its share)', async () => {
+    seed({ ...LEG, leg: 'outbound', payment_intent_id: await paidPi(10000) })
+    const result = await run('admin_client', LATE_NOW)
+    const cents = Math.round((10000 * 3000) / 5500) // the leg's share of what was paid
     expect(result).toMatchObject({ kind: 'ok', outcome: 'late', money: 'kept' })
     expect(fake.callsTo('refunds.create')).toHaveLength(0)
     expect(cases()[0]).toMatchObject({ base_minor: cents, proposed_minor: cents, currency: 'eur' })
   })
 
   it('a missing leg amount: leg_amount_missing before any write', async () => {
-    seed({ ...PAY_NOW, return_amount_czk: null, payment_intent_id: await paidPi(10000) })
-    expect(await run('admin_client', FREE_NOW, { leg: 'return' })).toEqual({ kind: 'leg_amount_missing' })
+    const paymentIntentId = await paidPi(10000)
+    seed({ ...PAY_NOW, leg: 'return', outbound_amount_czk: 3000, return_amount_czk: null, payment_intent_id: paymentIntentId })
+    db.state.bookings.push({ ...row(), id: 'sibling-outbound', leg: 'outbound' })
+    expect(await run('admin_client', FREE_NOW)).toEqual({ kind: 'leg_amount_missing' })
     expect(world.advanceCalls).toHaveLength(0)
     expect(fake.calls).toHaveLength(0)
+  })
+})
+
+describe('money WR-10: cancelling a booking already marked as paid in cash', () => {
+  const settled = { payment_mode: 'cash_guarantee', payment_state: 'cash_settled', payment_amount_minor: 9000 }
+
+  it('the operator must hand the cash back: on record, alerted, and no mail saying nothing was taken', async () => {
+    seed(settled)
+    const result = await run('admin_prestigo', FREE_NOW)
+    expect(result).toEqual({ kind: 'money_failed', amount_minor: 9000, currency: 'eur' })
+    expect(row().status).toBe('cancelled')
+    expect(ledger('refund_failed')[0]).toMatchObject({ error_code: 'cash_settled', amount_minor: 9000 })
+    expect(mockAlert.mock.calls.map((c) => c[0])).toContain('refund_failed')
+    expect(mockAlert.mock.calls.find((c) => c[0] === 'refund_failed')![2]).toMatchObject({ note: 'cash_settled', amountMinor: 9000 })
+    expect(mockEmail).not.toHaveBeenCalled()
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it('a client cancelling late gets the same: the fee has no card to come from, a person sorts the cash out', async () => {
+    seed(settled)
+    expect(await run('admin_client', LATE_NOW)).toMatchObject({ kind: 'money_failed', amount_minor: 9000 })
+    expect(cases()).toHaveLength(0)
   })
 })
 

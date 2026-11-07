@@ -35,6 +35,7 @@ vi.mock('@/lib/payments/recovery', () => ({ handlePaymentFailure: mockFailure })
 vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: mockDeactivateLink }))
 
 import { settleBooking } from '@/lib/payments/settle'
+import { settleCash } from '@/lib/payments/cash'
 import {
   feeBaseFor,
   isFeeEligible,
@@ -545,6 +546,25 @@ describe('a transient Stripe error keeps the lease and the lock', () => {
   })
 })
 
+describe('money WR-01: the no-show receipt renders on every booking', () => {
+  it('the wait comes from the case evidence, so a booking with no stored policy still gets its receipt', async () => {
+    await seedWithHold({ cancel_policy: null, cancel_policy_version: null })
+    const c = await openCase({ kind: 'no_show', evidence: { threshold_min: 45 }, freeUntilIso: null })
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_charged', variant: 'no_show', waitMin: 45 })
+  })
+
+  it('a receipt that could not go out is logged: the money moved and nobody may think it was mailed', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    await seedWithHold()
+    const c = await openCase()
+    mockSendEmail.mockResolvedValue('failed')
+    expect(await runFeeCharge({ booking: row(), caseRow: c, amountMinor: 4000, actor: ADMIN })).toEqual({ outcome: 'ok' })
+    expect(spy).toHaveBeenCalledWith('[fee] receipt email failed', expect.objectContaining({ bookingId: ID, kind: 'fee_charged' }))
+    spy.mockRestore()
+  })
+})
+
 describe('cash booking: the card is charged only when a person says so (D-21)', () => {
   const cash = { payment_mode: 'cash_guarantee', payment_state: 'card_saved', status: 'confirmed', hold_payment_intent_id: null }
 
@@ -560,6 +580,52 @@ describe('cash booking: the card is charged only when a person says so (D-21)', 
     expect(ledger('admin_action').some((e) => e.error_code === 'cash_card_charge')).toBe(true)
     expect(mockSendEmail).toHaveBeenCalledTimes(1)
     expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_charged', variant: 'cash_card', eventKey: `email:fee_charged:${ID}` })
+  })
+
+  describe('CR-05: a transient error during the click leaves the driver able to confirm cash', () => {
+    it('Stripe times out before executing: the row is free at once, cash can be confirmed, nothing is left to finish', async () => {
+      seed(cash)
+      fake.failNextWith('paymentIntents.create', 'connection')
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'payment_busy' })
+      expect(row()).toMatchObject({ payment_state: 'card_saved', payment_lease_until: null, charge_attempts: 0 })
+      expect(await settleCash(row(), { type: 'system', id: 'driver_trip' })).toBe('settled')
+      expect(row().payment_state).toBe('cash_settled')
+    })
+
+    it('Stripe times out after executing: the charge is found and recorded, the client is not asked for cash', async () => {
+      seed({ ...cash, stripe_customer_id: 'cus_1' })
+      const real = fake.stripe.paymentIntents.create
+      fake.stripe.paymentIntents.create = async (params: Record<string, unknown>, options?: { idempotencyKey?: string }) => {
+        await real(params, options)
+        throw Object.assign(new Error('timed out'), { type: 'StripeConnectionError' })
+      }
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+      expect(row()).toMatchObject({ payment_state: 'captured', captured_amount_minor: 10000 })
+      expect(mockSendEmail).toHaveBeenCalledTimes(1)
+    })
+
+    it('neither the charge nor the read answers: the row is still released (D-21)', async () => {
+      seed(cash)
+      fake.failNextWith('paymentIntents.create', 'connection')
+      fake.failNextWith('paymentIntents.list', 'connection')
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'payment_busy' })
+      expect(row().payment_state).toBe('card_saved')
+    })
+
+    it('a second click replays the same Stripe key, so a request that did execute can not charge twice', async () => {
+      seed(cash)
+      fake.failNextWith('paymentIntents.create', 'connection')
+      await runCashCardCharge({ booking: row(), actor: ADMIN })
+      await new Promise((resolve) => setTimeout(resolve, 2)) // a person's second click: its claim gets its own ledger key
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+      expect(fake.callsTo('paymentIntents.create').map((c) => c.idempotencyKey)).toEqual([`chg:${ID}:0`, `chg:${ID}:0`])
+    })
+
+    it('settle never re-claims an interrupted cash charge, whoever asks', async () => {
+      seed({ ...cash, payment_state: 'capturing', payment_lease_until: new Date(Date.now() - 1000).toISOString() })
+      expect(await settleBooking(ID, ADMIN, { collect: { kind: 'cash_card' } })).toMatchObject({ outcome: 'busy' })
+      expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    })
   })
 
   it('success after the trip: the cash_unpaid receipt', async () => {

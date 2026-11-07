@@ -300,7 +300,7 @@ describe('FeeChargeModal (E15)', () => {
 
     fireEvent.change(amount, { target: { value: '100.01' } })
     expect(primary().disabled).toBe(true)
-    expect(within(dialog).getByText('The amount is more than the booking amount.')).toBeDefined()
+    expect(within(dialog).getByText('The amount is more than the money still held for this booking.')).toBeDefined()
 
     fireEvent.change(amount, { target: { value: '0' } })
     expect(primary().disabled).toBe(true)
@@ -399,7 +399,7 @@ describe('FeeChargeModal (E15)', () => {
       render(<PaymentPanel bookingId="b-1" />)
       const dialog = await openCharge()
       fireEvent.click(within(dialog).getByRole('button', { name: `Charge ${eur(10000)}` }))
-      expect(await within(dialog).findByText('The amount is more than the booking amount.')).toBeDefined()
+      expect(await within(dialog).findByText('The amount is more than the money still held for this booking.')).toBeDefined()
       expect(screen.queryByRole('dialog')).not.toBeNull()
     })
 
@@ -433,8 +433,8 @@ describe('FeeChargeModal (E15)', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: `Charge ${eur(10000)}` }))
       const line = (await within(dialog).findByRole('alert')).textContent ?? ''
       expect(line).toContain('did not go through')
-      expect(line).toContain('the amount stays locked')
-      expect(line).toContain('Press Charge again to retry the same amount')
+      expect(line).toContain('only what is still missing is refunded')
+      expect(line).toContain('Press Charge again to retry')
       expect(line).toContain('Stripe Dashboard')
       expect(screen.queryByRole('dialog')).not.toBeNull()
       await waitFor(() => expect(calls.filter(c => c.method === 'GET')).toHaveLength(2))

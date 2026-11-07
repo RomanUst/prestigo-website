@@ -8,7 +8,7 @@ import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show-wait'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { TERMINAL_BOOKING_STATUSES, nextStepFor } from '@/lib/booking-status'
 import { hasTripIdentity, type DriverTripRecord, type TripStepResponse } from '@/lib/driver-trip-step'
-import { feeBaseFor, isFeeEligible, openFeeCase } from '@/lib/payments/fee'
+import { feeBaseNow, isFeeEligible, openFeeCase } from '@/lib/payments/fee'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 
 /**
@@ -374,10 +374,26 @@ async function readRequestRow(
   }
 }
 
+/** The no-show stands but no case exists: without this mail nobody would know that a decision is missing. */
+function alertCaseMissing(booking: Record<string, unknown>): void {
+  const bookingId = String(booking.id)
+  after(async () => {
+    try {
+      await sendPaymentOperatorAlert('fee_no_show_needed', booking, {
+        eventKey: `alert:fee_no_show_needed:${bookingId}:case_missing`,
+        note: 'case_missing',
+      })
+    } catch {
+      console.error('[no-show] operator alert failed', { bookingId })
+    }
+  })
+}
+
 /**
  * CASH-03, D-13: after the status applied, open the one pending no-show case with the evidence snapshot and raise the
  * operator alert once. Charges nothing and never touches the hold. Never throws and never reverts the status: a
- * failure here is logged with ids and alerted, and the operator can still open the case by hand.
+ * failure here is logged with ids and alerted, and the operator opens the case by hand from the booking (open_case on the
+ * fee route, lib/payments/fee-reopen.ts).
  */
 async function openNoShowCase(input: {
   supabase: ServiceClient
@@ -392,9 +408,11 @@ async function openNoShowCase(input: {
   try {
     // Partner bookings and bookings with no card and no money get a status and no case (Pitfall 15).
     if (!isFeeEligible(booking)) return
-    const base = feeBaseFor(booking)
+    // CR-03: a pay-now base is this row's share of what the PaymentIntent received, in its currency.
+    const base = await feeBaseNow(booking)
     if (!base) {
       console.error('[no-show] no fee base, case not opened', { bookingId })
+      alertCaseMissing(booking)
       return
     }
 
@@ -433,9 +451,11 @@ async function openNoShowCase(input: {
       requestedAt,
       thresholdMin: input.thresholdMin,
     }
+    // A pay-now row has no payment_currency: the operator reads the currency of the case.
+    const alertRow = { ...booking, payment_currency: caseRow.currency }
     after(async () => {
       try {
-        await sendPaymentOperatorAlert('fee_no_show_needed', booking, details)
+        await sendPaymentOperatorAlert('fee_no_show_needed', alertRow, details)
       } catch {
         console.error('[no-show] operator alert failed', { bookingId })
       }
@@ -446,6 +466,7 @@ async function openNoShowCase(input: {
       bookingId,
       error: err instanceof Error ? err.message : 'unknown',
     })
+    alertCaseMissing(booking)
   }
 }
 
@@ -465,6 +486,11 @@ export async function confirmNoShow(input: {
 
   // Stale-view guard first, so a tab that saw another status gets the same status_conflict as everywhere else.
   if (input.expectedFrom !== undefined && input.expectedFrom !== booking.status) {
+    return { ok: false, code: 'conflict', message: 'status_conflict', currentStatus: booking.status }
+  }
+
+  // A card charge is running on the row (cancelBooking answers busy too): no_show would leave it in capturing for good.
+  if (booking.payment_state === 'capturing') {
     return { ok: false, code: 'conflict', message: 'status_conflict', currentStatus: booking.status }
   }
 

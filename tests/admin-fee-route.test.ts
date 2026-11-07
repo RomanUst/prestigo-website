@@ -14,6 +14,7 @@ const { world, mockSendEmail, mockFailure, mockDeactivateLink, mockAlert } = vi.
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
     auth: 'admin' as 'admin' | '401' | '403',
+    cancelledAt: null as string | null,
   },
   mockSendEmail: vi.fn(),
   mockFailure: vi.fn(),
@@ -32,7 +33,19 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: () => ({
-    from: (table: string) => world.db!.client.from(table),
+    from: (table: string) =>
+      table === 'booking_status_log'
+        ? {
+            // The one read of the status log here: when the booking was cancelled.
+            select: () => ({
+              eq: () => ({
+                eq: () => ({
+                  order: () => ({ limit: async () => ({ data: world.cancelledAt ? [{ created_at: world.cancelledAt }] : [], error: null }) }),
+                }),
+              }),
+            }),
+          }
+        : world.db!.client.from(table),
     rpc: (name: string, args?: Record<string, unknown>) => world.db!.client.rpc(name, args),
   }),
 }))
@@ -50,7 +63,8 @@ vi.mock('@/lib/payments/alerts', async (importActual) => ({
 
 import { POST } from '@/app/api/admin/bookings/[id]/fee/route'
 import { POST as PAYMENT_POST } from '@/app/api/admin/bookings/[id]/payment/route'
-import { loadFeeCase, openFeeCase, type FeeCaseRow } from '@/lib/payments/fee'
+import { allowedPaymentActions } from '@/lib/payments/actions'
+import { loadFeeCase, lockFeeAmount, openFeeCase, waiveFee, type FeeCaseRow } from '@/lib/payments/fee'
 
 const ID = '77777777-7777-4777-8777-777777777777'
 const HOUR = 3_600_000
@@ -449,18 +463,18 @@ describe('waive (D-05, D-07)', () => {
     expect(res.status).toBe(200)
 
     expect(refundCalls()).toHaveLength(1)
-    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}`)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId })
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:12000`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { fee_case: c.id } })
     expect(fake.state.paymentIntents.get(piId)?.amount_refunded).toBe(12000)
     expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
     expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_waived', moneyOutcome: 'refunded', refundMinor: 12000 })
   })
 
   it('a pay-now leg row refunds the leg amount and keeps the leg in the metadata', async () => {
-    const piId = await seedPayNow({ leg: 'return', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
-    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    const piId = await seedPayNow({ leg: 'return', trip_type: 'round_trip', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { leg: 'return' } })
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { fee_case: c.id, leg: 'return' } })
     expect(fake.state.paymentIntents.get(piId)?.amount_refunded).toBe(12000)
   })
 
@@ -476,8 +490,8 @@ describe('waive (D-05, D-07)', () => {
     })
     const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000 })
-    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { fee_case: c.id } })
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:12000`)
     expect(row().payment_state).toBe('captured')
   })
 
@@ -493,7 +507,7 @@ describe('waive (D-05, D-07)', () => {
     expect(await res.json()).toEqual({ error: 'refund_failed' })
     expect(await loadFeeCase(ID)).toMatchObject({ status: 'pending', reason: null })
     expect(ledger('refund_failed')).toHaveLength(1)
-    expect(ledger('refund_failed')[0]).toMatchObject({ event_key: `refund_failed:${ID}:fee:${c.id}`, amount_minor: 12000 })
+    expect(ledger('refund_failed')[0]).toMatchObject({ event_key: `refund_failed:${ID}:fee:${c.id}:12000`, amount_minor: 12000 })
     expect(ledger('waived')).toHaveLength(0)
     expect(mockAlert).toHaveBeenCalledTimes(1)
     expect(mockAlert.mock.calls[0][0]).toBe('refund_failed')
@@ -544,17 +558,17 @@ describe('charge on money that is already collected (D-07)', () => {
     expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
     expect(fake.callsTo('paymentIntents.create').length).toBe(1) // only the seeded payment
     expect(refundCalls()).toHaveLength(1)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 7000 })
-    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 7000, metadata: { fee_case: c.id } })
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:7000`)
     expect(await loadFeeCase(ID)).toMatchObject({ status: 'charged', decided_minor: 5000, reason: 'late' })
     expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_charged', variant: 'late_cancel', feeMinor: 5000 })
   })
 
   it('pay-now leg row: the leg stays in the refund metadata', async () => {
-    const piId = await seedPayNow({ leg: 'outbound' }, 24000)
-    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    const piId = await seedPayNow({ leg: 'outbound', trip_type: 'round_trip', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'charge', amount_minor: 4000 })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 8000, metadata: { leg: 'outbound' } })
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 8000, metadata: { fee_case: c.id, leg: 'outbound' } })
   })
 
   it('a fee equal to what was collected refunds nothing', async () => {
@@ -577,7 +591,8 @@ describe('charge on money that is already collected (D-07)', () => {
     })
     await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'charge', amount_minor: 3000 })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 9000 })
+    expect(refundCalls()[0].params).toMatchObject({ payment_intent: piId, amount: 9000 })
+    expect(refundCalls()[0].params.metadata).not.toHaveProperty('leg')
     expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
   })
 
@@ -786,5 +801,397 @@ describe('partner bookings answer action_not_allowed on every action', () => {
     expect(fake.calls.filter((c) => c.method !== 'paymentIntents.create')).toHaveLength(0)
     expect(ledger()).toHaveLength(0)
     expect(notes()).toHaveLength(0)
+  })
+})
+
+describe('money WR-05: every fee refund is its own decision and is on record', () => {
+  it('the key carries the amount and the refund names its case, so two decisions never share a key', async () => {
+    const piId = await seedPayNow()
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    expect((await post({ action: 'charge', amount_minor: 5000 })).status).toBe(200)
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:7000`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 7000, metadata: { fee_case: c.id } })
+  })
+
+  it('the refund id is in the ledger as soon as Stripe answered, with the amount and no free text', async () => {
+    await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(200)
+    const row = ledger('admin_action').find((e) => e.error_code === 'fee_refund')
+    expect(row).toMatchObject({ amount_minor: 12000, currency: 'eur' })
+    expect(String(row!.stripe_object_id)).toMatch(/^re_/)
+    expect(row!.event_key).toBe(`fee_refund:${row!.stripe_object_id}`)
+  })
+
+  it('a waive that timed out but executed, then a 40% charge: no idempotency error and no refund on top', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    // The waive reached Stripe, its answer did not reach us.
+    const real = fake.stripe.refunds.create
+    fake.stripe.refunds.create = async (params: Record<string, unknown>, options?: { idempotencyKey?: string }) => {
+      await real(params, options)
+      throw Object.assign(new Error('timed out'), { type: 'StripeConnectionError' })
+    }
+    expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(502)
+    fake.stripe.refunds.create = real
+    const before = refundCalls().length
+
+    const res = await post({ action: 'charge', amount_minor: 4800 })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed' })
+    expect(refundCalls()).toHaveLength(before)
+    expect(fake.state.paymentIntents.get(piId)?.amount_refunded).toBe(12000)
+  })
+
+  it('each failed amount is on record and alerted, not only the first', async () => {
+    const declined = () => new FakeStripeError('StripeInvalidRequestError', 'no', { code: 'charge_disputed', statusCode: 400 })
+    await seedPayNow()
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.failNextWithError('refunds.create', declined())
+    await post({ action: 'charge', amount_minor: 6000 })
+    fake.failNextWithError('refunds.create', declined())
+    await post({ action: 'waive', reason: 'goodwill' })
+    expect(ledger('refund_failed').map((e) => e.event_key)).toEqual([
+      `refund_failed:${ID}:fee:${c.id}:6000`,
+      `refund_failed:${ID}:fee:${c.id}:12000`,
+    ])
+    expect(mockAlert.mock.calls.filter((a) => a[0] === 'refund_failed')).toHaveLength(2)
+  })
+})
+
+describe('money WR-04: no authorization outlives a declined fee', () => {
+  it('a hold smaller than the fee, the card declined, then a waive: the hold is voided, not left blocking the card', async () => {
+    const holdId = await seedWithHold({ stripe_payment_method_id: 'pm_decline_insufficient' }, 3000)
+    await openCase()
+    expect((await post({ action: 'charge', amount_minor: 8000 })).status).toBe(200) // declined: answered 200 outcome declined
+    expect(row().payment_state).toBe('failed')
+    expect(fake.state.paymentIntents.get(holdId)!.status).toBe('requires_capture')
+
+    expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+    expect(fake.state.paymentIntents.get(holdId)!.status).toBe('canceled')
+    expect(row().payment_state).toBe('released')
+  })
+
+  it('a hold id that lapsed or is gone does not stop the release', async () => {
+    await seedWithHold({ payment_state: 'expired' })
+    const c = await openCase()
+    fake.expireHold(row().hold_payment_intent_id as string, 'expired')
+    expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+    expect(row().payment_state).toBe('released')
+    expect(await loadFeeCase(ID)).toMatchObject({ id: c.id, status: 'waived' })
+
+    seed({ payment_state: 'failed', hold_payment_intent_id: 'pi_gone' })
+    await openCase()
+    expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+    expect(row().payment_state).toBe('released')
+  })
+})
+
+describe('money WR-03: a pending case can always be closed, whatever happened to the card', () => {
+  it('a case on a released row: only the waive is offered, and it closes with no money step', async () => {
+    await seedWithHold({ payment_state: 'released', hold_payment_intent_id: null })
+    await openCase()
+    expect(allowedPaymentActions(row())).toEqual(['waive_fee'])
+
+    expect((await post({ action: 'waive', reason: 'card was already gone' })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    expect(fake.calls.filter((c) => c.method !== 'paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('a case on a cash booking settled in cash: the waive closes it, the row stays settled', async () => {
+    seed({ payment_mode: 'cash_guarantee', payment_state: 'cash_settled', hold_payment_intent_id: null })
+    await openCase()
+    expect((await post({ action: 'waive', reason: 'paid in cash' })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    expect(row().payment_state).toBe('cash_settled')
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_waived', moneyOutcome: 'none' })
+  })
+})
+
+describe('money WR-02: a case that failed to open can still be opened', () => {
+  const noShowLog = () => db.state.booking_fee_cases
+
+  it('a no-show with a live hold and no case: open_case opens it from the row and the fee can be charged', async () => {
+    await seedWithHold({ status: 'no_show' })
+    expect(allowedPaymentActions(row())).toContain('open_fee_case')
+
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()[0]).toMatchObject({ kind: 'no_show', currency: 'eur', base_minor: 10000, proposed_minor: 10000 })
+    expect(typeof (noShowLog()[0].evidence as Record<string, unknown>).threshold_min).toBe('number')
+    expect(ledger('admin_action').some((e) => e.error_code === 'fee_open_case' && e.actor_id === ADMIN_ID)).toBe(true)
+
+    expect((await post({ action: 'charge', amount_minor: 4000, contact_note: 'Called twice, no answer' })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'charged' })
+  })
+
+  it('is idempotent: a second click changes nothing', async () => {
+    await seedWithHold({ status: 'no_show' })
+    await post({ action: 'open_case' })
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()).toHaveLength(1)
+  })
+
+  it('a late cancel: the cancel time decides, with the stored terms, and the case proposes their percent', async () => {
+    const pickup = Date.now() + 2 * HOUR
+    await seedWithHold({ status: 'cancelled', pickup_utc: new Date(pickup).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    world.cancelledAt = new Date(pickup - 30 * 60_000).toISOString()
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()[0]).toMatchObject({ kind: 'late_cancel', base_minor: 10000, proposed_minor: 10000 })
+    expect(noShowLog()[0].free_until).not.toBeNull()
+  })
+
+  it('a cancel that was in time, or by Prestigo, never gets a fee through this door', async () => {
+    const pickup = Date.now() + 48 * HOUR
+    await seedWithHold({ status: 'cancelled', pickup_utc: new Date(pickup).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    world.cancelledAt = new Date(pickup - 24 * HOUR).toISOString()
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+
+    const late = Date.now() + 2 * HOUR
+    await seedWithHold({ status: 'cancelled', pickup_utc: new Date(late).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    world.cancelledAt = new Date(late - 30 * 60_000).toISOString()
+    db.state.booking_payment_events.push({ booking_id: ID, event_key: `admin:cancel:${ID}`, kind: 'admin_action', error_code: 'cancel_prestigo' })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+    expect(noShowLog()).toHaveLength(0)
+  })
+
+  it('a pay-now booking takes its base from the payment; Stripe unreadable is busy and opens nothing', async () => {
+    await seedPayNow({ status: 'no_show' })
+    fake.failNextWith('paymentIntents.retrieve', 'connection')
+    expect((await post({ action: 'open_case' })).status).toBe(409)
+    expect(noShowLog()).toHaveLength(0)
+    expect((await post({ action: 'open_case' })).status).toBe(200)
+    expect(noShowLog()[0]).toMatchObject({ base_minor: 12000 })
+  })
+
+  it('takes nothing but the action, and is refused on a live booking', async () => {
+    await seedWithHold({ status: 'no_show' })
+    expect((await post({ action: 'open_case', amount_minor: 100 })).status).toBe(400)
+    Object.assign(row(), { status: 'confirmed' })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+  })
+})
+
+describe('money CR-04: a failed fee refund always leaves the operator a way out, and never a second refund', () => {
+  const disputed = () => new FakeStripeError('StripeInvalidRequestError', 'The charge is disputed.', { code: 'charge_disputed', statusCode: 400 })
+  const lockOf = () => db.state.booking_fee_cases.find((c) => c.booking_id === ID)?.charge_requested_at ?? null
+  const makeLockStale = () => {
+    db.state.booking_fee_cases.find((c) => c.booking_id === ID)!.charge_requested_at = new Date(Date.now() - 11 * 60_000).toISOString()
+  }
+  const refundedOf = (piId: string) => fake.state.paymentIntents.get(piId)?.amount_refunded ?? 0
+
+  it('a definitive failure releases the lock: the operator can waive at once', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.failNextWithError('refunds.create', disputed())
+
+    const res = await post({ action: 'charge', amount_minor: 6000 })
+    expect(res.status).toBe(502)
+    expect(lockOf()).toBeNull()
+    expect(ledger('refund_failed')).toHaveLength(1)
+    expect(mockAlert.mock.calls[0][0]).toBe('refund_failed')
+
+    expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    expect(refundedOf(piId)).toBe(12000)
+  })
+
+  it('a definitive failure lets another amount through', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.failNextWithError('refunds.create', disputed())
+    expect((await post({ action: 'charge', amount_minor: 6000 })).status).toBe(502)
+
+    expect((await post({ action: 'charge', amount_minor: 9000 })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'charged', decided_minor: 9000 })
+    expect(refundedOf(piId)).toBe(3000)
+  })
+
+  it('the same click after a refund by hand sends nothing on top of it', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.failNextWithError('refunds.create', disputed())
+    expect((await post({ action: 'charge', amount_minor: 6000 })).status).toBe(502)
+
+    // The operator refunds the 6000 in the Dashboard, then repeats the charge (Stripe's key may be gone after 24 h).
+    fake.manualRefund(piId, 6000)
+    fake.state.idempotency.clear()
+    const before = refundCalls().length
+    expect((await post({ action: 'charge', amount_minor: 6000 })).status).toBe(200)
+
+    expect(refundCalls()).toHaveLength(before)
+    expect(refundedOf(piId)).toBe(6000)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'charged', decided_minor: 6000 })
+  })
+
+  it('a partial refund by hand: a waive refunds only the rest', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.manualRefund(piId, 5000)
+    expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+    expect(refundCalls()[0].params).toMatchObject({ amount: 7000 })
+    expect(refundedOf(piId)).toBe(12000)
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_waived', moneyOutcome: 'refunded', refundMinor: 12000 })
+  })
+
+  it('everything refunded by hand: a waive closes the case with no Stripe refund and no fee receipt', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.manualRefund(piId, 12000)
+
+    expect((await post({ action: 'waive', reason: 'refunded in the dashboard' })).status).toBe(200)
+    expect(refundCalls()).toHaveLength(0)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    expect(mockSendEmail.mock.calls.map((c) => c[0].kind)).toEqual(['fee_waived'])
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ moneyOutcome: 'refunded', refundMinor: 12000 })
+  })
+
+  it('a fee above what is left after a refund by hand is refused and locks nothing', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.manualRefund(piId, 7000)
+    const res = await post({ action: 'charge', amount_minor: 6000 })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'amount_above_cap' })
+    expect(lockOf()).toBeNull()
+    expect(refundCalls()).toHaveLength(0)
+  })
+
+  it('a captured card booking: the same rules on its payment', async () => {
+    const piId = await seedPayNow({
+      payment_mode: 'card_hold',
+      payment_state: 'captured',
+      payment_amount_minor: 12000,
+      payment_currency: 'eur',
+      captured_amount_minor: 12000,
+      stripe_payment_method_id: 'pm_ok',
+      amount_eur: null,
+    })
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.manualRefund(piId, 12000)
+    expect((await post({ action: 'waive', reason: 'refunded in the dashboard' })).status).toBe(200)
+    expect(refundCalls()).toHaveLength(0)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+  })
+
+  describe('a transient failure: the refund may have executed', () => {
+    it('keeps the lock, another amount is refused, a waive waits', async () => {
+      await seedPayNow()
+      await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+      fake.failNextWith('refunds.create', 'connection')
+
+      expect((await post({ action: 'charge', amount_minor: 6000 })).status).toBe(502)
+      expect(lockOf()).not.toBeNull()
+      expect((await post({ action: 'charge', amount_minor: 9000 })).status).toBe(409)
+      const waive = await post({ action: 'waive', reason: 'flight cancelled' })
+      expect(waive.status).toBe(409)
+      expect(await waive.json()).toEqual({ error: 'payment_busy' })
+    })
+
+    it('the same click finds the refund that did execute and sends no second one', async () => {
+      const piId = await seedPayNow()
+      await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+      fake.failNextWith('refunds.create', 'connection')
+      expect((await post({ action: 'charge', amount_minor: 6000 })).status).toBe(502)
+
+      fake.manualRefund(piId, 6000) // the answer was lost, the money moved
+      const before = refundCalls().length
+      expect((await post({ action: 'charge', amount_minor: 6000 })).status).toBe(200)
+      expect(refundCalls()).toHaveLength(before)
+      expect(refundedOf(piId)).toBe(6000)
+    })
+
+    it('after the lease nobody can still be working: the waive takes the lock over', async () => {
+      const piId = await seedPayNow()
+      await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+      fake.failNextWith('refunds.create', 'connection')
+      await post({ action: 'charge', amount_minor: 6000 })
+      makeLockStale()
+
+      expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(200)
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+      expect(refundedOf(piId)).toBe(12000)
+    })
+
+    it('after the lease another amount goes through too', async () => {
+      await seedPayNow()
+      await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+      fake.failNextWith('refunds.create', 'connection')
+      await post({ action: 'charge', amount_minor: 6000 })
+      makeLockStale()
+      expect((await post({ action: 'charge', amount_minor: 9000 })).status).toBe(200)
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'charged', decided_minor: 9000 })
+    })
+
+    it('a crash between the lock and the settle claim does not strand the case (card row)', async () => {
+      await seedWithHold()
+      const c = await openCase()
+      expect(await lockFeeAmount(c.id, 4000)).toBe('locked')
+      makeLockStale()
+      expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    })
+
+    it('a row in capturing is never taken over, whatever the age of the lock', async () => {
+      await seedWithHold()
+      const c = await openCase()
+      expect(await lockFeeAmount(c.id, 4000)).toBe('locked')
+      makeLockStale()
+      Object.assign(row(), { payment_state: 'capturing', payment_lease_until: new Date(Date.now() - 1000).toISOString() })
+      expect(await waiveFee({ booking: row(), caseRow: c, reason: 'goodwill', actor: ADMIN })).toEqual({ error: 'payment_busy' })
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'pending' })
+    })
+  })
+
+  describe('close_refunded: the money was settled outside the site', () => {
+    async function failedRefund() {
+      const piId = await seedPayNow()
+      await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+      fake.failNextWithError('refunds.create', disputed())
+      expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(502)
+      return piId
+    }
+
+    it('closes the case with no Stripe refund and no client mail, keeps the note off the ledger, clears the banner', async () => {
+      await failedRefund()
+      const before = refundCalls().length
+      const res = await post({ action: 'close_refunded', note: 'Paid back by bank transfer, ref 123' })
+      expect(res.status).toBe(200)
+
+      expect(refundCalls()).toHaveLength(before)
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived', reason: 'Paid back by bank transfer, ref 123' })
+      expect(mockSendEmail).not.toHaveBeenCalled()
+      expect(JSON.stringify(db.state.booking_payment_events)).not.toContain('bank transfer')
+      expect(ledger('admin_action').some((e) => e.error_code === 'fee_close_manual' && e.actor_id === ADMIN_ID)).toBe(true)
+      expect(ledger('admin_action').some((e) => e.error_code === 'refund_resolved')).toBe(true)
+    })
+
+    it('needs a note and takes nothing else', async () => {
+      await failedRefund()
+      expect((await post({ action: 'close_refunded' })).status).toBe(400)
+      expect((await post({ action: 'close_refunded', note: '   ' })).status).toBe(400)
+      expect((await post({ action: 'close_refunded', note: 'x', amount_minor: 100 })).status).toBe(400)
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'pending' })
+    })
+
+    it('is refused when no refund failed and none exists: it is no back door around the decision', async () => {
+      await seedPayNow()
+      await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+      expect((await post({ action: 'close_refunded', note: 'x' })).status).toBe(422)
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'pending' })
+    })
+
+    it('is refused on a hold nothing was collected on', async () => {
+      await seedWithHold()
+      await openCase()
+      expect((await post({ action: 'close_refunded', note: 'x' })).status).toBe(422)
+    })
+
+    it('works with a refund by hand and no recorded failure', async () => {
+      const piId = await seedPayNow()
+      await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+      fake.manualRefund(piId, 3000)
+      expect((await post({ action: 'close_refunded', note: 'Rest agreed with the client' })).status).toBe(200)
+      expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    })
   })
 })

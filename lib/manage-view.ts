@@ -19,6 +19,7 @@ import { isBookingStatus, isPartnerBooking } from '@/lib/booking-status'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { evaluateCancellation, policyFromSnapshot, proposedFeeMinor, tripFactsFromRow } from '@/lib/cancellation-policy'
 import { feeBaseFor, isFeeEligible, loadFeeCase } from '@/lib/payments/fee'
+import { loadPayNowFacts, rowLeg } from '@/lib/payments/pay-now'
 
 export type ManageCurrency = 'eur' | 'czk'
 
@@ -123,6 +124,11 @@ export interface ManageExtras {
   } | null
   refundedMinor?: number | null
   cancelledAtMs?: number | null
+  /**
+   * What the PaymentIntent of a pay-now row says (money CR-01, CR-02): the row alone knows neither the currency nor, on a
+   * round trip, this leg's money. Absent when Stripe could not be read: the page then shows the leg estimate from the row.
+   */
+  payNow?: { currency: ManageCurrency; paidMinor: number; shareMinor: number; collectedMinor: number } | null
 }
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
@@ -155,23 +161,43 @@ function isCardMode(row: Row): boolean {
   return row.payment_mode === 'card_hold' || row.payment_mode === 'cash_guarantee'
 }
 
-/** The fare shown to the client: the card amount in its own currency, else the booking amount in EUR. */
-function fareOf(row: Row): ManageMoney | null {
+/** A pay-now row whose checkout went through: an unpaid row carries the intent of a checkout nobody finished. */
+function isPayNowPaid(row: Row, extras: ManageExtras): boolean {
+  if (row.payment_mode !== 'pay_now' || str(row.payment_intent_id) === '' || row.status === 'unpaid') return false
+  return !extras.payNow || extras.payNow.paidMinor > 0
+}
+
+/** The leg of a pay-now round-trip row; a one-way row also stores leg 'outbound' and has no leg amounts. */
+function roundTripLeg(row: Row) {
+  return row.trip_type === 'round_trip' ? rowLeg(row) : null
+}
+
+/**
+ * The fare shown to the client: the card amount in its own currency; on a pay-now row what this row paid, from the
+ * PaymentIntent; else the leg estimate of a round trip, else the booking amount in EUR.
+ */
+function fareOf(row: Row, extras: ManageExtras): ManageMoney | null {
   const minor = posInt(row.payment_amount_minor)
   const currency = currencyOf(row.payment_currency)
   if (isCardMode(row) && minor !== null && currency) return { amountMinor: minor, currency }
+  if (row.payment_mode === 'pay_now' && extras.payNow && extras.payNow.shareMinor > 0) {
+    return { amountMinor: extras.payNow.shareMinor, currency: extras.payNow.currency }
+  }
+  const leg = roundTripLeg(row)
+  const legBase = leg ? feeBaseFor(row, leg) : null
+  if (legBase) return { amountMinor: legBase.baseMinor, currency: legBase.currency }
   const eur = num(row.amount_eur)
   if (eur !== null && eur > 0) return { amountMinor: Math.round(eur * 100), currency: 'eur' }
   return null
 }
 
 /** The one plain payment sentence of the details block, or null when the booking has none (manual, unpaid). */
-function paymentOf(row: Row): ManagePayment | null {
+function paymentOf(row: Row, extras: ManageExtras): ManagePayment | null {
   const mode = str(row.payment_mode)
   const state = str(row.payment_state)
   if (mode === 'pay_now') {
-    const fare = fareOf(row)
-    return str(row.payment_intent_id) !== '' && fare ? { key: 'paidCard', ...fare, holdAtMs: null } : null
+    const fare = fareOf(row, extras)
+    return isPayNowPaid(row, extras) && fare ? { key: 'paidCard', ...fare, holdAtMs: null } : null
   }
   if (mode !== 'card_hold' && mode !== 'cash_guarantee') return null
   const currency = currencyOf(row.payment_currency)
@@ -199,9 +225,14 @@ function paymentOf(row: Row): ManagePayment | null {
 }
 
 /** What a free cancel does with money, from the payment side of the row. */
-function freeMoneyOf(row: Row): { freeMoney: ManageFreeMoney; refundMinor: number | null } {
+function freeMoneyOf(row: Row, extras: ManageExtras): { freeMoney: ManageFreeMoney; refundMinor: number | null } {
   if (row.payment_mode === 'pay_now') {
-    const fare = str(row.payment_intent_id) !== '' ? fareOf(row) : null
+    if (!isPayNowPaid(row, extras)) return { freeMoney: 'none', refundMinor: null }
+    if (extras.payNow) {
+      const left = extras.payNow.collectedMinor
+      return left > 0 ? { freeMoney: 'refund', refundMinor: left } : { freeMoney: 'none', refundMinor: null }
+    }
+    const fare = fareOf(row, extras)
     return fare ? { freeMoney: 'refund', refundMinor: fare.amountMinor } : { freeMoney: 'none', refundMinor: null }
   }
   if (isCardMode(row)) {
@@ -214,13 +245,17 @@ function freeMoneyOf(row: Row): { freeMoney: ManageFreeMoney; refundMinor: numbe
 }
 
 /** The base a late-cancel fee is a share of: the collected card money, else the booking amount (as cancelBooking). */
-function feeBaseOf(row: Row): { baseMinor: number; currency: ManageCurrency } | null {
+function feeBaseOf(row: Row, extras: ManageExtras): { baseMinor: number; currency: ManageCurrency } | null {
   if (isCardMode(row)) {
     const collected = collectedMinor(row)
     const currency = currencyOf(row.payment_currency)
     if (collected > 0 && currency) return { baseMinor: collected, currency }
   }
-  const leg = row.leg === 'outbound' || row.leg === 'return' ? row.leg : undefined
+  if (row.payment_mode === 'pay_now' && extras.payNow) {
+    const { collectedMinor: held, currency } = extras.payNow
+    return held > 0 ? { baseMinor: held, currency } : null
+  }
+  const leg = roundTripLeg(row)
   return (leg ? feeBaseFor(row, leg) : null) ?? feeBaseFor(row)
 }
 
@@ -249,8 +284,8 @@ export function buildManageView(row: Row, extras: ManageExtras, nowMs: number): 
 
   let cancel: ManageCancelInfo | null = null
   if (variant === 'active') {
-    const money = freeMoneyOf(row)
-    const base = isFeeEligible(row) ? feeBaseOf(row) : null
+    const money = freeMoneyOf(row, extras)
+    const base = isFeeEligible(row) ? feeBaseOf(row, extras) : null
     cancel = {
       // No pickup instant to measure against: the client page promises nothing, as cancelBooking does.
       outcome: evaluated ? evaluated.kind : 'too_late',
@@ -275,7 +310,7 @@ export function buildManageView(row: Row, extras: ManageExtras, nowMs: number): 
       cancelledAtMs: extras.cancelledAtMs ?? null,
       feeStatus,
       feeAmountMinor: amount > 0 ? Math.round(amount) : 0,
-      currency: feeCase ? currencyOf(feeCase.currency) : (fareOf(row)?.currency ?? null),
+      currency: feeCase ? currencyOf(feeCase.currency) : (fareOf(row, extras)?.currency ?? null),
       refundedMinor: extras.refundedMinor && extras.refundedMinor > 0 ? Math.round(extras.refundedMinor) : null,
       freeUntilMs: evaluated ? evaluated.freeUntilMs : Number.isFinite(caseFreeUntil) ? caseFreeUntil : null,
     }
@@ -292,8 +327,8 @@ export function buildManageView(row: Row, extras: ManageExtras, nowMs: number): 
     to: str(row.destination_address) || null,
     vehicleClass: str(row.vehicle_class) || null,
     passengers: posInt(row.passengers),
-    fare: fareOf(row),
-    payment: paymentOf(row),
+    fare: fareOf(row, extras),
+    payment: paymentOf(row, extras),
     cancel,
     cancelled,
   }
@@ -312,6 +347,21 @@ export async function loadManageView(bookingId: string, nowMs: number = Date.now
   if (isPartnerBooking({ booking_source: typeof row.booking_source === 'string' ? row.booking_source : null })) return null
 
   const extras: ManageExtras = {}
+  // A failed read only drops the detail: the page falls back to the row's estimate. Read only, no money moves on a GET.
+  if (row.payment_mode === 'pay_now' && str(row.payment_intent_id) !== '' && row.status !== 'unpaid') {
+    try {
+      const facts = await loadPayNowFacts(row)
+      extras.payNow = {
+        currency: facts.currency,
+        paidMinor: facts.paidMinor,
+        shareMinor: facts.shareMinor,
+        collectedMinor: facts.collectedMinor,
+      }
+      if (row.status === 'cancelled') extras.refundedMinor = facts.refundedMinor
+    } catch {
+      console.error('[manage-view] payment read failed')
+    }
+  }
   if (row.status === 'cancelled') {
     try {
       const feeCase = await loadFeeCase(bookingId)
@@ -333,7 +383,8 @@ export async function loadManageView(bookingId: string, nowMs: number = Date.now
         .select('amount_minor')
         .eq('booking_id', bookingId)
         .eq('kind', 'refund_observed')
-      if (Array.isArray(refunds)) {
+      // Pay-now refunds are not observed in the ledger: for those the PaymentIntent above already answered.
+      if (Array.isArray(refunds) && !extras.payNow) {
         extras.refundedMinor = refunds.reduce((sum, r) => sum + (posInt((r as Row).amount_minor) ?? 0), 0)
       }
     } catch {

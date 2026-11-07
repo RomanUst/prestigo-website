@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
+import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 
 /**
  * Phase 89 plan 89-14 (CASH-04, D-11, D-12, D-21, D-22): the driver's cash step on the server.
@@ -13,6 +14,7 @@ import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-paymen
 const { world, stubAssignments, mockCheckRateLimit, mockDeactivateLink, getNoShowViewMock, getStartGateMock } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
+    stripe: null as unknown,
   },
   stubAssignments: vi.fn(),
   mockCheckRateLimit: vi.fn(),
@@ -31,6 +33,10 @@ vi.mock('@/lib/supabase', () => ({
     from: (table: string) => (table === 'driver_assignments' ? stubAssignments(table) : world.db!.client.from(table)),
     rpc: (name: string, args?: Record<string, unknown>) => world.db!.client.rpc(name, args),
   }),
+}))
+vi.mock('@/lib/payments/stripe', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/payments/stripe')>()),
+  getPaymentsStripe: () => world.stripe,
 }))
 vi.mock('@/lib/rate-limit', () => ({ checkRateLimit: mockCheckRateLimit, getClientIp: () => '127.0.0.1' }))
 vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: mockDeactivateLink }))
@@ -190,6 +196,54 @@ describe('confirm_cash through the progress route (tracer: route -> settleCash -
     seed({ payment_state: 'captured' })
     expect((await call({ action: 'confirm_cash' })).status).toBe(422)
     expect(ledger()).toHaveLength(0)
+  })
+
+  describe('money CR-05: while a card charge is on the row', () => {
+    const useStripe = (): FakeStripe => {
+      const fake = createFakeStripe()
+      world.stripe = fake.stripe
+      return fake
+    }
+
+    it('a live charge answers a clear wait and writes nothing', async () => {
+      useStripe()
+      seed({ payment_state: 'capturing', payment_lease_until: new Date(Date.now() + 300_000).toISOString() })
+      const res = await call({ action: 'confirm_cash' })
+      expect(res.status).toBe(409)
+      expect(await res.json()).toMatchObject({ ok: false, error: 'cash_wait' })
+      expect(db.state.bookings[0].payment_state).toBe('capturing')
+    })
+
+    it('a dead charge with no payment at Stripe does not stop the driver: the cash is settled', async () => {
+      const fake = useStripe()
+      seed({ payment_state: 'capturing', payment_lease_until: new Date(Date.now() - 1000).toISOString(), stripe_customer_id: 'cus_1' })
+      const res = await call({ action: 'confirm_cash' })
+      expect(res.status).toBe(200)
+      expect(db.state.bookings[0].payment_state).toBe('cash_settled')
+      expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    })
+
+    it('the card did go through: the cash is not recorded on top of it', async () => {
+      const fake = useStripe()
+      seed({ payment_state: 'capturing', payment_lease_until: new Date(Date.now() - 1000).toISOString(), stripe_customer_id: 'cus_1', charge_attempts: 0 })
+      await fake.stripe.paymentIntents.create({
+        amount: 12000,
+        currency: 'eur',
+        customer: 'cus_1',
+        payment_method: 'pm_ok',
+        off_session: true,
+        confirm: true,
+        metadata: { kind: 'card_charge', cofBookingId: BOOKING_ID, attempt: '0' },
+      })
+      const res = await call({ action: 'confirm_cash' })
+      expect(res.status).toBe(409)
+      expect(await res.json()).toMatchObject({ error: 'cash_conflict' })
+      expect(db.state.bookings[0].payment_state).toBe('captured')
+    })
+
+    it('the amount stays on the screen while the row is capturing', () => {
+      expect(buildDriverCash({ payment_mode: 'cash_guarantee', payment_state: 'capturing', payment_amount_minor: 12000, payment_currency: 'eur' })).toMatchObject({ state: 'due' })
+    })
   })
 
   it('a partner booking is refused (Pitfall 15)', async () => {

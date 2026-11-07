@@ -131,9 +131,21 @@ vi.mock('stripe', () => {
 // when a refund fails after the cancel applied.
 vi.mock('@/lib/payments/stripe', async () => {
   const actual = await vi.importActual<typeof import('@/lib/payments/stripe')>('@/lib/payments/stripe')
-  return { ...actual, getPaymentsStripe: () => ({ refunds: stripeRefundsStub }) }
+  return {
+    ...actual,
+    getPaymentsStripe: () => ({
+      refunds: { ...stripeRefundsStub, list: async () => ({ data: [] }) },
+      // Pay-now money facts come from the PaymentIntent (money CR-01): 19,000 cents paid.
+      paymentIntents: { retrieve: async () => ({ status: 'succeeded', currency: 'eur', amount_received: 19000 }) },
+    }),
+  }
 })
 vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: vi.fn().mockResolvedValue('sent') }))
+
+/** The lookup of a row sharing the PaymentIntent (money CR-02). trip_type says what a row is when there is none. */
+const siblingLookup = (rows: Array<{ id: string }> = []) => ({
+  select: () => ({ eq: () => ({ neq: async () => ({ data: rows, error: null }) }) }),
+})
 
 import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
 import { POST as CANCEL_POST } from '@/app/api/admin/bookings/cancel/route'
@@ -2084,12 +2096,14 @@ describe('POST /api/admin/bookings/cancel', () => {
     errorSpy.mockRestore()
   })
 
-  it('Test 9: partial refund with leg=outbound — calls Stripe with per-leg amount + metadata.leg', async () => {
+  it('Test 9: the outbound row of a round trip — Stripe gets its share of what was paid + metadata.leg', async () => {
     const singleFn = vi.fn().mockResolvedValue({
       data: {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_xxx',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 4500,
       },
@@ -2098,23 +2112,20 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup())
     supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_test123' })
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'outbound',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toMatchObject({ ok: true, refund_id: 're_test123' })
-    // czkToEur(5000) = 200 EUR -> 200 * 100 = 20000 cents
+    // 19,000 cents paid, 5000 of 9500 CZK: 10,000 cents
     expect(stripeRefundsStub.create).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_xxx',
-        amount: 20000,
+        amount: 10000,
         metadata: { leg: 'outbound' },
       },
       { idempotencyKey: 'refund:a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:outbound' },
@@ -2127,12 +2138,14 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(supabaseServiceStub.rpc.mock.calls[0][1]).toMatchObject({ p_booking_id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' })
   })
 
-  it('Test 10: partial refund with leg=return — uses return_amount_czk', async () => {
+  it('Test 10: the return row of a round trip — its share is the rest of the payment', async () => {
     const singleFn = vi.fn().mockResolvedValue({
       data: {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_yyy',
+        leg: 'return',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 4500,
       },
@@ -2141,21 +2154,18 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup())
     supabaseServiceStub.rpc.mockResolvedValue({ data: { applied: true }, error: null })
 
     stripeRefundsStub.create.mockResolvedValue({ id: 're_test456' })
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'return',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(200)
-    // czkToEur(4500) = Math.round(4500 * 0.04) = 180 EUR -> 180 * 100 = 18000 cents
+    // 19,000 cents paid minus the outbound 10,000
     expect(stripeRefundsStub.create).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_yyy',
-        amount: 18000,
+        amount: 9000,
         metadata: { leg: 'return' },
       },
       { idempotencyKey: 'refund:a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d:return' },
@@ -2205,6 +2215,8 @@ describe('POST /api/admin/bookings/cancel', () => {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_overrefund',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 4500,
       },
@@ -2213,28 +2225,27 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup())
     supabaseServiceStub.rpc.mockImplementation(async (name: string) =>
       name === 'append_payment_event' ? { data: { inserted: true }, error: null } : { data: { applied: true }, error: null },
     )
 
     stripeRefundsStub.create.mockRejectedValue(new MockStripeInvalidRequestError('Amount exceeds remaining refundable'))
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'outbound',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(502)
-    expect(await res.json()).toMatchObject({ error: 'refund_failed', cancelled: true, amount_minor: 20000, currency: 'eur' })
+    expect(await res.json()).toMatchObject({ error: 'refund_failed', cancelled: true, amount_minor: 10000, currency: 'eur' })
     errorSpy.mockRestore()
   })
 
-  it('Test 13: returns 422 when leg is present but leg amount column is null', async () => {
+  it('Test 13: returns 422 when the row shares its payment with a sibling but the leg amounts are null', async () => {
     const singleFn = vi.fn().mockResolvedValue({
       data: {
         id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
         status: 'confirmed',
         payment_intent_id: 'pi_missing_amount',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: null,
         return_amount_czk: null,
       },
@@ -2243,19 +2254,16 @@ describe('POST /api/admin/bookings/cancel', () => {
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
 
-    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn }).mockReturnValueOnce(siblingLookup([{ id: 'return-row' }]))
 
-    const res = await CANCEL_POST(makeCancelRequest({
-      id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
-      leg: 'outbound',
-    }))
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
     expect(res.status).toBe(422)
     const json = await res.json()
     expect(json.error).toBe('Cannot compute per-leg refund: missing leg amount')
     // Stripe NOT called
     expect(stripeRefundsStub.create).not.toHaveBeenCalled()
     // DB update NOT called — only 1 supabase.from call (the select)
-    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(2) // reads only: the booking and its sibling
   })
 })
 

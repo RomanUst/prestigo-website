@@ -60,7 +60,9 @@ export interface OperatorAlertDetails {
   /**
    * `link_failed`: the recovery link could not be created, so the client was not emailed. `release`: a hold (not a
    * payment) could not be released. `refunded` / `refund_failed`: the outcome of a duplicate payment's automatic refund.
-   * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27).
+   * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27). `cash_settled`
+   * (refund_failed): a booking recorded as paid in cash was cancelled. `cash_interrupted` (charge_failed): a cash card charge
+   * was interrupted and Stripe shows no payment.
    */
   note?: string
   // --- Phase 89, UI-SPEC 8.3. Instants are ISO strings (shown on the Prague wall clock); a missing field is omitted. ---
@@ -82,6 +84,8 @@ export interface OperatorAlertDetails {
   openedAt?: string | null
   /** client_cancelled: what happened to the money (default 'none'). */
   moneyOutcome?: 'released' | 'refunded' | 'none'
+  /** client_cancelled: after the free period, with nothing a fee could be taken from. */
+  late?: boolean
   /** change_request: the client's own words. Escaped in the mail, never written to the ledger. */
   message?: string
 }
@@ -148,6 +152,9 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
     ? `One automatic retry runs at ${pragueTime(d.retryAtIso)}.`
     : 'No automatic retries are left. Use Retry or Send payment link.'
 
+  if (kind === 'charge_failed' && d.note === 'cash_interrupted') {
+    return 'A card charge on this cash booking was interrupted and Stripe shows no payment, so nothing was charged. The driver can confirm the cash. To charge the card, do it again from the booking.'
+  }
   if ((kind === 'hold_failed' || kind === 'charge_failed' || kind === 'balance_unpaid') && d.note === 'link_failed') {
     return 'The payment link could not be created, so the client was NOT emailed. Use Send payment link from the booking.'
   }
@@ -172,6 +179,10 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
       if (d.note === 'release') {
         return `The booking is cancelled. Cancel the ${amount} hold manually in the Stripe Dashboard so the card is not blocked.`
       }
+      // Money WR-10: Stripe never held this money.
+      if (d.note === 'cash_settled') {
+        return `The booking is cancelled, but ${amount} was recorded as paid in cash. Return it to the client, then resolve this from the booking.`
+      }
       return `The booking is cancelled. Refund ${amount} manually in the Stripe Dashboard.`
     }
     case 'dispute':
@@ -179,9 +190,12 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
     case 'duplicate_payment': {
       // 88-REVIEW T1: a recovery link was paid after the money was already secured another way.
       const amount = formatMinor(d.amountMinor ?? 0, currency)
-      const lead = `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${str(booking.payment_state) || 'n/a'}).`
+      const lead =
+        d.code === 'cash_card'
+          ? `A card charge of ${amount} went through after the cash for this booking was confirmed, so the client paid twice.`
+          : `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${str(booking.payment_state) || 'n/a'}).`
       return d.note === 'refunded'
-        ? `${lead} The link payment was refunded automatically; the booking is unchanged.`
+        ? `${lead} The card payment was refunded automatically; the booking is unchanged.`
         : `${lead} The automatic refund failed: refund ${amount} manually in the Stripe Dashboard.`
     }
     case 'stripe_config':
@@ -228,7 +242,7 @@ function buildFeeBody(kind: FeeAlertKind, booking: BookingRow, d: OperatorAlertD
     `Open in admin: ${siteBase()}/admin/bookings`,
     '',
     d.note === 'case_missing'
-      ? 'The client cancelled after the free period, but the fee case could not be opened, so there is nothing to charge or waive yet. Nothing is charged. Decide from the booking.'
+      ? `${kind === 'fee_no_show_needed' ? 'The no-show is confirmed' : 'The client cancelled after the free period'}, but the fee case could not be opened, so there is nothing to charge or waive yet. Nothing is charged. Decide from the booking.`
       : kind === 'fee_pending_24h'
         ? 'Nothing is charged until you decide. Charge or waive the fee from the booking.'
         : 'Charge or waive the fee from the booking.',
@@ -250,7 +264,7 @@ function buildClientCancelledBody(booking: BookingRow, d: OperatorAlertDetails):
     `Client name: ${clientName(booking)}`,
     `Pickup (Prague): ${pickupOf(booking)}`,
     '',
-    `Free cancellation. ${money}`,
+    d.late ? 'Late cancellation. No fee can be taken.' : `Free cancellation. ${money}`,
   ].join('\n')
 }
 

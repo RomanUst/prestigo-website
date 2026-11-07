@@ -236,7 +236,8 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
         id: 'b-return',
         booking_reference: 'PRE-RET',
         leg: 'return',
-        linked_booking_id: 'b-outbound',
+        trip_type: 'round_trip',
+        linked_booking_id: null,
         outbound_amount_czk: 5000,
         return_amount_czk: 4500,
         linked_booking: { booking_reference: 'PRE-OUT' },
@@ -269,7 +270,7 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
     await screen.findByRole('radiogroup')
     expect(screen.getByText(/The paired outbound booking PRE-OUT will NOT be affected and remains active\./)).toBeDefined()
     chooseWho('Prestigo')
-    expect(screen.getByText(/Refund: 4500 CZK for this leg only\./)).toBeDefined()
+    expect(screen.getByText(/Refund: about 4500 CZK for this leg only/)).toBeDefined()
     expect(screen.getByRole('button', { name: /^Cancel and refund/ })).toBeDefined()
   })
 })

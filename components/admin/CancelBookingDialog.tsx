@@ -84,8 +84,9 @@ function legAmountMinor(b: CancelDialogBooking): number | null {
   return minor > 0 ? minor : null
 }
 
+/** A round-trip row: linked_booking_id is never written, so it can not say this (money CR-02). Display only, the server decides. */
 function isLegCancel(b: CancelDialogBooking): boolean {
-  return b.leg !== null && b.linked_booking_id !== null
+  return b.leg !== null && b.trip_type === 'round_trip'
 }
 
 /** Which row of the outcome table applies, and the amount a fee is a share of (null when unknown). */
@@ -287,11 +288,7 @@ export function CancelBookingDialog({ booking, onClose, onCancelled, onRefundFai
     inFlight.current = true
     setBusy(true)
     setError(null)
-    const body: { id: string; leg?: 'outbound' | 'return'; cancelled_by: CancelledBy } = {
-      id: booking.id,
-      cancelled_by: choice,
-    }
-    if (isLegCancel(booking) && booking.leg !== null) body.leg = booking.leg
+    const body: { id: string; cancelled_by: CancelledBy } = { id: booking.id, cancelled_by: choice }
     try {
       const res = await fetch('/api/admin/bookings/cancel', {
         method: 'POST',
@@ -471,7 +468,7 @@ export function CancelBookingDialog({ booking, onClose, onCancelled, onRefundFai
             <div style={{ marginTop: '12px' }}>
               {outcome !== null && !outcome.late && (
                 <p style={{ ...mutedText, color: 'var(--admin-text)' }}>
-                  Refund: {legAmountCzk ?? '—'} CZK for this leg only.
+                  Refund: about {legAmountCzk ?? '—'} CZK for this leg only (its share of what was paid).
                 </p>
               )}
               <p style={{ ...mutedText, marginTop: '8px', color: 'var(--status-danger-fg)', fontWeight: 500 }}>
