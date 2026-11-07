@@ -130,11 +130,12 @@ function wireSupabase(opts: {
   const selectEq = vi.fn().mockReturnValue({ single: singleFn })
   const selectFn = vi.fn().mockReturnValue({ eq: selectEq })
   const freshMaybe = vi.fn().mockResolvedValue({ data: opts.fresh === undefined ? opts.booking : opts.fresh, error: null })
-  // neq is the sibling lookup of a shared PaymentIntent: no sibling here, trip_type says what a row is.
+  // eq(trip_type).neq is the sibling lookup of a shared PaymentIntent (round-trip rows only): trip_type says what a row is.
+  const siblingNeq = vi.fn().mockResolvedValue({ data: opts.sibling ? [{ id: 'sibling' }] : [], error: null })
   const freshSelect = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
       maybeSingle: freshMaybe,
-      neq: vi.fn().mockResolvedValue({ data: opts.sibling ? [{ id: 'sibling' }] : [], error: null }),
+      eq: vi.fn().mockReturnValue({ neq: siblingNeq }),
     }),
   })
 

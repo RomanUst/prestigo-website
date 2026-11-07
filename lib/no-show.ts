@@ -411,6 +411,12 @@ async function openNoShowCase(input: {
     // CR-03: a pay-now base is this row's share of what the PaymentIntent received, in its currency.
     const base = await feeBaseNow(booking)
     if (!base) {
+      // Money review 2, IN-01: a pay-now row with nothing left behind its PaymentIntent (fully refunded, a stale intent) has
+      // no fee to decide, so there is no case and no alert. A card row without an amount is a broken row: the operator is told.
+      if (booking.payment_mode === 'pay_now') {
+        console.warn('[no-show] nothing held for this pay-now booking, no case', { bookingId })
+        return
+      }
       console.error('[no-show] no fee base, case not opened', { bookingId })
       alertCaseMissing(booking)
       return

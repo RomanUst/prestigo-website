@@ -572,7 +572,7 @@ describe('pay-now round trips apply the policy per leg row (D-24)', () => {
 
   it('a missing leg amount: leg_amount_missing before any write', async () => {
     const paymentIntentId = await paidPi(10000)
-    seed({ ...PAY_NOW, leg: 'return', outbound_amount_czk: 3000, return_amount_czk: null, payment_intent_id: paymentIntentId })
+    seed({ ...PAY_NOW, trip_type: 'round_trip', leg: 'return', outbound_amount_czk: 3000, return_amount_czk: null, payment_intent_id: paymentIntentId })
     db.state.bookings.push({ ...row(), id: 'sibling-outbound', leg: 'outbound' })
     expect(await run('admin_client', FREE_NOW)).toEqual({ kind: 'leg_amount_missing' })
     expect(world.advanceCalls).toHaveLength(0)

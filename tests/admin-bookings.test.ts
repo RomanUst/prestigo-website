@@ -143,8 +143,9 @@ vi.mock('@/lib/payments/stripe', async () => {
 vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: vi.fn().mockResolvedValue('sent') }))
 
 /** The lookup of a row sharing the PaymentIntent (money CR-02). trip_type says what a row is when there is none. */
+// The sibling of a round-trip leg: same payment_intent_id, trip_type round_trip, another id.
 const siblingLookup = (rows: Array<{ id: string }> = []) => ({
-  select: () => ({ eq: () => ({ neq: async () => ({ data: rows, error: null }) }) }),
+  select: () => ({ eq: () => ({ eq: () => ({ neq: async () => ({ data: rows, error: null }) }) }) }),
 })
 
 import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'

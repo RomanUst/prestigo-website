@@ -16,6 +16,11 @@
 // charge_requested_at an operator click set, T-89-45), cancels no booking (D-19), has no code path for a cash booking
 // whose driver has not confirmed (D-21) and never starts or replays a cash card charge (money CR-05).
 //
+// No step works the row of an erased person (money WR-08, owner decision of money review 2: erasure is not blocked by an open
+// debt, the debt is written off). B, C, D, E, F and R filter anonymised_at IS NULL in their selects. A's claim
+// (the hold claim RPC of migration 085) has no such filter, and needs none: it takes only card_saved / placing_hold rows
+// with a future pickup, and erasure_confirm (migration 088) refuses a person who has one.
+//
 // Nothing here asks whether the client-facing card flow is switched on: bookings that already hold a card keep
 // their lifecycle whatever the owner's switch says now (D-09a, tests/payment-state-writers-gate.test.ts).
 
@@ -34,7 +39,7 @@ import {
 } from '@/lib/payments/config'
 import { claimForHold, placeHold } from '@/lib/payments/hold'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
-import { feeReceiptTerms, markFeeCharged, sendCashCardReceipt, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
+import { announceLateCashCharge, feeReceiptTerms, markFeeCharged, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
 import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery'
 import { reconcileCashCharge, settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
@@ -135,6 +140,7 @@ const stepE: TickStep = {
       .eq('payment_state', 'checkout_pending')
       // Phase 89 (89-10 hand-off): a cash booking's SetupIntent is confirmed by the very same code as a card booking's.
       .in('payment_mode', ['card_hold', 'cash_guarantee'])
+      .is('anonymised_at', null)
       .lt('created_at', new Date(nowMs - STALE_CHECKOUT_MS).toISOString())
       .gt('created_at', new Date(nowMs - CHECKOUT_RECONCILE_MAX_AGE_MS).toISOString())
       .order('created_at', { ascending: true })
@@ -353,6 +359,7 @@ const stepD: TickStep = {
         .in('status', ACTIVE_STATUSES)
         .gt('pickup_utc', nowIso)
         .lte('pickup_utc', horizonIso)
+        .is('anonymised_at', null)
 
     const [open, pending, expiring] = await Promise.all([
       soon().in('payment_state', ['card_saved', 'failed', 'expired', 'placing_hold']).order('pickup_utc', { ascending: true }).limit(HOLD_CLAIM_LIMIT),
@@ -369,6 +376,7 @@ const stepD: TickStep = {
         .is('completed_at', null)
         .neq('status', 'cancelled')
         .neq('status', 'no_show')
+        .is('anonymised_at', null)
         .lte('capture_before', new Date(nowMs + EXPIRING_HOLD_ALERT_MS).toISOString())
         .order('capture_before', { ascending: true })
         .limit(HOLD_CLAIM_LIMIT),
@@ -509,6 +517,7 @@ async function loadPendingFees(): Promise<PendingFee[]> {
     .from('bookings')
     .select('*')
     .eq('fee_case_status', 'pending')
+    .is('anonymised_at', null)
     .order('pickup_utc', { ascending: true })
     .limit(FEE_CASE_LIMIT)
   if (error) throw new Error('fee case booking lookup failed')
@@ -628,13 +637,14 @@ async function redriveFee(item: PendingFee): Promise<'finished' | 'declined' | '
 /**
  * A cash booking's card charge (D-21) an operator started and a crash interrupted: the row sits in `capturing` with a
  * lapsed lease and has no fee case. Ten minutes on, the client may have paid the driver, so nothing is charged from here
- * (CR-05): Stripe is only read. A charge that went through is recorded with its receipt; otherwise the row is free again
+ * (CR-05): Stripe is only read. A charge that went through is recorded with its receipt and an operator alert; otherwise the row is free again
  * and the operator is told, a new charge is a new click. A cash row nobody started charging is never selected.
  */
 async function reconcileCashCard(booking: BookingRow): Promise<'captured' | 'restored' | 'waiting'> {
   const result = await reconcileCashCharge(booking.id, SWEEP_ACTOR)
   if (result.outcome === 'captured') {
-    await sendCashCardReceipt(booking.id, booking)
+    // Money review 2, CR-01: the operator's click gave up on this charge ten minutes ago; they are told it went through.
+    await announceLateCashCharge(booking.id, booking, result)
     return 'captured'
   }
   if (result.outcome !== 'restored') return 'waiting'
@@ -697,6 +707,7 @@ const stepR: TickStep = {
       .eq('payment_mode', 'cash_guarantee')
       .eq('payment_state', 'capturing')
       .is('fee_case_status', null)
+      .is('anonymised_at', null)
       .lt('payment_lease_until', ctx.now.toISOString())
       .order('payment_lease_until', { ascending: true })
       .limit(HOLD_CLAIM_LIMIT)

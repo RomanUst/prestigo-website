@@ -13,6 +13,7 @@ const { world, mockSendEmail, mockFailure, mockDeactivateLink } = vi.hoisted(() 
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
+    ledgerReadDown: false,
   },
   mockSendEmail: vi.fn(),
   mockFailure: vi.fn(),
@@ -21,7 +22,12 @@ const { world, mockSendEmail, mockFailure, mockDeactivateLink } = vi.hoisted(() 
 
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: () => ({
-    from: (table: string) => world.db!.client.from(table),
+    from: (table: string) => {
+      const query = world.db!.client.from(table) as unknown as Record<string, unknown>
+      // The ledger read of a cash reconcile (kind IN capture_started, charge_succeeded) fails on demand.
+      if (world.ledgerReadDown && table === 'booking_payment_events') query.in = async () => ({ data: null, error: { message: 'down' } })
+      return query
+    },
     rpc: (name: string, args?: Record<string, unknown>) => world.db!.client.rpc(name, args),
   }),
 }))
@@ -34,8 +40,10 @@ vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: mockSendEmail, 
 vi.mock('@/lib/payments/recovery', () => ({ handlePaymentFailure: mockFailure }))
 vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: mockDeactivateLink }))
 
+import type Stripe from 'stripe'
 import { settleBooking } from '@/lib/payments/settle'
-import { settleCash } from '@/lib/payments/cash'
+import { handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
+import { reopenCash, settleCash } from '@/lib/payments/cash'
 import {
   feeBaseFor,
   isFeeEligible,
@@ -122,6 +130,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   fake = createFakeStripe()
   world.stripe = fake.stripe
+  world.ledgerReadDown = false
   mockSendEmail.mockResolvedValue('sent')
   mockFailure.mockResolvedValue(undefined)
   mockDeactivateLink.mockResolvedValue(undefined)
@@ -604,6 +613,34 @@ describe('cash booking: the card is charged only when a person says so (D-21)', 
       expect(mockSendEmail).toHaveBeenCalledTimes(1)
     })
 
+    it('money review 2, CR-02: the webhook saw the charge while the click waited; with no answer and no read the row is recorded as paid, never freed', async () => {
+      seed({ ...cash, stripe_customer_id: 'cus_1' })
+      const real = fake.stripe.paymentIntents.create
+      fake.stripe.paymentIntents.create = async (params: Record<string, unknown>, options?: { idempotencyKey?: string }) => {
+        const pi = (await real(params, options)) as Record<string, unknown>
+        // Stripe -> Vercel works: payment_intent.succeeded lands while the row is capturing. It must not be consumed.
+        await expect(
+          handleCardChargeSucceeded({ id: 'evt_during', type: 'payment_intent.succeeded', data: { object: pi } } as unknown as Stripe.Event),
+        ).rejects.toThrow()
+        // Vercel -> Stripe is broken: the answer is lost, and so is the read below.
+        throw Object.assign(new Error('timed out'), { type: 'StripeConnectionError' })
+      }
+      fake.failNextWith('paymentIntents.list', 'connection')
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+      const [pi] = [...fake.state.paymentIntents.values()]
+      expect(row()).toMatchObject({ payment_state: 'captured', payment_intent_id: pi.id, captured_amount_minor: 10000 })
+      expect(await settleCash(row(), { type: 'system', id: 'driver_trip' })).toBe('not_allowed')
+    })
+
+    it('money review 2, CR-02: the ledger can not be read either: the row stays claimed, never freed for a cash confirmation', async () => {
+      seed({ ...cash, stripe_customer_id: 'cus_1' })
+      fake.failNextWith('paymentIntents.create', 'connection')
+      fake.failNextWith('paymentIntents.list', 'connection')
+      world.ledgerReadDown = true
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'payment_busy' })
+      expect(row().payment_state).toBe('capturing')
+    })
+
     it('neither the charge nor the read answers: the row is still released (D-21)', async () => {
       seed(cash)
       fake.failNextWith('paymentIntents.create', 'connection')
@@ -626,6 +663,42 @@ describe('cash booking: the card is charged only when a person says so (D-21)', 
       expect(await settleBooking(ID, ADMIN, { collect: { kind: 'cash_card' } })).toMatchObject({ outcome: 'busy' })
       expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
     })
+  })
+
+  it('money review 2, WR-04: after a late charge was refunded and the cash confirmation reversed, a new charge really charges', async () => {
+    seed({ ...cash, stripe_customer_id: 'cus_1' })
+    // The charge of attempt 0 went through late and was refunded as a duplicate of the confirmed cash.
+    const late = (await fake.stripe.paymentIntents.create(
+      {
+        amount: 10000,
+        currency: 'eur',
+        customer: 'cus_1',
+        payment_method: 'pm_ok',
+        payment_method_types: ['card'],
+        off_session: true,
+        confirm: true,
+        metadata: { kind: 'card_charge', cofBookingId: ID, attempt: '0', bookingReference: 'PRG-20261101-FEE001' },
+      },
+      { idempotencyKey: `chg:${ID}:0` },
+    )) as { id: string }
+    await fake.stripe.refunds.create({ payment_intent: late.id }, { idempotencyKey: `refund:${ID}:cash_dup:${late.id}` })
+    expect(await settleCash(row(), { type: 'system', id: 'driver_trip' })).toBe('settled')
+    fake.calls.length = 0
+
+    expect(await reopenCash(row(), ADMIN, 'The driver confirmed by mistake')).toBe('reopened')
+    expect(row()).toMatchObject({ payment_state: 'card_saved', charge_attempts: 1 })
+
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates.map((c) => [c.idempotencyKey, c.replayed])).toEqual([[`chg:${ID}:1`, false]])
+    expect(row().payment_intent_id).not.toBe(late.id)
+    expect(row()).toMatchObject({ payment_state: 'captured', captured_amount_minor: 10000 })
+  })
+
+  it('money review 2, WR-04: the charge counter only goes up on a reopen, also from a stale row', async () => {
+    seed({ ...cash, payment_state: 'cash_settled', charge_attempts: 3 })
+    expect(await reopenCash({ ...row(), charge_attempts: 1 }, ADMIN, 'Wrong confirmation')).toBe('reopened')
+    expect(row().charge_attempts).toBe(4)
   })
 
   it('success after the trip: the cash_unpaid receipt', async () => {

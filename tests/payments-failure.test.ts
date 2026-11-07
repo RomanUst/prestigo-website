@@ -276,6 +276,8 @@ describe('tracer: a declined scheduled hold', () => {
       'fee_pending_24h',
       'client_cancelled',
       'change_request',
+      // Money review 2, WR-03
+      'refund_unmatched',
     ])
   })
 })

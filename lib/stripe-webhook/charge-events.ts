@@ -16,8 +16,8 @@ import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
-import { sendCashCardReceipt } from '@/lib/payments/fee'
-import { adoptLateCashCharge } from '@/lib/payments/settle'
+import { announceLateCashCharge } from '@/lib/payments/fee'
+import { adoptLateCashCharge, cashChargeFacts } from '@/lib/payments/settle'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 
@@ -80,14 +80,21 @@ export async function handleCardChargeSucceeded(event: Stripe.Event): Promise<vo
 
 /**
  * Money CR-05: a cash card charge whose answer never reached us, so the row went back to unpaid, did execute after all.
- * Still unpaid: the payment is recorded. Cash already confirmed: the client paid twice, so the card money goes back at once
- * (deterministic key, a redelivery replays it) and the operator is told either way. Every other row is left alone: the
- * settle that owns it records its own answer.
+ * Still unpaid: the payment is recorded. Nothing owed any more (cash confirmed, booking released, another card payment
+ * recorded; money review 2, WR-01): the card money goes back at once
+ * (deterministic key, a redelivery replays it) and the operator is told either way. A row still capturing has the event
+ * delivered again (money review 2, CR-02). Every other row is left alone.
  */
 async function reconcileLateCashCharge(bookingId: string, pi: Stripe.PaymentIntent): Promise<void> {
   const outcome = await adoptLateCashCharge(bookingId, pi, WEBHOOK_ACTOR)
+  // Money review 2, CR-02: the row is still claimed, and its owner may free it without having seen this charge. The
+  // observation above is written (the owner reads it before freeing anything); the event is not consumed: the throw answers
+  // 500 and Stripe delivers it again, like a recovery payment on a busy booking.
+  if (outcome === 'busy') throw new Error('cash card charge while the booking is capturing')
   if (outcome === 'adopted') {
-    await sendCashCardReceipt(bookingId, { id: bookingId })
+    // Money review 2, CR-01: the panel told the operator the charge was not confirmed, so the client may have paid the
+    // driver as well. Recorded, receipted, and the operator is always told.
+    await announceLateCashCharge(bookingId, { id: bookingId }, cashChargeFacts(pi))
     return
   }
   if (outcome !== 'already_paid') return

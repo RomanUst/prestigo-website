@@ -944,7 +944,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
   const supabase = createSupabaseServiceClient()
   const { data: rows, error: fetchErr } = await supabase
     .from('bookings')
-    .select('id, leg, amount_czk, outbound_amount_czk, return_amount_czk, status')
+    .select('id, leg, amount_czk, outbound_amount_czk, return_amount_czk, status, payment_mode')
     .eq('payment_intent_id', pi)
 
   if (fetchErr) {
@@ -966,6 +966,20 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
       paymentIntentId: pi,
       bookings: finished.map((r) => ({ id: r.id, status: r.status })),
     })
+  }
+
+  // Money review 2, CR-01: a card-flow booking (card hold, cash guarantee) is cancelled from admin or the manage page, never
+  // by a refund. The way back for a cash card charge the client also paid in cash is a Dashboard refund, and that must not
+  // cancel the trip the client is on. The refund itself is recorded by the card observer (refund_observed).
+  const cardFlow = (rows as Array<{ id: string; payment_mode?: string | null }>).filter(
+    (r) => r.payment_mode === 'card_hold' || r.payment_mode === 'cash_guarantee',
+  )
+  if (cardFlow.length > 0) {
+    console.warn('charge.refunded: refund on a card-flow booking, status kept', {
+      paymentIntentId: pi,
+      bookings: cardFlow.map((r) => r.id),
+    })
+    return
   }
 
   // D-19 fall-through: one-way (single row) — cancel it regardless of partial/full

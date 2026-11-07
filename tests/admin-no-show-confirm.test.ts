@@ -366,15 +366,15 @@ describe('money CR-03: a no-show on a pay-now round trip is capped by the leg, i
     spy.mockRestore()
   })
 
-  it('a leg whose money already went back has nothing to keep: no case, and the operator is told', async () => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  it('money review 2, IN-01: a leg whose money already went back has nothing to keep: no case, and no false "case missing" alert', async () => {
+    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const pi = await seedPayNowLeg('outbound', 30000, 'eur')
     fake.manualRefund(pi, 30000)
     expect((await confirm()).status).toBe(200)
     await flush()
+    expect(booking().status).toBe('no_show')
     expect(db.state.booking_fee_cases).toHaveLength(0)
-    expect(mockAlert.mock.calls[0][0]).toBe('fee_no_show_needed')
-    expect(mockAlert.mock.calls[0][2]).toMatchObject({ note: 'case_missing' })
+    expect(mockAlert).not.toHaveBeenCalled()
     spy.mockRestore()
   })
 })

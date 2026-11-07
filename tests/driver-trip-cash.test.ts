@@ -11,7 +11,7 @@ import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
  * Page group: what the trip page hands to the screens (a label or nothing), asserted on the returned element tree.
  */
 
-const { world, stubAssignments, mockCheckRateLimit, mockDeactivateLink, getNoShowViewMock, getStartGateMock } = vi.hoisted(() => ({
+const { world, stubAssignments, mockCheckRateLimit, mockDeactivateLink, getNoShowViewMock, getStartGateMock, mockAlert, mockSendEmail } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
@@ -21,6 +21,8 @@ const { world, stubAssignments, mockCheckRateLimit, mockDeactivateLink, getNoSho
   mockDeactivateLink: vi.fn(),
   getNoShowViewMock: vi.fn(),
   getStartGateMock: vi.fn(),
+  mockAlert: vi.fn(),
+  mockSendEmail: vi.fn(),
 }))
 
 vi.mock('next/server', async () => {
@@ -37,6 +39,14 @@ vi.mock('@/lib/supabase', () => ({
 vi.mock('@/lib/payments/stripe', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/payments/stripe')>()),
   getPaymentsStripe: () => world.stripe,
+}))
+vi.mock('@/lib/payments/alerts', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/payments/alerts')>()),
+  sendPaymentOperatorAlert: mockAlert,
+}))
+vi.mock('@/lib/payments/emails/send', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/payments/emails/send')>()),
+  sendPaymentEmail: mockSendEmail,
 }))
 vi.mock('@/lib/rate-limit', () => ({ checkRateLimit: mockCheckRateLimit, getClientIp: () => '127.0.0.1' }))
 vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: mockDeactivateLink }))
@@ -138,6 +148,8 @@ beforeEach(() => {
   assignmentOverrides = {}
   mockCheckRateLimit.mockResolvedValue({ allowed: true, remaining: 19, limit: 20 })
   mockDeactivateLink.mockResolvedValue(undefined)
+  mockAlert.mockResolvedValue('sent')
+  mockSendEmail.mockResolvedValue('sent')
   getStartGateMock.mockResolvedValue({ unlocksAtMs: 0, open: true })
   getNoShowViewMock.mockResolvedValue({ noShowAvailableAt: null, noShowRequestedAt: null })
   stubAssignments.mockImplementation(() => ({
@@ -239,6 +251,30 @@ describe('confirm_cash through the progress route (tracer: route -> settleCash -
       expect(res.status).toBe(409)
       expect(await res.json()).toMatchObject({ error: 'cash_conflict' })
       expect(db.state.bookings[0].payment_state).toBe('captured')
+    })
+
+    it('money review 2, CR-01: the card that went through is announced like the webhook does: operator alert and client receipt', async () => {
+      const fake = useStripe()
+      seed({ payment_state: 'capturing', payment_lease_until: new Date(Date.now() - 1000).toISOString(), stripe_customer_id: 'cus_1', charge_attempts: 0 })
+      const pi = (await fake.stripe.paymentIntents.create({
+        amount: 8000,
+        currency: 'eur',
+        customer: 'cus_1',
+        payment_method: 'pm_ok',
+        off_session: true,
+        confirm: true,
+        metadata: { kind: 'card_charge', cofBookingId: BOOKING_ID, attempt: '0' },
+      })) as { id: string }
+      expect((await call({ action: 'confirm_cash' })).status).toBe(409)
+      expect(mockAlert).toHaveBeenCalledTimes(1)
+      expect(mockAlert.mock.calls[0][0]).toBe('duplicate_payment')
+      expect(mockAlert.mock.calls[0][2]).toMatchObject({
+        eventKey: `alert:cash_card_late:${BOOKING_ID}:${pi.id}`,
+        code: 'cash_card',
+        note: 'adopted',
+        amountMinor: 8000,
+      })
+      expect(mockSendEmail.mock.calls.map((c) => c[0].kind)).toEqual(['fee_charged'])
     })
 
     it('the amount stays on the screen while the row is capturing', () => {

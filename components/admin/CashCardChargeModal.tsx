@@ -17,6 +17,9 @@ import {
 // operator to have the driver take cash, and the passenger in the car is not emailed.
 
 const NOTE_MAX = 500
+/** The charge is not confirmed. If the client pays the driver and the card goes through after all, the operator is alerted. */
+export const COPY_CASH_BUSY =
+  'Not confirmed. Do not take cash until the panel shows the outcome, or take cash and watch for an alert that the card went through after all (then refund the card).'
 
 interface CashCardChargeModalProps {
   isOpen: boolean
@@ -55,6 +58,8 @@ export function CashCardChargeModal({ isOpen, bookingId, payment, onClose, onRes
       }
       return { kind: 'done', ok: true, text: `Done. ${amount} was charged.` }
     }
+    // Money review 2, CR-01: Stripe did not confirm in time. The charge may still go through, so "try again" is not enough.
+    if (answer.status === 409 && answer.body?.error === 'payment_busy') return { kind: 'stay', text: COPY_CASH_BUSY, refetch: true }
     return commonFeeError(answer)
   }
 

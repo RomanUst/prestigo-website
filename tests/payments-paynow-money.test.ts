@@ -68,7 +68,8 @@ import { POST as FEE_POST } from '@/app/api/admin/bookings/[id]/fee/route'
 import { cancelBooking, type CancelBookingInput } from '@/lib/payments/cancel'
 import { isFeeEligible, loadFeeCase } from '@/lib/payments/fee'
 import { buildManageView } from '@/lib/manage-view'
-import { legShareMinor } from '@/lib/payments/pay-now'
+import { openCaseOffered, payNowCaseMissing } from '@/lib/payments/fee-reopen'
+import { attributeUntagged, legShareMinor, resolvePayNowSplit } from '@/lib/payments/pay-now'
 
 const OUT = '77777777-7777-4777-8777-777777777777'
 const RET = '66666666-6666-4666-8666-666666666666'
@@ -253,14 +254,25 @@ describe('CR-01: the fee of a pay-now booking is in the currency and amount of t
   it.each([
     ['late', LATE_NOW],
     ['in time', FREE_NOW],
-  ])('a row still unpaid is cancelled %s with no Stripe call and no case, whatever its intent says', async (_label, nowMs) => {
-    // The intent reads as paid on purpose: only the row status can stop this one (a payment whose webhook has not landed
-    // is the webhook's to handle, a direct cancel must not refund or open a case from here).
+  ])('money review 2, WR-02: a row still unpaid whose intent was in fact paid is refunded in full %s, with no case', async (_label, nowMs) => {
+    // The webhook is late or failing, so the row never left unpaid. Its redelivery finds nothing to do after the cancel,
+    // so this cancel is the only chance to give the money back.
     const pi = await paidPi(50000, 'eur')
     seedOneWay(pi, { status: 'unpaid' })
-    expect(await cancel(OUT, 'admin_client', nowMs)).toMatchObject({ kind: 'ok', money: 'none' })
-    expect(fake.calls).toHaveLength(0)
+    expect(await cancel(OUT, 'admin_client', nowMs)).toMatchObject({ kind: 'ok', money: 'refunded', refundedMinor: 50000, currency: 'eur' })
+    expect(refunds()).toHaveLength(1)
+    expect(refunds()[0].params).toEqual({ payment_intent: pi })
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(50000)
     expect(await loadFeeCase(OUT)).toBeNull()
+  })
+
+  it('money review 2, WR-02: Stripe can not be read on an unpaid row: the cancel stands and the operator is told (never a silent "nothing taken")', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi, { status: 'unpaid' })
+    fake.failNextWith('paymentIntents.retrieve', 'connection')
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ kind: 'money_failed' })
+    expect(rowOf(OUT).status).toBe('cancelled')
+    expect(mockAlert.mock.calls.some((c) => c[0] === 'refund_failed')).toBe(true)
   })
 
   it('isFeeEligible: a pay-now row with an intent counts only once it has left unpaid', () => {
@@ -428,6 +440,88 @@ describe('CR-02 (public CR-01): one leg of a round trip is cancelled and refunde
     }
     expect(legShareMinor(30000, null, 3250, 'return')).toBeNull()
     expect(legShareMinor(30000, 0, 0, 'return')).toBeNull()
+  })
+})
+
+describe('money review 2, IN-01: open_fee_case on a pay-now row only after its case_missing alert', () => {
+  it('no alert, no button; the alert of the matching status turns it on', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi, { status: 'no_show' })
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(false)
+    expect(await openCaseOffered(rowOf(OUT))).toBe(false)
+    // The alert of a cancel does not count for a no-show.
+    db.state.booking_payment_events.push({ booking_id: OUT, event_key: `alert:fee_decision_needed:${OUT}:case_missing`, kind: 'alert_sent' })
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(false)
+    db.state.booking_payment_events.push({ booking_id: OUT, event_key: `alert:fee_no_show_needed:${OUT}:case_missing`, kind: 'alert_sent' })
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(true)
+    expect(await openCaseOffered(rowOf(OUT))).toBe(true)
+
+    rowOf(OUT).status = 'cancelled'
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(true)
+    rowOf(OUT).fee_case_status = 'waived'
+    expect(await payNowCaseMissing(rowOf(OUT))).toBe(false)
+  })
+})
+
+describe('legs exist only on round trips: a shared payment of other rows is never split', () => {
+  const GROUP = '55555555-5555-4555-8555-555555555555'
+
+  it('a one-way row that shares its PaymentIntent with another row (a group payment) is never a leg', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi)
+    db.state.bookings.push({ ...BASE_ROW, id: GROUP, trip_type: 'transfer', leg: null, booking_reference: 'PRG-GROUP', payment_intent_id: pi })
+    expect(await resolvePayNowSplit(rowOf(OUT))).toEqual({ leg: null, outboundCzk: null, returnCzk: null })
+    // Not refused as a round trip with missing leg amounts: the cancel goes through like any one-way row.
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ kind: 'ok', money: 'refunded' })
+  })
+
+  it('a round-trip row does not count a non-round-trip row sharing the payment as its sibling', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi, { ret: { trip_type: 'transfer', return_amount_czk: null, outbound_amount_czk: null } })
+    // Only the outbound row is a round-trip leg; the other row is not its sibling, so the outbound leg keeps its own share.
+    expect(await resolvePayNowSplit(rowOf(OUT))).toEqual({ leg: 'outbound', outboundCzk: 4250, returnCzk: 3250 })
+  })
+})
+
+describe('money review 2, WR-03: an untagged Dashboard refund on a round trip counts once', () => {
+  // 30,000 EUR cents paid for 4250 + 3250 CZK legs: outbound 17,000, return 13,000.
+  it('a hand refund of the return share is the return leg\'s: the outbound leg still gets its full share back', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    fake.manualRefund(pi, 13000)
+    expect(await cancel(RET, 'admin_client', FREE_NOW)).toMatchObject({ kind: 'ok', money: 'none' })
+    expect(await cancel(OUT, 'client_token', FREE_NOW, 'free')).toMatchObject({ kind: 'ok', money: 'refunded', refundedMinor: 17000 })
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(30000)
+    expect(mockAlert.mock.calls.some((c) => c[0] === 'refund_unmatched')).toBe(false)
+  })
+
+  it('a goodwill refund that names no leg lowers the trip once, and the operator is told which leg came up short', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    fake.manualRefund(pi, 2000)
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ money: 'refunded', refundedMinor: 17000 })
+    expect(await cancel(RET, 'admin_client', FREE_NOW)).toMatchObject({ money: 'refunded', refundedMinor: 11000 })
+    // Everything that was paid went back: 2,000 by hand, 17,000 and 11,000 here.
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(30000)
+    const alerts = mockAlert.mock.calls.filter((c) => c[0] === 'refund_unmatched')
+    expect(alerts).toHaveLength(1)
+    expect(alerts[0][1]).toMatchObject({ id: RET, payment_currency: 'eur' })
+    expect(alerts[0][2]).toEqual({ eventKey: `alert:refund_unmatched:${RET}:return`, amountMinor: 2000 })
+  })
+
+  it('a late cancel opens its case on what is really left for the leg', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    fake.manualRefund(pi, 13000)
+    await cancel(OUT, 'admin_client', LATE_NOW)
+    expect(await loadFeeCase(OUT)).toMatchObject({ base_minor: 17000 })
+  })
+
+  it('attributeUntagged names a leg only when the amount fits that leg alone', () => {
+    expect(attributeUntagged(13000, 17000, 13000)).toBe('return')
+    expect(attributeUntagged(17050, 17000, 13000)).toBe('outbound')
+    expect(attributeUntagged(2000, 17000, 13000)).toBeNull()
+    expect(attributeUntagged(15000, 15000, 15000)).toBeNull()
   })
 })
 

@@ -605,6 +605,12 @@ describe('allowedPaymentActions: the single action matrix (HOLD-07, UI-SPEC Acti
     })
   }
 
+  it('money review 2, IN-01: a closed pay-now row gets no open_fee_case from the matrix (only after its case_missing alert)', () => {
+    for (const status of ['cancelled', 'no_show']) {
+      expect(allowedPaymentActions({ payment_mode: 'pay_now', payment_state: 'none', status, payment_intent_id: 'pi_1' })).toEqual([])
+    }
+  })
+
   it('a partner (gnet) booking has no actions', () => {
     expect(
       allowedPaymentActions({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'completed', booking_source: 'gnet' }),

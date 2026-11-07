@@ -956,11 +956,25 @@ describe('money WR-02: a case that failed to open can still be opened', () => {
 
   it('a pay-now booking takes its base from the payment; Stripe unreadable is busy and opens nothing', async () => {
     await seedPayNow({ status: 'no_show' })
+    // A pay-now row is offered open_case only after its case_missing alert (money review 2, IN-01 / IN-02).
+    db.state.booking_payment_events.push({ booking_id: ID, event_key: `alert:fee_no_show_needed:${ID}:case_missing`, kind: 'alert_sent' })
     fake.failNextWith('paymentIntents.retrieve', 'connection')
     expect((await post({ action: 'open_case' })).status).toBe(409)
     expect(noShowLog()).toHaveLength(0)
     expect((await post({ action: 'open_case' })).status).toBe(200)
     expect(noShowLog()[0]).toMatchObject({ base_minor: 12000 })
+  })
+
+  it('money review 2, IN-02: the server re-checks the matrix: a charge running on the row, or a pay-now row with no case_missing alert, is refused with nothing recorded', async () => {
+    await seedWithHold({ status: 'no_show', payment_state: 'capturing', payment_lease_until: new Date(Date.now() + 60_000).toISOString() })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+    expect(noShowLog()).toHaveLength(0)
+    expect(ledger('admin_action').some((e) => e.error_code === 'fee_open_case')).toBe(false)
+
+    await seedPayNow({ status: 'cancelled' })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+    expect(noShowLog()).toHaveLength(0)
+    expect(ledger('admin_action').some((e) => e.error_code === 'fee_open_case')).toBe(false)
   })
 
   it('takes nothing but the action, and is refused on a live booking', async () => {

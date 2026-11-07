@@ -33,6 +33,8 @@ export const OPERATOR_ALERT_KINDS = [
   'fee_pending_24h',
   'client_cancelled',
   'change_request',
+  // Money review 2, WR-03: an untagged Dashboard refund on a round trip could not be matched to a leg.
+  'refund_unmatched',
 ] as const
 export type OperatorAlertKind = (typeof OPERATOR_ALERT_KINDS)[number]
 
@@ -60,6 +62,7 @@ export interface OperatorAlertDetails {
   /**
    * `link_failed`: the recovery link could not be created, so the client was not emailed. `release`: a hold (not a
    * payment) could not be released. `refunded` / `refund_failed`: the outcome of a duplicate payment's automatic refund.
+   * `adopted` (duplicate_payment, code cash_card): a cash card charge went through late and is now the booking's payment.
    * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27). `cash_settled`
    * (refund_failed): a booking recorded as paid in cash was cancelled. `cash_interrupted` (charge_failed): a cash card charge
    * was interrupted and Stripe shows no payment.
@@ -118,6 +121,7 @@ const TITLES: Record<OperatorAlertKind, string> = {
   fee_pending_24h: 'Still undecided after 24 h',
   client_cancelled: 'Cancelled by client',
   change_request: 'Change request',
+  refund_unmatched: 'Refund not matched to a leg',
 }
 
 /** Subject prefix per kind (UI-SPEC 8.3): the owner filters on it. */
@@ -190,13 +194,30 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
     case 'duplicate_payment': {
       // 88-REVIEW T1: a recovery link was paid after the money was already secured another way.
       const amount = formatMinor(d.amountMinor ?? 0, currency)
+      // Money review 2, CR-01: the card went through after the panel stopped waiting for it; nobody knows yet whether the
+      // client also paid the driver.
+      if (d.code === 'cash_card' && d.note === 'adopted') {
+        return `A card charge of ${amount} on this cash booking went through after the panel stopped waiting for it. It is now recorded as the payment for this booking and the client was sent a card receipt. Ask the driver whether the client also paid in cash. If so, refund ${amount} in the Stripe Dashboard: that refund does not cancel the trip.`
+      }
+      const state = str(booking.payment_state)
+      // Money review 2, WR-01: a late cash card charge is refunded whatever made it a second collection.
+      const cashLead =
+        state === 'released'
+          ? `A card charge of ${amount} went through after the booking was cancelled and its card released, so nothing was owed.`
+          : state === 'captured'
+            ? `A second card charge of ${amount} went through although the booking was already paid by card.`
+            : `A card charge of ${amount} went through after the cash for this booking was confirmed, so the client paid twice.`
       const lead =
         d.code === 'cash_card'
-          ? `A card charge of ${amount} went through after the cash for this booking was confirmed, so the client paid twice.`
-          : `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${str(booking.payment_state) || 'n/a'}).`
+          ? cashLead
+          : `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${state || 'n/a'}).`
       return d.note === 'refunded'
         ? `${lead} The card payment was refunded automatically; the booking is unchanged.`
         : `${lead} The automatic refund failed: refund ${amount} manually in the Stripe Dashboard.`
+    }
+    case 'refund_unmatched': {
+      const short = formatMinor(d.amountMinor ?? 0, currency)
+      return `The payment of this round trip has a refund made in the Stripe Dashboard that names no leg, and its amount does not match either leg, so it was counted against the trip as a whole. This leg is cancelled with ${short} less than its share, in the refund or in the fee case. Check in the Stripe Dashboard which leg that refund was for. If it was for the other leg, refund ${short} to the client by hand.`
     }
     case 'stripe_config':
       // 88-REVIEW A-WR-02: Stripe refused our key, not the client's card. Nothing was charged and the client was not emailed.
