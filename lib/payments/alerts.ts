@@ -60,7 +60,9 @@ export interface OperatorAlertDetails {
   /**
    * `link_failed`: the recovery link could not be created, so the client was not emailed. `release`: a hold (not a
    * payment) could not be released. `refunded` / `refund_failed`: the outcome of a duplicate payment's automatic refund.
-   * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27).
+   * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27). `cash_settled`
+   * (refund_failed): a booking recorded as paid in cash was cancelled. `cash_interrupted` (charge_failed): a cash card charge
+   * was interrupted and Stripe shows no payment.
    */
   note?: string
   // --- Phase 89, UI-SPEC 8.3. Instants are ISO strings (shown on the Prague wall clock); a missing field is omitted. ---
@@ -174,6 +176,10 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
       // Plan 88-16: a card booking's hold could not be released after the cancel applied.
       if (d.note === 'release') {
         return `The booking is cancelled. Cancel the ${amount} hold manually in the Stripe Dashboard so the card is not blocked.`
+      }
+      // Money WR-10: Stripe never held this money.
+      if (d.note === 'cash_settled') {
+        return `The booking is cancelled, but ${amount} was recorded as paid in cash. Return it to the client, then resolve this from the booking.`
       }
       return `The booking is cancelled. Refund ${amount} manually in the Stripe Dashboard.`
     }

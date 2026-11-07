@@ -103,7 +103,7 @@ const PAYMENT_COLUMNS =
   'captured_amount_minor, payment_lease_until, stripe_payment_method_id'
 
 /** Payment states in which a cancelled card booking holds nothing: the cancel is complete. */
-const NOTHING_HELD: ReadonlySet<string> = new Set(['released', 'none', 'cash_settled'])
+const NOTHING_HELD: ReadonlySet<string> = new Set(['released', 'none'])
 
 /** States with a legal self-loop in which a payable recovery link can sit. */
 const LINK_STATES: ReadonlySet<string> = new Set(['card_saved', 'failed', 'expired'])
@@ -443,11 +443,11 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
   // operator alert instead (D-20).
   const moneyFailed = async (
     err: unknown,
-    kind: 'refund' | 'release',
+    kind: 'refund' | 'release' | 'cash',
     cardCollected: number | null = null,
   ): Promise<CancelResult> => {
     const code =
-      err instanceof Error && ['busy', 'state_moved', 'no_payment_intent'].includes(err.message)
+      err instanceof Error && ['busy', 'state_moved', 'no_payment_intent', 'cash_settled'].includes(err.message)
         ? err.message
         : stripeErrorCode(err)
     const { amount_minor, currency } = failedAmount(booking, legAmountCents, isHold, cardCollected, payNow)
@@ -472,7 +472,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
           eventKey: `alert:refund_failed:${bookingId}:${legKey}`,
           code,
           amountMinor: amount_minor,
-          note: kind === 'release' ? 'release' : undefined,
+          note: kind === 'release' ? 'release' : kind === 'cash' ? 'cash_settled' : undefined,
         },
       )
     } catch {
@@ -552,6 +552,13 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
 
   // ── 4. in time (or nothing a fee can be taken from): release, refund or nothing ───────────────────────────────────
   if (isHold) {
+    // Money WR-10: the cash was recorded before the trip (CASH_TRIP_STATUSES allows it) and the booking is now off. Stripe
+    // holds none of it, so only a person can give it back: the same trail as a refund that failed, and no mail that says
+    // nothing was taken.
+    if (current.payment_state === 'cash_settled') {
+      return moneyFailed(new Error('cash_settled'), 'cash', num(current.payment_amount_minor) ?? 0)
+    }
+
     // T4 (C-CR-01): the card booking already collected money (a paid recovery link before the trip). D-20: the cancel
     // stands; the payment is refunded in full (deterministic key refund:<id>:full, the same key a retry of this cancel
     // would use); a refund that fails leaves the refund_failed row + operator alert.

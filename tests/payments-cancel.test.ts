@@ -580,6 +580,28 @@ describe('pay-now round trips apply the policy per leg row (D-24)', () => {
   })
 })
 
+describe('money WR-10: cancelling a booking already marked as paid in cash', () => {
+  const settled = { payment_mode: 'cash_guarantee', payment_state: 'cash_settled', payment_amount_minor: 9000 }
+
+  it('the operator must hand the cash back: on record, alerted, and no mail saying nothing was taken', async () => {
+    seed(settled)
+    const result = await run('admin_prestigo', FREE_NOW)
+    expect(result).toEqual({ kind: 'money_failed', amount_minor: 9000, currency: 'eur' })
+    expect(row().status).toBe('cancelled')
+    expect(ledger('refund_failed')[0]).toMatchObject({ error_code: 'cash_settled', amount_minor: 9000 })
+    expect(mockAlert.mock.calls.map((c) => c[0])).toContain('refund_failed')
+    expect(mockAlert.mock.calls.find((c) => c[0] === 'refund_failed')![2]).toMatchObject({ note: 'cash_settled', amountMinor: 9000 })
+    expect(mockEmail).not.toHaveBeenCalled()
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it('a client cancelling late gets the same: the fee has no card to come from, a person sorts the cash out', async () => {
+    seed(settled)
+    expect(await run('admin_client', LATE_NOW)).toMatchObject({ kind: 'money_failed', amount_minor: 9000 })
+    expect(cases()).toHaveLength(0)
+  })
+})
+
 describe('a failed money step keeps the cancel (88 D-20)', () => {
   it('release fails at Stripe: money_failed with the hold amount, refund_failed row, one alert, still cancelled and still authorized', async () => {
     const piId = await holdPi()
