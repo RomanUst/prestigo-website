@@ -657,10 +657,19 @@ describe('money CR-05: a cash card charge that executed after we gave up on it',
     expect(mockResendSend.mock.calls.some((c) => String(c[0]?.subject).includes('Duplicate payment'))).toBe(true)
   })
 
-  it('a row still capturing belongs to the settle that owns it: the webhook only observes', async () => {
+  it('money review 2, CR-02: a row still capturing gets the observation, and the event is not consumed: 500, Stripe redelivers', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
     seedCash('capturing')
-    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late3'), 'evt_late3'))).status).toBe(200)
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late3'), 'evt_late3'))).status).toBe(500)
     expect(bookingRow().payment_state).toBe('capturing')
+    expect(ledger('charge_succeeded').map((e) => e.event_key)).toEqual(['charge_succeeded:pi_late3'])
+    expect(world.processed.has('evt_late3')).toBe(false)
     expect(mockRefundCreate).not.toHaveBeenCalled()
+
+    // The click's owner gave up and freed the row without seeing the charge: the redelivery adopts it and tells the operator.
+    bookingRow().payment_state = 'card_saved'
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late3'), 'evt_late3'))).status).toBe(200)
+    expect(bookingRow()).toMatchObject({ payment_state: 'captured', payment_intent_id: 'pi_late3' })
+    expect(mails('owner@example.com').filter((m) => m.subject.includes('Duplicate payment'))).toHaveLength(1)
   })
 })

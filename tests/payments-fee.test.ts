@@ -13,6 +13,7 @@ const { world, mockSendEmail, mockFailure, mockDeactivateLink } = vi.hoisted(() 
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
+    ledgerReadDown: false,
   },
   mockSendEmail: vi.fn(),
   mockFailure: vi.fn(),
@@ -21,7 +22,12 @@ const { world, mockSendEmail, mockFailure, mockDeactivateLink } = vi.hoisted(() 
 
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: () => ({
-    from: (table: string) => world.db!.client.from(table),
+    from: (table: string) => {
+      const query = world.db!.client.from(table) as unknown as Record<string, unknown>
+      // The ledger read of a cash reconcile (kind IN capture_started, charge_succeeded) fails on demand.
+      if (world.ledgerReadDown && table === 'booking_payment_events') query.in = async () => ({ data: null, error: { message: 'down' } })
+      return query
+    },
     rpc: (name: string, args?: Record<string, unknown>) => world.db!.client.rpc(name, args),
   }),
 }))
@@ -34,7 +40,9 @@ vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: mockSendEmail, 
 vi.mock('@/lib/payments/recovery', () => ({ handlePaymentFailure: mockFailure }))
 vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: mockDeactivateLink }))
 
+import type Stripe from 'stripe'
 import { settleBooking } from '@/lib/payments/settle'
+import { handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
 import { settleCash } from '@/lib/payments/cash'
 import {
   feeBaseFor,
@@ -122,6 +130,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   fake = createFakeStripe()
   world.stripe = fake.stripe
+  world.ledgerReadDown = false
   mockSendEmail.mockResolvedValue('sent')
   mockFailure.mockResolvedValue(undefined)
   mockDeactivateLink.mockResolvedValue(undefined)
@@ -602,6 +611,34 @@ describe('cash booking: the card is charged only when a person says so (D-21)', 
       expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
       expect(row()).toMatchObject({ payment_state: 'captured', captured_amount_minor: 10000 })
       expect(mockSendEmail).toHaveBeenCalledTimes(1)
+    })
+
+    it('money review 2, CR-02: the webhook saw the charge while the click waited; with no answer and no read the row is recorded as paid, never freed', async () => {
+      seed({ ...cash, stripe_customer_id: 'cus_1' })
+      const real = fake.stripe.paymentIntents.create
+      fake.stripe.paymentIntents.create = async (params: Record<string, unknown>, options?: { idempotencyKey?: string }) => {
+        const pi = (await real(params, options)) as Record<string, unknown>
+        // Stripe -> Vercel works: payment_intent.succeeded lands while the row is capturing. It must not be consumed.
+        await expect(
+          handleCardChargeSucceeded({ id: 'evt_during', type: 'payment_intent.succeeded', data: { object: pi } } as unknown as Stripe.Event),
+        ).rejects.toThrow()
+        // Vercel -> Stripe is broken: the answer is lost, and so is the read below.
+        throw Object.assign(new Error('timed out'), { type: 'StripeConnectionError' })
+      }
+      fake.failNextWith('paymentIntents.list', 'connection')
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+      const [pi] = [...fake.state.paymentIntents.values()]
+      expect(row()).toMatchObject({ payment_state: 'captured', payment_intent_id: pi.id, captured_amount_minor: 10000 })
+      expect(await settleCash(row(), { type: 'system', id: 'driver_trip' })).toBe('not_allowed')
+    })
+
+    it('money review 2, CR-02: the ledger can not be read either: the row stays claimed, never freed for a cash confirmation', async () => {
+      seed({ ...cash, stripe_customer_id: 'cus_1' })
+      fake.failNextWith('paymentIntents.create', 'connection')
+      fake.failNextWith('paymentIntents.list', 'connection')
+      world.ledgerReadDown = true
+      expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ error: 'payment_busy' })
+      expect(row().payment_state).toBe('capturing')
     })
 
     it('neither the charge nor the read answers: the row is still released (D-21)', async () => {

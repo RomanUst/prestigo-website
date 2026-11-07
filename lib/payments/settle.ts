@@ -508,10 +508,47 @@ export function cashChargeFacts(pi: Pick<Stripe.PaymentIntent, 'id' | 'amount' |
   return { paymentIntentId: pi.id, amountMinor: pi.amount_received || pi.amount, currency: pi.currency === 'czk' ? 'czk' : 'eur' }
 }
 
+/**
+ * Money review 2, CR-02: a charge_succeeded observation the webhook wrote for this booking since the row's current claim
+ * (its latest capture_started). The observation key is per PaymentIntent and written at its first delivery, so a row newer
+ * than the claim is a payment Stripe executed while this claim ran. 'unknown': the ledger could not be read, so nothing may
+ * be freed.
+ */
+async function chargeSeenSinceClaim(bookingId: string): Promise<CashChargeFacts | null | 'unknown'> {
+  const { data, error } = await createSupabaseServiceClient()
+    .from('booking_payment_events')
+    .select('kind, stripe_object_id, amount_minor, currency, created_at')
+    .eq('booking_id', bookingId)
+    .in('kind', ['capture_started', 'charge_succeeded'])
+  if (error || !Array.isArray(data)) return 'unknown'
+  const rows = data as Array<{ kind?: unknown; stripe_object_id?: unknown; amount_minor?: unknown; currency?: unknown; created_at?: unknown }>
+  const at = (r: { created_at?: unknown }) => (typeof r.created_at === 'string' ? Date.parse(r.created_at) : NaN)
+  const claims = rows.filter((r) => r.kind === 'capture_started').map(at).filter((t) => Number.isFinite(t))
+  if (claims.length === 0) return null
+  const claimMs = Math.max(...claims)
+  const hit = rows
+    .filter(
+      (r) =>
+        r.kind === 'charge_succeeded' &&
+        typeof r.stripe_object_id === 'string' &&
+        r.stripe_object_id !== '' &&
+        typeof r.amount_minor === 'number' &&
+        r.amount_minor > 0 &&
+        at(r) >= claimMs,
+    )
+    .sort((a, b) => at(b) - at(a))[0]
+  if (!hit) return null
+  return {
+    paymentIntentId: hit.stripe_object_id as string,
+    amountMinor: hit.amount_minor as number,
+    currency: hit.currency === 'czk' ? 'czk' : 'eur',
+  }
+}
+
 /** The charge is real: record it on a cash row (the same facts as a settle that got its answer). */
 async function recordCashCharge(
   bookingId: string,
-  pi: Stripe.PaymentIntent,
+  pi: Pick<Stripe.PaymentIntent, 'id' | 'amount' | 'amount_received' | 'currency'>,
   from: PaymentState[],
   actor: LedgerActor,
   row: BookingRow,
@@ -548,8 +585,10 @@ async function recordCashCharge(
  * anything (CR-05, D-21). Succeeded: recorded. Processing: waits. Anything else: the row goes back to where it was (failed
  * when an earlier decline is still on it, else card_saved) with its attempt unchanged.
  * `ownClaim`: the caller holds the row (the operator's click that just got a transient answer). The client is with the
- * driver, so even when Stripe can not be read the row is released, and a charge that did execute is caught by
- * handleCardChargeSucceeded. Everyone else waits for the lease and, on a failed read, for the next run.
+ * driver, so even when Stripe can not be read the row is released, unless the ledger shows a charge Stripe reported during
+ * this claim (money review 2, CR-02): that one is recorded instead. A charge reported only later is caught by
+ * handleCardChargeSucceeded, which never consumes an event while the row is still capturing. Everyone else waits for the
+ * lease and, on a failed read, for the next run.
  */
 export async function reconcileCashCharge(
   bookingId: string,
@@ -579,6 +618,19 @@ export async function reconcileCashCharge(
   }
   if (pi?.status === 'processing') return { outcome: 'waiting' }
 
+  // Money review 2, CR-02: Stripe may have told us through the webhook what it could not tell us here (its answers lost on
+  // the way out, its events arriving fine). handleCardChargeSucceeded writes its observation and has Stripe redeliver while
+  // the row is capturing, so the ledger knows of a charge that executed during this claim. Never free the row over it: the
+  // driver would confirm cash on top of a card payment.
+  const seen = await chargeSeenSinceClaim(bookingId)
+  if (seen === 'unknown') return { outcome: 'waiting' }
+  if (seen) {
+    const fromLedger = { id: seen.paymentIntentId, amount: seen.amountMinor, amount_received: seen.amountMinor, currency: seen.currency }
+    return (await recordCashCharge(bookingId, fromLedger, ['capturing'], actor, row))
+      ? { outcome: 'captured', ...seen }
+      : { outcome: 'waiting' }
+  }
+
   const state: 'card_saved' | 'failed' = str(row.payment_failed_at) ? 'failed' : 'card_saved'
   const moved = await applyTransition({
     bookingId,
@@ -605,11 +657,14 @@ export async function adoptLateCashCharge(
   bookingId: string,
   pi: Stripe.PaymentIntent,
   actor: LedgerActor,
-): Promise<'adopted' | 'already_paid' | 'none'> {
+): Promise<'adopted' | 'already_paid' | 'busy' | 'none'> {
   const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
   if (error) throw new Error('cash charge lookup failed')
   const row = (data as BookingRow | null) ?? null
   if (!row || row.payment_mode !== 'cash_guarantee') return 'none'
+  // Money review 2, CR-02: a claim is still on the row. Its owner may yet give up on this very charge and free the row, so
+  // the caller has Stripe deliver the event again rather than consume it.
+  if (row.payment_state === 'capturing') return 'busy'
   if (row.payment_state === 'cash_settled') return 'already_paid'
   if (row.payment_state !== 'card_saved' && row.payment_state !== 'failed') return 'none'
   return (await recordCashCharge(bookingId, pi, [row.payment_state], actor, row)) ? 'adopted' : 'none'
