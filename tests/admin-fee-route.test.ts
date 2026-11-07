@@ -450,14 +450,14 @@ describe('waive (D-05, D-07)', () => {
 
     expect(refundCalls()).toHaveLength(1)
     expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}`)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId })
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000 })
     expect(fake.state.paymentIntents.get(piId)?.amount_refunded).toBe(12000)
     expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
     expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_waived', moneyOutcome: 'refunded', refundMinor: 12000 })
   })
 
   it('a pay-now leg row refunds the leg amount and keeps the leg in the metadata', async () => {
-    const piId = await seedPayNow({ leg: 'return', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
+    const piId = await seedPayNow({ leg: 'return', trip_type: 'round_trip', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
     await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(200)
     expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { leg: 'return' } })
@@ -551,7 +551,7 @@ describe('charge on money that is already collected (D-07)', () => {
   })
 
   it('pay-now leg row: the leg stays in the refund metadata', async () => {
-    const piId = await seedPayNow({ leg: 'outbound' }, 24000)
+    const piId = await seedPayNow({ leg: 'outbound', trip_type: 'round_trip', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
     await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'charge', amount_minor: 4000 })).status).toBe(200)
     expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 8000, metadata: { leg: 'outbound' } })

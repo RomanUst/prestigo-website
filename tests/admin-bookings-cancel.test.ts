@@ -58,7 +58,14 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/lib/payments/stripe', async (importActual) => {
   const actual = await importActual<typeof import('@/lib/payments/stripe')>()
-  return { ...actual, getPaymentsStripe: () => ({ refunds: { create: mockRefundsCreate } }) }
+  return {
+    ...actual,
+    getPaymentsStripe: () => ({
+      refunds: { create: mockRefundsCreate, list: async () => ({ data: [] }) },
+      // A pay-now payment that went through (money CR-01: its facts come from the PaymentIntent).
+      paymentIntents: { retrieve: async () => ({ status: 'succeeded', currency: 'eur', amount_received: 12000 }) },
+    }),
+  }
 })
 vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: mockAlert }))
 vi.mock('@/lib/payments/hold', async (importOriginal) => ({
@@ -410,12 +417,7 @@ describe('POST /api/admin/bookings/cancel', () => {
 
     const res = await POST(makeRequest({ id: ID, leg: 'return' }))
     expect(res.status).toBe(502)
-    expect(await res.json()).toEqual({
-      error: 'refund_failed',
-      cancelled: true,
-      amount_minor: Math.round(czkToEur(2500) * 100),
-      currency: 'eur',
-    })
+    expect(await res.json()).toEqual({ error: 'refund_failed', cancelled: true, amount_minor: 12000, currency: 'eur' })
     expect(statusCalls()).toHaveLength(1)
     expect(ledgerCalls()).toHaveLength(1)
     expect((ledgerCalls()[0][1] as { p_event: { key: string; error_code: string } }).p_event).toMatchObject({

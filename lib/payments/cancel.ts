@@ -37,6 +37,7 @@ import { czkToEur } from '@/lib/currency'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { feeBaseFor, isFeeEligible, openFeeCase } from '@/lib/payments/fee'
 import { leaseLapsed, releaseHold } from '@/lib/payments/hold'
+import { loadPayNowFacts, type PayNowFacts } from '@/lib/payments/pay-now'
 import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
 import { appendPaymentEvent, applyTransition, type LedgerActor, type PaymentState } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
@@ -95,7 +96,7 @@ const BOOKING_COLUMNS =
   'client_first_name, client_last_name, client_email, origin_address, destination_address, vehicle_class, ' +
   'pickup_date, pickup_time, hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, ' +
   'recovery_link_url, captured_amount_minor, payment_lease_until, cancel_policy, cancel_policy_version, trip_type, ' +
-  'distance_km, pickup_utc, stripe_payment_method_id, locale, capture_before'
+  'distance_km, pickup_utc, stripe_payment_method_id, locale, capture_before, leg'
 
 /** The payment side of the row after the status compare-and-set (88-REVIEW C-WR-01). */
 const PAYMENT_COLUMNS =
@@ -130,14 +131,17 @@ function collectedMinor(row: BookingRow): number {
  *   leg refund        -> the leg amount in EUR cents (what the refund request carried)
  *   card hold release -> the held amount (or the booking amount) in the booking's payment currency
  *   card refund       -> the amount the card booking already collected, in its payment currency (T4)
- *   full refund       -> the booking's EUR amount (the pay-now charge is in EUR)
+ *   pay-now refund    -> what the PaymentIntent still holds for this row, in its currency (CR-01). Only when Stripe could
+ *                        not be read at all: the row's EUR figure, an estimate for the operator.
  */
 function failedAmount(
   booking: BookingRow,
   legAmountCents: number | null,
   isHold: boolean,
   cardCollectedMinor: number | null = null,
+  payNow: PayNowFacts | null = null,
 ): { amount_minor: number; currency: 'eur' | 'czk' } {
+  if (payNow) return { amount_minor: payNow.collectedMinor, currency: payNow.currency }
   if (isHold && cardCollectedMinor !== null) {
     return { amount_minor: cardCollectedMinor, currency: booking.payment_currency === 'czk' ? 'czk' : 'eur' }
   }
@@ -338,7 +342,9 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
 
   const mode = str(booking.payment_mode)
   const isHold = mode === 'card_hold' || mode === 'cash_guarantee'
-  const refundsPayNow = !partner && !isHold && Boolean(booking.payment_intent_id)
+  // An unpaid row carries the PaymentIntent of a checkout nobody finished: there is nothing to refund or to keep. The row
+  // has to have left `unpaid` before its intent counts as money (the PaymentIntent itself is still read below).
+  const refundsPayNow = !partner && !isHold && Boolean(booking.payment_intent_id) && previousStatus !== 'unpaid'
 
   // D-04: a card booking whose hold is being placed or whose capture is running holds a lease; cancelling now would
   // race that worker. Nothing is written. 88-REVIEW A-WR-06: a hold placement whose lease lapsed (its worker died) no
@@ -412,8 +418,22 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
     }
   }
 
+  // CR-01: pay-now money facts come from the PaymentIntent, read only now: a Stripe outage must never stop a cancel.
+  let payNow: PayNowFacts | null = null
+  let payNowError: unknown = null
+  if (refundsPayNow) {
+    try {
+      payNow = await loadPayNowFacts(booking)
+    } catch (err) {
+      payNowError = err
+      console.error('[cancel] payment could not be read after the cancel applied', { bookingId })
+    }
+  }
+  // A pay-now row has no payment_currency: every mail and alert below speaks the currency that was paid.
+  const moneyRow: BookingRow = payNow ? { ...booking, payment_currency: payNow.currency } : booking
+
   // From here the cancel stands and the notices after it are due, whatever happens to the money.
-  const applied: AppliedCancel = { booking, outcome, freeUntilMs, proposedMinor: null }
+  const applied: AppliedCancel = { booking: moneyRow, outcome, freeUntilMs, proposedMinor: null }
   holder.applied = applied
 
   // Partner bookings: the status change was all there was to do.
@@ -433,7 +453,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
       err instanceof Error && ['busy', 'state_moved', 'no_payment_intent'].includes(err.message)
         ? err.message
         : stripeErrorCode(err)
-    const { amount_minor, currency } = failedAmount(booking, legAmountCents, isHold, cardCollected)
+    const { amount_minor, currency } = failedAmount(booking, legAmountCents, isHold, cardCollected, payNow)
     console.error('[cancel] money step failed after the cancel applied', { bookingId, kind, code })
     try {
       await appendPaymentEvent(bookingId, {
@@ -484,7 +504,9 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
   }
 
   // ── 3. late: the money option stays alive and a person decides (D-05, D-07, D-09) ─────────────────────────────────
-  if (outcome === 'late' && isFeeEligible(current)) {
+  // Pay-now: nothing paid, or everything already back, means there is nothing a fee could be kept from.
+  const payNowEmpty = refundsPayNow && payNow !== null && payNow.collectedMinor <= 0
+  if (outcome === 'late' && isFeeEligible(current) && !payNowEmpty) {
     // The client is told it was a late cancel whether or not the case could be opened: the operator hears about a
     // missing case through the alert scheduleCancelNotices sends for db_failed { cancelled: true }.
     const lateNotice = (): CancelNotice => ({
@@ -493,10 +515,12 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
       ...(applied.proposedMinor !== null ? { feeMinor: applied.proposedMinor } : {}),
       freeUntilMs,
     })
-    const base = feeCaseBase(current, input.leg)
+    const base = refundsPayNow
+      ? payNow && { baseMinor: payNow.collectedMinor, currency: payNow.currency }
+      : feeCaseBase(current)
     if (!base) {
       console.error('[cancel] late cancel without a computable fee base', { bookingId })
-      scheduleCancelRouteEmail(booking, previousStatus, lateNotice())
+      scheduleCancelRouteEmail(moneyRow, previousStatus, lateNotice())
       return { kind: 'db_failed', cancelled: true }
     }
     try {
@@ -522,10 +546,10 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
         bookingId,
         reason: err instanceof Error ? err.message : 'unknown',
       })
-      scheduleCancelRouteEmail(booking, previousStatus, lateNotice())
+      scheduleCancelRouteEmail(moneyRow, previousStatus, lateNotice())
       return { kind: 'db_failed', cancelled: true }
     }
-    scheduleCancelRouteEmail(booking, previousStatus, lateNotice())
+    scheduleCancelRouteEmail(moneyRow, previousStatus, lateNotice())
     return { kind: 'ok', outcome: 'late', money: 'kept' }
   }
 
@@ -574,13 +598,14 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
     }
   }
 
-  if (refundParams) {
+  if (refundParams && !payNowEmpty) {
     try {
+      if (payNowError) throw payNowError
       const refund = await getPaymentsStripe().refunds.create(refundParams, {
         idempotencyKey: stripeKeys.refund(bookingId, legKey),
       })
-      const refunded = failedAmount(booking, legAmountCents, false)
-      scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'refunded', refunded.amount_minor))
+      const refunded = failedAmount(booking, legAmountCents, false, null, payNow)
+      scheduleCancelRouteEmail(moneyRow, previousStatus, freeNotice(initiator, 'refunded', refunded.amount_minor))
       return {
         kind: 'ok',
         outcome,
@@ -600,20 +625,17 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
 }
 
 /**
- * The amount a late-cancel case is a share of. Money already collected on a card row (captured / balance_due) is the
- * base (what the client paid), otherwise the booking amount (feeBaseFor: the row's own amount, or the leg amount of a
- * pay-now round trip, D-24).
+ * The amount a late-cancel case of a card or cash row is a share of. Money already collected (captured / balance_due) is
+ * the base (what the client paid), otherwise the booking amount (feeBaseFor). A pay-now case takes its base from the
+ * PaymentIntent, see runCancel.
  */
-function feeCaseBase(
-  row: BookingRow,
-  leg: 'outbound' | 'return' | undefined,
-): { baseMinor: number; currency: 'eur' | 'czk' } | null {
+function feeCaseBase(row: BookingRow): { baseMinor: number; currency: 'eur' | 'czk' } | null {
   const state = str(row.payment_state)
   if ((row.payment_mode === 'card_hold' || row.payment_mode === 'cash_guarantee') && (state === 'captured' || state === 'balance_due')) {
     const collected = collectedMinor(row)
     if (collected > 0) return { baseMinor: collected, currency: row.payment_currency === 'czk' ? 'czk' : 'eur' }
   }
-  return feeBaseFor(row, leg)
+  return feeBaseFor(row)
 }
 
 /**

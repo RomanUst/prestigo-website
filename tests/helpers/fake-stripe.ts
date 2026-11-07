@@ -12,7 +12,8 @@
  *    error (insufficient_funds), 'pm_auth_required' throws authentication_required with the
  *    PaymentIntent left in requires_action.
  *  - paymentLinks.create / update
- *  - refunds.create (full or partial refund of a succeeded PaymentIntent; amount_refunded is tracked on it)
+ *  - refunds.create (full or partial refund of a succeeded PaymentIntent; amount_refunded is tracked on it) and
+ *    refunds.list (by payment_intent, newest first)
  *  - an idempotency store: the same key with the same params replays the saved result (thrown errors
  *    included), the same key with different params throws a StripeIdempotencyError, and a connection
  *    failure is never stored.
@@ -386,6 +387,15 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
         state.refunds.set(refund.id, refund)
         return clone(refund)
       }),
+    list: async (params: Params, options?: Options) =>
+      request('refunds.list', null, params, options, () => {
+        const data = [...state.refunds.values()]
+          .filter((r) => params.payment_intent === undefined || r.payment_intent === params.payment_intent)
+          .reverse()
+          .slice(0, typeof params.limit === 'number' ? params.limit : 10)
+          .map(clone)
+        return { object: 'list', data, has_more: false }
+      }),
   }
 
   const stripe = { customers, setupIntents, paymentIntents, paymentLinks, refunds }
@@ -409,6 +419,15 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
       pi.amount_capturable = 0
       pi.cancellation_reason = reason
       return clone(pi)
+    },
+    /** A refund made outside the site (the Stripe Dashboard): no metadata and no idempotency key. */
+    manualRefund(piId: string, amount: number) {
+      const pi = state.paymentIntents.get(piId)
+      if (!pi) throw new Error(`fake-stripe: no payment intent ${piId}`)
+      pi.amount_refunded = (typeof pi.amount_refunded === 'number' ? pi.amount_refunded : 0) + amount
+      const refund: Obj = { id: nextId('re'), object: 'refund', status: 'succeeded', metadata: {}, amount, payment_intent: piId }
+      state.refunds.set(refund.id, refund)
+      return clone(refund)
     },
     /** The next call to `method` throws a connection error (executes nothing, stores nothing). */
     failNextWith(method: string, kind: 'connection') {

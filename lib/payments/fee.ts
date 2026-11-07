@@ -34,6 +34,7 @@ import { czkToEur } from '@/lib/currency'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { releaseHold } from '@/lib/payments/hold'
+import { loadPayNowFacts, type PaymentLeg } from '@/lib/payments/pay-now'
 import { settleBooking, type SettleResult } from '@/lib/payments/settle'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
@@ -106,7 +107,8 @@ export function isFeeEligible(booking: BookingRow): boolean {
   if (isPartner(booking)) return false
   const mode = booking.payment_mode
   const state = str(booking.payment_state)
-  if (mode === 'pay_now') return str(booking.payment_intent_id) !== ''
+  // An unpaid row has a PaymentIntent from the moment its checkout started, and no money behind it.
+  if (mode === 'pay_now') return str(booking.payment_intent_id) !== '' && booking.status !== 'unpaid'
   if (mode !== 'card_hold' && mode !== 'cash_guarantee') return false
   if (state === 'captured' || state === 'balance_due') return true
   // Nothing saved yet, already released, or settled in cash: there is no card to take a fee from.
@@ -117,9 +119,10 @@ export function isFeeEligible(booking: BookingRow): boolean {
 }
 
 /**
- * The amount a fee is a share of (the case's base_minor) and its currency. Card and cash rows: the row's own
- * payment_amount_minor in its payment_currency. Pay-now: the leg amount in EUR cents when a leg is given (the same
- * czkToEur rounding the cancel route uses for a leg refund), else amount_eur in cents. Null when the facts are missing.
+ * The amount a fee is a share of, from the row alone, and its currency. Card and cash rows: the row's own
+ * payment_amount_minor in its payment_currency, which is the real figure. Pay-now: only an ESTIMATE in EUR cents (the leg
+ * amount when a leg is given, else amount_eur) for a page that can not read Stripe: a pay-now case is never opened from
+ * it, the PaymentIntent decides (lib/payments/pay-now.ts). Null when the facts are missing.
  */
 export function feeBaseFor(
   booking: BookingRow,
@@ -412,7 +415,8 @@ async function closeCharged(
   await sendReceipt({
     kind: 'fee_charged',
     variant: caseRow.kind === 'no_show' ? 'no_show' : 'late_cancel',
-    booking: fresh,
+    // A pay-now row has no payment_currency: the receipt speaks the currency of the case.
+    booking: { ...fresh, payment_currency: caseRow.currency },
     eventKey: `email:fee_charged:${caseRow.id}`,
     feeMinor: amountMinor,
     ...(caseRow.free_until ? { freeUntil: caseRow.free_until } : {}),
@@ -470,8 +474,9 @@ export type FeeDecisionError = FeeChargeError | 'refund_failed'
 export type FeeDecisionResult = { outcome: 'ok' | 'declined' } | { error: FeeDecisionError }
 
 /**
- * What the client has already paid for this case, in minor units of the case currency (0 = nothing collected):
- *   pay-now           the case base (the leg amount, or the booking amount) once a payment intent exists;
+ * What the row alone says the client has paid for this case, in minor units of the case currency (0 = nothing collected):
+ *   pay-now           the case base once a payment intent exists: enough to route the decision. The amount that moves is
+ *                     read from the PaymentIntent (moneyHeld), never from here;
  *   card / cash row   captured or balance_due: what was captured (the row amount when no amount is stored).
  * A fee capture of the single collector also lands here (row captured, captured_amount_minor = the fee): the case is then
  * closed by chargeFromCollected on a replay with the same amount, never charged twice. Do NOT derive an amount owed from
@@ -492,23 +497,37 @@ export function isMoneyCollected(booking: BookingRow, caseRow: FeeCaseRow): bool
   return collectedForCase(booking, caseRow) > 0
 }
 
-/** The leg of a pay-now round-trip row; the Phase 27 refund webhook reads it from the refund metadata. */
-function legOf(booking: BookingRow): 'outbound' | 'return' | null {
-  return booking.leg === 'outbound' || booking.leg === 'return' ? booking.leg : null
+/**
+ * The money behind a decision, as it is now. Pay-now: read from the PaymentIntent (CR-01), this row's share of it minus what
+ * went back; a case in another currency than the payment moves nothing. Card and cash rows: from the row. Throws when Stripe
+ * can not be read: the decision then answers payment_busy and nothing has moved.
+ */
+async function moneyHeld(
+  booking: BookingRow,
+  caseRow: FeeCaseRow,
+): Promise<{ collectedMinor: number; leg: PaymentLeg | null } | 'currency_mismatch'> {
+  if (booking.payment_mode !== 'pay_now' || !str(booking.payment_intent_id)) {
+    return { collectedMinor: collectedForCase(booking, caseRow), leg: null }
+  }
+  const facts = await loadPayNowFacts(booking)
+  if (facts.currency !== caseRow.currency) {
+    console.error('[fee] case currency is not the payment currency', { bookingId: str(booking.id), caseId: caseRow.id })
+    return 'currency_mismatch'
+  }
+  return { collectedMinor: facts.collectedMinor, leg: facts.leg }
 }
 
 /**
- * Refund part (or all) of the payment that collected the money, with the deterministic key of the case. `amountMinor`
- * undefined = the whole payment (a pay-now row without a leg only). The leg stays in the metadata of a pay-now leg row.
+ * Refund part of the payment that collected the money, with the deterministic key of the case and always an explicit
+ * amount in the payment's currency. The leg stays in the metadata of a leg row (the Phase 27 webhook reads it there).
  */
-async function refundForCase(booking: BookingRow, caseRow: FeeCaseRow, amountMinor: number | undefined): Promise<string> {
+async function refundForCase(booking: BookingRow, caseRow: FeeCaseRow, amountMinor: number, leg: PaymentLeg | null): Promise<string> {
   const bookingId = str(booking.id)
   const paymentIntentId = str(booking.payment_intent_id)
   if (!paymentIntentId) throw new Error('no_payment_intent')
-  const leg = booking.payment_mode === 'pay_now' ? legOf(booking) : null
   const params: Stripe.RefundCreateParams = {
     payment_intent: paymentIntentId,
-    ...(amountMinor !== undefined ? { amount: amountMinor } : {}),
+    amount: amountMinor,
     ...(leg ? { metadata: { leg } } : {}),
   }
   const refund = await getPaymentsStripe().refunds.create(params, {
@@ -573,7 +592,15 @@ export async function chargeFromCollected(input: {
 
   // Money moves on the row as it is now, not as the request read it a moment ago.
   const booking = await loadBooking(bookingId, input.booking)
-  const collected = collectedForCase(booking, caseRow)
+  let held: Awaited<ReturnType<typeof moneyHeld>>
+  try {
+    held = await moneyHeld(booking, caseRow)
+  } catch {
+    console.error('[fee] payment could not be read', { bookingId, caseId: caseRow.id })
+    return { error: 'payment_busy' }
+  }
+  if (held === 'currency_mismatch') return { error: 'action_not_allowed' }
+  const collected = held.collectedMinor
   if (collected <= 0 || amountMinor > collected) return { error: 'action_not_allowed' }
 
   await appendPaymentEvent(bookingId, {
@@ -591,7 +618,7 @@ export async function chargeFromCollected(input: {
   const refundMinor = collected - amountMinor
   if (refundMinor > 0) {
     try {
-      await refundForCase(booking, caseRow, refundMinor)
+      await refundForCase(booking, caseRow, refundMinor, held.leg)
     } catch (err) {
       await refundFailed(booking, caseRow, refundMinor, err, actor)
       return { error: 'refund_failed' }
@@ -633,14 +660,20 @@ export async function waiveFee(input: {
   })
 
   const booking = await loadBooking(bookingId, input.booking)
-  const collected = collectedForCase(booking, current)
+  let held: Awaited<ReturnType<typeof moneyHeld>>
+  try {
+    held = await moneyHeld(booking, current)
+  } catch {
+    console.error('[fee] payment could not be read', { bookingId, caseId: caseRow.id })
+    return { error: 'payment_busy' }
+  }
+  if (held === 'currency_mismatch') return { error: 'action_not_allowed' }
+  const collected = held.collectedMinor
   let moneyOutcome: 'released' | 'refunded' = 'released'
 
   if (collected > 0) {
     try {
-      // A pay-now row without a leg refunds the whole payment; every other row refunds exactly what was collected.
-      const whole = booking.payment_mode === 'pay_now' && legOf(booking) === null
-      await refundForCase(booking, current, whole ? undefined : collected)
+      await refundForCase(booking, current, collected, held.leg)
     } catch (err) {
       await refundFailed(booking, current, collected, err, actor)
       return { error: 'refund_failed' }
@@ -673,7 +706,7 @@ export async function waiveFee(input: {
 
   await sendReceipt({
     kind: 'fee_waived',
-    booking: await loadBooking(bookingId, booking),
+    booking: { ...(await loadBooking(bookingId, booking)), payment_currency: current.currency },
     eventKey: `email:fee_waived:${caseRow.id}`,
     moneyOutcome,
     ...(moneyOutcome === 'refunded' ? { refundMinor: collected } : {}),

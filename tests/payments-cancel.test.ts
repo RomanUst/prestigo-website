@@ -562,9 +562,9 @@ describe('pay-now round trips apply the policy per leg row (D-24)', () => {
   })
 
   it('late, leg=outbound: no refund, the case is that leg (base = the leg amount)', async () => {
-    seed({ ...LEG, payment_intent_id: await paidPi(10000) })
+    seed({ ...LEG, leg: 'outbound', trip_type: 'round_trip', payment_intent_id: await paidPi(10000) })
     const result = await run('admin_client', LATE_NOW, { leg: 'outbound' })
-    const cents = Math.round(czkToEur(3000) * 100)
+    const cents = Math.round((10000 * 3000) / 5500) // the leg's share of what was paid
     expect(result).toMatchObject({ kind: 'ok', outcome: 'late', money: 'kept' })
     expect(fake.callsTo('refunds.create')).toHaveLength(0)
     expect(cases()[0]).toMatchObject({ base_minor: cents, proposed_minor: cents, currency: 'eur' })
