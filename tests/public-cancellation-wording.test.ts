@@ -12,6 +12,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const ROOT = path.resolve(__dirname, '..')
+const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
+const OTHER_LOCALES = LOCALES.filter((l) => l !== 'en')
 
 type Surface = { name: string; file: string; keyPath: (string | number)[] }
 
@@ -100,4 +102,38 @@ describe('public cancellation wording: English', () => {
     expect(faq).toMatch(/cancelled flight/)
     expect(faq).toMatch(/deadline shown at checkout and in your confirmation email/)
   })
+})
+
+describe('public cancellation wording: translations (key by key against the English change list)', () => {
+  // Digits of the old rule: 1 hour, 2 hours, 48 hours, 50 %. Phone and email are stripped first.
+  const OLD_DIGITS = /(?<![\d+])(1|2|48|50)(?![\d])/
+
+  // Same shape as English: the list or object holding the changed key keeps its size, so no key was
+  // added or dropped while editing.
+  function parentSize(s: Surface, locale: string): number {
+    let cur: unknown = readJson(s.file.replace('%L', locale))
+    for (const k of s.keyPath.slice(0, -1)) cur = (cur as Record<string | number, unknown>)[k]
+    return Object.keys(cur as object).length
+  }
+
+  for (const locale of OTHER_LOCALES) {
+    for (const s of SURFACES) {
+      it(`${locale}: ${s.name} is translated and carries no digit of the old rule`, () => {
+        const en = valueFor(s, 'en')
+        const text = valueFor(s, locale)
+        const where = `${locale} ${s.file.replace('%L', locale)} ${s.keyPath.join('.')}`
+        expect(text.trim().length).toBeGreaterThan(0)
+        expect(text, `${where} still equals English`).not.toBe(en)
+        const bare = text.replace(/\+420[\d ]+/g, '').replace(/\S+@\S+/g, '')
+        expect(bare, `${where} keeps a digit of the old rule`).not.toMatch(OLD_DIGITS)
+        expect(parentSize(s, locale), `${where} changed the structure`).toBe(parentSize(s, 'en'))
+      })
+    }
+
+    it(`${locale}: the book FAQ keeps the phone number and the email of the English text`, () => {
+      const text = valueFor(SURFACES[1], locale)
+      expect(text).toContain('+420 725 986 855')
+      expect(text).toContain('info@rideprestigo.com')
+    })
+  }
 })
