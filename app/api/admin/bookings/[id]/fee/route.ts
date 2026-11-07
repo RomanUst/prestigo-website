@@ -16,7 +16,7 @@ import {
   waiveFee,
   type FeeDecisionResult,
 } from '@/lib/payments/fee'
-import { openMissingFeeCase } from '@/lib/payments/fee-reopen'
+import { openCaseOffered, openMissingFeeCase } from '@/lib/payments/fee-reopen'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 
 // Operator decisions on money of a cancelled or no-show booking, and the cash decisions of a cash booking
@@ -203,6 +203,11 @@ async function handleReopenCash(
 
 /** Everything comes from the row: the request names no amount and no kind. The rules live in openMissingFeeCase. */
 async function handleOpenCase(booking: Record<string, unknown>, bookingId: string, actor: LedgerActor): Promise<NextResponse> {
+  // Money review 2, IN-02: the same rule as the admin GET, re-checked on the fresh row like every other action (a charge
+  // running on the row, a pay-now row without its case_missing alert).
+  // A second click after the case opened is a replay: ok, nothing more is written.
+  if (await loadFeeCase(bookingId)) return NextResponse.json({ outcome: 'ok' })
+  if (!(await openCaseOffered(booking))) return notAllowed()
   await recordClick(bookingId, 'fee_open_case', actor)
   const result = await openMissingFeeCase(booking, actor)
   if (result === 'busy') return NextResponse.json({ error: 'payment_busy' }, { status: 409 })

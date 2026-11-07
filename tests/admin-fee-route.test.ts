@@ -965,6 +965,18 @@ describe('money WR-02: a case that failed to open can still be opened', () => {
     expect(noShowLog()[0]).toMatchObject({ base_minor: 12000 })
   })
 
+  it('money review 2, IN-02: the server re-checks the matrix: a charge running on the row, or a pay-now row with no case_missing alert, is refused with nothing recorded', async () => {
+    await seedWithHold({ status: 'no_show', payment_state: 'capturing', payment_lease_until: new Date(Date.now() + 60_000).toISOString() })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+    expect(noShowLog()).toHaveLength(0)
+    expect(ledger('admin_action').some((e) => e.error_code === 'fee_open_case')).toBe(false)
+
+    await seedPayNow({ status: 'cancelled' })
+    expect((await post({ action: 'open_case' })).status).toBe(422)
+    expect(noShowLog()).toHaveLength(0)
+    expect(ledger('admin_action').some((e) => e.error_code === 'fee_open_case')).toBe(false)
+  })
+
   it('takes nothing but the action, and is refused on a live booking', async () => {
     await seedWithHold({ status: 'no_show' })
     expect((await post({ action: 'open_case', amount_minor: 100 })).status).toBe(400)
