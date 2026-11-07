@@ -149,3 +149,58 @@ describe('Google rating line', () => {
     expect(buildLlmsTxt({ ...data, rating: null })).not.toContain('Google rating')
   })
 })
+
+describe('cancellation block (89-21, D-01, D-18)', () => {
+  const policy = {
+    version: 'test',
+    kmThreshold: 150,
+    freeHoursShort: 3,
+    freeHoursLong: 24,
+    freeHoursHourly: 1,
+    feePercent: 60,
+  }
+
+  for (const [name, build] of [
+    ['buildLlmsTxt', buildLlmsTxt],
+    ['buildLlmsFullTxt', buildLlmsFullTxt],
+  ] as const) {
+    it(`${name} fills the windows and the fee from the settings`, () => {
+      const out = build(data, policy)
+      expect(out).toContain('## Cancellation & Changes')
+      expect(out).toContain('up to 3 hours before pickup on trips of up to 150 km')
+      expect(out).toContain('up to 24 hours before pickup on longer trips')
+      expect(out).toContain('up to 1 hour before pickup on hourly hire')
+      expect(out).toContain('fee of up to 60% of the fare')
+    })
+
+    it(`${name} describes the manage link and calls a change a request to the operator`, () => {
+      const out = build(data, policy)
+      expect(out).toContain('link to cancel the booking online')
+      expect(out).toContain('request to the operator')
+    })
+
+    it(`${name} no longer states the old rule or the booking portal`, () => {
+      const out = build(data, policy)
+      expect(out).not.toContain('up to 1 hour before scheduled pickup')
+      expect(out).not.toContain('booking portal')
+      expect(out).not.toContain('unlimited before the journey')
+    })
+
+    it(`${name} states no euro price in the cancellation block`, () => {
+      const out = build(data, policy)
+      const start = out.indexOf('## Cancellation & Changes')
+      const block = out.slice(start, out.indexOf('**Refunds**', start))
+      expect(block).not.toContain('€')
+    })
+  }
+
+  it('falls back to the default numbers when no policy is passed', () => {
+    const out = buildLlmsFullTxt(data)
+    expect(out).toContain('up to 12 hours before pickup on longer trips')
+  })
+
+  it('says "until the pickup time" for a zero-hour window', () => {
+    const out = buildLlmsFullTxt(data, { ...policy, freeHoursShort: 0 })
+    expect(out).toContain('until the pickup time on trips of up to 150 km')
+  })
+})

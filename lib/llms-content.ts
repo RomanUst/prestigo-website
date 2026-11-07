@@ -12,6 +12,7 @@ import type { PricingRates } from '@/lib/pricing-config'
 import type { BlogPost } from '@/lib/blog'
 import { BUSINESS_PHONE_DISPLAY, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 import { GOOGLE_MAPS_URL } from '@/lib/google-maps-url'
+import { DEFAULT_POLICY, type CancellationPolicy } from '@/lib/cancellation-policy'
 
 const BASE = 'https://rideprestigo.com'
 
@@ -46,11 +47,28 @@ function routeLine(r: RoutePrice): string {
   return `- [${r.fromLabel} to ${r.toLabel}](${BASE}/routes/${r.slug}): From ${eur(r.eClassEur)}, ${r.distanceKm} km door-to-door.`
 }
 
+// "up to N hours before pickup" with the admin's number; 0 means free until the pickup time itself.
+function freeWindow(hours: number): string {
+  if (hours <= 0) return 'until the pickup time'
+  return `up to ${hours} ${hours === 1 ? 'hour' : 'hours'} before pickup`
+}
+
+// The numbers come from the admin settings (pricing_globals), so a change there needs no wording edit.
+// A change to a booking is a request to the operator, never self-service (D-01).
+function cancellationBlock(policy: CancellationPolicy): string {
+  return `- **Free cancellation** ${freeWindow(policy.freeHoursShort)} on trips of up to ${policy.kmThreshold} km, ${freeWindow(policy.freeHoursLong)} on longer trips, and ${freeWindow(policy.freeHoursHourly)} on hourly hire. The exact deadline is shown at checkout and in the confirmation email.
+- **Manage link** — every confirmation email has a link to cancel the booking online.
+- **Later cancellations** — a cancellation fee of up to ${policy.feePercent}% of the fare may apply; a person at Prestigo decides every charge.
+- **Changes** — a change of time, address, vehicle or passenger name is a request to the operator, confirmed by email; the price may change.
+- **Flight cancellations** — full refund or free reschedule.
+- **Refunds** — to the original payment method, usually within 5 to 10 business days.`
+}
+
 function postLine(p: BlogPost): string {
   return `- [${p.title}](${BASE}/blog/${p.slug}): ${p.description}`
 }
 
-export function buildLlmsTxt(data: LlmsData): string {
+export function buildLlmsTxt(data: LlmsData, policy: CancellationPolicy = DEFAULT_POLICY): string {
   const { routes, pricing, posts } = data
   const airport = airportFromPrice(pricing)
   const routesBlock =
@@ -88,6 +106,10 @@ ${routesBlock}
 
 ${posts.map(postLine).join('\n')}
 
+## Cancellation & Changes
+
+${cancellationBlock(policy)}
+
 ## Optional
 
 - [About](${BASE}/about): Founded 2016, Roman Ustyugov, ICO 05650801.
@@ -96,7 +118,7 @@ ${posts.map(postLine).join('\n')}
 `
 }
 
-export function buildLlmsFullTxt(data: LlmsData): string {
+export function buildLlmsFullTxt(data: LlmsData, policy: CancellationPolicy = DEFAULT_POLICY): string {
   const { routes, pricing, posts } = data
   const airport = airportFromPrice(pricing)
   const hourly = pricing.hourlyRate
@@ -240,10 +262,7 @@ Full route list with per-page detail: ${BASE}/routes
 
 ## Cancellation & Changes
 
-- **Free cancellation** up to 1 hour before scheduled pickup.
-- **Later cancellations** may incur a fee.
-- **Time changes** — unlimited before the journey; contact the assigned driver or use the booking portal.
-- **Flight cancellations** — full refund or free reschedule.
+${cancellationBlock(policy)}
 
 ---
 

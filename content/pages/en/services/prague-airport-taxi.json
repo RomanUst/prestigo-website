@@ -73,7 +73,7 @@
     { "q": "How do I avoid being overcharged by a taxi in Prague?", "a": "Agree the price before the journey starts, use a licensed service you can identify, and ask for a receipt. With a pre-booked car the price is fixed when you book, so there is nothing to negotiate on arrival." },
     { "q": "Can I pre-book a taxi from Prague airport?", "a": "Yes. Book online with your flight number and destination at least 12 hours ahead. Your driver tracks the flight and waits inside Arrivals with a name board, with 60 minutes free waiting after landing." },
     { "q": "Is there a taxi big enough for 6 people and luggage?", "a": "Yes. The Mercedes V-Class seats up to six passengers with six large bags, from €{vClassAirport} per car to central Prague. For larger groups we send more than one vehicle." },
-    { "q": "What if my flight is cancelled or I need to cancel?", "a": "If your flight is cancelled, you can reschedule free of charge or receive a full refund. You can also cancel free of charge up to 1 hour before pickup." },
+    { "q": "What if my flight is cancelled or I need to cancel?", "a": "If your flight is cancelled, you can reschedule free of charge or receive a full refund. Otherwise, cancellation is free until the deadline shown at checkout and in your confirmation email." },
     { "q": "How can I pay?", "a": "By Visa or Mastercard when you book online, or by bank transfer. Companies can receive invoices." }
   ],
   "related": {

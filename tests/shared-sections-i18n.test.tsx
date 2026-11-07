@@ -139,7 +139,7 @@ const EN_STRINGS = [
   'Fixed price. Instant confirmation. Your driver tracks your flight automatically.',
   'Flight tracking included',
   'Fixed price — no surprises',
-  'Free cancellation up to 1 hour',
+  'Free cancellation',
   'Meet & greet at Arrivals',
 ]
 
@@ -156,7 +156,7 @@ describe('BookingSection (75-13 Task 1 tracer)', () => {
     ).toBeTruthy()
     expect(screen.getByText('Flight tracking included')).toBeTruthy()
     expect(screen.getByText('Fixed price — no surprises')).toBeTruthy()
-    expect(screen.getByText('Free cancellation up to 1 hour')).toBeTruthy()
+    expect(screen.getByText('Free cancellation')).toBeTruthy()
     expect(screen.getByText('Meet & greet at Arrivals')).toBeTruthy()
   })
 
