@@ -58,7 +58,7 @@ describe('CardFlowSettings: copy and structure', () => {
     render(<CardFlowSettings initialMode="off" initialLeadHours={72} initialEmails={[]} />)
     expect(
       screen.getByText(
-        'Owner test only shows card payment at checkout to the emails listed below. Opening it to all clients is not available yet.',
+        'Owner test only shows card payment and cash guarantee at checkout to the emails listed below. All clients opens it to everyone booking a one-way transfer or an hourly ride.',
       ),
     ).toBeDefined()
     expect(
@@ -72,7 +72,7 @@ describe('CardFlowSettings: copy and structure', () => {
   it('falls back to off, 72 and an empty list when the props are missing', () => {
     stubFetch()
     render(<CardFlowSettings />)
-    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['true', 'false'])
+    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['true', 'false', 'false'])
     expect(leadInput().value).toBe('72')
     expect(emailsInput().value).toBe('')
     expect(screen.queryByText('The list is empty, so nobody will see card payment.')).toBeNull()
@@ -80,27 +80,26 @@ describe('CardFlowSettings: copy and structure', () => {
 
   it('falls back for out-of-range or malformed initial values', () => {
     stubFetch()
-    render(<CardFlowSettings initialMode={'on' as unknown as 'off'} initialLeadHours={500} initialEmails={null} />)
+    render(<CardFlowSettings initialMode={'bogus' as unknown as 'off'} initialLeadHours={500} initialEmails={null} />)
     expect(radios()[0].getAttribute('aria-checked')).toBe('true')
     expect(leadInput().value).toBe('72')
   })
 })
 
 describe('CardFlowSettings: mode radiogroup', () => {
-  it("renders a radiogroup with exactly two radios, 'Off' and 'Owner test only' (no On tile)", () => {
+  it("renders a radiogroup with three radios in order: 'Off', 'Owner test only', 'All clients'", () => {
     stubFetch()
     render(<CardFlowSettings initialMode="off" initialLeadHours={72} initialEmails={[]} />)
     const group = screen.getByRole('radiogroup')
     expect(group.getAttribute('aria-labelledby')).toBe('card-flow-mode-label')
     expect(document.getElementById('card-flow-mode-label')?.textContent).toBe('Card payment')
-    expect(radios().map((r) => r.textContent)).toEqual(['Off', 'Owner test only'])
-    expect(screen.queryByRole('radio', { name: 'On' })).toBeNull()
+    expect(radios().map((r) => r.textContent)).toEqual(['Off', 'Owner test only', 'All clients'])
   })
 
   it('uses a roving tabindex: only the selected tile is in the tab order', () => {
     stubFetch()
     render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
-    expect(radios().map((r) => r.tabIndex)).toEqual([-1, 0])
+    expect(radios().map((r) => r.tabIndex)).toEqual([-1, 0, -1])
   })
 
   it('clicking Owner test only PATCHes { card_flow_mode: canary } once', async () => {
@@ -115,7 +114,7 @@ describe('CardFlowSettings: mode radiogroup', () => {
     expect(url).toBe('/api/admin/settings')
     expect((init as RequestInit).method).toBe('PATCH')
     expect(bodyOf(fetchMock)).toEqual({ card_flow_mode: 'canary' })
-    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'true'])
+    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'true', 'false'])
     expect(screen.getByText('Saved')).toBeDefined()
   })
 
@@ -130,7 +129,7 @@ describe('CardFlowSettings: mode radiogroup', () => {
     expect(radios()[1].getAttribute('aria-checked')).toBe('true')
 
     await act(async () => {
-      fireEvent.keyDown(radios()[1], { key: 'ArrowRight' }) // wraps to Off
+      fireEvent.keyDown(radios()[1], { key: 'ArrowLeft' }) // back to Off
       await vi.advanceTimersByTimeAsync(0)
     })
     expect(bodyOf(fetchMock, 1)).toEqual({ card_flow_mode: 'off' })
@@ -323,6 +322,129 @@ describe('CardFlowSettings: test emails', () => {
     await blurWith(emailsInput(), 'a@x.com\nb@y.org')
     expect(emailsInput().value).toBe('a@x.com')
     expect(screen.getByText('Failed to save — try again')).toBeDefined()
+  })
+})
+
+describe('CardFlowSettings: All clients go-live tile (Phase 89 D-17, E20)', () => {
+  const dialog = () => screen.queryByRole('dialog')
+  const allClients = () => screen.getByRole('radio', { name: 'All clients' })
+
+  async function openDialog() {
+    await act(async () => {
+      fireEvent.click(allClients())
+      await vi.advanceTimersByTimeAsync(0)
+    })
+  }
+
+  it('clicking All clients opens the confirm dialog and sends no PATCH before the confirm', async () => {
+    const fetchMock = stubFetch()
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    await openDialog()
+    expect(dialog()).not.toBeNull()
+    expect(screen.getByText('Open card payment to all clients')).toBeDefined()
+    expect(
+      screen.getByText(
+        'Every client who books a one-way transfer or an hourly ride will see card payment and Pay cash to driver at checkout. The new cancellation terms apply to every new booking. Bookings made earlier keep their terms. You can switch back at any time; card bookings already made are still held and charged.',
+      ),
+    ).toBeDefined()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'true', 'false'])
+  })
+
+  it('arrowing onto All clients only opens the dialog, it does not save', async () => {
+    const fetchMock = stubFetch()
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    await act(async () => {
+      fireEvent.keyDown(radios()[1], { key: 'ArrowRight' })
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dialog()).not.toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('initial focus is on "Keep owner test only"', async () => {
+    stubFetch()
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    await openDialog()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep owner test only' }))
+  })
+
+  it('"Keep owner test only" closes the dialog, saves nothing and keeps the tile', async () => {
+    const fetchMock = stubFetch()
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    await openDialog()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Keep owner test only' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dialog()).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(radios()[1].getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('Escape closes the dialog without saving', async () => {
+    const fetchMock = stubFetch()
+    render(<CardFlowSettings initialMode="off" initialLeadHours={72} initialEmails={[]} />)
+    await openDialog()
+    await act(async () => {
+      fireEvent.keyDown(document, { key: 'Escape' })
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dialog()).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('"Open to all clients" PATCHes { card_flow_mode: on } once, selects the tile and shows Saved', async () => {
+    const fetchMock = stubFetch()
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    await openDialog()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Open to all clients' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(bodyOf(fetchMock)).toEqual({ card_flow_mode: 'on' })
+    expect(dialog()).toBeNull()
+    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'false', 'true'])
+    expect(screen.getByText('Saved')).toBeDefined()
+  })
+
+  it('a failed confirm keeps the previous tile and shows the failure line', async () => {
+    stubFetch(false)
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    await openDialog()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Open to all clients' }))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'true', 'false'])
+    expect(screen.getByText('Failed to save — try again')).toBeDefined()
+  })
+
+  it('Off and Owner test only still save at once, with no dialog, from All clients', async () => {
+    const fetchMock = stubFetch()
+    render(<CardFlowSettings initialMode="on" initialLeadHours={72} initialEmails={[]} />)
+    expect(radios().map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'false', 'true'])
+    await act(async () => {
+      fireEvent.click(radios()[0])
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dialog()).toBeNull()
+    expect(bodyOf(fetchMock)).toEqual({ card_flow_mode: 'off' })
+  })
+
+  it('with on: test emails stay editable, the muted line shows and the empty-list warning does not', () => {
+    stubFetch()
+    render(<CardFlowSettings initialMode="on" initialLeadHours={72} initialEmails={[]} />)
+    expect(emailsInput().disabled).toBe(false)
+    expect(screen.getByText('Test emails are ignored while card payment is open to all clients.')).toBeDefined()
+    expect(screen.queryByText('The list is empty, so nobody will see card payment.')).toBeNull()
+  })
+
+  it('the muted line is hidden in canary and off', () => {
+    stubFetch()
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    expect(screen.queryByText('Test emails are ignored while card payment is open to all clients.')).toBeNull()
   })
 })
 
