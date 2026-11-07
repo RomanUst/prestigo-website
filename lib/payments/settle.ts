@@ -34,7 +34,11 @@
 //             from the CASE id and the attempt, never from the amount (feecap:/fee:<caseId>:<attempt>), and a decline
 //             schedules no automatic retry: nothing is charged again without a person.
 //   cash_card the driver was not paid in cash (D-21): the full row amount is charged to the saved card of a
-//             cash_guarantee booking, under the ordinary chg:<id>:<attempt> key.
+//             cash_guarantee booking, under the ordinary chg:<id>:<attempt> key. Only a person's click starts it, and
+//             nothing ever finishes it for them (money CR-05): the client may be paying the driver at that moment.
+//             reconcileCashCharge only READS Stripe. An interrupted charge that succeeded is recorded; otherwise the row
+//             goes back to the state it came from, so the driver's cash confirmation works. The attempt number stays,
+//             so a new click replays the same key and can not charge on top of a request that did execute.
 // The caller sends its own receipt; this function sends none in collect mode.
 
 import type Stripe from 'stripe'
@@ -450,11 +454,151 @@ async function recordDifferenceFailure(
   return { outcome: 'balance_due', code, capturedMinor: mainMinor, diffMinor: 0 }
 }
 
-/** A transient settle: the row keeps its lease and attempt; a refused Stripe key also alerts the operator once. */
+/**
+ * A transient settle: the row keeps its lease and attempt; a refused Stripe key also alerts the operator once. A cash card
+ * charge does not wait for a sweep (CR-05): the client is with the driver now, so the row is reconciled at once.
+ */
 async function stillTransient(ctx: Ctx, collected: Collected | null): Promise<SettleResult> {
   const configCode = collected?.kind === 'transient' ? collected.configCode : undefined
   if (configCode) await alertStripeConfig(ctx.booking, 'charge', ctx.attempt, configCode)
+  if (ctx.collect?.kind === 'cash_card') {
+    const { outcome } = await reconcileCashCharge(ctx.bookingId, ctx.actor, { ownClaim: true })
+    if (outcome === 'captured') return { outcome: 'captured', capturedMinor: ctx.dueMinor, diffMinor: 0 }
+  }
   return { outcome: 'transient', code: configCode ? 'stripe_config' : 'transient' }
+}
+
+export type CashReconcile =
+  /** Stripe shows the charge succeeded; the row is captured. */
+  | { outcome: 'captured' }
+  /** Stripe shows no payment; the row is back in `state` and the cash confirmation works. */
+  | { outcome: 'restored'; state: 'card_saved' | 'failed' }
+  /** Not decidable yet: a live lease, a payment still processing, or Stripe could not be read. */
+  | { outcome: 'waiting' }
+  /** The row is not an interrupted cash charge. */
+  | { outcome: 'noop' }
+
+/**
+ * The PaymentIntent of the row's current charge attempt: through the stored id, else from the customer's list by its
+ * metadata. The list and not Search: Search lags, and a charge that executed a moment ago must be seen. Read only.
+ */
+async function findCashCharge(row: BookingRow, bookingId: string): Promise<Stripe.PaymentIntent | null> {
+  const stripe = getPaymentsStripe()
+  const stored = str(row.payment_intent_id)
+  if (stored) return (await stripe.paymentIntents.retrieve(stored)) as Stripe.PaymentIntent
+  const customer = str(row.stripe_customer_id)
+  if (!customer) return null
+  const attempt = String(attemptsOf(row))
+  const list = await stripe.paymentIntents.list({ customer, limit: 100 })
+  const mine = (list.data as Stripe.PaymentIntent[]).filter(
+    (p) => p.metadata?.cofBookingId === bookingId && p.metadata?.kind === 'card_charge' && p.metadata?.attempt === attempt,
+  )
+  return mine.find((p) => p.status === 'succeeded') ?? mine.find((p) => p.status === 'processing') ?? mine[0] ?? null
+}
+
+/** The charge is real: record it on a cash row (the same facts as a settle that got its answer). */
+async function recordCashCharge(
+  bookingId: string,
+  pi: Stripe.PaymentIntent,
+  from: PaymentState[],
+  actor: LedgerActor,
+  row: BookingRow,
+): Promise<boolean> {
+  const capturedMinor = pi.amount_received || pi.amount
+  const moved = await applyTransition({
+    bookingId,
+    from,
+    to: 'captured',
+    patch: {
+      payment_intent_id: pi.id,
+      captured_amount_minor: capturedMinor,
+      captured_at: new Date().toISOString(),
+      payment_lease_until: null,
+      last_payment_error: null,
+      payment_failed_at: null,
+      ...RECOVERY_LINK_CLEARED,
+    },
+    event: {
+      key: `captured:${pi.id}`,
+      kind: 'captured',
+      stripeObjectId: pi.id,
+      amountMinor: capturedMinor,
+      currency: pi.currency === 'czk' ? 'czk' : 'eur',
+      actor,
+    },
+  })
+  if (moved.applied) await retireRecoveryLink(row)
+  return moved.applied || (moved.duplicate === true && moved.currentState === 'captured')
+}
+
+/**
+ * An interrupted cash card charge, settled by reading Stripe only: this function never creates, confirms or captures
+ * anything (CR-05, D-21). Succeeded: recorded. Processing: waits. Anything else: the row goes back to where it was (failed
+ * when an earlier decline is still on it, else card_saved) with its attempt unchanged.
+ * `ownClaim`: the caller holds the row (the operator's click that just got a transient answer). The client is with the
+ * driver, so even when Stripe can not be read the row is released, and a charge that did execute is caught by
+ * handleCardChargeSucceeded. Everyone else waits for the lease and, on a failed read, for the next run.
+ */
+export async function reconcileCashCharge(
+  bookingId: string,
+  actor: LedgerActor,
+  opts: { ownClaim?: boolean } = {},
+): Promise<CashReconcile> {
+  const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
+  if (error) throw new Error('cash charge lookup failed')
+  const row = (data as BookingRow | null) ?? null
+  if (!row || row.payment_mode !== 'cash_guarantee' || row.payment_state !== 'capturing') return { outcome: 'noop' }
+  if (!opts.ownClaim) {
+    const leaseMs = typeof row.payment_lease_until === 'string' ? Date.parse(row.payment_lease_until) : NaN
+    if (Number.isFinite(leaseMs) && leaseMs > Date.now()) return { outcome: 'waiting' }
+  }
+
+  let pi: Stripe.PaymentIntent | null = null
+  try {
+    pi = await findCashCharge(row, bookingId)
+  } catch {
+    console.error('[settle] cash charge could not be read', { bookingId })
+    if (!opts.ownClaim) return { outcome: 'waiting' }
+  }
+  if (pi?.status === 'succeeded') {
+    return (await recordCashCharge(bookingId, pi, ['capturing'], actor, row)) ? { outcome: 'captured' } : { outcome: 'waiting' }
+  }
+  if (pi?.status === 'processing') return { outcome: 'waiting' }
+
+  const state: 'card_saved' | 'failed' = str(row.payment_failed_at) ? 'failed' : 'card_saved'
+  const moved = await applyTransition({
+    bookingId,
+    from: ['capturing'],
+    to: state,
+    patch: { payment_lease_until: null },
+    event: {
+      key: `cash_charge_interrupted:${attemptsOf(row)}:${Date.now()}`,
+      kind: 'charge_failed',
+      stripeObjectId: pi?.id,
+      errorCode: 'charge_interrupted',
+      actor,
+    },
+  })
+  return moved.applied ? { outcome: 'restored', state } : { outcome: 'waiting' }
+}
+
+/**
+ * A card_charge of a cash booking succeeded while the row is not capturing: a request we gave up on did execute. Booking
+ * unpaid: the payment is recorded ('adopted'). The driver already confirmed cash: 'already_paid', the client paid twice and
+ * the caller gives the card money back. Anything else is no concern of this function.
+ */
+export async function adoptLateCashCharge(
+  bookingId: string,
+  pi: Stripe.PaymentIntent,
+  actor: LedgerActor,
+): Promise<'adopted' | 'already_paid' | 'none'> {
+  const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
+  if (error) throw new Error('cash charge lookup failed')
+  const row = (data as BookingRow | null) ?? null
+  if (!row || row.payment_mode !== 'cash_guarantee') return 'none'
+  if (row.payment_state === 'cash_settled') return 'already_paid'
+  if (row.payment_state !== 'card_saved' && row.payment_state !== 'failed') return 'none'
+  return (await recordCashCharge(bookingId, pi, [row.payment_state], actor, row)) ? 'adopted' : 'none'
 }
 
 /**
@@ -515,13 +659,15 @@ export async function settleBooking(
 
   const loadedState = str(loaded.payment_state)
   if (SETTLED_STATES.has(loadedState)) return { outcome: 'noop', code: loadedState }
+  // CR-05: a cash charge is started by a click on a free row, never re-claimed from an interrupted one.
+  if (collect?.kind === 'cash_card' && loadedState !== 'card_saved' && loadedState !== 'failed') return { outcome: 'busy' }
   // 88-REVIEW A-IN-08: a checkout the client never finished has no card and no hold; nothing a capture could do.
   if (loadedState === 'checkout_pending' || loadedState === 'none') return { outcome: 'skipped', code: 'not_confirmed' }
 
   const nowMs = Date.now()
   const claim = await applyTransition({
     bookingId,
-    from: CLAIMABLE,
+    from: collect?.kind === 'cash_card' ? ['card_saved', 'failed'] : CLAIMABLE,
     to: 'capturing',
     patch: { ...(opts.claimPatch ?? {}), payment_lease_until: new Date(nowMs + LEASE_SECONDS * 1000).toISOString() },
     // Unique per claim (a re-claim after a lease expiry is a new row); the attempt number stays in the key.

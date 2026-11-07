@@ -15,7 +15,11 @@
 import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
+import { sendCashCardReceipt } from '@/lib/payments/fee'
+import { adoptLateCashCharge } from '@/lib/payments/settle'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
+import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 
 const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
 
@@ -70,6 +74,56 @@ export async function handleCardChargeSucceeded(event: Stripe.Event): Promise<vo
     currency: currencyOf(pi),
     actor: WEBHOOK_ACTOR,
   })
+
+  if (pi.metadata?.kind === 'card_charge') await reconcileLateCashCharge(bookingId, pi)
+}
+
+/**
+ * Money CR-05: a cash card charge whose answer never reached us, so the row went back to unpaid, did execute after all.
+ * Still unpaid: the payment is recorded. Cash already confirmed: the client paid twice, so the card money goes back at once
+ * (deterministic key, a redelivery replays it) and the operator is told either way. Every other row is left alone: the
+ * settle that owns it records its own answer.
+ */
+async function reconcileLateCashCharge(bookingId: string, pi: Stripe.PaymentIntent): Promise<void> {
+  const outcome = await adoptLateCashCharge(bookingId, pi, WEBHOOK_ACTOR)
+  if (outcome === 'adopted') {
+    await sendCashCardReceipt(bookingId, { id: bookingId })
+    return
+  }
+  if (outcome !== 'already_paid') return
+
+  let refunded = false
+  let code = 'cash_card'
+  try {
+    await getPaymentsStripe().refunds.create(
+      { payment_intent: pi.id },
+      { idempotencyKey: stripeKeys.refund(bookingId, `cash_dup:${pi.id}`) },
+    )
+    refunded = true
+  } catch (err) {
+    code = stripeErrorCode(err)
+    console.error('[webhook] cash duplicate not refunded', { bookingId, stripeObjectId: pi.id, code })
+    await appendPaymentEvent(bookingId, {
+      key: `refund_failed:${bookingId}:cash_dup:${pi.id}`,
+      kind: 'refund_failed',
+      stripeObjectId: pi.id,
+      amountMinor: pi.amount_received || pi.amount,
+      currency: currencyOf(pi),
+      errorCode: code,
+      actor: WEBHOOK_ACTOR,
+    })
+  }
+  const { data } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
+  await sendPaymentOperatorAlert(
+    'duplicate_payment',
+    { ...((data as Record<string, unknown> | null) ?? { id: bookingId }), payment_currency: currencyOf(pi) },
+    {
+      eventKey: `alert:duplicate_payment:${bookingId}:${pi.id}`,
+      code: 'cash_card',
+      amountMinor: pi.amount_received || pi.amount,
+      note: refunded ? 'refunded' : 'refund_failed',
+    },
+  )
 }
 
 /**

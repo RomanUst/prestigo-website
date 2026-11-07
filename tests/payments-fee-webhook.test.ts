@@ -519,3 +519,43 @@ describe('charge.dispute.created on a fee or cash card charge (T-89-74)', () => 
     expect(mockResendSend).not.toHaveBeenCalled()
   })
 })
+
+describe('money CR-05: a cash card charge that executed after we gave up on it', () => {
+  const lateCharge = (id: string) => ({
+    id,
+    object: 'payment_intent',
+    status: 'succeeded',
+    currency: 'eur',
+    amount: 9000,
+    amount_received: 9000,
+    metadata: { kind: 'card_charge', cofBookingId: BOOKING_ID, attempt: '0', bookingReference: 'PRG-CASH' },
+  })
+  const seedCash = (state: string) =>
+    Object.assign(bookingRow(), { payment_mode: 'cash_guarantee', payment_state: state, status: 'on_board', payment_amount_minor: 9000 })
+
+  it('the booking is still unpaid: the payment is recorded and the row is paid', async () => {
+    seedCash('card_saved')
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late'), 'evt_late1'))).status).toBe(200)
+    expect(bookingRow()).toMatchObject({ payment_state: 'captured', payment_intent_id: 'pi_late', captured_amount_minor: 9000 })
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+  })
+
+  it('the driver already confirmed the cash: the card money goes back and the operator is told', async () => {
+    seedCash('cash_settled')
+    mockRefundCreate.mockResolvedValue({ id: 're_dup' })
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late2'), 'evt_late2'))).status).toBe(200)
+    expect(mockRefundCreate).toHaveBeenCalledWith(
+      { payment_intent: 'pi_late2' },
+      { idempotencyKey: `refund:${BOOKING_ID}:cash_dup:pi_late2` },
+    )
+    expect(bookingRow().payment_state).toBe('cash_settled')
+    expect(mockResendSend.mock.calls.some((c) => String(c[0]?.subject).includes('Duplicate payment'))).toBe(true)
+  })
+
+  it('a row still capturing belongs to the settle that owns it: the webhook only observes', async () => {
+    seedCash('capturing')
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late3'), 'evt_late3'))).status).toBe(200)
+    expect(bookingRow().payment_state).toBe('capturing')
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+  })
+})

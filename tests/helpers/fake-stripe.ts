@@ -323,6 +323,15 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
         pi.cancellation_reason = typeof params.cancellation_reason === 'string' ? params.cancellation_reason : 'requested_by_customer'
         return clone(pi)
       }),
+    list: async (params: { customer?: string; limit?: number }, options?: Options) =>
+      request('paymentIntents.list', null, params, options, () => {
+        const data = [...state.paymentIntents.values()]
+          .filter((pi) => params.customer === undefined || pi.customer === params.customer)
+          .reverse()
+          .slice(0, params.limit ?? 10)
+          .map(clone)
+        return { object: 'list', data, has_more: false }
+      }),
     search: async (params: { query: string; limit?: number }, options?: Options) =>
       request('paymentIntents.search', null, params, options, () => {
         const data = [...state.paymentIntents.values()]

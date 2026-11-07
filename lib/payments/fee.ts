@@ -497,25 +497,31 @@ export async function runCashCardCharge(input: {
   const result = await settleBooking(bookingId, actor, { collect: { kind: 'cash_card' } })
 
   switch (result.outcome) {
-    case 'captured': {
-      const fresh = await loadBooking(bookingId, booking)
-      await sendReceipt({
-        kind: 'fee_charged',
-        variant: tripCompleted(fresh) ? 'cash_unpaid' : 'cash_card',
-        booking: fresh,
-        eventKey: `email:fee_charged:${bookingId}`,
-      })
+    case 'captured':
+      await sendCashCardReceipt(bookingId, booking)
       return { outcome: 'ok' }
-    }
     case 'failed':
     case 'balance_due':
       return { outcome: 'declined' }
     case 'busy':
     case 'transient':
+      // A transient answer has released the row (settle reconciles it at once, CR-05): the driver can confirm cash, and a
+      // repeat of this click replays the same Stripe key.
       return { error: 'payment_busy' }
     default:
       return { error: 'action_not_allowed' }
   }
+}
+
+/** The receipt of a cash card charge, once (its ledger key): before the trip ended, or for a trip that was not paid. */
+export async function sendCashCardReceipt(bookingId: string, fallback: BookingRow): Promise<void> {
+  const fresh = await loadBooking(bookingId, fallback)
+  await sendReceipt({
+    kind: 'fee_charged',
+    variant: tripCompleted(fresh) ? 'cash_unpaid' : 'cash_card',
+    booking: fresh,
+    eventKey: `email:fee_charged:${bookingId}`,
+  })
 }
 
 // ── Plan 89-12: waive, and a fee out of money that is already collected ────────────────────────────────────────────────

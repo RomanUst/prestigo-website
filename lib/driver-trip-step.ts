@@ -5,6 +5,7 @@ import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { pushGnetForTransition } from '@/lib/gnet-push'
 import { getStartGate, type StartGate } from '@/lib/start-gate'
 import { settleCash } from '@/lib/payments/cash'
+import { reconcileCashCharge } from '@/lib/payments/settle'
 import { formatMinor } from '@/lib/payments/money'
 import {
   PartnerBookingMoneyError,
@@ -262,7 +263,7 @@ export async function driverTripStep(input: {
 
 export type DriverConfirmCashResult =
   | { httpStatus: 200; body: { ok: true; status: string; nextStep: null; cash: 'settled'; replay?: true } }
-  | { httpStatus: 409 | 422; body: { ok: false; error: 'cash_conflict' | 'cash_not_allowed'; status: string; nextStep: null } }
+  | { httpStatus: 409 | 422; body: { ok: false; error: 'cash_conflict' | 'cash_not_allowed' | 'cash_wait'; status: string; nextStep: null } }
   | { httpStatus: 400; body: { error: 'invalid_token' } }
 
 /**
@@ -287,7 +288,19 @@ export async function driverConfirmCash(input: { trip: DriverTripRecord }): Prom
   }
   if (booking.status !== 'completed') return notAllowed
   if (booking.payment_mode !== 'cash_guarantee') return notAllowed
-  const state = booking.payment_state
+  let state = booking.payment_state
+  // Money CR-05: the operator's card charge is on this row. Its worker may be gone: Stripe is read (nothing is charged), and
+  // a row with no payment behind it is free again. A charge still running is a clear "wait", not a refusal.
+  if (state === 'capturing') {
+    const reconciled = await reconcileCashCharge(booking.id, { type: 'system', id: 'driver_trip' })
+    if (reconciled.outcome === 'restored') {
+      state = reconciled.state
+    } else if (reconciled.outcome === 'captured') {
+      return { httpStatus: 409, body: { ok: false, error: 'cash_conflict', status: booking.status, nextStep: null } }
+    } else {
+      return { httpStatus: 409, body: { ok: false, error: 'cash_wait', status: booking.status, nextStep: null } }
+    }
+  }
   if (state !== 'card_saved' && state !== 'failed' && state !== 'cash_settled') return notAllowed
 
   const result = await settleCash(
@@ -335,8 +348,9 @@ export function buildDriverCash(booking: {
     if (err instanceof PartnerBookingMoneyError) return null
     throw err
   }
+  // capturing: a card charge is running; the cash is still due, and a tap answers "wait" until the row is decided.
   const state =
-    booking.payment_state === 'card_saved' || booking.payment_state === 'failed'
+    booking.payment_state === 'card_saved' || booking.payment_state === 'failed' || booking.payment_state === 'capturing'
       ? 'due'
       : booking.payment_state === 'cash_settled'
         ? 'settled'

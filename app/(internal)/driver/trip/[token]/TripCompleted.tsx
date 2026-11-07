@@ -25,6 +25,7 @@ export interface TripCompletedProps {
 // not pay, the driver calls the office and nothing happens by itself. After the confirmation (or when the operator already
 // settled) the card is the ok line. A non-cash trip renders exactly as in Phase 87.
 const CASH_ERROR_CHANGED = 'This booking changed. Reload the page.'
+const CASH_ERROR_WAIT = 'A card payment is being checked. Try again in a minute.'
 const CASH_ERROR_RATE = 'Too many taps. Wait a moment.'
 const CASH_ERROR_OTHER = 'Could not send your answer. Try again.'
 
@@ -49,7 +50,8 @@ export default function TripCompleted({ variant, summary, token, cash }: TripCom
         setSettled(true)
         setDialogOpen(false)
       } else if (res.status === 409 || res.status === 422 || res.status === 400) {
-        setError(CASH_ERROR_CHANGED)
+        const answer = (await res.json().catch(() => null)) as { error?: string } | null
+        setError(answer?.error === 'cash_wait' ? CASH_ERROR_WAIT : CASH_ERROR_CHANGED)
       } else if (res.status === 429) {
         setError(CASH_ERROR_RATE)
       } else {

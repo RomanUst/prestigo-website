@@ -148,6 +148,9 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
     ? `One automatic retry runs at ${pragueTime(d.retryAtIso)}.`
     : 'No automatic retries are left. Use Retry or Send payment link.'
 
+  if (kind === 'charge_failed' && d.note === 'cash_interrupted') {
+    return 'A card charge on this cash booking was interrupted and Stripe shows no payment, so nothing was charged. The driver can confirm the cash. To charge the card, do it again from the booking.'
+  }
   if ((kind === 'hold_failed' || kind === 'charge_failed' || kind === 'balance_unpaid') && d.note === 'link_failed') {
     return 'The payment link could not be created, so the client was NOT emailed. Use Send payment link from the booking.'
   }
@@ -179,9 +182,12 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
     case 'duplicate_payment': {
       // 88-REVIEW T1: a recovery link was paid after the money was already secured another way.
       const amount = formatMinor(d.amountMinor ?? 0, currency)
-      const lead = `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${str(booking.payment_state) || 'n/a'}).`
+      const lead =
+        d.code === 'cash_card'
+          ? `A card charge of ${amount} went through after the cash for this booking was confirmed, so the client paid twice.`
+          : `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${str(booking.payment_state) || 'n/a'}).`
       return d.note === 'refunded'
-        ? `${lead} The link payment was refunded automatically; the booking is unchanged.`
+        ? `${lead} The card payment was refunded automatically; the booking is unchanged.`
         : `${lead} The automatic refund failed: refund ${amount} manually in the Stripe Dashboard.`
     }
     case 'stripe_config':

@@ -110,17 +110,18 @@ export interface PaymentPatch {
  * from -> allowed targets. Self-loops exist for edit re-evaluation and checkout re-submit only.
  * captured and released are terminal. cash_settled (Phase 89) is not: the operator can reverse it to card_saved (D-22).
  * A cash booking settles from card_saved, or from failed when the card failed during the trip and the client paid the
- * driver (D-21).
+ * driver (D-21). Its card charge is never finished by a worker (money CR-05): an interrupted charge goes capturing ->
+ * card_saved when Stripe shows no payment, and a charge that did execute after that is adopted card_saved -> captured.
  */
 export const TRANSITIONS: Record<PaymentState, readonly PaymentState[]> = {
   none: ['checkout_pending'],
   checkout_pending: ['checkout_pending', 'card_saved', 'authorized', 'released'],
-  card_saved: ['card_saved', 'placing_hold', 'capturing', 'released', 'cash_settled'],
+  card_saved: ['card_saved', 'placing_hold', 'capturing', 'captured', 'released', 'cash_settled'],
   // released: the booking was cancelled / marked no-show while its hold was being placed (88-REVIEW A-WR-04).
   // capturing: a completed trip whose hold placement died adopts the row once its lease lapsed (88-REVIEW A-WR-06).
   placing_hold: ['authorized', 'card_saved', 'failed', 'placing_hold', 'released', 'capturing'],
   authorized: ['authorized', 'card_saved', 'expired', 'capturing', 'released'],
-  capturing: ['captured', 'balance_due', 'failed', 'capturing'],
+  capturing: ['captured', 'balance_due', 'failed', 'capturing', 'card_saved'],
   balance_due: ['balance_due', 'captured', 'released'],
   failed: ['failed', 'placing_hold', 'capturing', 'captured', 'released', 'cash_settled'],
   expired: ['expired', 'placing_hold', 'capturing', 'released'],
