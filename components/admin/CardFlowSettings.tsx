@@ -4,13 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties, FocusEvent, KeyboardEvent } from 'react'
 import { Info } from 'lucide-react'
 import { errorStyle, focusRingHandlers, inputBaseStyle } from './adminFieldStyles'
+import { Modal } from './Modal'
+import { outlineButtonStyle } from './paymentShared'
 
 // Phase 88 plan 06 (D-01, D-04, PAYF-05, UI-SPEC Surface 3): the owner's rollout switch for the card
 // flow. Same optimistic-save pattern as NoShowWaitSettings. The server (zod in /api/admin/settings and
-// the 085 CHECKs) stays authoritative; the checks here only save a round trip. There is deliberately no
-// "On" tile: the database allows only off / canary until Phase 89 opens the flow to everybody.
+// the 085/087 CHECKs) stays authoritative; the checks here only save a round trip. Phase 89 (D-17, UI-SPEC
+// Surface 7.2) adds the third tile "All clients" (value 'on'): it never saves at once, it opens a confirm dialog
+// whose initial focus is the safe choice. Off and Owner test only save immediately (switching off is safe).
 
-type Mode = 'off' | 'canary'
+type Mode = 'off' | 'canary' | 'on'
 
 interface Props {
   initialMode?: Mode | null
@@ -28,6 +31,7 @@ const COUNT_ERROR = 'Add no more than 20 addresses.'
 const MODES: ReadonlyArray<{ key: Mode; label: string }> = [
   { key: 'off', label: 'Off' },
   { key: 'canary', label: 'Owner test only' },
+  { key: 'on', label: 'All clients' },
 ]
 
 type Feedback = { type: 'success' | 'error'; message: string } | null
@@ -45,7 +49,7 @@ function initialLead(v: number | null | undefined): number {
 }
 
 function initialModeValue(v: Mode | null | undefined): Mode {
-  return v === 'canary' ? 'canary' : 'off'
+  return v === 'canary' ? 'canary' : v === 'on' ? 'on' : 'off'
 }
 
 function initialEmailList(v: string[] | null | undefined): string[] {
@@ -103,7 +107,17 @@ export default function CardFlowSettings({ initialMode, initialLeadHours, initia
   const [emailsError, setEmailsError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<Feedback>(null)
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const tileRefs = useRef<Record<Mode, HTMLButtonElement | null>>({ off: null, canary: null })
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmBusy, setConfirmBusy] = useState(false)
+  const tileRefs = useRef<Record<Mode, HTMLButtonElement | null>>({ off: null, canary: null, on: null })
+  const keepRef = useRef<HTMLButtonElement | null>(null)
+
+  // Initial focus of the go-live dialog is the safe button (UI-SPEC 7.2); the Modal itself has no focus handling
+  useEffect(() => {
+    if (!confirmOpen) return
+    const t = setTimeout(() => keepRef.current?.focus(), 0)
+    return () => clearTimeout(t)
+  }, [confirmOpen])
 
   useEffect(() => {
     return () => {
@@ -128,6 +142,11 @@ export default function CardFlowSettings({ initialMode, initialLeadHours, initia
 
   async function selectMode(next: Mode) {
     if (next === mode) return
+    if (next === 'on') {
+      // Opening the flow to every client never saves at once (D-17, T-89-65)
+      setConfirmOpen(true)
+      return
+    }
     const previous = mode
     setMode(next) // optimistic
     try {
@@ -139,6 +158,23 @@ export default function CardFlowSettings({ initialMode, initialLeadHours, initia
     }
   }
 
+  async function confirmOpenToAll() {
+    if (confirmBusy) return
+    const previous = mode
+    setConfirmBusy(true)
+    try {
+      await persist({ card_flow_mode: 'on' })
+      setMode('on')
+      showFeedback({ type: 'success', message: 'Saved' })
+    } catch {
+      setMode(previous) // the previous tile stays selected
+      showFeedback({ type: 'error', message: 'Failed to save — try again' })
+    } finally {
+      setConfirmBusy(false)
+      setConfirmOpen(false)
+    }
+  }
+
   function handleTileKeyDown(e: KeyboardEvent<HTMLButtonElement>, index: number) {
     let target: number | null = null
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') target = (index + 1) % MODES.length
@@ -146,6 +182,11 @@ export default function CardFlowSettings({ initialMode, initialLeadHours, initia
     if (target === null) return
     e.preventDefault()
     const next = MODES[target].key
+    if (next === 'on') {
+      // Arrowing onto All clients only opens the confirm dialog; nothing is selected or saved until confirmed
+      void selectMode(next)
+      return
+    }
     tileRefs.current[next]?.focus()
     void selectMode(next)
   }
@@ -308,8 +349,8 @@ export default function CardFlowSettings({ initialMode, initialLeadHours, initia
             })}
           </div>
           <p style={helperStyle}>
-            Owner test only shows card payment at checkout to the emails listed below. Opening it to all clients is not
-            available yet.
+            Owner test only shows card payment and cash guarantee at checkout to the emails listed below. All clients
+            opens it to everyone booking a one-way transfer or an hourly ride.
           </p>
           {emptyCanary && (
             <div
@@ -407,8 +448,49 @@ export default function CardFlowSettings({ initialMode, initialLeadHours, initia
           <p id="card-flow-emails-help" style={helperStyle}>
             Only these emails see card payment while the mode is Owner test only. Capitals and spaces are ignored.
           </p>
+          {mode === 'on' && (
+            <p style={helperStyle}>Test emails are ignored while card payment is open to all clients.</p>
+          )}
         </div>
       </div>
+
+      <Modal
+        isOpen={confirmOpen}
+        onClose={confirmBusy ? () => {} : () => setConfirmOpen(false)}
+        title="Open card payment to all clients"
+      >
+        <p style={{ ...helperStyle, margin: 0, fontSize: 'var(--admin-fs-body)', color: 'var(--admin-text)' }}>
+          Every client who books a one-way transfer or an hourly ride will see card payment and Pay cash to driver at
+          checkout. The new cancellation terms apply to every new booking. Bookings made earlier keep their terms. You
+          can switch back at any time; card bookings already made are still held and charged.
+        </p>
+        <div className="flex flex-col sm:flex-row" style={{ gap: 8, marginTop: 24 }}>
+          <button
+            type="button"
+            disabled={confirmBusy}
+            onClick={() => void confirmOpenToAll()}
+            style={{
+              ...outlineButtonStyle,
+              background: 'var(--admin-accent)',
+              color: 'var(--admin-on-accent)',
+              border: 'none',
+              opacity: confirmBusy ? 0.7 : 1,
+              cursor: confirmBusy ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {confirmBusy ? 'Working…' : 'Open to all clients'}
+          </button>
+          <button
+            ref={keepRef}
+            type="button"
+            disabled={confirmBusy}
+            onClick={() => setConfirmOpen(false)}
+            style={{ ...outlineButtonStyle, opacity: confirmBusy ? 0.7 : 1, cursor: confirmBusy ? 'not-allowed' : 'pointer' }}
+          >
+            Keep owner test only
+          </button>
+        </div>
+      </Modal>
     </div>
   )
 }

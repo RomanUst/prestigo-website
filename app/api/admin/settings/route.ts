@@ -15,8 +15,8 @@ const settingsPatchSchema = z
     noshow_wait_airport_min: z.number().int().min(1).max(240).optional(),
     // Phase 88 (D-01): hold lead hours; same 6..96 bounds as the migration 085 CHECK
     payment_hold_lead_hours: z.number().int().min(6).max(96).optional(),
-    // Phase 88 (PAYF-05): 'on' is rejected here and by the 085 CHECK until Phase 89 opens the flow
-    card_flow_mode: z.enum(['off', 'canary']).optional(),
+    // Phase 88 (PAYF-05) / Phase 89 (D-17): 'on' opens the flow to every client; same values as the 087 CHECK
+    card_flow_mode: z.enum(['off', 'canary', 'on']).optional(),
     // Phase 88 (PAYF-05): canary allowlist, normalised (trimmed, lower-cased) then de-duplicated below
     card_flow_canary_emails: z.array(z.string().trim().toLowerCase().max(254).email()).max(20).optional(),
     // Phase 89 (CANC-01, D-06): cancellation policy numbers; same bounds as the migration 087 CHECKs

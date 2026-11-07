@@ -413,9 +413,15 @@ describe('Phase 88 (D-01, PAYF-05): card-flow settings in the settings API', () 
     expect((await PATCH(patch({ card_flow_mode: 'off' }))).status).toBe(200)
   })
 
+  it("PATCH { card_flow_mode: 'on' } is accepted and updates only that column (Phase 89 D-17)", async () => {
+    const res = await PATCH(patch({ card_flow_mode: 'on' }))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub._chain.update).toHaveBeenCalledWith({ card_flow_mode: 'on' })
+  })
+
   it.each([
-    { card_flow_mode: 'on' },
     { card_flow_mode: 'ON' },
+    { card_flow_mode: 'all' },
     { card_flow_mode: '' },
     { card_flow_mode: true },
     { card_flow_mode: null },
