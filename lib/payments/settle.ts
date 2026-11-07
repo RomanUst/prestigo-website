@@ -468,9 +468,16 @@ async function stillTransient(ctx: Ctx, collected: Collected | null): Promise<Se
   return { outcome: 'transient', code: configCode ? 'stripe_config' : 'transient' }
 }
 
+/** The card payment a cash row was recorded with (money review 2, CR-01: whoever finds it tells the operator). */
+export interface CashChargeFacts {
+  paymentIntentId: string
+  amountMinor: number
+  currency: 'eur' | 'czk'
+}
+
 export type CashReconcile =
   /** Stripe shows the charge succeeded; the row is captured. */
-  | { outcome: 'captured' }
+  | ({ outcome: 'captured' } & CashChargeFacts)
   /** Stripe shows no payment; the row is back in `state` and the cash confirmation works. */
   | { outcome: 'restored'; state: 'card_saved' | 'failed' }
   /** Not decidable yet: a live lease, a payment still processing, or Stripe could not be read. */
@@ -494,6 +501,11 @@ async function findCashCharge(row: BookingRow, bookingId: string): Promise<Strip
     (p) => p.metadata?.cofBookingId === bookingId && p.metadata?.kind === 'card_charge' && p.metadata?.attempt === attempt,
   )
   return mine.find((p) => p.status === 'succeeded') ?? mine.find((p) => p.status === 'processing') ?? mine[0] ?? null
+}
+
+/** What a recorded cash card charge took, from its PaymentIntent. */
+export function cashChargeFacts(pi: Pick<Stripe.PaymentIntent, 'id' | 'amount' | 'amount_received' | 'currency'>): CashChargeFacts {
+  return { paymentIntentId: pi.id, amountMinor: pi.amount_received || pi.amount, currency: pi.currency === 'czk' ? 'czk' : 'eur' }
 }
 
 /** The charge is real: record it on a cash row (the same facts as a settle that got its answer). */
@@ -561,7 +573,9 @@ export async function reconcileCashCharge(
     if (!opts.ownClaim) return { outcome: 'waiting' }
   }
   if (pi?.status === 'succeeded') {
-    return (await recordCashCharge(bookingId, pi, ['capturing'], actor, row)) ? { outcome: 'captured' } : { outcome: 'waiting' }
+    return (await recordCashCharge(bookingId, pi, ['capturing'], actor, row))
+      ? { outcome: 'captured', ...cashChargeFacts(pi) }
+      : { outcome: 'waiting' }
   }
   if (pi?.status === 'processing') return { outcome: 'waiting' }
 

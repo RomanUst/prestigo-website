@@ -615,6 +615,36 @@ describe('money CR-05: a cash card charge that executed after we gave up on it',
     expect(mockRefundCreate).not.toHaveBeenCalled()
   })
 
+  it('money review 2, CR-01: every adoption alerts the operator, once per payment, and sends the client the card receipt', async () => {
+    seedCash('card_saved')
+    await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late'), 'evt_late1'))
+    const alerts = mails('owner@example.com').filter((m) => m.subject.includes('Duplicate payment'))
+    expect(alerts).toHaveLength(1)
+    expect(alerts[0].text).toContain('went through after the panel stopped waiting for it')
+    expect(alerts[0].text).toContain('does not cancel the trip')
+    expect(ledger('alert_sent').map((e) => e.event_key)).toContain(`alert:cash_card_late:${BOOKING_ID}:pi_late`)
+    expect(mails('anna@example.com')).toHaveLength(1)
+
+    // A redelivery of the same payment (fresh event id) adds no second alert.
+    await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late'), 'evt_late1b'))
+    expect(mails('owner@example.com').filter((m) => m.subject.includes('Duplicate payment'))).toHaveLength(1)
+  })
+
+  it('money review 2, CR-01: a full Dashboard refund of that card charge does not cancel the live trip', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    seedCash('card_saved')
+    await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late'), 'evt_late1'))
+    expect(bookingRow().payment_state).toBe('captured')
+    const refund = eventOf(
+      'charge.refunded',
+      { id: 'ch_late', payment_intent: 'pi_late', refunded: true, amount: 9000, amount_refunded: 9000, currency: 'eur', refunds: { data: [] } },
+      'evt_late_rf',
+    )
+    expect((await deliver(refund)).status).toBe(200)
+    expect(bookingRow().status).toBe('on_board')
+    expect(ledger('refund_observed').map((e) => e.event_key)).toEqual(['refund_observed:ch_late:9000'])
+  })
+
   it('the driver already confirmed the cash: the card money goes back and the operator is told', async () => {
     seedCash('cash_settled')
     mockRefundCreate.mockResolvedValue({ id: 're_dup' })

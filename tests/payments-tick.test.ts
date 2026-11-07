@@ -1308,6 +1308,8 @@ describe('step R: finish interrupted charges, repair closed money, reconcile cas
     expect(row(CASH_ID)).toMatchObject({ payment_state: 'captured', captured_amount_minor: 12000, payment_intent_id: pi.id })
     expect(receipts()).toHaveLength(1)
     expect(receipts()[0]).toMatchObject({ variant: 'cash_card', eventKey: `email:fee_charged:${CASH_ID}` })
+    // Money review 2, CR-01: the operator's click gave up on this charge, so they are told it went through after all.
+    expect(ledger('alert_sent', CASH_ID).map((e) => e.event_key)).toEqual([`alert:cash_card_late:${CASH_ID}:${pi.id}`])
   })
 
   it('CR-05: Stripe can not be read: the row waits for the next run, nothing is charged and nothing is guessed', async () => {

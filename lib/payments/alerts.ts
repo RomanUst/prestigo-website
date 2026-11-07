@@ -60,6 +60,7 @@ export interface OperatorAlertDetails {
   /**
    * `link_failed`: the recovery link could not be created, so the client was not emailed. `release`: a hold (not a
    * payment) could not be released. `refunded` / `refund_failed`: the outcome of a duplicate payment's automatic refund.
+   * `adopted` (duplicate_payment, code cash_card): a cash card charge went through late and is now the booking's payment.
    * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27). `cash_settled`
    * (refund_failed): a booking recorded as paid in cash was cancelled. `cash_interrupted` (charge_failed): a cash card charge
    * was interrupted and Stripe shows no payment.
@@ -190,6 +191,11 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
     case 'duplicate_payment': {
       // 88-REVIEW T1: a recovery link was paid after the money was already secured another way.
       const amount = formatMinor(d.amountMinor ?? 0, currency)
+      // Money review 2, CR-01: the card went through after the panel stopped waiting for it; nobody knows yet whether the
+      // client also paid the driver.
+      if (d.code === 'cash_card' && d.note === 'adopted') {
+        return `A card charge of ${amount} on this cash booking went through after the panel stopped waiting for it. It is now recorded as the payment for this booking and the client was sent a card receipt. Ask the driver whether the client also paid in cash. If so, refund ${amount} in the Stripe Dashboard: that refund does not cancel the trip.`
+      }
       const lead =
         d.code === 'cash_card'
           ? `A card charge of ${amount} went through after the cash for this booking was confirmed, so the client paid twice.`

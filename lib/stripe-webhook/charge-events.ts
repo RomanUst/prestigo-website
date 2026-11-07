@@ -16,8 +16,8 @@ import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
-import { sendCashCardReceipt } from '@/lib/payments/fee'
-import { adoptLateCashCharge } from '@/lib/payments/settle'
+import { announceLateCashCharge } from '@/lib/payments/fee'
+import { adoptLateCashCharge, cashChargeFacts } from '@/lib/payments/settle'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 
@@ -87,7 +87,9 @@ export async function handleCardChargeSucceeded(event: Stripe.Event): Promise<vo
 async function reconcileLateCashCharge(bookingId: string, pi: Stripe.PaymentIntent): Promise<void> {
   const outcome = await adoptLateCashCharge(bookingId, pi, WEBHOOK_ACTOR)
   if (outcome === 'adopted') {
-    await sendCashCardReceipt(bookingId, { id: bookingId })
+    // Money review 2, CR-01: the panel told the operator the charge was not confirmed, so the client may have paid the
+    // driver as well. Recorded, receipted, and the operator is always told.
+    await announceLateCashCharge(bookingId, { id: bookingId }, cashChargeFacts(pi))
     return
   }
   if (outcome !== 'already_paid') return

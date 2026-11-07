@@ -34,7 +34,7 @@ import {
 } from '@/lib/payments/config'
 import { claimForHold, placeHold } from '@/lib/payments/hold'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
-import { feeReceiptTerms, markFeeCharged, sendCashCardReceipt, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
+import { announceLateCashCharge, feeReceiptTerms, markFeeCharged, unlockFeeAmount, type FeeCaseRow } from '@/lib/payments/fee'
 import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery'
 import { reconcileCashCharge, settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
@@ -628,13 +628,14 @@ async function redriveFee(item: PendingFee): Promise<'finished' | 'declined' | '
 /**
  * A cash booking's card charge (D-21) an operator started and a crash interrupted: the row sits in `capturing` with a
  * lapsed lease and has no fee case. Ten minutes on, the client may have paid the driver, so nothing is charged from here
- * (CR-05): Stripe is only read. A charge that went through is recorded with its receipt; otherwise the row is free again
+ * (CR-05): Stripe is only read. A charge that went through is recorded with its receipt and an operator alert; otherwise the row is free again
  * and the operator is told, a new charge is a new click. A cash row nobody started charging is never selected.
  */
 async function reconcileCashCard(booking: BookingRow): Promise<'captured' | 'restored' | 'waiting'> {
   const result = await reconcileCashCharge(booking.id, SWEEP_ACTOR)
   if (result.outcome === 'captured') {
-    await sendCashCardReceipt(booking.id, booking)
+    // Money review 2, CR-01: the operator's click gave up on this charge ten minutes ago; they are told it went through.
+    await announceLateCashCharge(booking.id, booking, result)
     return 'captured'
   }
   if (result.outcome !== 'restored') return 'waiting'

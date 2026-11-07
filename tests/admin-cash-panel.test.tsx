@@ -342,7 +342,10 @@ describe('CashCardChargeModal', () => {
     let dialog = await openAction('Charge saved card…')
     fireEvent.change(within(dialog).getByLabelText('Why are you charging the card?'), { target: { value: 'x' } })
     fireEvent.click(within(dialog).getByRole('button', { name: `Charge ${eur(12000)}` }))
-    expect((await within(dialog).findByRole('alert')).textContent).toBe('Payment is being processed. Wait a moment and try again.')
+    // Money review 2, CR-01: an unconfirmed cash card charge has its own line: the charge may still go through.
+    expect((await within(dialog).findByRole('alert')).textContent).toBe(
+      'Not confirmed. Do not take cash until the panel shows the outcome, or take cash and watch for an alert that the card went through after all (then refund the card).',
+    )
     busy.unmount()
 
     stubFetch(() => makeBody(), { status: 403, body: { error: 'Forbidden' } })

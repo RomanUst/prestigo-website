@@ -5,6 +5,7 @@ import { advanceBookingStatus } from '@/lib/booking-status-service'
 import { pushGnetForTransition } from '@/lib/gnet-push'
 import { getStartGate, type StartGate } from '@/lib/start-gate'
 import { settleCash } from '@/lib/payments/cash'
+import { announceLateCashCharge } from '@/lib/payments/fee'
 import { reconcileCashCharge } from '@/lib/payments/settle'
 import { formatMinor } from '@/lib/payments/money'
 import {
@@ -296,6 +297,9 @@ export async function driverConfirmCash(input: { trip: DriverTripRecord }): Prom
     if (reconciled.outcome === 'restored') {
       state = reconciled.state
     } else if (reconciled.outcome === 'captured') {
+      // Money review 2, CR-01: the card went through after the operator stopped waiting for it, so the client may be
+      // paying the driver right now. Same as the webhook would do: the receipt, and the operator is told.
+      await announceLateCashCharge(booking.id, { id: booking.id }, reconciled)
       return { httpStatus: 409, body: { ok: false, error: 'cash_conflict', status: booking.status, nextStep: null } }
     } else {
       return { httpStatus: 409, body: { ok: false, error: 'cash_wait', status: booking.status, nextStep: null } }

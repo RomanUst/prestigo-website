@@ -551,6 +551,39 @@ export async function sendCashCardReceipt(bookingId: string, fallback: BookingRo
   })
 }
 
+/**
+ * Money review 2, CR-01: a cash card charge went through after the panel stopped waiting for it, and the webhook, the
+ * driver's tap or the tick recorded it as the booking's payment. The client may have paid the driver in the meantime,
+ * which only a person can find out, so the operator is told every time (one alert per PaymentIntent, whoever finds it
+ * first) and the client gets the card receipt. Never throws: the payment is recorded whatever happens to the mails.
+ */
+export async function announceLateCashCharge(
+  bookingId: string,
+  fallback: BookingRow,
+  charge: { paymentIntentId: string; amountMinor: number; currency: FeeCurrency },
+): Promise<void> {
+  try {
+    await sendCashCardReceipt(bookingId, fallback)
+  } catch {
+    console.error('[fee] late cash charge receipt failed', { bookingId })
+  }
+  try {
+    const fresh = await loadBooking(bookingId, fallback)
+    await sendPaymentOperatorAlert(
+      'duplicate_payment',
+      { ...fresh, id: bookingId, payment_currency: charge.currency },
+      {
+        eventKey: `alert:cash_card_late:${bookingId}:${charge.paymentIntentId}`,
+        code: 'cash_card',
+        amountMinor: charge.amountMinor,
+        note: 'adopted',
+      },
+    )
+  } catch {
+    console.error('[fee] late cash charge alert failed', { bookingId })
+  }
+}
+
 // ── Plan 89-12: waive, and a fee out of money that is already collected ────────────────────────────────────────────────
 
 export type FeeDecisionError = FeeChargeError | 'refund_failed' | 'amount_above_cap'
