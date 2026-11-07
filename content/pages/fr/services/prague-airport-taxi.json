@@ -73,7 +73,7 @@
     { "q": "Comment éviter de payer trop cher un taxi à Prague ?", "a": "Convenez du prix avant le début du trajet, faites appel à un service agréé et identifiable, et demandez un reçu. Avec une voiture réservée à l'avance, le prix est fixé à la réservation : il n'y a rien à négocier à l'arrivée." },
     { "q": "Puis-je réserver à l'avance un taxi depuis l'aéroport de Prague ?", "a": "Oui. Réservez en ligne avec votre numéro de vol et votre destination au moins 12 heures à l'avance. Votre chauffeur suit le vol et vous attend dans le hall des arrivées avec une pancarte nominative ; 60 minutes d'attente sont offertes après l'atterrissage." },
     { "q": "Existe-t-il un taxi assez grand pour 6 personnes et leurs bagages ?", "a": "Oui. La Mercedes V-Class accueille jusqu'à six passagers avec six grandes valises, à partir de {vClassAirport} € par voiture jusqu'au centre de Prague. Pour les groupes plus importants, nous envoyons plusieurs véhicules." },
-    { "q": "Que se passe-t-il si mon vol est annulé ou si je dois annuler ?", "a": "Si votre vol est annulé, vous pouvez reprogrammer gratuitement ou obtenir un remboursement intégral. Vous pouvez aussi annuler sans frais jusqu'à 1 heure avant la prise en charge." },
+    { "q": "Que se passe-t-il si mon vol est annulé ou si je dois annuler ?", "a": "Si votre vol est annulé, vous pouvez reprogrammer gratuitement ou obtenir un remboursement intégral. Dans les autres cas, l'annulation est gratuite jusqu'à l'échéance indiquée lors du paiement et dans l'e-mail de confirmation." },
     { "q": "Comment puis-je payer ?", "a": "Par Visa ou Mastercard lors de la réservation en ligne, ou par virement bancaire. Les entreprises peuvent recevoir des factures." }
   ],
   "related": {
