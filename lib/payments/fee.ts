@@ -635,7 +635,9 @@ async function moneyHeld(booking: BookingRow, caseRow: FeeCaseRow): Promise<Held
       console.error('[fee] case currency is not the payment currency', { bookingId: str(booking.id), caseId: caseRow.id })
       return 'currency_mismatch'
     }
-    return { collectedMinor: facts.collectedMinor, refundedMinor: facts.refundedMinor, leg: facts.leg }
+    // "Something went back at Stripe" counts the Dashboard refunds no leg could be named for (money review 2, WR-03): the
+    // operator may have settled this case that way. The money a decision moves is collectedMinor alone.
+    return { collectedMinor: facts.collectedMinor, refundedMinor: facts.refundedMinor + facts.unattributedMinor, leg: facts.leg }
   }
   const captured = collectedForCase(booking, caseRow)
   if (captured <= 0 || !paymentIntentId) return { collectedMinor: captured, refundedMinor: 0, leg: null }

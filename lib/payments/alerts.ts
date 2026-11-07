@@ -33,6 +33,8 @@ export const OPERATOR_ALERT_KINDS = [
   'fee_pending_24h',
   'client_cancelled',
   'change_request',
+  // Money review 2, WR-03: an untagged Dashboard refund on a round trip could not be matched to a leg.
+  'refund_unmatched',
 ] as const
 export type OperatorAlertKind = (typeof OPERATOR_ALERT_KINDS)[number]
 
@@ -119,6 +121,7 @@ const TITLES: Record<OperatorAlertKind, string> = {
   fee_pending_24h: 'Still undecided after 24 h',
   client_cancelled: 'Cancelled by client',
   change_request: 'Change request',
+  refund_unmatched: 'Refund not matched to a leg',
 }
 
 /** Subject prefix per kind (UI-SPEC 8.3): the owner filters on it. */
@@ -211,6 +214,10 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
       return d.note === 'refunded'
         ? `${lead} The card payment was refunded automatically; the booking is unchanged.`
         : `${lead} The automatic refund failed: refund ${amount} manually in the Stripe Dashboard.`
+    }
+    case 'refund_unmatched': {
+      const short = formatMinor(d.amountMinor ?? 0, currency)
+      return `The payment of this round trip has a refund made in the Stripe Dashboard that names no leg, and its amount does not match either leg, so it was counted against the trip as a whole. This leg is cancelled with ${short} less than its share, in the refund or in the fee case. Check in the Stripe Dashboard which leg that refund was for. If it was for the other leg, refund ${short} to the client by hand.`
     }
     case 'stripe_config':
       // 88-REVIEW A-WR-02: Stripe refused our key, not the client's card. Nothing was charged and the client was not emailed.

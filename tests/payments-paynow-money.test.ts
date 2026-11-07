@@ -68,7 +68,7 @@ import { POST as FEE_POST } from '@/app/api/admin/bookings/[id]/fee/route'
 import { cancelBooking, type CancelBookingInput } from '@/lib/payments/cancel'
 import { isFeeEligible, loadFeeCase } from '@/lib/payments/fee'
 import { buildManageView } from '@/lib/manage-view'
-import { legShareMinor } from '@/lib/payments/pay-now'
+import { attributeUntagged, legShareMinor } from '@/lib/payments/pay-now'
 
 const OUT = '77777777-7777-4777-8777-777777777777'
 const RET = '66666666-6666-4666-8666-666666666666'
@@ -439,6 +439,48 @@ describe('CR-02 (public CR-01): one leg of a round trip is cancelled and refunde
     }
     expect(legShareMinor(30000, null, 3250, 'return')).toBeNull()
     expect(legShareMinor(30000, 0, 0, 'return')).toBeNull()
+  })
+})
+
+describe('money review 2, WR-03: an untagged Dashboard refund on a round trip counts once', () => {
+  // 30,000 EUR cents paid for 4250 + 3250 CZK legs: outbound 17,000, return 13,000.
+  it('a hand refund of the return share is the return leg\'s: the outbound leg still gets its full share back', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    fake.manualRefund(pi, 13000)
+    expect(await cancel(RET, 'admin_client', FREE_NOW)).toMatchObject({ kind: 'ok', money: 'none' })
+    expect(await cancel(OUT, 'client_token', FREE_NOW, 'free')).toMatchObject({ kind: 'ok', money: 'refunded', refundedMinor: 17000 })
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(30000)
+    expect(mockAlert.mock.calls.some((c) => c[0] === 'refund_unmatched')).toBe(false)
+  })
+
+  it('a goodwill refund that names no leg lowers the trip once, and the operator is told which leg came up short', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    fake.manualRefund(pi, 2000)
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ money: 'refunded', refundedMinor: 17000 })
+    expect(await cancel(RET, 'admin_client', FREE_NOW)).toMatchObject({ money: 'refunded', refundedMinor: 11000 })
+    // Everything that was paid went back: 2,000 by hand, 17,000 and 11,000 here.
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(30000)
+    const alerts = mockAlert.mock.calls.filter((c) => c[0] === 'refund_unmatched')
+    expect(alerts).toHaveLength(1)
+    expect(alerts[0][1]).toMatchObject({ id: RET, payment_currency: 'eur' })
+    expect(alerts[0][2]).toEqual({ eventKey: `alert:refund_unmatched:${RET}:return`, amountMinor: 2000 })
+  })
+
+  it('a late cancel opens its case on what is really left for the leg', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    fake.manualRefund(pi, 13000)
+    await cancel(OUT, 'admin_client', LATE_NOW)
+    expect(await loadFeeCase(OUT)).toMatchObject({ base_minor: 17000 })
+  })
+
+  it('attributeUntagged names a leg only when the amount fits that leg alone', () => {
+    expect(attributeUntagged(13000, 17000, 13000)).toBe('return')
+    expect(attributeUntagged(17050, 17000, 13000)).toBe('outbound')
+    expect(attributeUntagged(2000, 17000, 13000)).toBeNull()
+    expect(attributeUntagged(15000, 15000, 15000)).toBeNull()
   })
 })
 

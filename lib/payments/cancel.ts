@@ -436,6 +436,19 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
   const applied: AppliedCancel = { booking: moneyRow, outcome, freeUntilMs, proposedMinor: null }
   holder.applied = applied
 
+  // Money review 2, WR-03: a Dashboard refund on this round trip names no leg, so this leg gets less than its share (the
+  // refund below, or the base of its case). Only a person can say which leg it was for: they are told, once per leg.
+  if (payNow && payNow.shortMinor > 0) {
+    try {
+      await sendPaymentOperatorAlert('refund_unmatched', { ...moneyRow, id: bookingId }, {
+        eventKey: `alert:refund_unmatched:${bookingId}:${legKey}`,
+        amountMinor: payNow.shortMinor,
+      })
+    } catch {
+      console.error('[cancel] unmatched refund alert not sent', { bookingId })
+    }
+  }
+
   // Partner bookings: the status change was all there was to do.
   if (partner) {
     scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'none'))

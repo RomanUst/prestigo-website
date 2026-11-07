@@ -47,8 +47,21 @@ export interface PayNowFacts {
   leg: PaymentLeg | null
   /** This row's part of paidMinor: all of it for a one-row payment, the leg's share of a two-row payment. */
   shareMinor: number
-  /** Refunded against this row: refunds of its leg and untagged ones (never promise money a hand refund already returned). */
+  /**
+   * Refunded against this row: refunds tagged with its leg, and untagged ones whose amount names this leg alone (money review 2,
+   * WR-03: an untagged refund is attributed once, never to both legs). A one-row payment: every refund.
+   */
   refundedMinor: number
+  /**
+   * Untagged refunds of a two-row payment that name no single leg (a goodwill amount, two equal legs). They lower only what
+   * Stripe still holds for the trip as a whole, so whichever leg is decided last gets less than its share.
+   */
+  unattributedMinor: number
+  /**
+   * How much of this leg's share it can not be given because of unattributed refunds (0 when none). Above 0 the operator is
+   * told: only a person can say which leg the Dashboard refund was for.
+   */
+  shortMinor: number
   /** Money still held for this row: what a refund can return and the most a fee can keep. Never above what Stripe can refund. */
   collectedMinor: number
   refunds: PaymentRefund[]
@@ -138,11 +151,34 @@ export async function loadPayNowFacts(booking: BookingRow, known?: PayNowSplit):
 
   const paidMinor = pi.status === 'succeeded' ? pi.amount_received : 0
   const refunds = paidMinor > 0 ? await listPaymentRefunds(paymentIntentId) : []
-  const shareMinor = split.leg ? (legShareMinor(paidMinor, split.outboundCzk, split.returnCzk, split.leg) ?? 0) : paidMinor
   const refundedAll = refunds.reduce((sum, r) => sum + r.amountMinor, 0)
-  const refundedMinor = split.leg
-    ? refunds.filter((r) => r.leg === split.leg || r.leg === null).reduce((sum, r) => sum + r.amountMinor, 0)
-    : refundedAll
+  if (!split.leg) {
+    return {
+      paymentIntentId,
+      currency,
+      paidMinor,
+      leg: null,
+      shareMinor: paidMinor,
+      refundedMinor: refundedAll,
+      unattributedMinor: 0,
+      shortMinor: 0,
+      collectedMinor: Math.max(0, paidMinor - refundedAll),
+      refunds,
+    }
+  }
+
+  const shareOf = (leg: PaymentLeg) => legShareMinor(paidMinor, split.outboundCzk, split.returnCzk, leg) ?? 0
+  const shareMinor = shareOf(split.leg)
+  let refundedMinor = 0
+  let unattributedMinor = 0
+  for (const r of refunds) {
+    const leg = r.leg ?? attributeUntagged(r.amountMinor, shareOf('outbound'), shareOf('return'))
+    if (leg === split.leg) refundedMinor += r.amountMinor
+    else if (leg === null) unattributedMinor += r.amountMinor
+  }
+  // The cap is what Stripe still holds for the whole trip: an unattributed refund lowers it once, for both legs together.
+  const own = Math.max(0, shareMinor - refundedMinor)
+  const collectedMinor = Math.max(0, Math.min(own, paidMinor - refundedAll))
 
   return {
     paymentIntentId,
@@ -151,7 +187,23 @@ export async function loadPayNowFacts(booking: BookingRow, known?: PayNowSplit):
     leg: split.leg,
     shareMinor,
     refundedMinor,
-    collectedMinor: Math.max(0, Math.min(shareMinor - refundedMinor, paidMinor - refundedAll)),
+    unattributedMinor,
+    shortMinor: unattributedMinor > 0 ? own - collectedMinor : 0,
+    collectedMinor,
     refunds,
   }
+}
+
+/**
+ * Money review 2, WR-03: the leg an untagged refund (the Stripe Dashboard) was made for, when its amount names one leg alone:
+ * it matches that leg's share (within 1%, the CZK/EUR rounding of a hand-typed amount) and not the other's. Anything else is
+ * null, never a guess.
+ */
+export function attributeUntagged(amountMinor: number, outboundShare: number, returnShare: number): PaymentLeg | null {
+  const matches = (share: number) => share > 0 && Math.abs(amountMinor - share) <= Math.max(1, Math.round(share * 0.01))
+  const outbound = matches(outboundShare)
+  const ret = matches(returnShare)
+  if (outbound && !ret) return 'outbound'
+  if (ret && !outbound) return 'return'
+  return null
 }

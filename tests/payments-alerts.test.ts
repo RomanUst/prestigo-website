@@ -145,12 +145,12 @@ describe('subject prefixes', () => {
     const legacy = OPERATOR_ALERT_KINDS.filter(
       (k) => !['fee_decision_needed', 'fee_no_show_needed', 'fee_pending_24h', 'client_cancelled', 'change_request'].includes(k),
     )
-    expect(legacy).toHaveLength(9)
+    expect(legacy).toHaveLength(10)
     for (const kind of legacy) {
       await sendPaymentOperatorAlert(kind, row(), { eventKey: key(kind), code: 'x' })
       expect(lastMail().subject.startsWith('[Payment] ')).toBe(true)
     }
-    expect(sent()).toHaveLength(9)
+    expect(sent()).toHaveLength(10)
   })
 
   it('exposes the five new kinds', () => {
