@@ -318,10 +318,126 @@ describe('FAQ page: visible text and FAQPage JSON-LD are the same filled copy (C
     assertNoUnresolved(text)
   })
 
+  it.each(LOCALES)('%s: the rendered page has no unresolved variable and the JSON-LD matches the visible text', async (locale) => {
+    const html = await renderFaq(OTHER, locale)
+    const schema = faqSchema(html)
+    const text = visibleText(html)
+    for (const e of schema.mainEntity) {
+      assertNoUnresolved(e.acceptedAnswer.text)
+      expect(text).toContain(e.acceptedAnswer.text.replace(/\s+/g, ' '))
+    }
+    assertNoUnresolved(text)
+  })
+
   it('a changed setting shows in both places', async () => {
     const html = await renderFaq(OTHER)
     const cancel = faqSchema(html).mainEntity.find((e) => e.name === 'Can I cancel my booking?')
     expect(cancel?.acceptedAnswer.text).toContain('up to 3 hours before pickup on trips of up to 250 km')
     expect(visibleText(html)).toContain('up to 3 hours before pickup on trips of up to 250 km')
+  })
+})
+
+describe('terms page in every locale: no unresolved variable (CANC-02)', () => {
+  it.each(LOCALES)('%s', async (locale) => {
+    mocks.getCancellationPolicy.mockResolvedValue({
+      version: 'v',
+      kmThreshold: OTHER.km,
+      freeHoursShort: OTHER.freeHoursShort,
+      freeHoursLong: OTHER.freeHoursLong,
+      freeHoursHourly: OTHER.freeHoursHourly,
+      feePercent: OTHER.percent,
+    })
+    mocks.createClient.mockReturnValue({})
+    mocks.getNoShowThresholds.mockResolvedValue({ cityMin: OTHER.waitCityMin, airportMin: OTHER.waitAirportMin })
+    const { default: TermsPage } = await import('@/app/[locale]/terms/page')
+    const el = await TermsPage({ params: Promise.resolve({ locale }) })
+    const text = renderToStaticMarkup(createElement('div', null, el)).replace(/<[^>]*>/g, ' ')
+    assertNoUnresolved(text)
+    for (const n of [OTHER.km, OTHER.freeHoursLong, OTHER.waitAirportMin]) expect(text).toContain(String(n))
+  })
+})
+
+describe('translations of terms section 4 and the FAQ cancellation block (ru, es, fr, ar, hi, zh)', () => {
+  const en = terms('en').section4.items
+  const enFaq = faq('en').sections[FAQ_CANCEL.section].faqs
+
+  it('covers all six non-English locales', () => {
+    expect(NON_EN).toEqual(['ru', 'es', 'fr', 'ar', 'hi', 'zh'])
+  })
+
+  describe.each(NON_EN)('%s', (locale) => {
+    const items = terms(locale).section4.items
+    const faqs = faq(locale).sections[FAQ_CANCEL.section].faqs
+
+    it('terms: five items, each really translated and carrying the same variables as English', () => {
+      expect(items).toHaveLength(en.length)
+      items.forEach((item, i) => {
+        expect(item.label).not.toBe(en[i].label)
+        expect(item.desc).not.toBe(en[i].desc)
+        expect(policyVariablesIn(item.desc)).toEqual(policyVariablesIn(en[i].desc))
+        expect(hasTypedNumber(`${item.label} ${item.desc}`)).toBe(false)
+      })
+    })
+
+    it('terms: the brand is spelled Prestigo', () => {
+      const all = JSON.stringify(items)
+      expect(all).not.toMatch(/Prestigio/)
+      expect(all).toMatch(/Prestigo/)
+    })
+
+    it('terms: rendered with two different settings, no brace is left and the numbers flow through', () => {
+      for (const [numbers, shown] of [
+        [NUMBERS, ['100', '12', '30', '60']],
+        [OTHER, ['250', '3', '24', '6', '15', '45']],
+      ] as [PolicyNumbers, string[]][]) {
+        const rendered = fillPolicyDeep(items, numbers, locale)
+        const text = rendered.map((i) => i.desc).join(' ')
+        assertNoUnresolved(text)
+        for (const n of shown) expect(text).toContain(n)
+      }
+    })
+
+    it('faq: the same four questions, translated, with the same variables as English', () => {
+      expect(faqs).toHaveLength(enFaq.length)
+      faqs.forEach((f, i) => {
+        expect(f.q).not.toBe(enFaq[i].q)
+        expect(f.a).not.toBe(enFaq[i].a)
+        expect(policyVariablesIn(f.a)).toEqual(policyVariablesIn(enFaq[i].a))
+        expect(/\d/.test(`${f.q} ${f.a}`)).toBe(false)
+      })
+    })
+
+    it('faq: rendered with a changed setting, no brace is left', () => {
+      for (const f of fillPolicyDeep(faqs, OTHER, locale)) assertNoUnresolved(`${f.q} ${f.a}`)
+    })
+
+    it('terms and FAQ state the same numbers for the same settings', () => {
+      const termsText = fillPolicyDeep(items, OTHER, locale).map((i) => i.desc).join(' ')
+      const faqText = fillPolicyDeep(faqs, OTHER, locale).map((f) => f.a).join(' ')
+      for (const n of ['250', '3', '24', '6', '15', '45']) {
+        expect(termsText).toContain(n)
+        expect(faqText).toContain(n)
+      }
+    })
+  })
+
+  it('Russian plural forms follow the setting (1 hour, 3 hours, 12 hours)', () => {
+    const d = terms('ru').section4.items[0].desc
+    expect(fillPolicyNumbers(d, NUMBERS, 'ru')).toContain('за 1 час до подачи')
+    expect(fillPolicyNumbers(d, { ...NUMBERS, freeHoursShort: 3 }, 'ru')).toContain('за 3 часа до подачи')
+    expect(fillPolicyNumbers(d, { ...NUMBERS, freeHoursShort: 12 }, 'ru')).toContain('за 12 часов до подачи')
+  })
+
+  it('Arabic plural forms follow the setting (one, two, few, many)', () => {
+    const d = terms('ar').section4.items[0].desc
+    expect(fillPolicyNumbers(d, { ...NUMBERS, freeHoursShort: 1 }, 'ar')).toContain('حتى ساعة واحدة قبل')
+    expect(fillPolicyNumbers(d, { ...NUMBERS, freeHoursShort: 2 }, 'ar')).toContain('حتى ساعتين قبل')
+    expect(fillPolicyNumbers(d, { ...NUMBERS, freeHoursShort: 5 }, 'ar')).toContain('حتى 5 ساعات قبل')
+    expect(fillPolicyNumbers(d, { ...NUMBERS, freeHoursShort: 12 }, 'ar')).toContain('حتى 12 ساعة قبل')
+  })
+
+  it('French keeps its apostrophes and the singular hour', () => {
+    const d = terms('fr').section4.items[0].desc
+    expect(fillPolicyNumbers(d, NUMBERS, 'fr')).toContain("jusqu'à 1 heure avant la prise en charge")
   })
 })
