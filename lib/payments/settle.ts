@@ -650,24 +650,34 @@ export async function reconcileCashCharge(
 
 /**
  * A card_charge of a cash booking succeeded while the row is not capturing: a request we gave up on did execute. Booking
- * unpaid: the payment is recorded ('adopted'). The driver already confirmed cash: 'already_paid', the client paid twice and
- * the caller gives the card money back. Anything else is no concern of this function.
+ * unpaid: the payment is recorded ('adopted'). Nothing is owed any more (money review 2, WR-01): the driver confirmed cash,
+ * the booking was released, or another card payment is already recorded: 'already_paid', and the caller gives the card money
+ * back. A row still claimed, or one that keeps moving under us, answers 'busy': the event is delivered again, never kept.
  */
 export async function adoptLateCashCharge(
   bookingId: string,
   pi: Stripe.PaymentIntent,
   actor: LedgerActor,
+  attempt = 0,
 ): Promise<'adopted' | 'already_paid' | 'busy' | 'none'> {
   const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
   if (error) throw new Error('cash charge lookup failed')
   const row = (data as BookingRow | null) ?? null
   if (!row || row.payment_mode !== 'cash_guarantee') return 'none'
+  const state = str(row.payment_state)
   // Money review 2, CR-02: a claim is still on the row. Its owner may yet give up on this very charge and free the row, so
   // the caller has Stripe deliver the event again rather than consume it.
-  if (row.payment_state === 'capturing') return 'busy'
-  if (row.payment_state === 'cash_settled') return 'already_paid'
-  if (row.payment_state !== 'card_saved' && row.payment_state !== 'failed') return 'none'
-  return (await recordCashCharge(bookingId, pi, [row.payment_state], actor, row)) ? 'adopted' : 'none'
+  if (state === 'capturing') return 'busy'
+  // WR-01: the cash was confirmed, or the booking released (cancelled): this money is owed to nobody.
+  if (state === 'cash_settled' || state === 'released') return 'already_paid'
+  // This very payment is the one recorded (a redelivery, or the settle that got its answer): nothing to do. Another card
+  // payment is recorded: this one is a second collection.
+  if (state === 'captured') return str(row.payment_intent_id) === pi.id ? 'none' : 'already_paid'
+  if (state !== 'card_saved' && state !== 'failed') return 'none'
+  if (await recordCashCharge(bookingId, pi, [state as PaymentState], actor, row)) return 'adopted'
+  // WR-01: the row moved between the read and the compare-and-set (a cash confirmation that landed first): decide again on
+  // its new state, once. Still moving: the event is delivered again.
+  return attempt === 0 ? adoptLateCashCharge(bookingId, pi, actor, 1) : 'busy'
 }
 
 /**

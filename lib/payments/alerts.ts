@@ -196,10 +196,18 @@ function nextAction(kind: LegacyAlertKind, booking: BookingRow, d: OperatorAlert
       if (d.code === 'cash_card' && d.note === 'adopted') {
         return `A card charge of ${amount} on this cash booking went through after the panel stopped waiting for it. It is now recorded as the payment for this booking and the client was sent a card receipt. Ask the driver whether the client also paid in cash. If so, refund ${amount} in the Stripe Dashboard: that refund does not cancel the trip.`
       }
+      const state = str(booking.payment_state)
+      // Money review 2, WR-01: a late cash card charge is refunded whatever made it a second collection.
+      const cashLead =
+        state === 'released'
+          ? `A card charge of ${amount} went through after the booking was cancelled and its card released, so nothing was owed.`
+          : state === 'captured'
+            ? `A second card charge of ${amount} went through although the booking was already paid by card.`
+            : `A card charge of ${amount} went through after the cash for this booking was confirmed, so the client paid twice.`
       const lead =
         d.code === 'cash_card'
-          ? `A card charge of ${amount} went through after the cash for this booking was confirmed, so the client paid twice.`
-          : `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${str(booking.payment_state) || 'n/a'}).`
+          ? cashLead
+          : `The client paid ${amount} through a payment link although the booking no longer owed it (state: ${state || 'n/a'}).`
       return d.note === 'refunded'
         ? `${lead} The card payment was refunded automatically; the booking is unchanged.`
         : `${lead} The automatic refund failed: refund ${amount} manually in the Stripe Dashboard.`

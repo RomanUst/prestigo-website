@@ -80,7 +80,8 @@ export async function handleCardChargeSucceeded(event: Stripe.Event): Promise<vo
 
 /**
  * Money CR-05: a cash card charge whose answer never reached us, so the row went back to unpaid, did execute after all.
- * Still unpaid: the payment is recorded. Cash already confirmed: the client paid twice, so the card money goes back at once
+ * Still unpaid: the payment is recorded. Nothing owed any more (cash confirmed, booking released, another card payment
+ * recorded; money review 2, WR-01): the card money goes back at once
  * (deterministic key, a redelivery replays it) and the operator is told either way. A row still capturing has the event
  * delivered again (money review 2, CR-02). Every other row is left alone.
  */

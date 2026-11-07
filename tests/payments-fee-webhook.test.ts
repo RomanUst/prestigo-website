@@ -657,6 +657,48 @@ describe('money CR-05: a cash card charge that executed after we gave up on it',
     expect(mockResendSend.mock.calls.some((c) => String(c[0]?.subject).includes('Duplicate payment'))).toBe(true)
   })
 
+  it.each([
+    ['the booking was cancelled and released', 'released', 'after the booking was cancelled'],
+    ['another card payment is already recorded', 'captured', 'A second card charge'],
+  ])('money review 2, WR-01: %s: the late charge is refunded and the operator told', async (_label, state, copy) => {
+    seedCash(state)
+    if (state === 'released') bookingRow().status = 'cancelled'
+    if (state === 'captured') Object.assign(bookingRow(), { payment_intent_id: 'pi_first', captured_amount_minor: 9000 })
+    mockRefundCreate.mockResolvedValue({ id: 're_dup' })
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late4'), 'evt_late4'))).status).toBe(200)
+    expect(mockRefundCreate).toHaveBeenCalledWith({ payment_intent: 'pi_late4' }, { idempotencyKey: `refund:${BOOKING_ID}:cash_dup:pi_late4` })
+    expect(bookingRow().payment_state).toBe(state)
+    const alert = mails('owner@example.com').find((m) => m.subject.includes('Duplicate payment'))
+    expect(alert?.text).toContain(copy)
+    expect(alert?.text).toContain('refunded automatically')
+  })
+
+  it('money review 2, WR-01: the redelivery of the payment that is recorded changes nothing', async () => {
+    seedCash('captured')
+    Object.assign(bookingRow(), { payment_intent_id: 'pi_late5', captured_amount_minor: 9000 })
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late5'), 'evt_late5'))).status).toBe(200)
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+    expect(mails('owner@example.com')).toHaveLength(0)
+  })
+
+  it('money review 2, WR-01: the driver confirms cash between the read and the adoption: decided again, refunded, never kept', async () => {
+    seedCash('card_saved')
+    const realRpc = db.client.rpc
+    let raced = false
+    db.client.rpc = (async (name: string, args?: Record<string, unknown>) => {
+      if (name === 'apply_payment_transition' && !raced) {
+        raced = true
+        bookingRow().payment_state = 'cash_settled'
+      }
+      return realRpc(name, args)
+    }) as typeof db.client.rpc
+    mockRefundCreate.mockResolvedValue({ id: 're_dup' })
+    expect((await deliver(eventOf('payment_intent.succeeded', lateCharge('pi_late6'), 'evt_late6'))).status).toBe(200)
+    expect(bookingRow().payment_state).toBe('cash_settled')
+    expect(mockRefundCreate).toHaveBeenCalledWith({ payment_intent: 'pi_late6' }, { idempotencyKey: `refund:${BOOKING_ID}:cash_dup:pi_late6` })
+    expect(mails('owner@example.com').some((m) => m.subject.includes('Duplicate payment'))).toBe(true)
+  })
+
   it('money review 2, CR-02: a row still capturing gets the observation, and the event is not consumed: 500, Stripe redelivers', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     seedCash('capturing')
