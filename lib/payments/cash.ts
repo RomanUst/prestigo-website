@@ -52,6 +52,16 @@ function isPartner(booking: BookingRow): boolean {
   }
 }
 
+const attemptsOf = (b: BookingRow): number =>
+  typeof b.charge_attempts === 'number' && Number.isInteger(b.charge_attempts) && b.charge_attempts >= 0 ? b.charge_attempts : 0
+
+/** The row's charge counter as stored now (read-only). Throws on a database problem: nothing has happened yet. */
+async function freshAttempts(bookingId: string): Promise<number> {
+  const { data, error } = await createSupabaseServiceClient().from('bookings').select('charge_attempts').eq('id', bookingId).maybeSingle()
+  if (error) throw new Error('cash booking read failed')
+  return attemptsOf((data as BookingRow | null) ?? {})
+}
+
 /** Number of ledger rows of a kind for a booking (read-only). */
 async function countEvents(bookingId: string, kind: 'cash_settled' | 'cash_reopened'): Promise<number> {
   const { count, error } = await createSupabaseServiceClient()
@@ -131,6 +141,11 @@ export async function settleCash(booking: BookingRow, actor: LedgerActor): Promi
 /**
  * The operator reverses a cash confirmation (D-22): cash_settled -> card_saved, with a note (1..500). The note is stored
  * first and removed again when the transition is not applied, so the history never holds a reversal that did not happen.
+ *
+ * Money review 2, WR-04: the reopened booking starts a fresh card charge attempt. A charge of the old attempt may have gone
+ * through late and been refunded (cash_dup) or refunded by hand; Stripe keeps answering its key chg:<id>:<n> with that
+ * succeeded PaymentIntent, so a charge click on the same attempt would record a payment whose money is gone. The counter only
+ * ever goes up: the higher of the stored and the freshly read value, plus one.
  */
 export async function reopenCash(booking: BookingRow, actor: LedgerActor, note: string): Promise<ReopenCashResult> {
   const bookingId = str(booking.id)
@@ -139,6 +154,7 @@ export async function reopenCash(booking: BookingRow, actor: LedgerActor, note: 
   if (note.trim().length === 0) return 'not_allowed'
 
   const settlements = await countEvents(bookingId, 'cash_settled')
+  const nextAttempt = Math.max(attemptsOf(booking), await freshAttempts(bookingId)) + 1
   const noteId = await addPaymentNote(bookingId, 'cash_reopen', note, actor)
   let moved: Awaited<ReturnType<typeof applyTransition>>
   try {
@@ -146,6 +162,7 @@ export async function reopenCash(booking: BookingRow, actor: LedgerActor, note: 
       bookingId,
       from: ['cash_settled'],
       to: 'card_saved',
+      patch: { charge_attempts: nextAttempt },
       event: { key: `cash_reopened:${bookingId}:${settlements}`, kind: 'cash_reopened', actor },
     })
   } catch (err) {

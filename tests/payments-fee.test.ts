@@ -43,7 +43,7 @@ vi.mock('@/lib/stripe-payment-links', () => ({ deactivateBookingPaymentLink: moc
 import type Stripe from 'stripe'
 import { settleBooking } from '@/lib/payments/settle'
 import { handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
-import { settleCash } from '@/lib/payments/cash'
+import { reopenCash, settleCash } from '@/lib/payments/cash'
 import {
   feeBaseFor,
   isFeeEligible,
@@ -663,6 +663,42 @@ describe('cash booking: the card is charged only when a person says so (D-21)', 
       expect(await settleBooking(ID, ADMIN, { collect: { kind: 'cash_card' } })).toMatchObject({ outcome: 'busy' })
       expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
     })
+  })
+
+  it('money review 2, WR-04: after a late charge was refunded and the cash confirmation reversed, a new charge really charges', async () => {
+    seed({ ...cash, stripe_customer_id: 'cus_1' })
+    // The charge of attempt 0 went through late and was refunded as a duplicate of the confirmed cash.
+    const late = (await fake.stripe.paymentIntents.create(
+      {
+        amount: 10000,
+        currency: 'eur',
+        customer: 'cus_1',
+        payment_method: 'pm_ok',
+        payment_method_types: ['card'],
+        off_session: true,
+        confirm: true,
+        metadata: { kind: 'card_charge', cofBookingId: ID, attempt: '0', bookingReference: 'PRG-20261101-FEE001' },
+      },
+      { idempotencyKey: `chg:${ID}:0` },
+    )) as { id: string }
+    await fake.stripe.refunds.create({ payment_intent: late.id }, { idempotencyKey: `refund:${ID}:cash_dup:${late.id}` })
+    expect(await settleCash(row(), { type: 'system', id: 'driver_trip' })).toBe('settled')
+    fake.calls.length = 0
+
+    expect(await reopenCash(row(), ADMIN, 'The driver confirmed by mistake')).toBe('reopened')
+    expect(row()).toMatchObject({ payment_state: 'card_saved', charge_attempts: 1 })
+
+    expect(await runCashCardCharge({ booking: row(), actor: ADMIN })).toEqual({ outcome: 'ok' })
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates.map((c) => [c.idempotencyKey, c.replayed])).toEqual([[`chg:${ID}:1`, false]])
+    expect(row().payment_intent_id).not.toBe(late.id)
+    expect(row()).toMatchObject({ payment_state: 'captured', captured_amount_minor: 10000 })
+  })
+
+  it('money review 2, WR-04: the charge counter only goes up on a reopen, also from a stale row', async () => {
+    seed({ ...cash, payment_state: 'cash_settled', charge_attempts: 3 })
+    expect(await reopenCash({ ...row(), charge_attempts: 1 }, ADMIN, 'Wrong confirmation')).toBe('reopened')
+    expect(row().charge_attempts).toBe(4)
   })
 
   it('success after the trip: the cash_unpaid receipt', async () => {
