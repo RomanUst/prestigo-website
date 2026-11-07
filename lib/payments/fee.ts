@@ -145,6 +145,17 @@ export function feeBaseFor(
   return baseMinor > 0 ? { baseMinor, currency: 'eur' } : null
 }
 
+/**
+ * The base of a new case as it is now. Pay-now: this row's share of what the PaymentIntent received, minus what went back,
+ * in its currency (CR-01, CR-03); null when nothing is left to keep. Card and cash rows: feeBaseFor. Throws when Stripe can
+ * not be read.
+ */
+export async function feeBaseNow(booking: BookingRow): Promise<{ baseMinor: number; currency: FeeCurrency } | null> {
+  if (booking.payment_mode !== 'pay_now') return feeBaseFor(booking)
+  const facts = await loadPayNowFacts(booking)
+  return facts.collectedMinor > 0 ? { baseMinor: facts.collectedMinor, currency: facts.currency } : null
+}
+
 export async function loadFeeCase(bookingId: string): Promise<FeeCaseRow | null> {
   const { data, error } = await createSupabaseServiceClient().from(TABLE).select('*').eq('booking_id', bookingId).maybeSingle()
   if (error) throw new Error('fee case lookup failed')

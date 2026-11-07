@@ -430,3 +430,72 @@ describe('CR-02 (public CR-01): one leg of a round trip is cancelled and refunde
     expect(legShareMinor(30000, 0, 0, 'return')).toBeNull()
   })
 })
+
+describe('CR-03: a fee on a leg of a round trip is capped by that leg, and the return leg gets a case too', () => {
+  const OUT_SHARE = 17000
+  const RET_SHARE = 13000
+
+  it('a late cancel of the outbound leg proposes its share, not the combined fare, in the payment currency', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    expect(await cancel(OUT, 'admin_client', LATE_NOW)).toMatchObject({ kind: 'ok', money: 'kept' })
+    expect(await loadFeeCase(OUT)).toMatchObject({ currency: 'eur', base_minor: OUT_SHARE, proposed_minor: OUT_SHARE })
+    expect(refunds()).toHaveLength(0)
+  })
+
+  it('a late cancel of the return leg, whose amount_eur is NULL, opens a case', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    expect(await cancel(RET, 'client_token', LATE_NOW, 'late')).toMatchObject({ kind: 'ok', outcome: 'late', money: 'kept' })
+    expect(await loadFeeCase(RET)).toMatchObject({ base_minor: RET_SHARE })
+  })
+
+  it('waiving one leg refunds that leg, tagged, and leaves the live leg alone', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    await cancel(OUT, 'admin_client', LATE_NOW)
+    expect((await fee(OUT, { action: 'waive', reason: 'Flight cancelled' })).status).toBe(200)
+    expect(refunds()).toHaveLength(1)
+    expect(refunds()[0].params).toMatchObject({ payment_intent: pi, amount: OUT_SHARE, metadata: { leg: 'outbound' } })
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(OUT_SHARE)
+    expect(rowOf(RET).status).toBe('confirmed')
+  })
+
+  it('a fee above the leg share is refused, whatever the combined fare is', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    await cancel(OUT, 'admin_client', LATE_NOW)
+    const res = await fee(OUT, { action: 'charge', amount_minor: OUT_SHARE + 1 })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'amount_above_cap' })
+    expect(refunds()).toHaveLength(0)
+  })
+
+  it('100% kept on one leg: a later cancel of the other leg refunds only its own share', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    await cancel(OUT, 'admin_client', LATE_NOW)
+    expect((await fee(OUT, { action: 'charge', amount_minor: OUT_SHARE })).status).toBe(200)
+    expect(refunds()).toHaveLength(0)
+
+    await cancel(RET, 'admin_client', FREE_NOW)
+    expect(refunds()).toHaveLength(1)
+    expect(refunds()[0].params).toMatchObject({ amount: RET_SHARE, metadata: { leg: 'return' } })
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(RET_SHARE)
+  })
+
+  it('with a promo the two leg caps add up to what was paid, so the second waive still fits', async () => {
+    // 4250 + 3250 CZK before the promo, 24,000 cents paid after it.
+    const pi = await paidPi(24000, 'eur')
+    seedRoundTrip(pi)
+    await cancel(OUT, 'admin_client', LATE_NOW)
+    await cancel(RET, 'admin_client', LATE_NOW)
+    const outCase = await loadFeeCase(OUT)
+    const retCase = await loadFeeCase(RET)
+    expect(outCase!.base_minor + retCase!.base_minor).toBe(24000)
+
+    expect((await fee(OUT, { action: 'waive', reason: 'Flight cancelled' })).status).toBe(200)
+    expect((await fee(RET, { action: 'waive', reason: 'Flight cancelled' })).status).toBe(200)
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(24000)
+  })
+})

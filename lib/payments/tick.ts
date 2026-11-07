@@ -705,7 +705,8 @@ const stepR: TickStep = {
       try {
         if (closed.has(caseRow.id) || !reminderDue(item, nowMs)) continue
         const noShow = caseRow.kind === 'no_show'
-        const result = await sendPaymentOperatorAlert('fee_pending_24h', booking, {
+        // A pay-now row has no payment_currency: the reminder speaks the currency of the case.
+        const result = await sendPaymentOperatorAlert('fee_pending_24h', { ...booking, payment_currency: caseRow.currency }, {
           eventKey: `alert:fee_pending:${caseRow.id}`,
           proposedMinor: caseRow.proposed_minor,
           freeUntil: caseRow.free_until,

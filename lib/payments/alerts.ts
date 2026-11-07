@@ -228,7 +228,7 @@ function buildFeeBody(kind: FeeAlertKind, booking: BookingRow, d: OperatorAlertD
     `Open in admin: ${siteBase()}/admin/bookings`,
     '',
     d.note === 'case_missing'
-      ? 'The client cancelled after the free period, but the fee case could not be opened, so there is nothing to charge or waive yet. Nothing is charged. Decide from the booking.'
+      ? `${kind === 'fee_no_show_needed' ? 'The no-show is confirmed' : 'The client cancelled after the free period'}, but the fee case could not be opened, so there is nothing to charge or waive yet. Nothing is charged. Decide from the booking.`
       : kind === 'fee_pending_24h'
         ? 'Nothing is charged until you decide. Charge or waive the fee from the booking.'
         : 'Charge or waive the fee from the booking.',
