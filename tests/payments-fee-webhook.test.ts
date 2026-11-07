@@ -520,6 +520,49 @@ describe('charge.dispute.created on a fee or cash card charge (T-89-74)', () => 
   })
 })
 
+describe('money WR-06: only a fee link closes a fee case', () => {
+  const oldLink = (attempt: string) => ({
+    id: 'pi_old_link',
+    object: 'payment_intent',
+    status: 'succeeded',
+    currency: 'eur',
+    amount: 10000,
+    amount_received: 10000,
+    metadata: { kind: 'card_recovery', cofBookingId: BOOKING_ID, attempt, bookingReference: REF },
+  })
+
+  it.each([['a declined hold', '1'], ['a declined charge', 'c1'], ['an operator link', 'admin-1700000000000']])(
+    'the link of %s paid after a late cancel is refunded: nobody decided a fee (D-05)',
+    async (_what, attempt) => {
+      Object.assign(bookingRow(), { payment_state: 'failed' })
+      seedCase({ proposed_minor: 10000 })
+      mockRefundCreate.mockResolvedValue({ id: 're_old' })
+
+      expect((await deliver(eventOf('payment_intent.succeeded', oldLink(attempt), `evt_old_${attempt}`))).status).toBe(200)
+
+      expect(mockRefundCreate).toHaveBeenCalledTimes(1)
+      expect(mockRefundCreate.mock.calls[0][0]).toEqual({ payment_intent: 'pi_old_link' })
+      expect(caseRow()).toMatchObject({ status: 'pending' })
+      expect(bookingRow().payment_state).toBe('failed')
+    },
+  )
+
+  it('the fee link itself still closes the case', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed' })
+    seedCase({ proposed_minor: 10000 })
+    expect((await deliver(eventOf('payment_intent.succeeded', oldLink('f2'), 'evt_fee_link'))).status).toBe(200)
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+    expect(caseRow()).toMatchObject({ status: 'charged' })
+  })
+
+  it('with no case a link closes the debt as before', async () => {
+    Object.assign(bookingRow(), { payment_state: 'failed', status: 'completed' })
+    expect((await deliver(eventOf('payment_intent.succeeded', oldLink('c1'), 'evt_no_case'))).status).toBe(200)
+    expect(bookingRow().payment_state).toBe('captured')
+    expect(mockRefundCreate).not.toHaveBeenCalled()
+  })
+})
+
 describe('money WR-04: a paid recovery link frees a hold that is still on the card', () => {
   const linkPayment = {
     id: 'pi_fee_link',
