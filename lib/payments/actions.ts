@@ -29,7 +29,7 @@ type BookingRow = Record<string, unknown>
 /** The actions runPaymentAction executes (the payment route's schema accepts exactly these). */
 export type ExecutablePaymentAction = 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
 /** Phase 89 decisions: shown by the matrix, executed by the fee route (they may carry an amount or a note). */
-export type FeeRouteAction = 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash'
+export type FeeRouteAction = 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash' | 'close_refunded'
 export type PaymentAction = ExecutablePaymentAction | FeeRouteAction
 
 export type PaymentActionResult =

@@ -1168,7 +1168,7 @@ describe('GET: fee_case and cash facts (admin only)', () => {
       base_minor: 12000,
       proposed_minor: 12000,
       decided_minor: 4000,
-      charge_requested_at: '2026-11-01T12:00:00.000Z',
+      charge_requested_at: new Date().toISOString(),
       free_until: null,
       evidence: {},
       reason: null,

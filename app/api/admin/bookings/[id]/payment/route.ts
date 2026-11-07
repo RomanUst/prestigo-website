@@ -4,7 +4,7 @@ import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { allowedPaymentActions, runPaymentAction, toPaymentFacts } from '@/lib/payments/actions'
-import { loadFeeCase, type FeeCaseRow } from '@/lib/payments/fee'
+import { feeLockIsLive, isMoneyCollected, loadFeeCase, REFUND_RESOLVED, type FeeCaseRow } from '@/lib/payments/fee'
 import { appendPaymentEvent } from '@/lib/payments/state'
 
 // Admin payment API of a card-hold booking (Phase 88, plan 88-15; HOLD-07, PAYF-01), the data source and the action
@@ -39,8 +39,6 @@ const actionSchema = z.discriminatedUnion('action', [
   z.strictObject({ action: z.literal('resolve_refund') }),
 ])
 
-/** error_code of the admin_action ledger row that closes the refund failures before it (88-REVIEW C-WR-05). */
-const REFUND_RESOLVED = 'refund_resolved'
 
 /**
  * A refund failure is open when the newest refund_failed row is newer than the newest "refund resolved" admin row.
@@ -103,7 +101,8 @@ function toFeeCaseFacts(c: FeeCaseRow) {
     base_minor: c.base_minor,
     // The amount actually charged: only once the case is charged (decided_minor is also the lock of a charge in flight).
     charged_minor: c.status === 'charged' ? c.decided_minor : null,
-    charge_in_flight: c.status === 'pending' && c.charge_requested_at !== null,
+    // A lock whose request can no longer be running is no charge in flight: the waive takes it over (money CR-04).
+    charge_in_flight: c.status === 'pending' && feeLockIsLive(c),
     free_until: c.free_until,
     opened_at: c.opened_at,
     decided_by: c.decided_by,
@@ -210,9 +209,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 
   const rows = (Array.isArray(events.data) ? events.data : []) as unknown as LedgerRow[]
+  const allowed = allowedPaymentActions(booking)
+  // Money CR-04: a failed refund of a pending case can be closed once the operator settled it by hand.
+  const closable = refundOpen && feeCase?.status === 'pending' && allowed.includes('waive_fee') && isMoneyCollected(booking, feeCase)
   return NextResponse.json({
     payment: toPaymentFacts(booking),
-    allowed_actions: allowedPaymentActions(booking),
+    allowed_actions: closable ? [...allowed, 'close_refunded'] : allowed,
     refund_failed: refundOpen,
     events: rows.map(toEvent),
     events_total: typeof events.count === 'number' ? events.count : rows.length,

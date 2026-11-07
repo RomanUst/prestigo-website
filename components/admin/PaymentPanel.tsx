@@ -8,6 +8,7 @@ import { FeeDecisionBanner } from './FeeDecisionBanner'
 import { FeeWaiveModal } from './FeeWaiveModal'
 import { MarkCashModal } from './MarkCashModal'
 import { ReopenCashModal } from './ReopenCashModal'
+import { FeeCloseRefundedModal } from './FeeCloseRefundedModal'
 import { Modal } from './Modal'
 import { AlertBanner, type BannerSpec, type DecisionResult } from './paymentParts'
 import {
@@ -48,7 +49,7 @@ export type { PaymentSnapshot, FeeCaseFacts, CashFacts }
 /** The five executable actions of POST /payment, and the display names executed by POST /fee (plan 89-12). */
 export type PaymentActionName =
   | 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
-  | 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash'
+  | 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash' | 'close_refunded'
 
 export interface PaymentEventRow {
   id: number
@@ -807,7 +808,7 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
 
 const EXECUTABLE_ACTIONS: readonly PaymentActionName[] = ['capture', 'retry', 'send_link', 'release', 'waive']
 const KNOWN_ACTIONS: readonly PaymentActionName[] = [
-  ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee', 'charge_saved_card', 'mark_cash_settled', 'reopen_cash',
+  ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee', 'charge_saved_card', 'mark_cash_settled', 'reopen_cash', 'close_refunded',
 ]
 
 const FEE_CASE_LABEL: Record<string, string> = {
@@ -898,6 +899,7 @@ function actionLabel(action: PaymentActionName, p: PaymentSnapshot): string {
     case 'charge_saved_card': return 'Charge saved card…'
     case 'mark_cash_settled': return 'Mark paid in cash…'
     case 'reopen_cash': return 'Reopen as unpaid…'
+    case 'close_refunded': return 'Close: refunded by hand…'
     case 'release': return p.mode === 'cash_guarantee' ? 'Release saved card' : 'Release hold'
     default: return actionButtonLabel(action, p.completed)
   }
@@ -1082,6 +1084,13 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
         isOpen={modal === 'reopen_cash'}
         bookingId={bookingId}
         payment={p}
+        onClose={closeDialog}
+        onResult={showResult}
+        onRefetch={onRefetch}
+      />
+      <FeeCloseRefundedModal
+        isOpen={modal === 'close_refunded'}
+        bookingId={bookingId}
         onClose={closeDialog}
         onResult={showResult}
         onRefetch={onRefetch}
