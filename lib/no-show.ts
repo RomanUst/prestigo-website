@@ -489,6 +489,11 @@ export async function confirmNoShow(input: {
     return { ok: false, code: 'conflict', message: 'status_conflict', currentStatus: booking.status }
   }
 
+  // A card charge is running on the row (cancelBooking answers busy too): no_show would leave it in capturing for good.
+  if (booking.payment_state === 'capturing') {
+    return { ok: false, code: 'conflict', message: 'status_conflict', currentStatus: booking.status }
+  }
+
   const nowMs = Date.now()
   const log = await readOnLocationMs(supabase, input.bookingId)
   // Money follows this status: an unreadable log is a refusal, not a guess.

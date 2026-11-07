@@ -273,6 +273,14 @@ describe('bookings that get a status and no case', () => {
     expect(mockAlert).not.toHaveBeenCalled()
   })
 
+  it('money IN-04: a card charge is running on the row: the no-show waits, as a cancel does', async () => {
+    seed({ payment_mode: 'cash_guarantee', payment_state: 'capturing' })
+    const res = await confirm()
+    expect(res.status).toBe(409)
+    expect(booking().status).toBe('on_location')
+    expect(db.state.booking_fee_cases).toHaveLength(0)
+  })
+
   it('a case that can not be opened never reverts the status (logged, 200)', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     seed({ payment_amount_minor: null })
