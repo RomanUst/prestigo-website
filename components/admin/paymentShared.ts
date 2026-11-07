@@ -192,12 +192,12 @@ export const COPY_SESSION = 'Your session has ended. Sign in again.'
 export const COPY_GONE = 'That action is no longer available. The panel shows the current state.'
 export const COPY_DECISION_GONE = 'That decision is no longer available. The panel shows the current state.'
 export const COPY_AMOUNT_LOCKED = 'A charge for another amount is already in progress. Wait for it to finish.'
-export const COPY_AMOUNT_OVER_CAP = 'The amount is more than the booking amount.'
+export const COPY_AMOUNT_OVER_CAP = 'The amount is more than the money still held for this booking.'
 export const COPY_NOTE_MISSING = 'Add a note about how you tried to reach the passenger.'
 export const COPY_REFUND_FAILED_CHARGE =
-  'The refund of the part above the fee did not go through, so the case stays open and the amount stays locked. Press Charge again to retry the same amount, or refund the client in the Stripe Dashboard. A different amount is refused until this one finishes. The operator alert was emailed to you.'
+  'The refund of the part above the fee did not go through, so the case stays open. Press Charge again to retry: only what is still missing is refunded, also after a refund you made in the Stripe Dashboard. If the Stripe answer was lost, another amount or a waive is possible after 10 minutes. The operator alert was emailed to you.'
 export const COPY_REFUND_FAILED_WAIVE =
-  'The refund did not go through, so the case stays open. Press Waive fee again to retry, or refund the client in the Stripe Dashboard. The operator alert was emailed to you.'
+  'The refund did not go through, so the case stays open. Press Waive fee again to retry: only what is still missing is refunded, also after a refund you made in the Stripe Dashboard. If you settled it another way, use Close: refunded by hand. The operator alert was emailed to you.'
 
 /** What a dialog does with an answer of the fee route. */
 export type DialogOutcome =

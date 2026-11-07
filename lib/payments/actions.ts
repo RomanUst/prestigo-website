@@ -7,9 +7,8 @@
 // Money safety (T-88-47, T-88-49):
 //   - no function here takes an amount: every amount is derived from the booking row by the engine. The one deliberate
 //     exception lives elsewhere: POST /api/admin/bookings/[id]/fee (Phase 89, D-14) takes an amount from an operator,
-//     validated against the fee case. The five Phase 89 names of PaymentAction below (charge_fee, waive_fee,
-//     charge_saved_card, mark_cash_settled, reopen_cash) are DISPLAY names for that route: runPaymentAction does not
-//     run them and the payment route's schema does not accept them;
+//     validated against the fee case. The Phase 89 names of PaymentAction below (FeeRouteAction) are DISPLAY names for that
+//     route: runPaymentAction does not run them and the payment route's schema does not accept them;
 //   - every action first appends an admin_action ledger row (the audit trail survives an engine failure);
 //   - capture / retry go through the engine's CAS claim, so a double click or a race with the completion consumer or
 //     the tick sweep produces one Stripe call and the loser answers 409 payment_busy.
