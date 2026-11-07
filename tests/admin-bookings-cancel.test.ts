@@ -120,6 +120,8 @@ function wireSupabase(opts: {
   rpcResult?: unknown
   /** The payment columns read again after the status CAS (88-REVIEW C-WR-01); default: the same booking. */
   fresh?: Record<string, unknown> | null
+  /** Another row shares this booking's PaymentIntent (a round trip). */
+  sibling?: boolean
 }) {
   const singleFn = vi.fn().mockResolvedValue({
     data: opts.booking,
@@ -128,7 +130,13 @@ function wireSupabase(opts: {
   const selectEq = vi.fn().mockReturnValue({ single: singleFn })
   const selectFn = vi.fn().mockReturnValue({ eq: selectEq })
   const freshMaybe = vi.fn().mockResolvedValue({ data: opts.fresh === undefined ? opts.booking : opts.fresh, error: null })
-  const freshSelect = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle: freshMaybe }) })
+  // neq is the sibling lookup of a shared PaymentIntent: no sibling here, trip_type says what a row is.
+  const freshSelect = vi.fn().mockReturnValue({
+    eq: vi.fn().mockReturnValue({
+      maybeSingle: freshMaybe,
+      neq: vi.fn().mockResolvedValue({ data: opts.sibling ? [{ id: 'sibling' }] : [], error: null }),
+    }),
+  })
 
   mockSupabaseFrom.mockReturnValueOnce({ select: selectFn }).mockReturnValue({ select: freshSelect })
   mockRpc.mockImplementation(async (name: string) => {
@@ -287,25 +295,27 @@ describe('POST /api/admin/bookings/cancel', () => {
     expectNoSideEffects()
   })
 
-  it('leg=return with return_amount_czk 2500: CAS first, then the partial refund amount, metadata.leg and key', async () => {
+  it('the return row, 12000 paid for 5000 + 2500 CZK: CAS first, then its share, metadata.leg and key, with no leg in the request', async () => {
     const { rpcFn } = wireSupabase({
       booking: {
         id: ID,
         status: 'confirmed',
         payment_intent_id: 'pi_rt',
+        leg: 'return',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 2500,
       },
     })
     mockRefundsCreate.mockResolvedValue({ id: 're_leg' })
 
-    const res = await POST(makeRequest({ id: ID, leg: 'return' }))
+    const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true, refund_id: 're_leg' })
     expect(mockRefundsCreate).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_rt',
-        amount: Math.round(czkToEur(2500) * 100),
+        amount: 4000,
         metadata: { leg: 'return' },
       },
       { idempotencyKey: `refund:${ID}:return` },
@@ -319,23 +329,25 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(JSON.stringify(rpcArgs)).not.toContain('pi_rt')
   })
 
-  it('leg=outbound uses outbound_amount_czk', async () => {
+  it('a stale tab that names the other leg changes nothing: the row decides', async () => {
     wireSupabase({
       booking: {
         id: ID,
         status: 'confirmed',
         payment_intent_id: 'pi_rt',
+        leg: 'outbound',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: 2500,
       },
     })
     mockRefundsCreate.mockResolvedValue({ id: 're_out' })
 
-    await POST(makeRequest({ id: ID, leg: 'outbound' }))
+    await POST(makeRequest({ id: ID, leg: 'return' }))
     expect(mockRefundsCreate).toHaveBeenCalledWith(
       {
         payment_intent: 'pi_rt',
-        amount: Math.round(czkToEur(5000) * 100),
+        amount: 8000,
         metadata: { leg: 'outbound' },
       },
       { idempotencyKey: `refund:${ID}:outbound` },
@@ -348,18 +360,21 @@ describe('POST /api/admin/bookings/cancel', () => {
         id: ID,
         status: 'confirmed',
         payment_intent_id: 'pi_rt',
+        leg: 'return',
+        trip_type: 'round_trip',
         outbound_amount_czk: 5000,
         return_amount_czk: null,
       },
+      sibling: true,
     })
-    const res = await POST(makeRequest({ id: ID, leg: 'return' }))
+    const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(422)
     expect(await res.json()).toEqual({
       error: 'Cannot compute per-leg refund: missing leg amount',
     })
     expect(mockRefundsCreate).not.toHaveBeenCalled()
     expect(mockRpc).not.toHaveBeenCalled()
-    expect(mockSupabaseFrom).toHaveBeenCalledTimes(1)
+    expect(mockSupabaseFrom).toHaveBeenCalledTimes(2) // reads only: the booking and its sibling
   })
 
   // ── D-20: a money failure after the cancel applied keeps the cancel ─────────────────────────
@@ -411,13 +426,21 @@ describe('POST /api/admin/bookings/cancel', () => {
   it('other Stripe error after the CAS: 502 refund_failed with the leg amount, key refund_failed:<id>:return', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     wireSupabase({
-      booking: { id: ID, status: 'pending', payment_intent_id: 'pi_boom', return_amount_czk: 2500 },
+      booking: {
+        id: ID,
+        status: 'pending',
+        payment_intent_id: 'pi_boom',
+        leg: 'return',
+        trip_type: 'round_trip',
+        outbound_amount_czk: 5000,
+        return_amount_czk: 2500,
+      },
     })
     mockRefundsCreate.mockRejectedValue(new Error('network down'))
 
-    const res = await POST(makeRequest({ id: ID, leg: 'return' }))
+    const res = await POST(makeRequest({ id: ID }))
     expect(res.status).toBe(502)
-    expect(await res.json()).toEqual({ error: 'refund_failed', cancelled: true, amount_minor: 12000, currency: 'eur' })
+    expect(await res.json()).toEqual({ error: 'refund_failed', cancelled: true, amount_minor: 4000, currency: 'eur' })
     expect(statusCalls()).toHaveLength(1)
     expect(ledgerCalls()).toHaveLength(1)
     expect((ledgerCalls()[0][1] as { p_event: { key: string; error_code: string } }).p_event).toMatchObject({

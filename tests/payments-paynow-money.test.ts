@@ -13,6 +13,7 @@ const { world, mockSendEmail, mockAlert, mockCancelMail, mockDeactivateLink } = 
   world: {
     db: null as unknown as FakePaymentsDb,
     stripe: null as unknown,
+    siblingLookupDown: false,
   },
   mockSendEmail: vi.fn(),
   mockAlert: vi.fn(),
@@ -34,7 +35,12 @@ async function advanceRpc(args: Record<string, unknown>) {
 vi.mock('@/lib/supabase/server', () => ({ getAdminUser: vi.fn(async () => ({ user: { id: ADMIN_ID }, error: null })) }))
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: () => ({
-    from: (table: string) => world.db.client.from(table),
+    from: (table: string) => {
+      const query = world.db.client.from(table) as unknown as Record<string, unknown>
+      // neq on bookings is the sibling lookup of a shared PaymentIntent: the one read a refund must not guess past.
+      if (world.siblingLookupDown && table === 'bookings') query.neq = async () => ({ data: null, error: { message: 'down' } })
+      return query
+    },
     rpc: (name: string, args?: Record<string, unknown>) =>
       name === 'advance_booking_status' ? advanceRpc(args ?? {}) : world.db.client.rpc(name, args),
   }),
@@ -61,6 +67,8 @@ vi.mock('next/server', async (importActual) => ({
 import { POST as FEE_POST } from '@/app/api/admin/bookings/[id]/fee/route'
 import { cancelBooking, type CancelBookingInput } from '@/lib/payments/cancel'
 import { isFeeEligible, loadFeeCase } from '@/lib/payments/fee'
+import { buildManageView } from '@/lib/manage-view'
+import { legShareMinor } from '@/lib/payments/pay-now'
 
 const OUT = '77777777-7777-4777-8777-777777777777'
 const RET = '66666666-6666-4666-8666-666666666666'
@@ -170,6 +178,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   fake = createFakeStripe()
   world.stripe = fake.stripe
+  world.siblingLookupDown = false
   mockSendEmail.mockResolvedValue('sent')
   mockAlert.mockResolvedValue('sent')
   mockDeactivateLink.mockResolvedValue(undefined)
@@ -287,5 +296,137 @@ describe('CR-01: the fee of a pay-now booking is in the currency and amount of t
     })
     expect((await fee(OUT, { action: 'waive', reason: 'Flight cancelled' })).status).toBe(422)
     expect(refunds()).toHaveLength(0)
+  })
+})
+
+describe('CR-02 (public CR-01): one leg of a round trip is cancelled and refunded alone, whoever asks', () => {
+  // 30,000 EUR cents paid for 4250 + 3250 CZK legs: outbound 17,000, return 13,000.
+  const OUT_SHARE = 17000
+  const RET_SHARE = 13000
+
+  it.each([
+    ['the client, through the manage link', 'client_token' as const, 'free' as const],
+    ['the operator for the client', 'admin_client' as const, undefined],
+    ['Prestigo', 'admin_prestigo' as const, undefined],
+  ])('%s cancels the return leg in time: only its share goes back, tagged with the leg', async (_who, initiator, acknowledge) => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+
+    const result = await cancel(RET, initiator, FREE_NOW, acknowledge)
+
+    expect(result).toMatchObject({ kind: 'ok', money: 'refunded', refundedMinor: RET_SHARE, currency: 'eur' })
+    expect(refunds()).toHaveLength(1)
+    expect(refunds()[0].params).toEqual({ payment_intent: pi, amount: RET_SHARE, metadata: { leg: 'return' } })
+    expect(refunds()[0].idempotencyKey).toBe(`refund:${RET}:return`)
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(RET_SHARE)
+    expect(rowOf(RET).status).toBe('cancelled')
+    expect(rowOf(OUT).status).toBe('confirmed')
+  })
+
+  it('the outbound row holds the combined amount_eur, its refund is still only its own share', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    await cancel(OUT, 'client_token', FREE_NOW, 'free')
+    expect(refunds()[0].params).toEqual({ payment_intent: pi, amount: OUT_SHARE, metadata: { leg: 'outbound' } })
+    expect(rowOf(RET).status).toBe('confirmed')
+  })
+
+  it('cancelling both legs one after the other returns exactly what was paid', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    await cancel(OUT, 'admin_client', FREE_NOW)
+    await cancel(RET, 'admin_client', FREE_NOW)
+    expect(fake.state.paymentIntents.get(pi)!.amount_refunded).toBe(30000)
+  })
+
+  it('a CZK round trip refunds the leg in CZK', async () => {
+    const pi = await paidPi(750000, 'czk')
+    seedRoundTrip(pi)
+    expect(await cancel(RET, 'admin_client', FREE_NOW)).toMatchObject({ refundedMinor: 325000, currency: 'czk' })
+  })
+
+  it('the sibling can not be looked up: nothing is written and nothing is refunded', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi)
+    world.siblingLookupDown = true
+    expect(await cancel(RET, 'admin_client', FREE_NOW)).toEqual({ kind: 'db_failed' })
+    expect(rowOf(RET).status).toBe('confirmed')
+    expect(refunds()).toHaveLength(0)
+  })
+
+  it('two rows share a payment but the leg amounts are gone: refused before any write', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi, { ret: { return_amount_czk: null } })
+    expect(await cancel(RET, 'admin_client', FREE_NOW)).toEqual({ kind: 'leg_amount_missing' })
+    expect(rowOf(RET).status).toBe('confirmed')
+    expect(refunds()).toHaveLength(0)
+  })
+
+  it('one-way rows also write leg outbound: they refund the whole payment with no leg', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi)
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ money: 'refunded', refundedMinor: 50000 })
+    expect(refunds()[0].params).toEqual({ payment_intent: pi })
+    expect(refunds()[0].idempotencyKey).toBe(`refund:${OUT}:full`)
+  })
+
+  describe('the manage page promises what cancelBooking does', () => {
+    const facts = (shareMinor: number, currency: 'eur' | 'czk' = 'eur') => ({
+      payNow: { currency, paidMinor: 30000, shareMinor, collectedMinor: shareMinor },
+    })
+    const manageRow = (over: Record<string, unknown>) => ({
+      ...BASE_ROW,
+      trip_type: 'round_trip',
+      booking_reference: 'PRG-RET',
+      payment_intent_id: 'pi_rt',
+      outbound_amount_czk: 4250,
+      return_amount_czk: 3250,
+      ...over,
+    })
+
+    it('the return row, whose amount_eur is NULL, shows the leg refund instead of "nothing charged"', () => {
+      const v = buildManageView(manageRow({ id: RET, leg: 'return', amount_eur: null }), facts(RET_SHARE), FREE_NOW)
+      expect(v.cancel).toMatchObject({ freeMoney: 'refund', refundMinor: RET_SHARE, payNow: true })
+      expect(v.fare).toEqual({ amountMinor: RET_SHARE, currency: 'eur' })
+      expect(v.payment).toMatchObject({ key: 'paidCard', amountMinor: RET_SHARE })
+    })
+
+    it('the outbound row does not show the combined total', () => {
+      const v = buildManageView(manageRow({ id: OUT, leg: 'outbound', amount_eur: 300 }), facts(OUT_SHARE), LATE_NOW)
+      expect(v.cancel).toMatchObject({ refundMinor: OUT_SHARE, proposedFeeMinor: OUT_SHARE, currency: 'eur' })
+    })
+
+    it('a CZK payment is shown in CZK', () => {
+      const v = buildManageView(manageRow({ id: RET, leg: 'return', amount_eur: null }), facts(325000, 'czk'), FREE_NOW)
+      expect(v.fare).toEqual({ amountMinor: 325000, currency: 'czk' })
+    })
+
+    it('Stripe could not be read: the leg estimate, never the combined total and never "nothing"', () => {
+      const out = buildManageView(manageRow({ id: OUT, leg: 'outbound', amount_eur: 300 }), {}, FREE_NOW)
+      expect(out.cancel?.freeMoney).toBe('refund')
+      expect(out.cancel?.refundMinor).toBeLessThan(30000)
+      const ret = buildManageView(manageRow({ id: RET, leg: 'return', amount_eur: null }), {}, FREE_NOW)
+      expect(ret.cancel?.freeMoney).toBe('refund')
+    })
+
+    it('a row still unpaid promises nothing: no refund, no payment line', () => {
+      const v = buildManageView(
+        manageRow({ id: OUT, leg: 'outbound', amount_eur: 300, status: 'unpaid', trip_type: 'transfer' }),
+        {},
+        FREE_NOW,
+      )
+      expect(v.cancel).toMatchObject({ freeMoney: 'none', refundMinor: null })
+      expect(v.payment).toBeNull()
+    })
+  })
+
+  it('legShareMinor: the two shares always add up to the payment', () => {
+    for (const paid of [1, 99, 30000, 1250001]) {
+      const out = legShareMinor(paid, 4250, 3250, 'outbound')!
+      const ret = legShareMinor(paid, 4250, 3250, 'return')!
+      expect(out + ret).toBe(paid)
+    }
+    expect(legShareMinor(30000, null, 3250, 'return')).toBeNull()
+    expect(legShareMinor(30000, 0, 0, 'return')).toBeNull()
   })
 })

@@ -7,6 +7,8 @@ import { cancelBooking, type CancelInitiator, type CancelResult } from '@/lib/pa
 
 // D-20: the dialog asks who cancelled and preselects nothing, so the field has no default. A request that does not say
 // is refused: a Prestigo cancel must never be charged to the client by omission, nor a client cancel waived by it.
+// `leg` is still accepted from a tab opened before this change and ignored: the server derives the leg from the row and
+// the shared PaymentIntent (money CR-02), it never trusts the caller to name it.
 const cancelSchema = z.object({
   id: z.string().uuid(),
   leg: z.enum(['outbound', 'return']).optional(),
@@ -74,7 +76,6 @@ export async function POST(request: Request) {
 
   const result = await cancelBooking({
     bookingId: parsed.data.id,
-    leg: parsed.data.leg,
     initiator,
     actor,
   })

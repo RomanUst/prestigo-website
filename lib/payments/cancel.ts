@@ -37,7 +37,7 @@ import { czkToEur } from '@/lib/currency'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { feeBaseFor, isFeeEligible, openFeeCase } from '@/lib/payments/fee'
 import { leaseLapsed, releaseHold } from '@/lib/payments/hold'
-import { loadPayNowFacts, type PayNowFacts } from '@/lib/payments/pay-now'
+import { loadPayNowFacts, resolvePayNowSplit, type PayNowFacts, type PayNowSplit } from '@/lib/payments/pay-now'
 import { RECOVERY_LINK_CLEARED, retireRecoveryLink } from '@/lib/payments/recovery-link'
 import { appendPaymentEvent, applyTransition, type LedgerActor, type PaymentState } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
@@ -71,8 +71,6 @@ export type CancelResult =
 
 export interface CancelBookingInput {
   bookingId: string
-  /** Pay-now round trips: which leg's amount is refunded or kept (the booking row is that leg's row, D-24). */
-  leg?: 'outbound' | 'return'
   initiator: CancelInitiator
   actor: LedgerActor
   /** client_token only: the outcome the client saw and confirmed. A different current outcome cancels nothing. */
@@ -357,25 +355,24 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
     return { kind: 'busy' }
   }
 
-  // The per-leg amount must be computable before any write (D-13, D-24).
-  let refundParams: Stripe.RefundCreateParams | null = null
+  // D-24, CR-02: which part of the payment this row stands for is the server's to know, from the row and the shared
+  // PaymentIntent, for every initiator. It must be known before any write (D-13): a guess here refunds both legs.
+  let split: PayNowSplit | null = null
   let legAmountCents: number | null = null
   if (refundsPayNow) {
-    refundParams = { payment_intent: booking.payment_intent_id as string }
-    if (input.leg) {
-      const legAmountCzk = input.leg === 'outbound' ? booking.outbound_amount_czk : booking.return_amount_czk
-      const czk = num(legAmountCzk)
-      if (czk === null) return { kind: 'leg_amount_missing' }
-      legAmountCents = Math.round(czkToEur(czk) * 100)
-      refundParams = {
-        payment_intent: booking.payment_intent_id as string,
-        amount: legAmountCents,
-        metadata: { leg: input.leg }, // Phase 27 webhook contract
-      }
+    try {
+      const resolved = await resolvePayNowSplit(booking)
+      if (resolved === 'leg_amount_missing') return { kind: 'leg_amount_missing' }
+      split = resolved
+    } catch {
+      console.error('[cancel] sibling lookup failed, nothing was changed', { bookingId })
+      return { kind: 'db_failed' }
     }
+    const legCzk = split.leg === 'outbound' ? split.outboundCzk : split.leg === 'return' ? split.returnCzk : null
+    if (legCzk !== null) legAmountCents = Math.round(czkToEur(legCzk) * 100)
   }
 
-  const legKey = input.leg ?? 'full'
+  const legKey = split?.leg ?? 'full'
   const statusActor: StatusActor = isClient
     ? { type: 'system', id: 'client_token' }
     : { type: 'admin', id: actor.id }
@@ -423,7 +420,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
   let payNowError: unknown = null
   if (refundsPayNow) {
     try {
-      payNow = await loadPayNowFacts(booking)
+      payNow = await loadPayNowFacts(booking, split ?? undefined)
     } catch (err) {
       payNowError = err
       console.error('[cancel] payment could not be read after the cancel applied', { bookingId })
@@ -598,10 +595,14 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
     }
   }
 
-  if (refundParams && !payNowEmpty) {
+  if (refundsPayNow && !payNowEmpty) {
     try {
-      if (payNowError) throw payNowError
-      const refund = await getPaymentsStripe().refunds.create(refundParams, {
+      if (!payNow) throw payNowError
+      // One row owns the payment: refund what is left of it. A leg: exactly its share, tagged (Phase 27 webhook contract).
+      const params: Stripe.RefundCreateParams = payNow.leg
+        ? { payment_intent: payNow.paymentIntentId, amount: payNow.collectedMinor, metadata: { leg: payNow.leg } }
+        : { payment_intent: payNow.paymentIntentId }
+      const refund = await getPaymentsStripe().refunds.create(params, {
         idempotencyKey: stripeKeys.refund(bookingId, legKey),
       })
       const refunded = failedAmount(booking, legAmountCents, false, null, payNow)

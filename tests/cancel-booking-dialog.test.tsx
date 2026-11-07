@@ -241,12 +241,12 @@ describe('CancelBookingDialog: the outcome table renders exactly one row', () =>
   it('a round-trip leg keeps the per-leg refund and paired-booking sentences', () => {
     renderDialog(makeBooking({
       payment_mode: 'pay_now', payment_state: 'none', payment_intent_id: 'pi_rt', amount_eur: 200,
-      leg: 'return', linked_booking_id: 'b-out', outbound_amount_czk: 5000, return_amount_czk: 4500,
+      leg: 'return', trip_type: 'round_trip', linked_booking_id: null, outbound_amount_czk: 5000, return_amount_czk: 4500,
       linked_booking: { booking_reference: 'PRE-OUT' }, ...IN_TIME,
     }))
     expect(screen.getByText(/The paired outbound booking PRE-OUT will NOT be affected and remains active\./)).toBeDefined()
     choose('The client')
-    expect(screen.getByText(/Refund: 4500 CZK for this leg only\./)).toBeDefined()
+    expect(screen.getByText(/Refund: about 4500 CZK for this leg only/)).toBeDefined()
   })
 })
 
@@ -306,18 +306,18 @@ describe('CancelBookingDialog: submit and errors', () => {
     expect(props.onCancelled).toHaveBeenCalledWith(booking, { released: true, late: false })
   })
 
-  it('a round-trip leg is posted with its leg and the late answer is reported', async () => {
+  it('a round-trip leg is posted without a leg (the server derives it) and the late answer is reported', async () => {
     const fetchMock = vi.fn().mockImplementation(() => reply(200, { ok: true, late: true }))
     vi.stubGlobal('fetch', fetchMock)
     const { props } = renderDialog(makeBooking({
-      payment_mode: 'pay_now', payment_state: 'none', payment_intent_id: 'pi', leg: 'outbound',
-      linked_booking_id: 'b-ret', outbound_amount_czk: 3000, return_amount_czk: 3000, ...LATE,
+      payment_mode: 'pay_now', payment_state: 'none', payment_intent_id: 'pi', leg: 'outbound', trip_type: 'round_trip',
+      linked_booking_id: null, outbound_amount_czk: 3000, return_amount_czk: 3000, ...LATE,
     }))
     choose('The client')
     fireEvent.click(primary())
     await waitFor(() => expect(props.onCancelled).toHaveBeenCalled())
     expect(JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string)).toEqual({
-      id: 'b1', leg: 'outbound', cancelled_by: 'client',
+      id: 'b1', cancelled_by: 'client',
     })
     expect(props.onCancelled.mock.calls[0][1]).toEqual({ released: false, late: true })
   })

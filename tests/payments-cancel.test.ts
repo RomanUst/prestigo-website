@@ -548,12 +548,12 @@ describe('the policy a booking was made under (D-18) and the case proposal (D-05
 })
 
 describe('pay-now round trips apply the policy per leg row (D-24)', () => {
-  const LEG = { ...PAY_NOW, return_amount_czk: 2500, outbound_amount_czk: 3000 }
+  const LEG = { ...PAY_NOW, trip_type: 'round_trip', return_amount_czk: 2500, outbound_amount_czk: 3000 }
 
-  it('free, leg=return: a partial refund of that leg only, with the leg key and metadata', async () => {
-    seed({ ...LEG, payment_intent_id: await paidPi(10000) })
-    const result = await run('admin_client', FREE_NOW, { leg: 'return' })
-    const cents = Math.round(czkToEur(2500) * 100)
+  it('free, the return row: a partial refund of that leg only, with the leg key and metadata', async () => {
+    seed({ ...LEG, leg: 'return', payment_intent_id: await paidPi(10000) })
+    const result = await run('admin_client', FREE_NOW)
+    const cents = 10000 - Math.round((10000 * 3000) / 5500) // the leg's share of what was paid
     expect(result).toMatchObject({ kind: 'ok', outcome: 'free', money: 'refunded', refundedMinor: cents, currency: 'eur' })
     const refunds = fake.callsTo('refunds.create')
     expect(refunds).toHaveLength(1)
@@ -561,9 +561,9 @@ describe('pay-now round trips apply the policy per leg row (D-24)', () => {
     expect(refunds[0].idempotencyKey).toBe(`refund:${ID}:return`)
   })
 
-  it('late, leg=outbound: no refund, the case is that leg (base = the leg amount)', async () => {
-    seed({ ...LEG, leg: 'outbound', trip_type: 'round_trip', payment_intent_id: await paidPi(10000) })
-    const result = await run('admin_client', LATE_NOW, { leg: 'outbound' })
+  it('late, the outbound row: no refund, the case is that leg (base = its share)', async () => {
+    seed({ ...LEG, leg: 'outbound', payment_intent_id: await paidPi(10000) })
+    const result = await run('admin_client', LATE_NOW)
     const cents = Math.round((10000 * 3000) / 5500) // the leg's share of what was paid
     expect(result).toMatchObject({ kind: 'ok', outcome: 'late', money: 'kept' })
     expect(fake.callsTo('refunds.create')).toHaveLength(0)
@@ -571,8 +571,10 @@ describe('pay-now round trips apply the policy per leg row (D-24)', () => {
   })
 
   it('a missing leg amount: leg_amount_missing before any write', async () => {
-    seed({ ...PAY_NOW, return_amount_czk: null, payment_intent_id: await paidPi(10000) })
-    expect(await run('admin_client', FREE_NOW, { leg: 'return' })).toEqual({ kind: 'leg_amount_missing' })
+    const paymentIntentId = await paidPi(10000)
+    seed({ ...PAY_NOW, leg: 'return', outbound_amount_czk: 3000, return_amount_czk: null, payment_intent_id: paymentIntentId })
+    db.state.bookings.push({ ...row(), id: 'sibling-outbound', leg: 'outbound' })
+    expect(await run('admin_client', FREE_NOW)).toEqual({ kind: 'leg_amount_missing' })
     expect(world.advanceCalls).toHaveLength(0)
     expect(fake.calls).toHaveLength(0)
   })

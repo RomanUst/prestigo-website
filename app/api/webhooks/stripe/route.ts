@@ -979,10 +979,18 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     return
   }
 
-  // Round-trip: two rows. Detect full vs partial.
+  // Round-trip: two rows. The refund itself says which leg it is for, so it is read first (money CR-02): the last leg's
+  // refund also brings the charge to "fully refunded", and that must not cancel the other leg. Webhook payloads no longer
+  // carry charge.refunds, so the list comes from Stripe; a read problem throws and Stripe redelivers (never a guess).
+  const refundList = charge.refunds?.data ?? (await getStripe().refunds.list({ charge: charge.id, limit: 100 })).data
+  const latestRefund = refundList.find((r) => r.status !== 'failed' && r.status !== 'canceled')
+  const legFromMeta = (latestRefund?.metadata?.leg as 'outbound' | 'return' | 'both' | undefined) ?? undefined
+  const taggedLeg = legFromMeta === 'outbound' || legFromMeta === 'return'
+
+  // A full refund nobody tagged (the Stripe Dashboard): the whole trip is off.
   const isFullRefund = charge.amount_refunded >= charge.amount
 
-  if (isFullRefund) {
+  if (isFullRefund && !taggedLeg) {
     // D-17 'both' equivalent — bulk update on PI
     const { error: updErr } = await supabase
       .from('bookings')
@@ -994,8 +1002,6 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
   }
 
   // Partial refund path
-  const latestRefund = charge.refunds?.data?.[0]
-  const legFromMeta = (latestRefund?.metadata?.leg as 'outbound' | 'return' | 'both' | undefined) ?? undefined
 
   // D-17 explicit 'both' signal
   if (legFromMeta === 'both') {
@@ -1008,8 +1014,7 @@ async function handleChargeRefunded(charge: Stripe.Charge): Promise<void> {
     return
   }
 
-  let targetLeg: 'outbound' | 'return' | null =
-    legFromMeta === 'outbound' || legFromMeta === 'return' ? legFromMeta : null
+  let targetLeg: 'outbound' | 'return' | null = taggedLeg ? legFromMeta : null
 
   // D-18 fallback: amount-matching when metadata.leg missing
   if (!targetLeg) {

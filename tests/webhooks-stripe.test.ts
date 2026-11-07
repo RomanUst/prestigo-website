@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // vi.hoisted ensures this runs before vi.mock factories AND before imports
 const { stripeStub } = vi.hoisted(() => {
   const constructEvent = vi.fn()
-  return { stripeStub: { constructEvent } }
+  return { stripeStub: { constructEvent, refundsList: vi.fn() } }
 })
 
 const { supabaseServiceStub } = vi.hoisted(() => {
@@ -74,6 +74,7 @@ vi.mock('stripe', () => {
     default: function MockStripe() {
       return {
         webhooks: stripeStub,
+        refunds: { list: stripeStub.refundsList },
       }
     },
   }
@@ -752,6 +753,72 @@ describe('Round-trip (Phase 27)', () => {
     // Update scoped to the return row id
     expect(chain.updateEq).toHaveBeenCalledWith('id', 'uuid-ret')
     // Outbound row NOT touched
+    expect(chain.updateEq).not.toHaveBeenCalledWith('id', 'uuid-out')
+  })
+
+  it('money CR-02: the leg refund that brings the charge to fully refunded cancels that leg only', async () => {
+    const chain = mockFromChain(ROUND_TRIP_ROWS)
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'charge.refunded',
+      data: {
+        object: {
+          amount: 658500,
+          amount_refunded: 658500, // FULL, through two leg refunds
+          refunded: true,
+          payment_intent: 'pi_test_rt',
+          refunds: {
+            data: [
+              { id: 're_2', amount: 315000, status: 'succeeded', metadata: { leg: 'return' } },
+              { id: 're_1', amount: 343500, status: 'succeeded', metadata: { leg: 'outbound' } },
+            ],
+          },
+        },
+      },
+    })
+    expect((await POST(makeRequest())).status).toBe(200)
+    expect(chain.updateEq).toHaveBeenCalledWith('id', 'uuid-ret')
+    expect(chain.updateEq).not.toHaveBeenCalledWith('id', 'uuid-out')
+    expect(chain.updateEq).not.toHaveBeenCalledWith('payment_intent_id', 'pi_test_rt')
+  })
+
+  it('money CR-02: a live event carries no charge.refunds, the leg is read from Stripe', async () => {
+    const chain = mockFromChain(ROUND_TRIP_ROWS)
+    stripeStub.refundsList.mockResolvedValue({
+      data: [{ id: 're_1', amount: 658500, status: 'succeeded', metadata: { leg: 'outbound' } }],
+    })
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'charge.refunded',
+      data: {
+        object: { id: 'ch_1', amount: 658500, amount_refunded: 658500, refunded: true, payment_intent: 'pi_test_rt' },
+      },
+    })
+    expect((await POST(makeRequest())).status).toBe(200)
+    expect(stripeStub.refundsList).toHaveBeenCalledWith({ charge: 'ch_1', limit: 100 })
+    expect(chain.updateEq).toHaveBeenCalledWith('id', 'uuid-out')
+    expect(chain.updateEq).not.toHaveBeenCalledWith('payment_intent_id', 'pi_test_rt')
+  })
+
+  it('money CR-02: a failed refund says nothing about the trip, the next one is read', async () => {
+    const chain = mockFromChain(ROUND_TRIP_ROWS)
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'charge.refunded',
+      data: {
+        object: {
+          amount: 658500,
+          amount_refunded: 315000,
+          refunded: true,
+          payment_intent: 'pi_test_rt',
+          refunds: {
+            data: [
+              { id: 're_2', amount: 343500, status: 'failed', metadata: { leg: 'outbound' } },
+              { id: 're_1', amount: 315000, status: 'succeeded', metadata: { leg: 'return' } },
+            ],
+          },
+        },
+      },
+    })
+    expect((await POST(makeRequest())).status).toBe(200)
+    expect(chain.updateEq).toHaveBeenCalledWith('id', 'uuid-ret')
     expect(chain.updateEq).not.toHaveBeenCalledWith('id', 'uuid-out')
   })
 
