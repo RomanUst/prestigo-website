@@ -67,11 +67,19 @@
       "faqs": [
         {
           "q": "Puis-je annuler ma réservation ?",
-          "a": "Oui. Annulation gratuite jusqu'à 1 heure avant l'heure de prise en charge prévue. Toute annulation ultérieure peut faire l'objet de frais."
+          "a": "Oui. L'annulation est gratuite jusqu'à {freeHoursShort, plural, one {{freeHoursShort} heure} other {{freeHoursShort} heures}} avant la prise en charge pour les trajets de {km} km maximum, jusqu'à {freeHoursLong, plural, one {{freeHoursLong} heure} other {{freeHoursLong} heures}} avant pour les trajets plus longs et jusqu'à {freeHoursHourly, plural, one {{freeHoursHourly} heure} other {{freeHoursHourly} heures}} avant pour les réservations à l'heure. Ensuite, des frais pouvant aller jusqu'à {percent} % du montant de la réservation peuvent s'appliquer. Une personne chez Prestigo décide de chaque débit et peut y renoncer. Vous annulez depuis le lien de l'e-mail de confirmation."
         },
         {
           "q": "Puis-je modifier l'heure de prise en charge ?",
-          "a": "Oui, à tout moment avant le trajet. Contactez directement votre chauffeur ou utilisez le portail de réservation."
+          "a": "Oui, vous pouvez demander une modification à tout moment avant le trajet, depuis le lien de l'e-mail de confirmation ou en nous contactant. Une modification est une demande : nous la confirmons lorsque le chauffeur et le véhicule sont disponibles, et rien ne change tant que vous n'avez pas reçu notre confirmation."
+        },
+        {
+          "q": "Que se passe-t-il si je ne me présente pas ?",
+          "a": "Le chauffeur attend {waitCityMin, plural, one {{waitCityMin} minute} other {{waitCityMin} minutes}} pour une prise en charge en ville et {waitAirportMin, plural, one {{waitAirportMin} minute} other {{waitAirportMin} minutes}} pour une prise en charge à l'aéroport. Passé ce délai, une personne chez Prestigo décide de facturer ou non des frais d'absence pouvant aller jusqu'au tarif complet. Rien n'est débité automatiquement."
+        },
+        {
+          "q": "Pourquoi ma carte est-elle enregistrée si je paie le chauffeur en espèces ?",
+          "a": "La carte enregistrée n'est qu'une garantie. Une personne chez Prestigo ne la débite qu'en cas d'annulation tardive, d'absence ou de trajet non payé. Si vous payez le chauffeur en espèces comme convenu, votre carte n'est pas débitée."
         }
       ]
     },

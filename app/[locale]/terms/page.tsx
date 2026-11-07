@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+// ISR: the cancellation numbers in section 4 come from the admin settings (D-24); a changed setting shows within 5 minutes.
+export const revalidate = 300
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import { fillPolicyDeep, getPolicyNumbers } from '@/lib/cancellation-wording'
 
 type TermsContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -222,7 +224,9 @@ function buildSections(content: TermsContent, locale: string) {
 
 export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
-  const content = getPageContent('terms', locale) as TermsContent
+  const raw = getPageContent('terms', locale) as TermsContent
+  // Only section 4 holds policy variables; the numbers are read through the guarded settings reader (defaults on any failure).
+  const content: TermsContent = { ...raw, section4: fillPolicyDeep(raw.section4, await getPolicyNumbers(), locale) }
   const sections = buildSections(content, locale)
 
   return (

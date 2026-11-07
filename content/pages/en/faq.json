@@ -67,11 +67,19 @@
       "faqs": [
         {
           "q": "Can I cancel my booking?",
-          "a": "Yes. Free cancellation up to 1 hour before the scheduled pickup. Later cancellations may be subject to a fee."
+          "a": "Yes. Cancellation is free up to {freeHoursShort, plural, one {{freeHoursShort} hour} other {{freeHoursShort} hours}} before pickup on trips of up to {km} km, up to {freeHoursLong, plural, one {{freeHoursLong} hour} other {{freeHoursLong} hours}} on longer trips and up to {freeHoursHourly, plural, one {{freeHoursHourly} hour} other {{freeHoursHourly} hours}} on hourly bookings. After that, a fee of up to {percent}% of the booking amount may apply. A person at Prestigo decides every charge and may waive it. You cancel from the link in your confirmation email."
         },
         {
           "q": "Can I change the pickup time?",
-          "a": "Yes, at any time before the journey. Contact your driver directly or use the booking portal."
+          "a": "Yes, you can ask for a change at any time before the journey, from the link in your confirmation email or by contacting us. A change is a request: we confirm it once the driver and the car are available, and nothing changes until you receive our confirmation."
+        },
+        {
+          "q": "What happens if I do not show up?",
+          "a": "The driver waits {waitCityMin, plural, one {{waitCityMin} minute} other {{waitCityMin} minutes}} for a pickup in the city and {waitAirportMin, plural, one {{waitAirportMin} minute} other {{waitAirportMin} minutes}} for a pickup at the airport. After that, a person at Prestigo decides whether to charge a no-show fee of up to the full fare. Nothing is charged automatically."
+        },
+        {
+          "q": "Why is my card saved if I pay cash to the driver?",
+          "a": "The saved card is only a guarantee. A person at Prestigo charges it only for a late cancellation, a no-show or a ride that was not paid. If you pay the driver in cash as agreed, your card is not charged."
         }
       ]
     },

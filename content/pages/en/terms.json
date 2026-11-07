@@ -33,23 +33,23 @@
     "items": [
       {
         "label": "Free cancellation",
-        "desc": "Up to 1 hour before the scheduled pickup time — full refund, no questions asked."
+        "desc": "You can cancel free of charge up to {freeHoursShort, plural, one {{freeHoursShort} hour} other {{freeHoursShort} hours}} before pickup on trips of up to {km} km, up to {freeHoursLong, plural, one {{freeHoursLong} hour} other {{freeHoursLong} hours}} before pickup on longer trips, and up to {freeHoursHourly, plural, one {{freeHoursHourly} hour} other {{freeHoursHourly} hours}} before pickup on hourly bookings. You cancel from the link in your confirmation email, and the deadline for your booking is shown there. A payment made in advance is refunded in full, and a hold on your card is released."
       },
       {
         "label": "Late cancellation",
-        "desc": "Less than 1 hour before pickup — up to 100% of the booking amount may be charged."
+        "desc": "If you cancel after that deadline but before pickup, a fee of up to {percent}% of the booking amount may apply. A person at Prestigo decides every charge, may reduce or waive it, and nothing is charged automatically."
       },
       {
         "label": "No-show",
-        "desc": "If you do not cancel and do not appear at the pickup location, the full booking amount is charged."
+        "desc": "If you are not at the pickup point and do not cancel, the driver waits {waitCityMin, plural, one {{waitCityMin} minute} other {{waitCityMin} minutes}} for a pickup in the city and {waitAirportMin, plural, one {{waitAirportMin} minute} other {{waitAirportMin} minutes}} for a pickup at the airport. After that wait, a person at Prestigo decides whether to charge a no-show fee of up to the full fare. Nothing is charged automatically."
       },
       {
-        "label": "Flight cancellation",
-        "desc": "If your flight is cancelled, we offer a full refund or free rebooking at your choice."
+        "label": "Saved card as a guarantee",
+        "desc": "When you book, we save your card with Stripe as a guarantee. This also applies to bookings you pay in cash to the driver. The card is charged only by a person at Prestigo, and only for a late cancellation, a no-show or a ride that was not paid."
       },
       {
-        "label": "Refund processing",
-        "desc": "Refunds are returned to the original payment method within 5–10 business days."
+        "label": "Refunds",
+        "desc": "Refunds are returned to the original payment method, usually within 5–10 business days. If your flight is cancelled, you get a full refund or a new booking, at your choice."
       }
     ]
   },
