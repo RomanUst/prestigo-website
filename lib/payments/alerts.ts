@@ -84,6 +84,8 @@ export interface OperatorAlertDetails {
   openedAt?: string | null
   /** client_cancelled: what happened to the money (default 'none'). */
   moneyOutcome?: 'released' | 'refunded' | 'none'
+  /** client_cancelled: after the free period, with nothing a fee could be taken from. */
+  late?: boolean
   /** change_request: the client's own words. Escaped in the mail, never written to the ledger. */
   message?: string
 }
@@ -262,7 +264,7 @@ function buildClientCancelledBody(booking: BookingRow, d: OperatorAlertDetails):
     `Client name: ${clientName(booking)}`,
     `Pickup (Prague): ${pickupOf(booking)}`,
     '',
-    `Free cancellation. ${money}`,
+    d.late ? 'Late cancellation. No fee can be taken.' : `Free cancellation. ${money}`,
   ].join('\n')
 }
 

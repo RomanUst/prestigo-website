@@ -192,7 +192,8 @@ function freeNotice(initiator: CancelInitiator, money: CancelNotice['moneyOutcom
  * Everyone who must know about a cancel that applied, besides the client's mail (sent inline by runCancel):
  *   - the assigned driver, at once, on every path (D-03; the trip is cancelled whatever happens to the money);
  *   - the operator: a late cancel (decision needed), a late cancel whose case could not be opened (the orphan of plan
- *     89-08: without this alert nobody would ever see it), a client's own in-time cancel (client_cancelled).
+ *     89-08: without this alert nobody would ever see it), every other cancel by the client (client_cancelled, flagged late
+ *     when no fee could be taken: a group-paid trip dropped late must reach the office too).
  * All of it runs after the response, each part isolated: a failed email never changes the result of a cancel.
  */
 function scheduleCancelNotices(input: CancelBookingInput, applied: AppliedCancel, result: CancelResult): void {
@@ -223,11 +224,12 @@ function scheduleCancelNotices(input: CancelBookingInput, applied: AppliedCancel
         ...detailsBase,
       }),
     )
-  } else if (result.kind === 'ok' && isClient && result.outcome === 'free') {
+  } else if (result.kind === 'ok' && isClient) {
     alerts.push(() =>
       sendPaymentOperatorAlert('client_cancelled', booking, {
         eventKey: `alert:client_cancelled:${bookingId}`,
         moneyOutcome: result.money === 'released' ? 'released' : result.money === 'refunded' ? 'refunded' : 'none',
+        ...(result.outcome === 'late' ? { late: true } : {}),
         ...(result.money === 'refunded' && result.refundedMinor !== undefined ? { amountMinor: result.refundedMinor } : {}),
       }),
     )

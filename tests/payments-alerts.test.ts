@@ -223,6 +223,15 @@ describe('refund_failed on a booking paid in cash (money WR-10)', () => {
   })
 })
 
+describe('client_cancelled after the free period (public WR-06)', () => {
+  it('says the cancel was late and that no fee can be taken', async () => {
+    await sendPaymentOperatorAlert('client_cancelled', row(), { eventKey: key('client_cancelled'), moneyOutcome: 'none', late: true })
+    const text = String(sent()[0].text)
+    expect(text).toContain('Late cancellation. No fee can be taken.')
+    expect(text).not.toContain('Free cancellation')
+  })
+})
+
 describe('client_cancelled', () => {
   it.each([
     ['released', 'Free cancellation. Hold released.'],
