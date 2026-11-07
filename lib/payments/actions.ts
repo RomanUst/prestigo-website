@@ -78,7 +78,9 @@ const isTripStatus = (status: string): boolean => CASH_TRIP_STATUSES.includes(st
  *
  * Phase 89 (display names, executed by the fee route):
  *   charge_fee, waive_fee   a cancelled or no-show booking with a PENDING fee case whose money can still be taken or was
- *                           collected (isFeeEligible). Release is NOT offered next to them: it would destroy the fee.
+ *                           collected (isFeeEligible). Release is NOT offered next to them: it would destroy the fee. A pending
+ *                           case with nothing left to take (a card released under it) keeps waive_fee, which closes it with
+ *                           no money step: no case may stay pending for good (money WR-03).
  *                           A closed booking with no case keeps release (to free a hold or card that is still there) and,
  *                           where a fee could still be taken, open_fee_case: the case failed to open (money WR-02). The fee
  *                           route decides from the row whether that cancel was late at all. A cancelled pay-now row gets it
@@ -103,9 +105,10 @@ export function allowedPaymentActions(booking: BookingRow): PaymentAction[] {
   const closed = CLOSED_STATUSES.has(status)
 
   // Phase 89: a pending fee case on a closed booking is decided by a person; nothing else is offered next to it.
-  if (closed && booking.fee_case_status === 'pending' && isFeeEligible(booking)) {
+  if (closed && booking.fee_case_status === 'pending') {
     const busy = state === 'capturing' || (state === 'placing_hold' && !stalePlacement)
-    return busy ? [] : ['charge_fee', 'waive_fee']
+    if (busy) return []
+    return isFeeEligible(booking) ? ['charge_fee', 'waive_fee'] : ['waive_fee']
   }
 
   const openable: PaymentAction[] =

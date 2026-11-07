@@ -262,16 +262,26 @@ describe('a cancelled or no-show booking never ends with a hold (88-REVIEW A-WR-
     expect(mockSendEmail).not.toHaveBeenCalled()
   })
 
-  it('no_show while a declined hold is recorded: released, no payment_failed email and no recovery link', async () => {
+  it('no_show while a declined hold is recorded: the card stays for the fee, no payment_failed email and no recovery link', async () => {
     seed({ stripe_payment_method_id: 'pm_decline_insufficient' })
     const claimed = fresh()
     row().status = 'no_show'
     const res = await placeHold(claimed, ACTOR)
     expect(res).toEqual({ outcome: 'skipped', code: 'booking_closed' })
-    expect(row().payment_state).toBe('released')
+    expect(row().payment_state).toBe('card_saved')
     expect(ledger('hold_failed')).toHaveLength(0)
     expect(fake.callsTo('paymentLinks.create')).toHaveLength(0)
     expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+
+  it('money WR-03: a late cancel lands during the placement, before its case exists: the card is kept, the fee stays possible', async () => {
+    seed({ pickup_utc: new Date(Date.now() + 1800_000).toISOString(), trip_type: 'transfer', distance_km: 50 })
+    const claimed = fresh()
+    row().status = 'cancelled'
+    expect((await placeHold(claimed, ACTOR)).code).toBe('booking_closed')
+    expect(row().payment_state).toBe('card_saved')
+    const piId = [...fake.state.paymentIntents.keys()][0]
+    expect(fake.state.paymentIntents.get(piId)!.status).toBe('canceled') // the authorization itself is still voided
   })
 
   it('a void that fails still releases and leaves the refund_failed trail for the operator', async () => {

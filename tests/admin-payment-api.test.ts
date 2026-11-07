@@ -969,10 +969,10 @@ describe('Phase 89 matrix: pending fee case, cash bookings (D-05, D-21, D-22)', 
       ).toEqual([])
     })
 
-    it('nothing where there is nothing to take: released, cash_settled, pay_now without a payment, partner', () => {
-      expect(pending({ payment_mode: 'card_hold', payment_state: 'released', status: 'cancelled', stripe_payment_method_id: 'pm_1' })).toEqual([])
-      expect(pending({ payment_mode: 'cash_guarantee', payment_state: 'cash_settled', status: 'cancelled' })).toEqual(['reopen_cash'])
-      expect(pending({ payment_mode: 'pay_now', payment_state: 'none', status: 'cancelled' })).toEqual([])
+    it('nothing to take: only the waive that closes the case (money WR-03: released, cash_settled, pay_now without a payment); partner nothing', () => {
+      expect(pending({ payment_mode: 'card_hold', payment_state: 'released', status: 'cancelled', stripe_payment_method_id: 'pm_1' })).toEqual(['waive_fee'])
+      expect(pending({ payment_mode: 'cash_guarantee', payment_state: 'cash_settled', status: 'cancelled' })).toEqual(['waive_fee'])
+      expect(pending({ payment_mode: 'pay_now', payment_state: 'none', status: 'cancelled' })).toEqual(['waive_fee'])
       expect(pending({ payment_mode: 'partner', payment_state: 'none', status: 'cancelled', booking_source: 'gnet' })).toEqual([])
       expect(pending({ payment_mode: 'card_hold', payment_state: 'authorized', status: 'cancelled', booking_source: 'gnet' })).toEqual([])
     })

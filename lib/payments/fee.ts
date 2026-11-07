@@ -84,6 +84,8 @@ const NOTE_MAX = 1000
 export const REFUND_RESOLVED = 'refund_resolved'
 /** No request holding the amount lock outlives its lease (lib/payments/stripe.ts sizes it for the longest Stripe chain). */
 const FEE_LOCK_LIVE_MS = LEASE_SECONDS * 1000
+/** Payment states of a card or cash row with nothing a waive would have to free. */
+const NOTHING_TO_RELEASE: ReadonlySet<string> = new Set(['released', 'none', '', 'cash_settled'])
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
@@ -793,8 +795,13 @@ export async function waiveFee(input: {
   } else if (booking.payment_mode === 'card_hold' || booking.payment_mode === 'cash_guarantee') {
     const released = await releaseHold(booking, { actor, reason: 'operator' })
     if (released === 'busy') return { error: 'payment_busy' }
-    // noop is fine only when an earlier attempt already released it (a crash before the case was closed).
-    if (released === 'noop' && str(booking.payment_state) !== 'released') return { error: 'action_not_allowed' }
+    // noop is fine only when nothing is held: an earlier attempt released it (a crash before the case was closed), the card
+    // was released under the case (WR-03), or the booking was settled in cash.
+    if (released === 'noop') {
+      const state = str(booking.payment_state)
+      if (!NOTHING_TO_RELEASE.has(state)) return { error: 'action_not_allowed' }
+      if (state !== 'released') moneyOutcome = 'none'
+    }
   } else {
     return { error: 'action_not_allowed' }
   }

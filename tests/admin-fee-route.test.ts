@@ -803,6 +803,27 @@ describe('partner bookings answer action_not_allowed on every action', () => {
   })
 })
 
+describe('money WR-03: a pending case can always be closed, whatever happened to the card', () => {
+  it('a case on a released row: only the waive is offered, and it closes with no money step', async () => {
+    await seedWithHold({ payment_state: 'released', hold_payment_intent_id: null })
+    await openCase()
+    expect(allowedPaymentActions(row())).toEqual(['waive_fee'])
+
+    expect((await post({ action: 'waive', reason: 'card was already gone' })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    expect(fake.calls.filter((c) => c.method !== 'paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('a case on a cash booking settled in cash: the waive closes it, the row stays settled', async () => {
+    seed({ payment_mode: 'cash_guarantee', payment_state: 'cash_settled', hold_payment_intent_id: null })
+    await openCase()
+    expect((await post({ action: 'waive', reason: 'paid in cash' })).status).toBe(200)
+    expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
+    expect(row().payment_state).toBe('cash_settled')
+    expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_waived', moneyOutcome: 'none' })
+  })
+})
+
 describe('money WR-02: a case that failed to open can still be opened', () => {
   const noShowLog = () => db.state.booking_fee_cases
 
