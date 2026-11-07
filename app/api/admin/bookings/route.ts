@@ -558,8 +558,10 @@ export async function PATCH(request: Request) {
       // checkout, and since Phase 88 a card booking's amount is what the engine charges after the trip (a raise is
       // charged to the saved card, D-16). A card booking therefore keeps its agreed amount unless the operator set the
       // amount explicitly (override_price): an address fix or a vehicle edit alone never changes what the client pays.
-      const cardKeepsAgreed = current.payment_mode === 'card_hold' && parsed.data.override_price !== true
-      const cardExplicit = current.payment_mode === 'card_hold' && parsed.data.override_price === true
+      // Money WR-09: the same for a cash booking, whose amount is what the driver collects and the card can be charged (D-12).
+      const agreedAmount = current.payment_mode === 'card_hold' || current.payment_mode === 'cash_guarantee'
+      const cardKeepsAgreed = agreedAmount && parsed.data.override_price !== true
+      const cardExplicit = agreedAmount && parsed.data.override_price === true
 
       if (priceDiverges && !parsed.data.override_price && !cardKeepsAgreed) {
         return NextResponse.json(

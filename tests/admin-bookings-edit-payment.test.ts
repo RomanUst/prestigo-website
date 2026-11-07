@@ -191,6 +191,34 @@ describe('PATCH trip-edit — card booking payment hook', () => {
     expect(mockApplyTransition).not.toHaveBeenCalled()
   })
 
+  describe('money WR-09: a cash booking keeps the amount the client agreed to (D-12)', () => {
+    const cash = () => cardBooking({ payment_mode: 'cash_guarantee', payment_state: 'card_saved' })
+
+    it('an address fix leaves the promo price alone, whatever the recompute says', async () => {
+      wire(cash())
+      const res = await PATCH(patchRequest({ id: ID, origin_address: 'Prague Airport Terminal 2', amount_czk: 3000 }))
+      expect(res.status).toBe(200)
+      const body = await res.json()
+      expect(body.payment_effect).toEqual({ kind: 'amount_kept', currency: 'eur', amount_minor: 12000, standard_czk: 1500 })
+      expect(updates[0]).not.toHaveProperty('amount_czk')
+      expect(updates[0]).not.toHaveProperty('amount_eur')
+    })
+
+    it('even a submitted list price does not re-price it', async () => {
+      wire(cash())
+      const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 1500 }))
+      expect(res.status).toBe(200)
+      expect(updates[0]).not.toHaveProperty('amount_czk')
+    })
+
+    it('an explicit amount from the operator is taken as entered', async () => {
+      wire(cash())
+      const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 1510, override_price: true }))
+      expect(res.status).toBe(200)
+      expect(updates[0]).toMatchObject({ amount_czk: 1510 })
+    })
+  })
+
   it('88-REVIEW A-WR-11: even a submitted list-price amount does not re-price a card booking without override_price', async () => {
     wire(cardBooking())
     const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 1500 }))
