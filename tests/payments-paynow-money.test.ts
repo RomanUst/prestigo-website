@@ -68,7 +68,7 @@ import { POST as FEE_POST } from '@/app/api/admin/bookings/[id]/fee/route'
 import { cancelBooking, type CancelBookingInput } from '@/lib/payments/cancel'
 import { isFeeEligible, loadFeeCase } from '@/lib/payments/fee'
 import { buildManageView } from '@/lib/manage-view'
-import { attributeUntagged, legShareMinor } from '@/lib/payments/pay-now'
+import { attributeUntagged, legShareMinor, resolvePayNowSplit } from '@/lib/payments/pay-now'
 
 const OUT = '77777777-7777-4777-8777-777777777777'
 const RET = '66666666-6666-4666-8666-666666666666'
@@ -439,6 +439,26 @@ describe('CR-02 (public CR-01): one leg of a round trip is cancelled and refunde
     }
     expect(legShareMinor(30000, null, 3250, 'return')).toBeNull()
     expect(legShareMinor(30000, 0, 0, 'return')).toBeNull()
+  })
+})
+
+describe('legs exist only on round trips: a shared payment of other rows is never split', () => {
+  const GROUP = '55555555-5555-4555-8555-555555555555'
+
+  it('a one-way row that shares its PaymentIntent with another row (a group payment) is never a leg', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi)
+    db.state.bookings.push({ ...BASE_ROW, id: GROUP, trip_type: 'transfer', leg: null, booking_reference: 'PRG-GROUP', payment_intent_id: pi })
+    expect(await resolvePayNowSplit(rowOf(OUT))).toEqual({ leg: null, outboundCzk: null, returnCzk: null })
+    // Not refused as a round trip with missing leg amounts: the cancel goes through like any one-way row.
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ kind: 'ok', money: 'refunded' })
+  })
+
+  it('a round-trip row does not count a non-round-trip row sharing the payment as its sibling', async () => {
+    const pi = await paidPi(30000, 'eur')
+    seedRoundTrip(pi, { ret: { trip_type: 'transfer', return_amount_czk: null, outbound_amount_czk: null } })
+    // Only the outbound row is a round-trip leg; the other row is not its sibling, so the outbound leg keeps its own share.
+    expect(await resolvePayNowSplit(rowOf(OUT))).toEqual({ leg: 'outbound', outboundCzk: 4250, returnCzk: 3250 })
   })
 })
 

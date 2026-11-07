@@ -5,7 +5,7 @@
 // of a round trip (the outbound row's amount_eur is the combined total, the return row's is NULL). So every decision about
 // pay-now money reads the PaymentIntent: its currency, what it received and what was refunded from it.
 //
-// A row pays for a leg when it shares its PaymentIntent with a sibling row. linked_booking_id is NOT used: no insert path in
+// A round_trip row pays for a leg when it shares its PaymentIntent with a sibling round_trip row. linked_booking_id is NOT used: no insert path in
 // this repo writes it (buildRoundTripBookings, create_round_trip_bookings), so the sibling is found through the shared
 // payment_intent_id, as app/api/admin/bookings/[id]/payment-link/route.ts does. A leg's share is its part of what was
 // actually paid, the same split as the checkout preview (app/api/card-checkout/init/route.ts): the two shares always add
@@ -106,20 +106,23 @@ export async function resolvePayNowSplit(booking: BookingRow): Promise<PayNowSpl
   const outboundCzk = num(booking.outbound_amount_czk)
   const returnCzk = num(booking.return_amount_czk)
   const whole: PayNowSplit = { leg: null, outboundCzk: null, returnCzk: null }
-  if (!paymentIntentId || !leg) return whole
+  // Only a round trip has legs. Every other row owns its payment whole: a one-way row always writes leg 'outbound', and rows
+  // that share one Stripe payment for another reason (a group payment link, metadata.groupBookingIds) are never two legs.
+  if (!paymentIntentId || !leg || booking.trip_type !== 'round_trip') return whole
 
   const { data, error } = await createSupabaseServiceClient()
     .from('bookings')
     .select('id')
     .eq('payment_intent_id', paymentIntentId)
+    .eq('trip_type', 'round_trip')
     .neq('id', str(booking.id))
   if (error) throw new Error('sibling lookup failed')
   const hasSibling = Array.isArray(data) && data.length > 0
 
   const splittable = legShareMinor(100, outboundCzk, returnCzk, leg) !== null
   if (hasSibling) return splittable ? { leg, outboundCzk, returnCzk } : 'leg_amount_missing'
-  // A round trip whose other row is gone still only owns its leg; a one-way row always writes leg 'outbound'.
-  return booking.trip_type === 'round_trip' && splittable ? { leg, outboundCzk, returnCzk } : whole
+  // A round trip whose other row is gone still only owns its leg.
+  return splittable ? { leg, outboundCzk, returnCzk } : whole
 }
 
 /** The refunds of a PaymentIntent that count (a failed or canceled refund gave nothing back). Newest first. */
