@@ -560,7 +560,9 @@ $$;
 -- == 6. Grants ==
 -- SECURITY DEFINER functions get PUBLIC EXECUTE by default: revoke it, then grant to service_role only.
 -- erasure_payment_open is internal (called by the definer functions above): revoked, not granted.
+-- Supabase default privileges grant new public functions to service_role as well: the helper is revoked from it too.
 REVOKE EXECUTE ON FUNCTION public.erasure_payment_open(uuid[]) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_payment_open(uuid[]) FROM service_role;
 REVOKE EXECUTE ON FUNCTION public.erasure_record_step(uuid, text, jsonb) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_confirm(uuid, uuid) FROM PUBLIC, anon, authenticated;
 REVOKE EXECUTE ON FUNCTION public.erasure_anonymise_person(uuid) FROM PUBLIC, anon, authenticated;

@@ -127,7 +127,7 @@ BEGIN
   IF public.erasure_payment_open(ARRAY[v_id]) <> 0 THEN
     RAISE EXCEPTION 'SMOKE_FAIL captured-counted-as-open';
   END IF;
-  UPDATE public.bookings SET payment_state = 'card_saved', pickup_utc = now() + interval '2 days' WHERE id = v_id;
+  UPDATE public.bookings SET payment_state = 'card_saved', pickup_date = to_char((now() + interval '2 days') AT TIME ZONE 'Europe/Prague', 'YYYY-MM-DD'), pickup_time = '12:00' WHERE id = v_id;  -- pickup_utc is generated from these
   v_open := public.erasure_payment_open(ARRAY[v_id]);
   IF v_open <> (CASE WHEN v_status = 'cancelled' THEN 0 ELSE 1 END) THEN
     RAISE EXCEPTION 'SMOKE_FAIL future-card_saved-count: % (status %)', v_open, v_status;
