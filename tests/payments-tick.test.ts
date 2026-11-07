@@ -1246,6 +1246,29 @@ describe('step R: finish interrupted charges, repair closed money, reconcile cas
     })
   }
 
+  it('money WR-08: an anonymised booking is left alone: no retry, no settle, no notice to an erased address', async () => {
+    const erased = hoursAhead(-1)
+    const A = '99999999-9999-4999-8999-999999999995'
+    const B = '99999999-9999-4999-8999-999999999996'
+    const C = '99999999-9999-4999-8999-999999999997'
+    seed([
+      // Step B: the one automatic retry is due.
+      dueBooking({ id: A, status: 'completed', completed_at: hoursAhead(-30), payment_state: 'failed', payment_retry_count: 0, payment_retry_at: hoursAhead(-1), anonymised_at: erased }),
+      // Step C: a completed trip waiting to be settled.
+      dueBooking({ id: B, status: 'completed', completed_at: hoursAhead(-2), payment_state: 'card_saved', hold_at: null, anonymised_at: erased }),
+      // Step F: a recent failure whose notices were never delivered.
+      dueBooking({ id: C, status: 'completed', completed_at: hoursAhead(-2), payment_state: 'failed', payment_retry_count: 1, payment_failed_at: hoursAhead(-1), anonymised_at: erased }),
+    ])
+    db.state.booking_payment_events.push({ booking_id: C, event_key: 'charge_failed:none:0', kind: 'charge_failed', to_state: 'failed', created_at: hoursAhead(-1) })
+
+    await GET(okRequest())
+
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(row(A).payment_state).toBe('failed')
+    expect(row(B).payment_state).toBe('card_saved')
+    expect(mockFailure).not.toHaveBeenCalled()
+  })
+
   it('CR-05: an interrupted cash card charge with no payment at Stripe is never charged: the row is free again and the operator told', async () => {
     seed([cashRow()])
     const out = await (await GET(okRequest())).json()

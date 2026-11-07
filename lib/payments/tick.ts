@@ -222,6 +222,8 @@ const stepC: TickStep = {
         .not('completed_at', 'is', null)
         .neq('status', 'cancelled')
         .neq('status', 'no_show')
+        // Money WR-08: an erased person's row: the Customer is gone and any notice would go to an erased address.
+        .is('anonymised_at', null)
 
     const nowIso = ctx.now.toISOString()
     const [waiting, stuck, stuckPlacing, failedDone] = await Promise.all([
@@ -282,6 +284,7 @@ const stepB: TickStep = {
       .eq('payment_mode', 'card_hold')
       .eq('payment_state', 'failed')
       .eq('payment_retry_count', 0)
+      .is('anonymised_at', null)
       .lte('payment_retry_at', ctx.now.toISOString())
       .order('payment_retry_at', { ascending: true })
       .limit(HOLD_CLAIM_LIMIT)
@@ -450,6 +453,7 @@ const stepF: TickStep = {
       // Phase 89: a row with a fee case failed on a fee (or on a cash charge) whose notices are keyed by phase 'fee'; the
       // ledger can not tell that from a trip charge, so a re-drive here would send the wrong notice for the wrong amount.
       .is('fee_case_status', null)
+      .is('anonymised_at', null)
       .gte('payment_failed_at', new Date(nowMs - LEASE_SEARCH_AFTER_MS).toISOString())
       .order('payment_failed_at', { ascending: true })
       .limit(HOLD_CLAIM_LIMIT)
