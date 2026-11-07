@@ -463,8 +463,8 @@ describe('waive (D-05, D-07)', () => {
     expect(res.status).toBe(200)
 
     expect(refundCalls()).toHaveLength(1)
-    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}`)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000 })
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:12000`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { fee_case: c.id } })
     expect(fake.state.paymentIntents.get(piId)?.amount_refunded).toBe(12000)
     expect(await loadFeeCase(ID)).toMatchObject({ status: 'waived' })
     expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_waived', moneyOutcome: 'refunded', refundMinor: 12000 })
@@ -472,9 +472,9 @@ describe('waive (D-05, D-07)', () => {
 
   it('a pay-now leg row refunds the leg amount and keeps the leg in the metadata', async () => {
     const piId = await seedPayNow({ leg: 'return', trip_type: 'round_trip', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
-    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { leg: 'return' } })
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { fee_case: c.id, leg: 'return' } })
     expect(fake.state.paymentIntents.get(piId)?.amount_refunded).toBe(12000)
   })
 
@@ -490,8 +490,8 @@ describe('waive (D-05, D-07)', () => {
     })
     const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'waive', reason: 'goodwill' })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000 })
-    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 12000, metadata: { fee_case: c.id } })
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:12000`)
     expect(row().payment_state).toBe('captured')
   })
 
@@ -507,7 +507,7 @@ describe('waive (D-05, D-07)', () => {
     expect(await res.json()).toEqual({ error: 'refund_failed' })
     expect(await loadFeeCase(ID)).toMatchObject({ status: 'pending', reason: null })
     expect(ledger('refund_failed')).toHaveLength(1)
-    expect(ledger('refund_failed')[0]).toMatchObject({ event_key: `refund_failed:${ID}:fee:${c.id}`, amount_minor: 12000 })
+    expect(ledger('refund_failed')[0]).toMatchObject({ event_key: `refund_failed:${ID}:fee:${c.id}:12000`, amount_minor: 12000 })
     expect(ledger('waived')).toHaveLength(0)
     expect(mockAlert).toHaveBeenCalledTimes(1)
     expect(mockAlert.mock.calls[0][0]).toBe('refund_failed')
@@ -558,17 +558,17 @@ describe('charge on money that is already collected (D-07)', () => {
     expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
     expect(fake.callsTo('paymentIntents.create').length).toBe(1) // only the seeded payment
     expect(refundCalls()).toHaveLength(1)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 7000 })
-    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 7000, metadata: { fee_case: c.id } })
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:7000`)
     expect(await loadFeeCase(ID)).toMatchObject({ status: 'charged', decided_minor: 5000, reason: 'late' })
     expect(mockSendEmail.mock.calls[0][0]).toMatchObject({ kind: 'fee_charged', variant: 'late_cancel', feeMinor: 5000 })
   })
 
   it('pay-now leg row: the leg stays in the refund metadata', async () => {
     const piId = await seedPayNow({ leg: 'outbound', trip_type: 'round_trip', outbound_amount_czk: 3000, return_amount_czk: 3000 }, 24000)
-    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'charge', amount_minor: 4000 })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 8000, metadata: { leg: 'outbound' } })
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 8000, metadata: { fee_case: c.id, leg: 'outbound' } })
   })
 
   it('a fee equal to what was collected refunds nothing', async () => {
@@ -591,7 +591,8 @@ describe('charge on money that is already collected (D-07)', () => {
     })
     await openCase({ baseMinor: 12000, proposedMinor: 12000 })
     expect((await post({ action: 'charge', amount_minor: 3000 })).status).toBe(200)
-    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 9000 })
+    expect(refundCalls()[0].params).toMatchObject({ payment_intent: piId, amount: 9000 })
+    expect(refundCalls()[0].params.metadata).not.toHaveProperty('leg')
     expect(fake.callsTo('paymentIntents.capture')).toHaveLength(0)
   })
 
@@ -800,6 +801,61 @@ describe('partner bookings answer action_not_allowed on every action', () => {
     expect(fake.calls.filter((c) => c.method !== 'paymentIntents.create')).toHaveLength(0)
     expect(ledger()).toHaveLength(0)
     expect(notes()).toHaveLength(0)
+  })
+})
+
+describe('money WR-05: every fee refund is its own decision and is on record', () => {
+  it('the key carries the amount and the refund names its case, so two decisions never share a key', async () => {
+    const piId = await seedPayNow()
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    expect((await post({ action: 'charge', amount_minor: 5000 })).status).toBe(200)
+    expect(refundCalls()[0].idempotencyKey).toBe(`refund:${ID}:fee:${c.id}:7000`)
+    expect(refundCalls()[0].params).toEqual({ payment_intent: piId, amount: 7000, metadata: { fee_case: c.id } })
+  })
+
+  it('the refund id is in the ledger as soon as Stripe answered, with the amount and no free text', async () => {
+    await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(200)
+    const row = ledger('admin_action').find((e) => e.error_code === 'fee_refund')
+    expect(row).toMatchObject({ amount_minor: 12000, currency: 'eur' })
+    expect(String(row!.stripe_object_id)).toMatch(/^re_/)
+    expect(row!.event_key).toBe(`fee_refund:${row!.stripe_object_id}`)
+  })
+
+  it('a waive that timed out but executed, then a 40% charge: no idempotency error and no refund on top', async () => {
+    const piId = await seedPayNow()
+    await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    // The waive reached Stripe, its answer did not reach us.
+    const real = fake.stripe.refunds.create
+    fake.stripe.refunds.create = async (params: Record<string, unknown>, options?: { idempotencyKey?: string }) => {
+      await real(params, options)
+      throw Object.assign(new Error('timed out'), { type: 'StripeConnectionError' })
+    }
+    expect((await post({ action: 'waive', reason: 'flight cancelled' })).status).toBe(502)
+    fake.stripe.refunds.create = real
+    const before = refundCalls().length
+
+    const res = await post({ action: 'charge', amount_minor: 4800 })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed' })
+    expect(refundCalls()).toHaveLength(before)
+    expect(fake.state.paymentIntents.get(piId)?.amount_refunded).toBe(12000)
+  })
+
+  it('each failed amount is on record and alerted, not only the first', async () => {
+    const declined = () => new FakeStripeError('StripeInvalidRequestError', 'no', { code: 'charge_disputed', statusCode: 400 })
+    await seedPayNow()
+    const c = await openCase({ baseMinor: 12000, proposedMinor: 12000 })
+    fake.failNextWithError('refunds.create', declined())
+    await post({ action: 'charge', amount_minor: 6000 })
+    fake.failNextWithError('refunds.create', declined())
+    await post({ action: 'waive', reason: 'goodwill' })
+    expect(ledger('refund_failed').map((e) => e.event_key)).toEqual([
+      `refund_failed:${ID}:fee:${c.id}:6000`,
+      `refund_failed:${ID}:fee:${c.id}:12000`,
+    ])
+    expect(mockAlert.mock.calls.filter((a) => a[0] === 'refund_failed')).toHaveLength(2)
   })
 })
 

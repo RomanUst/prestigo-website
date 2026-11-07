@@ -24,8 +24,10 @@
 //                         refunded in full, the case becomes waived with the operator's reason (D-05, D-07);
 //   - chargeFromCollected the operator keeps a fee out of money ALREADY collected (a pay-now booking, or a card booking that
 //                         was captured): nothing is charged again, the rest is refunded (D-07).
-// Both refund through one deterministic Stripe key, refund:<bookingId>:fee:<caseId>, so a retry replays. A refund that
-// fails leaves a refund_failed ledger row and an operator alert, and the case stays pending (D-20).
+// Both refund through a deterministic Stripe key, refund:<bookingId>:fee:<caseId>:<amount>: a repeat of one decision replays,
+// another decision gets its own key and never an idempotency error. The refund names its case (metadata.fee_case) and its
+// id goes into the ledger the moment Stripe answers. A refund that fails leaves a refund_failed ledger row and an operator
+// alert, and the case stays pending (D-20).
 //
 // The money of a decision is what Stripe still holds at that moment, never what the case or the row remembers: a refund
 // made by hand in the Dashboard (or an earlier attempt whose answer was lost) lowers it, so a repeat can not refund on top
@@ -621,21 +623,42 @@ async function afterRefundFailure(
 }
 
 /**
- * Refund part of the payment that collected the money, with the deterministic key of the case and always an explicit
- * amount in the payment's currency. The leg stays in the metadata of a leg row (the Phase 27 webhook reads it there).
+ * Refund part of the payment that collected the money, with the deterministic key of this decision and always an explicit
+ * amount in the payment's currency. The refund carries its case, and on a leg row its leg (the Phase 27 webhook reads it
+ * there). Its id is on record as soon as Stripe answers: a crash before the case closes leaves the fact behind.
  */
-async function refundForCase(booking: BookingRow, caseRow: FeeCaseRow, amountMinor: number, leg: PaymentLeg | null): Promise<string> {
+async function refundForCase(
+  booking: BookingRow,
+  caseRow: FeeCaseRow,
+  amountMinor: number,
+  leg: PaymentLeg | null,
+  actor: LedgerActor,
+): Promise<string> {
   const bookingId = str(booking.id)
   const paymentIntentId = str(booking.payment_intent_id)
   if (!paymentIntentId) throw new Error('no_payment_intent')
   const params: Stripe.RefundCreateParams = {
     payment_intent: paymentIntentId,
     amount: amountMinor,
-    ...(leg ? { metadata: { leg } } : {}),
+    metadata: { fee_case: caseRow.id, ...(leg ? { leg } : {}) },
   }
   const refund = await getPaymentsStripe().refunds.create(params, {
-    idempotencyKey: stripeKeys.refund(bookingId, `fee:${caseRow.id}`),
+    idempotencyKey: stripeKeys.refund(bookingId, `fee:${caseRow.id}:${amountMinor}`),
   })
+  try {
+    await appendPaymentEvent(bookingId, {
+      key: `fee_refund:${refund.id}`,
+      kind: 'admin_action',
+      stripeObjectId: refund.id,
+      amountMinor,
+      currency: caseRow.currency,
+      errorCode: 'fee_refund',
+      actor,
+    })
+  } catch {
+    // The money moved; Stripe keeps the refund with its case, and moneyHeld reads it from there.
+    console.error('[fee] refund id not recorded', { bookingId, caseId: caseRow.id, stripeObjectId: refund.id })
+  }
   return refund.id
 }
 
@@ -652,7 +675,7 @@ async function refundFailed(
   console.error('[fee] refund failed', { bookingId, caseId: caseRow.id, code })
   try {
     await appendPaymentEvent(bookingId, {
-      key: `refund_failed:${bookingId}:fee:${caseRow.id}`,
+      key: `refund_failed:${bookingId}:fee:${caseRow.id}:${amountMinor}`,
       kind: 'refund_failed',
       amountMinor,
       currency: caseRow.currency,
@@ -666,7 +689,7 @@ async function refundFailed(
     await sendPaymentOperatorAlert(
       'refund_failed',
       { ...booking, payment_currency: caseRow.currency },
-      { eventKey: `alert:refund_failed:${bookingId}:fee:${caseRow.id}`, code, amountMinor },
+      { eventKey: `alert:refund_failed:${bookingId}:fee:${caseRow.id}:${amountMinor}`, code, amountMinor },
     )
   } catch {
     console.error('[fee] refund_failed alert not sent', { bookingId })
@@ -724,7 +747,7 @@ export async function chargeFromCollected(input: {
   const refundMinor = collected - amountMinor
   if (refundMinor > 0) {
     try {
-      await refundForCase(booking, caseRow, refundMinor, held.leg)
+      await refundForCase(booking, caseRow, refundMinor, held.leg, actor)
     } catch (err) {
       await afterRefundFailure(booking, caseRow, refundMinor, err, actor)
       return { error: 'refund_failed' }
@@ -736,7 +759,7 @@ export async function chargeFromCollected(input: {
 /**
  * Waive the fee of a pending case (D-05): the operator's reason goes on the case row (never the ledger or a client mail).
  *   a live hold or a saved card       released, nothing charged;
- *   money still held                  refunded in full (key refund:<id>:fee:<caseId>); a failed refund leaves refund_failed
+ *   money still held                  refunded in full (key refund:<id>:fee:<caseId>:<amount>); a failed refund leaves refund_failed
  *                                     and an alert and the case stays pending;
  *   money already back (by hand)      nothing more moves, the case closes;
  *   a charge for this case in flight  payment_busy (a waive never races a charge that took the amount lock). A lock whose
@@ -781,7 +804,7 @@ export async function waiveFee(input: {
 
   if (collected > 0) {
     try {
-      await refundForCase(booking, current, collected, held.leg)
+      await refundForCase(booking, current, collected, held.leg, actor)
     } catch (err) {
       await afterRefundFailure(booking, current, collected, err, actor)
       return { error: 'refund_failed' }
