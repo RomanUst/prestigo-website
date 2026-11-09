@@ -1,0 +1,1 @@
+No external API integration: Phase 90 is internal admin UI over existing internal routes (new admin-only GET /api/admin/bookings/dispatch over the existing admin_search_bookings RPC, existing PATCH, cancel, no-show and assign routes); @dnd-kit/core is a client UI library, not a service.
