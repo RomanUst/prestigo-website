@@ -93,3 +93,11 @@
 
 - Не добавляем другие адреса в canary-список и не включаем `on`: это план 89-23.
 - Тексты (`feat/89-wording`) на сайт ещё не выложены; условия на продакшене пока старые.
+
+## Часть F: включение (89-23)
+
+- Формулировки: PR #94 смёржен 2026-11-09 (merge 0608b977), прод-деплой prestigo-site-77itn1nop (после redeploy из-за Google Fonts flake), алиас rideprestigo.com.
+- Проверено после деплоя: /, /terms ("Last updated: 9 November 2026"), /faq, /ru/faq, /book, /llms.txt, /robots.txt → 200.
+- Флаг: владелец выбрал «All clients». `pricing_globals.card_flow_mode = 'on'` прочитано 2026-11-09 16:30 UTC (Supabase MCP). Канари-список не менялся.
+- Откат: Admin → Settings → Card payment → Off (новые брони снова pay-now, старые сохраняют свою политику).
+- Не проверено на живых деньгах: D2–D13 (отложено владельцем). Первая бронь не-канари клиента: проверить payment_mode, cancel_policy_version, text_version.
