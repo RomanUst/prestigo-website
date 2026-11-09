@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v5.0
 milestone_name: Payments, Quotes & Day Trips
-current_phase: 89
-current_phase_name: cancellation-policy-cash-guarantee-no-show
-status: phase_complete
+current_phase: 90
+current_phase_name: Dispatch Views
+status: executing
 stopped_at: Phase 90 context gathered
-last_updated: "2026-11-09T20:39:37.273Z"
+last_updated: "2026-11-09T21:40:16.736Z"
 last_activity: 2026-11-09
 last_activity_desc: Phase 89 go-live (PR
-state_head: 8754638f99909ee01fab56cecf8d0078485a5698
+state_head: 9d5be226ad46bf7e7dd04cb9b035a7cca59fa3b5
 progress:
   total_phases: 9
   completed_phases: 4
-  total_plans: 78
+  total_plans: 87
   completed_plans: 78
-  percent: 44
+  percent: 0
 ---
 
 # Project State
@@ -29,12 +29,12 @@ See: .planning/PROJECT.md (updated 2026-11-02)
 
 ## Current Position
 
-Phase: 89 (cancellation-policy-cash-guarantee-no-show) — COMPLETE 2026-11-09
+Phase: 90 (Dispatch Views) — READY TO EXECUTE
 Plan: 28 of 28
-Status: Phase complete; live for all clients; D2-D13 live money checks deferred (human verification)
+Status: Ready to execute
 Last activity: 2026-11-09 — PR #94 merged, card_flow_mode on 16:30 UTC, verification 5/5 human_needed
 
-Progress: [████░░░░░░] 44% (4/9 phases)
+Progress: [░░░░░░░░░░] 0% (4/9 phases)
 
 ## Accumulated Context
 

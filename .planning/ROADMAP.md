@@ -385,14 +385,21 @@ Plans:
 **Plans**: 9 plans
 
 Plans:
+**Wave 1**
 - [ ] 90-01-PLAN.md — Extract BookingDetailPanel and useBookingMoves from BookingsTable in place (Step A, behaviour-preserving, table suite untouched)
 - [ ] 90-02-PLAN.md — Prague calendar math, trip-duration move, dispatch ranges and remembered-view cookies (pure, TZ/DST-tested)
 - [ ] 90-03-PLAN.md — Admin-only GET /api/admin/bookings/dispatch range route (security) and the 30 s polling hook with pause rules
 - [ ] 90-04-PLAN.md — Pure move planner (UI_TRANSITIONS only), CompleteTripDialog with the capture effect, @dnd-kit install (orchestrator) and React 19 spike
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 90-05-PLAN.md — List opens bookings in the shared right-hand side panel (Step B, D-02/D-03): BookingPanelProvider, Escape guard, dirty pause
 - [ ] 90-06-PLAN.md — Shared move routing in useBookingMoves: requestMove, driver picker, toast, no optimism, double-submit guard
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 90-07-PLAN.md — Kanban board: ten columns, drag-and-drop and card menu, allowed-column highlight, card content, ranges, polling
 - [ ] 90-08-PLAN.md — Calendar: day/week/month in Prague time, status colours, Show all, remembered view, polling
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 90-09-PLAN.md — Bookings workspace: List/Board/Calendar tabs, shared filters, remembered view in cookie and URL, server page
 
 **UI hint**: yes
