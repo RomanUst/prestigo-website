@@ -18,6 +18,7 @@
 | cancel_fee_percent | 100 % |
 | Брони с сохранённой политикой не от тебя | 0 (всего с политикой: 0) |
 | Fee-кейсов | 0 |
+| Повторная проверка через 24 ч (2026-11-08 23:11 UTC) | чужих политик 0, всего 0, кейсов 0, флаг `canary`, список без изменений: **pass** |
 
 Правила, от которых зависят тесты:
 - Новый поток видит только адрес `ustyugov.roman.payment@gmail.com`. Бронируй **с этим адресом**, кроме D6.
@@ -30,26 +31,26 @@
 
 | # | Шаг | Ожидаем | Результат |
 |---|---|---|---|
-| A1 | Radar → Settings: включить «Use Radar on payment methods saved for future use» | включено | pending |
-| A2 | Settings → Billing / Pricing: какой у тебя тариф (blended или IC+) | записать ответ | pending |
-| A3 | Settings → Business details: MCC (категория) | 4121 (Taxicabs / Limousines) | pending |
+| A1 | Radar → Settings: включить «Use Radar on payment methods saved for future use» | включено | pass: уже включено (кнопка «Turn off» в Setup Intents; Stripe берёт плату за каждую попытку подтверждения SetupIntent; 2026-11-09) |
+| A2 | Settings → Billing / Pricing: какой у тебя тариф (blended или IC+) | записать ответ | pass: blended (в платеже одна строка «Processing fee», без interchange/network; 2026-11-09) |
+| A3 | Settings → Business details: MCC (категория) | 4121 (Taxicabs / Limousines) | decision: стоит «Other travel and lodging», не taxi/limo; юрлицо общее с другими аккаунтами (смена отрасли меняет их тоже); pass: владелец сменил на «Taxis and limos» и сохранил (2026-11-09, со слов владельца; в описании исправлено Prestigio→Prestigo) |
 
 ## Часть B: удаление данных (erasure, миграция 088)
 
 | # | Шаг | Ожидаем | Что читаю я | Результат |
 |---|---|---|---|---|
 | B1 | — | 088 и 088b на продакшене | `erasure_payment_open`, гранты | pass (2026-11-07, smoke B) |
-| B2 | Пока любая тестовая бронь открыта: запрос удаления данных для `ustyugov.roman.payment@gmail.com` | отказ: есть открытая оплата | ответ RPC, 0 новых erasure-строк | pending |
+| B2 | Пока любая тестовая бронь открыта: запрос удаления данных для `ustyugov.roman.payment@gmail.com` | отказ: есть открытая оплата | ответ RPC, 0 новых erasure-строк | pass (2026-11-09 00:30): preview показал «1 booking has a payment still in play… Erasure is refused», кнопку не нажимали, erasure_requests без новых строк. Заметка: предупреждение «2 upcoming trips» считает и completed-бронь 229544 с подачей в будущем (старый тест 88) |
 | B3 | **В самом конце, после части E**: запрос удаления на одноразовый адрес (бронь с ним без оплаты) | данные стёрты | erasure-строка done, Stripe Customer этого адреса удалён (проверяешь в Dashboard → Customers) | pending |
 
 ## Часть C: долги с фазы 88
 
 | # | Подготовка и шаги | Ожидаем | Что читаю я | Результат |
 |---|---|---|---|---|
-| C1 холд по тику | Перед бронью спроси меня точное время подачи (считаю `computeHoldAt`, чтобы hold_at был через ~30 мин). /book, карта «Pay by card after your trip». Ждём тик (каждые 15 мин) | письмо hold_placed, в админке «Card on file» → холд | `bookings.payment_state = authorized`, `hold_placed_at` заполнено, событие `hold_placed` в `booking_payment_events` | pending |
-| C2 отказ и восстановление | Бронь виртуальной картой (Revolut). Заморозь карту в приложении банка. После завершения поездки в админке: Capture payment | `failed`, письмо payment_failed со ссылкой. Разморозь, оплати ссылку | `payment_state failed` → `captured`, события `capture_failed`, затем оплата по ссылке | pending |
-| C3 арабское письмо | Бронь на /ar/book | письмо card_saved справа налево, цифры латинские, в строке контактов нет английского «or» | `bookings.locale = ar`, событие card_saved | pending |
-| C4 возврат с сайта | Захваченную бронь (из C1 или C2) отмени в админке: Cancel booking → «Prestigo» → «Cancel and refund» | деньги вернулись, клиенту письмо «We had to cancel» | событие `refund_observed`, `status cancelled` | pending |
+| C1 холд по тику | Перед бронью спроси меня точное время подачи (считаю `computeHoldAt`, чтобы hold_at был через ~30 мин). /book, карта «Pay by card after your trip». Ждём тик (каждые 15 мин) | письмо hold_placed, в админке «Card on file» → холд | `bookings.payment_state = authorized`, `hold_placed_at` заполнено, событие `hold_placed` в `booking_payment_events` | pass (2026-11-09): PRG-20261108-86B523, тик 00:15 UTC: `hold_started` → `hold_authorized` 6900 (00:15:04), `hold_placed_at` 00:15:00.877, `payment_state authorized`, письмо `email_sent` 00:15:07, владелец получил. В ledger событие называется `hold_authorized`, не `hold_placed` |
+| C2 отказ и восстановление | Бронь виртуальной картой (Revolut), подача 12.11 15:45 Prague (холд 09.11 14:45 UTC). После «card saved» заморозь карту. Тик не сможет поставить холд. (Захват уже одобренного холда при заморозке обычно проходит, поэтому отказ проверяем на постановке холда) | `failed`, письмо payment_failed со ссылкой. Разморозь, оплати ссылку | `payment_state failed` → `captured`, события `hold_failed`, `recovery_link_created`, затем оплата по ссылке | skipped (2026-11-09, решение владельца; путь отказа холда покрыт lifecycle-тестами LC2 и фазой 88) |
+| C3 арабское письмо | Бронь на /ar/book | письмо card_saved справа налево, цифры латинские, в строке контактов нет английского «or» | `bookings.locale = ar`, событие card_saved | pass (со слов владельца, проверено раньше): PRG-20261106-50AED4, `locale ar`, card_hold, письмо `email_sent` после `hold_authorized` 2026-11-06 (холд сразу, поэтому письмо о холде, а не card_saved) |
+| C4 возврат с сайта | Захваченную бронь (из C1 или C2) отмени в админке: Cancel booking → «Prestigo» → «Cancel and refund» | деньги вернулись, клиенту письмо «We had to cancel» | событие `refund_observed`, `status cancelled` | pass (2026-11-09, вариант с холдом, т.к. C2 пропущен; возврат списанных денег проверит D6): PRG-20261108-86B523, «Prestigo» → «Cancel and release hold»; `cancelled` 14:33:54, `admin_action cancel_prestigo` 14:34:03, `hold_released` admin 14:34:15 + webhook 14:34:20, письмо 14:34:24; владелец: деньги вернулись. Заметка: от POST 14:33:39 до письма ~45 с, медленно, но без ошибок |
 
 ## Часть D: новые сценарии
 
@@ -57,19 +58,19 @@
 
 | # | Подготовка | Шаги | Ожидаем | Что читаю я | Результат |
 |---|---|---|---|---|---|
-| D1 бесплатная отмена клиентом | Любая бронь картой, подача через 2+ дня | Письмо → «Manage booking» → «Cancel booking» → «Yes, cancel booking» | «Nothing will be charged», холд снят или не ставился, письмо об отмене, водитель получил письмо | `status cancelled`, `fee_case_status` пусто, 0 строк в `booking_fee_cases` | pending |
-| D2 поздняя отмена клиентом | Поездка от 100 км, подача через 12,5 ч, картой (холд сразу). Подожди 30+ мин | Manage → «Cancel booking» → галочка «I understand…» → «Yes, cancel booking» | бронь отменена сразу, холд остаётся, письмо «a cancellation fee of up to … may apply», водителю письмо, в админке красный значок кейса | `booking_fee_cases`: kind late_cancel, status pending; `payment_state authorized` | pending |
-| D3 списание части холда | Бронь из D2 | Админка → «Charge fee…» → малая сумма → «Charge» | списана только эта сумма, остаток холда снят, письмо fee_charged | кейс `charged`, `decided_minor` = сумма; событие capture с `amount_minor` = сумма; PI succeeded | pending |
-| D4 прощение | Ещё одна поздняя отмена как в D2 | Админка → «Waive fee…» → причина (например «Regular client») | холд снят, письмо fee_waived, деньги не списаны | кейс `waived`, `reason` заполнен, холд отменён | pending |
-| D5 без холда | Бронь «Pay cash to the driver» (холда нет), от 100 км, подача через 12,5 ч, поздняя отмена как в D2 | «Charge fee…» → малая сумма | списано с сохранённой карты отдельным платежом | кейс `charged`, новый PaymentIntent, событие `fee_charged` | pending |
-| D6 старая «оплата сразу» | Бронь с **другим** твоим адресом (не из canary-списка): там старая форма, оплата сразу. Поездка от 100 км, через 12,5 ч | После конца окна: админка Cancel booking → «The client» → «Cancel and decide the fee». Потом «Charge fee…» меньше суммы брони | деньги удержаны, списано меньше, остаток вернулся | кейс `charged`; событие `refund_observed` на остаток | pending |
-| D7 неявка | Бронь картой, город (до 100 км), назначь водителем себя. В день поездки: ссылка водителя → «I have arrived» → после ожидания «Request a no-show» | Раньше времени: «Too early to request a no-show». После: в админке «No-show requested» → Confirm no-show → «Charge no-show fee» с запиской | списана сумма, письмо no-show fee, в кейсе видно прибытие и ожидание | кейс kind no_show, `contact_note`, `evidence` заполнено, `status no_show` | pending |
-| D8 наличные | Бронь «Pay cash to the driver», водитель ты | Холда нет. Водитель видит сумму только на шаге завершения → «Confirm cash received». Админка → «Reopen as unpaid…» с запиской → «Mark paid in cash…» | без движения денег в Stripe | события `cash_settled`, `cash_reopened`, `cash_settled`; 0 Stripe-платежей | pending |
-| D9 карта во время поездки | Бронь наличными, поездка идёт (on board) | Админка «Charge saved card…» с запиской → списано. Повтори на другой брони с замороженной картой | 1) списано, письмо клиенту; 2) отказ: клиенту **ничего**, админка пишет «Tell the driver to take … in cash», водитель подтверждает наличные | 1) событие charge succeeded; 2) нет ссылки и письма клиенту, затем `cash_settled` | pending |
-| D10 запрос изменения | Любая активная бронь | Manage → «Ask for a change» → текст → «Send request» | «Request sent», письмо пришло на ящик операторов | outbox-строка change_request отправлена | pending |
-| D11 My trips | Войди в аккаунт с этим адресом | Account → поездки → «Manage booking» | открывается та же страница управления | `booking_manage_tokens.last_used_at` обновился | pending |
-| D12 арабские письма | Брони из D2/D8 на /ar/book | Письма об отмене и наличных | справа налево, цифры латинские, ничего не вылезает за край | `locale = ar` | pending |
-| D13 телефон | Свой телефон, ширина около 320 px | Manage и диалог отмены с открытой клавиатурой; 3DS-окно банка; на «Pay cash to the driver» видны ли Apple Pay / Google Pay | всё влезает, кнопки нажимаются; записать про кошельки | — (смотришь ты) | pending |
+| D1 бесплатная отмена клиентом | Любая бронь картой, подача через 2+ дня | Письмо → «Manage booking» → «Cancel booking» → «Yes, cancel booking» | «Nothing will be charged», холд снят или не ставился, письмо об отмене, водитель получил письмо | `status cancelled`, `fee_case_status` пусто, 0 строк в `booking_fee_cases` | pass (2026-11-09): PRG-20261109-EAC3B5, card_hold, подача 25.11; токен создан 14:41:38, открыт 14:43:28; `client_cancel` actor `client_token` 14:43:29; `card_saved` → `released` без Stripe-холда; алерт оператору + письмо клиенту 14:43:31; кейсов 0, `fee_case_status` пусто. Водителю письма нет (не назначен). Первая живая самоотмена клиентом |
+| D2 поздняя отмена клиентом | Поездка от 100 км, подача через 12,5 ч, картой (холд сразу). Подожди 30+ мин | Manage → «Cancel booking» → галочка «I understand…» → «Yes, cancel booking» | бронь отменена сразу, холд остаётся, письмо «a cancellation fee of up to … may apply», водителю письмо, в админке красный значок кейса | `booking_fee_cases`: kind late_cancel, status pending; `payment_state authorized` | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D3 списание части холда | Бронь из D2 | Админка → «Charge fee…» → малая сумма → «Charge» | списана только эта сумма, остаток холда снят, письмо fee_charged | кейс `charged`, `decided_minor` = сумма; событие capture с `amount_minor` = сумма; PI succeeded | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D4 прощение | Ещё одна поздняя отмена как в D2 | Админка → «Waive fee…» → причина (например «Regular client») | холд снят, письмо fee_waived, деньги не списаны | кейс `waived`, `reason` заполнен, холд отменён | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D5 без холда | Бронь «Pay cash to the driver» (холда нет), от 100 км, подача через 12,5 ч, поздняя отмена как в D2 | «Charge fee…» → малая сумма | списано с сохранённой карты отдельным платежом | кейс `charged`, новый PaymentIntent, событие `fee_charged` | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D6 старая «оплата сразу» | Бронь с **другим** твоим адресом (не из canary-списка): там старая форма, оплата сразу. Поездка от 100 км, через 12,5 ч | После конца окна: админка Cancel booking → «The client» → «Cancel and decide the fee». Потом «Charge fee…» меньше суммы брони | деньги удержаны, списано меньше, остаток вернулся | кейс `charged`; событие `refund_observed` на остаток | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D7 неявка | Бронь картой, город (до 100 км), назначь водителем себя. В день поездки: ссылка водителя → «I have arrived» → после ожидания «Request a no-show» | Раньше времени: «Too early to request a no-show». После: в админке «No-show requested» → Confirm no-show → «Charge no-show fee» с запиской | списана сумма, письмо no-show fee, в кейсе видно прибытие и ожидание | кейс kind no_show, `contact_note`, `evidence` заполнено, `status no_show` | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D8 наличные | Бронь «Pay cash to the driver», водитель ты | Холда нет. Водитель видит сумму только на шаге завершения → «Confirm cash received». Админка → «Reopen as unpaid…» с запиской → «Mark paid in cash…» | без движения денег в Stripe | события `cash_settled`, `cash_reopened`, `cash_settled`; 0 Stripe-платежей | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D9 карта во время поездки | Бронь наличными, поездка идёт (on board) | Админка «Charge saved card…» с запиской → списано. Повтори на другой брони с замороженной картой | 1) списано, письмо клиенту; 2) отказ: клиенту **ничего**, админка пишет «Tell the driver to take … in cash», водитель подтверждает наличные | 1) событие charge succeeded; 2) нет ссылки и письма клиенту, затем `cash_settled` | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D10 запрос изменения | Любая активная бронь | Manage → «Ask for a change» → текст → «Send request» | «Request sent», письмо пришло на ящик операторов | outbox-строка change_request отправлена | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D11 My trips | Войди в аккаунт с этим адресом | Account → поездки → «Manage booking» | открывается та же страница управления | `booking_manage_tokens.last_used_at` обновился | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D12 арабские письма | Брони из D2/D8 на /ar/book | Письма об отмене и наличных | справа налево, цифры латинские, ничего не вылезает за край | `locale = ar` | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
+| D13 телефон | Свой телефон, ширина около 320 px | Manage и диалог отмены с открытой клавиатурой; 3DS-окно банка; на «Pay cash to the driver» видны ли Apple Pay / Google Pay | всё влезает, кнопки нажимаются; записать про кошельки | — (смотришь ты) | deferred (2026-11-09, владелец: проверки с бронированиями пока пропускаем) |
 
 ## Часть E: вернуть все тестовые деньги
 
@@ -82,6 +83,11 @@
 
 | Бронь | Сумма | Возврат | refund_observed |
 |---|---|---|---|
+| PRG-20261106-38C861 (фаза 88) | 69,00 захват | да | 2026-11-06 |
+| PRG-20261106-229544 (фаза 88) | 69,00 захват | **не видно в базе**: проверить в Stripe Dashboard | нет |
+| PRG-20261108-86B523 (C1/C4) | 69,00 холд | холд снят, денег не списано | — (`hold_released`) |
+| PRG-20261109-EAC3B5 (D1) | холда не было | — | — |
+| PRG-20261106-D8ED0F | старая pay_now, `unpaid`, подача прошла | отменить в админке (E2) | — |
 
 ## Что НЕ делаем в этом плане
 
