@@ -67,7 +67,7 @@
       "faqs": [
         {
           "q": "Can I cancel my booking?",
-          "a": "Yes. Cancellation is free up to {freeHoursShort, plural, one {{freeHoursShort} hour} other {{freeHoursShort} hours}} before pickup on trips of up to {km} km, up to {freeHoursLong, plural, one {{freeHoursLong} hour} other {{freeHoursLong} hours}} on longer trips and up to {freeHoursHourly, plural, one {{freeHoursHourly} hour} other {{freeHoursHourly} hours}} on hourly bookings. After that, a fee of up to {percent}% of the booking amount may apply. A person at Prestigo decides every charge and may waive it. You cancel from the link in your confirmation email."
+          "a": "Yes. Cancellation is free {freeHoursShort, plural, =0 {until the pickup time} one {up to {freeHoursShort} hour before pickup} other {up to {freeHoursShort} hours before pickup}} on trips of up to {km} km, {freeHoursLong, plural, =0 {until the pickup time} one {up to {freeHoursLong} hour before pickup} other {up to {freeHoursLong} hours before pickup}} on longer trips and {freeHoursHourly, plural, =0 {until the pickup time} one {up to {freeHoursHourly} hour before pickup} other {up to {freeHoursHourly} hours before pickup}} on hourly bookings. After that, a fee of up to {percent}% of the booking amount may apply. A person at Prestigo decides every charge and may waive it. You cancel from the link in your confirmation email."
         },
         {
           "q": "Can I change the pickup time?",

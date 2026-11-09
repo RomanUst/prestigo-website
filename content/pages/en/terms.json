@@ -33,7 +33,7 @@
     "items": [
       {
         "label": "Free cancellation",
-        "desc": "You can cancel free of charge up to {freeHoursShort, plural, one {{freeHoursShort} hour} other {{freeHoursShort} hours}} before pickup on trips of up to {km} km, up to {freeHoursLong, plural, one {{freeHoursLong} hour} other {{freeHoursLong} hours}} before pickup on longer trips, and up to {freeHoursHourly, plural, one {{freeHoursHourly} hour} other {{freeHoursHourly} hours}} before pickup on hourly bookings. You cancel from the link in your confirmation email, and the deadline for your booking is shown there. A payment made in advance is refunded in full, and a hold on your card is released."
+        "desc": "You can cancel free of charge {freeHoursShort, plural, =0 {until the pickup time} one {up to {freeHoursShort} hour before pickup} other {up to {freeHoursShort} hours before pickup}} on trips of up to {km} km, {freeHoursLong, plural, =0 {until the pickup time} one {up to {freeHoursLong} hour before pickup} other {up to {freeHoursLong} hours before pickup}} on longer trips, and {freeHoursHourly, plural, =0 {until the pickup time} one {up to {freeHoursHourly} hour before pickup} other {up to {freeHoursHourly} hours before pickup}} on hourly bookings. You cancel from the link in your confirmation email, and the deadline for your booking is shown there. A payment made in advance is refunded in full, and a hold on your card is released."
       },
       {
         "label": "Late cancellation",

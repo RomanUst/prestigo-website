@@ -33,7 +33,7 @@
     "items": [
       {
         "label": "免费取消",
-        "desc": "您最迟可在接送前 {freeHoursShort} 小时（行程不超过 {km} 公里）、{freeHoursLong} 小时（更长的行程）或 {freeHoursHourly} 小时（按小时预订）免费取消。请通过确认邮件中的链接取消，您这笔预订的截止时间也会显示在邮件中。预付款项将全额退还，银行卡上的预授权将被释放。"
+        "desc": "您最迟可在{freeHoursShort, plural, =0 {接送时间之前} other {接送前 {freeHoursShort} 小时}}（行程不超过 {km} 公里）、{freeHoursLong, plural, =0 {接送时间之前} other {接送前 {freeHoursLong} 小时}}（更长的行程）或{freeHoursHourly, plural, =0 {接送时间之前} other {接送前 {freeHoursHourly} 小时}}（按小时预订）免费取消。请通过确认邮件中的链接取消，您这笔预订的截止时间也会显示在邮件中。预付款项将全额退还，银行卡上的预授权将被释放。"
       },
       {
         "label": "临时取消",

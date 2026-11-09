@@ -67,7 +67,7 @@
       "faqs": [
         {
           "q": "¿Puedo cancelar mi reserva?",
-          "a": "Sí. La cancelación es gratuita hasta {freeHoursShort, plural, one {{freeHoursShort} hora} other {{freeHoursShort} horas}} antes de la recogida en trayectos de hasta {km} km, hasta {freeHoursLong, plural, one {{freeHoursLong} hora} other {{freeHoursLong} horas}} antes en trayectos más largos y hasta {freeHoursHourly, plural, one {{freeHoursHourly} hora} other {{freeHoursHourly} horas}} antes en reservas por horas. Después, puede aplicarse una tarifa de hasta el {percent} % del importe de la reserva. Una persona de Prestigo decide cada cargo y puede anularlo. Cancela desde el enlace del correo de confirmación."
+          "a": "Sí. La cancelación es gratuita {freeHoursShort, plural, =0 {hasta la hora de recogida} one {hasta {freeHoursShort} hora antes de la recogida} other {hasta {freeHoursShort} horas antes de la recogida}} en trayectos de hasta {km} km, {freeHoursLong, plural, =0 {hasta la hora de recogida} one {hasta {freeHoursLong} hora antes de la recogida} other {hasta {freeHoursLong} horas antes de la recogida}} en trayectos más largos y {freeHoursHourly, plural, =0 {hasta la hora de recogida} one {hasta {freeHoursHourly} hora antes de la recogida} other {hasta {freeHoursHourly} horas antes de la recogida}} en reservas por horas. Después, puede aplicarse una tarifa de hasta el {percent} % del importe de la reserva. Una persona de Prestigo decide cada cargo y puede anularlo. Cancela desde el enlace del correo de confirmación."
         },
         {
           "q": "¿Puedo cambiar la hora de recogida?",

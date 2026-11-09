@@ -33,7 +33,7 @@
     "items": [
       {
         "label": "Cancelación gratuita",
-        "desc": "Puede cancelar sin coste hasta {freeHoursShort, plural, one {{freeHoursShort} hora} other {{freeHoursShort} horas}} antes de la recogida en trayectos de hasta {km} km, hasta {freeHoursLong, plural, one {{freeHoursLong} hora} other {{freeHoursLong} horas}} antes en trayectos más largos y hasta {freeHoursHourly, plural, one {{freeHoursHourly} hora} other {{freeHoursHourly} horas}} antes en reservas por horas. La cancelación se hace desde el enlace del correo de confirmación, donde también figura el plazo de su reserva. Un pago anticipado se reembolsa íntegramente y la retención en su tarjeta se libera."
+        "desc": "Puede cancelar sin coste {freeHoursShort, plural, =0 {hasta la hora de recogida} one {hasta {freeHoursShort} hora antes de la recogida} other {hasta {freeHoursShort} horas antes de la recogida}} en trayectos de hasta {km} km, {freeHoursLong, plural, =0 {hasta la hora de recogida} one {hasta {freeHoursLong} hora antes de la recogida} other {hasta {freeHoursLong} horas antes de la recogida}} en trayectos más largos y {freeHoursHourly, plural, =0 {hasta la hora de recogida} one {hasta {freeHoursHourly} hora antes de la recogida} other {hasta {freeHoursHourly} horas antes de la recogida}} en reservas por horas. La cancelación se hace desde el enlace del correo de confirmación, donde también figura el plazo de su reserva. Un pago anticipado se reembolsa íntegramente y la retención en su tarjeta se libera."
       },
       {
         "label": "Cancelación tardía",

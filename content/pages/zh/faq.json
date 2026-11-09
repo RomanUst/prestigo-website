@@ -67,7 +67,7 @@
       "faqs": [
         {
           "q": "我可以取消预订吗？",
-          "a": "可以。您最迟可在接送前 {freeHoursShort} 小时（行程不超过 {km} 公里）、{freeHoursLong} 小时（更长的行程）或 {freeHoursHourly} 小时（按小时预订）免费取消。此后可能会收取最高为预订金额 {percent}% 的费用，每一笔扣款均由 Prestigo 的工作人员决定，并可免除。请通过确认邮件中的链接取消。"
+          "a": "可以。您最迟可在{freeHoursShort, plural, =0 {接送时间之前} other {接送前 {freeHoursShort} 小时}}（行程不超过 {km} 公里）、{freeHoursLong, plural, =0 {接送时间之前} other {接送前 {freeHoursLong} 小时}}（更长的行程）或{freeHoursHourly, plural, =0 {接送时间之前} other {接送前 {freeHoursHourly} 小时}}（按小时预订）免费取消。此后可能会收取最高为预订金额 {percent}% 的费用，每一笔扣款均由 Prestigo 的工作人员决定，并可免除。请通过确认邮件中的链接取消。"
         },
         {
           "q": "我可以更改接送时间吗？",
