@@ -154,6 +154,14 @@
       "a": "Votre chauffeur vous attendra dans le hall des arrivées avec une pancarte nominative. Vous recevrez son nom et son numéro de téléphone avant le trajet."
     },
     {
+      "q": "Proposez-vous un service de voiture avec chauffeur vers le Terminal 1 et le Terminal 2 de l'aéroport de Prague ?",
+      "a": "Oui. Prestigo assure un service de voiture privée avec chauffeur vers et depuis les deux terminaux de l'aéroport Václav Havel de Prague (PRG), 24 h/24. Pour un départ, votre chauffeur vient vous chercher à votre hôtel ou à votre adresse et s'arrête dans la zone Express, juste devant l'entrée des départs de votre terminal : Terminal 1 pour les vols hors Schengen, comme le Royaume-Uni et les États-Unis, Terminal 2 pour les vols Schengen. Communiquez-nous votre numéro de vol et nous confirmons le terminal pour vous."
+    },
+    {
+      "q": "Où mon chauffeur m'attend-il au Terminal 1 ou au Terminal 2 ?",
+      "a": "Dans le hall des arrivées de votre terminal, juste après la sortie de la douane, avec une pancarte à votre nom. Au Terminal 1 (arrivées hors Schengen, y compris les vols en provenance des États-Unis et du Royaume-Uni), après le contrôle des passeports et la récupération des bagages ; au Terminal 2 (arrivées Schengen), dans le hall public des arrivées, au rez-de-chaussée. Jusqu'à 60 minutes d'attente gratuite après l'atterrissage sont incluses dans les deux terminaux."
+    },
+    {
       "q": "En quoi consiste le service d'accueil personnalisé à l'aéroport de Prague ?",
       "a": "L'accueil personnalisé signifie que votre chauffeur vous attend à l'intérieur du hall des arrivées de l'aéroport Václav Havel de Prague (PRG), avec une pancarte à votre nom — et non au bord du trottoir ou dans une zone de prise en charge. Dès la sortie des douanes, il prend vos bagages et vous accompagne directement jusqu'à la voiture. Ce service est inclus dans chaque transfert aéroport Prestigo, sans supplément."
     },
