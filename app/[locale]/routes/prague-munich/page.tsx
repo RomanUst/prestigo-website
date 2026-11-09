@@ -158,6 +158,18 @@ export default async function PragueMunichPage({ params }: { params: Promise<{ l
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             {openingParagraphs[1]}
           </p></Reveal>
+          {content.airportArticle && (
+            <Reveal variant="up"><div className="mt-10 border border-anthracite-light p-6 md:p-8">
+              <p className="label mb-4">{content.airportArticle.label}</p>
+              <h2 className="display text-[22px] md:text-[26px] mb-4">{content.airportArticle.heading}</h2>
+              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                {content.airportArticle.text}{' '}
+                <a href={getPathname({ locale, href: '/blog/prague-to-munich-airport-private-transfer' })} className="underline hover:text-[var(--copper)] transition-colors">
+                  {content.airportArticle.linkLabel} →
+                </a>
+              </p>
+            </div></Reveal>
+          )}
         </div>
       </section>
 

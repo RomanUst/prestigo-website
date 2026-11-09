@@ -1,7 +1,7 @@
 {
   "hero": {
     "label": "Prague → Munich",
-    "headlineLine1": "De Prague à Munich,",
+    "headlineLine1": "Transfert de Prague à Munich,",
     "headlineItalic": "la capitale bavaroise.",
     "intro": "385 km vers le sud-ouest, à travers la Bohême et la Bavière. Marienplatz, le Jardin anglais, l'Oktoberfest et l'aéroport de Munich — quatre heures, un tarif fixe, de porte à porte.",
     "imageAlt": "Munich — transfert en chauffeur privé de Prague à Munich"
@@ -181,6 +181,12 @@
     }
   ],
   "relatedRoutesIntro": "Munich constitue le point d'ancrage du corridor bavarois entre Prague et les Alpes. De nombreux clients associent le trajet vers Munich à Nuremberg ou Ratisbonne, ou le prolongent jusqu'en Autriche. Chaque itinéraire Prestigo repose sur le même principe de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "airportArticle": {
+    "label": "Aéroport de Munich · MUC",
+    "heading": "Transfert de Prague à l'aéroport de Munich",
+    "text": "Vous prenez un vol long-courrier au départ de Munich ? Le même service avec chauffeur vous conduit de porte à terminal : environ 350 km et 3 h 30 depuis le centre de Prague, en évitant la circulation de Munich, avec dépose au niveau des départs du Terminal 1 ou du Terminal 2 et suivi de votre vol au retour.",
+    "linkLabel": "Transfert Prague – aéroport de Munich : horaires, terminaux et conseils"
+  },
   "relatedHeading": {
     "line1": "Poursuivez à travers",
     "italic": "la Bavière et au-delà."

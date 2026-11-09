@@ -71,6 +71,9 @@ export type RouteContent = {
   // Optional pointer to a companion blog article (e.g. transfer vs train),
   // rendered under the related-routes intro.
   trainArticle?: { text: string; linkLabel: string };
+  // Optional airport block (Prague → Munich: MUC) with a link to the
+  // companion blog guide, rendered under the opening paragraphs.
+  airportArticle?: { label: string; heading: string; text: string; linkLabel: string };
   relatedHeading: { line1: string; italic: string };
   relatedRoutes: Array<{
     slug: string;

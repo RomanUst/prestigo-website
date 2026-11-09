@@ -1,7 +1,7 @@
 {
   "hero": {
     "label": "Praga → Múnich",
-    "headlineLine1": "De Praga a Múnich,",
+    "headlineLine1": "Traslado de Praga a Múnich,",
     "headlineItalic": "la capital bávara.",
     "intro": "385 km hacia el suroeste a través de Bohemia y Baviera. Marienplatz, el Jardín Inglés, el Oktoberfest y el Aeropuerto de Múnich: cuatro horas, un precio fijo, puerta a puerta.",
     "imageAlt": "Múnich — traslado en chófer privado desde Praga a Múnich"
@@ -181,6 +181,12 @@
     }
   ],
   "relatedRoutesIntro": "Múnich es el eje del corredor bávaro entre Praga y los Alpes. Muchos clientes combinan el trayecto a Múnich con Núremberg o Ratisbona, o lo prolongan hasta Austria. Todas las rutas de Prestigo tienen el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "airportArticle": {
+    "label": "Aeropuerto de Múnich · MUC",
+    "heading": "Traslado de Praga al aeropuerto de Múnich",
+    "text": "¿Vuela de largo recorrido desde Múnich? El mismo servicio con chófer le lleva de puerta a terminal: unos 350 km y unas 3,5 horas desde el centro de Praga, evitando el tráfico urbano de Múnich, con llegada a la zona de salidas de la Terminal 1 o la Terminal 2 y seguimiento del vuelo en el trayecto de vuelta.",
+    "linkLabel": "Traslado de Praga al aeropuerto de Múnich: horarios, terminales y consejos"
+  },
   "relatedHeading": {
     "line1": "Continúe por",
     "italic": "Baviera y más allá."
