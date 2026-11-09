@@ -4,15 +4,15 @@ milestone: v5.0
 milestone_name: Payments, Quotes & Day Trips
 current_phase: 89
 current_phase_name: cancellation-policy-cash-guarantee-no-show
-status: executing
-stopped_at: Phase 89 context gathered
+status: phase_complete
+stopped_at: Phase 89 complete, live for all clients
 last_updated: "2026-11-06T19:37:17.129Z"
-last_activity: 2026-11-06
-last_activity_desc: Phase 89 context gathered
+last_activity: 2026-11-09
+last_activity_desc: Phase 89 go-live (PR #94, card_flow_mode on), verification human_needed
 state_head: 3829c4b519776f7932e9c4c740217d6cb3c0314d
 progress:
   total_phases: 9
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 78
   completed_plans: 50
   percent: 0
@@ -25,16 +25,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-11-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 88 — Card on File & Scheduled Holds
+**Current focus:** Phase 90 — next in v5.0
 
 ## Current Position
 
-Phase: 89 (cancellation-policy-cash-guarantee-no-show) — READY TO EXECUTE
-Plan: 17 of 17
-Status: Ready to execute
-Last activity: 2026-11-06 — Phase 88 complete, verification 5/5
+Phase: 89 (cancellation-policy-cash-guarantee-no-show) — COMPLETE 2026-11-09
+Plan: 28 of 28
+Status: Phase complete; live for all clients; D2-D13 live money checks deferred (human verification)
+Last activity: 2026-11-09 — PR #94 merged, card_flow_mode on 16:30 UTC, verification 5/5 human_needed
 
-Progress: [░░░░░░░░░░] 0% (3/9 phases)
+Progress: [████░░░░░░] 44% (4/9 phases)
 
 ## Accumulated Context
 

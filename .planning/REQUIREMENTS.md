@@ -22,20 +22,20 @@ Requirements for this milestone. Each maps to a roadmap phase.
 - [ ] **HOLD-03**: If the booking is made inside the hold window, the hold is placed at checkout while the client is present
 - [ ] **HOLD-04**: When the trip is completed, the held amount is captured; if the hold has expired, the system charges the saved card instead
 - [ ] **HOLD-05**: If a hold or charge fails, the client automatically receives a payment link and the operator gets an alert that does not depend on the VPS
-- [ ] **HOLD-06**: Cancelling a booking releases an uncaptured hold (no Stripe fee) or refunds a captured payment according to the cancellation policy
+- [x] **HOLD-06**: Cancelling a booking releases an uncaptured hold (no Stripe fee) or refunds a captured payment according to the cancellation policy
 - [ ] **HOLD-07**: Admin shows each booking's payment state, hold expiry and the actions capture / release / retry / send payment link
 
 ### Cash and no-show (CASH)
 
-- [ ] **CASH-01**: Client can choose "pay cash to driver"; the card is saved as a guarantee with no hold
-- [ ] **CASH-02**: Driver can mark no-show only after the free waiting time has passed
-- [ ] **CASH-03**: Operator confirms a no-show and charges any amount up to 100% to the saved card with one action; the evidence (driver timestamps, contact attempt note) is stored
-- [ ] **CASH-04**: Operator can mark a cash booking as settled in cash
+- [x] **CASH-01**: Client can choose "pay cash to driver"; the card is saved as a guarantee with no hold
+- [x] **CASH-02**: Driver can mark no-show only after the free waiting time has passed
+- [x] **CASH-03**: Operator confirms a no-show and charges any amount up to 100% to the saved card with one action; the evidence (driver timestamps, contact attempt note) is stored
+- [x] **CASH-04**: Operator can mark a cash booking as settled in cash
 
 ### Cancellation policy (CANC)
 
-- [ ] **CANC-01**: Free cancellation up to 1 h before pickup for trips up to 100 km, and up to 12 h before for trips over 100 km; later cancellations and no-shows cost 100%. Thresholds (km, hours, percent) are configurable in admin
-- [ ] **CANC-02**: The cancellation policy and the card-saving consent are shown at checkout, in the confirmation email and in the terms, in all 7 locales (owner's decision of 2026-11-06: no counsel review, the owner accepts the risk)
+- [x] **CANC-01**: Free cancellation up to 1 h before pickup for trips up to 100 km, and up to 12 h before for trips over 100 km; later cancellations and no-shows cost 100%. Thresholds (km, hours, percent) are configurable in admin
+- [x] **CANC-02**: The cancellation policy and the card-saving consent are shown at checkout, in the confirmation email and in the terms, in all 7 locales (owner's decision of 2026-11-06: no counsel review, the owner accepts the risk)
 
 ### Extra charges (EXTRA)
 
@@ -133,14 +133,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HOLD-03 | Phase 88 | Pending |
 | HOLD-04 | Phase 88 | Pending |
 | HOLD-05 | Phase 88 | Pending |
-| HOLD-06 | Phase 89 | Pending |
+| HOLD-06 | Phase 89 | Complete |
 | HOLD-07 | Phase 88 | Pending |
-| CASH-01 | Phase 89 | Pending |
-| CASH-02 | Phase 89 | Pending |
-| CASH-03 | Phase 89 | Pending |
-| CASH-04 | Phase 89 | Pending |
-| CANC-01 | Phase 89 | Pending |
-| CANC-02 | Phase 89 | Pending |
+| CASH-01 | Phase 89 | Complete |
+| CASH-02 | Phase 89 | Complete |
+| CASH-03 | Phase 89 | Complete |
+| CASH-04 | Phase 89 | Complete |
+| CANC-01 | Phase 89 | Complete |
+| CANC-02 | Phase 89 | Complete |
 | EXTRA-01 | Phase 91 | Pending |
 | MAIL-01 | Phase 88 | Pending |
 | DRV-01 | Phase 87 | Complete |
