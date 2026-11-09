@@ -25,8 +25,8 @@ decisions:
   - "89-VALIDATION.md keeps the CANC-02 checkout/terms row as pending by design: plans 89-20, 89-21, 89-24 add the public wording after the dark deploy"
 metrics:
   duration: "about 1 h"
-  completed: "2026-11-07 (Task 1 only)"
-status: partial
+  completed: "2026-11-07"
+status: complete
 commits: 1
 plan_head_before: 075f9ee305ccfc864c7fd6bbde0f9fde95c0d8c0
 plan_head_after: ba73b49a
@@ -85,20 +85,24 @@ The final verify line is PASS with the seven-file worktree caveat above; the orc
 
 `89-VALIDATION.md` rewritten: per-requirement rows with real commands, Wave 0 ticked, sign-off ticked, `status: validated`, `nyquist_compliant: true`, `wave_0_complete: true`. The CANC-02 row for the public checkout and terms wording is marked pending by design (plans 89-20, 89-21, 89-24).
 
-## Task 2: PENDING (orchestrator)
-
-Not executed here and not to be marked done by this agent. To be filled in by the orchestrator after the merge:
+## Task 2: done (orchestrator, 2026-11-07)
 
 | Item | Value |
 |------|-------|
-| 087 and 088 live (Supabase MCP) | PENDING |
-| `card_flow_mode` / canary list before | PENDING |
-| PR (`security:` title) and merge commit | PENDING |
-| Deployment id | PENDING |
-| `card_flow_mode` after (must equal before) | PENDING |
-| curl `/manage/not-a-token` (invalid view, noindex), Referrer-Policy no-referrer, POST without Origin gives 403 | PENDING |
-| Foreign stored policies count (must be 0), again after 24 h | PENDING |
-| Step 6 a/b/c briefing told to the owner in Russian, owner's acknowledgement of 6a (D-07, D-20) | PENDING |
+| 087 and 088 live (Supabase MCP) | 087 live since 2026-11-06. 088 applied 2026-11-07 right before the merge, plus `088b` (REVOKE `erasure_payment_open` FROM service_role: Supabase default privileges had granted it). Smoke A as expected, smoke B `SMOKE_OK all checks passed` |
+| `card_flow_mode` / canary list before | `canary`, `["ustyugov.roman.payment@gmail.com"]`; 0 active erasures |
+| PR (`security:` title) and merge commit | PR #93 `security(89): cancellation policy, cash guarantee, no-show (flag closed)`, merge `452e3ad6` |
+| Deployment id | `dpl_CsvWV6xJAugKMEoT771UhUAGUrGS` (production, READY) |
+| `card_flow_mode` after (must equal before) | `canary`, `["ustyugov.roman.payment@gmail.com"]` (unchanged) |
+| curl checks | `/manage/not-a-token` 200 invalid view with `noindex, nofollow`, `referrer-policy: no-referrer`, `cache-control: private, no-store`; `/ru/manage/not-a-token` 200; POST `/api/manage/cancel` and `/api/manage/change-request` without Origin: 403; home and robots.txt 200 |
+| Foreign stored policies count (must be 0), again after 24 h | 0 right after the deploy; 24 h re-check PENDING |
+| Smoke leftovers | 0 erasure requests from the smoke (rolled back) |
+| Production error logs (CLI, 15 min after deploy) | none |
+| Step 6 a/b/c briefing told to the owner in Russian, owner's acknowledgement of 6a (D-07, D-20) | Briefed 2026-11-07 (admin cancel asks client or Prestigo; late client cancel of a paid booking keeps the money and opens a case; legacy 1 h rule; round trips leg by leg; Stripe refund no longer cancels card/cash bookings; translated confirmation page, cancelled email in the booking language, driver cancel email; erasure removes payment data). Owner answered "Да, выкладывай" to "Подтверждаешь, что понял изменения в админке, и можно выкладывать?" |
+
+Fixes made during Task 2:
+- `89-05-smoke.sql` set `pickup_utc`, a generated column; the fixture now sets `pickup_date` / `pickup_time`.
+- `088_erasure_payment_pii.sql` gains the `FROM service_role` revoke for the internal helper (commit `9603b986`).
 
 ## Deviations from Plan
 

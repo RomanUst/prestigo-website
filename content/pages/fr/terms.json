@@ -8,7 +8,7 @@
     "label": "Conditions Générales",
     "headlineLine1": "Des conditions claires.",
     "headlineItalic": "Aucune clause en petits caractères.",
-    "lastUpdated": "Dernière mise à jour : 6 avril 2026"
+    "lastUpdated": "Dernière mise à jour : 9 novembre 2026"
   },
   "section1": {
     "title": "Champ d'application des services",
@@ -33,23 +33,23 @@
     "items": [
       {
         "label": "Annulation gratuite",
-        "desc": "Jusqu'à 1 heure avant l'heure de prise en charge prévue — remboursement intégral, sans justification."
+        "desc": "Vous pouvez annuler gratuitement jusqu'à {freeHoursShort, plural, one {{freeHoursShort} heure} other {{freeHoursShort} heures}} avant la prise en charge pour les trajets de {km} km maximum, jusqu'à {freeHoursLong, plural, one {{freeHoursLong} heure} other {{freeHoursLong} heures}} avant pour les trajets plus longs et jusqu'à {freeHoursHourly, plural, one {{freeHoursHourly} heure} other {{freeHoursHourly} heures}} avant pour les réservations à l'heure. L'annulation se fait depuis le lien de l'e-mail de confirmation, où le délai de votre réservation est indiqué. Un paiement effectué à l'avance est remboursé intégralement et l'autorisation bloquée sur votre carte est libérée."
       },
       {
         "label": "Annulation tardive",
-        "desc": "Moins d'1 heure avant la prise en charge — jusqu'à 100 % du montant de la réservation peut être facturé."
+        "desc": "Si vous annulez après ce délai mais avant la prise en charge, des frais pouvant aller jusqu'à {percent} % du montant de la réservation peuvent s'appliquer. Une personne chez Prestigo décide de chaque débit et peut le réduire ou y renoncer. Rien n'est débité automatiquement."
       },
       {
         "label": "Absence du passager",
-        "desc": "Si vous n'annulez pas et ne vous présentez pas au lieu de prise en charge, l'intégralité du montant de la réservation est facturée."
+        "desc": "Si vous n'êtes pas au point de prise en charge et n'annulez pas, le chauffeur attend {waitCityMin, plural, one {{waitCityMin} minute} other {{waitCityMin} minutes}} pour une prise en charge en ville et {waitAirportMin, plural, one {{waitAirportMin} minute} other {{waitAirportMin} minutes}} pour une prise en charge à l'aéroport. Passé ce délai, une personne chez Prestigo décide de facturer ou non des frais d'absence pouvant aller jusqu'au tarif complet. Rien n'est débité automatiquement."
       },
       {
-        "label": "Annulation de vol",
-        "desc": "Si votre vol est annulé, nous vous proposons, à votre convenance, un remboursement intégral ou une nouvelle réservation gratuite."
+        "label": "Carte enregistrée en garantie",
+        "desc": "Lors de la réservation, nous enregistrons votre carte auprès de Stripe en garantie. Cela vaut aussi pour les réservations que vous réglez en espèces au chauffeur. La carte n'est débitée que par une personne chez Prestigo, et uniquement en cas d'annulation tardive, d'absence ou de trajet non payé."
       },
       {
-        "label": "Traitement des remboursements",
-        "desc": "Les remboursements sont effectués sur le moyen de paiement d'origine sous 5 à 10 jours ouvrés."
+        "label": "Remboursements",
+        "desc": "Les remboursements sont effectués sur le moyen de paiement d'origine, généralement sous 5 à 10 jours ouvrés. Si votre vol est annulé, vous obtenez un remboursement intégral ou une nouvelle réservation, à votre choix."
       }
     ]
   },

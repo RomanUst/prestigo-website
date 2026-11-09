@@ -8,7 +8,7 @@
     "label": "Condiciones del servicio",
     "headlineLine1": "Condiciones claras.",
     "headlineItalic": "Sin letra pequeña.",
-    "lastUpdated": "Última actualización: 6 de abril de 2026"
+    "lastUpdated": "Última actualización: 9 de noviembre de 2026"
   },
   "section1": {
     "title": "Ámbito de los servicios",
@@ -33,23 +33,23 @@
     "items": [
       {
         "label": "Cancelación gratuita",
-        "desc": "Hasta 1 hora antes de la hora de recogida prevista: reembolso íntegro, sin preguntas."
+        "desc": "Puede cancelar sin coste hasta {freeHoursShort, plural, one {{freeHoursShort} hora} other {{freeHoursShort} horas}} antes de la recogida en trayectos de hasta {km} km, hasta {freeHoursLong, plural, one {{freeHoursLong} hora} other {{freeHoursLong} horas}} antes en trayectos más largos y hasta {freeHoursHourly, plural, one {{freeHoursHourly} hora} other {{freeHoursHourly} horas}} antes en reservas por horas. La cancelación se hace desde el enlace del correo de confirmación, donde también figura el plazo de su reserva. Un pago anticipado se reembolsa íntegramente y la retención en su tarjeta se libera."
       },
       {
         "label": "Cancelación tardía",
-        "desc": "Menos de 1 hora antes de la recogida: podrá cobrarse hasta el 100 % del importe de la reserva."
+        "desc": "Si cancela después de ese plazo pero antes de la recogida, podrá aplicarse una tarifa de hasta el {percent} % del importe de la reserva. Una persona de Prestigo decide cada cargo y puede reducirlo o anularlo. No se cobra nada de forma automática."
       },
       {
         "label": "No presentación",
-        "desc": "Si no cancela y no se presenta en el lugar de recogida, se cobrará el importe íntegro de la reserva."
+        "desc": "Si no se presenta en el punto de recogida y no cancela, el conductor espera {waitCityMin, plural, one {{waitCityMin} minuto} other {{waitCityMin} minutos}} en una recogida en la ciudad y {waitAirportMin, plural, one {{waitAirportMin} minuto} other {{waitAirportMin} minutos}} en una recogida en el aeropuerto. Pasado ese tiempo, una persona de Prestigo decide si cobra una tarifa por no presentación de hasta la tarifa completa. No se cobra nada de forma automática."
       },
       {
-        "label": "Cancelación del vuelo",
-        "desc": "Si su vuelo se cancela, le ofrecemos un reembolso íntegro o una nueva reserva gratuita, a su elección."
+        "label": "Tarjeta guardada como garantía",
+        "desc": "Al reservar, guardamos su tarjeta en Stripe como garantía. Esto también se aplica a las reservas que paga en efectivo al conductor. La tarjeta solo la cobra una persona de Prestigo, y únicamente por una cancelación tardía, una no presentación o un trayecto que no se pagó."
       },
       {
-        "label": "Tramitación del reembolso",
-        "desc": "Los reembolsos se abonan en el método de pago original en un plazo de 5 a 10 días hábiles."
+        "label": "Reembolsos",
+        "desc": "Los reembolsos se abonan en el método de pago original, normalmente en un plazo de 5 a 10 días hábiles. Si su vuelo se cancela, recibe un reembolso íntegro o una nueva reserva, a su elección."
       }
     ]
   },

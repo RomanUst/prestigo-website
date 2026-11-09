@@ -67,11 +67,19 @@
       "faqs": [
         {
           "q": "¿Puedo cancelar mi reserva?",
-          "a": "Sí. Cancelación gratuita hasta 1 hora antes de la hora de recogida prevista. Las cancelaciones posteriores pueden estar sujetas a una tarifa."
+          "a": "Sí. La cancelación es gratuita hasta {freeHoursShort, plural, one {{freeHoursShort} hora} other {{freeHoursShort} horas}} antes de la recogida en trayectos de hasta {km} km, hasta {freeHoursLong, plural, one {{freeHoursLong} hora} other {{freeHoursLong} horas}} antes en trayectos más largos y hasta {freeHoursHourly, plural, one {{freeHoursHourly} hora} other {{freeHoursHourly} horas}} antes en reservas por horas. Después, puede aplicarse una tarifa de hasta el {percent} % del importe de la reserva. Una persona de Prestigo decide cada cargo y puede anularlo. Cancela desde el enlace del correo de confirmación."
         },
         {
           "q": "¿Puedo cambiar la hora de recogida?",
-          "a": "Sí, en cualquier momento antes del trayecto. Póngase en contacto directamente con su chófer o utilice el portal de reservas."
+          "a": "Sí, puede solicitar un cambio en cualquier momento antes del trayecto, desde el enlace del correo de confirmación o poniéndose en contacto con nosotros. Un cambio es una solicitud: lo confirmamos cuando el conductor y el vehículo están disponibles, y nada cambia hasta que reciba nuestra confirmación."
+        },
+        {
+          "q": "¿Qué pasa si no me presento?",
+          "a": "El conductor espera {waitCityMin, plural, one {{waitCityMin} minuto} other {{waitCityMin} minutos}} en una recogida en la ciudad y {waitAirportMin, plural, one {{waitAirportMin} minuto} other {{waitAirportMin} minutos}} en una recogida en el aeropuerto. Después, una persona de Prestigo decide si cobra una tarifa por no presentación de hasta la tarifa completa. No se cobra nada de forma automática."
+        },
+        {
+          "q": "¿Por qué se guarda mi tarjeta si pago en efectivo al conductor?",
+          "a": "La tarjeta guardada es solo una garantía. Una persona de Prestigo la cobra únicamente por una cancelación tardía, una no presentación o un trayecto que no se pagó. Si paga en efectivo al conductor como se acordó, no se le cobra nada en la tarjeta."
         }
       ]
     },

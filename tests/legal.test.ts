@@ -82,12 +82,13 @@ describe("getPageContent('terms')", () => {
     expect(content.section1.text).toBe(
       "PRESTIGO is a trading name of chelautotrans s.r.o. (IČO: 05650801, registered at Spojovací 685, Vysoký Újezd, Czech Republic). We provide premium chauffeur and private transfer services in Prague and Central Europe, including airport transfers, intercity routes, corporate transportation, VIP and event transport, and group transfers. By placing a booking, you agree to these terms."
     );
+    // Phase 89 (89-20): the cancellation wording carries ICU-style policy variables filled from the admin settings.
     expect(content.section4.items[0]).toEqual({
       label: "Free cancellation",
-      desc: "Up to 1 hour before the scheduled pickup time — full refund, no questions asked.",
+      desc: "You can cancel free of charge up to {freeHoursShort, plural, one {{freeHoursShort} hour} other {{freeHoursShort} hours}} before pickup on trips of up to {km} km, up to {freeHoursLong, plural, one {{freeHoursLong} hour} other {{freeHoursLong} hours}} before pickup on longer trips, and up to {freeHoursHourly, plural, one {{freeHoursHourly} hour} other {{freeHoursHourly} hours}} before pickup on hourly bookings. You cancel from the link in your confirmation email, and the deadline for your booking is shown there. A payment made in advance is refunded in full, and a hold on your card is released.",
     });
     expect(content.section4.items[4].desc).toBe(
-      "Refunds are returned to the original payment method within 5–10 business days."
+      "Refunds are returned to the original payment method, usually within 5–10 business days. If your flight is cancelled, you get a full refund or a new booking, at your choice."
     );
   });
 });
