@@ -25,14 +25,30 @@ const SURFACES: Surface[] = [
   { name: 'contact FAQ', file: 'content/pages/%L/contact.json', keyPath: ['commonEnquiries', 'faqs', 3, 'a'] },
   { name: 'airport taxi FAQ', file: 'content/pages/%L/services/prague-airport-taxi.json', keyPath: ['faqs', 6, 'a'] },
   { name: 'booking section trust bullet', file: 'messages/%L.json', keyPath: ['BookingSection', 'trust', 2] },
+  // 89-REVIEW-wording CR-01: the flight-delays landing page stated the retired one-hour rule.
+  { name: 'flight delays editorial', file: 'content/pages/%L/faq/flight-delays.json', keyPath: ['editorial', 'paragraphs', 0] },
+  // 89-REVIEW-wording WR-02: the payment FAQ said "charged at the moment you confirm" and "no cash".
+  { name: 'book payment FAQ', file: 'content/pages/%L/book.json', keyPath: ['faq', 'items', 1, 'a'] },
 ]
+
+// The FAQ landing pages and the service pages of one locale: every file in the two folders, so a new page
+// is covered without editing this list (89-REVIEW-wording CR-01).
+function landingFiles(locale: string): string[] {
+  return ['faq', 'services'].flatMap((dir) =>
+    fs
+      .readdirSync(path.join(ROOT, 'content/pages', locale, dir))
+      .filter((f) => f.endsWith('.json'))
+      .sort()
+      .map((f) => `content/pages/${locale}/${dir}/${f}`),
+  )
+}
 
 // Whole files the guard reads for old phrases in English.
 const EN_FILES = [
   'content/pages/en/book.json',
   'content/pages/en/routes.json',
   'content/pages/en/contact.json',
-  'content/pages/en/services/prague-airport-taxi.json',
+  ...landingFiles('en'),
   'messages/en.json',
 ]
 
@@ -40,6 +56,8 @@ const OLD_PHRASES: { phrase: string; re: RegExp }[] = [
   { phrase: 'up to 1 hour', re: /up to 1 hour/i },
   { phrase: 'up to one hour', re: /up to one hour/i },
   { phrase: 'one hour before', re: /one hour before/i },
+  { phrase: '1 hour / one hour before pickup', re: /\b(one|1)[- ]hours? before (the )?(scheduled )?pick-?up/i },
+  { phrase: 'cancel ... one hour', re: /cancel\w*[^.]{0,80}\b(one|1)[- ]hours?\b/i },
   { phrase: 'at least 1 hour', re: /at least 1 hour/i },
   { phrase: 'cancel ... two hours', re: /cancel\w*[^.]{0,80}two[- ]hours?/i },
   { phrase: 'two hours ... free', re: /two[- ]hours?[^.]{0,40}(free|cancel)/i },
@@ -102,11 +120,36 @@ describe('public cancellation wording: English', () => {
     expect(faq).toMatch(/cancelled flight/)
     expect(faq).toMatch(/deadline shown at checkout and in your confirmation email/)
   })
+
+  // The live flow (card_flow_mode on, CARD_FLOW_TRIP_TYPES = transfer and hourly): card after the trip or cash to the
+  // driver with the card as a guarantee; round trips and daily hire stay pay-now.
+  it('the book payment FAQ describes card after the trip, cash with a card guarantee and pay-now for the rest', () => {
+    const pay = valueFor(SURFACES.find((s) => s.name === 'book payment FAQ')!, 'en')
+    expect(pay).not.toMatch(/charged at the moment you confirm/i)
+    expect(pay).not.toMatch(/do not accept cash/i)
+    expect(pay).toMatch(/one-way transfer or an hourly ride/)
+    expect(pay).toMatch(/after your trip/)
+    expect(pay).toMatch(/cash to the driver/)
+    expect(pay).toMatch(/only as a guarantee/)
+    expect(pay).toMatch(/Round trips and daily hire are paid in full by card when you book/)
+    expect(pay).toMatch(/monthly consolidated invoice/)
+    expect(pay).toMatch(/Receipts and VAT invoices/)
+  })
 })
 
 describe('public cancellation wording: translations (key by key against the English change list)', () => {
   // Digits of the old rule: 1 hour, 2 hours, 48 hours, 50 %. Phone and email are stripped first.
   const OLD_DIGITS = /(?<![\d+])(1|2|48|50)(?![\d])/
+
+  // "Free cancellation up to one hour before pickup" as each translation spelled it.
+  const OLD_ONE_HOUR: Record<string, RegExp> = {
+    ru: /за (1 |один )?час до подачи/i,
+    es: /(una|1) hora antes de la recogida/i,
+    fr: /(une|1) heure avant la prise en charge/i,
+    ar: /(ساعة واحدة|1 ساعة) قبل (موعد )?الاستقبال/,
+    hi: /पिकअप से (एक|1) घंटा पहले/,
+    zh: /接送(时间)?前\s*(一|1)\s*小时/,
+  }
 
   // Same shape as English: the list or object holding the changed key keeps its size, so no key was
   // added or dropped while editing.
@@ -129,6 +172,17 @@ describe('public cancellation wording: translations (key by key against the Engl
         expect(parentSize(s, locale), `${where} changed the structure`).toBe(parentSize(s, 'en'))
       })
     }
+
+    // The old rule spelled out in this language ("one hour before pickup"), in every FAQ landing and service page and
+    // on the book, routes and contact pages. A digit check alone misses "за час" or "une heure".
+    it(`${locale}: no FAQ landing, service, book, routes or contact page states the old one-hour rule`, () => {
+      const re = OLD_ONE_HOUR[locale]
+      const files = ['book', 'routes', 'contact'].map((f) => `content/pages/${locale}/${f}.json`).concat(landingFiles(locale))
+      for (const rel of files) {
+        const hit = strings(readJson(rel)).find((s) => re.test(s))
+        expect(hit, `${rel} still states the one-hour rule`).toBeUndefined()
+      }
+    })
 
     it(`${locale}: the book FAQ keeps the phone number and the email of the English text`, () => {
       const text = valueFor(SURFACES[1], locale)

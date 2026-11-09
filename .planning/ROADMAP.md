@@ -21,7 +21,7 @@
 - [x] **Phase 86: Admin Shell** - Collapsible sidebar and persistent light theme; every admin screen on theme tokens (completed 2026-11-03)
 - [x] **Phase 87: Status Service & Driver Step Flow** - One trusted status writer; driver moves a trip one strict step at a time and admin sees it immediately (completed 2026-11-03)
 - [x] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
-- [ ] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, owner-accepted wording, public go-live
+- [x] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, owner-accepted wording, public go-live
 - [ ] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh
 - [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
 - [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
@@ -307,7 +307,7 @@ Plans:
   4. The driver can mark a no-show only after the free waiting time has passed (enforced by the server); the operator then confirms and charges any amount up to 100% to the saved card with one action, with the evidence (driver timestamps, contact-attempt note) stored; nothing is ever charged automatically on the driver's tap.
   5. The operator can mark a cash booking as settled in cash, a settled or cancelled booking can no longer be charged, and GNet bookings are never offered the cash guarantee or a no-show charge.
 
-**Plans**: 26/28 plans executed (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
+**Plans**: 28/28 plans executed (the wave in each PLAN.md sets the order; numbers 24-28 are later splits and run before 89-22 and 89-23)
 Plans:
 **Wave 1**
 - [x] 89-01-PLAN.md — Migration 087, payment vocabulary, D-16 document amendments
@@ -356,10 +356,10 @@ Plans:
 - [x] 89-24-PLAN.md — Blog line, settings value and All clients tile (unmerged until go-live)
 
 **Wave 11** *(blocked on Wave 10 completion)*
-- [ ] 89-22-PLAN.md — Go-live checklist and owner live tests
+- [x] 89-22-PLAN.md — Go-live checklist and owner live tests
 
 **Wave 12** *(blocked on Wave 11 completion)*
-- [ ] 89-23-PLAN.md — Go-live decision, wording merge, flag flip, owner live test
+- [x] 89-23-PLAN.md — Go-live decision, wording merge, flag flip, owner live test
 
 **Cross-cutting constraints:**
 - No text in this plan reaches main before plan 89-23
@@ -566,7 +566,7 @@ Plans:
 | 86. Admin Shell | v5.0 | 13/13 | In Progress|  |
 | 87. Status Service & Driver Step Flow | v5.0 | 20/20 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
-| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 26/28 | In Progress|  |
+| 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 28/28 | Complete | 2026-11-09 |
 | 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |

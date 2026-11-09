@@ -33,7 +33,7 @@
     "items": [
       {
         "label": "Annulation gratuite",
-        "desc": "Vous pouvez annuler gratuitement jusqu'à {freeHoursShort, plural, one {{freeHoursShort} heure} other {{freeHoursShort} heures}} avant la prise en charge pour les trajets de {km} km maximum, jusqu'à {freeHoursLong, plural, one {{freeHoursLong} heure} other {{freeHoursLong} heures}} avant pour les trajets plus longs et jusqu'à {freeHoursHourly, plural, one {{freeHoursHourly} heure} other {{freeHoursHourly} heures}} avant pour les réservations à l'heure. L'annulation se fait depuis le lien de l'e-mail de confirmation, où le délai de votre réservation est indiqué. Un paiement effectué à l'avance est remboursé intégralement et l'autorisation bloquée sur votre carte est libérée."
+        "desc": "Vous pouvez annuler gratuitement {freeHoursShort, plural, =0 {jusqu'à l'heure de prise en charge} one {jusqu'à {freeHoursShort} heure avant la prise en charge} other {jusqu'à {freeHoursShort} heures avant la prise en charge}} pour les trajets de {km} km maximum, {freeHoursLong, plural, =0 {jusqu'à l'heure de prise en charge} one {jusqu'à {freeHoursLong} heure avant la prise en charge} other {jusqu'à {freeHoursLong} heures avant la prise en charge}} pour les trajets plus longs et {freeHoursHourly, plural, =0 {jusqu'à l'heure de prise en charge} one {jusqu'à {freeHoursHourly} heure avant la prise en charge} other {jusqu'à {freeHoursHourly} heures avant la prise en charge}} pour les réservations à l'heure. L'annulation se fait depuis le lien de l'e-mail de confirmation, où le délai de votre réservation est indiqué. Un paiement effectué à l'avance est remboursé intégralement et l'autorisation bloquée sur votre carte est libérée."
       },
       {
         "label": "Annulation tardive",
@@ -45,7 +45,7 @@
       },
       {
         "label": "Carte enregistrée en garantie",
-        "desc": "Lors de la réservation, nous enregistrons votre carte auprès de Stripe en garantie. Cela vaut aussi pour les réservations que vous réglez en espèces au chauffeur. La carte n'est débitée que par une personne chez Prestigo, et uniquement en cas d'annulation tardive, d'absence ou de trajet non payé."
+        "desc": "Lorsque vous réservez un transfert aller simple ou une mise à disposition à l'heure, nous enregistrons votre carte auprès de Stripe en garantie, que vous payiez par carte après le trajet ou en espèces au chauffeur. Les allers-retours et les mises à disposition à la journée sont payés intégralement par carte lors de la réservation, et aucune carte n'est enregistrée pour eux. En dehors du montant du trajet lorsque vous avez choisi de payer par carte après le trajet, la carte enregistrée n'est débitée que par une personne chez Prestigo, et uniquement en cas d'annulation tardive, d'absence ou de trajet non payé."
       },
       {
         "label": "Remboursements",

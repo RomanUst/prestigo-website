@@ -1,8 +1,38 @@
 import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { enforceMaxBody } from '@/lib/request-guards'
+
+// Settings printed on public pages: the terms and FAQ (ISR, 300 s) print the cancellation windows, km, fee and the
+// no-show waits; llms.txt and llms-full.txt (3600 s) print the cancellation numbers. New bookings snapshot a saved
+// value at once, so the pages are purged on save instead of drifting for one revalidate window (89-REVIEW-wording WR-07).
+const PUBLIC_WORDING_KEYS = [
+  'cancel_free_km_threshold',
+  'cancel_free_hours_short',
+  'cancel_free_hours_long',
+  'cancel_free_hours_hourly',
+  'cancel_fee_percent',
+  'noshow_wait_city_min',
+  'noshow_wait_airport_min',
+] as const
+
+/**
+ * Purges the localized terms and FAQ (every locale: app/[locale] is the route, so the dynamic pattern with type
+ * 'page' is the path to purge, as the price routes do with '/[locale]') and the two llms route handlers.
+ */
+function revalidatePublicWording(): void {
+  try {
+    revalidatePath('/[locale]/terms', 'page')
+    revalidatePath('/[locale]/faq', 'page')
+    revalidatePath('/llms.txt')
+    revalidatePath('/llms-full.txt')
+  } catch (err) {
+    // The save already succeeded; a failed purge only leaves the pages to their ISR window.
+    console.error('admin settings: revalidate failed:', err instanceof Error ? err.message : 'unknown')
+  }
+}
 
 const settingsPatchSchema = z
   .object({
@@ -175,6 +205,8 @@ export async function PATCH(request: Request) {
   const { error: dbError } = await supabase.from('pricing_globals').update(updates).eq('id', 1)
 
   if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+
+  if (PUBLIC_WORDING_KEYS.some((key) => key in updates)) revalidatePublicWording()
 
   return NextResponse.json({ ok: true })
 }

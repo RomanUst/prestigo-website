@@ -62,9 +62,12 @@ type FaqContent = { sections: { title: string; faqs: { q: string; a: string }[] 
 const terms = (l: string) => getPageContent('terms', l) as TermsContent
 const faq = (l: string) => getPageContent('faq', l) as FaqContent
 
+// Exact-value arm selectors of a plural block ("=0 {...}") are syntax, not a typed number (89-REVIEW-wording WR-04).
+const withoutSelectors = (text: string) => text.replace(/=\d+\s*\{/g, '{')
+
 // A typed number: any digit that is not the refund-processing window (5 to 10 business days, which is not an admin setting).
 function hasTypedNumber(text: string): boolean {
-  return /\d/.test(text.replace(/\b(?:5|10)\b/g, ''))
+  return /\d/.test(withoutSelectors(text).replace(/\b(?:5|10)\b/g, ''))
 }
 
 /** The cancellation answers of the FAQ: the two questions of the cancellation section (index 3). */
@@ -232,6 +235,14 @@ describe('terms section 4 wording (EN)', () => {
     expect(items[4].desc).toMatch(/full refund or a new booking/)
   })
 
+  // 89-REVIEW-wording WR-03: CARD_FLOW_TRIP_TYPES is transfer and hourly; round_trip and daily stay pay-now (D-19),
+  // so the saved-card clause must not claim every booking saves a card.
+  it('limits the saved card to one-way transfers and hourly rides and says round trips and daily hire pay when booked', () => {
+    expect(items[3].desc).not.toMatch(/^When you book, we save your card/)
+    expect(items[3].desc).toMatch(/one-way transfer or an hourly ride/)
+    expect(items[3].desc).toMatch(/Round trips and daily hire are paid in full by card when you book/)
+  })
+
   it('does not mention counsel', () => {
     expect(JSON.stringify(terms('en').section4)).not.toMatch(/counsel|lawyer|attorney/i)
   })
@@ -251,7 +262,7 @@ describe('FAQ cancellation answers (EN)', () => {
   })
 
   it('types no number in the cancellation answers', () => {
-    for (const f of faqs) expect(/\d/.test(`${f.q} ${f.a}`)).toBe(false)
+    for (const f of faqs) expect(/\d/.test(withoutSelectors(`${f.q} ${f.a}`))).toBe(false)
   })
 
   it('states the windows, the operator decision, the email link and that a change is a request', () => {
@@ -262,6 +273,7 @@ describe('FAQ cancellation answers (EN)', () => {
     expect(faqs[1].a).toMatch(/we confirm it/)
     expect(policyVariablesIn(faqs[2].a)).toEqual(['waitAirportMin', 'waitCityMin'])
     expect(faqs[3].a).toMatch(/guarantee/)
+    expect(faqs[3].a).toMatch(/one-way transfers and hourly rides; round trips and daily hire are paid by card when you book/)
   })
 
   it('keeps the cancelled-flight promise (full refund or reschedule, D-05)', () => {
@@ -403,7 +415,7 @@ describe('translations of terms section 4 and the FAQ cancellation block (ru, es
         expect(f.q).not.toBe(enFaq[i].q)
         expect(f.a).not.toBe(enFaq[i].a)
         expect(policyVariablesIn(f.a)).toEqual(policyVariablesIn(enFaq[i].a))
-        expect(/\d/.test(`${f.q} ${f.a}`)).toBe(false)
+        expect(/\d/.test(withoutSelectors(`${f.q} ${f.a}`))).toBe(false)
       })
     })
 
@@ -439,5 +451,70 @@ describe('translations of terms section 4 and the FAQ cancellation block (ru, es
   it('French keeps its apostrophes and the singular hour', () => {
     const d = terms('fr').section4.items[0].desc
     expect(fillPolicyNumbers(d, NUMBERS, 'fr')).toContain("jusqu'à 1 heure avant la prise en charge")
+  })
+})
+
+// 89-REVIEW-wording WR-04: 0 is a legal admin value (POLICY_BOUNDS.hours.min = 0) and means free until the pickup
+// instant. Every hour block has an =0 arm, so no page says "up to 0 hours before pickup"; the wording matches llms.
+describe('a 0-hour window reads "until the pickup time", like llms (WR-04)', () => {
+  // No digit 0 in any other value, so any "0" left in the text would come from an hour window.
+  const ZERO: PolicyNumbers = {
+    km: 75,
+    freeHoursShort: 0,
+    freeHoursLong: 0,
+    freeHoursHourly: 0,
+    percent: 45,
+    waitCityMin: 15,
+    waitAirportMin: 45,
+  }
+  const UNTIL: Record<string, string> = {
+    en: 'until the pickup time',
+    ru: 'вплоть до времени подачи',
+    es: 'hasta la hora de recogida',
+    fr: "jusqu'à l'heure de prise en charge",
+    ar: 'حتى موعد الاستقبال',
+    hi: 'पिकअप के समय तक',
+    zh: '接送时间之前',
+  }
+
+  it.each(LOCALES)('%s: terms and FAQ name no 0 hours and say until the pickup time', (locale) => {
+    for (const text of [
+      fillPolicyNumbers(terms(locale).section4.items[0].desc, ZERO, locale),
+      fillPolicyNumbers(faq(locale).sections[FAQ_CANCEL.section].faqs[0].a, ZERO, locale),
+    ]) {
+      assertNoUnresolved(text)
+      expect(text).not.toMatch(/0/)
+      expect(text.split(UNTIL[locale]).length - 1).toBe(3)
+    }
+  })
+
+  it.each(LOCALES)('%s: one window at 0 leaves the others in hours', (locale) => {
+    const text = fillPolicyNumbers(terms(locale).section4.items[0].desc, { ...NUMBERS, freeHoursShort: 0 }, locale)
+    expect(text).toContain(UNTIL[locale])
+    expect(text).toContain('12')
+    expect(text).not.toMatch(/(?<!\d)0(?!\d)/)
+  })
+
+  it('the rendered EN terms and FAQ pages, with the windows stubbed to 0, show no "0 hour"', async () => {
+    mocks.getCancellationPolicy.mockResolvedValue({
+      version: 'v',
+      kmThreshold: ZERO.km,
+      freeHoursShort: 0,
+      freeHoursLong: 0,
+      freeHoursHourly: 0,
+      feePercent: ZERO.percent,
+    })
+    mocks.createClient.mockReturnValue({})
+    mocks.getNoShowThresholds.mockResolvedValue({ cityMin: ZERO.waitCityMin, airportMin: ZERO.waitAirportMin })
+    const { default: TermsPage } = await import('@/app/[locale]/terms/page')
+    const { default: FaqPage } = await import('@/app/[locale]/faq/page')
+    for (const el of [
+      await TermsPage({ params: Promise.resolve({ locale: 'en' }) }),
+      await FaqPage({ params: Promise.resolve({ locale: 'en' }) }),
+    ]) {
+      const text = renderToStaticMarkup(createElement('div', null, el)).replace(/<[^>]*>/g, ' ')
+      expect(text).not.toMatch(/\b0 hours?\b/)
+      expect(text).toContain('until the pickup time on trips of up to 75 km')
+    }
   })
 })
