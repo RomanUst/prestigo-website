@@ -487,7 +487,8 @@ export default function CardFlowSettings({ initialMode, initialLeadHours, initia
             onClick={() => setConfirmOpen(false)}
             style={{ ...outlineButtonStyle, opacity: confirmBusy ? 0.7 : 1, cursor: confirmBusy ? 'not-allowed' : 'pointer' }}
           >
-            Keep owner test only
+            {/* Names the mode that stays: the dialog also opens from Off (click or arrow wrap) (89-REVIEW-wording WR-08) */}
+            {mode === 'off' ? 'Keep card payment off' : 'Keep owner test only'}
           </button>
         </div>
       </Modal>

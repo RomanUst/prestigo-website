@@ -382,6 +382,31 @@ describe('CardFlowSettings: All clients go-live tile (Phase 89 D-17, E20)', () =
     expect(radios()[1].getAttribute('aria-checked')).toBe('true')
   })
 
+  // 89-REVIEW-wording WR-08: from Off the safe button names Off, the mode that actually stays.
+  it('opened from Off, the safe button reads "Keep card payment off", has the focus and keeps Off', async () => {
+    const fetchMock = stubFetch()
+    render(<CardFlowSettings initialMode="off" initialLeadHours={72} initialEmails={[]} />)
+    await openDialog()
+    const keep = screen.getByRole('button', { name: 'Keep card payment off' })
+    expect(document.activeElement).toBe(keep)
+    expect(screen.queryByRole('button', { name: 'Keep owner test only' })).toBeNull()
+    await act(async () => {
+      fireEvent.click(keep)
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dialog()).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(radios()[0].getAttribute('aria-checked')).toBe('true')
+  })
+
+  it('opened from Owner test only, the safe button does not say "off"', async () => {
+    stubFetch()
+    render(<CardFlowSettings initialMode="canary" initialLeadHours={72} initialEmails={['a@x.com']} />)
+    await openDialog()
+    expect(screen.getByRole('button', { name: 'Keep owner test only' })).not.toBeNull()
+    expect(screen.queryByRole('button', { name: 'Keep card payment off' })).toBeNull()
+  })
+
   it('Escape closes the dialog without saving', async () => {
     const fetchMock = stubFetch()
     render(<CardFlowSettings initialMode="off" initialLeadHours={72} initialEmails={[]} />)
