@@ -49,8 +49,8 @@
   },
   "terminals": {
     "label": "Terminal 1 & 2 pickup",
-    "heading": "Prague Airport pickup at Terminal 1 and Terminal 2",
-    "intro": "Václav Havel Airport (PRG) has two passenger terminals, and your Arrivals hall depends on where you fly from. You do not need to know which one is yours — enter your flight number when you book and your chauffeur is waiting at the right exit.",
+    "heading": "Car service to and from PRG Terminal 1 & Terminal 2",
+    "intro": "Prestigo runs a private car service to and from both passenger terminals at Václav Havel Airport (PRG). Your Arrivals hall depends on where you fly from, but you do not need to know which one is yours — enter your flight number when you book and your chauffeur is waiting at the right exit. For a departure, the car takes you to the door of the terminal your flight leaves from.",
     "items": [
       {
         "name": "Terminal 1",
@@ -122,6 +122,14 @@
     {
       "q": "How do I find my driver at the airport?",
       "a": "Your driver will be waiting in the Arrivals hall with a name board. You will receive their name and phone number before the journey."
+    },
+    {
+      "q": "Do you provide car service to PRG Terminal 1 and Terminal 2?",
+      "a": "Yes. Prestigo runs a private car service to and from both terminals at Prague Václav Havel Airport (PRG), 24/7. For a departure, your chauffeur collects you at your hotel or address and stops in the Express zone directly in front of your terminal's departures entrance — Terminal 1 for non-Schengen flights such as the UK and the USA, Terminal 2 for Schengen flights. Give us your flight number and we confirm the terminal for you."
+    },
+    {
+      "q": "Where does my driver meet me for a pickup at PRG Terminal 1 or Terminal 2?",
+      "a": "Inside the Arrivals hall of your terminal, just past the customs exit, holding a name board. At Terminal 1 (non-Schengen arrivals, including flights from the USA and the UK) that is after passport control and baggage reclaim; at Terminal 2 (Schengen arrivals) it is the public Arrivals hall on the ground floor. Up to 60 minutes of free waiting after landing is included at both terminals."
     },
     {
       "q": "What is the airport meet and greet service at Prague Airport?",

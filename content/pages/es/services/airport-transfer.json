@@ -154,6 +154,14 @@
       "a": "Su chófer le esperará en la sala de Llegadas con un cartel con su nombre. Recibirá su nombre y su número de teléfono antes del trayecto."
     },
     {
+      "q": "¿Ofrecen servicio de coche con chófer a la Terminal 1 y la Terminal 2 del aeropuerto de Praga?",
+      "a": "Sí. Prestigo ofrece servicio de coche privado con chófer hacia y desde las dos terminales del aeropuerto Václav Havel de Praga (PRG), las 24 horas. Para una salida, su chófer le recoge en su hotel o dirección y se detiene en la zona Express, justo delante de la entrada de salidas de su terminal: Terminal 1 para vuelos no Schengen, como Reino Unido y EE. UU.; Terminal 2 para vuelos Schengen. Indíquenos su número de vuelo y confirmamos la terminal por usted."
+    },
+    {
+      "q": "¿Dónde me espera mi chófer en la Terminal 1 o la Terminal 2?",
+      "a": "Dentro de la sala de llegadas de su terminal, justo después de la salida de aduanas, con un cartel con su nombre. En la Terminal 1 (llegadas no Schengen, incluidos los vuelos desde EE. UU. y Reino Unido), tras el control de pasaportes y la recogida de equipaje; en la Terminal 2 (llegadas Schengen), en la sala pública de llegadas de la planta baja. En ambas terminales se incluyen hasta 60 minutos de espera gratuita tras el aterrizaje."
+    },
+    {
       "q": "¿En qué consiste el servicio de recepción personalizada en el aeropuerto de Praga?",
       "a": "La recepción personalizada significa que su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre, y no en la acera ni en una zona de recogida. Desde el momento en que pasa la aduana, su chófer se ocupa de su equipaje y le acompaña directamente hasta el coche. Está incluida en todos los traslados al aeropuerto de Prestigo sin coste adicional."
     },
