@@ -45,7 +45,7 @@
       },
       {
         "label": "Saved card as a guarantee",
-        "desc": "When you book, we save your card with Stripe as a guarantee. This also applies to bookings you pay in cash to the driver. The card is charged only by a person at Prestigo, and only for a late cancellation, a no-show or a ride that was not paid."
+        "desc": "When you book a one-way transfer or an hourly ride, we save your card with Stripe as a guarantee, whether you pay by card after the trip or in cash to the driver. Round trips and daily hire are paid in full by card when you book, and no card is saved for them. Apart from the fare of a trip you chose to pay by card after the trip, the saved card is charged only by a person at Prestigo, and only for a late cancellation, a no-show or a ride that was not paid."
       },
       {
         "label": "Refunds",

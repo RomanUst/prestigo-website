@@ -45,7 +45,7 @@
       },
       {
         "label": "Carte enregistrée en garantie",
-        "desc": "Lors de la réservation, nous enregistrons votre carte auprès de Stripe en garantie. Cela vaut aussi pour les réservations que vous réglez en espèces au chauffeur. La carte n'est débitée que par une personne chez Prestigo, et uniquement en cas d'annulation tardive, d'absence ou de trajet non payé."
+        "desc": "Lorsque vous réservez un transfert aller simple ou une mise à disposition à l'heure, nous enregistrons votre carte auprès de Stripe en garantie, que vous payiez par carte après le trajet ou en espèces au chauffeur. Les allers-retours et les mises à disposition à la journée sont payés intégralement par carte lors de la réservation, et aucune carte n'est enregistrée pour eux. En dehors du montant du trajet lorsque vous avez choisi de payer par carte après le trajet, la carte enregistrée n'est débitée que par une personne chez Prestigo, et uniquement en cas d'annulation tardive, d'absence ou de trajet non payé."
       },
       {
         "label": "Remboursements",

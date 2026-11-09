@@ -232,6 +232,14 @@ describe('terms section 4 wording (EN)', () => {
     expect(items[4].desc).toMatch(/full refund or a new booking/)
   })
 
+  // 89-REVIEW-wording WR-03: CARD_FLOW_TRIP_TYPES is transfer and hourly; round_trip and daily stay pay-now (D-19),
+  // so the saved-card clause must not claim every booking saves a card.
+  it('limits the saved card to one-way transfers and hourly rides and says round trips and daily hire pay when booked', () => {
+    expect(items[3].desc).not.toMatch(/^When you book, we save your card/)
+    expect(items[3].desc).toMatch(/one-way transfer or an hourly ride/)
+    expect(items[3].desc).toMatch(/Round trips and daily hire are paid in full by card when you book/)
+  })
+
   it('does not mention counsel', () => {
     expect(JSON.stringify(terms('en').section4)).not.toMatch(/counsel|lawyer|attorney/i)
   })
@@ -262,6 +270,7 @@ describe('FAQ cancellation answers (EN)', () => {
     expect(faqs[1].a).toMatch(/we confirm it/)
     expect(policyVariablesIn(faqs[2].a)).toEqual(['waitAirportMin', 'waitCityMin'])
     expect(faqs[3].a).toMatch(/guarantee/)
+    expect(faqs[3].a).toMatch(/one-way transfers and hourly rides; round trips and daily hire are paid by card when you book/)
   })
 
   it('keeps the cancelled-flight promise (full refund or reschedule, D-05)', () => {
