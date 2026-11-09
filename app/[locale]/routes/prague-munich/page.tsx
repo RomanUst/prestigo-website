@@ -62,7 +62,8 @@ export default async function PragueMunichPage({ params }: { params: Promise<{ l
   const openingParagraphs = content.openingParagraphs.map((p) => interpolateBidi(p, prices))
   const routeNarrativeParagraphs = content.routeNarrative.paragraphs.map((p) => interpolateBidi(p, prices))
 
-  const highlights = content.highlights.map((h) => ({
+  // The fare is shown lower on the page (vehicle cards, "From €…"), not in the top bar.
+  const highlights = content.highlights.filter((h) => !(h as { copper?: boolean }).copper).map((h) => ({
     ...h,
     value: typeof h.value === 'string' ? interpolate(h.value, prices) : h.value,
   }))
@@ -143,7 +144,7 @@ export default async function PragueMunichPage({ params }: { params: Promise<{ l
       {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>{t('availableOnThisRoute')}</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{(h as { copper?: boolean }).copper ? <bdi>{h.value}</bdi> : h.value}</p>)}</div></Reveal>))}
           </div>
         </div>

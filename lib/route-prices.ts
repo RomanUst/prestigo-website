@@ -3,6 +3,7 @@
 // Number() cast for NUMERIC columns.
 
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { getPricingConfig, type PricingRates } from '@/lib/pricing-config'
 
 export type RoutePrice = {
   slug: string
@@ -45,12 +46,46 @@ function toRoutePrice(r: Row): RoutePrice {
   }
 }
 
+/**
+ * Public "from" fares = what the booking form charges for a centre-to-centre
+ * trip: road distance (route_prices.distance_km) × per-km rate from admin →
+ * pricing, clamped to the class minimum fare. Same formula as
+ * /api/calculate-price (buildPriceMap + applyGlobals without night, holiday or
+ * airport surcharges), so the route page never shows less than the form asks.
+ * The stored e/s/v columns stay as a fallback when the pricing config is
+ * unavailable, and are what the admin editor reads (`raw: true`).
+ */
+export function applyDistanceFares(route: RoutePrice, rates: PricingRates): RoutePrice {
+  if (!(route.distanceKm > 0)) return route
+  const fare = (vc: 'business' | 'first_class' | 'business_van', stored: number) => {
+    const perKm = rates.ratePerKm?.[vc]
+    if (!(perKm > 0)) return stored
+    return Math.max(Math.round(route.distanceKm * perKm), rates.minFare?.[vc] ?? 0)
+  }
+  return {
+    ...route,
+    eClassEur: fare('business', route.eClassEur),
+    sClassEur: fare('first_class', route.sClassEur),
+    vClassEur: fare('business_van', route.vClassEur),
+  }
+}
+
+async function withDistanceFares(routes: RoutePrice[]): Promise<RoutePrice[]> {
+  if (routes.length === 0) return routes
+  try {
+    const rates = await getPricingConfig()
+    return routes.map((r) => applyDistanceFares(r, rates))
+  } catch {
+    return routes
+  }
+}
+
 // Route pages are statically prerendered (ISR, revalidate=120) and always have
 // a ROUTE_FALLBACK price to fall back on. So a missing Supabase env or an
 // unreachable DB at build time must degrade to null — NOT throw and fail the
 // whole static export. createSupabaseServiceClient() throws synchronously when
 // SUPABASE_URL is absent, so the try/catch must wrap construction too.
-export async function getRoutePrice(slug: string): Promise<RoutePrice | null> {
+export async function getRoutePrice(slug: string, opts: { raw?: boolean } = {}): Promise<RoutePrice | null> {
   try {
     const supabase = createSupabaseServiceClient()
     const { data, error } = await supabase
@@ -60,14 +95,16 @@ export async function getRoutePrice(slug: string): Promise<RoutePrice | null> {
       .single()
 
     if (error || !data) return null
-    return toRoutePrice(data as Row)
+    const route = toRoutePrice(data as Row)
+    return opts.raw ? route : (await withDistanceFares([route]))[0]
   } catch {
     return null
   }
 }
 
 export async function getAllRoutes(
-  orderBy: 'display_order' | 'slug' = 'display_order'
+  orderBy: 'display_order' | 'slug' = 'display_order',
+  opts: { raw?: boolean } = {},
 ): Promise<RoutePrice[]> {
   try {
     const supabase = createSupabaseServiceClient()
@@ -77,7 +114,8 @@ export async function getAllRoutes(
       .order(orderBy, { ascending: true })
 
     if (error || !data) return []
-    return (data as Row[]).map(toRoutePrice)
+    const routes = (data as Row[]).map(toRoutePrice)
+    return opts.raw ? routes : await withDistanceFares(routes)
   } catch {
     return []
   }

@@ -142,42 +142,6 @@ const PRAGUE_COORDS = { lat: 50.08, lng: 14.42 }
 const BRNO_COORDS = { lat: 49.19, lng: 16.61 }
 
 describe('/api/calculate-price — intercity (CALC-05, CALC-07)', () => {
-  it('Prague → catalogue city coordinates use the route fare without any slug or placeId', async () => {
-    const { getRoutePrice } = await import('@/lib/route-prices')
-    vi.mocked(getRoutePrice).mockResolvedValue(mockedRoute)
-
-    const res = await POST(makeRequest({
-      origin: PRAGUE_COORDS,
-      destination: BRNO_COORDS,
-      tripType: 'transfer',
-      pickupDate: '2026-05-10',
-      pickupTime: '10:00',
-    }))
-
-    const json = await res.json()
-    expect(vi.mocked(getRoutePrice)).toHaveBeenCalledWith('prague-brno')
-    expect(json.matchedRouteSlug).toBe('prague-brno')
-    expect(json.prices.business.total).toBe(150)
-    expect(json.distanceKm).toBe(210)
-    expect(fetchMock).not.toHaveBeenCalled()
-  })
-
-  it('a trip with stops is not given the route fare', async () => {
-    const { getRoutePrice } = await import('@/lib/route-prices')
-    vi.mocked(getRoutePrice).mockResolvedValue(mockedRoute)
-
-    await POST(makeRequest({
-      origin: PRAGUE_COORDS,
-      destination: BRNO_COORDS,
-      tripType: 'transfer',
-      pickupDate: '2026-05-10',
-      pickupTime: '10:00',
-      intermediates: [{ lat: 49.6, lng: 15.6 }],
-    }))
-
-    expect(vi.mocked(getRoutePrice)).not.toHaveBeenCalled()
-  })
-
   it('routeSlug param returns flat price (no Google Routes call)', async () => {
     const { getRoutePrice } = await import('@/lib/route-prices')
     vi.mocked(getRoutePrice).mockResolvedValue(mockedRoute)

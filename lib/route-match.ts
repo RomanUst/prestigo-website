@@ -1,29 +1,18 @@
 /**
- * Intercity route detection by coordinates.
+ * Route pre-fill for the booking form.
  *
- * Route pages advertise the fixed fares stored in `route_prices` (admin →
- * pricing). The booking flow only knows the two picked addresses, and
- * `route_prices.place_ids` is empty, so the place-id match in
- * /api/calculate-price never fired: every intercity booking was priced by
- * distance instead, 11–29 % above the fare shown on the route page.
+ * "Book this Route" on a route page used to open an empty /book form, so the
+ * visitor had to type both cities again (Clarity, Nov 2026). `routeBookQuery`
+ * builds the BookingWizard deeplink params (from/to + coordinates) for a
+ * route_prices slug; the form then prices the trip by distance as usual.
  *
- * A trip matches route `prague-<city>` when one end lies within
- * PRAGUE_RADIUS_KM of central Prague (this includes PRG airport) and the other
- * within CITY_RADIUS_KM of the city centre. Fares are direction-independent,
- * so <city> → Prague matches the same row.
- *
- * Client-safe: no server imports (the route pages use `routeBookQuery`).
+ * Client-safe: no server imports.
  */
 
 export type LatLng = { lat: number; lng: number }
 
 export const PRAGUE: LatLng & { label: string } = { label: 'Prague, Czechia', lat: 50.0755, lng: 14.4378 }
 
-/** Kept small so a trip to a nearby town (or Vienna airport) is not given the city fare. */
-export const PRAGUE_RADIUS_KM = 22
-export const CITY_RADIUS_KM = 15
-
-/** Destination centres for every slug in `route_prices` (slug = 'prague-' + key). */
 export const ROUTE_CITIES: Record<string, LatLng & { label: string }> = {
   'prague-kutna-hora': { label: 'Kutná Hora, Czechia', lat: 49.9484, lng: 15.2682 },
   'prague-plzen': { label: 'Plzeň, Czechia', lat: 49.7384, lng: 13.3736 },
@@ -75,37 +64,6 @@ export const ROUTE_CITIES: Record<string, LatLng & { label: string }> = {
   'prague-amsterdam': { label: 'Amsterdam, Netherlands', lat: 52.3676, lng: 4.9041 },
   'prague-strasbourg': { label: 'Strasbourg, France', lat: 48.5734, lng: 7.7521 },
   'prague-paris': { label: 'Paris, France', lat: 48.8566, lng: 2.3522 },
-}
-
-/** Great-circle distance in km. */
-export function haversineKm(a: LatLng, b: LatLng): number {
-  const R = 6371
-  const rad = (d: number) => (d * Math.PI) / 180
-  const dLat = rad(b.lat - a.lat)
-  const dLng = rad(b.lng - a.lng)
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2
-  return 2 * R * Math.asin(Math.sqrt(h))
-}
-
-function cityNear(p: LatLng): string | null {
-  let best: string | null = null
-  let bestKm = CITY_RADIUS_KM
-  for (const [slug, c] of Object.entries(ROUTE_CITIES)) {
-    const km = haversineKm(p, c)
-    if (km <= bestKm) {
-      best = slug
-      bestKm = km
-    }
-  }
-  return best
-}
-
-/** The route_prices slug for a Prague ↔ city trip, in either direction; null otherwise. */
-export function matchRouteSlugByCoords(origin: LatLng | null | undefined, destination: LatLng | null | undefined): string | null {
-  if (!origin || !destination) return null
-  if (haversineKm(origin, PRAGUE) <= PRAGUE_RADIUS_KM) return cityNear(destination)
-  if (haversineKm(destination, PRAGUE) <= PRAGUE_RADIUS_KM) return cityNear(origin)
-  return null
 }
 
 /**

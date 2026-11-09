@@ -62,7 +62,8 @@ export default async function PragueKutnaHoraPage({ params }: { params: Promise<
   const openingParagraphs = content.openingParagraphs.map((p) => interpolateBidi(p, prices))
   const routeNarrativeParagraphs = content.routeNarrative.paragraphs.map((p) => interpolateBidi(p, prices))
 
-  const highlights = content.highlights.map((h) => ({
+  // The fare is shown lower on the page (vehicle cards, "From €…"), not in the top bar.
+  const highlights = content.highlights.filter((h) => !(h as { copper?: boolean }).copper).map((h) => ({
     ...h,
     value: typeof h.value === 'string' ? interpolate(h.value, prices) : h.value,
   }))
@@ -150,7 +151,7 @@ export default async function PragueKutnaHoraPage({ params }: { params: Promise<
       {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {highlights.map((h) => (
               <div key={h.label}>
                 <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>
