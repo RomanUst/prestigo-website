@@ -27,6 +27,8 @@ const SURFACES: Surface[] = [
   { name: 'booking section trust bullet', file: 'messages/%L.json', keyPath: ['BookingSection', 'trust', 2] },
   // 89-REVIEW-wording CR-01: the flight-delays landing page stated the retired one-hour rule.
   { name: 'flight delays editorial', file: 'content/pages/%L/faq/flight-delays.json', keyPath: ['editorial', 'paragraphs', 0] },
+  // 89-REVIEW-wording WR-02: the payment FAQ said "charged at the moment you confirm" and "no cash".
+  { name: 'book payment FAQ', file: 'content/pages/%L/book.json', keyPath: ['faq', 'items', 1, 'a'] },
 ]
 
 // The FAQ landing pages and the service pages of one locale: every file in the two folders, so a new page
@@ -117,6 +119,21 @@ describe('public cancellation wording: English', () => {
     expect(faq).toMatch(/5 to 10 business days/)
     expect(faq).toMatch(/cancelled flight/)
     expect(faq).toMatch(/deadline shown at checkout and in your confirmation email/)
+  })
+
+  // The live flow (card_flow_mode on, CARD_FLOW_TRIP_TYPES = transfer and hourly): card after the trip or cash to the
+  // driver with the card as a guarantee; round trips and daily hire stay pay-now.
+  it('the book payment FAQ describes card after the trip, cash with a card guarantee and pay-now for the rest', () => {
+    const pay = valueFor(SURFACES.find((s) => s.name === 'book payment FAQ')!, 'en')
+    expect(pay).not.toMatch(/charged at the moment you confirm/i)
+    expect(pay).not.toMatch(/do not accept cash/i)
+    expect(pay).toMatch(/one-way transfer or an hourly ride/)
+    expect(pay).toMatch(/after your trip/)
+    expect(pay).toMatch(/cash to the driver/)
+    expect(pay).toMatch(/only as a guarantee/)
+    expect(pay).toMatch(/Round trips and daily hire are paid in full by card when you book/)
+    expect(pay).toMatch(/monthly consolidated invoice/)
+    expect(pay).toMatch(/Receipts and VAT invoices/)
   })
 })
 
