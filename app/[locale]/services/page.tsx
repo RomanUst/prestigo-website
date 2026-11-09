@@ -85,6 +85,12 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
 
   // Named route lookups for FAQ copy
   const budapest = routes.find(r => r.slug === 'prague-budapest')?.eClassEur ?? 885
+  // Upper bound of the intercity range quoted in the FAQ ("up to … (Warsaw)"):
+  // Warsaw is the most expensive of the 30 routes. If its row is missing, fall
+  // back to the highest fare we do have rather than a typed-in number.
+  const warsaw =
+    routes.find(r => r.slug === 'prague-warsaw')?.eClassEur ??
+    Math.max(budapest, ...routes.map(r => r.eClassEur))
   const vienna = routes.find(r => r.slug === 'prague-vienna')?.eClassEur ?? 485
   const berlin = routes.find(r => r.slug === 'prague-berlin')?.eClassEur ?? 580
   const munich = routes.find(r => r.slug === 'prague-munich')?.eClassEur ?? 635
@@ -95,6 +101,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
     hourlyFrom,
     cheapestIntercity,
     budapest,
+    warsaw,
     vienna,
     berlin,
     munich,
