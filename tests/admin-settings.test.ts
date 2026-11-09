@@ -34,6 +34,10 @@ vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
 
+// next/cache: revalidatePath needs a Next request scope; record the calls instead (89-REVIEW-wording WR-07)
+const { revalidatePathMock } = vi.hoisted(() => ({ revalidatePathMock: vi.fn() }))
+vi.mock('next/cache', () => ({ revalidatePath: revalidatePathMock }))
+
 // Mock enforceMaxBody to always return null (no body size issue in tests)
 vi.mock('@/lib/request-guards', () => ({
   enforceMaxBody: vi.fn(() => null),
@@ -661,5 +665,87 @@ describe('Phase 89 (CANC-01, D-06, WR-06): cancellation policy and wait cross-ch
     const res = await PATCH(req)
     expect(res.status).toBe(400)
     expect((await res.json()).error).toBe('Invalid JSON')
+  })
+})
+
+describe('89-REVIEW-wording WR-07: saving a published setting purges the terms, FAQ and llms', () => {
+  const PURGED = [
+    ['/[locale]/terms', 'page'],
+    ['/[locale]/faq', 'page'],
+    ['/llms.txt'],
+    ['/llms-full.txt'],
+  ]
+
+  function patch(body: unknown) {
+    return new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    revalidatePathMock.mockReset()
+    const chainStub = supabaseServiceStub._chain
+    chainStub.select.mockReturnValue(chainStub)
+    chainStub.update.mockReturnValue(chainStub)
+    armEq()
+    chainStub.single.mockResolvedValue({
+      data: { noshow_wait_city_min: 30, noshow_wait_airport_min: 60, cancel_free_hours_short: 1, cancel_free_hours_long: 12 },
+      error: null,
+    })
+    supabaseServiceStub.from.mockReturnValue(chainStub)
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+  })
+
+  it.each([
+    ['cancel_free_km_threshold', 80],
+    ['cancel_free_hours_short', 0],
+    ['cancel_free_hours_long', 24],
+    ['cancel_free_hours_hourly', 6],
+    ['cancel_fee_percent', 50],
+    ['noshow_wait_city_min', 20],
+    ['noshow_wait_airport_min', 90],
+  ])('PATCH { %s } purges the localized terms and FAQ and both llms files', async (key, value) => {
+    const res = await PATCH(patch({ [key]: value }))
+    expect(res.status).toBe(200)
+    expect(revalidatePathMock.mock.calls).toEqual(PURGED)
+  })
+
+  it.each([
+    { card_flow_mode: 'on' },
+    { payment_hold_lead_hours: 48 },
+    { notification_flags: { confirmed: true } },
+    { dispatch_default_horizon: 'all' },
+  ])('PATCH %j changes nothing published and purges nothing', async (body) => {
+    expect((await PATCH(patch(body))).status).toBe(200)
+    expect(revalidatePathMock).not.toHaveBeenCalled()
+  })
+
+  it('a failed update purges nothing', async () => {
+    supabaseServiceStub._chain.eq.mockImplementation(() =>
+      Object.assign(Promise.resolve({ error: { message: 'boom' } }), { single: supabaseServiceStub._chain.single })
+    )
+    const res = await PATCH(patch({ cancel_fee_percent: 50 }))
+    expect(res.status).toBe(500)
+    expect(revalidatePathMock).not.toHaveBeenCalled()
+  })
+
+  it('a 422 cross-check purges nothing', async () => {
+    const res = await PATCH(patch({ cancel_free_hours_short: 10, cancel_free_hours_long: 5 }))
+    expect(res.status).toBe(422)
+    expect(revalidatePathMock).not.toHaveBeenCalled()
+  })
+
+  it('a purge that throws does not turn the saved setting into an error', async () => {
+    revalidatePathMock.mockImplementation(() => {
+      throw new Error('outside request scope')
+    })
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = await PATCH(patch({ cancel_fee_percent: 50 }))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    spy.mockRestore()
   })
 })
