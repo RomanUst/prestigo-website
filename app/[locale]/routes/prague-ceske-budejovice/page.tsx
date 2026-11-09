@@ -7,6 +7,7 @@ import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
+import { routeBookQuery } from '@/lib/route-match'
 
 export const revalidate = 3600
 
@@ -49,6 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function PragueCeskeBudejovicePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const bookHref = `${getPathname({ locale, href: '/book' })}${routeBookQuery('prague-ceske-budejovice')}`
   const content = getRouteContent('prague-ceske-budejovice', locale)
   const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-ceske-budejovice')
@@ -123,7 +125,7 @@ export default async function PragueCeskeBudejovicePage({ params }: { params: Pr
           <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-2xl">{content.hero.headlineLine1} <br /><span className="display-italic">{content.hero.headlineItalic}</span></h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>{interpolateBidi(content.hero.intro, prices)}</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('heroCtaPrimary')}</a>
+            <a href={bookHref} className="btn-primary">{t('heroCtaPrimary')}</a>
             <a href={getPathname({ locale, href: '/contact' })} className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
           {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} className="mt-8 inline-flex items-center gap-3" />}
@@ -200,7 +202,7 @@ export default async function PragueCeskeBudejovicePage({ params }: { params: Pr
           <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.fleet')}</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14">{t('chooseYourVehicle')}</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.passengers')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}><bdi>{v.price}</bdi></span></div></div><a href={getPathname({ locale, href: '/book' })} className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a></div></div></Reveal>))}
+            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.passengers')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}><bdi>{v.price}</bdi></span></div></div><a href={bookHref} className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a></div></div></Reveal>))}
           </div>
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>{content.fleetNote}</p>
         </div>
@@ -321,7 +323,7 @@ export default async function PragueCeskeBudejovicePage({ params }: { params: Pr
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{interpolateBidi(content.cta.headingItalic, prices)}</span></h2><p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p></div></Reveal>
-          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('bookNow')}</a><a href={getPathname({ locale, href: '/routes' })} className="btn-ghost">{t('allRoutes')}</a></div></Reveal>
+          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href={bookHref} className="btn-primary">{t('bookNow')}</a><a href={getPathname({ locale, href: '/routes' })} className="btn-ghost">{t('allRoutes')}</a></div></Reveal>
         </div>
       </section>
 

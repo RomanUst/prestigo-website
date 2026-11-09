@@ -102,7 +102,8 @@ beforeEach(() => {
 // CTA's "Book Now"/"All Routes") — used to assert locale-prefix behavior
 // without hardcoding each anchor's position in the markup.
 function collectSingleSlashHrefs(html: string): string[] {
-  return Array.from(html.matchAll(/href="(\/[^"]*)"/g)).map((m) => m[1]);
+  // Query strings are ignored: /book carries the route pre-fill (lib/route-match).
+  return Array.from(html.matchAll(/href="(\/[^"]*)"/g)).map((m) => m[1].split("?")[0]);
 }
 
 describe("PragueViennaPage — locale-aware links + content-driven hero alt (75-10 Task 1 tracer)", () => {
@@ -125,6 +126,7 @@ describe("PragueViennaPage — locale-aware links + content-driven hero alt (75-
       expect(href.startsWith("/en/")).toBe(false);
     }
     expect(hrefs).toContain("/book");
+    expect(html).toMatch(/href="\/book\?type=transfer&amp;from=Prague[^"]*to=Vienna/);
     expect(hrefs).toContain("/contact");
     expect(hrefs).toContain("/routes");
     expect(hrefs.some((h) => h.startsWith("/routes/prague-"))).toBe(true);

@@ -821,6 +821,7 @@
     "svcGa4Desc": "Estadísticas de tráfico y análisis del comportamiento de los usuarios. Consent Mode v2: funciona de forma anónima si se rechaza.",
     "svcMetaDesc": "Seguimiento de conversiones publicitarias en Instagram y Facebook.",
     "acceptAll": "Aceptar todo",
+    "acceptNecessary": "Aceptar necesarias",
     "saveSettings": "Guardar ajustes",
     "moreInfo": "Más información",
     "toggleEnabled": "Activado",

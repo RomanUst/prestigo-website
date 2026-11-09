@@ -15,6 +15,9 @@ vi.mock('@/lib/pricing-config', () => ({
   getPricingConfig: pricingConfigMock,
 }))
 
+const { getRoutePriceMock } = vi.hoisted(() => ({ getRoutePriceMock: vi.fn() }))
+vi.mock('@/lib/route-prices', () => ({ getRoutePrice: getRoutePriceMock }))
+
 import {
   checkoutBookingSchema,
   validateCheckoutBooking,
@@ -152,6 +155,43 @@ describe('validateCheckoutBooking', () => {
 })
 
 describe('priceCheckout', () => {
+  describe('intercity route fare (lib/route-match)', () => {
+    const BRNO_ROUTE = { slug: 'prague-brno', distanceKm: 210, eClassEur: 320, sClassEur: 525, vClassEur: 350 }
+    const coords = {
+      originLat: '50.0875', originLng: '14.4213',
+      destinationLat: '49.1951', destinationLng: '16.6068',
+    }
+
+    it('charges the route fare when the client echoes the route distance', async () => {
+      pricingConfigMock.mockResolvedValue(DEFAULT_PRICING)
+      getRoutePriceMock.mockResolvedValue(BRNO_ROUTE)
+      const bookingData = makeBookingData({ ...coords, distanceKm: '210' })
+      const result = (await priceCheckout({ bookingData, validated: validOrThrow(bookingData), currency: 'eur' })) as PricedCheckout
+      expect(getRoutePriceMock).toHaveBeenCalledWith('prague-brno')
+      expect(result.outboundLegEur).toBe(320)
+    })
+
+    it('keeps the distance price when the distance differs (trip with stops)', async () => {
+      pricingConfigMock.mockResolvedValue(DEFAULT_PRICING)
+      getRoutePriceMock.mockResolvedValue(BRNO_ROUTE)
+      const bookingData = makeBookingData({ ...coords, distanceKm: '240.5' })
+      const result = (await priceCheckout({ bookingData, validated: validOrThrow(bookingData), currency: 'eur' })) as PricedCheckout
+      expect(result.outboundLegEur).toBe(Math.round(240.5 * 2.5))
+    })
+
+    it('round trip: return leg is the route fare minus the return discount', async () => {
+      pricingConfigMock.mockResolvedValue(DEFAULT_PRICING)
+      getRoutePriceMock.mockResolvedValue(BRNO_ROUTE)
+      const bookingData = makeBookingData({
+        ...coords, distanceKm: '210', tripType: 'round_trip', quoteMode: 'false',
+        pickupTime: '10:00', returnDate: futureDate(7), returnTime: '12:00',
+      })
+      const result = (await priceCheckout({ bookingData, validated: validOrThrow(bookingData), currency: 'eur' })) as PricedCheckout
+      expect(result.outboundLegEur).toBe(320)
+      expect(result.returnLegEur).toBe(288)
+    })
+  })
+
   it('returns 503 PRICING_UNAVAILABLE when the pricing config cannot be loaded', async () => {
     pricingConfigMock.mockRejectedValue(new Error('db down'))
     const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})

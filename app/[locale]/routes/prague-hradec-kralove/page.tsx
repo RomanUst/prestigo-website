@@ -7,6 +7,7 @@ import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
+import { routeBookQuery } from '@/lib/route-match'
 
 export const revalidate = 3600
 
@@ -49,6 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function PragueHradecKralovePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const bookHref = `${getPathname({ locale, href: '/book' })}${routeBookQuery('prague-hradec-kralove')}`
   const content = getRouteContent('prague-hradec-kralove', locale)
   const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-hradec-kralove')
@@ -123,7 +125,7 @@ export default async function PragueHradecKralovePage({ params }: { params: Prom
           <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-2xl">{content.hero.headlineLine1} <br /><span className="display-italic">{content.hero.headlineItalic}</span></h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>{interpolateBidi(content.hero.intro, prices)}</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('heroCtaPrimary')}</a>
+            <a href={bookHref} className="btn-primary">{t('heroCtaPrimary')}</a>
             <a href={getPathname({ locale, href: '/contact' })} className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
           {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} className="mt-8 inline-flex items-center gap-3" />}
@@ -215,7 +217,7 @@ export default async function PragueHradecKralovePage({ params }: { params: Prom
                     <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div>
                     <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}><bdi>{v.price}</bdi></span></div>
                   </div>
-                  <a href={getPathname({ locale, href: '/book' })} className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a>
+                  <a href={bookHref} className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a>
                 </div>
               </div>
             ))}
@@ -356,7 +358,7 @@ export default async function PragueHradecKralovePage({ params }: { params: Prom
             <p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p>
           </div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4">
-            <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('bookNow')}</a>
+            <a href={bookHref} className="btn-primary">{t('bookNow')}</a>
             <a href={getPathname({ locale, href: '/routes' })} className="btn-ghost">{t('allRoutes')}</a>
           </div></Reveal>
         </div>

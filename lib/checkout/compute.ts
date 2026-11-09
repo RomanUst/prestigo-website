@@ -22,7 +22,10 @@ import {
   computeOutboundLegTotal,
   computeReturnLegTotal,
   computeCombinedTotalMinor,
+  computeRouteLegTotals,
 } from '@/lib/server-pricing'
+import { matchRouteSlugByCoords } from '@/lib/route-match'
+import { getRoutePrice } from '@/lib/route-prices'
 import type { TripType, VehicleClass } from '@/types/booking'
 import { VEHICLE_CONFIG } from '@/types/booking'
 import { normalizePhone } from '@/lib/phone'
@@ -222,27 +225,48 @@ export async function priceCheckout(input: {
   const pickupDateOrNull = bookingData.pickupDate || null
 
   let returnLegEur: number = 0
+  let outboundLegEur: number
 
-  const outboundLegEur = computeOutboundLegTotal(
-    vehicleClass,
-    distanceKm,
-    hours,
-    days,
-    tripType === 'round_trip' ? 'transfer' : tripType,
-    pickupDateOrNull,
-    pickupTimeOrNull,
-    isAirport,
-    rates,
-  )
-  if (tripType === 'round_trip') {
-    returnLegEur = computeReturnLegTotal(
+  // Intercity fixed fare: same decision as /api/calculate-price. That endpoint
+  // answers a matched route with distanceKm = route.distanceKm, which the
+  // client echoes back here; a trip with stops was priced by Google distance
+  // instead and so carries a different distance and keeps the distance price.
+  const routeFare = await findRouteFare(bookingData, tripType, distanceKm)
+  if (routeFare) {
+    const legs = computeRouteLegTotals({
+      route: routeFare,
       vehicleClass,
-      distanceKm as number, // guarded in validateCheckoutBooking
-      bookingData.returnDate ?? '',
-      bookingData.returnTime ?? '',
+      pickupDate: pickupDateOrNull,
+      pickupTime: pickupTimeOrNull,
+      returnDate: tripType === 'round_trip' ? bookingData.returnDate || null : null,
+      returnTime: tripType === 'round_trip' ? bookingData.returnTime || null : null,
+      isAirport,
+      rates,
+    })
+    outboundLegEur = legs.outboundLegEur
+    returnLegEur = legs.returnLegEur
+  } else {
+    outboundLegEur = computeOutboundLegTotal(
+      vehicleClass,
+      distanceKm,
+      hours,
+      days,
+      tripType === 'round_trip' ? 'transfer' : tripType,
+      pickupDateOrNull,
+      pickupTimeOrNull,
       isAirport,
       rates,
     )
+    if (tripType === 'round_trip') {
+      returnLegEur = computeReturnLegTotal(
+        vehicleClass,
+        distanceKm as number, // guarded in validateCheckoutBooking
+        bookingData.returnDate ?? '',
+        bookingData.returnTime ?? '',
+        isAirport,
+        rates,
+      )
+    }
   }
 
   const totalEur = outboundLegEur + extrasTotalEur + returnLegEur
@@ -377,4 +401,24 @@ export function buildCheckoutMeta(input: {
     // A compact JSON string (about 150 chars, inside the 500-char limit; never clamped, a cut JSON is useless).
     ...(cancelPolicy ? { cancelPolicy: JSON.stringify(cancelPolicy.snapshot) } : {}),
   }
+}
+
+
+/** The route_prices fare for a Prague ↔ catalogue-city transfer, or null (lib/route-match). */
+async function findRouteFare(
+  bookingData: CheckoutBookingData,
+  tripType: TripType,
+  distanceKm: number | null,
+) {
+  if (tripType !== 'transfer' && tripType !== 'round_trip') return null
+  if (distanceKm === null) return null
+  const num = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN)
+  const o = { lat: num(bookingData.originLat), lng: num(bookingData.originLng) }
+  const d = { lat: num(bookingData.destinationLat), lng: num(bookingData.destinationLng) }
+  if (![o.lat, o.lng, d.lat, d.lng].every(Number.isFinite)) return null
+  const slug = matchRouteSlugByCoords(o, d)
+  if (!slug) return null
+  const route = await getRoutePrice(slug)
+  if (!route || Math.abs(route.distanceKm - distanceKm) > 0.01) return null
+  return route
 }

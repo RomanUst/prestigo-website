@@ -8,6 +8,7 @@ import { createSupabasePublicReadClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
 import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
 import { getRoutePrice, findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
+import { matchRouteSlugByCoords } from '@/lib/route-match'
 import { CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
 import { isNearAirport } from '@/lib/airport'
 // Re-export extracted helpers so legacy consumers (tests/pricing.test.ts)
@@ -150,13 +151,20 @@ export async function POST(req: Request) {
 
     // CALC-07: intercity auto-detect — flat price from route_prices when the pair matches.
     // Must run BEFORE zone check and Google Routes call.
-    if (tripType === 'transfer' && (routeSlug || (originPlaceId && destinationPlaceId))) {
+    // Coordinate match (lib/route-match): a Prague ↔ catalogue-city trip gets the
+    // fixed fare shown on the route page. Skipped when the client added stops,
+    // because the flat fare does not cover a detour.
+    const coordSlug = intermediates.length === 0 ? matchRouteSlugByCoords(origin, destination) : null
+    if (tripType === 'transfer' && (routeSlug || (originPlaceId && destinationPlaceId) || coordSlug)) {
       let route: RoutePrice | null = null
       if (routeSlug) {
         route = await getRoutePrice(routeSlug)
       }
       if (!route && originPlaceId && destinationPlaceId) {
         route = await findRouteByPlaceIds(originPlaceId, destinationPlaceId)
+      }
+      if (!route && coordSlug) {
+        route = await getRoutePrice(coordSlug)
       }
       if (route) {
         const base = buildIntercityPrices(route)
