@@ -14,10 +14,9 @@ import { StatusBadge } from './StatusBadge'
 import PaymentPanel from './PaymentPanel'
 import { PaymentStateBadge } from './PaymentStateBadge'
 import { FeeCaseBadge, CashChip, hasPendingFeeCase } from './FeeCaseBadge'
-import { CancelBookingDialog, type CancelDoneInfo } from './CancelBookingDialog'
 import { NoShowBanner, NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
-import { ConfirmNoShowModal } from './ConfirmNoShowModal'
-import { STATUS_CONFLICT_STYLE, statusConflictMessage } from './statusConflict'
+import { STATUS_CONFLICT_STYLE } from './statusConflict'
+import { useBookingMoves } from './useBookingMoves'
 import { FlightStatusBlock } from './FlightStatusBlock'
 import { BookingChangeHistory } from './BookingChangeHistory'
 import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
@@ -27,10 +26,8 @@ import { DetailField } from './DetailField'
 import { TripEditPanel } from './TripEditPanel'
 import { PaymentLinkSection } from './PaymentLinkSection'
 import {
-  PatchError,
   patchBooking,
   showsPaymentBadge,
-  hasCancelMoney,
   vehicleClassMap,
   STATUS_LABELS,
   type AdminBooking,
@@ -124,9 +121,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const limit = 20
 
   const [localNotes, setLocalNotes] = useState<Record<string, string>>({})
-  const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({})
-  // D-01: per-booking inline message after an admin status change lost the race (409 status_conflict)
-  const [statusConflict, setStatusConflict] = useState<Record<string, string>>({})
   const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
   const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
@@ -136,12 +130,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [isMobile, setIsMobile] = useState(false)
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
 
-  // Phase 87 D-16(a): the booking whose Confirm no-show modal is open (banner button or the
-  // generic status select / buttons; no_show is terminal, so it is never applied directly).
-  const [noShowTarget, setNoShowTarget] = useState<{ id: string; reference: string } | null>(null)
-
-  // Phase 89 plan 16: the booking whose cancel dialog is open (CancelBookingDialog owns its own choice and request state).
-  const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
   // Phase 88-07: per-booking counter that makes an open PaymentPanel refetch after a trip edit.
   const [paymentRefreshKeys, setPaymentRefreshKeys] = useState<Record<string, number>>({})
 
@@ -170,67 +158,16 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     setBookings(prev => prev.map(b => (b.id === bookingId && b.payment_state !== state ? { ...b, payment_state: state } : b)))
   }, [])
 
-  const bumpPayment = useCallback((bookingId: string) => {
-    setPaymentRefreshKeys(prev => ({ ...prev, [bookingId]: (prev[bookingId] ?? 0) + 1 }))
-  }, [])
-
   const handlePaymentLinkGenerated = useCallback((bookingId: string, url: string) => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, payment_link_url: url, status: 'unpaid' } : b))
   }, [])
 
-  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string, fromStatus: string) => {
-    setStatusUpdating(prev => ({ ...prev, [bookingId]: true }))
-    setStatusConflict(prev => {
-      if (!(bookingId in prev)) return prev
-      const next = { ...prev }
-      delete next[bookingId]
-      return next
-    })
-    try {
-      // D-01: expected_status = the status this row shows, so a stale view cannot overwrite the driver
-      await patchBooking({ id: bookingId, status: newStatus, expected_status: fromStatus })
-      // Optimistic update — mutate only the status field, don't re-fetch
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b))
-    } catch (err) {
-      if (err instanceof PatchError && err.status === 409 && err.message === 'status_conflict') {
-        // Lost the race: show the locked inline copy, keep the row as it is, no automatic reload
-        setStatusConflict(prev => ({ ...prev, [bookingId]: statusConflictMessage(err.currentStatus) }))
-      } else {
-        // Show alert on failure — simple for v1.3 single-operator admin
-        alert(err instanceof Error ? err.message : 'Status update failed')
-      }
-    } finally {
-      setStatusUpdating(prev => ({ ...prev, [bookingId]: false }))
-    }
+  // Phase 90: the single row-patch sink. The move hook reports every status/cancel/no-show outcome through it.
+  const handleRowPatched = useCallback((bookingId: string, patch: Partial<Booking>) => {
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
   }, [])
 
-  // T-87-40: every path to the terminal no_show goes through the confirmation modal.
-  const requestStatusChange = useCallback((booking: Booking, newStatus: string) => {
-    if (newStatus === 'no_show') {
-      setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
-      return
-    }
-    // 88-REVIEW T5: a card booking is cancelled through the payment-aware cancel dialog (release / refund), never
-    // by a bare status change (the server answers 422 use_cancel_route to that).
-    // Phase 89 plan 16: the same holds for cash bookings and any booking with money paid online.
-    if (newStatus === 'cancelled' && hasCancelMoney(booking)) {
-      setPendingCancel(booking)
-      return
-    }
-    handleStatusChange(booking.id, newStatus, booking.status)
-  }, [handleStatusChange])
-
-  // The server moved the booking to no_show (final): mirror it locally and drop the request flag.
-  const handleNoShowConfirmed = useCallback((bookingId: string) => {
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'no_show', no_show_requested_at: null } : b))
-    setStatusConflict(prev => {
-      if (!(bookingId in prev)) return prev
-      const next = { ...prev }
-      delete next[bookingId]
-      return next
-    })
-    setNoShowTarget(null)
-  }, [])
+  const moves = useBookingMoves({ onPatched: handleRowPatched })
 
   // "Client found": the request is cleared, the status stays on_location.
   const handleNoShowCleared = useCallback((bookingId: string) => {
@@ -300,35 +237,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'error' }))
     }
   }, [])
-
-  // The cancel dialog reports its outcome; the row follows at once and an open panel refetches (C-WR-04).
-  const handleCancelled = useCallback((booking: { id: string }, done: CancelDoneInfo) => {
-    setBookings(prev => prev.map(b => b.id === booking.id
-      ? {
-          ...b,
-          status: 'cancelled',
-          // a released hold shows as released at once; a late cancel keeps the money and a fee decision is pending
-          ...(done.released ? { payment_state: 'released' } : {}),
-          ...(done.late ? { fee_case_status: 'pending' } : {}),
-        }
-      : b))
-    bumpPayment(booking.id)
-    setPendingCancel(null)
-  }, [bumpPayment])
-
-  // Phase 88 D-20: the cancel applied (the row is cancelled now) but the refund or release did not. The dialog closes;
-  // the panel refetches and shows the Refund failed banner with the amount to refund by hand.
-  const handleCancelRefundFailed = useCallback((booking: { id: string }) => {
-    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
-    bumpPayment(booking.id)
-    setPendingCancel(null)
-  }, [bumpPayment])
-
-  // The cancel applied but the late-cancel case could not be opened: the row is cancelled, the dialog stays up with its line.
-  const handleCancelledWithoutCase = useCallback((booking: { id: string }) => {
-    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
-    bumpPayment(booking.id)
-  }, [bumpPayment])
 
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
@@ -1006,8 +914,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       {transitions.map(s => (
                         <button
                           key={s}
-                          disabled={!!statusUpdating[booking.id]}
-                          onClick={() => requestStatusChange(booking, s)}
+                          disabled={moves.isUpdating(booking.id)}
+                          onClick={() => moves.requestStatusChange(booking, s)}
                           style={{
                             minHeight: 44,
                             minWidth: 44,
@@ -1020,17 +928,17 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                             fontSize: '11px',
                             letterSpacing: '0.1em',
                             textTransform: 'uppercase' as const,
-                            cursor: statusUpdating[booking.id] ? 'not-allowed' : 'pointer',
-                            opacity: statusUpdating[booking.id] ? 0.5 : 1,
+                            cursor: moves.isUpdating(booking.id) ? 'not-allowed' : 'pointer',
+                            opacity: moves.isUpdating(booking.id) ? 0.5 : 1,
                           }}
                         >
-                          {statusUpdating[booking.id] ? '...' : STATUS_LABELS[s]}
+                          {moves.isUpdating(booking.id) ? '...' : STATUS_LABELS[s]}
                         </button>
                       ))}
                     </div>
-                    {statusConflict[booking.id] && (
+                    {moves.conflictFor(booking.id) && (
                       <div role="alert" style={{ ...STATUS_CONFLICT_STYLE, marginTop: 0, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
-                        {statusConflict[booking.id]}
+                        {moves.conflictFor(booking.id)}
                       </div>
                     )}
                     </>
@@ -1043,7 +951,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         <NoShowBanner
                           bookingId={booking.id}
                           requestedAt={booking.no_show_requested_at}
-                          onConfirmRequest={() => setNoShowTarget({ id: booking.id, reference: booking.booking_reference })}
+                          onConfirmRequest={() => moves.openNoShow(booking)}
                           onCleared={() => handleNoShowCleared(booking.id)}
                         />
                       )}
@@ -1172,7 +1080,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       {/* Payment panel (Phase 88 HOLD-07) */}
                       <PaymentPanel
                         bookingId={booking.id}
-                        refreshKey={paymentRefreshKeys[booking.id] ?? 0}
+                        refreshKey={(paymentRefreshKeys[booking.id] ?? 0) + moves.paymentBumpFor(booking.id)}
                         paymentMode={booking.payment_mode ?? null}
                         onPaymentState={(state) => handlePaymentState(booking.id, state)}
                       />
@@ -1199,7 +1107,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       {(booking.status === 'pending' || booking.status === 'confirmed') && (
                         <div style={{ marginTop: 12 }}>
                           <button
-                            onClick={(e) => { e.stopPropagation(); setPendingCancel(booking) }}
+                            onClick={(e) => { e.stopPropagation(); moves.openCancel(booking) }}
                             style={{
                               border: '1px solid var(--anthracite-light)',
                               background: 'transparent',
@@ -1371,7 +1279,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           <NoShowBanner
                             bookingId={row.original.id}
                             requestedAt={row.original.no_show_requested_at}
-                            onConfirmRequest={() => setNoShowTarget({ id: row.original.id, reference: row.original.booking_reference })}
+                            onConfirmRequest={() => moves.openNoShow(row.original)}
                             onCleared={() => handleNoShowCleared(row.original.id)}
                           />
                         )}
@@ -1487,9 +1395,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           {(UI_TRANSITIONS[row.original.status] ?? []).length > 0 ? (
                             <select
                               value=""
-                              disabled={!!statusUpdating[row.original.id]}
+                              disabled={moves.isUpdating(row.original.id)}
                               onChange={(e) => {
-                                if (e.target.value) requestStatusChange(row.original, e.target.value)
+                                if (e.target.value) moves.requestStatusChange(row.original, e.target.value)
                               }}
                               onClick={(e) => e.stopPropagation()}
                               style={{
@@ -1501,12 +1409,12 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                                 fontFamily: 'var(--font-montserrat)',
                                 fontSize: '13px',
                                 color: 'var(--offwhite)',
-                                cursor: statusUpdating[row.original.id] ? 'not-allowed' : 'pointer',
-                                opacity: statusUpdating[row.original.id] ? 0.5 : 1,
+                                cursor: moves.isUpdating(row.original.id) ? 'not-allowed' : 'pointer',
+                                opacity: moves.isUpdating(row.original.id) ? 0.5 : 1,
                               }}
                             >
                               <option value="" disabled>
-                                {statusUpdating[row.original.id] ? 'Updating...' : `Change from ${STATUS_LABELS[row.original.status]}...`}
+                                {moves.isUpdating(row.original.id) ? 'Updating...' : `Change from ${STATUS_LABELS[row.original.status]}...`}
                               </option>
                               {(UI_TRANSITIONS[row.original.status] ?? []).map(s => (
                                 <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -1519,9 +1427,9 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                             />
                           )}
                         </div>
-                        {statusConflict[row.original.id] && (
+                        {moves.conflictFor(row.original.id) && (
                           <div role="alert" style={STATUS_CONFLICT_STYLE}>
-                            {statusConflict[row.original.id]}
+                            {moves.conflictFor(row.original.id)}
                           </div>
                         )}
 
@@ -1634,7 +1542,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         {/* Payment panel (Phase 88 HOLD-07) */}
                         <PaymentPanel
                           bookingId={row.original.id}
-                          refreshKey={paymentRefreshKeys[row.original.id] ?? 0}
+                          refreshKey={(paymentRefreshKeys[row.original.id] ?? 0) + moves.paymentBumpFor(row.original.id)}
                           paymentMode={row.original.payment_mode ?? null}
                           onPaymentState={(state) => handlePaymentState(row.original.id, state)}
                         />
@@ -1661,7 +1569,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         {(row.original.status === 'pending' || row.original.status === 'confirmed') && (
                           <div style={{ marginTop: '16px' }}>
                             <button
-                              onClick={(e) => { e.stopPropagation(); setPendingCancel(row.original) }}
+                              onClick={(e) => { e.stopPropagation(); moves.openCancel(row.original) }}
                               style={{
                                 border: '1px solid var(--anthracite-light)',
                                 background: 'transparent',
@@ -1755,23 +1663,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
         </button>
       </div>
 
-      {/* Confirm no-show (Phase 87 D-16 a): the only way to reach the terminal no_show status */}
-      <ConfirmNoShowModal
-        isOpen={noShowTarget !== null}
-        bookingId={noShowTarget?.id ?? ''}
-        bookingReference={noShowTarget?.reference ?? ''}
-        onClose={() => setNoShowTarget(null)}
-        onConfirmed={() => { if (noShowTarget) handleNoShowConfirmed(noShowTarget.id) }}
-      />
-
-      {/* Cancel dialog (Phase 89 plan 16, D-20): who cancelled is required, the money effect is shown first */}
-      <CancelBookingDialog
-        booking={pendingCancel}
-        onClose={() => setPendingCancel(null)}
-        onCancelled={handleCancelled}
-        onRefundFailed={handleCancelRefundFailed}
-        onCancelledWithoutCase={handleCancelledWithoutCase}
-      />
+      {/* Confirm no-show and cancel dialogs (Phase 87 / 89): mounted once, owned by useBookingMoves */}
+      {moves.dialogs}
     </div>
   )
 }
