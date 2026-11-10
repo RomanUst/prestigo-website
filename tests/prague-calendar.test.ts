@@ -1,9 +1,13 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
+  MIN_BLOCK_MIN,
+  calendarWindow,
   comparePickup,
   formatPragueTime,
+  layoutDay,
   mondayOf,
+  monthGrid,
   pragueDateOf,
   pragueDayStartMs,
   pragueMinuteOfDay,
@@ -136,5 +140,122 @@ describe('comparePickup', () => {
     const early = row('PRG-2', null, '2027-06-01', '09:00')
     const late = row('PRG-1', null, '2027-06-01', '11:00')
     expect([late, early].sort(comparePickup).map((r) => r.booking_reference)).toEqual(['PRG-2', 'PRG-1'])
+  })
+})
+
+describe('layoutDay', () => {
+  const h = (hour: number) => hour * 60
+  const blk = (id: string, startMin: number, endMin: number) => ({ item: id, startMin, endMin })
+  const byId = (placed: ReturnType<typeof layoutDay<string>>) => Object.fromEntries(placed.map((p) => [p.item, p]))
+
+  it('touching blocks do not overlap: each is its own cluster with one column', () => {
+    const p = byId(layoutDay([blk('a', h(9), h(10)), blk('b', h(10), h(11))]))
+    expect(p.a).toMatchObject({ col: 0, cols: 1 })
+    expect(p.b).toMatchObject({ col: 0, cols: 1 })
+  })
+
+  it('overlapping blocks sit side by side in two columns', () => {
+    const p = byId(layoutDay([blk('a', h(9), h(11)), blk('b', h(10), h(12))]))
+    expect(p.a.cols).toBe(2)
+    expect(p.b.cols).toBe(2)
+    expect(p.a.col).not.toBe(p.b.col)
+  })
+
+  it('equal starts: the longer block takes column 0', () => {
+    const p = byId(layoutDay([blk('short', h(9), h(10)), blk('long', h(9), h(12))]))
+    expect(p.long.col).toBe(0)
+    expect(p.short.col).toBe(1)
+    expect(p.long.cols).toBe(2)
+  })
+
+  it('a 10-minute block reserves MIN_BLOCK_MIN so a block starting 5 minutes later shares the cluster', () => {
+    expect(MIN_BLOCK_MIN).toBe(30)
+    const p = byId(layoutDay([blk('tiny', h(9), h(9) + 10), blk('next', h(9) + 5, h(10))]))
+    expect(p.tiny.cols).toBe(2)
+    expect(p.next.cols).toBe(2)
+    expect(p.tiny.col).not.toBe(p.next.col)
+  })
+
+  it('a block starting after the reserved minimum height opens a new cluster', () => {
+    const p = byId(layoutDay([blk('tiny', h(9), h(9) + 10), blk('later', h(9) + 30, h(10))]))
+    expect(p.tiny.cols).toBe(1)
+    expect(p.later.cols).toBe(1)
+  })
+
+  it('reuses a freed column inside a cluster', () => {
+    // a 09-10, b 09:30-12, c 10-11: c drops back into a's column; the cluster has 2 columns
+    const p = byId(layoutDay([blk('a', h(9), h(10)), blk('b', h(9) + 30, h(12)), blk('c', h(10), h(11))]))
+    expect(p.a.col).toBe(0)
+    expect(p.b.col).toBe(1)
+    expect(p.c.col).toBe(0)
+    expect(p.c.cols).toBe(2)
+  })
+
+  it('output order is stable for the same input', () => {
+    const input = [blk('c', h(11), h(12)), blk('a', h(9), h(11)), blk('b', h(10), h(12))]
+    const first = layoutDay(input).map((p) => p.item)
+    const second = layoutDay(input).map((p) => p.item)
+    expect(second).toEqual(first)
+    expect(first).toEqual(['a', 'b', 'c'])
+  })
+
+  it('does not mutate the input array', () => {
+    const input = [blk('b', h(10), h(11)), blk('a', h(9), h(10))]
+    layoutDay(input)
+    expect(input.map((i) => i.item)).toEqual(['b', 'a'])
+  })
+
+  it('returns an empty list for no blocks', () => {
+    expect(layoutDay([])).toEqual([])
+  })
+})
+
+describe('monthGrid', () => {
+  it('February 2027 starts on a Monday and fills exactly four weeks', () => {
+    const g = monthGrid('2027-02-10')
+    expect(g.start).toBe('2027-02-01')
+    expect(g.end).toBe('2027-02-28')
+    expect(g.weeks).toHaveLength(4)
+    for (const w of g.weeks) expect(w).toHaveLength(7)
+  })
+
+  it('October 2027 spans five Monday-first weeks across the DST change', () => {
+    const g = monthGrid('2027-10-15')
+    expect(g.start).toBe('2027-09-27')
+    expect(g.end).toBe('2027-10-31')
+    expect(g.weeks).toHaveLength(5)
+    expect(g.weeks[4]).toEqual([
+      '2027-10-25',
+      '2027-10-26',
+      '2027-10-27',
+      '2027-10-28',
+      '2027-10-29',
+      '2027-10-30',
+      '2027-10-31',
+    ])
+  })
+
+  it('March 2027 ends on the Sunday on or after the last day', () => {
+    const g = monthGrid('2027-03-31')
+    expect(g.start).toBe('2027-03-01')
+    expect(g.end).toBe('2027-04-04')
+    expect(g.weeks).toHaveLength(5)
+    expect(g.weeks[0][0]).toBe('2027-03-01')
+    expect(g.weeks[4][6]).toBe('2027-04-04')
+  })
+})
+
+describe('calendarWindow', () => {
+  it('day is the anchor date only', () => {
+    expect(calendarWindow('day', '2027-10-31')).toEqual({ startDate: '2027-10-31', endDate: '2027-10-31' })
+  })
+
+  it('week is Monday to Sunday', () => {
+    expect(calendarWindow('week', '2027-10-31')).toEqual({ startDate: '2027-10-25', endDate: '2027-10-31' })
+    expect(calendarWindow('week', '2027-03-28')).toEqual({ startDate: '2027-03-22', endDate: '2027-03-28' })
+  })
+
+  it('month is the whole visible grid, leading and trailing days included', () => {
+    expect(calendarWindow('month', '2027-10-15')).toEqual({ startDate: '2027-09-27', endDate: '2027-10-31' })
   })
 })
