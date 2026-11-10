@@ -25,10 +25,15 @@ export function BookingSidePanel({ reference, onClose, children }: BookingSidePa
   // Escape closes the panel, but never while a modal dialog (cancel, no-show, complete, driver picker) is open:
   // that dialog's own Escape handler closes it and the panel stays (Pitfall 5). The listener runs in the capture
   // phase so it looks at the DOM before any dialog handler has had a chance to remove the dialog.
+  // The same goes for any other widget that owns Escape (90 WR-01): an open menu (the board card "..." menu stops the
+  // React event, which cannot stop this native capture listener), and a field the operator is typing in or a native
+  // select / suggestion list, where Escape closes the popup or leaves the field and must not discard the form.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key !== 'Escape') return
-      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
+      if (e.key !== 'Escape' || e.defaultPrevented) return
+      if (document.querySelector('[role="dialog"][aria-modal="true"], [role="menu"]')) return
+      const t = e.target
+      if (t instanceof Element && t.closest('input, textarea, select, [role="listbox"], [role="combobox"]')) return
       onClose()
     }
     document.addEventListener('keydown', onKey, true)

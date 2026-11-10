@@ -491,6 +491,33 @@ describe('BookingPanelProvider', () => {
     expect(screen.queryByTestId('booking-panel')).toBeNull()
   })
 
+  it('Escape pressed while a menu is open leaves the panel open (WR-01)', async () => {
+    renderProvider()
+    await openPanel()
+    const menu = document.createElement('div')
+    menu.setAttribute('role', 'menu')
+    document.body.appendChild(menu)
+    try {
+      await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+      expect(screen.getByTestId('booking-panel')).toBeDefined()
+    } finally {
+      menu.remove()
+    }
+    await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+    expect(screen.queryByTestId('booking-panel')).toBeNull()
+  })
+
+  it('Escape pressed inside a text field, select or listbox does not close the panel (WR-01)', async () => {
+    renderProvider()
+    const panel = await openPanel()
+    await act(async () => { fireEvent.keyDown(within(panel).getByPlaceholderText(/e\.g\. 1000/), { key: 'Escape' }) })
+    expect(screen.getByTestId('booking-panel')).toBeDefined()
+    await act(async () => { fireEvent.keyDown(within(panel).getByPlaceholderText('Add internal notes...'), { key: 'Escape' }) })
+    expect(screen.getByTestId('booking-panel')).toBeDefined()
+    await act(async () => { fireEvent.keyDown(within(panel).getByText('Change from Confirmed...').closest('select') as HTMLElement, { key: 'Escape' }) })
+    expect(screen.getByTestId('booking-panel')).toBeDefined()
+  })
+
   it('mounts each money dialog exactly once for the whole page', async () => {
     renderProvider()
     await openPanel()
