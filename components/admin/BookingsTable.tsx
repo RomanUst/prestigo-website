@@ -14,7 +14,6 @@ import { FeeCaseBadge, CashChip, hasPendingFeeCase } from './FeeCaseBadge'
 import { NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
 import { STATUS_CONFLICT_STYLE } from './statusConflict'
 import { useBookingPanel, useBookingEvents } from './BookingPanelProvider'
-import { BookingDetailPanel } from './BookingDetailPanel'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import type { BookingStatus } from '@/lib/booking-status'
 import {
@@ -110,7 +109,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const limit = 20
 
   const [isMobile, setIsMobile] = useState(false)
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
 
   // Mobile detection
   useEffect(() => {
@@ -123,11 +121,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   // Phase 90 plan 05: bookings open in the shared side panel (D-02/D-03). The provider owns the moves, their
   // dialogs and the panel; every row change (a move, a panel save) reaches this list as a 'patched' event.
   const { openBooking, selected, moves, setReferenceSearchHandler } = useBookingPanel()
-
-  // Temporary (removed with the mobile inline expansion): the mobile expanded card still mounts its own panel.
-  const handleRowPatched = useCallback((bookingId: string, patch: Partial<Booking>) => {
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
-  }, [])
 
   useBookingEvents(useCallback((e) => {
     // 'stale' is ignored on purpose: a 409 keeps the row as it is and the list does not reload by itself.
@@ -656,19 +649,32 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
             </div>
           ) : (
             bookings.map((booking) => {
-              const isExpanded = !!expandedCards[booking.id]
+              const isSelected = selected?.id === booking.id
               const transitions = UI_TRANSITIONS[booking.status] ?? []
               return (
                 <div
                   key={booking.id}
+                  tabIndex={0}
+                  aria-current={isSelected ? 'true' : undefined}
                   style={{
-                    backgroundColor: booking.status === 'unpaid' ? 'var(--status-warn-bg)' : 'var(--admin-surface)',
+                    backgroundColor: isSelected
+                      ? 'var(--anthracite-light)'
+                      : booking.status === 'unpaid' ? 'var(--status-warn-bg)' : 'var(--admin-surface)',
                     border: '1px solid var(--admin-border)',
                     borderRadius: 8,
                     padding: 16,
                     marginBottom: 12,
+                    cursor: 'pointer',
                   }}
-                  onClick={() => setExpandedCards(prev => ({ ...prev, [booking.id]: !prev[booking.id] }))}
+                  onClick={(e) => openBooking(booking, e.currentTarget)}
+                  onKeyDown={(e) => {
+                    // Enter / Space on the focused card itself (not on a button inside it) opens the panel.
+                    if (e.target !== e.currentTarget) return
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      openBooking(booking, e.currentTarget)
+                    }
+                  }}
                 >
                   {/* Top row: ref + status */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -815,25 +821,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         </button>
                       ))}
                     </div>
-                    {moves.conflictFor(booking.id) && (
+                    {/* the open panel shows the same line for the selected booking */}
+                    {moves.conflictFor(booking.id) && !isSelected && (
                       <div role="alert" style={{ ...STATUS_CONFLICT_STYLE, marginTop: 0, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
                         {moves.conflictFor(booking.id)}
                       </div>
                     )}
                     </>
-                  )}
-
-                  {/* Expanded details */}
-                  {isExpanded && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid var(--admin-border)', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
-                      <BookingDetailPanel
-                        key={booking.id}
-                        booking={booking}
-                        moves={moves}
-                        onPatched={handleRowPatched}
-                        onSearchReference={handleSearchReference}
-                      />
-                    </div>
                   )}
                 </div>
               )

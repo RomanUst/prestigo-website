@@ -326,7 +326,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     expect(languageLabel.nextElementSibling?.textContent).toBe('—')
   })
 
-  it('mobile: expanded card shows uppercase locale code for locale "zh"', async () => {
+  it('mobile: the side panel shows uppercase locale code for locale "zh"', async () => {
     Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
     window.dispatchEvent(new Event('resize'))
 
@@ -347,7 +347,8 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     const refCell = await within(mobileCards).findByText('PRE-LOCALE-ZH-M')
     fireEvent.click(refCell)
 
-    const languageLabel = await within(mobileCards).findByText('Language')
+    // the card opens the side panel (D-02), which is not inside the mobile-cards container
+    const languageLabel = await within(await screen.findByTestId('booking-panel')).findByText('Language')
     expect(languageLabel.nextElementSibling?.textContent).toBe('ZH')
   })
 })
@@ -1243,7 +1244,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
     await waitFor(() => expect(screen.getAllByTestId('no-show-chip')).toHaveLength(2))
   })
 
-  it('mobile: the card shows the chip next to the badge and the banner inside the expanded card', async () => {
+  it('mobile: the card shows the chip next to the badge and the banner inside the side panel', async () => {
     Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
     window.dispatchEvent(new Event('resize'))
     stubNoShowFetch([requested({ id: 'b-m', booking_reference: 'PRE-NS-M' })])
@@ -1256,8 +1257,9 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
     expect(cards.queryByTestId('no-show-banner')).toBeNull()
 
     fireEvent.click(await cards.findByText('PRE-NS-M'))
-    expect(await cards.findByTestId('no-show-banner')).toBeDefined()
-    expect(await cards.findByText(/^Jan Novak asked for a no-show at 14:41/)).toBeDefined()
+    const panel = within(await screen.findByTestId('booking-panel'))
+    expect(await panel.findByTestId('no-show-banner')).toBeDefined()
+    expect(await panel.findByText(/^Jan Novak asked for a no-show at 14:41/)).toBeDefined()
   })
 
   it('desktop: the expanded row shows the banner with the driver name and the Prague time', async () => {
