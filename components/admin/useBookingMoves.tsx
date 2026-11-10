@@ -172,10 +172,12 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
   // The complete dialog's PATCH was accepted: the row follows, the dialog closes, the toast confirms.
   const handleCompleted = useCallback((booking: AdminBooking) => {
     onPatched(booking.id, { status: 'completed' })
+    // The PATCH was the capture: an open PaymentPanel must stop offering release/capture on a hold that is gone.
+    bumpPayment(booking.id)
     clearConflict(booking.id)
     showMoveToast(booking.booking_reference, 'completed')
     setCompleteTarget(null)
-  }, [clearConflict, onPatched, showMoveToast])
+  }, [bumpPayment, clearConflict, onPatched, showMoveToast])
 
   // The complete dialog lost the compare-and-set race: it shows its own line; the inline line and a refetch follow.
   const handleCompleteConflict = useCallback((bookingId: string, currentStatus: string | undefined) => {

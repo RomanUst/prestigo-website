@@ -153,6 +153,19 @@ describe('requestMove: completion of a card_hold booking (tracer)', () => {
     expect(h.anyOpen()).toBe(false)
   })
 
+  it('bumps the payment refresh counter once the capture is accepted, not before (WR-04)', async () => {
+    const { pending } = stubFetchDeferred()
+    const h = setup()
+    expect(h.api().paymentBumpFor('b-1')).toBe(0)
+    act(() => h.api().requestMove(CARD_HOLD_EN_ROUTE, 'completed', 'board'))
+    fireEvent.click(screen.getByRole('button', { name: 'Complete trip' }))
+    await waitFor(() => expect(pending.length).toBe(1))
+    expect(h.api().paymentBumpFor('b-1')).toBe(0)
+    await act(async () => { pending[0].resolve() })
+    await waitFor(() => expect(h.onPatched).toHaveBeenCalled())
+    expect(h.api().paymentBumpFor('b-1')).toBe(1)
+  })
+
   it('closing the complete dialog with "Keep open" sends nothing and changes nothing', () => {
     const fetchMock = stubFetchNow()
     const h = setup()
