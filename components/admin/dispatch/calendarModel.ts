@@ -99,6 +99,38 @@ export function itemsByDay<T extends CalendarRow>(items: CalendarItem<T>[]): Rec
   return out
 }
 
+/**
+ * Month view: for each day, the earliest `perDay` items (pickup order, reference as tie-break) and how
+ * many more there are for the "+N" button.
+ */
+export function monthCells<T extends CalendarRow>(
+  items: CalendarItem<T>[],
+  days: string[],
+  perDay = 3,
+): Record<string, { shown: CalendarItem<T>[]; more: number }> {
+  const byDay: Record<string, CalendarItem<T>[]> = {}
+  for (const it of items) (byDay[it.dayIso] ??= []).push(it)
+  const out: Record<string, { shown: CalendarItem<T>[]; more: number }> = {}
+  for (const day of days) {
+    const sorted = [...(byDay[day] ?? [])].sort((a, b) => comparePickup(a.item, b.item))
+    out[day] = { shown: sorted.slice(0, perDay), more: Math.max(0, sorted.length - perDay) }
+  }
+  return out
+}
+
+/**
+ * Moves a YYYY-MM-DD calendar date by whole months (string and UTC arithmetic only), keeping the day of
+ * month where the target month has it and clamping to the last day otherwise (31 Jan + 1 month = 28/29 Feb).
+ */
+export function shiftIsoMonth(iso: string, months: number): string {
+  const total = Number(iso.slice(0, 4)) * 12 + (Number(iso.slice(5, 7)) - 1) + months
+  const year = Math.floor(total / 12)
+  const month = (total % 12) + 1
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate()
+  const day = Math.min(Number(iso.slice(8, 10)), lastDay)
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
 /** 'HH:MM' from minutes since Prague midnight. */
 export function formatMinute(min: number): string {
   const h = Math.floor(min / 60)
