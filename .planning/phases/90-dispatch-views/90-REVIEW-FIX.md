@@ -24,7 +24,7 @@ Verification ran in the main checkout (no worktree). Each fix has a test in the 
 
 ## Fixed Issues
 
-### WR-05: A poll that was already in flight overwrites an accepted move
+### WR-05: A poll that was already in flight overwrites an accepted move (card jumps back, panel reverts)
 
 **Files modified:** `components/admin/dispatch/useDispatchBookings.ts`, `tests/use-dispatch-bookings.test.tsx`
 **Commit:** ff5391b9
@@ -42,7 +42,7 @@ Verification ran in the main checkout (no worktree). Each fix has a test in the 
 **Commit:** 9527ae22
 **Applied fix:** `DriverAssignmentSection.onAssigned` now passes the `booking_status` the assign route returns (falls back to `'assigned'` when absent). The panel patches that status only when it is real and different (`'unknown'` is ignored), then calls the new `moves.refreshBooking(id)` (publishes `stale`, so every mounted view refetches and shows the driver name). `refreshBooking` was added to `BookingMovesApi`; the `fakeMoves` helper in the test was updated.
 
-### WR-03: A pickup date/time edit leaves `pickup_utc` stale
+### WR-03: A pickup date/time edit leaves `pickup_utc` stale, so the board and calendar show the old time
 
 **Files modified:** `components/admin/BookingDetailPanel.tsx`, `tests/booking-detail-panel.test.tsx`
 **Commit:** 0b673911
@@ -55,7 +55,7 @@ Verification ran in the main checkout (no worktree). Each fix has a test in the 
 **Commit:** 92667ee8
 **Applied fix:** both parts of the suggestion. A notes save that errored and a driver price the save rejected no longer count as dirty, so they do not pause polling. `UpdatedAgo` takes a `paused` prop and shows "Refresh paused while editing" next to "Updated N s ago"; board and calendar pass `pausePolling`. The open trip-edit form still pauses, by design, and now says so.
 
-### WR-07: Old rows stay on screen under a new range or filter; `loading` can stick after a 401
+### WR-07: Old rows stay on screen under a new range or filter, and `loading` can stick after a 401
 
 **Files modified:** `components/admin/dispatch/useDispatchBookings.ts`, `tests/use-dispatch-bookings.test.tsx`
 **Commit:** 6792ca24
