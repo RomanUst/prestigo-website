@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useDraggable } from '@dnd-kit/core'
 import { useBookingPanel } from '../BookingPanelProvider'
 import { STATUS_LABELS, type AdminBooking } from '../bookingTypes'
 import { STATUS_CONFLICT_STYLE } from '../statusConflict'
@@ -13,6 +14,8 @@ import { pickupLabel } from './boardModel'
 
 export interface BoardCardProps {
   booking: AdminBooking
+  /** Whether a pointer or touch gesture may drag the card (off on a phone: the menu moves cards there). */
+  draggable: boolean
   /** Show the Prague day before the time (a multi-day range). */
   showDate?: boolean
 }
@@ -180,13 +183,70 @@ function CardMenu({ booking }: { booking: AdminBooking }) {
   )
 }
 
-export function BoardCard({ booking, showDate = false }: BoardCardProps) {
+function cardStyle(opts: { selected: boolean; busy: boolean; dimmed: boolean }): React.CSSProperties {
+  return {
+    background: opts.selected ? 'var(--admin-accent-tint)' : 'var(--admin-surface)',
+    border: `1px solid ${opts.selected ? 'var(--admin-accent-border)' : 'var(--admin-border)'}`,
+    borderRadius: 'var(--admin-radius-md)',
+    padding: '10px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    cursor: 'pointer',
+    opacity: opts.dimmed ? 0.4 : opts.busy ? 0.6 : 1,
+    minWidth: 0,
+    fontFamily: 'var(--font-montserrat)',
+    fontSize: 'var(--admin-fs-body)',
+    color: 'var(--admin-text)',
+  }
+}
+
+function CardContent({ booking, showDate, menu }: { booking: AdminBooking; showDate: boolean; menu: boolean }) {
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontWeight: 'var(--admin-fw-strong)' }}>{pickupLabel(booking, showDate)}</div>
+          <div style={{ fontFamily: monoFont, fontSize: 'var(--admin-fs-label)', color: 'var(--admin-text-muted)', overflowWrap: 'anywhere' }}>
+            {booking.booking_reference}
+          </div>
+        </div>
+        {menu && <CardMenu booking={booking} />}
+      </div>
+      <div style={{ overflowWrap: 'anywhere' }}>
+        {booking.origin_address} to {booking.destination_address}
+      </div>
+    </>
+  )
+}
+
+/**
+ * The copy that follows the pointer inside the DragOverlay. It is presentational on purpose: a second useDraggable
+ * with the same id would overwrite the original card's entry in the DnD registry.
+ */
+export function BoardCardOverlay({ booking, showDate = false }: { booking: AdminBooking; showDate?: boolean }) {
+  return (
+    <div
+      data-testid="board-card-overlay"
+      style={{ ...cardStyle({ selected: false, busy: false, dimmed: false }), cursor: 'grabbing', boxShadow: 'var(--admin-shadow-sheet)' }}
+    >
+      <CardContent booking={booking} showDate={showDate} menu={false} />
+    </div>
+  )
+}
+
+export function BoardCard({ booking, draggable, showDate = false }: BoardCardProps) {
   const { openBooking, selected, moves } = useBookingPanel()
+  // D-09: the listeners sit on the card body; PointerSensor distance 6 means a plain click still reaches onClick.
+  // No keyboard sensor on purpose: the "..." menu is the keyboard path.
+  const { setNodeRef, listeners, isDragging } = useDraggable({ id: booking.id, disabled: !draggable })
   const isSelected = selected?.id === booking.id
   const conflict = moves.conflictFor(booking.id)
 
   return (
     <div
+      ref={setNodeRef}
+      {...listeners}
       data-testid="board-card"
       data-reference={booking.booking_reference}
       tabIndex={0}
@@ -201,34 +261,9 @@ export function BoardCard({ booking, showDate = false }: BoardCardProps) {
           openBooking(booking, e.currentTarget)
         }
       }}
-      style={{
-        background: isSelected ? 'var(--admin-accent-tint)' : 'var(--admin-surface)',
-        border: `1px solid ${isSelected ? 'var(--admin-accent-border)' : 'var(--admin-border)'}`,
-        borderRadius: 'var(--admin-radius-md)',
-        padding: '10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        cursor: 'pointer',
-        opacity: moves.isUpdating(booking.id) ? 0.6 : 1,
-        minWidth: 0,
-        fontFamily: 'var(--font-montserrat)',
-        fontSize: 'var(--admin-fs-body)',
-        color: 'var(--admin-text)',
-      }}
+      style={cardStyle({ selected: isSelected, busy: moves.isUpdating(booking.id), dimmed: isDragging })}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontWeight: 'var(--admin-fw-strong)' }}>{pickupLabel(booking, showDate)}</div>
-          <div style={{ fontFamily: monoFont, fontSize: 'var(--admin-fs-label)', color: 'var(--admin-text-muted)', overflowWrap: 'anywhere' }}>
-            {booking.booking_reference}
-          </div>
-        </div>
-        <CardMenu booking={booking} />
-      </div>
-      <div style={{ overflowWrap: 'anywhere' }}>
-        {booking.origin_address} to {booking.destination_address}
-      </div>
+      <CardContent booking={booking} showDate={showDate} menu />
       {conflict && !isSelected && (
         <p role="alert" style={{ ...STATUS_CONFLICT_STYLE, margin: 0 }}>
           {conflict}

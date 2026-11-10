@@ -1,17 +1,60 @@
 // Phase 90 plan 07 (DISP-01, DISP-02, DISP-04, DISP-05): the kanban board.
 // Pointer gestures are not driven in jsdom (RESEARCH Pitfall 10); the decision logic, the card menu and the
 // DndContext handlers are tested instead, and the drag feel is checked by the owner on the deployed admin.
+import type React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act, within, cleanup } from '@testing-library/react'
 import { BookingPanelProvider } from '@/components/admin/BookingPanelProvider'
 import { DispatchBoard } from '@/components/admin/dispatch/DispatchBoard'
-import { BOARD_COLUMNS, groupByColumn } from '@/components/admin/dispatch/boardModel'
+import {
+  BOARD_COLUMNS,
+  columnDropState,
+  groupByColumn,
+  resolveDrop,
+} from '@/components/admin/dispatch/boardModel'
 import type { AdminBooking } from '@/components/admin/bookingTypes'
+import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 
 // TripEditPanel (inside the panel) mounts AddressInput, a next-intl consumer.
 vi.mock('@/components/booking/AddressInput', () => ({
   default: () => null,
 }))
+
+// Pointer gestures are not driven in jsdom (Pitfall 10). DndContext and useDroppable are wrapped (real behaviour kept)
+// so a test can read the props the board gave them and call its drag handlers directly.
+interface DndProps {
+  onDragStart: (e: { active: { id: string } }) => void
+  onDragEnd: (e: { active: { id: string }; over: { id: string } | null }) => void
+  onDragCancel: () => void
+  sensors: { sensor: { name?: string }; options: { activationConstraint?: Record<string, number> } }[]
+}
+const dnd = vi.hoisted(() => ({
+  props: null as null | DndProps,
+  droppables: new Map<string, { id: string; disabled?: boolean }>(),
+  // DragOverlay shows its children only for dnd-kit's own active drag, which these tests do not start: capture them.
+  overlayMounted: false,
+  overlayChildren: undefined as unknown,
+}))
+vi.mock('@dnd-kit/core', async importOriginal => {
+  const actual = await importOriginal<typeof import('@dnd-kit/core')>()
+  const React = await import('react')
+  return {
+    ...actual,
+    DndContext: (props: React.ComponentProps<typeof actual.DndContext>) => {
+      dnd.props = props as unknown as DndProps
+      return React.createElement(actual.DndContext, props)
+    },
+    DragOverlay: (props: React.ComponentProps<typeof actual.DragOverlay>) => {
+      dnd.overlayMounted = true
+      dnd.overlayChildren = props.children
+      return React.createElement(actual.DragOverlay, props)
+    },
+    useDroppable: (args: Parameters<typeof actual.useDroppable>[0]) => {
+      dnd.droppables.set(String(args.id), { id: String(args.id), disabled: args.disabled })
+      return actual.useDroppable(args)
+    },
+  }
+})
 
 const DISPATCH_TODAY = '/api/admin/bookings/dispatch?startDate=2027-10-31&endDate=2027-10-31'
 
@@ -280,5 +323,168 @@ describe('boardModel - grouping', () => {
     const first = groupByColumn(rows).pending.map(b => b.id)
     const second = groupByColumn([...rows].reverse()).pending.map(b => b.id)
     expect(second).toEqual(first)
+  })
+})
+
+describe('boardModel - drop decision', () => {
+  const statuses = BOARD_COLUMNS as readonly string[]
+
+  it('resolveDrop equals the column exactly when UI_TRANSITIONS allows it, for every status and every column', () => {
+    for (const s of statuses) {
+      for (const c of statuses) {
+        const allowed = (UI_TRANSITIONS[s] ?? []).includes(c)
+        expect(resolveDrop({ status: s }, c), `${s} -> ${c}`).toBe(allowed ? c : null)
+      }
+    }
+  })
+
+  it("resolveDrop is null for no target and for the card's own column", () => {
+    expect(resolveDrop({ status: 'en_route' }, null)).toBeNull()
+    expect(resolveDrop({ status: 'en_route' }, undefined)).toBeNull()
+    expect(resolveDrop({ status: 'en_route' }, 'en_route')).toBeNull()
+  })
+
+  it('columnDropState is idle without a drag, allowed for a UI_TRANSITIONS target and blocked otherwise', () => {
+    expect(columnDropState('confirmed', null)).toBe('idle')
+    expect(columnDropState('on_location', 'en_route')).toBe('allowed')
+    expect(columnDropState('confirmed', 'en_route')).toBe('blocked')
+    // confirmed -> completed is hidden from the UI even though the server would allow it
+    expect(columnDropState('completed', 'confirmed')).toBe('blocked')
+  })
+})
+
+describe('DispatchBoard - drag and drop', () => {
+  const enRoute = () => makeBooking({ id: 'x1', booking_reference: 'PRE-A', status: 'en_route' })
+
+  beforeEach(() => {
+    dnd.props = null
+    dnd.droppables.clear()
+  })
+
+  it('uses PointerSensor distance 6 and TouchSensor delay 250 tolerance 8, and no keyboard sensor', async () => {
+    await renderBoard([enRoute()])
+    const sensors = dnd.props?.sensors ?? []
+    expect(sensors).toHaveLength(2)
+    expect(sensors[0].options.activationConstraint).toEqual({ distance: 6 })
+    expect(sensors[1].options.activationConstraint).toEqual({ delay: 250, tolerance: 8 })
+  })
+
+  it('marks only the UI_TRANSITIONS columns allowed while a card is dragged, and disables every other droppable', async () => {
+    await renderBoard([enRoute()])
+    act(() => dnd.props?.onDragStart({ active: { id: 'x1' } }))
+    const allowed = ['on_location', 'cancelled', 'completed']
+    for (const status of BOARD_COLUMNS) {
+      const col = screen.getByTestId(`board-column-${status}`)
+      const expected = allowed.includes(status) ? 'allowed' : 'blocked'
+      expect(col.getAttribute('data-drop'), status).toBe(expected)
+      expect(dnd.droppables.get(status)?.disabled, status).toBe(expected === 'blocked')
+    }
+  })
+
+  it('shows a drag overlay copy while dragging and removes it on cancel', async () => {
+    await renderBoard([enRoute()])
+    // permanently mounted: present (empty) before any drag
+    expect(dnd.overlayMounted).toBe(true)
+    expect(dnd.overlayChildren).toBeNull()
+    act(() => dnd.props?.onDragStart({ active: { id: 'x1' } }))
+    const copy = dnd.overlayChildren as React.ReactElement<{ booking: { booking_reference: string } }>
+    expect(copy.props.booking.booking_reference).toBe('PRE-A')
+    act(() => dnd.props?.onDragCancel())
+    expect(dnd.overlayChildren).toBeNull()
+  })
+
+  it('does not poll while a card is dragged', async () => {
+    const stub = await renderBoard([enRoute()])
+    const before = stub.dispatchCalls().length
+    act(() => dnd.props?.onDragStart({ active: { id: 'x1' } }))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000)
+    })
+    expect(stub.dispatchCalls().length).toBe(before)
+  })
+
+  it('a cancelled drag clears the state and polling resumes with one catch-up fetch', async () => {
+    const stub = await renderBoard([enRoute()])
+    const before = stub.dispatchCalls().length
+    act(() => dnd.props?.onDragStart({ active: { id: 'x1' } }))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000)
+    })
+    act(() => dnd.props?.onDragCancel())
+    await flush()
+    expect(stub.dispatchCalls().length).toBe(before + 1)
+    expect(screen.getByTestId('board-column-on_location').getAttribute('data-drop')).toBe('idle')
+  })
+
+  it('a drop on an allowed column sends one PATCH with expected_status and clears the drag', async () => {
+    const stub = await renderBoard([enRoute()])
+    act(() => dnd.props?.onDragStart({ active: { id: 'x1' } }))
+    act(() => dnd.props?.onDragEnd({ active: { id: 'x1' }, over: { id: 'on_location' } }))
+    await flush()
+    expect(stub.patchCalls()).toHaveLength(1)
+    expect(stub.patchCalls()[0].body).toEqual({ id: 'x1', status: 'on_location', expected_status: 'en_route' })
+    expect(screen.getByTestId('board-column-on_location').getAttribute('data-drop')).toBe('idle')
+    expect(columnRefs('on_location')).toEqual(['PRE-A'])
+  })
+
+  it('a drop on a blocked column, on no column or on the own column sends nothing', async () => {
+    const stub = await renderBoard([enRoute()])
+    for (const over of [{ id: 'confirmed' }, null, { id: 'en_route' }]) {
+      act(() => dnd.props?.onDragStart({ active: { id: 'x1' } }))
+      act(() => dnd.props?.onDragEnd({ active: { id: 'x1' }, over }))
+      await flush()
+    }
+    expect(stub.patchCalls()).toHaveLength(0)
+    expect(columnRefs('en_route')).toEqual(['PRE-A'])
+  })
+
+  it('a drop on cancelled opens the cancel dialog instead of sending a status change', async () => {
+    const stub = await renderBoard([enRoute()])
+    act(() => dnd.props?.onDragStart({ active: { id: 'x1' } }))
+    act(() => dnd.props?.onDragEnd({ active: { id: 'x1' }, over: { id: 'cancelled' } }))
+    await flush()
+    expect(stub.patchCalls()).toHaveLength(0)
+    expect(screen.getByRole('radiogroup')).toBeDefined()
+    expect(columnRefs('en_route')).toEqual(['PRE-A'])
+  })
+})
+
+describe('DispatchBoard - terminal rails', () => {
+  const onBoard = () => makeBooking({ id: 'x9', booking_reference: 'PRE-Z', status: 'on_board' })
+  const done = () => makeBooking({ id: 'x8', booking_reference: 'PRE-DONE', status: 'completed' })
+
+  beforeEach(() => {
+    dnd.props = null
+    dnd.droppables.clear()
+  })
+
+  it('completed, cancelled and no_show start collapsed with their counts and expand on click', async () => {
+    await renderBoard([done(), onBoard()])
+    for (const status of ['completed', 'cancelled', 'no_show']) {
+      const rail = screen.getByTestId(`board-column-${status}`)
+      expect(within(rail).getByRole('button').getAttribute('aria-expanded')).toBe('false')
+    }
+    expect(screen.getByTestId('board-count-completed').textContent).toBe('1')
+    expect(screen.getByTestId('board-count-cancelled').textContent).toBe('0')
+    expect(columnRefs('completed')).toEqual([])
+
+    fireEvent.click(within(screen.getByTestId('board-column-completed')).getByRole('button'))
+    expect(within(screen.getByTestId('board-column-completed')).getByRole('button', { expanded: true })).toBeDefined()
+    expect(columnRefs('completed')).toEqual(['PRE-DONE'])
+  })
+
+  it('a collapsed rail is marked allowed during a drag of an on_board card and accepts the drop', async () => {
+    const stub = await renderBoard([onBoard()])
+    act(() => dnd.props?.onDragStart({ active: { id: 'x9' } }))
+    expect(screen.getByTestId('board-column-completed').getAttribute('data-drop')).toBe('allowed')
+    expect(screen.getByTestId('board-column-cancelled').getAttribute('data-drop')).toBe('allowed')
+    expect(screen.getByTestId('board-column-no_show').getAttribute('data-drop')).toBe('blocked')
+    expect(dnd.droppables.get('completed')?.disabled).toBe(false)
+    expect(within(screen.getByTestId('board-column-completed')).getByRole('button').getAttribute('aria-expanded')).toBe('false')
+
+    act(() => dnd.props?.onDragEnd({ active: { id: 'x9' }, over: { id: 'completed' } }))
+    await flush()
+    expect(stub.patchCalls()).toHaveLength(1)
+    expect(stub.patchCalls()[0].body).toEqual({ id: 'x9', status: 'completed', expected_status: 'on_board' })
   })
 })
