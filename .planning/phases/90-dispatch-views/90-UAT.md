@@ -3,7 +3,7 @@ status: testing
 phase: 90-dispatch-views
 source: [90-VERIFICATION.md]
 started: 2026-11-10T15:40:00Z
-updated: 2026-11-10T15:40:00Z
+updated: 2026-11-10T18:50:00Z
 ---
 
 ## Current Test
@@ -33,11 +33,11 @@ expected: Within about 30 s (plus request time) the card changes column / the ca
 result: [pending]
 
 ### 5. Right-hand panel layering and Escape behaviour: open a card, open another card's "..." menu and press Escape; open the cancel dialog from the panel and press Escape; type in the notes / driver-price field and press Escape
-expected: Panel sits above the sidebar and below modals, no clipped fixed positioning inside the admin shell. Known open review warnings WR-01 / WR-02: Escape in a card menu or in an input currently ALSO closes the panel and drops unsaved input; decide whether that is acceptable before release.
+expected: Panel sits above the sidebar and below modals, no clipped fixed positioning inside the admin shell. Escape in a card menu closes only the menu; Escape inside a field or select does not close the panel (review WR-01, fixed). With a typed driver price or an open trip-edit form, Escape outside a field, the close button and opening another card ask "This booking has unsaved changes. Close it and discard them?" and keep the panel when declined (WR-02, fixed).
 result: [pending]
 
 ### 6. Accepted-move race (review WR-05): drop a card on an allowed column exactly while a 30 s poll is in flight (throttle the network in devtools to make the poll slow)
-expected: Documented risk: the card may jump back for up to one poll and then settle in the new column. Confirm this is tolerable or schedule the fix.
+expected: The card stays in the new column and does not jump back (review WR-05, fixed: the in-flight poll is replaced by a fresh request). After a pickup time edit in the panel the card moves at once (WR-03); while the panel holds unsaved input the toolbar shows "Refresh paused while editing" (WR-08).
 result: [pending]
 
 ## Summary
