@@ -382,7 +382,7 @@ Plans:
   3. The operator sees bookings in a calendar with day, week and month views in Prague time, coloured by status; a booking around midnight lands on the correct Prague day regardless of the browser's timezone, including the DST-change weeks.
   4. When a driver taps a step, the board and calendar update on their own without a reload.
 
-**Plans**: 6/9 plans executed
+**Plans**: 8/9 plans executed
 
 Plans:
 **Wave 1**
@@ -396,8 +396,8 @@ Plans:
 - [x] 90-06-PLAN.md — Shared move routing in useBookingMoves: requestMove, driver picker, toast, no optimism, double-submit guard
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 90-07-PLAN.md — Kanban board: ten columns, drag-and-drop and card menu, allowed-column highlight, card content, ranges, polling
-- [ ] 90-08-PLAN.md — Calendar: day/week/month in Prague time, status colours, Show all, remembered view, polling
+- [x] 90-07-PLAN.md — Kanban board: ten columns, drag-and-drop and card menu, allowed-column highlight, card content, ranges, polling
+- [x] 90-08-PLAN.md — Calendar: day/week/month in Prague time, status colours, Show all, remembered view, polling
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 90-09-PLAN.md — Bookings workspace: List/Board/Calendar tabs, shared filters, remembered view in cookie and URL, server page
@@ -586,7 +586,7 @@ Plans:
 | 87. Status Service & Driver Step Flow | v5.0 | 20/20 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 28/28 | Complete | 2026-11-09 |
-| 90. Dispatch Views | v5.0 | 6/9 | In Progress|  |
+| 90. Dispatch Views | v5.0 | 8/9 | In Progress|  |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
 | 93. Day Trips & Custom Tours | v5.0 | 0/0 | Not started | - |
