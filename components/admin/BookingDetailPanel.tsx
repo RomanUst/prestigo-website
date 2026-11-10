@@ -140,8 +140,13 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
     }
   }, [bookingId])
 
-  // D-16 groundwork: unsaved input pauses any polling refetch of the views around the panel.
-  const dirty = notes !== savedNotes || driverPrice.trim() !== savedDriverPrice || tripEditOpen
+  // D-16 groundwork: unsaved input pauses any polling refetch of the views around the panel. A field whose save
+  // failed (notes error, a driver price the save rejected) does not pause: nothing is in flight for it, so the
+  // views would stay frozen with no way for the operator to tell why (90 WR-08).
+  const dirty =
+    (notes !== savedNotes && notesSaving !== 'error') ||
+    (driverPrice.trim() !== savedDriverPrice && driverPriceSaving !== 'error') ||
+    tripEditOpen
   const onDirtyChangeRef = useRef(onDirtyChange)
   useEffect(() => {
     onDirtyChangeRef.current = onDirtyChange

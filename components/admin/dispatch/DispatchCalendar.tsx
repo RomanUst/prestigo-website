@@ -217,7 +217,7 @@ export function DispatchCalendar({ search, tripType, initialView }: DispatchCale
             Show all
           </label>
           <span style={{ fontSize: 'var(--admin-fs-label)', color: 'var(--admin-text-muted)' }}>
-            <UpdatedAgo at={updatedAt} />
+            <UpdatedAgo at={updatedAt} paused={pausePolling} />
           </span>
           <div role="tablist" aria-label="Calendar view" style={{ display: 'flex', gap: '4px' }}>
             {VIEW_OPTIONS.map(opt => (

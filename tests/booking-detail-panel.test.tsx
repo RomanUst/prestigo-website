@@ -541,6 +541,31 @@ describe('BookingPanelProvider', () => {
       expect(paused()).toBe('false')
     })
 
+    it('is false while the notes hold text whose save failed, so a failed save cannot freeze the views (WR-08)', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
+        Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({ error: 'boom' }) }),
+      ))
+      const notes = within(panel).getByPlaceholderText('Add internal notes...')
+      fireEvent.change(notes, { target: { value: 'will not save' } })
+      expect(paused()).toBe('true')
+      await act(async () => { fireEvent.blur(notes) })
+      expect(within(panel).getByText('Error saving')).toBeDefined()
+      expect(paused()).toBe('false')
+    })
+
+    it('is false while the driver price is one the save rejected (WR-08)', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      const price = within(panel).getByPlaceholderText(/e\.g\. 1000/)
+      fireEvent.change(price, { target: { value: '1.5' } })
+      expect(paused()).toBe('true')
+      await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Save' })) })
+      expect(within(panel).getByText('Enter a whole number ≥ 0')).toBeDefined()
+      expect(paused()).toBe('false')
+    })
+
     it('is true while the trip-edit form is open and false after it closes', async () => {
       renderProvider()
       const panel = await openPanel()

@@ -313,7 +313,7 @@ export function DispatchBoard({ search, tripType }: { search: string; tripType: 
           {range.startDate === range.endDate ? range.startDate : `${range.startDate} to ${range.endDate}`}
         </span>
         <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-montserrat)', fontSize: 'var(--admin-fs-label)', color: 'var(--admin-text-muted)' }}>
-          <UpdatedAgo at={updatedAt} />
+          <UpdatedAgo at={updatedAt} paused={pausePolling} />
         </span>
       </div>
 

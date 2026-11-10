@@ -247,6 +247,16 @@ describe('UpdatedAgo', () => {
     expect(screen.getByText('Loading…')).toBeInTheDocument()
   })
 
+  it('says refreshing is paused only while paused (WR-08)', () => {
+    const { rerender } = render(<UpdatedAgo at={Date.now()} />)
+    expect(screen.queryByTestId('refresh-paused')).toBeNull()
+    rerender(<UpdatedAgo at={Date.now()} paused />)
+    expect(screen.getByTestId('refresh-paused').textContent).toContain('Refresh paused while editing')
+    expect(screen.getByText('Updated 0 s ago')).toBeInTheDocument()
+    rerender(<UpdatedAgo at={null} paused />)
+    expect(screen.getByTestId('refresh-paused')).toBeInTheDocument()
+  })
+
   it('turns screen-reader announcements off', () => {
     render(<UpdatedAgo at={Date.now()} />)
     expect(screen.getByText('Updated 0 s ago')).toHaveAttribute('aria-live', 'off')
