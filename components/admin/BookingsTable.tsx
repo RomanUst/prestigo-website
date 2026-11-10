@@ -11,22 +11,15 @@ import {
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
-import PaymentPanel from './PaymentPanel'
 import { PaymentStateBadge } from './PaymentStateBadge'
 import { FeeCaseBadge, CashChip, hasPendingFeeCase } from './FeeCaseBadge'
-import { NoShowBanner, NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
+import { NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
 import { STATUS_CONFLICT_STYLE } from './statusConflict'
 import { useBookingMoves } from './useBookingMoves'
-import { FlightStatusBlock } from './FlightStatusBlock'
-import { BookingChangeHistory } from './BookingChangeHistory'
-import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
+import { BookingDetailPanel } from './BookingDetailPanel'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import type { BookingStatus } from '@/lib/booking-status'
-import { DetailField } from './DetailField'
-import { TripEditPanel } from './TripEditPanel'
-import { PaymentLinkSection } from './PaymentLinkSection'
 import {
-  patchBooking,
   showsPaymentBadge,
   vehicleClassMap,
   STATUS_LABELS,
@@ -34,7 +27,6 @@ import {
 } from './bookingTypes'
 
 type Booking = AdminBooking
-
 
 interface BookingsTableProps {
   // DISP-02: the persisted default, read from /api/admin/settings by the
@@ -120,18 +112,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [debouncedSearch, setDebouncedSearch] = useState(deepLinkSearch)
   const limit = 20
 
-  const [localNotes, setLocalNotes] = useState<Record<string, string>>({})
-  const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
-  const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-
-  const [localDriverPrice, setLocalDriverPrice] = useState<Record<string, string>>({})
-  const [driverPriceSaving, setDriverPriceSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
-
   const [isMobile, setIsMobile] = useState(false)
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
-
-  // Phase 88-07: per-booking counter that makes an open PaymentPanel refetch after a trip edit.
-  const [paymentRefreshKeys, setPaymentRefreshKeys] = useState<Record<string, number>>({})
 
   // Mobile detection
   useEffect(() => {
@@ -141,27 +123,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  // Phase 63 Plan 05: optimistic-update sink for TripEditPanel — mutates only
-  // the fields that were actually saved, mirroring handleStatusChange's pattern.
-  const handleTripUpdated = useCallback((bookingId: string, patch: Partial<Booking>) => {
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
-    // Phase 88-07: a trip edit can change the payment (price, pickup); the panel refetches.
-    setPaymentRefreshKeys(prev => ({ ...prev, [bookingId]: (prev[bookingId] ?? 0) + 1 }))
-  }, [])
-
-  // D-05: sink for PaymentLinkSection's row-level "Generate Payment Link"
-  // action — the route also flips a 'pending' source booking to 'unpaid'
-  // directly (Pitfall 2), so both fields are optimistically updated here.
-  // 88-REVIEW C-WR-04: the open PaymentPanel reports the state after every (re)load, so the row badge follows panel
-  // actions and the refetch after a cancel.
-  const handlePaymentState = useCallback((bookingId: string, state: string) => {
-    setBookings(prev => prev.map(b => (b.id === bookingId && b.payment_state !== state ? { ...b, payment_state: state } : b)))
-  }, [])
-
-  const handlePaymentLinkGenerated = useCallback((bookingId: string, url: string) => {
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, payment_link_url: url, status: 'unpaid' } : b))
-  }, [])
-
   // Phase 90: the single row-patch sink. The move hook reports every status/cancel/no-show outcome through it.
   const handleRowPatched = useCallback((bookingId: string, patch: Partial<Booking>) => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
@@ -169,73 +130,11 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
   const moves = useBookingMoves({ onPatched: handleRowPatched })
 
-  // "Client found": the request is cleared, the status stays on_location.
-  const handleNoShowCleared = useCallback((bookingId: string) => {
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, no_show_requested_at: null } : b))
-  }, [])
-
-  const flushNotes = useCallback(async (bookingId: string, value: string) => {
-    setNotesSaving(prev => ({ ...prev, [bookingId]: 'saving' }))
-    try {
-      await patchBooking({ id: bookingId, operator_notes: value })
-      setNotesSaving(prev => ({ ...prev, [bookingId]: 'saved' }))
-      // Reset "saved" indicator after 2 seconds
-      setTimeout(() => {
-        setNotesSaving(prev => prev[bookingId] === 'saved' ? { ...prev, [bookingId]: 'idle' } : prev)
-      }, 2000)
-    } catch {
-      setNotesSaving(prev => ({ ...prev, [bookingId]: 'error' }))
-    }
-  }, [])
-
-  const handleNotesChange = useCallback((bookingId: string, value: string) => {
-    setLocalNotes(prev => ({ ...prev, [bookingId]: value }))
-    // Cancel pending debounce
-    if (notesDebounceRef.current[bookingId]) {
-      clearTimeout(notesDebounceRef.current[bookingId])
-    }
-    // Schedule save after 800ms idle
-    notesDebounceRef.current[bookingId] = setTimeout(() => {
-      flushNotes(bookingId, value)
-    }, 800)
-  }, [flushNotes])
-
-  const handleNotesBlur = useCallback((bookingId: string) => {
-    // Flush immediately on blur
-    const currentValue = localNotes[bookingId]
-    if (currentValue !== undefined) {
-      if (notesDebounceRef.current[bookingId]) {
-        clearTimeout(notesDebounceRef.current[bookingId])
-      }
-      flushNotes(bookingId, currentValue)
-    }
-  }, [localNotes, flushNotes])
-
-  const saveDriverPrice = useCallback(async (bookingId: string, rawValue: string) => {
-    const trimmed = rawValue.trim()
-    // Empty clears the fee (null); otherwise must be a non-negative integer.
-    let value: number | null
-    if (trimmed === '') {
-      value = null
-    } else {
-      const n = Number(trimmed)
-      if (!Number.isInteger(n) || n < 0) {
-        setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'error' }))
-        return
-      }
-      value = n
-    }
-    setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'saving' }))
-    try {
-      await patchBooking({ id: bookingId, driver_price_czk: value })
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, driver_price_czk: value } : b))
-      setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'saved' }))
-      setTimeout(() => {
-        setDriverPriceSaving(prev => prev[bookingId] === 'saved' ? { ...prev, [bookingId]: 'idle' } : prev)
-      }, 2000)
-    } catch {
-      setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'error' }))
-    }
+  // The paired-outbound chip inside the detail panel filters the list by that reference.
+  const handleSearchReference = useCallback((ref: string) => {
+    setSearch(ref)
+    setDebouncedSearch(ref)
+    setPage(0)
   }, [])
 
   useEffect(() => {
@@ -278,26 +177,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       setFetchFailed(false)
       setBookings(data.bookings ?? [])
       setTotal(data.total ?? 0)
-      // Seed localNotes for bookings that don't already have a local edit
-      const fetched = data.bookings ?? []
-      setLocalNotes(prev => {
-        const next = { ...prev }
-        fetched.forEach((b: Booking) => {
-          if (!(b.id in next)) {
-            next[b.id] = b.operator_notes ?? ''
-          }
-        })
-        return next
-      })
-      setLocalDriverPrice(prev => {
-        const next = { ...prev }
-        fetched.forEach((b: Booking) => {
-          if (!(b.id in next)) {
-            next[b.id] = b.driver_price_czk != null ? String(b.driver_price_czk) : ''
-          }
-        })
-        return next
-      })
     } catch (err) {
       console.error('fetchBookings error', err)
       setFetchFailed(true)
@@ -309,14 +188,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   useEffect(() => {
     fetchBookings()
   }, [fetchBookings])
-
-  // Cleanup debounce timers on unmount
-  useEffect(() => {
-    const debounceMap = notesDebounceRef.current
-    return () => {
-      Object.values(debounceMap).forEach(timer => clearTimeout(timer))
-    }
-  }, [])
 
   const handleFilterChange = useCallback((setter: (v: string) => void) => (v: string) => {
     setter(v)
@@ -947,187 +818,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                   {/* Expanded details */}
                   {isExpanded && (
                     <div style={{ marginTop: 12, borderTop: '1px solid var(--admin-border)', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
-                      {hasOpenNoShowRequest(booking) && booking.no_show_requested_at && (
-                        <NoShowBanner
-                          bookingId={booking.id}
-                          requestedAt={booking.no_show_requested_at}
-                          onConfirmRequest={() => moves.openNoShow(booking)}
-                          onCleared={() => handleNoShowCleared(booking.id)}
-                        />
-                      )}
-                      {booking.flight_iata && (
-                        <FlightStatusBlock
-                          bookingId={booking.id}
-                          flightIata={booking.flight_iata}
-                          initialStatus={booking.flight_status}
-                          initialEstimatedArrival={booking.flight_estimated_arrival}
-                          initialDelayMinutes={booking.flight_delay_minutes}
-                        />
-                      )}
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 12 }}>
-                        <DetailField label="Origin" value={booking.origin_address} />
-                        <DetailField label="Destination" value={booking.destination_address} />
-                        <DetailField label="Email" value={booking.client_email} />
-                        <DetailField label="Phone" value={booking.client_phone} />
-                        {booking.flight_number && <DetailField label="Flight" value={booking.flight_number} />}
-                        {booking.terminal && <DetailField label="Terminal" value={booking.terminal} />}
-                        {booking.special_requests && <DetailField label="Requests" value={booking.special_requests} />}
-                        <DetailField label="Language" value={booking.locale ? booking.locale.toUpperCase() : '—'} />
-                        <DetailField
-                          label="Child seat"
-                          value={booking.extra_child_seat ? <StatusBadge variant="active" label="Yes" /> : '—'}
-                        />
-                        <DetailField
-                          label="Meet & greet"
-                          value={booking.extra_meet_greet ? <StatusBadge variant="active" label="Yes" /> : '—'}
-                        />
-                        <DetailField
-                          label="Extra luggage"
-                          value={booking.extra_luggage ? <StatusBadge variant="active" label="Yes" /> : '—'}
-                        />
-                        {booking.leg === 'return' && booking.linked_booking?.booking_reference && (
-                          <DetailField
-                            label="Paired outbound"
-                            value={
-                              <button
-                                type="button"
-                                data-testid={`linked-ref-chip-mobile-${booking.id}`}
-                                aria-label={`Search for paired outbound booking ${booking.linked_booking.booking_reference}`}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  const ref = booking.linked_booking?.booking_reference
-                                  if (ref) {
-                                    setSearch(ref)
-                                    setDebouncedSearch(ref)
-                                    setPage(0)
-                                  }
-                                }}
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  border: '1px solid var(--copper)',
-                                  color: 'var(--copper)',
-                                  background: 'transparent',
-                                  borderRadius: '2px',
-                                  padding: '4px 12px',
-                                  fontFamily: 'var(--font-montserrat)',
-                                  fontSize: '11px',
-                                  fontWeight: 500,
-                                  letterSpacing: '0.12em',
-                                  textTransform: 'uppercase' as const,
-                                  cursor: 'pointer',
-                                }}
-                                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8' }}
-                                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-                              >
-                                {booking.linked_booking.booking_reference}
-                              </button>
-                            }
-                          />
-                        )}
-                      </div>
-
-                      {/* Operator notes */}
-                      <div style={{ marginTop: 8 }}>
-                        <div style={{
-                          fontFamily: 'var(--font-montserrat)',
-                          fontSize: '11px',
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.3em',
-                          color: 'var(--warmgrey)',
-                          marginBottom: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}>
-                          Operator Notes
-                          {notesSaving[booking.id] === 'saving' && (
-                            <span style={{ color: 'var(--copper)', fontSize: '10px' }}>Saving...</span>
-                          )}
-                          {notesSaving[booking.id] === 'saved' && (
-                            <span style={{ color: 'var(--status-ok-fg)', fontSize: '10px' }}>Saved</span>
-                          )}
-                          {notesSaving[booking.id] === 'error' && (
-                            <span style={{ color: 'var(--status-danger-fg)', fontSize: '10px' }}>Error saving</span>
-                          )}
-                        </div>
-                        <textarea
-                          value={localNotes[booking.id] ?? booking.operator_notes ?? ''}
-                          onChange={(e) => handleNotesChange(booking.id, e.target.value)}
-                          onBlur={() => handleNotesBlur(booking.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          maxLength={2000}
-                          placeholder="Add internal notes..."
-                          rows={3}
-                          style={{
-                            width: '100%',
-                            background: 'var(--anthracite-mid)',
-                            border: '1px solid var(--anthracite-light)',
-                            borderRadius: '2px',
-                            padding: '8px 12px',
-                            fontFamily: 'var(--font-montserrat)',
-                            fontSize: '13px',
-                            color: 'var(--offwhite)',
-                            resize: 'vertical',
-                            outline: 'none',
-                            boxSizing: 'border-box' as const,
-                          }}
-                          onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
-                        />
-                      </div>
-
-                      {/* Payment panel (Phase 88 HOLD-07) */}
-                      <PaymentPanel
-                        bookingId={booking.id}
-                        refreshKey={(paymentRefreshKeys[booking.id] ?? 0) + moves.paymentBumpFor(booking.id)}
-                        paymentMode={booking.payment_mode ?? null}
-                        onPaymentState={(state) => handlePaymentState(booking.id, state)}
+                      <BookingDetailPanel
+                        key={booking.id}
+                        booking={booking}
+                        moves={moves}
+                        onPatched={handleRowPatched}
+                        onSearchReference={handleSearchReference}
                       />
-
-                      {/* Payment Link (D-05) */}
-                      <PaymentLinkSection
-                        bookingId={booking.id}
-                        status={booking.status}
-                        paymentLinkUrl={booking.payment_link_url}
-                        clientEmail={booking.client_email}
-                        amountCzk={booking.amount_czk}
-                        onGenerated={handlePaymentLinkGenerated}
-                      />
-
-                      {/* Trip-edit mode (Phase 63 Plan 05) */}
-                      <TripEditPanel booking={booking} patchBooking={patchBooking} onUpdated={handleTripUpdated} />
-
-                      {/* Change history (D-11, FOLLOW-02) */}
-                      <div style={{ marginTop: 16 }} onClick={(e) => e.stopPropagation()}>
-                        <BookingChangeHistory bookingId={booking.id} />
-                      </div>
-
-                      {/* Cancel button */}
-                      {(booking.status === 'pending' || booking.status === 'confirmed') && (
-                        <div style={{ marginTop: 12 }}>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); moves.openCancel(booking) }}
-                            style={{
-                              border: '1px solid var(--anthracite-light)',
-                              background: 'transparent',
-                              color: 'var(--warmgrey)',
-                              fontFamily: 'var(--font-montserrat)',
-                              fontSize: '11px',
-                              fontWeight: 500,
-                              letterSpacing: '3px',
-                              textTransform: 'uppercase' as const,
-                              padding: '0 24px',
-                              minHeight: 44,
-                              borderRadius: '2px',
-                              cursor: 'pointer',
-                              width: '100%',
-                            }}
-                          >
-                            Cancel Booking
-                          </button>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
@@ -1275,320 +972,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           borderBottom: '1px solid var(--anthracite-light)',
                         }}
                       >
-                        {hasOpenNoShowRequest(row.original) && row.original.no_show_requested_at && (
-                          <NoShowBanner
-                            bookingId={row.original.id}
-                            requestedAt={row.original.no_show_requested_at}
-                            onConfirmRequest={() => moves.openNoShow(row.original)}
-                            onCleared={() => handleNoShowCleared(row.original.id)}
-                          />
-                        )}
-                        {row.original.flight_iata && (
-                          <FlightStatusBlock
-                            bookingId={row.original.id}
-                            flightIata={row.original.flight_iata}
-                            initialStatus={row.original.flight_status}
-                            initialEstimatedArrival={row.original.flight_estimated_arrival}
-                            initialDelayMinutes={row.original.flight_delay_minutes}
-                          />
-                        )}
-                        <div style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr 1fr',
-                          gap: '12px',
-                        }}>
-                          <DetailField label="Origin" value={row.original.origin_address} />
-                          <DetailField label="Destination" value={row.original.destination_address} />
-                          {row.original.trip_type === 'hourly' && row.original.hours !== null && (
-                            <DetailField label="Duration" value={`${row.original.hours} hours`} />
-                          )}
-                          <DetailField label="Passengers" value={String(row.original.passengers)} />
-                          <DetailField label="Luggage" value={String(row.original.luggage)} />
-                          <DetailField
-                            label="Child seat"
-                            value={row.original.extra_child_seat
-                              ? <StatusBadge variant="active" label="Yes" />
-                              : '—'}
-                          />
-                          <DetailField
-                            label="Meet & greet"
-                            value={row.original.extra_meet_greet
-                              ? <StatusBadge variant="active" label="Yes" />
-                              : '—'}
-                          />
-                          <DetailField
-                            label="Extra luggage"
-                            value={row.original.extra_luggage
-                              ? <StatusBadge variant="active" label="Yes" />
-                              : '—'}
-                          />
-                          <DetailField label="Flight" value={row.original.flight_number ?? '—'} />
-                          <DetailField label="Terminal" value={row.original.terminal ?? '—'} />
-                          <DetailField label="Return" value={row.original.return_date ?? '—'} />
-                          <DetailField label="Notes" value={row.original.special_requests ?? '—'} />
-                          <DetailField label="Language" value={row.original.locale ? row.original.locale.toUpperCase() : '—'} />
-                          <DetailField
-                            label="Payment ID"
-                            value={
-                              row.original.payment_intent_id ? (
-                                <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>
-                                  {row.original.payment_intent_id.length > 24
-                                    ? `${row.original.payment_intent_id.slice(0, 24)}...`
-                                    : row.original.payment_intent_id}
-                                </span>
-                              ) : '—'
-                            }
-                          />
-                          {row.original.leg === 'return' && row.original.linked_booking?.booking_reference && (
-                            <DetailField
-                              label="Paired outbound"
-                              value={
-                                <button
-                                  type="button"
-                                  data-testid={`linked-ref-chip-${row.original.id}`}
-                                  aria-label={`Search for paired outbound booking ${row.original.linked_booking.booking_reference}`}
-                                  onClick={() => {
-                                    const ref = row.original.linked_booking?.booking_reference
-                                    if (ref) {
-                                      setSearch(ref)
-                                      setDebouncedSearch(ref)
-                                      setPage(0)
-                                    }
-                                  }}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    border: '1px solid var(--copper)',
-                                    color: 'var(--copper)',
-                                    background: 'transparent',
-                                    borderRadius: '2px',
-                                    padding: '4px 12px',
-                                    fontFamily: 'var(--font-montserrat)',
-                                    fontSize: '11px',
-                                    fontWeight: 500,
-                                    letterSpacing: '0.12em',
-                                    textTransform: 'uppercase',
-                                    cursor: 'pointer',
-                                  }}
-                                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8' }}
-                                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-                                >
-                                  {row.original.linked_booking.booking_reference}
-                                </button>
-                              }
-                            />
-                          )}
-                        </div>
-
-                        {/* Status transition */}
-                        <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{
-                            fontFamily: 'var(--font-montserrat)',
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.3em',
-                            color: 'var(--warmgrey)',
-                          }}>
-                            Status
-                          </span>
-                          {(UI_TRANSITIONS[row.original.status] ?? []).length > 0 ? (
-                            <select
-                              value=""
-                              disabled={moves.isUpdating(row.original.id)}
-                              onChange={(e) => {
-                                if (e.target.value) moves.requestStatusChange(row.original, e.target.value)
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              style={{
-                                height: '32px',
-                                padding: '0 8px',
-                                background: 'var(--anthracite)',
-                                border: '1px solid var(--anthracite-light)',
-                                borderRadius: '2px',
-                                fontFamily: 'var(--font-montserrat)',
-                                fontSize: '13px',
-                                color: 'var(--offwhite)',
-                                cursor: moves.isUpdating(row.original.id) ? 'not-allowed' : 'pointer',
-                                opacity: moves.isUpdating(row.original.id) ? 0.5 : 1,
-                              }}
-                            >
-                              <option value="" disabled>
-                                {moves.isUpdating(row.original.id) ? 'Updating...' : `Change from ${STATUS_LABELS[row.original.status]}...`}
-                              </option>
-                              {(UI_TRANSITIONS[row.original.status] ?? []).map(s => (
-                                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <StatusBadge
-                              variant={row.original.status as BookingStatus}
-                              label={`${STATUS_LABELS[row.original.status]} (final)`}
-                            />
-                          )}
-                        </div>
-                        {moves.conflictFor(row.original.id) && (
-                          <div role="alert" style={STATUS_CONFLICT_STYLE}>
-                            {moves.conflictFor(row.original.id)}
-                          </div>
-                        )}
-
-                        {/* Operator notes */}
-                        <div style={{ marginTop: '16px' }}>
-                          <div style={{
-                            fontFamily: 'var(--font-montserrat)',
-                            fontSize: '11px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.3em',
-                            color: 'var(--warmgrey)',
-                            marginBottom: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}>
-                            Operator Notes
-                            {notesSaving[row.original.id] === 'saving' && (
-                              <span style={{ color: 'var(--copper)', fontSize: '10px', letterSpacing: '0.1em' }}>Saving...</span>
-                            )}
-                            {notesSaving[row.original.id] === 'saved' && (
-                              <span style={{ color: 'var(--status-ok-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>
-                            )}
-                            {notesSaving[row.original.id] === 'error' && (
-                              <span style={{ color: 'var(--status-danger-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Error saving</span>
-                            )}
-                          </div>
-                          <textarea
-                            value={localNotes[row.original.id] ?? row.original.operator_notes ?? ''}
-                            onChange={(e) => handleNotesChange(row.original.id, e.target.value)}
-                            onBlur={() => handleNotesBlur(row.original.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            maxLength={2000}
-                            placeholder="Add internal notes..."
-                            rows={3}
-                            style={{
-                              width: '100%',
-                              background: 'var(--anthracite-mid)',
-                              border: '1px solid var(--anthracite-light)',
-                              borderRadius: '2px',
-                              padding: '8px 12px',
-                              fontFamily: 'var(--font-montserrat)',
-                              fontSize: '13px',
-                              color: 'var(--offwhite)',
-                              resize: 'vertical',
-                              outline: 'none',
-                              boxSizing: 'border-box',
-                            }}
-                            onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
-                          />
-                        </div>
-
-                        {/* Driver Price (shown to driver in assignment email) */}
-                        <div style={{ marginTop: '16px' }} onClick={(e) => e.stopPropagation()}>
-                          <div style={{
-                            fontFamily: 'var(--font-montserrat)', fontSize: '11px', textTransform: 'uppercase',
-                            letterSpacing: '0.3em', color: 'var(--warmgrey)', marginBottom: '4px',
-                            display: 'flex', alignItems: 'center', gap: '8px',
-                          }}>
-                            Driver Price (CZK)
-                            {driverPriceSaving[row.original.id] === 'saving' && <span style={{ color: 'var(--copper)', fontSize: '10px', letterSpacing: '0.1em' }}>Saving...</span>}
-                            {driverPriceSaving[row.original.id] === 'saved' && <span style={{ color: 'var(--status-ok-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>}
-                            {driverPriceSaving[row.original.id] === 'error' && <span style={{ color: 'var(--status-danger-fg)', fontSize: '10px', letterSpacing: '0.1em' }}>Enter a whole number ≥ 0</span>}
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <input
-                              type="number"
-                              min={0}
-                              step={1}
-                              value={localDriverPrice[row.original.id] ?? ''}
-                              onChange={(e) => setLocalDriverPrice(prev => ({ ...prev, [row.original.id]: e.target.value }))}
-                              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveDriverPrice(row.original.id, localDriverPrice[row.original.id] ?? '') } }}
-                              placeholder="e.g. 1000 — leave empty to hide"
-                              style={{
-                                width: '220px', height: '32px', background: 'var(--anthracite-mid)',
-                                border: '1px solid var(--anthracite-light)', borderRadius: '2px', padding: '0 12px',
-                                fontFamily: 'var(--font-montserrat)', fontSize: '13px', color: 'var(--offwhite)',
-                                outline: 'none', boxSizing: 'border-box',
-                              }}
-                              onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
-                              onBlur={(e) => { e.target.style.borderColor = 'var(--anthracite-light)'; saveDriverPrice(row.original.id, localDriverPrice[row.original.id] ?? '') }}
-                            />
-                            <button
-                              onClick={() => saveDriverPrice(row.original.id, localDriverPrice[row.original.id] ?? '')}
-                              style={{
-                                height: '32px', padding: '0 16px', background: 'transparent',
-                                border: '1px solid var(--copper)', color: 'var(--copper)', borderRadius: '2px',
-                                fontFamily: 'var(--font-montserrat)', fontSize: '11px', letterSpacing: '0.15em',
-                                textTransform: 'uppercase', cursor: 'pointer',
-                              }}
-                            >Save</button>
-                          </div>
-                          <span style={{
-                            fontFamily: 'var(--font-montserrat)', fontSize: '11px', fontWeight: 300,
-                            color: 'var(--warmgrey)', marginTop: '4px', display: 'block',
-                          }}>Shown to the driver in the assignment email. Empty = no price shown.</span>
-                        </div>
-
-                        {/* Driver Assignment */}
-                        <DriverAssignmentSection
-                          bookingId={row.original.id}
-                          bookingStatus={row.original.status}
-                          onAssigned={(newStatus) => {
-                            setBookings(prev =>
-                              prev.map(b => b.id === row.original.id ? { ...b, status: newStatus } : b)
-                            )
-                          }}
+                        <BookingDetailPanel
+                          key={row.original.id}
+                          booking={row.original}
+                          moves={moves}
+                          onPatched={handleRowPatched}
+                          onSearchReference={handleSearchReference}
                         />
-
-                        {/* Payment panel (Phase 88 HOLD-07) */}
-                        <PaymentPanel
-                          bookingId={row.original.id}
-                          refreshKey={(paymentRefreshKeys[row.original.id] ?? 0) + moves.paymentBumpFor(row.original.id)}
-                          paymentMode={row.original.payment_mode ?? null}
-                          onPaymentState={(state) => handlePaymentState(row.original.id, state)}
-                        />
-
-                        {/* Payment Link (D-05) */}
-                        <PaymentLinkSection
-                          bookingId={row.original.id}
-                          status={row.original.status}
-                          paymentLinkUrl={row.original.payment_link_url}
-                          clientEmail={row.original.client_email}
-                          amountCzk={row.original.amount_czk}
-                          onGenerated={handlePaymentLinkGenerated}
-                        />
-
-                        {/* Trip-edit mode (Phase 63 Plan 05) */}
-                        <TripEditPanel booking={row.original} patchBooking={patchBooking} onUpdated={handleTripUpdated} />
-
-                        {/* Change history (D-11, FOLLOW-02) */}
-                        <div style={{ marginTop: '16px' }} onClick={(e) => e.stopPropagation()}>
-                          <BookingChangeHistory bookingId={row.original.id} />
-                        </div>
-
-                        {/* Cancel Booking button — only for cancellable statuses */}
-                        {(row.original.status === 'pending' || row.original.status === 'confirmed') && (
-                          <div style={{ marginTop: '16px' }}>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); moves.openCancel(row.original) }}
-                              style={{
-                                border: '1px solid var(--anthracite-light)',
-                                background: 'transparent',
-                                color: 'var(--warmgrey)',
-                                fontFamily: 'var(--font-montserrat)',
-                                fontSize: '11px',
-                                fontWeight: 500,
-                                letterSpacing: '3px',
-                                textTransform: 'uppercase',
-                                padding: '0 24px',
-                                minHeight: '44px',
-                                borderRadius: '2px',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              Cancel Booking
-                            </button>
-                          </div>
-                        )}
                       </td>
                     </tr>
                   )}
