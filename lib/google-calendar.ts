@@ -16,9 +16,13 @@ import { createSign } from 'crypto'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { formatVehicleLabel, getAcceptedDriver } from '@/lib/email'
 import { CALENDAR_ACTIVE_STATUSES, type BookingStatus } from '@/lib/booking-status'
+import { estimateDurationMinutes } from '@/lib/trip-duration'
 
 // D-02: one shared set (confirmed through completed, plus on_board and no_show, which keep their event).
 export { CALENDAR_ACTIVE_STATUSES }
+
+// Phase 90: the estimate moved to a client-safe module; re-exported unchanged for existing importers.
+export { estimateDurationMinutes } from '@/lib/trip-duration'
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const API_BASE = 'https://www.googleapis.com/calendar/v3'
@@ -110,15 +114,6 @@ export interface CalendarBooking {
   extra_child_seat: boolean | null
   extra_meet_greet: boolean | null
   driver_name?: string
-}
-
-/** Rough trip length: hourly bookings use their hours, transfers ~70 km/h + 15 min, min 1 h. */
-export function estimateDurationMinutes(b: Pick<CalendarBooking, 'hours' | 'distance_km'>): number {
-  if (b.hours && b.hours > 0) return b.hours * 60
-  if (b.distance_km && b.distance_km > 0) {
-    return Math.max(60, Math.round(((b.distance_km / 70) * 60 + 15) / 15) * 15)
-  }
-  return 60
 }
 
 export function buildCalendarEvent(b: CalendarBooking) {

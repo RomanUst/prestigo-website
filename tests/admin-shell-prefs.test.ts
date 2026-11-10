@@ -9,6 +9,15 @@ import {
   parseAdminSidebar,
   serializeThemeCookie,
   serializeSidebarCookie,
+  ADMIN_BOOKINGS_VIEW_COOKIE,
+  ADMIN_CALENDAR_VIEW_COOKIE,
+  DEFAULT_ADMIN_BOOKINGS_VIEW,
+  DEFAULT_ADMIN_CALENDAR_VIEW,
+  parseAdminBookingsView,
+  parseAdminCalendarView,
+  resolveBookingsView,
+  serializeBookingsViewCookie,
+  serializeCalendarViewCookie,
 } from '@/lib/admin-shell-prefs'
 
 /**
@@ -88,5 +97,111 @@ describe('cookie serialisers', () => {
     const sidebarValue = serializeSidebarCookie('collapsed', false).split(';')[0].split('=')[1]
     expect(parseAdminTheme(themeValue)).toBe('dark')
     expect(parseAdminSidebar(sidebarValue)).toBe('collapsed')
+  })
+})
+
+/**
+ * Phase 90 D-04 / D-15: the bookings view (list | board | calendar) and the calendar view
+ * (day | week | month) are remembered in two more cookies. Same discipline as T-86-01 /
+ * T-90-02: strict equality onto a closed union, never trim or lowercase.
+ */
+describe('bookings view and calendar view: cookie names and defaults', () => {
+  it('uses the documented cookie names and defaults', () => {
+    expect(ADMIN_BOOKINGS_VIEW_COOKIE).toBe('admin_bookings_view')
+    expect(ADMIN_CALENDAR_VIEW_COOKIE).toBe('admin_calendar_view')
+    expect(DEFAULT_ADMIN_BOOKINGS_VIEW).toBe('list')
+    expect(DEFAULT_ADMIN_CALENDAR_VIEW).toBe('week')
+  })
+})
+
+describe('parseAdminBookingsView', () => {
+  it.each([['list'], ['board'], ['calendar']])('maps exactly %j to itself', (value) => {
+    expect(parseAdminBookingsView(value)).toBe(value)
+  })
+
+  it.each([
+    [' board'],
+    ['BOARD'],
+    ['board '],
+    [''],
+    [null],
+    [undefined],
+    ['board;x'],
+    ['kanban'],
+    ['"><script>alert(1)</script>'],
+    ['Calendar'],
+  ])('falls back to list for %j', (value) => {
+    expect(parseAdminBookingsView(value as string | null | undefined)).toBe('list')
+  })
+})
+
+describe('parseAdminCalendarView', () => {
+  it.each([['day'], ['week'], ['month']])('maps exactly %j to itself', (value) => {
+    expect(parseAdminCalendarView(value)).toBe(value)
+  })
+
+  it.each([['Month'], [' day'], ['year'], [''], [null], [undefined], ['week;x'], ['WEEK']])(
+    'falls back to week for %j',
+    (value) => {
+      expect(parseAdminCalendarView(value as string | null | undefined)).toBe('week')
+    },
+  )
+})
+
+describe('view cookie serialisers', () => {
+  it('serializeBookingsViewCookie builds the exact header value', () => {
+    expect(serializeBookingsViewCookie('board', true)).toBe(
+      'admin_bookings_view=board; Path=/admin; Max-Age=31536000; SameSite=Lax; Secure',
+    )
+    expect(serializeBookingsViewCookie('board', false)).toBe(
+      'admin_bookings_view=board; Path=/admin; Max-Age=31536000; SameSite=Lax',
+    )
+  })
+
+  it('serializeCalendarViewCookie builds the exact header value', () => {
+    expect(serializeCalendarViewCookie('month', true)).toBe(
+      'admin_calendar_view=month; Path=/admin; Max-Age=31536000; SameSite=Lax; Secure',
+    )
+    expect(serializeCalendarViewCookie('day', false)).toBe(
+      'admin_calendar_view=day; Path=/admin; Max-Age=31536000; SameSite=Lax',
+    )
+  })
+
+  it('round-trips through the parsers', () => {
+    const view = serializeBookingsViewCookie('calendar', false).split(';')[0].split('=')[1]
+    const cal = serializeCalendarViewCookie('month', false).split(';')[0].split('=')[1]
+    expect(parseAdminBookingsView(view)).toBe('calendar')
+    expect(parseAdminCalendarView(cal)).toBe('month')
+  })
+})
+
+describe('resolveBookingsView precedence', () => {
+  it('a valid ?view= wins over ?search= and the cookie', () => {
+    expect(resolveBookingsView({ viewParam: 'board', searchParam: 'PRG-1', cookie: 'calendar' })).toBe('board')
+  })
+
+  it('an invalid ?view= is not honoured; a present ?search= then selects the list', () => {
+    expect(resolveBookingsView({ viewParam: 'bogus', searchParam: 'PRG-1', cookie: 'calendar' })).toBe('list')
+  })
+
+  it('an empty ?search= does not force the list, so the cookie decides', () => {
+    expect(resolveBookingsView({ viewParam: null, searchParam: '', cookie: 'calendar' })).toBe('calendar')
+  })
+
+  it('an invalid cookie falls back to the list', () => {
+    expect(resolveBookingsView({ viewParam: null, searchParam: null, cookie: 'nope' })).toBe('list')
+  })
+
+  it('a valid cookie is used when there is no ?view= and no ?search=', () => {
+    expect(resolveBookingsView({ viewParam: undefined, searchParam: undefined, cookie: 'board' })).toBe('board')
+  })
+
+  it('no inputs at all yields the default', () => {
+    expect(resolveBookingsView({ viewParam: undefined, searchParam: undefined, cookie: undefined })).toBe('list')
+  })
+
+  it('does not trim or lowercase ?view=', () => {
+    expect(resolveBookingsView({ viewParam: ' board', searchParam: null, cookie: 'calendar' })).toBe('calendar')
+    expect(resolveBookingsView({ viewParam: 'BOARD', searchParam: null, cookie: 'calendar' })).toBe('calendar')
   })
 })
