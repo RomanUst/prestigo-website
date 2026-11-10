@@ -44,6 +44,10 @@ export function BookingPanelProvider({ children }: { children: React.ReactNode }
   const listenersRef = useRef<Set<BookingEventListener>>(new Set())
   // The row or card that opened the panel; it gets focus back when the panel closes.
   const openerRef = useRef<HTMLElement | null>(null)
+  // Bumped when a fresher row shows a status or payment change: an open PaymentPanel refetches (Pitfall 4).
+  const [refreshSignal, setRefreshSignal] = useState(0)
+  // True while the panel holds unsaved input (notes, driver price, an open trip-edit form).
+  const [panelDirty, setPanelDirty] = useState(false)
   const [referenceSearchHandler, setReferenceSearchHandlerState] = useState<((reference: string) => void) | null>(null)
   const setReferenceSearchHandler = useCallback((handler: ((reference: string) => void) | null) => {
     // a function stored in state must be wrapped, or React would call it as an updater
@@ -89,6 +93,7 @@ export function BookingPanelProvider({ children }: { children: React.ReactNode }
 
   const closePanel = useCallback(() => {
     commitSelected(null)
+    setPanelDirty(false)
     const opener = openerRef.current
     openerRef.current = null
     if (opener && opener.isConnected) opener.focus()
@@ -100,10 +105,14 @@ export function BookingPanelProvider({ children }: { children: React.ReactNode }
     const fresh = rows.find(r => r.id === cur.id)
     // Not in this view's rows (other page, other filter): the panel stays on its snapshot.
     if (!fresh) return
+    if (fresh.status !== cur.status || fresh.payment_state !== cur.payment_state) {
+      setRefreshSignal(n => n + 1)
+    }
+    // The panel keeps its local input (keyed by booking id only); only the shown row data is replaced.
     commitSelected(fresh)
   }, [commitSelected])
 
-  const pausePolling = moves.anyDialogOpen
+  const pausePolling = moves.anyDialogOpen || panelDirty
 
   const value: BookingPanelValue = {
     selected,
@@ -129,6 +138,8 @@ export function BookingPanelProvider({ children }: { children: React.ReactNode }
             moves={moves}
             onPatched={handlePatched}
             onSearchReference={referenceSearchHandler ?? undefined}
+            refreshSignal={refreshSignal}
+            onDirtyChange={setPanelDirty}
           />
         </BookingSidePanel>
       )}

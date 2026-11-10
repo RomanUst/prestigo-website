@@ -1,11 +1,11 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 
 // Phase 90 plan 05 (D-02): the right-hand sheet that shows one booking while the view stays visible and
 // clickable on the left. Layering: above the sidebar (40-60) and its rail tooltip (70), below Modal (100).
-// Pitfall 6: position: fixed breaks inside any ancestor with transform, filter, will-change or contain,
-// so none of those may ever be added to this sheet or to the workspace around it.
+// Pitfall 6: position: fixed breaks inside any ancestor that creates a containing block (see RESEARCH Pitfall 6
+// for the property list), so none of those may ever be added to this sheet or to the workspace around it.
 // Below 768 px the same CSS makes it a full-width sheet (min(560px, 100vw)); there is no JS width check.
 
 interface BookingSidePanelProps {
@@ -15,6 +15,26 @@ interface BookingSidePanelProps {
 }
 
 export function BookingSidePanel({ reference, onClose, children }: BookingSidePanelProps) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+
+  // Opening moves focus to the close button; the provider returns it to the opener on close.
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+  }, [])
+
+  // Escape closes the panel, but never while a modal dialog (cancel, no-show, complete, driver picker) is open:
+  // that dialog's own Escape handler closes it and the panel stays (Pitfall 5). The listener runs in the capture
+  // phase so it looks at the DOM before any dialog handler has had a chance to remove the dialog.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return
+      onClose()
+    }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [onClose])
+
   return (
     <aside
       data-testid="booking-panel"
@@ -62,6 +82,7 @@ export function BookingSidePanel({ reference, onClose, children }: BookingSidePa
           Booking {reference}
         </h2>
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           aria-label="Close booking panel"

@@ -120,7 +120,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
 
   // Phase 90 plan 05: bookings open in the shared side panel (D-02/D-03). The provider owns the moves, their
   // dialogs and the panel; every row change (a move, a panel save) reaches this list as a 'patched' event.
-  const { openBooking, selected, moves, setReferenceSearchHandler } = useBookingPanel()
+  const { openBooking, selected, syncRows, moves, setReferenceSearchHandler } = useBookingPanel()
 
   useBookingEvents(useCallback((e) => {
     // 'stale' is ignored on purpose: a 409 keeps the row as it is and the list does not reload by itself.
@@ -152,6 +152,11 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     }
   }, [search])
+
+  // Fresher rows (a refetch, a filter change) refresh the open panel's snapshot without touching its local input.
+  useEffect(() => {
+    syncRows(bookings)
+  }, [bookings, syncRows])
 
   const fetchBookings = useCallback(async () => {
     setLoading(true)

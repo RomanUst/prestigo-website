@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { formatMinor } from '@/lib/payments/money'
 import { formatPragueFull } from './PaymentPanel'
 import { TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
@@ -158,11 +158,22 @@ interface TripEditPanelProps {
   booking: Booking
   patchBooking: (body: PatchBody) => Promise<unknown>
   onUpdated: (bookingId: string, patch: Partial<Booking>) => void
+  /** Reports whether the edit form is open: an open form is unsaved input that a refetch must not disturb. */
+  onEditOpenChange?: (open: boolean) => void
 }
 
-export function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps) {
+export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChange }: TripEditPanelProps) {
   const isTerminal = TERMINAL_BOOKING_STATUSES.has(booking.status as BookingStatus)
   const [editOpen, setEditOpen] = useState(false)
+  const onEditOpenChangeRef = useRef(onEditOpenChange)
+  useEffect(() => {
+    onEditOpenChangeRef.current = onEditOpenChange
+  })
+  // Report every change of the open state, and "closed" when the panel goes away while the form is open.
+  useEffect(() => {
+    onEditOpenChangeRef.current?.(editOpen)
+    return () => { if (editOpen) onEditOpenChangeRef.current?.(false) }
+  }, [editOpen])
 
   const [fields, setFields] = useState<TripEditFieldsState>(() => ({
     pickup_date: booking.pickup_date,
