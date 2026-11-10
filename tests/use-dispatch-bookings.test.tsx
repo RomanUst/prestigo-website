@@ -215,6 +215,57 @@ describe('useDispatchBookings - polling rules', () => {
     expect(hook.result.current.loading).toBe(false)
   })
 
+  it('clears the rows of the old range while the new one loads and after it failed (WR-07)', async () => {
+    vi.useFakeTimers()
+    fetchMock
+      .mockResolvedValueOnce(okResponse([{ id: 'yesterday' }]))
+      .mockImplementationOnce(() => new Promise<Response>(() => {}))
+      .mockResolvedValueOnce(statusResponse(500))
+    const hook = renderHook(
+      ({ q }: { q: DispatchQuery }) => useDispatchBookings<Row>(q, { paused: false }),
+      { initialProps: { q: BASE } },
+    )
+    await advance(0)
+    expect(hook.result.current.rows).toEqual([{ id: 'yesterday' }])
+
+    hook.rerender({ q: { ...BASE, startDate: '2027-11-01', endDate: '2027-11-01' } })
+    await advance(0)
+    expect(hook.result.current.rows).toEqual([])
+    expect(hook.result.current.loading).toBe(true)
+    expect(hook.result.current.updatedAt).toBeNull()
+
+    hook.rerender({ q: { ...BASE, startDate: '2027-11-02', endDate: '2027-11-02' } })
+    await advance(0)
+    expect(hook.result.current.error).toBe('failed')
+    expect(hook.result.current.rows).toEqual([])
+  })
+
+  it('keeps the rows when only the poll repeats for the same query (WR-07)', async () => {
+    vi.useFakeTimers()
+    fetchMock.mockResolvedValue(okResponse([{ id: 'b1' }]))
+    const hook = renderHook(() => useDispatchBookings<Row>(BASE, { paused: false }))
+    await advance(0)
+    await advance(30_000)
+    expect(hook.result.current.rows).toEqual([{ id: 'b1' }])
+  })
+
+  it('does not stay in loading when the query changes after a 401 (WR-07)', async () => {
+    vi.useFakeTimers()
+    fetchMock.mockResolvedValue(statusResponse(401))
+    const hook = renderHook(
+      ({ q }: { q: DispatchQuery }) => useDispatchBookings<Row>(q, { paused: false }),
+      { initialProps: { q: BASE } },
+    )
+    await advance(0)
+    expect(hook.result.current.error).toBe('unauthorized')
+    expect(hook.result.current.loading).toBe(false)
+    hook.rerender({ q: { ...BASE, search: 'x' } })
+    await advance(0)
+    expect(hook.result.current.loading).toBe(false)
+    expect(hook.result.current.error).toBe('unauthorized')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('makes no request when enabled is false', async () => {
     vi.useFakeTimers()
     renderHook(() => useDispatchBookings<Row>(BASE, { paused: false, enabled: false }))

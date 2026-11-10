@@ -55,6 +55,7 @@ export function useDispatchBookings<Row extends { id: string }>(
   const inFlightRef = useRef(false) // a request for the current query has not settled yet
   const controllerRef = useRef<AbortController | null>(null)
   const loadRef = useRef<() => void>(() => {})
+  const loadedUrlRef = useRef(url) // the query the rows on screen belong to
 
   // Declared before the main effect so a pause that ends in the same commit as a
   // query change reads the current flag.
@@ -118,7 +119,16 @@ export function useDispatchBookings<Row extends { id: string }>(
       }
     }, intervalMs)
 
-    setLoading(true)
+    // Rows of another range or filter must not stay on screen under the new label while it loads, or after it failed.
+    if (loadedUrlRef.current !== url) {
+      loadedUrlRef.current = url
+      setRows([])
+      setTruncated(false)
+      setUpdatedAt(null)
+      setError(prev => (prev === 'unauthorized' ? prev : null))
+    }
+    // A stopped hook (401) never loads again, so it would never clear the flag.
+    if (!stoppedRef.current) setLoading(true)
     void load()
 
     const onVisibility = () => {
