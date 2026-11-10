@@ -72,6 +72,7 @@ function fakeMoves(overrides: Partial<BookingMovesApi> = {}): BookingMovesApi {
     isUpdating: vi.fn(() => false),
     conflictFor: vi.fn(() => null),
     requestStatusChange: vi.fn(),
+    requestMove: vi.fn(),
     openNoShow: vi.fn(),
     openCancel: vi.fn(),
     anyDialogOpen: false,
