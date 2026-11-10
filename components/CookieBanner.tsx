@@ -8,13 +8,15 @@ import { detectSuggestedLocale } from '@/i18n/suggest-locale'
 import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 /**
- * Granular consent modal — two-step design inspired by Blacklane's
- * Usercentrics implementation.
+ * Granular consent bar — non-blocking, docked to the bottom of the viewport.
  *
- * Step 1 (collapsed): short description + two actions — "Accept all" and
- *   "More information". No Reject button; this is the default funnel path.
- * Step 2 (expanded): per-category toggles (all pre-enabled) + "Accept all"
- *   and "Save settings". Services tab lists individual vendors.
+ * The page stays usable while the bar is open (no backdrop, no scroll lock):
+ * a full-screen modal on first visit was blocking the first click on route
+ * and booking pages (Clarity, Nov 2026).
+ *
+ * Two equal-weight actions: "Accept all" (analytics + marketing) and
+ *   "Accept necessary" (essential only). Refusing is as easy as accepting
+ *   (GDPR); nothing optional is enabled without a click.
  *
  * Storage migration:
  *   Legacy key 'prestigo_cookie_consent' stored a single enum ('granted'|'necessary'|'denied').
@@ -89,12 +91,6 @@ function CookieBannerInner() {
   const router = useRouter()
   const [visible, setVisible] = useState(false)
   const [suggestedLocale, setSuggestedLocale] = useState<AppLocale | null>(null)
-  const [expanded, setExpanded] = useState(false)
-  const [tab, setTab] = useState<'categories' | 'services'>('categories')
-  // Default all toggles on — matches Blacklane pattern. User opts OUT via
-  // toggles, never needs a "Reject" button.
-  const [analytics, setAnalytics] = useState(true)
-  const [marketing, setMarketing] = useState(true)
 
   useEffect(() => {
     if (!getConsent()) {
@@ -102,16 +98,6 @@ function CookieBannerInner() {
       setSuggestedLocale(detectSuggestedLocale(currentLocale))
     }
   }, [currentLocale])
-
-  // Body scroll lock while modal is open — Blacklane-style blocking behavior.
-  useEffect(() => {
-    if (!visible) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [visible])
 
   function applyConsent(state: ConsentState) {
     try {
@@ -160,28 +146,20 @@ function CookieBannerInner() {
   }
 
   const handleAcceptAll = () => applyConsent({ analytics: true, marketing: true })
-  const handleSave = () => applyConsent({ analytics, marketing })
+  const handleNecessaryOnly = () => applyConsent({ analytics: false, marketing: false })
 
   if (!visible) return null
 
   return (
     <div
       role="dialog"
-      aria-modal="true"
+      aria-modal="false"
       aria-labelledby="consent-title"
-      className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center"
+      className="fixed inset-x-0 bottom-0 z-[400] flex justify-center sm:justify-start sm:p-4 pointer-events-none"
     >
-      {/* Backdrop: blocks clicks but stays translucent so the site's hero
-          headings remain readable — reinforces the premium brand behind the
-          choice rather than hiding it. */}
+      {/* Bar — no backdrop: the page underneath stays clickable. */}
       <div
-        className="absolute inset-0 bg-anthracite/40 backdrop-blur-[2px]"
-        aria-hidden="true"
-      />
-
-      {/* Modal */}
-      <div
-        className="relative w-full sm:max-w-lg bg-anthracite border border-anthracite-light shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] sm:rounded-sm"
+        className="pointer-events-auto relative w-full sm:max-w-md bg-anthracite border border-anthracite-light shadow-2xl flex flex-col max-h-[70vh] sm:max-h-[80vh] sm:rounded-sm"
         style={{ animation: 'fadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards' }}
       >
         {/* Header — wordmark + welcome copy. Mirrors the site's own brand
@@ -201,22 +179,14 @@ function CookieBannerInner() {
           </div>
         )}
 
-        <div className="px-6 pt-7 pb-5 border-b border-anthracite-light flex-shrink-0 text-center">
-          <div
-            className="wordmark text-[14px] tracking-[0.6em] inline-flex items-center justify-center mb-4"
-            aria-label={t('wordmarkAria')}
-          >
-            <span className="wordmark-presti">PRESTI</span>
-            <span className="wordmark-go">GO</span>
-          </div>
-          <span className="copper-line mx-auto mb-4" aria-hidden="true" />
+        <div className="px-5 pt-4 pb-3 border-b border-anthracite-light flex-shrink-0">
           <h2
             id="consent-title"
-            className="font-display font-light italic text-[28px] sm:text-[32px] text-offwhite leading-tight"
+            className="font-display font-light italic text-[18px] text-offwhite leading-tight"
           >
             {t('heading')}
           </h2>
-          <p className="mt-3 font-body font-light text-[12px] text-warmgrey leading-relaxed">
+          <p className="mt-1.5 font-body font-light text-[11.5px] text-warmgrey leading-relaxed">
             {t.rich('consentBody', {
               privacy: (chunks) => (
                 <Link
@@ -238,206 +208,26 @@ function CookieBannerInner() {
           </p>
         </div>
 
-        {/* Expanded view: tabs + toggle list. Hidden on first render. */}
-        {expanded && (
-          <>
-            <div className="flex border-b border-anthracite-light flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setTab('categories')}
-                className={`flex-1 px-4 py-3 font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors ${
-                  tab === 'categories'
-                    ? 'text-copper border-b-2 border-copper -mb-px'
-                    : 'text-warmgrey hover:text-offwhite'
-                }`}
-              >
-                {t('tabCategories')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTab('services')}
-                className={`flex-1 px-4 py-3 font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors ${
-                  tab === 'services'
-                    ? 'text-copper border-b-2 border-copper -mb-px'
-                    : 'text-warmgrey hover:text-offwhite'
-                }`}
-              >
-                {t('tabServices')}
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              {tab === 'categories' ? (
-                <div className="space-y-5">
-                  <CategoryRow
-                    title={t('catEssential')}
-                    description={t('catEssentialDesc')}
-                    checked
-                    disabled
-                  />
-                  <CategoryRow
-                    title={t('catAnalytics')}
-                    description={t('catAnalyticsDesc')}
-                    checked={analytics}
-                    onChange={setAnalytics}
-                  />
-                  <CategoryRow
-                    title={t('catMarketing')}
-                    description={t('catMarketingDesc')}
-                    checked={marketing}
-                    onChange={setMarketing}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  <ServiceRow
-                    title="Stripe"
-                    category={t('catEssential')}
-                    description={t('svcStripeDesc')}
-                  />
-                  <ServiceRow
-                    title="Supabase"
-                    category={t('catEssential')}
-                    description={t('svcSupabaseDesc')}
-                  />
-                  <ServiceRow
-                    title="Google Maps"
-                    category={t('catEssential')}
-                    description={t('svcMapsDesc')}
-                  />
-                  <ServiceRow
-                    title="Google Analytics 4"
-                    category={t('catAnalytics')}
-                    description={t('svcGa4Desc')}
-                  />
-                  <ServiceRow
-                    title="Meta Pixel"
-                    category={t('catMarketing')}
-                    description={t('svcMetaDesc')}
-                  />
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-anthracite-light flex flex-col gap-2 flex-shrink-0">
-          <button
-            type="button"
-            onClick={handleAcceptAll}
-            className="btn-primary w-full text-[10px] py-3"
-          >
-            {t('acceptAll')}
-          </button>
-          {expanded ? (
+        <div className="px-5 py-3 border-t border-anthracite-light flex flex-col gap-2 flex-shrink-0">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={handleSave}
-              className="font-body font-light text-[10px] tracking-[0.15em] uppercase px-4 py-2.5 border border-anthracite-light text-offwhite hover:border-copper hover:text-copper transition-colors"
+              onClick={handleAcceptAll}
+              className="btn-primary w-full text-[10px] py-3"
             >
-              {t('saveSettings')}
+              {t('acceptAll')}
             </button>
-          ) : (
             <button
               type="button"
-              onClick={() => setExpanded(true)}
-              className="font-body font-light text-[10px] tracking-[0.15em] uppercase px-4 py-2.5 border border-anthracite-light text-warmgrey hover:text-offwhite hover:border-offwhite/40 transition-colors"
+              onClick={handleNecessaryOnly}
+              className="btn-primary w-full text-[10px] py-3"
             >
-              {t('moreInfo')}
+              {t('acceptNecessary')}
             </button>
-          )}
+          </div>
         </div>
       </div>
     </div>
-  )
-}
-
-function CategoryRow({
-  title,
-  description,
-  checked,
-  disabled,
-  onChange,
-}: {
-  title: string
-  description: string
-  checked: boolean
-  disabled?: boolean
-  onChange?: (v: boolean) => void
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4 pb-4 border-b border-anthracite-light/50 last:border-0 last:pb-0">
-      <div className="flex-1 min-w-0">
-        <h3 className="font-display font-normal text-[16px] text-offwhite">
-          {title}
-        </h3>
-        <p className="mt-1.5 font-body font-light text-[11.5px] text-warmgrey leading-relaxed">
-          {description}
-        </p>
-      </div>
-      <Toggle checked={checked} disabled={disabled} onChange={onChange} />
-    </div>
-  )
-}
-
-function ServiceRow({
-  title,
-  category,
-  description,
-}: {
-  title: string
-  category: string
-  description: string
-}) {
-  return (
-    <div className="pb-4 border-b border-anthracite-light/50 last:border-0 last:pb-0">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="font-display font-normal text-[15px] text-offwhite">
-          {title}
-        </h3>
-        <span className="font-body font-light text-[9px] tracking-[0.18em] uppercase text-copper-light px-2 py-0.5 border border-copper/40 whitespace-nowrap">
-          {category}
-        </span>
-      </div>
-      <p className="mt-1.5 font-body font-light text-[11.5px] text-warmgrey leading-relaxed">
-        {description}
-      </p>
-    </div>
-  )
-}
-
-function Toggle({
-  checked,
-  disabled,
-  onChange,
-}: {
-  checked: boolean
-  disabled?: boolean
-  onChange?: (v: boolean) => void
-}) {
-  const t = useTranslations('CookieBanner')
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => !disabled && onChange?.(!checked)}
-      className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors ${
-        disabled
-          ? 'bg-copper/40 cursor-not-allowed'
-          : checked
-            ? 'bg-copper'
-            : 'bg-anthracite-light hover:bg-anthracite-light/70'
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 start-0.5 w-5 h-5 rounded-full bg-offwhite shadow transition-transform ${
-          checked ? 'translate-x-5 rtl:-translate-x-5' : 'translate-x-0'
-        }`}
-      />
-      <span className="sr-only">{checked ? t('toggleEnabled') : t('toggleDisabled')}</span>
-    </button>
   )
 }

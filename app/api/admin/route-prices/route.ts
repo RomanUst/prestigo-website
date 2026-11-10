@@ -15,6 +15,6 @@ export async function GET() {
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const routes = await getAllRoutes('display_order')
+  const routes = await getAllRoutes('display_order', { raw: true })
   return NextResponse.json({ routes })
 }

@@ -91,7 +91,7 @@ describe('/api/admin/route-prices', () => {
       expect(res.status).toBe(200)
       const json = await res.json()
       expect(Array.isArray(json.routes)).toBe(true)
-      expect(getAllRoutesMock).toHaveBeenCalledWith('display_order')
+      expect(getAllRoutesMock).toHaveBeenCalledWith('display_order', { raw: true })
     })
   })
 

@@ -821,6 +821,7 @@
     "svcGa4Desc": "流量统计与用户行为分析。同意模式 v2——如您拒绝,将以匿名方式运行。",
     "svcMetaDesc": "Instagram 与 Facebook 上的广告转化跟踪。",
     "acceptAll": "全部接受",
+    "acceptNecessary": "仅接受必要",
     "saveSettings": "保存设置",
     "moreInfo": "更多信息",
     "toggleEnabled": "已启用",

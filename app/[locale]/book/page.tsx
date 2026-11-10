@@ -125,20 +125,21 @@ export default async function BookPage({ params }: { params: Promise<{ locale: s
       <Nav />
 
       {/* Header */}
-      <section className="bg-anthracite pt-32 pb-10 md:pt-40 md:pb-12 border-b border-anthracite-light">
+      {/* Compact on purpose: visitors arriving from a route page must see the
+          form fields without scrolling (Clarity, Nov 2026). */}
+      <section className="bg-anthracite pt-24 pb-6 md:pt-32 md:pb-8 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">{content.hero.label}</p>
-          <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[52px] max-w-xl">
-            {content.hero.headlineLine1} <br />
+          <p className="label mb-3">{content.hero.label}</p>
+          <h1 className="display text-[28px] md:text-[40px] max-w-xl">
+            {content.hero.headlineLine1}{' '}
             <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
-          <p className="body-text text-[13px] mt-4">{content.hero.subhead}</p>
+          <p className="body-text text-[13px] mt-2">{content.hero.subhead}</p>
         </div>
       </section>
 
       {/* Booking wizard */}
-      <section className="theme-light bg-anthracite py-12 md:py-16">
+      <section className="theme-light bg-anthracite py-8 md:py-12">
         <BookingWizard />
       </section>
 

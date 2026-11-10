@@ -821,6 +821,7 @@
     "svcGa4Desc": "ट्रैफ़िक आँकड़े और उपयोगकर्ता व्यवहार का विश्लेषण। Consent Mode v2 — अस्वीकार करने पर अनामित रूप से संचालित होता है।",
     "svcMetaDesc": "Instagram और Facebook पर विज्ञापन कन्वर्ज़न ट्रैकिंग।",
     "acceptAll": "सभी स्वीकार करें",
+    "acceptNecessary": "केवल आवश्यक स्वीकार करें",
     "saveSettings": "सेटिंग्स सहेजें",
     "moreInfo": "अधिक जानकारी",
     "toggleEnabled": "सक्रिय",

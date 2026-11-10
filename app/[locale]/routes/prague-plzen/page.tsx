@@ -7,6 +7,7 @@ import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
+import { routeBookQuery } from '@/lib/route-match'
 
 export const revalidate = 3600
 
@@ -49,6 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function PraguePlzenPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)
+  const bookHref = `${getPathname({ locale, href: '/book' })}${routeBookQuery('prague-plzen')}`
   const content = getRouteContent('prague-plzen', locale)
   const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-plzen')
@@ -60,7 +62,8 @@ export default async function PraguePlzenPage({ params }: { params: Promise<{ lo
   const openingParagraphs = content.openingParagraphs.map((p) => interpolateBidi(p, prices))
   const routeNarrativeParagraphs = content.routeNarrative.paragraphs.map((p) => interpolateBidi(p, prices))
 
-  const highlights = content.highlights.map((h) => ({
+  // The fare is shown lower on the page (vehicle cards, "From €…"), not in the top bar.
+  const highlights = content.highlights.filter((h) => !(h as { copper?: boolean }).copper).map((h) => ({
     ...h,
     value: typeof h.value === 'string' ? interpolate(h.value, prices) : h.value,
   }))
@@ -130,7 +133,7 @@ export default async function PraguePlzenPage({ params }: { params: Promise<{ lo
             {interpolateBidi(content.hero.intro, prices)}
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('heroCtaPrimary')}</a>
+            <a href={bookHref} className="btn-primary">{t('heroCtaPrimary')}</a>
             <a href={getPathname({ locale, href: '/contact' })} className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
           {rating && <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} className="mt-8 inline-flex items-center gap-3" />}
@@ -142,7 +145,7 @@ export default async function PraguePlzenPage({ params }: { params: Promise<{ lo
       {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
             {highlights.map((h) => (
               <div key={h.label}>
                 <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>
@@ -254,7 +257,7 @@ export default async function PraguePlzenPage({ params }: { params: Promise<{ lo
                       <span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}><bdi>{v.price}</bdi></span>
                     </div>
                   </div>
-                  <a href={getPathname({ locale, href: '/book' })} className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a>
+                  <a href={bookHref} className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a>
                 </div>
               </div>
             ))}
@@ -415,7 +418,7 @@ export default async function PraguePlzenPage({ params }: { params: Promise<{ lo
             <p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p>
           </div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4">
-            <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{t('bookNow')}</a>
+            <a href={bookHref} className="btn-primary">{t('bookNow')}</a>
             <a href={getPathname({ locale, href: '/routes' })} className="btn-ghost">{t('allRoutes')}</a>
           </div></Reveal>
         </div>
