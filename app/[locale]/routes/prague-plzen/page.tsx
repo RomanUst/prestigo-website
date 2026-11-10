@@ -236,7 +236,7 @@ export default async function PraguePlzenPage({ params }: { params: Promise<{ lo
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
                 <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}>
-                  <Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} />
+                  <Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" />
                                   </div>
                 <div className="p-8 flex flex-col gap-6 flex-1">
                   <div>
