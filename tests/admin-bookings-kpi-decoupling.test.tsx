@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 
 // DISP-04/D-05 guard: the two KPI counters (TODAY count, THIS WEEK revenue)
-// in app/admin/(dashboard)/bookings/page.tsx keep their own independent
+// in components/admin/BookingsWorkspace.tsx keep their own independent
 // date-scoped /api/admin/bookings fetches (explicit startDate/endDate+limit,
 // NO horizon param) and must stay decoupled from BookingsTable's ephemeral
 // segmented-control horizon state. Toggling the segment must not trigger any
@@ -20,7 +20,7 @@ function isKpiWeekUrl(url: string): boolean {
   return url.includes('/api/admin/bookings') && url.endsWith('&limit=100')
 }
 
-describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)', () => {
+describe('BookingsWorkspace — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
     window.dispatchEvent(new Event('resize'))
@@ -65,10 +65,10 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
     return fetchMock
   }
 
-  it('bookings/page.tsx fetches /api/admin/settings on mount and passes defaultHorizon/horizonDays to BookingsTable', async () => {
+  it('BookingsWorkspace fetches /api/admin/settings on mount and passes defaultHorizon/horizonDays to BookingsTable', async () => {
     const fetchMock = stubFetch()
-    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
-    render(<BookingsPage />)
+    const { default: BookingsWorkspace } = await import('@/components/admin/BookingsWorkspace')
+    render(<BookingsWorkspace initialView="list" initialCalendarView="week" />)
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('/api/admin/settings'))).toBe(true)
@@ -81,8 +81,8 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
 
   it('the two KPI fetches never carry a horizon param', async () => {
     const fetchMock = stubFetch()
-    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
-    render(<BookingsPage />)
+    const { default: BookingsWorkspace } = await import('@/components/admin/BookingsWorkspace')
+    render(<BookingsWorkspace initialView="list" initialCalendarView="week" />)
 
     await waitFor(() => {
       const kpiCalls = fetchMock.mock.calls.filter(([url]) => typeof url === 'string' && (isKpiTodayUrl(url) || isKpiWeekUrl(url)))
@@ -130,8 +130,8 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
-    render(<BookingsPage />)
+    const { default: BookingsWorkspace } = await import('@/components/admin/BookingsWorkspace')
+    render(<BookingsWorkspace initialView="list" initialCalendarView="week" />)
 
     await waitFor(() => {
       const listCalls = fetchMock.mock.calls.filter(
@@ -153,8 +153,8 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
 
   it('toggling the segmented control issues exactly one additional list fetch and ZERO additional KPI fetches; todayCount/weekRevenue stay unchanged', async () => {
     const fetchMock = stubFetch()
-    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
-    render(<BookingsPage />)
+    const { default: BookingsWorkspace } = await import('@/components/admin/BookingsWorkspace')
+    render(<BookingsWorkspace initialView="list" initialCalendarView="week" />)
 
     // Wait for both KPI values to render
     await waitFor(() => {
