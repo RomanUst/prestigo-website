@@ -5,6 +5,8 @@ import type React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within, act, cleanup } from '@testing-library/react'
 import BookingsWorkspace from '@/components/admin/BookingsWorkspace'
+import BookingsTable from '@/components/admin/BookingsTable'
+import { BookingPanelProvider } from '@/components/admin/BookingPanelProvider'
 import type { AdminBooking } from '@/components/admin/bookingTypes'
 
 // next/headers is a server-only module: the page reads the cookie jar through this mock.
@@ -371,3 +373,183 @@ describe('BookingsWorkspace - polling', () => {
   })
 })
 
+// ── Task 2: shared filters, the deep link, selection across tabs, New Booking refresh ──
+
+function searchBox() {
+  return screen.getByPlaceholderText('Search client or reference...') as HTMLInputElement
+}
+
+function chip(name: string) {
+  return screen.getByRole('button', { name })
+}
+
+describe('BookingsWorkspace - shared filters', () => {
+  it('a search typed on the board refetches the dispatch URL and becomes the list search', async () => {
+    const stub = await renderWorkspace({ initialView: 'board' })
+    fireEvent.change(searchBox(), { target: { value: 'PRE-9' } })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(320)
+    })
+    await flush()
+    expect(stub.dispatchCalls().some(u => u.includes('search=PRE-9'))).toBe(true)
+
+    fireEvent.click(tab('List'))
+    await flush()
+    await flush()
+    expect(searchBox().value).toBe('PRE-9')
+    expect(stub.listCalls().some(u => u.includes('search=PRE-9'))).toBe(true)
+  })
+
+  it('a trip type chosen in the list is the calendar filter', async () => {
+    const stub = await renderWorkspace({ initialView: 'list' })
+    fireEvent.click(chip('Daily'))
+    await flush()
+    fireEvent.click(tab('Calendar'))
+    await flush()
+    await flush()
+    expect(stub.dispatchCalls().some(u => u.includes('tripType=daily'))).toBe(true)
+    expect(chip('Daily').getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('a trip type chosen on the board is the list starting filter', async () => {
+    const stub = await renderWorkspace({ initialView: 'board' })
+    fireEvent.click(chip('Hourly'))
+    await flush()
+    await flush()
+    expect(stub.dispatchCalls().some(u => u.includes('tripType=hourly'))).toBe(true)
+    fireEvent.click(tab('List'))
+    await flush()
+    await flush()
+    expect(stub.listCalls().some(u => u.includes('tripType=hourly'))).toBe(true)
+  })
+
+  it('the ?search= deep link opens the list with horizon all, strips search, keeps view, and the board then uses it', async () => {
+    window.history.replaceState({ marker: 'router' }, '', '/admin/bookings?search=PRG-20260928-D8E6DC&view=list')
+    const stub = await renderWorkspace({ initialView: 'list' })
+    expect(stub.listCalls()[0]).toContain('search=PRG-20260928-D8E6DC')
+    expect(stub.listCalls()[0]).toContain('horizon=all')
+    const params = new URLSearchParams(window.location.search)
+    expect(params.has('search')).toBe(false)
+    expect(params.get('view')).toBe('list')
+
+    fireEvent.click(tab('Board'))
+    await flush()
+    await flush()
+    expect(stub.dispatchCalls().some(u => u.includes('search=PRG-20260928-D8E6DC'))).toBe(true)
+    expect(searchBox().value).toBe('PRG-20260928-D8E6DC')
+  })
+})
+
+describe('BookingsWorkspace - one side panel', () => {
+  it('a booking opened from the list stays open after switching to Board and Calendar', async () => {
+    const row = makeBooking({ id: 'r1', booking_reference: 'PRE-OPEN1', status: 'confirmed' })
+    await renderWorkspace({ initialView: 'list' }, { list: [row], dispatch: [row] })
+    fireEvent.click(screen.getAllByText('PRE-OPEN1')[0])
+    await flush()
+    expect(screen.getByTestId('booking-panel')).toBeTruthy()
+
+    fireEvent.click(tab('Board'))
+    await flush()
+    await flush()
+    expect(within(screen.getByTestId('booking-panel')).getAllByText(/PRE-OPEN1/).length).toBeGreaterThan(0)
+
+    fireEvent.click(tab('Calendar'))
+    await flush()
+    await flush()
+    expect(within(screen.getByTestId('booking-panel')).getAllByText(/PRE-OPEN1/).length).toBeGreaterThan(0)
+    // One panel, whatever the view.
+    expect(screen.getAllByTestId('booking-panel')).toHaveLength(1)
+  })
+
+  it('a card opened on the board opens the same panel', async () => {
+    const row = makeBooking({ id: 'r2', booking_reference: 'PRE-CARD1', status: 'confirmed' })
+    await renderWorkspace({ initialView: 'board' }, { dispatch: [row] })
+    fireEvent.click(screen.getByTestId('board-card'))
+    await flush()
+    expect(within(screen.getByTestId('booking-panel')).getAllByText(/PRE-CARD1/).length).toBeGreaterThan(0)
+  })
+})
+
+describe('BookingsWorkspace - New Booking refresh', () => {
+  it('a created booking remounts the list, which refetches', async () => {
+    const stub = await renderWorkspace({ initialView: 'list' })
+    const before = stub.listCalls().length
+    fireEvent.click(screen.getByTestId('mock-created'))
+    await flush()
+    await flush()
+    expect(stub.listCalls().length).toBe(before + 1)
+  })
+
+  it('a created booking makes the board fetch its window again', async () => {
+    const stub = await renderWorkspace({ initialView: 'board' })
+    const before = stub.dispatchCalls().length
+    fireEvent.click(screen.getByTestId('mock-created'))
+    await flush()
+    await flush()
+    expect(stub.dispatchCalls().length).toBe(before + 1)
+  })
+
+  it('a created booking makes the calendar fetch its window again', async () => {
+    const stub = await renderWorkspace({ initialView: 'calendar' })
+    const before = stub.dispatchCalls().length
+    fireEvent.click(screen.getByTestId('mock-created'))
+    await flush()
+    await flush()
+    expect(stub.dispatchCalls().length).toBe(before + 1)
+  })
+})
+
+// ── BookingsTable filter props (kept here: tests/BookingsTable.test.tsx stays untouched by this plan) ──
+
+describe('BookingsTable - shared filter props', () => {
+  async function renderTable(props: React.ComponentProps<typeof BookingsTable>) {
+    const stub = installFetch()
+    render(
+      <BookingPanelProvider>
+        <BookingsTable {...props} />
+      </BookingPanelProvider>,
+    )
+    await flush()
+    await flush()
+    return stub
+  }
+
+  it('initialSearch seeds the search box and the first list fetch', async () => {
+    const stub = await renderTable({ initialSearch: 'Novak' })
+    expect(searchBox().value).toBe('Novak')
+    expect(stub.listCalls()[0]).toContain('search=Novak')
+  })
+
+  it('a ?search= deep link wins over initialSearch and still sets horizon all', async () => {
+    window.history.replaceState({ marker: 'router' }, '', '/admin/bookings?search=PRG-20260928-D8E6DC')
+    const stub = await renderTable({ initialSearch: 'Novak' })
+    expect(searchBox().value).toBe('PRG-20260928-D8E6DC')
+    expect(stub.listCalls()[0]).toContain('search=PRG-20260928-D8E6DC')
+    expect(stub.listCalls()[0]).toContain('horizon=all')
+  })
+
+  it('initialTripType marks its chip and is sent to the list route', async () => {
+    const stub = await renderTable({ initialTripType: 'hourly' })
+    expect(chip('Hourly').getAttribute('style')).toContain('var(--copper)')
+    expect(stub.listCalls()[0]).toContain('tripType=hourly')
+  })
+
+  it('onFiltersChange fires once after mount and again after each change with the debounced search', async () => {
+    const onFiltersChange = vi.fn()
+    await renderTable({ onFiltersChange })
+    expect(onFiltersChange).toHaveBeenCalledTimes(1)
+    expect(onFiltersChange).toHaveBeenLastCalledWith({ search: '', tripType: 'all' })
+
+    fireEvent.click(chip('Daily'))
+    await flush()
+    expect(onFiltersChange).toHaveBeenLastCalledWith({ search: '', tripType: 'daily' })
+
+    fireEvent.change(searchBox(), { target: { value: 'Ivan' } })
+    // Not reported before the debounce settles.
+    expect(onFiltersChange).toHaveBeenLastCalledWith({ search: '', tripType: 'daily' })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(320)
+    })
+    expect(onFiltersChange).toHaveBeenLastCalledWith({ search: 'Ivan', tripType: 'daily' })
+  })
+})

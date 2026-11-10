@@ -32,6 +32,12 @@ interface BookingsTableProps {
   // component still renders correctly if the parent hasn't hydrated yet.
   defaultHorizon?: string
   horizonDays?: number
+  // Phase 90 plan 09: the workspace shares the search and trip-type filters across List, Board and Calendar.
+  // Both are read once on mount (a ?search= deep link still wins over initialSearch); onFiltersChange reports the
+  // debounced search and the trip type after every change and once after mount.
+  initialSearch?: string
+  initialTripType?: string
+  onFiltersChange?: (filters: { search: string; tripType: string }) => void
 }
 
 // The bookings table opens pre-filtered from a link: /admin/bookings?search={ref|email}.
@@ -68,7 +74,13 @@ function clearBookingDeepLink(): void {
   window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
 }
 
-export default function BookingsTable({ defaultHorizon = 'future', horizonDays: horizonDaysProp = 7 }: BookingsTableProps) {
+export default function BookingsTable({
+  defaultHorizon = 'future',
+  horizonDays: horizonDaysProp = 7,
+  initialSearch = '',
+  initialTripType = 'all',
+  onFiltersChange,
+}: BookingsTableProps) {
   const [deepLinkSearch] = useState(readBookingDeepLink)
   // Apply the deep link once: drop it from the URL after the first render has
   // consumed it. Impure work stays out of the useState initializer (StrictMode
@@ -79,11 +91,11 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [bookings, setBookings] = useState<Booking[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
-  const [tripType, setTripType] = useState<string>('all')
+  const [tripType, setTripType] = useState<string>(initialTripType)
   // D-08: a SEPARATE status dimension from tripType — the 'Unpaid' chip
   // coexists with the trip-type chips rather than replacing them.
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [search, setSearch] = useState(deepLinkSearch)
+  const [search, setSearch] = useState(deepLinkSearch || initialSearch)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showDateFilter, setShowDateFilter] = useState(false)
@@ -105,8 +117,17 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [loading, setLoading] = useState(true)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [debouncedSearch, setDebouncedSearch] = useState(deepLinkSearch)
+  const [debouncedSearch, setDebouncedSearch] = useState(deepLinkSearch || initialSearch)
   const limit = 20
+
+  // Report the filters to the workspace (through a ref so a new callback identity never re-reports).
+  const onFiltersChangeRef = useRef(onFiltersChange)
+  useEffect(() => {
+    onFiltersChangeRef.current = onFiltersChange
+  }, [onFiltersChange])
+  useEffect(() => {
+    onFiltersChangeRef.current?.({ search: debouncedSearch, tripType })
+  }, [debouncedSearch, tripType])
 
   const [isMobile, setIsMobile] = useState(false)
 

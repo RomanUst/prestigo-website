@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { Search } from 'lucide-react'
 import { KPICard } from '@/components/admin/KPICard'
 import BookingsTable from '@/components/admin/BookingsTable'
 import { BookingPanelProvider } from '@/components/admin/BookingPanelProvider'
@@ -46,6 +47,111 @@ const TABS: { value: AdminBookingsView; label: string }[] = [
 
 const TABPANEL_ID = 'bookings-tabpanel'
 
+const TRIP_TYPE_CHIPS = [
+  { label: 'All', value: 'all' },
+  { label: 'Transfer', value: 'transfer' },
+  { label: 'Hourly', value: 'hourly' },
+  { label: 'Daily', value: 'daily' },
+]
+
+interface Filters {
+  search: string
+  tripType: string
+}
+
+// The filter bar the board and the calendar share (the list has its own, richer bar and reports back). The search
+// box keeps its own text and commits it to the workspace after the same 300 ms debounce the list uses; it is
+// seeded from the workspace each time it mounts, so a search made on the list is already there.
+function SharedFilterBar({
+  filters,
+  onSearch,
+  onTripType,
+}: {
+  filters: Filters
+  onSearch: (search: string) => void
+  onTripType: (tripType: string) => void
+}) {
+  const [text, setText] = useState(filters.search)
+  const committed = filters.search
+  useEffect(() => {
+    if (text === committed) return
+    const id = setTimeout(() => onSearch(text), 300)
+    return () => clearTimeout(id)
+  }, [text, committed, onSearch])
+
+  return (
+    <div
+      data-testid="dispatch-filter-bar"
+      style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}
+    >
+      <div style={{ position: 'relative' }}>
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--warmgrey)',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <Search size={13} />
+        </span>
+        <input
+          type="text"
+          value={text}
+          onChange={e => setText(e.target.value)}
+          placeholder="Search client or reference..."
+          aria-label="Search bookings"
+          style={{
+            width: '240px',
+            height: '32px',
+            background: 'var(--anthracite)',
+            border: '1px solid var(--anthracite-light)',
+            borderRadius: '2px',
+            padding: '0 12px 0 36px',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '13px',
+            color: 'var(--offwhite)',
+            outline: 'none',
+            boxSizing: 'border-box',
+          }}
+          onFocus={e => { e.target.style.borderColor = 'var(--copper)' }}
+          onBlur={e => { e.target.style.borderColor = 'var(--anthracite-light)' }}
+        />
+      </div>
+      {TRIP_TYPE_CHIPS.map(chip => {
+        const isActive = filters.tripType === chip.value
+        return (
+          <button
+            key={chip.value}
+            type="button"
+            aria-pressed={isActive}
+            onClick={() => onTripType(chip.value)}
+            style={{
+              height: '32px',
+              padding: '0 12px',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              letterSpacing: '0.06em',
+              borderRadius: '2px',
+              cursor: 'pointer',
+              background: isActive ? 'var(--admin-accent-tint)' : 'transparent',
+              border: isActive ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
+              color: isActive ? 'var(--offwhite)' : 'var(--warmgrey)',
+              transition: 'border-color 150ms ease, color 150ms ease',
+            }}
+          >
+            {chip.label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 // The calendar remembers its own day / week / month in admin_calendar_view and writes it itself. The workspace
 // reads that cookie each time the Calendar tab mounts so the choice survives a tab switch (D-15); on the server, or
 // without a cookie, the value resolved by the page is used.
@@ -88,8 +194,18 @@ export default function BookingsWorkspace({
   const [settingsLoaded, setSettingsLoaded] = useState(false)
   const tabRefs = useRef<Record<AdminBookingsView, HTMLButtonElement | null>>({ list: null, board: null, calendar: null })
 
-  // Shared filters (D-01): wired in a later task; the board and the calendar start unfiltered.
-  const filters = { search: '', tripType: 'all' }
+  // Shared filters (D-01): search (already debounced) and trip type follow the operator across the three tabs.
+  // The list reports its own filters back; the board and the calendar read them and edit them in SharedFilterBar.
+  const [filters, setFilters] = useState<Filters>({ search: '', tripType: 'all' })
+  const handleListFilters = useCallback((next: Filters) => {
+    setFilters(prev => (prev.search === next.search && prev.tripType === next.tripType ? prev : next))
+  }, [])
+  const handleSearch = useCallback((search: string) => {
+    setFilters(prev => (prev.search === search ? prev : { ...prev, search }))
+  }, [])
+  const handleTripType = useCallback((tripType: string) => {
+    setFilters(prev => (prev.tripType === tripType ? prev : { ...prev, tripType }))
+  }, [])
 
   const handleBookingCreated = useCallback(() => {
     setRefreshKey(k => k + 1)
@@ -272,7 +388,17 @@ export default function BookingsWorkspace({
 
         <div role="tabpanel" id={TABPANEL_ID} aria-labelledby={`bookings-tab-${view}`}>
           {view === 'list' && settingsLoaded && (
-            <BookingsTable key={refreshKey} defaultHorizon={defaultHorizon} horizonDays={defaultHorizonDays} />
+            <BookingsTable
+              key={refreshKey}
+              defaultHorizon={defaultHorizon}
+              horizonDays={defaultHorizonDays}
+              initialSearch={filters.search}
+              initialTripType={filters.tripType}
+              onFiltersChange={handleListFilters}
+            />
+          )}
+          {view !== 'list' && (
+            <SharedFilterBar filters={filters} onSearch={handleSearch} onTripType={handleTripType} />
           )}
           {view === 'board' && (
             <DispatchBoard key={refreshKey} search={filters.search} tripType={filters.tripType} />
