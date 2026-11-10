@@ -13,7 +13,7 @@ findings:
     title: "Unsaved panel input is discarded silently on Escape or when another card is opened"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A pickup date/time edit leaves `pickup_utc` stale, so the board and calendar show the old time"
   - id: WR-04
     severity: warning
@@ -21,7 +21,7 @@ findings:
     title: "Completing a card_hold booking does not refresh the open payment panel"
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A poll that was already in flight overwrites an accepted move (card jumps back, panel reverts)"
   - id: WR-06
     severity: warning
@@ -29,7 +29,7 @@ findings:
     title: "Panel-driven assignment patches status to \"assigned\" unconditionally and never refreshes the driver name"
   - id: WR-07
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Old rows stay on screen under a new range or filter, and `loading` can stick after a 401"
   - id: WR-08
     severity: warning
@@ -59,9 +59,9 @@ findings:
     severity: info
     disposition: open
     title: "Driver names are loaded once per board mount, and the board range never rolls over at Prague midnight"
-open: 9
+open: 6
 total: 14
-recorded: 2026-11-10T17:33:47.480Z
+recorded: 2026-11-10T17:34:04.004Z
 ---
 
 # Phase 90: Code Review Disposition
@@ -70,11 +70,11 @@ recorded: 2026-11-10T17:33:47.480Z
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | 90-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 90-REVIEW-FIX.md |
-| WR-03 | warning | open | - |
+| WR-03 | warning | fixed | 90-REVIEW-FIX.md |
 | WR-04 | warning | fixed | 90-REVIEW-FIX.md |
-| WR-05 | warning | open | - |
+| WR-05 | warning | fixed | 90-REVIEW-FIX.md |
 | WR-06 | warning | fixed | 90-REVIEW-FIX.md |
-| WR-07 | warning | open | - |
+| WR-07 | warning | fixed | 90-REVIEW-FIX.md |
 | WR-08 | warning | fixed | 90-REVIEW-FIX.md |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
