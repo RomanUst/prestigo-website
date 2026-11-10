@@ -577,6 +577,20 @@ describe('BookingPanelProvider', () => {
       expect(confirmSpy).not.toHaveBeenCalled()
     })
 
+    it('does not ask while a blurred driver price is still being saved', async () => {
+      const base = fetch as unknown as (url: string, init?: { method?: string }) => Promise<unknown>
+      vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string, init?: { method?: string }) =>
+        init?.method === 'PATCH' ? new Promise(() => {}) : base(url, init)))
+      renderProvider()
+      const panel = await openPanel()
+      const price = within(panel).getByPlaceholderText(/e\.g\. 1000/)
+      fireEvent.change(price, { target: { value: '1200' } })
+      await act(async () => { fireEvent.blur(price) })
+      await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Close booking panel' })) })
+      expect(confirmSpy).not.toHaveBeenCalled()
+      expect(screen.queryByTestId('booking-panel')).toBeNull()
+    })
+
     it('asks again after a failed notes save, since that text would be lost', async () => {
       renderProvider()
       const panel = await openPanel()

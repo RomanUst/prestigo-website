@@ -155,7 +155,8 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
   // 90 WR-02: input that would be gone after an unmount. The host asks before it closes or switches the panel.
   const discardable =
     (notes !== savedNotes && notesSaving === 'error') ||
-    driverPrice.trim() !== savedDriverPrice ||
+    // a price whose PATCH is on its way is not lost by an unmount: the request still completes
+    (driverPrice.trim() !== savedDriverPrice && driverPriceSaving !== 'saving') ||
     tripEditOpen
   const onDirtyChangeRef = useRef(onDirtyChange)
   useEffect(() => {
