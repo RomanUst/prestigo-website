@@ -155,7 +155,10 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
 
   // Phase 63 Plan 05: optimistic-update sink for TripEditPanel — mutates only the fields that were actually saved.
   const handleTripUpdated = useCallback((id: string, patch: Partial<AdminBooking>) => {
-    onPatchedRef.current(id, patch)
+    // 90 WR-03: pickupInstantMs prefers pickup_utc over the date and time, so a saved date/time edit must drop the
+    // old instant or the board and calendar keep showing the old pickup. Null falls back to the Prague wall clock.
+    const changesPickup = 'pickup_date' in patch || 'pickup_time' in patch
+    onPatchedRef.current(id, changesPickup ? { ...patch, pickup_utc: null } : patch)
     setPaymentBump(n => n + 1)
   }, [])
 

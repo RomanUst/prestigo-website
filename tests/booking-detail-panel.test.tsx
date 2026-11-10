@@ -265,6 +265,40 @@ describe('BookingDetailPanel', () => {
     })
   })
 
+  describe('pickup edit (WR-03)', () => {
+    it('drops the stale pickup_utc when the date and time are saved, so views use the new wall clock', async () => {
+      const onPatched = vi.fn()
+      render(
+        <BookingDetailPanel
+          booking={makeBooking({ pickup_utc: '2026-05-01T08:00:00Z' })}
+          moves={fakeMoves()}
+          onPatched={onPatched}
+        />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: 'Edit Trip Details' }))
+      const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement
+      fireEvent.change(dateInput, { target: { value: '2026-05-02' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Save Date & Time' }))
+      await waitFor(() => expect(onPatched).toHaveBeenCalled())
+      expect(onPatched).toHaveBeenCalledWith('b1', {
+        pickup_date: '2026-05-02',
+        pickup_time: '10:00',
+        pickup_utc: null,
+      })
+    })
+
+    it('leaves pickup_utc alone for an edit that does not touch the pickup', async () => {
+      const onPatched = vi.fn()
+      render(<BookingDetailPanel booking={makeBooking({ pickup_utc: '2026-05-01T08:00:00Z' })} moves={fakeMoves()} onPatched={onPatched} />)
+      fireEvent.click(screen.getByRole('button', { name: 'Edit Trip Details' }))
+      const phone = screen.getByDisplayValue('+420111222333')
+      fireEvent.change(phone, { target: { value: '+420999888777' } })
+      fireEvent.click(screen.getByRole('button', { name: /Save Phone/i }))
+      await waitFor(() => expect(onPatched).toHaveBeenCalled())
+      expect(onPatched).toHaveBeenCalledWith('b1', { client_phone: '+420999888777' })
+    })
+  })
+
   describe('panel-driven driver assignment (WR-06)', () => {
     const DRIVER_ID = '11111111-1111-1111-1111-111111111111'
 
