@@ -3,10 +3,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { useBookingPanel } from '../BookingPanelProvider'
-import { STATUS_LABELS, type AdminBooking } from '../bookingTypes'
+import { STATUS_LABELS, showsPaymentBadge, vehicleClassMap, type AdminBooking } from '../bookingTypes'
 import { STATUS_CONFLICT_STYLE } from '../statusConflict'
+import { BadgeShell } from '../StatusBadge'
+import { PaymentStateBadge } from '../PaymentStateBadge'
+import { FeeCaseBadge, CashChip, hasPendingFeeCase } from '../FeeCaseBadge'
+import { NoShowChip, hasOpenNoShowRequest } from '../NoShowBanner'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
-import { pickupLabel } from './boardModel'
+import { collapseFlags, pickupLabel } from './boardModel'
 
 // Phase 90 plan 07 (D-06, D-09): one booking on the board. The card opens the shared side panel on a click, and its
 // "..." menu is the keyboard and touch path to every move the drag gesture offers. Moves are never applied here:
@@ -14,6 +18,8 @@ import { pickupLabel } from './boardModel'
 
 export interface BoardCardProps {
   booking: AdminBooking
+  /** The assigned driver's name when known; the card says "Not assigned" or "Assigned driver" otherwise. */
+  driverName: string | null
   /** Whether a pointer or touch gesture may drag the card (off on a phone: the menu moves cards there). */
   draggable: boolean
   /** Show the Prague day before the time (a multi-day range). */
@@ -201,7 +207,79 @@ function cardStyle(opts: { selected: boolean; busy: boolean; dimmed: boolean }):
   }
 }
 
-function CardContent({ booking, showDate, menu }: { booking: AdminBooking; showDate: boolean; menu: boolean }) {
+const czkFormat = new Intl.NumberFormat('cs-CZ')
+
+export interface CardFlag {
+  key: string
+  label: string
+  node: React.ReactNode
+}
+
+/** D-06 attention flags in their fixed order; the Fee decision badge is never shown for a GNet (partner) booking. */
+export function flagsOf(b: AdminBooking): CardFlag[] {
+  const flags: CardFlag[] = []
+  if (hasOpenNoShowRequest(b)) flags.push({ key: 'no-show', label: 'No-show requested', node: <NoShowChip /> })
+  if (hasPendingFeeCase(b)) flags.push({ key: 'fee', label: 'Fee decision', node: <FeeCaseBadge /> })
+  if (b.payment_mode === 'cash_guarantee' && b.payment_state !== 'cash_settled') {
+    flags.push({ key: 'cash', label: 'Cash', node: <CashChip /> })
+  }
+  if (b.booking_source === 'gnet') {
+    flags.push({
+      key: 'gnet',
+      label: 'GNet',
+      node: (
+        <span data-testid={`board-gnet-${b.id}`}>
+          <BadgeShell family="info" label="GNet" />
+        </span>
+      ),
+    })
+  }
+  return flags
+}
+
+/** The flags in a wrapping row; more than three collapse into a "+N" chip whose title names the hidden ones. */
+export function FlagRow({ flags }: { flags: CardFlag[] }) {
+  if (flags.length === 0) return null
+  const { shown, hidden } = collapseFlags(flags, 3)
+  return (
+    <div data-testid="board-flags" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '4px' }}>
+      {shown.map(f => (
+        <React.Fragment key={f.key}>{f.node}</React.Fragment>
+      ))}
+      {hidden.length > 0 && (
+        <span
+          data-testid="board-flag-more"
+          title={hidden.map(f => f.label).join(', ')}
+          style={{
+            padding: '4px 8px',
+            borderRadius: 'var(--admin-radius-sm)',
+            border: '1px solid var(--status-neutral-border)',
+            background: 'var(--status-neutral-bg)',
+            color: 'var(--status-neutral-fg)',
+            fontSize: 'var(--admin-fs-label)',
+            fontWeight: 'var(--admin-fw-strong)',
+          }}
+        >
+          +{hidden.length}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function CardContent({
+  booking,
+  driverName,
+  showDate,
+  menu,
+}: {
+  booking: AdminBooking
+  driverName: string | null
+  showDate: boolean
+  menu: boolean
+}) {
+  const muted: React.CSSProperties = { color: 'var(--admin-text-muted)', fontSize: 'var(--admin-fs-label)' }
+  const flags = flagsOf(booking)
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
@@ -216,6 +294,26 @@ function CardContent({ booking, showDate, menu }: { booking: AdminBooking; showD
       <div style={{ overflowWrap: 'anywhere' }}>
         {booking.origin_address} to {booking.destination_address}
       </div>
+      <div data-testid="board-driver-line" style={{ ...muted, overflowWrap: 'anywhere' }}>
+        {/* Pitfall 8: the name comes from driver_id; a driver id the list does not know still reads as assigned. */}
+        {booking.driver_id ? (driverName ?? 'Assigned driver') : 'Not assigned'}
+        {' · '}
+        {vehicleClassMap[booking.vehicle_class] ?? booking.vehicle_class}
+      </div>
+      {showsPaymentBadge(booking) && (
+        <div>
+          <PaymentStateBadge state={booking.payment_state ?? 'none'} />
+        </div>
+      )}
+      <FlagRow flags={flags} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', ...muted }}>
+        <span style={{ overflowWrap: 'anywhere', minWidth: 0 }}>
+          {booking.client_first_name} {booking.client_last_name}
+        </span>
+        <span data-testid="board-amount" style={{ whiteSpace: 'nowrap', color: 'var(--admin-text)' }}>
+          {czkFormat.format(booking.amount_czk)} CZK
+        </span>
+      </div>
     </>
   )
 }
@@ -224,18 +322,26 @@ function CardContent({ booking, showDate, menu }: { booking: AdminBooking; showD
  * The copy that follows the pointer inside the DragOverlay. It is presentational on purpose: a second useDraggable
  * with the same id would overwrite the original card's entry in the DnD registry.
  */
-export function BoardCardOverlay({ booking, showDate = false }: { booking: AdminBooking; showDate?: boolean }) {
+export function BoardCardOverlay({
+  booking,
+  driverName,
+  showDate = false,
+}: {
+  booking: AdminBooking
+  driverName: string | null
+  showDate?: boolean
+}) {
   return (
     <div
       data-testid="board-card-overlay"
       style={{ ...cardStyle({ selected: false, busy: false, dimmed: false }), cursor: 'grabbing', boxShadow: 'var(--admin-shadow-sheet)' }}
     >
-      <CardContent booking={booking} showDate={showDate} menu={false} />
+      <CardContent booking={booking} driverName={driverName} showDate={showDate} menu={false} />
     </div>
   )
 }
 
-export function BoardCard({ booking, draggable, showDate = false }: BoardCardProps) {
+export function BoardCard({ booking, driverName, draggable, showDate = false }: BoardCardProps) {
   const { openBooking, selected, moves } = useBookingPanel()
   // D-09: the listeners sit on the card body; PointerSensor distance 6 means a plain click still reaches onClick.
   // No keyboard sensor on purpose: the "..." menu is the keyboard path.
@@ -263,7 +369,7 @@ export function BoardCard({ booking, draggable, showDate = false }: BoardCardPro
       }}
       style={cardStyle({ selected: isSelected, busy: moves.isUpdating(booking.id), dimmed: isDragging })}
     >
-      <CardContent booking={booking} showDate={showDate} menu />
+      <CardContent booking={booking} driverName={driverName} showDate={showDate} menu />
       {conflict && !isSelected && (
         <p role="alert" style={{ ...STATUS_CONFLICT_STYLE, margin: 0 }}>
           {conflict}

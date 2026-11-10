@@ -63,7 +63,12 @@ export function columnDropState(column: string, draggingStatus: string | null): 
   return allowedTargets(draggingStatus).has(column) ? 'allowed' : 'blocked'
 }
 
-const shortDate = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Prague', day: 'numeric', month: 'short' })
+/** D-06: at most `max` flags fit on a card; the rest collapse into one "+N" chip. */
+export function collapseFlags<T>(flags: T[], max = 3): { shown: T[]; hidden: T[] } {
+  return { shown: flags.slice(0, max), hidden: flags.slice(max) }
+}
+
+const shortDate =new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Prague', day: 'numeric', month: 'short' })
 
 /**
  * The Prague pickup time shown on a card, derived from the pickup instant and never from the raw

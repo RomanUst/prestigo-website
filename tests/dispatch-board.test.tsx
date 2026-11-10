@@ -14,6 +14,14 @@ import {
 } from '@/components/admin/dispatch/boardModel'
 import type { AdminBooking } from '@/components/admin/bookingTypes'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
+import { FlagRow, type CardFlag } from '@/components/admin/dispatch/BoardCard'
+
+interface BoardOpts {
+  truncated?: boolean
+  drivers?: unknown[]
+  /** A non-200 answer for every dispatch request. */
+  dispatchStatus?: number
+}
 
 // TripEditPanel (inside the panel) mounts AddressInput, a next-intl consumer.
 vi.mock('@/components/booking/AddressInput', () => ({
@@ -31,6 +39,7 @@ interface DndProps {
 const dnd = vi.hoisted(() => ({
   props: null as null | DndProps,
   droppables: new Map<string, { id: string; disabled?: boolean }>(),
+  draggables: new Map<string, { id: string; disabled?: boolean }>(),
   // DragOverlay shows its children only for dnd-kit's own active drag, which these tests do not start: capture them.
   overlayMounted: false,
   overlayChildren: undefined as unknown,
@@ -52,6 +61,10 @@ vi.mock('@dnd-kit/core', async importOriginal => {
     useDroppable: (args: Parameters<typeof actual.useDroppable>[0]) => {
       dnd.droppables.set(String(args.id), { id: String(args.id), disabled: args.disabled })
       return actual.useDroppable(args)
+    },
+    useDraggable: (args: Parameters<typeof actual.useDraggable>[0]) => {
+      dnd.draggables.set(String(args.id), { id: String(args.id), disabled: args.disabled })
+      return actual.useDraggable(args)
     },
   }
 })
@@ -132,7 +145,7 @@ function jsonResponse(status: number, body: unknown): Response {
   return { ok: status >= 200 && status < 300, status, json: async () => body } as unknown as Response
 }
 
-function installFetch(initialRows: AdminBooking[], opts: { truncated?: boolean; drivers?: unknown[] } = {}): FetchStub {
+function installFetch(initialRows: AdminBooking[], opts: BoardOpts = {}): FetchStub {
   let rows = initialRows
   let release: (() => void) | null = null
   let gate: Promise<void> | null = null
@@ -157,6 +170,7 @@ function installFetch(initialRows: AdminBooking[], opts: { truncated?: boolean; 
       const method = init?.method ?? 'GET'
       stub.calls.push({ url, method, body: init?.body ? JSON.parse(String(init.body)) : undefined })
       if (url.startsWith('/api/admin/bookings/dispatch')) {
+        if (opts.dispatchStatus && opts.dispatchStatus !== 200) return jsonResponse(opts.dispatchStatus, { error: 'x' })
         return jsonResponse(200, { bookings: rows, truncated: opts.truncated ?? false })
       }
       if (url === '/api/admin/bookings' && method === 'PATCH') {
@@ -177,7 +191,7 @@ const flush = () =>
     await vi.advanceTimersByTimeAsync(0)
   })
 
-async function renderBoard(rows: AdminBooking[], opts: { truncated?: boolean; drivers?: unknown[] } = {}) {
+async function renderBoard(rows: AdminBooking[], opts: BoardOpts = {}) {
   const stub = installFetch(rows, opts)
   render(
     <BookingPanelProvider>
@@ -486,5 +500,245 @@ describe('DispatchBoard - terminal rails', () => {
     await flush()
     expect(stub.patchCalls()).toHaveLength(1)
     expect(stub.patchCalls()[0].body).toEqual({ id: 'x9', status: 'completed', expected_status: 'on_board' })
+  })
+})
+
+describe('DispatchBoard - card content (D-06)', () => {
+  const card = (reference: string) => {
+    const found = screen.getAllByTestId('board-card').find(el => el.getAttribute('data-reference') === reference)
+    if (!found) throw new Error(`no card ${reference}`)
+    return found
+  }
+
+  it('shows the driver name, vehicle label, payment badge, client and the amount from amount_czk', async () => {
+    await renderBoard(
+      [
+        makeBooking({
+          id: 'c1',
+          booking_reference: 'PRE-C1',
+          status: 'assigned',
+          driver_id: 'd1',
+          payment_mode: 'card_hold',
+          payment_state: 'authorized',
+          amount_czk: 5000,
+        }),
+      ],
+      { drivers: [{ id: 'd1', name: 'Jan Novak' }] },
+    )
+    const c = card('PRE-C1')
+    expect(c.textContent).toContain('Jan Novak')
+    expect(c.textContent).toContain('Business')
+    expect(c.textContent).toContain('Hold active')
+    expect(c.textContent).toContain('Ivan Petrov')
+    expect(within(c).getByTestId('board-amount').textContent).toBe(`${new Intl.NumberFormat('cs-CZ').format(5000)} CZK`)
+    expect(c.textContent).toContain('Prague Airport to Old Town Square')
+  })
+
+  it('shows the Prague time of the pickup instant and never the raw pickup_time text', async () => {
+    // 08:00Z on 31 October 2027 is 09:00 in Prague (summer time ended at 01:00Z that night); pickup_time says 10:00.
+    await renderBoard([
+      makeBooking({ id: 'c1', booking_reference: 'PRE-T', status: 'confirmed', pickup_utc: '2027-10-31T08:00:00Z', pickup_time: '10:00' }),
+    ])
+    const c = card('PRE-T')
+    expect(c.textContent).toContain('09:00')
+    expect(c.textContent).not.toContain('10:00')
+  })
+
+  it('says Not assigned without a driver and Assigned driver for an unknown driver id', async () => {
+    await renderBoard(
+      [
+        makeBooking({ id: 'c1', booking_reference: 'PRE-N', status: 'confirmed', driver_id: null }),
+        makeBooking({ id: 'c2', booking_reference: 'PRE-U', status: 'assigned', driver_id: 'unknown' }),
+      ],
+      { drivers: [{ id: 'd1', name: 'Jan Novak' }] },
+    )
+    expect(card('PRE-N').textContent).toContain('Not assigned')
+    expect(card('PRE-U').textContent).toContain('Assigned driver')
+  })
+
+  it('shows the no-show chip on an on_location card with an open request', async () => {
+    await renderBoard([
+      makeBooking({ id: 'c1', booking_reference: 'PRE-NS', status: 'on_location', no_show_requested_at: '2027-10-31T07:00:00Z' }),
+    ])
+    expect(within(card('PRE-NS')).getByTestId('no-show-chip')).toBeDefined()
+  })
+
+  it('shows the Fee decision badge for a pending fee case', async () => {
+    await renderBoard([makeBooking({ id: 'c1', booking_reference: 'PRE-F', status: 'cancelled', fee_case_status: 'pending' })])
+    fireEvent.click(within(screen.getByTestId('board-column-cancelled')).getByRole('button'))
+    expect(within(card('PRE-F')).getByText('Fee decision')).toBeDefined()
+  })
+
+  it('shows the Cash chip while cash is not confirmed and not after cash_settled', async () => {
+    await renderBoard([
+      makeBooking({ id: 'c1', booking_reference: 'PRE-CASH', status: 'assigned', payment_mode: 'cash_guarantee', payment_state: 'card_saved' }),
+      makeBooking({ id: 'c2', booking_reference: 'PRE-PAID', status: 'assigned', payment_mode: 'cash_guarantee', payment_state: 'cash_settled' }),
+    ])
+    expect(within(card('PRE-CASH')).getByText('Cash')).toBeDefined()
+    expect(within(card('PRE-PAID')).queryByText('Cash')).toBeNull()
+    expect(within(card('PRE-PAID')).getByText('Paid in cash')).toBeDefined()
+  })
+
+  it('shows a GNet chip and no Fee decision badge for a partner booking', async () => {
+    await renderBoard([
+      makeBooking({ id: 'c1', booking_reference: 'PRE-G', status: 'assigned', booking_source: 'gnet', fee_case_status: 'pending' }),
+    ])
+    expect(within(card('PRE-G')).getByTestId('board-gnet-c1')).toBeDefined()
+    expect(within(card('PRE-G')).queryByText('Fee decision')).toBeNull()
+  })
+
+  it('collapses more than three flags into a +N chip whose title lists the hidden ones', () => {
+    const flags: CardFlag[] = ['A', 'B', 'C', 'D'].map(l => ({ key: l, label: `Flag ${l}`, node: <span>{`Flag ${l}`}</span> }))
+    render(<FlagRow flags={flags} />)
+    expect(screen.queryByText('Flag D')).toBeNull()
+    expect(screen.getByText('Flag C')).toBeDefined()
+    const more = screen.getByTestId('board-flag-more')
+    expect(more.textContent).toBe('+1')
+    expect(more.getAttribute('title')).toBe('Flag D')
+  })
+
+  it('shows three flags without a +N chip', async () => {
+    await renderBoard([
+      makeBooking({
+        id: 'c1',
+        booking_reference: 'PRE-3',
+        status: 'on_location',
+        booking_source: 'gnet',
+        no_show_requested_at: '2027-10-31T07:00:00Z',
+        payment_mode: 'cash_guarantee',
+        payment_state: 'card_saved',
+      }),
+    ])
+    const c = card('PRE-3')
+    expect(within(c).getByTestId('no-show-chip')).toBeDefined()
+    expect(within(c).getByTestId('board-gnet-c1')).toBeDefined()
+    expect(within(c).queryByTestId('board-flag-more')).toBeNull()
+  })
+})
+
+describe('DispatchBoard - range bar (D-07)', () => {
+  it('Tomorrow refetches with tomorrow in Prague and 7 days with a seven day window', async () => {
+    const stub = await renderBoard([])
+    fireEvent.click(screen.getByRole('button', { name: 'Tomorrow' }))
+    await flush()
+    expect(stub.dispatchCalls().at(-1)?.url).toBe('/api/admin/bookings/dispatch?startDate=2027-11-01&endDate=2027-11-01')
+    expect(screen.getByRole('button', { name: 'Tomorrow' }).getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(screen.getByRole('button', { name: '7 days' }))
+    await flush()
+    expect(stub.dispatchCalls().at(-1)?.url).toBe('/api/admin/bookings/dispatch?startDate=2027-10-31&endDate=2027-11-06')
+    fireEvent.click(screen.getByRole('button', { name: 'Today' }))
+    await flush()
+    expect(stub.dispatchCalls().at(-1)?.url).toBe(DISPATCH_TODAY)
+  })
+
+  it('a custom range over 62 days shows the error and does not fetch; a valid one fetches', async () => {
+    const stub = await renderBoard([])
+    const before = stub.dispatchCalls().length
+    fireEvent.click(screen.getByRole('button', { name: 'Custom' }))
+    fireEvent.change(screen.getByLabelText('From'), { target: { value: '2027-10-01' } })
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2027-12-02' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+    await flush()
+    expect(screen.getByText('Choose a range of up to 62 days.')).toBeDefined()
+    expect(stub.dispatchCalls().length).toBe(before)
+
+    fireEvent.change(screen.getByLabelText('To'), { target: { value: '2027-10-15' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+    await flush()
+    expect(screen.queryByText('Choose a range of up to 62 days.')).toBeNull()
+    expect(stub.dispatchCalls().at(-1)?.url).toBe('/api/admin/bookings/dispatch?startDate=2027-10-01&endDate=2027-10-15')
+  })
+
+  it('shows the Prague day before the time when the range covers several days', async () => {
+    await renderBoard([
+      makeBooking({ id: 'c1', booking_reference: 'PRE-D', status: 'confirmed', pickup_utc: '2027-11-02T08:00:00Z' }),
+    ])
+    fireEvent.click(screen.getByRole('button', { name: '7 days' }))
+    await flush()
+    expect(screen.getByTestId('board-card').textContent).toContain('2 Nov 09:00')
+  })
+})
+
+describe('DispatchBoard - states', () => {
+  it('an expired session shows the sign-in line with a link to /admin/login', async () => {
+    await renderBoard([], { dispatchStatus: 401 })
+    expect(screen.getByText(/Your admin session has ended\./).textContent).toBe('Your admin session has ended. Sign in again.')
+    expect(screen.getByRole('link', { name: 'Sign in again.' }).getAttribute('href')).toBe('/admin/login')
+    expect(screen.queryByText('No bookings in this range.')).toBeNull()
+  })
+
+  it('a failed load says it keeps retrying', async () => {
+    await renderBoard([], { dispatchStatus: 500 })
+    expect(screen.getByText('Could not load bookings. Retrying every 30 seconds.')).toBeDefined()
+  })
+
+  it('a truncated answer says only the first 500 bookings are shown', async () => {
+    await renderBoard([makeBooking({ status: 'confirmed' })], { truncated: true })
+    expect(screen.getByText('Showing the first 500 bookings in this range. Narrow the range to see all.')).toBeDefined()
+  })
+
+  it('an empty range shows one line and all ten columns with count 0', async () => {
+    await renderBoard([])
+    expect(screen.getAllByText('No bookings in this range.')).toHaveLength(1)
+    expect(screen.getAllByTestId(/^board-column-/)).toHaveLength(10)
+    for (const status of BOARD_COLUMNS) {
+      expect(screen.getByTestId(`board-count-${status}`).textContent).toBe('0')
+    }
+  })
+
+  it('shows a loading line while the first load runs', () => {
+    installFetch([])
+    render(
+      <BookingPanelProvider>
+        <DispatchBoard search="" tripType="all" />
+      </BookingPanelProvider>,
+    )
+    expect(screen.getByText('Loading bookings…')).toBeDefined()
+    expect(screen.queryByText('No bookings in this range.')).toBeNull()
+  })
+})
+
+describe('DispatchBoard - phone layout', () => {
+  beforeEach(() => {
+    dnd.draggables.clear()
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true, configurable: true })
+  })
+
+  it('shows one column at a time with a Column picker listing every status with its count', async () => {
+    await renderBoard([
+      makeBooking({ id: 'm1', booking_reference: 'PRE-M1', status: 'confirmed' }),
+      makeBooking({ id: 'm2', booking_reference: 'PRE-M2', status: 'en_route' }),
+    ])
+    const picker = screen.getByLabelText('Column') as HTMLSelectElement
+    const options = Array.from(picker.options).map(o => o.textContent)
+    expect(options).toHaveLength(10)
+    expect(options).toContain('Confirmed (1)')
+    expect(options).toContain('En Route (1)')
+    expect(options).toContain('Cancelled (0)')
+    expect(screen.getAllByTestId(/^board-column-/)).toHaveLength(1)
+    expect(columnRefs('confirmed')).toEqual(['PRE-M1'])
+
+    fireEvent.change(picker, { target: { value: 'en_route' } })
+    expect(screen.getAllByTestId(/^board-column-/)).toHaveLength(1)
+    expect(columnRefs('en_route')).toEqual(['PRE-M2'])
+  })
+
+  it('cards are not draggable on a phone, and the menu still moves them', async () => {
+    const stub = await renderBoard([makeBooking({ id: 'm2', booking_reference: 'PRE-M2', status: 'en_route' })])
+    fireEvent.change(screen.getByLabelText('Column'), { target: { value: 'en_route' } })
+    expect(dnd.draggables.get('m2')?.disabled).toBe(true)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for PRE-M2' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Move to On Location' }))
+    await flush()
+    expect(stub.patchCalls()).toHaveLength(1)
+    expect(stub.patchCalls()[0].body).toEqual({ id: 'm2', status: 'on_location', expected_status: 'en_route' })
+  })
+
+  it('cards are draggable on a wide screen', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 1440, writable: true, configurable: true })
+    await renderBoard([makeBooking({ id: 'm2', booking_reference: 'PRE-M2', status: 'en_route' })])
+    expect(dnd.draggables.get('m2')?.disabled).toBe(false)
+    expect(screen.queryByLabelText('Column')).toBeNull()
   })
 })
