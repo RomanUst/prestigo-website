@@ -194,6 +194,27 @@ describe('useDispatchBookings - polling rules', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2)
   })
 
+  it('drops a poll that was already in flight when a row was patched (WR-05)', async () => {
+    vi.useFakeTimers()
+    let resolveStale: (r: Response) => void = () => {}
+    fetchMock
+      .mockResolvedValueOnce(okResponse([{ id: 'b1', status: 'confirmed' }]))
+      .mockImplementationOnce(() => new Promise<Response>((resolve) => { resolveStale = resolve }))
+      .mockResolvedValue(okResponse([{ id: 'b1', status: 'on_location' }]))
+    const hook = renderHook(() => useDispatchBookings<Row>(BASE, { paused: false }))
+    await advance(0)
+    await advance(30_000) // second poll leaves and hangs
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    act(() => hook.result.current.patchRow('b1', { status: 'on_location' }))
+    // the poll that left before the move comes back with the pre-move status
+    await act(async () => {
+      resolveStale(okResponse([{ id: 'b1', status: 'confirmed' }]))
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(hook.result.current.rows).toEqual([{ id: 'b1', status: 'on_location' }])
+    expect(hook.result.current.loading).toBe(false)
+  })
+
   it('makes no request when enabled is false', async () => {
     vi.useFakeTimers()
     renderHook(() => useDispatchBookings<Row>(BASE, { paused: false, enabled: false }))

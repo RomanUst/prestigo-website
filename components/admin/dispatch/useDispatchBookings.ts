@@ -52,6 +52,7 @@ export function useDispatchBookings<Row extends { id: string }>(
   const missedTickRef = useRef(false)
   const stoppedRef = useRef(false) // set by a 401, cleared only by remount
   const seqRef = useRef(0)
+  const inFlightRef = useRef(false) // a request for the current query has not settled yet
   const controllerRef = useRef<AbortController | null>(null)
   const loadRef = useRef<() => void>(() => {})
 
@@ -75,6 +76,7 @@ export function useDispatchBookings<Row extends { id: string }>(
       controllerRef.current = controller
       const seq = ++seqRef.current
       missedTickRef.current = false
+      inFlightRef.current = true
       try {
         const res = await fetch(url, { signal: controller.signal })
         if (seq !== seqRef.current) return
@@ -97,7 +99,10 @@ export function useDispatchBookings<Row extends { id: string }>(
       } catch {
         if (seq === seqRef.current) setError('failed')
       } finally {
-        if (seq === seqRef.current) setLoading(false)
+        if (seq === seqRef.current) {
+          inFlightRef.current = false
+          setLoading(false)
+        }
       }
     }
     loadRef.current = () => {
@@ -127,16 +132,18 @@ export function useDispatchBookings<Row extends { id: string }>(
       controllerRef.current?.abort()
       controllerRef.current = null
       seqRef.current++ // anything still in flight belongs to a dead query
+      inFlightRef.current = false
       loadRef.current = () => {}
     }
   }, [url, enabled, intervalMs])
 
   const refresh = useCallback(() => loadRef.current(), [])
-  const patchRow = useCallback(
-    (id: string, patch: Partial<Row>) =>
-      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r))),
-    [],
-  )
+  const patchRow = useCallback((id: string, patch: Partial<Row>) => {
+    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, ...patch } : r)))
+    // A poll that left before this change was accepted may carry the pre-change
+    // row. Replace it with a request that starts now, so it cannot undo the patch.
+    if (inFlightRef.current) loadRef.current()
+  }, [])
 
   return { rows, updatedAt, loading: enabled ? loading : false, error, truncated, refresh, patchRow }
 }
