@@ -1,14 +1,14 @@
 'use client'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { CancelBookingDialog, type CancelDoneInfo } from './CancelBookingDialog'
 import { CompleteTripDialog } from './CompleteTripDialog'
 import { ConfirmNoShowModal } from './ConfirmNoShowModal'
+import { DriverPickerDialog } from './DriverPickerDialog'
 import { statusConflictMessage } from './statusConflict'
 import { planMove, type CompleteEffect, type MoveSurface } from './bookingMoves'
 import {
   PatchError,
   STATUS_LABELS,
-  hasCancelMoney,
   patchBooking,
   type AdminBooking,
 } from './bookingTypes'
@@ -21,7 +21,7 @@ export interface BookingMovesApi {
   isUpdating(id: string): boolean
   /** The inline conflict line for a booking whose status change lost the compare-and-set race. */
   conflictFor(id: string): string | null
-  /** The one entry point for a status change: routes no_show and cancelled-with-money to their dialogs. */
+  /** The panel select and mobile card buttons: delegates to requestMove with the 'panel' surface. */
   requestStatusChange(booking: AdminBooking, to: string): void
   /**
    * Phase 90 (DISP-02): asks planMove what the move means and executes it: a direct PATCH with a toast, the
@@ -30,11 +30,11 @@ export interface BookingMovesApi {
   requestMove(booking: AdminBooking, to: string, surface: MoveSurface): void
   openNoShow(booking: Pick<AdminBooking, 'id' | 'booking_reference'>): void
   openCancel(booking: AdminBooking): void
-  /** True while the no-show modal, the cancel dialog or the complete-trip dialog is open. */
+  /** True while the no-show modal, the cancel dialog, the complete-trip dialog or the driver picker is open. */
   anyDialogOpen: boolean
   /** Counter that makes an open PaymentPanel refetch after a cancel outcome. */
   paymentBumpFor(id: string): number
-  /** The ConfirmNoShowModal, CancelBookingDialog and CompleteTripDialog mounts, plus the move toast. */
+  /** The ConfirmNoShowModal, CancelBookingDialog, CompleteTripDialog and DriverPickerDialog mounts, plus the move toast. */
   dialogs: React.ReactNode
 }
 
@@ -61,6 +61,10 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
   const [paymentBumps, setPaymentBumps] = useState<Record<string, number>>({})
   // Phase 90 plan 06 (D-12): the booking whose complete-trip confirmation is open, with the money effect it states.
   const [completeTarget, setCompleteTarget] = useState<{ booking: AdminBooking; effect: CompleteEffect } | null>(null)
+  // Phase 90 D-11: the booking whose driver picker is open (a move to "assigned").
+  const [pickerTarget, setPickerTarget] = useState<AdminBooking | null>(null)
+  // Synchronous double-submit guard: state alone lags one render behind a second call in the same tick.
+  const inFlight = useRef<Set<string>>(new Set())
   // D-12: the short "{reference} moved to {Label}" line after a move the server accepted. It mounts only while shown.
   const [toast, setToast] = useState<{ text: string; seq: number } | null>(null)
 
@@ -89,6 +93,7 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
   }, [])
 
   const handleStatusChange = useCallback(async (bookingId: string, newStatus: string, fromStatus: string, reference: string) => {
+    inFlight.current.add(bookingId)
     setStatusUpdating(prev => ({ ...prev, [bookingId]: true }))
     clearConflict(bookingId)
     try {
@@ -107,28 +112,24 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
         alert(err instanceof Error ? err.message : 'Status update failed')
       }
     } finally {
+      inFlight.current.delete(bookingId)
       setStatusUpdating(prev => ({ ...prev, [bookingId]: false }))
     }
   }, [clearConflict, onPatched, onStale, showMoveToast])
 
-  // T-87-40: every path to the terminal no_show goes through the confirmation modal.
-  const requestStatusChange = useCallback((booking: AdminBooking, newStatus: string) => {
-    if (newStatus === 'no_show') {
-      setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
-      return
-    }
-    // 88-REVIEW T5: a card booking is cancelled through the payment-aware cancel dialog (release / refund), never
-    // by a bare status change (the server answers 422 use_cancel_route to that).
-    // Phase 89 plan 16: the same holds for cash bookings and any booking with money paid online.
-    if (newStatus === 'cancelled' && hasCancelMoney(booking)) {
-      setPendingCancel(booking)
-      return
-    }
-    handleStatusChange(booking.id, newStatus, booking.status, booking.booking_reference)
-  }, [handleStatusChange])
-
   // Phase 90: every surface (board drop, board menu, panel select, mobile card buttons) asks the planner first.
   const requestMove = useCallback((booking: AdminBooking, to: string, surface: MoveSurface) => {
+    // T-90-15: a move already in flight, or a dialog already open for this booking, swallows a second request.
+    const id = booking.id
+    if (
+      inFlight.current.has(id) ||
+      noShowTarget?.id === id ||
+      pendingCancel?.id === id ||
+      completeTarget?.booking.id === id ||
+      pickerTarget?.id === id
+    ) {
+      return
+    }
     const plan = planMove(booking, to, surface)
     switch (plan.kind) {
       case 'rejected':
@@ -147,10 +148,26 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
         setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
         return
       case 'assign_picker':
-        // Wired with the driver picker dialog (plan 90-06 task 2).
+        // D-11: the assign route writes driver_id and sends the offer; the picker is its only entry from a move.
+        setPickerTarget(booking)
         return
     }
-  }, [handleStatusChange])
+  }, [handleStatusChange, noShowTarget, pendingCancel, completeTarget, pickerTarget])
+
+  // The assignment was accepted by the assign route: the row follows, the views refetch (driver name), the picker closes.
+  const handleAssigned = useCallback((booking: AdminBooking) => {
+    onPatched(booking.id, { status: 'assigned' })
+    onStale?.(booking.id)
+    clearConflict(booking.id)
+    showMoveToast(booking.booking_reference, 'assigned')
+    setPickerTarget(null)
+  }, [clearConflict, onPatched, onStale, showMoveToast])
+
+  // T-87-40 / 88-REVIEW T5 / Phase 89 plan 16 are enforced by planMove: no_show is always the modal; cancelled opens the
+  // payment-aware cancel dialog on the board, and on the panel when the booking has money (else a status PATCH).
+  const requestStatusChange = useCallback((booking: AdminBooking, newStatus: string) => {
+    requestMove(booking, newStatus, 'panel')
+  }, [requestMove])
 
   // The complete dialog's PATCH was accepted: the row follows, the dialog closes, the toast confirms.
   const handleCompleted = useCallback((booking: AdminBooking) => {
@@ -236,6 +253,13 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
         onConflict={(id, currentStatus) => handleCompleteConflict(id, currentStatus)}
       />
 
+      {/* Driver picker (D-11): the same DriverAssignmentSection the panel shows */}
+      <DriverPickerDialog
+        booking={pickerTarget}
+        onClose={() => setPickerTarget(null)}
+        onAssigned={() => { if (pickerTarget) handleAssigned(pickerTarget) }}
+      />
+
       {/* Move toast (D-12): mounted only while a message shows, so a permanent empty live region cannot make
           the cancel dialog's role=status outcome line ambiguous. */}
       {toast && (
@@ -274,7 +298,7 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
     requestMove,
     openNoShow,
     openCancel,
-    anyDialogOpen: noShowTarget !== null || pendingCancel !== null || completeTarget !== null,
+    anyDialogOpen: noShowTarget !== null || pendingCancel !== null || completeTarget !== null || pickerTarget !== null,
     paymentBumpFor: (id) => paymentBumps[id] ?? 0,
     dialogs,
   }

@@ -243,3 +243,167 @@ describe('requestMove: moves without a money effect', () => {
     expect(h.anyOpen()).toBe(false)
   })
 })
+
+describe('requestMove: driver picker (D-11)', () => {
+  it('a move to assigned opens the picker; assigning reports the row and a refetch, then closes', () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+
+    act(() => h.api().requestMove(CONFIRMED, 'assigned', 'board'))
+    expect(screen.getByText('Assign a driver to PRE-3')).toBeDefined()
+    const section = screen.getByTestId('driver-section')
+    expect(section.getAttribute('data-booking')).toBe('b-3')
+    expect(section.getAttribute('data-status')).toBe('confirmed')
+    expect(h.anyOpen()).toBe(true)
+    // choosing a driver is the assign route's job: the move itself sends no PATCH
+    expect(fetchMock).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'mock-assign' }))
+    expect(h.onPatched).toHaveBeenCalledWith('b-3', { status: 'assigned' })
+    expect(h.onStale).toHaveBeenCalledWith('b-3')
+    expect(screen.queryByText('Assign a driver to PRE-3')).toBeNull()
+    expect(h.anyOpen()).toBe(false)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('closing with Escape or the close button changes nothing and sends nothing', () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+
+    act(() => h.api().requestMove(CONFIRMED, 'assigned', 'board'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByText('Assign a driver to PRE-3')).toBeNull()
+
+    act(() => h.api().requestMove(CONFIRMED, 'assigned', 'board'))
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.queryByText('Assign a driver to PRE-3')).toBeNull()
+
+    expect(h.onPatched).not.toHaveBeenCalled()
+    expect(h.onStale).not.toHaveBeenCalled()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('the panel select reaches the picker too (requestStatusChange delegates to requestMove)', () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+    act(() => h.api().requestStatusChange(CONFIRMED, 'assigned'))
+    expect(screen.getByText('Assign a driver to PRE-3')).toBeDefined()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('requestMove: cancel and no-show routing', () => {
+  const NO_MONEY_CONFIRMED = booking({ id: 'b-6', booking_reference: 'PRE-6', status: 'confirmed' })
+  const CASH_CONFIRMED = booking({ id: 'b-7', booking_reference: 'PRE-7', status: 'confirmed', payment_mode: 'cash_guarantee' })
+  const GNET_PLAIN = booking({ id: 'b-8', booking_reference: 'GN-8', status: 'assigned', booking_source: 'gnet' })
+
+  it('the board always opens the cancel dialog, even without money, and sends no PATCH', () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+    act(() => h.api().requestMove(NO_MONEY_CONFIRMED, 'cancelled', 'board'))
+    expect(screen.getByRole('radiogroup')).toBeDefined()
+    expect(h.anyOpen()).toBe(true)
+    expect(patchBodies(fetchMock)).toEqual([])
+  })
+
+  it('the panel keeps the Phase 89 path: no money is one status PATCH', async () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+    act(() => h.api().requestStatusChange(NO_MONEY_CONFIRMED, 'cancelled'))
+    await waitFor(() => expect(h.onPatched).toHaveBeenCalledWith('b-6', { status: 'cancelled' }))
+    expect(patchBodies(fetchMock)).toEqual([{ id: 'b-6', status: 'cancelled', expected_status: 'confirmed' }])
+    expect(screen.queryByRole('radiogroup')).toBeNull()
+  })
+
+  it('the panel opens the cancel dialog for a cash booking and sends no PATCH', () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+    act(() => h.api().requestStatusChange(CASH_CONFIRMED, 'cancelled'))
+    expect(screen.getByRole('radiogroup')).toBeDefined()
+    expect(patchBodies(fetchMock)).toEqual([])
+  })
+
+  it('a GNet partner cancel goes through the dialog with the partner copy and no refund sentence', () => {
+    stubFetchNow()
+    const h = setup()
+    act(() => h.api().requestMove(GNET_PLAIN, 'cancelled', 'board'))
+    expect(screen.getByText(/received from a GNet partner/)).toBeDefined()
+    expect(screen.queryByText(/refunded/i)).toBeNull()
+    expect(screen.queryByText(/Cancel and refund/i)).toBeNull()
+  })
+
+  it('a move to no_show opens the confirmation modal and sends no PATCH', () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+    act(() => h.api().requestMove(ON_LOCATION, 'no_show', 'board'))
+    expect(screen.getByRole('heading', { name: 'Confirm no-show' })).toBeDefined()
+    expect(h.anyOpen()).toBe(true)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('requestMove: double submit and anyDialogOpen', () => {
+  it('while the PATCH for a booking is in flight a second request for it sends nothing', async () => {
+    const { fetchMock, pending } = stubFetchDeferred()
+    const h = setup()
+
+    act(() => h.api().requestMove(EN_ROUTE, 'on_location', 'board'))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    expect(h.api().isUpdating('b-2')).toBe(true)
+
+    act(() => h.api().requestMove(EN_ROUTE, 'cancelled', 'board'))
+    act(() => h.api().requestMove(EN_ROUTE, 'on_location', 'board'))
+    act(() => h.api().requestStatusChange(EN_ROUTE, 'on_location'))
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('radiogroup')).toBeNull()
+
+    await act(async () => { pending[0].resolve() })
+    await waitFor(() => expect(h.onPatched).toHaveBeenCalledTimes(1))
+    expect(h.api().isUpdating('b-2')).toBe(false)
+  })
+
+  it('two requests in the same tick send one PATCH', async () => {
+    const { fetchMock, pending } = stubFetchDeferred()
+    const h = setup()
+    act(() => {
+      h.api().requestMove(EN_ROUTE, 'on_location', 'board')
+      h.api().requestMove(EN_ROUTE, 'on_location', 'board')
+    })
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    await act(async () => { pending[0].resolve() })
+    await waitFor(() => expect(h.onPatched).toHaveBeenCalledTimes(1))
+  })
+
+  it('while the complete dialog for a booking is open, another move for it does nothing', () => {
+    const fetchMock = stubFetchNow()
+    const h = setup()
+    act(() => h.api().requestMove(CARD_HOLD_EN_ROUTE, 'completed', 'board'))
+    act(() => h.api().requestMove(CARD_HOLD_EN_ROUTE, 'cancelled', 'board'))
+    expect(screen.queryByRole('radiogroup')).toBeNull()
+    expect(screen.getByText('Complete trip PRE-1?')).toBeDefined()
+    expect(fetchMock).not.toHaveBeenCalled()
+    // a different booking is not blocked
+    act(() => h.api().requestMove(CONFIRMED, 'assigned', 'board'))
+    expect(screen.getByText('Assign a driver to PRE-3')).toBeDefined()
+  })
+
+  it('anyDialogOpen is true for each of the four dialogs and false after each closes', () => {
+    stubFetchNow()
+    const h = setup()
+    const cases: Array<[AdminBooking, string, string]> = [
+      [ON_LOCATION, 'no_show', 'Confirm no-show'],
+      [booking({ id: 'b-9', booking_reference: 'PRE-9', status: 'confirmed' }), 'cancelled', 'Cancel booking PRE-9'],
+      [CARD_HOLD_EN_ROUTE, 'completed', 'Complete trip PRE-1?'],
+      [CONFIRMED, 'assigned', 'Assign a driver to PRE-3'],
+    ]
+    expect(h.anyOpen()).toBe(false)
+    for (const [b, to, title] of cases) {
+      act(() => h.api().requestMove(b, to, 'board'))
+      expect(screen.getByRole('heading', { name: title })).toBeDefined()
+      expect(h.anyOpen()).toBe(true)
+      fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+      expect(screen.queryByRole('heading', { name: title })).toBeNull()
+      expect(h.anyOpen()).toBe(false)
+    }
+  })
+})

@@ -80,15 +80,8 @@ export interface AdminBooking {
   driver_id?: string | null
 }
 
-// A row whose payment is a card hold or a cash booking carries a payment badge (cash also a chip).
-export function showsPaymentBadge(b: { payment_mode?: string | null }): boolean {
-  return b.payment_mode === 'card_hold' || b.payment_mode === 'cash_guarantee'
-}
-
-// Phase 89 plan 16: money that a bare status change would leave behind. The server answers 422 use_cancel_route for these.
-export function hasCancelMoney(b: { payment_mode?: string | null; payment_intent_id: string | null }): boolean {
-  return showsPaymentBadge(b) || (typeof b.payment_intent_id === 'string' && b.payment_intent_id !== '')
-}
+// One definition lives in bookingMoves.ts (Phase 90 plan 06); re-exported so existing importers keep working.
+export { hasCancelMoney, showsPaymentBadge } from './bookingMoves'
 
 export const vehicleClassMap: Record<string, string> = {
   business: 'Business',
