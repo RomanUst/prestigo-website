@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { KPICard } from '@/components/admin/KPICard'
 import BookingsTable from '@/components/admin/BookingsTable'
+import { BookingPanelProvider } from '@/components/admin/BookingPanelProvider'
 import { ManualBookingForm } from '@/components/admin/ManualBookingForm'
 
 function getMonday(date: Date): string {
@@ -147,9 +148,12 @@ export default function BookingsPage() {
         />
       </div>
 
-      {settingsLoaded && (
-        <BookingsTable key={refreshKey} defaultHorizon={defaultHorizon} horizonDays={defaultHorizonDays} />
-      )}
+      {/* Phase 90: the provider hosts the side panel and the money dialogs; plan 90-09 moves it into BookingsWorkspace */}
+      <BookingPanelProvider>
+        {settingsLoaded && (
+          <BookingsTable key={refreshKey} defaultHorizon={defaultHorizon} horizonDays={defaultHorizonDays} />
+        )}
+      </BookingPanelProvider>
 
       <ManualBookingForm
         open={showNewBooking}

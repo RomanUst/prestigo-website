@@ -3,20 +3,17 @@ import React from 'react'
 import {
   useReactTable,
   getCoreRowModel,
-  getExpandedRowModel,
   flexRender,
   type ColumnDef,
-  type ExpandedState,
 } from '@tanstack/react-table'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ChevronDown, ChevronUp, Search } from 'lucide-react'
+import { ChevronRight, Search } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { PaymentStateBadge } from './PaymentStateBadge'
 import { FeeCaseBadge, CashChip, hasPendingFeeCase } from './FeeCaseBadge'
 import { NoShowChip, hasOpenNoShowRequest } from './NoShowBanner'
 import { STATUS_CONFLICT_STYLE } from './statusConflict'
-import { useBookingMoves } from './useBookingMoves'
-import { BookingDetailPanel } from './BookingDetailPanel'
+import { useBookingPanel, useBookingEvents } from './BookingPanelProvider'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import type { BookingStatus } from '@/lib/booking-status'
 import {
@@ -82,7 +79,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const [bookings, setBookings] = useState<Booking[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
-  const [expanded, setExpanded] = useState<ExpandedState>({})
   const [tripType, setTripType] = useState<string>('all')
   // D-08: a SEPARATE status dimension from tripType — the 'Unpaid' chip
   // coexists with the trip-type chips rather than replacing them.
@@ -113,7 +109,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const limit = 20
 
   const [isMobile, setIsMobile] = useState(false)
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
 
   // Mobile detection
   useEffect(() => {
@@ -123,12 +118,16 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  // Phase 90: the single row-patch sink. The move hook reports every status/cancel/no-show outcome through it.
-  const handleRowPatched = useCallback((bookingId: string, patch: Partial<Booking>) => {
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
-  }, [])
+  // Phase 90 plan 05: bookings open in the shared side panel (D-02/D-03). The provider owns the moves, their
+  // dialogs and the panel; every row change (a move, a panel save) reaches this list as a 'patched' event.
+  const { openBooking, selected, syncRows, moves, setReferenceSearchHandler } = useBookingPanel()
 
-  const moves = useBookingMoves({ onPatched: handleRowPatched })
+  useBookingEvents(useCallback((e) => {
+    // 'stale' is ignored on purpose: a 409 keeps the row as it is and the list does not reload by itself.
+    if (e.type === 'patched') {
+      setBookings(prev => prev.map(b => b.id === e.id ? { ...b, ...e.patch } : b))
+    }
+  }, []))
 
   // The paired-outbound chip inside the detail panel filters the list by that reference.
   const handleSearchReference = useCallback((ref: string) => {
@@ -136,6 +135,12 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
     setDebouncedSearch(ref)
     setPage(0)
   }, [])
+
+  // The panel's "Paired outbound" chip filters this list by that reference.
+  useEffect(() => {
+    setReferenceSearchHandler(handleSearchReference)
+    return () => setReferenceSearchHandler(null)
+  }, [handleSearchReference, setReferenceSearchHandler])
 
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
@@ -147,6 +152,11 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     }
   }, [search])
+
+  // Fresher rows (a refetch, a filter change) refresh the open panel's snapshot without touching its local input.
+  useEffect(() => {
+    syncRows(bookings)
+  }, [bookings, syncRows])
 
   const fetchBookings = useCallback(async () => {
     setLoading(true)
@@ -339,16 +349,15 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
       id: 'expand',
       header: '',
       size: 48,
-      cell: ({ row }) => (
-        <span style={{
+      // Static hint that the row opens in the side panel (D-02); there is no expansion state.
+      cell: () => (
+        <span aria-hidden="true" style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           color: 'var(--warmgrey)',
         }}>
-          {row.getIsExpanded()
-            ? <ChevronUp size={16} />
-            : <ChevronDown size={16} />}
+          <ChevronRight size={16} />
         </span>
       ),
     },
@@ -357,10 +366,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
   const table = useReactTable({
     data: bookings,
     columns,
-    state: { expanded },
-    onExpandedChange: setExpanded,
     getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     manualPagination: true,
     rowCount: total,
   })
@@ -648,19 +654,32 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
             </div>
           ) : (
             bookings.map((booking) => {
-              const isExpanded = !!expandedCards[booking.id]
+              const isSelected = selected?.id === booking.id
               const transitions = UI_TRANSITIONS[booking.status] ?? []
               return (
                 <div
                   key={booking.id}
+                  tabIndex={0}
+                  aria-current={isSelected ? 'true' : undefined}
                   style={{
-                    backgroundColor: booking.status === 'unpaid' ? 'var(--status-warn-bg)' : 'var(--admin-surface)',
+                    backgroundColor: isSelected
+                      ? 'var(--anthracite-light)'
+                      : booking.status === 'unpaid' ? 'var(--status-warn-bg)' : 'var(--admin-surface)',
                     border: '1px solid var(--admin-border)',
                     borderRadius: 8,
                     padding: 16,
                     marginBottom: 12,
+                    cursor: 'pointer',
                   }}
-                  onClick={() => setExpandedCards(prev => ({ ...prev, [booking.id]: !prev[booking.id] }))}
+                  onClick={(e) => openBooking(booking, e.currentTarget)}
+                  onKeyDown={(e) => {
+                    // Enter / Space on the focused card itself (not on a button inside it) opens the panel.
+                    if (e.target !== e.currentTarget) return
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      openBooking(booking, e.currentTarget)
+                    }
+                  }}
                 >
                   {/* Top row: ref + status */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -807,25 +826,13 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         </button>
                       ))}
                     </div>
-                    {moves.conflictFor(booking.id) && (
+                    {/* the open panel shows the same line for the selected booking */}
+                    {moves.conflictFor(booking.id) && !isSelected && (
                       <div role="alert" style={{ ...STATUS_CONFLICT_STYLE, marginTop: 0, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
                         {moves.conflictFor(booking.id)}
                       </div>
                     )}
                     </>
-                  )}
-
-                  {/* Expanded details */}
-                  {isExpanded && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid var(--admin-border)', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
-                      <BookingDetailPanel
-                        key={booking.id}
-                        booking={booking}
-                        moves={moves}
-                        onPatched={handleRowPatched}
-                        onSearchReference={handleSearchReference}
-                      />
-                    </div>
                   )}
                 </div>
               )
@@ -929,14 +936,26 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map(row => (
-                <React.Fragment key={row.id}>
+              table.getRowModel().rows.map(row => {
+                const isSelected = selected?.id === row.original.id
+                return (
                   <tr
-                    onClick={() => row.toggleExpanded()}
+                    key={row.id}
+                    tabIndex={0}
+                    aria-selected={isSelected}
+                    onClick={(e) => openBooking(row.original, e.currentTarget)}
+                    onKeyDown={(e) => {
+                      // Enter / Space on the focused row itself (not on a control inside it) opens the panel.
+                      if (e.target !== e.currentTarget) return
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        openBooking(row.original, e.currentTarget)
+                      }
+                    }}
                     onMouseEnter={() => setHoveredRow(row.id)}
                     onMouseLeave={() => setHoveredRow(null)}
                     style={{
-                      background: row.getIsExpanded() || hoveredRow === row.id
+                      background: isSelected || hoveredRow === row.id
                         ? 'var(--anthracite-light)'
                         : row.original.status === 'unpaid'
                           ? 'var(--status-warn-bg)'
@@ -962,28 +981,8 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                       </td>
                     ))}
                   </tr>
-                  {row.getIsExpanded() && (
-                    <tr key={`${row.id}-expanded`}>
-                      <td
-                        colSpan={columns.length}
-                        style={{
-                          background: 'var(--anthracite)',
-                          padding: '16px 20px',
-                          borderBottom: '1px solid var(--anthracite-light)',
-                        }}
-                      >
-                        <BookingDetailPanel
-                          key={row.original.id}
-                          booking={row.original}
-                          moves={moves}
-                          onPatched={handleRowPatched}
-                          onSearchReference={handleSearchReference}
-                        />
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))
+                )
+              })
             )}
           </tbody>
         </table>
@@ -1052,9 +1051,6 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
           Next
         </button>
       </div>
-
-      {/* Confirm no-show and cancel dialogs (Phase 87 / 89): mounted once, owned by useBookingMoves */}
-      {moves.dialogs}
     </div>
   )
 }

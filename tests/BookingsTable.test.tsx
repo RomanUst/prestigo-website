@@ -1,7 +1,9 @@
+import type React from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { formatMinor } from '@/lib/payments/money'
 import { formatPragueFull } from '@/components/admin/PaymentPanel'
+import { BookingPanelProvider } from '@/components/admin/BookingPanelProvider'
 
 // AddressInput is a next-intl consumer; the trip-edit panel mounts it when edit mode opens.
 vi.mock('@/components/booking/AddressInput', () => ({
@@ -112,6 +114,13 @@ function makeBooking(overrides: Partial<PartialBooking> = {}): PartialBooking {
   }
 }
 
+// Phase 90 plan 05: BookingsTable opens bookings in the panel hosted by BookingPanelProvider, so every render wraps it.
+// The provider is imported statically; this file never calls vi.resetModules, so the dynamic BookingsTable
+// import and the provider share one module instance (one React context).
+function renderWithPanel(ui: React.ReactElement) {
+  return render(<BookingPanelProvider>{ui}</BookingPanelProvider>)
+}
+
 function stubFetchWithBookings(bookings: PartialBooking[]) {
   vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
     if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
@@ -134,7 +143,7 @@ describe('BookingsTable mobile card layout', () => {
     window.dispatchEvent(new Event('resize'))
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
     const mobileCards = screen.getByTestId('mobile-cards')
     expect(mobileCards).toBeDefined()
     expect(mobileCards.className).toContain('md:hidden')
@@ -145,7 +154,7 @@ describe('BookingsTable mobile card layout', () => {
     window.dispatchEvent(new Event('resize'))
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
     const desktopTable = screen.getByTestId('desktop-table')
     expect(desktopTable).toBeDefined()
     expect(desktopTable.className).toContain('hidden')
@@ -173,7 +182,7 @@ describe('BookingsTable LegBadge — RTAD-02', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByText('Return')).toBeDefined()
@@ -195,7 +204,7 @@ describe('BookingsTable LegBadge — RTAD-02', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByText('Outbound')).toBeDefined()
@@ -214,7 +223,7 @@ describe('BookingsTable LegBadge — RTAD-02', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByText('PRE-OW')).toBeDefined()
@@ -245,7 +254,7 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     // Wait for row, expand it, trigger cancel flow
     await waitFor(() => {
@@ -287,7 +296,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-LOCALE-RU')
     const rowEl = refCell.closest('tr')
@@ -306,7 +315,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-LOCALE-NULL')
     const rowEl = refCell.closest('tr')
@@ -317,7 +326,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     expect(languageLabel.nextElementSibling?.textContent).toBe('—')
   })
 
-  it('mobile: expanded card shows uppercase locale code for locale "zh"', async () => {
+  it('mobile: the side panel shows uppercase locale code for locale "zh"', async () => {
     Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
     window.dispatchEvent(new Event('resize'))
 
@@ -326,7 +335,7 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByTestId('mobile-cards')).toBeDefined()
@@ -338,7 +347,8 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     const refCell = await within(mobileCards).findByText('PRE-LOCALE-ZH-M')
     fireEvent.click(refCell)
 
-    const languageLabel = await within(mobileCards).findByText('Language')
+    // the card opens the side panel (D-02), which is not inside the mobile-cards container
+    const languageLabel = await within(await screen.findByTestId('booking-panel')).findByText('Language')
     expect(languageLabel.nextElementSibling?.textContent).toBe('ZH')
   })
 })
@@ -355,7 +365,7 @@ describe('BookingsTable unpaid status — Phase 62 ABND-03', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     // Scope to the row itself — the filter bar also has an "Unpaid" chip
     // (D-08), so a bare screen-level query would be ambiguous / could
@@ -377,7 +387,7 @@ describe('BookingsTable unpaid status — Phase 62 ABND-03', () => {
     ])
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByTestId('mobile-cards')).toBeDefined()
@@ -398,7 +408,7 @@ describe('BookingsTable unpaid status — Phase 62 ABND-03', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const unpaidChip = await screen.findByRole('button', { name: 'Unpaid' })
     fireEvent.click(unpaidChip)
@@ -469,7 +479,7 @@ describe('Phase 51 — GNet UI', () => {
   it('desktop: GNet row renders gnet-badge with text GNET', async () => {
     stubFetchWithBookings([gnetBooking])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByTestId('gnet-badge-gnet-test-1')).toBeDefined()
@@ -480,7 +490,7 @@ describe('Phase 51 — GNet UI', () => {
   it('desktop: online row does NOT render gnet-badge', async () => {
     stubFetchWithBookings([makeBooking({ id: 'online-1', booking_reference: 'PRE-ONL-1' })])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByText('PRE-ONL-1')).toBeDefined()
@@ -494,7 +504,7 @@ describe('Phase 51 — GNet UI', () => {
 
     stubFetchWithBookings([gnetBooking])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByTestId('gnet-badge-mobile-gnet-test-1')).toBeDefined()
@@ -504,7 +514,7 @@ describe('Phase 51 — GNet UI', () => {
   it('cancel modal for GNet row does NOT contain "refund" text', async () => {
     stubFetchWithBookings([gnetBooking])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     // Wait for row to appear, then expand it
     await waitFor(() => {
@@ -534,7 +544,7 @@ describe('Phase 51 — GNet UI', () => {
   it('cancel modal for GNet row contains "GNet partner" copy', async () => {
     stubFetchWithBookings([gnetBooking])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByText('PRE-GNET-1')).toBeDefined()
@@ -557,7 +567,7 @@ describe('Phase 51 — GNet UI', () => {
   it('cancel modal confirm button for GNet row reads "Cancel booking" and never offers a refund', async () => {
     stubFetchWithBookings([gnetBooking])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByText('PRE-GNET-1')).toBeDefined()
@@ -607,7 +617,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
   it('clicking the Past segment updates the horizon fetch param and issues NO PATCH to /api/admin/settings', async () => {
     const fetchMock = stubFetchTracking([])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('horizon=future'))).toBe(true)
@@ -629,7 +639,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
   it('remounting with the same defaultHorizon prop resets the active segment to the persisted default, not the last-used override (D-04)', async () => {
     const fetchMock = stubFetchTracking([])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    const { unmount } = render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    const { unmount } = renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('horizon=future'))).toBe(true)
@@ -646,7 +656,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
     // the SAME persisted defaultHorizon prop.
     unmount()
     fetchMock.mockClear()
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitFor(() => {
       const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
@@ -659,7 +669,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
   it('Future segment + zero rows renders "No upcoming trips" distinct from Past/All\'s "No bookings found."', async () => {
     stubFetchTracking([])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitFor(() => {
       expect(screen.getByText('No upcoming trips')).toBeDefined()
@@ -678,7 +688,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
   it('D-07: explicit startDate/endDate omits the horizon param and grays the active segment to the inactive style', async () => {
     const fetchMock = stubFetchTracking([])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitFor(() => {
       expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('horizon=future'))).toBe(true)
@@ -719,7 +729,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
     vi.stubGlobal('fetch', fetchMock)
 
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitFor(() => {
       expect(screen.getByText(/Couldn.t load bookings — check your connection and try again\./)).toBeDefined()
@@ -731,7 +741,7 @@ describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (
   it('the active-segment style uses the current brand copper tint and border', async () => {
     stubFetchTracking([])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     const futureSegment = await screen.findByRole('button', { name: 'Future' })
     await waitFor(() => {
@@ -787,7 +797,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     window.history.replaceState({}, '', `/admin/bookings?search=${REF}`)
     const fetchMock = stubFetchTracking()
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitForBookingsFetch(fetchMock)
     const params = firstBookingsParams(fetchMock)
@@ -804,7 +814,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     window.history.replaceState({}, '', `/admin/bookings?search=${encodeURIComponent('jane.doe+vip@example.com')}`)
     const fetchMock = stubFetchTracking()
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitForBookingsFetch(fetchMock)
     const params = firstBookingsParams(fetchMock)
@@ -820,7 +830,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     window.history.replaceState({}, '', '/admin/bookings?search=%20jane%40example.com%20')
     const fetchMock = stubFetchTracking()
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitForBookingsFetch(fetchMock)
     const params = firstBookingsParams(fetchMock)
@@ -848,7 +858,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     window.history.replaceState({}, '', `/admin/bookings${query}`)
     const fetchMock = stubFetchTracking()
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitForBookingsFetch(fetchMock)
     const params = firstBookingsParams(fetchMock)
@@ -860,7 +870,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
   it('no query string: first fetch has horizon=future and no search (unchanged behaviour)', async () => {
     const fetchMock = stubFetchTracking()
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitForBookingsFetch(fetchMock)
     const params = firstBookingsParams(fetchMock)
@@ -872,7 +882,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     window.history.replaceState({}, '', `/admin/bookings?search=${REF}&tab=all#top`)
     const fetchMock = stubFetchTracking()
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    const first = render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    const first = renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitForBookingsFetch(fetchMock)
     expect(firstBookingsParams(fetchMock).get('search')).toBe(REF)
@@ -882,7 +892,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
 
     first.unmount()
     fetchMock.mockClear()
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
     await waitForBookingsFetch(fetchMock)
     const params = firstBookingsParams(fetchMock)
     expect(params.get('horizon')).toBe('future')
@@ -894,7 +904,7 @@ describe('BookingsTable deep link (Phase 80 D-18)', () => {
     window.history.replaceState({}, '', `/admin/bookings?search=${REF}`)
     const fetchMock = stubFetchTracking()
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+    renderWithPanel(<BookingsTable defaultHorizon="future" horizonDays={7} />)
 
     await waitForBookingsFetch(fetchMock)
     const input = screen.getByPlaceholderText('Search client or reference...') as HTMLInputElement
@@ -948,7 +958,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       makeBooking({ id: 'b-ob', booking_reference: 'PRE-ONBOARD', status: 'on_board' }),
     ])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-ONBOARD')
     const rowEl = refCell.closest('tr') as HTMLElement
@@ -962,7 +972,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       makeBooking({ id: 'b-ns', booking_reference: 'PRE-NOSHOW', status: 'no_show' }),
     ])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-NOSHOW')
     const rowEl = refCell.closest('tr') as HTMLElement
@@ -984,7 +994,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       makeBooking({ id: 'b-ns-m', booking_reference: 'PRE-NS-M', status: 'no_show' }),
     ])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByTestId('mobile-cards')).toBeDefined()
@@ -1001,7 +1011,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       makeBooking({ id: 'b-ol', booking_reference: 'PRE-ONLOC', status: 'on_location' }),
     ])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-ONLOC')
     fireEvent.click(refCell.closest('tr') as HTMLElement)
@@ -1017,7 +1027,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       { ok: true, status: 200, body: { booking: {} } },
     )
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-ONLOC2')
     fireEvent.click(refCell.closest('tr') as HTMLElement)
@@ -1043,7 +1053,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       { ok: false, status: 409, body: { error: 'status_conflict', currentStatus: 'en_route' } },
     )
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-CONFLICT')
     const rowEl = refCell.closest('tr') as HTMLElement
@@ -1079,7 +1089,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
     })
     vi.stubGlobal('fetch', fetchMock)
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-CANCEL-RACE')
     fireEvent.click(refCell.closest('tr') as HTMLElement)
@@ -1108,7 +1118,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       { ok: false, status: 409, body: { error: 'status_conflict', currentStatus: 'on_location' } },
     )
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => {
       expect(screen.getByTestId('mobile-cards')).toBeDefined()
@@ -1130,7 +1140,7 @@ describe('BookingsTable on_board / no_show + status conflict — Phase 87 plan 0
       { ok: false, status: 500, body: { error: 'Boom' } },
     )
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const refCell = await screen.findByText('PRE-ERR')
     fireEvent.click(refCell.closest('tr') as HTMLElement)
@@ -1197,7 +1207,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it('desktop: an on_location row with an open request shows the chip next to the status badge', async () => {
     stubNoShowFetch([requested()])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
     await waitFor(() => {
@@ -1213,7 +1223,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
       makeBooking({ id: 'b-n3', booking_reference: 'PRE-ABSENT', status: 'on_location' }),
     ])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await screen.findByText('PRE-NULL')
     await screen.findByText('PRE-ENROUTE')
@@ -1228,18 +1238,18 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
       makeBooking({ id: 'b-c', booking_reference: 'PRE-C', status: 'on_location' }),
     ])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await screen.findByText('PRE-C')
     await waitFor(() => expect(screen.getAllByTestId('no-show-chip')).toHaveLength(2))
   })
 
-  it('mobile: the card shows the chip next to the badge and the banner inside the expanded card', async () => {
+  it('mobile: the card shows the chip next to the badge and the banner inside the side panel', async () => {
     Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
     window.dispatchEvent(new Event('resize'))
     stubNoShowFetch([requested({ id: 'b-m', booking_reference: 'PRE-NS-M' })])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => expect(screen.getByTestId('mobile-cards')).toBeDefined())
     const cards = within(screen.getByTestId('mobile-cards'))
@@ -1247,14 +1257,15 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
     expect(cards.queryByTestId('no-show-banner')).toBeNull()
 
     fireEvent.click(await cards.findByText('PRE-NS-M'))
-    expect(await cards.findByTestId('no-show-banner')).toBeDefined()
-    expect(await cards.findByText(/^Jan Novak asked for a no-show at 14:41/)).toBeDefined()
+    const panel = within(await screen.findByTestId('booking-panel'))
+    expect(await panel.findByTestId('no-show-banner')).toBeDefined()
+    expect(await panel.findByText(/^Jan Novak asked for a no-show at 14:41/)).toBeDefined()
   })
 
   it('desktop: the expanded row shows the banner with the driver name and the Prague time', async () => {
     stubNoShowFetch([requested()])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     fireEvent.click((await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement)
     expect(await screen.findByTestId('no-show-banner')).toBeDefined()
@@ -1268,7 +1279,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it('desktop: the banner button opens the modal; its primary POSTs confirm once and the row becomes No-Show (final)', async () => {
     const fetchMock = stubNoShowFetch([requested()])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
     fireEvent.click(rowEl)
@@ -1303,7 +1314,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it("desktop: 'Keep booking open' closes the modal and changes nothing", async () => {
     const fetchMock = stubNoShowFetch([requested()])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
     fireEvent.click(rowEl)
@@ -1320,7 +1331,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it('desktop: a 409 in the modal shows the conflict copy and leaves the row unchanged', async () => {
     stubNoShowFetch([requested()], { ok: false, status: 409, body: { error: 'status_conflict', currentStatus: 'on_board' } })
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
     fireEvent.click(rowEl)
@@ -1336,7 +1347,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it("desktop: 'Client found' POSTs dismiss, then the chip and the banner disappear and the status stays", async () => {
     const fetchMock = stubNoShowFetch([requested()], { ok: true, status: 200, body: { ok: true, noShowRequestedAt: null } })
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const rowEl = (await screen.findByText('PRE-NSREQ')).closest('tr') as HTMLElement
     fireEvent.click(rowEl)
@@ -1352,7 +1363,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it("desktop: choosing 'No-Show' in the status select opens the modal and does not PATCH", async () => {
     const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-sel', booking_reference: 'PRE-SEL', status: 'on_location' })])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     fireEvent.click((await screen.findByText('PRE-SEL')).closest('tr') as HTMLElement)
     const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
@@ -1367,7 +1378,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it('desktop: confirming from the select path moves the row to No-Show too', async () => {
     const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-sel2', booking_reference: 'PRE-SEL2', status: 'on_location' })])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     const rowEl = (await screen.findByText('PRE-SEL2')).closest('tr') as HTMLElement
     fireEvent.click(rowEl)
@@ -1384,7 +1395,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
   it('desktop: other select choices still apply immediately', async () => {
     const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-sel3', booking_reference: 'PRE-SEL3', status: 'on_location' })])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     fireEvent.click((await screen.findByText('PRE-SEL3')).closest('tr') as HTMLElement)
     const select = (await screen.findByText(/^Change from /)).closest('select') as HTMLSelectElement
@@ -1399,7 +1410,7 @@ describe('BookingsTable no-show request: chip, banner, confirm modal — Phase 8
     window.dispatchEvent(new Event('resize'))
     const fetchMock = stubNoShowFetch([makeBooking({ id: 'b-selm', booking_reference: 'PRE-SELM', status: 'on_location' })])
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    render(<BookingsTable />)
+    renderWithPanel(<BookingsTable />)
 
     await waitFor(() => expect(screen.getByTestId('mobile-cards')).toBeDefined())
     const cards = within(screen.getByTestId('mobile-cards'))
@@ -1468,7 +1479,7 @@ describe('BookingsTable card payments: list badge, cancel variant, refund failed
 
   async function renderTable() {
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    return render(<BookingsTable />)
+    return renderWithPanel(<BookingsTable />)
   }
 
   async function expandDesktop(ref: string) {
@@ -1814,7 +1825,7 @@ describe('BookingsTable Phase 89 plan 16: Fee decision badge, Cash chip, cancel 
 
   async function renderTable() {
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
-    return render(<BookingsTable />)
+    return renderWithPanel(<BookingsTable />)
   }
 
   const cardRow = (over: Partial<PartialBooking> = {}) =>

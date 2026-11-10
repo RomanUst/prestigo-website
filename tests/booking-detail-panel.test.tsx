@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, act, within } from '@testing-library/react'
+import { render, screen, fireEvent, act, within, waitFor } from '@testing-library/react'
 import { BookingDetailPanel } from '@/components/admin/BookingDetailPanel'
+import { BookingPanelProvider, useBookingPanel, useBookingEvents, type BookingPanelValue, type BookingEvent } from '@/components/admin/BookingPanelProvider'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import type { AdminBooking } from '@/components/admin/bookingTypes'
 import type { BookingMovesApi } from '@/components/admin/useBookingMoves'
@@ -283,6 +285,273 @@ describe('BookingDetailPanel', () => {
 
       fireEvent.click(await screen.findByRole('button', { name: 'Confirm no-show' }))
       expect(moves.openNoShow).toHaveBeenCalledWith(booking)
+    })
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------
+// Phase 90 plan 05: the provider that hosts the side panel, the move dialogs and the selection for every view.
+// ---------------------------------------------------------------------------------------------------------------
+
+describe('BookingPanelProvider', () => {
+  let api: BookingPanelValue
+  let events: BookingEvent[]
+
+  function Probe({ booking }: { booking: AdminBooking }) {
+    const panel = useBookingPanel()
+    useEffect(() => {
+      api = panel
+    })
+    useBookingEvents(e => { events.push(e) })
+    return (
+      <>
+        <button type="button" onClick={e => panel.openBooking(booking, e.currentTarget)}>open booking</button>
+        <span data-testid="paused">{String(panel.pausePolling)}</span>
+      </>
+    )
+  }
+
+  function renderProvider(booking: AdminBooking = makeBooking()) {
+    return render(
+      <BookingPanelProvider>
+        <Probe booking={booking} />
+      </BookingPanelProvider>,
+    )
+  }
+
+  async function openPanel() {
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'open booking' })) })
+    return screen.getByTestId('booking-panel')
+  }
+
+  const paused = () => screen.getByTestId('paused').textContent
+  const paymentGets = () => (fetch as unknown as ReturnType<typeof vi.fn>).mock.calls
+    .filter(c => String(c[0]).endsWith('/api/admin/bookings/b1/payment') && !(c[1] as { method?: string } | undefined)?.method).length
+
+  beforeEach(() => {
+    stubFetch()
+    events = []
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('useBookingPanel throws outside the provider', () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    function Bare() { useBookingPanel(); return null }
+    expect(() => render(<Bare />)).toThrow('useBookingPanel must be used inside BookingPanelProvider')
+    spy.mockRestore()
+  })
+
+  it('renders no booking-panel until a booking is opened, then labels the aside and focuses the close button', async () => {
+    renderProvider()
+    expect(screen.queryByTestId('booking-panel')).toBeNull()
+
+    const panel = await openPanel()
+    expect(panel.tagName).toBe('ASIDE')
+    expect(panel.getAttribute('aria-label')).toBe('Booking PRE-PANEL')
+    expect(within(panel).getByTestId('booking-detail-panel')).toBeDefined()
+    expect(document.activeElement).toBe(within(panel).getByRole('button', { name: 'Close booking panel' }))
+  })
+
+  it('opening another booking switches the panel; opening the open one keeps it in place', async () => {
+    renderProvider()
+    await openPanel()
+    const first = screen.getByTestId('booking-panel')
+    await act(async () => { api.openBooking(makeBooking()) })
+    expect(screen.getByTestId('booking-panel')).toBe(first)
+
+    await act(async () => { api.openBooking(makeBooking({ id: 'b2', booking_reference: 'PRE-OTHER' })) })
+    expect(screen.getByTestId('booking-panel').getAttribute('aria-label')).toBe('Booking PRE-OTHER')
+    expect(api.selected?.id).toBe('b2')
+  })
+
+  it('the close button closes the panel and returns focus to the opener', async () => {
+    renderProvider()
+    const opener = screen.getByRole('button', { name: 'open booking' })
+    const panel = await openPanel()
+    await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Close booking panel' })) })
+    expect(screen.queryByTestId('booking-panel')).toBeNull()
+    expect(document.activeElement).toBe(opener)
+  })
+
+  it('Escape closes the panel and returns focus to the opener', async () => {
+    renderProvider()
+    const opener = screen.getByRole('button', { name: 'open booking' })
+    await openPanel()
+    await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+    expect(screen.queryByTestId('booking-panel')).toBeNull()
+    expect(document.activeElement).toBe(opener)
+  })
+
+  it('Escape closes an open money dialog and leaves the panel open (dialog guard); a second Escape closes the panel', async () => {
+    renderProvider()
+    await openPanel()
+    await act(async () => { api.moves.openNoShow({ id: 'b1', booking_reference: 'PRE-PANEL' }) })
+    expect(screen.getByRole('dialog')).toBeDefined()
+
+    await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByTestId('booking-panel')).toBeDefined()
+
+    await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+    expect(screen.queryByTestId('booking-panel')).toBeNull()
+  })
+
+  it('mounts each money dialog exactly once for the whole page', async () => {
+    renderProvider()
+    await openPanel()
+    await act(async () => { api.moves.openCancel(makeBooking()) })
+    expect(screen.getAllByRole('radiogroup')).toHaveLength(1)
+  })
+
+  it('a row change made in the panel is published as a patched event and updates the snapshot', async () => {
+    renderProvider()
+    const panel = await openPanel()
+    fireEvent.change(within(panel).getByPlaceholderText(/e\.g\. 1000/), { target: { value: '1500' } })
+    await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Save' })) })
+    expect(events).toContainEqual({ type: 'patched', id: 'b1', patch: { driver_price_czk: 1500 } })
+    expect(api.selected?.driver_price_czk).toBe(1500)
+  })
+
+  describe('pausePolling', () => {
+    it('is false at rest and while a booking is open without input', async () => {
+      renderProvider()
+      expect(paused()).toBe('false')
+      await openPanel()
+      expect(paused()).toBe('false')
+    })
+
+    it('is true while the notes hold unsaved text and false again after the save', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      const notes = within(panel).getByPlaceholderText('Add internal notes...')
+      fireEvent.change(notes, { target: { value: 'Gate B' } })
+      expect(paused()).toBe('true')
+      await act(async () => { fireEvent.blur(notes) })
+      expect(patchCalls).toEqual([{ id: 'b1', operator_notes: 'Gate B' }])
+      expect(paused()).toBe('false')
+    })
+
+    it('is true while the driver price differs from the saved value and false after the save', async () => {
+      renderProvider(makeBooking({ driver_price_czk: 900 }))
+      const panel = await openPanel()
+      const price = within(panel).getByPlaceholderText(/e\.g\. 1000/)
+      fireEvent.change(price, { target: { value: '950' } })
+      expect(paused()).toBe('true')
+      await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Save' })) })
+      expect(paused()).toBe('false')
+      // typing a different value is unsaved input again; typing the saved value back is not
+      fireEvent.change(price, { target: { value: '951' } })
+      expect(paused()).toBe('true')
+      fireEvent.change(price, { target: { value: '950' } })
+      expect(paused()).toBe('false')
+    })
+
+    it('is true while the trip-edit form is open and false after it closes', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      fireEvent.click(within(panel).getByRole('button', { name: 'Edit Trip Details' }))
+      expect(paused()).toBe('true')
+      fireEvent.click(within(panel).getByRole('button', { name: 'Close Edit Mode' }))
+      expect(paused()).toBe('false')
+    })
+
+    it('is true while a move dialog is open', async () => {
+      renderProvider()
+      await openPanel()
+      await act(async () => { api.moves.openNoShow({ id: 'b1', booking_reference: 'PRE-PANEL' }) })
+      expect(paused()).toBe('true')
+      await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+      expect(paused()).toBe('false')
+    })
+
+    it('closing the panel with unsaved input clears the pause', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      fireEvent.change(within(panel).getByPlaceholderText('Add internal notes...'), { target: { value: 'half typed' } })
+      expect(paused()).toBe('true')
+      await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Close booking panel' })) })
+      expect(paused()).toBe('false')
+    })
+  })
+
+  describe('syncRows', () => {
+    it('syncRows with a changed status updates the shown status and makes PaymentPanel refetch once', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      await within(panel).findByTestId('payment-panel')
+      const before = paymentGets()
+      expect(within(panel).getByText('Change from Confirmed...')).toBeDefined()
+
+      await act(async () => { api.syncRows([makeBooking({ status: 'on_location' })]) })
+      await waitFor(() => expect(paymentGets()).toBe(before + 1))
+      expect(within(screen.getByTestId('booking-panel')).getByText('Change from On Location...')).toBeDefined()
+    })
+
+    it('syncRows with the same status and payment_state does not refetch the payment', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      await within(panel).findByTestId('payment-panel')
+      const before = paymentGets()
+      await act(async () => { api.syncRows([makeBooking({ operator_notes: 'changed elsewhere' })]) })
+      expect(paymentGets()).toBe(before)
+    })
+
+    it('syncRows keeps text the operator is typing', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      const notes = within(panel).getByPlaceholderText('Add internal notes...') as HTMLTextAreaElement
+      fireEvent.change(notes, { target: { value: 'typing now' } })
+      await act(async () => { api.syncRows([makeBooking({ status: 'on_location', operator_notes: 'from the server' })]) })
+      expect((within(screen.getByTestId('booking-panel')).getByPlaceholderText('Add internal notes...') as HTMLTextAreaElement).value).toBe('typing now')
+      expect(paused()).toBe('true')
+    })
+
+    it('syncRows without the selected id leaves the panel open on its snapshot', async () => {
+      renderProvider()
+      await openPanel()
+      await act(async () => { api.syncRows([makeBooking({ id: 'other', booking_reference: 'PRE-ELSE', status: 'completed' })]) })
+      expect(screen.getByTestId('booking-panel').getAttribute('aria-label')).toBe('Booking PRE-PANEL')
+      expect(api.selected?.status).toBe('confirmed')
+    })
+
+    it('syncRows with nothing selected is a no-op', async () => {
+      renderProvider()
+      await act(async () => { api.syncRows([makeBooking()]) })
+      expect(screen.queryByTestId('booking-panel')).toBeNull()
+    })
+  })
+
+  describe('with the bookings list', () => {
+    it('a list refetch refreshes the open panel, and a row that left the list stays open as a snapshot', async () => {
+      Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+      let rows: AdminBooking[] = [makeBooking({ status: 'confirmed' })]
+      vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string) => {
+        if (url.startsWith('/api/admin/bookings?')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ bookings: rows, total: rows.length, page: 0, limit: 20 }) })
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+      }))
+      const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+      render(<BookingPanelProvider><BookingsTable /></BookingPanelProvider>)
+
+      fireEvent.click((await screen.findByText('PRE-PANEL')).closest('tr') as HTMLElement)
+      const panel = await screen.findByTestId('booking-panel')
+      expect(within(panel).getByText('Change from Confirmed...')).toBeDefined()
+
+      // another view or the server moved the booking; the next list load carries the new status
+      rows = [makeBooking({ status: 'on_location' })]
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Hourly' })) })
+      await waitFor(() => expect(within(screen.getByTestId('booking-panel')).getByText('Change from On Location...')).toBeDefined())
+
+      // a later filter leaves the booking out of the list: the panel stays on its last snapshot
+      rows = []
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Daily' })) })
+      await waitFor(() => expect(screen.getByText('No upcoming trips')).toBeDefined())
+      expect(within(screen.getByTestId('booking-panel')).getByText('Change from On Location...')).toBeDefined()
     })
   })
 })

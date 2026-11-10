@@ -29,19 +29,27 @@ interface BookingDetailPanelProps {
   onPatched: (id: string, patch: Partial<AdminBooking>) => void
   /** The paired-outbound chip filters the list by that reference. Without it the reference is plain text. */
   onSearchReference?: (reference: string) => void
+  /** Bumped by the host when a fresher row showed a status or payment change: the PaymentPanel refetches. */
+  refreshSignal?: number
+  /** True while the panel holds input that is not saved yet (notes, driver price, an open trip-edit form). */
+  onDirtyChange?: (dirty: boolean) => void
 }
 
-export function BookingDetailPanel({ booking, moves, onPatched, onSearchReference }: BookingDetailPanelProps) {
+export function BookingDetailPanel({ booking, moves, onPatched, onSearchReference, refreshSignal = 0, onDirtyChange }: BookingDetailPanelProps) {
   const bookingId = booking.id
   const transitions = UI_TRANSITIONS[booking.status] ?? []
 
   const [notes, setNotes] = useState(booking.operator_notes ?? '')
+  // The last value known to be stored: seeds from the booking, moves forward on a successful save.
+  const [savedNotes, setSavedNotes] = useState(booking.operator_notes ?? '')
   const [notesSaving, setNotesSaving] = useState<SaveState>('idle')
   const notesTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   // The value the 800 ms debounce is waiting to send; null when nothing is pending.
   const pendingNotesRef = useRef<string | null>(null)
 
   const [driverPrice, setDriverPrice] = useState(booking.driver_price_czk != null ? String(booking.driver_price_czk) : '')
+  const [savedDriverPrice, setSavedDriverPrice] = useState(booking.driver_price_czk != null ? String(booking.driver_price_czk) : '')
+  const [tripEditOpen, setTripEditOpen] = useState(false)
   const [driverPriceSaving, setDriverPriceSaving] = useState<SaveState>('idle')
 
   // Phase 88-07: a trip edit can change the payment (price, pickup); an open PaymentPanel refetches.
@@ -58,6 +66,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
     try {
       await patchBooking({ id: bookingId, operator_notes: value })
       onPatchedRef.current(bookingId, { operator_notes: value })
+      setSavedNotes(value)
       setNotesSaving('saved')
       // Reset "saved" indicator after 2 seconds
       setTimeout(() => {
@@ -121,6 +130,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
     try {
       await patchBooking({ id: bookingId, driver_price_czk: value })
       onPatchedRef.current(bookingId, { driver_price_czk: value })
+      setSavedDriverPrice(value === null ? '' : String(value))
       setDriverPriceSaving('saved')
       setTimeout(() => {
         setDriverPriceSaving(prev => prev === 'saved' ? 'idle' : prev)
@@ -129,6 +139,19 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
       setDriverPriceSaving('error')
     }
   }, [bookingId])
+
+  // D-16 groundwork: unsaved input pauses any polling refetch of the views around the panel.
+  const dirty = notes !== savedNotes || driverPrice.trim() !== savedDriverPrice || tripEditOpen
+  const onDirtyChangeRef = useRef(onDirtyChange)
+  useEffect(() => {
+    onDirtyChangeRef.current = onDirtyChange
+  })
+  useEffect(() => {
+    onDirtyChangeRef.current?.(dirty)
+  }, [dirty])
+  useEffect(() => {
+    return () => onDirtyChangeRef.current?.(false)
+  }, [])
 
   // Phase 63 Plan 05: optimistic-update sink for TripEditPanel — mutates only the fields that were actually saved.
   const handleTripUpdated = useCallback((id: string, patch: Partial<AdminBooking>) => {
@@ -413,7 +436,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
       {/* Payment panel (Phase 88 HOLD-07) */}
       <PaymentPanel
         bookingId={booking.id}
-        refreshKey={paymentBump + moves.paymentBumpFor(booking.id)}
+        refreshKey={paymentBump + moves.paymentBumpFor(booking.id) + refreshSignal}
         paymentMode={booking.payment_mode ?? null}
         onPaymentState={handlePaymentState}
       />
@@ -429,7 +452,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
       />
 
       {/* Trip-edit mode (Phase 63 Plan 05) */}
-      <TripEditPanel booking={booking} patchBooking={patchBooking} onUpdated={handleTripUpdated} />
+      <TripEditPanel booking={booking} patchBooking={patchBooking} onUpdated={handleTripUpdated} onEditOpenChange={setTripEditOpen} />
 
       {/* Change history (D-11, FOLLOW-02) */}
       <div style={{ marginTop: '16px' }} onClick={(e) => e.stopPropagation()}>
