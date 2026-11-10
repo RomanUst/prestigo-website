@@ -75,6 +75,7 @@ function fakeMoves(overrides: Partial<BookingMovesApi> = {}): BookingMovesApi {
     requestMove: vi.fn(),
     openNoShow: vi.fn(),
     openCancel: vi.fn(),
+    refreshBooking: vi.fn(),
     anyDialogOpen: false,
     paymentBumpFor: vi.fn(() => 0),
     dialogs: null,
@@ -261,6 +262,61 @@ describe('BookingDetailPanel', () => {
       const moves = fakeMoves({ conflictFor: vi.fn(() => 'This booking was just changed to Assigned by the driver. Reload to see the latest state.') })
       render(<BookingDetailPanel booking={makeBooking()} moves={moves} onPatched={vi.fn()} />)
       expect(screen.getByRole('alert').textContent).toContain('This booking was just changed')
+    })
+  })
+
+  describe('panel-driven driver assignment (WR-06)', () => {
+    const DRIVER_ID = '11111111-1111-1111-1111-111111111111'
+
+    function stubAssignFetch(reportedStatus: string) {
+      vi.stubGlobal('fetch', vi.fn().mockImplementation((url: string, init?: { method?: string }) => {
+        if (url.endsWith('/assign') && init?.method === 'POST') {
+          return Promise.resolve({
+            ok: true,
+            status: 201,
+            json: () => Promise.resolve({
+              assignment: { id: 'a1', driver_id: DRIVER_ID, status: 'pending' },
+              booking_status: reportedStatus,
+            }),
+          })
+        }
+        if (url.endsWith('/assignment')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ assignment: null }) })
+        if (url === '/api/admin/drivers') {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve({ data: [{ id: DRIVER_ID, name: 'Test Driver', active: true }] }) })
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+      }))
+    }
+
+    async function assignDriver() {
+      // the status select shares the role; the driver select is the one that lists the driver
+      const select = await waitFor(() => {
+        const found = screen.getAllByRole('combobox').find(el => within(el).queryByText('Test Driver'))
+        expect(found).toBeDefined()
+        return found as HTMLElement
+      })
+      fireEvent.change(select, { target: { value: DRIVER_ID } })
+      fireEvent.click(screen.getByRole('button', { name: /^assign$/i }))
+    }
+
+    it('keeps the status the server reported (a pending booking stays pending) and asks the views to refetch', async () => {
+      stubAssignFetch('pending')
+      const onPatched = vi.fn()
+      const moves = fakeMoves()
+      render(<BookingDetailPanel booking={makeBooking({ status: 'pending' })} moves={moves} onPatched={onPatched} />)
+      await assignDriver()
+      await waitFor(() => expect(moves.refreshBooking).toHaveBeenCalledWith('b1'))
+      expect(onPatched).not.toHaveBeenCalledWith('b1', expect.objectContaining({ status: expect.anything() }))
+    })
+
+    it('follows a reported move to assigned and asks the views to refetch', async () => {
+      stubAssignFetch('assigned')
+      const onPatched = vi.fn()
+      const moves = fakeMoves()
+      render(<BookingDetailPanel booking={makeBooking({ status: 'confirmed' })} moves={moves} onPatched={onPatched} />)
+      await assignDriver()
+      await waitFor(() => expect(onPatched).toHaveBeenCalledWith('b1', { status: 'assigned' }))
+      expect(moves.refreshBooking).toHaveBeenCalledWith('b1')
     })
   })
 

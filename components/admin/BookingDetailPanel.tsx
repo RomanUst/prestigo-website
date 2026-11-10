@@ -159,6 +159,15 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
     setPaymentBump(n => n + 1)
   }, [])
 
+  // 90 WR-06: follow the status the assign route reported (it leaves pending/unpaid and en_route/on_location alone) and
+  // ask the views to refetch, so the card shows the new driver name instead of "Not assigned".
+  const handleAssigned = useCallback((newStatus: string) => {
+    if (newStatus && newStatus !== 'unknown' && newStatus !== booking.status) {
+      onPatchedRef.current(bookingId, { status: newStatus })
+    }
+    moves.refreshBooking(bookingId)
+  }, [bookingId, booking.status, moves])
+
   // 88-REVIEW C-WR-04: the open PaymentPanel reports the state after every (re)load, so the row badge follows panel
   // actions and the refetch after a cancel.
   const handlePaymentState = useCallback((state: string) => {
@@ -430,7 +439,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
       <DriverAssignmentSection
         bookingId={booking.id}
         bookingStatus={booking.status}
-        onAssigned={(newStatus) => onPatched(booking.id, { status: newStatus })}
+        onAssigned={handleAssigned}
       />
 
       {/* Payment panel (Phase 88 HOLD-07) */}

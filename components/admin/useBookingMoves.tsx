@@ -32,6 +32,8 @@ export interface BookingMovesApi {
   openCancel(booking: AdminBooking): void
   /** True while the no-show modal, the cancel dialog, the complete-trip dialog or the driver picker is open. */
   anyDialogOpen: boolean
+  /** Asks every mounted view to refetch its rows (the panel's own assignment changed the driver). */
+  refreshBooking(id: string): void
   /** Counter that makes an open PaymentPanel refetch after a cancel outcome. */
   paymentBumpFor(id: string): number
   /** The ConfirmNoShowModal, CancelBookingDialog, CompleteTripDialog and DriverPickerDialog mounts, plus the move toast. */
@@ -165,6 +167,10 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
 
   // T-87-40 / 88-REVIEW T5 / Phase 89 plan 16 are enforced by planMove: no_show is always the modal; cancelled opens the
   // payment-aware cancel dialog on the board, and on the panel when the booking has money (else a status PATCH).
+  const refreshBooking = useCallback((id: string) => {
+    onStale?.(id)
+  }, [onStale])
+
   const requestStatusChange = useCallback((booking: AdminBooking, newStatus: string) => {
     requestMove(booking, newStatus, 'panel')
   }, [requestMove])
@@ -300,6 +306,7 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
     requestMove,
     openNoShow,
     openCancel,
+    refreshBooking,
     anyDialogOpen: noShowTarget !== null || pendingCancel !== null || completeTarget !== null || pickerTarget !== null,
     paymentBumpFor: (id) => paymentBumps[id] ?? 0,
     dialogs,
