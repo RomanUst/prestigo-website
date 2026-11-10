@@ -15,7 +15,7 @@ interface CompleteTripDialogProps {
   effect: CompleteEffect | null
   onClose: () => void
   onCompleted: (id: string) => void
-  onConflict?: (id: string) => void
+  onConflict?: (id: string, currentStatus?: string) => void
 }
 
 const GENERIC_ERROR = 'Could not complete the trip. Reload and try again.'
@@ -77,8 +77,9 @@ export function CompleteTripDialog({ booking, effect, onClose, onCompleted, onCo
       }
       const data = await res.json().catch(() => ({}))
       if (res.status === 409 && data?.error === 'status_conflict') {
-        setError(statusConflictMessage(typeof data.currentStatus === 'string' ? data.currentStatus : undefined))
-        onConflict?.(target.id)
+        const currentStatus = typeof data.currentStatus === 'string' ? data.currentStatus : undefined
+        setError(statusConflictMessage(currentStatus))
+        onConflict?.(target.id, currentStatus)
       } else {
         setError(GENERIC_ERROR)
       }

@@ -1,10 +1,13 @@
 'use client'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { CancelBookingDialog, type CancelDoneInfo } from './CancelBookingDialog'
+import { CompleteTripDialog } from './CompleteTripDialog'
 import { ConfirmNoShowModal } from './ConfirmNoShowModal'
 import { statusConflictMessage } from './statusConflict'
+import { planMove, type CompleteEffect, type MoveSurface } from './bookingMoves'
 import {
   PatchError,
+  STATUS_LABELS,
   hasCancelMoney,
   patchBooking,
   type AdminBooking,
@@ -20,13 +23,18 @@ export interface BookingMovesApi {
   conflictFor(id: string): string | null
   /** The one entry point for a status change: routes no_show and cancelled-with-money to their dialogs. */
   requestStatusChange(booking: AdminBooking, to: string): void
+  /**
+   * Phase 90 (DISP-02): asks planMove what the move means and executes it: a direct PATCH with a toast, the
+   * complete-trip confirmation, the cancel dialog, the no-show modal. Nothing is applied before the server accepted.
+   */
+  requestMove(booking: AdminBooking, to: string, surface: MoveSurface): void
   openNoShow(booking: Pick<AdminBooking, 'id' | 'booking_reference'>): void
   openCancel(booking: AdminBooking): void
-  /** True while the no-show modal or the cancel dialog is open. */
+  /** True while the no-show modal, the cancel dialog or the complete-trip dialog is open. */
   anyDialogOpen: boolean
   /** Counter that makes an open PaymentPanel refetch after a cancel outcome. */
   paymentBumpFor(id: string): number
-  /** The ConfirmNoShowModal and CancelBookingDialog mounts. */
+  /** The ConfirmNoShowModal, CancelBookingDialog and CompleteTripDialog mounts, plus the move toast. */
   dialogs: React.ReactNode
 }
 
@@ -35,6 +43,8 @@ interface UseBookingMovesOptions {
   /** Called after a 409 status_conflict: the view the move was made from is stale. */
   onStale?: (id: string) => void
 }
+
+const MOVE_TOAST_MS = 4000
 
 export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
   const { onPatched, onStale } = opts
@@ -49,6 +59,21 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
   const [pendingCancel, setPendingCancel] = useState<AdminBooking | null>(null)
   // Phase 88-07: per-booking counter that makes an open PaymentPanel refetch after a cancel outcome.
   const [paymentBumps, setPaymentBumps] = useState<Record<string, number>>({})
+  // Phase 90 plan 06 (D-12): the booking whose complete-trip confirmation is open, with the money effect it states.
+  const [completeTarget, setCompleteTarget] = useState<{ booking: AdminBooking; effect: CompleteEffect } | null>(null)
+  // D-12: the short "{reference} moved to {Label}" line after a move the server accepted. It mounts only while shown.
+  const [toast, setToast] = useState<{ text: string; seq: number } | null>(null)
+
+  // The toast hides itself after about 4 s; a newer toast restarts the timer.
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), MOVE_TOAST_MS)
+    return () => clearTimeout(timer)
+  }, [toast])
+
+  const showMoveToast = useCallback((reference: string, status: string) => {
+    setToast(prev => ({ text: `${reference} moved to ${STATUS_LABELS[status] ?? status}`, seq: (prev?.seq ?? 0) + 1 }))
+  }, [])
 
   const clearConflict = useCallback((bookingId: string) => {
     setStatusConflict(prev => {
@@ -63,14 +88,15 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
     setPaymentBumps(prev => ({ ...prev, [bookingId]: (prev[bookingId] ?? 0) + 1 }))
   }, [])
 
-  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string, fromStatus: string) => {
+  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string, fromStatus: string, reference: string) => {
     setStatusUpdating(prev => ({ ...prev, [bookingId]: true }))
     clearConflict(bookingId)
     try {
       // D-01: expected_status = the status this row shows, so a stale view cannot overwrite the driver
       await patchBooking({ id: bookingId, status: newStatus, expected_status: fromStatus })
-      // Optimistic update — mutate only the status field, don't re-fetch
+      // The server accepted: mutate only the status field, don't re-fetch (never applied before this point)
       onPatched(bookingId, { status: newStatus })
+      showMoveToast(reference, newStatus)
     } catch (err) {
       if (err instanceof PatchError && err.status === 409 && err.message === 'status_conflict') {
         // Lost the race: show the locked inline copy, keep the row as it is, no automatic reload
@@ -83,7 +109,7 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
     } finally {
       setStatusUpdating(prev => ({ ...prev, [bookingId]: false }))
     }
-  }, [clearConflict, onPatched, onStale])
+  }, [clearConflict, onPatched, onStale, showMoveToast])
 
   // T-87-40: every path to the terminal no_show goes through the confirmation modal.
   const requestStatusChange = useCallback((booking: AdminBooking, newStatus: string) => {
@@ -98,8 +124,47 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
       setPendingCancel(booking)
       return
     }
-    handleStatusChange(booking.id, newStatus, booking.status)
+    handleStatusChange(booking.id, newStatus, booking.status, booking.booking_reference)
   }, [handleStatusChange])
+
+  // Phase 90: every surface (board drop, board menu, panel select, mobile card buttons) asks the planner first.
+  const requestMove = useCallback((booking: AdminBooking, to: string, surface: MoveSurface) => {
+    const plan = planMove(booking, to, surface)
+    switch (plan.kind) {
+      case 'rejected':
+        return
+      case 'direct':
+        void handleStatusChange(booking.id, to, booking.status, booking.booking_reference)
+        return
+      case 'confirm_complete':
+        // The capture (or cash) effect is stated first; only the dialog's primary button sends the PATCH.
+        setCompleteTarget({ booking, effect: plan.effect })
+        return
+      case 'cancel_dialog':
+        setPendingCancel(booking)
+        return
+      case 'no_show_dialog':
+        setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
+        return
+      case 'assign_picker':
+        // Wired with the driver picker dialog (plan 90-06 task 2).
+        return
+    }
+  }, [handleStatusChange])
+
+  // The complete dialog's PATCH was accepted: the row follows, the dialog closes, the toast confirms.
+  const handleCompleted = useCallback((booking: AdminBooking) => {
+    onPatched(booking.id, { status: 'completed' })
+    clearConflict(booking.id)
+    showMoveToast(booking.booking_reference, 'completed')
+    setCompleteTarget(null)
+  }, [clearConflict, onPatched, showMoveToast])
+
+  // The complete dialog lost the compare-and-set race: it shows its own line; the inline line and a refetch follow.
+  const handleCompleteConflict = useCallback((bookingId: string, currentStatus: string | undefined) => {
+    setStatusConflict(prev => ({ ...prev, [bookingId]: statusConflictMessage(currentStatus) }))
+    onStale?.(bookingId)
+  }, [onStale])
 
   const openNoShow = useCallback((booking: Pick<AdminBooking, 'id' | 'booking_reference'>) => {
     setNoShowTarget({ id: booking.id, reference: booking.booking_reference })
@@ -161,6 +226,44 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
         onRefundFailed={handleCancelRefundFailed}
         onCancelledWithoutCase={handleCancelledWithoutCase}
       />
+
+      {/* Complete-trip confirmation (Phase 90 D-12): states the capture / cash effect before the PATCH */}
+      <CompleteTripDialog
+        booking={completeTarget?.booking ?? null}
+        effect={completeTarget?.effect ?? null}
+        onClose={() => setCompleteTarget(null)}
+        onCompleted={() => { if (completeTarget) handleCompleted(completeTarget.booking) }}
+        onConflict={(id, currentStatus) => handleCompleteConflict(id, currentStatus)}
+      />
+
+      {/* Move toast (D-12): mounted only while a message shows, so a permanent empty live region cannot make
+          the cancel dialog's role=status outcome line ambiguous. */}
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          data-testid="move-toast"
+          style={{
+            position: 'fixed',
+            left: '50%',
+            bottom: '24px',
+            transform: 'translateX(-50%)',
+            zIndex: 110,
+            maxWidth: 'min(480px, calc(100vw - 32px))',
+            padding: '10px 16px',
+            borderRadius: 'var(--admin-radius-md)',
+            background: 'var(--admin-surface)',
+            border: '1px solid var(--admin-border-strong)',
+            boxShadow: 'var(--admin-shadow-sheet)',
+            color: 'var(--admin-text)',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: 'var(--admin-fs-body)',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {toast.text}
+        </div>
+      )}
     </>
   )
 
@@ -168,9 +271,10 @@ export function useBookingMoves(opts: UseBookingMovesOptions): BookingMovesApi {
     isUpdating: (id) => !!statusUpdating[id],
     conflictFor: (id) => statusConflict[id] ?? null,
     requestStatusChange,
+    requestMove,
     openNoShow,
     openCancel,
-    anyDialogOpen: noShowTarget !== null || pendingCancel !== null,
+    anyDialogOpen: noShowTarget !== null || pendingCancel !== null || completeTarget !== null,
     paymentBumpFor: (id) => paymentBumps[id] ?? 0,
     dialogs,
   }

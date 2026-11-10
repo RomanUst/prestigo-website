@@ -101,7 +101,7 @@ describe('CompleteTripDialog actions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Complete trip' }))
     const alert = await screen.findByRole('alert')
     expect(alert.textContent).toBe(statusConflictMessage('on_board'))
-    expect(onConflict).toHaveBeenCalledWith('b-1')
+    expect(onConflict).toHaveBeenCalledWith('b-1', 'on_board')
     expect(onCompleted).not.toHaveBeenCalled()
   })
 
