@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
 import type React from 'react'
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
-import { BookingPanelProvider } from '@/components/admin/BookingPanelProvider'
+import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react'
+import { BookingPanelProvider, useBookingPanel, type BookingPanelValue } from '@/components/admin/BookingPanelProvider'
+import type { AdminBooking } from '@/components/admin/bookingTypes'
 import { DispatchCalendar } from '@/components/admin/dispatch/DispatchCalendar'
 import { toCalendarItems, itemsByDay, monthCells, shiftIsoMonth } from '@/components/admin/dispatch/calendarModel'
 import { pragueMinuteOfDay } from '@/lib/prague-calendar'
@@ -505,5 +507,194 @@ describe('DispatchCalendar DST weeks', () => {
     const blockB = await within(sunday).findByTestId(`calendar-block-${b.id}`)
     expect(blockA.textContent).toContain('02:30')
     expect(blockB.textContent).toContain('02:30')
+  })
+})
+
+// ── Task 3: Show all, events, polling pause, updated-ago and state lines ───
+
+function stubDispatchStatus(status: number) {
+  const fetchMock = vi.fn().mockImplementation(() =>
+    Promise.resolve({ ok: false, status, json: () => Promise.resolve({}) }),
+  )
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
+describe('DispatchCalendar Show all', () => {
+  it('hides a cancelled booking by default and draws it faded with its status label when Show all is on', async () => {
+    const live = at('2027-10-28T08:00:00Z', { booking_reference: 'PRE-LIVE', status: 'confirmed' })
+    const gone = at('2027-10-28T09:00:00Z', { booking_reference: 'PRE-GONE', status: 'cancelled' })
+    stubDispatch([live, gone])
+    mount()
+    await screen.findByTestId(`calendar-block-${live.id}`)
+    expect(screen.queryByTestId(`calendar-block-${gone.id}`)).toBeNull()
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show all' }))
+    const block = await screen.findByTestId(`calendar-block-${gone.id}`)
+    expect(block.textContent).toContain('Cancelled')
+    expect(block.textContent).toContain('PRE-GONE')
+    expect(block.style.opacity).toBe('0.55')
+    expect(screen.getByTestId(`calendar-block-${live.id}`).style.opacity).toBe('1')
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show all' }))
+    expect(screen.queryByTestId(`calendar-block-${gone.id}`)).toBeNull()
+  })
+})
+
+describe('DispatchCalendar states', () => {
+  it('shows "Updated N s ago" after a load', async () => {
+    stubDispatch([])
+    mount()
+    expect(await screen.findByText(/^Updated \d+ s ago$/)).toBeDefined()
+  })
+
+  it('unauthorized: tells the operator the session ended and links to the login page', async () => {
+    stubDispatchStatus(401)
+    mount()
+    const line = await screen.findByTestId('calendar-error')
+    expect(line.textContent).toBe('Your admin session has ended. Sign in again.')
+    expect(within(line).getByRole('link', { name: 'Sign in again.' }).getAttribute('href')).toBe('/admin/login')
+  })
+
+  it('failed: says it could not load and that it retries every 30 seconds', async () => {
+    stubDispatchStatus(500)
+    mount()
+    const line = await screen.findByTestId('calendar-error')
+    expect(line.textContent).toBe('Could not load bookings. Retrying every 30 seconds.')
+  })
+
+  it('truncated: says only the first 500 bookings are shown', async () => {
+    stubDispatch([at('2027-10-28T08:00:00Z')], { truncated: true })
+    mount()
+    expect((await screen.findByTestId('calendar-truncated')).textContent).toBe(
+      'Showing the first 500 bookings in this range. Narrow the range to see all.',
+    )
+  })
+
+  it('empty: says there are no bookings in the range', async () => {
+    stubDispatch([])
+    mount()
+    expect((await screen.findByTestId('calendar-empty')).textContent).toBe('No bookings in this range.')
+  })
+
+  it('all hidden by the filter: points at Show all instead of claiming the range is empty', async () => {
+    stubDispatch([at('2027-10-28T08:00:00Z', { status: 'cancelled' })])
+    mount()
+    expect((await screen.findByTestId('calendar-empty')).textContent).toBe(
+      'No active bookings in this range. Turn on Show all to include the others.',
+    )
+  })
+})
+
+describe('DispatchCalendar events and polling pause', () => {
+  let api: BookingPanelValue
+
+  function Probe() {
+    const panel = useBookingPanel()
+    useEffect(() => {
+      api = panel
+    })
+    return null
+  }
+
+  function mountWithProbe() {
+    return render(
+      <BookingPanelProvider>
+        <Probe />
+        <DispatchCalendar search="" tripType="all" initialView="week" />
+      </BookingPanelProvider>,
+    )
+  }
+
+  const asBooking = (r: Row) => r as unknown as AdminBooking
+
+  it('a patched event recolours the block without a refetch', async () => {
+    const b = at('2027-10-28T08:00:00Z', { status: 'en_route', booking_reference: 'PRE-PATCH' })
+    const fetchMock = stubDispatch([b])
+    mountWithProbe()
+    const block = await screen.findByTestId(`calendar-block-${b.id}`)
+    expect(block.getAttribute('style')).toContain('var(--status-violet-bg)')
+
+    await act(async () => {
+      api.moves.requestMove(asBooking(b), 'on_location', 'panel')
+    })
+    await waitFor(() => {
+      const after = screen.getByTestId(`calendar-block-${b.id}`)
+      expect(after.getAttribute('style')).toContain('var(--status-amber-bg)')
+      expect(after.textContent).toContain('On Location')
+    })
+    expect(dispatchCalls(fetchMock)).toHaveLength(1)
+  })
+
+  it('a stale event (the move lost the race) refetches the window at once', async () => {
+    const b = at('2027-10-28T08:00:00Z', { status: 'en_route', booking_reference: 'PRE-STALE' })
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: { method?: string }) => {
+      if (String(url).includes('/api/admin/bookings/dispatch')) {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ bookings: [b], truncated: false }) })
+      }
+      if (init?.method === 'PATCH') {
+        return Promise.resolve({
+          ok: false,
+          status: 409,
+          json: () => Promise.resolve({ error: 'status_conflict', currentStatus: 'on_board' }),
+        })
+      }
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    mountWithProbe()
+    await screen.findByTestId(`calendar-block-${b.id}`)
+    expect(dispatchCalls(fetchMock)).toHaveLength(1)
+
+    await act(async () => {
+      api.moves.requestMove(asBooking(b), 'on_location', 'panel')
+    })
+    await waitFor(() => expect(dispatchCalls(fetchMock)).toHaveLength(2))
+  })
+
+  it('does not poll while a move dialog is open and makes one catch-up fetch when it closes', async () => {
+    vi.useRealTimers()
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(NOW))
+    const b = at('2027-10-28T08:00:00Z', { status: 'on_location', booking_reference: 'PRE-PAUSE' })
+    const fetchMock = stubDispatch([b])
+    mountWithProbe()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dispatchCalls(fetchMock)).toHaveLength(1)
+
+    await act(async () => {
+      api.moves.openNoShow({ id: b.id, booking_reference: b.booking_reference })
+    })
+    expect(api.pausePolling).toBe(true)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(65_000)
+    })
+    expect(dispatchCalls(fetchMock)).toHaveLength(1)
+
+    await act(async () => {
+      fireEvent.keyDown(document, { key: 'Escape' })
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(api.pausePolling).toBe(false)
+    expect(dispatchCalls(fetchMock)).toHaveLength(2)
+  })
+
+  it('polls every 30 seconds while nothing is open', async () => {
+    vi.useRealTimers()
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(NOW))
+    const fetchMock = stubDispatch([])
+    mountWithProbe()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0)
+    })
+    expect(dispatchCalls(fetchMock)).toHaveLength(1)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000)
+    })
+    expect(dispatchCalls(fetchMock)).toHaveLength(2)
   })
 })

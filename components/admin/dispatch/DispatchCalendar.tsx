@@ -1,13 +1,15 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { useBookingPanel } from '@/components/admin/BookingPanelProvider'
+import Link from 'next/link'
+import { useBookingEvents, useBookingPanel } from '@/components/admin/BookingPanelProvider'
 import { STATUS_FAMILY, type StatusBadgeVariant } from '@/components/admin/StatusBadge'
 import type { AdminBooking } from '@/components/admin/bookingTypes'
 import { BOOKING_STATUS_LABELS, isBookingStatus } from '@/lib/booking-status'
 import { MIN_BLOCK_MIN, calendarWindow, monthGrid, type CalendarView, type Placed } from '@/lib/prague-calendar'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 import { serializeCalendarViewCookie, type AdminCalendarView } from '@/lib/admin-shell-prefs'
+import { UpdatedAgo } from './UpdatedAgo'
 import { useDispatchBookings } from './useDispatchBookings'
 import {
   formatMinute,
@@ -99,14 +101,21 @@ export function DispatchCalendar({ search, tripType, initialView }: DispatchCale
   const { openBooking, syncRows, pausePolling } = useBookingPanel()
   const [view, setView] = useState<CalendarView>(initialView)
   const [anchor, setAnchor] = useState<string>(() => getPragueTodayISO())
-  const [showAll] = useState(false)
+  const [showAll, setShowAll] = useState(false)
 
   // The window, and therefore the fetch, depends only on the view and the anchor date.
   const fetchWindow = useMemo(() => calendarWindow(view, anchor), [view, anchor])
-  const { rows } = useDispatchBookings<AdminBooking>(
+  // Polling pauses while a move dialog is open or the panel holds unsaved input (D-16).
+  const { rows, updatedAt, loading, error, truncated, refresh, patchRow } = useDispatchBookings<AdminBooking>(
     { startDate: fetchWindow.startDate, endDate: fetchWindow.endDate, search, tripType },
     { paused: pausePolling },
   )
+
+  // A change made in the panel or by a move: recolour in place; a lost race refetches the window.
+  useBookingEvents(e => {
+    if (e.type === 'patched') patchRow(e.id, e.patch)
+    else refresh()
+  })
 
   // Keep an open panel current after every load (the provider's snapshot goes stale otherwise).
   useEffect(() => {
@@ -193,21 +202,65 @@ export function DispatchCalendar({ search, tripType, initialView }: DispatchCale
           </h2>
         </div>
 
-        <div role="tablist" aria-label="Calendar view" style={{ display: 'flex', gap: '4px' }}>
-          {VIEW_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              role="tab"
-              aria-selected={view === opt.value}
-              onClick={() => switchView(opt.value)}
-              style={toolbarButtonStyle(view === opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: 'var(--admin-fs-body)',
+              color: 'var(--admin-text)',
+              cursor: 'pointer',
+            }}
+          >
+            <input type="checkbox" checked={showAll} onChange={e => setShowAll(e.target.checked)} />
+            Show all
+          </label>
+          <span style={{ fontSize: 'var(--admin-fs-label)', color: 'var(--admin-text-muted)' }}>
+            <UpdatedAgo at={updatedAt} />
+          </span>
+          <div role="tablist" aria-label="Calendar view" style={{ display: 'flex', gap: '4px' }}>
+            {VIEW_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                role="tab"
+                aria-selected={view === opt.value}
+                onClick={() => switchView(opt.value)}
+                style={toolbarButtonStyle(view === opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
+
+      {error === 'unauthorized' && (
+        <p data-testid="calendar-error" role="alert" style={noticeStyle('var(--status-danger-fg)')}>
+          Your admin session has ended. <Link href="/admin/login" style={{ color: 'inherit' }}>Sign in again.</Link>
+        </p>
+      )}
+      {error === 'failed' && (
+        <p data-testid="calendar-error" role="alert" style={noticeStyle('var(--status-danger-fg)')}>
+          Could not load bookings. Retrying every 30 seconds.
+        </p>
+      )}
+      {truncated && (
+        <p data-testid="calendar-truncated" style={noticeStyle('var(--status-warn-fg)')}>
+          Showing the first 500 bookings in this range. Narrow the range to see all.
+        </p>
+      )}
+      {!loading && !error && rows.length === 0 && (
+        <p data-testid="calendar-empty" style={noticeStyle('var(--admin-text-muted)')}>
+          No bookings in this range.
+        </p>
+      )}
+      {!loading && !error && rows.length > 0 && items.length === 0 && (
+        <p data-testid="calendar-empty" style={noticeStyle('var(--admin-text-muted)')}>
+          No active bookings in this range. Turn on Show all to include the others.
+        </p>
+      )}
 
       {view === 'month' ? (
         <MonthGrid
@@ -223,6 +276,10 @@ export function DispatchCalendar({ search, tripType, initialView }: DispatchCale
       )}
     </div>
   )
+}
+
+function noticeStyle(color: string): CSSProperties {
+  return { margin: '0 0 12px', fontSize: 'var(--admin-fs-body)', color }
 }
 
 function toolbarButtonStyle(active: boolean): CSSProperties {
