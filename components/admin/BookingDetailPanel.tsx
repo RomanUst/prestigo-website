@@ -31,8 +31,13 @@ interface BookingDetailPanelProps {
   onSearchReference?: (reference: string) => void
   /** Bumped by the host when a fresher row showed a status or payment change: the PaymentPanel refetches. */
   refreshSignal?: number
-  /** True while the panel holds input that is not saved yet (notes, driver price, an open trip-edit form). */
-  onDirtyChange?: (dirty: boolean) => void
+  /**
+   * `dirty`: the panel holds input that is not saved yet (notes, driver price, an open trip-edit form), so the views
+   * must not refetch. `discardable`: closing or switching the panel right now would lose input for good (a typed
+   * driver price, an open trip-edit form, notes whose save failed); a note still waiting for its debounce is not
+   * discardable because the unmount sends it.
+   */
+  onDirtyChange?: (dirty: boolean, discardable: boolean) => void
 }
 
 export function BookingDetailPanel({ booking, moves, onPatched, onSearchReference, refreshSignal = 0, onDirtyChange }: BookingDetailPanelProps) {
@@ -147,15 +152,20 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
     (notes !== savedNotes && notesSaving !== 'error') ||
     (driverPrice.trim() !== savedDriverPrice && driverPriceSaving !== 'error') ||
     tripEditOpen
+  // 90 WR-02: input that would be gone after an unmount. The host asks before it closes or switches the panel.
+  const discardable =
+    (notes !== savedNotes && notesSaving === 'error') ||
+    driverPrice.trim() !== savedDriverPrice ||
+    tripEditOpen
   const onDirtyChangeRef = useRef(onDirtyChange)
   useEffect(() => {
     onDirtyChangeRef.current = onDirtyChange
   })
   useEffect(() => {
-    onDirtyChangeRef.current?.(dirty)
-  }, [dirty])
+    onDirtyChangeRef.current?.(dirty, discardable)
+  }, [dirty, discardable])
   useEffect(() => {
-    return () => onDirtyChangeRef.current?.(false)
+    return () => onDirtyChangeRef.current?.(false, false)
   }, [])
 
   // Phase 63 Plan 05: optimistic-update sink for TripEditPanel — mutates only the fields that were actually saved.

@@ -518,6 +518,81 @@ describe('BookingPanelProvider', () => {
     expect(screen.getByTestId('booking-panel')).toBeDefined()
   })
 
+  describe('unsaved input guard (WR-02)', () => {
+    let confirmSpy: ReturnType<typeof vi.spyOn>
+    beforeEach(() => {
+      confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    })
+    afterEach(() => {
+      confirmSpy.mockRestore()
+    })
+
+    it('Escape with an unsaved driver price asks first; cancelling keeps the panel and the input', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      const price = within(panel).getByPlaceholderText(/e\.g\. 1000/) as HTMLInputElement
+      fireEvent.change(price, { target: { value: '1200' } })
+      await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+      expect(confirmSpy).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('booking-panel')).toBeDefined()
+      expect((within(screen.getByTestId('booking-panel')).getByPlaceholderText(/e\.g\. 1000/) as HTMLInputElement).value).toBe('1200')
+
+      confirmSpy.mockReturnValue(true)
+      await act(async () => { fireEvent.keyDown(document, { key: 'Escape' }) })
+      expect(screen.queryByTestId('booking-panel')).toBeNull()
+    })
+
+    it('the close button asks while the trip-edit form is open', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      fireEvent.click(within(panel).getByRole('button', { name: 'Edit Trip Details' }))
+      await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Close booking panel' })) })
+      expect(confirmSpy).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('booking-panel')).toBeDefined()
+    })
+
+    it('opening another booking asks while input is unsaved and stays on the first one when declined', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      fireEvent.click(within(panel).getByRole('button', { name: 'Edit Trip Details' }))
+      await act(async () => { api.openBooking(makeBooking({ id: 'b2', booking_reference: 'PRE-OTHER' })) })
+      expect(confirmSpy).toHaveBeenCalledTimes(1)
+      expect(api.selected?.id).toBe('b1')
+
+      confirmSpy.mockReturnValue(true)
+      await act(async () => { api.openBooking(makeBooking({ id: 'b2', booking_reference: 'PRE-OTHER' })) })
+      expect(api.selected?.id).toBe('b2')
+    })
+
+    it('does not ask when nothing would be lost: no input, or a note the unmount still sends', async () => {
+      renderProvider()
+      let panel = await openPanel()
+      await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Close booking panel' })) })
+      expect(screen.queryByTestId('booking-panel')).toBeNull()
+
+      panel = await openPanel()
+      fireEvent.change(within(panel).getByPlaceholderText('Add internal notes...'), { target: { value: 'half typed' } })
+      await act(async () => { api.openBooking(makeBooking({ id: 'b2', booking_reference: 'PRE-OTHER' })) })
+      expect(api.selected?.id).toBe('b2')
+      expect(confirmSpy).not.toHaveBeenCalled()
+    })
+
+    it('asks again after a failed notes save, since that text would be lost', async () => {
+      renderProvider()
+      const panel = await openPanel()
+      vi.stubGlobal('fetch', vi.fn().mockImplementation(() =>
+        Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({ error: 'boom' }) }),
+      ))
+      const notes = within(panel).getByPlaceholderText('Add internal notes...')
+      fireEvent.change(notes, { target: { value: 'will not save' } })
+      await act(async () => { fireEvent.blur(notes) })
+      expect(within(panel).getByText('Error saving')).toBeDefined()
+      await act(async () => { fireEvent.click(within(panel).getByRole('button', { name: 'Close booking panel' })) })
+      expect(confirmSpy).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('booking-panel')).toBeDefined()
+    })
+  })
+
   it('mounts each money dialog exactly once for the whole page', async () => {
     renderProvider()
     await openPanel()

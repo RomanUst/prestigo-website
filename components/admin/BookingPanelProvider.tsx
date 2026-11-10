@@ -48,6 +48,18 @@ export function BookingPanelProvider({ children }: { children: React.ReactNode }
   const [refreshSignal, setRefreshSignal] = useState(0)
   // True while the panel holds unsaved input (notes, driver price, an open trip-edit form).
   const [panelDirty, setPanelDirty] = useState(false)
+  // True while closing or switching the panel would lose input for good (a typed driver price, an open trip-edit form).
+  const panelDiscardableRef = useRef(false)
+  const handleDirtyChange = useCallback((dirty: boolean, discardable: boolean) => {
+    panelDiscardableRef.current = discardable
+    setPanelDirty(dirty)
+  }, [])
+  // 90 WR-02: Escape, the close button and opening another booking all end the panel's local state. Ask first when
+  // that state holds input nothing else would save.
+  const confirmDiscard = useCallback(() => {
+    if (!panelDiscardableRef.current) return true
+    return window.confirm('This booking has unsaved changes. Close it and discard them?')
+  }, [])
   const [referenceSearchHandler, setReferenceSearchHandlerState] = useState<((reference: string) => void) | null>(null)
   const setReferenceSearchHandler = useCallback((handler: ((reference: string) => void) | null) => {
     // a function stored in state must be wrapped, or React would call it as an updater
@@ -85,19 +97,27 @@ export function BookingPanelProvider({ children }: { children: React.ReactNode }
 
   const openBooking = useCallback((b: AdminBooking, opener?: HTMLElement | null) => {
     const active = document.activeElement
-    openerRef.current = opener ?? (active instanceof HTMLElement && active !== document.body ? active : null)
+    const nextOpener = opener ?? (active instanceof HTMLElement && active !== document.body ? active : null)
     // Same booking again keeps the panel as it is: no close-reopen flicker, no lost input.
-    if (selectedRef.current?.id === b.id) return
+    if (selectedRef.current?.id === b.id) {
+      openerRef.current = nextOpener
+      return
+    }
+    // Switching to another booking re-keys the panel and drops its local input.
+    if (selectedRef.current && !confirmDiscard()) return
+    openerRef.current = nextOpener
     commitSelected(b)
-  }, [commitSelected])
+  }, [commitSelected, confirmDiscard])
 
   const closePanel = useCallback(() => {
+    if (!confirmDiscard()) return
     commitSelected(null)
+    panelDiscardableRef.current = false
     setPanelDirty(false)
     const opener = openerRef.current
     openerRef.current = null
     if (opener && opener.isConnected) opener.focus()
-  }, [commitSelected])
+  }, [commitSelected, confirmDiscard])
 
   const syncRows = useCallback((rows: AdminBooking[]) => {
     const cur = selectedRef.current
@@ -139,7 +159,7 @@ export function BookingPanelProvider({ children }: { children: React.ReactNode }
             onPatched={handlePatched}
             onSearchReference={referenceSearchHandler ?? undefined}
             refreshSignal={refreshSignal}
-            onDirtyChange={setPanelDirty}
+            onDirtyChange={handleDirtyChange}
           />
         </BookingSidePanel>
       )}
