@@ -42,6 +42,8 @@ export interface PriceBreakdown {
   extras: number
   total: number
   currency: string
+  /** Phase 91: paid waiting at stops, already included in base/total. null = class cannot price it. */
+  waitingEur?: number | null
 }
 
 export interface Extras {
@@ -128,6 +130,7 @@ export interface BookingStore {
   addStop: () => void
   removeStop: (id: string) => void
   updateStop: (id: string, place: PlaceResult | null) => void
+  setStopWait: (id: string, minutes: number) => void
   nextStep: () => void
   prevStep: () => void
   goToStep: (step: number) => void

@@ -164,7 +164,7 @@ export default function Step3Vehicle() {
     // filtered out (they cannot reach the Google Routes API safely — T-30-13).
     const intermediates = s.stops
       .filter((stop) => stop.place !== null)
-      .map((stop) => ({ lat: stop.place!.lat, lng: stop.place!.lng }))
+      .map((stop) => ({ lat: stop.place!.lat, lng: stop.place!.lng, waitMinutes: stop.waitMinutes ?? 0 }))
     setLoading(true)
     try {
       const res = await fetch('/api/calculate-price', {

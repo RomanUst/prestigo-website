@@ -39,6 +39,7 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
 
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
+  const waitingEur = selectedPrice?.waitingEur ?? 0
 
   const classLabel = vehicleClass ? t(`vehicleClasses.${VEHICLE_CLASS_KEY[vehicleClass]}.label`) : ''
 
@@ -138,6 +139,13 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
             ) : null
           )}
         </div>
+      )}
+
+      {/* D-06: waiting at stops as its own line; the amount is the server's waitingEur (already in the total) */}
+      {waitingEur > 0 && (
+        <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.8, marginBottom: 12 }}>
+          {t('priceSummary.waitingLine')} +&euro;{waitingEur}
+        </p>
       )}
 
       {/* Round-trip three-line breakdown or single price */}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { renderWithIntl as render } from './helpers/renderWithIntl'
 import userEvent from '@testing-library/user-event'
 import VehicleCard from '@/components/booking/VehicleCard'
@@ -157,5 +157,27 @@ describe('Step3Vehicle', () => {
       render(<Step3Vehicle />)
       expect(screen.getByText('Choose your vehicle')).toBeInTheDocument()
     })
+  })
+})
+
+describe('Phase 91 D-06: Step3Vehicle sends the per-stop wait to the quote', () => {
+  it('forwards intermediates with waitMinutes and skips stops without a place', async () => {
+    setupStore()
+    useBookingStore.setState({
+      stops: [
+        { id: 's1', place: { address: 'Karlstejn', placeId: 'k', lat: 49.94, lng: 14.19 }, waitMinutes: 45 },
+        { id: 's2', place: null, waitMinutes: 30 },
+      ],
+    })
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ prices: mockPrices, returnLegPrices: null, distanceKm: 30, quoteMode: false }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    render(<Step3Vehicle />)
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled())
+    const call = fetchMock.mock.calls.find((c) => c[0] === '/api/calculate-price')
+    expect(call).toBeTruthy()
+    const body = JSON.parse((call as [string, { body: string }])[1].body)
+    expect(body.intermediates).toEqual([{ lat: 49.94, lng: 14.19, waitMinutes: 45 }])
   })
 })

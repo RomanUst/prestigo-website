@@ -10,6 +10,7 @@ export interface StopListProps {
   onAdd: () => void
   onRemove: (id: string) => void
   onUpdate: (id: string, place: PlaceResult | null) => void
+  onWaitChange?: (id: string, minutes: number) => void
   maxStops?: number
 }
 
@@ -18,6 +19,7 @@ export default function StopList({
   onAdd,
   onRemove,
   onUpdate,
+  onWaitChange,
   maxStops = 5,
 }: StopListProps) {
   const t = useTranslations('Booking.stopList')
@@ -32,6 +34,7 @@ export default function StopList({
           index={index}
           onRemove={onRemove}
           onUpdate={onUpdate}
+          onWaitChange={onWaitChange}
         />
       ))}
 

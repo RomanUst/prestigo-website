@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { isValidStopWait } from '@/lib/stops'
 import type { BookingStore, PlaceResult, Stop, FlightCheckResult } from '@/types/booking'
 
 export const useBookingStore = create<BookingStore>()(
@@ -75,7 +76,7 @@ export const useBookingStore = create<BookingStore>()(
       addStop: () => set((s) => {
         if (s.stops.length >= 5) return s  // STOP-01 max 5 enforcement
         return {
-          stops: [...s.stops, { id: crypto.randomUUID(), place: null } as Stop],
+          stops: [...s.stops, { id: crypto.randomUUID(), place: null, waitMinutes: 0 } as Stop],
           priceBreakdown: null,
           promoCode: null,
           promoDiscount: 0,
@@ -93,6 +94,15 @@ export const useBookingStore = create<BookingStore>()(
         promoCode: null,
         promoDiscount: 0,
       })),
+      setStopWait: (id: string, minutes: number) => set((s) => {
+        if (!isValidStopWait(minutes)) return s
+        return {
+          stops: s.stops.map((stop) => (stop.id === id ? { ...stop, waitMinutes: minutes } : stop)),
+          priceBreakdown: null,
+          promoCode: null,
+          promoDiscount: 0,
+        }
+      }),
       setPickupDate: (date) => set({ pickupDate: date }),
       setPickupTime: (time) => set({ pickupTime: time }),
       setReturnDate: (date) => set({ returnDate: date }),
