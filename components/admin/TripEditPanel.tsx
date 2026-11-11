@@ -7,6 +7,7 @@ import { TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-sta
 import AddressInput from '@/components/booking/AddressInput'
 import type { PlaceResult } from '@/types/booking'
 import { eurToCzk } from '@/lib/currency'
+import { LANDING_OFFSETS, pickupFromLanding } from '@/lib/airport-pickup'
 import {
   PatchError,
   STATUS_LABELS,
@@ -66,9 +67,50 @@ function paymentEffectMessage(result: unknown): string | null {
   return null
 }
 
-/** Error text for a failed trip-edit PATCH: the friendly copy for payment_in_progress, else the message. */
-function tripEditErrorText(err: unknown, fallback: string): string {
+// Phase 91 Pitfall 10: the recalculated price covers the vehicle, the route and the extras, not the detour through the
+// stops or their waiting time, so the server refuses to reprice a booking with stops unless the operator sets the price.
+const STOPS_PRICE_NOTE =
+  'This booking has stops: the recalculated price leaves out the detour and the waiting. Set the price by hand.'
+
+/** The pickups a landing allows, as clock times: "14:00, 14:15, 14:30, 14:45, 15:00 or 15:30". Null without a landing. */
+function allowedPickupTimes(booking: Booking): string[] | null {
+  if (!booking.landing_date || !booking.landing_time) return null
+  const times: string[] = []
+  for (const offset of LANDING_OFFSETS) {
+    const derived = pickupFromLanding(booking.landing_date, booking.landing_time.slice(0, 5), offset)
+    if (derived) times.push(derived.pickupTime)
+  }
+  return times.length > 0 ? times : null
+}
+
+/** Phase 91 (D-07, D-18): the hint under the pickup fields of an airport booking timed from its landing. */
+function landingPickupHint(booking: Booking): string | null {
+  const times = allowedPickupTimes(booking)
+  if (!times || !booking.landing_time) return null
+  const list = times.length > 1 ? `${times.slice(0, -1).join(', ')} or ${times[times.length - 1]}` : times[0]
+  return `Timed from landing ${booking.landing_time.slice(0, 5)}: pickup can be ${list}. For a new landing time use Move pickup.`
+}
+
+/** The offset whose pickup (landing + offset) is exactly this date and time; null when there is none. */
+function offsetForPickup(booking: Booking, date: string, time: string): number | null {
+  if (!booking.landing_date || !booking.landing_time) return null
+  for (const offset of LANDING_OFFSETS) {
+    const derived = pickupFromLanding(booking.landing_date, booking.landing_time.slice(0, 5), offset)
+    if (derived && derived.pickupDate === date && derived.pickupTime === time) return offset
+  }
+  return null
+}
+
+/**
+ * Error text for a failed trip-edit PATCH: the friendly copy for payment_in_progress, the stops note for
+ * stops_edit_unsupported, the landing hint for landing_pickup_mismatch, else the message.
+ */
+function tripEditErrorText(err: unknown, fallback: string, landingHint: string | null = null): string {
   if (err instanceof PatchError && err.status === 409 && err.message === 'payment_in_progress') return PAYMENT_IN_PROGRESS_COPY
+  if (err instanceof PatchError && err.status === 422 && err.message === 'stops_edit_unsupported') return STOPS_PRICE_NOTE
+  if (err instanceof PatchError && err.status === 422 && err.message === 'landing_pickup_mismatch') {
+    return landingHint ?? 'The pickup must be the landing time plus an allowed delay. For a new landing time use Move pickup.'
+  }
   return err instanceof Error ? err.message : fallback
 }
 
@@ -201,6 +243,8 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
       : null
   )
   const [priceReview, setPriceReview] = useState<PriceReviewState | null>(null)
+  const hasStops = (booking.stops?.length ?? 0) > 0
+  const landingHint = landingPickupHint(booking)
   // Phase 88: what the edit did to the card payment (price raised / lowered, hold released).
   const [paymentNote, setPaymentNote] = useState<string | null>(null)
 
@@ -230,6 +274,9 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
       patch.pickup_time = fields.pickup_time
       bookingPatch.pickup_date = fields.pickup_date
       bookingPatch.pickup_time = fields.pickup_time
+      // The server writes pickup_offset_min with the pickup; keep the row in step so the panel shows the new offset.
+      const offset = offsetForPickup(booking, fields.pickup_date, fields.pickup_time)
+      if (offset !== null) bookingPatch.pickup_offset_min = offset
     } else if (group === 'name') {
       patch.client_first_name = fields.client_first_name.trim()
       patch.client_last_name = fields.client_last_name.trim()
@@ -256,10 +303,10 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
         setFieldSaving(prev => prev[group] === 'saved' ? { ...prev, [group]: 'idle' } : prev)
       }, 2000)
     } catch (err) {
-      setFieldErrors(prev => ({ ...prev, [group]: tripEditErrorText(err, 'Save failed') }))
+      setFieldErrors(prev => ({ ...prev, [group]: tripEditErrorText(err, 'Save failed', landingHint) }))
       setFieldSaving(prev => ({ ...prev, [group]: 'error' }))
     }
-  }, [fields, booking.id, patchBooking, onUpdated])
+  }, [fields, booking, patchBooking, onUpdated, landingHint])
 
   // AEDIT-03/D-06: vehicle_class / route edits never commit directly — they
   // trigger a client round trip to POST /api/calculate-price for a fresh
@@ -305,14 +352,15 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
       const newAmountCzk = eurToCzk(priceEur)
       // 88-REVIEW A-WR-11: a card booking is charged its stored amount after the trip. The standard rate above knows no
       // promo code, so the review starts from the agreed price; only an amount the operator enters changes it.
-      const startValue = booking.payment_mode === 'card_hold' ? booking.amount_czk : newAmountCzk
+      // Phase 91: the same for a booking with stops, whose recompute leaves out the detour and the waiting.
+      const startValue = booking.payment_mode === 'card_hold' || hasStops ? booking.amount_czk : newAmountCzk
       setPriceReview(prev => prev ? {
         ...prev, status: 'ready', newAmountCzk, distanceKm: data.distanceKm ?? null, overrideValue: String(startValue),
       } : prev)
     } catch {
       setPriceReview(prev => prev ? { ...prev, status: 'error', errorMessage: 'Price calculation failed.' } : prev)
     }
-  }, [booking, originPlace, destinationPlace, vehicleClass, fields.pickup_date, fields.pickup_time])
+  }, [booking, hasStops, originPlace, destinationPlace, vehicleClass, fields.pickup_date, fields.pickup_time])
 
   const confirmPriceReview = useCallback(async () => {
     if (!priceReview) return
@@ -422,6 +470,11 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
                     onBlur={editFocusOff}
                   />
                 </div>
+                {landingHint && (
+                  <div data-testid="landing-pickup-hint" style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)', marginTop: 8 }}>
+                    {landingHint}
+                  </div>
+                )}
                 <button type="button" onClick={() => saveGroup('datetime')} style={{ ...ghostCopperButtonStyle, marginTop: 8 }}>
                   Save Date & Time
                 </button>
@@ -590,6 +643,12 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
                   <h3 style={{ fontFamily: 'var(--font-cormorant)', fontSize: 26, fontWeight: 300, lineHeight: 1.2, color: 'var(--offwhite)', margin: 0 }}>
                     Review Price Change
                   </h3>
+
+                  {hasStops && (
+                    <div data-testid="stops-price-note" style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)', marginTop: 8 }}>
+                      {STOPS_PRICE_NOTE}
+                    </div>
+                  )}
 
                   {priceReview.status === 'loading' && (
                     <div style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)', marginTop: 16 }}>

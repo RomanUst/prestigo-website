@@ -1,9 +1,15 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const { getAdminUserMock, rpcMock } = vi.hoisted(() => ({
+const { getAdminUserMock, rpcMock, stopsState } = vi.hoisted(() => ({
   getAdminUserMock: vi.fn(),
   rpcMock: vi.fn(),
+  // The booking_stops table as the service client sees it: rows to return and an optional read error.
+  stopsState: {
+    rows: [] as Array<Record<string, unknown>>,
+    error: null as { message: string } | null,
+    queries: [] as string[][],
+  },
 }))
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -11,7 +17,22 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: vi.fn(() => ({ rpc: rpcMock })),
+  createSupabaseServiceClient: vi.fn(() => ({
+    rpc: rpcMock,
+    // booking_stops read through lib/booking-stops: select().in('booking_id', ids).order('position')
+    from: (table: string) => ({
+      select: () => ({
+        in: (_column: string, ids: string[]) => ({
+          order: async () => {
+            if (table !== 'booking_stops') return { data: [], error: null }
+            stopsState.queries.push(ids)
+            if (stopsState.error) return { data: null, error: stopsState.error }
+            return { data: stopsState.rows.filter((r) => ids.includes(String(r.booking_id))), error: null }
+          },
+        }),
+      }),
+    }),
+  })),
 }))
 
 import { GET } from '@/app/api/admin/bookings/dispatch/route'
@@ -27,6 +48,9 @@ function page(rows: unknown[], total: number) {
 beforeEach(() => {
   vi.clearAllMocks()
   getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+  stopsState.rows = []
+  stopsState.error = null
+  stopsState.queries = []
 })
 
 describe('GET /api/admin/bookings/dispatch - tracer', () => {
@@ -38,7 +62,11 @@ describe('GET /api/admin/bookings/dispatch - tracer', () => {
 
     expect(res.status).toBe(200)
     expect(res.headers.get('Cache-Control')).toContain('no-store')
-    expect(await res.json()).toEqual({ bookings: rows, truncated: false })
+    // Phase 91: every row carries its stops; a booking without stops gets [].
+    expect(await res.json()).toEqual({
+      bookings: rows.map((row) => ({ ...row, stops: [] })),
+      truncated: false,
+    })
     expect(rpcMock).toHaveBeenCalledTimes(1)
     expect(rpcMock).toHaveBeenCalledWith('admin_search_bookings', {
       p_query: null,
@@ -168,6 +196,80 @@ describe('GET /api/admin/bookings/dispatch - failure and log hygiene', () => {
     expect(res.headers.get('Cache-Control')).toContain('no-store')
     expect(spy).toHaveBeenCalled()
     expect(JSON.stringify(spy.mock.calls)).not.toContain('SecretClientName')
+    spy.mockRestore()
+  })
+})
+
+describe('GET /api/admin/bookings/dispatch - stops (Phase 91, STOP-04)', () => {
+  const stopRow = (bookingId: string, position: number, address: string | null, wait: number, blocks: number, fee: number) => ({
+    booking_id: bookingId,
+    position,
+    address,
+    lat: 50.2,
+    lng: 12.9,
+    wait_minutes: wait,
+    free_minutes: 15,
+    blocks,
+    fee_per_block_eur: blocks > 0 ? '12.00' : null,
+    fee_eur: String(fee),
+  })
+
+  it('attaches the stops of each booking ordered by position, [] for a booking without stops', async () => {
+    rpcMock.mockResolvedValueOnce(
+      page(
+        [
+          { id: 'b1', landing_date: '2027-06-10', landing_time: '14:00', pickup_offset_min: 30 },
+          { id: 'b2', landing_date: null, landing_time: null, pickup_offset_min: null },
+        ],
+        2,
+      ),
+    )
+    // Stored out of order on purpose: the loader orders by position.
+    stopsState.rows = [stopRow('b1', 2, 'Pilsen', 15, 0, 0), stopRow('b1', 1, 'Karlovy Vary', 45, 2, 24)]
+
+    const res = await GET(req('startDate=2027-06-10&endDate=2027-06-10'))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.bookings[0]).toMatchObject({ id: 'b1', landing_time: '14:00', pickup_offset_min: 30 })
+    expect(body.bookings[0].stops.map((s: { position: number }) => s.position)).toEqual([1, 2])
+    expect(body.bookings[0].stops[0]).toEqual({
+      position: 1,
+      address: 'Karlovy Vary',
+      lat: 50.2,
+      lng: 12.9,
+      waitMinutes: 45,
+      freeMinutes: 15,
+      blocks: 2,
+      feePerBlockEur: 12,
+      feeEur: 24,
+    })
+    expect(body.bookings[1].stops).toEqual([])
+    expect(res.headers.get('Cache-Control')).toContain('no-store')
+  })
+
+  it('reads the stops of all pages with the same loader and never before the admin guard', async () => {
+    getAdminUserMock.mockResolvedValue({ user: null, error: '403' })
+    const res = await GET(req('startDate=2027-06-10&endDate=2027-06-10'))
+    expect(res.status).toBe(403)
+    expect(stopsState.queries).toHaveLength(0)
+  })
+
+  it('does not query stops for an empty range', async () => {
+    rpcMock.mockResolvedValueOnce(page([], 0))
+    await GET(req('startDate=2027-06-10&endDate=2027-06-10'))
+    expect(stopsState.queries).toHaveLength(0)
+  })
+
+  it('answers 500 DB read failed with no-store and logs no address when the stops read fails', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    rpcMock.mockResolvedValueOnce(page([{ id: 'b1' }], 1))
+    stopsState.error = { message: 'boom Karlovy Vary' }
+    const res = await GET(req('startDate=2027-06-10&endDate=2027-06-10'))
+    expect(res.status).toBe(500)
+    expect(await res.json()).toEqual({ error: 'DB read failed' })
+    expect(res.headers.get('Cache-Control')).toContain('no-store')
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('Karlovy Vary')
     spy.mockRestore()
   })
 })
