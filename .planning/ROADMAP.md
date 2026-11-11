@@ -419,13 +419,13 @@ Plans:
   4. Stops, waiting times and the landing/pickup times are saved with the booking and visible in admin, on the driver trip page and in the confirmation email.
   5. The operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates and recorded in the payment ledger; it is never offered for GNet bookings.
 
-**Plans**: 17 plans
+**Plans**: 3/17 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 91-01-PLAN.md — Migration 089 (booking_stops, landing columns, waiting rate, booking_extra_charges, ledger kinds, erasure copies), fake DB, live apply by the orchestrator
-- [ ] 91-02-PLAN.md — Server quote through stops: route-distance module, waiting fee rules, per-class waiting in /api/calculate-price, no flat per-stop fee (security)
-- [ ] 91-05-PLAN.md — Consent wording covers extras (version 2026-11-3, gate function) and the extra_charged receipt email in 7 locales
+- [x] 91-01-PLAN.md — Migration 089 (booking_stops, landing columns, waiting rate, booking_extra_charges, ledger kinds, erasure copies), fake DB, live apply by the orchestrator
+- [x] 91-02-PLAN.md — Server quote through stops: route-distance module, waiting fee rules, per-class waiting in /api/calculate-price, no flat per-stop fee (security)
+- [x] 91-05-PLAN.md — Consent wording covers extras (version 2026-11-3, gate function) and the extra_charged receipt email in 7 locales
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 91-03-PLAN.md — Owner sets waiting rates per class in admin; public /api/waiting-config of offered classes
@@ -618,7 +618,7 @@ Plans:
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 28/28 | Complete | 2026-11-09 |
 | 90. Dispatch Views | v5.0 | 9/9 | In Progress|  |
-| 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
+| 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 3/17 | In Progress|  |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
 | 93. Day Trips & Custom Tours | v5.0 | 0/0 | Not started | - |
 
