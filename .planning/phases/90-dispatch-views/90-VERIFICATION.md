@@ -1,7 +1,7 @@
 ---
 phase: 90-dispatch-views
 verified: 2026-11-10T19:10:00Z
-status: human_needed
+status: passed
 score: 4/4 must-haves verified
 covered_files:
   - ".planning/phases/90-dispatch-views/90-01-PLAN.md"
@@ -69,6 +69,7 @@ covered_files:
   - "tests/prague-date.test.ts"
   - "tests/use-booking-moves.test.tsx"
   - "tests/use-dispatch-bookings.test.tsx"
+
 covered_digest: "v2:sha256:10b87381b4f399defe566c9a928fdae54e296479b3ed91dd409eca05a7e95dcc"
 behavior_unverified: 0
 overrides_applied: 0
