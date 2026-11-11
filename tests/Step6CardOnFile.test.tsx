@@ -1360,6 +1360,17 @@ describe('checkout body carries stops and the landing (Phase 91)', () => {
     expect(body.bookingData).not.toHaveProperty('landingDate')
   })
 
+  it('409 PRICE_CHANGED after a stop / wait change: the intent body carries the stops and the server amount is shown', async () => {
+    storeRef.current.stops = [placed('s1', 'Karlstejn', 60)]
+    intentReplies = [{ status: 409, body: { code: 'PRICE_CHANGED', amountMinor: 14500 } }]
+    await renderGate()
+    await tickAndSubmit()
+    const intents = fetchCalls.filter((c) => c.url === '/api/card-checkout/intent')
+    const sent = (intents[0].body as { bookingData: { stops: unknown } }).bookingData.stops
+    expect(sent).toEqual([{ address: 'Karlstejn', lat: 50.05, lng: 14.4, waitMinutes: 60 }])
+    expect(await screen.findByText(cof.noticePriceChanged.replace('{amount}', formatMinor(14500, 'eur')))).toBeInTheDocument()
+  })
+
   it('the init call made on mount carries the stops from the store', async () => {
     storeRef.current.stops = [placed('s1', 'Karlstejn', 30)]
     await renderGate()

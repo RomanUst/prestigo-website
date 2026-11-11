@@ -105,7 +105,9 @@ export type CheckoutStoreState = Pick<
  *   isAirportPickup rule) with a complete, valid landing. The pickup is then the one derived from landing + offset,
  *   so the browser never sends a pickup that differs from it (the server derives and overwrites it anyway).
  */
-export function tripExtrasForBody(state: CheckoutStoreState): {
+export function tripExtrasForBody(
+  state: Pick<CheckoutStoreState, 'tripType' | 'origin' | 'stops' | 'landingDate' | 'landingTime' | 'pickupOffsetMin'>,
+): {
   stops?: Array<{ address: string; lat: number; lng: number; waitMinutes: number }>
   landingDate?: string
   landingTime?: string

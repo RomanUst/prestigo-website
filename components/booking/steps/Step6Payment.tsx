@@ -16,6 +16,7 @@ import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
 import BookingSummaryBlock from '../BookingSummaryBlock'
 import CancellationPolicyNote, { CancellationAcceptanceLine } from '../CancellationPolicyNote'
+import { tripExtrasForBody } from './cardCheckoutApi'
 import type { InitPolicy } from './cardCheckoutApi'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -246,6 +247,10 @@ export default function Step6Payment({ policy = null }: { policy?: InitPolicy | 
   const pickupTime = useBookingStore((s) => s.pickupTime)
   const returnDate = useBookingStore((s) => s.returnDate)
   const returnTime = useBookingStore((s) => s.returnTime)
+  const stops = useBookingStore((s) => s.stops)
+  const landingDate = useBookingStore((s) => s.landingDate)
+  const landingTime = useBookingStore((s) => s.landingTime)
+  const pickupOffsetMin = useBookingStore((s) => s.pickupOffsetMin)
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
   const distanceKm = useBookingStore((s) => s.distanceKm)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
@@ -397,6 +402,10 @@ export default function Step6Payment({ policy = null }: { policy?: InitPolicy | 
               currency: selectedCurrency,
               promoCode: promoCode || '',
               locale,
+              // Phase 91 (STOP-01, STOP-04, STOP-05): stops and the landing, built by the same helper as the
+              // card / cash body so the two payment flows cannot drift. Spread last: the pickup it returns is
+              // the one derived from landing + offset.
+              ...tripExtrasForBody({ tripType, origin, stops, landingDate, landingTime, pickupOffsetMin }),
             },
           }),
         })
