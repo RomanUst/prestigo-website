@@ -39,6 +39,7 @@ vi.mock('@/lib/pricing-config', () => ({
 }))
 
 import {
+  finalizeExtraFromWebhook,
   isExtraChargeEligible,
   previewWaitingExtra,
   resumeExtraCharge,
@@ -391,6 +392,56 @@ describe('CR-01: a PaymentIntent that answers without succeeding is never called
     const copy = /const COPY_UNCONFIRMED =\s*'([^']+)'/.exec(src)?.[1] ?? ''
     expect(copy).toMatch(/not confirmed/i)
     expect(copy).not.toMatch(/nothing was charged/i)
+  })
+})
+
+describe('WR-01: a receipt that is not sent after a successful charge is never silent', () => {
+  it('sendPaymentEmail answering failed: the charge stays charged, the operator is alerted once (ids only), nothing is re-charged', async () => {
+    mockSendEmail.mockResolvedValue('failed')
+    const res = await run(other(1500, 'Confidential errand'))
+    expect(res).toMatchObject({ status: 200, outcome: 'charged' })
+    expect(charges()[0].status).toBe('charged')
+    expect(mockAlert).toHaveBeenCalledTimes(1)
+    expect(mockAlert.mock.calls[0][0]).toBe('ops_attention')
+    expect(mockAlert.mock.calls[0][2]).toEqual({
+      eventKey: `alert:extra_receipt:${charges()[0].id}`,
+      code: 'extra_receipt_failed',
+      amountMinor: 1500,
+      note: 'extra_receipt_failed',
+    })
+    expect(JSON.stringify(mockAlert.mock.calls)).not.toContain('Confidential')
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+  })
+
+  it('sendPaymentEmail throwing is handled the same way', async () => {
+    mockSendEmail.mockRejectedValue(new Error('resend down'))
+    expect(await run(other())).toMatchObject({ status: 200, outcome: 'charged' })
+    expect(mockAlert).toHaveBeenCalledTimes(1)
+    expect(mockAlert.mock.calls[0][2]).toMatchObject({ note: 'extra_receipt_failed' })
+  })
+
+  it('a sent receipt raises no alert', async () => {
+    await run(other())
+    expect(mockAlert).not.toHaveBeenCalled()
+  })
+
+  it('the webhook cannot finalise on a booking row it cannot read: it throws so Stripe redelivers, nothing is written', async () => {
+    db.state.booking_extra_charges.push({
+      id: '55555555-5555-4555-8555-555555555555',
+      booking_id: 'ghost-booking',
+      kind: 'other',
+      status: 'charging',
+      currency: 'eur',
+      amount_minor: 1500,
+      description: 'x',
+      attempt: 1,
+      requested_at: new Date().toISOString(),
+    })
+    const pi = { id: 'pi_g', metadata: { extraChargeId: '55555555-5555-4555-8555-555555555555' }, amount: 1500 } as never
+    await expect(finalizeExtraFromWebhook('ghost-booking', pi, 'succeeded')).rejects.toThrow('extra booking missing')
+    expect(db.state.booking_payment_events).toHaveLength(0)
+    expect(db.state.booking_extra_charges[0].status).toBe('charging')
+    expect(mockSendEmail).not.toHaveBeenCalled()
   })
 })
 

@@ -325,6 +325,18 @@ async function sendReceipt(booking: BookingRow, charge: ExtraChargeRow): Promise
   }
   if (result === 'threw' || result === 'failed') {
     console.error('[extra] receipt email failed', { bookingId: str(booking.id), chargeId: charge.id })
+    // WR-01: the charge is complete (it stays charged and is never repeated) but the client has no receipt, and the row is
+    // already charged, so nothing would ever resend it: a person must be told. Ids and amount only, never the description.
+    await sendPaymentOperatorAlert(
+      'ops_attention',
+      { ...booking, payment_currency: charge.currency },
+      {
+        eventKey: `alert:extra_receipt:${charge.id}`,
+        code: 'extra_receipt_failed',
+        amountMinor: charge.amount_minor,
+        note: 'extra_receipt_failed',
+      },
+    ).catch(() => undefined)
   }
 }
 
@@ -621,7 +633,10 @@ export async function finalizeExtraFromWebhook(
   if (outcome === 'succeeded') {
     const booked = await db.from('bookings').select('*').eq('id', bookingId).maybeSingle()
     if (booked.error) throw new Error('extra booking lookup failed')
-    const bookingRow = (booked.data as BookingRow | null) ?? { id: bookingId }
+    // WR-01: no booking row means no recipient, and a receipt sent to nobody would be lost for good. Throw so Stripe redelivers
+    // the event (nothing was written yet) instead of substituting { id }.
+    if (!booked.data) throw new Error('extra booking missing')
+    const bookingRow = booked.data as BookingRow
     if (charge.status === 'failed') {
       // Money moved on a charge recorded as failed (CR-01): repair the row, and make sure a person sees it.
       await repairFailedExtra(bookingRow, charge, pi)
