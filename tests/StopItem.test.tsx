@@ -4,9 +4,12 @@ import { renderWithIntl as render } from './helpers/renderWithIntl'
 import StopItem from '@/components/booking/StopItem'
 import type { Stop, PlaceResult } from '@/types/booking'
 
-// Wait options depend on /api/waiting-config; Task 1 tests run with the full list offered.
+// Wait options depend on /api/waiting-config; default = business offered, loaded.
+const waitingConfig = vi.hoisted(() => ({
+  value: { offeredClasses: ['business'] as string[], loaded: true },
+}))
 vi.mock('@/components/booking/useWaitingConfig', () => ({
-  useWaitingConfig: () => ({ offeredClasses: ['business'], loaded: true }),
+  useWaitingConfig: () => waitingConfig.value,
 }))
 
 // Mock AddressInput to avoid loading Google Maps in jsdom
@@ -51,6 +54,7 @@ describe('StopItem', () => {
     onRemove.mockReset()
     onUpdate.mockReset()
     onWaitChange.mockReset()
+    waitingConfig.value = { offeredClasses: ['business'], loaded: true }
   })
 
   it('renders label "STOP 1" when index=0', () => {
@@ -134,5 +138,50 @@ describe('StopItem', () => {
     fireEvent.change(select, { target: { value: '45' } })
     expect(onWaitChange).toHaveBeenCalledWith('s1', 45)
     expect(onUpdate).not.toHaveBeenCalled()
+  })
+
+  describe('D-05: options follow what admin offers', () => {
+    function values() {
+      const select = screen.getByLabelText('Wait time') as HTMLSelectElement
+      return Array.from(select.options).map((o) => o.value)
+    }
+
+    it('with a class offered shows 0..120 and the free-time hint', () => {
+      render(<StopItem stop={makeStop()} index={0} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
+      expect(values()).toEqual(['0', '15', '30', '45', '60', '75', '90', '105', '120'])
+      expect(screen.getByText('First 15 min free, then charged per started 15 min')).toBeTruthy()
+      expect(screen.queryByText('Paid waiting is not available right now')).toBeNull()
+    })
+
+    it('with no class offered shows only 0 and 15 and the unavailable hint', () => {
+      waitingConfig.value = { offeredClasses: [], loaded: true }
+      render(<StopItem stop={makeStop()} index={0} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
+      expect(values()).toEqual(['0', '15'])
+      expect(screen.getByText('Paid waiting is not available right now')).toBeTruthy()
+      expect(screen.queryByText('First 15 min free, then charged per started 15 min')).toBeNull()
+    })
+
+    it('while loading shows all options', () => {
+      waitingConfig.value = { offeredClasses: [], loaded: false }
+      render(<StopItem stop={makeStop()} index={0} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
+      expect(values()).toHaveLength(9)
+      expect(onWaitChange).not.toHaveBeenCalled()
+    })
+
+    it('resets a stored wait above 15 to 15 when paid waiting is not offered', () => {
+      waitingConfig.value = { offeredClasses: [], loaded: true }
+      render(<StopItem stop={makeStop({ id: 's9', waitMinutes: 60 })} index={0} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
+      expect(onWaitChange).toHaveBeenCalledWith('s9', 15)
+    })
+
+    it('keeps a stored wait above 15 when a class is offered', () => {
+      render(<StopItem stop={makeStop({ waitMinutes: 60 })} index={0} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
+      expect(onWaitChange).not.toHaveBeenCalled()
+    })
+
+    it('shows no wait selector when onWaitChange is not passed (multi-day planner)', () => {
+      render(<StopItem stop={makeStop()} index={0} onRemove={onRemove} onUpdate={onUpdate} />)
+      expect(screen.queryByLabelText('Wait time')).toBeNull()
+    })
   })
 })

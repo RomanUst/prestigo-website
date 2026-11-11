@@ -181,3 +181,53 @@ describe('Phase 91 D-06: Step3Vehicle sends the per-stop wait to the quote', () 
     expect(body.intermediates).toEqual([{ lat: 49.94, lng: 14.19, waitMinutes: 45 }])
   })
 })
+
+describe('Phase 91 D-05: classes that cannot price the waiting are disabled', () => {
+  function stubQuote(waitingUnavailable: string[]) {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: () =>
+        Promise.resolve({ prices: mockPrices, returnLegPrices: null, distanceKm: 30, quoteMode: false, waitingUnavailable }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  it('renders the unavailable class disabled with the note, and the others stay clickable', async () => {
+    setupStore()
+    stubQuote(['first_class'])
+    render(<Step3Vehicle />)
+    const wrappers = await screen.findAllByTestId('vehicle-card-unavailable-first_class')
+    expect(wrappers.length).toBeGreaterThanOrEqual(1)
+    const disabled = wrappers[0].querySelector('[aria-disabled="true"]')
+    expect(disabled).not.toBeNull()
+    expect(screen.getAllByText(/Paid waiting isn't offered for this class/).length).toBeGreaterThanOrEqual(1)
+    expect(screen.queryByTestId('vehicle-card-unavailable-business')).toBeNull()
+  })
+
+  it('does not select a disabled class even when its button is clicked', async () => {
+    setupStore()
+    useBookingStore.setState({ vehicleClass: 'business' })
+    stubQuote(['first_class'])
+    render(<Step3Vehicle />)
+    const wrappers = await screen.findAllByTestId('vehicle-card-unavailable-first_class')
+    const button = wrappers[0].querySelector('button') as HTMLButtonElement
+    button.click()
+    expect(useBookingStore.getState().vehicleClass).toBe('business')
+  })
+
+  it('unselects a selected class that becomes unavailable', async () => {
+    setupStore()
+    useBookingStore.setState({ vehicleClass: 'first_class' })
+    stubQuote(['first_class'])
+    render(<Step3Vehicle />)
+    await waitFor(() => expect(useBookingStore.getState().vehicleClass).not.toBe('first_class'))
+  })
+
+  it('shows no disabled card when waitingUnavailable is empty', async () => {
+    setupStore()
+    stubQuote([])
+    render(<Step3Vehicle />)
+    await waitFor(() => expect(screen.getAllByText('€84').length).toBeGreaterThan(0))
+    expect(screen.queryByTestId(/vehicle-card-unavailable/)).toBeNull()
+  })
+})
