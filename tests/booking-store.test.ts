@@ -345,3 +345,130 @@ describe('Phase 91 STOP-01: moveStop reorders and resets price', () => {
     expect(ids()).toEqual(['s1', 's2', 's3'])
   })
 })
+
+describe('Phase 91 STOP-05: landing fields derive the pickup (D-07, D-18)', () => {
+  const airport = { address: 'Vaclav Havel Airport Prague (PRG)', placeId: 'ChIJA_IVS6-UC0cRTZBQLvHG-ec', lat: 50.1008, lng: 14.26 }
+  const city = { address: 'Wenceslas Square, Prague', placeId: 'city-1', lat: 50.0813, lng: 14.4274 }
+
+  beforeEach(() => {
+    useBookingStore.getState().resetBooking()
+    useBookingStore.setState({ origin: airport })
+  })
+
+  it('starts with no landing and the default offset 30', () => {
+    const s = useBookingStore.getState()
+    expect(s.landingDate).toBeNull()
+    expect(s.landingTime).toBeNull()
+    expect(s.pickupOffsetMin).toBe(30)
+  })
+
+  it('landing 14:00 + default 30 gives pickup 14:30 the same day', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    const s = useBookingStore.getState()
+    expect(s.pickupDate).toBe('2027-06-10')
+    expect(s.pickupTime).toBe('14:30')
+  })
+
+  it('setPickupOffset(90) moves the pickup to 15:30; an offset outside the list is ignored', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().setPickupOffset(90)
+    expect(useBookingStore.getState().pickupTime).toBe('15:30')
+    useBookingStore.getState().setPickupOffset(20)
+    expect(useBookingStore.getState().pickupOffsetMin).toBe(90)
+    expect(useBookingStore.getState().pickupTime).toBe('15:30')
+  })
+
+  it('the order of the setters does not matter (time first, then date)', () => {
+    useBookingStore.getState().setLandingTime('14:00')
+    expect(useBookingStore.getState().pickupTime).toBeNull()
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    expect(useBookingStore.getState().pickupTime).toBe('14:30')
+  })
+
+  it('spring DST day: landing 2027-03-28 01:50 + 30 gives pickup 03:20', () => {
+    useBookingStore.getState().setLandingDate('2027-03-28')
+    useBookingStore.getState().setLandingTime('01:50')
+    expect(useBookingStore.getState().pickupDate).toBe('2027-03-28')
+    expect(useBookingStore.getState().pickupTime).toBe('03:20')
+  })
+
+  it('midnight roll-over: landing 2027-06-10 23:50 + 30 gives pickup 2027-06-11 00:20', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('23:50')
+    const s = useBookingStore.getState()
+    expect(s.pickupDate).toBe('2027-06-11')
+    expect(s.pickupTime).toBe('00:20')
+  })
+
+  it('clearing the landing time clears the derived pickup (no stale pickup)', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().setLandingTime(null)
+    const s = useBookingStore.getState()
+    expect(s.pickupDate).toBeNull()
+    expect(s.pickupTime).toBeNull()
+  })
+
+  it('moving the pickup address away from the airport clears the landing and keeps the pickup', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().setOrigin(city)
+    const s = useBookingStore.getState()
+    expect(s.landingDate).toBeNull()
+    expect(s.landingTime).toBeNull()
+    expect(s.pickupDate).toBe('2027-06-10')
+    expect(s.pickupTime).toBe('14:30')
+  })
+
+  it('keeps the landing when the new origin is still an airport', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().setOrigin({ ...airport, placeId: 'other' })
+    expect(useBookingStore.getState().landingTime).toBe('14:00')
+  })
+
+  it('swapping an airport pickup with a city destination clears the landing', () => {
+    useBookingStore.setState({ destination: city })
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().swapOriginDestination()
+    expect(useBookingStore.getState().landingDate).toBeNull()
+    expect(useBookingStore.getState().landingTime).toBeNull()
+  })
+
+  it('switching tripType to hourly keeps the landing fields', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().setTripType('hourly')
+    const s = useBookingStore.getState()
+    expect(s.landingDate).toBe('2027-06-10')
+    expect(s.landingTime).toBe('14:00')
+  })
+
+  it('the three landing fields survive the sessionStorage persist round trip', async () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().setPickupOffset(45)
+    const raw = sessionStorage.getItem('prestigo-booking')
+    expect(raw).toBeTruthy()
+    const persisted = JSON.parse(raw as string).state
+    expect(persisted.landingDate).toBe('2027-06-10')
+    expect(persisted.landingTime).toBe('14:00')
+    expect(persisted.pickupOffsetMin).toBe(45)
+    await useBookingStore.persist.rehydrate()
+    expect(useBookingStore.getState().pickupOffsetMin).toBe(45)
+  })
+
+  it('resetBooking clears the landing and restores the default offset', () => {
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    useBookingStore.getState().setPickupOffset(90)
+    useBookingStore.getState().resetBooking()
+    const s = useBookingStore.getState()
+    expect(s.landingDate).toBeNull()
+    expect(s.landingTime).toBeNull()
+    expect(s.pickupOffsetMin).toBe(30)
+  })
+})
