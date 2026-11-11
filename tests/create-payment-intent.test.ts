@@ -21,6 +21,11 @@ const { stripeMock, supabaseServiceStub, pricingConfigMock, saveBookingMock } = 
   return { stripeMock, supabaseServiceStub, pricingConfigMock, saveBookingMock }
 })
 
+const { routeDistanceMock } = vi.hoisted(() => ({ routeDistanceMock: vi.fn() }))
+// Phase 91 (STOP-02): the checkout prices on the server's Google Routes distance. These fixtures used to send
+// distanceKm; the mock returns the same distance so the assertions stay unchanged.
+vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
+
 vi.mock('stripe', () => {
   function MockStripe() {
     return stripeMock
@@ -171,6 +176,10 @@ function makeBookingData(overrides: Record<string, string> = {}): Record<string,
     vehicleClass: 'business',
     currency: 'eur',
     distanceKm: '10',
+    originLat: '50.0755',
+    originLng: '14.4378',
+    destinationLat: '49.1951',
+    destinationLng: '16.6068',
     pickupDate: futureDate(30),
     pickupTime: '10:00',
     passengers: '2',
@@ -191,6 +200,8 @@ function makeBookingData(overrides: Record<string, string> = {}): Record<string,
 }
 
 beforeEach(() => {
+  routeDistanceMock.mockReset()
+  routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 10, durationMin: 40 })
   vi.clearAllMocks()
   // Ensure the Stripe lazy-init guard passes — value is irrelevant because the
   // Stripe constructor is replaced by the vi.mock above.

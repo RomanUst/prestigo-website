@@ -7,6 +7,11 @@ const { supabaseServiceStub, pricingConfigMock } = vi.hoisted(() => ({
   pricingConfigMock: vi.fn(),
 }))
 
+const { routeDistanceMock } = vi.hoisted(() => ({ routeDistanceMock: vi.fn() }))
+// Phase 91 (STOP-02): the checkout prices on the server's Google Routes distance. These fixtures used to send
+// distanceKm; the mock returns the same distance so the assertions stay unchanged.
+vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
+
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
@@ -52,6 +57,10 @@ function makeBookingData(overrides: Record<string, unknown> = {}): CheckoutBooki
       tripType: 'transfer',
       vehicleClass: 'business',
       distanceKm: '50',
+      originLat: '50.0755',
+      originLng: '14.4378',
+      destinationLat: '49.1951',
+      destinationLng: '16.6068',
       pickupDate: futureDate(5),
       pickupTime: '10:00',
       passengers: '2',
@@ -89,6 +98,8 @@ function mockPromoLookup(row: Record<string, unknown> | null) {
 }
 
 beforeEach(() => {
+  routeDistanceMock.mockReset()
+  routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 50, durationMin: 40 })
   vi.clearAllMocks()
   pricingConfigMock.mockResolvedValue(DEFAULT_PRICING)
 })
@@ -101,10 +112,12 @@ describe('validateCheckoutBooking', () => {
     expect(result.error).toBe('Phone must include the country code')
   })
 
-  it('rejects a transfer with distanceKm "0" with 400 INVALID_REQUEST', () => {
-    const result = expectError(validateCheckoutBooking(makeBookingData({ distanceKm: '0' })))
+  it('rejects a transfer without usable coordinates with 400 INVALID_REQUEST (STOP-02: the distance is the server\'s)', () => {
+    const result = expectError(validateCheckoutBooking(makeBookingData({ originLat: '' })))
     expect(result.status).toBe(400)
     expect(result.code).toBe('INVALID_REQUEST')
+    expect(result.error).toBe('Invalid coordinates')
+    expect(expectError(validateCheckoutBooking(makeBookingData({ destinationLng: '181' }))).error).toBe('Invalid coordinates')
   })
 
   it('rejects passengers above the vehicle capacity with 400 TOO_MANY_PASSENGERS', () => {
@@ -138,7 +151,8 @@ describe('validateCheckoutBooking', () => {
     if (!result.ok) return
     expect(result.tripType).toBe('transfer')
     expect(result.vehicleClass).toBe('business')
-    expect(result.distanceKm).toBe(50)
+    expect(result.origin).toEqual({ lat: 50.0755, lng: 14.4378 })
+    expect(result.stops).toEqual([])
     expect(result.phone).toBe('+420725986855')
     expect(bookingData.phone).toBe('+420725986855')
   })

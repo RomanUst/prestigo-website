@@ -70,12 +70,13 @@ async function buildPolicyPreview(input: {
 }) {
   const { bookingData, validated, priced, pickupMs, nowMs } = input
   const policy = await getCancellationPolicy()
-  const facts = { tripType: validated.tripType, distanceKm: validated.distanceKm, pickupMs }
+  // STOP-02: the server's route distance decides the free-cancellation window, never the browser's.
+  const facts = { tripType: validated.tripType, distanceKm: priced.distanceKm, pickupMs }
   const outcome = evaluateCancellation(policy, facts, nowMs)
 
   let baseMinor = priced.combined.stripeAmountMinor
   if (validated.tripType === 'round_trip') {
-    const outbound = priced.outboundLegEur + priced.extrasTotalEur
+    const outbound = priced.outboundLegEur + priced.extrasTotalEur + priced.waitingFeeEur
     const total = outbound + priced.returnLegEur
     if (total > 0) baseMinor = Math.max(1, Math.round((baseMinor * outbound) / total))
   }

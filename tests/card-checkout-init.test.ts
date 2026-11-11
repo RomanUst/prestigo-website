@@ -21,6 +21,11 @@ const { fromMock, pricingConfigMock, rateLimitMock, state } = vi.hoisted(() => {
   return { fromMock, pricingConfigMock: vi.fn(), rateLimitMock: vi.fn(), state }
 })
 
+const { routeDistanceMock } = vi.hoisted(() => ({ routeDistanceMock: vi.fn() }))
+// Phase 91 (STOP-02): the checkout prices on the server's Google Routes distance. These fixtures used to send
+// distanceKm; the mock returns the same distance so the assertions stay unchanged.
+vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
+
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => ({ from: fromMock })),
 }))
@@ -77,6 +82,10 @@ function bookingData(over: Record<string, string> = {}) {
     tripType: 'transfer',
     vehicleClass: 'business',
     distanceKm: '50',
+    originLat: '50.0755',
+    originLng: '14.4378',
+    destinationLat: '49.1951',
+    destinationLng: '16.6068',
     pickupDate: '2027-01-16',
     pickupTime: '10:00',
     passengers: '2',
@@ -102,6 +111,8 @@ async function call(data: Record<string, string>, currency: 'eur' | 'czk' = 'eur
 }
 
 beforeEach(() => {
+  routeDistanceMock.mockReset()
+  routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 50, durationMin: 40 })
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW)
   fromMock.mockClear()
@@ -382,9 +393,35 @@ describe('POST /api/card-checkout/init: policy preview (Phase 89, D-18, D-24)', 
 
   it('freeUntilPassed is true when the free window has already closed', async () => {
     // pickup 2027-01-10 19:00 Prague = 18:00Z (9 h out), 150 km -> 12 h long window closed at 06:00Z
+    routeDistanceMock.mockResolvedValueOnce({ ok: true, distanceKm: 150, durationMin: 120 })
     const { body } = await call(bookingData({ pickupDate: '2027-01-10', pickupTime: '19:00', distanceKm: '150' }))
     expect(body.eligible).toBe(false)
     expect(body.policy).toMatchObject({ freeUntilIso: '2027-01-10T06:00:00.000Z', freeUntilPassed: true, hours: 12 })
+  })
+
+  it('STOP-02: the free-cancellation window follows the server route distance, not the browser distanceKm', async () => {
+    // The browser says 1 km (a 1 h short window); Google says 130 km through the stop (the 12 h long window).
+    routeDistanceMock.mockResolvedValueOnce({ ok: true, distanceKm: 130, durationMin: 150 })
+    const { body } = await call(
+      bookingData({
+        pickupDate: '2027-01-10',
+        pickupTime: '19:00',
+        distanceKm: '1',
+        stops: [{ address: 'Karlovy Vary', lat: 50.23, lng: 12.87, waitMinutes: 0 }] as unknown as string,
+      }),
+    )
+    expect(routeDistanceMock).toHaveBeenCalledTimes(1)
+    expect(routeDistanceMock.mock.calls[0][0].intermediates).toEqual([{ lat: 50.23, lng: 12.87 }])
+    expect(body.policy).toMatchObject({ freeUntilIso: '2027-01-10T06:00:00.000Z', hours: 12 })
+  })
+
+  it('D-17: when Google routing fails the answer is the existing opaque { eligible: false }, nothing is priced', async () => {
+    routeDistanceMock.mockResolvedValueOnce({ ok: false, reason: 'timeout' })
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { status, body } = await call(bookingData({ distanceKm: '1' }))
+    errSpy.mockRestore()
+    expect(status).toBe(200)
+    expect(body).toEqual({ eligible: false })
   })
 
   it('a round trip previews the outbound leg: its deadline and its share of the price', async () => {
