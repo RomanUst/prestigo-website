@@ -5,6 +5,11 @@ import { tripLinkViewState } from '@/lib/trip-token'
 import { formatVehicleLabel } from '@/lib/email'
 import { buildDriverCash, buildTripView } from '@/lib/driver-trip-step'
 import { getNoShowView } from '@/lib/no-show'
+import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show-wait'
+import { loadStopsSafe } from '@/lib/booking-stops'
+import { freeWaitUntilMs } from '@/lib/airport-pickup'
+import { pickupInstantMs } from '@/lib/prague-date'
+import { formatPragueTime } from '@/lib/prague-calendar'
 import type { DriverTripRecord } from '@/lib/driver-trip-step'
 import InvalidTripLinkView from './InvalidTripLinkView'
 import TripCompleted from './TripCompleted'
@@ -50,6 +55,10 @@ interface TripSheetBookingRow {
   no_show_requested_at: string | null
   status: string
   driver_id: string | null
+  // Phase 91 (STOP-05): the flight's landing and how many minutes after it the driver is there (all three or none).
+  landing_date?: string | null
+  landing_time?: string | null
+  pickup_offset_min?: number | null
   // Phase 89 (D-11): read only to build the cash label; none of these four reaches the browser as a number.
   payment_mode?: string | null
   payment_state?: string | null
@@ -80,7 +89,8 @@ const TRIP_SELECT =
   'origin_address, destination_address, origin_lat, origin_lng, destination_lat, destination_lng, ' +
   'client_first_name, client_last_name, client_phone, flight_number, flight_iata, special_requests, ' +
   'vehicle_class, distance_km, completed_at, no_show_requested_at, status, driver_id, ' +
-  'payment_mode, payment_state, payment_amount_minor, payment_currency), ' +
+  'payment_mode, payment_state, payment_amount_minor, payment_currency, ' +
+  'landing_date, landing_time, pickup_offset_min), ' +
   'drivers(name, vehicle_info)'
 
 function coords(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
@@ -176,6 +186,27 @@ export default async function TripSheetPage({ params }: PageProps) {
   // only hands the times to the screen, the progress route stays the authority.
   const noShowView = await getNoShowView({ supabase, booking: record, nowMs })
 
+  // Phase 91 (STOP-04, STOP-05, T-91-39): read only now, for the booking of the validated token and after the view
+  // checks, so an invalid or reassigned link never reaches booking_stops. Only position, address, wait and the
+  // coordinates go to the driver: the stop fee columns are never mapped (the driver page carries no money).
+  const storedStops = await loadStopsSafe(booking.id)
+  const stops = storedStops.map((stop) => ({
+    position: stop.position,
+    address: stop.address ?? '',
+    waitMinutes: stop.waitMinutes,
+    lat: stop.lat,
+    lng: stop.lng,
+  }))
+  const landing =
+    booking.landing_date && booking.landing_time && typeof booking.pickup_offset_min === 'number'
+      ? { date: booking.landing_date, time: booking.landing_time, offsetMin: booking.pickup_offset_min }
+      : null
+  // STOP-05: free waiting is counted from the PICKUP (never from the landing) with the live no-show setting.
+  const thresholds = await getNoShowThresholds(supabase)
+  const freeMinutes = isAirportPickup(booking) ? thresholds.airportMin : thresholds.cityMin
+  const pickupMs = pickupInstantMs(record)
+  const freeWaitUntil = pickupMs !== null ? formatPragueTime(freeWaitUntilMs(pickupMs, freeMinutes)) : null
+
   return (
     <TripScreen
       token={parsedToken.data}
@@ -196,6 +227,9 @@ export default async function TripSheetPage({ params }: PageProps) {
         flight: booking.flight_number ?? booking.flight_iata ?? null,
         clientNotes: booking.special_requests,
         distanceKm: booking.distance_km,
+        landing,
+        freeWaitUntil,
+        stops,
       }}
       initialNote={assignment.trip_note ?? null}
       noShow={{ availableAt: noShowView.noShowAvailableAt, requestedAt: noShowView.noShowRequestedAt }}
