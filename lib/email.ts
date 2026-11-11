@@ -1805,9 +1805,18 @@ export interface DriverAssignmentEmailData {
   acceptUrl: string
   declineUrl: string
   tripUrl: string
+  /**
+   * Phase 91 (STOP-04, STOP-05): the booking id lets the send function read the stored stops; the landing fields add
+   * the landing and pickup rows. Optional: without them the email is byte-identical to the one sent before Phase 91.
+   * The driver never sees a waiting amount.
+   */
+  bookingId?: string
+  landingDate?: string | null
+  landingTime?: string | null
+  pickupOffsetMin?: number | null
 }
 
-function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
+function buildDriverAssignmentHtml(data: DriverAssignmentEmailData, route?: EmailTripRoute): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1851,6 +1860,7 @@ ${driverTripDetailsRows({
   passengerPhone: data.passengerPhone,
   driverPriceCzk: data.driverPriceCzk,
   specialRequests: data.specialRequests,
+  route,
 })}
         </table>
       </div>
@@ -1893,11 +1903,12 @@ ${driverTripDetailsRows({
 export async function sendDriverAssignmentEmail(data: DriverAssignmentEmailData): Promise<void> {
   try {
     const formattedDate = formatPickupDate(data.pickupDate)
+    const route = await loadEmailTripRoute(data)
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.driverEmail],
       subject: `Trip assignment: ${data.bookingReference} - ${formattedDate} at ${data.pickupTime}`,
-      html: buildDriverAssignmentHtml(data),
+      html: buildDriverAssignmentHtml(data, route),
     })
     if (error) console.error('[driver-assign] assignment email error:', error)
   } catch (err) {
@@ -1925,6 +1936,8 @@ interface DriverTripDetails {
   flightNumber?: string | null
   driverPriceCzk: number | null
   specialRequests?: string | null
+  /** Phase 91: landing, pickup and stops; the rows follow the pickup row only when there is something to show. */
+  route?: EmailTripRoute
 }
 
 function driverTripRow(label: string, valueHtml: string, weight = 400): string {
@@ -1941,8 +1954,10 @@ function driverTripRow(label: string, valueHtml: string, weight = 400): string {
  */
 function driverTripDetailsRows(data: DriverTripDetails): string {
   const formattedDate = formatPickupDate(data.pickupDate)
+  const routeRows = data.route ? tripRouteRowsHtml(data.route, 'driver') : ''
   const fixed = [
     driverTripRow('Pickup Date', `${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}`),
+    ...(routeRows ? [routeRows] : []),
     driverTripRow('From', escapeHtml(data.originAddress)),
     driverTripRow('To', escapeHtml(data.destinationAddress ?? 'As directed')),
     driverTripRow('Passenger', `${escapeHtml(data.passengerFirstName)} ${escapeHtml(data.passengerLastName)}`),
@@ -1982,9 +1997,14 @@ export interface DriverAcceptedEmailData {
   specialRequests: string | null
   driverPriceCzk: number | null
   tripUrl: string
+  /** Phase 91 (STOP-04, STOP-05): same optional route inputs as the assignment email; no waiting amount for the driver. */
+  bookingId?: string
+  landingDate?: string | null
+  landingTime?: string | null
+  pickupOffsetMin?: number | null
 }
 
-export function buildDriverAcceptedEmailHtml(data: DriverAcceptedEmailData): string {
+export function buildDriverAcceptedEmailHtml(data: DriverAcceptedEmailData, route?: EmailTripRoute): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2018,7 +2038,7 @@ export function buildDriverAcceptedEmailHtml(data: DriverAcceptedEmailData): str
       <div style="padding: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">TRIP DETAILS</div>
         <table style="width: 100%; border-collapse: collapse;">
-${driverTripDetailsRows(data)}
+${driverTripDetailsRows({ ...data, route })}
         </table>
       </div>
 
@@ -2059,11 +2079,12 @@ ${driverTripDetailsRows(data)}
 export async function sendDriverAcceptedEmail(data: DriverAcceptedEmailData): Promise<boolean> {
   try {
     const formattedDate = formatPickupDate(data.pickupDate)
+    const route = await loadEmailTripRoute(data)
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.driverEmail],
       subject: `Trip confirmed: ${data.bookingReference} - ${formattedDate} at ${data.pickupTime}`,
-      html: buildDriverAcceptedEmailHtml(data),
+      html: buildDriverAcceptedEmailHtml(data, route),
     })
     if (error) {
       console.error('[driver-accept] accept email error:', error)

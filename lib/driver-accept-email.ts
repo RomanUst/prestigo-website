@@ -35,6 +35,10 @@ type BookingRow = {
   driver_price_czk: number | null
   status: string
   driver_id: string | null
+  // Phase 91 (STOP-05): the airport landing kept beside the pickup.
+  landing_date?: string | null
+  landing_time?: string | null
+  pickup_offset_min?: number | null
 }
 
 type DriverRow = { name: string; email: string | null }
@@ -55,7 +59,7 @@ export async function sendDriverAcceptedTripEmail(assignmentId: string): Promise
   const { data, error } = await supabase
     .from('driver_assignments')
     .select(
-      'id, driver_id, status, trip_token, bookings!inner(id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, vehicle_class, passengers, luggage, flight_number, special_requests, driver_price_czk, status, driver_id), drivers(name, email)',
+      'id, driver_id, status, trip_token, bookings!inner(id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, vehicle_class, passengers, luggage, flight_number, special_requests, driver_price_czk, status, driver_id, landing_date, landing_time, pickup_offset_min), drivers(name, email)',
     )
     .eq('id', assignmentId)
     .single()
@@ -120,6 +124,11 @@ export async function sendDriverAcceptedTripEmail(assignmentId: string): Promise
     specialRequests: booking.special_requests,
     driverPriceCzk: booking.driver_price_czk,
     tripUrl,
+    // Phase 91 (STOP-04, STOP-05): the email reads the stored stops by id and shows the landing and pickup rows.
+    bookingId: booking.id,
+    landingDate: booking.landing_date ?? null,
+    landingTime: booking.landing_time ?? null,
+    pickupOffsetMin: booking.pickup_offset_min ?? null,
   })
 
   if (!delivered) {

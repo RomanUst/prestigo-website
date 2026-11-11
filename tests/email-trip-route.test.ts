@@ -20,11 +20,16 @@ vi.mock('resend', () => ({
 vi.mock('@/lib/booking-stops', () => ({ loadStopsSafe: loadStopsSafeMock }))
 
 import {
+  buildDriverAcceptedEmailHtml,
   sendClientConfirmation,
+  sendDriverAcceptedEmail,
+  sendDriverAssignmentEmail,
   sendManagerAlert,
   sendStatusConfirmedEmail,
   tripRouteRowsHtml,
   type BookingEmailData,
+  type DriverAcceptedEmailData,
+  type DriverAssignmentEmailData,
   type EmailTripRoute,
 } from '@/lib/email'
 import { bookingEmailDataFromRow } from '@/lib/payments/emails/send'
@@ -87,11 +92,51 @@ const EMAIL_DATA: BookingEmailData = {
 
 const LANDING_FIELDS = { landingDate: '2027-06-10', landingTime: '14:00', pickupOffsetMin: 30 }
 
+const ACCEPTED_DATA: DriverAcceptedEmailData = {
+  driverName: 'P',
+  driverEmail: 'p@example.com',
+  bookingReference: 'PRG-1',
+  pickupDate: '2027-06-10',
+  pickupTime: '14:30',
+  originAddress: 'A',
+  destinationAddress: 'B',
+  passengerFirstName: 'J',
+  passengerLastName: 'N',
+  passengerPhone: '+420',
+  vehicleClass: 'business',
+  passengers: 2,
+  luggage: 1,
+  flightNumber: 'OK1',
+  specialRequests: null,
+  driverPriceCzk: 2000,
+  tripUrl: 'https://x/y',
+}
+
+const ASSIGN_DATA: DriverAssignmentEmailData = {
+  driverName: 'P',
+  driverEmail: 'p@example.com',
+  bookingReference: 'PRG-1',
+  pickupDate: '2027-06-10',
+  pickupTime: '14:30',
+  originAddress: 'A',
+  destinationAddress: 'B',
+  passengerFirstName: 'J',
+  passengerLastName: 'N',
+  passengerPhone: '+420',
+  driverPriceCzk: 2000,
+  specialRequests: null,
+  acceptUrl: 'https://x/a',
+  declineUrl: 'https://x/d',
+  tripUrl: 'https://x/t',
+}
+
 // SHA-256 of the HTML produced by lib/email.ts BEFORE plan 91-14, for the inputs above (a booking without landing and
 // stops). A change here means a booking without stops no longer renders byte-identical mail.
 const BASELINE = {
   status: '1e31c6446661ec1c8acf324081d6e762044da2ba0acbef472224d42e9ae3035e',
   client: '4a61a6ed990d273242bf080a9ebb10ad70f29aff3848047455921479041e333d',
+  accepted: '7a8fbaa57deb21a971049b32ac7cfc58902920d77ff529e58d88d2976aee0b3c',
+  assign: 'a00483696647087ec89456aa19b0da40c411446b28ba458f872937b110cef73f',
 }
 
 // The manager alert text of EMAIL_DATA before plan 91-14.
@@ -304,5 +349,56 @@ describe('bookingEmailDataFromRow (card-on-file manager alert)', () => {
     expect(data.landingDate).toBeUndefined()
     expect(data.landingTime).toBeUndefined()
     expect(data.pickupOffsetMin).toBeUndefined()
+  })
+})
+
+describe('driver emails', () => {
+  it('assignment: landing, pickup and the stop with its wait appear in TRIP DETAILS, no waiting amount', async () => {
+    loadStopsSafeMock.mockResolvedValue([stop()])
+    await sendDriverAssignmentEmail({ ...ASSIGN_DATA, bookingId: 'b1', ...LANDING_FIELDS })
+    const html = sentHtml()
+    expect(html).toContain('>Landing</td>')
+    expect(html).toContain('14:00')
+    expect(html).toContain('>Pickup</td>')
+    expect(html).toContain('>Stop 1</td>')
+    expect(html).toContain('Karlovy Vary (wait 45 min)')
+    expect(html).not.toContain('Waiting at stops')
+    expect(html).not.toContain('€24')
+  })
+
+  it('accepted: the same rows, no waiting amount', async () => {
+    loadStopsSafeMock.mockResolvedValue([stop()])
+    await sendDriverAcceptedEmail({ ...ACCEPTED_DATA, bookingId: 'b1', ...LANDING_FIELDS })
+    const html = sentHtml()
+    expect(html).toContain('>Landing</td>')
+    expect(html).toContain('>Stop 1</td>')
+    expect(html).toContain('Karlovy Vary (wait 45 min)')
+    expect(html).not.toContain('Waiting at stops')
+    expect(html).not.toContain('€24')
+  })
+
+  it('stop addresses are escaped in both driver emails', async () => {
+    loadStopsSafeMock.mockResolvedValue([stop({ address: '<b onmouseover=x>Hotel</b>' })])
+    await sendDriverAssignmentEmail({ ...ASSIGN_DATA, bookingId: 'b1' })
+    await sendDriverAcceptedEmail({ ...ACCEPTED_DATA, bookingId: 'b1' })
+    for (const i of [0, 1]) {
+      expect(sentHtml(i)).not.toContain('<b onmouseover=x>')
+      expect(sentHtml(i)).toContain('&lt;b onmouseover=x&gt;Hotel&lt;/b&gt;')
+    }
+  })
+
+  it('without a route both driver emails are byte-identical to the ones sent before this plan', async () => {
+    await sendDriverAssignmentEmail({ ...ASSIGN_DATA, bookingId: 'b1' })
+    expect(sha(sentHtml(0))).toBe(BASELINE.assign)
+    expect(sha(buildDriverAcceptedEmailHtml(ACCEPTED_DATA))).toBe(BASELINE.accepted)
+    await sendDriverAcceptedEmail({ ...ACCEPTED_DATA, bookingId: 'b1' })
+    expect(sha(sentHtml(1))).toBe(BASELINE.accepted)
+  })
+
+  it('a stops read that fails still sends both driver emails', async () => {
+    loadStopsSafeMock.mockRejectedValue(new Error('boom'))
+    await sendDriverAssignmentEmail({ ...ASSIGN_DATA, bookingId: 'b1' })
+    await sendDriverAcceptedEmail({ ...ACCEPTED_DATA, bookingId: 'b1' })
+    expect(sendStub).toHaveBeenCalledTimes(2)
   })
 })
