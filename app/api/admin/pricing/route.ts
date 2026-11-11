@@ -19,6 +19,8 @@ const pricingConfigSchema = z.object({
   hourly_rate: z.number().positive(),
   daily_rate: z.number().positive(),
   min_fare: z.number().min(0),
+  // Phase 91 (D-04/D-05): EUR per started 15 min of waiting at a stop. null = paid waiting not offered.
+  waiting_rate_per_15min: z.number().positive().nullable().optional(),
 })
 
 const pricingPutSchema = z.object({
