@@ -8,6 +8,7 @@ import { FlightStatusBlock } from './FlightStatusBlock'
 import { BookingChangeHistory } from './BookingChangeHistory'
 import { DetailField } from './DetailField'
 import { TripEditPanel } from './TripEditPanel'
+import { TripRouteSection } from './TripRouteSection'
 import { PaymentLinkSection } from './PaymentLinkSection'
 import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
@@ -218,6 +219,8 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
           initialDelayMinutes={booking.flight_delay_minutes}
         />
       )}
+      {/* Phase 91: landing and pickup time, stops and the waiting total (renders nothing without either). */}
+      <TripRouteSection booking={booking} />
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',

@@ -20,6 +20,8 @@ import { assertEditablePrecheck, reevaluateAfterEdit } from '@/lib/payments/edit
 import { getPaymentSettings, isPolicyPublic } from '@/lib/payments/config'
 import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
 import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
+import { attachStops, loadStopsByBookingIds } from '@/lib/booking-stops'
+import { LANDING_OFFSETS, pickupFromLanding } from '@/lib/airport-pickup'
 
 // The status change itself (VALID_TRANSITIONS check, write, side effects) lives in
 // lib/booking-status-service.ts (Phase 87 D-01). VALID_TRANSITIONS is the canonical
@@ -300,8 +302,19 @@ export async function GET(request: Request) {
 
   // admin_search_bookings returns a single row: { rows: JSONB[], total_count: bigint }
   const row = Array.isArray(data) && data.length > 0 ? data[0] : null
-  const bookings = row?.rows ?? []
+  const rpcRows: Array<{ id: string }> = Array.isArray(row?.rows) ? row.rows : []
   const total = row?.total_count != null ? Number(row.total_count) : 0
+
+  // Phase 91 (STOP-04): every row carries its stops (ordered by position, [] when none) from the one loader.
+  // landing_date, landing_time and pickup_offset_min already arrive with the row (select b.*). Stop addresses are
+  // client PII: the log carries the error message only.
+  let bookings: unknown[]
+  try {
+    bookings = await attachStops(rpcRows)
+  } catch (stopsError) {
+    console.error('[admin/bookings.GET] stops read failed:', stopsError instanceof Error ? stopsError.message : 'unknown')
+    return NextResponse.json({ error: 'DB read failed' }, { status: 500 })
+  }
 
   return NextResponse.json({ bookings, total, page, limit })
 }
@@ -421,6 +434,57 @@ export async function PATCH(request: Request) {
     const inFlight = assertEditablePrecheck(current)
     if (inFlight) return NextResponse.json(inFlight.body, { status: inFlight.status })
 
+    // Phase 91 Pitfall 10: the recompute below prices the vehicle, the route and the extras. It knows nothing of the
+    // detour through the stops or of their waiting time, so repricing a booking that has stops would silently drop
+    // what the client paid for them. The operator must set the price by hand (override_price, audited like every
+    // override). Fail closed: a stops read that fails answers 500 and nothing is written.
+    if (hasPriceField && parsed.data.override_price !== true) {
+      let stopsOfBooking
+      try {
+        stopsOfBooking = await loadStopsByBookingIds([current.id as string])
+      } catch (stopsError) {
+        console.error('[admin/bookings.PATCH] stops read failed:', stopsError instanceof Error ? stopsError.message : 'unknown')
+        return NextResponse.json({ error: 'DB read failed' }, { status: 500 })
+      }
+      if ((stopsOfBooking.get(current.id as string) ?? []).length > 0) {
+        return NextResponse.json({ error: 'stops_edit_unsupported' }, { status: 422 })
+      }
+    }
+
+    // Phase 91 (D-07, D-18): an airport booking stores the flight's landing and the offset beside the pickup. A manual
+    // pickup edit is accepted only when the new pickup IS landing + one of the allowed offsets; the matching offset is
+    // written in the same update, so landing + offset always equals the pickup the driver and the hold use. Any other
+    // pickup answers 422 before any write. A new landing time goes through Move pickup, not through this edit.
+    let landingOffsetUpdate: { offset: number; auditRow: { field: string; old_value: string | null; new_value: string | null } | null } | null = null
+    const hasLanding =
+      typeof current.landing_date === 'string' && typeof current.landing_time === 'string' &&
+      current.pickup_offset_min !== null && current.pickup_offset_min !== undefined
+    if (hasLanding && (parsed.data.pickup_date !== undefined || parsed.data.pickup_time !== undefined)) {
+      const currentClock = typeof current.pickup_time === 'string' ? current.pickup_time.slice(0, 5) : ''
+      const newDate = parsed.data.pickup_date ?? (current.pickup_date as string)
+      const newTime = parsed.data.pickup_time ?? currentClock
+      if (newDate !== current.pickup_date || newTime !== currentClock) {
+        const matching = LANDING_OFFSETS.find((offset) => {
+          const derived = pickupFromLanding(
+            current.landing_date as string,
+            (current.landing_time as string).slice(0, 5),
+            offset,
+          )
+          return derived !== null && derived.pickupDate === newDate && derived.pickupTime === newTime
+        })
+        if (matching === undefined) {
+          return NextResponse.json({ error: 'landing_pickup_mismatch' }, { status: 422 })
+        }
+        const oldOffset = String(current.pickup_offset_min)
+        landingOffsetUpdate = {
+          offset: matching,
+          auditRow: oldOffset === String(matching)
+            ? null
+            : { field: 'pickup_offset_min', old_value: oldOffset, new_value: String(matching) },
+        }
+      }
+    }
+
     // CR-02: a live Stripe Payment Link is a static object — its unit_amount
     // can never be updated after creation. Editing the price on a booking
     // that still carries a live payment_link_url would silently desync the
@@ -444,6 +508,7 @@ export async function PATCH(request: Request) {
       const value = parsed.data[field]
       if (value !== undefined) tripUpdatePayload[field] = value
     }
+    if (landingOffsetUpdate) tripUpdatePayload.pickup_offset_min = landingOffsetUpdate.offset
 
     // Diff current vs incoming — skips fields whose new value equals current (no-op).
     const { entries: cheapEntries, auditRows: cheapAuditRows } = buildFieldChanges(current, parsed.data)
@@ -659,7 +724,11 @@ export async function PATCH(request: Request) {
     }
 
     const entries = [...cheapEntries, ...priceEntries]
-    const auditRows = [...cheapAuditRows, ...priceAuditRows]
+    const auditRows = [
+      ...cheapAuditRows,
+      ...priceAuditRows,
+      ...(landingOffsetUpdate?.auditRow ? [landingOffsetUpdate.auditRow] : []),
+    ]
 
     // GNet guard: no trip-detail push exists for GNet (lib/gnet-client.ts only
     // pushes status) — trip-field edits on booking_source='gnet' bookings are

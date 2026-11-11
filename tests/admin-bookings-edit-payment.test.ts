@@ -38,6 +38,13 @@ vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => ({ from: supabaseFrom, rpc: vi.fn() })),
 }))
 
+// Phase 91 plan 12: a price edit first reads the booking's stops (Pitfall 10). These bookings have none; the stops
+// guard itself is tested in tests/admin-bookings.test.ts.
+vi.mock('@/lib/booking-stops', () => ({
+  loadStopsByBookingIds: vi.fn(async () => new Map()),
+  attachStops: vi.fn(async (rows: unknown[]) => rows),
+}))
+
 vi.mock('@/lib/currency', () => ({
   czkToEur: vi.fn((czk: number) => Math.round(czk * 0.04)),
   eurToCzk: vi.fn(() => 1500),
