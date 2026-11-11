@@ -14,4 +14,4 @@ For human reference only; downstream agents read `91-CONTEXT.md`.
 Stop cap, max waiting per stop, airport detection, wizard and map UI, placement in admin / driver page / emails, safeguards on the manual amount, failed-charge handling, rounding.
 
 ## Note
-D-01 is Claude's reading of a free-text answer. If the owner meant "fixed price + extra kilometres of the detour", change D-01 before planning.
+D-01 was read from a free-text answer and then confirmed by the owner on 2026-11-11 ("Да, целиком по км").
