@@ -98,3 +98,13 @@ None beyond the plan's register (T-91-01..T-91-04 mitigated in 089 and its tests
 ## Self-Check: PASSED
 - supabase/migrations/089_stops_landing_extra_charges.sql, tests/migration-089.test.ts, 91-01-smoke.sql: found.
 - Commits f477287b and df2b5beb: found on branch worktree-agent-a642381949d173921.
+
+## Task 3 result (orchestrator, 2026-11-11)
+
+Migration `089_stops_landing_extra_charges` is LIVE on project `enakcryrtxlnjvjutfpv` (applied with `apply_migration`; pre-check: live ledger CHECK equalled the 087 list, live erasure functions equalled 088, no 089 object existed).
+
+Smoke A (catalog): `booking_stops` and `booking_extra_charges` have `rls_enabled=true anon_priv=false authenticated_priv=false` and the four `*_no_public_*` policies; `booking_extra_charges_one_charging` is UNIQUE `WHERE (status = 'charging')`; `bookings.landing_date` / `landing_time` (text, nullable), `pickup_offset_min` (smallint, nullable), `pricing_config.waiting_rate_per_15min` (numeric, nullable, no default); ledger CHECK ends with `'cash_reopened', 'extra_charged', 'extra_failed'`; `waiting_rates rows_with_rate = 0`.
+
+`has_function_privilege`: `erasure_anonymise_person(uuid)` public_exec=false anon_exec=false authenticated_exec=false service_role_exec=true; `erasure_payment_open(uuid[])` public_exec=false anon_exec=false authenticated_exec=false service_role_exec=false.
+
+Smoke B: failed with exactly `SMOKE_OK_91_01 every 089 check passed; this exception rolls the smoke rows back`. Leftover check: 0 rows in `booking_stops`, 0 in `booking_extra_charges`, 0 ledger rows of the new kinds.
