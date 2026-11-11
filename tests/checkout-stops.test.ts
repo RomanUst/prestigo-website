@@ -22,6 +22,33 @@ vi.mock('@/lib/supabase/server', () => ({
     Promise.resolve({ auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) } }),
   ),
 }))
+// /api/calculate-price (the quote side of the parity test) reads coverage zones through the public-read client.
+const { zoneClient } = vi.hoisted(() => ({
+  zoneClient: {
+    from: () => ({
+      select: () => ({
+        eq: () =>
+          Promise.resolve({
+            data: [
+              {
+                id: 1,
+                geojson: {
+                  type: 'Feature',
+                  geometry: { type: 'Polygon', coordinates: [[[10, 47], [20, 47], [20, 52], [10, 52], [10, 47]]] },
+                  properties: {},
+                },
+              },
+            ],
+            error: null,
+          }),
+      }),
+    }),
+  },
+}))
+vi.mock('@/lib/supabase', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/supabase')>()),
+  createSupabasePublicReadClient: () => zoneClient,
+}))
 vi.mock('@/lib/pricing-config', () => ({ getPricingConfig: pricingConfigMock }))
 vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
 vi.mock('@/lib/rate-limit', async (importOriginal) => ({
@@ -34,7 +61,15 @@ vi.mock('@/lib/payments/stripe', async (importOriginal) => ({
 }))
 
 import { POST } from '@/app/api/card-checkout/intent/route'
-import { checkoutBookingSchema, priceCheckout, validateCheckoutBooking } from '@/lib/checkout/compute'
+import { POST as calculatePricePOST } from '@/app/api/calculate-price/route'
+import { eurToCzk } from '@/lib/currency'
+import { PRG_LAT, PRG_LNG } from '@/lib/airport'
+import {
+  buildCheckoutMeta,
+  checkoutBookingSchema,
+  priceCheckout,
+  validateCheckoutBooking,
+} from '@/lib/checkout/compute'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
 import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 import { computeCombinedTotalMinor, computeOutboundLegTotal } from '@/lib/server-pricing'
@@ -367,5 +402,132 @@ describe('hourly and daily checkouts are untouched (no routing, same amounts as 
     expect(priced.outboundLegEur).toBe(
       computeOutboundLegTotal('business', null, 2, 3, 'daily', '2027-01-16', '10:00', false, PRICING),
     )
+  })
+})
+
+// ── Task 3: quote / checkout parity, promo on the whole total, stored meta ───────────────────────────────────
+
+async function priceDirectTransfer(data: Record<string, unknown>) {
+  const parsed = checkoutBookingSchema.parse({ bookingData: bookingData(data) })
+  const validated = validateCheckoutBooking(parsed.bookingData)
+  if (!validated.ok) throw new Error(validated.code)
+  const priced = await priceCheckout({ bookingData: parsed.bookingData, validated, currency: 'eur' })
+  if (!priced.ok) throw new Error(priced.code)
+  return { priced, bookingData: parsed.bookingData }
+}
+
+async function quoteBase(payload: Record<string, unknown>): Promise<number> {
+  const res = await calculatePricePOST(
+    new Request('http://localhost/api/calculate-price', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  )
+  const json = (await res.json()) as { prices: Record<string, { base: number }> | null; quoteMode: boolean }
+  expect(json.quoteMode).toBe(false)
+  return (json.prices as Record<string, { base: number }>).business.base
+}
+
+describe('parity: /api/calculate-price base equals the checkout total for the same trip (assumption-delta invariant)', () => {
+  const wizardStop = { lat: STOP_KV.lat, lng: STOP_KV.lng, waitMinutes: 45 }
+  const quote = (over: Record<string, unknown>) => ({
+    origin: { lat: Number(ORIGIN.lat), lng: Number(ORIGIN.lng) },
+    destination: { lat: Number(DEST.lat), lng: Number(DEST.lng) },
+    tripType: 'transfer',
+    pickupDate: '2027-01-16',
+    pickupTime: '22:30', // night coefficient on both paths
+    ...over,
+  })
+
+  it('parity with stops: business, night pickup, one stop waiting 45 minutes', async () => {
+    const base = await quoteBase(quote({ intermediates: [wizardStop] }))
+    const { priced } = await priceDirectTransfer({ pickupTime: '22:30', stops: [STOP_KV] })
+    expect(priced.waitingFeeEur).toBe(24)
+    expect(priced.combined.finalTotalEur).toBe(base)
+    // Both paths asked Google for the same route through the stop.
+    expect(routeDistanceMock).toHaveBeenCalledTimes(2)
+    expect(routeDistanceMock.mock.calls[1][0]).toEqual(routeDistanceMock.mock.calls[0][0])
+  })
+
+  it('parity without stops', async () => {
+    const base = await quoteBase(quote({}))
+    const { priced } = await priceDirectTransfer({ pickupTime: '22:30' })
+    expect(priced.waitingFeeEur).toBe(0)
+    expect(priced.combined.finalTotalEur).toBe(base)
+  })
+
+  it('parity for an airport origin: the flag comes from coordinates on both paths', async () => {
+    const airport = { lat: PRG_LAT, lng: PRG_LNG }
+    const base = await quoteBase(quote({ origin: airport, intermediates: [wizardStop] }))
+    const { priced } = await priceDirectTransfer({
+      pickupTime: '22:30',
+      originLat: String(PRG_LAT),
+      originLng: String(PRG_LNG),
+      stops: [STOP_KV],
+      isAirport: 'false', // a browser flag that says "no airport" must not remove the airport fee
+    })
+    expect(priced.combined.finalTotalEur).toBe(base)
+    // the airport fee is really in: the same trip from a city origin is cheaper
+    const city = await priceDirectTransfer({ pickupTime: '22:30', stops: [STOP_KV] })
+    expect(priced.combined.finalTotalEur).toBeGreaterThan(city.priced.combined.finalTotalEur)
+  })
+})
+
+describe('D-14: a promo reduces the whole total including waiting, once', () => {
+  it('10 percent on a 300 EUR leg plus 24 EUR waiting is round((300 + 24) x 0.9)', async () => {
+    routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 120, durationMin: 100 }) // 120 km x 2.5 = 300 EUR
+    promoState.row = { discount_value: 10, max_uses: null, current_uses: 0, is_active: true }
+    const { priced } = await priceDirectTransfer({ stops: [STOP_KV], promoCode: 'WELCOME10' })
+    expect(priced.outboundLegEur).toBe(300)
+    expect(priced.waitingFeeEur).toBe(24)
+    expect(priced.combined.combinedBeforePromoEur).toBe(324)
+    expect(priced.combined.finalTotalEur).toBe(Math.round((300 + 24) * 0.9)) // 292
+  })
+
+  it('the same total reaches Stripe through the intent route (displayed amount 29200 minor units is accepted)', async () => {
+    routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 120, durationMin: 100 })
+    promoState.row = { discount_value: 10, max_uses: null, current_uses: 0, is_active: true }
+    const out = await call(body(120, 24, { stops: [STOP_KV], promoCode: 'WELCOME10' }, { displayedAmountMinor: 29200 }))
+    expect(out.status).toBe(200)
+    expect(out.body.amountMinor).toBe(29200)
+  })
+})
+
+describe('stored meta: the server distance, the outbound share with waiting, no new key', () => {
+  it('distanceKm is the route distance (130) for a request whose body said 1; outboundAmountCzk includes waiting', async () => {
+    const { priced, bookingData: bd } = await priceDirectTransfer({ stops: [STOP_KV] })
+    const meta = buildCheckoutMeta({
+      bookingData: bd,
+      priced,
+      bookingReference: 'PRG-20270116-ABC123',
+      returnBookingReference: '',
+      authenticatedUserId: null,
+    })
+    expect(bd.distanceKm).toBe('1')
+    expect(meta.distanceKm).toBe('130')
+    expect(meta.outboundAmountCzk).toBe(String(eurToCzk(priced.outboundLegEur + priced.extrasTotalEur + priced.waitingFeeEur)))
+    expect(priced.waitingFeeEur).toBe(24)
+  })
+
+  it('stops and waiting add no metadata key: the key set equals the one of a trip without stops', async () => {
+    const withStops = await priceDirectTransfer({ stops: [STOP_KV] })
+    const without = await priceDirectTransfer({})
+    const metaOf = (r: Awaited<ReturnType<typeof priceDirectTransfer>>) =>
+      buildCheckoutMeta({
+        bookingData: r.bookingData,
+        priced: r.priced,
+        bookingReference: 'PRG-20270116-ABC123',
+        returnBookingReference: '',
+        authenticatedUserId: null,
+      })
+    expect(Object.keys(metaOf(withStops)).sort()).toEqual(Object.keys(metaOf(without)).sort())
+    expect(Object.keys(metaOf(withStops)).some((k) => /stop|wait/i.test(k))).toBe(false)
+  })
+
+  it('a request repeated with identical inputs yields an identical stripeAmountMinor', async () => {
+    const a = await priceDirectTransfer({ stops: [STOP_KV] })
+    const b = await priceDirectTransfer({ stops: [STOP_KV] })
+    expect(a.priced.combined.stripeAmountMinor).toBe(b.priced.combined.stripeAmountMinor)
   })
 })
