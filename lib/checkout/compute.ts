@@ -28,6 +28,8 @@ import { VEHICLE_CONFIG } from '@/types/booking'
 import { normalizePhone } from '@/lib/phone'
 import { computeRouteDistance, type RoutePoint } from '@/lib/route-distance'
 import { isAirportTrip } from '@/lib/airport'
+import { isAirportPickup } from '@/lib/no-show-wait'
+import { isLandingOffset, pickupFromLanding } from '@/lib/airport-pickup'
 import {
   MAX_STOPS,
   MAX_STOP_WAIT_MIN,
@@ -91,6 +93,11 @@ export const checkoutBookingSchema = z.object({
       )
       .max(MAX_STOPS)
       .optional(),
+    // Phase 91 (STOP-05, D-07): an airport pickup is timed after the flight lands. All three together or none; the
+    // server derives the pickup as landing + offset in Prague time (D-18) and refuses a pickup that differs.
+    landingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
+    landingTime: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal('')),
+    pickupOffsetMin: z.string().regex(/^\d{1,2}$/).optional().or(z.literal('')),
   }).catchall(BOUNDED_STRING), // anything else must be string ≤ 2000 chars
 })
 
@@ -115,6 +122,8 @@ export type ValidatedCheckout = {
   origin: RoutePoint | null
   destination: RoutePoint | null
   stops: StopInput[]
+  /** STOP-05: the validated landing of an airport pickup (the pickup in bookingData is already the derived one); null otherwise. */
+  landing: { date: string; time: string; offsetMin: number } | null
 }
 
 export type PricedCheckout = {
@@ -208,6 +217,49 @@ export function validateCheckoutBooking(
     return fail(400, 'INVALID_REQUEST', 'Invalid coordinates')
   }
 
+  // STOP-05 / D-07, D-18: landing + offset -> the pickup, derived on the server. Runs before the round-trip checks so
+  // they read the derived pickup. The browser never decides the pickup (T-91-22).
+  let landing: ValidatedCheckout['landing'] = null
+  const landingGiven = [bookingData.landingDate, bookingData.landingTime, bookingData.pickupOffsetMin].filter(Boolean).length
+  if (landingGiven > 0) {
+    if (landingGiven < 3) {
+      return fail(400, 'INVALID_REQUEST', 'Incomplete landing')
+    }
+    if (tripType !== 'transfer' && tripType !== 'round_trip') {
+      return fail(400, 'LANDING_NOT_ALLOWED', 'Landing time is only available on a transfer')
+    }
+    const landingDate = bookingData.landingDate as string
+    const landingTime = bookingData.landingTime as string
+    const offsetMin = parseInt(bookingData.pickupOffsetMin as string, 10)
+    if (!isLandingOffset(offsetMin)) {
+      return fail(400, 'INVALID_REQUEST', 'Invalid landing offset')
+    }
+    // T-91-23: the landing UI only exists for an airport pickup; the same rule gates it here (coordinates or airport address).
+    if (
+      !isAirportPickup({
+        origin_lat: origin ? origin.lat : null,
+        origin_lng: origin ? origin.lng : null,
+        origin_address: bookingData.originAddress ?? null,
+      })
+    ) {
+      return fail(422, 'LANDING_NOT_AIRPORT', 'Landing time is only for an airport pickup')
+    }
+    const derived = pickupFromLanding(landingDate, landingTime, offsetMin)
+    if (!derived) {
+      return fail(400, 'INVALID_REQUEST', 'Invalid landing time')
+    }
+    if (
+      (bookingData.pickupDate && bookingData.pickupDate !== derived.pickupDate) ||
+      (bookingData.pickupTime && bookingData.pickupTime !== derived.pickupTime)
+    ) {
+      return fail(422, 'PICKUP_MISMATCH', 'The pickup does not match the landing time')
+    }
+    // Same style as the phone: the derived values are what gets validated further, priced and stored.
+    bookingData.pickupDate = derived.pickupDate
+    bookingData.pickupTime = derived.pickupTime
+    landing = { date: landingDate, time: landingTime, offsetMin }
+  }
+
   // Round-trip specific validation (T-26-01, T-26-06, T-26-09)
   if (tripType === 'round_trip') {
     if (!bookingData.returnDate || !bookingData.returnTime) {
@@ -228,7 +280,7 @@ export function validateCheckoutBooking(
     }
   }
 
-  return { ok: true, tripType, vehicleClass, hours, days, phone: phoneE164, origin, destination, stops }
+  return { ok: true, tripType, vehicleClass, hours, days, phone: phoneE164, origin, destination, stops, landing }
 }
 
 /**
@@ -464,5 +516,15 @@ export function buildCheckoutMeta(input: {
     userId: authenticatedUserId ?? '',
     // A compact JSON string (about 150 chars, inside the 500-char limit; never clamped, a cut JSON is useless).
     ...(cancelPolicy ? { cancelPolicy: JSON.stringify(cancelPolicy.snapshot) } : {}),
+    // STOP-05: the landing of an airport pickup, only when present. validateCheckoutBooking guarantees all three are
+    // set together and that pickupDate / pickupTime above are the derived pickup, so the key set is unchanged for every
+    // booking without a landing.
+    ...(bookingData.landingDate && bookingData.landingTime && bookingData.pickupOffsetMin
+      ? {
+          landingDate: bookingData.landingDate,
+          landingTime: bookingData.landingTime,
+          pickupOffsetMin: bookingData.pickupOffsetMin,
+        }
+      : {}),
   }
 }
