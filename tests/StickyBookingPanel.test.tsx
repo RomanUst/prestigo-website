@@ -7,8 +7,12 @@ import type { PriceBreakdown, VehicleClass } from '@/types/booking'
 import StickyBookingPanel from '@/components/booking/StickyBookingPanel'
 
 // Mock RouteMap to avoid Google Maps in this test suite
+const routeMapProps = vi.hoisted(() => ({ last: null as null | { stops?: Array<{ lat: number; lng: number }> } }))
 vi.mock('@/components/booking/RouteMap', () => ({
-  default: () => <div data-testid="route-map-stub" />,
+  default: (props: { stops?: Array<{ lat: number; lng: number }> }) => {
+    routeMapProps.last = props
+    return <div data-testid="route-map-stub" />
+  },
 }))
 
 // Mock MetaPixel so trackMetaEvent is observable
@@ -49,6 +53,7 @@ function setupStoreWithVehicle() {
     },
     pickupDate: '2027-01-15',
     pickupTime: '10:00',
+    stops: [],
     currentStep: 2,
     completedSteps: new Set([1]),
   })
@@ -88,6 +93,29 @@ describe('StickyBookingPanel', () => {
         'InitiateCheckout',
         expect.objectContaining({ currency: expect.any(String) })
       )
+    })
+  })
+
+  describe('Phase 91: stops on the map', () => {
+    it('passes only the stops that have a place to the map, in order', () => {
+      useBookingStore.setState({
+        stops: [
+          { id: 's1', place: { address: 'Karlovy Vary', placeId: 'p1', lat: 50.23, lng: 12.87 }, waitMinutes: 15 },
+          { id: 's2', place: null, waitMinutes: 0 },
+          { id: 's3', place: { address: 'Plzen', placeId: 'p3', lat: 49.74, lng: 13.37 }, waitMinutes: 0 },
+        ],
+      })
+      render(<StickyBookingPanel />)
+      expect(routeMapProps.last?.stops).toEqual([
+        { lat: 50.23, lng: 12.87 },
+        { lat: 49.74, lng: 13.37 },
+      ])
+    })
+
+    it('passes an empty list without stops', () => {
+      useBookingStore.setState({ stops: [] })
+      render(<StickyBookingPanel />)
+      expect(routeMapProps.last?.stops).toEqual([])
     })
   })
 
