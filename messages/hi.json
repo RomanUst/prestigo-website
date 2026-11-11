@@ -61,6 +61,16 @@
       "minuteAria": "पिकअप का मिनट",
       "selectDatePrompt": "जारी रखने के लिए पिकअप की तारीख चुनें"
     },
+    "landing": {
+      "dateLabel": "लैंडिंग का दिनांक",
+      "timeLabel": "लैंडिंग का समय",
+      "timeAria": "लैंडिंग का समय",
+      "offsetLabel": "लैंडिंग के बाद पिकअप",
+      "offsetAtLanding": "लैंडिंग के समय",
+      "offsetMinutes": "लैंडिंग के {minutes} मिनट बाद",
+      "pickupAt": "आपका ड्राइवर आपसे {time} बजे मिलेगा",
+      "pickupAtDate": "आपका ड्राइवर आपसे {date} को {time} बजे मिलेगा"
+    },
     "step5": {
       "firstNameLabel": "पहला नाम",
       "lastNameLabel": "अंतिम नाम",

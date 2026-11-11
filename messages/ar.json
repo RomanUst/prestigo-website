@@ -61,6 +61,16 @@
       "minuteAria": "دقيقة الانطلاق",
       "selectDatePrompt": "يُرجى اختيار تاريخ الانطلاق للمتابعة"
     },
+    "landing": {
+      "dateLabel": "تاريخ الهبوط",
+      "timeLabel": "وقت الهبوط",
+      "timeAria": "وقت الهبوط",
+      "offsetLabel": "الاستقبال بعد الهبوط",
+      "offsetAtLanding": "عند الهبوط",
+      "offsetMinutes": "بعد الهبوط بـ {minutes} دقيقة",
+      "pickupAt": "سيستقبلك السائق في الساعة {time}",
+      "pickupAtDate": "سيستقبلك السائق يوم {date} في الساعة {time}"
+    },
     "step5": {
       "firstNameLabel": "الاسم الأول",
       "lastNameLabel": "اسم العائلة",

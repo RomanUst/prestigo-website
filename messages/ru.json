@@ -61,6 +61,16 @@
       "minuteAria": "Минута подачи",
       "selectDatePrompt": "Выберите дату подачи, чтобы продолжить"
     },
+    "landing": {
+      "dateLabel": "Дата прилёта",
+      "timeLabel": "Время прилёта",
+      "timeAria": "Время прилёта",
+      "offsetLabel": "Подача после прилёта",
+      "offsetAtLanding": "В момент прилёта",
+      "offsetMinutes": "Через {minutes} мин после прилёта",
+      "pickupAt": "Водитель встретит вас в {time}",
+      "pickupAtDate": "Водитель встретит вас {date} в {time}"
+    },
     "step5": {
       "firstNameLabel": "ИМЯ",
       "lastNameLabel": "ФАМИЛИЯ",

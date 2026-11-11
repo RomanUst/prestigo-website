@@ -61,6 +61,16 @@
       "minuteAria": "上车分钟",
       "selectDatePrompt": "请选择上车日期以继续"
     },
+    "landing": {
+      "dateLabel": "降落日期",
+      "timeLabel": "降落时间",
+      "timeAria": "降落时间",
+      "offsetLabel": "降落后接机",
+      "offsetAtLanding": "降落时",
+      "offsetMinutes": "降落后 {minutes} 分钟",
+      "pickupAt": "司机将在 {time} 与您会合",
+      "pickupAtDate": "司机将在 {date} {time} 与您会合"
+    },
     "step5": {
       "firstNameLabel": "名字",
       "lastNameLabel": "姓氏",

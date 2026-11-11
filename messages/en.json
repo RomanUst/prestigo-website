@@ -61,6 +61,16 @@
       "minuteAria": "Pickup minute",
       "selectDatePrompt": "Select a pickup date to continue"
     },
+    "landing": {
+      "dateLabel": "Landing date",
+      "timeLabel": "Landing time",
+      "timeAria": "Landing time",
+      "offsetLabel": "Pickup after landing",
+      "offsetAtLanding": "At landing",
+      "offsetMinutes": "{minutes} min after landing",
+      "pickupAt": "Your driver meets you at {time}",
+      "pickupAtDate": "Your driver meets you on {date} at {time}"
+    },
     "step5": {
       "firstNameLabel": "FIRST NAME",
       "lastNameLabel": "LAST NAME",

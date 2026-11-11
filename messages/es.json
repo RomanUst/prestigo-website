@@ -61,6 +61,16 @@
       "minuteAria": "Minuto de recogida",
       "selectDatePrompt": "Seleccione una fecha de recogida para continuar"
     },
+    "landing": {
+      "dateLabel": "Fecha de aterrizaje",
+      "timeLabel": "Hora de aterrizaje",
+      "timeAria": "Hora de aterrizaje",
+      "offsetLabel": "Recogida tras el aterrizaje",
+      "offsetAtLanding": "Al aterrizar",
+      "offsetMinutes": "{minutes} min después del aterrizaje",
+      "pickupAt": "Su conductor le recibe a las {time}",
+      "pickupAtDate": "Su conductor le recibe el {date} a las {time}"
+    },
     "step5": {
       "firstNameLabel": "NOMBRE",
       "lastNameLabel": "APELLIDOS",

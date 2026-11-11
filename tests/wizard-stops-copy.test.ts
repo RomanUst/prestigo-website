@@ -36,6 +36,22 @@ const STOP_AND_WAIT_KEYS: CopyKey[] = [
   { namespace: 'Booking.summaryBlock', key: 'waitingLine' },
 ]
 
+const LANDING_KEYS: CopyKey[] = [
+  { namespace: 'Booking.landing', key: 'dateLabel' },
+  { namespace: 'Booking.landing', key: 'timeLabel' },
+  { namespace: 'Booking.landing', key: 'timeAria' },
+  { namespace: 'Booking.landing', key: 'offsetLabel' },
+  { namespace: 'Booking.landing', key: 'offsetAtLanding' },
+  { namespace: 'Booking.landing', key: 'offsetMinutes', values: { minutes: 30 }, contains: ['30'] },
+  { namespace: 'Booking.landing', key: 'pickupAt', values: { time: '14:30' }, contains: ['14:30'] },
+  {
+    namespace: 'Booking.landing',
+    key: 'pickupAtDate',
+    values: { date: '11 Jun', time: '00:20' },
+    contains: ['11 Jun', '00:20'],
+  },
+]
+
 const NON_ENGLISH = locales.filter((l) => l !== 'en')
 
 // A price or an amount: a digit next to a currency sign, or an amount followed by a currency code.
@@ -54,6 +70,7 @@ function format(locale: string, item: CopyKey): string {
 
 describe.each([
   ['stop and waiting copy', STOP_AND_WAIT_KEYS],
+  ['airport landing copy', LANDING_KEYS],
 ] as const)('wizard %s', (_name, keys) => {
   for (const locale of locales) {
     describe(locale, () => {
@@ -86,5 +103,25 @@ describe.each([
 
   it('covers every non-English locale', () => {
     expect(NON_ENGLISH.length).toBe(6)
+  })
+})
+
+describe('Booking.landing placeholders', () => {
+  it('keeps the placeholder names the components pass in every locale', () => {
+    for (const locale of locales) {
+      expect(lookup(locale, 'Booking.landing', 'offsetMinutes')).toContain('{minutes}')
+      expect(lookup(locale, 'Booking.landing', 'pickupAt')).toContain('{time}')
+      const withDate = lookup(locale, 'Booking.landing', 'pickupAtDate') as string
+      expect(withDate).toContain('{date}')
+      expect(withDate).toContain('{time}')
+    }
+  })
+
+  it('formats pickupAtDate with both values in every locale', () => {
+    for (const locale of locales) {
+      const out = format(locale, LANDING_KEYS[7])
+      expect(out).toContain('11 Jun')
+      expect(out).toContain('00:20')
+    }
   })
 })

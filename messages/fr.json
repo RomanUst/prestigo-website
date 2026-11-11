@@ -61,6 +61,16 @@
       "minuteAria": "Minute de prise en charge",
       "selectDatePrompt": "Sélectionnez une date de prise en charge pour continuer"
     },
+    "landing": {
+      "dateLabel": "Date d'atterrissage",
+      "timeLabel": "Heure d'atterrissage",
+      "timeAria": "Heure d'atterrissage",
+      "offsetLabel": "Prise en charge après l'atterrissage",
+      "offsetAtLanding": "À l'atterrissage",
+      "offsetMinutes": "{minutes} min après l'atterrissage",
+      "pickupAt": "Votre chauffeur vous retrouve à {time}",
+      "pickupAtDate": "Votre chauffeur vous retrouve le {date} à {time}"
+    },
     "step5": {
       "firstNameLabel": "PRÉNOM",
       "lastNameLabel": "NOM",
