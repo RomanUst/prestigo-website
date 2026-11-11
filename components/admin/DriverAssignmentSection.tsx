@@ -29,7 +29,8 @@ type Mode = 'loading' | 'no-assignment' | 'assigned' | 'reassigning' | 'submitti
 interface DriverAssignmentSectionProps {
   bookingId: string
   bookingStatus: string
-  onAssigned?: (newStatus: 'assigned') => void
+  /** The status the assign route reports for the booking: 'assigned' on a first assignment, unchanged otherwise. */
+  onAssigned?: (newStatus: string) => void
 }
 
 function getStatusBadgeVariant(status: string): 'pending' | 'active' | 'inactive' {
@@ -152,7 +153,9 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
         }
         setMode('assigned')
         setSelectedDriverId('')
-        onAssigned?.('assigned')   // D-06: notify parent for optimistic table update
+        // D-06: notify parent for optimistic table update. The route reports the booking's real status: a pending or
+        // unpaid booking, or a reassign from en_route / on_location, keeps its status (90 WR-06).
+        onAssigned?.(typeof postData.booking_status === 'string' ? postData.booking_status : 'assigned')
       } else {
         setMode('error')
       }
