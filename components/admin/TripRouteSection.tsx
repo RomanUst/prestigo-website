@@ -1,8 +1,9 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import { WAIT_BLOCK_MIN, waitingTotalEur } from '@/lib/stops'
 import { formatEUR } from '@/lib/currency'
 import { DetailField } from './DetailField'
+import { MovePickupDialog } from './MovePickupDialog'
 import type { AdminBooking } from './bookingTypes'
 
 // Phase 91 (STOP-04, STOP-05): the route of a booking in the one admin panel shared by the list, the board and the
@@ -10,8 +11,9 @@ import type { AdminBooking } from './bookingTypes'
 // for a booking with stops it shows every stop in order with its waiting time, the paid 15-minute blocks and the
 // "Waiting at stops" total read from the stored snapshot (booking_stops), never recomputed from today's rate.
 //
-// Renders nothing for a booking without stops and without a landing. `children` is the slot for the move-pickup
-// button (plan 91-15); it is rendered at the end of the section.
+// Renders nothing for a booking without stops and without a landing. A booking with a landing that is not final
+// (completed, cancelled, no-show) also gets "Move pickup…" (plan 91-15, D-11): the operator's button for a late flight.
+// `children` is rendered at the end of the section.
 
 const rowStyle: React.CSSProperties = {
   fontFamily: 'var(--font-montserrat)',
@@ -23,15 +25,28 @@ const mutedStyle: React.CSSProperties = {
   color: 'var(--admin-text-muted)',
 }
 
+const FINAL_STATUSES: readonly string[] = ['completed', 'cancelled', 'no_show']
+
 function clock(value: string | null | undefined): string {
   return typeof value === 'string' ? value.slice(0, 5) : ''
 }
 
-export function TripRouteSection({ booking, children }: { booking: AdminBooking; children?: React.ReactNode }) {
+export function TripRouteSection({
+  booking,
+  onBookingPatched,
+  children,
+}: {
+  booking: AdminBooking
+  /** The panel's patch sink: called with the new landing and pickup after a confirmed move. */
+  onBookingPatched?: (patch: Partial<AdminBooking>) => void
+  children?: React.ReactNode
+}) {
+  const [moveOpen, setMoveOpen] = useState(false)
   const stops = booking.stops ?? []
   const landingTime = clock(booking.landing_time)
   const hasLanding = Boolean(booking.landing_date) && landingTime !== ''
   if (stops.length === 0 && !hasLanding) return null
+  const canMove = hasLanding && typeof booking.pickup_offset_min === 'number' && !FINAL_STATUSES.includes(booking.status)
 
   const offset = booking.pickup_offset_min
   const offsetText = typeof offset === 'number' ? (offset === 0 ? ' (at landing)' : ` (+${offset} min)`) : ''
@@ -102,6 +117,37 @@ export function TripRouteSection({ booking, children }: { booking: AdminBooking;
             <DetailField label="Waiting at stops" value={formatEUR(waitingTotalEur(stops))} />
           </div>
         </>
+      )}
+
+      {canMove && (
+        <div style={{ marginTop: '12px' }}>
+          <button
+            type="button"
+            onClick={() => setMoveOpen(true)}
+            style={{
+              minHeight: '44px',
+              padding: '0 16px',
+              borderRadius: 'var(--admin-radius-md)',
+              background: 'transparent',
+              border: '1px solid var(--admin-border-strong)',
+              color: 'var(--admin-text)',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: 'var(--admin-fs-body)',
+              cursor: 'pointer',
+            }}
+          >
+            Move pickup…
+          </button>
+          <MovePickupDialog
+            isOpen={moveOpen}
+            booking={booking}
+            onClose={() => setMoveOpen(false)}
+            onMoved={(patch) => {
+              setMoveOpen(false)
+              onBookingPatched?.(patch)
+            }}
+          />
+        </div>
       )}
 
       {children}

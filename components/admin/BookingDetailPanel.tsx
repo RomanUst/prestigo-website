@@ -220,7 +220,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
         />
       )}
       {/* Phase 91: landing and pickup time, stops and the waiting total (renders nothing without either). */}
-      <TripRouteSection booking={booking} />
+      <TripRouteSection booking={booking} onBookingPatched={(patch) => handleTripUpdated(booking.id, patch)} />
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
