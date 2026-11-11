@@ -66,6 +66,7 @@ export const WIDGET_LOCALE_BY_SITE_LOCALE: Record<string, string> = {
   ar: 'ar',
   hi: 'hi',
   zh: 'zh_CN',
+  'zh-hant': 'zh_TW',
 }
 
 const STEP_TIMEOUT_MS = 10_000

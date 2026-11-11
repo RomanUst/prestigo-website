@@ -72,6 +72,7 @@ const EXPECTED_OG_LOCALE: Record<string, string> = {
   ar: 'ar_AR',
   hi: 'hi_IN',
   zh: 'zh_CN',
+  'zh-hant': 'zh_TW',
 }
 
 const EN_TITLE = 'PRESTIGO — Premium Chauffeur Service Prague'

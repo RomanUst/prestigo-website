@@ -138,6 +138,7 @@ const MESSAGE_LOADERS: Record<AppLocale, () => Promise<{ default: unknown }>> = 
   ar: () => import('@/messages/ar.json'),
   hi: () => import('@/messages/hi.json'),
   zh: () => import('@/messages/zh.json'),
+  'zh-hant': () => import('@/messages/zh-hant.json'),
 }
 
 /** Full message catalog of a site locale (shared with lib/payments/consent.ts). */
@@ -305,7 +306,7 @@ function moneySentence(c: Ctx, mode: 'free' | 'sorry' | 'waived'): string {
 }
 
 /** Chinese sentences end in a full stop and take no space; every other locale separates them with one. */
-const joinSentences = (c: Ctx, parts: string[]): string => parts.filter((p) => p.length > 0).join(c.locale === 'zh' ? '' : ' ')
+const joinSentences = (c: Ctx, parts: string[]): string => parts.filter((p) => p.length > 0).join(c.locale === 'zh' || c.locale === 'zh-hant' ? '' : ' ')
 
 const TEMPLATES: Record<string, (c: Ctx) => Template> = {
   card_saved: (c) => ({

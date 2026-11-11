@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "title": "資料刪除 — PRESTIGO 布拉格高階專車服務",
+    "description": "如何申請從 PRESTIGO 刪除您的個人資料。GDPR 資料刪除申請指南。"
+  },
+  "hero": {
+    "label": "資料刪除",
+    "headlineLine1": "申請刪除資料。",
+    "headlineItalic": "簡單且透明。"
+  },
+  "requestReceived": {
+    "label": "已收到申請",
+    "paragraph1": "我們已收到您的資料刪除申請,並將在 30 天內處理完畢。您的確認碼:",
+    "paragraph2Prefix": "請妥善儲存此程式碼以備查詢。如有疑問,請傳送郵件至 ",
+    "paragraph2EmailLabel": "info@rideprestigo.com",
+    "paragraph2Suffix": " 並註明此程式碼。"
+  },
+  "section1": {
+    "title": "PRESTIGO 持有哪些資料",
+    "text": "如果您曾預訂接送服務或提交過諮詢,我們會儲存您的姓名、電子郵箱地址、電話號碼、預訂詳情、您透過聊天、電子郵件、Telegram 或 WhatsApp 傳送給我們的訊息,以及我們 CRM 中的客戶記錄。我們還會透過 Google Analytics 和 Meta Pixel 處理匿名化的網站分析資料。我們不會儲存您的 Facebook 使用者 ID —— Meta Pixel 僅傳送經過雜湊處理的行為資料,用於廣告效果衡量。"
+  },
+  "section2": {
+    "title": "如何申請刪除",
+    "paragraph1Prefix": "請傳送郵件至 ",
+    "paragraph1EmailLabel": "info@rideprestigo.com",
+    "paragraph1Suffix": ",主題註明“資料刪除申請”。請在郵件中提供與您的預訂或諮詢相關聯的電子郵箱地址。",
+    "paragraph2": "我們將在 3 個工作日內確認收到您的申請,並在 30 天內完成刪除,除非法律要求我們保留某些記錄:預訂和發票記錄依據捷克法律最長保留 10 年,且不含您的姓名、電子郵件、電話、備註和地址。"
+  },
+  "section3": {
+    "title": "透過 Facebook 刪除",
+    "paragraph1Prefix": "如果您曾使用 Facebook 登入,或透過 Facebook 與 PRESTIGO 進行過互動並希望撤銷訪問許可權,您可以透過 ",
+    "facebookLinkLabel": "Facebook 設定 → 應用和網站",
+    "paragraph1Suffix": " 進行操作。此操作將取消我們的應用對您 Facebook 賬戶的訪問許可權。如需刪除我們可能持有的任何預訂資料,請同時按上述方式向我們傳送郵件。"
+  },
+  "cta": {
+    "headingLine1": "對您的資料有疑問?",
+    "headingItalic": "我們隨時為您提供幫助。",
+    "buttonPrimary": "申請刪除",
+    "buttonSecondary": "隱私政策"
+  }
+}

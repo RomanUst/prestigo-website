@@ -57,7 +57,7 @@ describe('SEO snippets carry no prices', () => {
   it('finds the content to check', () => {
     expect(pageFiles.length).toBeGreaterThan(100)
     expect(blogFiles.length).toBeGreaterThan(100)
-    expect(messageFiles.length).toBe(7)
+    expect(messageFiles.length).toBe(8)
   })
 
   it('content/pages metadata: no €, EUR amounts or price tokens', () => {

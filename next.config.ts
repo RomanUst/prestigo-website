@@ -188,7 +188,7 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: "/:locale(ru|es|fr|ar|hi|zh)/manage/:path*",
+        source: "/:locale(ru|es|fr|ar|hi|zh|zh-hant)/manage/:path*",
         headers: [
           { key: "Referrer-Policy", value: "no-referrer" },
           { key: "Cache-Control", value: "no-store" },

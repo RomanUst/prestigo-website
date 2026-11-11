@@ -374,7 +374,7 @@ describe('translations of terms section 4 and the FAQ cancellation block (ru, es
   const enFaq = faq('en').sections[FAQ_CANCEL.section].faqs
 
   it('covers all six non-English locales', () => {
-    expect(NON_EN).toEqual(['ru', 'es', 'fr', 'ar', 'hi', 'zh'])
+    expect(NON_EN).toEqual(['ru', 'es', 'fr', 'ar', 'hi', 'zh', 'zh-hant'])
   })
 
   describe.each(NON_EN)('%s', (locale) => {
@@ -475,6 +475,7 @@ describe('a 0-hour window reads "until the pickup time", like llms (WR-04)', () 
     ar: 'حتى موعد الاستقبال',
     hi: 'पिकअप के समय तक',
     zh: '接送时间之前',
+    'zh-hant': '接送時間之前',
   }
 
   it.each(LOCALES)('%s: terms and FAQ name no 0 hours and say until the pickup time', (locale) => {

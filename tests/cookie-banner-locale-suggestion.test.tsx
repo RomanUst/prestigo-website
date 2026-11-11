@@ -116,7 +116,14 @@ describe('CookieBanner — built-in language suggestion (UX-02)', () => {
     stubNavigatorLanguages(['zh-CN', 'en'], 'zh-CN')
     renderBanner('en')
 
-    expect(screen.getByRole('button', { name: 'Switch to 中文' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Switch to 简体中文' })).toBeInTheDocument()
+  })
+
+  it('suggests zh-hant for Traditional Chinese browsers (zh-TW, zh-HK, zh-Hant)', () => {
+    stubNavigatorLanguages(['zh-TW', 'en'], 'zh-TW')
+    renderBanner('en')
+
+    expect(screen.getByRole('button', { name: 'Switch to 繁體中文' })).toBeInTheDocument()
   })
 
   it('renders nothing (no modal, no suggestion) once consent was already given', () => {
