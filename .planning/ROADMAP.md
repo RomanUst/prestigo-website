@@ -419,7 +419,7 @@ Plans:
   4. Stops, waiting times and the landing/pickup times are saved with the booking and visible in admin, on the driver trip page and in the confirmation email.
   5. The operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates and recorded in the payment ledger; it is never offered for GNet bookings.
 
-**Plans**: 3/17 plans executed
+**Plans**: 7/17 plans executed
 
 Plans:
 **Wave 1**
@@ -428,10 +428,10 @@ Plans:
 - [x] 91-05-PLAN.md — Consent wording covers extras (version 2026-11-3, gate function) and the extra_charged receipt email in 7 locales
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 91-03-PLAN.md — Owner sets waiting rates per class in admin; public /api/waiting-config of offered classes
-- [ ] 91-04-PLAN.md — Checkout recomputes distance, airport and waiting on the server; client distance ignored; fail closed (security)
-- [ ] 91-08-PLAN.md — Extra-charge engine, admin extra route and card_extra webhook routing (security)
-- [ ] 91-17-PLAN.md — Wizard copy for stops, waiting and the airport landing in 7 locales (split out of 91-09 / 91-10)
+- [x] 91-03-PLAN.md — Owner sets waiting rates per class in admin; public /api/waiting-config of offered classes
+- [x] 91-04-PLAN.md — Checkout recomputes distance, airport and waiting on the server; client distance ignored; fail closed (security)
+- [x] 91-08-PLAN.md — Extra-charge engine, admin extra route and card_extra webhook routing (security)
+- [x] 91-17-PLAN.md — Wizard copy for stops, waiting and the airport landing in 7 locales (split out of 91-09 / 91-10)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 91-06-PLAN.md — Stops saved with the booking in card, cash and pay-now flows (replace-all, pay-now fail closed)
@@ -618,7 +618,7 @@ Plans:
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 28/28 | Complete | 2026-11-09 |
 | 90. Dispatch Views | v5.0 | 9/9 | In Progress|  |
-| 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 3/17 | In Progress|  |
+| 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 7/17 | In Progress|  |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
 | 93. Day Trips & Custom Tours | v5.0 | 0/0 | Not started | - |
 
