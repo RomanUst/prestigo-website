@@ -65,6 +65,8 @@ export const stripeKeys = {
   // Phase 91 extra charge: the booking_extra_charges row id + its attempt, NEVER the amount (T-91-26). The amount is stored
   // on the row at the first click, and a resume replays the same key with the same amount.
   extra: (chargeId: string, n: number) => `extra:${chargeId}:${n}`,
+  // Cancelling the PaymentIntent of an extra whose off-session confirm did not end in success (CR-01): same row, same attempt.
+  extraVoid: (chargeId: string, n: number) => `extra_void:${chargeId}:${n}`,
 } as const
 
 export type CardKind =

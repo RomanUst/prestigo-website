@@ -24,6 +24,7 @@ import type { LedgerActor } from '@/lib/payments/state'
 //   POST { kind: 'other', description, amount_minor }                 charge an agreed amount (no business cap, D-13)
 //   POST { kind: 'resume', charge_id }                                replay a charge whose Stripe answer was lost (after the lease)
 //   -> 200 { outcome: 'charged', charge_id, amount_minor, currency } | 200 { outcome: 'declined', charge_id, code }
+//      | 200 { outcome: 'unconfirmed', charge_id } (Stripe did not settle it and it could not be cancelled: never "declined")
 //      | 409 { error: 'payment_busy' | 'amount_changed', amount_minor? } | 422 { error: 'action_not_allowed', reason? | 'waiting_rate_missing' }
 //
 // Like the fee route this is a deliberate place where a person's amount enters (an 'other' extra), and it is safe for the
@@ -80,7 +81,9 @@ function respond(result: ExtraChargeResult): NextResponse {
           amount_minor: result.amountMinor,
           currency: result.currency,
         })
-      : NextResponse.json({ outcome: 'declined', charge_id: result.chargeId, code: result.code })
+      : result.outcome === 'unconfirmed'
+        ? NextResponse.json({ outcome: 'unconfirmed', charge_id: result.chargeId })
+        : NextResponse.json({ outcome: 'declined', charge_id: result.chargeId, code: result.code })
   }
   if (result.status === 409) {
     return result.error === 'amount_changed'

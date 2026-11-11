@@ -10,7 +10,7 @@ import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-paymen
  * tests/payments-fee-webhook.test.ts.
  */
 
-const { stripeStub, world, mockHoldFailed, mockSendEmail, mockPiRetrieve } = vi.hoisted(() => ({
+const { stripeStub, world, mockHoldFailed, mockSendEmail, mockPiRetrieve, mockAlert } = vi.hoisted(() => ({
   stripeStub: { constructEvent: vi.fn() },
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
@@ -19,6 +19,7 @@ const { stripeStub, world, mockHoldFailed, mockSendEmail, mockPiRetrieve } = vi.
   mockHoldFailed: vi.fn(),
   mockSendEmail: vi.fn(),
   mockPiRetrieve: vi.fn(),
+  mockAlert: vi.fn(),
 }))
 
 vi.mock('next/server', async () => {
@@ -95,6 +96,7 @@ vi.mock('@/lib/payments/stripe', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/payments/stripe')>()),
   getPaymentsStripe: () => ({ paymentIntents: { retrieve: mockPiRetrieve } }),
 }))
+vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: mockAlert }))
 vi.mock('@/lib/payments/emails/send', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/payments/emails/send')>()),
   sendPaymentEmail: mockSendEmail,
@@ -199,6 +201,7 @@ beforeEach(() => {
   db = createFakePaymentsDb({ bookings: [seedBooking()] })
   world.db = db
   mockSendEmail.mockResolvedValue('sent')
+  mockAlert.mockResolvedValue('sent')
   mockHoldFailed.mockResolvedValue(undefined)
   process.env.RESEND_API_KEY = 're_test'
 })
@@ -309,6 +312,45 @@ describe('payment_intent.succeeded on an extra PaymentIntent', () => {
     expect(ledger('extra_charged')).toHaveLength(0)
     expect(chargeRow().status).toBe('charging')
     expect(ledger('charge_succeeded')).toHaveLength(2)
+  })
+})
+
+describe('CR-01: a PaymentIntent that succeeds after its row was recorded as failed', () => {
+  const failedRow = (over: Record<string, unknown> = {}) =>
+    seedCharge({ status: 'failed', last_error_code: 'unexpected_status', stripe_payment_intent_id: 'pi_extra_1', ...over })
+
+  it('repairs the row to charged once, writes extra_charged once, sends the receipt once and alerts the operator', async () => {
+    failedRow()
+    const { status } = await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_c1'))
+    expect(status).toBe(200)
+    expect(chargeRow()).toMatchObject({ status: 'charged', stripe_payment_intent_id: 'pi_extra_1', last_error_code: null })
+    expect(typeof chargeRow().charged_at).toBe('string')
+    expect(ledger('extra_charged')).toHaveLength(1)
+    expect(ledger('extra_charged')[0]).toMatchObject({ event_key: `extra_charged:${CHARGE_ID}`, stripe_object_id: 'pi_extra_1', amount_minor: 1500 })
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+    expect(mockAlert).toHaveBeenCalledTimes(1)
+    expect(mockAlert.mock.calls[0][0]).toBe('ops_attention')
+    expect(mockAlert.mock.calls[0][2]).toMatchObject({ note: 'extra_late_success', amountMinor: 1500 })
+    // ids only: neither the description nor an address is in the alert
+    expect(JSON.stringify(mockAlert.mock.calls[0][2])).not.toContain('Airport parking')
+  })
+
+  it('a redelivery repairs nothing twice: one extra_charged, one receipt', async () => {
+    failedRow()
+    await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_c2'))
+    await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_c3'))
+    expect(ledger('extra_charged')).toHaveLength(1)
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+  })
+
+  it('a different PaymentIntent on a failed row is only reported (second payment): row and ledger unchanged', async () => {
+    failedRow({ stripe_payment_intent_id: 'pi_other' })
+    await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_c4'))
+    expect(chargeRow()).toMatchObject({ status: 'failed', stripe_payment_intent_id: 'pi_other' })
+    expect(ledger('extra_charged')).toHaveLength(0)
+    expect(mockSendEmail).not.toHaveBeenCalled()
+    expect(mockAlert).toHaveBeenCalledTimes(1)
+    expect(mockAlert.mock.calls[0][2]).toMatchObject({ note: 'extra_second_payment' })
   })
 })
 

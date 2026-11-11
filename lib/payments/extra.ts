@@ -26,6 +26,7 @@ import type Stripe from 'stripe'
 import { isPartnerBooking } from '@/lib/booking-status'
 import { LEASE_SECONDS } from '@/lib/payments/config'
 import { consentCoversExtras } from '@/lib/payments/consent-text'
+import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import {
@@ -100,6 +101,11 @@ export type ExtraRequest =
 export type ExtraChargeResult =
   | { status: 200; outcome: 'charged'; chargeId: string; amountMinor: number; currency: ExtraCurrency }
   | { status: 200; outcome: 'declined'; chargeId: string; code: string }
+  /**
+   * Stripe did not settle the PaymentIntent and it could not be cancelled, so it may still succeed (CR-01). The row stays
+   * charging (it blocks a new charge), the operator is alerted, and nothing may be said about the card being declined.
+   */
+  | { status: 200; outcome: 'unconfirmed'; chargeId: string }
   | { status: 409; error: 'payment_busy' }
   | { status: 409; error: 'amount_changed'; amountMinor: number }
   | { status: 422; error: 'action_not_allowed' | 'waiting_rate_missing' }
@@ -175,8 +181,11 @@ export function isExtraChargeEligible(
 
 type Collected =
   | { kind: 'ok'; pi: Stripe.PaymentIntent }
+  /** A definitive decline: the PaymentIntent is dead (declined by the card, or cancelled here), so it can never succeed. */
   | { kind: 'declined'; code: string; paymentIntentId: string | null }
   | { kind: 'transient' }
+  /** The PaymentIntent is not settled and could not be cancelled: it may still succeed. */
+  | { kind: 'unresolved'; code: string; paymentIntentId: string }
 
 const idOf = (v: unknown): string | null => {
   if (typeof v === 'string' && v) return v
@@ -210,8 +219,9 @@ async function chargeSavedCard(booking: BookingRow, charge: ExtraChargeRow): Pro
       { idempotencyKey: stripeKeys.extra(charge.id, charge.attempt) },
     )) as Stripe.PaymentIntent
     if (pi.status === 'succeeded') return { kind: 'ok', pi }
-    const code = pi.status === 'requires_action' ? 'authentication_required' : 'unexpected_status'
-    return { kind: 'declined', code, paymentIntentId: pi.id }
+    // requires_action, processing or anything unexpected: the PaymentIntent is NOT dead, so it is cancelled before the row
+    // may be called declined (CR-01).
+    return await closeUnfinished(charge, pi.id, pi.status === 'requires_action' ? 'authentication_required' : 'unexpected_status')
   } catch (err) {
     const errorClass = classifyStripeError(err)
     // An answer that says nothing about the card (network, rate limit, a 5xx, a broken key, a busy key): the row stays
@@ -221,12 +231,47 @@ async function chargeSavedCard(booking: BookingRow, charge: ExtraChargeRow): Pro
       return { kind: 'transient' }
     }
     const code = errorClass === 'auth_required' ? 'authentication_required' : stripeErrorCode(err)
-    return { kind: 'declined', code, paymentIntentId: idOf((err as { payment_intent?: unknown } | null)?.payment_intent) }
+    const attached = (err as { payment_intent?: unknown } | null)?.payment_intent
+    const piId = idOf(attached)
+    const piStatus = attached && typeof attached === 'object' ? (attached as { status?: unknown }).status : undefined
+    // A plain decline leaves the PaymentIntent requires_payment_method (nobody holds its client secret, it cannot be paid
+    // later). An authentication_required one stays requires_action: it is cancelled like any other unfinished answer.
+    if (piId && piStatus !== 'requires_payment_method' && piStatus !== 'canceled') return closeUnfinished(charge, piId, code)
+    return { kind: 'declined', code, paymentIntentId: piId }
   }
 }
 
-/** charging -> charged, conditional on charging: true only for the one writer that flips it. */
-async function markCharged(chargeId: string, paymentIntentId: string): Promise<boolean> {
+/**
+ * A PaymentIntent that did not succeed on the off-session confirm is cancelled, so it cannot succeed later (CR-01). Declined
+ * only when it is dead. If the cancel itself fails, Stripe is asked what the PaymentIntent is now: succeeded -> the money
+ * moved (ok), dead -> declined, anything else -> unresolved (the row stays charging and blocks a new charge).
+ */
+async function closeUnfinished(charge: ExtraChargeRow, piId: string, code: string): Promise<Collected> {
+  const stripe = getPaymentsStripe()
+  try {
+    await stripe.paymentIntents.cancel(piId, undefined, { idempotencyKey: stripeKeys.extraVoid(charge.id, charge.attempt) })
+    return { kind: 'declined', code, paymentIntentId: piId }
+  } catch (cancelErr) {
+    try {
+      const now = (await stripe.paymentIntents.retrieve(piId)) as Stripe.PaymentIntent
+      if (now.status === 'succeeded') return { kind: 'ok', pi: now }
+      if (now.status === 'canceled' || now.status === 'requires_payment_method') return { kind: 'declined', code, paymentIntentId: piId }
+    } catch {
+      // unknown: handled as unresolved below
+    }
+    console.error('[extra] unfinished PaymentIntent could not be cancelled', {
+      chargeId: charge.id,
+      errorClass: classifyStripeError(cancelErr),
+    })
+    return { kind: 'unresolved', code, paymentIntentId: piId }
+  }
+}
+
+/**
+ * charging -> charged (or, for the repair of a row wrongly recorded as declined, failed -> charged), conditional on the
+ * status we read: true only for the one writer that flips it.
+ */
+async function markCharged(chargeId: string, paymentIntentId: string, from: 'charging' | 'failed' = 'charging'): Promise<boolean> {
   const now = new Date().toISOString()
   const { data, error } = await createSupabaseServiceClient()
     .from(TABLE)
@@ -238,7 +283,7 @@ async function markCharged(chargeId: string, paymentIntentId: string): Promise<b
       updated_at: now,
     })
     .eq('id', chargeId)
-    .eq('status', 'charging')
+    .eq('status', from)
     .select('id')
   if (error) throw new Error('extra charge close failed')
   return Array.isArray(data) && data.length > 0
@@ -336,6 +381,20 @@ async function collect(booking: BookingRow, charge: ExtraChargeRow, actor: Ledge
       return { status: 200, outcome: 'declined', chargeId: charge.id, code: result.code.slice(0, 60) }
     case 'transient':
       return { status: 409, error: 'payment_busy' }
+    case 'unresolved': {
+      // The row stays charging: that blocks a new charge, and the webhook (succeeded / failed) or a resume settles it.
+      await sendPaymentOperatorAlert(
+        'ops_attention',
+        { ...booking, payment_currency: charge.currency },
+        {
+          eventKey: `alert:extra_unresolved:${charge.id}`,
+          code: result.code,
+          amountMinor: charge.amount_minor,
+          note: 'extra_unresolved',
+        },
+      )
+      return { status: 200, outcome: 'unconfirmed', chargeId: charge.id }
+    }
   }
 }
 
@@ -560,14 +619,15 @@ export async function finalizeExtraFromWebhook(
   }
 
   if (outcome === 'succeeded') {
-    if (charge.status === 'failed') {
-      // Money moved on a charge recorded as failed: the record stays as it is, the log (ids only) tells the operator.
-      console.error('[webhook] card_extra succeeded on a failed charge', { stripeObjectId: pi.id, bookingId, chargeId })
-      return
-    }
     const booked = await db.from('bookings').select('*').eq('id', bookingId).maybeSingle()
     if (booked.error) throw new Error('extra booking lookup failed')
-    await finishCharged((booked.data as BookingRow | null) ?? { id: bookingId }, charge, pi, WEBHOOK_ACTOR)
+    const bookingRow = (booked.data as BookingRow | null) ?? { id: bookingId }
+    if (charge.status === 'failed') {
+      // Money moved on a charge recorded as failed (CR-01): repair the row, and make sure a person sees it.
+      await repairFailedExtra(bookingRow, charge, pi)
+      return
+    }
+    await finishCharged(bookingRow, charge, pi, WEBHOOK_ACTOR)
     return
   }
 
@@ -576,6 +636,45 @@ export async function finalizeExtraFromWebhook(
   const err = pi.last_payment_error
   const code = (err?.decline_code || err?.code || 'unknown').slice(0, 60)
   await finishFailed(charge, code, pi.id, WEBHOOK_ACTOR)
+}
+
+/**
+ * CR-01: Stripe collected an extra that the row records as failed. The ledger row (exactly-once by its key), the compare-and-set
+ * failed -> charged, the receipt for the writer that wins it, and an operator alert (exactly-once by its key, sent even when a
+ * redelivery finds the row already repaired, so a crash between the repair and the alert cannot hide it). A PaymentIntent other
+ * than the one the row recorded is only reported: the row is not rewritten to point at a second payment.
+ */
+async function repairFailedExtra(booking: BookingRow, charge: ExtraChargeRow, pi: Stripe.PaymentIntent): Promise<void> {
+  const sameIntent = !charge.stripe_payment_intent_id || charge.stripe_payment_intent_id === pi.id
+  console.error('[webhook] card_extra succeeded on a failed charge', {
+    stripeObjectId: pi.id,
+    bookingId: charge.booking_id,
+    chargeId: charge.id,
+    repaired: sameIntent,
+  })
+  let won = false
+  if (sameIntent) {
+    await appendPaymentEvent(charge.booking_id, {
+      key: `extra_charged:${charge.id}`,
+      kind: 'extra_charged',
+      stripeObjectId: pi.id,
+      amountMinor: charge.amount_minor,
+      currency: charge.currency,
+      actor: WEBHOOK_ACTOR,
+    })
+    won = await markCharged(charge.id, pi.id, 'failed')
+  }
+  await sendPaymentOperatorAlert(
+    'ops_attention',
+    { ...booking, payment_currency: charge.currency },
+    {
+      eventKey: `alert:extra_late_success:${charge.id}:${pi.id}`,
+      code: sameIntent ? 'extra_late_success' : 'extra_second_payment',
+      amountMinor: charge.amount_minor,
+      note: sameIntent ? 'extra_late_success' : 'extra_second_payment',
+    },
+  )
+  if (won) await sendReceipt(booking, charge)
 }
 
 /** Record the click, take the one-charging-row lock by inserting the row, then charge. */

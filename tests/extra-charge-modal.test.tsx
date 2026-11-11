@@ -230,6 +230,20 @@ describe('ExtraChargeModal: answers that charge nothing', () => {
     expect(props.onRefetch).toHaveBeenCalledTimes(1)
   })
 
+  it('unconfirmed (CR-01): never claims that nothing was charged, tells the operator not to charge again', async () => {
+    stubFetch({ post: () => ({ status: 200, body: { outcome: 'unconfirmed', charge_id: 'c-1' } }) })
+    const props = renderModal()
+    fillOther('Airport parking', '15.00')
+    fireEvent.click(primary(/Charge/))
+
+    const text = await screen.findByText(/Stripe has not confirmed whether this charge went through/)
+    expect(text.textContent).toContain('Do not charge again')
+    expect(text.textContent).not.toMatch(/nothing was charged/i)
+    expect(text.textContent).not.toMatch(/declined/i)
+    expect(props.onDone).not.toHaveBeenCalled()
+    expect(props.onRefetch).toHaveBeenCalledTimes(1)
+  })
+
   it('payment_busy: a charge is still being processed', async () => {
     stubFetch({ post: () => ({ status: 409, body: { error: 'payment_busy' } }) })
     const props = renderModal()

@@ -12,13 +12,14 @@ import { LEASE_SECONDS } from '@/lib/payments/config'
  * payments database and the fake Stripe. The HTTP layer is covered in tests/admin-extra-route.test.ts.
  */
 
-const { world, mockSendEmail, mockWaitingRate } = vi.hoisted(() => ({
+const { world, mockSendEmail, mockWaitingRate, mockAlert } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
   },
   mockSendEmail: vi.fn(),
   mockWaitingRate: { value: {} as Record<string, number> },
+  mockAlert: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -31,6 +32,7 @@ vi.mock('@/lib/payments/stripe', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/payments/stripe')>()),
   getPaymentsStripe: () => world.stripe,
 }))
+vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: mockAlert }))
 vi.mock('@/lib/payments/emails/send', () => ({ sendPaymentEmail: mockSendEmail, bookingEmailDataFromRow: (r: unknown) => r }))
 vi.mock('@/lib/pricing-config', () => ({
   getPricingConfig: async () => ({ waitingRate: mockWaitingRate.value }),
@@ -96,6 +98,7 @@ beforeEach(() => {
   fake = createFakeStripe()
   world.stripe = fake.stripe
   mockSendEmail.mockResolvedValue('sent')
+  mockAlert.mockResolvedValue('sent')
   mockWaitingRate.value = { business: 12.5, business_van: 20 }
   seed()
 })
@@ -305,10 +308,20 @@ describe('decline: final for the row, no email, no retry', () => {
     expect(row().payment_state).toBe('captured')
   })
 
-  it('requires_action is declined with authentication_required', async () => {
+  it('requires_action is declined with authentication_required, and its PaymentIntent is cancelled so it cannot succeed later', async () => {
     seed({ stripe_payment_method_id: 'pm_auth_required' })
     expect(await run(other())).toMatchObject({ status: 200, outcome: 'declined', code: 'authentication_required' })
     expect(charges()[0]).toMatchObject({ status: 'failed', last_error_code: 'authentication_required' })
+    const cancels = fake.callsTo('paymentIntents.cancel')
+    expect(cancels).toHaveLength(1)
+    expect(cancels[0].idempotencyKey).toBe(`extra_void:${charges()[0].id}:1`)
+    expect(fake.state.paymentIntents.get(cancels[0].targetId!)?.status).toBe('canceled')
+  })
+
+  it('a plain card decline leaves a dead PaymentIntent: nothing to cancel', async () => {
+    seed({ stripe_payment_method_id: 'pm_decline_insufficient' })
+    await run(other())
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
   })
 
   it('after a decline the operator may start a NEW charge (new row, new key); nothing was retried automatically', async () => {
@@ -322,6 +335,62 @@ describe('decline: final for the row, no email, no retry', () => {
       `extra:${first.chargeId}:1`,
       `extra:${second.chargeId}:1`,
     ])
+  })
+})
+
+describe('CR-01: a PaymentIntent that answers without succeeding is never called a decline while it is alive', () => {
+  it('a confirm that answers processing: the PaymentIntent is cancelled first, then the row is declined (unexpected_status)', async () => {
+    fake.forceNextCreateStatus('processing')
+    const res = await run(other())
+    expect(res).toMatchObject({ status: 200, outcome: 'declined', code: 'unexpected_status' })
+    const cancels = fake.callsTo('paymentIntents.cancel')
+    expect(cancels).toHaveLength(1)
+    expect(fake.state.paymentIntents.get(cancels[0].targetId!)?.status).toBe('canceled')
+    expect(charges()[0].status).toBe('failed')
+    expect(mockAlert).not.toHaveBeenCalled()
+  })
+
+  it('if the cancel fails and the PaymentIntent is still alive: no "declined", the row stays charging (blocks a new charge) and the operator is alerted', async () => {
+    fake.forceNextCreateStatus('processing')
+    fake.failNextWith('paymentIntents.cancel', 'connection')
+    const res = await run(other())
+    expect(res).toMatchObject({ status: 200, outcome: 'unconfirmed' })
+    expect(res).not.toHaveProperty('code')
+    expect(charges()[0].status).toBe('charging')
+    expect(ledger('extra_failed')).toHaveLength(0)
+    expect(ledger('extra_charged')).toHaveLength(0)
+    expect(mockAlert).toHaveBeenCalledTimes(1)
+    expect(mockAlert.mock.calls[0][0]).toBe('ops_attention')
+    expect(mockAlert.mock.calls[0][2]).toMatchObject({ eventKey: `alert:extra_unresolved:${charges()[0].id}`, note: 'extra_unresolved', amountMinor: 1500 })
+    // The description never reaches the alert.
+    expect(JSON.stringify(mockAlert.mock.calls)).not.toContain('Airport parking')
+    // A new charge is blocked while the row is charging.
+    expect(await run(other(900, 'Another thing'))).toEqual({ status: 409, error: 'payment_busy' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+  })
+
+  it('if the cancel fails because the PaymentIntent succeeded meanwhile: it is recorded as charged, not as a decline', async () => {
+    fake.forceNextCreateStatus('processing')
+    const original = fake.stripe.paymentIntents.cancel
+    fake.stripe.paymentIntents.cancel = async (id: string, ...rest: [Record<string, unknown>?, { idempotencyKey?: string }?]) => {
+      fake.setPaymentIntentStatus(id, 'succeeded')
+      return original(id, ...rest)
+    }
+    const res = await run(other())
+    expect(res).toMatchObject({ status: 200, outcome: 'charged', amountMinor: 1500 })
+    expect(charges()[0].status).toBe('charged')
+    expect(ledger('extra_charged')).toHaveLength(1)
+    expect(ledger('extra_failed')).toHaveLength(0)
+  })
+
+  it('the modal never says "nothing was charged" for an unconfirmed outcome (source)', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../components/admin/ExtraChargeModal.tsx'), 'utf8')
+    const line = src.split('\n').find((l) => l.includes("outcome === 'unconfirmed'"))
+    expect(line).toBeDefined()
+    expect(line).toContain('COPY_UNCONFIRMED')
+    const copy = /const COPY_UNCONFIRMED =\s*'([^']+)'/.exec(src)?.[1] ?? ''
+    expect(copy).toMatch(/not confirmed/i)
+    expect(copy).not.toMatch(/nothing was charged/i)
   })
 })
 

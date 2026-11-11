@@ -91,6 +91,9 @@ const COPY_PREVIEW_FAILED = 'Could not calculate the amount. Try again.'
 const COPY_REFUSED = 'The request was refused. Check the values and try again.'
 const COPY_GENERIC = 'Could not complete the charge. Nothing was charged. Try again.'
 const COPY_BUSY_EXTRA = 'A charge is still being processed. Try again in a few minutes.'
+// Stripe did not settle the payment and it could not be cancelled: it may still go through. Never "declined / nothing charged".
+const COPY_UNCONFIRMED =
+  'Stripe has not confirmed whether this charge went through. Do not charge again. The owner was alerted: check the payment in the Stripe Dashboard.'
 
 /** The plain-words reason of a refused action (the route's action_not_allowed reasons). */
 const NOT_ALLOWED_TEXT: Record<string, string> = {
@@ -153,6 +156,7 @@ function interpretPost(answer: ExtraAnswer, currency: 'eur' | 'czk'): Outcome {
   if (status === 200 && body?.outcome === 'declined') {
     return { kind: 'stay', text: `The card was declined (${body.code ?? 'unknown'}). Nothing was charged.`, refetch: true }
   }
+  if (status === 200 && body?.outcome === 'unconfirmed') return { kind: 'stay', text: COPY_UNCONFIRMED, refetch: true }
   if (status === 401 || status === 403) return { kind: 'stay', text: COPY_SESSION }
   if (status === 409 && body?.error === 'payment_busy') return { kind: 'stay', text: COPY_BUSY_EXTRA, refetch: true }
   if (status === 422 && body?.error === 'waiting_rate_missing') return { kind: 'stay', text: COPY_RATE_MISSING }

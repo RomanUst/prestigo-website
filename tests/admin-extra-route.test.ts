@@ -334,6 +334,15 @@ describe('POST waiting, decline, busy and resume over HTTP', () => {
     expect(charges()[0].status).toBe('failed')
   })
 
+  it('CR-01: a PaymentIntent Stripe did not settle and that cannot be cancelled answers 200 unconfirmed (never declined) and the row stays charging', async () => {
+    fake.forceNextCreateStatus('processing')
+    fake.failNextWith('paymentIntents.cancel', 'connection')
+    const res = await post({ kind: 'other', description: 'Parking', amount_minor: 900 })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'unconfirmed', charge_id: expect.any(String) })
+    expect(charges()[0].status).toBe('charging')
+  })
+
   it('transient -> 409 payment_busy; a new POST while charging -> 409; resume before the lease -> 409; after the lease -> charged', async () => {
     fake.failNextWith('paymentIntents.create', 'connection')
     const first = await post({ kind: 'other', description: 'Parking', amount_minor: 900 })
