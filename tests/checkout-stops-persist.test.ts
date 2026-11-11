@@ -31,8 +31,21 @@ vi.mock('@/lib/payments/stripe', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/payments/stripe')>()),
   getPaymentsStripe: () => stripeHolder.stripe,
 }))
+// The pay-now route builds its own Stripe client from the `stripe` package (cached at module level): hand it a stable
+// object that delegates to the fake of the current test.
+vi.mock('stripe', () => {
+  const delegate = (method: 'create' | 'cancel') => (...args: unknown[]) =>
+    (stripeHolder.stripe as { paymentIntents: Record<string, (...a: unknown[]) => unknown> }).paymentIntents[method](...args)
+  const stable = { paymentIntents: { create: delegate('create'), cancel: delegate('cancel') } }
+  function MockStripe() {
+    return stable
+  }
+  MockStripe.createFetchHttpClient = () => ({})
+  return { default: MockStripe }
+})
 
 import { POST } from '@/app/api/card-checkout/intent/route'
+import { POST as payNowPOST } from '@/app/api/create-payment-intent/route'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
 import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 import { computeCombinedTotalMinor, computeOutboundLegTotal } from '@/lib/server-pricing'
@@ -286,6 +299,167 @@ describe('retries and confirmed bookings (Pitfall 5, T-91-19)', () => {
     expect(fake.calls).toHaveLength(0)
     expect(JSON.stringify(spy.mock.calls)).not.toContain('Karlovy')
     spy.mockRestore()
+  })
+})
+
+/** A client whose queries on `table` end in the given database error (an address inside it proves logs stay clean). */
+function failingTableClient(table: string, only?: 'insert') {
+  const real = db.client
+  const failing = (): unknown => {
+    const q: unknown = new Proxy(function () {}, {
+      get(_t, prop) {
+        if (prop === 'then') {
+          return (res: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { message: 'boom Karlovy Vary' } }).then(res)
+        }
+        return () => q
+      },
+    })
+    return q
+  }
+  return {
+    rpc: real.rpc,
+    from: (name: string) => {
+      if (name !== table) return real.from(name)
+      if (!only) return failing()
+      const query = real.from(name)
+      return new Proxy(query, {
+        get(target, prop, receiver) {
+          if (prop === only) return () => failing()
+          const v = Reflect.get(target, prop, receiver)
+          return typeof v === 'function' ? v.bind(target) : v
+        },
+      })
+    },
+  }
+}
+
+function payNowBody(data: Record<string, unknown> = {}) {
+  return { bookingData: { ...bookingData(data), currency: 'eur' } }
+}
+
+async function payNow(payload: unknown) {
+  const res = await payNowPOST(
+    new Request('http://localhost/api/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  )
+  return { status: res.status, body: (await res.json()) as Record<string, unknown> }
+}
+
+describe('pay-now stores stops after its capture and fails closed (T-91-20)', () => {
+  beforeEach(() => {
+    vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_dummy_for_unit_tests')
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
+
+  it('one stop and an attemptId: the unpaid pay-now row is captured and its stop is stored', async () => {
+    const out = await payNow(payNowBody({ stops: [STOP_KV] }))
+    expect(out.status).toBe(200)
+    expect(typeof out.body.clientSecret).toBe('string')
+    expect(bookings()).toHaveLength(1)
+    expect(bookings()[0]).toMatchObject({ status: 'unpaid', payment_mode: 'pay_now', attempt_id: ATTEMPT })
+    expect(stopRows()).toHaveLength(1)
+    expect(stopRows()[0]).toMatchObject({
+      booking_id: bookings()[0].id,
+      position: 1,
+      address: 'Karlovy Vary',
+      wait_minutes: 45,
+      blocks: 2,
+      fee_per_block_eur: 12,
+      fee_eur: 24,
+    })
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+  })
+
+  it('stops without an attemptId: 400 INVALID_REQUEST and no PaymentIntent is created', async () => {
+    const out = await payNow(payNowBody({ stops: [STOP_KV], attemptId: undefined }))
+    expect(out.status).toBe(400)
+    expect(out.body.code).toBe('INVALID_REQUEST')
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(bookings()).toHaveLength(0)
+    expect(stopRows()).toHaveLength(0)
+  })
+
+  it('the stops cannot be saved: the new PaymentIntent is cancelled and the route answers 503 STOPS_NOT_SAVED', async () => {
+    dbHolder.client = failingTableClient('booking_stops')
+    const out = await payNow(payNowBody({ stops: [STOP_KV] }))
+    expect(out.status).toBe(503)
+    expect(out.body.code).toBe('STOPS_NOT_SAVED')
+    expect(out.body.clientSecret).toBeUndefined()
+    const created = fake.callsTo('paymentIntents.create')
+    expect(created).toHaveLength(1)
+    const cancels = fake.callsTo('paymentIntents.cancel')
+    expect(cancels).toHaveLength(1)
+    const [piId] = [...fake.state.paymentIntents.keys()]
+    expect(cancels[0].targetId).toBe(piId)
+    expect(fake.state.paymentIntents.get(piId)!.status).toBe('canceled')
+    expect(JSON.stringify((console.error as unknown as { mock: { calls: unknown[] } }).mock.calls)).not.toContain('Karlovy')
+  })
+
+  it('the capture itself fails for a request with stops: the same cancel and 503', async () => {
+    dbHolder.client = failingTableClient('bookings', 'insert')
+    const out = await payNow(payNowBody({ stops: [STOP_KV] }))
+    expect(out.status).toBe(503)
+    expect(out.body.code).toBe('STOPS_NOT_SAVED')
+    expect(out.body.clientSecret).toBeUndefined()
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(1)
+    expect(stopRows()).toHaveLength(0)
+  })
+
+  it('a failing cancel does not change the answer: still 503, the code only is logged', async () => {
+    dbHolder.client = failingTableClient('booking_stops')
+    const original = fake.stripe.paymentIntents.cancel
+    fake.stripe.paymentIntents.cancel = async () => {
+      throw Object.assign(new Error('cancel failed for Karlovy Vary'), { code: 'api_connection_error' })
+    }
+    const out = await payNow(payNowBody({ stops: [STOP_KV] }))
+    fake.stripe.paymentIntents.cancel = original
+    expect(out.status).toBe(503)
+    expect(out.body.code).toBe('STOPS_NOT_SAVED')
+    const logged = JSON.stringify((console.error as unknown as { mock: { calls: unknown[] } }).mock.calls)
+    expect(logged).toContain('api_connection_error')
+    expect(logged).not.toContain('Karlovy')
+  })
+
+  it('no stops and the capture throws: legacy behaviour, logged, 200 with a clientSecret, nothing cancelled', async () => {
+    dbHolder.client = failingTableClient('bookings', 'insert')
+    const out = await payNow(payNowBody())
+    expect(out.status).toBe(200)
+    expect(typeof out.body.clientSecret).toBe('string')
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+  })
+
+  it('the capture affects no row (booking already confirmed): stops untouched, 200 as today', async () => {
+    db = createFakePaymentsDb({
+      nowMs: NOW,
+      bookings: [{ id: 'bx', attempt_id: ATTEMPT, leg: 'outbound', status: 'confirmed', payment_mode: 'pay_now' }],
+    })
+    dbHolder.client = db.client
+    db.state.booking_stops.push({
+      id: 's0', booking_id: 'bx', position: 1, address: 'Old stop', lat: 1, lng: 1,
+      wait_minutes: 0, free_minutes: 15, blocks: 0, fee_per_block_eur: null, fee_eur: 0,
+    })
+    const before = JSON.stringify(stopRows())
+    const out = await payNow(payNowBody({ stops: [STOP_KV] }))
+    expect(out.status).toBe(200)
+    expect(JSON.stringify(stopRows())).toBe(before)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+  })
+
+  it('a retry of the same attempt replaces the stops', async () => {
+    await payNow(payNowBody({ stops: [STOP_KV, STOP_PLZEN] }))
+    expect(stopRows()).toHaveLength(2)
+    const out = await payNow(payNowBody({ stops: [STOP_PLZEN] }))
+    expect(out.status).toBe(200)
+    expect(bookings()).toHaveLength(1)
+    expect(stopRows()).toHaveLength(1)
+    expect(stopRows()[0].address).toBe('Plzen')
   })
 })
 
