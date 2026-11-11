@@ -215,7 +215,11 @@
       "waitTimeLabel": "TIEMPO DE ESPERA",
       "waitTimeAria": "Tiempo de espera",
       "noWait": "Sin espera",
-      "minutes": "{count} min"
+      "minutes": "{count} min",
+      "freeWaitHint": "Los primeros 15 min son gratis; después se cobra cada bloque de 15 min iniciado",
+      "paidWaitUnavailable": "La espera de pago no está disponible ahora",
+      "moveUp": "Subir la parada",
+      "moveDown": "Bajar la parada"
     },
     "routeMap": {
       "empty": "Ruta no disponible: puede seleccionar igualmente una clase de vehículo.",
@@ -329,7 +333,8 @@
         "waterSub": "Con y sin gas",
         "meetGreetLabel": "Recepción personalizada",
         "meetGreetSub": "Cartel con su nombre en llegadas"
-      }
+      },
+      "waitingUnavailable": "La espera de pago no se ofrece para esta clase. Ajuste la espera a 15 min o menos para elegirla."
     },
     "extras": {
       "meetAndGreet": {
@@ -361,7 +366,8 @@
       "returnLeg": "Trayecto de vuelta",
       "combined": "Combinado",
       "selectClass": "SELECCIONAR {className}",
-      "selectAClass": "SELECCIONE UNA CLASE"
+      "selectAClass": "SELECCIONE UNA CLASE",
+      "waitingLine": "Espera en las paradas"
     },
     "summaryBlock": {
       "outbound": "IDA",
@@ -374,7 +380,8 @@
       "returnLeg": "Trayecto de vuelta",
       "subtotal": "Subtotal",
       "promo": "Promoción {code}",
-      "final": "Total final"
+      "final": "Total final",
+      "waitingLine": "Espera en las paradas"
     },
     "bookingWidget": {
       "pickupLocationLabel": "LUGAR DE RECOGIDA",

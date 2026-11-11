@@ -211,7 +211,11 @@
       "waitTimeLabel": "WAIT TIME",
       "waitTimeAria": "Wait time",
       "noWait": "No wait",
-      "minutes": "{count} min"
+      "minutes": "{count} min",
+      "freeWaitHint": "First 15 min free, then charged per started 15 min",
+      "paidWaitUnavailable": "Paid waiting is not available right now",
+      "moveUp": "Move stop up",
+      "moveDown": "Move stop down"
     },
     "routeMap": {
       "empty": "Route unavailable — you can still select a vehicle class.",
@@ -319,7 +323,8 @@
         "waterSub": "Still & sparkling",
         "meetGreetLabel": "Meet & greet",
         "meetGreetSub": "Name board at arrivals"
-      }
+      },
+      "waitingUnavailable": "Paid waiting isn't offered for this class. Set waiting to 15 min or less to choose it."
     },
     "extras": {
       "meetAndGreet": {
@@ -351,7 +356,8 @@
       "returnLeg": "Return leg",
       "combined": "Combined",
       "selectClass": "SELECT {className}",
-      "selectAClass": "SELECT A CLASS"
+      "selectAClass": "SELECT A CLASS",
+      "waitingLine": "Waiting at stops"
     },
     "summaryBlock": {
       "outbound": "OUTBOUND",
@@ -364,7 +370,8 @@
       "returnLeg": "Return leg",
       "subtotal": "Subtotal",
       "promo": "Promo {code}",
-      "final": "Final"
+      "final": "Final",
+      "waitingLine": "Waiting at stops"
     },
     "bookingWidget": {
       "pickupLocationLabel": "PICKUP LOCATION",

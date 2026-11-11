@@ -215,7 +215,11 @@
       "waitTimeLabel": "प्रतीक्षा समय",
       "waitTimeAria": "प्रतीक्षा समय",
       "noWait": "कोई प्रतीक्षा नहीं",
-      "minutes": "{count} मिनट"
+      "minutes": "{count} मिनट",
+      "freeWaitHint": "पहले 15 मिनट मुफ़्त, उसके बाद हर शुरू हुए 15 मिनट का शुल्क लगेगा",
+      "paidWaitUnavailable": "सशुल्क प्रतीक्षा अभी उपलब्ध नहीं है",
+      "moveUp": "स्टॉप ऊपर करें",
+      "moveDown": "स्टॉप नीचे करें"
     },
     "routeMap": {
       "empty": "मार्ग उपलब्ध नहीं है — आप फिर भी वाहन श्रेणी चुन सकते हैं।",
@@ -329,7 +333,8 @@
         "waterSub": "सादा एवं स्पार्कलिंग",
         "meetGreetLabel": "मीट एंड ग्रीट",
         "meetGreetSub": "arrivals पर नाम बोर्ड"
-      }
+      },
+      "waitingUnavailable": "इस श्रेणी के लिए सशुल्क प्रतीक्षा उपलब्ध नहीं है। इसे चुनने के लिए प्रतीक्षा 15 मिनट या उससे कम रखें।"
     },
     "extras": {
       "meetAndGreet": {
@@ -361,7 +366,8 @@
       "returnLeg": "वापसी यात्रा",
       "combined": "संयुक्त",
       "selectClass": "{className} चुनें",
-      "selectAClass": "श्रेणी चुनें"
+      "selectAClass": "श्रेणी चुनें",
+      "waitingLine": "स्टॉप पर प्रतीक्षा"
     },
     "summaryBlock": {
       "outbound": "जाने की यात्रा",
@@ -374,7 +380,8 @@
       "returnLeg": "वापसी यात्रा",
       "subtotal": "उप-योग",
       "promo": "प्रोमो {code}",
-      "final": "अंतिम"
+      "final": "अंतिम",
+      "waitingLine": "स्टॉप पर प्रतीक्षा"
     },
     "bookingWidget": {
       "pickupLocationLabel": "पिक-अप स्थान",

@@ -215,7 +215,11 @@
       "waitTimeLabel": "TEMPS D'ATTENTE",
       "waitTimeAria": "Temps d'attente",
       "noWait": "Sans attente",
-      "minutes": "{count} min"
+      "minutes": "{count} min",
+      "freeWaitHint": "Les 15 premières minutes sont offertes, puis chaque tranche de 15 min entamée est facturée",
+      "paidWaitUnavailable": "L'attente payante n'est pas disponible pour le moment",
+      "moveUp": "Monter l'arrêt",
+      "moveDown": "Descendre l'arrêt"
     },
     "routeMap": {
       "empty": "Itinéraire indisponible — vous pouvez néanmoins sélectionner une classe de véhicule.",
@@ -329,7 +333,8 @@
         "waterSub": "Plate et pétillante",
         "meetGreetLabel": "Accueil personnalisé",
         "meetGreetSub": "Pancarte nominative à l'arrivée"
-      }
+      },
+      "waitingUnavailable": "L'attente payante n'est pas proposée pour cette classe. Réglez l'attente sur 15 min ou moins pour la choisir."
     },
     "extras": {
       "meetAndGreet": {
@@ -361,7 +366,8 @@
       "returnLeg": "Trajet de retour",
       "combined": "Total combiné",
       "selectClass": "SÉLECTIONNER {className}",
-      "selectAClass": "CHOISIR UNE CLASSE"
+      "selectAClass": "CHOISIR UNE CLASSE",
+      "waitingLine": "Attente aux arrêts"
     },
     "summaryBlock": {
       "outbound": "ALLER",
@@ -374,7 +380,8 @@
       "returnLeg": "Trajet retour",
       "subtotal": "Sous-total",
       "promo": "Code promo {code}",
-      "final": "Total final"
+      "final": "Total final",
+      "waitingLine": "Attente aux arrêts"
     },
     "bookingWidget": {
       "pickupLocationLabel": "LIEU DE PRISE EN CHARGE",

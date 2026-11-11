@@ -215,7 +215,11 @@
       "waitTimeLabel": "等待时间",
       "waitTimeAria": "等待时间",
       "noWait": "无需等待",
-      "minutes": "{count} 分钟"
+      "minutes": "{count} 分钟",
+      "freeWaitHint": "前 15 分钟免费，之后每开始 15 分钟计费一次",
+      "paidWaitUnavailable": "暂不提供付费等待",
+      "moveUp": "上移停靠点",
+      "moveDown": "下移停靠点"
     },
     "routeMap": {
       "empty": "暂无法获取路线 —— 您仍可选择车型等级。",
@@ -329,7 +333,8 @@
         "waterSub": "无气及含气饮用水",
         "meetGreetLabel": "接机举牌服务",
         "meetGreetSub": "在到达厅举牌迎接"
-      }
+      },
+      "waitingUnavailable": "该车型不提供付费等待。请将等待时间设为 15 分钟或以内后再选择。"
     },
     "extras": {
       "meetAndGreet": {
@@ -361,7 +366,8 @@
       "returnLeg": "返程",
       "combined": "合计",
       "selectClass": "选择 {className}",
-      "selectAClass": "选择车型"
+      "selectAClass": "选择车型",
+      "waitingLine": "停靠点等待"
     },
     "summaryBlock": {
       "outbound": "去程",
@@ -374,7 +380,8 @@
       "returnLeg": "返程",
       "subtotal": "小计",
       "promo": "优惠码 {code}",
-      "final": "最终价格"
+      "final": "最终价格",
+      "waitingLine": "停靠点等待"
     },
     "bookingWidget": {
       "pickupLocationLabel": "上车地点",
