@@ -15,3 +15,14 @@ Stop cap, max waiting per stop, airport detection, wizard and map UI, placement 
 
 ## Note
 D-01 was read from a free-text answer and then confirmed by the owner on 2026-11-11 ("Да, целиком по км").
+
+## After research (2026-11-11)
+
+| Area | Options presented | Owner's answer |
+|------|-------------------|----------------|
+| Who moves the pickup when the flight is delayed | Operator button (recommended) / Automatic / Button now, automatic later | Operator button (D-11) |
+| Consent for extra charges | Extend consent + gate on version (recommended) / Extend, no gate / Keep text | Extend consent + gate (D-12) |
+| Cap on the "other" amount | 100% of the fare (recommended) / 50% / No cap | No cap (D-13) |
+| Coefficients and promo on waiting | No coefficients, promo yes (recommended) / Neither / With coefficients | No coefficients, promo yes (D-14) |
+
+D-15..D-18 were taken from the research recommendations without asking.

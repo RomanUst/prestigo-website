@@ -24,7 +24,7 @@ Not in scope: automatic overage charging from driver timestamps (always operator
 - No hard-coded prices in `app/` or `components/`; every rate comes from admin (`pricing_globals` / pricing config).
 - New client-facing strings need real translations in all 7 locales.
 - The operator's extra-charge action lives in the shared booking panel from Phase 90 (`BookingDetailPanel`).
-- Expected migration `booking_stops`, waiting rates in pricing globals, separate landing and pickup times. The roadmap says 087; the next free number is 084 (migrations 081–083 are the latest live) — the planner uses the next free number.
+- Expected migration `booking_stops`, waiting rates in pricing globals, separate landing and pickup times. The roadmap says 087, but 085–088 exist; the next free number is 089 (verified in `supabase/migrations/` on 2026-11-11).
 
 ### Price with stops
 - **D-01:** When a transfer has at least one stop, the price is recalculated by kilometres through all points (origin → stops in order → destination) at the per-km tariff. A fixed route price from admin is not used for a trip with stops. Owner's words: "пересчитываются км и плата за остановку в зависимости сколько времени остановка". Confirmed by the owner on 2026-11-11: the whole trip by km, not "fixed price + detour". — **Reversibility:** costly — changing to "fixed + detour" later touches the pricing route, the booking snapshot and the price summary.
@@ -38,18 +38,30 @@ Not in scope: automatic overage charging from driver timestamps (always operator
 
 ### Airport pickup
 - **D-07:** For an airport pickup the client enters the landing time and picks an offset: pickup 0 / 15 / 30 / 45 / 60 / 90 minutes after landing, default 30. Both the landing time and the resulting pickup time are stored and shown to the driver, in admin and in the confirmation email.
-- **D-08:** When the flight is delayed and the landing time changes, the pickup time moves with it (landing + offset).
+- **D-08:** When the flight is delayed and the landing time changes, the pickup time moves with it (landing + offset) — by an operator button, see D-11.
 
 ### Extra charge after the trip (EXTRA-01)
 - **D-09:** In the booking panel the operator can add: (a) extra waiting — enters minutes, the amount is computed from the class rate in admin; (b) "other" — a description and an amount typed by hand (parking, extra km).
 - **D-10:** The charge goes to the saved card as a separate off-session payment, is written to the payment ledger, and the client gets an email with the breakdown. The operator sees the amount and confirms before anything is charged.
 
+### Decisions after research (owner, 2026-11-11)
+- **D-11:** Flight delay: the operator moves the pickup with a button in the booking panel ("Move pickup to HH:MM" = new landing + the stored offset). Nothing moves without a person; the driver and the client are notified as for a normal time edit. No automatic move by the flight-refresh cron in this phase.
+- **D-12:** The card-consent text gets a sentence that covers a charge for waiting beyond the booked time and for agreed extras, in all 7 locales, with a new consent version. An extra charge is allowed only on bookings made under the new consent version (server-enforced gate). — **Reversibility:** costly — the consent version is stored with every booking and gates a money action.
+- **D-13:** No upper cap on the "other" amount. The safeguard is the confirm step that states the amount before the charge (plus the technical guards in Claude's Discretion: double-submit guard, idempotency key, positive integer amount, Stripe's own limits).
+- **D-14:** Waiting is charged at the plain per-class rate at any time: no night, holiday, airport or minimum-fare coefficient on waiting. A promo code reduces the whole booking total, waiting included.
+
+### Decided by Claude from the research recommendations (owner may override)
+- **D-15:** An extra charge is offered only when the booking is completed, has a saved card (card hold captured, or cash with card guarantee), is not pay-now without a saved card and is not a GNet booking.
+- **D-16:** Extra waiting entered by the operator is billed as ceil(minutes / 15) × the class rate, with no further free deduction (the operator enters only the billable minutes). The same per-class rate applies to waiting at pickup beyond the free 30 / 60 minutes.
+- **D-17:** Stop cap is 5 (already the store's cap; Google Routes Essentials tier; never set routingPreference, departureTime, optimizeWaypointOrder or via). If Google routing fails at checkout the server fails closed (503), it never falls back to a client distance.
+- **D-18:** `pickup_date` / `pickup_time` stay the pickup (landing + offset); landing is stored as new columns. Hold timing, cancellation windows, no-show wait, calendar, dispatch and reminders keep reading the pickup.
+
 ### Claude's Discretion
-- Maximum number of stops (research suggests 5; keep the Google Routes Essentials SKU) and the maximum waiting per stop.
+- The maximum waiting per stop.
 - Airport detection (which addresses count as an airport pickup) — reuse `isAirportPickup` where it fits.
 - Stop UI in the booking wizard (add, reorder, remove), map rendering of the route through stops, mobile layout.
 - Where the paid-waiting line and the stop list appear in admin, on the driver trip page and in emails.
-- Limits and safeguards on the "other" amount (upper bound, double-submit guard, idempotency key), and what happens when the off-session charge fails (surface to the operator, no retry loop).
+- Technical safeguards on the "other" amount (double-submit guard, idempotency key; no business cap, D-13), and what happens when the off-session charge fails (surface to the operator, no retry loop).
 - Rounding of the recomputed price (reuse the existing rounding).
 
 </decisions>
@@ -108,6 +120,8 @@ Not in scope: automatic overage charging from driver timestamps (always operator
 
 <deferred>
 ## Deferred Ideas
+
+- Automatic pickup move from the flight-refresh cron (its filter `trip_type IN ('airport_arrival','airport_departure')` matches no booking today and it runs once a day) — backlog, separate task.
 
 - Overage suggestion from driver stop timestamps (driver taps "arrived at stop" / "left stop") — needs new driver steps; the operator enters minutes by hand in this phase.
 
