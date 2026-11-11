@@ -1203,6 +1203,17 @@
       "reasonCashUnpaid": "Motif : le trajet n'a pas été payé en espèces",
       "introCashCard": "Vous avez choisi de payer par carte ; nous avons donc débité {amount} sur la carte que vous avez enregistrée."
     },
+    "extraCharged": {
+      "subjectWaiting": "Attente supplémentaire pendant votre trajet PRESTIGO — {reference}",
+      "h1Waiting": "Nous avons débité l'attente supplémentaire.",
+      "introWaiting": "Votre chauffeur a attendu {minutes} minutes au-delà de la durée que vous aviez réservée pour votre trajet du {pickupDate}. Nous avons débité {amount} sur la carte que vous avez enregistrée.",
+      "lineWaiting": "Attente au-delà de la durée réservée : {minutes} min",
+      "subjectOther": "Débit supplémentaire pour votre trajet PRESTIGO — {reference}",
+      "h1Other": "Nous avons débité un supplément.",
+      "introOther": "Pour votre trajet du {pickupDate}, nous avons débité {amount} sur la carte que vous avez enregistrée.",
+      "lineOther": "Supplément : {item}",
+      "approved": "Une personne chez Prestigo a approuvé ce débit."
+    },
     "feeWaived": {
       "subject": "Aucun frais pour votre réservation PRESTIGO — {reference}",
       "h1": "Aucun frais pour votre réservation.",

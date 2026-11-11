@@ -1203,6 +1203,17 @@
       "reasonCashUnpaid": "原因：行程未以现金支付",
       "introCashCard": "您选择了刷卡支付，因此我们已从您保存的银行卡扣除 {amount}。"
     },
+    "extraCharged": {
+      "subjectWaiting": "您的 PRESTIGO 行程的额外等候费用 — {reference}",
+      "h1Waiting": "我们已收取额外等候费用。",
+      "introWaiting": "您 {pickupDate} 的行程中，司机在您预订的时间之外多等候了 {minutes} 分钟。我们已从您保存的银行卡扣除 {amount}。",
+      "lineWaiting": "超出预订时间的等候：{minutes} 分钟",
+      "subjectOther": "您的 PRESTIGO 行程的附加费用 — {reference}",
+      "h1Other": "我们已收取一项附加费用。",
+      "introOther": "针对您 {pickupDate} 的行程，我们已从您保存的银行卡扣除 {amount}。",
+      "lineOther": "项目：{item}",
+      "approved": "此笔扣款已由 Prestigo 的工作人员批准。"
+    },
     "feeWaived": {
       "subject": "您的 PRESTIGO 预订无需付费 — {reference}",
       "h1": "您的预订无需付费。",

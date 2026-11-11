@@ -1203,6 +1203,17 @@
       "reasonCashUnpaid": "السبب: لم تُدفع الرحلة نقدًا",
       "introCashCard": "اخترت الدفع بالبطاقة، لذلك خصمنا مبلغ {amount} من البطاقة التي حفظتها."
     },
+    "extraCharged": {
+      "subjectWaiting": "وقت انتظار إضافي في رحلتك مع PRESTIGO — {reference}",
+      "h1Waiting": "خصمنا مقابل وقت الانتظار الإضافي.",
+      "introWaiting": "انتظر السائق {minutes} دقيقة بعد الوقت الذي حجزته لرحلتك بتاريخ {pickupDate}. وخصمنا مبلغ {amount} من البطاقة التي حفظتها.",
+      "lineWaiting": "الانتظار بعد الوقت المحجوز: {minutes} دقيقة",
+      "subjectOther": "خصم إضافي لرحلتك مع PRESTIGO — {reference}",
+      "h1Other": "خصمنا مقابل بند إضافي.",
+      "introOther": "عن رحلتك بتاريخ {pickupDate} خصمنا مبلغ {amount} من البطاقة التي حفظتها.",
+      "lineOther": "البند: {item}",
+      "approved": "وافق أحد موظفي Prestigo على هذا الخصم."
+    },
     "feeWaived": {
       "subject": "لا رسوم على حجزك مع PRESTIGO — {reference}",
       "h1": "لا رسوم على حجزك.",

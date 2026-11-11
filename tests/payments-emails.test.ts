@@ -619,6 +619,9 @@ const NEW_CASES: Case[] = [
   { kind: 'payment_failed', variant: 'fee', extra: { feeLabel: 'cancellation', feeMinor: 6000, payUrl: PAY_URL } },
   { kind: 'payment_failed', variant: 'fee', extra: { feeLabel: 'no_show', feeMinor: 6000, payUrl: PAY_URL } },
   { kind: 'payment_failed', variant: 'fee', extra: { feeLabel: 'trip', payUrl: PAY_URL } },
+  // Phase 91 D-10: the receipt of an extra charge (waiting beyond the booked time, or an agreed item).
+  { kind: 'extra_charged', variant: 'waiting', extra: { extraMinutes: 45, feeMinor: 3800 } },
+  { kind: 'extra_charged', variant: 'other', extra: { extraItem: 'Airport parking', feeMinor: 1500 } },
 ]
 
 const caseName = (c: Case) => [c.kind, c.variant, c.extra?.moneyOutcome, c.extra?.feeLabel].filter(Boolean).join('/')
@@ -692,6 +695,24 @@ describe('Phase 89 kinds: the tracer through sendPaymentEmail (English)', () => 
     const out = await renderPaymentEmail('cancelled', 'en', vars)
     expect(out.html).toContain('You cancelled after')
     expect(out.html).toContain(`<bdi dir="ltr">${formatMinor(12000, 'eur')}</bdi>`)
+  })
+
+  it('extra_charged: sendPaymentEmail passes extraMinutes and extraItem through to the mail', async () => {
+    const { sendPaymentEmail } = await import('@/lib/payments/emails/send')
+    expect(
+      await sendPaymentEmail({
+        kind: 'extra_charged',
+        variant: 'other',
+        booking: db.state.bookings[0],
+        eventKey: 'email:extra_charged:charge-1',
+        feeMinor: 1500,
+        extraItem: 'Airport parking',
+      }),
+    ).toBe('sent')
+    const message = mockResendSend.mock.calls[0][0] as { subject: string; html: string }
+    expect(message.html).toContain('Airport parking')
+    expect(message.subject).not.toContain('Airport parking')
+    expect(message.html).not.toMatch(/\{[A-Za-z]+\}/)
   })
 
   it('passed vars win over the stored policy; the other kinds get no Book another ride link and no token', async () => {
@@ -890,6 +911,41 @@ describe('Phase 89 kinds: copy of UI-SPEC 8.2 (English)', () => {
     }
   })
 
+  it('extra_charged waiting: subject with the reference, minutes line, amount, approved sentence', async () => {
+    const out = await render(findPlain('extra_charged', 'waiting'))
+    expect(out.subject).toBe('Extra waiting time on your PRESTIGO trip — PRG-1')
+    expect(out.html).toContain('We charged extra waiting time.')
+    expect(out.html).toContain('Your driver waited <bdi dir="ltr">45</bdi> minutes beyond the time you booked')
+    expect(out.html).toContain(`We charged <bdi dir="ltr">${formatMinor(3800, 'eur')}</bdi> to the card you saved.`)
+    expect(out.html).toContain('Waiting beyond the booked time: <bdi dir="ltr">45</bdi> min')
+    expect(out.html).toContain(`Total charged: <bdi dir="ltr">${formatMinor(3800, 'eur')}</bdi>`)
+    expect(out.html).toContain('A person at Prestigo approved this charge.')
+  })
+
+  it('extra_charged other: the item line is HTML-escaped and never in the subject (T-91-18)', async () => {
+    const item = 'Airport parking <b>bold</b>'
+    const out = await renderPaymentEmail(
+      'extra_charged',
+      'en',
+      baseVars({ variant: 'other', extraItem: item, feeMinor: 1500 }),
+    )
+    expect(out.subject).toBe('Additional charge for your PRESTIGO trip — PRG-1')
+    expect(out.subject).not.toContain('parking')
+    expect(out.html).toContain('We charged an additional item.')
+    expect(out.html).toContain('Item: <bdi dir="auto">Airport parking &lt;b&gt;bold&lt;/b&gt;</bdi>')
+    expect(out.html).not.toContain('<b>bold</b>')
+    expect(out.html).toContain('A person at Prestigo approved this charge.')
+  })
+
+  it('extra_charged: a missing minutes, item or amount fails the render instead of leaving a parameter open', async () => {
+    await expect(renderPaymentEmail('extra_charged', 'en', baseVars({ variant: 'waiting', feeMinor: 3800 }))).rejects.toThrow(/extraMinutes/)
+    await expect(renderPaymentEmail('extra_charged', 'en', baseVars({ variant: 'waiting', extraMinutes: 45 }))).rejects.toThrow(/feeMinor/)
+    await expect(renderPaymentEmail('extra_charged', 'en', baseVars({ variant: 'other', feeMinor: 1500 }))).rejects.toThrow(/extraItem/)
+    await expect(
+      renderPaymentEmail('extra_charged', 'en', baseVars({ variant: 'other', extraItem: '   ', feeMinor: 1500 })),
+    ).rejects.toThrow(/extraItem/)
+  })
+
   it('payment_failed is the only email with a filled button across all kinds', async () => {
     for (const c of [...CASES, ...NEW_CASES]) {
       const out = await render({ ...c, extra: { payUrl: PAY_URL, ...c.extra } })
@@ -1016,6 +1072,7 @@ describe.each(catalogLocales())('Phase 89 kinds per locale: %s', (locale) => {
     // The amount of the mail is a formatted parameter, never typed text. A release or a plain cancel states none.
     const statesAmount =
       c.kind === 'fee_charged' ||
+      c.kind === 'extra_charged' ||
       c.kind === 'payment_failed' ||
       (c.kind === 'card_saved' && c.variant === 'cash') ||
       (c.kind === 'cancelled' && c.variant === 'late') ||
@@ -1095,6 +1152,26 @@ describe.each(catalogLocales())('Phase 89 kinds per locale: %s', (locale) => {
     // The card variant of the same email has no cash sentence.
     const card = await renderPaymentEmail('card_saved', locale, baseVars({ policy: POLICY, manageUrl: MANAGE_URL }))
     for (const f of fragments(locale, 'policyBox.cash')) expect(card.html).not.toContain(f)
+  })
+
+  it('extra_charged: both variants carry their translated lines, the approved sentence and the escaped item', async () => {
+    const waiting = await renderPaymentEmail('extra_charged', locale, baseVars({ variant: 'waiting', extraMinutes: 45, feeMinor: 3800 }))
+    for (const path of ['extraCharged.introWaiting', 'extraCharged.lineWaiting', 'extraCharged.approved', 'extraCharged.h1Waiting']) {
+      for (const f of fragments(locale, path)) expect(waiting.html).toContain(f)
+    }
+    expect(waiting.html).toContain('<bdi dir="ltr">45</bdi>')
+    expect(waiting.html).toContain(`<bdi dir="ltr">${formatMinor(3800, 'eur')}</bdi>`)
+    const other = await renderPaymentEmail(
+      'extra_charged',
+      locale,
+      baseVars({ variant: 'other', extraItem: 'Parking <i>x</i>', feeMinor: 1500 }),
+    )
+    for (const path of ['extraCharged.introOther', 'extraCharged.lineOther', 'extraCharged.approved', 'extraCharged.h1Other']) {
+      for (const f of fragments(locale, path)) expect(other.html).toContain(f)
+    }
+    expect(other.html).toContain('Parking &lt;i&gt;x&lt;/i&gt;')
+    expect(other.html).not.toContain('<i>x</i>')
+    expect(other.subject).not.toContain('Parking')
   })
 
   it('T-89-13: no operator reason or note reaches any new kind', async () => {

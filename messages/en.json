@@ -1152,6 +1152,17 @@
       "reasonCashUnpaid": "Reason: the trip was not paid in cash",
       "introCashCard": "You chose to pay by card, so we charged {amount} to the card you saved."
     },
+    "extraCharged": {
+      "subjectWaiting": "Extra waiting time on your PRESTIGO trip — {reference}",
+      "h1Waiting": "We charged extra waiting time.",
+      "introWaiting": "Your driver waited {minutes} minutes beyond the time you booked for your trip on {pickupDate}. We charged {amount} to the card you saved.",
+      "lineWaiting": "Waiting beyond the booked time: {minutes} min",
+      "subjectOther": "Additional charge for your PRESTIGO trip — {reference}",
+      "h1Other": "We charged an additional item.",
+      "introOther": "For your trip on {pickupDate} we charged {amount} to the card you saved.",
+      "lineOther": "Item: {item}",
+      "approved": "A person at Prestigo approved this charge."
+    },
     "feeWaived": {
       "subject": "No fee for your PRESTIGO booking — {reference}",
       "h1": "No fee for your booking.",

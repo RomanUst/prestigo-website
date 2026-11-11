@@ -1203,6 +1203,17 @@
       "reasonCashUnpaid": "Motivo: el viaje no se pagó en efectivo",
       "introCashCard": "Eligió pagar con tarjeta, así que hemos cobrado {amount} en la tarjeta que guardó."
     },
+    "extraCharged": {
+      "subjectWaiting": "Tiempo de espera adicional en su viaje PRESTIGO — {reference}",
+      "h1Waiting": "Hemos cobrado el tiempo de espera adicional.",
+      "introWaiting": "Su conductor esperó {minutes} minutos más del tiempo que reservó para su viaje del {pickupDate}. Hemos cobrado {amount} en la tarjeta que guardó.",
+      "lineWaiting": "Espera más allá del tiempo reservado: {minutes} min",
+      "subjectOther": "Cargo adicional por su viaje PRESTIGO — {reference}",
+      "h1Other": "Hemos cobrado un concepto adicional.",
+      "introOther": "Por su viaje del {pickupDate} hemos cobrado {amount} en la tarjeta que guardó.",
+      "lineOther": "Concepto: {item}",
+      "approved": "Una persona de Prestigo aprobó este cobro."
+    },
     "feeWaived": {
       "subject": "Sin tarifa en su reserva PRESTIGO — {reference}",
       "h1": "Sin tarifa en su reserva.",
