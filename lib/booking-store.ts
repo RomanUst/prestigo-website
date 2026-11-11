@@ -103,6 +103,14 @@ export const useBookingStore = create<BookingStore>()(
           promoDiscount: 0,
         }
       }),
+      moveStop: (id: string, direction: -1 | 1) => set((s) => {
+        const from = s.stops.findIndex((stop) => stop.id === id)
+        const to = from + direction
+        if (from < 0 || to < 0 || to >= s.stops.length) return s
+        const stops = [...s.stops]
+        ;[stops[from], stops[to]] = [stops[to], stops[from]]
+        return { stops, priceBreakdown: null, promoCode: null, promoDiscount: 0 }
+      }),
       setPickupDate: (date) => set({ pickupDate: date }),
       setPickupTime: (time) => set({ pickupTime: time }),
       setReturnDate: (date) => set({ returnDate: date }),

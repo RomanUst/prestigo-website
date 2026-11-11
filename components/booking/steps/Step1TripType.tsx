@@ -30,6 +30,7 @@ export default function Step1TripType() {
   const removeStop = useBookingStore((s) => s.removeStop)
   const updateStop = useBookingStore((s) => s.updateStop)
   const setStopWait = useBookingStore((s) => s.setStopWait)
+  const moveStop = useBookingStore((s) => s.moveStop)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [swapHovered, setSwapHovered] = useState(false)
@@ -183,6 +184,7 @@ export default function Step1TripType() {
               onRemove={removeStop}
               onUpdate={updateStop}
               onWaitChange={setStopWait}
+              onMove={moveStop}
             />
             {errors.stops && (
               <p

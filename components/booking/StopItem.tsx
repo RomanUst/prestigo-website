@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useTranslations } from 'next-intl'
-import { X } from 'lucide-react'
+import { ChevronDown, ChevronUp, X } from 'lucide-react'
 import AddressInput from '@/components/booking/AddressInput'
 import { useWaitingConfig } from '@/components/booking/useWaitingConfig'
 import { MAX_STOP_WAIT_MIN, STOP_FREE_WAIT_MIN, WAIT_BLOCK_MIN } from '@/lib/stops'
@@ -11,10 +11,14 @@ import type { Stop, PlaceResult } from '@/types/booking'
 export interface StopItemProps {
   stop: Stop
   index: number
+  /** Number of stops in the list (the down button is disabled on the last one). */
+  total: number
   onRemove: (id: string) => void
   onUpdate: (id: string, place: PlaceResult | null) => void
   /** Absent where waiting is not priced (multi-day planner): the wait selector is not shown. */
   onWaitChange?: (id: string, minutes: number) => void
+  /** Absent where stops cannot be reordered (multi-day planner): no up/down buttons. */
+  onMove?: (id: string, direction: -1 | 1) => void
 }
 
 // D-06: 15-minute steps from 0 to the per-stop maximum (0, 15 ... 120).
@@ -113,7 +117,23 @@ function WaitSelector({
   )
 }
 
-export default function StopItem({ stop, index, onRemove, onUpdate, onWaitChange }: StopItemProps) {
+function moveButtonStyle(disabled: boolean) {
+  return {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '44px',
+    height: '44px',
+    background: 'transparent',
+    border: 'none',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    color: 'var(--warmgrey)',
+    opacity: disabled ? 0.3 : 1,
+    padding: 0,
+  } as const
+}
+
+export default function StopItem({ stop, index, total, onRemove, onUpdate, onWaitChange, onMove }: StopItemProps) {
   const t = useTranslations('Booking.stopItem')
 
   const label = t('stopLabel', { number: index + 1 })
@@ -145,25 +165,49 @@ export default function StopItem({ stop, index, onRemove, onUpdate, onWaitChange
         >
           {label}
         </span>
-        <button
-          type="button"
-          onClick={() => onRemove(stop.id)}
-          aria-label={t('removeStop')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '28px',
-            height: '28px',
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--warmgrey)',
-            padding: 0,
-          }}
-        >
-          <X size={16} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          {onMove && (
+            <>
+              <button
+                type="button"
+                onClick={() => onMove(stop.id, -1)}
+                disabled={index === 0}
+                aria-label={t('moveUp')}
+                style={moveButtonStyle(index === 0)}
+              >
+                <ChevronUp size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onMove(stop.id, 1)}
+                disabled={index >= total - 1}
+                aria-label={t('moveDown')}
+                style={moveButtonStyle(index >= total - 1)}
+              >
+                <ChevronDown size={16} />
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            onClick={() => onRemove(stop.id)}
+            aria-label={t('removeStop')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '28px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--warmgrey)',
+              padding: 0,
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Address input — reuses Places Autocomplete */}

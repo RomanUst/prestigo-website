@@ -131,6 +131,7 @@ export interface BookingStore {
   removeStop: (id: string) => void
   updateStop: (id: string, place: PlaceResult | null) => void
   setStopWait: (id: string, minutes: number) => void
+  moveStop: (id: string, direction: -1 | 1) => void
   nextStep: () => void
   prevStep: () => void
   goToStep: (step: number) => void

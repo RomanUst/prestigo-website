@@ -11,6 +11,8 @@ export interface StopListProps {
   onRemove: (id: string) => void
   onUpdate: (id: string, place: PlaceResult | null) => void
   onWaitChange?: (id: string, minutes: number) => void
+  /** Reorder: absent where stops cannot be moved (multi-day planner). */
+  onMove?: (id: string, direction: -1 | 1) => void
   maxStops?: number
 }
 
@@ -20,6 +22,7 @@ export default function StopList({
   onRemove,
   onUpdate,
   onWaitChange,
+  onMove,
   maxStops = 5,
 }: StopListProps) {
   const t = useTranslations('Booking.stopList')
@@ -32,9 +35,11 @@ export default function StopList({
           key={stop.id}
           stop={stop}
           index={index}
+          total={stops.length}
           onRemove={onRemove}
           onUpdate={onUpdate}
           onWaitChange={onWaitChange}
+          onMove={onMove}
         />
       ))}
 
