@@ -22,7 +22,7 @@
 - [x] **Phase 87: Status Service & Driver Step Flow** - One trusted status writer; driver moves a trip one strict step at a time and admin sees it immediately (completed 2026-11-03)
 - [x] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
 - [x] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, owner-accepted wording, public go-live
-- [ ] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh
+- [x] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh (completed 2026-11-11)
 - [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
 - [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
 - [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
@@ -382,7 +382,7 @@ Plans:
   3. The operator sees bookings in a calendar with day, week and month views in Prague time, coloured by status; a booking around midnight lands on the correct Prague day regardless of the browser's timezone, including the DST-change weeks.
   4. When a driver taps a step, the board and calendar update on their own without a reload.
 
-**Plans**: 9/9 plans executed
+**Plans**: 9/9 plans complete
 
 Plans:
 **Wave 1**
