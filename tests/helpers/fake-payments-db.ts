@@ -58,6 +58,9 @@ export const FAKE_PAYMENT_VOCABULARY = {
     'fee_opened',
     'cash_settled',
     'cash_reopened',
+    // Migration 089 (Phase 91): the operator's extra charge to the saved card.
+    'extra_charged',
+    'extra_failed',
   ],
 } as const
 
@@ -98,6 +101,9 @@ const TABLES = [
   'booking_fee_cases',
   'booking_manage_tokens',
   'booking_payment_notes',
+  // Migration 089 (Phase 91): stops of a booking and the operator's extra charges, deny-all like the 087 tables.
+  'booking_stops',
+  'booking_extra_charges',
 ] as const
 type TableName = (typeof TABLES)[number]
 
@@ -111,6 +117,8 @@ export interface FakePaymentsState {
   booking_fee_cases: Row[]
   booking_manage_tokens: Row[]
   booking_payment_notes: Row[]
+  booking_stops: Row[]
+  booking_extra_charges: Row[]
 }
 
 export interface FakePaymentsSeed {
@@ -218,6 +226,83 @@ function checkNewTableRow(table: TableName, row: Row): string | null {
   return null
 }
 
+/** Column defaults of booking_stops (migration 089). */
+function stopDefaults(createdAt: string): Row {
+  return {
+    address: null,
+    lat: null,
+    lng: null,
+    wait_minutes: 0,
+    blocks: 0,
+    fee_per_block_eur: null,
+    fee_eur: 0,
+    created_at: createdAt,
+  }
+}
+
+/** Column defaults of booking_extra_charges (migration 089). */
+function extraChargeDefaults(now: string): Row {
+  return {
+    status: 'charging',
+    minutes: null,
+    blocks: null,
+    rate_per_block_eur: null,
+    description: null,
+    attempt: 1,
+    stripe_payment_intent_id: null,
+    last_error_code: null,
+    requested_by: null,
+    requested_at: now,
+    charged_at: null,
+    updated_at: now,
+  }
+}
+
+const isInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v)
+const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+
+/** The 089 CHECKs of booking_stops and booking_extra_charges (Postgres auto-names: table_column_check). */
+function checkStopsOrExtrasRow(table: 'booking_stops' | 'booking_extra_charges', row: Row): string | null {
+  if (table === 'booking_stops') {
+    if (!(isInt(row.position) && row.position >= 1 && row.position <= 5)) return 'booking_stops_position_check'
+    const address = row.address
+    if (address != null && !(typeof address === 'string' && address.length >= 1 && address.length <= 500)) {
+      return 'booking_stops_address_check'
+    }
+    if (row.lat != null && !(isNum(row.lat) && row.lat >= -90 && row.lat <= 90)) return 'booking_stops_lat_check'
+    if (row.lng != null && !(isNum(row.lng) && row.lng >= -180 && row.lng <= 180)) return 'booking_stops_lng_check'
+    if (!(isInt(row.wait_minutes) && row.wait_minutes >= 0 && row.wait_minutes <= 120 && row.wait_minutes % 15 === 0)) {
+      return 'booking_stops_wait_minutes_check'
+    }
+    if (!(isInt(row.free_minutes) && row.free_minutes >= 0)) return 'booking_stops_free_minutes_check'
+    if (!(isInt(row.blocks) && row.blocks >= 0)) return 'booking_stops_blocks_check'
+    if (row.fee_per_block_eur != null && !(isNum(row.fee_per_block_eur) && row.fee_per_block_eur > 0)) {
+      return 'booking_stops_fee_per_block_eur_check'
+    }
+    if (!(isNum(row.fee_eur) && row.fee_eur >= 0)) return 'booking_stops_fee_eur_check'
+    return null
+  }
+  if (!['waiting', 'other'].includes(row.kind as string)) return 'booking_extra_charges_kind_check'
+  if (!['charging', 'charged', 'failed'].includes(row.status as string)) return 'booking_extra_charges_status_check'
+  if (!['eur', 'czk'].includes(row.currency as string)) return 'booking_extra_charges_currency_check'
+  if (!(isInt(row.amount_minor) && row.amount_minor > 0)) return 'booking_extra_charges_amount_minor_check'
+  if (row.minutes != null && !(isInt(row.minutes) && row.minutes >= 1 && row.minutes <= 480)) {
+    return 'booking_extra_charges_minutes_check'
+  }
+  if (row.blocks != null && !(isInt(row.blocks) && row.blocks >= 1)) return 'booking_extra_charges_blocks_check'
+  if (row.rate_per_block_eur != null && !(isNum(row.rate_per_block_eur) && row.rate_per_block_eur > 0)) {
+    return 'booking_extra_charges_rate_per_block_eur_check'
+  }
+  const description = row.description
+  if (description != null && !(typeof description === 'string' && description.length >= 1 && description.length <= 200)) {
+    return 'booking_extra_charges_description_check'
+  }
+  if (!(isInt(row.attempt) && row.attempt >= 1)) return 'booking_extra_charges_attempt_check'
+  const code = row.last_error_code
+  if (code != null && !(typeof code === 'string' && code.length <= 60)) return 'booking_extra_charges_last_error_code_check'
+  return null
+}
+
 function err(message: string, code?: string): DbResult {
   return { data: null, error: { message, code } }
 }
@@ -252,6 +337,8 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     booking_fee_cases: [],
     booking_manage_tokens: [],
     booking_payment_notes: [],
+    booking_stops: [],
+    booking_extra_charges: [],
   }
 
   let eventSeq = 0
@@ -262,6 +349,28 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
   function mirrorFeeCaseStatus(row: Row): void {
     const booking = findBooking(row.booking_id)
     if (booking) booking.fee_case_status = row.status as string
+  }
+
+  /**
+   * booking_stops / booking_extra_charges (089): foreign key, CHECKs and the two unique rules. `self` is the row being
+   * updated (excluded from the unique scan); null on insert. Returns the error result, or null when the row is valid.
+   */
+  function validateStopsOrExtras(
+    table: 'booking_stops' | 'booking_extra_charges',
+    row: Row,
+    self: Row | null,
+  ): DbResult | null {
+    if (!findBooking(row.booking_id)) return err('violates foreign key constraint on booking_id', '23503')
+    const violated = checkStopsOrExtrasRow(table, row)
+    if (violated) return err(`new row violates check constraint "${violated}"`, '23514')
+    const others = state[table].filter((r) => r !== self && r.booking_id === row.booking_id)
+    if (table === 'booking_stops' && others.some((r) => r.position === row.position)) {
+      return err('duplicate key value violates unique constraint "booking_stops_booking_position_key"', '23505')
+    }
+    if (table === 'booking_extra_charges' && row.status === 'charging' && others.some((r) => r.status === 'charging')) {
+      return err('duplicate key value violates unique constraint "booking_extra_charges_one_charging"', '23505')
+    }
+    return null
   }
 
   /** Builds a ledger row from a p_event object, enforcing the table CHECKs that matter. */
@@ -547,8 +656,16 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
                   ? { created_at: nowIso(), last_used_at: null, revoked_at: null }
                   : this.table === 'booking_payment_notes'
                     ? { id: nextUuid(), created_by: null, created_at: nowIso() }
-                    : { id: nextUuid() }
+                    : this.table === 'booking_stops'
+                      ? { ...stopDefaults(nowIso()), id: nextUuid() }
+                      : this.table === 'booking_extra_charges'
+                        ? { ...extraChargeDefaults(nowIso()), id: nextUuid() }
+                        : { id: nextUuid() }
           const row: Row = { ...base, ...input }
+          if (this.table === 'booking_stops' || this.table === 'booking_extra_charges') {
+            const failure = validateStopsOrExtras(this.table, row, null)
+            if (failure) return failure
+          }
           if (this.table === 'booking_fee_cases' || this.table === 'booking_manage_tokens' || this.table === 'booking_payment_notes') {
             if (!findBooking(row.booking_id)) return err('violates foreign key constraint on booking_id', '23503')
             const violated = checkNewTableRow(this.table, row)
@@ -578,6 +695,13 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
               return err(`new row violates check constraint "${violated}"`, '23514')
             }
             if ('status' in (this.payload as Row)) mirrorFeeCaseStatus(r)
+          }
+          if (this.table === 'booking_stops' || this.table === 'booking_extra_charges') {
+            const failure = validateStopsOrExtras(this.table, r, r)
+            if (failure) {
+              Object.assign(r, before)
+              return failure
+            }
           }
         }
         out = targets
