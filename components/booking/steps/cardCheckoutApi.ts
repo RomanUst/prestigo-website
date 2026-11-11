@@ -2,8 +2,9 @@
 // Step6Checkout re-exports buildCardCheckoutBody / fetchCardInit; they live here so
 // Step6CardOnFile can use them without a circular import through Step6Checkout.
 
-import { isAirportPlace } from '@/types/booking'
+import { isAirportPlace, isAirportPickupPlace } from '@/types/booking'
 import { useBookingStore } from '@/lib/booking-store'
+import { pickupFromLanding } from '@/lib/airport-pickup'
 import type { BookingStore } from '@/types/booking'
 
 export type CardMode = 'setup' | 'hold_now'
@@ -88,7 +89,59 @@ export type CheckoutStoreState = Pick<
   | 'distanceKm'
   | 'extras'
   | 'passengerDetails'
+  | 'stops'
+  | 'landingDate'
+  | 'landingTime'
+  | 'pickupOffsetMin'
 >
+
+/**
+ * Phase 91: the trip data both checkout bodies (card / cash here, pay-now in Step6Payment) add on top of the common
+ * fields, in ONE place so the two builders cannot drift.
+ *
+ * - stops (STOP-01): a one-way transfer only, and only stops with a resolved place, in driving order. Round trip,
+ *   hourly and daily carry no stops key (the server answers STOPS_NOT_ALLOWED to them).
+ * - landing (STOP-05, D-07): only for a transfer / round trip whose pickup is an airport (the server's own
+ *   isAirportPickup rule) with a complete, valid landing. The pickup is then the one derived from landing + offset,
+ *   so the browser never sends a pickup that differs from it (the server derives and overwrites it anyway).
+ */
+export function tripExtrasForBody(state: CheckoutStoreState): {
+  stops?: Array<{ address: string; lat: number; lng: number; waitMinutes: number }>
+  landingDate?: string
+  landingTime?: string
+  pickupOffsetMin?: string
+  pickupDate?: string
+  pickupTime?: string
+} {
+  const out: ReturnType<typeof tripExtrasForBody> = {}
+  if (state.tripType === 'transfer') {
+    const placed = state.stops
+      .filter((stop) => stop.place !== null)
+      .map((stop) => ({
+        address: stop.place!.address,
+        lat: stop.place!.lat,
+        lng: stop.place!.lng,
+        waitMinutes: stop.waitMinutes ?? 0,
+      }))
+    if (placed.length > 0) out.stops = placed
+  }
+  if (
+    (state.tripType === 'transfer' || state.tripType === 'round_trip') &&
+    isAirportPickupPlace(state.origin) &&
+    state.landingDate &&
+    state.landingTime
+  ) {
+    const derived = pickupFromLanding(state.landingDate, state.landingTime, state.pickupOffsetMin)
+    if (derived) {
+      out.landingDate = state.landingDate
+      out.landingTime = state.landingTime
+      out.pickupOffsetMin = String(state.pickupOffsetMin)
+      out.pickupDate = derived.pickupDate
+      out.pickupTime = derived.pickupTime
+    }
+  }
+  return out
+}
 
 /**
  * Same field mapping as Step6Payment's create-payment-intent body, so the
@@ -132,6 +185,7 @@ export function buildCardCheckoutBody(
       currency: opts.currency,
       promoCode: opts.promoCode || '',
       locale: opts.locale,
+      ...tripExtrasForBody(state),
     },
   }
 }

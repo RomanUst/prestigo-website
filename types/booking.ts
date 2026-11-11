@@ -1,3 +1,5 @@
+import { isAirportPickup } from '@/lib/no-show-wait'
+
 export type TripType = 'transfer' | 'hourly' | 'daily' | 'round_trip'
 
 export interface PlaceResult {
@@ -105,6 +107,11 @@ export interface BookingStore {
   // Step 2
   pickupDate: string | null        // ISO date 'YYYY-MM-DD'
   pickupTime: string | null        // '08:15' format
+  // Phase 91 (STOP-05, D-07): airport pickup timed by the flight landing. pickupDate / pickupTime are derived from
+  // landing + offset by the store (pickupFromLanding), so every later step reads the pickup as before.
+  landingDate: string | null       // ISO date 'YYYY-MM-DD'
+  landingTime: string | null       // 'HH:MM'
+  pickupOffsetMin: number          // minutes after landing (LANDING_OFFSETS), default 30
   returnDate: string | null        // Daily Hire and Round Trip
   returnTime: string | null        // '14:30' format — Round Trip only
   // Step 3
@@ -138,6 +145,9 @@ export interface BookingStore {
   swapOriginDestination: () => void
   setPickupDate: (date: string | null) => void
   setPickupTime: (time: string | null) => void
+  setLandingDate: (date: string | null) => void
+  setLandingTime: (time: string | null) => void
+  setPickupOffset: (minutes: number) => void
   setReturnDate: (date: string | null) => void
   setReturnTime: (time: string | null) => void
   setVehicleClass: (v: VehicleClass | null) => void
@@ -210,4 +220,14 @@ export function isAirportPlace(place: PlaceResult | null): boolean {
       Math.sin(dLng / 2) ** 2
   const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return distKm <= PRG_CONFIG.radiusKm
+}
+
+/**
+ * Phase 91 (STOP-05, D-07): the airport-pickup rule the SERVER applies to a landing (isAirportPickup over the origin
+ * coordinates and address, not the placeId / radius check of isAirportPlace). The landing UI and the checkout bodies
+ * use this same rule, so the browser never sends landing data the server answers LANDING_NOT_AIRPORT to.
+ */
+export function isAirportPickupPlace(origin: PlaceResult | null): boolean {
+  if (!origin) return false
+  return isAirportPickup({ origin_lat: origin.lat, origin_lng: origin.lng, origin_address: origin.address })
 }
