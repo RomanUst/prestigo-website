@@ -18,6 +18,8 @@ import { PRAGUE_TIME_LABEL, formatLocaleDate, formatLocaleDateTime } from '@/lib
 import { formatMinor } from '@/lib/payments/money'
 import {
   CARD_CONSENT_VERSION,
+  EXTRAS_CONSENT_VERSIONS,
+  consentCoversExtras,
   consentMessageKey,
   consentVars,
   type ConsentMode,
@@ -53,12 +55,16 @@ const PINNED_EN_CONSENT_DIGEST: Record<string, string> = {
   '2026-11-1': '2298be1c5dd717f6abe01e95faf7920fd68410d6badfdd675a3f6d74a51afb8f',
   // 2026-11-2 (review WR-04): the catalog strings are unchanged; the rendered deadline now ends in the Prague time label.
   '2026-11-2': '2298be1c5dd717f6abe01e95faf7920fd68410d6badfdd675a3f6d74a51afb8f',
+  // 2026-11-3 (Phase 91 D-12): every wording gains the extras sentence (waiting beyond the booked time, agreed extras).
+  '2026-11-3': '7cc8f092593f344fc8264e0a1517dffa47f57c3d7752506a95c935eabba7dbd2',
 }
 
 // The Prague time-zone label is part of the rendered (hashed, stored) consent text, so it is pinned to the version too.
 const PRAGUE_LABEL_ORDER = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
 const PINNED_PRAGUE_LABEL_DIGEST: Record<string, string> = {
   '2026-11-2': 'e8e891aa50e20b3f17c42c9f6b563b9241b41f725588563a711d68238cc2d81b',
+  // 2026-11-3: the labels did not change, only the catalog strings.
+  '2026-11-3': 'e8e891aa50e20b3f17c42c9f6b563b9241b41f725588563a711d68238cc2d81b',
 }
 
 const MODES: ConsentMode[] = ['setup', 'hold_now', 'cash_setup']
@@ -66,8 +72,12 @@ const FREE_UNTIL_MS = Date.parse('2027-01-16T08:00:00Z')
 
 describe('CARD_CONSENT_VERSION', () => {
   it('is the final version constant, with no draft marker (D-16)', () => {
-    expect(CARD_CONSENT_VERSION).toBe('2026-11-2')
+    expect(CARD_CONSENT_VERSION).toBe('2026-11-3')
     expect(CARD_CONSENT_VERSION).not.toMatch(/draft/i)
+  })
+
+  it('D-12: the current version is in the extras set, so a future bump without adding it fails here', () => {
+    expect(EXTRAS_CONSENT_VERSIONS.has(CARD_CONSENT_VERSION)).toBe(true)
   })
 
   it('is pinned to the Prague time labels appended to the deadline (label change without a bump fails)', () => {
@@ -83,6 +93,18 @@ describe('CARD_CONSENT_VERSION', () => {
       .update(CONSENT_KEYS.map((k) => en[k]).join('\n').normalize('NFC'), 'utf8')
       .digest('hex')
     expect(PINNED_EN_CONSENT_DIGEST[CARD_CONSENT_VERSION]).toBe(digest)
+  })
+})
+
+describe('consentCoversExtras (D-12, T-91-17)', () => {
+  it('is true for the version that carries the extras sentence', () => {
+    expect(consentCoversExtras('2026-11-3')).toBe(true)
+  })
+
+  it('is false for every older, draft, empty or missing version', () => {
+    for (const v of ['2026-11-2', '2026-11-1', '2026-11-draft-1', '', null, undefined]) {
+      expect(consentCoversExtras(v), String(v)).toBe(false)
+    }
   })
 })
 
@@ -206,6 +228,18 @@ describe('buildConsentText', () => {
       expect(text).not.toContain(formatLocaleDate('2026-11-12', 'en'))
     })
 
+    it('D-12: every English variant ends with the extras sentence (waiting beyond the booked time, agreed extras, a person approves, email breakdown)', async () => {
+      const sentence =
+        'I also authorise Prestigo to charge this card after my trip for waiting beyond the time I booked and for extras agreed during the trip, such as parking; a person at Prestigo approves each such charge and I receive an email with the breakdown.'
+      for (const mode of MODES) {
+        for (const passed of [false, true]) {
+          const text = await buildConsentText({ locale: 'en', mode, ...base, freeUntilPassed: passed })
+          expect(text.endsWith(sentence), `${mode} ${passed}`).toBe(true)
+          expect(text.length).toBeLessThan(2000)
+        }
+      }
+    })
+
     it('the card variants do not mention cash', async () => {
       for (const mode of ['setup', 'hold_now'] as const) {
         const text = await buildConsentText({ locale: 'en', mode, ...base })
@@ -221,7 +255,9 @@ describe('buildConsentText', () => {
     it('the NoFree variants drop the deadline wording', async () => {
       const text = await buildConsentText({ locale: 'en', mode: 'cash_setup', ...base, freeUntilPassed: true })
       expect(text).toContain('if I cancel, if I do not show up')
-      expect(text).not.toContain('after ')
+      // The extras sentence (D-12) says "after my trip", so the deadline wording is checked by its own phrase.
+      expect(text).not.toContain('cancel after')
+      expect(text).not.toContain(formatLocaleDateTime(FREE_UNTIL_MS, 'en'))
     })
   })
 

@@ -153,6 +153,13 @@ export interface PaymentEmailExtra {
   freeUntil?: number | string
   /** Minutes the driver waited; taken from the no-show thresholds of the stored policy when absent. */
   waitMin?: number
+  /** extra_charged waiting: minutes of waiting beyond the booked time. */
+  extraMinutes?: number
+  /**
+   * extra_charged other: the client-facing item line the operator wrote for the receipt (for example "Airport parking").
+   * It is not a reason or a note; it is HTML-escaped by the renderer and never put in the subject, the ledger or a log.
+   */
+  extraItem?: string
 }
 
 export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailExtra): Promise<PaymentEmailVars> {
@@ -211,6 +218,8 @@ export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailE
     ...(extra.feeLabel ? { feeLabel: extra.feeLabel } : {}),
     ...(freeUntil !== undefined ? { freeUntil } : {}),
     ...(waitMin !== undefined ? { waitMin } : {}),
+    ...(extra.extraMinutes !== undefined ? { extraMinutes: extra.extraMinutes } : {}),
+    ...(extra.extraItem !== undefined ? { extraItem: extra.extraItem } : {}),
     ...(bookAgainUrl ? { bookAgainUrl } : {}),
   }
 }
@@ -247,6 +256,8 @@ export async function sendPaymentEmail(
         feeLabel: input.feeLabel,
         freeUntil: input.freeUntil,
         waitMin: input.waitMin,
+        extraMinutes: input.extraMinutes,
+        extraItem: input.extraItem,
       }),
     )
   } catch {

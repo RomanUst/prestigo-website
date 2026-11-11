@@ -23,8 +23,24 @@ import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
  * The rendered text also carries the Prague time-zone label that formatLocaleDateTime appends to the free-until moment
  * (lib/locale-date.ts PRAGUE_TIME_LABEL): a change to a label is a change to the consent text and bumps this version too.
  * 2026-11-2: the deadline is labelled "(Prague time)" in the stored text (review WR-04).
+ * 2026-11-3: extras sentence, Phase 91 D-12 (waiting beyond the booked time and extras agreed during the trip).
+ *
+ * A version bump that keeps the extras sentence MUST also be added to EXTRAS_CONSENT_VERSIONS below, otherwise
+ * new bookings could not be charged an extra (tests/payments-consent.test.ts fails on that).
  */
-export const CARD_CONSENT_VERSION = '2026-11-2'
+export const CARD_CONSENT_VERSION = '2026-11-3'
+
+/**
+ * Consent versions whose wording authorises a post-trip charge for waiting beyond the booked time and for extras
+ * (Phase 91 D-12, T-91-17). The stored consent of an older booking never changes, so a booking stored under any other
+ * version cannot be charged an extra.
+ */
+export const EXTRAS_CONSENT_VERSIONS: ReadonlySet<string> = new Set(['2026-11-3'])
+
+/** True only for a stored consent version in EXTRAS_CONSENT_VERSIONS; false for older, draft, empty or missing versions. */
+export function consentCoversExtras(version: string | null | undefined): boolean {
+  return typeof version === 'string' && EXTRAS_CONSENT_VERSIONS.has(version)
+}
 
 /** setup / hold_now: the card flow (Phase 88). cash_setup: pay cash to the driver, card saved as a guarantee (Phase 89). */
 export type ConsentMode = 'setup' | 'hold_now' | 'cash_setup'
