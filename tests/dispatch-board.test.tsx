@@ -563,6 +563,17 @@ describe('DispatchBoard - card content (D-06)', () => {
     expect(within(card('PRE-NS')).getByTestId('no-show-chip')).toBeDefined()
   })
 
+  it('does not list a cancelled booking; the Cancelled rail stays as a drop target with count 0', async () => {
+    await renderBoard([
+      makeBooking({ id: 'c1', booking_reference: 'PRE-GONE', status: 'cancelled' }),
+      makeBooking({ id: 'c2', booking_reference: 'PRE-LIVE', status: 'confirmed' }),
+    ])
+    expect(screen.getByTestId('board-count-cancelled').textContent).toBe('0')
+    fireEvent.click(within(screen.getByTestId('board-column-cancelled')).getByRole('button'))
+    expect(screen.queryByText('PRE-GONE')).toBeNull()
+    expect(card('PRE-LIVE')).toBeDefined()
+  })
+
   it('shows the Fee decision badge for a pending fee case', async () => {
     await renderBoard([makeBooking({ id: 'c1', booking_reference: 'PRE-F', status: 'cancelled', fee_case_status: 'pending' })])
     fireEvent.click(within(screen.getByTestId('board-column-cancelled')).getByRole('button'))

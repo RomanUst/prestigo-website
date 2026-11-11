@@ -190,6 +190,9 @@ export default function BookingsTable({
       if (tripType !== 'all') params.set('tripType', tripType)
       if (statusFilter !== 'all') params.set('status', statusFilter)
       if (debouncedSearch) params.set('search', debouncedSearch)
+      // Cancelled bookings are not part of the working list; the server keeps them in the history views
+      // (Past, All, a past date range, a search).
+      params.set('hideCancelled', '1')
       // D-07: an explicit manual Date Range takes session precedence over the
       // segmented-control horizon — omit horizon entirely so the manual bound
       // (already set above) drives the query untouched.
