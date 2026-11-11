@@ -270,6 +270,17 @@ export async function GET(request: Request) {
     }
   }
 
+  // The list asks (hideCancelled=1) for cancelled bookings to be left out of the working queue. They stay in
+  // the history: the Past and All segments, a date range that ended before today, a search (a reference or
+  // e-mail deep link must still find them) and an explicit status=cancelled. Callers that do not ask (the KPI
+  // fetches) get every status as before. The RPC keeps a cancelled booking with a pending fee case.
+  const isHistoryView =
+    (horizon === 'all' && !startDate && !endDate) ||
+    (resolvedEndDate !== null && resolvedEndDate < getPragueTodayISO()) ||
+    Boolean(search && search.trim()) ||
+    statusFilter === 'cancelled'
+  const hideCancelled = searchParams.get('hideCancelled') === '1' && !isHistoryView
+
   const supabase = createSupabaseServiceClient()
 
   // LOW-1 mitigation: route the search term through a parameterized RPC
@@ -291,6 +302,7 @@ export async function GET(request: Request) {
       p_sort:       sort,
       p_offset:     page * limit,
       p_limit:      limit,
+      p_hide_cancelled: hideCancelled,
     })
 
   if (dbError) {
