@@ -8,7 +8,7 @@ import { createSupabasePublicReadClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
 import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
 import { getRoutePrice, findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
-import { CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
+import { CHILD_SEAT_PRICE } from '@/lib/pricing-helpers'
 import { isNearAirport } from '@/lib/airport'
 import { computeRouteDistance } from '@/lib/route-distance'
 import {
@@ -59,21 +59,19 @@ const calculatePriceSchema = z.object({
   destinationPlaceId: z.string().min(1).max(200).optional(),
   // CALC-05: calculator-specific extras
   childSeats: z.number().int().min(0).max(3).optional().default(0),
-  extraStops: z.number().int().min(0).max(5).optional().default(0),
 })
 
 type VehiclePrice = { base: number; extras: number; total: number; currency: string; waitingEur?: number | null }
 
 /**
- * Add childSeats × CHILD_SEAT_PRICE + extraStops × EXTRA_STOP_PRICE to .extras,
- * then round .total UP to nearest €5 (CALC-05 + CALC-09).
+ * Add childSeats × CHILD_SEAT_PRICE to .extras (CALC-05). D-02: there is no flat fee per stop any more;
+ * a body that still carries the old calculator stop-count field is stripped by the schema and ignored.
  */
 function applyExtrasAndRound(
   adjusted: Record<string, VehiclePrice>,
-  childSeats: number,
-  extraStops: number
+  childSeats: number
 ): Record<string, VehiclePrice> {
-  const extrasAdd = childSeats * CHILD_SEAT_PRICE + extraStops * EXTRA_STOP_PRICE
+  const extrasAdd = childSeats * CHILD_SEAT_PRICE
   const out: Record<string, VehiclePrice> = {}
   for (const [k, v] of Object.entries(adjusted)) {
     const newExtras = v.extras + extrasAdd
@@ -156,7 +154,7 @@ export async function POST(req: Request) {
     const {
       origin, destination, tripType, hours, pickupDate, returnDate,
       pickupTime, returnTime, isAirport, intermediates,
-      routeSlug, originPlaceId, destinationPlaceId, childSeats, extraStops,
+      routeSlug, originPlaceId, destinationPlaceId, childSeats,
     } = parsed.data
 
     // Detect airport server-side by coordinates (not by client-provided placeId,
@@ -178,7 +176,7 @@ export async function POST(req: Request) {
     if (tripType === 'hourly') {
       const prices = buildPriceMap('hourly', null, hours || 2, 0, rates)
       const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
-      return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false, matchedRouteSlug: null })
+      return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats), returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false, matchedRouteSlug: null })
     }
 
     // Daily: no distance needed, no zone check
@@ -189,7 +187,7 @@ export async function POST(req: Request) {
       const days = dateDiffDays(pickupDate, returnDate)
       const prices = buildPriceMap('daily', null, 0, days, rates)
       const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
-      return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false, matchedRouteSlug: null })
+      return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats), returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false, matchedRouteSlug: null })
     }
 
     // Transfer types: need origin + destination
@@ -199,7 +197,8 @@ export async function POST(req: Request) {
 
     // CALC-07: intercity auto-detect — flat price from route_prices when the pair matches.
     // Must run BEFORE zone check and Google Routes call.
-    if (tripType === 'transfer' && (routeSlug || (originPlaceId && destinationPlaceId))) {
+    // D-01: a trip with stops is NOT a fixed-price route; it is priced per km through every stop below.
+    if (intermediates.length === 0 && tripType === 'transfer' && (routeSlug || (originPlaceId && destinationPlaceId))) {
       let route: RoutePrice | null = null
       if (routeSlug) {
         route = await getRoutePrice(routeSlug)
@@ -210,7 +209,7 @@ export async function POST(req: Request) {
       if (route) {
         const base = buildIntercityPrices(route)
         const adjusted = applyGlobals(base, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
-        const withExtras = applyExtrasAndRound(adjusted, childSeats, extraStops)
+        const withExtras = applyExtrasAndRound(adjusted, childSeats)
 
         // Round-trip return leg for matched intercity routes. Same flat route
         // base, coefficient computed from the RETURN datetime, minus the return
@@ -302,7 +301,7 @@ export async function POST(req: Request) {
       )
     }
 
-    const withExtras = applyExtrasAndRound(adjusted, childSeats, extraStops)
+    const withExtras = applyExtrasAndRound(adjusted, childSeats)
 
     // STOP-03: paid waiting is added AFTER the night, holiday, airport and minimum-fare adjustments, so
     // none of them changes it (D-14). Only quotes with stops carry waiting fields (D-03).
