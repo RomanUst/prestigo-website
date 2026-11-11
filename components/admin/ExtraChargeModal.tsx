@@ -336,7 +336,7 @@ export function ExtraChargeModal({ isOpen, bookingId, currency, inFlight, onClos
         {inFlight.resumable ? (
           <>
             <p style={{ ...bodyStyle, margin: 0, overflowWrap: 'anywhere' }}>
-              {`A charge of ${pending} was started but Stripe did not confirm it. It is safe to retry: it is the same charge, so the client is never charged twice.`}
+              {`A charge of ${pending} was started but Stripe did not confirm it. Retrying first checks Stripe for this charge: if it already went through it is recorded, and the client is never charged twice.`}
             </p>
             <p style={{ ...labelStyle, margin: '16px 0 0' }}>{COPY_CHARGE_STATEMENT}</p>
             <DialogError text={error} />

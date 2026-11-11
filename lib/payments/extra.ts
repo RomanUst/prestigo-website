@@ -194,7 +194,7 @@ const idOf = (v: unknown): string | null => {
 }
 
 /** One off-session create. The key is the row id + attempt and the parameters are the row's own: a replay is exact. */
-async function chargeSavedCard(booking: BookingRow, charge: ExtraChargeRow): Promise<Collected> {
+async function chargeSavedCard(booking: BookingRow, charge: ExtraChargeRow, opts: { replay?: boolean } = {}): Promise<Collected> {
   const customer = str(booking.stripe_customer_id)
   const paymentMethod = str(booking.stripe_payment_method_id)
   if (!customer || !paymentMethod) return { kind: 'declined', code: 'missing_payment_details', paymentIntentId: null }
@@ -224,6 +224,10 @@ async function chargeSavedCard(booking: BookingRow, charge: ExtraChargeRow): Pro
     return await closeUnfinished(charge, pi.id, pi.status === 'requires_action' ? 'authentication_required' : 'unexpected_status')
   } catch (err) {
     const errorClass = classifyStripeError(err)
+    // WR-02: a replay after Stripe was asked and showed NO PaymentIntent for this row. The key was first used with other
+    // parameters (the saved card was replaced since), so it can never be replayed as it is: the row is the operator's way out
+    // and ends failed; a new click makes a new row with a new key.
+    if (opts.replay && errorClass === 'idempotency') return { kind: 'declined', code: 'idempotency_conflict', paymentIntentId: null }
     // An answer that says nothing about the card (network, rate limit, a 5xx, a broken key, a busy key): the row stays
     // charging, the same click may be repeated after the lease and replays the same key.
     if (isNotTheClientsFault(errorClass)) {
@@ -381,9 +385,18 @@ async function finishFailed(
   })
 }
 
-/** Create-or-replay the Stripe charge of a row and settle the row from the answer. */
+/** Create the Stripe charge of a row and settle the row from the answer. */
 async function collect(booking: BookingRow, charge: ExtraChargeRow, actor: LedgerActor): Promise<ExtraChargeResult> {
-  const result = await chargeSavedCard(booking, charge)
+  return settleCollected(booking, charge, await chargeSavedCard(booking, charge), actor)
+}
+
+/** Settle the row from what Stripe said (a create answer, or what a resume found at Stripe). */
+async function settleCollected(
+  booking: BookingRow,
+  charge: ExtraChargeRow,
+  result: Collected,
+  actor: LedgerActor,
+): Promise<ExtraChargeResult> {
   switch (result.kind) {
     case 'ok':
       await finishCharged(booking, charge, result.pi, actor)
@@ -408,6 +421,54 @@ async function collect(booking: BookingRow, charge: ExtraChargeRow, actor: Ledge
       return { status: 200, outcome: 'unconfirmed', chargeId: charge.id }
     }
   }
+}
+
+/**
+ * WR-02: what Stripe holds for this row, asked before a resume can create anything. The PaymentIntents of the saved card's
+ * customer since the row was requested are listed (a list is read-after-write consistent, unlike a search, and covers an
+ * idempotency key older than Stripe's 24 hours) and matched on metadata.extraChargeId. Answers with the settled state of the row
+ * when a PaymentIntent exists, 'none' when Stripe confirms there is none, and transient (busy) when Stripe cannot say or the
+ * payment is still processing.
+ */
+async function reconcileWithStripe(booking: BookingRow, charge: ExtraChargeRow): Promise<Collected | 'none'> {
+  const stripe = getPaymentsStripe()
+  let intents: Stripe.PaymentIntent[]
+  try {
+    if (charge.stripe_payment_intent_id) {
+      intents = [(await stripe.paymentIntents.retrieve(charge.stripe_payment_intent_id)) as Stripe.PaymentIntent]
+    } else {
+      const customer = str(booking.stripe_customer_id)
+      if (!customer) return { kind: 'transient' }
+      const since = Math.floor(Date.parse(charge.requested_at) / 1000)
+      const list = await stripe.paymentIntents.list({
+        customer,
+        limit: 100,
+        ...(Number.isFinite(since) ? { created: { gte: since - 300 } } : {}),
+      })
+      // More than one page: absence of a match proves nothing, so nothing may be created.
+      if (list.has_more) return { kind: 'transient' }
+      intents = (list.data as Stripe.PaymentIntent[]).filter(
+        (p) => p.metadata?.kind === 'card_extra' && p.metadata?.extraChargeId === charge.id,
+      )
+    }
+  } catch (err) {
+    console.error('[extra] resume could not read Stripe', { chargeId: charge.id, errorClass: classifyStripeError(err) })
+    return { kind: 'transient' }
+  }
+
+  const done = intents.find((p) => p.status === 'succeeded')
+  if (done) return { kind: 'ok', pi: done }
+  if (intents.length === 0) return 'none'
+  if (intents.some((p) => p.status === 'processing')) return { kind: 'transient' }
+
+  const pi = intents[0]
+  if (pi.status === 'canceled') return { kind: 'declined', code: 'canceled', paymentIntentId: pi.id }
+  if (pi.status === 'requires_payment_method') {
+    const err = pi.last_payment_error
+    return { kind: 'declined', code: (err?.decline_code || err?.code || 'declined').slice(0, 60), paymentIntentId: pi.id }
+  }
+  // requires_action and the like: still alive, so it is cancelled (or reported) exactly as right after the confirm.
+  return closeUnfinished(charge, pi.id, pi.status === 'requires_action' ? 'authentication_required' : 'unexpected_status')
 }
 
 /** The click is on record before anything can fail (T-89-21 style): a short code and the amount, never a description. */
@@ -564,9 +625,11 @@ async function runWaiting(
 }
 
 /**
- * Replay a charge whose Stripe answer was lost (a transient error left the row charging). Allowed only once the engine lease
- * has passed since the row was created or last taken over; the replay uses the SAME key and the SAME amount, so Stripe
- * returns the original result and nothing can be charged twice. Never automatic: it is the operator's second click.
+ * Resolve a charge whose Stripe answer was lost (a transient error left the row charging). Allowed only once the engine lease
+ * has passed since the row was created or last taken over. It reads Stripe FIRST (WR-02): a succeeded PaymentIntent finalises
+ * the row as charged, a dead one as failed, a processing one answers busy, a live one is cancelled. Only when Stripe confirms
+ * there is no PaymentIntent for the row is the create replayed, with the SAME key and the SAME amount (and a key conflict ends
+ * the row failed, so a row is never stuck for good). Never automatic: it is the operator's second click.
  */
 export async function resumeExtraCharge(input: {
   booking: BookingRow
@@ -603,7 +666,11 @@ export async function resumeExtraCharge(input: {
   if (taken.error) throw new Error('extra charge take-over failed')
   if (!Array.isArray(taken.data) || taken.data.length === 0) return { status: 409, error: 'payment_busy' }
 
-  return collect(booking, charge, actor)
+  // WR-02: ask Stripe before anything is created. A PaymentIntent that exists settles the row (charged, failed, busy or
+  // reported); a second PaymentIntent is created only when Stripe confirms there is none for this row.
+  const known = await reconcileWithStripe(booking, charge)
+  if (known !== 'none') return settleCollected(booking, charge, known, actor)
+  return settleCollected(booking, charge, await chargeSavedCard(booking, charge, { replay: true }), actor)
 }
 
 /**

@@ -521,6 +521,124 @@ describe('transient answers, payment_busy and resume', () => {
   })
 })
 
+describe('WR-02: resume reads Stripe before it can create anything', () => {
+  const EXPIRED = () => new Date(Date.now() - (LEASE_SECONDS + 60) * 1000).toISOString()
+
+  /** A row left charging by a lost answer, with the lease passed. */
+  async function stuck(): Promise<string> {
+    fake.failNextWith('paymentIntents.create', 'connection')
+    expect(await run(other())).toEqual({ status: 409, error: 'payment_busy' })
+    charges()[0].updated_at = EXPIRED()
+    return charges()[0].id as string
+  }
+
+  /** Stripe's side of that row: a PaymentIntent that exists although our answer was lost (the original call went through). */
+  async function stripeHas(chargeId: string, status?: string): Promise<string> {
+    const pi = (await fake.stripe.paymentIntents.create(
+      {
+        amount: 1500,
+        currency: 'eur',
+        customer: 'cus_1',
+        payment_method: 'pm_ok',
+        confirm: true,
+        metadata: { kind: 'card_extra', cofBookingId: ID, extraChargeId: chargeId, attempt: '1' },
+      },
+      { idempotencyKey: `manual-${chargeId}` },
+    )) as { id: string }
+    if (status) fake.setPaymentIntentStatus(pi.id, status)
+    return pi.id
+  }
+  const createsAfter = (n: number) => fake.callsTo('paymentIntents.create').length - n
+
+  it('the original call had succeeded and its webhook was missed: the row is finalised as charged, NOTHING new is created', async () => {
+    const chargeId = await stuck()
+    const piId = await stripeHas(chargeId)
+    const before = fake.callsTo('paymentIntents.create').length
+    const res = await resumeExtraCharge({ booking: row(), chargeId, actor: ADMIN })
+    expect(res).toMatchObject({ status: 200, outcome: 'charged', chargeId, amountMinor: 1500 })
+    expect(createsAfter(before)).toBe(0)
+    expect(charges()[0]).toMatchObject({ status: 'charged', stripe_payment_intent_id: piId })
+    expect(ledger('extra_charged')).toHaveLength(1)
+    expect(ledger('extra_charged')[0].stripe_object_id).toBe(piId)
+    expect(mockSendEmail).toHaveBeenCalledTimes(1)
+  })
+
+  it('a cancelled or unpaid PaymentIntent ends the row failed, with no new PaymentIntent', async () => {
+    for (const status of ['canceled', 'requires_payment_method']) {
+      seed()
+      const chargeId = await stuck()
+      await stripeHas(chargeId, status)
+      const before = fake.callsTo('paymentIntents.create').length
+      const res = await resumeExtraCharge({ booking: row(), chargeId, actor: ADMIN })
+      expect(res).toMatchObject({ status: 200, outcome: 'declined', chargeId })
+      expect(createsAfter(before)).toBe(0)
+      expect(charges()[0].status).toBe('failed')
+      expect(ledger('extra_failed')).toHaveLength(1)
+      expect(mockSendEmail).not.toHaveBeenCalled()
+    }
+  })
+
+  it('a PaymentIntent still processing answers busy: the row stays charging and nothing is created', async () => {
+    const chargeId = await stuck()
+    await stripeHas(chargeId, 'processing')
+    const before = fake.callsTo('paymentIntents.create').length
+    expect(await resumeExtraCharge({ booking: row(), chargeId, actor: ADMIN })).toEqual({ status: 409, error: 'payment_busy' })
+    expect(createsAfter(before)).toBe(0)
+    expect(charges()[0].status).toBe('charging')
+  })
+
+  it('a live requires_action PaymentIntent is cancelled, then the row is failed', async () => {
+    const chargeId = await stuck()
+    const piId = await stripeHas(chargeId, 'requires_action')
+    expect(await resumeExtraCharge({ booking: row(), chargeId, actor: ADMIN })).toMatchObject({ outcome: 'declined' })
+    expect(fake.state.paymentIntents.get(piId)?.status).toBe('canceled')
+    expect(charges()[0].status).toBe('failed')
+  })
+
+  it('Stripe cannot be read: busy, the row stays charging, nothing is created', async () => {
+    const chargeId = await stuck()
+    const before = fake.callsTo('paymentIntents.create').length
+    fake.failNextWith('paymentIntents.list', 'connection')
+    expect(await resumeExtraCharge({ booking: row(), chargeId, actor: ADMIN })).toEqual({ status: 409, error: 'payment_busy' })
+    expect(createsAfter(before)).toBe(0)
+    expect(charges()[0].status).toBe('charging')
+  })
+
+  it('PaymentIntents of other extras on the same card are not mistaken for this row', async () => {
+    const chargeId = await stuck()
+    await stripeHas('99999999-9999-4999-8999-999999999999')
+    const before = fake.callsTo('paymentIntents.create').length
+    // Stripe shows none for THIS row: the create is replayed with the row's own key.
+    expect(await resumeExtraCharge({ booking: row(), chargeId, actor: ADMIN })).toMatchObject({ outcome: 'charged' })
+    expect(createsAfter(before)).toBe(1)
+    expect(fake.callsTo('paymentIntents.create').at(-1)?.idempotencyKey).toBe(`extra:${chargeId}:1`)
+  })
+
+  it('the way out of a stuck row: a key conflict after Stripe confirmed no PaymentIntent ends the row failed (never charged), no automatic retry', async () => {
+    const { FakeStripeError } = await import('./helpers/fake-stripe')
+    const chargeId = await stuck()
+    fake.failNextWithError(
+      'paymentIntents.create',
+      new FakeStripeError('StripeIdempotencyError', 'Keys for idempotent requests can only be used with the same parameters', {
+        code: 'idempotency_key_in_use',
+        statusCode: 400,
+      }),
+    )
+    const res = await resumeExtraCharge({ booking: row(), chargeId, actor: ADMIN })
+    expect(res).toMatchObject({ status: 200, outcome: 'declined', code: 'idempotency_conflict' })
+    expect(charges()[0]).toMatchObject({ status: 'failed', last_error_code: 'idempotency_conflict' })
+    // the booking is free again: a new extra is a new row with a new key
+    expect(await run(other(900, 'Another thing'))).toMatchObject({ outcome: 'charged' })
+  })
+
+  it('a key conflict on the FIRST click (not a resume) is not turned into a decline', async () => {
+    const { FakeStripeError } = await import('./helpers/fake-stripe')
+    fake.failNextWithError('paymentIntents.create', new FakeStripeError('StripeIdempotencyError', 'conflict', { statusCode: 400 }))
+    expect(await run(other())).toEqual({ status: 409, error: 'payment_busy' })
+    expect(charges()[0].status).toBe('charging')
+  })
+})
+
 describe('the booking itself and the privacy of the description', () => {
   it('an extra never touches payment_intent_id, payment_state or status of the booking', async () => {
     seed({ payment_intent_id: 'pi_original', hold_payment_intent_id: 'pi_hold', captured_amount_minor: 10000 })
