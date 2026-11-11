@@ -1267,3 +1267,128 @@ describe('GET: fee_case and cash facts (admin only)', () => {
     })
   })
 })
+
+// Phase 91-11 (EXTRA-01, D-15): the payment GET names charge_extra and carries the extra facts.
+describe('GET: extra charge facts (91-11)', () => {
+  const OLD = new Date(Date.now() - 30 * 60_000).toISOString()
+
+  function extraSeed(over: Record<string, unknown> = {}, consentVersion: string | null = '2026-11-3') {
+    seed({
+      payment_state: 'captured',
+      captured_amount_minor: 12000,
+      payment_intent_id: 'pi_original_capture',
+      hold_payment_intent_id: 'pi_original_hold',
+      ...over,
+    })
+    if (consentVersion) {
+      db.state.booking_payment_consents.push({
+        id: 'consent-1',
+        booking_id: ID,
+        text_version: consentVersion,
+        accepted_at: '2026-11-01T10:00:00.000Z',
+      })
+    }
+  }
+
+  it('an eligible completed card booking -> charge_extra is allowed and extra.eligible is true', async () => {
+    extraSeed()
+    const body = await (await getReq()).json()
+    expect(body.allowed_actions).toContain('charge_extra')
+    expect(body.extra).toEqual({ eligible: true, reason: null, in_flight: null, charges: [] })
+  })
+
+  it('a partner (GNet) booking -> no charge_extra and reason partner', async () => {
+    extraSeed({ booking_source: 'gnet' })
+    const body = await (await getReq()).json()
+    expect(body.allowed_actions).not.toContain('charge_extra')
+    expect(body.extra.eligible).toBe(false)
+    expect(body.extra.reason).toBe('partner')
+  })
+
+  it('an unfinished trip -> not_completed, an old consent -> consent_not_covered', async () => {
+    extraSeed({ status: 'confirmed' })
+    let body = await (await getReq()).json()
+    expect(body.allowed_actions).not.toContain('charge_extra')
+    expect(body.extra.reason).toBe('not_completed')
+
+    extraSeed({}, '2026-10-1')
+    body = await (await getReq()).json()
+    expect(body.allowed_actions).not.toContain('charge_extra')
+    expect(body.extra.reason).toBe('consent_not_covered')
+  })
+
+  it('lists the booking extra charges field by field and never a stripe id or the requester', async () => {
+    extraSeed()
+    db.state.booking_extra_charges.push({
+      id: '11111111-1111-4111-8111-111111111111',
+      booking_id: ID,
+      kind: 'other',
+      status: 'charged',
+      currency: 'eur',
+      amount_minor: 1500,
+      minutes: null,
+      blocks: null,
+      rate_per_block_eur: null,
+      description: 'Airport parking',
+      attempt: 1,
+      stripe_payment_intent_id: 'pi_secret_extra',
+      last_error_code: null,
+      requested_by: ADMIN_ID,
+      requested_at: '2026-11-02T10:00:00.000Z',
+      charged_at: '2026-11-02T10:00:05.000Z',
+      updated_at: '2026-11-02T10:00:05.000Z',
+    })
+    const body = await (await getReq()).json()
+    expect(body.extra.charges).toEqual([
+      {
+        id: '11111111-1111-4111-8111-111111111111',
+        kind: 'other',
+        status: 'charged',
+        amount_minor: 1500,
+        currency: 'eur',
+        minutes: null,
+        description: 'Airport parking',
+        requested_at: '2026-11-02T10:00:00.000Z',
+        charged_at: '2026-11-02T10:00:05.000Z',
+        last_error_code: null,
+      },
+    ])
+    const text = JSON.stringify(body)
+    expect(text).not.toContain('pi_secret_extra')
+    expect(text).not.toContain(ADMIN_ID)
+  })
+
+  it('a charging row older than the lease -> in_flight.resumable true; a fresh one -> false', async () => {
+    extraSeed()
+    const charging = {
+      id: '22222222-2222-4222-8222-222222222222',
+      booking_id: ID,
+      kind: 'other',
+      status: 'charging',
+      currency: 'eur',
+      amount_minor: 900,
+      description: 'Child seat',
+      attempt: 1,
+      requested_at: OLD,
+      updated_at: OLD,
+    }
+    db.state.booking_extra_charges.push(charging)
+    let body = await (await getReq()).json()
+    expect(body.allowed_actions).not.toContain('charge_extra')
+    expect(body.extra.reason).toBe('in_flight')
+    expect(body.extra.in_flight).toEqual({
+      id: charging.id,
+      kind: 'other',
+      amount_minor: 900,
+      currency: 'eur',
+      requested_at: OLD,
+      resumable: true,
+    })
+
+    const fresh = new Date().toISOString()
+    charging.requested_at = fresh
+    charging.updated_at = fresh
+    body = await (await getReq()).json()
+    expect(body.extra.in_flight.resumable).toBe(false)
+  })
+})

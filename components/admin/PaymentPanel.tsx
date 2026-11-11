@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Copy, LoaderCircle, TriangleAlert } from 'lucide-react'
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
 import { CashCardChargeModal } from './CashCardChargeModal'
+import { ExtraChargeModal, type ExtraChargeFact, type ExtraFacts } from './ExtraChargeModal'
 import { FeeChargeModal } from './FeeChargeModal'
 import { FeeDecisionBanner } from './FeeDecisionBanner'
 import { FeeWaiveModal } from './FeeWaiveModal'
@@ -51,6 +52,8 @@ export type { PaymentSnapshot, FeeCaseFacts, CashFacts }
 export type PaymentActionName =
   | 'capture' | 'retry' | 'release' | 'waive' | 'send_link'
   | 'charge_fee' | 'waive_fee' | 'charge_saved_card' | 'mark_cash_settled' | 'reopen_cash' | 'close_refunded' | 'open_fee_case'
+  // Phase 91-11: the operator's extra charge (waiting beyond the booked time, or another agreed amount), executed by POST /extra.
+  | 'charge_extra'
 
 export interface PaymentEventRow {
   id: number
@@ -73,6 +76,8 @@ export interface PaymentResponse {
   fee_case?: FeeCaseFacts | null
   /** Phase 89: the cash facts of a cash booking, null for other modes. */
   cash?: CashFacts | null
+  /** Phase 91-11: the booking's extra charges and whether one is in flight. Absent on an older server. */
+  extra?: ExtraFacts | null
 }
 
 interface PaymentPanelProps {
@@ -814,7 +819,41 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
 const EXECUTABLE_ACTIONS: readonly PaymentActionName[] = ['capture', 'retry', 'send_link', 'release', 'waive']
 const KNOWN_ACTIONS: readonly PaymentActionName[] = [
   ...EXECUTABLE_ACTIONS, 'charge_fee', 'waive_fee', 'charge_saved_card', 'mark_cash_settled', 'reopen_cash', 'close_refunded', 'open_fee_case',
+  'charge_extra',
 ]
+
+const EXTRA_KIND_LABEL: Record<string, string> = { waiting: 'Waiting', other: 'Other' }
+const EXTRA_STATUS_LABEL: Record<string, string> = { charging: 'In progress', charged: 'Charged', failed: 'Declined' }
+
+function extraLine(c: ExtraChargeFact): string {
+  if (c.kind === 'waiting') return `${EXTRA_KIND_LABEL.waiting}${c.minutes ? `, ${c.minutes} min` : ''}`
+  return c.description ?? EXTRA_KIND_LABEL.other
+}
+
+/** The booking's extra charges: kind, amount, status and date (EXTRA-01). Amounts come from the API through money(). */
+function ExtraChargesList({ charges }: { charges: ExtraChargeFact[] }) {
+  return (
+    <div data-testid="extra-charges" style={{ marginTop: '16px' }}>
+      <h4 style={{
+        margin: 0, fontFamily: FONT, fontSize: 'var(--admin-fs-label)',
+        fontWeight: 'var(--admin-fw-strong)', color: 'var(--admin-text)',
+      }}>
+        Extra charges
+      </h4>
+      <ul aria-label="Extra charges" style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}>
+        {charges.map(c => (
+          <li key={c.id} style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 12px', alignItems: 'baseline' }}>
+            <span style={{ ...bodyStyle, overflowWrap: 'anywhere' }}>{extraLine(c)}</span>
+            <span style={{ ...bodyStyle, ...amountStyle }}>{money(c.amount_minor, c.currency)}</span>
+            <span style={labelStyle}>{EXTRA_STATUS_LABEL[c.status] ?? c.status}</span>
+            <span style={labelStyle}>{formatPragueShort(c.charged_at ?? c.requested_at)}</span>
+            {c.status === 'failed' && c.last_error_code && <span style={labelStyle}>{`(${c.last_error_code})`}</span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
 
 const FEE_CASE_LABEL: Record<string, string> = {
   late_cancel: 'Late cancellation',
@@ -906,6 +945,7 @@ function actionLabel(action: PaymentActionName, p: PaymentSnapshot): string {
     case 'reopen_cash': return 'Reopen as unpaid…'
     case 'close_refunded': return 'Close: refunded by hand…'
     case 'open_fee_case': return 'Open fee case…'
+    case 'charge_extra': return 'Add extra charge…'
     case 'release': return p.mode === 'cash_guarantee' ? 'Release saved card' : 'Release hold'
     default: return actionButtonLabel(action, p.completed)
   }
@@ -1007,6 +1047,11 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
     a => KNOWN_ACTIONS.includes(a) && !(a === 'waive_fee' && feeCase?.charge_in_flight),
   )
   const modalCopy = modal && EXECUTABLE_ACTIONS.includes(modal) ? confirmCopy(modal, p) : null
+  // Phase 91-11: an extra charge whose Stripe answer was lost leaves no charge_extra (a row is charging); the operator still
+  // needs the way in to retry it. The route's reason 'in_flight' means every other rule of eligibility holds.
+  const extra = data.extra ?? null
+  const pendingExtra = extra?.reason === 'in_flight' && extra.in_flight ? extra.in_flight : null
+  const extraCharges = extra?.charges ?? []
 
   return (
     <div data-testid="payment-panel" style={cardStyle} onClick={(e) => e.stopPropagation()}>
@@ -1026,7 +1071,7 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
         facts={buildFacts(p, { copied: copyState === 'copied', manual: copyState === 'manual', onCopy: copyLink, fallbackId: linkFallbackId }, data.cash ?? null)}
       />
 
-      {actions.length === 0 ? (
+      {actions.length === 0 && !pendingExtra ? (
         <p style={{ ...bodyStyle, color: 'var(--admin-text-muted)', margin: '16px 0 0' }}>No actions available in this state.</p>
       ) : (
         <div className="flex flex-col sm:flex-row sm:flex-wrap" style={{ gap: '8px', marginTop: '16px' }}>
@@ -1041,6 +1086,16 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
               {actionLabel(action, p)}
             </button>
           ))}
+          {pendingExtra && (
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={() => openModal('charge_extra')}
+              style={{ ...outlineButtonStyle, opacity: submitting ? 0.6 : 1, cursor: submitting ? 'not-allowed' : 'pointer' }}
+            >
+              Pending extra charge…
+            </button>
+          )}
         </div>
       )}
 
@@ -1055,6 +1110,8 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
           {result.text}
         </p>
       )}
+
+      {extraCharges.length > 0 && <ExtraChargesList charges={extraCharges} />}
 
       <HistoryList events={data.events} total={data.events_total} hasFeeCase={feeCase !== null} />
 
@@ -1094,6 +1151,20 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
         onResult={showResult}
         onRefetch={onRefetch}
       />
+      {(actions.includes('charge_extra') || pendingExtra) && (
+        <ExtraChargeModal
+          isOpen={modal === 'charge_extra'}
+          bookingId={bookingId}
+          currency={p.currency === 'czk' ? 'czk' : 'eur'}
+          inFlight={pendingExtra}
+          onClose={closeDialog}
+          onDone={(r) => {
+            if (r) showResult(r)
+            onRefetch()
+          }}
+          onRefetch={onRefetch}
+        />
+      )}
       <FeeCloseRefundedModal
         isOpen={modal === 'close_refunded'}
         bookingId={bookingId}

@@ -510,7 +510,9 @@ describe('tracer: save card -> scheduled hold -> trip completed -> capture (SC1-
     expect(view.status).toBe(200)
     const payment = view.json.payment as Row
     expect(payment).toMatchObject({ mode: 'card_hold', state: 'captured', captured_amount_minor: amount, amount_minor: amount, completed: true })
-    expect(view.json.allowed_actions).toEqual([])
+    // Phase 91-11 (D-15): a completed, captured card booking whose consent covers extras offers the operator's extra charge, and
+    // nothing else (the capture is done, there is nothing left to release, retry or waive).
+    expect(view.json.allowed_actions).toEqual(['charge_extra'])
     expect(view.json.refund_failed).toBe(false)
     const events = view.json.events as Array<Row>
     const ids = events.map((e) => e.id as number)
