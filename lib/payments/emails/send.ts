@@ -37,6 +37,11 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 export function bookingEmailDataFromRow(row: BookingRow): BookingEmailData {
   const amountEur = num(row.amount_eur)
   return {
+    // Phase 91 (STOP-04, STOP-05): the id lets the manager alert read the stops; the landing columns add its landing rows.
+    bookingId: str(row.id) || undefined,
+    landingDate: str(row.landing_date) || undefined,
+    landingTime: str(row.landing_time) || undefined,
+    pickupOffsetMin: num(row.pickup_offset_min),
     bookingReference: str(row.booking_reference),
     tripType: str(row.trip_type),
     originAddress: str(row.origin_address),

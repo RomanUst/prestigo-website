@@ -19,7 +19,15 @@ vi.mock('resend', () => ({
 
 vi.mock('@/lib/booking-stops', () => ({ loadStopsSafe: loadStopsSafeMock }))
 
-import { sendStatusConfirmedEmail, tripRouteRowsHtml, type EmailTripRoute } from '@/lib/email'
+import {
+  sendClientConfirmation,
+  sendManagerAlert,
+  sendStatusConfirmedEmail,
+  tripRouteRowsHtml,
+  type BookingEmailData,
+  type EmailTripRoute,
+} from '@/lib/email'
+import { bookingEmailDataFromRow } from '@/lib/payments/emails/send'
 
 const sha = (s: string) => createHash('sha256').update(s).digest('hex')
 
@@ -56,11 +64,52 @@ const STATUS_BOOKING = {
   special_requests: 'Seat',
 }
 
+const EMAIL_DATA: BookingEmailData = {
+  bookingReference: 'PRG-1',
+  tripType: 'transfer',
+  originAddress: 'Prague Airport',
+  destinationAddress: 'Hotel Alcron',
+  pickupDate: '2027-06-10',
+  pickupTime: '14:30',
+  vehicleClass: 'business',
+  passengers: 2,
+  luggage: 1,
+  amountCzk: 3500,
+  extraChildSeat: false,
+  extraMeetGreet: true,
+  extraLuggage: false,
+  firstName: 'Jan',
+  lastName: 'Novak',
+  email: 'j@example.com',
+  phone: '+420123',
+  flightNumber: 'OK123',
+}
+
+const LANDING_FIELDS = { landingDate: '2027-06-10', landingTime: '14:00', pickupOffsetMin: 30 }
+
 // SHA-256 of the HTML produced by lib/email.ts BEFORE plan 91-14, for the inputs above (a booking without landing and
 // stops). A change here means a booking without stops no longer renders byte-identical mail.
 const BASELINE = {
   status: '1e31c6446661ec1c8acf324081d6e762044da2ba0acbef472224d42e9ae3035e',
+  client: '4a61a6ed990d273242bf080a9ebb10ad70f29aff3848047455921479041e333d',
 }
+
+// The manager alert text of EMAIL_DATA before plan 91-14.
+const MANAGER_BASELINE = `New booking received. Details below.
+
+Booking Reference: PRG-1
+Client: Jan Novak
+Email: j@example.com
+Phone: +420123
+Route: Prague Airport → Hotel Alcron
+Vehicle: Business
+Pickup: 2027-06-10 at 14:30
+Passengers: 2
+Luggage: 1
+Flight Number: OK123
+Extras: Meet & Greet
+Special Requests: None
+Total: €140 (${(3500).toLocaleString('cs-CZ')} Kč)`
 
 function sentHtml(callIndex = 0): string {
   return sendStub.mock.calls[callIndex][0].html as string
@@ -165,5 +214,95 @@ describe('sendStatusConfirmedEmail (card-flow confirmed email)', () => {
     await sendStatusConfirmedEmail(STATUS_BOOKING)
     expect(sendStub).toHaveBeenCalledTimes(1)
     expect(sha(sentHtml())).toBe(BASELINE.status)
+  })
+})
+
+describe('sendClientConfirmation (pay-now confirmation)', () => {
+  it('pay-now confirmation lists landing, pickup, the stop with its wait and the waiting line', async () => {
+    loadStopsSafeMock.mockResolvedValue([stop()])
+    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1', ...LANDING_FIELDS })
+    expect(loadStopsSafeMock).toHaveBeenCalledWith('b1')
+    const html = sentHtml()
+    expect(html).toContain('Landing')
+    expect(html).toContain('14:00')
+    expect(html).toContain('Pickup')
+    expect(html).toContain('Stop 1')
+    expect(html).toContain('Karlovy Vary')
+    expect(html).toContain('wait 45 min')
+    expect(html).toContain('Waiting at stops')
+    expect(html).toContain('€24')
+  })
+
+  it('pay-now confirmation escapes a stop address with markup', async () => {
+    loadStopsSafeMock.mockResolvedValue([stop({ address: '<img src=x onerror=alert(1)>' })])
+    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1' })
+    expect(sentHtml()).not.toContain('<img src=x')
+    expect(sentHtml()).toContain('&lt;img src=x onerror=alert(1)&gt;')
+  })
+
+  it('without bookingId nothing is read and the HTML is byte-identical to the one sent before this plan', async () => {
+    await sendClientConfirmation(EMAIL_DATA)
+    expect(loadStopsSafeMock).not.toHaveBeenCalled()
+    expect(sha(sentHtml())).toBe(BASELINE.client)
+  })
+
+  it('with a bookingId but no stops and no landing the HTML is byte-identical too', async () => {
+    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1' })
+    expect(sha(sentHtml())).toBe(BASELINE.client)
+  })
+
+  it('a stops read that fails still sends the confirmation, without stop rows', async () => {
+    loadStopsSafeMock.mockRejectedValue(new Error('boom'))
+    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1' })
+    expect(sendStub).toHaveBeenCalledTimes(1)
+    expect(sha(sentHtml())).toBe(BASELINE.client)
+  })
+})
+
+describe('sendManagerAlert', () => {
+  const text = () => sendStub.mock.calls[0][0].text as string
+
+  it('carries the landing, the pickup, the stops and the waiting amount', async () => {
+    loadStopsSafeMock.mockResolvedValue([stop(), stop({ position: 2, address: 'Plzen', waitMinutes: 0, feeEur: 0 })])
+    await sendManagerAlert({ ...EMAIL_DATA, bookingId: 'b1', ...LANDING_FIELDS })
+    expect(text()).toContain('Landing: 10 June 2027 at 14:00')
+    expect(text()).toContain('Landing pickup: 14:30')
+    expect(text()).toContain('Stop 1: Karlovy Vary (wait 45 min)')
+    expect(text()).toContain('Stop 2: Plzen')
+    expect(text()).toContain('Waiting at stops: €24')
+  })
+
+  it('without a route the text is identical to the one sent before this plan', async () => {
+    await sendManagerAlert({ ...EMAIL_DATA, bookingId: 'b1' })
+    expect(text()).toBe(MANAGER_BASELINE)
+  })
+
+  it('a stops read that fails still sends the alert', async () => {
+    loadStopsSafeMock.mockRejectedValue(new Error('boom'))
+    await sendManagerAlert({ ...EMAIL_DATA, bookingId: 'b1' })
+    expect(text()).toBe(MANAGER_BASELINE)
+  })
+})
+
+describe('bookingEmailDataFromRow (card-on-file manager alert)', () => {
+  it('maps the id and the three landing columns', () => {
+    const data = bookingEmailDataFromRow({
+      id: 'b1',
+      booking_reference: 'PRG-1',
+      landing_date: '2027-06-10',
+      landing_time: '14:00',
+      pickup_offset_min: 30,
+    })
+    expect(data.bookingId).toBe('b1')
+    expect(data.landingDate).toBe('2027-06-10')
+    expect(data.landingTime).toBe('14:00')
+    expect(data.pickupOffsetMin).toBe(30)
+  })
+
+  it('leaves the landing keys undefined for a booking without a landing', () => {
+    const data = bookingEmailDataFromRow({ id: 'b1', booking_reference: 'PRG-1', landing_date: null, landing_time: null, pickup_offset_min: null })
+    expect(data.landingDate).toBeUndefined()
+    expect(data.landingTime).toBeUndefined()
+    expect(data.pickupOffsetMin).toBeUndefined()
   })
 })

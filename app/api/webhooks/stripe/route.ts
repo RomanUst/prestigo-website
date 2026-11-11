@@ -288,6 +288,10 @@ type PaymentLinkReconciledRow = {
   terminal?: string | null
   special_requests?: string | null
   pickup_utc?: string | null
+  // Phase 91 (STOP-05): the airport landing kept beside the pickup; read for the confirmation email.
+  landing_date?: string | null
+  landing_time?: string | null
+  pickup_offset_min?: number | null
   // D-11: absent until plan 75-17 adds the `bookings.locale` column — read
   // through this narrow typed accessor rather than an `as` cast; missing
   // falls through to normalizeSiteLocale's 'en' default at the call site.
@@ -416,6 +420,11 @@ async function handlePaymentLinkSucceeded(
     flightNumber: row.flight_number ?? undefined,
     terminal: row.terminal ?? undefined,
     specialRequests: row.special_requests ?? undefined,
+    // Phase 91 (STOP-04, STOP-05): the id and the landing columns; the email senders read the stored stops themselves.
+    bookingId: row.id,
+    landingDate: row.landing_date ?? undefined,
+    landingTime: row.landing_time ?? undefined,
+    pickupOffsetMin: row.pickup_offset_min ?? undefined,
   }
 
   // Phase 89 CANC-02: box and Manage button when the reconciled row(s) stored a policy; the manager alert never gets it.
@@ -683,6 +692,12 @@ async function handleOneWaySucceeded(
     flightNumber: meta.flightNumber || undefined,
     terminal: meta.terminal || undefined,
     specialRequests: meta.specialRequests || undefined,
+    // Phase 91 (STOP-04, STOP-05): the booking id lets the email senders read the stored stops; the landing comes from
+    // the payment metadata written at checkout (lib/checkout/compute.ts), absent for a booking without a landing.
+    bookingId: confirmedRows[0].id,
+    landingDate: meta.landingDate || undefined,
+    landingTime: meta.landingTime || undefined,
+    pickupOffsetMin: meta.pickupOffsetMin ? parseInt(meta.pickupOffsetMin, 10) : undefined,
   }
 
   // Phase 89 CANC-02: box and Manage button in the booking language; the manager alert never gets it.

@@ -197,6 +197,22 @@ export function tripRouteRowsHtml(route: EmailTripRoute, variant: 'client' | 'dr
   return rows.join('\n          ')
 }
 
+/** The same landing / pickup / stop / waiting information as plain lines for the manager alert ('' when empty). */
+function tripRouteTextLines(route: EmailTripRoute): string {
+  const lines: string[] = []
+  if (route.landing) {
+    const text = landingPickupText(route.landing)
+    lines.push(`Landing: ${text.landing}`)
+    if (text.pickup) lines.push(`Landing pickup: ${text.pickup} (+${route.landing.offsetMin} min)`)
+  }
+  for (const stop of route.stops) {
+    lines.push(`Stop ${stop.position}: ${stop.address ?? 'pinned on the map'}${stopWaitText(stop.waitMinutes)}`)
+  }
+  const waiting = waitingTotalEur(route.stops)
+  if (waiting > 0) lines.push(`Waiting at stops: ${formatEUR(waiting)}`)
+  return lines.length > 0 ? `${lines.join('\n')}\n` : ''
+}
+
 export function buildGoogleCalendarUrl(data: BookingEmailData): string {
   const title = `PRESTIGO Transfer — ${data.bookingReference}`
   const details = `Booking ${data.bookingReference}. ${data.originAddress} to ${data.destinationAddress}. Vehicle: ${data.vehicleClass}.`
@@ -250,7 +266,7 @@ function buildExtrasRows(data: BookingEmailData): string {
   `
 }
 
-function buildConfirmationHtml(data: BookingEmailData): string {
+function buildConfirmationHtml(data: BookingEmailData, routeRowsHtml = ''): string {
   const calendarUrl = buildGoogleCalendarUrl(data)
   const extrasRows = buildExtrasRows(data)
   const formattedDate = formatPickupDate(data.pickupDate)
@@ -354,7 +370,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formattedDate} at ${data.pickupTime}</td>
-          </tr>
+          </tr>${routeRowsHtml ? `\n          ${routeRowsHtml}` : ''}
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formatVehicleLabel(data.vehicleClass)}</td>
@@ -405,7 +421,9 @@ function buildConfirmationHtml(data: BookingEmailData): string {
 }
 
 export async function sendClientConfirmation(data: BookingEmailData): Promise<void> {
-  const html = buildConfirmationHtml(data)
+  // Phase 91: stops, waiting and landing / pickup; no rows (a byte-identical email) for a booking without them.
+  const route = await loadEmailTripRoute(data)
+  const html = buildConfirmationHtml(data, tripRouteRowsHtml(route, 'client'))
   try {
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
@@ -432,6 +450,8 @@ export async function sendManagerAlert(data: BookingEmailData): Promise<void> {
     .map((extra) => extra.label)
 
   const extrasText = selectedExtras.length > 0 ? selectedExtras.join(', ') : 'None'
+  // Phase 91: landing, stops and waiting of the booking (nothing added for a booking without them).
+  const routeLines = tripRouteTextLines(await loadEmailTripRoute(data))
 
   const text = `New booking received. Details below.
 
@@ -442,7 +462,7 @@ Phone: ${data.phone}
 Route: ${data.originAddress} → ${data.destinationAddress}
 Vehicle: ${formatVehicleLabel(data.vehicleClass)}
 Pickup: ${data.pickupDate} at ${data.pickupTime}
-Passengers: ${data.passengers}
+${routeLines}Passengers: ${data.passengers}
 Luggage: ${data.luggage}
 Flight Number: ${data.flightNumber || 'N/A'}
 Extras: ${extrasText}
