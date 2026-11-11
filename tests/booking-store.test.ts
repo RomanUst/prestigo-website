@@ -241,3 +241,107 @@ describe('STOP-03: stops mutations reset price and promo', () => {
     expect(useBookingStore.getState().stops).toEqual([])
   })
 })
+
+describe('Phase 91 STOP-03: per-stop waiting in the store', () => {
+  const pb = {
+    business: { base: 100, extras: 0, total: 100, currency: 'EUR' },
+    first_class: { base: 150, extras: 0, total: 150, currency: 'EUR' },
+    business_van: { base: 120, extras: 0, total: 120, currency: 'EUR' },
+  }
+
+  beforeEach(() => {
+    useBookingStore.setState({
+      stops: [{ id: 's1', place: null, waitMinutes: 0 }],
+      priceBreakdown: pb,
+      promoCode: 'SAVE10',
+      promoDiscount: 10,
+      tripType: 'transfer',
+    })
+  })
+
+  it('addStop gives the new stop waitMinutes 0', () => {
+    useBookingStore.setState({ stops: [] })
+    useBookingStore.getState().addStop()
+    expect(useBookingStore.getState().stops[0].waitMinutes).toBe(0)
+  })
+
+  it('setStopWait stores the wait and clears price and promo', () => {
+    useBookingStore.getState().setStopWait('s1', 45)
+    const s = useBookingStore.getState()
+    expect(s.stops[0].waitMinutes).toBe(45)
+    expect(s.priceBreakdown).toBeNull()
+    expect(s.promoCode).toBeNull()
+    expect(s.promoDiscount).toBe(0)
+  })
+
+  it('setStopWait ignores a value that is not a 15-minute step in 0..120', () => {
+    for (const bad of [20, -15, 135, 7.5, Number.NaN]) {
+      useBookingStore.getState().setStopWait('s1', bad)
+    }
+    const s = useBookingStore.getState()
+    expect(s.stops[0].waitMinutes).toBe(0)
+    expect(s.priceBreakdown).toEqual(pb)
+    expect(s.promoCode).toBe('SAVE10')
+  })
+
+  it('stops with waitMinutes survive the sessionStorage persist round trip', async () => {
+    useBookingStore.getState().setStopWait('s1', 60)
+    const raw = sessionStorage.getItem('prestigo-booking')
+    expect(raw).toBeTruthy()
+    expect(JSON.parse(raw as string).state.stops[0].waitMinutes).toBe(60)
+    await useBookingStore.persist.rehydrate()
+    expect(useBookingStore.getState().stops[0].waitMinutes).toBe(60)
+  })
+})
+
+describe('Phase 91 STOP-01: moveStop reorders and resets price', () => {
+  const pb = {
+    business: { base: 100, extras: 0, total: 100, currency: 'EUR' },
+    first_class: { base: 150, extras: 0, total: 150, currency: 'EUR' },
+    business_van: { base: 120, extras: 0, total: 120, currency: 'EUR' },
+  }
+
+  beforeEach(() => {
+    useBookingStore.setState({
+      stops: [
+        { id: 's1', place: null, waitMinutes: 0 },
+        { id: 's2', place: null, waitMinutes: 30 },
+        { id: 's3', place: null, waitMinutes: 60 },
+      ],
+      priceBreakdown: pb,
+      promoCode: 'SAVE10',
+      promoDiscount: 10,
+      tripType: 'transfer',
+    })
+  })
+
+  const ids = () => useBookingStore.getState().stops.map((s) => s.id)
+
+  it('moveStop(s2, -1) gives [s2, s1, s3] and clears price and promo', () => {
+    useBookingStore.getState().moveStop('s2', -1)
+    expect(ids()).toEqual(['s2', 's1', 's3'])
+    const s = useBookingStore.getState()
+    expect(s.priceBreakdown).toBeNull()
+    expect(s.promoCode).toBeNull()
+    expect(s.promoDiscount).toBe(0)
+  })
+
+  it('moveStop(s2, +1) gives [s1, s3, s2]; the wait travels with its stop', () => {
+    useBookingStore.getState().moveStop('s2', 1)
+    expect(ids()).toEqual(['s1', 's3', 's2'])
+    expect(useBookingStore.getState().stops[2].waitMinutes).toBe(30)
+  })
+
+  it('moving the first stop up or the last stop down changes nothing (price kept)', () => {
+    useBookingStore.getState().moveStop('s1', -1)
+    useBookingStore.getState().moveStop('s3', 1)
+    expect(ids()).toEqual(['s1', 's2', 's3'])
+    expect(useBookingStore.getState().priceBreakdown).toEqual(pb)
+    expect(useBookingStore.getState().promoCode).toBe('SAVE10')
+  })
+
+  it('moveStop with an unknown id changes nothing', () => {
+    useBookingStore.getState().moveStop('nope', 1)
+    expect(ids()).toEqual(['s1', 's2', 's3'])
+  })
+})

@@ -76,6 +76,8 @@ export default function Step3Vehicle() {
   const tClass = useTranslations('Booking.vehicleClasses')
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(false)
+  // D-05: classes that cannot price the chosen waiting (server answer, display only)
+  const [waitingUnavailable, setWaitingUnavailable] = useState<VehicleClass[]>([])
   const dateInputRef = useRef<HTMLInputElement>(null)
 
   const origin = useBookingStore((s) => s.origin)
@@ -164,7 +166,7 @@ export default function Step3Vehicle() {
     // filtered out (they cannot reach the Google Routes API safely — T-30-13).
     const intermediates = s.stops
       .filter((stop) => stop.place !== null)
-      .map((stop) => ({ lat: stop.place!.lat, lng: stop.place!.lng }))
+      .map((stop) => ({ lat: stop.place!.lat, lng: stop.place!.lng, waitMinutes: stop.waitMinutes ?? 0 }))
     setLoading(true)
     try {
       const res = await fetch('/api/calculate-price', {
@@ -184,6 +186,11 @@ export default function Step3Vehicle() {
         }),
       })
       const data = await res.json()
+      // Set before the prices so the default-class effect never sees prices with a stale list.
+      const unavailable: VehicleClass[] = Array.isArray(data.waitingUnavailable) ? data.waitingUnavailable : []
+      setWaitingUnavailable(unavailable)
+      const selected = useBookingStore.getState().vehicleClass
+      if (selected && unavailable.includes(selected)) setVehicleClass(null)
       setPriceBreakdown(data.prices)
       setRoundTripPriceBreakdown(data.returnLegPrices ?? null)
       if (data.returnDiscountPercent !== null && data.returnDiscountPercent !== undefined) {
@@ -194,6 +201,7 @@ export default function Step3Vehicle() {
       setQuoteMode(data.quoteMode)
       setFetchError(false)
     } catch {
+      setWaitingUnavailable([])
       setQuoteMode(true)
       setPriceBreakdown(null)
       setRoundTripPriceBreakdown(null)
@@ -201,7 +209,7 @@ export default function Step3Vehicle() {
     } finally {
       setLoading(false)
     }
-  }, [setPriceBreakdown, setRoundTripPriceBreakdown, setReturnDiscountPercent, setDistanceKm, setDurationMin, setQuoteMode])
+  }, [setPriceBreakdown, setRoundTripPriceBreakdown, setReturnDiscountPercent, setDistanceKm, setDurationMin, setQuoteMode, setVehicleClass])
 
   // Initial fetch on mount
   useEffect(() => {
@@ -215,10 +223,10 @@ export default function Step3Vehicle() {
   // it requires a return date/time which would lock the user into an extra
   // section before they make a deliberate choice.
   useEffect(() => {
-    if (!vehicleClass && priceBreakdown && priceBreakdown.business) {
+    if (!vehicleClass && priceBreakdown && priceBreakdown.business && !waitingUnavailable.includes('business')) {
       setVehicleClass('business')
     }
-  }, [vehicleClass, priceBreakdown, setVehicleClass])
+  }, [vehicleClass, priceBreakdown, waitingUnavailable, setVehicleClass])
 
   // Re-fetch when return date+time are both set (to compute returnLegPrices)
   const prevReturnTime = useRef<string | null>(null)
@@ -235,7 +243,8 @@ export default function Step3Vehicle() {
     const rt = roundTripPriceBreakdown?.[vc.key]
     // Round trip: show combined (both legs) as the headline, one way as caption.
     const combined = isRoundTrip && p && rt ? p.base + rt.total : null
-    return (
+    const unavailable = waitingUnavailable.includes(vc.key)
+    const card = (
       <VehicleCard
         key={vc.key}
         config={vc}
@@ -243,12 +252,28 @@ export default function Step3Vehicle() {
         price={p ? `€${p.base}` : null}
         combinedPrice={combined !== null ? `€${combined}` : null}
         onSelect={() => {
+          if (unavailable) return
           setVehicleClass(vc.key)
           // Preserve the round-trip selection made on Step 1 — selecting a
           // vehicle must not silently downgrade the booking to one-way.
           pushVehicleSelect(vc.key, tClass(`${VEHICLE_CLASS_KEY[vc.key]}.label`), p?.base ?? null, p?.currency ?? 'EUR', tripType === 'round_trip' ? 'round_trip' : 'transfer')
         }}
       />
+    )
+    if (!unavailable) return card
+    // D-05: this class has no admin rate for paid waiting — shown disabled with the reason.
+    return (
+      <div key={vc.key} data-testid={`vehicle-card-unavailable-${vc.key}`}>
+        <div aria-disabled="true" inert style={{ opacity: 0.45, pointerEvents: 'none' }}>
+          {card}
+        </div>
+        <p
+          role="note"
+          style={{ margin: '8px 0 0', fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5 }}
+        >
+          {t('waitingUnavailable')}
+        </p>
+      </div>
     )
   })
 

@@ -85,3 +85,36 @@ describe('PriceSummary', () => {
     })
   })
 })
+
+describe('Phase 91 D-06: waiting line in the price summary', () => {
+  const noExtras = { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: false, extraLuggage: false }
+
+  function setPrices(waitingEur: number | null | undefined) {
+    useBookingStore.setState({
+      tripType: 'transfer',
+      vehicleClass: 'business',
+      priceBreakdown: {
+        ...outboundBreakdown,
+        business: { base: 324, extras: 0, total: 324, currency: 'EUR', ...(waitingEur === undefined ? {} : { waitingEur }) },
+      },
+      roundTripPriceBreakdown: null,
+      quoteMode: false,
+      extras: noExtras,
+      currentStep: 2,
+    })
+  }
+
+  it('renders "Waiting at stops" with the server amount; the total stays base + extras', () => {
+    setPrices(24)
+    render(<PriceSummary desktopOnly />)
+    const line = screen.getByText(/Waiting at stops/)
+    expect(line.textContent).toContain('24')
+    expect(screen.getByText('€324')).toBeInTheDocument()
+  })
+
+  it.each([0, null, undefined])('renders no waiting line when waitingEur is %s', (v) => {
+    setPrices(v)
+    render(<PriceSummary desktopOnly />)
+    expect(screen.queryByText(/Waiting at stops/)).toBeNull()
+  })
+})
