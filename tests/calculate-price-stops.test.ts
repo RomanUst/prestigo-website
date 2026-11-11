@@ -44,6 +44,7 @@ vi.mock('@/lib/route-prices', () => ({
 }))
 
 import { POST } from '@/app/api/calculate-price/route'
+import { isAirportTrip, PRG_LAT, PRG_LNG } from '@/lib/airport'
 
 type Globals = {
   airportFee: number
@@ -342,6 +343,39 @@ describe('POST /api/calculate-price with stops', () => {
       computeRouteDistanceMock.mockResolvedValue({ ok: false, reason: 'timeout' })
       const res = await POST(makeRequest({ ...baseBody, intermediates: [STOP] }))
       expect(await res.json()).toEqual({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
+    })
+  })
+
+  describe('airport flag comes from coordinates only (T-91-05)', () => {
+    it('isAirportTrip: airport origin or destination -> true; city points and nulls -> false', () => {
+      const airport = { lat: PRG_LAT, lng: PRG_LNG }
+      const city = { lat: 50.08, lng: 14.42 }
+      expect(isAirportTrip(airport, city)).toBe(true)
+      expect(isAirportTrip(city, airport)).toBe(true)
+      expect(isAirportTrip(city, city)).toBe(false)
+      expect(isAirportTrip(null, null)).toBe(false)
+      expect(isAirportTrip(undefined, city)).toBe(false)
+    })
+
+    it('city coordinates with isAirport true in the body: no airport fee (client flag ignored)', async () => {
+      const res = await POST(makeRequest({ ...baseBody, isAirport: true }))
+      const json = await res.json()
+      expect(json.prices.business.base).toBe(40)
+    })
+
+    it('city coordinates with isAirport true and a stop: no airport fee either', async () => {
+      const res = await POST(makeRequest({ ...baseBody, isAirport: true, intermediates: [{ ...STOP, waitMinutes: 0 }] }))
+      expect((await res.json()).prices.business.base).toBe(40)
+    })
+
+    it('airport-origin coordinates with isAirport false: the airport fee is applied', async () => {
+      const res = await POST(makeRequest({ ...baseBody, origin: { lat: PRG_LAT, lng: PRG_LNG }, isAirport: false }))
+      expect((await res.json()).prices.business.base).toBe(40 + 5)
+    })
+
+    it('airport destination coordinates: the airport fee is applied', async () => {
+      const res = await POST(makeRequest({ ...baseBody, destination: { lat: PRG_LAT, lng: PRG_LNG } }))
+      expect((await res.json()).prices.business.base).toBe(40 + 5)
     })
   })
 })

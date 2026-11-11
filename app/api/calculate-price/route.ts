@@ -9,7 +9,7 @@ import { isInAnyZone } from '@/lib/zones'
 import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
 import { getRoutePrice, findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
 import { CHILD_SEAT_PRICE } from '@/lib/pricing-helpers'
-import { isNearAirport } from '@/lib/airport'
+import { isAirportTrip } from '@/lib/airport'
 import { computeRouteDistance } from '@/lib/route-distance'
 import {
   MAX_STOPS,
@@ -153,13 +153,14 @@ export async function POST(req: Request) {
     }
     const {
       origin, destination, tripType, hours, pickupDate, returnDate,
-      pickupTime, returnTime, isAirport, intermediates,
+      pickupTime, returnTime, intermediates,
       routeSlug, originPlaceId, destinationPlaceId, childSeats,
     } = parsed.data
 
-    // Detect airport server-side by coordinates (not by client-provided placeId,
-    // which can mismatch between Places API versions).
-    const airportFlag = isNearAirport(origin) || isNearAirport(destination) || isAirport === true
+    // Detect airport server-side by coordinates only (not by client-provided placeId, which can mismatch
+    // between Places API versions, and never by the browser's isAirport flag: T-91-05 parity with the
+    // checkout). The isAirport body field stays accepted so old clients still validate, but it is unused.
+    const airportFlag = isAirportTrip(origin, destination)
 
     // Load rates from DB (cached with tag 'pricing-config')
     let rates
