@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Kutná Hora Day Trip from Prague — Private Car & Chauffeur",
+    "description": "A private half-day or day trip from Prague to Kutná Hora: the Bone Church in Sedlec and St Barbara’s Cathedral, with your own Mercedes and a chauffeur who waits and drives you back.",
+    "ogTitle": "Private Day Trip from Prague to Kutná Hora"
+  },
+  "breadcrumbName": "Kutná Hora Day Trip",
+  "hero": {
+    "label": "Private Day Trip · Kutná Hora",
+    "headlineLine1": "Kutná Hora in half a day.",
+    "headlineItalic": "Back in Prague for dinner.",
+    "intro": "A private trip from Prague to Kutná Hora: a Mercedes and a chauffeur collect you at your hotel, take you to the Bone Church and the silver town, wait while you visit and drive you back. From €{dayKutnaE} for the whole car, there and back.",
+    "ctaPrimary": "Book This Day Trip",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Mercedes V-Class interior ready for a day trip to Kutná Hora"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      {
+        "label": "Drive",
+        "value": "About 1 hour each way"
+      },
+      {
+        "label": "Price",
+        "value": "From €{dayKutnaE} per car, there and back — not per person"
+      },
+      {
+        "label": "Time there",
+        "value": "Three to four hours is enough for the main sights"
+      },
+      {
+        "label": "Included",
+        "value": "Hotel pickup, chauffeur waiting on site, fuel and motorway tolls"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "The shortest day trip",
+    "headingItalic": "from Prague.",
+    "paragraphs": [
+      "Kutná Hora made its fortune from silver in the Middle Ages and for a time rivalled Prague. What it left behind is on the UNESCO list: the Gothic Cathedral of St Barbara, the Italian Court where the royal mint struck its coins, and in the suburb of Sedlec the ossuary known as the Bone Church.",
+      "It is about an hour from Prague, which makes it the day trip that fits a spare morning or afternoon. You can leave after breakfast and be back for a late lunch, or go after lunch and return for dinner.",
+      "By car you also skip the awkward part of the train journey: the ossuary and the old town are about three kilometres apart, at opposite ends of the town."
+    ]
+  },
+  "features": {
+    "label": "The day",
+    "headingLine1": "What half a day in",
+    "headingItalic": "Kutná Hora looks like.",
+    "items": [
+      {
+        "title": "Sedlec Ossuary",
+        "body": "A small chapel decorated with the bones of some 40,000 people, including a chandelier and a coat of arms. The visit takes about half an hour. Tickets are sold on site and photography inside is restricted."
+      },
+      {
+        "title": "St Barbara’s Cathedral",
+        "body": "One of the great Gothic churches of Central Europe, begun in 1388 and paid for by the miners. Walk the terrace beside the Jesuit College for the view over the valley."
+      },
+      {
+        "title": "Two parts of town, one car",
+        "body": "Sedlec and the historic centre are about three kilometres apart. Mention both when you book, so the drive between them is part of the plan."
+      },
+      {
+        "title": "Morning or afternoon",
+        "body": "Because the drive is short, the trip works as a half day. Choose the start that suits your plans in Prague."
+      },
+      {
+        "title": "One price for the car",
+        "body": "€{dayKutnaE} in an E-Class (up to 3 passengers), €{dayKutnaV} in a V-Class (up to 6) and €{dayKutnaS} in an S-Class. The price is for the car, not per person, and covers the drive there, the wait and the drive back."
+      },
+      {
+        "title": "Child seats at no charge",
+        "body": "Infant, toddler and booster seats are free. Tell us the children’s ages when you book and the right seats are fitted before pickup."
+      }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Booking a day trip in four steps.",
+    "items": [
+      {
+        "title": "Book a return trip",
+        "body": "In the booking form enter your Prague address and the destination, choose a return trip and set the return for the same day. A rough return time is enough — it can move on the day."
+      },
+      {
+        "title": "Choose the car",
+        "body": "E-Class for up to three, V-Class for up to six with room to spare, S-Class for an executive day. You see the price for the whole car before you pay."
+      },
+      {
+        "title": "Meet your chauffeur",
+        "body": "You receive the chauffeur’s name and phone number in advance. They collect you at your hotel or apartment door at the agreed time."
+      },
+      {
+        "title": "Take your time",
+        "body": "The chauffeur waits near the centre while you visit. Call or message when you are ready and the car comes back for you."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Good to know",
+    "headingLine1": "Planning",
+    "headingItalic": "the visit.",
+    "paragraphs": [
+      "Most visitors see the ossuary first, then the Cathedral of the Assumption next to it, and then move to the old town for St Barbara’s and lunch. Allow three to four hours for all of it without hurrying.",
+      "The sights are open all year, with shorter hours in winter. The ossuary is a place of burial as well as a monument, so dress and behave as you would in a church.",
+      "Your chauffeur is a professional driver, not a tour guide: they know the road, where to drop you and where to wait, but they do not lead tours. Entrance tickets, meals and guided tours are not part of the price. If you would like a licensed local guide, book one for the hours you plan to be there and we time the drive around it."
+    ]
+  },
+  "faqsHeading": "Kutná Hora day trip questions",
+  "faqs": [
+    {
+      "q": "How much is a private trip from Prague to Kutná Hora and back?",
+      "a": "€{dayKutnaE} in an E-Class (up to 3 passengers), €{dayKutnaV} in a V-Class (up to 6) and €{dayKutnaS} in an S-Class. That is the price for the whole car for a daytime trip, there and back, with the chauffeur waiting while you visit. Fuel and motorway tolls are included. The exact fare for your date is shown in the booking form before you pay."
+    },
+    {
+      "q": "How long does the trip take?",
+      "a": "About five to six hours in total: an hour each way and three to four hours in Kutná Hora. It fits comfortably into a morning or an afternoon."
+    },
+    {
+      "q": "Does the chauffeur wait and drive us back the same day?",
+      "a": "Yes. That is what a day trip is: the same car and chauffeur take you there, wait near the centre and drive you back to your Prague address. You do not look for a taxi or a train for the return."
+    },
+    {
+      "q": "Is a guide or entrance ticket included?",
+      "a": "No. The price covers the car and the chauffeur. Tickets and guided tours are booked separately, and the chauffeur does not act as a guide. We are glad to time the day around a guide or a ticket slot you have booked."
+    },
+    {
+      "q": "Will the car take us from the Bone Church to the old town?",
+      "a": "Yes, if it is part of the booking. Sedlec and the old town are about three kilometres apart, so tell us you want to see both and we include the drive between them in the confirmed plan."
+    },
+    {
+      "q": "How many people fit in one car?",
+      "a": "Up to three passengers in an E-Class or S-Class and up to six in a V-Class. Larger groups travel in two or more cars. Child seats are free in every class."
+    }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "More ways to spend a day.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "All private day trips",
+        "body": "Four day trips from Prague side by side, with drive times and prices per car."
+      },
+      {
+        "href": "/routes/prague-kutna-hora",
+        "title": "One-way to Kutná Hora",
+        "body": "Travelling on from Kutná Hora? Book the transfer one way."
+      },
+      {
+        "href": "/services/cesky-krumlov-day-trip",
+        "title": "Český Krumlov day trip",
+        "body": "The castle town in a bend of the Vltava, with the chauffeur waiting while you explore."
+      },
+      {
+        "href": "/services/private-driver-prague",
+        "title": "Private driver by the hour",
+        "body": "Keep the car in Prague for a few hours or a whole day of your own stops."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Kutná Hora and back, before the day is over.",
+    "headingItalic": "From €{dayKutnaE} for the car."
+  }
+}

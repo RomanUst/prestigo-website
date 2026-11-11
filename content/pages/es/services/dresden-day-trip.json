@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Excursión de un día a Dresde desde Praga: coche privado con chófer",
+    "description": "Excursión privada de un día de Praga a Dresde en un Mercedes con su propio chófer: la Frauenkirche, el Zwinger y los Maestros Antiguos, con el chófer esperando y el regreso el mismo día.",
+    "ogTitle": "Excursión privada de un día de Praga a Dresde"
+  },
+  "breadcrumbName": "Excursión de un día a Dresde",
+  "hero": {
+    "label": "Excursión privada de un día · Dresde",
+    "headlineLine1": "Dresde en un día.",
+    "headlineItalic": "Cruzar la frontera y volver.",
+    "intro": "Una excursión privada de un día de Praga a Dresde: un Mercedes con chófer le recoge en su hotel, le lleva hacia el norte cruzando la frontera alemana, espera mientras usted visita el casco antiguo y le trae de vuelta el mismo día. Desde {dayDresdenE} € por el coche completo, ida y vuelta.",
+    "ctaPrimary": "Reservar esta excursión",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Mercedes V-Class en una excursión de un día de Praga a Dresde"
+  },
+  "glance": {
+    "label": "De un vistazo",
+    "items": [
+      {
+        "label": "Trayecto",
+        "value": "Unas 2 horas por trayecto"
+      },
+      {
+        "label": "Precio",
+        "value": "Desde {dayDresdenE} € por coche, ida y vuelta; no por persona"
+      },
+      {
+        "label": "Tiempo en destino",
+        "value": "De cuatro a cinco horas para el casco antiguo y un museo"
+      },
+      {
+        "label": "Incluido",
+        "value": "Recogida en el hotel, espera del chófer en destino, combustible y peajes de autopista"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Otro país,",
+    "headingItalic": "a dos horas de su hotel.",
+    "paragraphs": [
+      "Dresde, la capital de Sajonia, fue reconstruida piedra a piedra después de 1945. La Frauenkirche volvió a consagrarse en 2005, el palacio Zwinger y la Ópera Semper se alzan de nuevo a orillas del Elba, y la Galería de Pinturas de los Maestros Antiguos alberga la Madonna Sixtina de Rafael.",
+      "La ciudad está a unas dos horas al norte de Praga por autopista. La mayoría de los monumentos se encuentra a menos de diez minutos a pie unos de otros en el casco antiguo, así que un día basta para verlos sin prisas.",
+      "En coche privado cruza la frontera sin cambiar de tren y regresa cuando usted decide, incluso después de que haya salido el último tren conveniente."
+    ]
+  },
+  "features": {
+    "label": "El día",
+    "headingLine1": "Cómo es un día en",
+    "headingItalic": "Dresde.",
+    "items": [
+      {
+        "title": "El casco antiguo a pie",
+        "body": "La Frauenkirche, el Desfile de los Príncipes, el Palacio Real, el Zwinger y la Ópera Semper están muy cerca unos de otros. Su chófer le deja al borde del casco antiguo y espera en las inmediaciones."
+      },
+      {
+        "title": "Un museo, elegido de antemano",
+        "body": "La Galería de Pinturas de los Maestros Antiguos y la Bóveda Verde son los dos más visitados. La Bóveda Verde Histórica admite visitantes con entrada de horario fijo, así que resérvela antes de viajar."
+      },
+      {
+        "title": "El mercado de Navidad",
+        "body": "Desde finales de noviembre hasta Nochebuena, Dresde celebra el Striezelmarkt, uno de los mercados de Navidad más antiguos de Alemania. Es un motivo habitual para hacer la excursión en diciembre."
+      },
+      {
+        "title": "Una frontera sin trámites",
+        "body": "La República Checa y Alemania pertenecen ambas al espacio Schengen, por lo que normalmente no hay control fronterizo. Lleve de todos modos su pasaporte o documento nacional de identidad."
+      },
+      {
+        "title": "Un solo precio por el coche",
+        "body": "{dayDresdenE} € en un E-Class (hasta 3 pasajeros), {dayDresdenV} € en un V-Class (hasta 6) y {dayDresdenS} € en un S-Class. El precio es por coche, no por persona, e incluye el trayecto de ida, la espera y el trayecto de vuelta."
+      },
+      {
+        "title": "Sillas infantiles sin coste",
+        "body": "Las sillas para bebés y niños pequeños y los elevadores son gratuitos. Indíquenos la edad de los niños al reservar y las sillas adecuadas estarán instaladas antes de la recogida."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Reservar una excursión de un día en cuatro pasos.",
+    "items": [
+      {
+        "title": "Reserve ida y vuelta",
+        "body": "En el formulario de reserva indique su dirección en Praga y el destino, elija ida y vuelta y fije el regreso para el mismo día. Basta con una hora de regreso aproximada: puede ajustarse ese mismo día."
+      },
+      {
+        "title": "Elija el coche",
+        "body": "E-Class para hasta tres personas, V-Class para hasta seis con espacio de sobra, S-Class para una jornada ejecutiva. Verá el precio del coche completo antes de pagar."
+      },
+      {
+        "title": "Conozca a su chófer",
+        "body": "Recibirá con antelación el nombre y el teléfono del chófer. Le recogerá en la puerta de su hotel o apartamento a la hora acordada."
+      },
+      {
+        "title": "Tómese su tiempo",
+        "body": "El chófer espera cerca del centro mientras usted hace la visita. Llame o envíe un mensaje cuando esté listo y el coche volverá a recogerle."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Conviene saber",
+    "headingLine1": "Cómo planificar",
+    "headingItalic": "el día.",
+    "paragraphs": [
+      "Muchos museos de Dresde cierran los lunes, y la Galería de Pinturas de los Maestros Antiguos es uno de ellos. Compruebe el día de la semana antes de fijar la fecha.",
+      "Alemania usa el euro, mientras que la República Checa usa la corona. En Dresde se aceptan tarjetas en casi todas partes, pero los cafés pequeños y los puestos del mercado suelen preferir el efectivo.",
+      "Su chófer es un conductor profesional, no un guía turístico: conoce la carretera, dónde dejarle y dónde esperar, pero no hace visitas guiadas. Las entradas, las comidas y las visitas guiadas no están incluidas en el precio. Si desea un guía local acreditado, resérvelo para las horas que tenga previsto pasar allí y ajustaremos el trayecto a ese horario."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre la excursión a Dresde",
+  "faqs": [
+    {
+      "q": "¿Cuánto cuesta una excursión privada de un día de Praga a Dresde?",
+      "a": "{dayDresdenE} € en un E-Class (hasta 3 pasajeros), {dayDresdenV} € en un V-Class (hasta 6) y {dayDresdenS} € en un S-Class. Es el precio del coche completo para una excursión diurna, ida y vuelta, con el chófer esperando mientras usted hace la visita. El combustible y los peajes de autopista están incluidos. La tarifa exacta para su fecha aparece en el formulario de reserva antes de pagar."
+    },
+    {
+      "q": "¿Cuánto dura la excursión?",
+      "a": "Calcule unas nueve horas en total: aproximadamente dos horas por trayecto y de cuatro a cinco horas en Dresde. Saliendo de Praga a las 9:00, estará de vuelta hacia las 18:00."
+    },
+    {
+      "q": "¿El chófer nos espera y nos lleva de vuelta el mismo día?",
+      "a": "Sí. En eso consiste una excursión de un día: el mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro y le traen de vuelta a su dirección en Praga. No tendrá que buscar un taxi ni un tren para el regreso."
+    },
+    {
+      "q": "¿Están incluidos el guía o las entradas?",
+      "a": "No. El precio cubre el coche y el chófer. Las entradas y las visitas guiadas se reservan aparte, y el chófer no hace de guía. Con mucho gusto organizamos el día en torno al guía o a la franja horaria de la entrada que usted haya reservado."
+    },
+    {
+      "q": "¿Necesitamos pasaporte para una excursión de un día a Dresde?",
+      "a": "Sí, lleve pasaporte o documento nacional de identidad. Ambos países pertenecen al espacio Schengen y normalmente no hay control en la frontera, pero la policía puede pedir la documentación, y los visitantes de fuera de la UE necesitan un pasaporte válido y, cuando se exija, un visado Schengen."
+    },
+    {
+      "q": "¿Cuántas personas caben en un coche?",
+      "a": "Hasta tres pasajeros en un E-Class o un S-Class y hasta seis en un V-Class. Los grupos más grandes viajan en dos o más coches. Las sillas infantiles son gratuitas en todas las categorías."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Más formas de pasar un día.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "Todas las excursiones privadas de un día",
+        "body": "Cuatro excursiones de un día desde Praga, una al lado de otra, con tiempos de trayecto y precios por coche."
+      },
+      {
+        "href": "/routes/prague-dresden",
+        "title": "Solo ida a Dresde",
+        "body": "¿Continúa el viaje hacia Berlín o Leipzig? Reserve el traslado solo de ida."
+      },
+      {
+        "href": "/services/karlovy-vary-day-trip",
+        "title": "Excursión de un día a Karlovy Vary",
+        "body": "Columnatas y fuentes termales, con una parada en el castillo de Loket por el camino."
+      },
+      {
+        "href": "/services/kutna-hora-day-trip",
+        "title": "Excursión de un día a Kutná Hora",
+        "body": "La iglesia de los huesos y la catedral de Santa Bárbara, a una hora de Praga."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Dresde, ida y vuelta, en su propio coche.",
+    "headingItalic": "Desde {dayDresdenE} € por el coche."
+  }
+}

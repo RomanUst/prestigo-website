@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Dresden Day Trip from Prague — Private Car & Chauffeur",
+    "description": "A private day trip from Prague to Dresden in a Mercedes with your own chauffeur: the Frauenkirche, the Zwinger and the Old Masters, with the driver waiting and the drive back the same day.",
+    "ogTitle": "Private Day Trip from Prague to Dresden"
+  },
+  "breadcrumbName": "Dresden Day Trip",
+  "hero": {
+    "label": "Private Day Trip · Dresden",
+    "headlineLine1": "Dresden for the day.",
+    "headlineItalic": "Across the border and back.",
+    "intro": "A private day trip from Prague to Dresden: a Mercedes and a chauffeur collect you at your hotel, drive you north across the German border, wait while you see the old town and bring you back the same day. From €{dayDresdenE} for the whole car, there and back.",
+    "ctaPrimary": "Book This Day Trip",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Mercedes V-Class on a day trip from Prague to Dresden"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      {
+        "label": "Drive",
+        "value": "About 2 hours each way"
+      },
+      {
+        "label": "Price",
+        "value": "From €{dayDresdenE} per car, there and back — not per person"
+      },
+      {
+        "label": "Time there",
+        "value": "Four to five hours for the old town and one museum"
+      },
+      {
+        "label": "Included",
+        "value": "Hotel pickup, chauffeur waiting on site, fuel and motorway tolls"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Another country,",
+    "headingItalic": "two hours from your hotel.",
+    "paragraphs": [
+      "Dresden, the capital of Saxony, was rebuilt stone by stone after 1945. The Frauenkirche was reconsecrated in 2005, the Zwinger palace and the Semper Opera stand again on the Elbe, and the Old Masters Picture Gallery holds Raphael’s Sistine Madonna.",
+      "The city is about two hours north of Prague by motorway. Most of the sights stand within a ten-minute walk of each other in the old town, so a day is enough to see them without rushing.",
+      "By private car you cross the border without changing trains and return when you choose, including after the last convenient train has gone."
+    ]
+  },
+  "features": {
+    "label": "The day",
+    "headingLine1": "What a day in",
+    "headingItalic": "Dresden looks like.",
+    "items": [
+      {
+        "title": "The old town on foot",
+        "body": "The Frauenkirche, the Procession of Princes, the Royal Palace, the Zwinger and the Semper Opera are close together. Your chauffeur drops you at the edge of the old town and waits nearby."
+      },
+      {
+        "title": "One museum, chosen in advance",
+        "body": "The Old Masters Picture Gallery and the Green Vault are the two most visited. The Historic Green Vault admits visitors by timed ticket, so book it before you travel."
+      },
+      {
+        "title": "The Christmas market",
+        "body": "From late November until Christmas Eve Dresden holds the Striezelmarkt, one of the oldest Christmas markets in Germany. It is a popular reason to make the trip in December."
+      },
+      {
+        "title": "A border without formalities",
+        "body": "The Czech Republic and Germany are both in the Schengen area, so there is normally no border control. Carry your passport or national ID all the same."
+      },
+      {
+        "title": "One price for the car",
+        "body": "€{dayDresdenE} in an E-Class (up to 3 passengers), €{dayDresdenV} in a V-Class (up to 6) and €{dayDresdenS} in an S-Class. The price is for the car, not per person, and covers the drive there, the wait and the drive back."
+      },
+      {
+        "title": "Child seats at no charge",
+        "body": "Infant, toddler and booster seats are free. Tell us the children’s ages when you book and the right seats are fitted before pickup."
+      }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Booking a day trip in four steps.",
+    "items": [
+      {
+        "title": "Book a return trip",
+        "body": "In the booking form enter your Prague address and the destination, choose a return trip and set the return for the same day. A rough return time is enough — it can move on the day."
+      },
+      {
+        "title": "Choose the car",
+        "body": "E-Class for up to three, V-Class for up to six with room to spare, S-Class for an executive day. You see the price for the whole car before you pay."
+      },
+      {
+        "title": "Meet your chauffeur",
+        "body": "You receive the chauffeur’s name and phone number in advance. They collect you at your hotel or apartment door at the agreed time."
+      },
+      {
+        "title": "Take your time",
+        "body": "The chauffeur waits near the centre while you visit. Call or message when you are ready and the car comes back for you."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Good to know",
+    "headingLine1": "Planning",
+    "headingItalic": "the day.",
+    "paragraphs": [
+      "Many Dresden museums are closed on Mondays, and the Old Masters Picture Gallery is among them. Check the day before you fix the date.",
+      "Germany uses the euro, while the Czech Republic uses the koruna. Cards are accepted in most places in Dresden, but smaller cafés and market stalls often prefer cash.",
+      "Your chauffeur is a professional driver, not a tour guide: they know the road, where to drop you and where to wait, but they do not lead tours. Entrance tickets, meals and guided tours are not part of the price. If you would like a licensed local guide, book one for the hours you plan to be there and we time the drive around it."
+    ]
+  },
+  "faqsHeading": "Dresden day trip questions",
+  "faqs": [
+    {
+      "q": "How much is a private day trip from Prague to Dresden?",
+      "a": "€{dayDresdenE} in an E-Class (up to 3 passengers), €{dayDresdenV} in a V-Class (up to 6) and €{dayDresdenS} in an S-Class. That is the price for the whole car for a daytime trip, there and back, with the chauffeur waiting while you visit. Fuel and motorway tolls are included. The exact fare for your date is shown in the booking form before you pay."
+    },
+    {
+      "q": "How long does the day trip take?",
+      "a": "Plan about nine hours in total: roughly two hours each way and four to five hours in Dresden. Leaving Prague at 9:00, you are back around 18:00."
+    },
+    {
+      "q": "Does the chauffeur wait and drive us back the same day?",
+      "a": "Yes. That is what a day trip is: the same car and chauffeur take you there, wait near the centre and drive you back to your Prague address. You do not look for a taxi or a train for the return."
+    },
+    {
+      "q": "Is a guide or entrance ticket included?",
+      "a": "No. The price covers the car and the chauffeur. Tickets and guided tours are booked separately, and the chauffeur does not act as a guide. We are glad to time the day around a guide or a ticket slot you have booked."
+    },
+    {
+      "q": "Do we need passports for a day trip to Dresden?",
+      "a": "Yes, carry a passport or national ID. Both countries are in the Schengen area and there is normally no check at the border, but police may ask for documents, and visitors from outside the EU need a valid passport and, where required, a Schengen visa."
+    },
+    {
+      "q": "How many people fit in one car?",
+      "a": "Up to three passengers in an E-Class or S-Class and up to six in a V-Class. Larger groups travel in two or more cars. Child seats are free in every class."
+    }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "More ways to spend a day.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "All private day trips",
+        "body": "Four day trips from Prague side by side, with drive times and prices per car."
+      },
+      {
+        "href": "/routes/prague-dresden",
+        "title": "One-way to Dresden",
+        "body": "Travelling on to Berlin or Leipzig? Book the transfer one way."
+      },
+      {
+        "href": "/services/karlovy-vary-day-trip",
+        "title": "Karlovy Vary day trip",
+        "body": "Colonnades and hot springs, with a stop at Loket Castle on the way."
+      },
+      {
+        "href": "/services/kutna-hora-day-trip",
+        "title": "Kutná Hora day trip",
+        "body": "The Bone Church and St Barbara’s Cathedral, an hour from Prague."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Dresden and back, in your own car.",
+    "headingItalic": "From €{dayDresdenE} for the car."
+  }
+}

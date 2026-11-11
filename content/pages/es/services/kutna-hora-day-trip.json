@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Excursión de un día a Kutná Hora desde Praga: coche privado con chófer",
+    "description": "Excursión privada de medio día o de un día de Praga a Kutná Hora: la iglesia de los huesos de Sedlec y la catedral de Santa Bárbara, con su propio Mercedes y un chófer que le espera y le trae de vuelta.",
+    "ogTitle": "Excursión privada de un día de Praga a Kutná Hora"
+  },
+  "breadcrumbName": "Excursión de un día a Kutná Hora",
+  "hero": {
+    "label": "Excursión privada de un día · Kutná Hora",
+    "headlineLine1": "Kutná Hora en medio día.",
+    "headlineItalic": "De vuelta en Praga para la cena.",
+    "intro": "Una excursión privada de Praga a Kutná Hora: un Mercedes con chófer le recoge en su hotel, le lleva a la iglesia de los huesos y a la ciudad de la plata, espera mientras usted hace la visita y le trae de vuelta. Desde {dayKutnaE} € por el coche completo, ida y vuelta.",
+    "ctaPrimary": "Reservar esta excursión",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Interior de un Mercedes V-Class listo para una excursión de un día a Kutná Hora"
+  },
+  "glance": {
+    "label": "De un vistazo",
+    "items": [
+      {
+        "label": "Trayecto",
+        "value": "Alrededor de 1 hora por trayecto"
+      },
+      {
+        "label": "Precio",
+        "value": "Desde {dayKutnaE} € por coche, ida y vuelta; no por persona"
+      },
+      {
+        "label": "Tiempo en destino",
+        "value": "Tres o cuatro horas bastan para los principales monumentos"
+      },
+      {
+        "label": "Incluido",
+        "value": "Recogida en el hotel, espera del chófer en destino, combustible y peajes de autopista"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "La excursión más corta",
+    "headingItalic": "desde Praga.",
+    "paragraphs": [
+      "Kutná Hora hizo fortuna con la plata en la Edad Media y durante un tiempo rivalizó con Praga. Lo que dejó figura en la lista de la UNESCO: la catedral gótica de Santa Bárbara, la Corte Italiana, donde la casa de la moneda real acuñaba sus monedas, y, en el barrio de Sedlec, el osario conocido como la iglesia de los huesos.",
+      "Está a alrededor de una hora de Praga, lo que la convierte en la excursión que cabe en una mañana o una tarde libre. Puede salir después del desayuno y estar de vuelta para un almuerzo tardío, o ir después de comer y regresar para la cena.",
+      "En coche se ahorra además la parte incómoda del viaje en tren: el osario y el casco antiguo están a unos tres kilómetros el uno del otro, en extremos opuestos de la ciudad."
+    ]
+  },
+  "features": {
+    "label": "El día",
+    "headingLine1": "Cómo es medio día en",
+    "headingItalic": "Kutná Hora.",
+    "items": [
+      {
+        "title": "El osario de Sedlec",
+        "body": "Una pequeña capilla decorada con los huesos de unas 40.000 personas, entre ellos una lámpara de araña y un escudo de armas. La visita dura alrededor de media hora. Las entradas se venden en el lugar y la fotografía en el interior está restringida."
+      },
+      {
+        "title": "La catedral de Santa Bárbara",
+        "body": "Una de las grandes iglesias góticas de Europa Central, iniciada en 1388 y costeada por los mineros. Recorra la terraza junto al Colegio de los Jesuitas para disfrutar de la vista sobre el valle."
+      },
+      {
+        "title": "Dos zonas de la ciudad, un solo coche",
+        "body": "Sedlec y el centro histórico están a unos tres kilómetros el uno del otro. Mencione ambos al reservar para que el trayecto entre ellos forme parte del plan."
+      },
+      {
+        "title": "Por la mañana o por la tarde",
+        "body": "Como el trayecto es corto, la excursión funciona como medio día. Elija la hora de salida que mejor encaje con sus planes en Praga."
+      },
+      {
+        "title": "Un solo precio por el coche",
+        "body": "{dayKutnaE} € en un E-Class (hasta 3 pasajeros), {dayKutnaV} € en un V-Class (hasta 6) y {dayKutnaS} € en un S-Class. El precio es por coche, no por persona, e incluye el trayecto de ida, la espera y el trayecto de vuelta."
+      },
+      {
+        "title": "Sillas infantiles sin coste",
+        "body": "Las sillas para bebés y niños pequeños y los elevadores son gratuitos. Indíquenos la edad de los niños al reservar y las sillas adecuadas estarán instaladas antes de la recogida."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Reservar una excursión de un día en cuatro pasos.",
+    "items": [
+      {
+        "title": "Reserve ida y vuelta",
+        "body": "En el formulario de reserva indique su dirección en Praga y el destino, elija ida y vuelta y fije el regreso para el mismo día. Basta con una hora de regreso aproximada: puede ajustarse ese mismo día."
+      },
+      {
+        "title": "Elija el coche",
+        "body": "E-Class para hasta tres personas, V-Class para hasta seis con espacio de sobra, S-Class para una jornada ejecutiva. Verá el precio del coche completo antes de pagar."
+      },
+      {
+        "title": "Conozca a su chófer",
+        "body": "Recibirá con antelación el nombre y el teléfono del chófer. Le recogerá en la puerta de su hotel o apartamento a la hora acordada."
+      },
+      {
+        "title": "Tómese su tiempo",
+        "body": "El chófer espera cerca del centro mientras usted hace la visita. Llame o envíe un mensaje cuando esté listo y el coche volverá a recogerle."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Conviene saber",
+    "headingLine1": "Cómo planificar",
+    "headingItalic": "la visita.",
+    "paragraphs": [
+      "La mayoría de los visitantes ve primero el osario, después la catedral de la Asunción, que está al lado, y luego se traslada al casco antiguo para visitar Santa Bárbara y almorzar. Reserve de tres a cuatro horas para verlo todo sin prisas.",
+      "Los monumentos abren todo el año, con horario reducido en invierno. El osario es un lugar de enterramiento además de un monumento, así que vista y compórtese como lo haría en una iglesia.",
+      "Su chófer es un conductor profesional, no un guía turístico: conoce la carretera, dónde dejarle y dónde esperar, pero no hace visitas guiadas. Las entradas, las comidas y las visitas guiadas no están incluidas en el precio. Si desea un guía local acreditado, resérvelo para las horas que tenga previsto pasar allí y ajustaremos el trayecto a ese horario."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre la excursión a Kutná Hora",
+  "faqs": [
+    {
+      "q": "¿Cuánto cuesta una excursión privada de Praga a Kutná Hora, ida y vuelta?",
+      "a": "{dayKutnaE} € en un E-Class (hasta 3 pasajeros), {dayKutnaV} € en un V-Class (hasta 6) y {dayKutnaS} € en un S-Class. Es el precio del coche completo para una excursión diurna, ida y vuelta, con el chófer esperando mientras usted hace la visita. El combustible y los peajes de autopista están incluidos. La tarifa exacta para su fecha aparece en el formulario de reserva antes de pagar."
+    },
+    {
+      "q": "¿Cuánto dura la excursión?",
+      "a": "Unas cinco o seis horas en total: una hora por trayecto y tres o cuatro horas en Kutná Hora. Cabe cómodamente en una mañana o una tarde."
+    },
+    {
+      "q": "¿El chófer nos espera y nos lleva de vuelta el mismo día?",
+      "a": "Sí. En eso consiste una excursión de un día: el mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro y le traen de vuelta a su dirección en Praga. No tendrá que buscar un taxi ni un tren para el regreso."
+    },
+    {
+      "q": "¿Están incluidos el guía o las entradas?",
+      "a": "No. El precio cubre el coche y el chófer. Las entradas y las visitas guiadas se reservan aparte, y el chófer no hace de guía. Con mucho gusto organizamos el día en torno al guía o a la franja horaria de la entrada que usted haya reservado."
+    },
+    {
+      "q": "¿El coche nos llevará de la iglesia de los huesos al casco antiguo?",
+      "a": "Sí, si forma parte de la reserva. Sedlec y el casco antiguo están a unos tres kilómetros el uno del otro, así que díganos que quiere ver ambos e incluiremos el trayecto entre ellos en el plan confirmado."
+    },
+    {
+      "q": "¿Cuántas personas caben en un coche?",
+      "a": "Hasta tres pasajeros en un E-Class o un S-Class y hasta seis en un V-Class. Los grupos más grandes viajan en dos o más coches. Las sillas infantiles son gratuitas en todas las categorías."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Más formas de pasar un día.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "Todas las excursiones privadas de un día",
+        "body": "Cuatro excursiones de un día desde Praga, una al lado de otra, con tiempos de trayecto y precios por coche."
+      },
+      {
+        "href": "/routes/prague-kutna-hora",
+        "title": "Solo ida a Kutná Hora",
+        "body": "¿Continúa el viaje desde Kutná Hora? Reserve el traslado solo de ida."
+      },
+      {
+        "href": "/services/cesky-krumlov-day-trip",
+        "title": "Excursión de un día a Český Krumlov",
+        "body": "La ciudad del castillo en un meandro del Moldava, con el chófer esperando mientras usted la recorre."
+      },
+      {
+        "href": "/services/private-driver-prague",
+        "title": "Chófer privado por horas",
+        "body": "Disponga del coche en Praga durante unas horas o un día entero con las paradas que usted elija."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Kutná Hora, ida y vuelta, antes de que acabe el día.",
+    "headingItalic": "Desde {dayKutnaE} € por el coche."
+  }
+}

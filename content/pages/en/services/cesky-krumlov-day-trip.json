@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Český Krumlov Day Trip from Prague — Private Car & Chauffeur",
+    "description": "A private day trip from Prague to Český Krumlov in a Mercedes with your own chauffeur: hotel pickup, the driver waits while you explore, and drives you back the same day.",
+    "ogTitle": "Private Day Trip from Prague to Český Krumlov"
+  },
+  "breadcrumbName": "Český Krumlov Day Trip",
+  "hero": {
+    "label": "Private Day Trip · Český Krumlov",
+    "headlineLine1": "Český Krumlov in a day.",
+    "headlineItalic": "Your car waits while you explore.",
+    "intro": "A private day trip from Prague to Český Krumlov: a Mercedes and a chauffeur collect you at your hotel, drive you south through Bohemia, wait while you see the castle and the old town, and bring you back the same evening. From €{dayKrumlovE} for the whole car, there and back.",
+    "ctaPrimary": "Book This Day Trip",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Mercedes on the road from Prague to Český Krumlov"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      {
+        "label": "Drive",
+        "value": "About 2.5 hours each way, door to door"
+      },
+      {
+        "label": "Price",
+        "value": "From €{dayKrumlovE} per car, there and back — not per person"
+      },
+      {
+        "label": "Time there",
+        "value": "Most guests stay four to five hours"
+      },
+      {
+        "label": "Included",
+        "value": "Hotel pickup, chauffeur waiting on site, fuel and motorway tolls"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "A long way for a train,",
+    "headingItalic": "an easy day by car.",
+    "paragraphs": [
+      "Český Krumlov is the day trip visitors to Prague ask for most. The whole old town is a UNESCO World Heritage Site: a castle with a painted tower above a tight bend of the Vltava, lanes of Renaissance houses below it, and one of the best-preserved Baroque theatres in Europe.",
+      "It is also about 2.5 hours from Prague. By train or coach that means a fixed timetable and a change on the way. By private car it is one seat from your hotel door to the edge of the old town, leaving when you choose and coming back when you have seen enough.",
+      "This page is about going there and back in one day. If you plan to stay overnight or continue to Vienna, Salzburg or Hallstatt, book a one-way transfer on the Prague to Český Krumlov route instead."
+    ]
+  },
+  "features": {
+    "label": "The day",
+    "headingLine1": "What a day in",
+    "headingItalic": "Český Krumlov looks like.",
+    "items": [
+      {
+        "title": "Leave early, arrive before the coaches",
+        "body": "A start around 8:00 puts you in Český Krumlov by mid-morning, before the tour coaches fill the lanes. The return time is yours to set."
+      },
+      {
+        "title": "The castle and its tower",
+        "body": "The State Castle is the second largest in the Czech Republic. The courtyards and gardens are free to walk; the tower, the interiors and the Baroque theatre need tickets, and theatre tours sell out in summer."
+      },
+      {
+        "title": "The old town on foot",
+        "body": "The centre is closed to cars. Your chauffeur drops you at the car park by the old town, a few minutes’ walk from the main square, and waits there."
+      },
+      {
+        "title": "A stop on the way",
+        "body": "The route passes České Budějovice and Hluboká Castle. Tell us when you book if you would like to stop at either and we confirm it in writing."
+      },
+      {
+        "title": "One price for the car",
+        "body": "€{dayKrumlovE} in an E-Class (up to 3 passengers), €{dayKrumlovV} in a V-Class (up to 6) and €{dayKrumlovS} in an S-Class. The price is for the car, not per person, and covers the drive there, the wait and the drive back."
+      },
+      {
+        "title": "Child seats at no charge",
+        "body": "Infant, toddler and booster seats are free. Tell us the children’s ages when you book and the right seats are fitted before pickup."
+      }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Booking a day trip in four steps.",
+    "items": [
+      {
+        "title": "Book a return trip",
+        "body": "In the booking form enter your Prague address and the destination, choose a return trip and set the return for the same day. A rough return time is enough — it can move on the day."
+      },
+      {
+        "title": "Choose the car",
+        "body": "E-Class for up to three, V-Class for up to six with room to spare, S-Class for an executive day. You see the price for the whole car before you pay."
+      },
+      {
+        "title": "Meet your chauffeur",
+        "body": "You receive the chauffeur’s name and phone number in advance. They collect you at your hotel or apartment door at the agreed time."
+      },
+      {
+        "title": "Take your time",
+        "body": "The chauffeur waits near the centre while you visit. Call or message when you are ready and the car comes back for you."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Good to know",
+    "headingLine1": "Planning",
+    "headingItalic": "the day.",
+    "paragraphs": [
+      "Wear shoes for cobbles: Český Krumlov is steep in places and entirely paved in stone. Castle interiors are closed on Mondays and in the winter months, though the courtyards, the old town and the views stay open all year.",
+      "Lunch is easy to find on the river terraces below the castle. In July and August reserve a table, or eat a little early.",
+      "Your chauffeur is a professional driver, not a tour guide: they know the road, where to drop you and where to wait, but they do not lead tours. Entrance tickets, meals and guided tours are not part of the price. If you would like a licensed local guide, book one for the hours you plan to be there and we time the drive around it."
+    ]
+  },
+  "faqsHeading": "Český Krumlov day trip questions",
+  "faqs": [
+    {
+      "q": "How much is a private day trip from Prague to Český Krumlov?",
+      "a": "€{dayKrumlovE} in an E-Class (up to 3 passengers), €{dayKrumlovV} in a V-Class (up to 6) and €{dayKrumlovS} in an S-Class. That is the price for the whole car for a daytime trip, there and back, with the chauffeur waiting while you visit. Fuel and motorway tolls are included. The exact fare for your date is shown in the booking form before you pay."
+    },
+    {
+      "q": "How long does the day trip take?",
+      "a": "Plan about ten hours in total: roughly 2.5 hours each way and four to five hours in Český Krumlov. Leaving Prague at 8:00, you are back around 18:00. You choose both times."
+    },
+    {
+      "q": "Does the chauffeur wait and drive us back the same day?",
+      "a": "Yes. That is what a day trip is: the same car and chauffeur take you there, wait near the centre and drive you back to your Prague address. You do not look for a taxi or a train for the return."
+    },
+    {
+      "q": "Is a guide or entrance ticket included?",
+      "a": "No. The price covers the car and the chauffeur. Tickets and guided tours are booked separately, and the chauffeur does not act as a guide. We are glad to time the day around a guide or a ticket slot you have booked."
+    },
+    {
+      "q": "Can we stop in České Budějovice or at Hluboká Castle?",
+      "a": "Both are on the way. Tell us which stop you would like when you book, and we confirm the plan and the price in writing before the trip."
+    },
+    {
+      "q": "How many people fit in one car?",
+      "a": "Up to three passengers in an E-Class or S-Class and up to six in a V-Class. Larger groups travel in two or more cars. Child seats are free in every class."
+    }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "More ways to spend a day.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "All private day trips",
+        "body": "Four day trips from Prague side by side, with drive times and prices per car."
+      },
+      {
+        "href": "/routes/prague-cesky-krumlov",
+        "title": "One-way to Český Krumlov",
+        "body": "Staying overnight or travelling on? Book the transfer one way."
+      },
+      {
+        "href": "/services/kutna-hora-day-trip",
+        "title": "Kutná Hora day trip",
+        "body": "The Bone Church and St Barbara’s Cathedral, an hour from Prague."
+      },
+      {
+        "href": "/services/karlovy-vary-day-trip",
+        "title": "Karlovy Vary day trip",
+        "body": "Colonnades and hot springs, with a stop at Loket Castle on the way."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Český Krumlov and back, in your own car.",
+    "headingItalic": "From €{dayKrumlovE} for the car."
+  }
+}

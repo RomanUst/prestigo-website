@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Excursion à Karlovy Vary depuis Prague — voiture privée avec chauffeur",
+    "description": "Une excursion privée à la journée de Prague à Karlovy Vary en Mercedes avec votre propre chauffeur : les colonnades et les sources chaudes, un arrêt facultatif au château de Loket et le retour le jour même.",
+    "ogTitle": "Excursion privée à la journée de Prague à Karlovy Vary"
+  },
+  "breadcrumbName": "Excursion à Karlovy Vary",
+  "hero": {
+    "label": "Excursion privée · Karlovy Vary",
+    "headlineLine1": "Karlovy Vary, le temps d'une journée.",
+    "headlineItalic": "La ville thermale, à votre rythme.",
+    "intro": "Une excursion privée à la journée de Prague à Karlovy Vary : une Mercedes et un chauffeur viennent vous chercher à votre hôtel, vous conduisent vers l'ouest jusqu'à la ville thermale, attendent pendant que vous parcourez les colonnades et vous ramènent le jour même. À partir de {dayKarlovyE} € pour la voiture entière, aller-retour.",
+    "ctaPrimary": "Réserver cette excursion",
+    "ctaSecondary": "Poser une question",
+    "imageAlt": "Intérieur d'une Mercedes E-Class sur la route de Prague à Karlovy Vary"
+  },
+  "glance": {
+    "label": "En bref",
+    "items": [
+      {
+        "label": "Trajet",
+        "value": "Environ 1 h 45 dans chaque sens"
+      },
+      {
+        "label": "Prix",
+        "value": "À partir de {dayKarlovyE} € par voiture, aller-retour — et non par personne"
+      },
+      {
+        "label": "Temps sur place",
+        "value": "Quatre à cinq heures pour les colonnades et le déjeuner"
+      },
+      {
+        "label": "Inclus",
+        "value": "Prise en charge à l'hôtel, attente du chauffeur sur place, carburant et péages d'autoroute"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Deux siècles de vie thermale,",
+    "headingItalic": "à moins de deux heures.",
+    "paragraphs": [
+      "Karlovy Vary — Carlsbad — est la plus grande ville thermale de République tchèque. Ses sources chaudes jaillissent sous une enfilade de colonnades le long de la rivière Teplá, et les visiteurs vont toujours de l'une à l'autre une tasse de porcelaine à la main, comme on le fait depuis l'époque de Goethe et de Beethoven.",
+      "La ville se trouve à environ 1 h 45 à l'ouest de Prague, l'essentiel du trajet se faisant par l'autoroute D6. Une journée suffit pour parcourir les colonnades, goûter l'eau des sources, déjeuner et voir le Grandhotel Pupp.",
+      "Ici, la voiture privée a un intérêt très concret : le centre thermal est en grande partie fermé à la circulation. Un chauffeur qui connaît la ville vous amène aussi près des colonnades que la réglementation le permet, et vous y attend."
+    ]
+  },
+  "features": {
+    "label": "La journée",
+    "headingLine1": "À quoi ressemble une journée",
+    "headingItalic": "à Karlovy Vary.",
+    "items": [
+      {
+        "title": "Les colonnades et les sources",
+        "body": "La colonnade du Moulin, la colonnade du Marché et la colonnade de la Source chaude, avec son geyser, sont à quelques pas les unes des autres. Des tasses à boire sont vendues sur les stands le long du parcours."
+      },
+      {
+        "title": "Le Grandhotel Pupp et le belvédère",
+        "body": "L'hôtel situé au bout de la promenade mérite qu'on s'y arrête pour un café. Derrière lui, le funiculaire monte jusqu'à la tour panoramique Diana, au-dessus de la ville."
+      },
+      {
+        "title": "Le verre et la Becherovka",
+        "body": "La verrerie Moser et le musée de la Becherovka accueillent tous deux les visiteurs. Vérifiez les horaires d'ouverture et ceux des visites avant de partir."
+      },
+      {
+        "title": "Un arrêt au château de Loket",
+        "body": "Loket, petite ville dominée par son château dans un méandre de la rivière Ohře, se trouve à quelques minutes de l'itinéraire. Dites-nous à la réservation si vous souhaitez vous y arrêter et nous vous le confirmons par écrit."
+      },
+      {
+        "title": "Un seul prix pour la voiture",
+        "body": "{dayKarlovyE} € en E-Class (jusqu'à 3 passagers), {dayKarlovyV} € en V-Class (jusqu'à 6) et {dayKarlovyS} € en S-Class. Le prix s'entend pour la voiture, non par personne, et couvre l'aller, l'attente et le retour."
+      },
+      {
+        "title": "Sièges enfant sans supplément",
+        "body": "Les sièges bébé, les sièges enfant et les rehausseurs sont gratuits. Indiquez-nous l'âge des enfants à la réservation et les sièges adaptés seront installés avant la prise en charge."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Comment ça fonctionne",
+    "heading": "Réserver une excursion en quatre étapes.",
+    "items": [
+      {
+        "title": "Réservez un aller-retour",
+        "body": "Dans le formulaire de réservation, saisissez votre adresse à Prague et la destination, choisissez un aller-retour et fixez le retour au même jour. Une heure de retour approximative suffit — elle peut être ajustée le jour même."
+      },
+      {
+        "title": "Choisissez la voiture",
+        "body": "E-Class jusqu'à trois personnes, V-Class jusqu'à six personnes avec de la place en plus, S-Class pour une journée de direction. Vous voyez le prix de la voiture entière avant de payer."
+      },
+      {
+        "title": "Rencontrez votre chauffeur",
+        "body": "Vous recevez à l'avance le nom et le numéro de téléphone du chauffeur. Il vient vous chercher à la porte de votre hôtel ou de votre appartement à l'heure convenue."
+      },
+      {
+        "title": "Prenez votre temps",
+        "body": "Le chauffeur attend près du centre pendant votre visite. Appelez-le ou envoyez-lui un message quand vous êtes prêt, et la voiture revient vous chercher."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Bon à savoir",
+    "headingLine1": "Préparer",
+    "headingItalic": "la journée.",
+    "paragraphs": [
+      "L'eau des sources est chaude et minérale, et la plupart des gens la boivent à petites gorgées plutôt qu'à grands traits. Les colonnades se parcourent librement et gratuitement en toute saison.",
+      "Pendant le Festival international du film de Karlovy Vary, début juillet, la ville est très fréquentée et les règles de circulation dans le centre changent. Réservez tôt pour ces dates et prévoyez plus de temps.",
+      "Votre chauffeur est un conducteur professionnel, pas un guide touristique : il connaît la route, sait où vous déposer et où attendre, mais il n'assure pas de visites guidées. Les billets d'entrée, les repas et les visites guidées ne sont pas compris dans le prix. Si vous souhaitez un guide local agréé, réservez-le pour les heures que vous prévoyez de passer sur place et nous calons le trajet en fonction."
+    ]
+  },
+  "faqsHeading": "Questions sur l'excursion à Karlovy Vary",
+  "faqs": [
+    {
+      "q": "Combien coûte une excursion privée à la journée de Prague à Karlovy Vary ?",
+      "a": "{dayKarlovyE} € en E-Class (jusqu'à 3 passagers), {dayKarlovyV} € en V-Class (jusqu'à 6) et {dayKarlovyS} € en S-Class. C'est le prix de la voiture entière pour une excursion de jour, aller-retour, avec le chauffeur qui attend pendant votre visite. Le carburant et les péages d'autoroute sont inclus. Le tarif exact pour votre date s'affiche dans le formulaire de réservation avant le paiement."
+    },
+    {
+      "q": "Combien de temps dure l'excursion ?",
+      "a": "Comptez environ huit à neuf heures au total : à peu près 1 h 45 dans chaque sens et quatre à cinq heures à Karlovy Vary. En quittant Prague à 9 h, vous êtes de retour vers 18 h."
+    },
+    {
+      "q": "Le chauffeur attend-il et nous ramène-t-il le jour même ?",
+      "a": "Oui. C'est le principe même d'une excursion à la journée : la même voiture et le même chauffeur vous y conduisent, attendent près du centre et vous ramènent à votre adresse à Prague. Vous n'avez ni taxi ni train à chercher pour le retour."
+    },
+    {
+      "q": "Un guide ou des billets d'entrée sont-ils inclus ?",
+      "a": "Non. Le prix couvre la voiture et le chauffeur. Les billets et les visites guidées se réservent séparément, et le chauffeur ne fait pas office de guide. Nous organisons volontiers la journée autour d'un guide ou d'un créneau de billets que vous avez réservé."
+    },
+    {
+      "q": "Peut-on s'arrêter au château de Loket en chemin ?",
+      "a": "Oui. Loket ne demande qu'un court détour. Dites-le-nous à la réservation, et nous vous confirmons le programme et le prix par écrit avant le départ."
+    },
+    {
+      "q": "Combien de personnes peuvent voyager dans une voiture ?",
+      "a": "Jusqu'à trois passagers en E-Class ou en S-Class et jusqu'à six en V-Class. Les groupes plus nombreux voyagent dans deux voitures ou plus. Les sièges enfant sont gratuits dans toutes les catégories."
+    }
+  ],
+  "related": {
+    "label": "À voir aussi",
+    "heading": "D'autres façons de passer une journée.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "Toutes les excursions privées",
+        "body": "Quatre excursions depuis Prague côte à côte, avec les temps de trajet et les prix par voiture."
+      },
+      {
+        "href": "/routes/prague-karlovy-vary",
+        "title": "Aller simple pour Karlovy Vary",
+        "body": "Vous séjournez dans un hôtel thermal ? Réservez le transfert en aller simple."
+      },
+      {
+        "href": "/services/cesky-krumlov-day-trip",
+        "title": "Excursion à Český Krumlov",
+        "body": "La ville et son château dans un méandre de la Vltava, avec le chauffeur qui attend pendant votre visite."
+      },
+      {
+        "href": "/services/dresden-day-trip",
+        "title": "Excursion à Dresde",
+        "body": "De l'autre côté de la frontière, la Frauenkirche, le Zwinger et les Maîtres anciens."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Karlovy Vary aller-retour, dans votre propre voiture.",
+    "headingItalic": "À partir de {dayKarlovyE} € pour la voiture."
+  }
+}

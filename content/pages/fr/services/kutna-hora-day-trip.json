@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Excursion à Kutná Hora depuis Prague — voiture privée avec chauffeur",
+    "description": "Une excursion privée d'une demi-journée ou d'une journée de Prague à Kutná Hora : l'église aux ossements de Sedlec et la cathédrale Sainte-Barbe, avec votre propre Mercedes et un chauffeur qui attend et vous ramène.",
+    "ogTitle": "Excursion privée à la journée de Prague à Kutná Hora"
+  },
+  "breadcrumbName": "Excursion à Kutná Hora",
+  "hero": {
+    "label": "Excursion privée · Kutná Hora",
+    "headlineLine1": "Kutná Hora en une demi-journée.",
+    "headlineItalic": "De retour à Prague pour le dîner.",
+    "intro": "Une excursion privée de Prague à Kutná Hora : une Mercedes et un chauffeur viennent vous chercher à votre hôtel, vous conduisent à l'église aux ossements et dans la ville de l'argent, attendent pendant votre visite et vous ramènent. À partir de {dayKutnaE} € pour la voiture entière, aller-retour.",
+    "ctaPrimary": "Réserver cette excursion",
+    "ctaSecondary": "Poser une question",
+    "imageAlt": "Intérieur d'une Mercedes V-Class prête pour une excursion à Kutná Hora"
+  },
+  "glance": {
+    "label": "En bref",
+    "items": [
+      {
+        "label": "Trajet",
+        "value": "Environ 1 heure dans chaque sens"
+      },
+      {
+        "label": "Prix",
+        "value": "À partir de {dayKutnaE} € par voiture, aller-retour — et non par personne"
+      },
+      {
+        "label": "Temps sur place",
+        "value": "Trois à quatre heures suffisent pour les principaux sites"
+      },
+      {
+        "label": "Inclus",
+        "value": "Prise en charge à l'hôtel, attente du chauffeur sur place, carburant et péages d'autoroute"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "L'excursion la plus courte",
+    "headingItalic": "depuis Prague.",
+    "paragraphs": [
+      "Kutná Hora a bâti sa fortune sur l'argent au Moyen Âge et a un temps rivalisé avec Prague. Ce qu'elle a laissé figure sur la liste de l'UNESCO : la cathédrale gothique Sainte-Barbe, la Cour italienne où l'atelier monétaire royal frappait ses pièces et, dans le faubourg de Sedlec, l'ossuaire que l'on appelle l'église aux ossements.",
+      "La ville est à environ une heure de Prague : c'est l'excursion qui tient dans une matinée ou un après-midi libre. Vous pouvez partir après le petit-déjeuner et rentrer pour un déjeuner tardif, ou partir après le déjeuner et revenir pour le dîner.",
+      "En voiture, vous évitez aussi la partie la moins pratique du voyage en train : l'ossuaire et la vieille ville sont distants d'environ trois kilomètres, aux deux extrémités de la ville."
+    ]
+  },
+  "features": {
+    "label": "La journée",
+    "headingLine1": "À quoi ressemble une demi-journée",
+    "headingItalic": "à Kutná Hora.",
+    "items": [
+      {
+        "title": "L'ossuaire de Sedlec",
+        "body": "Une petite chapelle décorée avec les ossements de quelque 40 000 personnes, dont un lustre et un blason. La visite dure environ une demi-heure. Les billets sont vendus sur place et la photographie à l'intérieur est soumise à des restrictions."
+      },
+      {
+        "title": "La cathédrale Sainte-Barbe",
+        "body": "L'une des grandes églises gothiques d'Europe centrale, commencée en 1388 et financée par les mineurs. Longez la terrasse qui borde le collège des Jésuites pour la vue sur la vallée."
+      },
+      {
+        "title": "Deux quartiers, une seule voiture",
+        "body": "Sedlec et le centre historique sont distants d'environ trois kilomètres. Mentionnez les deux à la réservation, afin que le trajet entre eux fasse partie du programme."
+      },
+      {
+        "title": "Le matin ou l'après-midi",
+        "body": "Comme le trajet est court, l'excursion se fait très bien en une demi-journée. Choisissez l'heure de départ qui s'accorde avec vos projets à Prague."
+      },
+      {
+        "title": "Un seul prix pour la voiture",
+        "body": "{dayKutnaE} € en E-Class (jusqu'à 3 passagers), {dayKutnaV} € en V-Class (jusqu'à 6) et {dayKutnaS} € en S-Class. Le prix s'entend pour la voiture, non par personne, et couvre l'aller, l'attente et le retour."
+      },
+      {
+        "title": "Sièges enfant sans supplément",
+        "body": "Les sièges bébé, les sièges enfant et les rehausseurs sont gratuits. Indiquez-nous l'âge des enfants à la réservation et les sièges adaptés seront installés avant la prise en charge."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Comment ça fonctionne",
+    "heading": "Réserver une excursion en quatre étapes.",
+    "items": [
+      {
+        "title": "Réservez un aller-retour",
+        "body": "Dans le formulaire de réservation, saisissez votre adresse à Prague et la destination, choisissez un aller-retour et fixez le retour au même jour. Une heure de retour approximative suffit — elle peut être ajustée le jour même."
+      },
+      {
+        "title": "Choisissez la voiture",
+        "body": "E-Class jusqu'à trois personnes, V-Class jusqu'à six personnes avec de la place en plus, S-Class pour une journée de direction. Vous voyez le prix de la voiture entière avant de payer."
+      },
+      {
+        "title": "Rencontrez votre chauffeur",
+        "body": "Vous recevez à l'avance le nom et le numéro de téléphone du chauffeur. Il vient vous chercher à la porte de votre hôtel ou de votre appartement à l'heure convenue."
+      },
+      {
+        "title": "Prenez votre temps",
+        "body": "Le chauffeur attend près du centre pendant votre visite. Appelez-le ou envoyez-lui un message quand vous êtes prêt, et la voiture revient vous chercher."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Bon à savoir",
+    "headingLine1": "Préparer",
+    "headingItalic": "la visite.",
+    "paragraphs": [
+      "La plupart des visiteurs commencent par l'ossuaire, puis voient la cathédrale de l'Assomption juste à côté, avant de rejoindre la vieille ville pour Sainte-Barbe et le déjeuner. Prévoyez trois à quatre heures pour l'ensemble, sans vous presser.",
+      "Les sites sont ouverts toute l'année, avec des horaires réduits en hiver. L'ossuaire est un lieu de sépulture autant qu'un monument : habillez-vous et comportez-vous comme vous le feriez dans une église.",
+      "Votre chauffeur est un conducteur professionnel, pas un guide touristique : il connaît la route, sait où vous déposer et où attendre, mais il n'assure pas de visites guidées. Les billets d'entrée, les repas et les visites guidées ne sont pas compris dans le prix. Si vous souhaitez un guide local agréé, réservez-le pour les heures que vous prévoyez de passer sur place et nous calons le trajet en fonction."
+    ]
+  },
+  "faqsHeading": "Questions sur l'excursion à Kutná Hora",
+  "faqs": [
+    {
+      "q": "Combien coûte un aller-retour privé de Prague à Kutná Hora ?",
+      "a": "{dayKutnaE} € en E-Class (jusqu'à 3 passagers), {dayKutnaV} € en V-Class (jusqu'à 6) et {dayKutnaS} € en S-Class. C'est le prix de la voiture entière pour une excursion de jour, aller-retour, avec le chauffeur qui attend pendant votre visite. Le carburant et les péages d'autoroute sont inclus. Le tarif exact pour votre date s'affiche dans le formulaire de réservation avant le paiement."
+    },
+    {
+      "q": "Combien de temps dure l'excursion ?",
+      "a": "Environ cinq à six heures au total : une heure dans chaque sens et trois à quatre heures à Kutná Hora. Elle tient sans peine dans une matinée ou un après-midi."
+    },
+    {
+      "q": "Le chauffeur attend-il et nous ramène-t-il le jour même ?",
+      "a": "Oui. C'est le principe même d'une excursion à la journée : la même voiture et le même chauffeur vous y conduisent, attendent près du centre et vous ramènent à votre adresse à Prague. Vous n'avez ni taxi ni train à chercher pour le retour."
+    },
+    {
+      "q": "Un guide ou des billets d'entrée sont-ils inclus ?",
+      "a": "Non. Le prix couvre la voiture et le chauffeur. Les billets et les visites guidées se réservent séparément, et le chauffeur ne fait pas office de guide. Nous organisons volontiers la journée autour d'un guide ou d'un créneau de billets que vous avez réservé."
+    },
+    {
+      "q": "La voiture nous conduira-t-elle de l'église aux ossements à la vieille ville ?",
+      "a": "Oui, si cela fait partie de la réservation. Sedlec et la vieille ville sont distants d'environ trois kilomètres : dites-nous que vous souhaitez voir les deux et nous intégrons le trajet entre eux au programme confirmé."
+    },
+    {
+      "q": "Combien de personnes peuvent voyager dans une voiture ?",
+      "a": "Jusqu'à trois passagers en E-Class ou en S-Class et jusqu'à six en V-Class. Les groupes plus nombreux voyagent dans deux voitures ou plus. Les sièges enfant sont gratuits dans toutes les catégories."
+    }
+  ],
+  "related": {
+    "label": "À voir aussi",
+    "heading": "D'autres façons de passer une journée.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "Toutes les excursions privées",
+        "body": "Quatre excursions depuis Prague côte à côte, avec les temps de trajet et les prix par voiture."
+      },
+      {
+        "href": "/routes/prague-kutna-hora",
+        "title": "Aller simple pour Kutná Hora",
+        "body": "Vous poursuivez votre voyage depuis Kutná Hora ? Réservez le transfert en aller simple."
+      },
+      {
+        "href": "/services/cesky-krumlov-day-trip",
+        "title": "Excursion à Český Krumlov",
+        "body": "La ville et son château dans un méandre de la Vltava, avec le chauffeur qui attend pendant votre visite."
+      },
+      {
+        "href": "/services/private-driver-prague",
+        "title": "Chauffeur privé à l'heure",
+        "body": "Gardez la voiture à Prague pour quelques heures ou pour une journée entière, avec les arrêts de votre choix."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Kutná Hora aller-retour, avant la fin de la journée.",
+    "headingItalic": "À partir de {dayKutnaE} € pour la voiture."
+  }
+}
