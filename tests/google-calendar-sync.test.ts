@@ -3,13 +3,25 @@ import { generateKeyPairSync } from 'crypto'
 
 // ── vi.hoisted stubs ─────────────────────────────────────────────────────────
 
-const { mockMaybeSingle } = vi.hoisted(() => ({ mockMaybeSingle: vi.fn() }))
+const { mockMaybeSingle, mockSelect, mockLoadStopsSafe } = vi.hoisted(() => ({
+  mockMaybeSingle: vi.fn(),
+  mockSelect: vi.fn(),
+  mockLoadStopsSafe: vi.fn(),
+}))
 
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => ({
-    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: mockMaybeSingle }) }) }),
+    from: () => ({
+      select: (cols: string) => {
+        mockSelect(cols)
+        return { eq: () => ({ maybeSingle: mockMaybeSingle }) }
+      },
+    }),
   })),
 }))
+
+// Phase 91-14: the stops of a booking come through one loader.
+vi.mock('@/lib/booking-stops', () => ({ loadStopsSafe: mockLoadStopsSafe }))
 
 import {
   buildCalendarEvent,
@@ -65,6 +77,9 @@ beforeEach(() => {
   vi.stubEnv('GOOGLE_CALENDAR_SA_KEY', PEM.replace(/\n/g, '\\n'))
   vi.stubEnv('GCAL_SYNC_SECRET', 'test-secret')
   mockMaybeSingle.mockReset()
+  mockSelect.mockReset()
+  mockLoadStopsSafe.mockReset()
+  mockLoadStopsSafe.mockResolvedValue([])
   responder = () => new Response('{}', { status: 200 })
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
     const call = { url, method: init?.method ?? 'GET', body: init?.body?.toString() }
@@ -111,6 +126,28 @@ describe('calendar event helpers', () => {
     expect(ev.description).toContain('Driver: Petr (accepted)')
     expect(ev.description).not.toContain('null')
     expect(ev.colorId).toBeUndefined()
+  })
+
+  it('adds the landing and every stop with its wait to the description (STOP-04, STOP-05)', () => {
+    const ev = buildCalendarEvent({
+      ...BOOKING,
+      landing: { date: '2026-10-05', time: '14:00', offsetMin: 30 },
+      stops: [
+        { position: 1, address: 'Karlovy Vary', waitMinutes: 45 },
+        { position: 2, address: 'Plzen', waitMinutes: 0 },
+      ],
+    })
+    expect(ev.description).toContain('Landing 14:00 (pickup +30 min)')
+    expect(ev.description).toContain('Stop 1: Karlovy Vary (wait 45 min)')
+    expect(ev.description).toContain('Stop 2: Plzen')
+    expect(ev.description).not.toContain('Stop 2: Plzen (wait')
+  })
+
+  it('leaves the description unchanged without a landing and stops', () => {
+    const plain = buildCalendarEvent({ ...BOOKING })
+    expect(buildCalendarEvent({ ...BOOKING, landing: null, stops: [] }).description).toBe(plain.description)
+    expect(plain.description).not.toContain('Landing')
+    expect(plain.description).not.toContain('Stop 1')
   })
 
   it('prefixes GNet bookings with GNet', () => {
@@ -165,6 +202,46 @@ describe('syncBookingToCalendar', () => {
     })
     await syncBookingToCalendar(BOOKING_ID)
     expect(JSON.parse(apiCalls()[0].body!).description).toContain('Driver: Petr (awaiting acceptance)')
+  })
+
+  it('selects the landing columns and puts the landing and the stops into the event (STOP-04, STOP-05)', async () => {
+    mockMaybeSingle.mockResolvedValue({
+      data: { ...BOOKING, landing_date: '2026-10-05', landing_time: '09:30', pickup_offset_min: 30 },
+      error: null,
+    })
+    mockLoadStopsSafe.mockResolvedValue([
+      { position: 1, address: 'Karlovy Vary', lat: 50.2, lng: 12.8, waitMinutes: 45, freeMinutes: 15, blocks: 2, feePerBlockEur: 12, feeEur: 24 },
+    ])
+    expect(await syncBookingToCalendar(BOOKING_ID)).toEqual({ action: 'upserted' })
+    const cols = mockSelect.mock.calls[0][0] as string
+    expect(cols).toContain('landing_date')
+    expect(cols).toContain('landing_time')
+    expect(cols).toContain('pickup_offset_min')
+    expect(mockLoadStopsSafe).toHaveBeenCalledWith(BOOKING_ID)
+    const description = JSON.parse(apiCalls()[0].body!).description as string
+    expect(description).toContain('Landing 09:30 (pickup +30 min)')
+    expect(description).toContain('Stop 1: Karlovy Vary (wait 45 min)')
+  })
+
+  it('a booking without a landing and stops syncs a description without those lines', async () => {
+    mockMaybeSingle.mockResolvedValue({ data: BOOKING, error: null })
+    await syncBookingToCalendar(BOOKING_ID)
+    const description = JSON.parse(apiCalls()[0].body!).description as string
+    expect(description).not.toContain('Landing')
+    expect(description).not.toContain('Stop 1')
+  })
+
+  it('a stops read that fails still syncs the event', async () => {
+    mockMaybeSingle.mockResolvedValue({ data: BOOKING, error: null })
+    mockLoadStopsSafe.mockRejectedValue(new Error('boom'))
+    expect(await syncBookingToCalendar(BOOKING_ID)).toEqual({ action: 'upserted' })
+    expect(apiCalls()[0].method).toBe('PUT')
+  })
+
+  it('does not read the stops for an event that is deleted', async () => {
+    mockMaybeSingle.mockResolvedValue({ data: { ...BOOKING, status: 'cancelled' }, error: null })
+    await syncBookingToCalendar(BOOKING_ID)
+    expect(mockLoadStopsSafe).not.toHaveBeenCalled()
   })
 
   it.each(['cancelled', 'pending', 'unpaid'])('deletes the event when status is %s', async (status) => {

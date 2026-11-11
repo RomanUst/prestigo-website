@@ -59,7 +59,7 @@ export async function POST(
   // 5b. Verify booking exists and get trip details for email (blocking — required for email)
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
-    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source, amount_eur, amount_czk, driver_price_czk, special_requests')
+    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source, amount_eur, amount_czk, driver_price_czk, special_requests, landing_date, landing_time, pickup_offset_min')
     .eq('id', bookingId)
     .single()
 
@@ -186,6 +186,11 @@ export async function POST(
         passengerPhone: booking.client_phone,
         driverPriceCzk: (booking.driver_price_czk as number | null) ?? null,
         specialRequests: booking.special_requests,
+        // Phase 91 (STOP-04, STOP-05): the email reads the stored stops by id and shows the landing and pickup rows.
+        bookingId: booking.id as string,
+        landingDate: (booking.landing_date as string | null) ?? null,
+        landingTime: (booking.landing_time as string | null) ?? null,
+        pickupOffsetMin: (booking.pickup_offset_min as number | null) ?? null,
         acceptUrl,
         declineUrl,
         tripUrl,

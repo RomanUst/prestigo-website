@@ -334,6 +334,35 @@ describe('/api/webhooks/stripe', () => {
       const arg = (sendClientConfirmation as ReturnType<typeof vi.fn>).mock.calls[0][0]
       expect(arg.email).toBe('jan@example.com')
     })
+
+    it('Phase 91-14: a landing booking passes bookingId and the landing fields to the client and manager emails', async () => {
+      stripeStub.constructEvent.mockReturnValue({
+        type: 'payment_intent.succeeded',
+        data: {
+          object: {
+            ...mockPaymentIntent,
+            metadata: { ...mockPaymentIntent.metadata, landingDate: '2027-06-10', landingTime: '14:00', pickupOffsetMin: '30' },
+          },
+        },
+      })
+      await POST(makeRequest())
+      for (const sender of [sendClientConfirmation, sendManagerAlert]) {
+        const arg = (sender as ReturnType<typeof vi.fn>).mock.calls[0][0]
+        expect(arg.bookingId).toBe('new-booking-uuid')
+        expect(arg.landingDate).toBe('2027-06-10')
+        expect(arg.landingTime).toBe('14:00')
+        expect(arg.pickupOffsetMin).toBe(30)
+      }
+    })
+
+    it('Phase 91-14: a booking without landing keeps the landing fields undefined but still passes bookingId', async () => {
+      await POST(makeRequest())
+      const arg = (sendClientConfirmation as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(arg.bookingId).toBe('new-booking-uuid')
+      expect(arg.landingDate).toBeUndefined()
+      expect(arg.landingTime).toBeUndefined()
+      expect(arg.pickupOffsetMin).toBeUndefined()
+    })
   })
 
   describe('BACK-03: Manager alert email sent', () => {

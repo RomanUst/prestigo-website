@@ -85,6 +85,10 @@ vi.mock('@/lib/rate-limit', () => ({
 
 vi.mock('@/lib/email-log', () => ({ logEmail: logEmailStub }))
 
+// Phase 91-14: the stored stops are read through one loader; the table itself is not part of this mock.
+const { loadStopsSafeMock } = vi.hoisted(() => ({ loadStopsSafeMock: vi.fn() }))
+vi.mock('@/lib/booking-stops', () => ({ loadStopsSafe: loadStopsSafeMock }))
+
 vi.mock('resend', () => ({
   Resend: function MockResend() {
     return { emails: { send: sendStub } }
@@ -179,6 +183,7 @@ beforeEach(() => {
   state.joinSelects = []
   logEmailStub.mockResolvedValue(true)
   sendStub.mockResolvedValue({ data: { id: 'em_1' }, error: null })
+  loadStopsSafeMock.mockResolvedValue([])
 })
 
 afterEach(() => {
@@ -525,5 +530,70 @@ describe('87-15 accept email content', () => {
   it('never contains a client price label', () => {
     const html = buildDriverAcceptedEmailHtml(FULL_ACCEPT)
     expect(html).not.toMatch(/Total|Amount|Price Paid/i)
+  })
+})
+
+// ─── Phase 91-14: landing, pickup and stops (STOP-04, STOP-05) ───────────────
+
+const STORED_STOP = {
+  position: 1,
+  address: 'Karlovy Vary',
+  lat: 50.23,
+  lng: 12.87,
+  waitMinutes: 45,
+  freeMinutes: 15,
+  blocks: 2,
+  feePerBlockEur: 12,
+  feeEur: 24,
+}
+
+describe('91-14 driver emails show landing, pickup and the stops', () => {
+  it('accept: the join selects the landing columns and the email shows landing, pickup and the stop with its wait, no waiting amount', async () => {
+    state.joinRow = joinRow({}, { landing_date: '2026-05-01', landing_time: '09:30', pickup_offset_min: 30 })
+    loadStopsSafeMock.mockResolvedValue([STORED_STOP])
+    await accept()
+    expect(state.joinSelects[0]).toContain('landing_time')
+    expect(loadStopsSafeMock).toHaveBeenCalledWith(bookingId)
+    const html: string = sendStub.mock.calls[0][0].html
+    expect(html).toContain('>Landing</td>')
+    expect(html).toContain('09:30')
+    expect(html).toContain('>Pickup</td>')
+    expect(html).toContain('10:00')
+    expect(html).toContain('>Stop 1</td>')
+    expect(html).toContain('Karlovy Vary (wait 45 min)')
+    expect(html).not.toContain('Waiting at stops')
+    expect(html).not.toContain('€24')
+  })
+
+  it('accept: a stops read that fails still sends the email without stop rows', async () => {
+    loadStopsSafeMock.mockRejectedValue(new Error('boom'))
+    await accept()
+    expect(sendStub).toHaveBeenCalledTimes(1)
+    expect(sendStub.mock.calls[0][0].html).not.toContain('>Stop 1</td>')
+  })
+
+  it('assignment: bookingId, landing and one stop add the rows to TRIP DETAILS, still no amount', async () => {
+    loadStopsSafeMock.mockResolvedValue([STORED_STOP])
+    sendStub.mockClear()
+    await sendDriverAssignmentEmail({
+      ...BASE_ASSIGNMENT,
+      bookingId,
+      landingDate: '2026-04-15',
+      landingTime: '13:30',
+      pickupOffsetMin: 30,
+    })
+    const html: string = sendStub.mock.calls[0][0].html
+    expect(html).toContain('>Landing</td>')
+    expect(html).toContain('13:30')
+    expect(html).toContain('>Stop 1</td>')
+    expect(html).toContain('wait 45 min')
+    expect(html).not.toContain('Waiting at stops')
+    expect(html).not.toContain('€24')
+  })
+
+  it('assignment with a bookingId but no stops and no landing is still the golden HTML', async () => {
+    sendStub.mockClear()
+    await sendDriverAssignmentEmail({ ...BASE_ASSIGNMENT, bookingId })
+    expect(sendStub.mock.calls[0][0].html).toBe(goldenAssignment.full)
   })
 })
