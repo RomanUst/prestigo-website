@@ -2,6 +2,9 @@ import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
+import { loadStopsSafe } from '@/lib/booking-stops'
+import { waitingTotalEur } from '@/lib/stops'
+import { pickupFromLanding } from '@/lib/airport-pickup'
 
 // D-11 (Phase 77-02): every customer-facing transactional email replies to the
 // bookings@ Chatwoot inbox, so a customer reply becomes an operator-visible
@@ -71,6 +74,15 @@ export interface BookingEmailData {
    * and then the email is byte-identical to the one sent before Phase 89.
    */
   policyBlockHtml?: string
+  /**
+   * Phase 91 (STOP-04, STOP-05): the booking id lets the send functions read the stored stops, and the landing fields
+   * add the airport landing and pickup rows. All optional: without them the email is byte-identical to the one sent
+   * before Phase 91.
+   */
+  bookingId?: string
+  landingDate?: string
+  landingTime?: string
+  pickupOffsetMin?: number
 }
 
 /** Escape user-supplied strings before embedding in HTML */
@@ -94,6 +106,95 @@ function formatPickupDate(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number)
   const date = new Date(year, month - 1, day)
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+// ── Trip route rows (Phase 91, STOP-04 / STOP-05) ───────────────────────────
+// The stops of a booking, their waiting and the airport landing / pickup, rendered the same way in the client
+// confirmation, the status email, the driver emails and (as plain lines) the manager alert.
+
+export interface EmailTripRoute {
+  landing: { date: string; time: string; offsetMin: number } | null
+  stops: Array<{ position: number; address: string | null; waitMinutes: number; feeEur: number }>
+}
+
+const LANDING_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const LANDING_TIME_RE = /^\d{2}:\d{2}$/
+
+/** What a send function needs to find the route of a booking: the id for the stops, the three landing values. */
+interface EmailRouteSource {
+  bookingId?: string | null
+  landingDate?: string | null
+  landingTime?: string | null
+  pickupOffsetMin?: number | null
+}
+
+/**
+ * The route of a booking for an email: the stored stops (read through loadStopsSafe, so a failed read gives no stops
+ * and never blocks the message) plus the landing when all three landing values are present and well formed.
+ */
+async function loadEmailTripRoute(source: EmailRouteSource): Promise<EmailTripRoute> {
+  let stops: EmailTripRoute['stops'] = []
+  if (source.bookingId) {
+    try {
+      stops = (await loadStopsSafe(source.bookingId)).map((s) => ({
+        position: s.position,
+        address: s.address,
+        waitMinutes: s.waitMinutes,
+        feeEur: s.feeEur,
+      }))
+    } catch {
+      stops = []
+    }
+  }
+  const { landingDate, landingTime, pickupOffsetMin } = source
+  const landing =
+    landingDate &&
+    landingTime &&
+    LANDING_DATE_RE.test(landingDate) &&
+    LANDING_TIME_RE.test(landingTime) &&
+    typeof pickupOffsetMin === 'number' &&
+    Number.isFinite(pickupOffsetMin)
+      ? { date: landingDate, time: landingTime, offsetMin: pickupOffsetMin }
+      : null
+  return { landing, stops }
+}
+
+/** "Landing" / "Pickup" values for a route with a landing; the pickup is null when the landing does not parse. */
+function landingPickupText(landing: NonNullable<EmailTripRoute['landing']>): { landing: string; pickup: string | null } {
+  const derived = pickupFromLanding(landing.date, landing.time, landing.offsetMin)
+  const pickup = derived
+    ? derived.pickupDate === landing.date
+      ? derived.pickupTime
+      : `${formatPickupDate(derived.pickupDate)} at ${derived.pickupTime}`
+    : null
+  return { landing: `${formatPickupDate(landing.date)} at ${landing.time}`, pickup }
+}
+
+function stopWaitText(waitMinutes: number): string {
+  return waitMinutes > 0 ? ` (wait ${waitMinutes} min)` : ''
+}
+
+/**
+ * Table rows for the landing, the pickup after landing, each stop with its wait and (client variant only) the waiting
+ * charge. '' when there is no landing and no stop, so a booking without them renders exactly as before. Every user
+ * value is HTML-escaped. The driver variant never shows an amount.
+ */
+export function tripRouteRowsHtml(route: EmailTripRoute, variant: 'client' | 'driver'): string {
+  const rows: string[] = []
+  if (route.landing) {
+    const text = landingPickupText(route.landing)
+    rows.push(driverTripRow('Landing', escapeHtml(text.landing)))
+    if (text.pickup) rows.push(driverTripRow('Pickup', escapeHtml(text.pickup)))
+  }
+  for (const stop of route.stops) {
+    const where = stop.address ? escapeHtml(stop.address) : 'Pinned on the map'
+    rows.push(driverTripRow(`Stop ${stop.position}`, `${where}${escapeHtml(stopWaitText(stop.waitMinutes))}`))
+  }
+  if (variant === 'client') {
+    const waiting = waitingTotalEur(route.stops)
+    if (waiting > 0) rows.push(driverTripRow('Waiting at stops', escapeHtml(formatEUR(waiting)), 600))
+  }
+  return rows.join('\n          ')
 }
 
 export function buildGoogleCalendarUrl(data: BookingEmailData): string {
@@ -1232,6 +1333,10 @@ interface StatusEmailBooking {
    * lib/payments/emails/policy-block.ts from the booking row. Read only by sendStatusConfirmedEmail.
    */
   policyBlockHtml?: string
+  /** Phase 91 (STOP-05): the airport landing kept beside the pickup. Read only by sendStatusConfirmedEmail. */
+  landing_date?: string | null
+  landing_time?: string | null
+  pickup_offset_min?: number | null
 }
 
 function buildStatusEmailHtml(
@@ -1239,6 +1344,7 @@ function buildStatusEmailHtml(
   heading: string,
   closingLine: string,
   policyBlockHtml = '',
+  routeRowsHtml = '',
 ): string {
   const formattedDate = formatPickupDate(booking.pickup_date)
   const route = booking.destination_address
@@ -1289,7 +1395,7 @@ function buildStatusEmailHtml(
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formattedDate} at ${escapeHtml(booking.pickup_time)}</td>
-          </tr>
+          </tr>${routeRowsHtml ? `\n          ${routeRowsHtml}` : ''}
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
@@ -1334,12 +1440,25 @@ function buildStatusEmailHtml(
 
 export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Promise<void> {
   try {
+    // Phase 91: stops, waiting and landing / pickup of the booking; no rows (and a byte-identical email) without them.
+    const route = await loadEmailTripRoute({
+      bookingId: booking.id,
+      landingDate: booking.landing_date,
+      landingTime: booking.landing_time,
+      pickupOffsetMin: booking.pickup_offset_min,
+    })
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
       replyTo: CUSTOMER_REPLY_TO,
       subject: `Your booking ${booking.booking_reference} is confirmed — Prestigo`,
-      html: buildStatusEmailHtml(booking, 'Booking Confirmed', 'We look forward to your trip.', booking.policyBlockHtml),
+      html: buildStatusEmailHtml(
+        booking,
+        'Booking Confirmed',
+        'We look forward to your trip.',
+        booking.policyBlockHtml,
+        tripRouteRowsHtml(route, 'client'),
+      ),
     })
     if (error) console.error('[booking-notify] confirmed email error:', error)
   } catch (err) {
