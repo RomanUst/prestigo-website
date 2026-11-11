@@ -34,6 +34,7 @@ vi.mock('@/lib/payments/stripe', async (importOriginal) => ({
 }))
 
 import { POST } from '@/app/api/card-checkout/intent/route'
+import { checkoutBookingSchema, priceCheckout, validateCheckoutBooking } from '@/lib/checkout/compute'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
 import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 import { computeCombinedTotalMinor, computeOutboundLegTotal } from '@/lib/server-pricing'
@@ -246,5 +247,125 @@ describe('tracer: the card checkout prices one stop on the server route distance
     expect(stale.status).toBe(409)
     expect(stale.body).toMatchObject({ code: 'POLICY_CHANGED' })
     expect((stale.body.policy as { hours: number }).hours).toBe(12)
+  })
+})
+
+describe('ROUTING_UNAVAILABLE: Google routing down fails closed (D-17, T-91-13)', () => {
+  it('the intent route answers 503 ROUTING_UNAVAILABLE, writes nothing and never prices the tampered 1 km', async () => {
+    routeDistanceMock.mockResolvedValue({ ok: false, reason: 'timeout' })
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    // The browser even shows the (cheap) amount of its own 1 km: a fallback to it would let the booking through.
+    const out = await call(body(1, 0, { stops: [STOP_KV] }))
+    expect(out.status).toBe(503)
+    expect(out.body).toMatchObject({ code: 'ROUTING_UNAVAILABLE' })
+    expectNoWrites()
+    // Logs carry the reason code only: no address, no coordinates.
+    const logged = JSON.stringify(errSpy.mock.calls)
+    expect(logged).not.toContain('Karlovy')
+    expect(logged).not.toContain('50.2319')
+    expect(logged).not.toContain('50.0755')
+    errSpy.mockRestore()
+  })
+})
+
+describe('WAITING_NOT_AVAILABLE: a class without a waiting rate (D-05)', () => {
+  it('a stop waiting 45 minutes on first_class answers 422 and nothing is stored', async () => {
+    const out = await call(body(130, 0, { vehicleClass: 'first_class', stops: [STOP_KV] }))
+    expect(out.status).toBe(422)
+    expect(out.body).toMatchObject({ code: 'WAITING_NOT_AVAILABLE' })
+    expect(routeDistanceMock).not.toHaveBeenCalled() // refused before spending routing quota
+    expectNoWrites()
+  })
+
+  it('the same stop waiting only the free 15 minutes is priced with a waiting fee of 0', async () => {
+    const bd = bookingData({ vehicleClass: 'first_class', stops: [{ ...STOP_KV, waitMinutes: 15 }] })
+    const parsed = checkoutBookingSchema.parse({ bookingData: bd })
+    const validated = validateCheckoutBooking(parsed.bookingData)
+    if (!validated.ok) throw new Error(validated.code)
+    const priced = await priceCheckout({ bookingData: parsed.bookingData, validated, currency: 'eur' })
+    expect(priced.ok).toBe(true)
+    if (!priced.ok) return
+    expect(priced.waitingFeeEur).toBe(0)
+    expect(priced.stops).toHaveLength(1)
+    expect(priced.stops[0]).toMatchObject({ waitMinutes: 15, blocks: 0, feeEur: 0 })
+  })
+})
+
+describe('stop validation (STOP-01, T-91-14)', () => {
+  const six = Array.from({ length: 6 }, (_, i) => ({ address: `Stop ${i}`, lat: 50 + i / 100, lng: 14, waitMinutes: 0 }))
+
+  it.each([
+    ['six stops', { stops: six }],
+    ['a wait of 20 minutes (not a 15-minute step)', { stops: [{ ...STOP_KV, waitMinutes: 20 }] }],
+    ['a wait of 135 minutes (above 120)', { stops: [{ ...STOP_KV, waitMinutes: 135 }] }],
+    ['an address with a line break', { stops: [{ ...STOP_KV, address: 'Karlovy\nVary' }] }],
+    ['a 501-character address', { stops: [{ ...STOP_KV, address: 'a'.repeat(501) }] }],
+    ['a stop without lng', { stops: [{ address: 'Karlovy Vary', lat: 50.23, waitMinutes: 0 }] }],
+    ['a stop with an unknown key', { stops: [{ ...STOP_KV, extra: 'x' }] }],
+    ['a latitude out of range', { stops: [{ ...STOP_KV, lat: 91 }] }],
+  ])('%s -> 400 INVALID_REQUEST, no routing call, no write', async (_name, data) => {
+    const out = await call(body(130, 0, data))
+    expect(out.status).toBe(400)
+    expect(out.body).toMatchObject({ code: 'INVALID_REQUEST' })
+    expect(routeDistanceMock).not.toHaveBeenCalled()
+    expectNoWrites()
+  })
+
+  it('a transfer without originLat -> 400 INVALID_REQUEST "Invalid coordinates"', async () => {
+    const out = await call(body(130, 0, { originLat: undefined }))
+    expect(out.status).toBe(400)
+    expect(out.body).toMatchObject({ code: 'INVALID_REQUEST', error: 'Invalid coordinates' })
+    expect(routeDistanceMock).not.toHaveBeenCalled()
+    expectNoWrites()
+  })
+
+  it('hourly with a stop -> 400 STOPS_NOT_ALLOWED through the intent route', async () => {
+    const out = await call(body(130, 0, { tripType: 'hourly', hours: '3', stops: [{ ...STOP_KV, waitMinutes: 0 }] }))
+    expect(out.status).toBe(400)
+    expect(out.body).toMatchObject({ code: 'STOPS_NOT_ALLOWED' })
+    expectNoWrites()
+  })
+
+  it.each(['round_trip', 'hourly', 'daily'])('validateCheckoutBooking: %s with one stop -> 400 STOPS_NOT_ALLOWED', (tripType) => {
+    const parsed = checkoutBookingSchema.parse({
+      bookingData: bookingData({
+        tripType,
+        returnDate: '2027-01-18',
+        returnTime: '10:00',
+        stops: [{ ...STOP_KV, waitMinutes: 0 }],
+      }),
+    })
+    const result = validateCheckoutBooking(parsed.bookingData)
+    expect(result).toMatchObject({ ok: false, status: 400, code: 'STOPS_NOT_ALLOWED' })
+  })
+})
+
+describe('hourly and daily checkouts are untouched (no routing, same amounts as before the phase)', () => {
+  async function priceDirect(data: Record<string, unknown>) {
+    const parsed = checkoutBookingSchema.parse({ bookingData: bookingData(data) })
+    const validated = validateCheckoutBooking(parsed.bookingData)
+    if (!validated.ok) throw new Error(validated.code)
+    const priced = await priceCheckout({ bookingData: parsed.bookingData, validated, currency: 'eur' })
+    if (!priced.ok) throw new Error(priced.code)
+    return priced
+  }
+
+  it('hourly: computeRouteDistance is never called and the leg equals the hourly price', async () => {
+    const priced = await priceDirect({ tripType: 'hourly', hours: '3' })
+    expect(routeDistanceMock).not.toHaveBeenCalled()
+    expect(priced.distanceKm).toBeNull()
+    expect(priced.waitingFeeEur).toBe(0)
+    expect(priced.outboundLegEur).toBe(
+      computeOutboundLegTotal('business', null, 3, 1, 'hourly', '2027-01-16', '10:00', false, PRICING),
+    )
+  })
+
+  it('daily: computeRouteDistance is never called and the leg equals the daily price', async () => {
+    const priced = await priceDirect({ tripType: 'daily', returnDate: '2027-01-19' })
+    expect(routeDistanceMock).not.toHaveBeenCalled()
+    expect(priced.distanceKm).toBeNull()
+    expect(priced.outboundLegEur).toBe(
+      computeOutboundLegTotal('business', null, 2, 3, 'daily', '2027-01-16', '10:00', false, PRICING),
+    )
   })
 })
