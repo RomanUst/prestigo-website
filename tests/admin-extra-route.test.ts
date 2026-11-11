@@ -216,3 +216,197 @@ describe('guards before the business rules', () => {
     expect(charges()).toHaveLength(0)
   })
 })
+
+describe('D-13 / strict schemas: what the body may carry', () => {
+  const valid = { kind: 'other', description: 'Airport parking', amount_minor: 1500 }
+
+  it('amount_minor 1 and 99 999 999 are accepted', async () => {
+    expect((await post({ ...valid, amount_minor: 1 })).status).toBe(200)
+    seed()
+    expect((await post({ ...valid, amount_minor: 99_999_999 })).status).toBe(200)
+  })
+
+  it('amount_minor 0, -100, 12.5, 100 000 000 and a string are 400', async () => {
+    for (const amount_minor of [0, -100, 12.5, 100_000_000, '1500']) {
+      expect((await post({ ...valid, amount_minor })).status).toBe(400)
+    }
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(charges()).toHaveLength(0)
+  })
+
+  it('a description of 2 or 201 characters, blank, or with a line break is 400', async () => {
+    for (const description of ['ab', 'x'.repeat(201), '   ', 'two\nlines', 'tab\there', 'sep arated']) {
+      expect((await post({ ...valid, description })).status).toBe(400)
+    }
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('a currency, a booking id or any unknown key in the body is 400 (the currency comes from the booking row)', async () => {
+    expect((await post({ ...valid, currency: 'czk' })).status).toBe(400)
+    expect((await post({ ...valid, booking_id: ID })).status).toBe(400)
+    expect((await post({ ...valid, whatever: 1 })).status).toBe(400)
+    expect((await post({ kind: 'waiting', minutes: 30, expected_amount_minor: 1000, currency: 'czk' })).status).toBe(400)
+    expect((await post({ kind: 'unknown' })).status).toBe(400)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('the description is trimmed before it is stored', async () => {
+    await post({ ...valid, description: '  Airport parking  ' })
+    expect(charges()[0].description).toBe('Airport parking')
+  })
+})
+
+describe('GET ?minutes=N: the waiting amount the operator confirms (D-16)', () => {
+  it('business EUR at rate 12.5, 45 minutes -> 3800, 3 blocks, no-store', async () => {
+    mockWaitingRate.value = { business: 12.5 }
+    const res = await get('?minutes=45')
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+    expect(await res.json()).toEqual({ amount_minor: 3800, currency: 'eur', blocks: 3, rate_per_block_eur: 12.5 })
+  })
+
+  it('a CZK booking: eurToCzk(38) x 100', async () => {
+    const { eurToCzk } = await import('@/lib/currency')
+    seed({ payment_currency: 'czk' })
+    mockWaitingRate.value = { business: 12.5 }
+    const res = await get('?minutes=45')
+    expect(await res.json()).toMatchObject({ amount_minor: eurToCzk(38) * 100, currency: 'czk', blocks: 3 })
+  })
+
+  it('a class without a rate answers 422 waiting_rate_missing', async () => {
+    seed({ vehicle_class: 'first_class' })
+    mockWaitingRate.value = { business: 12.5 }
+    const res = await get('?minutes=30')
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'waiting_rate_missing' })
+  })
+
+  it('minutes 0, 481, abc, 1.5 and missing are 400', async () => {
+    mockWaitingRate.value = { business: 12.5 }
+    for (const q of ['?minutes=0', '?minutes=481', '?minutes=abc', '?minutes=1.5', '']) {
+      expect((await get(q)).status).toBe(400)
+    }
+  })
+
+  it('an ineligible booking answers 422 action_not_allowed with the reason; a bad id is 400; unknown is 404', async () => {
+    mockWaitingRate.value = { business: 12.5 }
+    row().booking_source = 'gnet'
+    const res = await get('?minutes=30')
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed', reason: 'partner' })
+    expect((await get('?minutes=30', 'nope')).status).toBe(400)
+    expect((await get('?minutes=30', '88888888-8888-4888-8888-888888888888')).status).toBe(404)
+  })
+})
+
+describe('POST waiting, decline, busy and resume over HTTP', () => {
+  it('waiting with the stated amount is charged and the row keeps minutes, blocks and the rate', async () => {
+    mockWaitingRate.value = { business: 12.5 }
+    const res = await post({ kind: 'waiting', minutes: 45, expected_amount_minor: 3800 })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ outcome: 'charged', amount_minor: 3800, currency: 'eur' })
+    expect(charges()[0]).toMatchObject({ kind: 'waiting', minutes: 45, blocks: 3, rate_per_block_eur: 12.5 })
+  })
+
+  it('a stated amount that differs answers 409 amount_changed with the server amount; nothing is written', async () => {
+    mockWaitingRate.value = { business: 12.5 }
+    const res = await post({ kind: 'waiting', minutes: 45, expected_amount_minor: 3700 })
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'amount_changed', amount_minor: 3800 })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(ledger()).toHaveLength(0)
+    expect(charges()).toHaveLength(0)
+  })
+
+  it('a class without a rate answers 422 waiting_rate_missing', async () => {
+    seed({ vehicle_class: 'first_class' })
+    const res = await post({ kind: 'waiting', minutes: 30, expected_amount_minor: 2500 })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'waiting_rate_missing' })
+  })
+
+  it('a decline answers 200 declined with the code and sends no email', async () => {
+    seed({ stripe_payment_method_id: 'pm_decline_insufficient' })
+    const res = await post({ kind: 'other', description: 'Parking', amount_minor: 900 })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ outcome: 'declined', charge_id: expect.any(String), code: 'insufficient_funds' })
+    expect(mockSendEmail).not.toHaveBeenCalled()
+    expect(charges()[0].status).toBe('failed')
+  })
+
+  it('transient -> 409 payment_busy; a new POST while charging -> 409; resume before the lease -> 409; after the lease -> charged', async () => {
+    fake.failNextWith('paymentIntents.create', 'connection')
+    const first = await post({ kind: 'other', description: 'Parking', amount_minor: 900 })
+    expect(first.status).toBe(409)
+    expect(await first.json()).toEqual({ error: 'payment_busy' })
+    const chargeId = charges()[0].id as string
+
+    const again = await post({ kind: 'other', description: 'Parking', amount_minor: 900 })
+    expect(again.status).toBe(409)
+    expect(await again.json()).toEqual({ error: 'payment_busy' })
+
+    const early = await post({ kind: 'resume', charge_id: chargeId })
+    expect(early.status).toBe(409)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+
+    charges()[0].updated_at = new Date(Date.now() - 11 * 60_000).toISOString()
+    const late = await post({ kind: 'resume', charge_id: chargeId })
+    expect(late.status).toBe(200)
+    expect(await late.json()).toEqual({ outcome: 'charged', charge_id: chargeId, amount_minor: 900, currency: 'eur' })
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates).toHaveLength(2)
+    expect(creates[1].idempotencyKey).toBe(`extra:${chargeId}:1`)
+    expect(charges()).toHaveLength(1)
+  })
+
+  it('resume with a malformed charge id or an extra key is 400; of an unknown charge is 422', async () => {
+    expect((await post({ kind: 'resume', charge_id: 'nope' })).status).toBe(400)
+    expect((await post({ kind: 'resume', charge_id: ID, amount_minor: 5 })).status).toBe(400)
+    expect((await post({ kind: 'resume', charge_id: '00000000-0000-4000-8000-0000000000ff' })).status).toBe(422)
+  })
+
+  it('a GNet booking is refused 422 partner on POST and nothing is charged', async () => {
+    row().booking_source = 'gnet'
+    const res = await post({ kind: 'other', description: 'Parking', amount_minor: 900 })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed', reason: 'partner' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('an old consent answers 422 consent_not_covered', async () => {
+    seed({}, '2026-11-2')
+    const res = await post({ kind: 'other', description: 'Parking', amount_minor: 900 })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed', reason: 'consent_not_covered' })
+  })
+
+  it('an engine failure answers 500 Payment action failed with no description in the log', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const original = world.db
+    world.db = {
+      client: {
+        from: (t: string) => {
+          if (t === 'booking_extra_charges' && db.state.booking_extra_charges.length === 0) {
+            // the context read works; the insert is what blows up
+            const real = original!.client.from(t) as Record<string, unknown>
+            return new Proxy(real, {
+              get(target, prop) {
+                if (prop === 'insert') return () => { throw new Error('boom with Secret errand') }
+                const v = target[prop as string]
+                return typeof v === 'function' ? (v as (...a: unknown[]) => unknown).bind(target) : v
+              },
+            })
+          }
+          return original!.client.from(t)
+        },
+        rpc: (n: string, a?: Record<string, unknown>) => original!.client.rpc(n, a),
+      },
+    }
+    const res = await post({ kind: 'other', description: 'Secret errand', amount_minor: 900 })
+    expect(res.status).toBe(500)
+    expect(await res.json()).toEqual({ error: 'Payment action failed' })
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('Secret errand')
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    spy.mockRestore()
+  })
+})

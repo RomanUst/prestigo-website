@@ -24,6 +24,7 @@
 import { randomUUID } from 'node:crypto'
 import type Stripe from 'stripe'
 import { isPartnerBooking } from '@/lib/booking-status'
+import { LEASE_SECONDS } from '@/lib/payments/config'
 import { consentCoversExtras } from '@/lib/payments/consent-text'
 import { sendPaymentEmail } from '@/lib/payments/emails/send'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
@@ -35,6 +36,8 @@ import {
   stripeErrorCode,
   stripeKeys,
 } from '@/lib/payments/stripe'
+import { getPricingConfig } from '@/lib/pricing-config'
+import { extraWaitingAmountMinor, extraWaitingBlocks } from '@/lib/stops'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 
 type BookingRow = Record<string, unknown>
@@ -42,7 +45,12 @@ type BookingRow = Record<string, unknown>
 const TABLE = 'booking_extra_charges'
 /** Stripe's technical ceiling for one amount in minor units (8 digits). The only upper bound of an 'other' amount (D-13). */
 export const EXTRA_AMOUNT_CEILING_MINOR = 99_999_999
+/** Minutes of one waiting extra: 1 minute .. 8 hours (the table CHECK). */
+export const EXTRA_MINUTES_MIN = 1
+export const EXTRA_MINUTES_MAX = 480
 const RECENT_CHARGES = 20
+/** A charging row nobody can still be working under: the engine lease (lib/payments/config.ts) covers the longest Stripe chain. */
+const EXTRA_LEASE_MS = LEASE_SECONDS * 1000
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export type ExtraCurrency = 'eur' | 'czk'
@@ -64,6 +72,8 @@ export interface ExtraChargeRow {
   last_error_code: string | null
   requested_at: string
   charged_at: string | null
+  /** Bumped when the row is taken over by a resume: the lease is measured from it. */
+  updated_at?: string
 }
 
 export interface ExtraContext {
@@ -387,7 +397,7 @@ export async function runExtraCharge(input: {
   const checked = await guard(booking, { ignoreInFlight: false })
   if (!checked.ok) return checked.result
 
-  if (request.kind !== 'other') return { status: 422, error: 'action_not_allowed' }
+  if (request.kind === 'waiting') return runWaiting(booking, request, currency, actor)
 
   // D-13: no business cap, only a positive integer within Stripe's ceiling. The amount is taken as typed, never re-rounded.
   const description = request.description.trim()
@@ -418,6 +428,109 @@ export async function runExtraCharge(input: {
     charged_at: null,
   }
   return openAndCollect(booking, charge, actor)
+}
+
+/**
+ * D-16: the waiting amount the operator will confirm. ceil(minutes / 15) blocks of the booking class's admin rate, no free
+ * deduction, rounded to whole EUR once and converted to the booking's payment currency (the currency comes from the row, never
+ * from a request). A class without an admin rate answers waiting_rate_missing (paid waiting is not offered).
+ */
+export async function previewWaitingExtra(
+  booking: BookingRow,
+  minutes: number,
+): Promise<
+  | { ok: true; amountMinor: number; currency: ExtraCurrency; blocks: number; ratePerBlockEur: number }
+  | { ok: false; error: 'waiting_rate_missing' | 'action_not_allowed' }
+> {
+  const currency = currencyOf(booking.payment_currency)
+  if (!currency || isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })) {
+    return { ok: false, error: 'action_not_allowed' }
+  }
+  if (!Number.isInteger(minutes) || minutes < EXTRA_MINUTES_MIN || minutes > EXTRA_MINUTES_MAX) {
+    return { ok: false, error: 'action_not_allowed' }
+  }
+  const rate = (await getPricingConfig()).waitingRate?.[str(booking.vehicle_class)]
+  if (typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0) return { ok: false, error: 'waiting_rate_missing' }
+
+  const amountMinor = extraWaitingAmountMinor(minutes, rate, currency)
+  // A positive rate that rounds to nothing is no rate an operator can bill.
+  if (!isMinor(amountMinor)) return { ok: false, error: 'waiting_rate_missing' }
+  return { ok: true, amountMinor, currency, blocks: extraWaitingBlocks(minutes), ratePerBlockEur: rate }
+}
+
+/** The waiting path: the server's amount must equal the one the operator saw (D-10), checked before any write. */
+async function runWaiting(
+  booking: BookingRow,
+  request: Extract<ExtraRequest, { kind: 'waiting' }>,
+  currency: ExtraCurrency,
+  actor: LedgerActor,
+): Promise<ExtraChargeResult> {
+  const preview = await previewWaitingExtra(booking, request.minutes)
+  if (!preview.ok) return { status: 422, error: preview.error }
+  if (preview.amountMinor !== request.expectedAmountMinor) {
+    return { status: 409, error: 'amount_changed', amountMinor: preview.amountMinor }
+  }
+  const charge: ExtraChargeRow = {
+    id: randomUUID(),
+    booking_id: str(booking.id),
+    kind: 'waiting',
+    status: 'charging',
+    currency,
+    amount_minor: preview.amountMinor,
+    minutes: request.minutes,
+    blocks: preview.blocks,
+    rate_per_block_eur: preview.ratePerBlockEur,
+    description: null,
+    attempt: 1,
+    stripe_payment_intent_id: null,
+    last_error_code: null,
+    requested_at: new Date().toISOString(),
+    charged_at: null,
+  }
+  return openAndCollect(booking, charge, actor)
+}
+
+/**
+ * Replay a charge whose Stripe answer was lost (a transient error left the row charging). Allowed only once the engine lease
+ * has passed since the row was created or last taken over; the replay uses the SAME key and the SAME amount, so Stripe
+ * returns the original result and nothing can be charged twice. Never automatic: it is the operator's second click.
+ */
+export async function resumeExtraCharge(input: {
+  booking: BookingRow
+  chargeId: string
+  actor: LedgerActor
+}): Promise<ExtraChargeResult> {
+  const { booking, chargeId, actor } = input
+  const bookingId = str(booking.id)
+  if (!bookingId) return { status: 422, error: 'action_not_allowed' }
+
+  // The row being resumed is the in-flight one, so it must not count against the booking here.
+  const checked = await guard(booking, { ignoreInFlight: true })
+  if (!checked.ok) return checked.result
+
+  const db = createSupabaseServiceClient()
+  const { data, error } = await db.from(TABLE).select('*').eq('id', chargeId).eq('booking_id', bookingId).maybeSingle()
+  if (error) throw new Error('extra charge lookup failed')
+  const charge = (data as ExtraChargeRow | null) ?? null
+  if (!charge || charge.status !== 'charging') return { status: 422, error: 'action_not_allowed' }
+
+  const lastTouched = charge.updated_at ?? charge.requested_at
+  if (!(Date.now() - Date.parse(lastTouched) >= EXTRA_LEASE_MS)) return { status: 409, error: 'payment_busy' }
+
+  await recordClick(bookingId, 'extra_resume', charge.amount_minor, charge.currency, actor)
+
+  // Take the row over: conditional on the timestamp we read, so two clicks resume once and the other answers busy.
+  const taken = await db
+    .from(TABLE)
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', chargeId)
+    .eq('status', 'charging')
+    .eq('updated_at', lastTouched)
+    .select('id')
+  if (taken.error) throw new Error('extra charge take-over failed')
+  if (!Array.isArray(taken.data) || taken.data.length === 0) return { status: 409, error: 'payment_busy' }
+
+  return collect(booking, charge, actor)
 }
 
 /** Record the click, take the one-charging-row lock by inserting the row, then charge. */

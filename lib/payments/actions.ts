@@ -36,6 +36,8 @@ export type FeeRouteAction =
   | 'reopen_cash'
   | 'close_refunded'
   | 'open_fee_case'
+  // Phase 91: executed by POST /api/admin/bookings/[id]/extra (lib/payments/extra.ts); a display name here, type only.
+  | 'charge_extra'
 export type PaymentAction = ExecutablePaymentAction | FeeRouteAction
 
 export type PaymentActionResult =

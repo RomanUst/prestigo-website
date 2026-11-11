@@ -5,8 +5,12 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import {
   EXTRA_AMOUNT_CEILING_MINOR,
+  EXTRA_MINUTES_MAX,
+  EXTRA_MINUTES_MIN,
   isExtraChargeEligible,
   loadExtraContext,
+  previewWaitingExtra,
+  resumeExtraCharge,
   runExtraCharge,
   type ExtraChargeResult,
   type ExtraRequest,
@@ -18,6 +22,7 @@ import type { LedgerActor } from '@/lib/payments/state'
 //   GET  ?minutes=N                                                   the waiting amount the operator will confirm
 //   POST { kind: 'waiting', minutes, expected_amount_minor }          charge ceil(minutes / 15) blocks of the class rate
 //   POST { kind: 'other', description, amount_minor }                 charge an agreed amount (no business cap, D-13)
+//   POST { kind: 'resume', charge_id }                                replay a charge whose Stripe answer was lost (after the lease)
 //   -> 200 { outcome: 'charged', charge_id, amount_minor, currency } | 200 { outcome: 'declined', charge_id, code }
 //      | 409 { error: 'payment_busy' | 'amount_changed', amount_minor? } | 422 { error: 'action_not_allowed', reason? | 'waiting_rate_missing' }
 //
@@ -51,6 +56,7 @@ const bodySchema = z.discriminatedUnion('kind', [
     description: z.string().trim().min(3).max(200).refine(isSingleLine, 'single line'),
     amount_minor: z.number().int().min(1).max(EXTRA_AMOUNT_CEILING_MINOR),
   }),
+  z.strictObject({ kind: z.literal('resume'), charge_id: z.string().uuid() }),
 ])
 
 type ExtraBody = z.infer<typeof bodySchema>
@@ -84,13 +90,15 @@ function respond(result: ExtraChargeResult): NextResponse {
   return NextResponse.json({ error: result.error }, { status: 422 })
 }
 
-function toRequest(body: ExtraBody): ExtraRequest {
+function toRequest(body: Exclude<ExtraBody, { kind: 'resume' }>): ExtraRequest {
   return body.kind === 'waiting'
     ? { kind: 'waiting', minutes: body.minutes, expectedAmountMinor: body.expected_amount_minor }
     : { kind: 'other', description: body.description, amountMinor: body.amount_minor }
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const noStore = { 'Cache-Control': 'no-store' }
+
   // Admin guard first (T-91-25): nothing about the booking is read before it.
   const { user, error } = await getAdminUser()
   if (error === '401') return unauthorized()
@@ -101,10 +109,36 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (!idSchema.safeParse(bookingId).success) {
     return NextResponse.json({ error: 'Invalid booking id' }, { status: 400 })
   }
-  void request
+  const rawMinutes = new URL(request.url).searchParams.get('minutes') ?? ''
+  const minutes = /^\d{1,3}$/.test(rawMinutes) ? Number(rawMinutes) : NaN
+  if (!Number.isInteger(minutes) || minutes < EXTRA_MINUTES_MIN || minutes > EXTRA_MINUTES_MAX) {
+    return NextResponse.json({ error: 'Invalid minutes' }, { status: 400 })
+  }
 
-  // The waiting preview arrives with the waiting amount (plan 91-08, task 2).
-  return NextResponse.json({ error: 'action_not_allowed' }, { status: 422, headers: { 'Cache-Control': 'no-store' } })
+  const { booking, failed } = await loadBooking(bookingId)
+  if (failed) return NextResponse.json({ error: 'Failed to load booking' }, { status: 500 })
+  if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+
+  try {
+    const verdict = isExtraChargeEligible(booking, await loadExtraContext(bookingId))
+    if (!verdict.ok) {
+      return NextResponse.json({ error: 'action_not_allowed', reason: verdict.reason }, { status: 422, headers: noStore })
+    }
+    const preview = await previewWaitingExtra(booking, minutes)
+    if (!preview.ok) return NextResponse.json({ error: preview.error }, { status: 422, headers: noStore })
+    return NextResponse.json(
+      {
+        amount_minor: preview.amountMinor,
+        currency: preview.currency,
+        blocks: preview.blocks,
+        rate_per_block_eur: preview.ratePerBlockEur,
+      },
+      { headers: noStore },
+    )
+  } catch {
+    console.error('[admin/bookings/[id]/extra] preview failed', { bookingId })
+    return NextResponse.json({ error: 'Payment action failed' }, { status: 500, headers: noStore })
+  }
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -157,11 +191,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   // log: never the operator's description, a name or a provider message.
   try {
     const ctx = await loadExtraContext(bookingId)
-    const verdict = isExtraChargeEligible(booking, ctx)
+    // A resume is the second click on the row that is charging: that row must not count against the booking here.
+    const verdict = isExtraChargeEligible(booking, body.kind === 'resume' ? { ...ctx, inFlight: null } : ctx)
     if (!verdict.ok) {
       if (verdict.reason === 'in_flight') return NextResponse.json({ error: 'payment_busy' }, { status: 409 })
       return NextResponse.json({ error: 'action_not_allowed', reason: verdict.reason }, { status: 422 })
     }
+    if (body.kind === 'resume') return respond(await resumeExtraCharge({ booking, chargeId: body.charge_id, actor }))
     return respond(await runExtraCharge({ booking, request: toRequest(body), actor }))
   } catch {
     console.error('[admin/bookings/[id]/extra] action failed', { bookingId, kind: body.kind })
