@@ -419,7 +419,38 @@ Plans:
   4. Stops, waiting times and the landing/pickup times are saved with the booking and visible in admin, on the driver trip page and in the confirmation email.
   5. The operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates and recorded in the payment ledger; it is never offered for GNet bookings.
 
-**Plans**: TBD
+**Plans**: 17 plans
+
+Plans:
+**Wave 1**
+- [ ] 91-01-PLAN.md — Migration 089 (booking_stops, landing columns, waiting rate, booking_extra_charges, ledger kinds, erasure copies), fake DB, live apply by the orchestrator
+- [ ] 91-02-PLAN.md — Server quote through stops: route-distance module, waiting fee rules, per-class waiting in /api/calculate-price, no flat per-stop fee (security)
+- [ ] 91-05-PLAN.md — Consent wording covers extras (version 2026-11-3, gate function) and the extra_charged receipt email in 7 locales
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 91-03-PLAN.md — Owner sets waiting rates per class in admin; public /api/waiting-config of offered classes
+- [ ] 91-04-PLAN.md — Checkout recomputes distance, airport and waiting on the server; client distance ignored; fail closed (security)
+- [ ] 91-08-PLAN.md — Extra-charge engine, admin extra route and card_extra webhook routing (security)
+- [ ] 91-17-PLAN.md — Wizard copy for stops, waiting and the airport landing in 7 locales (split out of 91-09 / 91-10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 91-06-PLAN.md — Stops saved with the booking in card, cash and pay-now flows (replace-all, pay-now fail closed)
+- [ ] 91-07-PLAN.md — Airport landing + offset derived and validated on the server, stored with the pickup (DST-safe)
+- [ ] 91-09-PLAN.md — Wizard: waiting per stop priced and shown as its own summary line, offered options, reorder
+- [ ] 91-11-PLAN.md — Operator "Add extra charge…" modal in the booking panel
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 91-10-PLAN.md — Wizard airport landing + offset; both checkout bodies send stops and landing; Step 6 waiting line
+- [ ] 91-12-PLAN.md — Admin panel Route section (landing, pickup, stops, waiting); trip-edit guards (stops repricing, landing / pickup consistency)
+- [ ] 91-13-PLAN.md — Driver trip page (landing, pickup, free waiting until, stops) and maps through stops
+- [ ] 91-14-PLAN.md — Confirmation, driver and manager emails and the ops calendar show landing and stops
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 91-15-PLAN.md — Operator moves the pickup after a flight delay (D-08 / D-11)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 91-16-PLAN.md — Phase integration test, full gate, owner live proofs (rates, canary booking, 1 EUR extra)
+
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix. Closes the current gap where `distanceKm` is trusted from the client, and adds an operator-initiated off-session charge.
 **Research before planning**: Google Routes `computeRoutes` behaviour with many intermediates (cap the stop count, keep the Essentials SKU), airport detection, and the waiting-fee policy.
