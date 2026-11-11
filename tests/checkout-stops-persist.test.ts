@@ -206,3 +206,95 @@ describe('tracer: a card checkout with one stop stores that stop on the captured
     ])
   })
 })
+
+describe('retries and confirmed bookings (Pitfall 5, T-91-19)', () => {
+  it('retry: the same attemptId re-posted with two stops then one stop leaves exactly the second request stop', async () => {
+    const first = await call(body(24, { stops: [STOP_KV, STOP_PLZEN] }))
+    expect(first.status).toBe(200)
+    expect(stopRows()).toHaveLength(2)
+
+    const second = await call(body(0, { stops: [STOP_PLZEN] }))
+    expect(second.status).toBe(200)
+    expect(bookings()).toHaveLength(1)
+    expect(stopRows()).toHaveLength(1)
+    expect(stopRows()[0]).toMatchObject({ booking_id: bookings()[0].id, position: 1, address: 'Plzen', wait_minutes: 15, fee_eur: 0 })
+  })
+
+  it('retry without stops clears the stops of the earlier attempt', async () => {
+    await call(body(24, { stops: [STOP_KV] }))
+    expect(stopRows()).toHaveLength(1)
+    const again = await call(body(0))
+    expect(again.status).toBe(200)
+    expect(stopRows()).toHaveLength(0)
+  })
+
+  it('confirmed: a re-post for a booking that is no longer unpaid neither deletes nor inserts stops', async () => {
+    await call(body(24, { stops: [STOP_KV, STOP_PLZEN] }))
+    const before = JSON.stringify(stopRows())
+    bookings()[0].status = 'confirmed'
+
+    const again = await call(body(0, { stops: [STOP_PLZEN] }))
+    expect(again.status).toBe(200)
+    expect(JSON.stringify(stopRows())).toBe(before)
+  })
+
+  it('confirmed (lost race): the row leaves unpaid between the lookup and the capture, so stops stay as they were', async () => {
+    await call(body(24, { stops: [STOP_KV] }))
+    const before = JSON.stringify(stopRows())
+    // The lookup (first bookings read) still sees an unpaid row; the capture (second read) sees it confirmed.
+    let bookingReads = 0
+    const real = db.client
+    dbHolder.client = {
+      rpc: real.rpc,
+      from: (table: string) => {
+        if (table === 'bookings') {
+          bookingReads += 1
+          if (bookingReads === 2) bookings()[0].status = 'confirmed'
+        }
+        return real.from(table)
+      },
+    }
+    const again = await call(body(0, { stops: [STOP_PLZEN] }))
+    expect(again.status).toBe(200)
+    expect(bookingReads).toBeGreaterThanOrEqual(2)
+    expect(JSON.stringify(stopRows())).toBe(before)
+  })
+
+  it('a save error propagates: the route answers its 500 and no client secret leaves', async () => {
+    const real = db.client
+    dbHolder.client = {
+      rpc: real.rpc,
+      from: (table: string) => {
+        if (table === 'booking_stops') {
+          const q: unknown = new Proxy(function () {}, {
+            get(_t, prop) {
+              if (prop === 'then') {
+                return (res: (v: unknown) => unknown) => Promise.resolve({ data: null, error: { message: 'boom Karlovy Vary' } }).then(res)
+              }
+              return () => q
+            },
+          })
+          return q
+        }
+        return real.from(table)
+      },
+    }
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const out = await call(body(24, { stops: [STOP_KV] }))
+    expect(out.status).toBe(500)
+    expect(out.body.clientSecret).toBeUndefined()
+    expect(fake.calls).toHaveLength(0)
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('Karlovy')
+    spy.mockRestore()
+  })
+})
+
+describe('cash flow (payment cash) stores stops as well', () => {
+  it('cash: one stop leaves one row on the cash_guarantee booking', async () => {
+    const out = await call(body(24, { stops: [STOP_KV] }, { payment: 'cash' }))
+    expect(out.status).toBe(200)
+    expect(bookings()[0]).toMatchObject({ status: 'unpaid', payment_mode: 'cash_guarantee' })
+    expect(stopRows()).toHaveLength(1)
+    expect(stopRows()[0]).toMatchObject({ booking_id: bookings()[0].id, position: 1, blocks: 2, fee_eur: 24 })
+  })
+})
