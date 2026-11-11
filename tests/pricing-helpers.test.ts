@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { roundUpToFive, CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
+import * as pricingHelpers from '@/lib/pricing-helpers'
+import { roundUpToFive, CHILD_SEAT_PRICE } from '@/lib/pricing-helpers'
 
 describe('lib/pricing-helpers', () => {
   describe('roundUpToFive', () => {
@@ -31,8 +32,8 @@ describe('lib/pricing-helpers', () => {
       expect(CHILD_SEAT_PRICE).toBe(15)
     })
 
-    it('EXTRA_STOP_PRICE is 20', () => {
-      expect(EXTRA_STOP_PRICE).toBe(20)
+    it('D-02: the flat per-stop price no longer exists', () => {
+      expect('EXTRA_STOP_PRICE' in pricingHelpers).toBe(false)
     })
   })
 })

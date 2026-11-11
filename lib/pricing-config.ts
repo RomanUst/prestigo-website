@@ -23,6 +23,9 @@ export type PricingRates = {
   dailyRate: Record<string, number>
   globals: PricingGlobals
   minFare: Record<string, number>
+  // Phase 91 (STOP-03): EUR per started 15 minutes of waiting at a stop, per vehicle class. Only classes
+  // with a positive admin rate are present; a class without one does not offer paid waiting (D-05).
+  waitingRate?: Record<string, number>
 }
 
 // Build-time / env-less fallback. Returned only when the Supabase service
@@ -37,6 +40,7 @@ const PRICING_FALLBACK: PricingRates = {
   hourlyRate: HOURLY_FALLBACK as Record<string, number>,
   dailyRate: {},
   minFare: {},
+  waitingRate: {},
   globals: {
     airportFee: 0,
     nightCoefficient: 1,
@@ -72,7 +76,7 @@ export async function getPricingConfig(): Promise<PricingRates> {
   ] = await Promise.all([
     supabase
       .from('pricing_config')
-      .select('vehicle_class, rate_per_km, hourly_rate, daily_rate, min_fare'),
+      .select('vehicle_class, rate_per_km, hourly_rate, daily_rate, min_fare, waiting_rate_per_15min'),
     supabase
       .from('pricing_globals')
       .select('airport_fee, night_coefficient, holiday_coefficient, extra_child_seat, extra_luggage, holiday_dates, return_discount_percent, hourly_min_hours, hourly_max_hours, notification_flags, airport_promo_active, airport_regular_price_eur, airport_promo_price_eur')
@@ -95,6 +99,12 @@ export async function getPricingConfig(): Promise<PricingRates> {
     dailyRate:  Object.fromEntries(data.map(r => [r.vehicle_class, Number(r.daily_rate)])),
     // NUMERIC returned as string by Supabase — must Number() cast
     minFare: Object.fromEntries(data.map(r => [r.vehicle_class, Number(r.min_fare)])),
+    // D-05: a NULL (or zero) rate means paid waiting is not offered for that class.
+    waitingRate: Object.fromEntries(
+      data
+        .map(r => [r.vehicle_class, Number(r.waiting_rate_per_15min)] as const)
+        .filter(([, rate]) => Number.isFinite(rate) && rate > 0),
+    ),
     globals: {
       airportFee:          Number(globals.airport_fee),
       nightCoefficient:    Number(globals.night_coefficient),

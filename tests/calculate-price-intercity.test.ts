@@ -204,7 +204,7 @@ describe('/api/calculate-price — intercity (CALC-05, CALC-07)', () => {
     expect(json.prices.business.extras).toBeGreaterThanOrEqual(30)
   })
 
-  it('extraStops=3 adds €60 to extras', async () => {
+  it('D-02: the old extraStops field is ignored (no flat fee per stop)', async () => {
     findRouteMock.mockResolvedValue(mockedRoute)
 
     const res = await POST(makeRequest({
@@ -220,8 +220,8 @@ describe('/api/calculate-price — intercity (CALC-05, CALC-07)', () => {
 
     expect(res.status).toBe(200)
     const json = await res.json()
-    // extraStops=3 → extras >= €60
-    expect(json.prices.business.extras).toBeGreaterThanOrEqual(60)
+    expect(json.prices.business.extras).toBe(0)
+    expect(json.prices.business.total).toBe(json.prices.business.base)
   })
 
   it('roundUpToFive rounds fare to nearest €5 upward', async () => {
