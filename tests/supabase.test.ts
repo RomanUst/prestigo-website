@@ -256,4 +256,45 @@ describe('lib/supabase — round-trip', () => {
       expect(row.leg).toBe('outbound')
     })
   })
+
+  describe('landing columns (Phase 91 STOP-05, D-18)', () => {
+    const LANDING_META = { landingDate: '2026-04-15', landingTime: '13:30', pickupOffsetMin: '30' }
+
+    it('buildBookingRow maps landing_date, landing_time and a numeric pickup_offset_min next to the pickup', () => {
+      const row = buildBookingRow({ ...BASE_META, tripType: 'transfer', ...LANDING_META }, 'pi_l', 'confirmed')
+      expect(row).toMatchObject({
+        landing_date: '2026-04-15',
+        landing_time: '13:30',
+        pickup_offset_min: 30,
+        pickup_date: '2026-04-15',
+        pickup_time: '14:00',
+      })
+    })
+
+    it('buildBookingRow without landing meta -> the three columns are null', () => {
+      const row = buildBookingRow({ ...BASE_META, tripType: 'transfer' }, 'pi_l', 'confirmed')
+      expect(row.landing_date).toBeNull()
+      expect(row.landing_time).toBeNull()
+      expect(row.pickup_offset_min).toBeNull()
+    })
+
+    it('buildBookingRow never writes the generated pickup_utc column', () => {
+      const row = buildBookingRow({ ...BASE_META, tripType: 'transfer', ...LANDING_META }, 'pi_l', 'confirmed')
+      expect(row).not.toHaveProperty('pickup_utc')
+    })
+
+    it('a pickup_offset_min of 0 is stored as 0 (not null)', () => {
+      const row = buildBookingRow({ ...BASE_META, tripType: 'transfer', ...LANDING_META, pickupOffsetMin: '0' }, 'pi_l', 'confirmed')
+      expect(row.pickup_offset_min).toBe(0)
+    })
+
+    it('buildBookingRows: the outbound row keeps the landing, the return row has the three columns null', () => {
+      const { outbound, return: ret } = buildBookingRows({ ...BASE_META, ...LANDING_META }, 'pi_l')
+      expect(outbound).toMatchObject({ landing_date: '2026-04-15', landing_time: '13:30', pickup_offset_min: 30 })
+      expect(ret.landing_date).toBeNull()
+      expect(ret.landing_time).toBeNull()
+      expect(ret.pickup_offset_min).toBeNull()
+      expect(ret.pickup_date).toBe('2026-04-17')
+    })
+  })
 })
