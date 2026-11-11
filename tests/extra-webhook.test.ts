@@ -226,13 +226,13 @@ describe('classification: card_extra routes like a fee', () => {
 })
 
 describe('payment_intent.succeeded on an extra PaymentIntent', () => {
-  it('a row still charging (the synchronous answer was lost): one observation, row charged, extra_charged once, one receipt', async () => {
+  it('a row still charging (the synchronous answer was lost): row charged, extra_charged once, one receipt', async () => {
     seedCharge()
     const { status } = await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_s1'))
     expect(status).toBe(200)
 
-    expect(ledger('charge_succeeded')).toHaveLength(1)
-    expect(ledger('charge_succeeded')[0].event_key).toBe('charge_succeeded:pi_extra_1')
+    // WR-03: the extra's only ledger row is extra_charged (no generic charge_succeeded observation)
+    expect(ledger('charge_succeeded')).toHaveLength(0)
     expect(ledger('extra_charged')).toHaveLength(1)
     expect(ledger('extra_charged')[0]).toMatchObject({
       event_key: `extra_charged:${CHARGE_ID}`,
@@ -265,7 +265,7 @@ describe('payment_intent.succeeded on an extra PaymentIntent', () => {
     expect(mockSendEmail).toHaveBeenCalledTimes(1)
   })
 
-  it('a row already charged by the synchronous path: only the observation, no second extra_charged, no second email', async () => {
+  it('a row already charged by the synchronous path: no second extra_charged, no second email', async () => {
     seedCharge({ status: 'charged', stripe_payment_intent_id: 'pi_extra_1', charged_at: new Date().toISOString() })
     db.state.booking_payment_events.push({
       id: 900,
@@ -281,7 +281,7 @@ describe('payment_intent.succeeded on an extra PaymentIntent', () => {
       created_at: new Date().toISOString(),
     })
     await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_s3'))
-    expect(ledger('charge_succeeded')).toHaveLength(1)
+    expect(ledger('charge_succeeded')).toHaveLength(0)
     expect(ledger('extra_charged')).toHaveLength(1)
     expect(mockSendEmail).not.toHaveBeenCalled()
   })
@@ -303,7 +303,7 @@ describe('payment_intent.succeeded on an extra PaymentIntent', () => {
     expect(mockSendEmail).not.toHaveBeenCalled()
   })
 
-  it('an event for an unknown charge id, or without extraChargeId, only leaves the observation', async () => {
+  it('an event for an unknown charge id, or without extraChargeId, changes nothing (logged with ids only)', async () => {
     seedCharge()
     const unknown = extraPi({ metadata: { ...extraPi().metadata, extraChargeId: '44444444-4444-4444-8444-444444444444' } })
     await deliver(eventOf('payment_intent.succeeded', unknown, 'evt_u1'))
@@ -311,7 +311,7 @@ describe('payment_intent.succeeded on an extra PaymentIntent', () => {
     await deliver(eventOf('payment_intent.succeeded', noId, 'evt_u2'))
     expect(ledger('extra_charged')).toHaveLength(0)
     expect(chargeRow().status).toBe('charging')
-    expect(ledger('charge_succeeded')).toHaveLength(2)
+    expect(ledger()).toHaveLength(0)
   })
 })
 
@@ -355,13 +355,11 @@ describe('CR-01: a PaymentIntent that succeeds after its row was recorded as fai
 })
 
 describe('payment_intent.payment_failed on an extra PaymentIntent', () => {
-  it('adds an extra_failed_obs observation and marks a charging row failed with extra_failed', async () => {
+  it('marks a charging row failed with extra_failed, the extra\'s only ledger row (no generic charge_failed observation)', async () => {
     seedCharge()
     const { status } = await deliver(eventOf('payment_intent.payment_failed', failedPi(), 'evt_f1'))
     expect(status).toBe(200)
-    const obs = ledger('charge_failed')
-    expect(obs).toHaveLength(1)
-    expect(obs[0]).toMatchObject({ event_key: 'extra_failed_obs:pi_extra_1', error_code: 'insufficient_funds', amount_minor: 1500 })
+    expect(ledger('charge_failed')).toHaveLength(0)
     expect(ledger('extra_failed')).toHaveLength(1)
     expect(ledger('extra_failed')[0]).toMatchObject({ event_key: `extra_failed:${CHARGE_ID}:1`, error_code: 'insufficient_funds' })
     expect(chargeRow()).toMatchObject({ status: 'failed', last_error_code: 'insufficient_funds' })
@@ -418,6 +416,49 @@ describe('payment_intent.payment_failed on an extra PaymentIntent', () => {
     expect(ledger()).toHaveLength(0)
     expect(chargeRow().status).toBe('charging')
     expect(mockHoldFailed).not.toHaveBeenCalled()
+  })
+})
+
+describe('WR-03: one money event is one ledger meaning', () => {
+  it('a card_extra success or failure writes only extra_* rows: no charge_succeeded / charge_failed / difference_failed row the trip and cash logic could read', async () => {
+    seedCharge()
+    await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_w1'))
+    seedCharge({ id: '66666666-6666-4666-8666-666666666666' })
+    await deliver(
+      eventOf(
+        'payment_intent.payment_failed',
+        { ...failedPi('card_declined'), id: 'pi_extra_9', metadata: { ...extraPi().metadata, extraChargeId: '66666666-6666-4666-8666-666666666666' } },
+        'evt_w2',
+      ),
+    )
+    const kinds = ledger().map((e) => e.kind)
+    expect(kinds.length).toBeGreaterThan(0)
+    for (const kind of kinds) expect(['extra_charged', 'extra_failed']).toContain(kind)
+    for (const generic of ['charge_succeeded', 'charge_failed', 'difference_failed']) expect(kinds).not.toContain(generic)
+    // No ledger row carries a generic observation key of the extra PaymentIntents either.
+    const keys = ledger().map((e) => String(e.event_key))
+    expect(keys.some((k) => k.startsWith('charge_succeeded:') || k.startsWith('extra_failed_obs:') || k.startsWith('charge_failed_obs:'))).toBe(false)
+  })
+
+  it('a cash claim that is running while an extra succeeds sees no charge it could adopt as the cash charge', async () => {
+    // settle.chargeSeenSinceClaim reads exactly: a capture_started row, then a later charge_succeeded row with a PaymentIntent.
+    db.state.booking_payment_events.push({
+      id: 800,
+      booking_id: BOOKING_ID,
+      event_key: 'capture_started:1',
+      kind: 'capture_started',
+      stripe_object_id: null,
+      amount_minor: null,
+      currency: null,
+      actor_type: 'system',
+      actor_id: null,
+      error_code: null,
+      created_at: new Date(Date.now() - 1000).toISOString(),
+    })
+    seedCharge()
+    await deliver(eventOf('payment_intent.succeeded', extraPi(), 'evt_w3'))
+    const adoptable = ledger().filter((e) => e.kind === 'charge_succeeded' && typeof e.stripe_object_id === 'string' && e.stripe_object_id !== '')
+    expect(adoptable).toHaveLength(0)
   })
 })
 
