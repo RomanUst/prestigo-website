@@ -6,12 +6,16 @@ import { enforceMaxBody } from '@/lib/request-guards'
 import { allowedPaymentActions, runPaymentAction, toPaymentFacts } from '@/lib/payments/actions'
 import { feeLockIsLive, isMoneyCollected, loadFeeCase, REFUND_RESOLVED, type FeeCaseRow } from '@/lib/payments/fee'
 import { payNowCaseMissing } from '@/lib/payments/fee-reopen'
+import { LEASE_SECONDS } from '@/lib/payments/config'
+import { isExtraChargeEligible, loadExtraContext, type ExtraContext } from '@/lib/payments/extra'
 import { appendPaymentEvent } from '@/lib/payments/state'
 
 // Admin payment API of a card-hold booking (Phase 88, plan 88-15; HOLD-07, PAYF-01), the data source and the action
 // endpoint of components/admin/PaymentPanel.tsx (contract: plan 88-07).
 //
-//   GET   -> { payment, allowed_actions, refund_failed, events, events_total, fee_case, cash }
+//   GET   -> { payment, allowed_actions, refund_failed, events, events_total, fee_case, cash, extra }
+//         (Phase 91-11: allowed_actions also names charge_extra when isExtraChargeEligible says so; extra = { eligible, reason,
+//         in_flight, charges } for the "Add extra charge" dialog and list. It is executed by POST /extra.)
 //         (Phase 89: fee_case = the late-cancel / no-show case with the operator's reason and contact note, cash = the
 //         cash facts and notes of a cash booking. This route is admin-only, so operator text may appear here and nowhere
 //         else: never in the ledger rows above, never on a client page or mail. allowed_actions also names the five
@@ -114,6 +118,44 @@ function toFeeCaseFacts(c: FeeCaseRow) {
   }
 }
 
+/**
+ * The extra charges of the booking as the panel needs them (Phase 91-11, EXTRA-01), built field by field: no Stripe id, no
+ * requester id, no row spill. The description is the operator's text and the client's receipt line, shown here to admins only.
+ * `resumable` mirrors the engine's lease (lib/payments/extra.ts measures it from updated_at, which a resume bumps).
+ */
+function toExtraFacts(booking: Record<string, unknown>, ctx: ExtraContext | null) {
+  if (!ctx) return { eligible: false, reason: null, in_flight: null, charges: [] }
+  const verdict = isExtraChargeEligible(booking, ctx)
+  const inFlight = ctx.inFlight
+  const touched = inFlight ? Date.parse(inFlight.updated_at ?? inFlight.requested_at) : NaN
+  return {
+    eligible: verdict.ok,
+    reason: verdict.ok ? null : verdict.reason,
+    in_flight: inFlight
+      ? {
+          id: inFlight.id,
+          kind: inFlight.kind,
+          amount_minor: inFlight.amount_minor,
+          currency: inFlight.currency,
+          requested_at: inFlight.requested_at,
+          resumable: Number.isFinite(touched) && Date.now() - touched >= LEASE_SECONDS * 1000,
+        }
+      : null,
+    charges: ctx.charges.map((c) => ({
+      id: c.id,
+      kind: c.kind,
+      status: c.status,
+      amount_minor: c.amount_minor,
+      currency: c.currency,
+      minutes: c.minutes ?? null,
+      description: c.description ?? null,
+      requested_at: c.requested_at,
+      charged_at: c.charged_at ?? null,
+      last_error_code: c.last_error_code ?? null,
+    })),
+  }
+}
+
 interface NoteRow {
   kind: string
   note: string
@@ -192,7 +234,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   // Asked separately: a refund failure older than the 100 newest rows must still raise the flag (D-20); a later
   // "refund resolved" row clears it (C-WR-05).
   const isCash = booking.payment_mode === 'cash_guarantee'
-  const [events, refundOpen, feeCase, cash] = await Promise.all([
+  const [events, refundOpen, feeCase, cash, extraCtx] = await Promise.all([
     supabase
       .from('booking_payment_events')
       .select(EVENT_COLUMNS, { count: 'exact' })
@@ -203,6 +245,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     refundFailureOpen(bookingId).catch(() => null),
     loadFeeCase(bookingId).catch(() => undefined),
     isCash ? loadCashFacts(booking, bookingId).catch(() => undefined) : Promise.resolve(null),
+    // Phase 91-11: a failed extras read must not take the whole panel down; it only hides the extra action (null).
+    loadExtraContext(bookingId).catch(() => {
+      console.error('[admin/bookings/[id]/payment] extra context read failed', { bookingId })
+      return null
+    }),
   ])
   if (events.error || refundOpen === null || feeCase === undefined || cash === undefined) {
     console.error('[admin/bookings/[id]/payment] ledger read failed', { bookingId })
@@ -216,14 +263,22 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   // Money WR-02: a cancelled or no-show pay-now row whose case failed to open. Its alert is the marker: any other closed pay-now
   // row was refunded or holds nothing, and offering a fee there would only be noise (money review 2, IN-01).
   const caseMissing = !feeCase && (await payNowCaseMissing(booking))
+  // Phase 91-11 (D-15): the operator's extra charge is offered only when the engine's own eligibility says so.
+  const extra = toExtraFacts(booking, extraCtx)
   return NextResponse.json({
     payment: toPaymentFacts(booking),
-    allowed_actions: [...allowed, ...(closable ? ['close_refunded'] : []), ...(caseMissing ? ['open_fee_case'] : [])],
+    allowed_actions: [
+      ...allowed,
+      ...(closable ? ['close_refunded'] : []),
+      ...(caseMissing ? ['open_fee_case'] : []),
+      ...(extra.eligible ? ['charge_extra'] : []),
+    ],
     refund_failed: refundOpen,
     events: rows.map(toEvent),
     events_total: typeof events.count === 'number' ? events.count : rows.length,
     fee_case: feeCase ? toFeeCaseFacts(feeCase) : null,
     cash,
+    extra,
   })
 }
 
