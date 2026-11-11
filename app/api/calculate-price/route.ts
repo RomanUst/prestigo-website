@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody } from '@/lib/request-guards'
-import { buildPriceMap, dateDiffDays } from '@/lib/pricing'
+import { buildPriceMap, dateDiffDays, VEHICLE_CLASSES } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { createSupabasePublicReadClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
@@ -10,6 +10,14 @@ import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
 import { getRoutePrice, findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
 import { CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
 import { isNearAirport } from '@/lib/airport'
+import { computeRouteDistance } from '@/lib/route-distance'
+import {
+  MAX_STOPS,
+  MAX_STOP_WAIT_MIN,
+  WAIT_BLOCK_MIN,
+  totalWaitingBlocks,
+  waitingFeeEur,
+} from '@/lib/stops'
 // Re-export extracted helpers so legacy consumers (tests/pricing.test.ts)
 // that imported them directly from this route continue to compile. The single
 // source of truth is @/lib/server-pricing; this re-export is a compat shim.
@@ -34,8 +42,17 @@ const calculatePriceSchema = z.object({
     z.object({
       lat: z.number().finite().min(-90).max(90),
       lng: z.number().finite().min(-180).max(180),
+      // STOP-03: minutes the car waits at this stop; the first 15 are free, the rest is billed in blocks.
+      waitMinutes: z
+        .number()
+        .int()
+        .min(0)
+        .max(MAX_STOP_WAIT_MIN)
+        .refine((m) => m % WAIT_BLOCK_MIN === 0)
+        .optional()
+        .default(0),
     })
-  ).max(5).optional().default([]),
+  ).max(MAX_STOPS).optional().default([]),
   // CALC-07: intercity auto-detect fields
   routeSlug: z.string().min(1).max(80).regex(/^[a-z0-9-]+$/).optional(),
   originPlaceId: z.string().min(1).max(200).optional(),
@@ -45,7 +62,7 @@ const calculatePriceSchema = z.object({
   extraStops: z.number().int().min(0).max(5).optional().default(0),
 })
 
-type VehiclePrice = { base: number; extras: number; total: number; currency: string }
+type VehiclePrice = { base: number; extras: number; total: number; currency: string; waitingEur?: number | null }
 
 /**
  * Add childSeats × CHILD_SEAT_PRICE + extraStops × EXTRA_STOP_PRICE to .extras,
@@ -64,6 +81,38 @@ function applyExtrasAndRound(
     out[k] = { base: v.base, extras: newExtras, total: newTotal, currency: v.currency }
   }
   return out
+}
+
+/**
+ * STOP-03: add the paid waiting to base and total of every class and expose it as waitingEur.
+ * A class with no admin rate gets waitingEur null (nothing added) and is listed as unavailable when any
+ * stop waits more than the free 15 minutes. Rounded once for the whole booking.
+ */
+function addWaiting(
+  prices: Record<string, VehiclePrice>,
+  blocks: number,
+  waitingRate: Record<string, number>,
+): { prices: Record<string, VehiclePrice>; unavailable: string[] } {
+  const out: Record<string, VehiclePrice> = {}
+  const unavailable: string[] = []
+  const order = [...VEHICLE_CLASSES, ...Object.keys(prices).filter((k) => !(VEHICLE_CLASSES as string[]).includes(k))]
+  for (const vc of order) {
+    const v = prices[vc]
+    if (!v) continue
+    const rate = waitingRate[vc]
+    let waitingEur: number | null
+    if (blocks === 0) {
+      waitingEur = 0
+    } else if (typeof rate === 'number' && rate > 0) {
+      waitingEur = waitingFeeEur(blocks, rate)
+    } else {
+      waitingEur = null
+      unavailable.push(vc)
+    }
+    const add = waitingEur ?? 0
+    out[vc] = { ...v, base: v.base + add, total: v.total + add, waitingEur }
+  }
+  return { prices: out, unavailable }
 }
 
 /**
@@ -220,62 +269,17 @@ export async function POST(req: Request) {
       }
     }
 
-    // Google Routes API for distance
-    // .replace(/\\n$/, '').trim() defends against Vercel env values that
-    // were saved with a trailing literal "\n" (backslash + n) suffix.
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY?.replace(/\\n$/, '').trim()
-    if (!apiKey) {
-      console.error('GOOGLE_MAPS_API_KEY not configured')
-      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
-    }
-
-    const googleBody: Record<string, unknown> = {
-      origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
-      destination: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } },
-      travelMode: 'DRIVE',
-    }
-
-    // STOP-01: attach waypoints when present. NEVER set optimizeWaypointOrder —
-    // chauffeur routes must follow the client-specified stop order (STATE.md
-    // architectural constraint).
-    if (intermediates && intermediates.length > 0) {
-      googleBody.intermediates = intermediates.map((stop) => ({
-        location: { latLng: { latitude: stop.lat, longitude: stop.lng } },
-      }))
-    }
-
-    const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration',
-        'Referer': 'https://rideprestigo.com',
-      },
-      body: JSON.stringify(googleBody),
+    // Google Routes distance through origin, the client's stops (in order) and destination. The module
+    // never throws; any failure falls back to a manual quote.
+    const routeResult = await computeRouteDistance({
+      origin,
+      destination,
+      intermediates: intermediates.map((stop) => ({ lat: stop.lat, lng: stop.lng })),
     })
-
-    if (!res.ok) {
-      const errBody = await res.text()
-      console.error('Google Routes API error:', res.status, errBody)
+    if (!routeResult.ok) {
       return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
     }
-
-    const data = await res.json()
-    const distanceMeters = data?.routes?.[0]?.distanceMeters
-    if (!distanceMeters) {
-      console.error('No distanceMeters in response, routes:', JSON.stringify(data?.routes))
-      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
-    }
-
-    const distanceKm = distanceMeters / 1000
-
-    // Real drive time (typical traffic) from the same Routes response.
-    // `duration` is a protobuf-style string like "14523s"; parse to minutes.
-    // Falls back to null so the client uses its distance-based estimate.
-    const durationRaw: string | undefined = data?.routes?.[0]?.duration
-    const durationSec = durationRaw ? parseInt(durationRaw.replace(/[^0-9]/g, ''), 10) : NaN
-    const durationMin = Number.isFinite(durationSec) && durationSec > 0 ? Math.round(durationSec / 60) : null
+    const { distanceKm, durationMin } = routeResult
 
     const prices = buildPriceMap('transfer', distanceKm, 0, 0, rates)
     const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
@@ -298,7 +302,16 @@ export async function POST(req: Request) {
       )
     }
 
-    return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices, returnDiscountPercent: discountPct, distanceKm, durationMin, quoteMode: false, matchedRouteSlug: null })
+    const withExtras = applyExtrasAndRound(adjusted, childSeats, extraStops)
+
+    // STOP-03: paid waiting is added AFTER the night, holiday, airport and minimum-fare adjustments, so
+    // none of them changes it (D-14). Only quotes with stops carry waiting fields (D-03).
+    if (intermediates.length > 0) {
+      const { prices: withWaiting, unavailable } = addWaiting(withExtras, totalWaitingBlocks(intermediates), rates.waitingRate ?? {})
+      return NextResponse.json({ prices: withWaiting, returnLegPrices, returnDiscountPercent: discountPct, distanceKm, durationMin, quoteMode: false, matchedRouteSlug: null, waitingUnavailable: unavailable })
+    }
+
+    return NextResponse.json({ prices: withExtras, returnLegPrices, returnDiscountPercent: discountPct, distanceKm, durationMin, quoteMode: false, matchedRouteSlug: null })
   } catch (error) {
     console.error('calculate-price error:', error)
     return NextResponse.json({
