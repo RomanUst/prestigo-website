@@ -104,6 +104,8 @@ export type ExtraChargeResult =
   | { status: 409; error: 'amount_changed'; amountMinor: number }
   | { status: 422; error: 'action_not_allowed' | 'waiting_rate_missing' }
 
+const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
+
 const str = (v: unknown): string => (typeof v === 'string' ? v : '')
 const currencyOf = (v: unknown): ExtraCurrency | null => (v === 'eur' || v === 'czk' ? v : null)
 const isMinor = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v > 0
@@ -531,6 +533,49 @@ export async function resumeExtraCharge(input: {
   if (!Array.isArray(taken.data) || taken.data.length === 0) return { status: 409, error: 'payment_busy' }
 
   return collect(booking, charge, actor)
+}
+
+/**
+ * The webhook witness of an extra PaymentIntent (payment_intent.succeeded / payment_failed with kind card_extra). The same
+ * ledger keys and the same compare-and-set on status charging as the synchronous path, so whichever arrives first wins and
+ * the other changes nothing (no second extra_charged row, no second receipt). The booking's own payment is never touched here.
+ */
+export async function finalizeExtraFromWebhook(
+  bookingId: string,
+  pi: Stripe.PaymentIntent,
+  outcome: 'succeeded' | 'failed',
+): Promise<void> {
+  const chargeId = pi.metadata?.extraChargeId
+  if (!chargeId || !UUID_RE.test(chargeId)) {
+    console.warn('[webhook] card_extra without extraChargeId', { stripeObjectId: pi.id, bookingId })
+    return
+  }
+  const db = createSupabaseServiceClient()
+  const found = await db.from(TABLE).select('*').eq('id', chargeId).eq('booking_id', bookingId).maybeSingle()
+  if (found.error) throw new Error('extra charge lookup failed')
+  const charge = (found.data as ExtraChargeRow | null) ?? null
+  if (!charge) {
+    console.warn('[webhook] card_extra for an unknown charge', { stripeObjectId: pi.id, bookingId, chargeId })
+    return
+  }
+
+  if (outcome === 'succeeded') {
+    if (charge.status === 'failed') {
+      // Money moved on a charge recorded as failed: the record stays as it is, the log (ids only) tells the operator.
+      console.error('[webhook] card_extra succeeded on a failed charge', { stripeObjectId: pi.id, bookingId, chargeId })
+      return
+    }
+    const booked = await db.from('bookings').select('*').eq('id', bookingId).maybeSingle()
+    if (booked.error) throw new Error('extra booking lookup failed')
+    await finishCharged((booked.data as BookingRow | null) ?? { id: bookingId }, charge, pi, WEBHOOK_ACTOR)
+    return
+  }
+
+  // payment_failed: a charge already settled by the synchronous path stays as it is.
+  if (charge.status === 'charged') return
+  const err = pi.last_payment_error
+  const code = (err?.decline_code || err?.code || 'unknown').slice(0, 60)
+  await finishFailed(charge, code, pi.id, WEBHOOK_ACTOR)
 }
 
 /** Record the click, take the one-charging-row lock by inserting the row, then charge. */
