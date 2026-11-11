@@ -12,6 +12,7 @@ const { refreshMock, openHelpPageMock, routeMapProbe } = vi.hoisted(() => ({
       height?: number | string
       onRouteInfo?: (km: number, min: number) => void
       onRouteError?: () => void
+      stops?: ReadonlyArray<{ lat: number; lng: number }>
     },
   },
 }))
@@ -800,6 +801,27 @@ describe('TripScreen: landing, free waiting and stops (Phase 91, STOP-04, STOP-0
     expect(screen.queryByText('Arrival')).not.toBeInTheDocument()
     expect(screen.queryByText(/^Stop \d/)).not.toBeInTheDocument()
     expect(screen.queryByText(/Free waiting until/)).not.toBeInTheDocument()
+  })
+})
+
+describe('TripScreen: map gets the stops (Phase 91, STOP-01)', () => {
+  it('passes the stops that have coordinates to the map, in order', () => {
+    const props = makeProps()
+    props.trip.stops = [
+      { position: 1, address: 'Karlovy Vary', waitMinutes: 45, lat: 50.23, lng: 12.87 },
+      { position: 2, address: 'No coordinates', waitMinutes: 0, lat: null, lng: null },
+      { position: 3, address: 'Plzen', waitMinutes: 0, lat: 49.74, lng: 13.37 },
+    ]
+    render(<TripScreen {...props} />)
+    expect(routeMapProbe.props?.stops).toEqual([
+      { lat: 50.23, lng: 12.87 },
+      { lat: 49.74, lng: 13.37 },
+    ])
+  })
+
+  it('passes an empty stops list for a booking without stops', () => {
+    render(<TripScreen {...makeProps()} />)
+    expect(routeMapProbe.props?.stops ?? []).toEqual([])
   })
 })
 

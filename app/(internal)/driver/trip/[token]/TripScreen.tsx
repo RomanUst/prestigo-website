@@ -584,6 +584,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow, cas
         originAddress={trip.originAddress}
         destinationAddress={trip.destinationAddress}
         distanceKm={trip.distanceKm}
+        stops={trip.stops}
       />
 
       <section
