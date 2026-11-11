@@ -61,6 +61,16 @@
       "minuteAria": "دقيقة الانطلاق",
       "selectDatePrompt": "يُرجى اختيار تاريخ الانطلاق للمتابعة"
     },
+    "landing": {
+      "dateLabel": "تاريخ الهبوط",
+      "timeLabel": "وقت الهبوط",
+      "timeAria": "وقت الهبوط",
+      "offsetLabel": "الاستقبال بعد الهبوط",
+      "offsetAtLanding": "عند الهبوط",
+      "offsetMinutes": "بعد الهبوط بـ {minutes} دقيقة",
+      "pickupAt": "سيستقبلك السائق في الساعة {time}",
+      "pickupAtDate": "سيستقبلك السائق يوم {date} في الساعة {time}"
+    },
     "step5": {
       "firstNameLabel": "الاسم الأول",
       "lastNameLabel": "اسم العائلة",
@@ -215,7 +225,11 @@
       "waitTimeLabel": "مدة الانتظار",
       "waitTimeAria": "مدة الانتظار",
       "noWait": "بدون انتظار",
-      "minutes": "{count} دقيقة"
+      "minutes": "{count} دقيقة",
+      "freeWaitHint": "أول 15 دقيقة مجانًا، ثم يُحتسب الانتظار عن كل 15 دقيقة تبدأ",
+      "paidWaitUnavailable": "الانتظار المدفوع غير متاح حاليًا",
+      "moveUp": "نقل محطة التوقف للأعلى",
+      "moveDown": "نقل محطة التوقف للأسفل"
     },
     "routeMap": {
       "empty": "المسار غير متوفر — لا يزال بإمكانك اختيار فئة المركبة.",
@@ -329,7 +343,8 @@
         "waterSub": "مياه عادية وفوّارة",
         "meetGreetLabel": "الاستقبال والترحيب",
         "meetGreetSub": "لوحة تحمل الاسم في صالة الوصول"
-      }
+      },
+      "waitingUnavailable": "الانتظار المدفوع غير متاح لهذه الفئة. اجعل مدة الانتظار 15 دقيقة أو أقل لاختيارها."
     },
     "extras": {
       "meetAndGreet": {
@@ -361,7 +376,8 @@
       "returnLeg": "رحلة العودة",
       "combined": "الإجمالي",
       "selectClass": "اختر {className}",
-      "selectAClass": "اختر الفئة"
+      "selectAClass": "اختر الفئة",
+      "waitingLine": "الانتظار عند محطات التوقف"
     },
     "summaryBlock": {
       "outbound": "الذهاب",
@@ -374,7 +390,8 @@
       "returnLeg": "رحلة العودة",
       "subtotal": "المجموع الجزئي",
       "promo": "رمز الخصم {code}",
-      "final": "الإجمالي النهائي"
+      "final": "الإجمالي النهائي",
+      "waitingLine": "الانتظار عند محطات التوقف"
     },
     "bookingWidget": {
       "pickupLocationLabel": "موقع الانطلاق",
