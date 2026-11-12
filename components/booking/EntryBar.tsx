@@ -6,6 +6,7 @@ import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import AddressInput from '@/components/booking/AddressInput'
 import DurationSelector from '@/components/booking/DurationSelector'
 import LandingPickupFields from '@/components/booking/LandingPickupFields'
+import StopList from '@/components/booking/StopList'
 import { useBookingStore } from '@/lib/booking-store'
 import { pickupFromLanding } from '@/lib/airport-pickup'
 import { isAirportPlace, isAirportPickupPlace } from '@/types/booking'
@@ -42,6 +43,7 @@ export default function EntryBar() {
   const t = useTranslations('Booking.entryBar')
   const tl = useTranslations('Booking.landing')
   const tv = useTranslations('Booking.validation')
+  const ts = useTranslations('Booking.step1')
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -52,6 +54,13 @@ export default function EntryBar() {
   const landingDate = useBookingStore((s) => s.landingDate)
   const landingTime = useBookingStore((s) => s.landingTime)
   const pickupOffsetMin = useBookingStore((s) => s.pickupOffsetMin)
+  // Intermediate stops (STOP-01): one-way transfers only, the same rule as the server.
+  const stops = useBookingStore((s) => s.stops)
+  const addStop = useBookingStore((s) => s.addStop)
+  const removeStop = useBookingStore((s) => s.removeStop)
+  const updateStop = useBookingStore((s) => s.updateStop)
+  const setStopWait = useBookingStore((s) => s.setStopWait)
+  const moveStop = useBookingStore((s) => s.moveStop)
 
   const setOrigin = useBookingStore((s) => s.setOrigin)
   const setDestination = useBookingStore((s) => s.setDestination)
@@ -112,6 +121,8 @@ export default function EntryBar() {
     if (tripType !== 'hourly' && !destination) errs.destination = tv('destinationRequired')
     if (!dateValue) errs.date = tv('dateRequired')
     if (!timeValue) errs.time = tv('timeRequired')
+    // A stop row without a chosen address would be sent as nothing: ask for the address or its removal.
+    if (tripType === 'transfer' && stops.some((stop) => stop.place === null)) errs.stops = ts('stopsIncomplete')
     // Round trip: a return leg must be fully specified and after the outbound.
     if (showReturn && tripType !== 'hourly') {
       if (!returnDate) errs.returnDate = tv('returnDateRequired')
@@ -278,6 +289,36 @@ export default function EntryBar() {
             />
           )}
         </div>
+
+        {/* Intermediate stops — one-way transfers only (STOP-01) */}
+        {tripType === 'transfer' && (
+          <div style={{ gridColumn: '1 / -1' }}>
+            <StopList
+              stops={stops}
+              onAdd={addStop}
+              onRemove={removeStop}
+              onUpdate={(id, place) => {
+                updateStop(id, place)
+                setErrors((prev) => { const n = { ...prev }; delete n.stops; return n })
+              }}
+              onWaitChange={setStopWait}
+              onMove={moveStop}
+            />
+            {errors.stops && (
+              <p
+                role="alert"
+                style={{
+                  marginTop: 8,
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: 12,
+                  color: '#C0392B',
+                }}
+              >
+                {errors.stops}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* DATE */}
         <div>
