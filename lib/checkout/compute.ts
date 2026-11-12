@@ -85,7 +85,9 @@ export const checkoutBookingSchema = z.object({
     stops: z
       .array(
         z.strictObject({
-          address: z.string().trim().min(1).max(500).regex(NO_LINE_BREAKS),
+          // IN-03: a stop pinned on the map may have no typed address. Storage keeps NULL for '' (the column forbids an empty
+          // string) and the emails and the calendar print "Pinned on the map", so the schema accepts a missing or empty one.
+          address: z.string().trim().max(500).regex(NO_LINE_BREAKS).optional(),
           lat: z.number().finite().min(-90).max(90),
           lng: z.number().finite().min(-180).max(180),
           waitMinutes: z.number().int().min(0).max(MAX_STOP_WAIT_MIN).refine(isValidStopWait),

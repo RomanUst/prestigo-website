@@ -326,6 +326,30 @@ describe('WAITING_NOT_AVAILABLE: a class without a waiting rate (D-05)', () => {
   })
 })
 
+describe('IN-03: a stop without a typed address is accepted end to end (schema, pricing, storage)', () => {
+  it('the schema accepts an empty and a missing address (trimmed), and pricing keeps the stop with an empty address', async () => {
+    for (const address of ['', '   ', undefined]) {
+      const stop = address === undefined ? { lat: STOP_KV.lat, lng: STOP_KV.lng, waitMinutes: 45 } : { ...STOP_KV, address }
+      const bd = bookingData({ stops: [stop] })
+      const parsed = checkoutBookingSchema.parse({ bookingData: bd })
+      const validated = validateCheckoutBooking(parsed.bookingData)
+      if (!validated.ok) throw new Error(validated.code)
+      const priced = await priceCheckout({ bookingData: parsed.bookingData, validated, currency: 'eur' })
+      expect(priced.ok).toBe(true)
+      if (!priced.ok) return
+      expect(priced.stops).toHaveLength(1)
+      expect(priced.stops[0].address).toBe('')
+      expect(priced.stops[0].blocks).toBe(2)
+    }
+  })
+
+  it('a 501-character address and a line break are still refused', () => {
+    for (const address of ['a'.repeat(501), 'Karlovy\nVary']) {
+      expect(checkoutBookingSchema.safeParse({ bookingData: bookingData({ stops: [{ ...STOP_KV, address }] }) }).success).toBe(false)
+    }
+  })
+})
+
 describe('stop validation (STOP-01, T-91-14)', () => {
   const six = Array.from({ length: 6 }, (_, i) => ({ address: `Stop ${i}`, lat: 50 + i / 100, lng: 14, waitMinutes: 0 }))
 
