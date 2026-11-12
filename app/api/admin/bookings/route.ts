@@ -464,7 +464,9 @@ export async function PATCH(request: Request) {
       const newDate = parsed.data.pickup_date ?? (current.pickup_date as string)
       const newTime = parsed.data.pickup_time ?? currentClock
       if (newDate !== current.pickup_date || newTime !== currentClock) {
-        const matching = LANDING_OFFSETS.find((offset) => {
+        // IN-05: on the autumn ambiguous hour two offsets can give the same wall-clock pickup. The booking's own offset wins when
+        // it is one of the matches (a re-save never rewrites it); otherwise the smallest.
+        const matches = LANDING_OFFSETS.filter((offset) => {
           const derived = pickupFromLanding(
             current.landing_date as string,
             (current.landing_time as string).slice(0, 5),
@@ -472,6 +474,12 @@ export async function PATCH(request: Request) {
           )
           return derived !== null && derived.pickupDate === newDate && derived.pickupTime === newTime
         })
+        const storedOffset = Number(current.pickup_offset_min)
+        const matching: number | undefined = (matches as number[]).includes(storedOffset)
+          ? storedOffset
+          : matches.length > 0
+            ? Math.min(...matches)
+            : undefined
         if (matching === undefined) {
           return NextResponse.json({ error: 'landing_pickup_mismatch' }, { status: 422 })
         }

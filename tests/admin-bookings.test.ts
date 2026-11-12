@@ -2755,6 +2755,39 @@ describe('PATCH /api/admin/bookings — landing and pickup_offset_min (Phase 91,
     expect(updateFn).not.toHaveBeenCalled()
   })
 
+  // 2027-10-31 is the autumn change: landing 01:50 + 30 min (CEST) and + 90 min (CET) are both written 02:20.
+  describe('IN-05: the autumn ambiguous hour (2027-10-31)', () => {
+    const autumn = (over: Record<string, unknown> = {}) =>
+      landingRow({ landing_date: '2027-10-31', landing_time: '01:50', pickup_date: '2027-10-31', pickup_time: '02:00', ...over })
+
+    it('keeps the stored offset 90 when it is one of the matches (the offset is not rewritten to 30, no offset audit row)', async () => {
+      const { updateFn, insertFn } = wire(autumn({ pickup_offset_min: 90 }))
+
+      const res = await PATCH(makePatchRequest({ id, pickup_time: '02:20' }))
+
+      expect(res.status).toBe(200)
+      expect(updateFn).toHaveBeenCalledWith({ pickup_time: '02:20', pickup_offset_min: 90 })
+      const rows = insertFn.mock.calls[0][0] as Array<{ field: string }>
+      expect(rows.some((r) => r.field === 'pickup_offset_min')).toBe(false)
+    })
+
+    it('keeps the stored offset 30 when it is one of the matches', async () => {
+      const { updateFn } = wire(autumn({ pickup_offset_min: 30 }))
+      const res = await PATCH(makePatchRequest({ id, pickup_time: '02:20' }))
+      expect(res.status).toBe(200)
+      expect(updateFn).toHaveBeenCalledWith({ pickup_time: '02:20', pickup_offset_min: 30 })
+    })
+
+    it('when the stored offset is not among the matches, the smallest match wins (30)', async () => {
+      const { updateFn, insertFn } = wire(autumn({ pickup_offset_min: 60, pickup_time: '02:50' }))
+      const res = await PATCH(makePatchRequest({ id, pickup_time: '02:20' }))
+      expect(res.status).toBe(200)
+      expect(updateFn).toHaveBeenCalledWith({ pickup_time: '02:20', pickup_offset_min: 30 })
+      const rows = insertFn.mock.calls[0][0] as Array<{ field: string; old_value: string | null; new_value: string | null }>
+      expect(rows.find((r) => r.field === 'pickup_offset_min')).toMatchObject({ old_value: '60', new_value: '30' })
+    })
+  })
+
   it('WR-04: the pickup edit is compare-and-set on the landing and the pickup it read', async () => {
     const { eqCalls, chain } = wire(landingRow())
 
