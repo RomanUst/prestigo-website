@@ -735,6 +735,18 @@ describe('WR-06: a fallback insert that loses the stops the client paid for tell
   })
 })
 
+describe('IN-08: the pay-now confirmation carries the currency the client paid in', () => {
+  it.each([['czk', 'czk'], ['eur', 'eur']] as const)('PaymentIntent currency %s -> BookingEmailData.currency %s', async (piCurrency, expected) => {
+    stripeStub.constructEvent.mockReturnValue({
+      id: `evt_cur_${piCurrency}`,
+      type: 'payment_intent.succeeded',
+      data: { object: { ...mockPaymentIntent, currency: piCurrency } },
+    })
+    await POST(makeRequest())
+    expect(sendClientConfirmation).toHaveBeenCalledWith(expect.objectContaining({ currency: expected }))
+  })
+})
+
 describe('charge.refunded webhook', () => {
   it('charge.refunded event updates booking status to cancelled via payment_intent lookup', async () => {
     stripeStub.constructEvent.mockReturnValue({

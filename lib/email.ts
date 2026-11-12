@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
+import { czkToEur, eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 import { loadStopsSafe } from '@/lib/booking-stops'
@@ -83,6 +83,11 @@ export interface BookingEmailData {
   landingDate?: string
   landingTime?: string
   pickupOffsetMin?: number
+  /**
+   * The currency the client paid in (IN-08): the waiting total of the client email is printed in it. Absent = unknown, and
+   * then the client email shows no waiting amount rather than a wrong currency.
+   */
+  currency?: 'eur' | 'czk'
 }
 
 /** Escape user-supplied strings before embedding in HTML */
@@ -115,6 +120,8 @@ function formatPickupDate(dateStr: string): string {
 export interface EmailTripRoute {
   landing: { date: string; time: string; offsetMin: number } | null
   stops: Array<{ position: number; address: string | null; waitMinutes: number; feeEur: number }>
+  /** The booking's own currency, for the waiting total of the client variant (IN-08). Absent / null = unknown: no amount. */
+  currency?: 'eur' | 'czk' | null
 }
 
 const LANDING_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -126,6 +133,7 @@ interface EmailRouteSource {
   landingDate?: string | null
   landingTime?: string | null
   pickupOffsetMin?: number | null
+  currency?: string | null
 }
 
 /**
@@ -156,7 +164,14 @@ async function loadEmailTripRoute(source: EmailRouteSource): Promise<EmailTripRo
     Number.isFinite(pickupOffsetMin)
       ? { date: landingDate, time: landingTime, offsetMin: pickupOffsetMin }
       : null
-  return { landing, stops }
+  return { landing, stops, currency: source.currency === 'czk' || source.currency === 'eur' ? source.currency : null }
+}
+
+/** The waiting total in the booking's own currency (eurToCzk rounds once, like the rest of the CZK figures); null = unknown currency. */
+function waitingAmountText(waitingEur: number, currency: EmailTripRoute['currency']): string | null {
+  if (currency === 'czk') return formatCZK(eurToCzk(waitingEur))
+  if (currency === 'eur') return formatEUR(waitingEur)
+  return null
 }
 
 /** "Landing" / "Pickup" values for a route with a landing; the pickup is null when the landing does not parse. */
@@ -192,7 +207,8 @@ export function tripRouteRowsHtml(route: EmailTripRoute, variant: 'client' | 'dr
   }
   if (variant === 'client') {
     const waiting = waitingTotalEur(route.stops)
-    if (waiting > 0) rows.push(driverTripRow('Waiting at stops', escapeHtml(formatEUR(waiting)), 600))
+    const amount = waiting > 0 ? waitingAmountText(waiting, route.currency) : null
+    if (amount) rows.push(driverTripRow('Waiting at stops', escapeHtml(amount), 600))
   }
   return rows.join('\n          ')
 }
@@ -1357,6 +1373,8 @@ interface StatusEmailBooking {
   landing_date?: string | null
   landing_time?: string | null
   pickup_offset_min?: number | null
+  /** The booking's payment currency: the waiting total of the confirmed email is printed in it (IN-08). */
+  payment_currency?: string | null
 }
 
 function buildStatusEmailHtml(
@@ -1466,6 +1484,7 @@ export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Pro
       landingDate: booking.landing_date,
       landingTime: booking.landing_time,
       pickupOffsetMin: booking.pickup_offset_min,
+      currency: booking.payment_currency,
     })
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',

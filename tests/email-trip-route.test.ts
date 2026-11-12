@@ -33,12 +33,14 @@ import {
   type EmailTripRoute,
 } from '@/lib/email'
 import { bookingEmailDataFromRow } from '@/lib/payments/emails/send'
+import { eurToCzk, formatCZK } from '@/lib/currency'
 
 const sha = (s: string) => createHash('sha256').update(s).digest('hex')
 
 const ROUTE: EmailTripRoute = {
   landing: { date: '2027-06-10', time: '14:00', offsetMin: 30 },
   stops: [{ position: 1, address: 'Karlovy Vary', waitMinutes: 45, feeEur: 24 }],
+  currency: 'eur',
 }
 
 const stop = (over: Record<string, unknown> = {}) => ({
@@ -236,6 +238,7 @@ describe('sendStatusConfirmedEmail (card-flow confirmed email)', () => {
       landing_date: '2027-06-10',
       landing_time: '14:00',
       pickup_offset_min: 30,
+      payment_currency: 'eur',
     })
     expect(loadStopsSafeMock).toHaveBeenCalledWith('b1')
     const html = sentHtml()
@@ -265,7 +268,7 @@ describe('sendStatusConfirmedEmail (card-flow confirmed email)', () => {
 describe('sendClientConfirmation (pay-now confirmation)', () => {
   it('pay-now confirmation lists landing, pickup, the stop with its wait and the waiting line', async () => {
     loadStopsSafeMock.mockResolvedValue([stop()])
-    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1', ...LANDING_FIELDS })
+    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1', ...LANDING_FIELDS, currency: 'eur' })
     expect(loadStopsSafeMock).toHaveBeenCalledWith('b1')
     const html = sentHtml()
     expect(html).toContain('Landing')
@@ -301,6 +304,54 @@ describe('sendClientConfirmation (pay-now confirmation)', () => {
     await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1' })
     expect(sendStub).toHaveBeenCalledTimes(1)
     expect(sha(sentHtml())).toBe(BASELINE.client)
+  })
+})
+
+describe('IN-08: the client email states the waiting total in the booking currency', () => {
+  const czk24 = formatCZK(eurToCzk(24))
+
+  it('a CZK booking: the waiting line is in CZK, never EUR (rows, status email and pay-now confirmation)', async () => {
+    expect(tripRouteRowsHtml({ ...ROUTE, currency: 'czk' }, 'client')).toContain(czk24)
+    expect(tripRouteRowsHtml({ ...ROUTE, currency: 'czk' }, 'client')).not.toContain('€')
+
+    loadStopsSafeMock.mockResolvedValue([stop()])
+    await sendStatusConfirmedEmail({ ...STATUS_BOOKING, payment_currency: 'czk' })
+    expect(sentHtml(0)).toContain('Waiting at stops')
+    expect(sentHtml(0)).toContain(czk24)
+    expect(sentHtml(0)).not.toContain('€24')
+
+    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1', currency: 'czk' })
+    expect(sentHtml(1)).toContain(czk24)
+    expect(sentHtml(1)).not.toContain('€24')
+  })
+
+  it('a EUR booking keeps the EUR amount', () => {
+    const html = tripRouteRowsHtml({ ...ROUTE, currency: 'eur' }, 'client')
+    expect(html).toContain('€24')
+    expect(html).not.toContain(czk24)
+  })
+
+  it('an unknown currency prints no waiting amount at all (the stop rows stay)', async () => {
+    for (const currency of [undefined, null] as const) {
+      const html = tripRouteRowsHtml({ ...ROUTE, currency }, 'client')
+      expect(html).not.toContain('Waiting at stops')
+      expect(html).not.toContain('€24')
+      expect(html).not.toContain(czk24)
+      expect(html).toContain('Stop 1')
+    }
+    loadStopsSafeMock.mockResolvedValue([stop()])
+    await sendStatusConfirmedEmail({ ...STATUS_BOOKING, payment_currency: null })
+    expect(sentHtml(0)).not.toContain('Waiting at stops')
+    expect(sentHtml(0)).toContain('Karlovy Vary')
+  })
+
+  it('IN-03: a stop without a typed address renders as "Pinned on the map" in the client and driver rows and the manager alert', async () => {
+    const pinned: EmailTripRoute = { landing: null, stops: [{ position: 1, address: null, waitMinutes: 15, feeEur: 0 }], currency: 'eur' }
+    expect(tripRouteRowsHtml(pinned, 'client')).toContain('Pinned on the map')
+    expect(tripRouteRowsHtml(pinned, 'driver')).toContain('Pinned on the map')
+    loadStopsSafeMock.mockResolvedValue([stop({ address: null, waitMinutes: 15, blocks: 0, feeEur: 0 })])
+    await sendManagerAlert({ ...EMAIL_DATA, bookingId: 'b1' })
+    expect(sendStub.mock.calls[0][0].text as string).toContain('Stop 1: pinned on the map')
   })
 })
 

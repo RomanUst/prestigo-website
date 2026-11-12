@@ -745,6 +745,8 @@ async function handleOneWaySucceeded(
     landingDate: meta.landingDate || undefined,
     landingTime: meta.landingTime || undefined,
     pickupOffsetMin: meta.pickupOffsetMin ? parseInt(meta.pickupOffsetMin, 10) : undefined,
+    // IN-08: the client email prints the waiting total in the currency the client paid in.
+    currency: paymentIntent.currency === 'czk' ? 'czk' : paymentIntent.currency === 'eur' ? 'eur' : undefined,
   }
 
   // Phase 89 CANC-02: box and Manage button in the booking language; the manager alert never gets it.
