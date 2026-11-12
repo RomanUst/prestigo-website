@@ -3,54 +3,68 @@ status: testing
 phase: 91-multi-stop-transfers-airport-pickup-waiting-fees
 source: [91-VERIFICATION.md]
 started: 2026-11-12T00:00:00Z
-updated: 2026-11-12T00:00:00Z
+updated: 2026-11-12T08:30:00Z
 ---
 
 ## Current Test
 
 number: 1
-name: Wizard stops UI (desktop and phone width)
+name: Wizard stops UI (desktop and phone width), re-run after PR #105
 expected: |
   On a Prague transfer the client can add 1 to 5 stops (a 6th is refused), pick addresses, remove one and reorder with up/down. The map shows the route in the same order with numbered markers and an updated km/min. Any stop change clears the cached price and promo and refetches the quote.
-awaiting: user response
+awaiting: owner merge of PR #105, then waiting rates, then the live Stripe canary
 
 ## Tests
 
 ### 1. Wizard stops UI (desktop and phone width)
 expected: On a Prague transfer the client can add 1 to 5 stops (a 6th is refused), pick addresses, remove one and reorder with up/down. The map shows the route in the same order with numbered markers and an updated km/min. Any stop change clears the cached price and promo and refetches the quote.
-result: [pending]
+result: issue
+verified_by: Claude in the owner's Chrome on production (rideprestigo.com), TEST booking PRG-20261112-277326 only, 2026-11-12
+note: On production /book has NO stops UI at all. The stops UI was wired into Step1TripType, which the public wizard has not rendered since Phase 59 (EntryBar is step 1). Clients cannot add a stop. Fixed in PR #105 (EntryBar renders StopList for one-way transfers, blocks the step while a stop has no address; 5 new tests). Checked in the local browser at 800 px: Add stop, two stop rows, wait select. Must be re-run on production after #105 is merged (map order, numbered markers, quote refetch, 6th stop refused). Server side already verified on production through POST /api/calculate-price: 127.3 km without stops, 219.9 km through two stops, 310.0 km with the same stops in the other order, a client distanceKm=1 is ignored, 6 stops answer 400.
 
 ### 2. Waiting select and waiting price line
 expected: With no waiting rate set only 0 and 15 minutes are offered. After the owner sets a rate for a class, options up to 120 minutes in 15-minute steps appear; a class without a rate is disabled with the note and is unselected if it was selected. 15 minutes costs nothing, 30 minutes costs one block, two stops of 15 minutes cost nothing. PriceSummary and the Step 6 summary show a separate "Waiting at stops" line equal to rate times paid blocks, and the total includes it.
 result: [pending]
+note: Partly checked. With no rate set /api/waiting-config answers offeredClasses [] and the stop select offers only No wait and 15 min with the note that paid waiting is not available (local browser, PR #105). A quote with a 45 minute wait lists all three classes in waitingUnavailable and adds nothing. The paid part (options to 120 min, blocks, the price line) waits for the owner's rates and for #105.
 
 ### 3. Airport landing and offset UI
 expected: With Prague Airport as pickup the date/time fields become landing fields and an offset picker (0/15/30/45/60/90, default 30) appears with "Your driver meets you at HH:MM". Landing 14:00 shows 14:30; landing 23:50 shows 00:20 on the next date; 2027-03-28 landing 01:50 shows 03:20; 2027-10-31 landing 02:40 gives a sensible pickup. Changing the pickup away from the airport clears the landing fields. Readable on a phone.
-result: [pending]
+result: pass
+verified_by: Claude in the owner's Chrome on production (rideprestigo.com), TEST booking PRG-20261112-277326 only, 2026-11-12
+note: Prague Airport as pickup turns the fields into Landing date / Landing time, shows Pickup after landing with 0/15/30/45/60/90 (default 30) and the flight number field. Landing 14:00 -> 14:30, with offset 0 -> 14:00, with 90 -> 15:30. Landing 23:45 + 30 -> 'Your driver meets you on Jun 11, 2027 at 00:15'. 2027-03-28 landing 01:45 + 30 -> 03:15, + 90 -> 04:15. 2027-10-31 landing 02:45 + 30 -> 03:15, 01:45 + 60 -> 02:45. Changing the pickup to a city address brings back DATE / TIME and removes the landing fields. Notes: the landing time is a 15-minute slot list, so 14:05 cannot be entered by the client (the operator's Move pickup takes any minute). Phone width was not checked on production.
 
 ### 4. Live tamper check on production
 expected: Resending the card-checkout request from devtools with distanceKm=1 and a changed isAirport stores the server distance and the quoted amount. A pickup that differs from landing plus offset is refused.
 result: [pending]
+note: Partly checked: the quote endpoint ignores a client distanceKm (see test 1). The checkout request itself creates a booking and a live Stripe object, so the stored-distance and PICKUP_MISMATCH checks are done together with the owner's canary (test 11).
 
 ### 5. Admin > Pricing waiting rate
 expected: A waiting-rate field per class: a positive number persists, empty saves NULL (not offered), 0 or text is rejected, and saving other fields never clears a rate.
 result: [pending]
+note: The three 'Waiting per extra 15 min (EUR)' fields are on the page, all empty. Saving was not tried: a rate is a live price and the owner sets it.
 
 ### 6. Admin booking panel Route section and trip edit (list, board, calendar)
 expected: A booking with stops shows each stop in order with wait and paid blocks plus the waiting total. An airport booking shows landing, pickup and offset. A booking without stops or landing shows no Route section. Editing price fields of a booking with stops gives the set-price-by-hand message. Editing the pickup of an airport booking to something other than landing plus an allowed offset is refused with a clear message.
-result: [pending]
+result: pass
+verified_by: Claude in the owner's Chrome on production (rideprestigo.com), TEST booking PRG-20261112-277326 only, 2026-11-12
+note: Panel opened from the list. Route section: 'Landing 14:00, Pickup 14:30 (+30 min)', stop 1 '45 min, 2 x 15 min paid, EUR 20', stop 2 '15 min, Free waiting', 'Waiting at stops EUR 20', Move pickup button. PATCH with a price field answers 422 stops_edit_unsupported; pickup 14:40 answers 422 landing_pickup_mismatch; pickup 14:45 is accepted and the audit shows pickup_offset_min 30 -> 45. NOT observed: the two refusal messages as rendered in the Edit Trip form (covered by tests only), the panel opened from the board and the calendar (same provider), a booking without stops next to it.
 
 ### 7. Add extra charge modal
 expected: The action appears only for a completed card booking made under consent 2026-11-3, not for GNet, pay-now, unfinished or old-consent bookings. Waiting mode shows minutes, blocks and the server amount; Other mode takes a description (shown to the client in the receipt) and an amount. The confirm step states the amount, the currency, that the saved card is charged now and the email receipt. The primary button carries the amount, a double click sends one request, the modal cannot be closed while submitting. The extra then appears in the panel's list of extra charges.
 result: [pending]
+note: Negative case checked: a manual booking (no card, no consent) shows no extra-charge action. The modal itself needs a completed card booking under consent 2026-11-3, so it is checked with the owner's canary (test 11).
 
 ### 8. Move pickup after a flight delay
 expected: "Move pickup…" on an airport booking takes a new landing (prefilled from the flight estimate when known) and shows "Move pickup to HH:MM" (landing plus the stored offset) before anything is sent. After confirming, landing and pickup move together, the audit history shows readable rows, the calendar event moves, and the client gets the changed-booking email only when "Notify client" is ticked.
-result: [pending]
+result: pass
+verified_by: Claude in the owner's Chrome on production (rideprestigo.com), TEST booking PRG-20261112-277326 only, 2026-11-12
+note: Dialog shows 'Now: landing 14:00, pickup 14:30 (+30 min)', says 'The landing is already 14:00' until the time changes, then 'Move pickup to 15:40' for landing 15:10; nothing is sent before Confirm move. Confirm sends one POST /landing (200), the panel and the list row show 15:40. Audit rows: landing_time 14:00 -> 15:10, pickup_time 14:30 -> 15:40. The ops calendar webhook answered upserted after each move. A second move with notify_client=true answered 200 (the changed-booking email goes to the owner's address; not read by Claude). A request with a wrong expected pickup answers 409 pickup_changed with the real pickup. NOT observed: prefill from a flight estimate.
 
 ### 9. Driver trip page and maps (phone)
 expected: The link of a booking with 2 stops and an airport pickup shows Landing, Pickup, "Free waiting until HH:MM" (60 minutes from the pickup for the airport, 30 for the city) and each stop with address and wait. No price or fee appears. The map and km/min chip go through the stops in order. A booking without stops looks as before.
-result: [pending]
+result: pass
+verified_by: Claude in the owner's Chrome on production (rideprestigo.com), TEST booking PRG-20261112-277326 only, 2026-11-12
+note: Trip link of the TEST booking (assignment inserted in the database, no driver email): Arrival 'Landing 15:25 / Pickup 15:55', 'Free waiting until 16:55' (60 minutes), Stop 1 and Stop 2 with address and wait, no price or currency anywhere. Map goes through both stops with markers 1 and 2, chip '208.9 km, 169 min (est.)'. Checked at desktop width (the page is a phone-width column). NOT observed: a city pickup (30 minutes) and a booking without stops.
 
 ### 10. Emails and calendar as rendered
 expected: Client confirmation (pay-now and card flow), driver assignment, driver-accepted and manager alert show stops with waits, a waiting amount in the booking currency (client mail) and Landing / Pickup rows for an airport pickup; nothing extra appears without stops. The extra_charged receipt renders in all 7 locales in the waiting and the other variant. The ops Google Calendar event lists landing and stops.
@@ -67,10 +81,23 @@ result: [pending]
 ## Summary
 
 total: 12
-passed: 0
-issues: 0
-pending: 12
+passed: 4
+issues: 1
+pending: 7
 skipped: 0
 blocked: 0
 
 ## Gaps
+
+- truth: "Client can add intermediate stops when booking a transfer (STOP-01)"
+  status: fixed_pending_deploy
+  reason: "The public wizard renders EntryBar at step 1; the stops UI lived only in Step1TripType (used by the unused AdminBookingWizard)."
+  severity: blocker
+  test: 1
+  fix: "PR #105 (branch fix/91-public-wizard-stops): EntryBar renders StopList for one-way transfers."
+
+## Observations
+
+- Admin API answers are slow on production (2.5 to 7.5 s per request); several parallel requests from one tab timed out once (504 / no answer for 12 s) and recovered on reload. Seen in Phase 90 as well.
+- The TEST booking was cancelled through the admin cancel route after the checks; its driver assignment row was deleted.
+

@@ -351,3 +351,71 @@ describe('EntryBar airport mode: landing date / time (STOP-05, D-07)', () => {
     expect(slot!.disabled).toBe(true)
   })
 })
+
+// UAT gap (Phase 91): the public wizard renders EntryBar at step 1, so the stops UI has to live here (STOP-01).
+describe('EntryBar intermediate stops (STOP-01)', () => {
+  const city = { address: 'Wenceslas Square, Prague', placeId: 'ChIJa', lat: 50.0802, lng: 14.428 }
+  const far = { address: 'Karlovy Vary', placeId: 'ChIJb', lat: 50.2319, lng: 12.872 }
+  const stopPlace = { address: 'Plzen', placeId: 'ChIJc', lat: 49.7384, lng: 13.3736 }
+
+  beforeEach(() => {
+    setupCleanState()
+    vi.stubGlobal('gtag', vi.fn())
+  })
+
+  it('a transfer offers Add stop and adds a stop row to the store', async () => {
+    const user = userEvent.setup()
+    render(<EntryBar />)
+    await user.click(screen.getByRole('button', { name: /add stop/i }))
+    expect(useBookingStore.getState().stops).toHaveLength(1)
+  })
+
+  it('the sixth stop is not offered', () => {
+    useBookingStore.setState({
+      stops: Array.from({ length: 5 }, (_, i) => ({ id: `s${i}`, place: stopPlace, waitMinutes: 0 })),
+    })
+    render(<EntryBar />)
+    expect(screen.queryByRole('button', { name: /add stop/i })).not.toBeInTheDocument()
+  })
+
+  it('hourly and round trip have no stops UI (the server refuses stops there)', () => {
+    useBookingStore.setState({ tripType: 'hourly' })
+    const { unmount } = render(<EntryBar />)
+    expect(screen.queryByRole('button', { name: /add stop/i })).not.toBeInTheDocument()
+    unmount()
+    useBookingStore.setState({ tripType: 'round_trip' })
+    render(<EntryBar />)
+    expect(screen.queryByRole('button', { name: /add stop/i })).not.toBeInTheDocument()
+  })
+
+  it('a stop without an address blocks the step with a message', async () => {
+    const user = userEvent.setup()
+    useBookingStore.setState({
+      origin: city,
+      destination: far,
+      pickupDate: '2027-06-10',
+      pickupTime: '14:00',
+      stops: [{ id: 's1', place: null, waitMinutes: 0 }],
+    })
+    render(<EntryBar />)
+    await user.click(screen.getByText('View vehicles'))
+    expect(useBookingStore.getState().currentStep).toBe(1)
+    expect(screen.getAllByRole('alert').length).toBeGreaterThan(0)
+  })
+
+  it('a complete stop lets the step advance and stays in the store', async () => {
+    const user = userEvent.setup()
+    useBookingStore.setState({
+      origin: city,
+      destination: far,
+      pickupDate: '2027-06-10',
+      pickupTime: '14:00',
+      stops: [{ id: 's1', place: stopPlace, waitMinutes: 15 }],
+    })
+    render(<EntryBar />)
+    await user.click(screen.getByText('View vehicles'))
+    const s = useBookingStore.getState()
+    expect(s.currentStep).toBe(2)
+    expect(s.stops).toHaveLength(1)
+  })
+})
