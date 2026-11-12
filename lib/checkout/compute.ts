@@ -516,6 +516,9 @@ export function buildCheckoutMeta(input: {
     userId: authenticatedUserId ?? '',
     // A compact JSON string (about 150 chars, inside the 500-char limit; never clamped, a cut JSON is useless).
     ...(cancelPolicy ? { cancelPolicy: JSON.stringify(cancelPolicy.snapshot) } : {}),
+    // WR-06: how many stops the amount above was priced with (a count only, no addresses), so the webhook's fallback insert
+    // can tell that a booking it creates without stops has lost what the client paid for. Absent for a booking without stops.
+    ...(priced.stops.length > 0 ? { stopCount: String(priced.stops.length) } : {}),
     // STOP-05: the landing of an airport pickup, only when present. validateCheckoutBooking guarantees all three are
     // set together and that pickupDate / pickupTime above are the derived pickup, so the key set is unchanged for every
     // booking without a landing.

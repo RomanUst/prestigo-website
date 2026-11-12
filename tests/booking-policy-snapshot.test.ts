@@ -347,6 +347,7 @@ describe('buildBookingRow / buildBookingRows / parseCancelPolicyMeta (also the w
         appliedPromoPct: 0,
         promoCode: '',
         returnDiscountPercent: 10,
+        stops: [],
       } as never,
       bookingReference: 'PRG-1',
       returnBookingReference: '',

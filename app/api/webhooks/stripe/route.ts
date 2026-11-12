@@ -29,6 +29,8 @@ import { sendGa4Purchase } from '@/lib/analytics-server'
 import { logEmail } from '@/lib/email-log'
 import { dispatchPaymentEvent } from '@/lib/stripe-webhook/dispatch'
 import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
+import { loadStopsByBookingIds } from '@/lib/booking-stops'
+import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 
 /**
  * Phase 89 (CANC-02): the cancellation box and Manage booking button for the English confirmation mails, in the
@@ -612,6 +614,48 @@ async function handleGroupPaymentSucceeded(
   }))
 }
 
+/**
+ * WR-06: the fallback insert creates a booking from the payment metadata alone, and stops are never restored from it. When
+ * the PaymentIntent says stops were priced (meta.stopCount, a count only) and the new booking has no stored stops, the client
+ * paid for a detour the driver, the calendar and the emails know nothing about: the operator is told so (ids only, deduped
+ * per booking). Never throws and never fails the webhook.
+ */
+async function alertIfPaidStopsMissing(
+  paymentIntent: Stripe.PaymentIntent,
+  meta: Record<string, string>,
+  bookingRow: Record<string, unknown>,
+  bookingId: string,
+): Promise<void> {
+  const priced = Number.parseInt(meta.stopCount ?? '', 10)
+  if (!Number.isInteger(priced) || priced <= 0) return
+  try {
+    let stored: number | null = null
+    try {
+      stored = (await loadStopsByBookingIds([bookingId])).get(bookingId)?.length ?? 0
+    } catch {
+      console.error('[webhook] stops read failed after the fallback insert', { bookingId, stripeObjectId: paymentIntent.id })
+    }
+    if (stored !== null && stored >= priced) return
+    console.error('[webhook] pay-now booking created without its paid stops', {
+      bookingId,
+      stripeObjectId: paymentIntent.id,
+      pricedStops: priced,
+    })
+    await sendPaymentOperatorAlert(
+      'ops_attention',
+      { ...bookingRow, id: bookingId, payment_currency: paymentIntent.currency === 'czk' ? 'czk' : 'eur' },
+      {
+        eventKey: `alert:stops_missing:${bookingId}`,
+        code: 'stops_missing',
+        amountMinor: paymentIntent.amount,
+        note: 'stops_missing',
+      },
+    )
+  } catch {
+    console.error('[webhook] stops-missing alert failed', { bookingId })
+  }
+}
+
 async function handleOneWaySucceeded(
   paymentIntent: Stripe.PaymentIntent,
   meta: Record<string, string>
@@ -649,6 +693,9 @@ async function handleOneWaySucceeded(
       )
       await sendEmergencyAlert(bookingReference, bookingRow)
       return
+    }
+    if (inserted.length > 0) {
+      await alertIfPaidStopsMissing(paymentIntent, meta, bookingRow as unknown as Record<string, unknown>, inserted[0].id)
     }
   }
 

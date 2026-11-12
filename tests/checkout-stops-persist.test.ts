@@ -377,6 +377,17 @@ describe('pay-now stores stops after its capture and fails closed (T-91-20)', ()
     expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
   })
 
+  it('WR-06: the pay-now PaymentIntent carries the stop count (and no address); a trip without stops carries none', async () => {
+    await payNow(payNowBody({ stops: [STOP_KV] }))
+    const withStops = fake.callsTo('paymentIntents.create')[0].params.metadata as Record<string, string>
+    expect(withStops.stopCount).toBe('1')
+    expect(JSON.stringify(Object.entries(withStops).filter(([k]) => k === 'stopCount'))).not.toContain('Karlovy')
+
+    await payNow(payNowBody({ attemptId: '22222222-2222-4222-8222-222222222222' }))
+    const without = fake.callsTo('paymentIntents.create')[1].params.metadata as Record<string, string>
+    expect('stopCount' in without).toBe(false)
+  })
+
   it('stops without an attemptId: 400 INVALID_REQUEST and no PaymentIntent is created', async () => {
     const out = await payNow(payNowBody({ stops: [STOP_KV], attemptId: undefined }))
     expect(out.status).toBe(400)

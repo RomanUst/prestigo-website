@@ -510,7 +510,7 @@ describe('stored meta: the server distance, the outbound share with waiting, no 
     expect(priced.waitingFeeEur).toBe(24)
   })
 
-  it('stops and waiting add no metadata key: the key set equals the one of a trip without stops', async () => {
+  it('WR-06: stops add exactly one metadata key, a stop count (no address, no wait, no coordinates); a trip without stops adds none', async () => {
     const withStops = await priceDirectTransfer({ stops: [STOP_KV] })
     const without = await priceDirectTransfer({})
     const metaOf = (r: Awaited<ReturnType<typeof priceDirectTransfer>>) =>
@@ -521,8 +521,13 @@ describe('stored meta: the server distance, the outbound share with waiting, no 
         returnBookingReference: '',
         authenticatedUserId: null,
       })
-    expect(Object.keys(metaOf(withStops)).sort()).toEqual(Object.keys(metaOf(without)).sort())
-    expect(Object.keys(metaOf(withStops)).some((k) => /stop|wait/i.test(k))).toBe(false)
+    const a = metaOf(withStops)
+    const b = metaOf(without)
+    expect(Object.keys(a).filter((k) => !(k in b))).toEqual(['stopCount'])
+    expect(Object.keys(b).some((k) => /stop|wait/i.test(k))).toBe(false)
+    expect(a.stopCount).toBe('1')
+    // the value is a bare count: nothing of the stop (its address, wait or position) is in any new key
+    expect(JSON.stringify(a)).not.toContain(String(STOP_KV.address))
   })
 
   it('a request repeated with identical inputs yields an identical stripeAmountMinor', async () => {
