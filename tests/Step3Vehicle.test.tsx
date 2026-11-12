@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, fireEvent } from '@testing-library/react'
 import { renderWithIntl as render } from './helpers/renderWithIntl'
 import userEvent from '@testing-library/user-event'
 import VehicleCard from '@/components/booking/VehicleCard'
@@ -229,5 +229,35 @@ describe('Phase 91 D-05: classes that cannot price the waiting are disabled', ()
     render(<Step3Vehicle />)
     await waitFor(() => expect(screen.getAllByText('€84').length).toBeGreaterThan(0))
     expect(screen.queryByTestId(/vehicle-card-unavailable/)).toBeNull()
+  })
+})
+
+// UAT gap (Phase 91): step 2 had its own route editor that knew neither the stops nor the landing of an airport pickup.
+describe('Step3Vehicle route bar returns to step 1 to edit the trip', () => {
+  it('a click on the route bar goes back to step 1 and keeps stops, landing and pickup untouched', async () => {
+    setupStore()
+    const stop = { id: 's1', place: { address: 'Plzen', placeId: 'p', lat: 49.74, lng: 13.37 }, waitMinutes: 15 }
+    useBookingStore.setState({
+      currentStep: 2,
+      stops: [stop],
+      landingDate: '2027-06-10',
+      landingTime: '14:00',
+      pickupOffsetMin: 30,
+      pickupDate: '2027-06-10',
+      pickupTime: '14:30',
+    })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      json: () => Promise.resolve({ prices: mockPrices, returnLegPrices: null, distanceKm: 30, quoteMode: false }),
+    }))
+    render(<Step3Vehicle />)
+    const fromSegment = screen.getAllByRole('button').find((b) => /^from/i.test(b.textContent ?? ''))
+    expect(fromSegment).toBeTruthy()
+    fireEvent.click(fromSegment as HTMLElement)
+    const s = useBookingStore.getState()
+    expect(s.currentStep).toBe(1)
+    expect(s.stops).toEqual([stop])
+    expect([s.landingDate, s.landingTime, s.pickupDate, s.pickupTime]).toEqual(['2027-06-10', '14:00', '2027-06-10', '14:30'])
+    // no second editor on this step
+    expect(screen.queryByText(/update search/i)).not.toBeInTheDocument()
   })
 })
