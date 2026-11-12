@@ -8,11 +8,11 @@ updated: 2026-11-12T08:30:00Z
 
 ## Current Test
 
-number: 2
-name: Waiting select and waiting price line (needs the owner's rates)
+number: 11
+name: Live Stripe canary after deploy (owner)
 expected: |
   On a Prague transfer the client can add 1 to 5 stops (a 6th is refused), pick addresses, remove one and reorder with up/down. The map shows the route in the same order with numbered markers and an updated km/min. Any stop change clears the cached price and promo and refetches the quote.
-awaiting: owner waiting rates, then the live Stripe canary
+awaiting: owner merge of PR #107 and the live Stripe canary
 
 ## Tests
 
@@ -24,8 +24,9 @@ note: FIRST RUN (before #105): /book had no stops UI at all; the stops UI lived 
 
 ### 2. Waiting select and waiting price line
 expected: With no waiting rate set only 0 and 15 minutes are offered. After the owner sets a rate for a class, options up to 120 minutes in 15-minute steps appear; a class without a rate is disabled with the note and is unselected if it was selected. 15 minutes costs nothing, 30 minutes costs one block, two stops of 15 minutes cost nothing. PriceSummary and the Step 6 summary show a separate "Waiting at stops" line equal to rate times paid blocks, and the total includes it.
-result: [pending]
-note: Partly checked. With no rate set /api/waiting-config answers offeredClasses [] and the stop select offers only No wait and 15 min with the note that paid waiting is not available (local browser, PR #105). A quote with a 45 minute wait lists all three classes in waitingUnavailable and adds nothing. The paid part (options to 120 min, blocks, the price line) waits for the owner's rates and for #105.
+result: issue
+verified_by: Claude in the owner's Chrome on production (rideprestigo.com), 2026-11-12, rates set by the owner (business 7, first class 20, van 10 EUR per 15 min)
+note: Without a rate the stop select offered only No wait and 15 min with the note that paid waiting is not available. After the owner set the rates, /api/waiting-config lists all three classes (after its 60 s CDN cache) and the select offers 0 to 120 min in 15-minute steps with 'First 15 min free, then charged per started 15 min'. Quotes on production: 0 and 15 min add nothing; 30 min adds one block (7 / 20 / 10); 120 min adds seven blocks (49 / 140 / 70); two stops of 15 min add nothing; 45 + 30 min add three blocks (21 / 60 / 30); the total includes the waiting. ISSUE: on desktop the price panel of the vehicle step (StickyBookingPanel) shows only the total, no 'Waiting at stops' line (PriceSummary is rendered for mobile only there). Fixed in PR #107 (line added above the price, 2 tests), not merged yet. NOT observed: a class without a rate next to classes with one (all three have a rate now; covered by tests), the Step 6 summary line (step 5 asks for passenger details, not entered).
 
 ### 3. Airport landing and offset UI
 expected: With Prague Airport as pickup the date/time fields become landing fields and an offset picker (0/15/30/45/60/90, default 30) appears with "Your driver meets you at HH:MM". Landing 14:00 shows 14:30; landing 23:50 shows 00:20 on the next date; 2027-03-28 landing 01:50 shows 03:20; 2027-10-31 landing 02:40 gives a sensible pickup. Changing the pickup away from the airport clears the landing fields. Readable on a phone.
@@ -40,8 +41,9 @@ note: Partly checked: the quote endpoint ignores a client distanceKm (see test 1
 
 ### 5. Admin > Pricing waiting rate
 expected: A waiting-rate field per class: a positive number persists, empty saves NULL (not offered), 0 or text is rejected, and saving other fields never clears a rate.
-result: [pending]
-note: The three 'Waiting per extra 15 min (EUR)' fields are on the page, all empty. Saving was not tried: a rate is a live price and the owner sets it.
+result: pass
+verified_by: Claude in the owner's Chrome on production (rideprestigo.com), 2026-11-12, rates set by the owner (business 7, first class 20, van 10 EUR per 15 min)
+note: The owner entered a rate for each class in Admin > Pricing; the three values are stored in pricing_config.waiting_rate_per_15min and reach the wizard and the quotes. NOT observed in the browser: an empty field saving NULL, rejection of 0 or text, saving other fields leaving the rate untouched (covered by tests only).
 
 ### 6. Admin booking panel Route section and trip edit (list, board, calendar)
 expected: A booking with stops shows each stop in order with wait and paid blocks plus the waiting total. An airport booking shows landing, pickup and offset. A booking without stops or landing shows no Route section. Editing price fields of a booking with stops gives the set-price-by-hand message. Editing the pickup of an airport booking to something other than landing plus an allowed offset is refused with a clear message.
@@ -81,9 +83,9 @@ result: [pending]
 ## Summary
 
 total: 12
-passed: 5
-issues: 0
-pending: 7
+passed: 6
+issues: 1
+pending: 5
 skipped: 0
 blocked: 0
 
@@ -102,6 +104,13 @@ blocked: 0
   severity: blocker
   test: 1
   fix: "PR #106 (merged 2026-11-12): the route bar returns to step 1; the duplicate editor is removed."
+
+- truth: "The wizard price summary shows waiting at stops as its own line (D-06)"
+  status: fixed_pending_deploy
+  reason: "On the vehicle step the desktop panel (StickyBookingPanel) had no waiting line; PriceSummary is mobile only there."
+  severity: minor
+  test: 2
+  fix: "PR #107 (branch fix/91-desktop-waiting-line)."
 
 ## Observations
 
