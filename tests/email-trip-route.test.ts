@@ -172,7 +172,7 @@ beforeEach(() => {
 })
 
 describe('tripRouteRowsHtml', () => {
-  it('client variant: landing, pickup, stop with its wait and the waiting line', () => {
+  it('client variant: landing, pickup and the stop with its wait, no waiting amount', () => {
     const html = tripRouteRowsHtml(ROUTE, 'client')
     expect(html).toContain('Landing')
     expect(html).toContain('14:00')
@@ -181,8 +181,9 @@ describe('tripRouteRowsHtml', () => {
     expect(html).toContain('Stop 1')
     expect(html).toContain('Karlovy Vary')
     expect(html).toContain('wait 45 min')
-    expect(html).toContain('Waiting at stops')
-    expect(html).toContain('€24')
+    // owner decision 2026-11-12: the client sees one total, never the waiting amount on its own
+    expect(html).not.toContain('Waiting at stops')
+    expect(html).not.toContain('€24')
   })
 
   it('driver variant: the same rows without any waiting amount', () => {
@@ -249,7 +250,7 @@ describe('sendStatusConfirmedEmail (card-flow confirmed email)', () => {
     expect(html).toContain('Stop 1')
     expect(html).toContain('Karlovy Vary')
     expect(html).toContain('wait 45 min')
-    expect(html).toContain('Waiting at stops')
+    expect(html).not.toContain('Waiting at stops')
   })
 
   it('without landing and stops the HTML is byte-identical to the one sent before this plan', async () => {
@@ -266,7 +267,7 @@ describe('sendStatusConfirmedEmail (card-flow confirmed email)', () => {
 })
 
 describe('sendClientConfirmation (pay-now confirmation)', () => {
-  it('pay-now confirmation lists landing, pickup, the stop with its wait and the waiting line', async () => {
+  it('pay-now confirmation lists landing, pickup and the stop with its wait, no waiting amount', async () => {
     loadStopsSafeMock.mockResolvedValue([stop()])
     await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1', ...LANDING_FIELDS, currency: 'eur' })
     expect(loadStopsSafeMock).toHaveBeenCalledWith('b1')
@@ -277,8 +278,8 @@ describe('sendClientConfirmation (pay-now confirmation)', () => {
     expect(html).toContain('Stop 1')
     expect(html).toContain('Karlovy Vary')
     expect(html).toContain('wait 45 min')
-    expect(html).toContain('Waiting at stops')
-    expect(html).toContain('€24')
+    expect(html).not.toContain('Waiting at stops')
+    expect(html).not.toContain('€24')
   })
 
   it('pay-now confirmation escapes a stop address with markup', async () => {
@@ -307,32 +308,11 @@ describe('sendClientConfirmation (pay-now confirmation)', () => {
   })
 })
 
-describe('IN-08: the client email states the waiting total in the booking currency', () => {
+describe('the client email never states a waiting amount (owner decision 2026-11-12)', () => {
   const czk24 = formatCZK(eurToCzk(24))
 
-  it('a CZK booking: the waiting line is in CZK, never EUR (rows, status email and pay-now confirmation)', async () => {
-    expect(tripRouteRowsHtml({ ...ROUTE, currency: 'czk' }, 'client')).toContain(czk24)
-    expect(tripRouteRowsHtml({ ...ROUTE, currency: 'czk' }, 'client')).not.toContain('€')
-
-    loadStopsSafeMock.mockResolvedValue([stop()])
-    await sendStatusConfirmedEmail({ ...STATUS_BOOKING, payment_currency: 'czk' })
-    expect(sentHtml(0)).toContain('Waiting at stops')
-    expect(sentHtml(0)).toContain(czk24)
-    expect(sentHtml(0)).not.toContain('€24')
-
-    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1', currency: 'czk' })
-    expect(sentHtml(1)).toContain(czk24)
-    expect(sentHtml(1)).not.toContain('€24')
-  })
-
-  it('a EUR booking keeps the EUR amount', () => {
-    const html = tripRouteRowsHtml({ ...ROUTE, currency: 'eur' }, 'client')
-    expect(html).toContain('€24')
-    expect(html).not.toContain(czk24)
-  })
-
-  it('an unknown currency prints no waiting amount at all (the stop rows stay)', async () => {
-    for (const currency of [undefined, null] as const) {
+  it('no currency prints a waiting amount; the stop rows stay (rows, status email and pay-now confirmation)', async () => {
+    for (const currency of ['czk', 'eur', undefined, null] as const) {
       const html = tripRouteRowsHtml({ ...ROUTE, currency }, 'client')
       expect(html).not.toContain('Waiting at stops')
       expect(html).not.toContain('€24')
@@ -340,9 +320,13 @@ describe('IN-08: the client email states the waiting total in the booking curren
       expect(html).toContain('Stop 1')
     }
     loadStopsSafeMock.mockResolvedValue([stop()])
-    await sendStatusConfirmedEmail({ ...STATUS_BOOKING, payment_currency: null })
+    await sendStatusConfirmedEmail({ ...STATUS_BOOKING, payment_currency: 'czk' })
     expect(sentHtml(0)).not.toContain('Waiting at stops')
     expect(sentHtml(0)).toContain('Karlovy Vary')
+
+    await sendClientConfirmation({ ...EMAIL_DATA, bookingId: 'b1', currency: 'eur' })
+    expect(sentHtml(1)).not.toContain('Waiting at stops')
+    expect(sentHtml(1)).not.toContain('€24')
   })
 
   it('IN-03: a stop without a typed address renders as "Pinned on the map" in the client and driver rows and the manager alert', async () => {
