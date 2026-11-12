@@ -24,6 +24,15 @@ export function isTerminalColumn(column: string): boolean {
 }
 
 /**
+ * A cancelled booking is history, not work: the board does not show it. The exception is a cancelled booking
+ * whose fee case still waits for the operator's decision (same rule as the Fee decision badge).
+ */
+export function isHiddenCancelled(b: { status: string; fee_case_status?: string | null; booking_source?: string | null }): boolean {
+  if (b.status !== 'cancelled') return false
+  return !(b.fee_case_status === 'pending' && b.booking_source !== 'gnet')
+}
+
+/**
  * One list per column, each sorted by pickup instant (earliest first) with booking_reference as the
  * tie-break (D-08). Flags never change the order, so the same data gives the same order after every
  * poll. A row with a status outside the ten columns is not shown (the database CHECK makes that

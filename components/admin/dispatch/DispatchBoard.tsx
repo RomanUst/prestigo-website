@@ -27,6 +27,7 @@ import {
   BOARD_COLUMNS,
   columnDropState,
   groupByColumn,
+  isHiddenCancelled,
   isTerminalColumn,
   resolveDrop,
   type BoardColumn,
@@ -246,7 +247,8 @@ export function DispatchBoard({ search, tripType }: { search: string; tripType: 
     ),
   )
 
-  const grouped = useMemo(() => groupByColumn(rows), [rows])
+  // The Cancelled rail stays as the drop target for cancelling; finished cancellations are not listed in it.
+  const grouped = useMemo(() => groupByColumn(rows.filter(r => !isHiddenCancelled(r))), [rows])
   const multiDay = range.startDate !== range.endDate
 
   // D-09: mouse and pen need a 6 px move (so a click still opens the panel); touch needs a 250 ms hold (so scrolling works).

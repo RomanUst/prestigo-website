@@ -503,6 +503,31 @@ describe('/api/admin/bookings', () => {
     )
   })
 
+  it.each([
+    ['hideCancelled=1&horizon=future', true],
+    ['hideCancelled=1&horizon=last_n_days&horizonDays=7', true],
+    ['hideCancelled=1&startDate=2099-01-01&endDate=2099-01-31', true],
+    ['hideCancelled=1&horizon=past', false],
+    ['hideCancelled=1&horizon=all', false],
+    ['hideCancelled=1&startDate=2020-01-01&endDate=2020-01-31', false],
+    ['hideCancelled=1&horizon=future&search=PRG-1', false],
+    ['hideCancelled=1&horizon=future&status=cancelled', false],
+    ['horizon=future', false],
+    ['startDate=2099-01-01&endDate=2099-01-31&limit=100', false],
+  ])('cancelled bookings leave the working list and stay in the history: ?%s -> p_hide_cancelled=%s', async (query, expected) => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest(`http://localhost/api/admin/bookings?${query}`))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenLastCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_hide_cancelled: expected }),
+    )
+  })
+
   it('87-03 D-02: ?status=on_board is forwarded as p_status on_board', async () => {
     supabaseServiceStub.rpc.mockResolvedValue({
       data: [{ rows: [], total_count: 0 }],
