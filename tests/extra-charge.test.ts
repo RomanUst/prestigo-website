@@ -150,6 +150,13 @@ describe('isExtraChargeEligible (D-15, D-12)', () => {
     expect(reason(booking(), { consentVersion: null, inFlight: null })).toBe('consent_not_covered')
   })
 
+  it('WR-05: an erased (anonymised) booking is never eligible: erased', () => {
+    const erased = '2026-11-10T10:00:00.000Z'
+    expect(reason(booking({ anonymised_at: erased }))).toBe('erased')
+    expect(reason(booking({ payment_mode: 'cash_guarantee', payment_state: 'card_saved', anonymised_at: erased }))).toBe('erased')
+    expect(reason(booking({ anonymised_at: null }))).toBe('ok')
+  })
+
   it('a charging row blocks another extra: in_flight', () => {
     const inFlight = { id: 'c1' } as never
     expect(reason(booking(), { consentVersion: '2026-11-3', inFlight })).toBe('in_flight')
@@ -191,6 +198,62 @@ describe('refusals: nothing is written, nothing is charged', () => {
   it('a booking without a payment currency is refused (the currency always comes from the row)', async () => {
     seed({ payment_currency: null })
     expect(await run(other())).toEqual({ status: 422, error: 'action_not_allowed' })
+  })
+})
+
+describe('WR-05: the engine decides on the booking as it is now, not on the row the caller loaded', () => {
+  it('a booking cancelled after the route loaded it: refused, nothing written, no Stripe call', async () => {
+    const stale = { ...row() }
+    row().status = 'cancelled'
+    expect(await runExtraCharge({ booking: stale, request: other(), actor: ADMIN })).toEqual({ status: 422, error: 'action_not_allowed' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(ledger()).toHaveLength(0)
+    expect(charges()).toHaveLength(0)
+  })
+
+  it('a booking erased after the route loaded it: refused', async () => {
+    const stale = { ...row() }
+    row().anonymised_at = '2026-11-12T08:00:00.000Z'
+    expect(await runExtraCharge({ booking: stale, request: waiting(45, 3800), actor: ADMIN })).toEqual({ status: 422, error: 'action_not_allowed' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(charges()).toHaveLength(0)
+  })
+
+  it('a payment mode or state that changed meanwhile is refused too', async () => {
+    const stale = { ...row() }
+    row().payment_state = 'refunded'
+    expect(await runExtraCharge({ booking: stale, request: other(), actor: ADMIN })).toEqual({ status: 422, error: 'action_not_allowed' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('the saved card is the one stored NOW: a replaced payment method is used, the stale one is not', async () => {
+    const stale = { ...row(), stripe_payment_method_id: 'pm_decline_insufficient' }
+    const res = await runExtraCharge({ booking: stale, request: other(), actor: ADMIN })
+    expect(res).toMatchObject({ outcome: 'charged' })
+    expect(fake.callsTo('paymentIntents.create')[0].params.payment_method).toBe('pm_ok')
+  })
+
+  it('a booking row that no longer exists is refused', async () => {
+    const stale = { ...row() }
+    db.state.bookings.length = 0
+    expect(await runExtraCharge({ booking: stale, request: other(), actor: ADMIN })).toEqual({ status: 422, error: 'action_not_allowed' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+  })
+
+  it('resume re-reads the booking as well: an erased booking cannot be resumed', async () => {
+    fake.failNextWith('paymentIntents.create', 'connection')
+    await run(other())
+    const chargeId = charges()[0].id as string
+    charges()[0].updated_at = new Date(Date.now() - (LEASE_SECONDS + 60) * 1000).toISOString()
+    const stale = { ...row() }
+    row().anonymised_at = '2026-11-12T08:00:00.000Z'
+    expect(await resumeExtraCharge({ booking: stale, chargeId, actor: ADMIN })).toEqual({ status: 422, error: 'action_not_allowed' })
+    expect(fake.callsTo('paymentIntents.list')).toHaveLength(0)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+  })
+
+  it('the preview refuses an erased booking', async () => {
+    expect(await previewWaitingExtra({ ...row(), anonymised_at: '2026-11-12T08:00:00.000Z' }, 30)).toEqual({ ok: false, error: 'action_not_allowed' })
   })
 })
 

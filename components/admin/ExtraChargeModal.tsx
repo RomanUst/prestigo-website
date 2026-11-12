@@ -98,6 +98,7 @@ const COPY_UNCONFIRMED =
 /** The plain-words reason of a refused action (the route's action_not_allowed reasons). */
 const NOT_ALLOWED_TEXT: Record<string, string> = {
   partner: 'Extra charges are not available for partner bookings.',
+  erased: 'This booking was erased at the client\'s request, so nothing can be charged.',
   not_completed: 'The trip is not completed yet, so nothing can be charged.',
   payment_mode: 'This booking has no saved card that can be charged an extra.',
   no_saved_card: 'There is no saved card on this booking.',

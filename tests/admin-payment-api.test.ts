@@ -1317,6 +1317,14 @@ describe('GET: extra charge facts (91-11)', () => {
     expect(body.extra.reason).toBe('consent_not_covered')
   })
 
+  it('WR-05: an erased (anonymised) booking -> no charge_extra and reason erased, even in card_saved with a saved card', async () => {
+    extraSeed({ anonymised_at: '2026-11-10T10:00:00.000Z' })
+    const body = await (await getReq()).json()
+    expect(body.allowed_actions).not.toContain('charge_extra')
+    expect(body.extra.eligible).toBe(false)
+    expect(body.extra.reason).toBe('erased')
+  })
+
   it('lists the booking extra charges field by field and never a stripe id or the requester', async () => {
     extraSeed()
     db.state.booking_extra_charges.push({

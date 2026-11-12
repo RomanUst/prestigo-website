@@ -88,6 +88,7 @@ export interface ExtraContext {
 
 export type ExtraIneligibleReason =
   | 'partner'
+  | 'erased'
   | 'not_completed'
   | 'payment_mode'
   | 'no_saved_card'
@@ -163,6 +164,9 @@ export function isExtraChargeEligible(
   if (isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })) {
     return { ok: false, reason: 'partner' }
   }
+  // WR-05: an erased booking keeps its Stripe customer id in some states although the saga deleted the Customer, and its
+  // receipt address is a placeholder: it is never eligible, whatever else it looks like.
+  if (booking.anonymised_at) return { ok: false, reason: 'erased' }
   if (booking.status !== 'completed') return { ok: false, reason: 'not_completed' }
 
   const state = str(booking.payment_state)
@@ -492,17 +496,30 @@ async function recordClick(
 /** requested_by is a uuid column: only a real uuid is stored. */
 const requestedBy = (actor: LedgerActor): string | null => (actor.id && UUID_RE.test(actor.id) ? actor.id : null)
 
-/** Re-check the rules on a fresh context (T-91-25): the route checked them once already; this is the engine's own guard. */
+/** The booking as it is right now (WR-05): the row the route loaded earlier may be minutes old. */
+async function loadFreshBooking(bookingId: string): Promise<BookingRow | null> {
+  const { data, error } = await createSupabaseServiceClient().from('bookings').select('*').eq('id', bookingId).maybeSingle()
+  if (error) throw new Error('extra booking lookup failed')
+  return (data as BookingRow | null) ?? null
+}
+
+/**
+ * Re-check the rules on a fresh context (T-91-25): the route checked them once already; this is the engine's own guard. It
+ * re-reads the booking itself (status, payment mode and state, partner flag, erasure, the saved card) and answers with that
+ * row, which is the one every later step of the charge decides on (WR-05); the row the caller passed is only a hint.
+ */
 async function guard(
-  booking: BookingRow,
+  bookingId: string,
   opts: { ignoreInFlight: boolean },
-): Promise<{ ok: true } | { ok: false; result: ExtraChargeResult }> {
-  const ctx = await loadExtraContext(str(booking.id))
+): Promise<{ ok: true; booking: BookingRow } | { ok: false; result: ExtraChargeResult }> {
+  const booking = await loadFreshBooking(bookingId)
+  if (!booking) return { ok: false, result: { status: 422, error: 'action_not_allowed' } }
+  const ctx = await loadExtraContext(bookingId)
   const verdict = isExtraChargeEligible(booking, {
     consentVersion: ctx.consentVersion,
     inFlight: opts.ignoreInFlight ? null : ctx.inFlight,
   })
-  if (verdict.ok) return { ok: true }
+  if (verdict.ok) return { ok: true, booking }
   return {
     ok: false,
     result: verdict.reason === 'in_flight' ? { status: 409, error: 'payment_busy' } : { status: 422, error: 'action_not_allowed' },
@@ -523,13 +540,16 @@ export async function runExtraCharge(input: {
   request: ExtraRequest
   actor: LedgerActor
 }): Promise<ExtraChargeResult> {
-  const { booking, request, actor } = input
-  const bookingId = str(booking.id)
-  const currency = currencyOf(booking.payment_currency)
-  if (!bookingId || !currency) return { status: 422, error: 'action_not_allowed' }
+  const { request, actor } = input
+  const bookingId = str(input.booking.id)
+  if (!bookingId) return { status: 422, error: 'action_not_allowed' }
 
-  const checked = await guard(booking, { ignoreInFlight: false })
+  const checked = await guard(bookingId, { ignoreInFlight: false })
   if (!checked.ok) return checked.result
+  // From here on the freshly read row decides: its currency, its saved card, its state (WR-05).
+  const booking = checked.booking
+  const currency = currencyOf(booking.payment_currency)
+  if (!currency) return { status: 422, error: 'action_not_allowed' }
 
   if (request.kind === 'waiting') return runWaiting(booking, request, currency, actor)
 
@@ -577,7 +597,11 @@ export async function previewWaitingExtra(
   | { ok: false; error: 'waiting_rate_missing' | 'action_not_allowed' }
 > {
   const currency = currencyOf(booking.payment_currency)
-  if (!currency || isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })) {
+  if (
+    !currency ||
+    booking.anonymised_at ||
+    isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })
+  ) {
     return { ok: false, error: 'action_not_allowed' }
   }
   if (!Number.isInteger(minutes) || minutes < EXTRA_MINUTES_MIN || minutes > EXTRA_MINUTES_MAX) {
@@ -636,13 +660,14 @@ export async function resumeExtraCharge(input: {
   chargeId: string
   actor: LedgerActor
 }): Promise<ExtraChargeResult> {
-  const { booking, chargeId, actor } = input
-  const bookingId = str(booking.id)
+  const { chargeId, actor } = input
+  const bookingId = str(input.booking.id)
   if (!bookingId) return { status: 422, error: 'action_not_allowed' }
 
   // The row being resumed is the in-flight one, so it must not count against the booking here.
-  const checked = await guard(booking, { ignoreInFlight: true })
+  const checked = await guard(bookingId, { ignoreInFlight: true })
   if (!checked.ok) return checked.result
+  const booking = checked.booking
 
   const db = createSupabaseServiceClient()
   const { data, error } = await db.from(TABLE).select('*').eq('id', chargeId).eq('booking_id', bookingId).maybeSingle()
