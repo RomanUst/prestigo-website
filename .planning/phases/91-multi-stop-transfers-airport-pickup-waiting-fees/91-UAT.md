@@ -8,19 +8,19 @@ updated: 2026-11-12T08:30:00Z
 
 ## Current Test
 
-number: 1
-name: Wizard stops UI (desktop and phone width), re-run after PR #105
+number: 2
+name: Waiting select and waiting price line (needs the owner's rates)
 expected: |
   On a Prague transfer the client can add 1 to 5 stops (a 6th is refused), pick addresses, remove one and reorder with up/down. The map shows the route in the same order with numbered markers and an updated km/min. Any stop change clears the cached price and promo and refetches the quote.
-awaiting: owner merge of PR #106, then waiting rates, then the live Stripe canary
+awaiting: owner waiting rates, then the live Stripe canary
 
 ## Tests
 
 ### 1. Wizard stops UI (desktop and phone width)
 expected: On a Prague transfer the client can add 1 to 5 stops (a 6th is refused), pick addresses, remove one and reorder with up/down. The map shows the route in the same order with numbered markers and an updated km/min. Any stop change clears the cached price and promo and refetches the quote.
-result: issue
+result: pass
 verified_by: Claude in the owner's Chrome on production (rideprestigo.com), 2026-11-12, before and after PR #105
-note: FIRST RUN (before #105): /book had no stops UI at all; the stops UI lived in Step1TripType, which the public wizard has not rendered since Phase 59. Fixed by PR #105 (merged, live). SECOND RUN (after #105, desktop): Add stop adds a row with address, wait select and up / down / remove; with 5 rows the Add stop button is gone and comes back after a removal; two stops with addresses (Plzen, Kladno) give a quote request with both stops in that order (309.2 km against 127.3 km without stops) and the map on step 2 shows the route through both with markers 1 and 2. SECOND ISSUE found: step 2 has its own inline route editor without stops and there is no way back to step 1, so a client cannot review, reorder or remove a stop after step 1; the same editor changes the pickup of an airport booking without its landing, which the server then refuses at checkout (PICKUP_MISMATCH). Fixed in PR #106 (route bar on step 2 returns to step 1; duplicate editor removed; test added), not merged yet. NOT observed on production: reorder followed by a new quote, price / promo reset after a stop change, phone width.
+note: FIRST RUN (before #105): /book had no stops UI at all; the stops UI lived in Step1TripType, which the public wizard has not rendered since Phase 59. Fixed by PR #105 (merged, live). SECOND RUN (after #105, desktop): Add stop adds a row with address, wait select and up / down / remove; with 5 rows the Add stop button is gone and comes back after a removal; two stops with addresses (Plzen, Kladno) give a quote request with both stops in that order (309.2 km against 127.3 km without stops) and the map on step 2 shows the route through both with markers 1 and 2. SECOND ISSUE found: step 2 has its own inline route editor without stops and there is no way back to step 1, so a client cannot review, reorder or remove a stop after step 1; the same editor changes the pickup of an airport booking without its landing, which the server then refuses at checkout (PICKUP_MISMATCH). Fixed in PR #106 (route bar on step 2 returns to step 1; duplicate editor removed; test added), merged and live. THIRD RUN (after #106, live): the route bar on step 2 returns to step 1 with both stops kept, no second editor on step 2; moving stop 2 up and continuing sends a new quote in the new order (217.3 km, lower price shown on the vehicle cards). NOT observed on production: promo reset after a stop change, an airport booking edited after step 2, phone width.
 
 ### 2. Waiting select and waiting price line
 expected: With no waiting rate set only 0 and 15 minutes are offered. After the owner sets a rate for a class, options up to 120 minutes in 15-minute steps appear; a class without a rate is disabled with the note and is unselected if it was selected. 15 minutes costs nothing, 30 minutes costs one block, two stops of 15 minutes cost nothing. PriceSummary and the Step 6 summary show a separate "Waiting at stops" line equal to rate times paid blocks, and the total includes it.
@@ -81,8 +81,8 @@ result: [pending]
 ## Summary
 
 total: 12
-passed: 4
-issues: 1
+passed: 5
+issues: 0
 pending: 7
 skipped: 0
 blocked: 0
@@ -97,11 +97,11 @@ blocked: 0
   fix: "PR #105 (merged 2026-11-12): EntryBar renders StopList for one-way transfers."
 
 - truth: "An airport booking edited on the vehicle step can still be paid; stops stay visible and editable (STOP-01, STOP-05)"
-  status: fixed_pending_deploy
+  status: fixed
   reason: "Step3Vehicle had a second route editor that set the pickup without the landing (server answers PICKUP_MISMATCH at checkout) and knew nothing about stops; no way back to step 1."
   severity: blocker
   test: 1
-  fix: "PR #106 (branch fix/91-step2-route-edit): the route bar returns to step 1; the duplicate editor is removed."
+  fix: "PR #106 (merged 2026-11-12): the route bar returns to step 1; the duplicate editor is removed."
 
 ## Observations
 
