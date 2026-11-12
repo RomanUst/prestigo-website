@@ -1,6 +1,6 @@
 ---
 phase: 91-multi-stop-transfers-airport-pickup-waiting-fees
-verified: 2026-11-12T00:30:00Z
+verified: 2026-11-12T01:35:00Z
 status: human_needed
 score: 5/5 roadmap success criteria verified in code (6/6 requirements satisfied); 0 failed; 12 human items
 covered_files:
@@ -38,47 +38,57 @@ covered_files:
   - .planning/phases/91-multi-stop-transfers-airport-pickup-waiting-fees/91-16-SUMMARY.md
   - .planning/phases/91-multi-stop-transfers-airport-pickup-waiting-fees/91-17-PLAN.md
   - .planning/phases/91-multi-stop-transfers-airport-pickup-waiting-fees/91-17-SUMMARY.md
-  - supabase/migrations/089_stops_landing_extra_charges.sql
-  - lib/stops.ts
-  - lib/route-distance.ts
-  - lib/booking-stops.ts
-  - lib/airport-pickup.ts
-  - lib/airport.ts
-  - lib/landing-change.ts
-  - lib/checkout/compute.ts
-  - lib/payments/extra.ts
-  - lib/payments/consent-text.ts
-  - lib/payments/checkout.ts
-  - lib/stripe-webhook/charge-events.ts
-  - lib/stripe-webhook/dispatch.ts
-  - lib/email.ts
-  - lib/google-calendar.ts
-  - lib/driver-accept-email.ts
-  - lib/supabase.ts
+  - app/(internal)/driver/trip/[token]/TripDetails.tsx
+  - app/(internal)/driver/trip/[token]/page.tsx
+  - app/api/admin/bookings/[id]/extra/route.ts
+  - app/api/admin/bookings/[id]/landing/route.ts
+  - app/api/admin/bookings/dispatch/route.ts
+  - app/api/admin/bookings/route.ts
   - app/api/calculate-price/route.ts
   - app/api/create-payment-intent/route.ts
   - app/api/waiting-config/route.ts
-  - app/api/admin/bookings/[id]/extra/route.ts
-  - app/api/admin/bookings/[id]/landing/route.ts
-  - app/api/admin/bookings/route.ts
-  - app/api/admin/bookings/dispatch/route.ts
-  - app/(internal)/driver/trip/[token]/page.tsx
-  - app/(internal)/driver/trip/[token]/TripDetails.tsx
+  - components/admin/BookingsTable.tsx
   - components/admin/ExtraChargeModal.tsx
   - components/admin/MovePickupDialog.tsx
-  - components/admin/TripRouteSection.tsx
   - components/admin/PricingForm.tsx
-  - components/booking/StopItem.tsx
+  - components/admin/TripRouteSection.tsx
+  - components/admin/dispatch/DispatchBoard.tsx
+  - components/admin/dispatch/boardModel.ts
+  - components/booking/BookingSummaryBlock.tsx
   - components/booking/LandingPickupFields.tsx
   - components/booking/PriceSummary.tsx
-  - components/booking/BookingSummaryBlock.tsx
+  - components/booking/StopItem.tsx
   - components/booking/steps/cardCheckoutApi.ts
+  - lib/airport-pickup.ts
+  - lib/airport.ts
+  - lib/booking-stops.ts
   - lib/booking-store.ts
+  - lib/checkout/compute.ts
+  - lib/driver-accept-email.ts
+  - lib/email.ts
+  - lib/google-calendar.ts
+  - lib/landing-change.ts
+  - lib/payments/checkout.ts
+  - lib/payments/consent-text.ts
+  - lib/payments/extra.ts
+  - lib/route-distance.ts
+  - lib/stops.ts
+  - lib/stripe-webhook/charge-events.ts
+  - lib/stripe-webhook/dispatch.ts
+  - lib/supabase.ts
+  - supabase/migrations/089_admin_search_bookings_hide_cancelled.sql
+  - supabase/migrations/089_stops_landing_extra_charges.sql
+  - tests/extra-webhook.test.ts
   - tests/phase91-e2e.test.ts
-covered_digest: "v2:sha256:d8192daf0baff58ebc3b869ef176f4cdfd201b2668ca313582892481246af023"
+covered_digest: "v2:sha256:40c240e3ade82c2dc22ac18be3242c11c987b656f0e11de918f3f03ddd14750e"
 behavior_unverified: 0
 overrides_applied: 0
-re_verification: false
+re_verification:
+  previous_status: human_needed
+  previous_score: 5/5
+  gaps_closed: []
+  gaps_remaining: []
+  regressions: []
 gaps: []
 human_verification:
   - test: "Wizard: stops on a transfer (desktop and phone width)"
@@ -124,7 +134,7 @@ human_verification:
 **Phase Goal:** Clients book transfers with intermediate stops and waiting time at a server-computed price, airport pickups are timed after landing, and the operator can bill waiting beyond what was booked.
 **Verified:** 2026-11-12
 **Status:** human_needed
-**Re-verification:** No - initial verification
+**Re-verification:** Yes - after merging origin/main (see the note below)
 
 All code-level must-haves are present, substantive, wired and data-flowing. Nothing was checked in a real browser or against live Stripe; the twelve items above are what remains. No gap, no blocker.
 
@@ -238,7 +248,27 @@ Twelve items are listed in the frontmatter `human_verification` block (UI in a r
 
 No code gaps. The phase goal is implemented end to end and covered by passing tests, including one integration test that walks a quote with a stop and 45 minutes of waiting through checkout, storage, the admin list and a charged waiting extra. What remains is human only: browser and mail-client checks, and the live production steps of plan 91-16 Task 3 after deploy (owner sets waiting rates, canary booking with a stop, 1 EUR extra on the owner's card, refund). Until the owner sets rates, paid waiting is "not offered" by design (D-05).
 
+## Re-verification 2026-11-12 after merging main
+
+Trigger: `verification.status` answered `stale` after commit 2b2d64a4 (one new test) and the merge of `origin/main` (PR #103 "hide cancelled bookings from the working list and the board") into feat/91-stops-waiting. New since the first report: `91-SECURITY.md` (64/65 threats closed, T-91-46 procedural, open until the owner's live proof) and `91-UAT.md` (the 12 human items above). Changes inspected with `git diff f9612810..HEAD`.
+
+Result: no regression of any Phase 91 must-have. Status stays `human_needed`, score stays 5/5.
+
+| Changed file | Phase 91 truth touched | Finding |
+| ------------ | ---------------------- | ------- |
+| `app/api/admin/bookings/route.ts` (GET only: `hideCancelled` + `p_hide_cancelled` RPC argument) | SC4 admin list shows stops/landing | `attachStops(rpcRows)` is still applied to every RPC row (line 325); the RPC still returns `to_jsonb(b.*)`, so `landing_date`, `landing_time`, `pickup_offset_min` still arrive. The PATCH guards (`stops_edit_unsupported`, landing/pickup consistency with compare-and-set) are outside the diff and unchanged. |
+| `supabase/migrations/089_admin_search_bookings_hide_cancelled.sql` | SC4 | Drops the 8-argument `admin_search_bookings`, re-creates it with `p_hide_cancelled boolean DEFAULT false`, re-REVOKEs PUBLIC/anon/authenticated and grants service_role only. With the default the result equals migration 071. The dispatch route (old named arguments) keeps working. Return shape unchanged. |
+| `components/admin/BookingsTable.tsx`, `dispatch/DispatchBoard.tsx`, `dispatch/boardModel.ts` | SC4 panel/board visibility | Only the cancelled-booking filter changed (`isHiddenCancelled`; a cancelled booking with a pending fee case stays visible). The shared booking panel with the Route section and the extra-charge action is untouched. |
+| `tests/extra-webhook.test.ts` (+1 test) | SC5 webhook path, CR-01 | A `payment_intent.canceled` on a `card_extra` PaymentIntent changes nothing on the booking, the charge row or the ledger and sends no mail. Strengthens the CR-01 cancel path; passes. |
+| `91-SECURITY.md`, `91-UAT.md` | none | Documents only. |
+
+Runs on the merged tree: `extra-webhook`, `admin-bookings`, `admin-bookings-dispatch`, `dispatch-board`, `admin-search-bookings-hide-cancelled`, `phase91-e2e`, `admin-bookings-edit-payment`, `migration-089` = 8 files, 291 tests passed. Full suite on the merged tree (reported by the orchestrator): 425 files / 13 554 tests passed; `tsc` baseline only.
+
+Warning (not a Phase 91 gap): two migration files now share the prefix `089` (`089_stops_landing_extra_charges.sql` and `089_admin_search_bookings_hide_cancelled.sql`). Both are live and independent (different objects), and the tests pass with both, but the next migration must be numbered 090 or higher and a fresh-database replay must apply both. Note for the migration-numbering memory: next free number is 090.
+
+Open until the owner: T-91-46 (procedural, closed only by the live proof, human item 11) and all twelve human items (now persisted in `91-UAT.md`).
+
 ---
 
-_Verified: 2026-11-12_
+_Verified: 2026-11-12 (re-verified after the merge of main)_
 _Verifier: Claude (gsd-verifier)_
