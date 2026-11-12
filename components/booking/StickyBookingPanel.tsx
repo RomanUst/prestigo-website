@@ -76,6 +76,7 @@ export default function StickyBookingPanel() {
 
   // Compute price display
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
+  const waitingEur = selectedPrice?.waitingEur ?? 0
   const priceDisplay = selectedPrice
     ? `€${selectedPrice.base}`
     : null
@@ -248,6 +249,22 @@ export default function StickyBookingPanel() {
         </div>
       ) : (
         <>
+          {/* D-06: waiting at stops as its own line; the amount is the server's waitingEur (already in the price below) */}
+          {waitingEur > 0 && (
+            <p
+              data-testid="sticky-waiting-line"
+              style={{
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '12px',
+                fontWeight: 400,
+                color: 'var(--warmgrey)',
+                marginBottom: 6,
+              }}
+            >
+              {t('priceSummary.waitingLine')} +&euro;{waitingEur}
+            </p>
+          )}
+
           {/* Price */}
           {priceDisplay && (
             <p

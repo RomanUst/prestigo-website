@@ -158,3 +158,23 @@ describe('StickyBookingPanel', () => {
     })
   })
 })
+
+// UAT gap (Phase 91, D-06): the desktop price panel showed no waiting line (PriceSummary is mobile only on this step).
+describe('StickyBookingPanel waiting at stops line (D-06)', () => {
+  it('shows the server waiting amount as its own line when it is above 0', () => {
+    setupStoreWithVehicle()
+    useBookingStore.setState({
+      priceBreakdown: { ...mockPriceBreakdown, business: { base: 98, extras: 0, total: 98, currency: 'EUR', waitingEur: 14 } },
+    })
+    render(<StickyBookingPanel />)
+    const line = screen.getByTestId('sticky-waiting-line')
+    expect(line).toHaveTextContent('Waiting at stops')
+    expect(line).toHaveTextContent('14')
+  })
+
+  it('shows no waiting line when the waiting amount is 0 or absent', () => {
+    setupStoreWithVehicle()
+    render(<StickyBookingPanel />)
+    expect(screen.queryByTestId('sticky-waiting-line')).not.toBeInTheDocument()
+  })
+})
