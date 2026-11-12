@@ -21,11 +21,12 @@ export interface StopItemProps {
   onMove?: (id: string, direction: -1 | 1) => void
 }
 
-// D-06: 15-minute steps from 0 to the per-stop maximum (0, 15 ... 120).
+// Owner decision 2026-11-12: 15-minute steps up to one hour, then 30-minute steps (0, 15, 30, 45, 60, 90, 120).
+// The first STOP_FREE_WAIT_MIN minutes are free and the option says so. Billing stays per started WAIT_BLOCK_MIN.
 const WAIT_TIME_OPTIONS: readonly number[] = Array.from(
   { length: MAX_STOP_WAIT_MIN / WAIT_BLOCK_MIN + 1 },
   (_, i) => i * WAIT_BLOCK_MIN,
-)
+).filter((m) => m <= 60 || m % 30 === 0)
 
 const HINT_STYLE = {
   margin: '6px 0 0',
@@ -58,6 +59,14 @@ function WaitSelector({
   useEffect(() => {
     if (paidUnavailable && waitMinutes > STOP_FREE_WAIT_MIN) {
       onWaitChange(stop.id, STOP_FREE_WAIT_MIN)
+    }
+  }, [paidUnavailable, waitMinutes, stop.id, onWaitChange])
+
+  // A wait saved before the option list changed (75 or 105 minutes) moves up to the next offered option.
+  useEffect(() => {
+    if (!paidUnavailable && !WAIT_TIME_OPTIONS.includes(waitMinutes)) {
+      const next = WAIT_TIME_OPTIONS.find((m) => m > waitMinutes)
+      if (next !== undefined) onWaitChange(stop.id, next)
     }
   }, [paidUnavailable, waitMinutes, stop.id, onWaitChange])
 
@@ -104,7 +113,7 @@ function WaitSelector({
       >
         {options.map((m) => (
           <option key={m} value={m}>
-            {m === 0 ? t('noWait') : t('minutes', { count: m })}
+            {m === 0 ? t('noWait') : m <= STOP_FREE_WAIT_MIN ? t('minutesFree', { count: m }) : t('minutes', { count: m })}
           </option>
         ))}
       </select>

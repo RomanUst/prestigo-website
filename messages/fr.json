@@ -226,7 +226,8 @@
       "waitTimeAria": "Temps d'attente",
       "noWait": "Sans attente",
       "minutes": "{count} min",
-      "freeWaitHint": "Les 15 premières minutes sont offertes, puis chaque tranche de 15 min entamée est facturée",
+      "minutesFree": "{count} min, gratuit",
+      "freeWaitHint": "Les 15 premières minutes sont gratuites. Ensuite, chaque tranche de 15 min entamée est facturée.",
       "paidWaitUnavailable": "L'attente payante n'est pas disponible pour le moment",
       "moveUp": "Monter l'arrêt",
       "moveDown": "Descendre l'arrêt"
