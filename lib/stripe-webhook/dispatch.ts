@@ -59,10 +59,13 @@ export interface PaymentEventClass {
 
 type EventHandler = (event: Stripe.Event) => Promise<void>
 
-/** payment_intent.payment_failed: the scheduled hold (card_hold) or an off-session charge / difference / fee (88-13, 89-26). */
+/** payment_intent.payment_failed: the scheduled hold (card_hold) or an off-session charge / difference / fee / extra (88-13, 89-26, 91-08). */
 async function handlePaymentFailed(event: Stripe.Event): Promise<void> {
   const kind = metadataOf(event).kind
-  if (kind === 'card_charge' || kind === 'card_difference' || kind === 'card_fee') return handleCardChargeFailed(event)
+  // card_extra (Phase 91) is the operator's separate charge: its failure is never a hold failure (T-91-29).
+  if (kind === 'card_charge' || kind === 'card_difference' || kind === 'card_fee' || kind === 'card_extra') {
+    return handleCardChargeFailed(event)
+  }
   return handleHoldFailed(event)
 }
 
@@ -132,7 +135,8 @@ export function classifyPaymentEvent(event: Stripe.Event): PaymentEventClass | n
         kind === 'card_hold' ||
         kind === 'card_hold_now' ||
         kind === 'card_difference' ||
-        kind === 'card_fee'
+        kind === 'card_fee' ||
+        kind === 'card_extra'
       ) {
         return make('charge_succeeded')
       }

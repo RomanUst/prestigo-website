@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { attachStops } from '@/lib/booking-stops'
 
 // Admin-only range read for the dispatch board and calendar (DISP-01).
 // Reads through the existing admin_search_bookings RPC; no new SQL.
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
 
   const supabase = createSupabaseServiceClient()
 
-  const bookings: unknown[] = []
+  const bookings: Array<{ id: string }> = []
   let total = 0
 
   for (let pageIndex = 0; pageIndex < MAX_PAGES; pageIndex++) {
@@ -83,15 +84,26 @@ export async function GET(request: Request) {
 
     // admin_search_bookings returns a single row: { rows: JSONB[], total_count: bigint }
     const row = Array.isArray(data) && data.length > 0 ? data[0] : null
-    const pageRows: unknown[] = Array.isArray(row?.rows) ? row.rows : []
+    const pageRows: Array<{ id: string }> = Array.isArray(row?.rows) ? row.rows : []
     if (pageIndex === 0) total = row?.total_count != null ? Number(row.total_count) : 0
 
     bookings.push(...pageRows)
     if (bookings.length >= total || pageRows.length < PAGE_SIZE) break
   }
 
+  // Phase 91 (STOP-04): board and calendar cards open the same panel as the list, so every row carries its stops
+  // (ordered by position, [] when none). One query for the whole range; the guard above stays first.
+  let withStops: unknown[]
+  try {
+    withStops = await attachStops(bookings)
+  } catch (stopsError) {
+    // The message only: a stop address is client PII.
+    console.error('[admin/bookings/dispatch.GET] stops read failed:', stopsError instanceof Error ? stopsError.message : 'unknown')
+    return NextResponse.json({ error: 'DB read failed' }, { status: 500, headers: NO_STORE })
+  }
+
   return NextResponse.json(
-    { bookings, truncated: total > bookings.length },
+    { bookings: withStops, truncated: total > bookings.length },
     { headers: NO_STORE },
   )
 }

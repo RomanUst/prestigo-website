@@ -2,15 +2,17 @@ import fs from 'fs'
 import path from 'path'
 import { createElement } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { TERMINAL_STATUSES, isTripLinkValid, tripLinkViewState } from '@/lib/trip-token'
 
 // vi.hoisted ensures stubs are available inside vi.mock factories (hoisted
 // before imports) — mirrors tests/admin-assignment.test.ts conventions.
-const { stubSupabaseFrom, getStartGateMock, getNoShowViewMock } = vi.hoisted(() => ({
+const { stubSupabaseFrom, getStartGateMock, getNoShowViewMock, loadStopsSafeMock, getThresholdsMock } = vi.hoisted(() => ({
   stubSupabaseFrom: vi.fn(),
   getStartGateMock: vi.fn(),
   getNoShowViewMock: vi.fn(),
+  loadStopsSafeMock: vi.fn(),
+  getThresholdsMock: vi.fn(),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -42,6 +44,14 @@ vi.mock('@/lib/no-show', async (importOriginal) => ({
   getNoShowView: getNoShowViewMock,
 }))
 
+// Phase 91: the stops come through lib/booking-stops (service client, own table) and the free wait from the live
+// no-show setting; the page test decides both answers.
+vi.mock('@/lib/booking-stops', () => ({ loadStopsSafe: loadStopsSafeMock }))
+vi.mock('@/lib/no-show-wait', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/no-show-wait')>()),
+  getNoShowThresholds: getThresholdsMock,
+}))
+
 import TripSheetPage, { metadata } from '@/app/(internal)/driver/trip/[token]/page'
 import DriverTripLayout from '@/app/(internal)/driver/trip/layout'
 
@@ -50,6 +60,7 @@ const driverId = 'a0000002-0000-4000-8000-000000000002'
 const otherDriverId = 'a0000009-0000-4000-8000-000000000009'
 
 function makeAssignmentRow(overrides: {
+  booking?: Record<string, unknown>
   assignmentDriverId?: string
   bookingDriverId?: string | null
   bookingStatus?: string
@@ -86,6 +97,10 @@ function makeAssignmentRow(overrides: {
       no_show_requested_at: null,
       status: overrides.bookingStatus ?? 'assigned',
       driver_id: overrides.bookingDriverId === undefined ? driverId : overrides.bookingDriverId,
+      landing_date: null,
+      landing_time: null,
+      pickup_offset_min: null,
+      ...overrides.booking,
     },
     drivers: { name: 'John Driver', phone: '+420999888777', vehicle_info: 'Black Mercedes E-Class' },
   }
@@ -232,6 +247,10 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     getStartGateMock.mockResolvedValue({ unlocksAtMs: null, open: true })
     getNoShowViewMock.mockReset()
     getNoShowViewMock.mockResolvedValue({ noShowAvailableAt: null, noShowRequestedAt: null })
+    loadStopsSafeMock.mockReset()
+    loadStopsSafeMock.mockResolvedValue([])
+    getThresholdsMock.mockReset()
+    getThresholdsMock.mockResolvedValue({ cityMin: 30, airportMin: 60 })
   })
 
   it('metadata.robots has index and follow both false (D-08 noindex, T-87-34)', () => {
@@ -385,6 +404,89 @@ describe('TripSheetPage (app/(internal)/driver/trip/[token]/page.tsx)', () => {
     for (const secret of ['Alice', 'Smith', '+420123456789', 'Prague Airport', 'Wenceslas Square', '2026-09-01']) {
       expect(text).not.toContain(secret)
     }
+  })
+
+  describe('Phase 91: landing, free waiting and stops for the driver (STOP-04, STOP-05)', () => {
+    const airportBooking = {
+      pickup_date: '2027-06-10',
+      pickup_time: '14:30',
+      landing_date: '2027-06-10',
+      landing_time: '14:00',
+      pickup_offset_min: 30,
+    }
+    const storedStop = {
+      position: 1,
+      address: 'Karlovy Vary',
+      lat: 50.23,
+      lng: 12.87,
+      waitMinutes: 45,
+      freeMinutes: 30,
+      blocks: 1,
+      feePerBlockEur: 20,
+      feeEur: 20,
+    }
+
+    it('renders Landing, Pickup, Free waiting until (pickup + 60, airport) and the stop with its wait', async () => {
+      mockSupabaseSingle(makeAssignmentRow({ booking: airportBooking }))
+      loadStopsSafeMock.mockResolvedValue([storedStop])
+      await renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Show trip details' }))
+
+      expect(loadStopsSafeMock).toHaveBeenCalledWith('booking-1')
+      expect(screen.getByText('Landing 14:00')).toBeInTheDocument()
+      expect(screen.getByText('Pickup 14:30')).toBeInTheDocument()
+      expect(screen.getByText('Free waiting until 15:30')).toBeInTheDocument()
+      expect(screen.getByText('Stop 1')).toBeInTheDocument()
+      expect(screen.getByText('Karlovy Vary')).toBeInTheDocument()
+      expect(screen.getByText('wait 45 min')).toBeInTheDocument()
+    })
+
+    it('counts the free waiting from the pickup with the live airport setting', async () => {
+      mockSupabaseSingle(makeAssignmentRow({ booking: airportBooking }))
+      getThresholdsMock.mockResolvedValue({ cityMin: 30, airportMin: 45 })
+      await renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Show trip details' }))
+      expect(screen.getByText('Free waiting until 15:15')).toBeInTheDocument()
+    })
+
+    it('a city pickup gets pickup + the city minutes and no landing row', async () => {
+      mockSupabaseSingle(
+        makeAssignmentRow({
+          booking: { pickup_date: '2027-06-10', pickup_time: '10:00', origin_address: 'Hotel Aria', origin_lat: 50.09, origin_lng: 14.4 },
+        }),
+      )
+      await renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Show trip details' }))
+      expect(screen.getByText('Free waiting until 10:30')).toBeInTheDocument()
+      expect(screen.queryByText(/^Landing /)).not.toBeInTheDocument()
+    })
+
+    it('reads the landing columns, never a fare or the stop fee, and shows no money', async () => {
+      const { selectFn } = mockSupabaseSingle(makeAssignmentRow({ booking: airportBooking }))
+      loadStopsSafeMock.mockResolvedValue([storedStop])
+      const { container } = await renderPage()
+      fireEvent.click(screen.getByRole('button', { name: 'Show trip details' }))
+      const cols = String(selectFn.mock.calls[0][0])
+      expect(cols).toContain('landing_time')
+      expect(cols).not.toMatch(/amount_eur|price|fee/i)
+      expect(container.textContent ?? '').not.toMatch(/€|EUR|CZK|\bfee\b|\bprice\b|amount/i)
+    })
+
+    it('a stops read that returns nothing leaves the page working', async () => {
+      mockSupabaseSingle(makeAssignmentRow({ booking: airportBooking }))
+      loadStopsSafeMock.mockResolvedValue([])
+      await renderPage()
+      expect(screen.getByText('On my way')).toBeInTheDocument()
+    })
+
+    it('an invalid, ended or reassigned token never reads the stops', async () => {
+      await renderPage('not-a-uuid')
+      mockSupabaseSingle(makeAssignmentRow({ assignmentDriverId: driverId, bookingDriverId: otherDriverId }))
+      await renderPage()
+      mockSupabaseSingle(makeAssignmentRow({ bookingStatus: 'completed' }))
+      await renderPage()
+      expect(loadStopsSafeMock).not.toHaveBeenCalled()
+    })
   })
 
   it('orphaned assignment (joined booking missing) renders the same ended view', async () => {

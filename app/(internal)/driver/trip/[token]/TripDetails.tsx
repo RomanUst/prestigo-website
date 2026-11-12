@@ -20,6 +20,14 @@ export interface TripDetailsProps {
   vehicleInfo: string | null
   flight: string | null
   clientNotes: string | null
+  /** Phase 91: pickup wall clock 'HH:MM' (Prague). */
+  pickupTime: string
+  /** Phase 91 (STOP-05): the flight's landing; null when the booking has none. */
+  landing: { date: string; time: string; offsetMin: number } | null
+  /** Phase 91 (STOP-05): 'HH:MM' Prague, counted from the pickup. */
+  freeWaitUntil: string | null
+  /** Phase 91 (STOP-04): stops in order; waiting time only, never a fee. */
+  stops: ReadonlyArray<{ position: number; address: string; waitMinutes: number }>
   /** Phase 89 (UI-SPEC 6.1): a cash_guarantee booking shows the neutral chip, never the amount. */
   isCash?: boolean
   /** The draft lives in the screen so collapsing the sheet or a router.refresh() never loses it. */
@@ -66,6 +74,10 @@ export default function TripDetails({
   vehicleInfo,
   flight,
   clientNotes,
+  pickupTime,
+  landing,
+  freeWaitUntil,
+  stops,
   isCash = false,
   draft,
   onDraftChange,
@@ -141,6 +153,25 @@ export default function TripDetails({
           <p style={valueStyle}>{flight}</p>
         </DetailRow>
       ) : null}
+      {landing ? (
+        <DetailRow caption="Arrival">
+          <p style={{ ...valueStyle, fontVariantNumeric: 'tabular-nums' }}>{`Landing ${landing.time}`}</p>
+          <p style={{ ...valueStyle, fontVariantNumeric: 'tabular-nums' }}>{`Pickup ${pickupTime}`}</p>
+        </DetailRow>
+      ) : null}
+      {freeWaitUntil ? (
+        <DetailRow caption="Waiting">
+          <p style={{ ...valueStyle, fontVariantNumeric: 'tabular-nums' }}>{`Free waiting until ${freeWaitUntil}`}</p>
+        </DetailRow>
+      ) : null}
+      {stops.map((stop) => (
+        <DetailRow key={stop.position} caption={`Stop ${stop.position}`}>
+          <p style={valueStyle}>{stop.address}</p>
+          <p style={{ ...valueStyle, color: 'var(--admin-text-muted)' }}>
+            {stop.waitMinutes > 0 ? `wait ${stop.waitMinutes} min` : 'no waiting'}
+          </p>
+        </DetailRow>
+      ))}
       {clientNotes ? (
         <DetailRow caption="Notes from the client">
           <p style={{ ...valueStyle, whiteSpace: 'pre-wrap' }}>{clientNotes}</p>

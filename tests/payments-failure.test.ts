@@ -278,6 +278,8 @@ describe('tracer: a declined scheduled hold', () => {
       'change_request',
       // Money review 2, WR-03
       'refund_unmatched',
+      // Phase 91 review (CR-01, WR-01, WR-06)
+      'ops_attention',
     ])
   })
 })

@@ -12,3 +12,14 @@ export function isNearAirport(pt: { lat: number; lng: number } | null | undefine
     Math.abs(pt.lng - PRG_LNG) < PRG_RADIUS_DEG
   )
 }
+
+/**
+ * Phase 91: the airport flag of a trip, from coordinates only. The quote and the checkout both use this
+ * so a browser-supplied airport flag can never change the price (T-91-05).
+ */
+export function isAirportTrip(
+  origin: { lat: number; lng: number } | null | undefined,
+  destination: { lat: number; lng: number } | null | undefined,
+): boolean {
+  return isNearAirport(origin) || isNearAirport(destination)
+}

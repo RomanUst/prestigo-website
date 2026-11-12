@@ -15,6 +15,8 @@ export interface TripMapProps {
   destinationAddress: string
   /** bookings.distance_km, shown as "12.4 km (est.)" only when Directions fails. */
   distanceKm: number | null
+  /** Phase 91 (STOP-04): the trip's stops in order; the route goes through those with coordinates. */
+  stops?: ReadonlyArray<{ lat: number | null; lng: number | null }>
 }
 
 const wrapperStyle: CSSProperties = {
@@ -55,7 +57,14 @@ function formatKm(km: number): string {
  * Google logo and attribution stay visible (Maps ToS). With a missing coordinate pair RouteMap is
  * not mounted and a placeholder explains the Navigate fallback.
  */
-export default function TripMap({ origin, destination, originAddress, destinationAddress, distanceKm }: TripMapProps) {
+export default function TripMap({
+  origin,
+  destination,
+  originAddress,
+  destinationAddress,
+  distanceKm,
+  stops,
+}: TripMapProps) {
   const [info, setInfo] = useState<{ km: number; min: number } | null>(null)
   const [failed, setFailed] = useState(false)
 
@@ -72,6 +81,15 @@ export default function TripMap({ origin, destination, originAddress, destinatio
   const destinationPlace = useMemo<PlaceResult | null>(
     () => (dLat !== null && dLng !== null ? { address: destinationAddress, placeId: '', lat: dLat, lng: dLng } : null),
     [dLat, dLng, destinationAddress],
+  )
+
+  // A stop without coordinates cannot be a waypoint; RouteMap keys on the coordinates, not on this array's identity.
+  const stopPoints = useMemo(
+    () =>
+      (stops ?? []).flatMap((stop) =>
+        stop.lat !== null && stop.lng !== null ? [{ lat: stop.lat, lng: stop.lng }] : [],
+      ),
+    [stops],
   )
 
   const onRouteInfo = useCallback((km: number, min: number) => setInfo({ km, min }), [])
@@ -114,6 +132,7 @@ export default function TripMap({ origin, destination, originAddress, destinatio
         origin={originPlace}
         destination={destinationPlace}
         height={MAP_HEIGHT}
+        stops={stopPoints}
         onRouteInfo={onRouteInfo}
         onRouteError={onRouteError}
       />

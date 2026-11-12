@@ -61,6 +61,10 @@ const { storeRef } = vi.hoisted(() => {
       luggage: 1,
       pickupDate: '2026-06-01',
       pickupTime: '10:00',
+      stops: [] as Array<{ id: string; place: { address: string; lat: number; lng: number; placeId: string } | null; waitMinutes?: number }>,
+      landingDate: null as string | null,
+      landingTime: null as string | null,
+      pickupOffsetMin: 30,
       returnDate: null as string | null,
       returnTime: null as string | null,
       roundTripPriceBreakdown: null,
@@ -102,6 +106,13 @@ function mockCreatePaymentIntentFetch(bookingReference = 'PRG-20260101-ABC123') 
 
 beforeEach(() => {
   vi.clearAllMocks()
+  storeRef.current.stops = []
+  storeRef.current.landingDate = null
+  storeRef.current.landingTime = null
+  storeRef.current.pickupOffsetMin = 30
+  storeRef.current.tripType = 'transfer'
+  storeRef.current.pickupDate = '2026-06-01'
+  storeRef.current.pickupTime = '10:00'
   elementsOptionsCapture.length = 0
   onReadyRef.current = null
   confirmPaymentMock.mockResolvedValue({ error: null, paymentIntent: { status: 'succeeded' } })
@@ -444,4 +455,53 @@ describe('STEP6-RT: Round-trip Step 6 support', () => {
   it.todo('STEP6-RT-RETURNTIME-IN-BODY: fetch body contains returnTime for round_trip')
   it.todo('STEP6-RT-DISCOUNT-COMBINED: discountedTotalEur applies promo to combined total, not just outbound')
   it.todo('STEP6-RT-PROMO-PERSIST: promoCode survives a store rehydrate (partialize)')
+})
+
+describe('Phase 91: the pay-now body carries stops and the landing (STOP-01, STOP-04, STOP-05)', () => {
+  const stop = { id: 's1', place: { address: 'Karlstejn', lat: 50.05, lng: 14.4, placeId: 'p1' }, waitMinutes: 45 }
+
+  async function sentBookingData(): Promise<Record<string, unknown>> {
+    render(<Step6Payment />)
+    await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+    const call = (global.fetch as ReturnType<typeof vi.fn>).mock.calls.find((c) => c[0] === '/api/create-payment-intent')
+    return (JSON.parse(String(call![1].body)) as { bookingData: Record<string, unknown> }).bookingData
+  }
+
+  it('a transfer from the airport with a stop and a landing sends them, with the derived pickup', async () => {
+    storeRef.current.stops = [stop, { id: 's2', place: null, waitMinutes: 0 }]
+    storeRef.current.landingDate = '2027-06-10'
+    storeRef.current.landingTime = '14:00'
+    storeRef.current.pickupOffsetMin = 30
+    storeRef.current.pickupDate = '2027-06-10'
+    storeRef.current.pickupTime = '14:30'
+    const bd = await sentBookingData()
+    expect(bd.stops).toEqual([{ address: 'Karlstejn', lat: 50.05, lng: 14.4, waitMinutes: 45 }])
+    expect(bd.landingDate).toBe('2027-06-10')
+    expect(bd.landingTime).toBe('14:00')
+    expect(bd.pickupOffsetMin).toBe('30')
+    expect(bd.pickupTime).toBe('14:30')
+  })
+
+  it('a round trip sends no stops key and no landing keys for a city pickup', async () => {
+    storeRef.current.tripType = 'round_trip'
+    storeRef.current.origin = { address: 'Wenceslas Square, Prague', lat: 50.0813, lng: 14.4274, placeId: 'city' }
+    storeRef.current.stops = [stop]
+    const bd = await sentBookingData()
+    storeRef.current.origin = { address: 'Prague Airport', lat: 50.1, lng: 14.26, placeId: 'origin-place' }
+    expect(bd).not.toHaveProperty('stops')
+    expect(bd).not.toHaveProperty('landingDate')
+    expect(bd).not.toHaveProperty('pickupOffsetMin')
+  })
+
+  it.each(['hourly', 'daily'] as const)('%s sends no stops key and no landing keys', async (tripType) => {
+    storeRef.current.tripType = tripType
+    storeRef.current.stops = [stop]
+    storeRef.current.landingDate = '2027-06-10'
+    storeRef.current.landingTime = '14:00'
+    const bd = await sentBookingData()
+    expect(bd).not.toHaveProperty('stops')
+    expect(bd).not.toHaveProperty('landingDate')
+    expect(bd).not.toHaveProperty('landingTime')
+    expect(bd).not.toHaveProperty('pickupOffsetMin')
+  })
 })

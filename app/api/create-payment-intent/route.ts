@@ -7,6 +7,7 @@ import {
   saveBooking,
   captureUnpaidBooking,
 } from '@/lib/supabase'
+import { saveBookingStops } from '@/lib/booking-stops'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody } from '@/lib/request-guards'
@@ -102,6 +103,14 @@ export async function POST(req: Request) {
     const tripType = validated.tripType
     const stripeAmount = priced.combined.stripeAmountMinor
 
+    // Phase 91 (STOP-04, T-91-20): a pay-now booking with stops takes payment only once its stops are stored. The
+    // stops are written on the attempt-keyed capture row, so an attemptId is required for them; without one there
+    // would be no row to hold them and the driver would never see the stops.
+    const hasStops = priced.stops.length > 0
+    if (hasStops && !bookingData.attemptId) {
+      return NextResponse.json({ error: 'Invalid request body', code: 'INVALID_REQUEST' }, { status: 400 })
+    }
+
     const bookingReference = generateBookingReference()
     const returnBookingReference = tripType === 'round_trip' ? generateBookingReference() : ''
 
@@ -165,13 +174,29 @@ export async function POST(req: Request) {
           const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
           // 88-REVIEW B-WR-02: an attempt the card flow already captured is never overwritten (AttemptFlowConflictError,
           // logged below); the pay-now booking is then created by the webhook's defensive insert on payment.
-          await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound', 'pay_now')
+          const captured = await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound', 'pay_now')
+          // An empty result means the row left unpaid (already confirmed): its stops are never touched (T-91-19).
+          if (hasStops && captured.length > 0) await saveBookingStops(captured[0].id, priced.stops)
         }
       } catch (captureErr) {
         console.error(
           'create-payment-intent capture failed:',
           captureErr instanceof Error ? captureErr.message : String(captureErr)
         )
+        if (hasStops) {
+          // Fail closed: the client must never pay for a trip whose stops were not stored. The PaymentIntent just
+          // created is cancelled (best effort, its own try) and the client retries the same attempt.
+          try {
+            await getStripe().paymentIntents.cancel(paymentIntent.id)
+          } catch (cancelErr) {
+            const code = (cancelErr as { code?: unknown } | null)?.code
+            console.error('create-payment-intent stops cancel failed:', typeof code === 'string' ? code : 'unknown')
+          }
+          return NextResponse.json(
+            { error: 'Your stops could not be saved. Please try again.', code: 'STOPS_NOT_SAVED' },
+            { status: 503 }
+          )
+        }
       }
     } else if (tripType !== 'round_trip') {
       // Phase 62-01 fallback (no attemptId supplied): payment_intent_id-keyed

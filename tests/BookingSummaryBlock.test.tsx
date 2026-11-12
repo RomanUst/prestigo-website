@@ -168,3 +168,42 @@ describe('BookingSummaryBlock', () => {
     })
   })
 })
+
+describe('BookingSummaryBlock: waiting at stops (D-06)', () => {
+  const withWaiting = (waitingEur: number | null | undefined) => ({
+    business: { base: 100, total: 100, extras: 0, currency: 'EUR', ...(waitingEur === undefined ? {} : { waitingEur }) },
+    first_class: { base: 150, total: 150, extras: 0, currency: 'EUR' },
+    business_van: { base: 120, total: 120, extras: 0, currency: 'EUR' },
+  })
+
+  function setup(waitingEur: number | null | undefined) {
+    useBookingStore.setState({
+      tripType: 'transfer',
+      vehicleClass: 'business',
+      origin: { address: 'Prague Airport', lat: 50.1, lng: 14.26, placeId: 'A' },
+      destination: { address: 'Karlovy Vary', lat: 50.23, lng: 12.87, placeId: 'B' },
+      pickupDate: '2026-06-01',
+      pickupTime: '10:00',
+      passengers: 2,
+      priceBreakdown: withWaiting(waitingEur),
+      roundTripPriceBreakdown: null,
+      extras: { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: false, extraLuggage: false },
+      promoCode: null,
+      promoDiscount: 0,
+    })
+  }
+
+  it('renders the line with the server waitingEur when above 0, total unchanged', () => {
+    setup(24)
+    render(<BookingSummaryBlock selectedCurrency="eur" />)
+    expect(screen.getByText(/Waiting at stops/)).toHaveTextContent('Waiting at stops +€24')
+    // base already includes waiting: the total is the base, not base + 24
+    expect(screen.getByText('€100')).toBeInTheDocument()
+  })
+
+  it.each([0, null, undefined])('renders no waiting line for %s', (w) => {
+    setup(w)
+    render(<BookingSummaryBlock selectedCurrency="eur" />)
+    expect(screen.queryByText(/Waiting at stops/)).toBeNull()
+  })
+})

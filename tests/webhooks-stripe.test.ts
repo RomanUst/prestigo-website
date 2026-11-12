@@ -40,6 +40,15 @@ vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
 
+// WR-06: the stops-missing alert path (the stops read and the operator alert are spies; both are only reached when the
+// PaymentIntent metadata carries stopCount, so every other test of this file is unaffected).
+const { stubLoadStops, stubOperatorAlert } = vi.hoisted(() => ({
+  stubLoadStops: vi.fn(),
+  stubOperatorAlert: vi.fn(),
+}))
+vi.mock('@/lib/booking-stops', () => ({ loadStopsByBookingIds: stubLoadStops }))
+vi.mock('@/lib/payments/alerts', () => ({ sendPaymentOperatorAlert: stubOperatorAlert }))
+
 // Mock lib/email
 vi.mock('@/lib/email', () => ({
   sendClientConfirmation: vi.fn().mockResolvedValue(undefined),
@@ -334,6 +343,35 @@ describe('/api/webhooks/stripe', () => {
       const arg = (sendClientConfirmation as ReturnType<typeof vi.fn>).mock.calls[0][0]
       expect(arg.email).toBe('jan@example.com')
     })
+
+    it('Phase 91-14: a landing booking passes bookingId and the landing fields to the client and manager emails', async () => {
+      stripeStub.constructEvent.mockReturnValue({
+        type: 'payment_intent.succeeded',
+        data: {
+          object: {
+            ...mockPaymentIntent,
+            metadata: { ...mockPaymentIntent.metadata, landingDate: '2027-06-10', landingTime: '14:00', pickupOffsetMin: '30' },
+          },
+        },
+      })
+      await POST(makeRequest())
+      for (const sender of [sendClientConfirmation, sendManagerAlert]) {
+        const arg = (sender as ReturnType<typeof vi.fn>).mock.calls[0][0]
+        expect(arg.bookingId).toBe('new-booking-uuid')
+        expect(arg.landingDate).toBe('2027-06-10')
+        expect(arg.landingTime).toBe('14:00')
+        expect(arg.pickupOffsetMin).toBe(30)
+      }
+    })
+
+    it('Phase 91-14: a booking without landing keeps the landing fields undefined but still passes bookingId', async () => {
+      await POST(makeRequest())
+      const arg = (sendClientConfirmation as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(arg.bookingId).toBe('new-booking-uuid')
+      expect(arg.landingDate).toBeUndefined()
+      expect(arg.landingTime).toBeUndefined()
+      expect(arg.pickupOffsetMin).toBeUndefined()
+    })
   })
 
   describe('BACK-03: Manager alert email sent', () => {
@@ -623,6 +661,89 @@ describe('/api/webhooks/stripe', () => {
       expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-out', expect.any(Number))
       expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-ret-backfill', expect.any(Number))
     })
+  })
+})
+
+describe('WR-06: a fallback insert that loses the stops the client paid for tells the operator', () => {
+  const withStops = (stopCount: string | undefined) => ({
+    ...mockPaymentIntent,
+    metadata: { ...mockPaymentIntent.metadata, ...(stopCount === undefined ? {} : { stopCount }) },
+  })
+  const deliver = (pi: unknown) => {
+    stripeStub.constructEvent.mockReturnValue({ id: 'evt_stops', type: 'payment_intent.succeeded', data: { object: pi } })
+    return POST(makeRequest())
+  }
+  beforeEach(() => {
+    stubLoadStops.mockReset()
+    stubOperatorAlert.mockReset()
+    stubOperatorAlert.mockResolvedValue('sent')
+    ;(buildBookingRow as ReturnType<typeof vi.fn>).mockReturnValue({
+      booking_reference: 'PRG-20260330-1234',
+      client_first_name: 'Jan',
+      client_last_name: 'Novak',
+      pickup_date: '2026-04-15',
+      pickup_time: '14:00',
+    })
+  })
+
+  it('stopCount in the metadata, a fresh fallback insert and no stored stops: one ops_attention alert, ids only', async () => {
+    stubLoadStops.mockResolvedValue(new Map())
+    const res = await deliver(withStops('2'))
+    expect(res.status).toBe(200)
+    expect(stubLoadStops).toHaveBeenCalledWith(['new-booking-uuid'])
+    expect(stubOperatorAlert).toHaveBeenCalledTimes(1)
+    const [kind, booking, details] = stubOperatorAlert.mock.calls[0]
+    expect(kind).toBe('ops_attention')
+    expect(booking).toMatchObject({ id: 'new-booking-uuid', booking_reference: 'PRG-20260330-1234' })
+    expect(details).toMatchObject({ eventKey: 'alert:stops_missing:new-booking-uuid', code: 'stops_missing', note: 'stops_missing' })
+    // the confirmation flow still runs: the alert never blocks the booking
+    expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
+  })
+
+  it('a stops read that fails is treated as unknown: the operator is alerted, the webhook still answers 200', async () => {
+    stubLoadStops.mockRejectedValue(new Error('booking stops read failed'))
+    const res = await deliver(withStops('1'))
+    expect(res.status).toBe(200)
+    expect(stubOperatorAlert).toHaveBeenCalledTimes(1)
+  })
+
+  it('an alert that throws never fails the webhook', async () => {
+    stubLoadStops.mockResolvedValue(new Map())
+    stubOperatorAlert.mockRejectedValue(new Error('resend down'))
+    const res = await deliver(withStops('1'))
+    expect(res.status).toBe(200)
+    expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops that are stored (as many as were priced): no alert', async () => {
+    stubLoadStops.mockResolvedValue(new Map([['new-booking-uuid', [{}, {}]]]))
+    await deliver(withStops('2'))
+    expect(stubOperatorAlert).not.toHaveBeenCalled()
+  })
+
+  it('no stopCount (a trip without stops): no stops read and no alert', async () => {
+    await deliver(withStops(undefined))
+    expect(stubLoadStops).not.toHaveBeenCalled()
+    expect(stubOperatorAlert).not.toHaveBeenCalled()
+  })
+
+  it('a booking reconciled from the unpaid capture row (stops saved at checkout) is not checked', async () => {
+    ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 'captured-id' }])
+    await deliver(withStops('2'))
+    expect(stubLoadStops).not.toHaveBeenCalled()
+    expect(stubOperatorAlert).not.toHaveBeenCalled()
+  })
+})
+
+describe('IN-08: the pay-now confirmation carries the currency the client paid in', () => {
+  it.each([['czk', 'czk'], ['eur', 'eur']] as const)('PaymentIntent currency %s -> BookingEmailData.currency %s', async (piCurrency, expected) => {
+    stripeStub.constructEvent.mockReturnValue({
+      id: `evt_cur_${piCurrency}`,
+      type: 'payment_intent.succeeded',
+      data: { object: { ...mockPaymentIntent, currency: piCurrency } },
+    })
+    await POST(makeRequest())
+    expect(sendClientConfirmation).toHaveBeenCalledWith(expect.objectContaining({ currency: expected }))
   })
 })
 

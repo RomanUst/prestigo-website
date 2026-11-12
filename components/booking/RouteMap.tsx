@@ -135,6 +135,30 @@ function createMapLabel(
 }
 
 // ---------------------------------------------------------------------------
+// Stops (Phase 91, STOP-01): at most 5 intermediate stops, drawn in the client's order.
+// The stops reach the effect as a primitive key ("lat,lng;lat,lng"), so a new array identity with the same points
+// never rebuilds the map (and never makes another Directions call).
+// ---------------------------------------------------------------------------
+const MAX_STOPS = 5
+
+function stopsKeyOf(stops: ReadonlyArray<{ lat: number; lng: number }> | undefined): string {
+  if (!stops) return ''
+  return stops
+    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng))
+    .slice(0, MAX_STOPS)
+    .map((p) => `${p.lat},${p.lng}`)
+    .join(';')
+}
+
+function stopsFromKey(key: string): Array<{ lat: number; lng: number }> {
+  if (key === '') return []
+  return key.split(';').map((pair) => {
+    const [lat, lng] = pair.split(',').map(Number)
+    return { lat, lng }
+  })
+}
+
+// ---------------------------------------------------------------------------
 // Component props
 // ---------------------------------------------------------------------------
 interface RouteMapProps {
@@ -143,7 +167,9 @@ interface RouteMapProps {
   pickupTime?: string | null    // 24h HH:MM
   /** Container height; default 300 keeps every existing caller unchanged (Phase 87 driver map). */
   height?: number | string
-  /** Called once from the Directions OK branch with the first leg's distance (km) and duration (min). */
+  /** Intermediate stops in the client's order (at most 5 are used); the route goes through them, never reordered. */
+  stops?: ReadonlyArray<{ lat: number; lng: number }>
+  /** Called once from the Directions OK branch with the distance (km) and duration (min) summed over ALL legs. */
   onRouteInfo?: (distanceKm: number, durationMin: number) => void
   /** Called when Directions fails or the Maps library cannot load (no route info will arrive). */
   onRouteError?: () => void
@@ -157,6 +183,7 @@ export default function RouteMap({
   destination,
   pickupTime = null,
   height = 300,
+  stops,
   onRouteInfo,
   onRouteError,
 }: RouteMapProps) {
@@ -169,6 +196,8 @@ export default function RouteMap({
     onRouteInfoRef.current = onRouteInfo
     onRouteErrorRef.current = onRouteError
   })
+
+  const stopsKey = stopsKeyOf(stops)
 
   useEffect(() => {
     // Show empty state when origin or destination is missing — no map to draw
@@ -196,6 +225,8 @@ export default function RouteMap({
       const bounds = new google.maps.LatLngBounds()
       bounds.extend(originLatLng)
       bounds.extend(destLatLng)
+      const stopLatLngs = stopsFromKey(stopsKey).map((p) => new google.maps.LatLng(p.lat, p.lng))
+      for (const point of stopLatLngs) bounds.extend(point)
       map.fitBounds(bounds)
 
       // Attempt Directions, fallback to straight-line polyline
@@ -205,6 +236,10 @@ export default function RouteMap({
           origin: originLatLng,
           destination: destLatLng,
           travelMode: google.maps.TravelMode.DRIVING,
+          // Stopovers in the client's order; optimizeWaypoints is never set (the order is the client's choice).
+          ...(stopLatLngs.length > 0
+            ? { waypoints: stopLatLngs.map((location) => ({ location, stopover: true })) }
+            : {}),
         },
         (result, status) => {
           if (cancelled) return
@@ -227,14 +262,24 @@ export default function RouteMap({
             // Extract decoded path
             path = result.routes[0].overview_path
 
-            const leg = result.routes[0].legs?.[0]
-            if (leg?.distance && leg?.duration) {
-              onRouteInfoRef.current?.(leg.distance.value / 1000, Math.round(leg.duration.value / 60))
+            // Sum ALL legs: with stops the route has one leg per segment (Pitfall 11).
+            let meters = 0
+            let seconds = 0
+            let legsRead = 0
+            for (const leg of result.routes[0].legs ?? []) {
+              if (leg?.distance && leg?.duration) {
+                meters += leg.distance.value
+                seconds += leg.duration.value
+                legsRead += 1
+              }
+            }
+            if (legsRead > 0) {
+              onRouteInfoRef.current?.(meters / 1000, Math.round(seconds / 60))
             }
           } else {
             onRouteErrorRef.current?.()
             // Fallback: straight-line polyline
-            path = [originLatLng, destLatLng]
+            path = [originLatLng, ...stopLatLngs, destLatLng]
             new google.maps.Polyline({
               path,
               strokeColor: '#6E6962',
@@ -270,6 +315,23 @@ export default function RouteMap({
               strokeWeight: 2,
               scale: 6,
             },
+          })
+
+          // --- Stop markers: numbered 1..n in the order of the route ---
+          stopLatLngs.forEach((position, index) => {
+            new google.maps.Marker({
+              position,
+              map,
+              label: { text: String(index + 1), color: '#ffffff', fontSize: '10px', fontWeight: '600' },
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                fillColor: '#6E6962',
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2,
+                scale: 9,
+              },
+            })
           })
 
           // Time labels removed — shown in StickyBookingPanel instead
@@ -310,7 +372,7 @@ export default function RouteMap({
       cancelled = true
       if (cancelAnimation) cancelAnimation()
     }
-  }, [origin, destination, pickupTime])
+  }, [origin, destination, pickupTime, stopsKey])
 
   // Empty state when no route info available
   if (!origin || !destination) {

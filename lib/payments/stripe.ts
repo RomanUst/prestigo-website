@@ -62,6 +62,11 @@ export const stripeKeys = {
   // operator may decide again with another amount, and the same key would answer an idempotency error (money WR-05).
   refund: (bookingId: string, purpose: string) => `refund:${bookingId}:${purpose}`,
   link: (bookingId: string, tag: string | number) => `link:${bookingId}:${tag}`,
+  // Phase 91 extra charge: the booking_extra_charges row id + its attempt, NEVER the amount (T-91-26). The amount is stored
+  // on the row at the first click, and a resume replays the same key with the same amount.
+  extra: (chargeId: string, n: number) => `extra:${chargeId}:${n}`,
+  // Cancelling the PaymentIntent of an extra whose off-session confirm did not end in success (CR-01): same row, same attempt.
+  extraVoid: (chargeId: string, n: number) => `extra_void:${chargeId}:${n}`,
 } as const
 
 export type CardKind =
@@ -72,6 +77,7 @@ export type CardKind =
   | 'card_difference'
   | 'card_recovery'
   | 'card_fee'
+  | 'card_extra'
 
 /**
  * The only metadata a card-flow Stripe object may carry. Ids and the public booking reference only;
@@ -79,7 +85,14 @@ export type CardKind =
  */
 export function cardMetadata(
   kind: CardKind,
-  input: { bookingId: string; attempt: number | string; bookingReference: string; promoCode?: string | null },
+  input: {
+    bookingId: string
+    attempt: number | string
+    bookingReference: string
+    promoCode?: string | null
+    /** Phase 91: the booking_extra_charges row a card_extra PaymentIntent belongs to (webhook finalisation). */
+    extraChargeId?: string | null
+  },
 ): Record<string, string> {
   const meta: Record<string, string> = {
     kind,
@@ -89,6 +102,8 @@ export function cardMetadata(
   }
   const promo = input.promoCode?.trim()
   if (promo) meta.promoCode = promo
+  const extra = input.extraChargeId?.trim()
+  if (extra) meta.extraChargeId = extra
   return meta
 }
 

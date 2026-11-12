@@ -62,6 +62,8 @@ export const LEDGER_KINDS = [
   'fee_opened',
   'cash_settled',
   'cash_reopened',
+  'extra_charged',
+  'extra_failed',
 ] as const
 export type LedgerKind = (typeof LEDGER_KINDS)[number]
 

@@ -2,6 +2,20 @@
 // the move hook and (Phase 90) the board and calendar views. No React import.
 import { BOOKING_STATUS_LABELS } from '@/lib/booking-status'
 
+// Phase 91 (STOP-04): one stop of a booking as the admin list and dispatch routes return it (lib/booking-stops.ts),
+// ordered by position. address is null when the client's address was erased.
+export interface AdminBookingStop {
+  position: number
+  address: string | null
+  lat: number | null
+  lng: number | null
+  waitMinutes: number
+  freeMinutes: number
+  blocks: number
+  feePerBlockEur: number | null
+  feeEur: number
+}
+
 export interface AdminBooking {
   id: string
   booking_reference: string
@@ -78,6 +92,13 @@ export interface AdminBooking {
   hold_payment_intent_id?: string | null
   // Phase 90: the assigned driver; arrives through admin_search_bookings select b.* (board card, plan 90-07).
   driver_id?: string | null
+  // Phase 91 (migration 089): an airport pickup timed from the flight. All three are set or all three are null; they
+  // arrive through admin_search_bookings (select b.*). landing + pickup_offset_min equals the stored pickup.
+  landing_date?: string | null
+  landing_time?: string | null
+  pickup_offset_min?: number | null
+  // Phase 91: the stops of the booking, attached by the list and dispatch routes ([] when none).
+  stops?: AdminBookingStop[]
 }
 
 // One definition lives in bookingMoves.ts (Phase 90 plan 06); re-exported so existing importers keep working.

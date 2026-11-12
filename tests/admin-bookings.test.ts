@@ -55,6 +55,19 @@ const { stubCreateBookingPaymentLink, stubDeactivateBookingPaymentLink, stubSend
   }
 })
 
+// Phase 91 (STOP-04, Pitfall 10): the stops loader is replaced by stubs, so the booking_stops read does not consume
+// the ordered supabaseServiceStub.from() chains of the existing tests. The loader itself is tested in
+// tests/booking-stops.test.ts and through the real route in tests/admin-bookings-dispatch.test.ts.
+const { stubLoadStops, stubAttachStops } = vi.hoisted(() => ({
+  stubLoadStops: vi.fn(),
+  stubAttachStops: vi.fn(),
+}))
+
+vi.mock('@/lib/booking-stops', () => ({
+  loadStopsByBookingIds: stubLoadStops,
+  attachStops: stubAttachStops,
+}))
+
 vi.mock('next/server', async () => {
   const actual = await vi.importActual<typeof import('next/server')>('next/server')
   return {
@@ -314,6 +327,10 @@ beforeEach(() => {
   stubCreateBookingPaymentLink.mockResolvedValue({ url: 'https://buy.stripe.com/test_x', id: 'plink_123' })
   stubDeactivateBookingPaymentLink.mockResolvedValue(undefined)
   stubSendPaymentRequestEmail.mockResolvedValue(undefined)
+
+  // Phase 91: no stops by default; a test that needs stops overrides these.
+  stubLoadStops.mockResolvedValue(new Map())
+  stubAttachStops.mockImplementation(async (rows: Array<{ id: string }>) => rows.map((row) => ({ ...row, stops: [] })))
 
   // Default rpc: returns empty result set (used by GET handler via admin_search_bookings)
   supabaseServiceStub.rpc.mockResolvedValue({
@@ -2505,5 +2522,366 @@ describe('GET /api/admin/bookings — horizon resolution (Phase 65 Plan 02)', ()
         p_sort: 'created_desc',
       }),
     )
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Phase 91 plan 12 — STOP-04 (stops on the list GET), Pitfall 10 (price edit of a booking with stops),
+// D-07 / D-18 (a manual pickup edit keeps landing + offset equal to the pickup). Threats T-91-37, T-91-38, T-91-47.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const STOP_KARLOVY_VARY = {
+  position: 1,
+  address: 'Karlovy Vary',
+  lat: 50.23,
+  lng: 12.87,
+  waitMinutes: 45,
+  freeMinutes: 15,
+  blocks: 2,
+  feePerBlockEur: 12,
+  feeEur: 24,
+}
+const STOP_PILSEN = { ...STOP_KARLOVY_VARY, position: 2, address: 'Pilsen', waitMinutes: 15, blocks: 0, feePerBlockEur: null, feeEur: 0 }
+
+describe('GET /api/admin/bookings — stops and landing (Phase 91, STOP-04)', () => {
+  it('attaches the stops of each booking in position order and [] for a booking without stops', async () => {
+    const rpcRows = [
+      { id: 'b1', landing_date: '2027-06-10', landing_time: '14:00', pickup_offset_min: 30 },
+      { id: 'b2', landing_date: null, landing_time: null, pickup_offset_min: null },
+    ]
+    supabaseServiceStub.rpc.mockResolvedValue({ data: [{ rows: rpcRows, total_count: 2 }], error: null })
+    stubAttachStops.mockImplementation(async (rows: Array<{ id: string }>) =>
+      rows.map((row) => ({ ...row, stops: row.id === 'b1' ? [STOP_KARLOVY_VARY, STOP_PILSEN] : [] })),
+    )
+
+    const res = await GET(makeRequest())
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(stubAttachStops).toHaveBeenCalledWith(rpcRows)
+    expect(json.bookings[0]).toMatchObject({ id: 'b1', landing_date: '2027-06-10', landing_time: '14:00', pickup_offset_min: 30 })
+    expect(json.bookings[0].stops.map((st: { position: number }) => st.position)).toEqual([1, 2])
+    expect(json.bookings[0].stops[0]).toMatchObject({ address: 'Karlovy Vary', waitMinutes: 45, blocks: 2, feeEur: 24 })
+    expect(json.bookings[1].stops).toEqual([])
+    expect(json).toMatchObject({ total: 2, page: 0, limit: 20 })
+  })
+
+  it('answers the existing 500 DB read failed shape when the stops read fails, and logs no address', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    supabaseServiceStub.rpc.mockResolvedValue({ data: [{ rows: [{ id: 'b1' }], total_count: 1 }], error: null })
+    stubAttachStops.mockRejectedValue(new Error('booking stops read failed'))
+
+    const res = await GET(makeRequest())
+
+    expect(res.status).toBe(500)
+    expect(await res.json()).toEqual({ error: 'DB read failed' })
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('Karlovy Vary')
+    spy.mockRestore()
+  })
+
+  it('never reads stops for an unauthenticated request', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({ data: { user: null }, error: { message: 'No session' } })
+    const res = await GET(makeRequest())
+    expect(res.status).toBe(401)
+    expect(stubAttachStops).not.toHaveBeenCalled()
+  })
+})
+
+describe('PATCH /api/admin/bookings — booking with stops (Phase 91, Pitfall 10, T-91-38)', () => {
+  const bookingId = mockCurrentTripEditBooking.id as string
+
+  function wireChains(currentRow: Record<string, unknown>) {
+    const singleFn = vi.fn().mockResolvedValue({ data: currentRow, error: null })
+    const current = { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+    const updateFn = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+    const insertFn = vi.fn().mockResolvedValue({ error: null })
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current)
+      .mockReturnValueOnce({ update: updateFn })
+      .mockReturnValueOnce({ insert: insertFn })
+    return { updateFn, insertFn }
+  }
+
+  it('answers 422 stops_edit_unsupported for a vehicle class and amount edit without override_price, and writes nothing', async () => {
+    stubLoadStops.mockResolvedValue(new Map([[bookingId, [STOP_KARLOVY_VARY]]]))
+    const { updateFn, insertFn } = wireChains(mockCurrentTripEditBooking)
+
+    const res = await PATCH(makePatchRequest({ id: bookingId, vehicle_class: 'first_class', amount_czk: 1500 }))
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'stops_edit_unsupported' })
+    expect(updateFn).not.toHaveBeenCalled()
+    expect(insertFn).not.toHaveBeenCalled()
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1) // only the current-row read
+  })
+
+  it('answers 422 stops_edit_unsupported for an address edit too', async () => {
+    stubLoadStops.mockResolvedValue(new Map([[bookingId, [STOP_KARLOVY_VARY, STOP_PILSEN]]]))
+    const { updateFn } = wireChains(mockCurrentTripEditBooking)
+
+    const res = await PATCH(makePatchRequest({
+      id: bookingId,
+      origin_address: 'New origin',
+      distance_km: 35,
+      amount_czk: 1500,
+    }))
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'stops_edit_unsupported' })
+    expect(updateFn).not.toHaveBeenCalled()
+  })
+
+  it('accepts the same edit with override_price true (the existing override path, audited)', async () => {
+    stubLoadStops.mockResolvedValue(new Map([[bookingId, [STOP_KARLOVY_VARY]]]))
+    const { updateFn, insertFn } = wireChains(mockCurrentTripEditBooking)
+
+    const res = await PATCH(makePatchRequest({
+      id: bookingId,
+      vehicle_class: 'first_class',
+      amount_czk: 2100,
+      override_price: true,
+    }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledWith(expect.objectContaining({ vehicle_class: 'first_class', amount_czk: 2100 }))
+    const rows = insertFn.mock.calls[0][0] as Array<{ field: string }>
+    expect(rows.map((r) => r.field)).toContain('amount_czk')
+  })
+
+  it('does not look at stops for an edit without a price field (pickup_time only, no landing): unchanged behaviour', async () => {
+    stubLoadStops.mockResolvedValue(new Map([[bookingId, [STOP_KARLOVY_VARY]]]))
+    const { updateFn } = wireChains(mockCurrentTripEditBooking)
+
+    const res = await PATCH(makePatchRequest({ id: bookingId, pickup_time: '11:00' }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledWith({ pickup_time: '11:00' })
+    expect(stubLoadStops).not.toHaveBeenCalled()
+  })
+
+  it('a booking without stops is repriced as before', async () => {
+    const { updateFn } = wireChains(mockCurrentTripEditBooking)
+
+    const res = await PATCH(makePatchRequest({ id: bookingId, vehicle_class: 'first_class', amount_czk: 1500 }))
+
+    expect(res.status).toBe(200)
+    expect(stubLoadStops).toHaveBeenCalledTimes(1)
+    expect(updateFn).toHaveBeenCalledWith(expect.objectContaining({ vehicle_class: 'first_class' }))
+  })
+
+  it('fails closed when the stops read fails: 500, nothing written, no address logged', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    stubLoadStops.mockRejectedValue(new Error('booking stops read failed'))
+    const { updateFn } = wireChains(mockCurrentTripEditBooking)
+
+    const res = await PATCH(makePatchRequest({ id: bookingId, vehicle_class: 'first_class', amount_czk: 1500 }))
+
+    expect(res.status).toBe(500)
+    expect(updateFn).not.toHaveBeenCalled()
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('Karlovy Vary')
+    spy.mockRestore()
+  })
+})
+
+describe('PATCH /api/admin/bookings — landing and pickup_offset_min (Phase 91, D-07, D-18, T-91-47)', () => {
+  const landingRow = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+    ...mockCurrentTripEditBooking,
+    pickup_date: '2027-06-10',
+    pickup_time: '14:30',
+    landing_date: '2027-06-10',
+    landing_time: '14:00',
+    pickup_offset_min: 30,
+    ...overrides,
+  })
+
+  // The update is a chain of .eq() filters (WR-04: compare-and-set on landing + pickup); `casRows` is what .select('id') answers.
+  function wire(currentRow: Record<string, unknown>, casRows: Array<{ id: string }> = [{ id: 'b' }]) {
+    const singleFn = vi.fn().mockResolvedValue({ data: currentRow, error: null })
+    const current = { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+    const eqCalls: Array<[string, unknown]> = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain: any = {
+      eq: vi.fn((col: string, val: unknown) => {
+        eqCalls.push([col, val])
+        return chain
+      }),
+      select: vi.fn().mockResolvedValue({ data: casRows, error: null }),
+    }
+    const updateFn = vi.fn().mockReturnValue(chain)
+    const insertFn = vi.fn().mockResolvedValue({ error: null })
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current)
+      .mockReturnValueOnce({ update: updateFn })
+      .mockReturnValueOnce({ insert: insertFn })
+    return { updateFn, insertFn, eqCalls, chain }
+  }
+  const id = mockCurrentTripEditBooking.id as string
+
+  it('pickup_time 15:00 = landing 14:00 + 60: 200, pickup_time and pickup_offset_min 60 are written together, offset 30 -> 60 audited', async () => {
+    const { updateFn, insertFn } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '15:00' }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledTimes(1)
+    expect(updateFn).toHaveBeenCalledWith({ pickup_time: '15:00', pickup_offset_min: 60 })
+    const rows = insertFn.mock.calls[0][0] as Array<{ field: string; old_value: string | null; new_value: string | null }>
+    expect(rows.find((r) => r.field === 'pickup_offset_min')).toMatchObject({ old_value: '30', new_value: '60' })
+    expect(rows.find((r) => r.field === 'pickup_time')).toMatchObject({ old_value: '14:30', new_value: '15:00' })
+  })
+
+  it('pickup_time 14:40 is not landing + an allowed offset: 422 landing_pickup_mismatch, no update, no audit row', async () => {
+    const { updateFn, insertFn } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '14:40' }))
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'landing_pickup_mismatch' })
+    expect(updateFn).not.toHaveBeenCalled()
+    expect(insertFn).not.toHaveBeenCalled()
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([['14:00', 0], ['14:15', 15], ['14:45', 45], ['15:30', 90]] as Array<[string, number]>)(
+    'pickup_time %s = landing 14:00 + %i is accepted with pickup_offset_min %i',
+    async (time, offset) => {
+      const { updateFn } = wire(landingRow())
+      const res = await PATCH(makePatchRequest({ id, pickup_time: time }))
+      expect(res.status).toBe(200)
+      expect(updateFn).toHaveBeenCalledWith({ pickup_time: time, pickup_offset_min: offset })
+    },
+  )
+
+  it('midnight roll-over: landing 23:50, pickup_date 2027-06-11 with pickup_time 00:50 -> 200 with pickup_offset_min 60', async () => {
+    const { updateFn } = wire(landingRow({ landing_time: '23:50', pickup_date: '2027-06-10', pickup_time: '00:20', pickup_offset_min: 30 }))
+
+    const res = await PATCH(makePatchRequest({ id, pickup_date: '2027-06-11', pickup_time: '00:50' }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledWith({ pickup_date: '2027-06-11', pickup_time: '00:50', pickup_offset_min: 60 })
+  })
+
+  it('midnight roll-over: 00:50 on the landing day itself is not landing + offset (422 landing_pickup_mismatch)', async () => {
+    const { updateFn } = wire(landingRow({ landing_time: '23:50', pickup_time: '00:20', pickup_date: '2027-06-11' }))
+
+    const res = await PATCH(makePatchRequest({ id, pickup_date: '2027-06-10', pickup_time: '00:50' }))
+
+    expect(res.status).toBe(422)
+    expect(updateFn).not.toHaveBeenCalled()
+  })
+
+  it('a pickup_date edit alone that moves the pickup off the landing day is refused', async () => {
+    const { updateFn } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, pickup_date: '2027-06-12' }))
+
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'landing_pickup_mismatch' })
+    expect(updateFn).not.toHaveBeenCalled()
+  })
+
+  // 2027-10-31 is the autumn change: landing 01:50 + 30 min (CEST) and + 90 min (CET) are both written 02:20.
+  describe('IN-05: the autumn ambiguous hour (2027-10-31)', () => {
+    const autumn = (over: Record<string, unknown> = {}) =>
+      landingRow({ landing_date: '2027-10-31', landing_time: '01:50', pickup_date: '2027-10-31', pickup_time: '02:00', ...over })
+
+    it('keeps the stored offset 90 when it is one of the matches (the offset is not rewritten to 30, no offset audit row)', async () => {
+      const { updateFn, insertFn } = wire(autumn({ pickup_offset_min: 90 }))
+
+      const res = await PATCH(makePatchRequest({ id, pickup_time: '02:20' }))
+
+      expect(res.status).toBe(200)
+      expect(updateFn).toHaveBeenCalledWith({ pickup_time: '02:20', pickup_offset_min: 90 })
+      const rows = insertFn.mock.calls[0][0] as Array<{ field: string }>
+      expect(rows.some((r) => r.field === 'pickup_offset_min')).toBe(false)
+    })
+
+    it('keeps the stored offset 30 when it is one of the matches', async () => {
+      const { updateFn } = wire(autumn({ pickup_offset_min: 30 }))
+      const res = await PATCH(makePatchRequest({ id, pickup_time: '02:20' }))
+      expect(res.status).toBe(200)
+      expect(updateFn).toHaveBeenCalledWith({ pickup_time: '02:20', pickup_offset_min: 30 })
+    })
+
+    it('when the stored offset is not among the matches, the smallest match wins (30)', async () => {
+      const { updateFn, insertFn } = wire(autumn({ pickup_offset_min: 60, pickup_time: '02:50' }))
+      const res = await PATCH(makePatchRequest({ id, pickup_time: '02:20' }))
+      expect(res.status).toBe(200)
+      expect(updateFn).toHaveBeenCalledWith({ pickup_time: '02:20', pickup_offset_min: 30 })
+      const rows = insertFn.mock.calls[0][0] as Array<{ field: string; old_value: string | null; new_value: string | null }>
+      expect(rows.find((r) => r.field === 'pickup_offset_min')).toMatchObject({ old_value: '60', new_value: '30' })
+    })
+  })
+
+  it('WR-04: the pickup edit is compare-and-set on the landing and the pickup it read', async () => {
+    const { eqCalls, chain } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '15:00' }))
+
+    expect(res.status).toBe(200)
+    expect(eqCalls).toEqual([
+      ['id', id],
+      ['landing_date', '2027-06-10'],
+      ['landing_time', '14:00'],
+      ['pickup_date', '2027-06-10'],
+      ['pickup_time', '14:30'],
+    ])
+    expect(chain.select).toHaveBeenCalledWith('id')
+  })
+
+  it('WR-04: a concurrent Move pickup / edit (the compare-and-set matches no row) answers 409 stale with no audit row and no side effect', async () => {
+    const { insertFn } = wire(landingRow(), [])
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '15:00' }))
+
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'stale' })
+    expect(insertFn).not.toHaveBeenCalled()
+    expect(stubSendBookingChangedEmail).not.toHaveBeenCalled()
+  })
+
+  it('WR-04: an edit that does not derive an offset is not compare-and-set (id only)', async () => {
+    const { eqCalls } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, client_phone: '+420600999999' }))
+
+    expect(res.status).toBe(200)
+    expect(eqCalls).toEqual([['id', id]])
+  })
+
+  it('an edit that leaves the pickup as it is (same time) does not touch pickup_offset_min', async () => {
+    const { updateFn } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '14:30', flight_number: 'OK999' }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledWith({ pickup_time: '14:30', flight_number: 'OK999' })
+  })
+
+  it('a non-pickup edit of a booking with a landing is unaffected', async () => {
+    const { updateFn } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, client_phone: '+420600999999' }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledWith({ client_phone: '+420600999999' })
+  })
+
+  it('a booking without landing columns accepts any pickup edit exactly as before', async () => {
+    const { updateFn } = wire(mockCurrentTripEditBooking)
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '11:40' }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledWith({ pickup_time: '11:40' })
+  })
+
+  it('a stored pickup_time with seconds (14:30:00) counts as 14:30', async () => {
+    const { updateFn } = wire(landingRow({ pickup_time: '14:30:00' }))
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '14:45' }))
+
+    expect(res.status).toBe(200)
+    expect(updateFn).toHaveBeenCalledWith({ pickup_time: '14:45', pickup_offset_min: 45 })
   })
 })

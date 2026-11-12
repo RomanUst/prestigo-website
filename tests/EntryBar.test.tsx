@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { renderWithIntl as render } from './helpers/renderWithIntl'
 import userEvent from '@testing-library/user-event'
 import { useBookingStore } from '@/lib/booking-store'
@@ -36,6 +36,9 @@ function setupCleanState() {
     destination: null,
     pickupDate: null,
     pickupTime: null,
+    landingDate: null,
+    landingTime: null,
+    pickupOffsetMin: 30,
     returnDate: null,
     returnTime: null,
     currentStep: 1,
@@ -256,5 +259,95 @@ describe('EntryBar', () => {
       expect(s.currentStep).toBe(2)
       expect(s.tripType).toBe('round_trip')
     })
+  })
+})
+
+describe('EntryBar airport mode: landing date / time (STOP-05, D-07)', () => {
+  const airport = { address: PRG_CONFIG.address, placeId: PRG_CONFIG.placeId, lat: PRG_CONFIG.lat, lng: PRG_CONFIG.lng }
+  const city = { address: 'Wenceslas Square, Prague', placeId: 'ChIJa', lat: 50.0802, lng: 14.428 }
+
+  beforeEach(() => {
+    setupCleanState()
+    vi.stubGlobal('gtag', vi.fn())
+  })
+
+  it('an airport origin shows the Landing date / Landing time labels and the offset select', () => {
+    useBookingStore.setState({ origin: airport })
+    render(<EntryBar />)
+    expect(screen.getByLabelText('Landing date')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Landing time' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Pickup after landing')).toBeInTheDocument()
+  })
+
+  it('a city origin keeps the pickup labels and has no offset select', () => {
+    useBookingStore.setState({ origin: city })
+    render(<EntryBar />)
+    expect(screen.queryByLabelText('Landing date')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Pickup after landing')).not.toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /^time$/i })).toBeInTheDocument()
+  })
+
+  it('an airport as the DESTINATION does not switch to landing mode', () => {
+    useBookingStore.setState({ origin: city, destination: airport })
+    render(<EntryBar />)
+    expect(screen.queryByLabelText('Landing date')).not.toBeInTheDocument()
+  })
+
+  it('hourly with an airport origin does not offer a landing (the server refuses it)', () => {
+    useBookingStore.setState({ origin: airport, tripType: 'hourly' })
+    render(<EntryBar />)
+    expect(screen.queryByLabelText('Landing date')).not.toBeInTheDocument()
+  })
+
+  it('landing 14:00 + default 30 sets the pickup 14:30 in the store', async () => {
+    const user = userEvent.setup()
+    useBookingStore.setState({ origin: airport })
+    render(<EntryBar />)
+    fireEvent.change(screen.getByLabelText('Landing date'), { target: { value: '2027-06-10' } })
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Landing time' }), '14:00')
+    const s = useBookingStore.getState()
+    expect(s.landingDate).toBe('2027-06-10')
+    expect(s.landingTime).toBe('14:00')
+    expect(s.pickupDate).toBe('2027-06-10')
+    expect(s.pickupTime).toBe('14:30')
+    expect(screen.getByText('Your driver meets you at 14:30')).toBeInTheDocument()
+  })
+
+  it('the required-field validation runs on the landing fields', async () => {
+    const user = userEvent.setup()
+    useBookingStore.setState({
+      origin: airport,
+      destination: city,
+      // a stale pickup alone must not satisfy an airport booking
+      pickupDate: '2027-06-10',
+      pickupTime: '14:30',
+    })
+    render(<EntryBar />)
+    await user.click(screen.getByText('View vehicles'))
+    expect(useBookingStore.getState().currentStep).toBe(1)
+  })
+
+  it('a complete landing advances to step 2', async () => {
+    const user = userEvent.setup()
+    useBookingStore.setState({ origin: airport, destination: city })
+    useBookingStore.getState().setLandingDate('2027-06-10')
+    useBookingStore.getState().setLandingTime('14:00')
+    render(<EntryBar />)
+    await user.click(screen.getByText('View vehicles'))
+    expect(useBookingStore.getState().currentStep).toBe(2)
+  })
+
+  it('a landing slot whose pickup falls inside the 12 hour lead window is disabled', () => {
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    // Prague wall date is close enough to the local one for a slot at "now + 1 hour" to be inside the window in any zone
+    const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+    useBookingStore.setState({ origin: airport, landingDate: today })
+    render(<EntryBar />)
+    const select = screen.getByRole('combobox', { name: 'Landing time' }) as HTMLSelectElement
+    const slot = Array.from(select.options).find((o) => o.value === '00:00')
+    expect(slot).toBeDefined()
+    // 00:00 + 30 today is in the past or inside the window by definition
+    expect(slot!.disabled).toBe(true)
   })
 })

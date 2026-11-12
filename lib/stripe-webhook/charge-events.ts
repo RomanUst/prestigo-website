@@ -9,6 +9,10 @@
 //                                      -> charge_succeeded:<pi>
 //   payment_intent.payment_failed, kind card_charge | card_difference | card_fee (89-26)
 //                                      -> charge_failed_obs:<pi> / difference_failed_obs:<pi> / fee_failed_obs:<pi>
+// A card_extra event (91-08) writes NO generic observation row (Phase 91 review WR-03): one money event is one ledger meaning,
+// and settle's cash logic reads charge_succeeded / charge_failed rows as "the trip charge". It only finalises its
+// booking_extra_charges row (finalizeExtraFromWebhook, lib/payments/extra.ts), whose extra_charged / extra_failed rows (same
+// keys as the synchronous path) are the only ledger rows of an extra; it never touches the booking's own payment.
 // The observation keys differ from settle's own keys (captured:<pi>, charge_failed:<pi>:<n>, ...), so an
 // observation can never roll a settle transition back as a duplicate, and a replayed event adds no second row.
 
@@ -16,6 +20,7 @@ import type Stripe from 'stripe'
 import { assertMoneyEligible, PartnerBookingMoneyError } from '@/lib/booking-status'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
+import { finalizeExtraFromWebhook } from '@/lib/payments/extra'
 import { announceLateCashCharge } from '@/lib/payments/fee'
 import { adoptLateCashCharge, cashChargeFacts } from '@/lib/payments/settle'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
@@ -23,7 +28,15 @@ import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/s
 
 const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
 
-const SUCCEEDED_KINDS: readonly string[] = ['card_hold', 'card_hold_now', 'card_charge', 'card_difference', 'card_fee']
+const SUCCEEDED_KINDS: readonly string[] = [
+  'card_hold',
+  'card_hold_now',
+  'card_charge',
+  'card_difference',
+  'card_fee',
+  // card_extra is routed here too (so it is never unrouted) but handled apart: see handleCardChargeSucceeded.
+  'card_extra',
+]
 
 /** The booking the PaymentIntent belongs to (metadata.cofBookingId), or null (logged with ids only) when there is nothing to record. */
 async function resolveBookingId(label: string, pi: Stripe.PaymentIntent): Promise<string | null> {
@@ -65,6 +78,12 @@ export async function handleCardChargeSucceeded(event: Stripe.Event): Promise<vo
 
   const bookingId = await resolveBookingId('payment_intent.succeeded', pi)
   if (!bookingId) return
+
+  // WR-03: an extra is never a trip or cash charge. No charge_succeeded row: extra_charged is its only ledger row.
+  if (pi.metadata?.kind === 'card_extra') {
+    await finalizeExtraFromWebhook(bookingId, pi, 'succeeded')
+    return
+  }
 
   await appendPaymentEvent(bookingId, {
     key: `charge_succeeded:${pi.id}`,
@@ -134,23 +153,31 @@ async function reconcileLateCashCharge(bookingId: string, pi: Stripe.PaymentInte
 }
 
 /**
- * payment_intent.payment_failed on a card_charge / card_difference / card_fee PaymentIntent: the decline is already
+ * payment_intent.payment_failed on a card_charge / card_difference / card_fee / card_extra PaymentIntent: the decline is already
  * recorded by settleBooking from the synchronous answer (and a lost answer is replayed by the sweep with the same
- * idempotency key, which returns the same decline). This only adds an observation row; plan 88-14 attaches the
- * recovery link, client email and operator alert to the settle failure branches.
+ * idempotency key, which returns the same decline). This only adds an observation row (none for card_extra, WR-03); plan 88-14
+ * attaches the recovery link, client email and operator alert to the settle failure branches.
  */
 export async function handleCardChargeFailed(event: Stripe.Event): Promise<void> {
   const pi = event.data.object as Stripe.PaymentIntent
   const kind = pi.metadata?.kind
-  if (kind !== 'card_charge' && kind !== 'card_difference' && kind !== 'card_fee') return
+  if (kind !== 'card_charge' && kind !== 'card_difference' && kind !== 'card_fee' && kind !== 'card_extra') return
 
   const bookingId = await resolveBookingId('payment_intent.payment_failed', pi)
   if (!bookingId) return
 
+  // WR-03: no charge_failed observation for an extra: extra_failed is its only ledger row.
+  if (kind === 'card_extra') {
+    await finalizeExtraFromWebhook(bookingId, pi, 'failed')
+    return
+  }
+
   const err = pi.last_payment_error
   const code = (err?.decline_code || err?.code || 'unknown').slice(0, 60)
+  const observationPrefix =
+    kind === 'card_difference' ? 'difference_failed_obs' : kind === 'card_fee' ? 'fee_failed_obs' : 'charge_failed_obs'
   await appendPaymentEvent(bookingId, {
-    key: `${kind === 'card_difference' ? 'difference_failed_obs' : kind === 'card_fee' ? 'fee_failed_obs' : 'charge_failed_obs'}:${pi.id}`,
+    key: `${observationPrefix}:${pi.id}`,
     kind: kind === 'card_difference' ? 'difference_failed' : 'charge_failed',
     stripeObjectId: pi.id,
     amountMinor: pi.amount,

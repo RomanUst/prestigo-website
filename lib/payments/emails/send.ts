@@ -37,6 +37,11 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 export function bookingEmailDataFromRow(row: BookingRow): BookingEmailData {
   const amountEur = num(row.amount_eur)
   return {
+    // Phase 91 (STOP-04, STOP-05): the id lets the manager alert read the stops; the landing columns add its landing rows.
+    bookingId: str(row.id) || undefined,
+    landingDate: str(row.landing_date) || undefined,
+    landingTime: str(row.landing_time) || undefined,
+    pickupOffsetMin: num(row.pickup_offset_min),
     bookingReference: str(row.booking_reference),
     tripType: str(row.trip_type),
     originAddress: str(row.origin_address),
@@ -153,6 +158,13 @@ export interface PaymentEmailExtra {
   freeUntil?: number | string
   /** Minutes the driver waited; taken from the no-show thresholds of the stored policy when absent. */
   waitMin?: number
+  /** extra_charged waiting: minutes of waiting beyond the booked time. */
+  extraMinutes?: number
+  /**
+   * extra_charged other: the client-facing item line the operator wrote for the receipt (for example "Airport parking").
+   * It is not a reason or a note; it is HTML-escaped by the renderer and never put in the subject, the ledger or a log.
+   */
+  extraItem?: string
 }
 
 export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailExtra): Promise<PaymentEmailVars> {
@@ -211,6 +223,8 @@ export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailE
     ...(extra.feeLabel ? { feeLabel: extra.feeLabel } : {}),
     ...(freeUntil !== undefined ? { freeUntil } : {}),
     ...(waitMin !== undefined ? { waitMin } : {}),
+    ...(extra.extraMinutes !== undefined ? { extraMinutes: extra.extraMinutes } : {}),
+    ...(extra.extraItem !== undefined ? { extraItem: extra.extraItem } : {}),
     ...(bookAgainUrl ? { bookAgainUrl } : {}),
   }
 }
@@ -247,6 +261,8 @@ export async function sendPaymentEmail(
         feeLabel: input.feeLabel,
         freeUntil: input.freeUntil,
         waitMin: input.waitMin,
+        extraMinutes: input.extraMinutes,
+        extraItem: input.extraItem,
       }),
     )
   } catch {

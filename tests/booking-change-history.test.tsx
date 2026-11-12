@@ -136,6 +136,29 @@ describe('FOLLOW-02: BookingChangeHistory — populated + grouping', () => {
     expect(screen.getAllByText('Not notified').length).toBe(2)
   })
 
+  it('IN-01: the airport pickup fields read as words, not as column names', async () => {
+    const at = '2026-01-20T08:00:00.000Z'
+    const row = (id: string, field: string, o: string, n: string) => ({
+      id, field, old_value: o, new_value: n, operator_id: 'operator-a', changed_at: at, notified: false,
+    })
+    mockFetch.mockResolvedValue(
+      jsonResponse({
+        rows: [
+          row('r1', 'landing_date', '2027-06-10', '2027-06-11'),
+          row('r2', 'landing_time', '14:00', '15:10'),
+          row('r3', 'pickup_offset_min', '30', '60'),
+        ],
+      }),
+    )
+
+    render(<BookingChangeHistory bookingId={BOOKING_ID} />)
+
+    await waitFor(() => expect(screen.getByText('Landing date: 2027-06-10 → 2027-06-11')).toBeTruthy())
+    expect(screen.getByText('Landing time: 14:00 → 15:10')).toBeTruthy()
+    expect(screen.getByText('Minutes after landing: 30 → 60')).toBeTruthy()
+    expect(document.body.textContent).not.toMatch(/pickup_offset_min|landing_date|landing_time/)
+  })
+
   it('does not refetch on a parent re-render (lazy, fetch-once guard)', async () => {
     mockFetch.mockResolvedValue(jsonResponse({ rows: [] }))
 

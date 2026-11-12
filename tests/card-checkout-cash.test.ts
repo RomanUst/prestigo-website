@@ -26,6 +26,11 @@ const { world, stripeStub, afterQueue, rateLimitMock, pricingConfigMock, resendS
   qstash: vi.fn(),
 }))
 
+const { routeDistanceMock } = vi.hoisted(() => ({ routeDistanceMock: vi.fn() }))
+// Phase 91 (STOP-02): the checkout prices on the server's Google Routes distance. These fixtures used to send
+// distanceKm; the mock returns the same distance so the assertions stay unchanged.
+vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
+
 vi.mock('@supabase/supabase-js', () => ({ createClient: vi.fn(() => world.client) }))
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve({ auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) } })),
@@ -179,6 +184,10 @@ function bookingData(over: Record<string, string> = {}) {
     tripType: 'transfer',
     vehicleClass: 'business',
     distanceKm: '50',
+    originLat: '50.0755',
+    originLng: '14.4378',
+    destinationLat: '49.1951',
+    destinationLng: '16.6068',
     pickupDate: '2027-01-16',
     pickupTime: '10:00',
     passengers: '2',
@@ -268,6 +277,8 @@ async function saveCard(setupIntentId: string) {
 }
 
 beforeEach(() => {
+  routeDistanceMock.mockReset()
+  routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 50, durationMin: 40 })
   vi.clearAllMocks()
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW0)
@@ -455,6 +466,7 @@ describe('no hold can ever be placed on a cash booking (D-09, T-89-34)', () => {
 
 describe('pay cash is offered exactly where the card flow is (D-08)', () => {
   it('has no amount limit', async () => {
+    routeDistanceMock.mockResolvedValueOnce({ ok: true, distanceKm: 900, durationMin: 600 })
     const initOut = await init(bookingData({ distanceKm: '900', vehicleClass: 'business_van' }))
     expect(initOut).toMatchObject({ eligible: true, cashAvailable: true })
   })

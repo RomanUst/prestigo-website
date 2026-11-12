@@ -5,8 +5,10 @@ import { useTranslations } from 'next-intl'
 import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import AddressInput from '@/components/booking/AddressInput'
 import DurationSelector from '@/components/booking/DurationSelector'
+import LandingPickupFields from '@/components/booking/LandingPickupFields'
 import { useBookingStore } from '@/lib/booking-store'
-import { isAirportPlace } from '@/types/booking'
+import { pickupFromLanding } from '@/lib/airport-pickup'
+import { isAirportPlace, isAirportPickupPlace } from '@/types/booking'
 
 // ─── 96 AM/PM time slots at 15-minute granularity (D-07) ─────────────────────
 const TIME_SLOTS_AMPM: Array<{ display: string; value24h: string }> =
@@ -24,8 +26,13 @@ const TIME_SLOTS_AMPM: Array<{ display: string; value24h: string }> =
 const MIN_LEAD_HOURS = 12
 
 // Returns true if a given 24h slot (HH:MM) falls within the 12-hour lead window
-function isSlotDisabled(slot24h: string, pickupDateStr: string | null): boolean {
+function isSlotDisabled(slot24h: string, pickupDateStr: string | null, landingOffsetMin: number | null): boolean {
   if (!pickupDateStr) return false
+  if (landingOffsetMin !== null) {
+    // Airport mode: the slot is a LANDING time, so the lead rule applies to the pickup it would produce.
+    const derived = pickupFromLanding(pickupDateStr, slot24h, landingOffsetMin)
+    return derived ? derived.pickupMs < Date.now() + MIN_LEAD_HOURS * 60 * 60 * 1000 : false
+  }
   const slotDT = new Date(`${pickupDateStr}T${slot24h}:00`)
   const minDT = new Date(Date.now() + MIN_LEAD_HOURS * 60 * 60 * 1000)
   return slotDT < minDT
@@ -33,6 +40,7 @@ function isSlotDisabled(slot24h: string, pickupDateStr: string | null): boolean 
 
 export default function EntryBar() {
   const t = useTranslations('Booking.entryBar')
+  const tl = useTranslations('Booking.landing')
   const tv = useTranslations('Booking.validation')
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
@@ -41,11 +49,16 @@ export default function EntryBar() {
   const pickupTime = useBookingStore((s) => s.pickupTime)
   const returnDate = useBookingStore((s) => s.returnDate)
   const returnTime = useBookingStore((s) => s.returnTime)
+  const landingDate = useBookingStore((s) => s.landingDate)
+  const landingTime = useBookingStore((s) => s.landingTime)
+  const pickupOffsetMin = useBookingStore((s) => s.pickupOffsetMin)
 
   const setOrigin = useBookingStore((s) => s.setOrigin)
   const setDestination = useBookingStore((s) => s.setDestination)
   const setPickupDate = useBookingStore((s) => s.setPickupDate)
   const setPickupTime = useBookingStore((s) => s.setPickupTime)
+  const setLandingDate = useBookingStore((s) => s.setLandingDate)
+  const setLandingTime = useBookingStore((s) => s.setLandingTime)
   const setReturnDate = useBookingStore((s) => s.setReturnDate)
   const setReturnTime = useBookingStore((s) => s.setReturnTime)
   const setTripType = useBookingStore((s) => s.setTripType)
@@ -84,13 +97,21 @@ export default function EntryBar() {
   // ─── Conditional flight number display (BOOK-03 / D-06) ──────────────────
   const showFlightNumber = isAirportPlace(origin)
 
+  // ─── Airport pickup: date / time become the LANDING date / time (STOP-05 / D-07) ─────
+  // Same rule as the server (isAirportPickup on the origin) and only where the server accepts a landing.
+  const landingMode = (tripType === 'transfer' || tripType === 'round_trip') && isAirportPickupPlace(origin)
+  const dateValue = landingMode ? landingDate : pickupDate
+  const timeValue = landingMode ? landingTime : pickupTime
+  const setDateValue = landingMode ? setLandingDate : setPickupDate
+  const setTimeValue = landingMode ? setLandingTime : setPickupTime
+
   // ─── Validation ───────────────────────────────────────────────────────────
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {}
     if (!origin) errs.origin = tv('originRequired')
     if (tripType !== 'hourly' && !destination) errs.destination = tv('destinationRequired')
-    if (!pickupDate) errs.date = tv('dateRequired')
-    if (!pickupTime) errs.time = tv('timeRequired')
+    if (!dateValue) errs.date = tv('dateRequired')
+    if (!timeValue) errs.time = tv('timeRequired')
     // Round trip: a return leg must be fully specified and after the outbound.
     if (showReturn && tripType !== 'hourly') {
       if (!returnDate) errs.returnDate = tv('returnDateRequired')
@@ -273,14 +294,14 @@ export default function EntryBar() {
               textTransform: 'uppercase',
             }}
           >
-            {t('dateLabel')}
+            {landingMode ? tl('dateLabel') : t('dateLabel')}
           </label>
           <input
             id="entry-bar-date"
             type="date"
-            value={pickupDate ?? ''}
+            value={dateValue ?? ''}
             onChange={(e) => {
-              setPickupDate(e.target.value || null)
+              setDateValue(e.target.value || null)
               setErrors((prev) => { const n = { ...prev }; delete n.date; return n })
             }}
             style={{
@@ -314,19 +335,19 @@ export default function EntryBar() {
               textTransform: 'uppercase',
             }}
           >
-            {t('timeLabel')}
+            {landingMode ? tl('timeLabel') : t('timeLabel')}
           </label>
           <select
             id="entry-bar-time"
-            aria-label={t('timeAriaLabel')}
-            value={pickupTime ?? ''}
+            aria-label={landingMode ? tl('timeAria') : t('timeAriaLabel')}
+            value={timeValue ?? ''}
             onChange={(e) => {
               const val = e.target.value
               if (val) {
-                setPickupTime(val)  // store gets 24h value (D-08)
+                setTimeValue(val)  // store gets 24h value (D-08)
                 setErrors((prev) => { const n = { ...prev }; delete n.time; return n })
               } else {
-                setPickupTime(null)
+                setTimeValue(null)
               }
             }}
             style={{
@@ -338,7 +359,7 @@ export default function EntryBar() {
               fontSize: 14,
               background: 'var(--anthracite-mid)',
               border: errors.time ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
-              color: pickupTime ? 'var(--offwhite)' : 'var(--warmgrey)',
+              color: timeValue ? 'var(--offwhite)' : 'var(--warmgrey)',
               outline: 'none',
               cursor: 'pointer',
               appearance: 'none',
@@ -348,7 +369,7 @@ export default function EntryBar() {
           >
             <option value="">{t('chooseSlot')}</option>
             {TIME_SLOTS_AMPM.map((slot) => {
-              const disabled = isSlotDisabled(slot.value24h, pickupDate)
+              const disabled = isSlotDisabled(slot.value24h, dateValue, landingMode ? pickupOffsetMin : null)
               return (
                 <option
                   key={slot.value24h}
@@ -361,6 +382,9 @@ export default function EntryBar() {
             })}
           </select>
         </div>
+
+        {/* Offset after landing + the resulting pickup — airport pickups only (STOP-05 / D-07) */}
+        {landingMode && <LandingPickupFields />}
 
         {/* FLIGHT NUMBER — shown only for airport origins (BOOK-03 / D-06) */}
         {showFlightNumber && (

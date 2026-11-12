@@ -1,6 +1,20 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { isValidStopWait } from '@/lib/stops'
+import { DEFAULT_LANDING_OFFSET, isLandingOffset, pickupFromLanding } from '@/lib/airport-pickup'
+import { isAirportPickupPlace } from '@/types/booking'
 import type { BookingStore, PlaceResult, Stop, FlightCheckResult } from '@/types/booking'
+
+/** The pickup that follows from a landing, or null while the landing is incomplete / invalid. */
+function derivedPickup(
+  landingDate: string | null,
+  landingTime: string | null,
+  offsetMin: number,
+): { pickupDate: string; pickupTime: string } | null {
+  if (!landingDate || !landingTime) return null
+  const derived = pickupFromLanding(landingDate, landingTime, offsetMin)
+  return derived ? { pickupDate: derived.pickupDate, pickupTime: derived.pickupTime } : null
+}
 
 export const useBookingStore = create<BookingStore>()(
   persist(
@@ -16,6 +30,9 @@ export const useBookingStore = create<BookingStore>()(
       completedSteps: new Set<number>(),
       pickupDate: null,
       pickupTime: null,
+      landingDate: null,
+      landingTime: null,
+      pickupOffsetMin: DEFAULT_LANDING_OFFSET,
       returnDate: null,
       returnTime: null,
       vehicleClass: null,
@@ -56,7 +73,16 @@ export const useBookingStore = create<BookingStore>()(
           ...(clearStops ? { stops: [] } : {}),
         })
       },
-      setOrigin: (place) => set({ origin: place, priceBreakdown: null, distanceKm: null, durationMin: null, quoteMode: false }),
+      // A landing only exists for an airport pickup: moving the pickup away from the airport drops the landing and
+      // keeps the pickup as entered (D-18: the pickup stays the stored operational time).
+      setOrigin: (place) => set({
+        origin: place,
+        ...(isAirportPickupPlace(place) ? {} : { landingDate: null, landingTime: null }),
+        priceBreakdown: null,
+        distanceKm: null,
+        durationMin: null,
+        quoteMode: false,
+      }),
       setDestination: (place) => set({ destination: place, priceBreakdown: null, distanceKm: null, durationMin: null, quoteMode: false }),
       setHours: (h) => set({ hours: h }),
       setPassengers: (n) => set({ passengers: Math.max(1, Math.min(8, n)) }),
@@ -70,12 +96,16 @@ export const useBookingStore = create<BookingStore>()(
       goToStep: (step) => set({ currentStep: Math.max(1, Math.min(6, Math.trunc(step))) }),
       swapOriginDestination: () => {
         const { origin, destination } = get()
-        set({ origin: destination, destination: origin })
+        set({
+          origin: destination,
+          destination: origin,
+          ...(isAirportPickupPlace(destination) ? {} : { landingDate: null, landingTime: null }),
+        })
       },
       addStop: () => set((s) => {
         if (s.stops.length >= 5) return s  // STOP-01 max 5 enforcement
         return {
-          stops: [...s.stops, { id: crypto.randomUUID(), place: null } as Stop],
+          stops: [...s.stops, { id: crypto.randomUUID(), place: null, waitMinutes: 0 } as Stop],
           priceBreakdown: null,
           promoCode: null,
           promoDiscount: 0,
@@ -93,8 +123,41 @@ export const useBookingStore = create<BookingStore>()(
         promoCode: null,
         promoDiscount: 0,
       })),
+      setStopWait: (id: string, minutes: number) => set((s) => {
+        if (!isValidStopWait(minutes)) return s
+        return {
+          stops: s.stops.map((stop) => (stop.id === id ? { ...stop, waitMinutes: minutes } : stop)),
+          priceBreakdown: null,
+          promoCode: null,
+          promoDiscount: 0,
+        }
+      }),
+      moveStop: (id: string, direction: -1 | 1) => set((s) => {
+        const from = s.stops.findIndex((stop) => stop.id === id)
+        const to = from + direction
+        if (from < 0 || to < 0 || to >= s.stops.length) return s
+        const stops = [...s.stops]
+        ;[stops[from], stops[to]] = [stops[to], stops[from]]
+        return { stops, priceBreakdown: null, promoCode: null, promoDiscount: 0 }
+      }),
       setPickupDate: (date) => set({ pickupDate: date }),
       setPickupTime: (time) => set({ pickupTime: time }),
+      // Phase 91 (STOP-05, D-07, D-18): each landing setter stores its value and rewrites the pickup from landing +
+      // offset (Prague, DST-safe via pickupFromLanding). While the landing is incomplete the pickup is cleared, so a
+      // stale pickup can never travel with a landing that no longer matches it.
+      setLandingDate: (date) => set((s) => {
+        const d = derivedPickup(date, s.landingTime, s.pickupOffsetMin)
+        return { landingDate: date, ...(d ?? { pickupDate: null, pickupTime: null }) }
+      }),
+      setLandingTime: (time) => set((s) => {
+        const d = derivedPickup(s.landingDate, time, s.pickupOffsetMin)
+        return { landingTime: time, ...(d ?? { pickupDate: null, pickupTime: null }) }
+      }),
+      setPickupOffset: (minutes) => set((s) => {
+        if (!isLandingOffset(minutes)) return s
+        const d = derivedPickup(s.landingDate, s.landingTime, minutes)
+        return { pickupOffsetMin: minutes, ...(d ?? {}) }
+      }),
       setReturnDate: (date) => set({ returnDate: date }),
       setReturnTime: (time) => set({ returnTime: time }),
       setVehicleClass: (v) => set({ vehicleClass: v }),
@@ -128,6 +191,9 @@ export const useBookingStore = create<BookingStore>()(
         completedSteps: new Set<number>(),
         pickupDate: null,
         pickupTime: null,
+        landingDate: null,
+        landingTime: null,
+        pickupOffsetMin: DEFAULT_LANDING_OFFSET,
         returnDate: null,
         returnTime: null,
         vehicleClass: null,
@@ -163,6 +229,9 @@ export const useBookingStore = create<BookingStore>()(
         completedSteps: [...state.completedSteps],
         pickupDate: state.pickupDate,
         pickupTime: state.pickupTime,
+        landingDate: state.landingDate,
+        landingTime: state.landingTime,
+        pickupOffsetMin: state.pickupOffsetMin,
         returnDate: state.returnDate,
         returnTime: state.returnTime,
         vehicleClass: state.vehicleClass,
