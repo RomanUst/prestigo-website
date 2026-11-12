@@ -107,6 +107,9 @@ function offsetForPickup(booking: Booking, date: string, time: string): number |
  */
 function tripEditErrorText(err: unknown, fallback: string, landingHint: string | null = null): string {
   if (err instanceof PatchError && err.status === 409 && err.message === 'payment_in_progress') return PAYMENT_IN_PROGRESS_COPY
+  if (err instanceof PatchError && err.status === 409 && err.message === 'stale') {
+    return 'This booking was changed by someone else while you were editing. Reload it and try again.'
+  }
   if (err instanceof PatchError && err.status === 422 && err.message === 'stops_edit_unsupported') return STOPS_PRICE_NOTE
   if (err instanceof PatchError && err.status === 422 && err.message === 'landing_pickup_mismatch') {
     return landingHint ?? 'The pickup must be the landing time plus an allowed delay. For a new landing time use Move pickup.'

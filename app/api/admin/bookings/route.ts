@@ -753,10 +753,25 @@ export async function PATCH(request: Request) {
       tripUpdatePayload.payment_link_id = null
     }
 
-    const { error: dbError } = await supabase
-      .from('bookings')
-      .update(tripUpdatePayload)
-      .eq('id', parsed.data.id)
+    // WR-04 (D-18): when this edit derived pickup_offset_min from the landing it read, the update is compare-and-set on that
+    // landing and that pickup (the contract of applyLandingChange): a concurrent Move pickup / trip edit matches no row and
+    // answers 409 stale, so landing + offset can never differ from the stored pickup.
+    const baseUpdate = supabase.from('bookings').update(tripUpdatePayload).eq('id', parsed.data.id)
+    let dbError: unknown = null
+    if (landingOffsetUpdate) {
+      const cas = await baseUpdate
+        .eq('landing_date', current.landing_date as string)
+        .eq('landing_time', current.landing_time as string)
+        .eq('pickup_date', current.pickup_date as string)
+        .eq('pickup_time', current.pickup_time as string)
+        .select('id')
+      dbError = cas.error
+      if (!cas.error && (!cas.data || cas.data.length === 0)) {
+        return NextResponse.json({ error: 'stale' }, { status: 409 })
+      }
+    } else {
+      dbError = (await baseUpdate).error
+    }
 
     if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
 

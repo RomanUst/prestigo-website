@@ -2669,16 +2669,26 @@ describe('PATCH /api/admin/bookings — landing and pickup_offset_min (Phase 91,
     ...overrides,
   })
 
-  function wire(currentRow: Record<string, unknown>) {
+  // The update is a chain of .eq() filters (WR-04: compare-and-set on landing + pickup); `casRows` is what .select('id') answers.
+  function wire(currentRow: Record<string, unknown>, casRows: Array<{ id: string }> = [{ id: 'b' }]) {
     const singleFn = vi.fn().mockResolvedValue({ data: currentRow, error: null })
     const current = { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
-    const updateFn = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) })
+    const eqCalls: Array<[string, unknown]> = []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chain: any = {
+      eq: vi.fn((col: string, val: unknown) => {
+        eqCalls.push([col, val])
+        return chain
+      }),
+      select: vi.fn().mockResolvedValue({ data: casRows, error: null }),
+    }
+    const updateFn = vi.fn().mockReturnValue(chain)
     const insertFn = vi.fn().mockResolvedValue({ error: null })
     supabaseServiceStub.from
       .mockReturnValueOnce(current)
       .mockReturnValueOnce({ update: updateFn })
       .mockReturnValueOnce({ insert: insertFn })
-    return { updateFn, insertFn }
+    return { updateFn, insertFn, eqCalls, chain }
   }
   const id = mockCurrentTripEditBooking.id as string
 
@@ -2743,6 +2753,42 @@ describe('PATCH /api/admin/bookings — landing and pickup_offset_min (Phase 91,
     expect(res.status).toBe(422)
     expect(await res.json()).toEqual({ error: 'landing_pickup_mismatch' })
     expect(updateFn).not.toHaveBeenCalled()
+  })
+
+  it('WR-04: the pickup edit is compare-and-set on the landing and the pickup it read', async () => {
+    const { eqCalls, chain } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '15:00' }))
+
+    expect(res.status).toBe(200)
+    expect(eqCalls).toEqual([
+      ['id', id],
+      ['landing_date', '2027-06-10'],
+      ['landing_time', '14:00'],
+      ['pickup_date', '2027-06-10'],
+      ['pickup_time', '14:30'],
+    ])
+    expect(chain.select).toHaveBeenCalledWith('id')
+  })
+
+  it('WR-04: a concurrent Move pickup / edit (the compare-and-set matches no row) answers 409 stale with no audit row and no side effect', async () => {
+    const { insertFn } = wire(landingRow(), [])
+
+    const res = await PATCH(makePatchRequest({ id, pickup_time: '15:00' }))
+
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'stale' })
+    expect(insertFn).not.toHaveBeenCalled()
+    expect(stubSendBookingChangedEmail).not.toHaveBeenCalled()
+  })
+
+  it('WR-04: an edit that does not derive an offset is not compare-and-set (id only)', async () => {
+    const { eqCalls } = wire(landingRow())
+
+    const res = await PATCH(makePatchRequest({ id, client_phone: '+420600999999' }))
+
+    expect(res.status).toBe(200)
+    expect(eqCalls).toEqual([['id', id]])
   })
 
   it('an edit that leaves the pickup as it is (same time) does not touch pickup_offset_min', async () => {
