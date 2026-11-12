@@ -477,3 +477,20 @@ describe('charge.refunded on the extra PaymentIntent', () => {
     expect(chargeRow().status).toBe('charged')
   })
 })
+
+describe('payment_intent.canceled on an extra PaymentIntent (the cancel CR-01 issues for an unfinished confirm)', () => {
+  it('changes nothing on the booking, the charge row or the ledger', async () => {
+    seedCharge()
+    const before = { ...bookingRow() }
+    const chargeBefore = { ...chargeRow() }
+    const rowsBefore = ledger().length
+    const { status } = await deliver(eventOf('payment_intent.canceled', extraPi({ status: 'canceled', amount_received: 0 }), 'evt_c1'))
+    expect(status).toBe(200)
+    expect(bookingRow()).toEqual(before)
+    expect(chargeRow()).toEqual(chargeBefore)
+    expect(ledger().length).toBe(rowsBefore)
+    expect(ledger('hold_released')).toHaveLength(0)
+    expect(ledger('hold_expired')).toHaveLength(0)
+    expect(mockSendEmail).not.toHaveBeenCalled()
+  })
+})
