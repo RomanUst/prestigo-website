@@ -25,7 +25,13 @@ const CODE_EXT = new Set(['.ts', '.tsx'])
 const SCAN_FLOOR = 150
 
 const STATE_FILE = 'lib/payments/state.ts'
-const RPC_NAMES = ['apply_payment_transition', 'append_payment_event', 'claim_due_payment_work'] as const
+const RPC_NAMES = [
+  'apply_payment_transition',
+  'append_payment_event',
+  'claim_due_payment_work',
+  // Phase 92 (plan 92-18): the quote conversion RPC of migration 091; convertQuoteToBookings is its one caller.
+  'quote_convert_to_bookings',
+] as const
 
 function listCodeFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return []

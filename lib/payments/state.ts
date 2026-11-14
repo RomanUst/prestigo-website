@@ -271,3 +271,63 @@ export async function claimDueHolds(
   if (error) throw new Error('payment claim failed')
   return (Array.isArray(data) ? data : []) as Record<string, unknown>[]
 }
+
+export type QuoteConversionResult =
+  | { converted: true; firstTime: boolean; bookingIds: string[] }
+  | { converted: false; reason: string }
+
+/**
+ * Phase 92 (QUOTE-05, D-18): turn the accepted, paid version of a quote into one booking per line, in one database
+ * transaction, exactly once. This wrapper is the ONLY caller of the conversion RPC of migration 091 (the writer gate
+ * test pins it): the webhook, the tick reconcile and applyQuoteDepositPaid all come through here.
+ *
+ * `lines` has one entry per version line: the public booking reference to give it and, for a saved-card line with a
+ * remainder, the instant the tick places the hold (null otherwise). The SQL function reads nothing else from them.
+ *
+ * - `{ converted: true, firstTime: true }`   the bookings were created now; `bookingIds` in line order.
+ * - `{ converted: true, firstTime: false }`  the quote already owns bookings for this deposit intent (a replay, also after a
+ *   later cancel or void); nothing was written.
+ * - `{ converted: false, reason }`           the database refused before writing anything (intent_mismatch, version_mismatch,
+ *   voided, cancelled, not_accepted, lines_mismatch, hold_at_missing, not_found).
+ * Throws 'quote conversion failed' on an RPC error or a malformed answer: the transaction rolled back, nothing was written.
+ */
+export async function convertQuoteToBookings(input: {
+  quoteId: string
+  versionId: string
+  paymentIntentId: string
+  /** The intent's Stripe customer and card; null lets the database use the ones recorded on the quote. */
+  customerId: string | null
+  paymentMethodId: string | null
+  lines: Array<{ position: number; bookingReference: string; holdAt: string | null }>
+  actor: LedgerActor
+}): Promise<QuoteConversionResult> {
+  const { data, error } = await createSupabaseServiceClient().rpc('quote_convert_to_bookings', {
+    p_quote_id: input.quoteId,
+    p_version_id: input.versionId,
+    p_payment_intent_id: input.paymentIntentId,
+    p_customer_id: input.customerId,
+    p_payment_method_id: input.paymentMethodId,
+    p_lines: input.lines.map((l) => ({ position: l.position, booking_reference: l.bookingReference, hold_at: l.holdAt })),
+    p_actor_type: input.actor.type,
+    p_actor_id: input.actor.id,
+  })
+
+  const result = data as
+    | { converted?: unknown; first_time?: unknown; booking_ids?: unknown; reason?: unknown }
+    | null
+    | undefined
+  if (error || !result || typeof result.converted !== 'boolean') {
+    // The database code only: a message can echo a column value.
+    console.error('[quote-convert] rpc failed', { quoteId: input.quoteId, code: error?.code ?? null })
+    throw new Error('quote conversion failed')
+  }
+
+  if (result.converted) {
+    const ids = result.booking_ids
+    if (typeof result.first_time !== 'boolean' || !Array.isArray(ids) || !ids.every((id) => typeof id === 'string')) {
+      throw new Error('quote conversion failed')
+    }
+    return { converted: true, firstTime: result.first_time, bookingIds: ids as string[] }
+  }
+  return { converted: false, reason: typeof result.reason === 'string' ? result.reason : 'unknown' }
+}
