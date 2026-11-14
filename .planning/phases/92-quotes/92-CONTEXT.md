@@ -32,6 +32,20 @@ Not in scope: the day-trip catalogue and the custom-tour request form (Phase 93;
 - **D-03:** When the client cancels an accepted quote, the standard cancellation policy applies to the deposit (Phase 89: free cancellation up to the threshold, then the fee). The operator can set other cancellation terms on a quote ("должна быть возможность настроить другие сроки оператором"); the quote page and the PDF show the terms that apply to this quote before the client pays. — **Reversibility:** costly — the terms shown at acceptance are part of the logged acceptance.
 - **D-04:** The admin suggests the price of each line from the live tariffs (route, vehicle class, stops, waiting) and the operator can overwrite any line amount by hand.
 
+### Decisions after research (owner, 2026-11-14)
+- **D-11:** Late cancellation of an accepted quote keeps the deposit (a percent of the deposit, default all of it). The client is never charged more than the deposit for cancelling. — **Reversibility:** costly — it is part of the terms the client accepts.
+- **D-12:** The deposit belongs to the whole quote. Cancelling one trip of several does not move it automatically: the operator refunds a part by hand or lowers the remainder.
+- **D-13:** Custom free-cancellation terms on a quote may be up to 30 days before the first trip (the existing 72-hour cap in `policyFromSnapshot` must not silently turn a longer window into the legacy policy).
+- **D-14:** The quote email carries a real PDF attachment in the client's language, and the client can download the PDF from the quote page. Two new server packages are accepted for it (`puppeteer-core` + `@sparticuz/chromium-min`), behind one `renderQuotePdf()` function, proven by a spike first; when the render fails on the host the email carries the link instead. Pin a release at least two weeks old and add a human-verify checkpoint for the install.
+
+### Decided by Claude after research (owner may override)
+- **D-15:** A booking created from a quote gets the payment mode that matches the quote's remainder method, linked by `bookings.quote_id` / `quote_line_id`: saved card → `card_hold`, cash → `cash_guarantee`, payment link and invoice → `quote`. This replaces the literal reading of "quote bookings carry `payment_mode='quote'`": the existing hold engine, the driver cash step and about 40 checks recognise only `card_hold` and `cash_guarantee`.
+- **D-16:** The "payment link" remainder is paid on the quote page itself (not a Stripe Payment Link or hosted Checkout: no customer binding, 24-hour session life, no Arabic or Hindi).
+- **D-17:** The "invoice" remainder is a record plus an email to the operator's accounting address plus a "mark invoice paid" action; no invoice document is generated in this phase.
+- **D-18:** The deposit PaymentIntent uses a `card_*` metadata kind (`card_quote_deposit`) and is never written to `bookings.payment_intent_id`; conversion to bookings is one SQL function in one transaction with a unique index on `bookings.quote_line_id` as the exactly-once guard, and a reconcile step covers a lost webhook.
+- **D-19:** Unconverted quotes hold client PII, so the erasure functions and the Stripe customer lookup are extended to cover quotes.
+- **D-20:** A price edit on a booking created from a quote must not charge the deposit a second time (`deriveAmountMinor` is fixed or the edit is refused for quote bookings).
+
 ### Decided by Claude (owner may override)
 - **D-05:** A quote cannot be accepted or paid after the pickup time of its first line has passed, even without an expiry date; the page then says the quote is no longer available and shows no price data. Reason: D-02 leaves links open forever and a deposit for a trip in the past must not be taken.
 - **D-06:** Custom cancellation terms on a quote are the same shape as the global policy (free-cancellation hours before the first trip and a fee percent); empty fields mean the global policy. No free-text legal terms in this phase.
@@ -54,6 +68,7 @@ Not in scope: the day-trip catalogue and the custom-tour request form (Phase 93;
 
 ### Scope and requirements
 - `.planning/ROADMAP.md` § Phase 92 (goal, success criteria, research and planning notes)
+- `.planning/phases/92-quotes/92-RESEARCH.md` and `92-PATTERNS.md`
 - `.planning/REQUIREMENTS.md` QUOTE-01..QUOTE-07
 
 ### Prior phase decisions this phase builds on

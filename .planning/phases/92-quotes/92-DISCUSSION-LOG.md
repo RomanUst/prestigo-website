@@ -8,3 +8,12 @@
 4. Where does each line's price come from? — "Подсказка + правка".
 
 Not asked, decided by Claude and recorded as D-05..D-10 in 92-CONTEXT.md for the owner to override.
+
+2026-11-14, second round after research (four questions):
+
+5. Late cancellation fee base? — "Удерживается депозит".
+6. One trip of several cancelled? — "Решает оператор".
+7. Longest custom free-cancellation window? — "До 30 дней".
+8. PDF in the email? — "Файл во вложении" (two new packages accepted, spike first, link as fallback).
+
+Left for the owner's accountant and counsel (not blocking planning): VAT documents for deposits, acceptance wording per remainder method, package-travel risk. See the end of 92-RESEARCH.md.
