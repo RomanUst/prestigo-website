@@ -27,6 +27,7 @@ import {
   erasureLog,
   erasureScope,
   loadErasure,
+  quoteStripeCustomerIds,
   recordErasureStep,
   stripeCustomerIds,
 } from '@/lib/erasure-store'
@@ -158,6 +159,8 @@ function makeErasure(
     onRecord?: (step: ErasureStepName) => void
     /** Phase 89: the Stripe Customer ids the person's bookings carry. */
     stripeCustomers?: string[]
+    /** Phase 92: the Stripe Customer ids the person's quotes carry. */
+    quoteStripeCustomers?: string[]
   } = {},
 ) {
   const req: ErasureRequest | null = initial ? structuredClone(initial) : null
@@ -167,6 +170,7 @@ function makeErasure(
     anonymise: 0,
     deleteAuth: [] as string[],
     stripeIdsReads: 0,
+    quoteIdsReads: [] as string[],
     complete: [] as Array<{ verified: boolean; counts: Record<string, unknown>; status: string }>,
   }
   const store: ErasureStore = {
@@ -200,6 +204,8 @@ function makeErasure(
         payment_notes_deleted: 0,
         fee_cases_scrubbed: 0,
         stripe_ids_cleared: 0,
+        quotes_deleted: 0,
+        quotes_anonymised: 0,
       }
       if (req) {
         req.steps.supabase = { ...counts }
@@ -222,6 +228,10 @@ function makeErasure(
       calls.stripeIdsReads++
       return [...(opts.stripeCustomers ?? [])]
     },
+    async quoteStripeCustomerIds(requestId) {
+      calls.quoteIdsReads.push(requestId)
+      return [...(opts.quoteStripeCustomers ?? [])]
+    },
   }
   return { store, calls, get req() { return req } }
 }
@@ -236,6 +246,8 @@ interface HarnessOptions {
   onRecord?: (step: ErasureStepName) => void
   /** Phase 89: Stripe Customer ids on the person's bookings (default none) and the injected Stripe slice. */
   stripeCustomers?: string[]
+  /** Phase 92: Stripe Customer ids on the person's quotes. */
+  quoteStripeCustomers?: string[]
   stripe?: ErasureStripe
   /** Phase 83: the chat registry double; default = an empty one (the sync never reaches Supabase). */
   chat?: ReturnType<typeof makeChatStoreDouble>
@@ -247,6 +259,7 @@ function harness(o: HarnessOptions = {}) {
     anonymiseFails: o.anonymiseFails,
     onRecord: o.onRecord,
     stripeCustomers: o.stripeCustomers,
+    quoteStripeCustomers: o.quoteStripeCustomers,
   })
   const fakeCw = createFakeChatwoot(o.cw ?? { contacts: [{ id: 1, email: EMAIL, identifier: USER_ID, name: 'Anna Novak' }] })
   const fakeEspo = createFakeEspoCRM(
@@ -775,7 +788,7 @@ describe('erasure store wrappers', () => {
     user_id: null,
     booking_ids: [BOOKING_1],
     inquiry_ids: [],
-    counts: { bookings: 1, upcoming: 1, payment_open: 2, inquiries: 0, quote_leads: 2, has_account: false },
+    counts: { bookings: 1, upcoming: 1, payment_open: 2, inquiries: 0, quote_leads: 2, quotes: 3, has_account: false },
   }
 
   it('erasureScope maps the ok payload and the refusal outcomes', async () => {
@@ -789,7 +802,7 @@ describe('erasure store wrappers', () => {
       userId: null,
       bookingIds: [BOOKING_1],
       inquiryIds: [],
-      counts: { bookings: 1, upcoming: 1, paymentOpen: 2, inquiries: 0, quoteLeads: 2, hasAccount: false },
+      counts: { bookings: 1, upcoming: 1, paymentOpen: 2, inquiries: 0, quoteLeads: 2, quotes: 3, hasAccount: false },
     })
     expect(ok.rpc).toHaveBeenCalledWith('erasure_scope', { p_email: EMAIL, p_phone: null })
     expect(await erasureScope(null, PHONE, rpcClient({ outcome: 'shared_phone', identities: 2 }).client)).toEqual({
@@ -811,7 +824,7 @@ describe('erasure store wrappers', () => {
     const call = c.rpc.mock.calls[0] as unknown as [string, { p_scope: Record<string, unknown> } & Record<string, unknown>]
     expect(call[0]).toBe('erasure_preview_create')
     expect(call[1]).toMatchObject({ p_actor: ADMIN, p_email_hmac: 'b'.repeat(64), p_ttl_seconds: 600 })
-    expect(call[1].p_scope).toMatchObject({ outcome: 'ok', inquiry_ids: [INQUIRY_1], counts: { quote_leads: 2, payment_open: 2, has_account: false } })
+    expect(call[1].p_scope).toMatchObject({ outcome: 'ok', inquiry_ids: [INQUIRY_1], counts: { quote_leads: 2, quotes: 3, payment_open: 2, has_account: false } })
   })
 
   it('confirmErasure returns the RPC outcome and rejects an unknown one', async () => {
@@ -1174,6 +1187,38 @@ describe('Stripe step: the Customer objects are deleted before Supabase clears t
     expect(h.erasure.req?.steps.stripe).toMatchObject({ stripe_customers_deleted: 0 })
   })
 
+  it('Phase 92 (D-19): the customers stored on the person\'s quotes are deleted too, each customer once across both lists', async () => {
+    const s = stripeDouble()
+    const h = harness({ stripeCustomers: [CUS_1], quoteStripeCustomers: [CUS_2, CUS_1], stripe: s.stripe })
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+
+    expect(s.del.mock.calls.map((c) => c[0]).sort()).toEqual([CUS_1, CUS_2].sort())
+    expect(h.erasure.calls.quoteIdsReads).toEqual([REQ])
+    expect(h.erasure.req?.steps.stripe).toMatchObject({ stripe_customers_deleted: 2, stripe_customers_missing: 0 })
+    expect(h.erasure.calls.order.indexOf('record:stripe')).toBeLessThan(h.erasure.calls.order.indexOf('anonymise'))
+  })
+
+  it('Phase 92: a person whose only Stripe customer sits on a quote still gets the Stripe step', async () => {
+    const s = stripeDouble()
+    const h = harness({ quoteStripeCustomers: [CUS_2], stripe: s.stripe })
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+
+    expect(s.del.mock.calls.map((c) => c[0])).toEqual([CUS_2])
+    expect(h.erasure.req?.steps.stripe).toMatchObject({ stripe_customers_deleted: 1 })
+  })
+
+  it('Phase 92: no quote customer and no booking customer needs no Stripe client and no key', async () => {
+    vi.stubEnv('STRIPE_SECRET_KEY', '')
+    const h = harness()
+
+    expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
+
+    expect(h.erasure.calls.quoteIdsReads).toEqual([REQ])
+    expect(h.erasure.req?.steps.stripe).toMatchObject({ stripe_customers_deleted: 0 })
+  })
+
   it('resource_missing (already deleted) counts as done', async () => {
     const s = stripeDouble({
       fail: { [CUS_1]: stripeError({ type: 'StripeInvalidRequestError', code: 'resource_missing', statusCode: 404 }) },
@@ -1274,6 +1319,30 @@ describe('Stripe step: the Customer objects are deleted before Supabase clears t
 
     expect(await dispatchOutboxKey(KEY, h.deps)).toEqual({ outcome: 'sent' })
     expect(h.erasure.calls.stripeIdsReads).toBe(0)
+  })
+})
+
+describe('quoteStripeCustomerIds (store read, migration 091)', () => {
+  const rpcOnly = (data: unknown, error: unknown = null) => {
+    const rpc = vi.fn(async () => ({ data, error }))
+    return { client: { rpc } as unknown as SupabaseClient, rpc }
+  }
+
+  it('calls erasure_quote_customer_ids with the request id and returns the ids', async () => {
+    const c = rpcOnly(['cus_Q1', 'cus_Q2'])
+    expect(await quoteStripeCustomerIds(REQ, c.client)).toEqual(['cus_Q1', 'cus_Q2'])
+    expect(c.rpc).toHaveBeenCalledWith('erasure_quote_customer_ids', { p_request_id: REQ })
+  })
+
+  it('treats an empty or null answer as no customers and drops non-string entries', async () => {
+    expect(await quoteStripeCustomerIds(REQ, rpcOnly([]).client)).toEqual([])
+    expect(await quoteStripeCustomerIds(REQ, rpcOnly(null).client)).toEqual([])
+    expect(await quoteStripeCustomerIds(REQ, rpcOnly(['cus_Q1', '', 7, null]).client)).toEqual(['cus_Q1'])
+  })
+
+  it('turns a read error or a malformed answer into db_error', async () => {
+    await expect(quoteStripeCustomerIds(REQ, rpcOnly(null, { message: 'x' }).client)).rejects.toBeInstanceOf(OutboxStoreError)
+    await expect(quoteStripeCustomerIds(REQ, rpcOnly({ not: 'an array' }).client)).rejects.toBeInstanceOf(OutboxStoreError)
   })
 })
 

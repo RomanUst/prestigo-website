@@ -213,7 +213,10 @@ async function run(
   // (Skipped once the Supabase step is recorded: the ids are gone, and that step cannot be recorded before this one.)
   if (!steps.stripe && !steps.supabase) {
     guard()
-    const customerIds = [...new Set(await store.stripeCustomerIds(req.bookingIds))]
+    // Phase 92 (D-19): the customers stored on the person's quotes go too; one Customer is deleted once.
+    const bookingCustomerIds = await store.stripeCustomerIds(req.bookingIds)
+    const quoteCustomerIds = await store.quoteStripeCustomerIds(req.id)
+    const customerIds = [...new Set([...bookingCustomerIds, ...quoteCustomerIds])]
     let result: ErasureStepResult = { stripe_customers_deleted: 0, stripe_customers_missing: 0 }
     if (customerIds.length > 0) {
       const client = stripe ?? defaultErasureStripe()

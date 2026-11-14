@@ -17,6 +17,7 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
   const inquiries = counts.inquiries + counts.quoteLeads
   const bookings = plural(counts.bookings, 'booking', 'bookings')
   const paymentOpen = counts.paymentOpen ?? 0
+  const quotes = counts.quotes
 
   return (
     <section aria-labelledby="erasure-preview-heading" style={{ margin: '32px 0 0' }}>
@@ -43,6 +44,11 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
             counts.hasAccount ? 'Account deleted.' : 'No account.'
           } ${plural(inquiries, 'form inquiry', 'form inquiries')} deleted.`}
         </Row>
+        {typeof quotes === 'number' && (
+          <Row label="Quotes">
+            {`Quotes: ${quotes}. A quote with no booking and no payment is deleted with its trips and link. Any other quote is anonymised: client details, addresses, the link and the stored PDF are wiped; amounts, dates and references are kept for accounting.`}
+          </Row>
+        )}
         <Row label="Chatwoot">The contact and all of its conversations will be deleted.</Row>
         <Row label="EspoCRM">{`The contact and its leads will be deleted. ${bookings} will be anonymised.`}</Row>
         <Row label="Stripe">
@@ -72,7 +78,7 @@ export function ErasurePreview({ preview, onErase, onDiscard }: ErasurePreviewPr
         >
           <ShieldAlert size={20} aria-hidden="true" style={{ flexShrink: 0, marginTop: '2px' }} />
           <p style={{ margin: 0 }}>
-            {`${plural(paymentOpen, 'booking has', 'bookings have')} a payment still in play: a card hold, a pending cancellation fee, or an upcoming trip with a card on file. Erasure is refused until these are resolved or cancelled.`}
+            {`${plural(paymentOpen, 'booking or quote has', 'bookings or quotes have')} a payment still in play: a card hold, a pending cancellation fee, an upcoming trip with a card on file, or a quote deposit or remainder still in flight. Erasure is refused until these are resolved or cancelled.`}
           </p>
         </div>
       )}

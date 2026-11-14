@@ -13,6 +13,8 @@ export interface ErasurePreviewData {
     paymentOpen?: number
     inquiries: number
     quoteLeads: number
+    /** The person's quotes (migration 091); absent in a preview stored before quotes existed. */
+    quotes?: number
     hasAccount: boolean
   }
 }
