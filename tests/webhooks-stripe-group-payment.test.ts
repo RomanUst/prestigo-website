@@ -24,8 +24,9 @@ function makeBuilder(table: string) {
     op: 'select' | 'update' | 'insert'
     patch?: Record<string, unknown>
     eq: Record<string, unknown>
+    is: Record<string, unknown>
     in?: string[]
-  } = { op: 'select', eq: {} }
+  } = { op: 'select', eq: {}, is: {} }
   const builder: Record<string, unknown> = {}
   const chain = () => builder
   builder.select = vi.fn(chain)
@@ -33,6 +34,7 @@ function makeBuilder(table: string) {
   builder.limit = vi.fn(chain)
   builder.in = vi.fn((_col: string, vals: string[]) => { state.in = vals; return builder })
   builder.eq = vi.fn((col: string, val: unknown) => { state.eq[col] = val; return builder })
+  builder.is = vi.fn((col: string, val: unknown) => { state.is[col] = val; return builder })
   builder.update = vi.fn((patch: Record<string, unknown>) => { state.op = 'update'; state.patch = patch; return builder })
   builder.insert = vi.fn((row: Record<string, unknown>) => { state.op = 'insert'; state.patch = row; return builder })
   builder.maybeSingle = vi.fn(() => Promise.resolve({ data: null }))
@@ -49,7 +51,8 @@ function makeBuilder(table: string) {
     }
     const matches = Object.values(db.rows).filter((r) =>
       (!state.in || state.in.includes(r.id as string)) &&
-      Object.entries(state.eq).every(([k, v]) => r[k] === v))
+      Object.entries(state.eq).every(([k, v]) => r[k] === v) &&
+      Object.entries(state.is).every(([k, v]) => (r[k] ?? null) === v))
     if (state.op === 'update') {
       for (const r of matches) Object.assign(r, state.patch)
       if (state.patch?.status === 'confirmed') db.flips.push(matches.map((r) => r.id as string))
@@ -84,6 +87,12 @@ vi.mock('@/lib/email', () => ({
   sendRoundTripManagerAlert: vi.fn(),
   sendGroupClientConfirmation: vi.fn().mockResolvedValue(undefined),
   sendGroupManagerAlert: vi.fn().mockResolvedValue(undefined),
+}))
+
+const { mockOperatorAlert } = vi.hoisted(() => ({ mockOperatorAlert: vi.fn() }))
+vi.mock('@/lib/payments/alerts', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/payments/alerts')>()),
+  sendPaymentOperatorAlert: mockOperatorAlert,
 }))
 
 vi.mock('@/lib/ics', () => ({ buildIcs: vi.fn() }))
@@ -170,6 +179,7 @@ function checkoutEvent(ids: string) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockOperatorAlert.mockResolvedValue('sent')
   db.flips = []
   db.emailLog = []
   db.rows = {
@@ -268,5 +278,74 @@ describe('group payment link webhook', () => {
     await POST(request())
     expect(sendGroupClientConfirmation).not.toHaveBeenCalled()
     expect(sendGroupManagerAlert).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('B2 (92-10): a group payment never confirms or lists a quote booking', () => {
+  const QUOTE_ID = '5b0c8e1a-3d4f-4a6b-9c7d-1e2f3a4b5c6d'
+  const keyOf = (id: string) => `alert:ops_attention:${id}:group:pi_group_1`
+
+  it('only the ordinary row is confirmed and listed; the quote row raises one ops_attention alert keyed by the PaymentIntent', async () => {
+    db.rows[ID_B] = { ...row(ID_B, 'PRG-B', '2026-10-04'), quote_id: QUOTE_ID }
+    stripeStub.constructEvent.mockReturnValue(paymentIntentEvent())
+
+    const res = await POST(request())
+    expect(res.status).toBe(200)
+
+    expect(db.flips).toEqual([[ID_A]])
+    expect(db.rows[ID_A].status).toBe('confirmed')
+    expect(db.rows[ID_B].status).toBe('unpaid')
+    expect(db.rows[ID_B].operator_notes).toBeNull()
+
+    const data = vi.mocked(sendGroupClientConfirmation).mock.calls[0][0]
+    expect(data.legs.map((l) => l.bookingReference)).toEqual(['PRG-A'])
+    expect(vi.mocked(sendGroupManagerAlert).mock.calls[0][0].legs.map((l) => l.bookingReference)).toEqual(['PRG-A'])
+    expect(scheduleQStashReminder).toHaveBeenCalledTimes(1)
+
+    expect(mockOperatorAlert).toHaveBeenCalledTimes(1)
+    expect(mockOperatorAlert).toHaveBeenCalledWith(
+      'ops_attention',
+      expect.objectContaining({ id: ID_B, booking_reference: 'PRG-B' }),
+      expect.objectContaining({ eventKey: keyOf(ID_B), code: 'group_payment_quote_booking', note: 'group_payment_quote_booking' }),
+    )
+  })
+
+  it('a replay of the event raises the alert under the same key (the alert ledger delivers it once) and confirms nothing again', async () => {
+    db.rows[ID_B] = { ...row(ID_B, 'PRG-B', '2026-10-04'), quote_id: QUOTE_ID }
+    stripeStub.constructEvent.mockReturnValue(paymentIntentEvent())
+
+    await POST(request())
+    await POST(request())
+
+    expect(db.flips.filter((f) => f.length > 0)).toEqual([[ID_A]])
+    expect(sendGroupClientConfirmation).toHaveBeenCalledTimes(1)
+    const keys = mockOperatorAlert.mock.calls.map((c) => (c[2] as { eventKey: string }).eventKey)
+    expect(new Set(keys)).toEqual(new Set([keyOf(ID_B)]))
+  })
+
+  it('a group payment naming only quote bookings flips nothing, emails no client and alerts once per quote booking', async () => {
+    db.rows[ID_A] = { ...row(ID_A, 'PRG-A', '2026-10-01'), quote_id: QUOTE_ID }
+    db.rows[ID_B] = { ...row(ID_B, 'PRG-B', '2026-10-04'), quote_id: QUOTE_ID }
+    stripeStub.constructEvent.mockReturnValue(paymentIntentEvent())
+
+    const res = await POST(request())
+    expect(res.status).toBe(200)
+
+    expect(db.flips.filter((f) => f.length > 0)).toEqual([])
+    expect(db.rows[ID_A].status).toBe('unpaid')
+    expect(db.rows[ID_B].status).toBe('unpaid')
+    expect(sendGroupClientConfirmation).not.toHaveBeenCalled()
+    expect(sendGroupManagerAlert).not.toHaveBeenCalled()
+    expect(scheduleQStashReminder).not.toHaveBeenCalled()
+    expect(sendGa4Purchase).not.toHaveBeenCalled()
+
+    const keys = mockOperatorAlert.mock.calls.map((c) => (c[2] as { eventKey: string }).eventKey).sort()
+    expect(keys).toEqual([keyOf(ID_A), keyOf(ID_B)].sort())
+  })
+
+  it('a group without quote bookings raises no alert', async () => {
+    stripeStub.constructEvent.mockReturnValue(paymentIntentEvent())
+    await POST(request())
+    expect(mockOperatorAlert).not.toHaveBeenCalled()
   })
 })

@@ -71,7 +71,8 @@ export interface OperatorAlertDetails {
    * was interrupted and Stripe shows no payment. `ops_attention` notes: `extra_unresolved` (an extra charge Stripe did not
    * settle and that could not be cancelled), `extra_late_success` / `extra_second_payment` (an extra recorded as declined was collected after all, on its own / on another PaymentIntent),
    * `extra_receipt_failed` (an extra was charged but its receipt email was not sent), `stops_missing` (a pay-now booking
-   * paid for stops that were not saved).
+   * paid for stops that were not saved), `group_payment_quote_booking` (a group payment link named a quote booking: it was
+   * left unconfirmed and the client may have paid the deposit share twice).
    */
   note?: string
   // --- Phase 89, UI-SPEC 8.3. Instants are ISO strings (shown on the Prague wall clock); a missing field is omitted. ---
@@ -325,6 +326,8 @@ function opsAttentionAction(booking: BookingRow, d: OperatorAlertDetails): strin
       return `An extra charge of ${amount} was collected, but the receipt email to the client was not sent. The charge is complete and is never repeated. Send the client the breakdown by hand or tell them.`
     case 'stops_missing':
       return `The client paid for a trip with stops, but the stops were not saved on the booking, so the driver, the calendar and the emails show a plain A to B trip. Open the booking, add the stops and tell dispatch before the trip.`
+    case 'group_payment_quote_booking':
+      return `A group payment link was paid and it names this booking, which was created from a quote. The booking was NOT confirmed and is not in the group emails: its deposit share was already paid in the quote checkout, so the client may have paid that share a second time. Find the group payment in the Stripe Dashboard (its metadata groupBookingIds names this booking) and refund what the client should not have paid.`
     default:
       return 'Open the booking in admin and check it.'
   }

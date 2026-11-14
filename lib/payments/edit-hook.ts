@@ -62,12 +62,44 @@ export function assertEditablePrecheck(
   return null
 }
 
-/** The amount the booking should be charged, in minor units of its payment currency, from the saved row (D-16). */
+/**
+ * The amount the booking should be charged, in minor units of its payment currency, from the saved row (D-16).
+ * Phase 92 (D-20): a booking created from a quote already collected its deposit share (quote_deposit_minor, in the
+ * quote currency = the booking's payment currency) in the quote checkout, so what is left to charge is the line amount
+ * MINUS that share. A result of 0 or less is not an amount (null): the callers record amount_invalid, and the PATCH
+ * route refuses such an edit up front (assertQuoteEditAmount).
+ */
 function deriveAmountMinor(row: BookingRow, currency: Currency): number | null {
   const major = num(currency === 'czk' ? row.amount_czk : row.amount_eur)
   if (major === null) return null
-  const minor = Math.round(major * 100)
+  const lineMinor = Math.round(major * 100)
+  const deposit = str(row.quote_id) ? (num(row.quote_deposit_minor) ?? 0) : 0
+  const minor = lineMinor - deposit
   return Number.isInteger(minor) && minor > 0 ? minor : null
+}
+
+/**
+ * Phase 92 (D-20): BEFORE a price edit is saved, refuse one that would leave nothing to charge on a quote booking
+ * (new line amount minus the deposit share is 0 or less) with 422 quote_amount_below_deposit: the deposit is never
+ * charged twice and never refunded implicitly through a negative amount. Only bookings the engine charges from their
+ * line amount (card_hold, cash_guarantee) are checked; every other booking answers null (unchanged behaviour).
+ * `update` is the amounts the PATCH is about to write; a missing key keeps the stored amount.
+ */
+export function assertQuoteEditAmount(
+  current: Record<string, unknown>,
+  update: { amount_czk?: unknown; amount_eur?: unknown },
+): null | { status: 422; body: { error: 'quote_amount_below_deposit' } } {
+  if (!str(current.quote_id)) return null
+  if (current.payment_mode !== 'card_hold' && current.payment_mode !== 'cash_guarantee') return null
+  if (update.amount_czk === undefined && update.amount_eur === undefined) return null
+  const currency: Currency = current.payment_currency === 'czk' ? 'czk' : 'eur'
+  const merged: BookingRow = { ...current }
+  if (update.amount_czk !== undefined) merged.amount_czk = update.amount_czk
+  if (update.amount_eur !== undefined) merged.amount_eur = update.amount_eur
+  const major = num(currency === 'czk' ? merged.amount_czk : merged.amount_eur)
+  if (major === null) return null
+  if (Math.round(major * 100) - (num(current.quote_deposit_minor) ?? 0) > 0) return null
+  return { status: 422, body: { error: 'quote_amount_below_deposit' } }
 }
 
 async function recordEdit(bookingId: string, actor: LedgerActor, errorCode?: string, currency?: Currency, amountMinor?: number) {

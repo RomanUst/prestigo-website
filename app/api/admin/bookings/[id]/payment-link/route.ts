@@ -39,6 +39,7 @@ interface PaymentLinkBookingRow {
   vehicle_class: string
   flight_number: string | null
   payment_mode?: string | null
+  quote_id?: string | null
 }
 
 export async function POST(
@@ -78,7 +79,7 @@ export async function POST(
   const { data: bookingData, error: bookingError } = await supabase
     .from('bookings')
     .select(
-      'id, booking_reference, status, amount_eur, leg, payment_intent_id, payment_link_url, payment_link_id, client_email, client_first_name, client_last_name, origin_address, destination_address, pickup_date, pickup_time, vehicle_class, flight_number, payment_mode'
+      'id, booking_reference, status, amount_eur, leg, payment_intent_id, payment_link_url, payment_link_id, client_email, client_first_name, client_last_name, origin_address, destination_address, pickup_date, pickup_time, vehicle_class, flight_number, payment_mode, quote_id'
     )
     .eq('id', bookingId)
     .single()
@@ -88,6 +89,17 @@ export async function POST(
   }
 
   const booking = bookingData as unknown as PaymentLinkBookingRow
+
+  // Phase 92 (D-20, B2): a booking created from a quote already collected its deposit share in the quote checkout and
+  // the rest is collected by the quote's own remainder method. A legacy link charges amount_eur, the FULL line amount,
+  // which would take the deposit share a second time, so every quote booking is refused here (generate and resend,
+  // any payment_mode) before any Stripe call or email.
+  if (booking.quote_id) {
+    return NextResponse.json(
+      { error: 'Quote bookings are collected on the quote, not a payment link' },
+      { status: 409 }
+    )
+  }
 
   // 88-REVIEW B-WR-02: a card-on-file booking is collected by the card engine (hold, capture, recovery link). A legacy
   // payment link would let the client pay on top of the hold, and its webhook would confirm the row as pay-now.

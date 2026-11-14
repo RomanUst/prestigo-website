@@ -69,7 +69,7 @@ import { cancelBooking, type CancelBookingInput } from '@/lib/payments/cancel'
 import { isFeeEligible, loadFeeCase } from '@/lib/payments/fee'
 import { buildManageView } from '@/lib/manage-view'
 import { openCaseOffered, payNowCaseMissing } from '@/lib/payments/fee-reopen'
-import { attributeUntagged, legShareMinor, resolvePayNowSplit } from '@/lib/payments/pay-now'
+import { attributeUntagged, legShareMinor, loadPayNowFacts, resolvePayNowSplit } from '@/lib/payments/pay-now'
 
 const OUT = '77777777-7777-4777-8777-777777777777'
 const RET = '66666666-6666-4666-8666-666666666666'
@@ -480,6 +480,33 @@ describe('legs exist only on round trips: a shared payment of other rows is neve
     seedRoundTrip(pi, { ret: { trip_type: 'transfer', return_amount_czk: null, outbound_amount_czk: null } })
     // Only the outbound row is a round-trip leg; the other row is not its sibling, so the outbound leg keeps its own share.
     expect(await resolvePayNowSplit(rowOf(OUT))).toEqual({ leg: 'outbound', outboundCzk: 4250, returnCzk: 3250 })
+  })
+})
+
+describe('B2 (92-10): a quote booking is never pay-now money', () => {
+  const QUOTE = '5b0c8e1a-3d4f-4a6b-9c7d-1e2f3a4b5c6d'
+
+  it('loadPayNowFacts rejects a row with quote_id before any Stripe read', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi, { quote_id: QUOTE, payment_mode: 'quote' })
+    await expect(loadPayNowFacts(rowOf(OUT))).rejects.toThrow('quote_booking')
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it('a row without quote_id reads its PaymentIntent as before', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi)
+    await expect(loadPayNowFacts(rowOf(OUT))).resolves.toMatchObject({ paidMinor: 50000, collectedMinor: 50000 })
+  })
+
+  it('cancelling a quote booking that carries a payment_intent_id (seeded by hand) cancels the row and refunds nothing', async () => {
+    const pi = await paidPi(50000, 'eur')
+    seedOneWay(pi, { quote_id: QUOTE, payment_mode: 'quote' })
+    expect(await cancel(OUT, 'admin_client', FREE_NOW)).toMatchObject({ kind: 'money_failed' })
+    expect(rowOf(OUT).status).toBe('cancelled')
+    expect(refunds()).toHaveLength(0)
+    // the existing money-failed path tells the operator
+    expect(mockAlert.mock.calls.some((c) => c[0] === 'refund_failed')).toBe(true)
   })
 })
 
