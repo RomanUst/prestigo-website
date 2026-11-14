@@ -520,6 +520,60 @@ describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13
     expect((lastPatch().lines as unknown[]).length).toBe(2)
   })
 
+  it('QUOTE-06: a sent version renders read-only with its version number, settings as text and no Save', async () => {
+    await renderPage(
+      detail({
+        frozen: true,
+        versionNo: 2,
+        versions: [1, 2],
+        lines: TWO_LINES,
+        deposit: { kind: 'percent', value: 30 },
+        remainder: 'invoice',
+        locale: 'ru',
+        freeHours: 168,
+        feePercent: 50,
+        expiresAt: '2099-05-01T21:59:59.000Z',
+      }),
+    )
+    expect(screen.getByTestId('quote-version')).toHaveTextContent('Version 2 (sent)')
+    expect(screen.getByTestId('quote-earlier-versions')).toHaveTextContent('Earlier versions: 1')
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Add trip/ })).toBeNull()
+    // every line is shown as text: no field of the line editor and none of the settings
+    expect(screen.getAllByTestId('quote-line-editor')).toHaveLength(2)
+    const builder = screen.getByTestId('quote-builder')
+    expect(within(builder).queryAllByRole('textbox')).toHaveLength(0)
+    expect(within(builder).queryAllByRole('combobox')).toHaveLength(0)
+    expect(within(builder).queryAllByRole('radio')).toHaveLength(0)
+    expect(within(builder).queryAllByRole('button')).toHaveLength(0)
+    const settings = screen.getByTestId('quote-settings-readonly')
+    expect(settings).toHaveTextContent('Русский')
+    expect(settings).toHaveTextContent('30%')
+    expect(settings).toHaveTextContent(formatMinor(15000, 'eur'))
+    expect(settings).toHaveTextContent('Invoice')
+    expect(settings).toHaveTextContent('168 hours before the first trip')
+    expect(settings).toHaveTextContent('50% of the deposit')
+    expect(settings).toHaveTextContent('2099-05-01')
+  })
+
+  it('a draft version says Version N (draft); a first version lists no earlier versions', async () => {
+    await renderPage(detail({ lines: TWO_LINES, versionNo: 3, versions: [1, 2, 3] }))
+    expect(screen.getByTestId('quote-version')).toHaveTextContent('Version 3 (draft)')
+    expect(screen.getByTestId('quote-earlier-versions')).toHaveTextContent('Earlier versions: 1, 2')
+  })
+
+  it('version 1 of a draft shows no earlier versions line', async () => {
+    await renderPage(draftedQuote())
+    expect(screen.getByTestId('quote-version')).toHaveTextContent('Version 1 (draft)')
+    expect(screen.queryByTestId('quote-earlier-versions')).toBeNull()
+  })
+
+  it('a voided quote is read-only too, even though its version was never sent', async () => {
+    await renderPage(detail({ lines: TWO_LINES, deposit: { kind: 'percent', value: 30 }, remainder: 'saved_card', effectiveStatus: 'voided' }))
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull()
+    expect(screen.getByText('This quote is closed and can no longer be edited.')).toBeInTheDocument()
+  })
+
   it('warns, without blocking, when a remainder is below the smallest card charge', async () => {
     await renderPage(detail({ lines: [lineRow(1, 30000)], deposit: { kind: 'fixed', value: 29980 }, remainder: 'saved_card' }))
     expect(screen.getByText(/below the smallest amount a card can be charged/)).toBeInTheDocument()

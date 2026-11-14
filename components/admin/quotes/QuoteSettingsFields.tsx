@@ -24,6 +24,8 @@ import { DEPOSIT_KINDS, QUOTE_CURRENCIES, REMAINDER_METHODS, type DepositKind, t
 interface QuoteSettingsFieldsProps {
   draft: QuoteDraft
   onChange: (patch: Partial<QuoteDraft>) => void
+  /** A frozen version: the settings are shown as text. */
+  readOnly?: boolean
 }
 
 const REMAINDER_LABEL: Record<RemainderMethod, { title: string; hint: string }> = {
@@ -73,7 +75,52 @@ function Field({ label, htmlFor, children }: { label: string; htmlFor: string; c
   )
 }
 
-export function QuoteSettingsFields({ draft, onChange }: QuoteSettingsFieldsProps) {
+function ReadOnlySettings({ draft }: { draft: QuoteDraft }) {
+  const totals = draftTotals(draft)
+  const deposit = parseDeposit(draft.deposit, draft.currency)
+  const depositLabel = !deposit.ok
+    ? 'Not set'
+    : deposit.kind === 'percent'
+      ? `${deposit.value}%${totals.depositMinor === null ? '' : ` (${money(totals.depositMinor, draft.currency)})`}`
+      : money(deposit.value, draft.currency)
+  const locale = (locales as readonly string[]).includes(draft.locale) ? LOCALE_ENDONYMS[draft.locale as keyof typeof LOCALE_ENDONYMS] : draft.locale
+  const hours = draft.cancel_free_hours.trim()
+  const fee = draft.cancel_fee_percent.trim()
+  const rows: Array<[string, string]> = [
+    ['Language', locale],
+    ['Currency', draft.currency.toUpperCase()],
+    ['Link valid until', draft.expires_at ?? 'No expiry, valid until cancelled'],
+    ['Total', money(totals.totalMinor, draft.currency)],
+    ['Deposit', depositLabel],
+    ['Remainder', totals.remainderMinor === null ? '-' : money(totals.remainderMinor, draft.currency)],
+    ['Remainder paid by', draft.remainder_method === null ? 'Not set' : REMAINDER_LABEL[draft.remainder_method].title],
+    ['Free cancellation', hours === '' ? 'Standard policy' : `${hours} hours before the first trip`],
+    ['Cancellation fee', fee === '' ? 'All of the deposit' : `${fee}% of the deposit`],
+  ]
+  if (draft.remainder_method === 'invoice') {
+    rows.push(
+      ['Billing name', draft.billing.name || '-'],
+      ['Billing address', draft.billing.address || '-'],
+      ['Company ID', draft.billing.company_id || '-'],
+      ['VAT ID', draft.billing.vat_id || '-'],
+      ['Invoice note', draft.billing.note || '-'],
+    )
+  }
+  return (
+    <section aria-label="Quote settings" data-testid="quote-settings-readonly" style={cardStyle}>
+      <dl style={{ display: 'grid', gridTemplateColumns: 'minmax(160px, 240px) 1fr', gap: '8px 16px', margin: 0 }}>
+        {rows.map(([label, value]) => (
+          <div key={label} style={{ display: 'contents' }}>
+            <dt style={{ ...labelStyle, marginBottom: 0 }}>{label}</dt>
+            <dd style={{ margin: 0, color: 'var(--admin-text)', fontFamily: 'var(--font-montserrat)', fontSize: 'var(--admin-fs-body)' }}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+export function QuoteSettingsFields({ draft, onChange, readOnly = false }: QuoteSettingsFieldsProps) {
   const uid = useId()
   const id = (name: string) => `${uid}-${name}`
 
@@ -87,6 +134,9 @@ export function QuoteSettingsFields({ draft, onChange }: QuoteSettingsFieldsProp
   const currencyLabel = draft.currency.toUpperCase()
 
   const setBilling = (patch: Partial<QuoteDraft['billing']>) => onChange({ billing: { ...draft.billing, ...patch } })
+
+  // A sent version is immutable (QUOTE-06): the same settings as plain text, no inputs.
+  if (readOnly) return <ReadOnlySettings draft={draft} />
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

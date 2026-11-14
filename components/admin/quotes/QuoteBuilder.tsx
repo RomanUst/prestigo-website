@@ -144,6 +144,7 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
   const frozen = detail.version.frozen_at !== null
   const closed = ['voided', 'cancelled', 'paid'].includes(detail.effective_status)
   const readOnly = frozen || closed
+  const earlierVersions = detail.versions.filter((v) => v.version_no < detail.version.version_no)
 
   const patch = (next: Partial<QuoteDraft>) => setDraft({ ...draft, ...next })
   // The suggestions were made in the old currency: they are dropped, the amounts the operator typed stay for them to correct.
@@ -235,6 +236,21 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
           {clientName} · {draft.client.email}
           {draft.client.phone ? ` · ${draft.client.phone}` : ''}
         </p>
+        <p data-testid="quote-version" style={{ ...mutedStyle, marginTop: '4px', color: 'var(--admin-text)' }}>
+          {`Version ${detail.version.version_no} (${frozen ? 'sent' : 'draft'})`}
+        </p>
+        {earlierVersions.length > 0 && (
+          <p data-testid="quote-earlier-versions" style={{ ...mutedStyle, marginTop: '4px' }}>
+            {`Earlier versions: ${earlierVersions.map((v) => v.version_no).join(', ')}`}
+          </p>
+        )}
+        {readOnly && (
+          <p style={{ ...mutedStyle, marginTop: '4px' }}>
+            {frozen
+              ? 'This version was sent to the client and cannot be edited. To change it, make a new version.'
+              : 'This quote is closed and can no longer be edited.'}
+          </p>
+        )}
       </div>
 
       <section aria-label="Trips" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -261,7 +277,7 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
         )}
       </section>
 
-      {!readOnly && <QuoteSettingsFields draft={draft} onChange={patchSettings} />}
+      <QuoteSettingsFields draft={draft} onChange={patchSettings} readOnly={readOnly} />
 
       {!readOnly && (
         <div style={cardStyle}>
