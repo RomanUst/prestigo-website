@@ -1,0 +1,38 @@
+{
+  "labels": {
+    "authorProfile": "作者簡介",
+    "about": "關於",
+    "expertise": "專業領域",
+    "aboutAuthorAria": "關於作者：{name}",
+    "by": "作者",
+    "published": "釋出於 {date}",
+    "updated": "更新於 {date}"
+  },
+  "jobTitle": "創始人兼首席體驗官",
+  "bioShort": "PRESTIGO 創始人。在布拉格豪華出行與五星級酒店服務領域擁有 10 年以上經驗。",
+  "metadata": {
+    "title": "Roman Ustyugov — PRESTIGO 創始人，布拉格",
+    "description": "Roman Ustyugov — 布拉格 PRESTIGO 創始人兼首席體驗官。在豪華地面交通與五星級酒店服務領域擁有 10 年以上經驗。PRESTIGO 旅行指南作者。",
+    "ogTitle": "Roman Ustyugov — PRESTIGO 專屬司機服務創始人"
+  },
+  "bio": [
+    "Roman Ustyugov 是 PRESTIGO 的創始人，這是一家總部位於布拉格的高階專屬司機服務公司。憑藉在豪華交通和五星級酒店業超過10年的經驗，Roman 專注於為企業客戶、外交使團和酒店貴賓提供無可挑剔的地面交通服務 — 旅程中的每一個細節都至關重要。",
+    "Roman 親自監督 PRESTIGO 的質量標準：從精選 Mercedes-Benz 車隊，到培訓司機遵循貴賓客戶禮儀、在布拉格繁忙的交通中規劃路線，以及全程保密。他的理念是低調的奢華、準時和絕對的謹慎 — 這正是他十年前作為布拉格五星級酒店常客時首次體會到的標準。"
+  ],
+  "knowsAbout": [
+    "豪華專屬司機服務",
+    "布拉格地面交通",
+    "企業出行管理",
+    "五星級酒店款待",
+    "機場接送物流",
+    "貴賓客戶禮儀"
+  ],
+  "imageAlt": "Roman Ustyugov — 布拉格 PRESTIGO 專屬司機服務創始人",
+  "cta": {
+    "headingLine1": "直接與我們的團隊",
+    "headingItalic": "預訂。",
+    "body": "每一筆 PRESTIGO 預訂都由創始人團隊親自監督 — 排程、司機簡報以及行程結束後的跟進。",
+    "primaryButton": "預訂接送服務",
+    "secondaryButton": "關於 PRESTIGO"
+  }
+}

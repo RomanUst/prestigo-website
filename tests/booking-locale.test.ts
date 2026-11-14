@@ -13,7 +13,7 @@ describe('D-07: STRIPE_ELEMENTS_LOCALE', () => {
 
   it('every other locale maps to itself', () => {
     for (const loc of locales) {
-      if (loc === 'hi') continue
+      if (loc === 'hi' || loc === 'zh-hant') continue
       expect(STRIPE_ELEMENTS_LOCALE[loc]).toBe(loc)
     }
   })
@@ -34,8 +34,13 @@ describe('D-07: PLACES_LANGUAGE', () => {
 
   it('every other locale maps to itself, including hi', () => {
     for (const loc of locales) {
-      if (loc === 'zh') continue
+      if (loc === 'zh' || loc === 'zh-hant') continue
       expect(PLACES_LANGUAGE[loc]).toBe(loc)
     }
+  })
+
+  it('zh-hant maps to "zh-TW" (Traditional) for both Stripe and Places', () => {
+    expect(STRIPE_ELEMENTS_LOCALE['zh-hant']).toBe('zh-TW')
+    expect(PLACES_LANGUAGE['zh-hant']).toBe('zh-TW')
   })
 })

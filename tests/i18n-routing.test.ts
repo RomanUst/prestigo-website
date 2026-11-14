@@ -12,8 +12,8 @@ import { routing, locales, rtlLocales, stripLocalePrefix, type AppLocale } from 
 
 describe('i18n/routing.ts — typed single-source locale config (I18N-04)', () => {
   it('locales deep-equals the 7-tuple in order', () => {
-    expect(routing.locales).toEqual(['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'])
-    expect(locales).toEqual(['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'])
+    expect(routing.locales).toEqual(['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh', 'zh-hant'])
+    expect(locales).toEqual(['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh', 'zh-hant'])
   })
 
   it('defaultLocale is en', () => {
@@ -51,7 +51,7 @@ describe('i18n/routing.ts — typed single-source locale config (I18N-04)', () =
   })
 
   it('AppLocale type is satisfied by every configured locale (compile-time check)', () => {
-    const sample: AppLocale[] = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh']
+    const sample: AppLocale[] = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh', 'zh-hant']
     expect(sample).toEqual(locales)
   })
 

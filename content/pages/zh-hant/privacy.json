@@ -1,0 +1,253 @@
+{
+  "metadata": {
+    "title": "隱私政策 — PRESTIGO 布拉格高階專車服務",
+    "description": "PRESTIGO 如何收集、使用並保護您的個人資料。我們在布拉格及中歐地區提供的高階專車服務遵循符合 GDPR 的隱私政策。",
+    "ogTitle": "隱私政策 — PRESTIGO 布拉格高階專車服務"
+  },
+  "hero": {
+    "label": "隱私政策",
+    "headlineLine1": "您的資料，受到保護。",
+    "headlineItalic": "始於設計之初。",
+    "lastUpdated": "最後更新：2026年10月19日"
+  },
+  "section1": {
+    "title": "資料控制者",
+    "controllerPrefix": "您個人資料的控制者為 ",
+    "controllerName": "chelautotrans s.r.o.",
+    "controllerSuffix": "，以 PRESTIGO 名義經營，註冊地址為 Spojovací 685, Vysoký Újezd, 捷克共和國，IČO：05650801。",
+    "contactPrefix": "如對您個人資料的處理有任何疑問，請透過 ",
+    "contactEmailLabel": "info@rideprestigo.com",
+    "contactMiddle": " 與我們聯絡，或致電 ",
+    "contactPhoneLabel": "+420 725 986 855",
+    "contactSuffix": "。"
+  },
+  "section2": {
+    "title": "我們收集哪些資料",
+    "intro": "我們僅收集為提供服務所必需的資訊。",
+    "bookingForm": {
+      "heading": "預訂表單",
+      "text": "名字、姓氏、電子郵箱、電話號碼、航班號、上車與下車地址、日期與時間、車型偏好、兒童座椅需求、特殊要求。"
+    },
+    "contactForm": {
+      "heading": "聯絡表單",
+      "text": "姓名、電子郵箱、電話號碼、服務型別、留言內容。"
+    },
+    "corporateEnquiry": {
+      "heading": "企業諮詢",
+      "text": "公司名稱、聯絡人姓名與職務、電子郵箱、預計每月行程次數、備註。"
+    },
+    "automaticallyCollected": {
+      "heading": "自動收集的資訊",
+      "text": "IP 地址、瀏覽器型別與版本、裝置型別、訪問頁面、來源網址以及互動資料 — 透過 Google Analytics 收集。"
+    },
+    "locationData": {
+      "heading": "位置資料",
+      "text": "您輸入的上車地址與目的地地址將透過 Google Maps API 進行處理，用於路線計算與地址自動補全。我們不會追蹤您的實時位置。"
+    },
+    "messagingData": {
+      "heading": "訊息與客戶記錄",
+      "text": "您透過網站聊天、電子郵件、Telegram 或 WhatsApp 傳送給我們的訊息、您的賬戶資料，以及我們在 CRM 中儲存的客戶記錄：姓名、電子郵件、電話、行程歷史和我們團隊的備註。"
+    }
+  },
+  "section3": {
+    "title": "處理的法律依據",
+    "intro": "我們依據 GDPR 第 6 條規定的以下法律依據處理您的個人資料：",
+    "performanceOfContract": {
+      "heading": "合同履行 — 第 6(1)(b) 條",
+      "text": "處理您的預訂資料以安排並完成您的接送服務、處理付款、傳送預訂確認，以及提供司機聯絡資訊。"
+    },
+    "legitimateInterest": {
+      "heading": "合法利益 — 第 6(1)(f) 條",
+      "text": "用於改進服務的網站分析、防範欺詐、透過聯絡表單回覆您的諮詢，以及在我們各系統中保留唯一的客戶記錄，以便我們對照您的行程歷史答覆您。"
+    },
+    "legalObligation": {
+      "heading": "法律義務 — 第 6(1)(c) 條",
+      "text": "按照捷克稅務與會計法規的要求儲存預訂與付款記錄。"
+    }
+  },
+  "section4": {
+    "title": "第三方服務提供商",
+    "intro": "我們僅與受信賴的服務提供商共享個人資料，這些提供商代表我們並按照我們的指示處理資料。",
+    "privacyPolicyLabel": "隱私政策 →",
+    "providers": [
+      {
+        "name": "Stripe",
+        "purpose": "支付處理。銀行卡資料直接傳送至 Stripe — PRESTIGO 絕不儲存您的卡號。",
+        "url": "https://stripe.com/privacy"
+      },
+      {
+        "name": "Google Analytics",
+        "purpose": "匿名化的網站使用統計，幫助我們改進服務。",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Google Maps Platform",
+        "purpose": "地址自動補全與路線計算。",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Supabase",
+        "purpose": "用於預訂記錄的安全資料庫託管（歐盟區域）。",
+        "url": "https://supabase.com/privacy"
+      },
+      {
+        "name": "Resend",
+        "purpose": "事務性郵件傳送 — 預訂確認與司機資訊。",
+        "url": "https://resend.com/legal/privacy-policy"
+      },
+      {
+        "name": "Vercel",
+        "purpose": "網站託管與內容分發。",
+        "url": "https://vercel.com/legal/privacy-policy"
+      },
+      {
+        "name": "Chatwoot (self-hosted)",
+        "purpose": "我們用於網站聊天、電子郵件和 Telegram 訊息的客戶訊息收件箱，執行在我們自有的伺服器上。若我們的團隊使用 Chatwoot 移動應用，新訊息通知將透過 Chatwoot 的通知服務傳送。",
+        "url": "https://www.chatwoot.com/privacy-policy"
+      },
+      {
+        "name": "Hostinger",
+        "purpose": "我們自有訊息與客戶記錄伺服器在德國（歐盟）的託管服務。",
+        "url": "https://www.hostinger.com/legal/privacy-policy"
+      },
+      {
+        "name": "Backblaze",
+        "purpose": "我們訊息與客戶記錄伺服器的每夜加密備份，儲存於美國。",
+        "url": "https://www.backblaze.com/company/privacy.html"
+      },
+      {
+        "name": "Telegram",
+        "purpose": "僅在您選擇透過 Telegram 與我們聯絡時適用。",
+        "url": "https://telegram.org/privacy"
+      },
+      {
+        "name": "EspoCRM (self-hosted)",
+        "purpose": "我們的客戶記錄系統（CRM），執行在我們位於德國的自有伺服器上，儲存您的聯絡方式和行程歷史。",
+        "url": "https://www.espocrm.com/privacy-policy/"
+      },
+      {
+        "name": "WhatsApp (Meta)",
+        "purpose": "僅在您選擇透過 WhatsApp 與我們聯絡時適用。",
+        "url": "https://www.whatsapp.com/legal/privacy-policy-eea"
+      }
+    ]
+  },
+  "section5": {
+    "title": "跨境資料傳輸",
+    "text": "您的預訂資料儲存於歐盟境內（Supabase 歐盟區域）。我們的部分服務提供商 — 包括 Google、Stripe、Resend 和 Vercel — 可能在美國處理資料。此類傳輸受《歐盟—美國資料隱私框架》保護，並在適用情況下受歐盟委員會批准的標準合同條款保護。透過網站聊天、電子郵件、Telegram 或 WhatsApp 傳送的訊息以及我們的客戶記錄，儲存在我們位於德國的自有伺服器上；該伺服器的加密備份由 Backblaze 依據《歐盟—美國資料隱私框架》儲存於美國。"
+  },
+  "section6": {
+    "title": "資料儲存期限",
+    "items": [
+      {
+        "type": "預訂記錄",
+        "period": "自接送服務之日起最長 10 年，依據捷克稅務與會計法規的要求。如果您要求我們刪除您的資料，該預訂將在去除您的姓名、電子郵件、電話、備註和地址後保留。"
+      },
+      {
+        "type": "聯絡表單提交內容",
+        "period": "儲存至您要求我們刪除為止。"
+      },
+      {
+        "type": "分析資料",
+        "period": "26 個月（Google Analytics 預設儲存期限）。"
+      },
+      {
+        "type": "付款記錄",
+        "period": "PRESTIGO 僅儲存交易參考編號。完整付款資料由 Stripe 依據其儲存政策留存。"
+      },
+      {
+        "type": "訊息與對話",
+        "period": "儲存至您要求我們刪除為止。"
+      },
+      {
+        "type": "未完成的線上預訂",
+        "period": "預訂在未付款的情況下關閉後 90 天刪除。"
+      },
+      {
+        "type": "備份",
+        "period": "已刪除的資料可能保留在加密備份中，直至備份輪換淘汰，最長 6 個月。"
+      }
+    ]
+  },
+  "section7": {
+    "title": "Cookie",
+    "intro": "我們的網站僅使用有限數量的 Cookie：",
+    "cookies": [
+      {
+        "name": "_ga / _gid",
+        "purpose": "Google Analytics — 匿名化使用統計。分別在 2 年 / 24 小時後過期。"
+      },
+      {
+        "name": "必要 Cookie",
+        "purpose": "僅用於會話管理。為網站正常執行所必需。"
+      },
+      {
+        "name": "cw_conversation / cw_user_*",
+        "purpose": "網站聊天。僅在您點選“線上聊天”後才會設定——該點選會啟動聊天服務；它會在您瀏覽期間保持對話開啟，並在您從 Prestigo 賬戶登出時清除。當您開啟聊天時，我們還會記錄您所在的頁面、網站語言、您是如何找到我們的，以及在預訂頁面上您所選擇的路線和車輛。"
+      }
+    ],
+    "outro": "我們不使用廣告、再營銷或社交媒體追蹤 Cookie。"
+  },
+  "section8": {
+    "title": "您在 GDPR 下享有的權利",
+    "intro": "根據《通用資料保護條例》，您享有以下權利：",
+    "rights": [
+      {
+        "right": "訪問權",
+        "article": "第 15 條",
+        "desc": "獲取我們所持有的您的個人資料副本。"
+      },
+      {
+        "right": "更正權",
+        "article": "第 16 條",
+        "desc": "要求更正不準確或不完整的資料。"
+      },
+      {
+        "right": "刪除權",
+        "article": "第 17 條",
+        "desc": "要求刪除您的個人資料（“被遺忘權”）。"
+      },
+      {
+        "right": "限制處理權",
+        "article": "第 18 條",
+        "desc": "要求我們限制對您資料的處理。"
+      },
+      {
+        "right": "資料可攜權",
+        "article": "第 20 條",
+        "desc": "以結構化、機器可讀的格式獲取您的資料。"
+      },
+      {
+        "right": "反對權",
+        "article": "第 21 條",
+        "desc": "對基於合法利益的處理提出反對。"
+      },
+      {
+        "right": "撤回同意權",
+        "article": "第 7(3) 條",
+        "desc": "隨時撤回同意，且不影響此前已進行的處理。"
+      }
+    ],
+    "erasureNote": "當您要求我們刪除您的資料時，我們會先確認確實是您本人。隨後我們會從系統中刪除您的訊息和客戶記錄，並從過往預訂中移除您的姓名、電子郵件、電話、備註和地址。我們會保留稅法要求的日期、金額、車型等級、預訂編號和發票資料。",
+    "outroPrefix": "如需行使上述任一權利，請傳送郵件至 ",
+    "outroEmailLabel": "info@rideprestigo.com",
+    "outroSuffix": "。我們將在 30 天內答覆。"
+  },
+  "section9": {
+    "title": "監管機構",
+    "intro": "如果您認為自己的資料保護權利受到侵犯，您有權向捷克監管機構提出投訴：",
+    "authorityName": "Úřad pro ochranu osobních údajű",
+    "authorityAddress": "Pplk. Sochora 27, 170 00 布拉格 7 區, 捷克共和國",
+    "authorityUrlLabel": "www.uoou.cz"
+  },
+  "section10": {
+    "title": "本政策的變更",
+    "text": "我們可能會不時更新本隱私政策。本頁面頂部的“最後更新”日期反映最近一次修訂。在任何變更後繼續使用我們的服務，即表示您認可更新後的政策。"
+  },
+  "cta": {
+    "headingLine1": "對您的資料有疑問？",
+    "headingItalic": "我們樂意為您提供幫助。",
+    "buttonPrimary": "傳送郵件",
+    "buttonSecondary": "聯絡頁面"
+  }
+}

@@ -53,7 +53,7 @@ describe('LocaleSwitcher — UX-01 switch contract', () => {
   it('renders exactly 7 rows with endonym labels in fixed order en, ru, es, fr, ar, hi, zh', () => {
     renderWithIntl(<LocaleSwitcher />)
     const items = screen.getAllByRole('menuitem')
-    expect(items).toHaveLength(7)
+    expect(items).toHaveLength(8)
     expect(items.map((el) => el.textContent?.trim())).toEqual(
       locales.map((loc) => LOCALE_ENDONYMS[loc])
     )

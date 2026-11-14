@@ -1,7 +1,7 @@
 // @vitest-environment node
 /**
  * Phase 91, Plan 17 - STOP-01 / STOP-03 / STOP-05: the wizard copy for stops, paid waiting and the airport landing
- * exists in all 7 locales as a real hand translation (never an English copy or a stub), formats through
+ * exists in all 8 locales as a real hand translation (never an English copy or a stub), formats through
  * next-intl with its placeholders resolved, and never types a price (T-91-48).
  */
 import { describe, expect, it } from 'vitest'
@@ -102,7 +102,7 @@ describe.each([
   }
 
   it('covers every non-English locale', () => {
-    expect(NON_ENGLISH.length).toBe(6)
+    expect(NON_ENGLISH.length).toBe(7)
   })
 })
 

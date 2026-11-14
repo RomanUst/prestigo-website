@@ -59,6 +59,7 @@ export const PRAGUE_TIME_LABEL: Record<AppLocale, string> = {
   ar: 'بتوقيت براغ',
   hi: 'प्राग का समय',
   zh: '布拉格时间',
+  'zh-hant': '布拉格時間',
 }
 
 function pragueLabelFor(locale: string): string {

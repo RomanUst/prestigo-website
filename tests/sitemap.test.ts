@@ -52,7 +52,7 @@ describe('sitemap alternates cluster (SEO-03, delegates to getAlternates)', () =
     const routeEntry = entries.find((e) => e.url === 'https://rideprestigo.com/routes/prague-vienna')
     expect(routeEntry).toBeDefined()
     const langs = (routeEntry!.alternates as { languages: Record<string, string> }).languages
-    expect(Object.keys(langs)).toEqual(['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh-Hans', 'x-default'])
+    expect(Object.keys(langs)).toEqual(['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh-Hans', 'zh-Hant', 'x-default'])
     expect(langs['zh-Hans']).toBe('https://rideprestigo.com/zh/routes/prague-vienna')
   })
 

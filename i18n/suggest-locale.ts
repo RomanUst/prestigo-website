@@ -7,6 +7,18 @@ function baseSubtag(tag: string | undefined | null): string {
 }
 
 /**
+ * Chinese needs the script, not just the base subtag: Traditional readers
+ * (zh-Hant, Taiwan, Hong Kong, Macau) get zh-hant, everyone else zh.
+ */
+function chineseLocale(tag: string | undefined | null): AppLocale | null {
+  if (!tag) return null
+  const parts = tag.toLowerCase().split('-')
+  if (parts[0] !== 'zh') return null
+  const traditional = parts.slice(1).some((p) => p === 'hant' || p === 'tw' || p === 'hk' || p === 'mo')
+  return traditional ? 'zh-hant' : 'zh'
+}
+
+/**
  * Client-only language suggestion (UX-02) from the browser's preference.
  *
  * Deterministic, top-preference-only match: only navigator.languages[0]
@@ -29,7 +41,7 @@ export function detectSuggestedLocale(currentLocale: string): AppLocale | null {
     }
   }
 
-  const base = baseSubtag(top)
+  const base = chineseLocale(top) ?? baseSubtag(top)
   if (!base || base === currentLocale) return null
   if (!(locales as readonly string[]).includes(base)) return null
   return base as AppLocale

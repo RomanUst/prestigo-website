@@ -13,7 +13,7 @@
  * `node scripts/*.mjs` invocation (Phase 72, Plan 01).
  */
 
-export const locales = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
+export const locales = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh', 'zh-hant'] as const
 export type AppLocale = (typeof locales)[number]
 
 export const rtlLocales: readonly AppLocale[] = ['ar']
@@ -31,7 +31,8 @@ export const LOCALE_ENDONYMS: Record<AppLocale, string> = {
   fr: 'Français',
   ar: 'العربية',
   hi: 'हिन्दी',
-  zh: '中文',
+  zh: '简体中文',
+  'zh-hant': '繁體中文',
 } as const
 
 /**
@@ -51,6 +52,7 @@ export const BCP47_TAG: Record<AppLocale, string> = {
   ar: 'ar',
   hi: 'hi',
   zh: 'zh-Hans',
+  'zh-hant': 'zh-Hant',
 } as const
 
 /**
