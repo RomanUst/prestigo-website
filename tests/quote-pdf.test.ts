@@ -315,3 +315,72 @@ describe('samplePdfHtml', () => {
     expect(html).not.toContain('dir="rtl"')
   })
 })
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/quotes/pdf-check
+// ---------------------------------------------------------------------------
+
+const adminState = vi.hoisted(() => ({ auth: 'admin' as 'admin' | '401' | '403' }))
+vi.mock('@/lib/supabase/server', () => ({
+  getAdminUser: vi.fn(async () => {
+    if (adminState.auth === '401') return { user: null, error: '401' as const }
+    if (adminState.auth === '403') return { user: null, error: '403' as const }
+    return { user: { id: '99999999-9999-4999-8999-999999999999' }, error: null }
+  }),
+}))
+
+describe('GET /api/admin/quotes/pdf-check (T-92-24)', () => {
+  async function call() {
+    const { GET } = await import('@/app/api/admin/quotes/pdf-check/route')
+    return GET()
+  }
+
+  it('401 without a session and nothing is rendered', async () => {
+    adminState.auth = '401'
+    const res = await call()
+    expect(res.status).toBe(401)
+    expect(m.launch).not.toHaveBeenCalled()
+  })
+
+  it('403 for a non-admin and nothing is rendered', async () => {
+    adminState.auth = '403'
+    const res = await call()
+    expect(res.status).toBe(403)
+    expect(m.launch).not.toHaveBeenCalled()
+  })
+
+  it('200 with one result per locale, no-store, and no PDF bytes in the body', async () => {
+    adminState.auth = 'admin'
+    m.state.cdpFonts = [{ familyName: 'Inter', isCustomFont: true, glyphCount: 3 }]
+    const res = await call()
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+    const raw = await res.text()
+    expect(raw).not.toContain('%PDF')
+    const body = JSON.parse(raw) as {
+      engine: string
+      results: Array<{ locale: string; ok: boolean; ms: number; bytes: number; fallback: string[] }>
+    }
+    expect(body.engine).toBe('local')
+    expect(body.results.map((r) => r.locale)).toEqual([...locales])
+    for (const r of body.results) {
+      expect(r.ok).toBe(true)
+      expect(r.bytes).toBe(5)
+      expect(typeof r.ms).toBe('number')
+      expect(r.fallback).toEqual([])
+    }
+    expect(Object.keys(body.results[0]).sort()).toEqual(['bytes', 'fallback', 'locale', 'ms', 'ok'])
+  })
+
+  it('reports a non-embedded font and a failed render per locale without failing the request', async () => {
+    adminState.auth = 'admin'
+    m.state.cdpFonts = [{ familyName: 'Helvetica', isCustomFont: false, glyphCount: 2 }]
+    const res = await call()
+    const body = (await res.json()) as { results: Array<{ ok: boolean; fallback: string[] }> }
+    expect(res.status).toBe(200)
+    for (const r of body.results) {
+      expect(r.ok).toBe(false)
+      expect(r.fallback).toEqual(['Helvetica'])
+    }
+  })
+})
