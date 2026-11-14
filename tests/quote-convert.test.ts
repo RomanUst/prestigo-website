@@ -412,6 +412,8 @@ async function paidQuote(): Promise<{ s: Seeded; pi: Stripe.PaymentIntent; booki
   const pi = depositIntent(s)
   const first = await applyQuoteDepositPaid(pi, WEBHOOK)
   expect(first.outcome).toBe('converted')
+  // The mails of the first conversion (plan 92-21) are not what these cases count: they start from a paid quote.
+  mockResendSend.mockClear()
   return { s, pi, bookingIds: first.bookingIds as string[] }
 }
 
@@ -620,7 +622,8 @@ describe('a conversion that fails inside the database: money taken, no bookings'
     expect(ok.outcome).toBe('converted')
     expect(bookingsOf(s.quoteId)).toHaveLength(2)
     expect(refundCalls()).toHaveLength(0)
-    expect(mails()).toHaveLength(1)
+    // The conversion's own mails (plan 92-21) are new; the failure alert is still the one it was.
+    expect(mails().filter((m) => m.text?.includes('quote_convert_failed'))).toHaveLength(1)
   })
 
   it('a refusal that is not about ownership (not_accepted, lines_mismatch, hold_at_missing) is a conversion failure, not a refund', async () => {
