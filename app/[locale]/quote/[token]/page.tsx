@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { resolveQuoteToken } from '@/lib/quotes/resolve'
+import { resolveQuoteToken, type ResolvedQuote } from '@/lib/quotes/resolve'
+import { renderQuoteTerms } from '@/lib/quotes/consent'
 import { buildQuoteView, type QuoteView } from '@/lib/quotes/view'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { formatMinor } from '@/lib/payments/money'
@@ -15,6 +16,7 @@ import { normalizeSiteLocale, type AppLocale } from '@/i18n/locales'
 import ManageHeader from '../../manage/[token]/ManageHeader'
 import InvalidQuoteLinkView, { QUOTE_CONTACT_EMAIL } from './InvalidQuoteLinkView'
 import QuoteViewedPing from './QuoteViewedPing'
+import QuoteAcceptPay, { type QuoteAcceptPayCopy } from './QuoteAcceptPay'
 
 // The client's quote page (Phase 92, plan 92-09; QUOTE-02, QUOTE-06; D-02, D-05, D-09, D-10; T-92-29..T-92-32).
 //
@@ -27,7 +29,10 @@ import QuoteViewedPing from './QuoteViewedPing'
 //   knows only the locale. A rate-limit denial renders the same view.
 // - D-09: the page renders in the quote's language; a request on another locale prefix redirects to the quote's prefix.
 // - The page receives the client-safe QuoteView only: first name, one price per trip, no waiting amount, no ids.
-// - The accept area, the PDF button and the remainder payment area are added by plans 92-17 and 92-27.
+// - Plan 92-17 adds the accept area (QuoteAcceptPay) under the terms for a quote that is not paid yet: the consent and
+//   terms text is rendered HERE, on the server (renderQuoteTerms, the same text the accept route stores and hashes), and
+//   handed to the island with the ready button label; a failed render shows no accept area (fail closed). A paid quote
+//   shows the booking references instead. The PDF button and the remainder payment area are added by plan 92-27.
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
@@ -128,8 +133,19 @@ function SummaryRow({ label, amount, strong, testId }: { label: string; amount: 
 }
 
 /** The quote, rendered. An async function (called by the page), so a test can await the element. */
-async function QuoteOfferView({ view, locale, token }: { view: QuoteView; locale: AppLocale; token: string }) {
+async function QuoteOfferView({
+  view,
+  locale,
+  token,
+  consentText,
+}: {
+  view: QuoteView
+  locale: AppLocale
+  token: string
+  consentText: string | null
+}) {
   const t = await getTranslations({ locale, namespace: 'Quote' })
+  const ta = await getTranslations({ locale, namespace: 'Quote.accept' })
   const vt = await getTranslations({ locale, namespace: 'Booking.vehicleClasses' })
 
   const money = (minor: number) => formatMinor(minor, view.currency)
@@ -137,6 +153,19 @@ async function QuoteOfferView({ view, locale, token }: { view: QuoteView; locale
   const terms = view.terms
   const freeUntil = terms.freeUntilMs !== null ? formatLocaleDateTime(terms.freeUntilMs, locale) : ''
   const showFree = !terms.freePassed && freeUntil !== ''
+
+  // Ready strings for the accept island (it translates nothing). The amount in the label is isolated left-to-right.
+  const acceptCopy: QuoteAcceptPayCopy = {
+    heading: ta('heading'),
+    button: ta('button', { amount: ltr(money(view.depositMinor)) }),
+    consentRequired: ta('consentRequired'),
+    processing: ta('processing'),
+    confirming: ta('confirming'),
+    declined: ta('declined'),
+    error: ta('error'),
+    changed: ta('changed'),
+    unavailable: ta('unavailable'),
+  }
 
   return (
     <>
@@ -319,6 +348,18 @@ async function QuoteOfferView({ view, locale, token }: { view: QuoteView; locale
           </div>
         </section>
 
+        {view.state !== 'paid' && consentText !== null ? (
+          <QuoteAcceptPay
+            token={token}
+            locale={locale}
+            versionNo={view.versionNo}
+            depositMinor={view.depositMinor}
+            currency={view.currency}
+            consentText={consentText}
+            copy={acceptCopy}
+          />
+        ) : null}
+
         <section
           aria-labelledby="quote-contact-label"
           style={{ marginTop: 40, fontSize: 14, fontWeight: 300, lineHeight: 1.6, color: 'var(--warmgrey)' }}
@@ -342,6 +383,17 @@ async function QuoteOfferView({ view, locale, token }: { view: QuoteView; locale
   )
 }
 
+/** The consent and terms text of the accept area, or null when there is nothing to accept (paid) or it cannot be built. */
+async function acceptanceText(resolved: ResolvedQuote, view: QuoteView, nowMs: number): Promise<string | null> {
+  if (view.state === 'paid') return null
+  try {
+    return (await renderQuoteTerms({ resolved, nowMs })).text
+  } catch {
+    // Fail closed: a client is never asked to accept a text the server could not render. The quote itself still shows.
+    return null
+  }
+}
+
 export default async function QuotePage({ params }: PageProps) {
   const { locale: rawLocale, token } = await params
   const locale = normalizeSiteLocale(rawLocale)
@@ -349,12 +401,17 @@ export default async function QuotePage({ params }: PageProps) {
 
   // A lookup that throws is an invalid link, never a stack trace. Rate limit first, then token, then the quote.
   let view: QuoteView | null = null
+  let consentText: string | null = null
   try {
     const h = await headers()
     const { allowed } = await checkRateLimit('/quote', getClientIp(new Request('https://localhost', { headers: h })))
     if (allowed) {
       const resolved = await resolveQuoteToken(token)
-      if (resolved) view = buildQuoteView(resolved, Date.now())
+      if (resolved) {
+        const nowMs = Date.now()
+        view = buildQuoteView(resolved, nowMs)
+        consentText = await acceptanceText(resolved, view, nowMs)
+      }
     }
   } catch {
     view = null
@@ -366,5 +423,5 @@ export default async function QuotePage({ params }: PageProps) {
   const quoteLocale = normalizeSiteLocale(view.locale)
   if (quoteLocale !== locale) redirect(getPathname({ locale: quoteLocale, href: `/quote/${token}` }))
 
-  return QuoteOfferView({ view, locale, token })
+  return QuoteOfferView({ view, locale, token, consentText })
 }
