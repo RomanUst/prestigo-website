@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act, within, waitFor } from '@testing-library/react'
 import { BookingDetailPanel } from '@/components/admin/BookingDetailPanel'
 import { BookingPanelProvider, useBookingPanel, useBookingEvents, type BookingPanelValue, type BookingEvent } from '@/components/admin/BookingPanelProvider'
+import { formatMinor } from '@/lib/payments/money'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import type { AdminBooking } from '@/components/admin/bookingTypes'
 import type { BookingMovesApi } from '@/components/admin/useBookingMoves'
@@ -378,6 +379,60 @@ describe('BookingDetailPanel', () => {
       expect(moves.openNoShow).toHaveBeenCalledWith(booking)
     })
   })
+
+  // Phase 92 plan 30 (QUOTE-05, D-12, D-20 / B2): a booking made from a quote says so, links to its quote and offers no
+  // legacy payment link (that link would charge the full line amount and so the deposit share a second time).
+  describe('booking from a quote', () => {
+    const QUOTE_ID = '5b0f7d1e-3c2a-4f6b-9a1d-0e8c7b6a5d4c'
+    const fromQuote = (over: Partial<AdminBooking> = {}) =>
+      makeBooking({
+        status: 'unpaid',
+        quote_id: QUOTE_ID,
+        quote_line_id: 'line-1',
+        quote_deposit_minor: 4000,
+        payment_currency: 'eur',
+        ...over,
+      })
+
+    it('shows the From quote chip, the link to the quote and the deposit sentence', () => {
+      render(<BookingDetailPanel booking={fromQuote()} moves={fakeMoves()} onPatched={vi.fn()} />)
+      const chip = screen.getByTestId('quote-origin')
+      expect(chip.textContent).toContain('From quote')
+      const link = within(chip).getByRole('link')
+      expect(link.getAttribute('href')).toBe(`/admin/quotes/${QUOTE_ID}`)
+      expect(chip.textContent).toContain(
+        `Deposit share ${formatMinor(4000, 'eur')} belongs to the quote; refunds of the deposit are made on the quote.`,
+      )
+    })
+
+    it.each(['quote', 'cash_guarantee', 'card_hold'])('B2: renders no payment-link section for payment_mode %s', (mode) => {
+      render(
+        <BookingDetailPanel
+          booking={fromQuote({ payment_mode: mode, payment_link_url: mode === 'quote' ? 'https://pay.example/x' : null })}
+          moves={fakeMoves()}
+          onPatched={vi.fn()}
+        />,
+      )
+      expect(screen.getByTestId('quote-origin')).toBeDefined()
+      expect(screen.queryByText('Payment Link')).toBeNull()
+      expect(screen.queryByText('Payment link ready')).toBeNull()
+      expect(screen.queryByRole('button', { name: /payment link/i })).toBeNull()
+    })
+
+    it('a booking without quote_id has no chip and keeps the payment-link section', () => {
+      render(<BookingDetailPanel booking={makeBooking({ status: 'unpaid', payment_mode: 'pay_now' })} moves={fakeMoves()} onPatched={vi.fn()} />)
+      expect(screen.queryByTestId('quote-origin')).toBeNull()
+      expect(screen.getByText('Payment Link')).toBeDefined()
+    })
+
+    it('a quote booking with no deposit share still shows the chip and the link, without an amount', () => {
+      render(<BookingDetailPanel booking={fromQuote({ quote_deposit_minor: null })} moves={fakeMoves()} onPatched={vi.fn()} />)
+      const chip = screen.getByTestId('quote-origin')
+      expect(within(chip).getByRole('link').getAttribute('href')).toBe(`/admin/quotes/${QUOTE_ID}`)
+      expect(chip.textContent).not.toContain('Deposit share')
+      expect(chip.textContent).toContain('refunds of the deposit are made on the quote')
+    })
+  })
 })
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -605,6 +660,14 @@ describe('BookingPanelProvider', () => {
       expect(confirmSpy).toHaveBeenCalledTimes(1)
       expect(screen.getByTestId('booking-panel')).toBeDefined()
     })
+  })
+
+  it('mount (92-30): a quote booking opened through the provider shows the chip and no payment-link section', async () => {
+    renderProvider(makeBooking({ status: 'unpaid', payment_mode: 'quote', quote_id: 'q-77', quote_deposit_minor: 2500, payment_currency: 'eur' }))
+    const panel = await openPanel()
+    const chip = within(panel).getByTestId('quote-origin')
+    expect(within(chip).getByRole('link').getAttribute('href')).toBe('/admin/quotes/q-77')
+    expect(within(panel).queryByText('Payment Link')).toBeNull()
   })
 
   it('mounts each money dialog exactly once for the whole page', async () => {
