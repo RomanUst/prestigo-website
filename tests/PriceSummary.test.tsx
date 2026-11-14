@@ -86,7 +86,7 @@ describe('PriceSummary', () => {
   })
 })
 
-describe('Phase 91 D-06: waiting line in the price summary', () => {
+describe('Phase 91: no waiting breakdown in the price summary', () => {
   const noExtras = { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: false, extraLuggage: false }
 
   function setPrices(waitingEur: number | null | undefined) {
@@ -104,17 +104,11 @@ describe('Phase 91 D-06: waiting line in the price summary', () => {
     })
   }
 
-  it('renders "Waiting at stops" with the server amount; the total stays base + extras', () => {
-    setPrices(24)
-    render(<PriceSummary desktopOnly />)
-    const line = screen.getByText(/Waiting at stops/)
-    expect(line.textContent).toContain('24')
-    expect(screen.getByText('€324')).toBeInTheDocument()
-  })
-
-  it.each([0, null, undefined])('renders no waiting line when waitingEur is %s', (v) => {
+  // Owner decision 2026-11-12: one total, no waiting amount listed on its own.
+  it.each([24, 0, null, undefined])('renders no waiting line when waitingEur is %s; the total is shown', (v) => {
     setPrices(v)
     render(<PriceSummary desktopOnly />)
     expect(screen.queryByText(/Waiting at stops/)).toBeNull()
+    expect(screen.getByText('€324')).toBeInTheDocument()
   })
 })

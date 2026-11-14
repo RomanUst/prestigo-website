@@ -72,12 +72,12 @@ describe('StopItem', () => {
     expect(screen.getByTestId('ai-placeholder').textContent).toBe('Enter stop address')
   })
 
-  it('renders a wait time <select> with options 0..120 step 15', () => {
+  it('renders a wait time <select>: 15-minute steps to 60, then 30-minute steps to 120', () => {
     render(<StopItem stop={makeStop()} index={0} total={1} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
     const select = screen.getByLabelText('Wait time') as HTMLSelectElement
-    expect(select.options.length).toBe(9)
+    expect(select.options.length).toBe(7)
     const values = Array.from(select.options).map((o) => o.value)
-    expect(values).toEqual(['0', '15', '30', '45', '60', '75', '90', '105', '120'])
+    expect(values).toEqual(['0', '15', '30', '45', '60', '90', '120'])
   })
 
   it('default wait time is 0 with label "No wait"', () => {
@@ -85,8 +85,10 @@ describe('StopItem', () => {
     const select = screen.getByLabelText('Wait time') as HTMLSelectElement
     expect(select.value).toBe('0')
     expect(select.options[0].textContent).toMatch(/No wait/i)
-    expect(select.options[1].textContent).toMatch(/^15 min/)
-    expect(select.options[8].textContent).toMatch(/^120 min/)
+    // the free 15 minutes are named as free in the option itself
+    expect(select.options[1].textContent).toBe('15 min, free')
+    expect(select.options[2].textContent).toBe('30 min')
+    expect(select.options[6].textContent).toBe('120 min')
   })
 
   it('remove button has aria-label "Remove stop" and calls onRemove(id)', () => {
@@ -146,10 +148,10 @@ describe('StopItem', () => {
       return Array.from(select.options).map((o) => o.value)
     }
 
-    it('with a class offered shows 0..120 and the free-time hint', () => {
+    it('with a class offered shows the full list and the free-time hint', () => {
       render(<StopItem stop={makeStop()} index={0} total={1} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
-      expect(values()).toEqual(['0', '15', '30', '45', '60', '75', '90', '105', '120'])
-      expect(screen.getByText('First 15 min free, then charged per started 15 min')).toBeTruthy()
+      expect(values()).toEqual(['0', '15', '30', '45', '60', '90', '120'])
+      expect(screen.getByText('First 15 min are free. After that each started 15 min is charged.')).toBeTruthy()
       expect(screen.queryByText('Paid waiting is not available right now')).toBeNull()
     })
 
@@ -158,13 +160,18 @@ describe('StopItem', () => {
       render(<StopItem stop={makeStop()} index={0} total={1} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
       expect(values()).toEqual(['0', '15'])
       expect(screen.getByText('Paid waiting is not available right now')).toBeTruthy()
-      expect(screen.queryByText('First 15 min free, then charged per started 15 min')).toBeNull()
+      expect(screen.queryByText('First 15 min are free. After that each started 15 min is charged.')).toBeNull()
+    })
+
+    it('a wait saved before the list changed (75 min) moves up to the next offered option', () => {
+      render(<StopItem stop={makeStop({ waitMinutes: 75 })} index={0} total={1} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
+      expect(onWaitChange).toHaveBeenCalledWith(expect.any(String), 90)
     })
 
     it('while loading shows all options', () => {
       waitingConfig.value = { offeredClasses: [], loaded: false }
       render(<StopItem stop={makeStop()} index={0} total={1} onRemove={onRemove} onUpdate={onUpdate} onWaitChange={onWaitChange} />)
-      expect(values()).toHaveLength(9)
+      expect(values()).toHaveLength(7)
       expect(onWaitChange).not.toHaveBeenCalled()
     })
 

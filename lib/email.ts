@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { czkToEur, eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
+import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 import { loadStopsSafe } from '@/lib/booking-stops'
@@ -167,13 +167,6 @@ async function loadEmailTripRoute(source: EmailRouteSource): Promise<EmailTripRo
   return { landing, stops, currency: source.currency === 'czk' || source.currency === 'eur' ? source.currency : null }
 }
 
-/** The waiting total in the booking's own currency (eurToCzk rounds once, like the rest of the CZK figures); null = unknown currency. */
-function waitingAmountText(waitingEur: number, currency: EmailTripRoute['currency']): string | null {
-  if (currency === 'czk') return formatCZK(eurToCzk(waitingEur))
-  if (currency === 'eur') return formatEUR(waitingEur)
-  return null
-}
-
 /** "Landing" / "Pickup" values for a route with a landing; the pickup is null when the landing does not parse. */
 function landingPickupText(landing: NonNullable<EmailTripRoute['landing']>): { landing: string; pickup: string | null } {
   const derived = pickupFromLanding(landing.date, landing.time, landing.offsetMin)
@@ -190,11 +183,11 @@ function stopWaitText(waitMinutes: number): string {
 }
 
 /**
- * Table rows for the landing, the pickup after landing, each stop with its wait and (client variant only) the waiting
- * charge. '' when there is no landing and no stop, so a booking without them renders exactly as before. Every user
- * value is HTML-escaped. The driver variant never shows an amount.
+ * Table rows for the landing, the pickup after landing and each stop with its wait. '' when there is no landing and no
+ * stop, so a booking without them renders exactly as before. Every user value is HTML-escaped. No variant shows a
+ * waiting amount: the client sees one total (owner decision 2026-11-12) and the driver never sees money.
  */
-export function tripRouteRowsHtml(route: EmailTripRoute, variant: 'client' | 'driver'): string {
+export function tripRouteRowsHtml(route: EmailTripRoute, _variant: 'client' | 'driver'): string {
   const rows: string[] = []
   if (route.landing) {
     const text = landingPickupText(route.landing)
@@ -204,11 +197,6 @@ export function tripRouteRowsHtml(route: EmailTripRoute, variant: 'client' | 'dr
   for (const stop of route.stops) {
     const where = stop.address ? escapeHtml(stop.address) : 'Pinned on the map'
     rows.push(driverTripRow(`Stop ${stop.position}`, `${where}${escapeHtml(stopWaitText(stop.waitMinutes))}`))
-  }
-  if (variant === 'client') {
-    const waiting = waitingTotalEur(route.stops)
-    const amount = waiting > 0 ? waitingAmountText(waiting, route.currency) : null
-    if (amount) rows.push(driverTripRow('Waiting at stops', escapeHtml(amount), 600))
   }
   return rows.join('\n          ')
 }
