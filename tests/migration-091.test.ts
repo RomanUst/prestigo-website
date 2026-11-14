@@ -2,8 +2,10 @@
 import { describe, it, expect } from 'vitest'
 import { latestCheckValues, latestFunctionBody, loadMigration } from './helpers/latest-migration'
 import { createFakePaymentsDb, FAKE_PAYMENT_VOCABULARY } from './helpers/fake-payments-db'
-import { LEDGER_KINDS } from '@/lib/payments/state'
+import { LEDGER_KINDS, PAYMENT_MODES } from '@/lib/payments/state'
 import { locales } from '@/i18n/locales'
+import { QUOTE_STATUSES, REMAINDER_METHODS } from '@/lib/quotes/vocabulary'
+import { QUOTE_EVENT_KINDS } from '@/lib/quotes/events'
 
 // Text-level contract of migration 091 (Phase 92 plan 92-01: quotes). Comments are stripped by loadMigration, so a
 // rule mentioned only in a comment does not count. Nothing here touches a database: the orchestrator applies 091 live
@@ -794,5 +796,41 @@ describe('091 quote_convert_to_bookings (QUOTE-05)', () => {
 
   it('defines the function once', () => {
     expect(m091.split('CREATE OR REPLACE FUNCTION public.quote_convert_to_bookings').length - 1).toBe(1)
+  })
+})
+
+// -- Vocabulary parity (plan 92-06): SQL lists and TypeScript lists cannot drift apart unnoticed -----------------------
+describe('091 vocabulary parity', () => {
+  it('quotes_status_check equals QUOTE_STATUSES', () => {
+    expect(latestCheckValues('quotes_status_check', 'status')).toEqual([...QUOTE_STATUSES])
+  })
+
+  it('quote_versions_remainder_method_check equals REMAINDER_METHODS', () => {
+    expect(latestCheckValues('quote_versions_remainder_method_check', 'remainder_method')).toEqual([...REMAINDER_METHODS])
+  })
+
+  it('quote_events_kind_check equals QUOTE_EVENT_KINDS', () => {
+    expect(latestCheckValues('quote_events_kind_check', 'kind')).toEqual([...QUOTE_EVENT_KINDS])
+  })
+
+  it('every payment_mode literal the conversion assigns is in PAYMENT_MODES, and all three modes are assigned', () => {
+    const body = latestFunctionBody('quote_convert_to_bookings')
+    const assigned = [...body.matchAll(/v_mode\s*:=\s*'([a-z_]+)'/g)].map((m) => m[1])
+    expect(assigned.sort()).toEqual(['card_hold', 'cash_guarantee', 'quote'])
+    for (const mode of assigned) expect(PAYMENT_MODES as readonly string[]).toContain(mode)
+    // The booking CHECK the modes land in accepts them (the latest bookings_payment_mode_check list).
+    const allowed = latestCheckValues('bookings_payment_mode_check', 'payment_mode')
+    for (const mode of assigned) expect(allowed).toContain(mode)
+  })
+
+  it('the kinds and states the conversion writes exist in their CHECK lists', () => {
+    const body = latestFunctionBody('quote_convert_to_bookings')
+    expect(LEDGER_KINDS as readonly string[]).toContain('quote_deposit')
+    expect(latestCheckValues('booking_payment_events_kind_check', 'kind')).toContain('quote_deposit')
+    expect(QUOTE_EVENT_KINDS as readonly string[]).toEqual(expect.arrayContaining(['deposit_paid', 'converted']))
+    const states = [...new Set([...body.matchAll(/v_state\s*:=\s*'([a-z_]+)'/g)].map((m) => m[1]))]
+    expect(states.sort()).toEqual(['card_saved', 'none'])
+    const allowedStates = latestCheckValues('bookings_payment_state_check', 'payment_state')
+    for (const s of states) expect(allowedStates).toContain(s)
   })
 })
