@@ -62,6 +62,8 @@ vi.mock('@/lib/booking-status-service', async (importActual) => ({
 }))
 
 import { GET as CANCEL_GET, POST as CANCEL } from '@/app/api/admin/quotes/[id]/cancel/route'
+import { POST as REFUND } from '@/app/api/admin/quotes/[id]/refund/route'
+import { FakeStripeError } from './helpers/fake-stripe'
 
 const HOUR = 3_600_000
 const FREE_NOW = FIRST_PICKUP_MS - 10 * 24 * HOUR
@@ -80,6 +82,7 @@ function req(method: string, url: string, body?: unknown): Request {
 }
 
 const cancel = (id: string, body?: unknown) => CANCEL(req('POST', `http://localhost/api/admin/quotes/${id}/cancel`, body), params(id))
+const refund = (id: string, body?: unknown) => REFUND(req('POST', `http://localhost/api/admin/quotes/${id}/refund`, body), params(id))
 const preview = (id: string, query = '') => CANCEL_GET(req('GET', `http://localhost/api/admin/quotes/${id}/cancel${query}`), params(id))
 
 async function seed(over: Parameters<typeof seedPaidQuote>[2] = {}): Promise<PaidQuoteFixture> {
@@ -210,5 +213,94 @@ describe('GET /api/admin/quotes/[id]/cancel', () => {
     expect(res.status).toBe(422)
     expect(await res.json()).toEqual({ error: 'not_paid' })
     expect((await preview('00000000-0000-4000-8000-000000000999')).status).toBe(404)
+  })
+})
+
+describe('POST /api/admin/quotes/[id]/cancel: late cancels and refusals (D-11)', () => {
+  it('D-11: a late cancel with the refund the operator confirmed keeps the rest', async () => {
+    const f = await seed({ feePercent: 50 })
+    vi.setSystemTime(FIRST_PICKUP_MS - 24 * HOUR)
+    const res = await cancel(f.quoteId, { initiator: 'admin_client', refund_minor: 2500 })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true, outcome: 'late', refundedMinor: 2500, refundFailed: false })
+  })
+
+  it('D-11: a late cancel without a refund amount, or above the deposit, is 422 refund_out_of_range', async () => {
+    const f = await seed()
+    vi.setSystemTime(FIRST_PICKUP_MS - 24 * HOUR)
+    const missing = await cancel(f.quoteId, { initiator: 'admin_client' })
+    expect(missing.status).toBe(422)
+    expect(await missing.json()).toEqual({ error: 'refund_out_of_range' })
+    const above = await cancel(f.quoteId, { initiator: 'admin_client', refund_minor: 5001 })
+    expect(above.status).toBe(422)
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+    expect(db.state.bookings.filter((b) => b.quote_id === f.quoteId).map((b) => b.status)).toEqual(['confirmed', 'confirmed'])
+  })
+
+  it('a trip that has started is 422 trips_started and nothing changes', async () => {
+    const f = await seed({ tripStatuses: ['confirmed', 'on_board'] })
+    const res = await cancel(f.quoteId, { initiator: 'admin_client', refund_minor: null })
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'trips_started' })
+    expect(db.state.bookings.filter((b) => b.quote_id === f.quoteId).map((b) => b.status)).toEqual(['confirmed', 'on_board'])
+    expect((await preview(f.quoteId)).status).toBe(422)
+  })
+
+  it('a refund that fails still answers 200 with refundFailed true (the cancel stands)', async () => {
+    const f = await seed()
+    fake.failNextWithError('refunds.create', new FakeStripeError('StripeAPIError', 'down', { code: 'api_error', statusCode: 500 }))
+    const res = await cancel(f.quoteId, { initiator: 'admin_client', refund_minor: null })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true, outcome: 'free', refundedMinor: 0, refundFailed: true })
+  })
+})
+
+describe('POST /api/admin/quotes/[id]/refund (D-12)', () => {
+  it('refunds part of the deposit: 200, never cached, out_of_range above what is left', async () => {
+    const f = await seed()
+    const res = await refund(f.quoteId, { source: 'deposit', amount_minor: 1000 })
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+    expect(await res.json()).toEqual({ ok: true })
+    expect(fake.callsTo('refunds.create')).toHaveLength(1)
+
+    const over = await refund(f.quoteId, { source: 'deposit', amount_minor: 4001 })
+    expect(over.status).toBe(422)
+    expect(await over.json()).toEqual({ error: 'out_of_range' })
+    expect(fake.callsTo('refunds.create')).toHaveLength(1)
+  })
+
+  it('401 / 403 / bad id / bad body / unknown quote / unpaid payment', async () => {
+    const f = await seed()
+    world.auth = '401'
+    expect((await refund(f.quoteId, { source: 'deposit', amount_minor: 100 })).status).toBe(401)
+    world.auth = '403'
+    expect((await refund(f.quoteId, { source: 'deposit', amount_minor: 100 })).status).toBe(403)
+    world.auth = 'admin'
+    expect((await refund('nope', { source: 'deposit', amount_minor: 100 })).status).toBe(400)
+    for (const body of [
+      { source: 'deposit' },
+      { source: 'cash', amount_minor: 100 },
+      { source: 'deposit', amount_minor: 0 },
+      { source: 'deposit', amount_minor: -5 },
+      { source: 'deposit', amount_minor: 1.5 },
+      { source: 'deposit', amount_minor: 100, extra: true },
+    ]) {
+      expect((await refund(f.quoteId, body)).status).toBe(400)
+    }
+    expect((await refund(f.quoteId, '{bad')).status).toBe(400)
+    expect((await refund('00000000-0000-4000-8000-000000000999', { source: 'deposit', amount_minor: 100 })).status).toBe(404)
+    const notPaid = await refund(f.quoteId, { source: 'remainder', amount_minor: 100 })
+    expect(notPaid.status).toBe(422)
+    expect(await notPaid.json()).toEqual({ error: 'not_paid' })
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+  })
+
+  it('a Stripe refusal is 502 refund_failed', async () => {
+    const f = await seed()
+    fake.failNextWithError('refunds.create', new FakeStripeError('StripeAPIError', 'down', { code: 'api_error', statusCode: 500 }))
+    const res = await refund(f.quoteId, { source: 'deposit', amount_minor: 1000 })
+    expect(res.status).toBe(502)
+    expect(await res.json()).toEqual({ error: 'refund_failed' })
   })
 })
