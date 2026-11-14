@@ -31,3 +31,29 @@ export async function readCappedJson(
     return { ok: false, response: NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
   }
 }
+
+/**
+ * Like readCappedJson, but a body-less POST is the empty object (Phase 92, plan 92-13): the lifecycle actions (link,
+ * revise, void) take no input, and a client that sends nothing is as valid as one that sends `{}`. A non-empty body is
+ * still parsed and checked by the caller's strict schema.
+ */
+export async function readOptionalCappedJson(
+  request: Request,
+  maxBytes: number,
+): Promise<{ ok: true; json: unknown } | { ok: false; response: NextResponse }> {
+  let raw: string
+  try {
+    raw = await request.text()
+  } catch {
+    return { ok: false, response: NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
+  }
+  if (raw.length > maxBytes) {
+    return { ok: false, response: NextResponse.json({ error: 'Payload too large' }, { status: 413 }) }
+  }
+  if (raw.trim() === '') return { ok: true, json: {} }
+  try {
+    return { ok: true, json: JSON.parse(raw) }
+  } catch {
+    return { ok: false, response: NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) }
+  }
+}
