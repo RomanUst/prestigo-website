@@ -60,6 +60,7 @@ interface MockStore {
   priceBreakdown: Record<string, unknown> | null
   extras: Record<string, unknown>
   promoDiscount: number
+  stops?: Array<{ id: string; place: { address: string; lat: number; lng: number; placeId: string } | null; waitMinutes: number }>
   resetBooking: () => void
 }
 
@@ -108,6 +109,31 @@ async function loadPage() {
 }
 
 describe('Confirmation Page — one-way', () => {
+  it('lists the booked stops with their wait under the route (STOP-04); a stop without an address is skipped', async () => {
+    currentStore = {
+      ...defaultStore,
+      stops: [
+        { id: 's1', place: { address: 'Brno, Czechia', lat: 49.19, lng: 16.6, placeId: 'b' }, waitMinutes: 60 },
+        { id: 's2', place: null, waitMinutes: 0 },
+        { id: 's3', place: { address: 'Plzen', lat: 49.74, lng: 13.37, placeId: 'p' }, waitMinutes: 0 },
+      ],
+    } as MockStore
+    const Page = await loadPage()
+    render(<Page />)
+    expect(await screen.findByTestId('confirmation-stop-1')).toHaveTextContent('Stop 1: Brno, Czechia')
+    expect(screen.getByTestId('confirmation-stop-1')).toHaveTextContent('wait 60 min')
+    expect(screen.getByTestId('confirmation-stop-2')).toHaveTextContent('Stop 2: Plzen')
+    expect(screen.getByTestId('confirmation-stop-2')).not.toHaveTextContent('wait')
+    expect(screen.queryByTestId('confirmation-stop-3')).toBeNull()
+  })
+
+  it('shows no stop line for a booking without stops', async () => {
+    const Page = await loadPage()
+    render(<Page />)
+    await screen.findByText(/BOOKING CONFIRMED/i)
+    expect(screen.queryByTestId('confirmation-stop-1')).toBeNull()
+  })
+
   it('renders BOOKING CONFIRMED label and single reference', async () => {
     const Page = await loadPage()
     render(<Page />)

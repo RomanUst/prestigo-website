@@ -10,6 +10,7 @@
 
 import { Resend } from 'resend'
 import { deliverOnce } from '@/lib/payments/notify'
+import { loadStopsSafe } from '@/lib/booking-stops'
 import { renderPaymentEmail, type PaymentEmailKind, type PaymentEmailVars, type PolicyBoxVars } from '@/lib/payments/emails/render'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { buildBookUrl, buildManageUrl, ensureManageToken } from '@/lib/manage-link'
@@ -200,6 +201,19 @@ export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailE
   const feeMinor = extra.feeMinor ?? (lateCancel ? terms?.feeAmountMinor : undefined)
   const bookAgainUrl =
     extra.kind === 'cancelled' || extra.kind === 'fee_waived' ? bookAgainUrlFromRow(booking) : undefined
+  // Phase 91 (STOP-04, STOP-05): the stops and the landing of the trip for the journey table. A failed stops read
+  // still sends the mail, without stop rows (loadStopsSafe answers []).
+  const bookingIdForStops = str(booking.id)
+  const stops = bookingIdForStops
+    ? (await loadStopsSafe(bookingIdForStops)).map((stop) => ({
+        position: stop.position,
+        address: stop.address,
+        waitMinutes: stop.waitMinutes,
+      }))
+    : []
+  const landingDate = str(booking.landing_date)
+  const landingTime = str(booking.landing_time).slice(0, 5)
+  const landing = landingDate && landingTime ? { dateIso: landingDate, time: landingTime } : null
   return {
     reference: str(booking.booking_reference),
     amountMinor,
@@ -210,6 +224,8 @@ export async function emailVarsFromRow(booking: BookingRow, extra: PaymentEmailE
     destination: str(booking.destination_address),
     vehicleClass: str(booking.vehicle_class),
     passengers: num(booking.passengers) ?? 1,
+    ...(stops.length > 0 ? { stops } : {}),
+    ...(landing ? { landing } : {}),
     holdDateIso: Number.isFinite(holdAtMs) ? holdDateIso(holdAtMs) : null,
     variant: extra.variant,
     diffMinor: extra.diffMinor,

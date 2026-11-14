@@ -266,6 +266,8 @@ function ConfirmationContent() {
 
   const { origin, destination, pickupDate, pickupTime, vehicleClass, passengers, hours, tripType, returnDate, returnTime } =
     storeRef.current
+  // Phase 91 (STOP-04): the stops the client booked, in driving order (transfers only; a stop without an address is skipped).
+  const bookedStops = (tripType === 'transfer' ? storeRef.current.stops ?? [] : []).filter((stop) => stop.place !== null)
 
   const handleDownloadICS = () => {
     if (!ref || !pickupDate || !pickupTime) return
@@ -512,6 +514,24 @@ function ConfirmationContent() {
                   : `${origin?.address ?? ''} \u2192 ${destination?.address ?? ''}`}
               </p>
             )}
+
+            {/* Stops on the way, with the wait the client chose (no amounts) */}
+            {bookedStops.map((stop, index) => (
+              <p
+                key={stop.id}
+                data-testid={`confirmation-stop-${index + 1}`}
+                style={{
+                  fontSize: 14,
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  lineHeight: 1.5,
+                  marginBottom: 8,
+                }}
+              >
+                {t('stopLine', { number: String(index + 1), address: stop.place?.address ?? '' })}
+                {(stop.waitMinutes ?? 0) > 0 ? ` \u00b7 ${t('stopWait', { minutes: String(stop.waitMinutes) })}` : ''}
+              </p>
+            ))}
 
             {/* Date + time */}
             {(pickupDate || pickupTime) && (
