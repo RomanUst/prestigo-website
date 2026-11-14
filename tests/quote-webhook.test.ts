@@ -297,11 +297,11 @@ describe('classification: a quote deposit is routed, never null and never unrout
     expect(classifyPaymentEvent(e as unknown as Stripe.Event)).toMatchObject({ route: 'quote_deposit_paid', kind: 'card_quote_deposit' })
   })
 
-  it('the other kinds keep their routes (the remainder stays unrouted until 92-23)', () => {
+  it('the other kinds keep their routes; the remainder is routed by 92-23', () => {
     const kinds: Array<[string, string, string]> = [
       ['payment_intent.succeeded', 'card_hold', 'charge_succeeded'],
       ['payment_intent.succeeded', 'card_recovery', 'recovery_paid'],
-      ['payment_intent.succeeded', 'card_quote_remainder', 'unrouted'],
+      ['payment_intent.succeeded', 'card_quote_remainder', 'quote_remainder_paid'],
       ['payment_intent.payment_failed', 'card_hold', 'pi_failed'],
       ['payment_intent.payment_failed', 'card_charge', 'pi_failed'],
       ['payment_intent.canceled', 'card_hold', 'pi_canceled'],

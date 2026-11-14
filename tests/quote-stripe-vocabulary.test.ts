@@ -134,9 +134,9 @@ describe('classifyPaymentEvent of quote objects (T-92-15)', () => {
 
   it.each([
     ['card_quote_deposit', 'quote_deposit_paid'],
-    ['card_quote_remainder', 'unrouted'],
+    ['card_quote_remainder', 'quote_remainder_paid'],
   ])(
-    '%s: payment_intent.succeeded is routed to %s (the deposit by 92-31; the remainder stays unrouted until plan 92-23 adds its route)',
+    '%s: payment_intent.succeeded is routed to %s (the deposit by 92-31, the remainder by 92-23)',
     (kind, route) => {
       expect(classifyPaymentEvent(eventOf('payment_intent.succeeded', kind))?.route).toBe(route)
     },
