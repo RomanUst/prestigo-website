@@ -43,6 +43,15 @@ describe('AdminSidebar', () => {
     expect(promosLink.closest('a')?.getAttribute('href')).toBe('/admin/promo-codes')
   })
 
+  it('renders Quotes nav item linking to /admin/quotes directly after Bookings (QUOTE-06)', () => {
+    render(<AdminSidebar />)
+    const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'))
+    const bookings = hrefs.indexOf('/admin/bookings')
+    expect(bookings).toBeGreaterThanOrEqual(0)
+    expect(hrefs[bookings + 1]).toBe('/admin/quotes')
+    expect(screen.getByText('Quotes').closest('a')?.getAttribute('href')).toBe('/admin/quotes')
+  })
+
   it('renders Identities nav item linking to /admin/identities directly after Outbox', () => {
     render(<AdminSidebar />)
     const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'))
@@ -126,6 +135,7 @@ const NAV = [
   ['Pricing', '/admin/pricing'],
   ['Zones', '/admin/zones'],
   ['Bookings', '/admin/bookings'],
+  ['Quotes', '/admin/quotes'],
   ['Accounts', '/admin/accounts'],
   ['Drivers', '/admin/drivers'],
   ['Promos', '/admin/promo-codes'],
@@ -157,7 +167,7 @@ describe('AdminSidebar nav, icons and active state (D-09)', () => {
     window.history.pushState({}, '', '/')
   })
 
-  it('renders all 11 items in order with hrefs, an svg icon and the label', () => {
+  it('renders all 12 items in order with hrefs, an svg icon and the label', () => {
     render(<AdminSidebar />)
     const links = screen.getAllByRole('link')
     expect(links.map((l) => l.getAttribute('href'))).toEqual(NAV.map(([, href]) => href))
