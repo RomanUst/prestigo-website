@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
-import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
+import { createFakeStripe, FakeStripeError, type FakeStripe } from './helpers/fake-stripe'
 import { seedPublicQuote, type PublicQuoteFixture } from './helpers/quote-public-fixture'
 import { stripeKeys } from '@/lib/payments/stripe'
 
@@ -322,6 +322,21 @@ describe('a succeeded remainder through the webhook dispatch (tracer)', () => {
     expect(quoteEvents('remainder_paid')).toHaveLength(1)
   })
 
+  it('the webhook and the tick at the same moment: one paid, one replayed, one set of rows, receipts share one idempotency key', async () => {
+    const { fx, piId } = await paidFixture()
+    const pi = succeeded(piId)
+    const [a, b] = await Promise.all([
+      applyQuoteRemainderPaid(pi, { type: 'webhook', id: 'evt_x' }),
+      applyQuoteRemainderPaid(pi, { type: 'system', id: 'tick_reconcile' }),
+    ])
+    expect([a.outcome, b.outcome].sort()).toEqual(['paid', 'replayed'])
+    expect(ledger()).toHaveLength(2)
+    expect(quoteEvents('remainder_paid')).toHaveLength(1)
+    expect(db.state.bookings.filter((x) => x.quote_id === fx.quoteId).every((x) => x.paid_at != null)).toBe(true)
+    const keys = new Set(mockResendSend.mock.calls.map((c) => (c[1] as { idempotencyKey: string }).idempotencyKey))
+    expect(keys.size).toBe(1)
+  })
+
   it('applyQuoteRemainderPaid ignores an intent that is not succeeded, is not a remainder or has unusable metadata', async () => {
     const { fx, piId } = await paidFixture()
     const actor = { type: 'system', id: 'tick_reconcile' } as const
@@ -341,5 +356,280 @@ describe('a succeeded remainder through the webhook dispatch (tracer)', () => {
     expect(db.state.bookings.every((b) => b.paid_at == null)).toBe(true)
     expect(quoteRow().remainder_paid_at).toBeNull()
     expect(fx.quoteId).toBeTruthy()
+  })
+})
+
+// == Task 2: amount changes, ownership, mismatch and the receipt ======================================================
+
+describe('amount changes (T-92-73, T-92-74)', () => {
+  it('a trip cancelled meanwhile: the live 21000 intent is cancelled with qrem_void:<pi> and attempt 2 creates a 12600 intent', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const first = quoteRow().remainder_payment_intent_id as string
+
+    await db.client.from('bookings').update({ status: 'cancelled' }).eq('booking_reference', 'PR-9101')
+    const res = await create(fx, { displayedAmountMinor: 12600 })
+
+    expect(res.ok).toBe(true)
+    if (res.ok) expect(res.amountMinor).toBe(12600)
+    const cancels = fake.callsTo('paymentIntents.cancel')
+    expect(cancels).toHaveLength(1)
+    expect(cancels[0].idempotencyKey).toBe(`qrem_void:${first}`)
+    expect(cancels[0].idempotencyKey).toBe(stripeKeys.quoteRemainderVoid(first))
+    expect(fake.state.paymentIntents.get(first)!.status).toBe('canceled')
+
+    const creates = fake.callsTo('paymentIntents.create')
+    expect(creates).toHaveLength(2)
+    expect((creates[1].params as { amount: number }).amount).toBe(12600)
+    expect(creates[1].idempotencyKey).toBe(`qrem:${fx.quoteId}:2`)
+    expect((creates[1].params as { metadata: Record<string, string> }).metadata.attempt).toBe('2')
+
+    expect(quoteRow().remainder_payment_intent_id).not.toBe(first)
+    expect(Number(quoteRow().remainder_amount_minor)).toBe(12600)
+    expect(quoteRow().remainder_attempt).toBe(2)
+    expect(quoteEvents('remainder_started')).toHaveLength(2)
+  })
+
+  it('the stale displayed amount is a 409 amount_changed and leaves the old intent exactly as it is', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const first = quoteRow().remainder_payment_intent_id as string
+    await db.client.from('bookings').update({ status: 'cancelled' }).eq('booking_reference', 'PR-9101')
+
+    expect(await create(fx, { displayedAmountMinor: DUE })).toEqual({ ok: false, code: 'amount_changed' })
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect(fake.state.paymentIntents.get(first)!.status).toBe('requires_payment_method')
+    expect(quoteRow().remainder_payment_intent_id).toBe(first)
+  })
+
+  it('a stale intent that can not be cancelled answers busy and creates nothing', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    await db.client.from('bookings').update({ status: 'cancelled' }).eq('booking_reference', 'PR-9101')
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+    fake.failNextWithError(
+      'paymentIntents.cancel',
+      new FakeStripeError('StripeInvalidRequestError', 'cannot cancel', { code: 'payment_intent_unexpected_state', statusCode: 400 }),
+    )
+
+    expect(await create(fx, { displayedAmountMinor: 12600 })).toEqual({ ok: false, code: 'busy' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+  })
+
+  it('two requests at once leave one live intent: the loser of the attempt compare-and-set is told to retry and creates nothing', async () => {
+    const fx = await seedPaid()
+    const [a, b] = await Promise.all([create(fx), create(fx)])
+    const results = [a, b]
+    expect(results.filter((r) => r.ok)).toHaveLength(1)
+    expect(results.find((r) => !r.ok)).toEqual({ ok: false, code: 'busy' })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+    expect(quoteRow().remainder_attempt).toBe(1)
+    // The retry reuses the winner's intent.
+    const again = await create(fx)
+    const winner = results.find((r) => r.ok)
+    expect(again.ok && winner?.ok && again.clientSecret === winner.clientSecret).toBe(true)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+  })
+})
+
+describe('ownership: a succeeded intent the quote does not own is refunded and alerted once (T-92-74)', () => {
+  const actor = { type: 'webhook', id: 'evt_o' } as const
+  const alertsSent = () => mockResendSend.mock.calls.filter((c) => String((c[0] as { subject?: string }).subject).startsWith('[Quote]'))
+
+  /** A remainder intent of the quote that the quote never stored (for example one replaced earlier). */
+  async function strayIntent(fx: PublicQuoteFixture, amount = DUE): Promise<string> {
+    const pi = await fake.stripe.paymentIntents.create({
+      amount,
+      currency: 'eur',
+      metadata: { kind: 'card_quote_remainder', quoteId: fx.quoteId, versionId: fx.versionId, quoteReference: 'Q-20261114-ABC123', attempt: '1' },
+    })
+    return pi.id
+  }
+
+  it('an intent that is not quotes.remainder_payment_intent_id is refunded in full, recorded and alerted; nothing is marked paid', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const stray = await strayIntent(fx)
+
+    const res = await applyQuoteRemainderPaid(succeeded(stray), actor)
+    expect(res.outcome).toBe('orphan_refunded')
+
+    const refunds = fake.callsTo('refunds.create')
+    expect(refunds).toHaveLength(1)
+    expect(refunds[0].idempotencyKey).toBe(`refund:quote:${fx.quoteId}:orphan:${stray}`)
+    expect(refunds[0].idempotencyKey).toBe(stripeKeys.quoteRefund(fx.quoteId, `orphan:${stray}`))
+    expect(refunds[0].params).toMatchObject({ payment_intent: stray })
+    expect(quoteEvents('orphan_refunded')).toHaveLength(1)
+    expect(alertsSent()).toHaveLength(1)
+    expect(String((alertsSent()[0][0] as { subject: string }).subject)).toContain('refunded automatically')
+
+    expect(db.state.bookings.every((b) => b.paid_at == null)).toBe(true)
+    expect(quoteRow().remainder_paid_at).toBeNull()
+    expect(ledger()).toHaveLength(0)
+    expect(quoteEvents('remainder_paid')).toHaveLength(0)
+
+    // Delivered again: no second refund, no second alert.
+    const again = await applyQuoteRemainderPaid(succeeded(stray), actor)
+    expect(again.outcome).toBe('orphan_refunded')
+    expect(fake.callsTo('refunds.create')).toHaveLength(1)
+    expect(alertsSent()).toHaveLength(1)
+  })
+
+  it('a second payment after the remainder is already recorded (another intent) is refunded; the recorded one is untouched', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const first = quoteRow().remainder_payment_intent_id as string
+    await applyQuoteRemainderPaid(succeeded(first), actor)
+    expect(quoteRow().remainder_paid_at).not.toBeNull()
+    const paidAt = quoteRow().remainder_paid_at
+
+    const stray = await strayIntent(fx)
+    expect((await applyQuoteRemainderPaid(succeeded(stray), actor)).outcome).toBe('orphan_refunded')
+    expect(fake.callsTo('refunds.create').map((c) => (c.params as { payment_intent: string }).payment_intent)).toEqual([stray])
+    expect(quoteRow().remainder_paid_at).toBe(paidAt)
+    expect(quoteRow().remainder_payment_intent_id).toBe(first)
+  })
+
+  it('the stored intent of a quote that was cancelled before the payment landed is refunded, not recorded', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const stored = quoteRow().remainder_payment_intent_id as string
+    await db.client.from('quotes').update({ cancelled_at: '2027-05-11T10:00:00.000Z' }).eq('id', fx.quoteId)
+
+    expect((await applyQuoteRemainderPaid(succeeded(stored), actor)).outcome).toBe('orphan_refunded')
+    expect(fake.callsTo('refunds.create')).toHaveLength(1)
+    expect(quoteRow().remainder_paid_at).toBeNull()
+    expect(db.state.bookings.every((b) => b.paid_at == null)).toBe(true)
+  })
+
+  it('a refund that fails is recorded and alerted once and thrown, so Stripe redelivers; the redelivery completes it', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const stray = await strayIntent(fx)
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    fake.failNextWithError('refunds.create', new FakeStripeError('StripeAPIError', 'boom', { code: 'rate_limit', statusCode: 500 }))
+
+    await expect(applyQuoteRemainderPaid(succeeded(stray), actor)).rejects.toBeDefined()
+    expect(quoteEvents('refund_failed')).toHaveLength(1)
+    expect(quoteEvents('orphan_refunded')).toHaveLength(0)
+
+    expect((await applyQuoteRemainderPaid(succeeded(stray), actor)).outcome).toBe('orphan_refunded')
+    expect(quoteEvents('orphan_refunded')).toHaveLength(1)
+    expect(quoteEvents('refund_failed')).toHaveLength(1)
+  })
+})
+
+describe('mismatch: a paid amount that differs from the current due stamps nothing and alerts once (T-92-75)', () => {
+  const actor = { type: 'system', id: 'tick_reconcile' } as const
+  const alertsSent = () => mockResendSend.mock.calls.filter((c) => String((c[0] as { subject?: string }).subject).startsWith('[Quote]'))
+
+  it('a trip cancelled after the intent was paid: recorded, nothing marked paid, one quote_remainder_mismatch alert; a repeat adds nothing', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const piId = quoteRow().remainder_payment_intent_id as string
+    await db.client.from('bookings').update({ status: 'cancelled' }).eq('booking_reference', 'PR-9101')
+
+    const res = await applyQuoteRemainderPaid(succeeded(piId), actor)
+    expect(res.outcome).toBe('mismatch')
+    expect(quoteRow().remainder_paid_at).toBeNull()
+    expect(db.state.bookings.every((b) => b.paid_at == null)).toBe(true)
+    expect(ledger()).toHaveLength(0)
+    expect(quoteEvents('remainder_paid')).toHaveLength(0)
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+
+    const rows = quoteEvents('remainder_failed')
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ stripe_object_id: piId, amount_minor: DUE, error_code: 'amount_mismatch' })
+    expect(alertsSent()).toHaveLength(1)
+    expect(String((alertsSent()[0][0] as { subject: string }).subject)).toContain('Quote remainder does not match')
+    expect(String((alertsSent()[0][0] as { text: string }).text)).toContain('quote_remainder_mismatch')
+
+    expect((await applyQuoteRemainderPaid(succeeded(piId), actor)).outcome).toBe('mismatch')
+    expect(quoteEvents('remainder_failed')).toHaveLength(1)
+    expect(alertsSent()).toHaveLength(1)
+
+    // The client can not pay again while that payment is unresolved.
+    expect(await create(fx, { displayedAmountMinor: 12600 })).toEqual({ ok: false, code: 'already_paying' })
+  })
+
+  it('a different currency is a mismatch as well', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const piId = quoteRow().remainder_payment_intent_id as string
+    expect((await applyQuoteRemainderPaid(succeeded(piId, { currency: 'czk' }), actor)).outcome).toBe('mismatch')
+    expect(quoteRow().remainder_paid_at).toBeNull()
+    expect(fx.quoteId).toBeTruthy()
+  })
+})
+
+describe('the receipt email', () => {
+  const actor = { type: 'webhook', id: 'evt_r' } as const
+  const receipts = () => mockResendSend.mock.calls.filter((c) => !String((c[0] as { subject?: string }).subject).startsWith('[Quote]'))
+
+  it('one QuoteEmails.remainderPaid receipt in the quote language after a paid outcome, never twice (email:remainder_paid:<pi>)', async () => {
+    const fx = await seedPaid({ locale: 'ru' })
+    await create(fx)
+    const piId = quoteRow().remainder_payment_intent_id as string
+
+    expect((await applyQuoteRemainderPaid(succeeded(piId), actor)).outcome).toBe('paid')
+    expect(receipts()).toHaveLength(1)
+    const [message, options] = receipts()[0] as [{ to: string[]; subject: string; html: string }, { idempotencyKey: string }]
+    expect(message.to).toEqual(['ada.secret@example.com'])
+    expect(message.subject).toBe('Платёж получен – Q-20261114-ABC123')
+    expect(message.html).toContain('lang="ru"')
+    expect(options.idempotencyKey).toContain(piId)
+    expect(db.state.quote_events.some((e) => e.event_key === `email:remainder_paid:${piId}` && e.kind === 'email_sent')).toBe(true)
+
+    expect((await applyQuoteRemainderPaid(succeeded(piId), actor)).outcome).toBe('replayed')
+    expect(receipts()).toHaveLength(1)
+  })
+
+  it('the English receipt names the amount', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const piId = quoteRow().remainder_payment_intent_id as string
+    await applyQuoteRemainderPaid(succeeded(piId), actor)
+    const message = receipts()[0][0] as { subject: string; html: string }
+    expect(message.subject).toBe('Payment received – Q-20261114-ABC123')
+    expect(message.html).toContain('210')
+  })
+
+  it('a failed send is recorded as email_failed and does not fail the payment; a later delivery of the event sends it once', async () => {
+    const fx = await seedPaid()
+    await create(fx)
+    const piId = quoteRow().remainder_payment_intent_id as string
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    mockResendSend.mockRejectedValueOnce(new Error('resend down'))
+
+    expect((await applyQuoteRemainderPaid(succeeded(piId), actor)).outcome).toBe('paid')
+    expect(quoteRow().remainder_paid_at).not.toBeNull()
+    expect(quoteEvents('email_failed')).toHaveLength(1)
+    expect(quoteEvents('email_sent')).toHaveLength(0)
+
+    expect((await applyQuoteRemainderPaid(succeeded(piId), actor)).outcome).toBe('replayed')
+    expect(quoteEvents('email_sent')).toHaveLength(1)
+    expect((await applyQuoteRemainderPaid(succeeded(piId), actor)).outcome).toBe('replayed')
+    expect(quoteEvents('email_sent')).toHaveLength(1)
+    expect(quoteEvents('email_failed')).toHaveLength(1)
+  })
+
+  it('every locale renders the receipt with its own subject and the amount', async () => {
+    const { renderQuoteRemainderPaidEmail } = await import('@/lib/quotes/emails/remainder-paid')
+    // Simplified and Traditional Chinese share the subject; their bodies differ.
+    const bodies = new Set<string>()
+    for (const locale of ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh', 'zh-hant']) {
+      const out = await renderQuoteRemainderPaidEmail({
+        quote: { reference: 'Q-20261114-ABC123', client_first_name: 'Ada' },
+        version: { locale, currency: 'eur' },
+        amountMinor: 12600,
+      })
+      expect(out.subject, locale).toContain('Q-20261114-ABC123')
+      expect(out.html, locale).toContain('126')
+      bodies.add(out.html)
+    }
+    expect(bodies.size).toBe(8)
+    await expect(
+      renderQuoteRemainderPaidEmail({ quote: { reference: 'Q', client_first_name: 'A' }, version: { locale: 'en', currency: 'eur' }, amountMinor: 0 }),
+    ).rejects.toThrow()
   })
 })

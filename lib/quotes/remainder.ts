@@ -15,7 +15,10 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { ensureQuoteStripeCustomer } from '@/lib/payments/customer'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { classifyStripeError, getPaymentsStripe, quoteMetadata, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
-import { appendQuoteEvent } from '@/lib/quotes/events'
+import { sendQuoteOperatorAlert } from '@/lib/quotes/alerts'
+import { renderQuoteRemainderPaidEmail } from '@/lib/quotes/emails/remainder-paid'
+import { sendQuoteEmail } from '@/lib/quotes/emails/shell'
+import { appendQuoteEvent, hasQuoteEvent } from '@/lib/quotes/events'
 import { readRemainderDue } from '@/lib/quotes/invoice'
 import { QUOTE_MIN_CHARGE_MINOR } from '@/lib/quotes/money'
 import { resolveQuoteToken } from '@/lib/quotes/resolve'
@@ -129,7 +132,7 @@ export async function createRemainderIntent(input: {
         currency: version.currency,
         customer: customerId,
         payment_method_types: ['card'],
-        metadata: quoteMetadata(REMAINDER_KIND, {
+        metadata: quoteMetadata('card_quote_remainder', {
           quoteId: quote.id,
           versionId: version.id,
           quoteReference: quote.reference,
@@ -179,7 +182,11 @@ export async function createRemainderIntent(input: {
   }
 }
 
-/** What the stored remainder intent allows. A live intent of another amount is not handed to the client. */
+/**
+ * What the stored remainder intent allows. A live intent that does not match the current amount (a trip was cancelled since,
+ * T-92-73) is cancelled with the void key and replaced, never handed to the client. A cancel that fails is 'busy': the intent
+ * may have moved on meanwhile (the client may be paying it right now), so nothing is guessed and the client retries.
+ */
 async function inspectStoredIntent(
   intentId: string,
   expected: { versionId: string; amountMinor: number; currency: string },
@@ -207,7 +214,17 @@ async function inspectStoredIntent(
   const matches =
     pi.amount === expected.amountMinor && pi.currency === expected.currency && pi.metadata?.versionId === expected.versionId
   if (matches && pi.client_secret) return { kind: 'live', id: pi.id, clientSecret: pi.client_secret }
-  return { kind: 'busy' }
+
+  try {
+    await stripe.paymentIntents.cancel(pi.id, undefined, { idempotencyKey: stripeKeys.quoteRemainderVoid(pi.id) })
+  } catch (err) {
+    console.warn('[quote-remainder] stale remainder intent not canceled', {
+      class: classifyStripeError(err),
+      code: stripeErrorCode(err),
+    })
+    return { kind: 'busy' }
+  }
+  return { kind: 'replace' }
 }
 
 /** Best effort: an intent that lost the compare-and-set was never handed to anyone, so a failed cancel is only logged. */
@@ -312,32 +329,32 @@ export async function applyQuoteRemainderPaid(pi: Stripe.PaymentIntent, actor: L
   }
 
   const version = await readPaidVersion(quote)
-  if (!version) return { outcome: 'ignored' }
 
   // RECORDED: a remainder this quote already recorded is never decided again; the bookkeeping is only completed.
   if (quote.remainder_payment_intent_id === pi.id && quote.remainder_paid_at) {
+    if (!version) return { outcome: 'ignored' }
     await settle(quote, version, pi, actor, quote.remainder_paid_at)
     return { outcome: 'replayed' }
   }
 
+  // OWNED: the intent the quote stored, for the paid version, while the quote is live and the remainder is not yet recorded.
+  // Anything else (another or replaced intent, a second payment after the remainder was recorded, a quote cancelled or
+  // voided before the money landed) is not this quote's money: it goes back (T-92-74).
   const owned =
+    version !== null &&
     quote.remainder_payment_intent_id === pi.id &&
     !quote.remainder_paid_at &&
     metaVersionId === version.id &&
     quote.status === 'paid' &&
     !quote.cancelled_at &&
     !quote.voided_at
-  if (!owned) {
-    console.error('[quote-remainder] remainder not owned by its quote', { stripeObjectId: pi.id, quoteId })
-    return { outcome: 'ignored' }
-  }
+  if (!owned) return refundOrphan(quote, pi, actor, notOwnedReason(quote, pi.id, metaVersionId, version))
 
   const { amountMinor, currency } = moneyOf(pi)
   const trips = await readTrips(quote.id, version.id)
   const dueMinor = trips.filter((t) => !t.paidAt).reduce((sum, t) => sum + t.remainderMinor, 0)
   if (amountMinor !== dueMinor || currency !== version.currency) {
-    console.error('[quote-remainder] paid amount does not match what is due', { stripeObjectId: pi.id, quoteId })
-    return { outcome: 'ignored' }
+    return recordMismatch(quote, version, pi, actor)
   }
 
   // The exactly-once gate: only the call that changes remainder_paid_at from null carries on.
@@ -358,11 +375,150 @@ export async function applyQuoteRemainderPaid(pi: Stripe.PaymentIntent, actor: L
       await settle(latest, version, pi, actor, latest.remainder_paid_at)
       return { outcome: 'replayed' }
     }
-    return { outcome: 'ignored' }
+    // The quote changed under the payment (cancelled or voided since the read): not this quote's money any more.
+    return refundOrphan(latest ?? quote, pi, actor, 'cancelled')
   }
 
   await settle(quote, version, pi, actor, paidAt)
   return { outcome: 'paid' }
+}
+
+/** Why the payment is not the quote's, as a short code for the event row and the alert. */
+function notOwnedReason(quote: QuoteRow, paymentIntentId: string, versionId: string, version: QuoteVersionRow | null): string {
+  if (quote.voided_at || quote.status === 'voided') return 'voided'
+  if (quote.cancelled_at) return 'cancelled'
+  if (quote.remainder_payment_intent_id !== paymentIntentId) return quote.remainder_paid_at ? 'already_paid' : 'intent_mismatch'
+  if (!version || versionId !== version.id) return 'version_mismatch'
+  return 'not_owned'
+}
+
+/**
+ * The payment is not the live quote's (T-92-74): refund it in full, record it, tell the operator. Each step is exactly-once on
+ * its own key, so a redelivery after a crash between two of them completes the rest and repeats nothing: the refund key is
+ * fixed (Stripe replays the first answer), the orphan_refunded row and the alert are claimed by their keys, and a redelivery
+ * that finds the row refunds nothing more. A refund that fails is recorded and alerted once and thrown, so Stripe delivers
+ * the event again.
+ */
+async function refundOrphan(quote: QuoteRow, pi: Stripe.PaymentIntent, actor: LedgerActor, reason: string): Promise<QuoteRemainderOutcome> {
+  const { amountMinor, currency } = moneyOf(pi)
+  const quoteRef = { id: quote.id, reference: quote.reference }
+
+  if (!(await hasQuoteEvent(quote.id, `orphan_refunded:${pi.id}`))) {
+    try {
+      await getPaymentsStripe().refunds.create(
+        { payment_intent: pi.id },
+        { idempotencyKey: stripeKeys.quoteRefund(quote.id, `orphan:${pi.id}`) },
+      )
+    } catch (err) {
+      const code = stripeErrorCode(err)
+      // Already refunded in full (the first refund went through and its row was not written): treat as refunded.
+      if (code !== 'charge_already_refunded') {
+        console.error('[quote-remainder] orphan remainder not refunded', { quoteId: quote.id, stripeObjectId: pi.id, code })
+        try {
+          await appendQuoteEvent(quote.id, {
+            key: `refund_failed:orphan:${pi.id}`,
+            kind: 'refund_failed',
+            stripeObjectId: pi.id,
+            amountMinor,
+            currency,
+            errorCode: code,
+            actor,
+          })
+          await sendQuoteOperatorAlert('quote_refund_failed', quoteRef, {
+            eventKey: `alert:quote_refund_failed:orphan:${pi.id}`,
+            code,
+            amountMinor,
+            currency,
+          })
+        } catch {
+          console.error('[quote-remainder] refund failure not recorded', { quoteId: quote.id, stripeObjectId: pi.id })
+        }
+        throw err
+      }
+    }
+    await appendQuoteEvent(quote.id, {
+      key: `orphan_refunded:${pi.id}`,
+      kind: 'orphan_refunded',
+      stripeObjectId: pi.id,
+      amountMinor,
+      currency,
+      errorCode: `remainder_${reason}`,
+      actor,
+    })
+  }
+
+  await sendQuoteOperatorAlert('quote_orphan_refunded', quoteRef, {
+    eventKey: `alert:quote_orphan_refunded:${pi.id}`,
+    code: `remainder_${reason}`,
+    amountMinor,
+    currency,
+  })
+  return { outcome: 'orphan_refunded' }
+}
+
+/**
+ * The quote's own intent was paid but the amount no longer matches what is due (a trip was cancelled meanwhile, T-92-75):
+ * nothing is stamped and nothing is refunded (a person decides), one remainder_failed row and one operator alert per payment.
+ * The intent stays on the quote as succeeded, so the page answers already_paying and the client can not pay a second time.
+ */
+async function recordMismatch(
+  quote: QuoteRow,
+  version: QuoteVersionRow,
+  pi: Stripe.PaymentIntent,
+  actor: LedgerActor,
+): Promise<QuoteRemainderOutcome> {
+  const { amountMinor, currency } = moneyOf(pi)
+  console.error('[quote-remainder] paid amount does not match what is due', { quoteId: quote.id, stripeObjectId: pi.id })
+  await appendQuoteEvent(quote.id, {
+    key: `remainder_mismatch:${pi.id}`,
+    kind: 'remainder_failed',
+    versionId: version.id,
+    stripeObjectId: pi.id,
+    amountMinor,
+    currency,
+    errorCode: 'amount_mismatch',
+    actor,
+  })
+  await sendQuoteOperatorAlert(
+    'quote_remainder_mismatch',
+    { id: quote.id, reference: quote.reference },
+    { eventKey: `alert:quote_remainder_mismatch:${pi.id}`, code: 'amount_mismatch', amountMinor, currency },
+  )
+  return { outcome: 'mismatch' }
+}
+
+/**
+ * The receipt, once per payment: the sent row (key email:remainder_paid:<pi>) means delivered; a failed send leaves a failed
+ * row under another key and no sent row, so a later delivery of the event sends it again (Resend drops a double through the
+ * idempotency key). It never throws: a receipt must not fail a payment that is already recorded.
+ */
+async function sendReceipt(quote: QuoteRow, version: QuoteVersionRow, pi: Stripe.PaymentIntent, actor: LedgerActor): Promise<void> {
+  const sentKey = `email:remainder_paid:${pi.id}`
+  const { amountMinor } = moneyOf(pi)
+  try {
+    if (await hasQuoteEvent(quote.id, sentKey)) return
+    let outcome: 'sent' | 'failed' = 'failed'
+    let errorCode = 'send_failed'
+    try {
+      const rendered = await renderQuoteRemainderPaidEmail({ quote, version, amountMinor })
+      outcome = await sendQuoteEmail({
+        to: quote.client_email,
+        subject: rendered.subject,
+        html: rendered.html,
+        idempotencyKey: `quote-remainder-paid:${quote.id}:${pi.id}`,
+      })
+    } catch {
+      errorCode = 'render_failed'
+    }
+    await appendQuoteEvent(
+      quote.id,
+      outcome === 'sent'
+        ? { key: sentKey, kind: 'email_sent', versionId: version.id, actor }
+        : { key: `email_failed:remainder_paid:${pi.id}`, kind: 'email_failed', versionId: version.id, errorCode, actor },
+    )
+  } catch {
+    console.error('[quote-remainder] receipt not recorded', { quoteId: quote.id, stripeObjectId: pi.id })
+  }
 }
 
 /**
@@ -407,4 +563,6 @@ async function settle(
     currency,
     actor,
   })
+
+  await sendReceipt(quote, version, pi, actor)
 }
