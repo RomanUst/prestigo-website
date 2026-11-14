@@ -161,9 +161,10 @@ describe('089 ledger kinds', () => {
     return [...(m as RegExpExecArray)[1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1])
   }
 
-  it('the latest CHECK is the full 087 list followed by extra_charged and extra_failed, in that order', () => {
-    expect(kinds).toEqual([...kinds087(), 'extra_charged', 'extra_failed'])
-    expect(kinds.slice(-2)).toEqual(['extra_charged', 'extra_failed'])
+  it('the latest CHECK starts with the full 087 list followed by extra_charged and extra_failed, in that order', () => {
+    // Later migrations (091: quote_deposit, quote_remainder) append after these; tests/migration-091.test.ts pins those.
+    const head = [...kinds087(), 'extra_charged', 'extra_failed']
+    expect(kinds.slice(0, head.length)).toEqual(head)
   })
 
   it('LEDGER_KINDS and the fake DB vocabulary list the same kinds in the same order', () => {

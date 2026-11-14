@@ -10,6 +10,8 @@
  * Time is virtual: `state.nowMs` drives every `now()`; tests move it to cross a lease or a hold_at.
  */
 
+import { locales } from '@/i18n/locales'
+
 type Row = Record<string, unknown>
 type DbError = { message: string; code?: string }
 type DbResult = { data: unknown; error: DbError | null; count?: number }
@@ -61,6 +63,9 @@ export const FAKE_PAYMENT_VOCABULARY = {
     // Migration 089 (Phase 91): the operator's extra charge to the saved card.
     'extra_charged',
     'extra_failed',
+    // Migration 091 (Phase 92): the deposit and the remainder of a quote.
+    'quote_deposit',
+    'quote_remainder',
   ],
 } as const
 
@@ -104,6 +109,15 @@ const TABLES = [
   // Migration 089 (Phase 91): stops of a booking and the operator's extra charges, deny-all like the 087 tables.
   'booking_stops',
   'booking_extra_charges',
+  // Migration 091 (Phase 92): the quote tables, deny-all like the tables above.
+  'quotes',
+  'quote_versions',
+  'quote_version_lines',
+  'quote_version_line_stops',
+  'quote_links',
+  'quote_acceptances',
+  'quote_events',
+  'quote_documents',
 ] as const
 type TableName = (typeof TABLES)[number]
 
@@ -119,6 +133,14 @@ export interface FakePaymentsState {
   booking_payment_notes: Row[]
   booking_stops: Row[]
   booking_extra_charges: Row[]
+  quotes: Row[]
+  quote_versions: Row[]
+  quote_version_lines: Row[]
+  quote_version_line_stops: Row[]
+  quote_links: Row[]
+  quote_acceptances: Row[]
+  quote_events: Row[]
+  quote_documents: Row[]
 }
 
 export interface FakePaymentsSeed {
@@ -184,6 +206,10 @@ function bookingDefaults(): Row {
     cancel_policy_version: null,
     cancel_policy: null,
     fee_case_status: null,
+    // Migration 091 (Phase 92): the link to the quote a booking was made from.
+    quote_id: null,
+    quote_line_id: null,
+    quote_deposit_minor: null,
   }
 }
 
@@ -303,6 +329,296 @@ function checkStopsOrExtrasRow(table: 'booking_stops' | 'booking_extra_charges',
   return null
 }
 
+// == Migration 091 (Phase 92): the quote tables ==================================================================
+// The fake enforces the CHECKs, the unique rules, the foreign keys and the guard triggers of 091 that code under test
+// can run into. The guard bypass of the erasure function (prestigo.quote_erasure) is not modelled: the erasure SQL is
+// proven by its text test, not by this double.
+
+const QUOTE_TABLES = [
+  'quotes',
+  'quote_versions',
+  'quote_version_lines',
+  'quote_version_line_stops',
+  'quote_links',
+  'quote_acceptances',
+  'quote_events',
+  'quote_documents',
+] as const
+type QuoteTable = (typeof QUOTE_TABLES)[number]
+const isQuoteTable = (t: string): t is QuoteTable => (QUOTE_TABLES as readonly string[]).includes(t)
+
+const HEX64 = /^[0-9a-f]{64}$/
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+const CLOCK = /^\d{2}:\d{2}$/
+const inList = (v: unknown, list: readonly string[]) => typeof v === 'string' && list.includes(v)
+const lenBetween = (v: unknown, min: number, max: number) => typeof v === 'string' && v.length >= min && v.length <= max
+const nullOr = (v: unknown, ok: (x: unknown) => boolean) => v == null || ok(v)
+const intBetween = (v: unknown, min: number, max: number) => isInt(v) && v >= min && v <= max
+
+/** The five lead channels of a quote (same list as the bookings CHECK). */
+const QUOTE_LEAD_CHANNELS = ['whatsapp', 'phone', 'email', 'partner', 'other'] as const
+
+/** Column defaults of the quote tables (migration 091). */
+function quoteDefaults(table: QuoteTable, now: string): Row {
+  switch (table) {
+    case 'quotes':
+      return {
+        status: 'draft',
+        current_version_id: null,
+        client_phone: null,
+        user_id: null,
+        source_inquiry_id: null,
+        expires_at: null,
+        stripe_customer_id: null,
+        stripe_payment_method_id: null,
+        deposit_payment_intent_id: null,
+        accepted_version_id: null,
+        accepted_at: null,
+        paid_at: null,
+        remainder_payment_intent_id: null,
+        remainder_amount_minor: null,
+        remainder_attempt: 0,
+        remainder_paid_at: null,
+        invoice_requested_at: null,
+        invoice_number: null,
+        invoice_paid_at: null,
+        voided_at: null,
+        voided_by: null,
+        cancelled_at: null,
+        cancel_initiator: null,
+        cancel_outcome: null,
+        deposit_refunded_minor: 0,
+        remainder_refunded_minor: 0,
+        anonymised_at: null,
+        created_by: null,
+        created_at: now,
+        updated_at: now,
+      }
+    case 'quote_versions':
+      return {
+        frozen_at: null,
+        total_minor: 0,
+        deposit_kind: null,
+        deposit_value: null,
+        deposit_minor: null,
+        remainder_method: null,
+        cancel_free_hours: null,
+        cancel_fee_percent: null,
+        cancel_policy: null,
+        cancel_policy_version: null,
+        terms_version: null,
+        billing_name: null,
+        billing_address: null,
+        billing_company_id: null,
+        billing_vat_id: null,
+        billing_note: null,
+        created_by: null,
+        created_at: now,
+      }
+    case 'quote_version_lines':
+      return {
+        landing_date: null,
+        landing_time: null,
+        pickup_offset_min: null,
+        origin_lat: null,
+        origin_lng: null,
+        destination_address: null,
+        destination_lat: null,
+        destination_lng: null,
+        luggage: 0,
+        hours: null,
+        return_date: null,
+        distance_km: null,
+        flight_number: null,
+        terminal: null,
+        special_requests: null,
+        extra_child_seat: false,
+        extra_meet_greet: false,
+        extra_luggage: false,
+        suggested_amount_minor: null,
+        price_overridden: false,
+        deposit_share_minor: null,
+        remainder_minor: null,
+        amount_eur: null,
+        amount_czk: null,
+      }
+    case 'quote_version_line_stops':
+      return stopDefaults(now)
+    case 'quote_links':
+      return { created_at: now, created_by: null, revoked_at: null }
+    case 'quote_acceptances':
+      return {
+        link_id: null,
+        accepted_at: now,
+        ip: null,
+        user_agent: null,
+        hold_lead_hours: null,
+        payment_intent_id: null,
+        confirmed_at: null,
+      }
+    case 'quote_events':
+      return {
+        version_id: null,
+        stripe_object_id: null,
+        amount_minor: null,
+        currency: null,
+        actor_id: null,
+        error_code: null,
+        created_at: now,
+      }
+    case 'quote_documents':
+      return { created_at: now }
+  }
+}
+
+/** The 091 CHECKs (Postgres auto-names: table_column_check). Returns the violated constraint name, or null. */
+function checkQuoteRow(table: QuoteTable, row: Row): string | null {
+  switch (table) {
+    case 'quotes': {
+      if (typeof row.reference !== 'string' || !/^Q-[0-9]{8}-[A-Z0-9]{6}$/.test(row.reference)) return 'quotes_reference_check'
+      if (!inList(row.status, ['draft', 'sent', 'viewed', 'accepted', 'paid', 'expired', 'voided'])) return 'quotes_status_check'
+      if (!lenBetween(row.client_first_name, 1, 100)) return 'quotes_client_first_name_check'
+      if (!lenBetween(row.client_last_name, 1, 100)) return 'quotes_client_last_name_check'
+      if (!lenBetween(row.client_email, 3, 200)) return 'quotes_client_email_check'
+      if (!nullOr(row.client_phone, (v) => lenBetween(v, 0, 50))) return 'quotes_client_phone_check'
+      if (!inList(row.lead_channel, QUOTE_LEAD_CHANNELS)) return 'quotes_lead_channel_check'
+      if (!nullOr(row.remainder_amount_minor, (v) => isInt(v) && v > 0)) return 'quotes_remainder_amount_minor_check'
+      if (!(isInt(row.remainder_attempt) && row.remainder_attempt >= 0)) return 'quotes_remainder_attempt_check'
+      if (!nullOr(row.invoice_number, (v) => lenBetween(v, 0, 60))) return 'quotes_invoice_number_check'
+      if (!nullOr(row.cancel_initiator, (v) => inList(v, ['admin_client', 'admin_prestigo']))) return 'quotes_cancel_initiator_check'
+      if (!nullOr(row.cancel_outcome, (v) => inList(v, ['free', 'late']))) return 'quotes_cancel_outcome_check'
+      if (!(isInt(row.deposit_refunded_minor) && row.deposit_refunded_minor >= 0)) return 'quotes_deposit_refunded_minor_check'
+      if (!(isInt(row.remainder_refunded_minor) && row.remainder_refunded_minor >= 0)) return 'quotes_remainder_refunded_minor_check'
+      return null
+    }
+    case 'quote_versions': {
+      if (!(isInt(row.version_no) && row.version_no >= 1)) return 'quote_versions_version_no_check'
+      if (!inList(row.locale, locales)) return 'quote_versions_locale_check'
+      if (!inList(row.currency, ['eur', 'czk'])) return 'quote_versions_currency_check'
+      if (!(isInt(row.total_minor) && row.total_minor >= 0)) return 'quote_versions_total_minor_check'
+      if (!nullOr(row.deposit_kind, (v) => inList(v, ['percent', 'fixed']))) return 'quote_versions_deposit_kind_check'
+      if (!nullOr(row.deposit_value, (v) => isInt(v) && v > 0)) return 'quote_versions_deposit_value_check'
+      if (!nullOr(row.deposit_minor, (v) => isInt(v) && v > 0)) return 'quote_versions_deposit_minor_check'
+      if (!nullOr(row.remainder_method, (v) => inList(v, ['saved_card', 'payment_link', 'cash', 'invoice']))) {
+        return 'quote_versions_remainder_method_check'
+      }
+      if (!nullOr(row.cancel_free_hours, (v) => intBetween(v, 0, 720))) return 'quote_versions_cancel_free_hours_check'
+      if (!nullOr(row.cancel_fee_percent, (v) => intBetween(v, 1, 100))) return 'quote_versions_cancel_fee_percent_check'
+      if (row.deposit_kind === 'percent' && !(isInt(row.deposit_value) && row.deposit_value >= 1 && row.deposit_value <= 100)) {
+        // CHECK (deposit_kind IS DISTINCT FROM 'percent' OR deposit_value BETWEEN 1 AND 100): NULL value is not BETWEEN, so it fails too.
+        return 'quote_versions_deposit_percent_check'
+      }
+      if (row.frozen_at != null) {
+        const complete =
+          row.deposit_kind != null &&
+          row.deposit_value != null &&
+          row.deposit_minor != null &&
+          row.remainder_method != null &&
+          isNum(row.total_minor) &&
+          row.total_minor > 0 &&
+          isNum(row.deposit_minor) &&
+          row.deposit_minor <= row.total_minor &&
+          row.cancel_policy != null &&
+          row.terms_version != null
+        if (!complete) return 'quote_versions_frozen_complete'
+      }
+      return null
+    }
+    case 'quote_version_lines': {
+      if (!intBetween(row.position, 1, 20)) return 'quote_version_lines_position_check'
+      if (!inList(row.trip_type, ['transfer', 'hourly', 'daily'])) return 'quote_version_lines_trip_type_check'
+      if (typeof row.pickup_date !== 'string' || !ISO_DATE.test(row.pickup_date)) return 'quote_version_lines_pickup_date_check'
+      if (typeof row.pickup_time !== 'string' || !CLOCK.test(row.pickup_time)) return 'quote_version_lines_pickup_time_check'
+      if (!nullOr(row.landing_date, (v) => typeof v === 'string' && ISO_DATE.test(v))) return 'quote_version_lines_landing_date_check'
+      if (!nullOr(row.landing_time, (v) => typeof v === 'string' && CLOCK.test(v))) return 'quote_version_lines_landing_time_check'
+      if (!nullOr(row.pickup_offset_min, (v) => [0, 15, 30, 45, 60, 90].includes(v as number))) return 'quote_version_lines_pickup_offset_min_check'
+      if ((row.landing_date == null) !== (row.landing_time == null) || (row.landing_time == null) !== (row.pickup_offset_min == null)) {
+        return 'quote_version_lines_landing_complete_check'
+      }
+      if (!lenBetween(row.origin_address, 1, 500)) return 'quote_version_lines_origin_address_check'
+      if (!inList(row.vehicle_class, ['business', 'first_class', 'business_van'])) return 'quote_version_lines_vehicle_class_check'
+      if (!intBetween(row.passengers, 1, 20)) return 'quote_version_lines_passengers_check'
+      if (!intBetween(row.luggage, 0, 20)) return 'quote_version_lines_luggage_check'
+      if (!nullOr(row.hours, (v) => intBetween(v, 1, 24))) return 'quote_version_lines_hours_check'
+      if (!nullOr(row.suggested_amount_minor, (v) => isInt(v) && v > 0)) return 'quote_version_lines_suggested_amount_minor_check'
+      if (!(isInt(row.amount_minor) && row.amount_minor > 0)) return 'quote_version_lines_amount_minor_check'
+      if (!nullOr(row.deposit_share_minor, (v) => isInt(v) && v >= 0)) return 'quote_version_lines_deposit_share_minor_check'
+      if (!nullOr(row.remainder_minor, (v) => isInt(v) && v >= 0)) return 'quote_version_lines_remainder_minor_check'
+      if (
+        row.deposit_share_minor != null &&
+        row.remainder_minor != null &&
+        (row.deposit_share_minor as number) + (row.remainder_minor as number) !== row.amount_minor
+      ) {
+        return 'quote_version_lines_deposit_split_check'
+      }
+      return null
+    }
+    case 'quote_version_line_stops': {
+      const violated = checkStopsOrExtrasRow('booking_stops', row)
+      return violated ? violated.replace(/^booking_stops_/, 'quote_version_line_stops_') : null
+    }
+    case 'quote_links':
+      return typeof row.token_hash === 'string' && HEX64.test(row.token_hash) ? null : 'quote_links_token_hash_check'
+    case 'quote_acceptances': {
+      if (!nullOr(row.ip, (v) => lenBetween(v, 0, 64))) return 'quote_acceptances_ip_check'
+      if (!nullOr(row.user_agent, (v) => lenBetween(v, 0, 300))) return 'quote_acceptances_user_agent_check'
+      if (typeof row.terms_sha256 !== 'string' || !HEX64.test(row.terms_sha256)) return 'quote_acceptances_terms_sha256_check'
+      if (!lenBetween(row.terms_rendered, 1, 4000)) return 'quote_acceptances_terms_rendered_check'
+      if (!(isInt(row.deposit_minor) && row.deposit_minor > 0)) return 'quote_acceptances_deposit_minor_check'
+      if (!inList(row.currency, ['eur', 'czk'])) return 'quote_acceptances_currency_check'
+      if (!nullOr(row.hold_lead_hours, (v) => intBetween(v, 6, 96))) return 'quote_acceptances_hold_lead_hours_check'
+      return null
+    }
+    case 'quote_events': {
+      if (!lenBetween(row.event_key, 1, 200)) return 'quote_events_event_key_check'
+      if (!inList(row.kind, QUOTE_EVENT_KINDS_FAKE)) return 'quote_events_kind_check'
+      if (!inList(row.actor_type, ['admin', 'webhook', 'system', 'client'])) return 'quote_events_actor_type_check'
+      if (!nullOr(row.error_code, (v) => lenBetween(v, 0, 60))) return 'quote_events_error_code_check'
+      return null
+    }
+    case 'quote_documents': {
+      if (typeof row.sha256 !== 'string' || !HEX64.test(row.sha256)) return 'quote_documents_sha256_check'
+      if (!(isInt(row.byte_size) && row.byte_size > 0)) return 'quote_documents_byte_size_check'
+      return null
+    }
+  }
+}
+
+/** quote_events_kind_check of 091; tests/migration-091.test.ts pins it to the SQL, lib/quotes/events.ts mirrors it. */
+const QUOTE_EVENT_KINDS_FAKE = [
+  'created',
+  'sent',
+  'link_minted',
+  'viewed',
+  'revised',
+  'voided',
+  'accepted',
+  'deposit_started',
+  'deposit_paid',
+  'deposit_failed',
+  'deposit_canceled',
+  'converted',
+  'convert_failed',
+  'orphan_refunded',
+  'dispute_opened',
+  'email_sent',
+  'email_failed',
+  'alert_sent',
+  'reminder_scheduled',
+  'invoice_requested',
+  'invoice_paid',
+  'remainder_requested',
+  'remainder_started',
+  'remainder_paid',
+  'remainder_failed',
+  'cancelled',
+  'deposit_refunded',
+  'remainder_refunded',
+  'refund_failed',
+  'refund_observed',
+  'admin_action',
+] as const
+
 function err(message: string, code?: string): DbResult {
   return { data: null, error: { message, code } }
 }
@@ -339,6 +655,14 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     booking_payment_notes: [],
     booking_stops: [],
     booking_extra_charges: [],
+    quotes: [],
+    quote_versions: [],
+    quote_version_lines: [],
+    quote_version_line_stops: [],
+    quote_links: [],
+    quote_acceptances: [],
+    quote_events: [],
+    quote_documents: [],
   }
 
   let eventSeq = 0
@@ -372,6 +696,92 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     }
     return null
   }
+
+  const quoteVersionFrozen = (versionId: unknown): boolean => {
+    const v = state.quote_versions.find((x) => x.id === versionId)
+    return v != null && v.frozen_at != null
+  }
+  /** The version a line or a stop belongs to (a stop reaches it through its line). */
+  const versionOfChild = (table: QuoteTable, row: Row): unknown =>
+    table === 'quote_version_lines' ? row.version_id : state.quote_version_lines.find((l) => l.id === row.line_id)?.version_id
+
+  /**
+   * The BEFORE triggers of 091 (quote_versions_guard, quote_children_guard, quote_log_guard), which run before the CHECKs.
+   * `before` is the old row (update, delete), `after` the new row (insert, update). Returns the error result or null.
+   */
+  function quoteGuard(table: QuoteTable, op: 'insert' | 'update' | 'delete', before: Row | null, after: Row | null): DbResult | null {
+    const frozen = () => err('quote_version_frozen', 'P0001')
+    const appendOnly = () => err('quote_log_append_only', 'P0001')
+    if (table === 'quote_versions' && before && before.frozen_at != null) return frozen()
+    if (table === 'quote_version_lines' || table === 'quote_version_line_stops') {
+      if (before && quoteVersionFrozen(versionOfChild(table, before))) return frozen()
+      if (after && quoteVersionFrozen(versionOfChild(table, after))) return frozen()
+    }
+    if (table === 'quote_events' && op !== 'insert') return appendOnly()
+    if (table === 'quote_acceptances') {
+      if (op === 'delete') return appendOnly()
+      if (op === 'update' && before && after) {
+        const lateColumns = ['payment_intent_id', 'confirmed_at']
+        const changedOther = Object.keys({ ...before, ...after }).some(
+          (k) => !lateColumns.includes(k) && JSON.stringify(before[k]) !== JSON.stringify(after[k]),
+        )
+        const rewritten = lateColumns.some((k) => before[k] != null && after[k] !== before[k])
+        if (changedOther || rewritten) return appendOnly()
+      }
+    }
+    return null
+  }
+
+  /** The foreign keys, CHECKs and unique rules of one quote table row. `self` is the row being updated; null on insert. */
+  function validateQuoteTable(table: QuoteTable, row: Row, self: Row | null): DbResult | null {
+    const violated = checkQuoteRow(table, row)
+    if (violated) return err(`new row violates check constraint "${violated}"`, '23514')
+    const exists = (rows: Row[], key: unknown) => rows.some((r) => r.id === key)
+    const fkFail = (col: string) => err(`violates foreign key constraint on ${col}`, '23503')
+    if (table === 'quote_versions' && !exists(state.quotes, row.quote_id)) return fkFail('quote_id')
+    if (table === 'quote_version_lines' && !exists(state.quote_versions, row.version_id)) return fkFail('version_id')
+    if (table === 'quote_version_line_stops' && !exists(state.quote_version_lines, row.line_id)) return fkFail('line_id')
+    if (table === 'quote_links' && !(exists(state.quotes, row.quote_id) && exists(state.quote_versions, row.version_id))) {
+      return fkFail('quote_id / version_id')
+    }
+    if (
+      table === 'quote_acceptances' &&
+      !(
+        exists(state.quotes, row.quote_id) &&
+        exists(state.quote_versions, row.version_id) &&
+        (row.link_id == null || exists(state.quote_links, row.link_id))
+      )
+    ) {
+      return fkFail('quote_id / version_id / link_id')
+    }
+    if (table === 'quote_events' && !exists(state.quotes, row.quote_id)) return fkFail('quote_id')
+    if (table === 'quote_documents' && !exists(state.quote_versions, row.version_id)) return fkFail('version_id')
+
+    const others = state[table].filter((r) => r !== self)
+    const dup = (name: string) => err(`duplicate key value violates unique constraint "${name}"`, '23505')
+    if (table === 'quotes' && others.some((r) => r.reference === row.reference)) return dup('quotes_reference_key')
+    if (table === 'quote_versions' && others.some((r) => r.quote_id === row.quote_id && r.version_no === row.version_no)) {
+      return dup('quote_versions_quote_version_no_key')
+    }
+    if (table === 'quote_version_lines' && others.some((r) => r.version_id === row.version_id && r.position === row.position)) {
+      return dup('quote_version_lines_version_position_key')
+    }
+    if (table === 'quote_version_line_stops' && others.some((r) => r.line_id === row.line_id && r.position === row.position)) {
+      return dup('quote_version_line_stops_line_position_key')
+    }
+    if (table === 'quote_links' && others.some((r) => r.token_hash === row.token_hash)) return dup('quote_links_token_hash_key')
+    if (table === 'quote_events' && others.some((r) => r.quote_id === row.quote_id && r.event_key === row.event_key)) {
+      return dup('quote_events_quote_key_unique')
+    }
+    if (table === 'quote_documents' && others.some((r) => r.version_id === row.version_id)) return dup('quote_documents_pkey')
+    return null
+  }
+
+  /** bookings.quote_line_id: the unique partial index of 091 (the exactly-once guard of the conversion). */
+  const quoteLineClash = (row: Row, self: Row | null): DbResult | null =>
+    row.quote_line_id != null && state.bookings.some((b) => b !== self && b.quote_line_id === row.quote_line_id)
+      ? err('duplicate key value violates unique constraint "bookings_quote_line_id_key"', '23505')
+      : null
 
   /** Builds a ledger row from a p_event object, enforcing the table CHECKs that matter. */
   function buildEventRow(bookingId: string, event: Row, fromState: string | null, toState: string | null): Row {
@@ -647,6 +1057,20 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
             inserted.push(row.row)
             continue
           }
+          if (isQuoteTable(this.table)) {
+            const quoteRow: Row = {
+              ...quoteDefaults(this.table, nowIso()),
+              ...(this.table === 'quote_documents' ? {} : { id: nextUuid() }),
+              ...input,
+            }
+            const blocked = quoteGuard(this.table, 'insert', null, quoteRow)
+            if (blocked) return blocked
+            const failure = validateQuoteTable(this.table, quoteRow, null)
+            if (failure) return failure
+            rows.push(quoteRow)
+            inserted.push(quoteRow)
+            continue
+          }
           const base =
             this.table === 'bookings'
               ? { ...bookingDefaults(), id: nextUuid() }
@@ -662,6 +1086,10 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
                         ? { ...extraChargeDefaults(nowIso()), id: nextUuid() }
                         : { id: nextUuid() }
           const row: Row = { ...base, ...input }
+          if (this.table === 'bookings') {
+            const clash = quoteLineClash(row, null)
+            if (clash) return clash
+          }
           if (this.table === 'booking_stops' || this.table === 'booking_extra_charges') {
             const failure = validateStopsOrExtras(this.table, row, null)
             if (failure) return failure
@@ -687,7 +1115,25 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
         const targets = this.matches()
         for (const r of targets) {
           const before = { ...r }
+          if (isQuoteTable(this.table)) {
+            const blocked = quoteGuard(this.table, 'update', before, { ...r, ...(this.payload as Row) })
+            if (blocked) return blocked
+          }
           Object.assign(r, this.payload as Row)
+          if (isQuoteTable(this.table)) {
+            const failure = validateQuoteTable(this.table, r, r)
+            if (failure) {
+              Object.assign(r, before)
+              return failure
+            }
+          }
+          if (this.table === 'bookings') {
+            const clash = quoteLineClash(r, r)
+            if (clash) {
+              Object.assign(r, before)
+              return clash
+            }
+          }
           if (this.table === 'booking_fee_cases') {
             const violated = checkNewTableRow(this.table, r)
             if (violated) {
@@ -708,6 +1154,12 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
       } else if (this.mode === 'delete') {
         if (this.table === 'booking_payment_events') return err('booking_payment_events is append-only')
         const targets = this.matches()
+        if (isQuoteTable(this.table)) {
+          for (const r of targets) {
+            const blocked = quoteGuard(this.table, 'delete', r, null)
+            if (blocked) return blocked
+          }
+        }
         for (const r of targets) rows.splice(rows.indexOf(r), 1)
         out = targets
       } else {
