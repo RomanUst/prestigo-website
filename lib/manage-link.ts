@@ -41,6 +41,8 @@ function isEligibleBooking(booking: Row): boolean {
   const version = booking.cancel_policy_version
   if (typeof version !== 'string' || version.length === 0) return false
   if (booking.anonymised_at) return false
+  // Phase 92 (research A8, T-92-36): a trip of a quote is cancelled by the operator only; the quote page tells the client how.
+  if (booking.quote_id) return false
   return !isPartnerBooking({ booking_source: typeof booking.booking_source === 'string' ? booking.booking_source : null })
 }
 
@@ -55,7 +57,7 @@ export async function ensureManageToken(bookingId: string): Promise<string | nul
 
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
-    .select('id, cancel_policy_version, booking_source, anonymised_at')
+    .select('id, cancel_policy_version, booking_source, anonymised_at, quote_id')
     .eq('id', bookingId)
     .maybeSingle()
   if (bookingError || !booking || !isEligibleBooking(booking as Row)) return null
