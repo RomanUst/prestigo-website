@@ -64,6 +64,9 @@ export const LEDGER_KINDS = [
   'cash_reopened',
   'extra_charged',
   'extra_failed',
+  // Migration 091 (Phase 92): the deposit and the remainder of a quote.
+  'quote_deposit',
+  'quote_remainder',
 ] as const
 export type LedgerKind = (typeof LEDGER_KINDS)[number]
 

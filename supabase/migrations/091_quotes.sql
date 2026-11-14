@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS public.quote_versions (
   billing_note         text        CHECK (billing_note IS NULL OR char_length(billing_note) <= 300),
   created_by           uuid,
   created_at           timestamptz NOT NULL DEFAULT now(),
-  CHECK (deposit_kind IS DISTINCT FROM 'percent' OR deposit_value BETWEEN 1 AND 100),
+  CONSTRAINT quote_versions_deposit_percent_check CHECK (deposit_kind IS DISTINCT FROM 'percent' OR deposit_value BETWEEN 1 AND 100),
   CONSTRAINT quote_versions_quote_version_no_key UNIQUE (quote_id, version_no),
   CONSTRAINT quote_versions_frozen_complete CHECK (
     frozen_at IS NULL
@@ -212,7 +212,7 @@ CREATE TABLE IF NOT EXISTS public.quote_version_lines (
     (landing_date IS NULL) = (landing_time IS NULL)
     AND (landing_time IS NULL) = (pickup_offset_min IS NULL)
   ),
-  CHECK (deposit_share_minor IS NULL OR remainder_minor IS NULL OR deposit_share_minor + remainder_minor = amount_minor)
+  CONSTRAINT quote_version_lines_deposit_split_check CHECK (deposit_share_minor IS NULL OR remainder_minor IS NULL OR deposit_share_minor + remainder_minor = amount_minor)
 );
 
 REVOKE ALL ON public.quote_version_lines FROM anon, authenticated;
@@ -289,5 +289,359 @@ CREATE POLICY quote_links_no_public_insert
   ON public.quote_links FOR INSERT
   WITH CHECK (false);
 
--- == 5-8. added by the next task of plan 92-01 (acceptance log, events, PDF, booking columns, CHECKs, guards) ==
--- == (the conversion function of plan 92-06 and the erasure copies of plan 92-12 follow after section 8)       ==
+-- == 5. quote_acceptances, quote_events, quote_documents (QUOTE-05, D-08) ===========
+-- quote_acceptances: the append-only log of an acceptance (D-08): when, from which IP and browser, which version, the
+-- terms text the client saw (the text and its SHA-256 are both kept, so the log proves what was shown) and the
+-- hold lead time. The deposit PaymentIntent and the confirmation are the only two columns written later, once each.
+-- ON DELETE CASCADE exists only so the erasure function can remove a quote that never took money; the guard
+-- (section 8) forbids every other delete.
+CREATE TABLE IF NOT EXISTS public.quote_acceptances (
+  id                uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  quote_id          uuid        NOT NULL REFERENCES public.quotes(id) ON DELETE CASCADE,
+  version_id        uuid        NOT NULL REFERENCES public.quote_versions(id) ON DELETE CASCADE,
+  link_id           uuid        REFERENCES public.quote_links(id) ON DELETE SET NULL,
+  accepted_at       timestamptz NOT NULL DEFAULT now(),
+  ip                text        CHECK (ip IS NULL OR char_length(ip) <= 64),
+  user_agent        text        CHECK (user_agent IS NULL OR char_length(user_agent) <= 300),
+  locale            text        NOT NULL,
+  terms_version     text        NOT NULL,
+  terms_sha256      text        NOT NULL CHECK (terms_sha256 ~ '^[0-9a-f]{64}$'),
+  terms_rendered    text        NOT NULL CHECK (char_length(terms_rendered) BETWEEN 1 AND 4000),
+  deposit_minor     bigint      NOT NULL CHECK (deposit_minor > 0),
+  currency          text        NOT NULL CHECK (currency IN ('eur', 'czk')),
+  hold_lead_hours   smallint    CHECK (hold_lead_hours IS NULL OR hold_lead_hours BETWEEN 6 AND 96),
+  payment_intent_id text,
+  confirmed_at      timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS quote_acceptances_quote_idx
+  ON public.quote_acceptances (quote_id, accepted_at);
+
+REVOKE ALL ON public.quote_acceptances FROM anon, authenticated;
+ALTER TABLE public.quote_acceptances ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS quote_acceptances_no_public_read ON public.quote_acceptances;
+CREATE POLICY quote_acceptances_no_public_read
+  ON public.quote_acceptances FOR SELECT
+  USING (false);
+
+DROP POLICY IF EXISTS quote_acceptances_no_public_insert ON public.quote_acceptances;
+CREATE POLICY quote_acceptances_no_public_insert
+  ON public.quote_acceptances FOR INSERT
+  WITH CHECK (false);
+
+-- quote_events: the quote's lifecycle and money ledger, one row per (quote, event_key) so a webhook replay or a
+-- re-driven step cannot write twice. Ids, amounts and codes only - no personal data (like booking_payment_events).
+-- The kind list is mirrored by QUOTE_EVENT_KINDS in lib/quotes/events.ts (tests/quote-events.test.ts compares them).
+CREATE TABLE IF NOT EXISTS public.quote_events (
+  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  quote_id         uuid        NOT NULL REFERENCES public.quotes(id) ON DELETE CASCADE,
+  event_key        text        NOT NULL CHECK (char_length(event_key) BETWEEN 1 AND 200),
+  kind             text        NOT NULL
+    CONSTRAINT quote_events_kind_check CHECK (kind IN (
+      'created',
+      'sent',
+      'link_minted',
+      'viewed',
+      'revised',
+      'voided',
+      'accepted',
+      'deposit_started',
+      'deposit_paid',
+      'deposit_failed',
+      'deposit_canceled',
+      'converted',
+      'convert_failed',
+      'orphan_refunded',
+      'dispute_opened',
+      'email_sent',
+      'email_failed',
+      'alert_sent',
+      'reminder_scheduled',
+      'invoice_requested',
+      'invoice_paid',
+      'remainder_requested',
+      'remainder_started',
+      'remainder_paid',
+      'remainder_failed',
+      'cancelled',
+      'deposit_refunded',
+      'remainder_refunded',
+      'refund_failed',
+      'refund_observed',
+      'admin_action'
+    )),
+  version_id       uuid,
+  stripe_object_id text,
+  amount_minor     bigint,
+  currency         text,
+  actor_type       text        NOT NULL CHECK (actor_type IN ('admin', 'webhook', 'system', 'client')),
+  actor_id         text,
+  error_code       text        CHECK (error_code IS NULL OR char_length(error_code) <= 60),
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT quote_events_quote_key_unique UNIQUE (quote_id, event_key)
+);
+
+CREATE INDEX IF NOT EXISTS quote_events_quote_idx
+  ON public.quote_events (quote_id, created_at);
+
+REVOKE ALL ON public.quote_events FROM anon, authenticated;
+ALTER TABLE public.quote_events ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS quote_events_no_public_read ON public.quote_events;
+CREATE POLICY quote_events_no_public_read
+  ON public.quote_events FOR SELECT
+  USING (false);
+
+DROP POLICY IF EXISTS quote_events_no_public_insert ON public.quote_events;
+CREATE POLICY quote_events_no_public_insert
+  ON public.quote_events FOR INSERT
+  WITH CHECK (false);
+
+-- quote_documents: the rendered PDF of a version (one per version), kept so the page and the email serve the same
+-- bytes. Deleted with the version (and by the erasure function with the person).
+CREATE TABLE IF NOT EXISTS public.quote_documents (
+  version_id uuid        PRIMARY KEY REFERENCES public.quote_versions(id) ON DELETE CASCADE,
+  locale     text        NOT NULL,
+  pdf        bytea       NOT NULL,
+  sha256     text        NOT NULL CHECK (sha256 ~ '^[0-9a-f]{64}$'),
+  byte_size  integer     NOT NULL CHECK (byte_size > 0),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+REVOKE ALL ON public.quote_documents FROM anon, authenticated;
+ALTER TABLE public.quote_documents ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS quote_documents_no_public_read ON public.quote_documents;
+CREATE POLICY quote_documents_no_public_read
+  ON public.quote_documents FOR SELECT
+  USING (false);
+
+DROP POLICY IF EXISTS quote_documents_no_public_insert ON public.quote_documents;
+CREATE POLICY quote_documents_no_public_insert
+  ON public.quote_documents FOR INSERT
+  WITH CHECK (false);
+
+-- == 6. bookings: link to the quote (QUOTE-05, D-18) ================================
+-- quote_line_id is the exactly-once guard of the conversion: a line becomes at most one booking, whatever retries or
+-- replays happen (unique partial index). quote_deposit_minor is the line's share of the deposit, needed by the
+-- price-edit hook (D-20). ON DELETE RESTRICT: a booking made from a quote keeps its quote and its line.
+ALTER TABLE public.bookings
+  ADD COLUMN IF NOT EXISTS quote_id uuid REFERENCES public.quotes(id) ON DELETE RESTRICT,
+  ADD COLUMN IF NOT EXISTS quote_line_id uuid REFERENCES public.quote_version_lines(id) ON DELETE RESTRICT,
+  ADD COLUMN IF NOT EXISTS quote_deposit_minor bigint CHECK (quote_deposit_minor IS NULL OR quote_deposit_minor >= 0);
+
+CREATE UNIQUE INDEX IF NOT EXISTS bookings_quote_line_id_key
+  ON public.bookings (quote_line_id)
+  WHERE quote_line_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS bookings_quote_id_idx
+  ON public.bookings (quote_id)
+  WHERE quote_id IS NOT NULL;
+
+-- == 7. Ledger kinds quote_deposit, quote_remainder; consent mode 'quote' ===========
+-- The full 089 list, verbatim, then the two new kinds (tests/payments-state.test.ts compares the order with
+-- LEDGER_KINDS). The consent mode CHECK was named booking_payment_consents_mode_check in 087; only the MODE
+-- constraint is touched here - the locale constraint belongs to 090_consent_locale_zh_hant.sql.
+ALTER TABLE public.booking_payment_events
+  DROP CONSTRAINT IF EXISTS booking_payment_events_kind_check;
+ALTER TABLE public.booking_payment_events
+  ADD CONSTRAINT booking_payment_events_kind_check
+  CHECK (kind IN (
+    'setup_started',
+    'setup_succeeded',
+    'setup_failed',
+    'hold_scheduled',
+    'hold_started',
+    'hold_authorized',
+    'hold_failed',
+    'hold_released',
+    'hold_expired',
+    'capture_started',
+    'captured',
+    'charge_succeeded',
+    'charge_failed',
+    'difference_charged',
+    'difference_failed',
+    'recovery_link_created',
+    'recovery_paid',
+    'alert_sent',
+    'email_sent',
+    'admin_action',
+    'refund_observed',
+    'refund_failed',
+    'edit_reevaluated',
+    'waived',
+    'fee_opened',
+    'cash_settled',
+    'cash_reopened',
+    'extra_charged',
+    'extra_failed',
+    'quote_deposit',
+    'quote_remainder'
+  ));
+
+ALTER TABLE public.booking_payment_consents
+  DROP CONSTRAINT IF EXISTS booking_payment_consents_mode_check;
+ALTER TABLE public.booking_payment_consents
+  ADD CONSTRAINT booking_payment_consents_mode_check
+  CHECK (mode IN ('setup', 'hold_now', 'cash_setup', 'quote'));
+
+-- == 8. Guard triggers (QUOTE-06, D-08) ==============================================
+-- Plain plpgsql, search_path '', called only by their triggers. All three let the transaction through when the
+-- transaction-local setting prestigo.quote_erasure is 'on' - the erasure function (plan 92-12) sets it with
+-- set_config('prestigo.quote_erasure', 'on', true) and nothing else does.
+
+-- A frozen version never changes and is never deleted. Freezing itself is an UPDATE of a draft (frozen_at IS NULL in
+-- OLD), so it passes.
+CREATE OR REPLACE FUNCTION public.quote_versions_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF current_setting('prestigo.quote_erasure', true) = 'on' THEN
+    IF TG_OP = 'DELETE' THEN
+      RETURN OLD;
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  IF OLD.frozen_at IS NOT NULL THEN
+    RAISE EXCEPTION 'quote_version_frozen';
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.quote_versions_guard() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS quote_versions_guard ON public.quote_versions;
+CREATE TRIGGER quote_versions_guard
+  BEFORE UPDATE OR DELETE ON public.quote_versions
+  FOR EACH ROW
+  EXECUTE FUNCTION public.quote_versions_guard();
+
+-- Lines and stops: resolve the version of the old row (update, delete) and of the new row (insert, update) and refuse
+-- when it is frozen. A stop reaches its version through its line. jsonb reads the key column, because OLD and NEW have
+-- different shapes in the two tables.
+CREATE OR REPLACE FUNCTION public.quote_children_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+DECLARE
+  v_row     jsonb;
+  v_version uuid;
+  v_frozen  timestamptz;
+BEGIN
+  IF current_setting('prestigo.quote_erasure', true) = 'on' THEN
+    IF TG_OP = 'DELETE' THEN
+      RETURN OLD;
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP <> 'INSERT' THEN
+    v_row := to_jsonb(OLD);
+    IF TG_TABLE_NAME = 'quote_version_lines' THEN
+      v_version := (v_row ->> 'version_id')::uuid;
+    ELSE
+      SELECT l.version_id INTO v_version
+        FROM public.quote_version_lines l
+       WHERE l.id = (v_row ->> 'line_id')::uuid;
+    END IF;
+    SELECT v.frozen_at INTO v_frozen FROM public.quote_versions v WHERE v.id = v_version;
+    IF v_frozen IS NOT NULL THEN
+      RAISE EXCEPTION 'quote_version_frozen';
+    END IF;
+  END IF;
+
+  IF TG_OP <> 'DELETE' THEN
+    v_row := to_jsonb(NEW);
+    IF TG_TABLE_NAME = 'quote_version_lines' THEN
+      v_version := (v_row ->> 'version_id')::uuid;
+    ELSE
+      SELECT l.version_id INTO v_version
+        FROM public.quote_version_lines l
+       WHERE l.id = (v_row ->> 'line_id')::uuid;
+    END IF;
+    SELECT v.frozen_at INTO v_frozen FROM public.quote_versions v WHERE v.id = v_version;
+    IF v_frozen IS NOT NULL THEN
+      RAISE EXCEPTION 'quote_version_frozen';
+    END IF;
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.quote_children_guard() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS quote_version_lines_guard ON public.quote_version_lines;
+CREATE TRIGGER quote_version_lines_guard
+  BEFORE INSERT OR UPDATE OR DELETE ON public.quote_version_lines
+  FOR EACH ROW
+  EXECUTE FUNCTION public.quote_children_guard();
+
+DROP TRIGGER IF EXISTS quote_version_line_stops_guard ON public.quote_version_line_stops;
+CREATE TRIGGER quote_version_line_stops_guard
+  BEFORE INSERT OR UPDATE OR DELETE ON public.quote_version_line_stops
+  FOR EACH ROW
+  EXECUTE FUNCTION public.quote_children_guard();
+
+-- The acceptance log and the event ledger are append-only (D-08). No row is ever deleted. quote_events is never
+-- updated. quote_acceptances allows exactly two writes after the insert: payment_intent_id set once (from NULL) and
+-- confirmed_at set once (from NULL); every other column stays as it was.
+CREATE OR REPLACE FUNCTION public.quote_log_guard()
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
+BEGIN
+  IF current_setting('prestigo.quote_erasure', true) = 'on' THEN
+    IF TG_OP = 'DELETE' THEN
+      RETURN OLD;
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'quote_log_append_only';
+  END IF;
+
+  IF TG_TABLE_NAME = 'quote_acceptances' THEN
+    IF (to_jsonb(OLD) - 'payment_intent_id' - 'confirmed_at') IS DISTINCT FROM (to_jsonb(NEW) - 'payment_intent_id' - 'confirmed_at')
+       OR (OLD.payment_intent_id IS NOT NULL AND NEW.payment_intent_id IS DISTINCT FROM OLD.payment_intent_id)
+       OR (OLD.confirmed_at IS NOT NULL AND NEW.confirmed_at IS DISTINCT FROM OLD.confirmed_at) THEN
+      RAISE EXCEPTION 'quote_log_append_only';
+    END IF;
+    RETURN NEW;
+  END IF;
+
+  RAISE EXCEPTION 'quote_log_append_only';
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.quote_log_guard() FROM PUBLIC, anon, authenticated;
+
+DROP TRIGGER IF EXISTS quote_acceptances_guard ON public.quote_acceptances;
+CREATE TRIGGER quote_acceptances_guard
+  BEFORE UPDATE OR DELETE ON public.quote_acceptances
+  FOR EACH ROW
+  EXECUTE FUNCTION public.quote_log_guard();
+
+DROP TRIGGER IF EXISTS quote_events_guard ON public.quote_events;
+CREATE TRIGGER quote_events_guard
+  BEFORE UPDATE OR DELETE ON public.quote_events
+  FOR EACH ROW
+  EXECUTE FUNCTION public.quote_log_guard();
+
+-- == (the conversion function of plan 92-06 and the erasure copies of plan 92-12 are appended below) ==
