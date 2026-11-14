@@ -155,7 +155,7 @@ describe('subject prefixes', () => {
   })
 
   it('ops_attention: one body per note, ids and amounts only', async () => {
-    const notes = ['extra_unresolved', 'extra_late_success', 'extra_second_payment', 'extra_receipt_failed', 'stops_missing']
+    const notes = ['extra_unresolved', 'extra_late_success', 'extra_second_payment', 'extra_receipt_failed', 'stops_missing', 'group_payment_quote_booking']
     const seen = new Set<string>()
     for (const note of notes) {
       expect(

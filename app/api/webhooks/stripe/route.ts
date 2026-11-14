@@ -513,11 +513,41 @@ async function handleGroupPaymentSucceeded(
     .filter((s) => /^[0-9a-f-]{36}$/i.test(s))
   if (ids.length === 0) return
   const supabase = createSupabaseServiceClient()
+
+  // Phase 92 (B2): a booking created from a quote is never confirmed or listed by a group payment link. Its deposit share
+  // was paid in the quote checkout and its remainder belongs to the quote's own method, so a payment found here may be the
+  // client paying that share a second time. Those rows are left out of the flip and the emails; each raises ONE operator
+  // alert keyed by the PaymentIntent (the alert ledger delivers it once per key, so a replay sends no second mail), and
+  // the operator refunds by hand. A read that fails stops here (fail closed): nothing is confirmed on a guess.
+  const { data: groupFirstRead, error: quoteReadErr } = await supabase.from('bookings').select('*').in('id', ids)
+  if (quoteReadErr) {
+    console.error('[webhook] group payment read failed:', { paymentIntentId, message: quoteReadErr.message })
+    return
+  }
+  const quoteRows = ((groupFirstRead ?? []) as Array<Record<string, unknown>>).filter(
+    (r) => typeof r.quote_id === 'string' && r.quote_id !== '',
+  )
+  const quoteIds = new Set(quoteRows.map((r) => r.id as string))
+  for (const quoteRow of quoteRows) {
+    try {
+      await sendPaymentOperatorAlert('ops_attention', quoteRow, {
+        eventKey: `alert:ops_attention:${quoteRow.id as string}:group:${paymentIntentId}`,
+        code: 'group_payment_quote_booking',
+        note: 'group_payment_quote_booking',
+      })
+    } catch {
+      console.error('[webhook] group payment quote alert failed', { bookingId: quoteRow.id, paymentIntentId })
+    }
+  }
+  const plainIds = ids.filter((id) => !quoteIds.has(id))
+  if (plainIds.length === 0) return
+
   const paidAt = new Date().toISOString()
   const { data: flipped, error: flipErr } = await supabase
     .from('bookings')
     .update({ status: 'confirmed', paid_at: paidAt })
-    .in('id', ids)
+    .in('id', plainIds)
+    .is('quote_id', null)
     .eq('status', 'unpaid')
     .select('id, operator_notes, pickup_utc')
   if (flipErr) {
@@ -543,7 +573,7 @@ async function handleGroupPaymentSucceeded(
   const { data: groupRows, error: groupErr } = await supabase
     .from('bookings')
     .select('*')
-    .in('id', ids)
+    .in('id', plainIds)
   if (groupErr) console.error('[webhook] group payment re-select failed:', groupErr.message)
   const reconciled = ((groupRows ?? []) as Array<PaymentLinkReconciledRow & { status?: string | null }>)
     .filter((r) => r.status !== 'cancelled')
