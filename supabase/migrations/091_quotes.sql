@@ -267,7 +267,7 @@ CREATE TABLE IF NOT EXISTS public.quote_links (
   id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   quote_id   uuid        NOT NULL REFERENCES public.quotes(id) ON DELETE CASCADE,
   version_id uuid        NOT NULL REFERENCES public.quote_versions(id) ON DELETE CASCADE,
-  token_hash text        NOT NULL UNIQUE CHECK (token_hash ~ '^[0-9a-f]{64}$'),
+  token_hash text NOT NULL UNIQUE CHECK (token_hash ~ '^[0-9a-f]{64}$'),
   created_at timestamptz NOT NULL DEFAULT now(),
   created_by uuid,
   revoked_at timestamptz
