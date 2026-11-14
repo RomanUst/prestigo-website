@@ -11,6 +11,9 @@
  */
 
 import { locales } from '@/i18n/locales'
+import { pickupInstantMs } from '@/lib/prague-date'
+import { bookingModeFor } from '@/lib/quotes/money'
+import type { RemainderMethod } from '@/lib/quotes/vocabulary'
 
 type Row = Record<string, unknown>
 type DbError = { message: string; code?: string }
@@ -929,9 +932,284 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     return claimed
   }
 
+  /**
+   * public.quote_convert_to_bookings (091 section 9): the same checks in the same order, the same reasons, the same rows.
+   * The mode table is bookingModeFor (lib/quotes/money.ts), the one TypeScript source of it. Like the SQL function it is
+   * one transaction: a raise (a constraint, or the missing card ids) restores every table it touched.
+   */
+  function quoteConvertToBookings(args: Row): Row {
+    const refuse = (reason: string): Row => ({ converted: false, reason })
+    const quoteId = args.p_quote_id
+    const versionId = args.p_version_id
+    const intentId = typeof args.p_payment_intent_id === 'string' ? args.p_payment_intent_id : null
+    const actorType = ['admin', 'webhook', 'system'].includes(args.p_actor_type as string) ? (args.p_actor_type as string) : 'system'
+    const actorId = typeof args.p_actor_id === 'string' ? args.p_actor_id.slice(0, 64) : null
+
+    const quote = state.quotes.find((q) => q.id === quoteId)
+    if (!quote) return refuse('not_found')
+
+    // 2. Already paid: the recorded intent gets its bookings back, any other intent is not the quote's payment.
+    if (quote.status === 'paid' || quote.paid_at != null) {
+      if (intentId !== null && quote.deposit_payment_intent_id === intentId) {
+        const lineRows = state.quote_version_lines
+        const ids = state.bookings
+          .filter((b) => b.quote_id === quoteId)
+          .map((b) => ({ id: b.id as string, position: (lineRows.find((l) => l.id === b.quote_line_id)?.position as number) ?? 0 }))
+          .sort((a, b) => a.position - b.position)
+          .map((b) => b.id)
+        return { converted: true, first_time: false, booking_ids: ids }
+      }
+      return refuse('intent_mismatch')
+    }
+
+    // 3. Ownership before payment.
+    if (quote.voided_at != null || quote.status === 'voided') return refuse('voided')
+    if (quote.cancelled_at != null) return refuse('cancelled')
+    if (quote.status !== 'accepted') return refuse('not_accepted')
+    if (quote.current_version_id !== versionId) return refuse('version_mismatch')
+    if (intentId === null || quote.deposit_payment_intent_id !== intentId) return refuse('intent_mismatch')
+
+    const version = state.quote_versions.find((v) => v.id === versionId)
+    if (!version || version.quote_id !== quoteId) return refuse('version_mismatch')
+    if (version.frozen_at == null) return refuse('not_accepted')
+
+    const acceptance = state.quote_acceptances
+      .filter((a) => a.quote_id === quoteId && a.payment_intent_id === intentId)
+      .sort((a, b) => compare(b.accepted_at, a.accepted_at))[0]
+    if (!acceptance) return refuse('not_accepted')
+
+    // 4. The caller's lines are exactly the version's lines.
+    const given = args.p_lines
+    if (!Array.isArray(given)) return refuse('lines_mismatch')
+    const entries = given as Row[]
+    for (const e of entries) {
+      if (
+        e === null ||
+        typeof e !== 'object' ||
+        typeof e.position !== 'number' ||
+        typeof e.booking_reference !== 'string' ||
+        e.booking_reference.length === 0
+      ) {
+        return refuse('lines_mismatch')
+      }
+    }
+    const lines = state.quote_version_lines.filter((l) => l.version_id === versionId).sort((a, b) => compare(a.position, b.position))
+    const givenPositions = entries.map((e) => e.position as number).sort((a, b) => a - b)
+    const expectedPositions = lines.map((l) => l.position as number)
+    if (
+      expectedPositions.length === 0 ||
+      givenPositions.length !== expectedPositions.length ||
+      givenPositions.some((p, i) => p !== expectedPositions[i])
+    ) {
+      return refuse('lines_mismatch')
+    }
+
+    const method = version.remainder_method as RemainderMethod
+    const currency = version.currency as string
+    const customer = (args.p_customer_id as string | null | undefined) ?? (quote.stripe_customer_id as string | null)
+    const paymentMethod = (args.p_payment_method_id as string | null | undefined) ?? (quote.stripe_payment_method_id as string | null)
+
+    // 5. Validation pass: nothing is written before it ends.
+    for (const line of lines) {
+      if (line.deposit_share_minor == null || line.remainder_minor == null || line.amount_eur == null || line.amount_czk == null) {
+        return refuse('lines_mismatch')
+      }
+      const remainder = line.remainder_minor as number
+      if (remainder > 0 && method === 'saved_card') {
+        const entry = entries.find((e) => e.position === line.position)
+        if (entry?.hold_at == null) return refuse('hold_at_missing')
+      }
+      if (remainder > 0 && (method === 'saved_card' || method === 'cash') && (!customer || !paymentMethod)) {
+        throw new RpcError('quote_card_ids_missing', 'P0001')
+      }
+    }
+
+    // 6. One booking per line, in position order; a raise rolls everything back (the SQL function is one transaction).
+    const snapshot = {
+      bookings: state.bookings.map((b) => ({ ...b })),
+      booking_stops: state.booking_stops.map((r) => ({ ...r })),
+      booking_payment_events: state.booking_payment_events.map((r) => ({ ...r })),
+      booking_payment_consents: state.booking_payment_consents.map((r) => ({ ...r })),
+      quote_events: state.quote_events.map((r) => ({ ...r })),
+      quote: { ...quote },
+      acceptance: { ...acceptance },
+    }
+    const savedEventSeq = eventSeq
+    try {
+      const ids: string[] = []
+      for (const line of lines) {
+        const entry = entries.find((e) => e.position === line.position) as Row
+        const remainder = line.remainder_minor as number
+        const mode = bookingModeFor(method, remainder)
+        const cardLine = mode !== 'quote'
+        const holdAt = mode === 'card_hold' ? (entry.hold_at as string) : null
+
+        const pickupMs = pickupInstantMs({
+          pickup_utc: null,
+          pickup_date: line.pickup_date as string,
+          pickup_time: line.pickup_time as string,
+        })
+        const booking: Row = {
+          ...bookingDefaults(),
+          id: nextUuid(),
+          trip_type: line.trip_type,
+          pickup_date: line.pickup_date,
+          pickup_time: line.pickup_time,
+          // pickup_utc is generated by the database from the two text columns.
+          pickup_utc: pickupMs === null ? null : new Date(pickupMs).toISOString(),
+          landing_date: line.landing_date,
+          landing_time: line.landing_time,
+          pickup_offset_min: line.pickup_offset_min,
+          origin_address: line.origin_address,
+          origin_lat: line.origin_lat,
+          origin_lng: line.origin_lng,
+          destination_address: line.destination_address,
+          destination_lat: line.destination_lat,
+          destination_lng: line.destination_lng,
+          vehicle_class: line.vehicle_class,
+          passengers: line.passengers,
+          luggage: line.luggage,
+          hours: line.hours,
+          return_date: line.return_date,
+          distance_km: line.distance_km,
+          flight_number: line.flight_number,
+          terminal: line.terminal,
+          special_requests: line.special_requests,
+          extra_child_seat: line.extra_child_seat,
+          extra_meet_greet: line.extra_meet_greet,
+          extra_luggage: line.extra_luggage,
+          amount_eur: line.amount_eur,
+          amount_czk: line.amount_czk,
+          client_first_name: quote.client_first_name,
+          client_last_name: quote.client_last_name,
+          client_email: quote.client_email,
+          client_phone: quote.client_phone ?? '',
+          booking_reference: entry.booking_reference,
+          booking_source: 'manual',
+          lead_channel: quote.lead_channel,
+          booking_type: 'confirmed',
+          status: 'confirmed',
+          locale: version.locale,
+          cancel_policy: version.cancel_policy,
+          cancel_policy_version: version.cancel_policy_version,
+          quote_id: quoteId,
+          quote_line_id: line.id,
+          quote_deposit_minor: line.deposit_share_minor,
+          payment_mode: mode,
+          payment_state: mode === 'quote' ? 'none' : 'card_saved',
+          payment_amount_minor: cardLine ? remainder : null,
+          payment_currency: cardLine ? currency : null,
+          stripe_customer_id: cardLine ? customer : null,
+          stripe_payment_method_id: cardLine ? paymentMethod : null,
+          hold_at: holdAt,
+          // Pitfall 2: the deposit intent id never lands on the booking (the SQL insert does not name the column).
+          payment_intent_id: null,
+        }
+        const clash = quoteLineClash(booking, null)
+        if (clash) throw new RpcError(clash.error?.message ?? 'bookings_quote_line_id_key', '23505')
+        state.bookings.push(booking)
+
+        for (const stop of state.quote_version_line_stops
+          .filter((s) => s.line_id === line.id)
+          .sort((a, b) => compare(a.position, b.position))) {
+          state.booking_stops.push({
+            ...stopDefaults(nowIso()),
+            id: nextUuid(),
+            booking_id: booking.id,
+            position: stop.position,
+            address: stop.address,
+            lat: stop.lat,
+            lng: stop.lng,
+            wait_minutes: stop.wait_minutes,
+            free_minutes: stop.free_minutes,
+            blocks: stop.blocks,
+            fee_per_block_eur: stop.fee_per_block_eur,
+            fee_eur: stop.fee_eur,
+          })
+        }
+
+        appendPaymentEvent({
+          p_booking_id: booking.id,
+          p_event: {
+            key: `quote_deposit:${intentId}`,
+            kind: 'quote_deposit',
+            stripe_object_id: intentId,
+            amount_minor: line.deposit_share_minor,
+            currency,
+            actor_type: actorType,
+            actor_id: actorId,
+          },
+        })
+
+        state.booking_payment_consents.push({
+          id: nextUuid(),
+          booking_id: booking.id,
+          setup_intent_id: null,
+          payment_intent_id: null,
+          mode: 'quote',
+          text_version: acceptance.terms_version,
+          text_sha256: acceptance.terms_sha256,
+          text_rendered: acceptance.terms_rendered,
+          locale: acceptance.locale,
+          amount_minor: cardLine ? remainder : null,
+          currency: cardLine ? currency : null,
+          planned_hold_at: holdAt,
+          accepted_at: acceptance.accepted_at,
+          ip: acceptance.ip,
+          user_agent: acceptance.user_agent,
+          confirmed_at: nowIso(),
+        })
+        ids.push(booking.id as string)
+      }
+
+      // 7. The quote is paid, the acceptance confirmed, the two events written once.
+      quote.status = 'paid'
+      quote.paid_at = nowIso()
+      quote.stripe_customer_id = quote.stripe_customer_id ?? (args.p_customer_id as string | null | undefined) ?? null
+      quote.stripe_payment_method_id = quote.stripe_payment_method_id ?? (args.p_payment_method_id as string | null | undefined) ?? null
+      quote.updated_at = nowIso()
+      if (acceptance.confirmed_at == null) acceptance.confirmed_at = nowIso()
+
+      const addEvent = (key: string, kind: string, extra: Row) => {
+        if (state.quote_events.some((e) => e.quote_id === quoteId && e.event_key === key)) return
+        state.quote_events.push({
+          ...quoteDefaults('quote_events', nowIso()),
+          id: nextUuid(),
+          quote_id: quoteId,
+          event_key: key,
+          kind,
+          version_id: versionId,
+          actor_type: actorType,
+          actor_id: actorId,
+          ...extra,
+        })
+      }
+      addEvent(`deposit_paid:${intentId}`, 'deposit_paid', {
+        stripe_object_id: intentId,
+        amount_minor: version.deposit_minor,
+        currency,
+      })
+      addEvent(`converted:${versionId}`, 'converted', {})
+
+      return { converted: true, first_time: true, booking_ids: ids }
+    } catch (e) {
+      state.bookings.splice(0, state.bookings.length, ...snapshot.bookings)
+      state.booking_stops.splice(0, state.booking_stops.length, ...snapshot.booking_stops)
+      state.booking_payment_events.splice(0, state.booking_payment_events.length, ...snapshot.booking_payment_events)
+      state.booking_payment_consents.splice(0, state.booking_payment_consents.length, ...snapshot.booking_payment_consents)
+      state.quote_events.splice(0, state.quote_events.length, ...snapshot.quote_events)
+      Object.assign(quote, snapshot.quote)
+      Object.assign(acceptance, snapshot.acceptance)
+      eventSeq = savedEventSeq
+      throw e
+    }
+  }
+
   async function rpc(name: string, args: Row = {}): Promise<DbResult> {
     try {
       switch (name) {
+        case 'quote_convert_to_bookings':
+          return { data: quoteConvertToBookings(args), error: null }
         case 'apply_payment_transition':
           return { data: applyPaymentTransition(args), error: null }
         case 'append_payment_event':
