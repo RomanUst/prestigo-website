@@ -180,6 +180,18 @@ describe('createRemainderIntent (tracer)', () => {
     if (res.ok) expect(res.amountMinor).toBe(12600)
   })
 
+  it('a due amount below the Stripe minimum is not_payable and Stripe is never called', async () => {
+    const fx = await seedPaid()
+    // A frozen version can not be updated through the client (the guard of migration 091), so the rows are changed directly.
+    const remainders = [20, 10]
+    fx.lineIds.forEach((id, i) => {
+      const line = db.state.quote_version_lines.find((l) => l.id === id)!
+      line.remainder_minor = remainders[i]
+    })
+    expect(await create(fx, { displayedAmountMinor: 30 })).toEqual({ ok: false, code: 'not_payable' })
+    expect(fake.calls).toHaveLength(0)
+  })
+
   it('a second call while the first intent is open reuses it: same secret, no second PaymentIntent', async () => {
     const fx = await seedPaid()
     const a = await create(fx)
