@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 91-multi-stop-transfers-airport-pickup-waiting-fees
 source: [91-VERIFICATION.md]
 started: 2026-11-12T00:00:00Z
-updated: 2026-11-12T08:30:00Z
+updated: 2026-11-14T18:00:00Z
 ---
 
 ## Current Test
 
-number: 11
-name: Live Stripe canary after deploy (owner)
-expected: |
-  On a Prague transfer the client can add 1 to 5 stops (a 6th is refused), pick addresses, remove one and reorder with up/down. The map shows the route in the same order with numbered markers and an updated km/min. Any stop change clears the cached price and promo and refetches the quote.
-awaiting: the owner's live booking with a stop (card), then the 1 EUR extra charge and refund
+[testing complete; five items deferred by the owner, see Deferred Follow-Ups]
 
 ## Tests
 
@@ -36,7 +32,8 @@ note: Prague Airport as pickup turns the fields into Landing date / Landing time
 
 ### 4. Live tamper check on production
 expected: Resending the card-checkout request from devtools with distanceKm=1 and a changed isAirport stores the server distance and the quoted amount. A pickup that differs from landing plus offset is refused.
-result: [pending]
+result: skipped
+reason: Deferred follow-up: deferred by the owner on 2026-11-14 ("фаза 91 оставим и проверим потом на реальной брони если что"); to be checked on the first real card booking, see Deferred Follow-Ups
 note: Partly checked: the quote endpoint ignores a client distanceKm (see test 1). The checkout request itself creates a booking and a live Stripe object, so the stored-distance and PICKUP_MISMATCH checks are done together with the owner's canary (test 11).
 
 ### 5. Admin > Pricing waiting rate
@@ -53,7 +50,8 @@ note: Panel opened from the list. Route section: 'Landing 14:00, Pickup 14:30 (+
 
 ### 7. Add extra charge modal
 expected: The action appears only for a completed card booking made under consent 2026-11-3, not for GNet, pay-now, unfinished or old-consent bookings. Waiting mode shows minutes, blocks and the server amount; Other mode takes a description (shown to the client in the receipt) and an amount. The confirm step states the amount, the currency, that the saved card is charged now and the email receipt. The primary button carries the amount, a double click sends one request, the modal cannot be closed while submitting. The extra then appears in the panel's list of extra charges.
-result: [pending]
+result: skipped
+reason: Deferred follow-up: deferred by the owner on 2026-11-14 ("фаза 91 оставим и проверим потом на реальной брони если что"); to be checked on the first real card booking, see Deferred Follow-Ups
 note: Negative case checked: a manual booking (no card, no consent) shows no extra-charge action. The modal itself needs a completed card booking under consent 2026-11-3, so it is checked with the owner's canary (test 11).
 
 ### 8. Move pickup after a flight delay
@@ -70,23 +68,26 @@ note: Trip link of the TEST booking (assignment inserted in the database, no dri
 
 ### 10. Emails and calendar as rendered
 expected: Client confirmation (pay-now and card flow), driver assignment, driver-accepted and manager alert show stops with waits, a waiting amount in the booking currency (client mail) and Landing / Pickup rows for an airport pickup; nothing extra appears without stops. The extra_charged receipt renders in all 7 locales in the waiting and the other variant. The ops Google Calendar event lists landing and stops.
-result: [pending]
+result: skipped
+reason: Deferred follow-up: deferred by the owner on 2026-11-14 ("фаза 91 оставим и проверим потом на реальной брони если что"); to be checked on the first real card booking, see Deferred Follow-Ups
 
 ### 11. Live Stripe canary after deploy (plan 91-16 Task 3, owner)
 expected: The owner sets a waiting rate per class. A production booking with one stop shows the waiting line, stores the server distance and a booking_stops row, and the hold amount includes waiting. After completing it, a 1 EUR "Other" extra on the owner's own card creates a separate PaymentIntent with kind=card_extra, booking_extra_charges.status=charged, ledger admin_action then extra_charged, and one receipt email; bookings.payment_intent_id and payment_state are unchanged. Refunding it in Stripe does not change the booking's own payment state.
-result: [pending]
+result: skipped
+reason: Deferred follow-up: deferred by the owner on 2026-11-14 ("фаза 91 оставим и проверим потом на реальной брони если что"); to be checked on the first real card booking, see Deferred Follow-Ups
 
 ### 12. Live Stripe extra-charge failure paths (review CR-01, WR-02)
 expected: A declined card answers declined with no retry and the PaymentIntent is cancelled. A card requiring authentication ends declined and cancelled, never left requires_action. A lost synchronous answer leaves the row charging; a second click answers payment_busy; resume works only after the lease and asks Stripe first. A PaymentIntent that succeeds after its row was marked failed raises the late-success operator alert and no second charge. The webhook finalises a still-charging row exactly once.
-result: [pending]
+result: skipped
+reason: Deferred follow-up: deferred by the owner on 2026-11-14 ("фаза 91 оставим и проверим потом на реальной брони если что"); to be checked on the first real card booking, see Deferred Follow-Ups
 
 ## Summary
 
 total: 12
 passed: 7
 issues: 0
-pending: 5
-skipped: 0
+pending: 0
+skipped: 5
 blocked: 0
 
 ## Gaps
@@ -123,18 +124,38 @@ Read from the production database by Claude; the booking was made by the owner o
 
 - Stored: one `booking_stops` row (position 1, 15 minutes, 0 paid blocks), `distance_km` 183.324 (the server distance through the stop), `payment_mode` card_hold, `payment_state` card_saved, amount EUR 369, hold scheduled for 2026-11-26 00:30 UTC. Ledger: setup_started, setup_succeeded, hold_scheduled, email_sent, alert_sent.
 - Consent: version 2026-11-3, the rendered text carries the sentence about waiting beyond the booked time and extras (D-12), so an extra charge is allowed on this booking once it is completed.
-- ISSUE found by the owner: neither the confirmation page nor the confirmation email named the stop. Cause: Phase 91 added stop rows to the legacy pay-now email only; card-on-file bookings are confirmed by the localized payment emails, and the confirmation page never listed stops. Fixed in PR #110 (stop rows and landing row in the payment emails, stops on the confirmation page, 8 locales, tests), not merged yet.
+- ISSUE found by the owner: neither the confirmation page nor the confirmation email named the stop. Cause: Phase 91 added stop rows to the legacy pay-now email only; card-on-file bookings are confirmed by the localized payment emails, and the confirmation page never listed stops. Fixed in PR #110 (stop rows and landing row in the payment emails, stops on the confirmation page, 8 locales, tests), merged and live 2026-11-14; not seen in a mailbox or on the page yet (needs a new booking).
 - This covers the storage half of tests 4 and 11. Still open on this booking: completing it, the 1 EUR extra charge and its refund (tests 7, 11, 12), and the emails as rendered after #110 (test 10).
 
 - truth: "Stops and their waiting times are visible in the confirmation email and on the confirmation page (STOP-04)"
-  status: fixed_pending_deploy
+  status: fixed
   reason: "Card-on-file confirmations use lib/payments/emails, which had no stop rows; the confirmation page listed no stops."
   severity: major
   test: 10
-  fix: "PR #110 (branch fix/91-stops-in-confirmation)."
+  fix: "PR #110 (merged 2026-11-14, live)."
 
 ## Observations
 
 - Admin API answers are slow on production (2.5 to 7.5 s per request); several parallel requests from one tab timed out once (504 / no answer for 12 s) and recovered on reload. Seen in Phase 90 as well.
 - The TEST booking was cancelled through the admin cancel route after the checks; its driver assignment row was deleted.
 - The production build of the #107 merge failed once on the Google Fonts download (known flake); `vercel redeploy` of the same deployment succeeded.
+
+## Deferred Follow-Ups
+
+The owner's canary booking PRG-20261114-59EC72 was cancelled by the operator on 2026-11-14 at the owner's request (nothing held or charged, `payment_state` released). The owner decided to close the phase and check the rest on the first real card booking.
+
+- test: 4
+  idea: "On a real card booking with a stop, confirm the stored distance equals the server route distance (done once on the canary: 183.324 km) and that a checkout whose pickup differs from landing plus offset is refused"
+  deferred_at: 2026-11-14
+- test: 7
+  idea: "On a completed card booking under consent 2026-11-3, open Add extra charge: waiting mode and Other mode, the confirm step, one request on a double click, the extra listed in the panel"
+  deferred_at: 2026-11-14
+- test: 10
+  idea: "Look at the confirmation email and the confirmation page of a booking with a stop after PR #110, the driver and manager emails, the extra_charged receipt, and the ops calendar event"
+  deferred_at: 2026-11-14
+- test: 11
+  idea: "Live extra charge proof: only on the owner's own booking or with the client's agreement, a small amount, refunded at once; check kind=card_extra, booking_extra_charges.status=charged, ledger admin_action then extra_charged, one receipt, booking payment state unchanged"
+  deferred_at: 2026-11-14
+- test: 12
+  idea: "Failure paths of the extra charge (declined card, authentication required, lost answer and resume, late success alert); cannot be forced with a live card, watch the first real cases"
+  deferred_at: 2026-11-14

@@ -168,15 +168,21 @@ export async function POST(req: Request) {
             paymentIntent.id,
             'unpaid'
           )
-          await captureUnpaidBooking(outboundUnpaid, bookingData.attemptId, 'outbound', 'pay_now')
+          const capturedOutbound = await captureUnpaidBooking(outboundUnpaid, bookingData.attemptId, 'outbound', 'pay_now')
           await captureUnpaidBooking(returnUnpaid, bookingData.attemptId, 'return', 'pay_now')
+          // A round trip carries no stops (the server refuses them), so priced.stops is []: this clears the stops of an
+          // earlier one-way attempt that reused the same attemptId. Only for a captured (still unpaid) row (T-91-19).
+          if (capturedOutbound.length > 0) await saveBookingStops(capturedOutbound[0].id, priced.stops)
         } else {
           const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
           // 88-REVIEW B-WR-02: an attempt the card flow already captured is never overwritten (AttemptFlowConflictError,
           // logged below); the pay-now booking is then created by the webhook's defensive insert on payment.
           const captured = await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound', 'pay_now')
           // An empty result means the row left unpaid (already confirmed): its stops are never touched (T-91-19).
-          if (hasStops && captured.length > 0) await saveBookingStops(captured[0].id, priced.stops)
+          // Always written for a captured row, also without stops: the stored stops are exactly the ones just priced,
+          // so a retry of the same attempt after the client removed every stop clears the earlier ones (as the card
+          // flow does). A failed clear on a request without stops is logged below and does not block the payment.
+          if (captured.length > 0) await saveBookingStops(captured[0].id, priced.stops)
         }
       } catch (captureErr) {
         console.error(

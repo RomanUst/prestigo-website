@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search } from 'lucide-react'
 import { KPICard } from '@/components/admin/KPICard'
+import { REVENUE_STATUSES, type BookingStatus } from '@/lib/booking-status'
 import BookingsTable from '@/components/admin/BookingsTable'
 import { BookingPanelProvider } from '@/components/admin/BookingPanelProvider'
 import { ManualBookingForm } from '@/components/admin/ManualBookingForm'
@@ -251,10 +252,14 @@ export default function BookingsWorkspace({
     const sundayISO = getSunday(now)
 
     // Today's bookings count
-    fetch(`/api/admin/bookings?startDate=${todayISO}&endDate=${todayISO}&limit=1`)
+    // Only real trips count (REVENUE_STATUSES): cancelled, unpaid, pending and no-show stay out of the KPIs.
+    fetch(`/api/admin/bookings?startDate=${todayISO}&endDate=${todayISO}&limit=100`)
       .then(res => res.ok ? res.json() : null)
       .then(data => {
-        if (data) setTodayCount(data.total ?? 0)
+        if (data && data.bookings) {
+          setTodayCount((data.bookings as Array<{ status: string }>)
+            .filter(b => REVENUE_STATUSES.has(b.status as BookingStatus)).length)
+        }
       })
       .catch(() => {})
 
@@ -263,7 +268,8 @@ export default function BookingsWorkspace({
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data && data.bookings) {
-          const sum = (data.bookings as Array<{ amount_czk: number }>)
+          const sum = (data.bookings as Array<{ amount_czk: number; status: string }>)
+            .filter(b => REVENUE_STATUSES.has(b.status as BookingStatus))
             .reduce((acc, b) => acc + (b.amount_czk ?? 0), 0)
           setWeekRevenue(sum)
         }

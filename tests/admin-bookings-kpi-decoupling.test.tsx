@@ -9,15 +9,22 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 // additional fetch to either KPI URL pattern, and the rendered KPI values
 // must not change.
 
+function kpiRange(url: string): { start: string | null; end: string | null } | null {
+  // KPI fetches: .../api/admin/bookings?startDate=X&endDate=Y&limit=100 — the 100 limit
+  // distinguishes them from BookingsTable's own list fetch (limit=20).
+  if (!url.includes('/api/admin/bookings') || !url.endsWith('&limit=100')) return null
+  const params = new URL(url, 'http://x').searchParams
+  return { start: params.get('startDate'), end: params.get('endDate') }
+}
+
 function isKpiTodayUrl(url: string): boolean {
-  // .../api/admin/bookings?startDate=X&endDate=X&limit=1 — the exact-1 limit
-  // distinguishes it from BookingsTable's own list fetch (limit=20).
-  return url.includes('/api/admin/bookings') && url.endsWith('&limit=1')
+  const r = kpiRange(url)
+  return r !== null && r.start === r.end
 }
 
 function isKpiWeekUrl(url: string): boolean {
-  // .../api/admin/bookings?startDate=monday&endDate=sunday&limit=100
-  return url.includes('/api/admin/bookings') && url.endsWith('&limit=100')
+  const r = kpiRange(url)
+  return r !== null && r.start !== r.end
 }
 
 describe('BookingsWorkspace — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)', () => {
@@ -42,14 +49,21 @@ describe('BookingsWorkspace — KPI decoupling guard (Phase 65 Plan 04, DISP-04/
         })
       }
       if (isKpiTodayUrl(url)) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ total: 5, bookings: [], page: 0, limit: 1 }) })
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({
+          total: 6,
+          // 5 real trips + 1 cancelled: the cancelled one must not count.
+          bookings: [...Array.from({ length: 5 }, () => ({ status: 'confirmed', amount_czk: 100 })), { status: 'cancelled', amount_czk: 100 }],
+          page: 0,
+          limit: 100,
+        }) })
       }
       if (isKpiWeekUrl(url)) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({
-            total: 2,
-            bookings: [{ amount_czk: 1000 }, { amount_czk: 2000 }],
+            total: 3,
+            // The cancelled 5000 must stay out of the week's revenue.
+            bookings: [{ status: 'completed', amount_czk: 1000 }, { status: 'confirmed', amount_czk: 2000 }, { status: 'cancelled', amount_czk: 5000 }],
             page: 0,
             limit: 100,
           }),
@@ -117,7 +131,7 @@ describe('BookingsWorkspace — KPI decoupling guard (Phase 65 Plan 04, DISP-04/
         })
       }
       if (isKpiTodayUrl(url)) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ total: 0, bookings: [], page: 0, limit: 1 }) })
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ total: 0, bookings: [], page: 0, limit: 100 }) })
       }
       if (isKpiWeekUrl(url)) {
         return Promise.resolve({ ok: true, json: () => Promise.resolve({ total: 0, bookings: [], page: 0, limit: 100 }) })

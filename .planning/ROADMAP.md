@@ -23,7 +23,7 @@
 - [x] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
 - [x] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, owner-accepted wording, public go-live
 - [x] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh (completed 2026-11-11)
-- [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
+- [x] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card (completed 2026-11-14)
 - [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
 - [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
 - [ ] **Phase 94: Driver Cabinet** - Driver login, ride list (upcoming/past), offers instead of email links, profile; ride detail = Phase 87 trip screen
@@ -419,7 +419,7 @@ Plans:
   4. Stops, waiting times and the landing/pickup times are saved with the booking and visible in admin, on the driver trip page and in the confirmation email.
   5. The operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates and recorded in the payment ledger; it is never offered for GNet bookings.
 
-**Plans**: 16/17 plans executed
+**Plans**: 17/17 plans complete
 
 Plans:
 **Wave 1**
@@ -449,7 +449,7 @@ Plans:
 - [x] 91-15-PLAN.md — Operator moves the pickup after a flight delay (D-08 / D-11)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 91-16-PLAN.md — Phase integration test, full gate, owner live proofs (rates, canary booking, 1 EUR extra)
+- [x] 91-16-PLAN.md — Phase integration test, full gate, owner live proofs (rates, canary booking, 1 EUR extra)
 
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix. Closes the current gap where `distanceKm` is trusted from the client, and adds an operator-initiated off-session charge.
