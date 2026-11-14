@@ -9,7 +9,7 @@
     "label": "Excursión privada de un día · Český Krumlov",
     "headlineLine1": "Český Krumlov en un día.",
     "headlineItalic": "Su coche le espera mientras usted la recorre.",
-    "intro": "Una excursión privada de un día de Praga a Český Krumlov: un Mercedes con chófer le recoge en su hotel, le lleva hacia el sur a través de Bohemia, espera mientras usted visita el castillo y el casco antiguo y le trae de vuelta esa misma tarde. Desde {dayKrumlovE} € por el coche completo, ida y vuelta.",
+    "intro": "Una excursión privada de un día de Praga a Český Krumlov: un Mercedes con chófer le recoge en su hotel, le lleva hacia el sur a través de Bohemia, espera mientras usted visita el castillo y el casco antiguo y le trae de vuelta esa misma tarde.",
     "ctaPrimary": "Reservar esta excursión",
     "ctaSecondary": "Hacer una pregunta",
     "imageAlt": "Mercedes en la carretera de Praga a Český Krumlov"
@@ -23,7 +23,7 @@
       },
       {
         "label": "Precio",
-        "value": "Desde {dayKrumlovE} € por coche, ida y vuelta; no por persona"
+        "value": "Por coche, no por persona; se muestra completo antes de pagar"
       },
       {
         "label": "Tiempo en destino",
@@ -31,7 +31,7 @@
       },
       {
         "label": "Incluido",
-        "value": "Recogida en el hotel, espera del chófer en destino, combustible y peajes de autopista"
+        "value": "Recogida en el hotel, el trayecto de ida y de vuelta, combustible y peajes de autopista"
       }
     ]
   },
@@ -67,7 +67,7 @@
       },
       {
         "title": "Un solo precio por el coche",
-        "body": "{dayKrumlovE} € en un E-Class (hasta 3 pasajeros), {dayKrumlovV} € en un V-Class (hasta 6) y {dayKrumlovS} € en un S-Class. El precio es por coche, no por persona, e incluye el trayecto de ida, la espera y el trayecto de vuelta."
+        "body": "Usted paga por el coche, no por persona: el trayecto de ida y vuelta, más el tiempo que espera el chófer. Los primeros 15 minutos de espera son gratuitos; después, la espera se cobra por cada 15 minutos iniciados. El formulario de reserva muestra el total completo antes de pagar."
       },
       {
         "title": "Sillas infantiles sin coste",
@@ -80,12 +80,12 @@
     "heading": "Reservar una excursión de un día en cuatro pasos.",
     "items": [
       {
-        "title": "Reserve ida y vuelta",
-        "body": "En el formulario de reserva indique su dirección en Praga y el destino, elija ida y vuelta y fije el regreso para el mismo día. Basta con una hora de regreso aproximada: puede ajustarse ese mismo día."
+        "title": "Envíenos el plan",
+        "body": "Indique la fecha, su dirección en Praga, la ciudad y cuánto tiempo desea quedarse, en el formulario de reserva o en un mensaje. Basta con un esquema aproximado del día."
       },
       {
         "title": "Elija el coche",
-        "body": "E-Class para hasta tres personas, V-Class para hasta seis con espacio de sobra, S-Class para una jornada ejecutiva. Verá el precio del coche completo antes de pagar."
+        "body": "E-Class para hasta tres personas, V-Class para hasta seis con espacio de sobra, S-Class para una jornada ejecutiva. Verá el precio completo del coche antes de pagar."
       },
       {
         "title": "Conozca a su chófer",
@@ -93,7 +93,7 @@
       },
       {
         "title": "Tómese su tiempo",
-        "body": "El chófer espera cerca del centro mientras usted hace la visita. Llame o envíe un mensaje cuando esté listo y el coche volverá a recogerle."
+        "body": "El chófer espera cerca del centro durante el tiempo que usted reservó. Si ese día desea quedarse más tiempo, dígaselo al chófer: la espera adicional se cobra con la misma tarifa."
       }
     ]
   },
@@ -111,7 +111,7 @@
   "faqs": [
     {
       "q": "¿Cuánto cuesta una excursión privada de un día de Praga a Český Krumlov?",
-      "a": "{dayKrumlovE} € en un E-Class (hasta 3 pasajeros), {dayKrumlovV} € en un V-Class (hasta 6) y {dayKrumlovS} € en un S-Class. Es el precio del coche completo para una excursión diurna, ida y vuelta, con el chófer esperando mientras usted hace la visita. El combustible y los peajes de autopista están incluidos. La tarifa exacta para su fecha aparece en el formulario de reserva antes de pagar."
+      "a": "El precio depende del coche que elija y de cuánto tiempo se quede. Se compone del trayecto de ida y vuelta y del tiempo de espera del chófer: los primeros 15 minutos de espera son gratuitos y, después, la espera se cobra por cada 15 minutos iniciados. El precio es por el coche completo, con el combustible y los peajes de autopista incluidos, y verá el total exacto en el formulario de reserva antes de pagar."
     },
     {
       "q": "¿Cuánto dura la excursión?",
@@ -119,7 +119,7 @@
     },
     {
       "q": "¿El chófer nos espera y nos lleva de vuelta el mismo día?",
-      "a": "Sí. En eso consiste una excursión de un día: el mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro y le traen de vuelta a su dirección en Praga. No tendrá que buscar un taxi ni un tren para el regreso."
+      "a": "Sí. El mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro durante el tiempo que usted reservó y le traen de vuelta a su dirección en Praga. El tiempo de espera forma parte del precio; si ese día decide quedarse más tiempo, dígaselo al chófer y el tiempo adicional se cobra con la misma tarifa."
     },
     {
       "q": "¿Están incluidos el guía o las entradas?",
@@ -162,6 +162,6 @@
   },
   "cta": {
     "headingLine1": "Český Krumlov, ida y vuelta, en su propio coche.",
-    "headingItalic": "Desde {dayKrumlovE} € por el coche."
+    "headingItalic": "Vea el precio completo antes de pagar."
   }
 }

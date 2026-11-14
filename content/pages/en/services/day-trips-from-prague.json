@@ -9,7 +9,7 @@
     "label": "Private Day Trips · Prague",
     "headlineLine1": "Day trips from Prague.",
     "headlineItalic": "Your own car, your own clock.",
-    "intro": "Private day trips from Prague in a Mercedes with a chauffeur: collected at your hotel, driven to Český Krumlov, Kutná Hora, Karlovy Vary or Dresden, and brought back the same day while the car waits for you. From €{dayKutnaE} for the whole car, there and back.",
+    "intro": "Private day trips from Prague in a Mercedes with a chauffeur: collected at your hotel, driven to Český Krumlov, Kutná Hora, Karlovy Vary or Dresden, and brought back the same day while the car waits for you.",
     "ctaPrimary": "Book a Day Trip",
     "ctaSecondary": "Ask a Question",
     "imageAlt": "Mercedes on a motorway leaving Prague for a day trip"
@@ -23,7 +23,7 @@
       },
       {
         "label": "Price",
-        "value": "From €{dayKutnaE} per car, there and back — not per person"
+        "value": "Per car, not per person — shown in full before you pay"
       },
       {
         "label": "Vehicles",
@@ -31,7 +31,7 @@
       },
       {
         "label": "Included",
-        "value": "Hotel pickup, chauffeur waiting on site, fuel and motorway tolls"
+        "value": "Hotel pickup, the drive both ways, fuel and motorway tolls"
       }
     ]
   },
@@ -41,7 +41,7 @@
     "paragraphs": [
       "A private day trip is simple: one car and one chauffeur for your party only. You are collected at your Prague address, driven to the town you chose, left to explore for as long as you like, and driven back to the same door.",
       "It is not a group tour. There is no coach, no fixed four hours in town and no waiting for other people. It is also not a guided tour: your chauffeur drives and waits, and you see the town on your own or with a local guide you book yourself.",
-      "The price is for the car, so it is the same for one passenger or for six in a V-Class. For a family or a group of friends it often costs little more per person than a coach seat."
+      "The price is for the car, so it is the same for one passenger or for six in a V-Class."
     ]
   },
   "features": {
@@ -51,23 +51,23 @@
     "items": [
       {
         "title": "Český Krumlov — about 2.5 hours",
-        "body": "A UNESCO castle town in a bend of the Vltava, and the trip visitors ask for most. From €{dayKrumlovE} in an E-Class, €{dayKrumlovV} in a V-Class, €{dayKrumlovS} in an S-Class."
+        "body": "A UNESCO castle town in a bend of the Vltava, and the trip visitors ask for most."
       },
       {
         "title": "Kutná Hora — about 1 hour",
-        "body": "The Bone Church and St Barbara’s Cathedral, in half a day. From €{dayKutnaE} in an E-Class, €{dayKutnaV} in a V-Class, €{dayKutnaS} in an S-Class."
+        "body": "The Bone Church and St Barbara’s Cathedral, in half a day."
       },
       {
         "title": "Karlovy Vary — about 1 hour 45 minutes",
-        "body": "Colonnades, hot springs and the Grandhotel Pupp, with an optional stop at Loket Castle. From €{dayKarlovyE} in an E-Class, €{dayKarlovyV} in a V-Class, €{dayKarlovyS} in an S-Class."
+        "body": "Colonnades, hot springs and the Grandhotel Pupp, with an optional stop at Loket Castle."
       },
       {
         "title": "Dresden — about 2 hours",
-        "body": "Across the German border to the Frauenkirche, the Zwinger and the Old Masters. From €{dayDresdenE} in an E-Class, €{dayDresdenV} in a V-Class, €{dayDresdenS} in an S-Class."
+        "body": "Across the German border to the Frauenkirche, the Zwinger and the Old Masters."
       },
       {
         "title": "The chauffeur waits",
-        "body": "While you visit, the car stays near the centre. When you are ready, call or message the chauffeur and you are collected where you were dropped."
+        "body": "While you visit, the car stays near the centre for the time you booked. When you are ready, call or message the chauffeur and you are collected where you were dropped."
       },
       {
         "title": "Child seats at no charge",
@@ -80,12 +80,12 @@
     "heading": "Booking a day trip in four steps.",
     "items": [
       {
-        "title": "Book a return trip",
-        "body": "In the booking form enter your Prague address and the destination, choose a return trip and set the return for the same day. A rough return time is enough — it can move on the day."
+        "title": "Send us the plan",
+        "body": "Give the date, your Prague address, the town and how long you would like to stay — in the booking form or in a message. A rough outline of the day is enough."
       },
       {
         "title": "Choose the car",
-        "body": "E-Class for up to three, V-Class for up to six with room to spare, S-Class for an executive day. You see the price for the whole car before you pay."
+        "body": "E-Class for up to three, V-Class for up to six with room to spare, S-Class for an executive day. You see the full price for the car before you pay."
       },
       {
         "title": "Meet your chauffeur",
@@ -93,7 +93,7 @@
       },
       {
         "title": "Take your time",
-        "body": "The chauffeur waits near the centre while you visit. Call or message when you are ready and the car comes back for you."
+        "body": "The chauffeur waits near the centre for the time you booked. If you would like to stay longer on the day, tell the chauffeur: extra waiting is charged at the same rate."
       }
     ]
   },
@@ -111,7 +111,7 @@
   "faqs": [
     {
       "q": "How much does a private day trip from Prague cost?",
-      "a": "It depends on the distance. In an E-Class for up to three passengers: Kutná Hora from €{dayKutnaE}, Karlovy Vary from €{dayKarlovyE}, Dresden from €{dayDresdenE} and Český Krumlov from €{dayKrumlovE}. Each price is for the whole car for a daytime trip, there and back, with the chauffeur waiting. The exact fare for your date is shown in the booking form before you pay."
+      "a": "It depends on the distance, the car and how long you stay: Kutná Hora is the shortest trip and Český Krumlov the longest. The price is made up of the drive there and back and the chauffeur’s waiting time — the first 15 minutes of waiting are free, and after that waiting is charged for each started 15 minutes. It is for the whole car, and you see the exact total in the booking form before you pay."
     },
     {
       "q": "Is the price per person or per car?",
@@ -119,7 +119,7 @@
     },
     {
       "q": "Does the chauffeur wait and drive us back the same day?",
-      "a": "Yes. The same car and chauffeur take you there, wait near the centre while you visit and drive you back to your Prague address."
+      "a": "Yes. The same car and chauffeur take you there, wait near the centre for the time you booked and drive you back to your Prague address. Waiting time is part of the price; if you decide to stay longer on the day, tell the chauffeur and the extra time is charged at the same rate."
     },
     {
       "q": "Is a guide included?",
@@ -131,7 +131,7 @@
     },
     {
       "q": "Can we go somewhere that is not on this list?",
-      "a": "Yes. Enter any destination in the booking form with a same-day return and you see the price straight away. For a day with several stops, or a trip of two days or more, write to us and we plan it with you."
+      "a": "Yes. Tell us the place and the date and we send you the price. For a day with several stops, or a trip of two days or more, write to us and we plan it with you."
     }
   ],
   "related": {
@@ -162,6 +162,6 @@
   },
   "cta": {
     "headingLine1": "One car, one chauffeur, one day out.",
-    "headingItalic": "From €{dayKutnaE} for the car."
+    "headingItalic": "See the full price before you pay."
   }
 }

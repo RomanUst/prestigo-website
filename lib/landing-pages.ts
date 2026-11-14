@@ -7,13 +7,10 @@
  * Copy may use the price tokens produced by getLandingPrices():
  *   {businessPrice} {vClassAirport} {sClassAirport} — airport transfer fares
  *   {hourlyFrom} {hourlyV} {hourlyS}               — hourly hire rates
- *   {day<Dest>E} {day<Dest>V} {day<Dest>S}          — same-day return fares for
- *     the private day trips (Dest = Krumlov | Kutna | Karlovy | Dresden)
  */
 
 import { getPricingConfig } from '@/lib/pricing-config'
-import { AIRPORT_FALLBACK, DAY_TRIP_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
-import { getAllRoutes } from '@/lib/route-prices'
+import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 
 export type LandingSection = 'services' | 'faq' | 'fleet'
 
@@ -53,7 +50,9 @@ export const LANDING_PAGES: LandingPageConfig[] = [
   { slug: 'limousine-prague', section: 'services', heroImage: '/vehicles/first-int-2.jpg', ctaHref: '/book?class=first_class' },
   // 2026-11-11: private day trips — the largest demand cluster in every
   // English-speaking market ("day trips from prague", "cesky krumlov day trip").
-  // Car + chauffeur who waits and drives back the same day; no guide.
+  // Car + chauffeur who waits and drives back the same day; no guide. No prices
+  // in the copy: fares and waiting rates live in admin and a tour booking engine
+  // is planned (owner decision 2026-11-14).
   { slug: 'day-trips-from-prague', section: 'services', heroImage: '/hero-intercity-routes.png', ctaHref: '/book' },
   { slug: 'cesky-krumlov-day-trip', section: 'services', heroImage: '/multi-day-hero.png', ctaHref: '/book' },
   { slug: 'kutna-hora-day-trip', section: 'services', heroImage: '/vehicles/van-int-1.jpg', ctaHref: '/book' },
@@ -157,42 +156,9 @@ export type LandingContent = {
   }
 }
 
-/** Day-trip destinations → the route whose distance prices the trip. */
-export const DAY_TRIP_ROUTES = {
-  Krumlov: 'prague-cesky-krumlov',
-  Kutna: 'prague-kutna-hora',
-  Karlovy: 'prague-karlovy-vary',
-  Dresden: 'prague-dresden',
-} as const
-
-/**
- * A day trip is a same-day return booking: the outbound fare plus the return
- * leg with the admin return discount — the same sum the booking form charges
- * for a round trip (lib/server-pricing.ts computeReturnLegEur, no night or
- * holiday coefficient). The chauffeur's waiting time on site is not charged.
- */
-export function dayTripFare(oneWayEur: number, returnDiscountPercent: number): number {
-  return oneWayEur + Math.round(oneWayEur * (1 - returnDiscountPercent / 100))
-}
-
-async function getDayTripPrices(returnDiscountPercent: number): Promise<Record<string, number>> {
-  const routes = await getAllRoutes('slug')
-  const out: Record<string, number> = {}
-  for (const [dest, slug] of Object.entries(DAY_TRIP_ROUTES) as [keyof typeof DAY_TRIP_ROUTES, string][]) {
-    const r = routes.find((x) => x.slug === slug)
-    const fb = DAY_TRIP_FALLBACK[dest]
-    out[`day${dest}E`] = r && r.eClassEur > 0 ? dayTripFare(r.eClassEur, returnDiscountPercent) : fb.e
-    out[`day${dest}V`] = r && r.vClassEur > 0 ? dayTripFare(r.vClassEur, returnDiscountPercent) : fb.v
-    out[`day${dest}S`] = r && r.sClassEur > 0 ? dayTripFare(r.sClassEur, returnDiscountPercent) : fb.s
-  }
-  return out
-}
-
 export async function getLandingPrices(): Promise<Record<string, number>> {
   const { globals, hourlyRate } = await getPricingConfig()
-  const dayTrips = await getDayTripPrices(Number(globals.returnDiscountPercent ?? 10))
   return {
-    ...dayTrips,
     businessPrice: globals.airportPromoActive ? globals.airportPromoPriceEur : globals.airportRegularPriceEur,
     vClassAirport: AIRPORT_FALLBACK.vClass,
     sClassAirport: AIRPORT_FALLBACK.sClass,

@@ -9,7 +9,7 @@
     "label": "Excursiones privadas de un día · Praga",
     "headlineLine1": "Excursiones de un día desde Praga.",
     "headlineItalic": "Su coche, su horario.",
-    "intro": "Excursiones privadas de un día desde Praga en un Mercedes con chófer: le recogemos en su hotel, le llevamos a Český Krumlov, Kutná Hora, Karlovy Vary o Dresde y le traemos de vuelta el mismo día, mientras el coche le espera. Desde {dayKutnaE} € por el coche completo, ida y vuelta.",
+    "intro": "Excursiones privadas de un día desde Praga en un Mercedes con chófer: le recogemos en su hotel, le llevamos a Český Krumlov, Kutná Hora, Karlovy Vary o Dresde y le traemos de vuelta el mismo día, mientras el coche le espera.",
     "ctaPrimary": "Reservar una excursión",
     "ctaSecondary": "Hacer una pregunta",
     "imageAlt": "Mercedes en una autopista saliendo de Praga para una excursión de un día"
@@ -23,7 +23,7 @@
       },
       {
         "label": "Precio",
-        "value": "Desde {dayKutnaE} € por coche, ida y vuelta; no por persona"
+        "value": "Por coche, no por persona; se muestra completo antes de pagar"
       },
       {
         "label": "Vehículos",
@@ -31,7 +31,7 @@
       },
       {
         "label": "Incluido",
-        "value": "Recogida en el hotel, espera del chófer en destino, combustible y peajes de autopista"
+        "value": "Recogida en el hotel, el trayecto de ida y de vuelta, combustible y peajes de autopista"
       }
     ]
   },
@@ -41,7 +41,7 @@
     "paragraphs": [
       "Una excursión privada de un día es algo sencillo: un coche y un chófer solo para su grupo. Le recogemos en su dirección en Praga, le llevamos a la ciudad que haya elegido, le dejamos visitarla el tiempo que quiera y le traemos de vuelta a la misma puerta.",
       "No es un tour en grupo. No hay autocar, ni cuatro horas fijas en la ciudad, ni esperas por otras personas. Tampoco es una visita guiada: su chófer conduce y espera, y usted recorre la ciudad por su cuenta o con un guía local que reserve usted mismo.",
-      "El precio es por coche, así que es el mismo para un pasajero que para seis en un V-Class. Para una familia o un grupo de amigos, a menudo cuesta por persona poco más que una plaza de autocar."
+      "El precio es por coche, así que es el mismo para un pasajero que para seis en un V-Class."
     ]
   },
   "features": {
@@ -51,23 +51,23 @@
     "items": [
       {
         "title": "Český Krumlov: unas 2,5 horas",
-        "body": "Una ciudad con castillo, Patrimonio Mundial de la UNESCO, en un meandro del Moldava, y la excursión que más piden los visitantes. Desde {dayKrumlovE} € en un E-Class, {dayKrumlovV} € en un V-Class y {dayKrumlovS} € en un S-Class."
+        "body": "Una ciudad con castillo, Patrimonio Mundial de la UNESCO, en un meandro del Moldava, y la excursión que más piden los visitantes."
       },
       {
         "title": "Kutná Hora: alrededor de 1 hora",
-        "body": "La iglesia de los huesos y la catedral de Santa Bárbara, en medio día. Desde {dayKutnaE} € en un E-Class, {dayKutnaV} € en un V-Class y {dayKutnaS} € en un S-Class."
+        "body": "La iglesia de los huesos y la catedral de Santa Bárbara, en medio día."
       },
       {
         "title": "Karlovy Vary: alrededor de 1 hora y 45 minutos",
-        "body": "Columnatas, fuentes termales y el Grandhotel Pupp, con una parada opcional en el castillo de Loket. Desde {dayKarlovyE} € en un E-Class, {dayKarlovyV} € en un V-Class y {dayKarlovyS} € en un S-Class."
+        "body": "Columnatas, fuentes termales y el Grandhotel Pupp, con una parada opcional en el castillo de Loket."
       },
       {
         "title": "Dresde: unas 2 horas",
-        "body": "Al otro lado de la frontera alemana: la Frauenkirche, el Zwinger y los Maestros Antiguos. Desde {dayDresdenE} € en un E-Class, {dayDresdenV} € en un V-Class y {dayDresdenS} € en un S-Class."
+        "body": "Al otro lado de la frontera alemana: la Frauenkirche, el Zwinger y los Maestros Antiguos."
       },
       {
         "title": "El chófer le espera",
-        "body": "Mientras usted hace la visita, el coche se queda cerca del centro. Cuando esté listo, llame o envíe un mensaje al chófer y le recogerá donde le dejó."
+        "body": "Mientras usted hace la visita, el coche se queda cerca del centro durante el tiempo que usted reservó. Cuando esté listo, llame o envíe un mensaje al chófer y le recogerá donde le dejó."
       },
       {
         "title": "Sillas infantiles sin coste",
@@ -80,12 +80,12 @@
     "heading": "Reservar una excursión de un día en cuatro pasos.",
     "items": [
       {
-        "title": "Reserve ida y vuelta",
-        "body": "En el formulario de reserva indique su dirección en Praga y el destino, elija ida y vuelta y fije el regreso para el mismo día. Basta con una hora de regreso aproximada: puede ajustarse ese mismo día."
+        "title": "Envíenos el plan",
+        "body": "Indique la fecha, su dirección en Praga, la ciudad y cuánto tiempo desea quedarse, en el formulario de reserva o en un mensaje. Basta con un esquema aproximado del día."
       },
       {
         "title": "Elija el coche",
-        "body": "E-Class para hasta tres personas, V-Class para hasta seis con espacio de sobra, S-Class para una jornada ejecutiva. Verá el precio del coche completo antes de pagar."
+        "body": "E-Class para hasta tres personas, V-Class para hasta seis con espacio de sobra, S-Class para una jornada ejecutiva. Verá el precio completo del coche antes de pagar."
       },
       {
         "title": "Conozca a su chófer",
@@ -93,7 +93,7 @@
       },
       {
         "title": "Tómese su tiempo",
-        "body": "El chófer espera cerca del centro mientras usted hace la visita. Llame o envíe un mensaje cuando esté listo y el coche volverá a recogerle."
+        "body": "El chófer espera cerca del centro durante el tiempo que usted reservó. Si ese día desea quedarse más tiempo, dígaselo al chófer: la espera adicional se cobra con la misma tarifa."
       }
     ]
   },
@@ -111,7 +111,7 @@
   "faqs": [
     {
       "q": "¿Cuánto cuesta una excursión privada de un día desde Praga?",
-      "a": "Depende de la distancia. En un E-Class para hasta tres pasajeros: Kutná Hora desde {dayKutnaE} €, Karlovy Vary desde {dayKarlovyE} €, Dresde desde {dayDresdenE} € y Český Krumlov desde {dayKrumlovE} €. Cada precio es por el coche completo para una excursión diurna, ida y vuelta, con la espera del chófer. La tarifa exacta para su fecha aparece en el formulario de reserva antes de pagar."
+      "a": "Depende de la distancia, del coche y de cuánto tiempo se quede: Kutná Hora es la excursión más corta y Český Krumlov la más larga. El precio se compone del trayecto de ida y vuelta y del tiempo de espera del chófer: los primeros 15 minutos de espera son gratuitos y, después, la espera se cobra por cada 15 minutos iniciados. Es por el coche completo, y verá el total exacto en el formulario de reserva antes de pagar."
     },
     {
       "q": "¿El precio es por persona o por coche?",
@@ -119,7 +119,7 @@
     },
     {
       "q": "¿El chófer nos espera y nos lleva de vuelta el mismo día?",
-      "a": "Sí. El mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro mientras usted hace la visita y le traen de vuelta a su dirección en Praga."
+      "a": "Sí. El mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro durante el tiempo que usted reservó y le traen de vuelta a su dirección en Praga. El tiempo de espera forma parte del precio; si ese día decide quedarse más tiempo, dígaselo al chófer y el tiempo adicional se cobra con la misma tarifa."
     },
     {
       "q": "¿Está incluido un guía?",
@@ -131,7 +131,7 @@
     },
     {
       "q": "¿Podemos ir a un lugar que no esté en esta lista?",
-      "a": "Sí. Introduzca cualquier destino en el formulario de reserva con regreso el mismo día y verá el precio al instante. Para un día con varias paradas, o un viaje de dos días o más, escríbanos y lo planificamos con usted."
+      "a": "Sí. Indíquenos el lugar y la fecha y le enviamos el precio. Para un día con varias paradas, o un viaje de dos días o más, escríbanos y lo planificamos con usted."
     }
   ],
   "related": {
@@ -162,6 +162,6 @@
   },
   "cta": {
     "headingLine1": "Un coche, un chófer, un día de excursión.",
-    "headingItalic": "Desde {dayKutnaE} € por el coche."
+    "headingItalic": "Vea el precio completo antes de pagar."
   }
 }

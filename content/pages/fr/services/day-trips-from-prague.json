@@ -9,7 +9,7 @@
     "label": "Excursions privées · Prague",
     "headlineLine1": "Excursions à la journée depuis Prague.",
     "headlineItalic": "Votre voiture, votre rythme.",
-    "intro": "Des excursions privées à la journée depuis Prague en Mercedes avec chauffeur : on vient vous chercher à votre hôtel, on vous conduit à Český Krumlov, Kutná Hora, Karlovy Vary ou Dresde, et on vous ramène le jour même, la voiture restant à vous attendre. À partir de {dayKutnaE} € pour la voiture entière, aller-retour.",
+    "intro": "Des excursions privées à la journée depuis Prague en Mercedes avec chauffeur : on vient vous chercher à votre hôtel, on vous conduit à Český Krumlov, Kutná Hora, Karlovy Vary ou Dresde, et on vous ramène le jour même, la voiture restant à vous attendre.",
     "ctaPrimary": "Réserver une excursion",
     "ctaSecondary": "Poser une question",
     "imageAlt": "Mercedes sur l'autoroute quittant Prague pour une excursion à la journée"
@@ -23,7 +23,7 @@
       },
       {
         "label": "Prix",
-        "value": "À partir de {dayKutnaE} € par voiture, aller-retour — et non par personne"
+        "value": "Par voiture, et non par personne — affiché en totalité avant le paiement"
       },
       {
         "label": "Véhicules",
@@ -31,7 +31,7 @@
       },
       {
         "label": "Inclus",
-        "value": "Prise en charge à l'hôtel, attente du chauffeur sur place, carburant et péages d'autoroute"
+        "value": "Prise en charge à l'hôtel, trajet aller et retour, carburant et péages d'autoroute"
       }
     ]
   },
@@ -41,7 +41,7 @@
     "paragraphs": [
       "Une excursion privée, c'est simple : une voiture et un chauffeur pour vous et vos proches uniquement. On vient vous chercher à votre adresse à Prague, on vous conduit dans la ville de votre choix, vous la découvrez aussi longtemps que vous le souhaitez, puis on vous ramène à la même porte.",
       "Ce n'est pas une excursion en groupe. Pas d'autocar, pas de quatre heures imposées sur place, personne à attendre. Ce n'est pas non plus une visite guidée : votre chauffeur conduit et attend, et vous découvrez la ville par vous-même ou avec un guide local que vous réservez de votre côté.",
-      "Le prix s'entend pour la voiture : il est donc le même pour un passager ou pour six en V-Class. Pour une famille ou un groupe d'amis, cela revient souvent à peine plus cher par personne qu'une place en autocar."
+      "Le prix s'entend pour la voiture : il est donc le même pour un passager ou pour six en V-Class."
     ]
   },
   "features": {
@@ -51,23 +51,23 @@
     "items": [
       {
         "title": "Český Krumlov — environ 2 h 30",
-        "body": "Une ville classée à l'UNESCO, avec son château, dans un méandre de la Vltava : l'excursion la plus demandée par les visiteurs. À partir de {dayKrumlovE} € en E-Class, {dayKrumlovV} € en V-Class, {dayKrumlovS} € en S-Class."
+        "body": "Une ville classée à l'UNESCO, avec son château, dans un méandre de la Vltava : l'excursion la plus demandée par les visiteurs."
       },
       {
         "title": "Kutná Hora — environ 1 heure",
-        "body": "L'église aux ossements et la cathédrale Sainte-Barbe, en une demi-journée. À partir de {dayKutnaE} € en E-Class, {dayKutnaV} € en V-Class, {dayKutnaS} € en S-Class."
+        "body": "L'église aux ossements et la cathédrale Sainte-Barbe, en une demi-journée."
       },
       {
         "title": "Karlovy Vary — environ 1 h 45",
-        "body": "Les colonnades, les sources chaudes et le Grandhotel Pupp, avec un arrêt facultatif au château de Loket. À partir de {dayKarlovyE} € en E-Class, {dayKarlovyV} € en V-Class, {dayKarlovyS} € en S-Class."
+        "body": "Les colonnades, les sources chaudes et le Grandhotel Pupp, avec un arrêt facultatif au château de Loket."
       },
       {
         "title": "Dresde — environ 2 heures",
-        "body": "De l'autre côté de la frontière allemande, la Frauenkirche, le Zwinger et les Maîtres anciens. À partir de {dayDresdenE} € en E-Class, {dayDresdenV} € en V-Class, {dayDresdenS} € en S-Class."
+        "body": "De l'autre côté de la frontière allemande, la Frauenkirche, le Zwinger et les Maîtres anciens."
       },
       {
         "title": "Le chauffeur vous attend",
-        "body": "Pendant votre visite, la voiture reste à proximité du centre. Quand vous êtes prêt, appelez le chauffeur ou envoyez-lui un message : il vous reprend là où il vous a déposé."
+        "body": "Pendant votre visite, la voiture reste à proximité du centre pendant la durée que vous avez réservée. Quand vous êtes prêt, appelez le chauffeur ou envoyez-lui un message : il vous reprend là où il vous a déposé."
       },
       {
         "title": "Sièges enfant sans supplément",
@@ -80,12 +80,12 @@
     "heading": "Réserver une excursion en quatre étapes.",
     "items": [
       {
-        "title": "Réservez un aller-retour",
-        "body": "Dans le formulaire de réservation, saisissez votre adresse à Prague et la destination, choisissez un aller-retour et fixez le retour au même jour. Une heure de retour approximative suffit — elle peut être ajustée le jour même."
+        "title": "Envoyez-nous votre programme",
+        "body": "Indiquez la date, votre adresse à Prague, la ville et la durée souhaitée sur place — dans le formulaire de réservation ou par message. Les grandes lignes de la journée suffisent."
       },
       {
         "title": "Choisissez la voiture",
-        "body": "E-Class jusqu'à trois personnes, V-Class jusqu'à six personnes avec de la place en plus, S-Class pour une journée de direction. Vous voyez le prix de la voiture entière avant de payer."
+        "body": "E-Class jusqu'à trois personnes, V-Class jusqu'à six personnes avec de la place en plus, S-Class pour une journée de direction. Vous voyez le prix total de la voiture avant de payer."
       },
       {
         "title": "Rencontrez votre chauffeur",
@@ -93,7 +93,7 @@
       },
       {
         "title": "Prenez votre temps",
-        "body": "Le chauffeur attend près du centre pendant votre visite. Appelez-le ou envoyez-lui un message quand vous êtes prêt, et la voiture revient vous chercher."
+        "body": "Le chauffeur attend près du centre pendant la durée que vous avez réservée. Si vous souhaitez rester plus longtemps le jour même, dites-le au chauffeur : l'attente supplémentaire est facturée au même tarif."
       }
     ]
   },
@@ -111,7 +111,7 @@
   "faqs": [
     {
       "q": "Combien coûte une excursion privée à la journée depuis Prague ?",
-      "a": "Tout dépend de la distance. En E-Class, jusqu'à trois passagers : Kutná Hora à partir de {dayKutnaE} €, Karlovy Vary à partir de {dayKarlovyE} €, Dresde à partir de {dayDresdenE} € et Český Krumlov à partir de {dayKrumlovE} €. Chaque prix s'entend pour la voiture entière, pour une excursion de jour, aller-retour, attente du chauffeur comprise. Le tarif exact pour votre date s'affiche dans le formulaire de réservation avant le paiement."
+      "a": "Tout dépend de la distance, de la voiture et de la durée de votre visite : Kutná Hora est l'excursion la plus courte, Český Krumlov la plus longue. Le prix se compose du trajet aller et retour et du temps d'attente du chauffeur — les 15 premières minutes d'attente sont gratuites, puis l'attente est facturée par tranche de 15 minutes entamée. Il s'entend pour la voiture entière, et le montant exact s'affiche dans le formulaire de réservation avant le paiement."
     },
     {
       "q": "Le prix est-il par personne ou par voiture ?",
@@ -119,7 +119,7 @@
     },
     {
       "q": "Le chauffeur attend-il et nous ramène-t-il le jour même ?",
-      "a": "Oui. La même voiture et le même chauffeur vous y conduisent, attendent près du centre pendant votre visite et vous ramènent à votre adresse à Prague."
+      "a": "Oui. La même voiture et le même chauffeur vous y conduisent, attendent près du centre pendant la durée que vous avez réservée et vous ramènent à votre adresse à Prague. Le temps d'attente fait partie du prix ; si vous décidez de rester plus longtemps le jour même, dites-le au chauffeur et le temps supplémentaire est facturé au même tarif."
     },
     {
       "q": "Un guide est-il inclus ?",
@@ -131,7 +131,7 @@
     },
     {
       "q": "Peut-on aller ailleurs que dans les villes de cette liste ?",
-      "a": "Oui. Saisissez n'importe quelle destination dans le formulaire de réservation avec un retour le jour même, et le prix s'affiche aussitôt. Pour une journée avec plusieurs arrêts, ou un voyage de deux jours ou plus, écrivez-nous et nous l'organisons avec vous."
+      "a": "Oui. Indiquez-nous le lieu et la date, et nous vous envoyons le prix. Pour une journée avec plusieurs arrêts, ou un voyage de deux jours ou plus, écrivez-nous et nous l'organisons avec vous."
     }
   ],
   "related": {
@@ -162,6 +162,6 @@
   },
   "cta": {
     "headingLine1": "Une voiture, un chauffeur, une journée d'évasion.",
-    "headingItalic": "À partir de {dayKutnaE} € pour la voiture."
+    "headingItalic": "Le prix total affiché avant le paiement."
   }
 }
