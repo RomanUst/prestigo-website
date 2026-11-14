@@ -546,7 +546,9 @@ describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13
     expect(within(builder).queryAllByRole('textbox')).toHaveLength(0)
     expect(within(builder).queryAllByRole('combobox')).toHaveLength(0)
     expect(within(builder).queryAllByRole('radio')).toHaveLength(0)
-    expect(within(builder).queryAllByRole('button')).toHaveLength(0)
+    // The lifecycle buttons of the actions bar (92-25: Copy new link, Resend, Edit, Cancel quote) are not editing controls.
+    const bar = within(builder).getByTestId('quote-actions')
+    expect(within(builder).queryAllByRole('button').filter((b) => !bar.contains(b))).toHaveLength(0)
     const settings = screen.getByTestId('quote-settings-readonly')
     expect(settings).toHaveTextContent('Русский')
     expect(settings).toHaveTextContent('30%')
