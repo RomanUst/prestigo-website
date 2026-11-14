@@ -1462,6 +1462,12 @@
     "invoice": {
       "note": "Nous vous enverrons une facture pour le solde de {amount}."
     },
+    "pdf": {
+      "download": "Télécharger le PDF",
+      "preparing": "Préparation du PDF…",
+      "unavailable": "Le PDF n'est pas disponible pour le moment. Utilisez Imprimer pour enregistrer le devis en PDF.",
+      "print": "Imprimer"
+    },
     "invalid": {
       "title": "Ce devis n'est plus disponible",
       "body": "Le lien a expiré ou a été remplacé par un devis plus récent. Contactez-nous et nous vous aiderons."
@@ -1470,6 +1476,17 @@
       "heading": "Des questions ?",
       "call": "Appelez-nous",
       "email": "Écrivez-nous"
+    },
+    "done": {
+      "title": "Merci",
+      "body": "Nous confirmons votre paiement. Ouvrez le lien du devis reçu par e-mail pour voir vos trajets."
+    },
+    "document": {
+      "title": "Devis",
+      "issued": "Émis le {date}",
+      "reference": "Référence",
+      "acceptOnline": "Acceptez le devis et réglez l'acompte en ligne avec le lien que nous vous avons envoyé.",
+      "operator": "Prestigo est exploité par {company}."
     }
   }
 }

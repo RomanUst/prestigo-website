@@ -1412,6 +1412,12 @@
     "invoice": {
       "note": "We will send you an invoice for the remainder of {amount}."
     },
+    "pdf": {
+      "download": "Download PDF",
+      "preparing": "Preparing the PDF…",
+      "unavailable": "The PDF is not available right now. Use Print to save the quote as a PDF.",
+      "print": "Print"
+    },
     "invalid": {
       "title": "This quote is no longer available",
       "body": "The link has expired or was replaced by a newer quote. Please contact us and we will help you."
@@ -1420,6 +1426,17 @@
       "heading": "Questions?",
       "call": "Call us",
       "email": "Email us"
+    },
+    "done": {
+      "title": "Thank you",
+      "body": "We are confirming your payment. Open the quote link from your email to see your trips."
+    },
+    "document": {
+      "title": "Quote",
+      "issued": "Issued on {date}",
+      "reference": "Reference",
+      "acceptOnline": "Accept the quote and pay the deposit online with the link we sent you.",
+      "operator": "Prestigo is operated by {company}."
     }
   }
 }

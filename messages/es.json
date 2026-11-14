@@ -1462,6 +1462,12 @@
     "invoice": {
       "note": "Le enviaremos una factura por el resto de {amount}."
     },
+    "pdf": {
+      "download": "Descargar PDF",
+      "preparing": "Preparando el PDF…",
+      "unavailable": "El PDF no está disponible en este momento. Use Imprimir para guardar el presupuesto como PDF.",
+      "print": "Imprimir"
+    },
     "invalid": {
       "title": "Este presupuesto ya no está disponible",
       "body": "El enlace ha caducado o fue sustituido por un presupuesto más reciente. Contáctenos y le ayudaremos."
@@ -1470,6 +1476,17 @@
       "heading": "¿Tiene preguntas?",
       "call": "Llámenos",
       "email": "Escríbanos"
+    },
+    "done": {
+      "title": "Gracias",
+      "body": "Estamos confirmando su pago. Abra el enlace del presupuesto que recibió por correo para ver sus trayectos."
+    },
+    "document": {
+      "title": "Presupuesto",
+      "issued": "Emitido el {date}",
+      "reference": "Referencia",
+      "acceptOnline": "Acepte el presupuesto y pague el depósito en línea con el enlace que le enviamos.",
+      "operator": "Prestigo es operado por {company}."
     }
   }
 }

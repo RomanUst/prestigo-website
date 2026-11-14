@@ -36,8 +36,12 @@ const PAGE_KEYS = [
   'contact.heading', 'contact.call', 'contact.email',
 ] as const
 
-/** Task 3 adds: PDF download and print fallback, return page, PDF document (11 keys). */
-const DOCUMENT_KEYS = [] as const
+/** Task 3: PDF download and print fallback, return page, PDF document (11 keys). */
+const DOCUMENT_KEYS = [
+  'pdf.download', 'pdf.preparing', 'pdf.unavailable', 'pdf.print',
+  'done.title', 'done.body',
+  'document.title', 'document.issued', 'document.reference', 'document.acceptOnline', 'document.operator',
+] as const
 
 const KEYS = [...PAGE_KEYS, ...DOCUMENT_KEYS].map((k) => `Quote.${k}`)
 

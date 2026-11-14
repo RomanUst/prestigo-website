@@ -1462,6 +1462,12 @@
     "invoice": {
       "note": "我们将向您发送 {amount} 余款的发票。"
     },
+    "pdf": {
+      "download": "下载 PDF",
+      "preparing": "正在准备 PDF…",
+      "unavailable": "PDF 暂时无法使用。请使用“打印”将报价保存为 PDF。",
+      "print": "打印"
+    },
     "invalid": {
       "title": "此报价已不可用",
       "body": "链接已过期，或已被更新的报价取代。请联系我们，我们会为您提供帮助。"
@@ -1470,6 +1476,17 @@
       "heading": "有疑问？",
       "call": "致电我们",
       "email": "发邮件给我们"
+    },
+    "done": {
+      "title": "谢谢您",
+      "body": "我们正在确认您的付款。请打开邮件中的报价链接查看您的行程。"
+    },
+    "document": {
+      "title": "报价",
+      "issued": "出具日期：{date}",
+      "reference": "编号",
+      "acceptOnline": "请通过我们发送给您的链接在线接受报价并支付定金。",
+      "operator": "Prestigo 由 {company} 运营。"
     }
   }
 }

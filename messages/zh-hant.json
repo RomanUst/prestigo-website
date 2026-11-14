@@ -1467,6 +1467,12 @@
     "invoice": {
       "note": "我們將向您傳送 {amount} 餘款的發票。"
     },
+    "pdf": {
+      "download": "下載 PDF",
+      "preparing": "正在準備 PDF…",
+      "unavailable": "PDF 暫時無法使用。請使用“列印”將報價儲存為 PDF。",
+      "print": "列印"
+    },
     "invalid": {
       "title": "此報價已不可用",
       "body": "連結已過期，或已被更新的報價取代。請聯絡我們，我們會為您提供幫助。"
@@ -1475,6 +1481,17 @@
       "heading": "有疑問？",
       "call": "致電我們",
       "email": "發郵件給我們"
+    },
+    "done": {
+      "title": "謝謝您",
+      "body": "我們正在確認您的付款。請開啟郵件中的報價連結檢視您的行程。"
+    },
+    "document": {
+      "title": "報價",
+      "issued": "出具日期：{date}",
+      "reference": "編號",
+      "acceptOnline": "請透過我們傳送給您的連結線上接受報價並支付定金。",
+      "operator": "Prestigo 由 {company} 運營。"
     }
   }
 }
