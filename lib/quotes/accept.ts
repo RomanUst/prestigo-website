@@ -34,9 +34,26 @@ export type AcceptQuoteResult =
 const refuse = (code: Extract<AcceptQuoteResult, { ok: false }>['code']): AcceptQuoteResult => ({ ok: false, code })
 
 /** A database write that failed: the route answers a generic 502; the message never reaches a log line or a client. */
+class AcceptWriteError extends Error {}
+
 function dbFailure(what: string): Error {
-  return new Error(`quote accept ${what} failed`)
+  return new AcceptWriteError(`quote accept ${what} failed`)
 }
+
+/** Stripe's "no such object": a stored intent that is gone is replaced, like a canceled one. */
+function isMissingResource(err: unknown): boolean {
+  const e = err as { code?: unknown; statusCode?: unknown } | null
+  return e?.code === 'resource_missing' || e?.statusCode === 404
+}
+
+const LIVE_STATUSES = new Set(['requires_payment_method', 'requires_confirmation', 'requires_action'])
+const PAYING_STATUSES = new Set(['processing', 'succeeded', 'requires_capture'])
+
+type StoredIntent =
+  | { kind: 'live'; id: string; clientSecret: string }
+  | { kind: 'paying'; id: string }
+  | { kind: 'replace' }
+  | { kind: 'busy' }
 
 /**
  * Compare-and-set sent | viewed -> accepted on the version the client saw. A quote already accepted on this same version
@@ -137,11 +154,33 @@ export async function acceptQuote(input: {
   const refused = await markAccepted(resolved, nowMs)
   if (refused) return refused
 
-  // 6. Stripe: the quote's customer, then the one deposit PaymentIntent.
+  // 6. Stripe. One live deposit intent per quote (T-92-50, Pitfall 8): a live stored intent of this very version and
+  // amount is reused, a processing or succeeded one means the client is already paying, a canceled or vanished one is
+  // replaced. Anything else is never guessed: the client is told to retry.
+  const previousId = quote.deposit_payment_intent_id
   let clientSecret: string
   let intentId: string
   try {
     const stripe = getPaymentsStripe()
+
+    if (previousId) {
+      const stored = await inspectStoredIntent(previousId, {
+        versionId: version.id,
+        amountMinor: depositMinor,
+        currency: version.currency,
+      })
+      if (stored.kind === 'busy') return refuse('busy')
+      if (stored.kind === 'paying') {
+        await linkAcceptance(acceptanceId, stored.id)
+        return refuse('already_paying')
+      }
+      if (stored.kind === 'live') {
+        await linkAcceptance(acceptanceId, stored.id)
+        return { ok: true, clientSecret: stored.clientSecret, amountMinor: depositMinor, currency: version.currency }
+      }
+      // 'replace': fall through to a new intent; previousId stays the compare-and-set guard in step 7.
+    }
+
     const customerId = await ensureQuoteStripeCustomer(quote)
     if (customerId !== quote.stripe_customer_id) {
       const { error } = await supabase.from('quotes').update({ stripe_customer_id: customerId }).eq('id', quote.id)
@@ -168,7 +207,7 @@ export async function acceptQuote(input: {
     clientSecret = pi.client_secret
     intentId = pi.id
   } catch (err) {
-    if (err instanceof Error && err.message.startsWith('quote accept ')) throw err
+    if (err instanceof AcceptWriteError) throw err
     console.error('[quote-accept] stripe call failed', {
       quoteId: quote.id,
       class: classifyStripeError(err),
@@ -177,15 +216,22 @@ export async function acceptQuote(input: {
     return refuse('stripe_error')
   }
 
-  // 7. Store the intent on the quote and on the acceptance, then the ledger event.
+  // 7. Store the intent on the quote by compare-and-set against the intent we replaced (or null). A concurrent accept
+  // that stored its own intent first wins; ours is canceled and the client is told to retry (it then reuses the winner).
   {
-    const { error } = await supabase.from('quotes').update({ deposit_payment_intent_id: intentId }).eq('id', quote.id)
-    if (error) throw dbFailure('intent write')
+    const base = supabase.from('quotes').update({ deposit_payment_intent_id: intentId }).eq('id', quote.id)
+    const guarded = previousId ? base.eq('deposit_payment_intent_id', previousId) : base.is('deposit_payment_intent_id', null)
+    const { data, error } = await guarded.select('id')
+    if (error) {
+      await cancelOwnIntent(quote.id, intentId)
+      throw dbFailure('intent write')
+    }
+    if (!Array.isArray(data) || data.length === 0) {
+      await cancelOwnIntent(quote.id, intentId)
+      return refuse('busy')
+    }
   }
-  {
-    const { error } = await supabase.from('quote_acceptances').update({ payment_intent_id: intentId }).eq('id', acceptanceId)
-    if (error) throw dbFailure('acceptance link')
-  }
+  await linkAcceptance(acceptanceId, intentId)
   await appendQuoteEvent(quote.id, {
     key: `deposit_started:${intentId}`,
     kind: 'deposit_started',
@@ -197,4 +243,75 @@ export async function acceptQuote(input: {
   })
 
   return { ok: true, clientSecret, amountMinor: depositMinor, currency: version.currency }
+}
+
+/** Sets payment_intent_id on the acceptance row (the log guard allows it once, from null). */
+async function linkAcceptance(acceptanceId: string, intentId: string): Promise<void> {
+  const { error } = await createSupabaseServiceClient()
+    .from('quote_acceptances')
+    .update({ payment_intent_id: intentId })
+    .eq('id', acceptanceId)
+  if (error) throw dbFailure('acceptance link')
+}
+
+/**
+ * What the stored deposit intent allows. A live intent that does not match this version and amount (the quote moved on
+ * since it was made) is canceled and replaced, never handed to the client. A cancel that fails is 'busy': the intent may
+ * have moved on meanwhile, so nothing is guessed and the client retries.
+ */
+async function inspectStoredIntent(
+  intentId: string,
+  expected: { versionId: string; amountMinor: number; currency: string },
+): Promise<StoredIntent> {
+  const stripe = getPaymentsStripe()
+  let pi: {
+    id: string
+    status: string
+    amount?: number
+    currency?: string
+    client_secret?: string | null
+    metadata?: Record<string, string> | null
+  }
+  try {
+    pi = (await stripe.paymentIntents.retrieve(intentId)) as unknown as typeof pi
+  } catch (err) {
+    if (isMissingResource(err)) return { kind: 'replace' }
+    throw err
+  }
+
+  if (pi.status === 'canceled') return { kind: 'replace' }
+  if (PAYING_STATUSES.has(pi.status)) return { kind: 'paying', id: pi.id }
+  if (!LIVE_STATUSES.has(pi.status)) return { kind: 'busy' }
+
+  const matches =
+    pi.amount === expected.amountMinor &&
+    pi.currency === expected.currency &&
+    pi.metadata?.versionId === expected.versionId
+  if (matches && pi.client_secret) return { kind: 'live', id: pi.id, clientSecret: pi.client_secret }
+
+  try {
+    await stripe.paymentIntents.cancel(pi.id, undefined, { idempotencyKey: stripeKeys.quoteDepositVoid(pi.id) })
+  } catch (err) {
+    console.warn('[quote-accept] stale deposit intent not canceled', {
+      class: classifyStripeError(err),
+      code: stripeErrorCode(err),
+    })
+    return { kind: 'busy' }
+  }
+  return { kind: 'replace' }
+}
+
+/** Best effort: an intent that lost the compare-and-set was never handed to anyone, so a failed cancel is only logged. */
+async function cancelOwnIntent(quoteId: string, intentId: string): Promise<void> {
+  try {
+    await getPaymentsStripe().paymentIntents.cancel(intentId, undefined, {
+      idempotencyKey: stripeKeys.quoteDepositVoid(intentId),
+    })
+  } catch (err) {
+    console.warn('[quote-accept] own deposit intent not canceled', {
+      quoteId,
+      class: classifyStripeError(err),
+      code: stripeErrorCode(err),
+    })
+  }
 }

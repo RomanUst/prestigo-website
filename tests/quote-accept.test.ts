@@ -299,3 +299,195 @@ describe('renderQuoteTerms (D-08, D-21, D-22)', () => {
     }
   })
 })
+
+const livePis = () => [...fake.state.paymentIntents.values()].filter((p) => p.status !== 'canceled')
+
+describe('acceptQuote: one live deposit intent per quote (Pitfall 8, T-92-50)', () => {
+  it('Pitfall 8: a second accept while the intent is live returns the same secret, logs a second row, creates no intent', async () => {
+    const fx = await seed()
+    const first = await accept(fx)
+    const second = await accept(fx)
+    expect(first.ok && second.ok).toBe(true)
+    if (!first.ok || !second.ok) return
+
+    expect(second.clientSecret).toBe(first.clientSecret)
+    expect(fake.executed('paymentIntents.create')).toBe(1)
+    expect(acceptances()).toHaveLength(2)
+    const piId = [...fake.state.paymentIntents.keys()][0]
+    expect(acceptances().map((a) => a.payment_intent_id)).toEqual([piId, piId])
+    expect(quoteRow().deposit_payment_intent_id).toBe(piId)
+    expect(eventKinds().filter((k) => k === 'deposit_started')).toHaveLength(1)
+    expect(livePis()).toHaveLength(1)
+  })
+
+  it('answers already_paying while the stored intent is processing or succeeded', async () => {
+    for (const status of ['processing', 'succeeded', 'requires_capture']) {
+      db = createFakePaymentsDb()
+      world.client = db.client
+      fake = createFakeStripe()
+      world.stripe = recordingStripe(fake.stripe)
+      const fx = await seed()
+      expect((await accept(fx)).ok).toBe(true)
+      fake.setPaymentIntentStatus([...fake.state.paymentIntents.keys()][0], status)
+      const before = fake.executed('paymentIntents.create')
+      expect(await accept(fx), status).toEqual({ ok: false, code: 'already_paying' })
+      expect(fake.executed('paymentIntents.create'), status).toBe(before)
+    }
+  })
+
+  it('answers already_paid for a paid quote, writes no row and calls no Stripe', async () => {
+    const fx = await seed({ status: 'paid' })
+    expect(await accept(fx)).toEqual({ ok: false, code: 'already_paid' })
+    expect(acceptances()).toHaveLength(0)
+    expect(fake.calls).toHaveLength(0)
+  })
+
+  it('replaces a canceled intent with a new one tied to the new acceptance', async () => {
+    const fx = await seed()
+    expect((await accept(fx)).ok).toBe(true)
+    const oldId = [...fake.state.paymentIntents.keys()][0]
+    await fake.stripe.paymentIntents.cancel(oldId)
+
+    const res = await accept(fx)
+    expect(res.ok).toBe(true)
+    expect(fake.executed('paymentIntents.create')).toBe(2)
+    const second = acceptances()[1]
+    const newId = second.payment_intent_id as string
+    expect(newId).not.toBe(oldId)
+    expect(quoteRow().deposit_payment_intent_id).toBe(newId)
+    const meta = fake.state.paymentIntents.get(newId)!.metadata as Record<string, string>
+    expect(meta.acceptanceId).toBe(second.id)
+    expect(fake.callsTo('paymentIntents.create')[1].idempotencyKey).toBe(`qdep:${fx.versionId}:${second.id}`)
+    expect(livePis()).toHaveLength(1)
+  })
+
+  it('replaces an intent that no longer exists at Stripe', async () => {
+    const fx = await seed()
+    expect((await accept(fx)).ok).toBe(true)
+    const oldId = [...fake.state.paymentIntents.keys()][0]
+    fake.state.paymentIntents.delete(oldId)
+
+    expect((await accept(fx)).ok).toBe(true)
+    expect(quoteRow().deposit_payment_intent_id).not.toBe(oldId)
+  })
+
+  it('cancels a live intent that does not match this deposit and creates a fresh one, never handing the old secret out', async () => {
+    const fx = await seed()
+    expect((await accept(fx)).ok).toBe(true)
+    const oldId = [...fake.state.paymentIntents.keys()][0]
+    fake.state.paymentIntents.get(oldId)!.amount = 5000 // a stale intent from a changed quote
+
+    const res = await accept(fx)
+    expect(res.ok).toBe(true)
+    expect(fake.state.paymentIntents.get(oldId)!.status).toBe('canceled')
+    expect(fake.callsTo('paymentIntents.cancel')[0].idempotencyKey).toBe(stripeKeys.quoteDepositVoid(oldId))
+    expect(livePis()).toHaveLength(1)
+    expect(livePis()[0].amount).toBe(9000)
+  })
+
+  it('answers busy and creates nothing when a stale intent cannot be canceled', async () => {
+    const fx = await seed()
+    expect((await accept(fx)).ok).toBe(true)
+    const oldId = [...fake.state.paymentIntents.keys()][0]
+    fake.state.paymentIntents.get(oldId)!.amount = 5000
+    fake.failNextWith('paymentIntents.cancel', 'connection')
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+    expect(await accept(fx)).toEqual({ ok: false, code: 'busy' })
+    expect(fake.executed('paymentIntents.create')).toBe(1)
+  })
+
+  it('Pitfall 8: two concurrent accepts leave one live intent; the loser cancels its own with the void key and answers busy', async () => {
+    const fx = await seed()
+    const [a, b] = await Promise.all([accept(fx), accept(fx)])
+    const results = [a, b]
+    expect(results.filter((r) => r.ok)).toHaveLength(1)
+    expect(results.filter((r) => !r.ok)).toEqual([{ ok: false, code: 'busy' }])
+
+    expect(fake.executed('paymentIntents.create')).toBe(2)
+    expect(livePis()).toHaveLength(1)
+    const winner = livePis()[0]
+    expect(quoteRow().deposit_payment_intent_id).toBe(winner.id)
+
+    const loser = [...fake.state.paymentIntents.values()].find((p) => p.status === 'canceled')!
+    const cancel = fake.callsTo('paymentIntents.cancel')
+    expect(cancel).toHaveLength(1)
+    expect(cancel[0].targetId).toBe(loser.id)
+    expect(cancel[0].idempotencyKey).toBe(stripeKeys.quoteDepositVoid(loser.id))
+    // Only the winner is linked to an acceptance and has a deposit_started event.
+    expect(acceptances().filter((x) => x.payment_intent_id === winner.id)).toHaveLength(1)
+    expect(acceptances().some((x) => x.payment_intent_id === loser.id)).toBe(false)
+    expect(eventKinds().filter((k) => k === 'deposit_started')).toHaveLength(1)
+    // The quote moved to accepted once.
+    expect(eventKinds().filter((k) => k === 'accepted')).toHaveLength(1)
+  })
+})
+
+describe('acceptQuote: what can not be accepted (D-05, D-02, QUOTE-06, T-92-49, T-92-53)', () => {
+  const noTrace = (fx: PublicQuoteFixture) => {
+    expect(acceptances()).toHaveLength(0)
+    expect(fake.calls).toHaveLength(0)
+    expect(quoteRow().status).not.toBe('accepted')
+    expect(fx.quoteId).toBe(quoteRow().id)
+  }
+
+  it('D-05: a first pickup in the past is invalid_link, no row and no Stripe call', async () => {
+    const fx = await seed()
+    // 2027-06-10 10:30 Prague is 08:30 UTC: one minute after it.
+    const res = await accept(fx, { nowMs: Date.parse('2027-06-10T08:31:00Z') })
+    expect(res).toEqual({ ok: false, code: 'invalid_link' })
+    noTrace(fx)
+  })
+
+  it('D-05: the pickup instant itself is already too late', async () => {
+    const fx = await seed()
+    expect(await accept(fx, { nowMs: Date.parse('2027-06-10T08:30:00Z') })).toEqual({ ok: false, code: 'invalid_link' })
+    noTrace(fx)
+  })
+
+  it('D-02: an expired quote is invalid_link', async () => {
+    const fx = await seed({ expiresAt: '2027-05-01T00:00:00.000Z' })
+    expect(await accept(fx)).toEqual({ ok: false, code: 'invalid_link' })
+    noTrace(fx)
+  })
+
+  it('a voided, draft, superseded, revoked or cancelled quote is the same invalid_link', async () => {
+    const cases: Array<Parameters<typeof seedPublicQuote>[1]> = [
+      { status: 'voided' },
+      { status: 'draft' },
+      { supersede: true },
+      { revokeLink: true },
+      { cancelledAt: '2027-05-01T00:00:00.000Z' },
+    ]
+    for (const over of cases) {
+      db = createFakePaymentsDb()
+      world.client = db.client
+      fake = createFakeStripe()
+      world.stripe = recordingStripe(fake.stripe)
+      const fx = await seed(over)
+      expect(await accept(fx), JSON.stringify(over)).toEqual({ ok: false, code: 'invalid_link' })
+      noTrace(fx)
+    }
+  })
+
+  it('T-92-49: a displayed deposit that differs from the version is quote_changed and writes nothing', async () => {
+    const fx = await seed()
+    expect(await accept(fx, { displayedDepositMinor: 8999 })).toEqual({ ok: false, code: 'quote_changed' })
+    noTrace(fx)
+    expect(await accept(fx, { displayedDepositMinor: 1 })).toEqual({ ok: false, code: 'quote_changed' })
+    noTrace(fx)
+  })
+
+  it('a displayed version number that differs from the version is quote_changed and writes nothing', async () => {
+    const fx = await seed()
+    expect(await accept(fx, { displayedVersionNo: 2 })).toEqual({ ok: false, code: 'quote_changed' })
+    noTrace(fx)
+  })
+
+  it('the amount sent to Stripe is the stored deposit whatever the client displayed value was (matching only)', async () => {
+    const fx = await seed()
+    const res = await accept(fx, { displayedDepositMinor: 9000 })
+    expect(res.ok && res.amountMinor).toBe(9000)
+    expect(fake.callsTo('paymentIntents.create')[0].params.amount).toBe(9000)
+  })
+})
