@@ -173,7 +173,8 @@ async function renderPage(initial: Json = detail({ deposit: { kind: 'percent', v
     )
     await params
   })
-  await screen.findByTestId('quote-builder')
+  // The default 1 s wait is not enough for a 19-trip quote when the whole suite runs in parallel.
+  await screen.findByTestId('quote-builder', {}, { timeout: 20_000 })
 }
 
 beforeEach(() => {
@@ -227,8 +228,7 @@ describe('quote detail page: mount and tracer (QUOTE-01)', () => {
     expect(amountsOf()).toEqual(['200.00', '300.00'])
     fireEvent.click(screen.getAllByLabelText('Remove trip')[0])
     expect(amountsOf()).toEqual(['300.00'])
-    // 20 line editors render slowly when the whole suite runs in parallel; the default 5 s is not enough there.
-  }, 30_000)
+  })
 
   it('Save sends one PATCH with the line as lineToPayload makes it (no distance, no suggestion) and shows Saved', async () => {
     await renderPage()

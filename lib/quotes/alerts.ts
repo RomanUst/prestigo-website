@@ -53,7 +53,7 @@ const TITLES: Record<QuoteAlertKind, string> = {
 const NEXT_ACTION: Record<QuoteAlertKind, string> = {
   quote_paid: 'The deposit is paid and the bookings were created. Nothing to do.',
   quote_orphan_refunded:
-    'A client paid a deposit that this quote does not own (it was voided, cancelled, replaced by a newer version or paid with another payment). The whole payment was refunded automatically. Check that the client knows and, if they still want the trip, send a new quote.',
+    'A client made a payment (a deposit or a remainder) that this quote does not own (it was voided, cancelled, replaced by a newer version or paid with another payment). The whole payment was refunded automatically. Check that the client knows and, if they still want the trip, send a new quote.',
   quote_convert_failed:
     'The client paid the deposit but the bookings could not be created. Stripe will deliver the payment again and the site retries on its own; if this alert is still the latest news after a few minutes, open the quote, check the payment in the Stripe Dashboard and create the bookings by hand. Do not refund before you have looked.',
   quote_refund_failed:
