@@ -8,7 +8,7 @@
 // Steps are isolated like the outbox sweep: a step that throws adds its code to `errors` and the next step still
 // runs. Registered steps, in order: A (place due holds), B (the one automatic retry of a declined hold / charge,
 // D-13), C (settle completed trips, 88-13), D (operator alerts 24 h before pickup and before a hold lapses, D-15),
-// E (reconcile stuck checkouts, card and cash) and F (re-drive undelivered failure notices, 88-REVIEW A-WR-10), then
+// E (reconcile stuck checkouts, card and cash), Q (reconcile a quote deposit whose webhook never arrived, 92-31) and F (re-drive undelivered failure notices, 88-REVIEW A-WR-10), then
 // Phase 89's R (fee cases: one reminder per undecided case, D-15; finish a fee charge a crash interrupted; close a case
 // whose money arrived; reconcile an interrupted cash card charge from Stripe, read only).
 //
@@ -44,9 +44,10 @@ import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery
 import { reconcileCashCharge, settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe } from '@/lib/payments/stripe'
+import { applyQuoteDepositPaid } from '@/lib/quotes/convert'
 import { applyHoldNowAuthorized, applySetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
 
-export type TickStepCode = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'R'
+export type TickStepCode = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'Q' | 'R'
 
 export type TickCounts = Record<string, number>
 
@@ -175,6 +176,56 @@ const stepE: TickStep = {
       } catch {
         console.error('[payment-tick] checkout reconcile failed', { bookingId: row.id })
         ctx.errors.add('E')
+      }
+    }
+    return { reconciled }
+  },
+}
+
+/** Step Q: at most this many accepted quotes are looked up per run (each is a Stripe read). */
+const QUOTE_RECONCILE_LIMIT = 20
+
+/**
+ * Step Q (Phase 92, D-18; T-92-59): an accepted quote whose deposit PaymentIntent was created more than STALE_CHECKOUT_MS and less
+ * than CHECKOUT_RECONCILE_MAX_AGE_MS ago and that is not paid is looked up in Stripe; when the intent SUCCEEDED, the quote is
+ * converted by the very function the webhook runs (applyQuoteDepositPaid), so a lost payment_intent.succeeded never leaves a
+ * paid client without bookings. Read only otherwise: an intent that is still open, processing or cancelled is left exactly as it
+ * is (this step never cancels an intent and never refunds; the conversion function owns the one automatic refund, for a payment
+ * the quote never recorded). A paid, cancelled, voided or erased quote is never selected. A throw from the conversion (money in,
+ * no bookings) adds Q to the errors and the next run tries again; the webhook redelivery is the other path to the same result.
+ */
+const stepQ: TickStep = {
+  code: 'Q',
+  async run(ctx) {
+    const nowMs = ctx.now.getTime()
+    const { data, error } = await createSupabaseServiceClient()
+      .from('quotes')
+      .select('id, deposit_payment_intent_id, accepted_at')
+      .eq('status', 'accepted')
+      .not('deposit_payment_intent_id', 'is', null)
+      .is('paid_at', null)
+      .is('cancelled_at', null)
+      .is('voided_at', null)
+      .is('anonymised_at', null)
+      .lt('accepted_at', new Date(nowMs - STALE_CHECKOUT_MS).toISOString())
+      .gt('accepted_at', new Date(nowMs - CHECKOUT_RECONCILE_MAX_AGE_MS).toISOString())
+      .order('accepted_at', { ascending: true })
+      .limit(QUOTE_RECONCILE_LIMIT)
+    if (error) throw new Error('quote deposit reconcile lookup failed')
+
+    const rows = (Array.isArray(data) ? data : []) as Array<{ id: string; deposit_payment_intent_id?: string | null }>
+
+    let reconciled = 0
+    for (const row of rows) {
+      if (!row.deposit_payment_intent_id) continue
+      try {
+        const pi = (await getPaymentsStripe().paymentIntents.retrieve(row.deposit_payment_intent_id)) as Stripe.PaymentIntent
+        if (pi.status !== 'succeeded') continue
+        const result = await applyQuoteDepositPaid(pi, RECONCILE_ACTOR)
+        if (result.outcome === 'converted' || result.outcome === 'orphan_refunded') reconciled += 1
+      } catch {
+        console.error('[payment-tick] quote deposit reconcile failed', { quoteId: row.id })
+        ctx.errors.add('Q')
       }
     }
     return { reconciled }
@@ -753,7 +804,7 @@ const stepR: TickStep = {
   },
 }
 
-export const TICK_STEPS: TickStep[] = [stepA, stepB, stepC, stepD, stepE, stepF, stepR]
+export const TICK_STEPS: TickStep[] = [stepA, stepB, stepC, stepD, stepE, stepQ, stepF, stepR]
 
 /** Never throws: every step is isolated and the result always carries the counts and the failed step codes. */
 export async function runPaymentTick(now: Date = new Date()): Promise<TickResult> {

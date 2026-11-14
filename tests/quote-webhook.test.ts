@@ -115,6 +115,7 @@ vi.mock('stripe', () => ({
 
 import { POST } from '@/app/api/webhooks/stripe/route'
 import { classifyPaymentEvent } from '@/lib/stripe-webhook/dispatch'
+import { runPaymentTick } from '@/lib/payments/tick'
 import { quoteMetadata } from '@/lib/payments/stripe'
 import { computeHoldAt } from '@/lib/payments/timing'
 import { pickupInstantMs } from '@/lib/prague-date'
@@ -558,5 +559,30 @@ describe('failures, cancellations and disputes of quote payments never reach the
     expect(res.status).toBe(200)
     expect(quoteEvents(s.quoteId, 'dispute_opened')).toHaveLength(0)
     expect(mockResendSend).not.toHaveBeenCalled()
+  })
+})
+
+describe('D-18: the tick and the webhook run the same conversion', () => {
+  it('a deposit whose webhook was lost is converted by the tick (system actor); the late webhook then answers replayed and adds nothing', async () => {
+    const s = await seed()
+    const quote = db.state.quotes.find((q) => q.id === s.quoteId) as Row
+    quote.accepted_at = new Date(Date.now() - 15 * 60_000).toISOString()
+    const pi = depositIntent(s)
+
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ ok: true, reconciled: 1, errors: [] })
+    expect(bookingsOf(s.quoteId)).toHaveLength(2)
+    expect(convertCalls()).toHaveLength(1)
+    expect(convertCalls()[0].args).toMatchObject({ p_actor_type: 'system', p_actor_id: 'tick_reconcile' })
+    expect(legacyCalls()).toBe(0)
+
+    // The next tick finds the quote paid and does nothing; the late event is a replay.
+    const again = await runPaymentTick()
+    expect(again).toMatchObject({ reconciled: 0, errors: [] })
+    const late = await deliver(eventOf('payment_intent.succeeded', pi, 'evt_late'))
+    expect(late.status).toBe(200)
+    expect(bookingsOf(s.quoteId)).toHaveLength(2)
+    expect(convertCalls()).toHaveLength(1)
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
   })
 })
