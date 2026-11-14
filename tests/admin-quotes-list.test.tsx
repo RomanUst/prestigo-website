@@ -210,3 +210,116 @@ describe('the real parents: admin (dashboard) layout mounts the sidebar and the 
     await expect(AdminDashboardLayout({ children: null })).rejects.toThrow('REDIRECT:/')
   })
 })
+
+describe('New quote form (QUOTE-01)', () => {
+  function fill(over: { email?: string; channel?: string; currency?: string; phone?: string } = {}) {
+    fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'Anna' } })
+    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Novak' } })
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: over.email ?? 'anna@example.com' } })
+    fireEvent.change(screen.getByLabelText('Phone'), { target: { value: over.phone ?? '+420 725 986 855' } })
+    fireEvent.change(screen.getByLabelText('Lead channel'), { target: { value: over.channel ?? 'whatsapp' } })
+    if (over.currency) fireEvent.change(screen.getByLabelText('Currency'), { target: { value: over.currency } })
+  }
+
+  const NEW_ID = '33333333-3333-4333-8333-333333333333'
+
+  function answerPost(response: () => Promise<Response>) {
+    fetchMock.mockImplementation((url: string, init?: RequestInit) =>
+      init?.method === 'POST' ? response() : json(listBody([ROW_A])),
+    )
+  }
+
+  it('offers the five lead channels and EUR / CZK with EUR selected', async () => {
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    const channel = screen.getByLabelText('Lead channel') as HTMLSelectElement
+    expect(Array.from(channel.options).map((o) => o.value).filter(Boolean)).toEqual(['whatsapp', 'phone', 'email', 'partner', 'other'])
+    const currency = screen.getByLabelText('Currency') as HTMLSelectElement
+    expect(Array.from(currency.options).map((o) => o.value)).toEqual(['eur', 'czk'])
+    expect(currency.value).toBe('eur')
+  })
+
+  it('posts the client, lead channel and currency to /api/admin/quotes and opens the new draft', async () => {
+    answerPost(() => json({ id: NEW_ID }, 201))
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    fill({ channel: 'partner', currency: 'czk' })
+    fireEvent.click(screen.getByRole('button', { name: 'Create quote' }))
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/quotes/${NEW_ID}`))
+    const posts = calls('/api/admin/quotes', 'POST')
+    expect(posts).toHaveLength(1)
+    const init = posts[0][1] as RequestInit
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json')
+    expect(JSON.parse(init.body as string)).toEqual({
+      client: { first_name: 'Anna', last_name: 'Novak', email: 'anna@example.com', phone: '+420 725 986 855' },
+      lead_channel: 'partner',
+      currency: 'czk',
+    })
+  })
+
+  it('omits an empty phone from the body', async () => {
+    answerPost(() => json({ id: NEW_ID }, 201))
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    fill({ phone: '  ' })
+    fireEvent.click(screen.getByRole('button', { name: 'Create quote' }))
+    await waitFor(() => expect(push).toHaveBeenCalled())
+    const body = JSON.parse((calls('/api/admin/quotes', 'POST')[0][1] as RequestInit).body as string)
+    expect(body.client).toEqual({ first_name: 'Anna', last_name: 'Novak', email: 'anna@example.com' })
+  })
+
+  it('does not post until the name, a valid email and a lead channel are given', async () => {
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    fireEvent.click(screen.getByRole('button', { name: 'Create quote' }))
+    expect(calls('/api/admin/quotes', 'POST')).toHaveLength(0)
+    expect(screen.getByRole('alert').textContent).toMatch(/first name/i)
+    fill({ email: 'not-an-email', channel: '' })
+    fireEvent.click(screen.getByRole('button', { name: 'Create quote' }))
+    expect(calls('/api/admin/quotes', 'POST')).toHaveLength(0)
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    [400, { error: 'Invalid payload', details: { fieldErrors: { email: ['Invalid email'] } } }, /email/i],
+    [422, { error: 'action_not_allowed', reason: 'nope' }, /could not create/i],
+  ])('a %i answer shows the error text, keeps the input and does not navigate', async (status, body, text) => {
+    answerPost(() => json(body, status as number))
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    fill()
+    fireEvent.click(screen.getByRole('button', { name: 'Create quote' }))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toMatch(text)
+    expect(push).not.toHaveBeenCalled()
+    expect((screen.getByLabelText('First name') as HTMLInputElement).value).toBe('Anna')
+    expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe('anna@example.com')
+    expect((screen.getByLabelText('Lead channel') as HTMLSelectElement).value).toBe('whatsapp')
+  })
+
+  it('disables the button while the request runs and sends one request for a double click', async () => {
+    let release: (r: Response) => void = () => {}
+    answerPost(() => new Promise<Response>((resolve) => { release = resolve }))
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    fill()
+    const btn = screen.getByRole('button', { name: 'Create quote' })
+    fireEvent.click(btn)
+    fireEvent.click(btn)
+    await waitFor(() => expect((screen.getByRole('button', { name: /working/i }) as HTMLButtonElement).disabled).toBe(true))
+    expect(calls('/api/admin/quotes', 'POST')).toHaveLength(1)
+    release(new Response(JSON.stringify({ id: NEW_ID }), { status: 201, headers: { 'Content-Type': 'application/json' } }))
+    await waitFor(() => expect(push).toHaveBeenCalledWith(`/admin/quotes/${NEW_ID}`))
+  })
+
+  it('shows a plain message when the network fails and keeps the input', async () => {
+    answerPost(() => Promise.reject(new Error('offline')))
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    fill()
+    fireEvent.click(screen.getByRole('button', { name: 'Create quote' }))
+    expect((await screen.findByRole('alert')).textContent).toMatch(/could not create/i)
+    expect((screen.getByLabelText('Last name') as HTMLInputElement).value).toBe('Novak')
+  })
+})
