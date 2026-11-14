@@ -226,7 +226,8 @@
       "waitTimeAria": "Tiempo de espera",
       "noWait": "Sin espera",
       "minutes": "{count} min",
-      "freeWaitHint": "Los primeros 15 min son gratis; después se cobra cada bloque de 15 min iniciado",
+      "minutesFree": "{count} min, gratis",
+      "freeWaitHint": "Los primeros 15 min son gratis. Después se cobra cada 15 min iniciados.",
       "paidWaitUnavailable": "La espera de pago no está disponible ahora",
       "moveUp": "Subir la parada",
       "moveDown": "Bajar la parada"

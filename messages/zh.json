@@ -226,7 +226,8 @@
       "waitTimeAria": "等待时间",
       "noWait": "无需等待",
       "minutes": "{count} 分钟",
-      "freeWaitHint": "前 15 分钟免费，之后每开始 15 分钟计费一次",
+      "minutesFree": "{count} 分钟，免费",
+      "freeWaitHint": "前 15 分钟免费，之后每开始的 15 分钟收费。",
       "paidWaitUnavailable": "暂不提供付费等待",
       "moveUp": "上移停靠点",
       "moveDown": "下移停靠点"

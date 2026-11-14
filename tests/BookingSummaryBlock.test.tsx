@@ -169,7 +169,7 @@ describe('BookingSummaryBlock', () => {
   })
 })
 
-describe('BookingSummaryBlock: waiting at stops (D-06)', () => {
+describe('BookingSummaryBlock: no waiting breakdown', () => {
   const withWaiting = (waitingEur: number | null | undefined) => ({
     business: { base: 100, total: 100, extras: 0, currency: 'EUR', ...(waitingEur === undefined ? {} : { waitingEur }) },
     first_class: { base: 150, total: 150, extras: 0, currency: 'EUR' },
@@ -193,17 +193,11 @@ describe('BookingSummaryBlock: waiting at stops (D-06)', () => {
     })
   }
 
-  it('renders the line with the server waitingEur when above 0, total unchanged', () => {
-    setup(24)
-    render(<BookingSummaryBlock selectedCurrency="eur" />)
-    expect(screen.getByText(/Waiting at stops/)).toHaveTextContent('Waiting at stops +€24')
-    // base already includes waiting: the total is the base, not base + 24
-    expect(screen.getByText('€100')).toBeInTheDocument()
-  })
-
-  it.each([0, null, undefined])('renders no waiting line for %s', (w) => {
+  // Owner decision 2026-11-12: one total, no waiting amount listed on its own.
+  it.each([24, 0, null, undefined])('renders no waiting line for %s; the total is the server total', (w) => {
     setup(w)
     render(<BookingSummaryBlock selectedCurrency="eur" />)
     expect(screen.queryByText(/Waiting at stops/)).toBeNull()
+    expect(screen.getByText('€100')).toBeInTheDocument()
   })
 })

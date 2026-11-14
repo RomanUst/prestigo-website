@@ -39,7 +39,6 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
 
   // D-06: paid waiting at stops, the server's figure for the selected class. It is already inside base / total, so it
   // is shown as its own line only and never added to the total again.
-  const waitingEur = selectedPrice?.waitingEur ?? 0
 
   const classLabel = vehicleClass ? t(`vehicleClasses.${VEHICLE_CLASS_KEY[vehicleClass]}.label`) : ''
 
@@ -454,22 +453,6 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                 </p>
               ))}
             </div>
-          )}
-
-          {/* D-06: waiting at stops (amount from the server's waitingEur; already in the total) */}
-          {waitingEur > 0 && (
-            <p
-              style={{
-                fontSize: 14,
-                fontWeight: 300,
-                color: 'var(--warmgrey)',
-                fontFamily: 'var(--font-montserrat)',
-                lineHeight: 1.5,
-                marginTop: selectedExtras.length > 0 ? 0 : 8,
-              }}
-            >
-              {t('summaryBlock.waitingLine')} +{formatEUR(waitingEur)}
-            </p>
           )}
 
           {/* Divider */}

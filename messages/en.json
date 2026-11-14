@@ -222,7 +222,8 @@
       "waitTimeAria": "Wait time",
       "noWait": "No wait",
       "minutes": "{count} min",
-      "freeWaitHint": "First 15 min free, then charged per started 15 min",
+      "minutesFree": "{count} min, free",
+      "freeWaitHint": "First 15 min are free. After that each started 15 min is charged.",
       "paidWaitUnavailable": "Paid waiting is not available right now",
       "moveUp": "Move stop up",
       "moveDown": "Move stop down"
