@@ -1196,3 +1196,58 @@ describe.each(catalogLocales())('Phase 89 kinds per locale: %s', (locale) => {
     else expect(out.html).not.toContain('text-transform: uppercase')
   })
 })
+
+// Found by the owner's live booking (Phase 91 UAT): the card-flow confirmation showed no stop.
+describe('journey table: stops and landing (STOP-04, STOP-05)', () => {
+  it('lists every stop in driving order between From and To, with its wait and no amount', async () => {
+    const { html } = await renderPaymentEmail(
+      'card_saved',
+      'en',
+      baseVars({
+        stops: [
+          { position: 1, address: 'Brno, Czechia', waitMinutes: 60 },
+          { position: 2, address: null, waitMinutes: 0 },
+        ],
+      }),
+    )
+    // parameters are wrapped in <bdi>, so compare the text without tags
+    const text = html.replace(/<[^>]+>/g, '')
+    expect(text).toContain('Stop 1')
+    expect(text).toContain('Brno, Czechia')
+    expect(text).toContain('wait 60 min')
+    expect(text).toContain('Stop 2')
+    expect(text).toContain('Pinned on the map')
+    expect(text.indexOf('From')).toBeLessThan(text.indexOf('Stop 1'))
+    expect(text.indexOf('Stop 1')).toBeLessThan(text.indexOf('Stop 2'))
+    expect(text.indexOf('Stop 2')).toBeLessThan(text.indexOf('Vehicle'))
+    expect(text).not.toContain('Waiting at stops')
+  })
+
+  it('escapes a stop address with markup', async () => {
+    const { html } = await renderPaymentEmail(
+      'card_saved',
+      'en',
+      baseVars({ stops: [{ position: 1, address: '<img src=x onerror=alert(1)>', waitMinutes: 0 }] }),
+    )
+    expect(html).not.toContain('<img src=x')
+    expect(html).toContain('&lt;img src=x onerror=alert(1)&gt;')
+  })
+
+  it('shows the landing of an airport pickup', async () => {
+    const { html } = await renderPaymentEmail('card_saved', 'en', baseVars({ landing: { dateIso: '2027-06-10', time: '14:00' } }))
+    expect(html).toContain('Flight lands')
+    expect(html).toContain('14:00')
+  })
+
+  it('without stops and landing the mail has no stop or landing row, in every locale', async () => {
+    for (const locale of ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh', 'zh-hant']) {
+      const { html } = await renderPaymentEmail('card_saved', locale, baseVars())
+      expect(html).not.toContain('Pinned on the map')
+      expect(html).not.toContain('Flight lands')
+    }
+    const ru = await renderPaymentEmail('card_saved', 'ru', baseVars({ stops: [{ position: 1, address: 'Brno', waitMinutes: 30 }] }))
+    const ruText = ru.html.replace(/<[^>]+>/g, '')
+    expect(ruText).toContain('Остановка 1')
+    expect(ruText).toContain('ожидание 30 мин')
+  })
+})

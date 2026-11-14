@@ -86,6 +86,10 @@ export interface PaymentEmailVars {
   destination: string
   vehicleClass: string
   passengers: number
+  /** Phase 91 (STOP-04): the stops of the trip in driving order; absent or [] = no stop rows. Never an amount. */
+  stops?: Array<{ position: number; address: string | null; waitMinutes: number }>
+  /** Phase 91 (STOP-05): the flight's landing of an airport pickup (the Date row stays the pickup). */
+  landing?: { dateIso: string; time: string } | null
   holdDateIso?: string | null
   variant?: PaymentEmailVariant
   diffMinor?: number
@@ -684,9 +688,29 @@ function buildShell(args: {
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0; vertical-align: top; text-align: ${align}; word-break: break-word; overflow-wrap: anywhere;">${value}</td>
           </tr>`
 
+  // Phase 91 (STOP-04): every stop in driving order with its wait; the client never sees a waiting amount here.
+  const stopRows = (vars.stops ?? []).map((stop) => {
+    const where = stop.address
+      ? `<bdi dir="auto">${escapeHtml(stop.address)}</bdi>`
+      : html(t, 'common.stopPinned')
+    const wait = stop.waitMinutes > 0 ? ` &middot; ${html(t, 'common.stopWait', { minutes: String(stop.waitMinutes) })}` : ''
+    return row(html(t, 'common.stopLabel', { number: String(stop.position) }), `${where}${wait}`)
+  })
+  // Phase 91 (STOP-05): the landing of an airport pickup, above the pickup date and time.
+  const landingRow = vars.landing
+    ? [
+        row(
+          html(t, 'common.landingLabel'),
+          `<bdi dir="auto">${escapeHtml(formatLocaleDate(vars.landing.dateIso, locale))}</bdi>, <bdi dir="ltr">${escapeHtml(vars.landing.time)}</bdi>`,
+        ),
+      ]
+    : []
+
   const journey = [
     row(html(t, 'common.fromLabel'), `<bdi dir="auto">${escapeHtml(vars.origin)}</bdi>`),
+    ...stopRows,
     row(html(t, 'common.toLabel'), `<bdi dir="auto">${escapeHtml(vars.destination)}</bdi>`),
+    ...landingRow,
     row(html(t, 'common.dateLabel'), dateTime),
     row(html(t, 'common.vehicleLabel'), escapeHtml(vehicleLabel(tv, vars.vehicleClass))),
     row(html(t, 'common.passengersLabel'), `<bdi dir="ltr">${escapeHtml(String(vars.passengers))}</bdi>`),
