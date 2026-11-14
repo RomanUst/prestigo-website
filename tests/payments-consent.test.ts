@@ -19,6 +19,7 @@ import { formatMinor } from '@/lib/payments/money'
 import {
   CARD_CONSENT_VERSION,
   EXTRAS_CONSENT_VERSIONS,
+  QUOTE_CONSENT_VERSION,
   consentCoversExtras,
   consentMessageKey,
   consentVars,
@@ -105,6 +106,17 @@ describe('consentCoversExtras (D-12, T-91-17)', () => {
     for (const v of ['2026-11-2', '2026-11-1', '2026-11-draft-1', '', null, undefined]) {
       expect(consentCoversExtras(v), String(v)).toBe(false)
     }
+  })
+
+  // Phase 92 (research A12): extras on a quote trip are covered by the quote consent text.
+  it('is true for the quote consent version, and false for an unknown quote version', () => {
+    expect(QUOTE_CONSENT_VERSION).toBe('quote-2026-11-1')
+    expect(consentCoversExtras(QUOTE_CONSENT_VERSION)).toBe(true)
+    expect(consentCoversExtras('quote-2026-11-9')).toBe(false)
+  })
+
+  it('the ordinary booking consent version is unchanged by the quote version', () => {
+    expect(CARD_CONSENT_VERSION).toBe('2026-11-3')
   })
 })
 

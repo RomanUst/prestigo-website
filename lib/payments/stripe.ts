@@ -67,6 +67,17 @@ export const stripeKeys = {
   extra: (chargeId: string, n: number) => `extra:${chargeId}:${n}`,
   // Cancelling the PaymentIntent of an extra whose off-session confirm did not end in success (CR-01): same row, same attempt.
   extraVoid: (chargeId: string, n: number) => `extra_void:${chargeId}:${n}`,
+  // Phase 92 quotes (D-18). Ids and counters only, NEVER an amount, except the refund key below (as the fee refund key).
+  quoteCustomer: (quoteId: string) => `cus:quote:${quoteId}`,
+  // One deposit PaymentIntent per (quote version, acceptance): a retry of the same acceptance replays the same key.
+  quoteDeposit: (versionId: string, acceptanceId: string) => `qdep:${versionId}:${acceptanceId}`,
+  quoteDepositVoid: (piId: string) => `qdep_void:${piId}`,
+  // The remainder charge of a quote: quote id + the attempt counter the caller persists.
+  quoteRemainder: (quoteId: string, n: number) => `qrem:${quoteId}:${n}`,
+  quoteRemainderVoid: (piId: string) => `qrem_void:${piId}`,
+  // `purpose`: deposit:<amount>, remainder:<amount> or orphan:<pi>. The one quote key that carries the amount: the
+  // operator may decide again with another amount, and the same key would answer an idempotency error.
+  quoteRefund: (quoteId: string, purpose: string) => `refund:quote:${quoteId}:${purpose}`,
 } as const
 
 export type CardKind =
@@ -78,6 +89,8 @@ export type CardKind =
   | 'card_recovery'
   | 'card_fee'
   | 'card_extra'
+  | 'card_quote_deposit'
+  | 'card_quote_remainder'
 
 /**
  * The only metadata a card-flow Stripe object may carry. Ids and the public booking reference only;
@@ -104,6 +117,33 @@ export function cardMetadata(
   if (promo) meta.promoCode = promo
   const extra = input.extraChargeId?.trim()
   if (extra) meta.extraChargeId = extra
+  return meta
+}
+
+/**
+ * The only metadata a quote Stripe object may carry (Phase 92, D-18). The kind starts with `card_`, so the legacy webhook
+ * chain (which builds a booking from a payment_intent.succeeded) never takes it; ids only, and never cofBookingId,
+ * bookingId or groupBookingIds, so no booking-keyed handler can match a quote payment.
+ */
+export function quoteMetadata(
+  kind: 'card_quote_deposit' | 'card_quote_remainder',
+  input: {
+    quoteId: string
+    versionId: string
+    quoteReference: string
+    acceptanceId?: string | null
+    attempt?: number | null
+  },
+): Record<string, string> {
+  const meta: Record<string, string> = {
+    kind,
+    quoteId: input.quoteId,
+    versionId: input.versionId,
+    quoteReference: input.quoteReference,
+  }
+  const acceptanceId = input.acceptanceId?.trim()
+  if (acceptanceId) meta.acceptanceId = acceptanceId
+  if (typeof input.attempt === 'number' && Number.isFinite(input.attempt)) meta.attempt = String(input.attempt)
   return meta
 }
 

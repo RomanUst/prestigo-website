@@ -31,11 +31,19 @@ import { formatMinor, type PaymentCurrency } from '@/lib/payments/money'
 export const CARD_CONSENT_VERSION = '2026-11-3'
 
 /**
+ * Version of the quote consent wording (Phase 92). The quote consent texts are the Quote.consent.* catalog keys; ANY change
+ * to their wording (any locale) must bump this constant. It is separate from CARD_CONSENT_VERSION so the consent of an
+ * ordinary booking is untouched. The quote consent covers extras on the quote trip (research A12), so it is in
+ * EXTRAS_CONSENT_VERSIONS below.
+ */
+export const QUOTE_CONSENT_VERSION = 'quote-2026-11-1'
+
+/**
  * Consent versions whose wording authorises a post-trip charge for waiting beyond the booked time and for extras
  * (Phase 91 D-12, T-91-17). The stored consent of an older booking never changes, so a booking stored under any other
  * version cannot be charged an extra.
  */
-export const EXTRAS_CONSENT_VERSIONS: ReadonlySet<string> = new Set(['2026-11-3'])
+export const EXTRAS_CONSENT_VERSIONS: ReadonlySet<string> = new Set(['2026-11-3', QUOTE_CONSENT_VERSION])
 
 /** True only for a stored consent version in EXTRAS_CONSENT_VERSIONS; false for older, draft, empty or missing versions. */
 export function consentCoversExtras(version: string | null | undefined): boolean {

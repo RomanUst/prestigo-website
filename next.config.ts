@@ -194,6 +194,26 @@ const nextConfig: NextConfig = {
           { key: "Cache-Control", value: "no-store" },
         ],
       },
+      // Phase 92 (QUOTE-02, T-92-11/12): the quote URL carries the client's bearer token. Same
+      // locale alternation as the manage rule (zh-hant included). Not cached, no Referer, and
+      // noindex via header; robots.txt gets no /quote rule, because a blocked page cannot be
+      // fetched and so its noindex could never be read.
+      {
+        source: "/quote/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/:locale(ru|es|fr|ar|hi|zh|zh-hant)/quote/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
     ];
   },
 };
