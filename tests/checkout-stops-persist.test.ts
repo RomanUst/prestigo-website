@@ -480,6 +480,38 @@ describe('pay-now stores stops after its capture and fails closed (T-91-20)', ()
     expect(stopRows()).toHaveLength(1)
     expect(stopRows()[0].address).toBe('Plzen')
   })
+
+  it('a retry of the same attempt without stops clears the earlier stops (the price no longer includes them)', async () => {
+    await payNow(payNowBody({ stops: [STOP_KV] }))
+    expect(stopRows()).toHaveLength(1)
+    const out = await payNow(payNowBody())
+    expect(out.status).toBe(200)
+    expect(bookings()).toHaveLength(1)
+    expect(stopRows()).toHaveLength(0)
+  })
+
+  it('the same attempt re-posted as a round trip clears the stops of the earlier one-way attempt', async () => {
+    await payNow(payNowBody({ stops: [STOP_KV] }))
+    expect(stopRows()).toHaveLength(1)
+    const out = await payNow(payNowBody({ tripType: 'round_trip', returnDate: '2027-01-18', returnTime: '12:00' }))
+    expect(out.status).toBe(200)
+    expect(stopRows()).toHaveLength(0)
+  })
+
+  it('no stops and the booking is already confirmed: its stored stops stay as they were', async () => {
+    db = createFakePaymentsDb({
+      nowMs: NOW,
+      bookings: [{ id: 'bx', attempt_id: ATTEMPT, leg: 'outbound', status: 'confirmed', payment_mode: 'pay_now' }],
+    })
+    dbHolder.client = db.client
+    db.state.booking_stops.push({
+      id: 's0', booking_id: 'bx', position: 1, address: 'Old stop', lat: 1, lng: 1,
+      wait_minutes: 0, free_minutes: 15, blocks: 0, fee_per_block_eur: null, fee_eur: 0,
+    })
+    const out = await payNow(payNowBody())
+    expect(out.status).toBe(200)
+    expect(stopRows()).toHaveLength(1)
+  })
 })
 
 describe('cash flow (payment cash) stores stops as well', () => {
