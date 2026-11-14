@@ -1371,5 +1371,122 @@
         "errorGeneric": "Nous n'avons pas pu envoyer votre demande. Veuillez réessayer ou nous appeler : <tel>{phone}</tel>."
       }
     }
+  },
+  "Quote": {
+    "meta": {
+      "title": "Votre devis"
+    },
+    "eyebrow": "Devis Prestigo",
+    "title": "Devis {reference}",
+    "version": "Version {number}",
+    "preparedFor": "Préparé pour {name}",
+    "intro": "Vérifiez les trajets et les conditions ci-dessous. Pour confirmer, acceptez le devis et réglez l'acompte.",
+    "validUntil": "Valable jusqu'au {date}",
+    "pragueTime": "Toutes les dates et heures sont à l'heure de Prague.",
+    "status": {
+      "offer": "En attente de votre confirmation",
+      "accepted": "En attente de l'acompte",
+      "paid": "Confirmé"
+    },
+    "lines": {
+      "heading": "Vos trajets",
+      "trip": "Trajet {number}",
+      "tripType": {
+        "transfer": "Transfert",
+        "hourly": "À l'heure",
+        "daily": "Journée complète"
+      },
+      "date": "Date",
+      "pickupTime": "Heure de prise en charge",
+      "landing": "Le vol atterrit à {time}",
+      "from": "Départ",
+      "to": "Arrivée",
+      "stops": "Arrêts",
+      "stopWait": "attente de {minutes} min",
+      "vehicle": "Véhicule",
+      "passengers": "Passagers",
+      "luggage": "Bagages",
+      "duration": "{hours} h",
+      "price": "Prix"
+    },
+    "summary": {
+      "heading": "Récapitulatif",
+      "total": "Total",
+      "deposit": "Acompte pour confirmer",
+      "remainder": "Solde"
+    },
+    "remainder": {
+      "saved_card": "Le solde de chaque trajet est débité sur la carte avec laquelle vous réglez l'acompte : nous bloquons le montant peu avant le trajet et le débitons après le trajet.",
+      "payment_link": "Vous réglez le solde sur cette page après l'acompte, avant vos trajets.",
+      "cash": "Vous réglez le solde de chaque trajet en espèces au chauffeur. La carte avec laquelle vous réglez l'acompte est conservée en garantie.",
+      "invoice": "Nous vous envoyons une facture pour le solde."
+    },
+    "terms": {
+      "heading": "Conditions d'annulation",
+      "free": "Annulation gratuite jusqu'au {freeUntil} : l'acompte est remboursé en totalité.",
+      "lateAll": "Ensuite, l'acompte est conservé.",
+      "latePercent": "Ensuite, {percent} % de l'acompte est conservé et le reste est remboursé.",
+      "noFree": "L'annulation gratuite n'est plus possible pour ce devis.",
+      "cap": "En cas d'annulation, il ne vous sera jamais débité plus que l'acompte.",
+      "howToCancel": "Pour annuler, contactez-nous par téléphone ou par e-mail."
+    },
+    "accept": {
+      "heading": "Accepter et régler l'acompte",
+      "button": "Régler l'acompte de {amount}",
+      "consentRequired": "Veuillez cocher la case pour accepter les conditions.",
+      "processing": "Traitement de votre paiement…",
+      "confirming": "Paiement reçu. Nous confirmons vos trajets…",
+      "declined": "Votre carte a été refusée. Veuillez essayer une autre carte.",
+      "error": "Le paiement n'a pas abouti. Veuillez réessayer.",
+      "changed": "Ce devis a changé. Veuillez recharger la page.",
+      "unavailable": "Ce devis ne peut plus être accepté."
+    },
+    "consent": {
+      "saved_card": "J'accepte le devis {reference} (version {version}) et ses conditions d'annulation. J'autorise Prestigo à débiter maintenant l'acompte de {deposit}, à enregistrer ma carte et à y débiter le solde de chaque trajet comme décrit ci-dessus, ainsi que l'attente au-delà du temps réservé et les extras convenus pendant le trajet.",
+      "payment_link": "J'accepte le devis {reference} (version {version}) et ses conditions d'annulation. J'autorise Prestigo à débiter maintenant l'acompte de {deposit} et à enregistrer ma carte pour les paiements de ce devis que j'effectue sur cette page.",
+      "cash": "J'accepte le devis {reference} (version {version}) et ses conditions d'annulation. J'autorise Prestigo à débiter maintenant l'acompte de {deposit} et à enregistrer ma carte en garantie : si un trajet n'est pas réglé en espèces, ou pour l'attente au-delà du temps réservé et les extras convenus pendant le trajet, Prestigo peut y débiter le montant dû.",
+      "invoice": "J'accepte le devis {reference} (version {version}) et ses conditions d'annulation. J'autorise Prestigo à débiter maintenant l'acompte de {deposit} et à enregistrer ma carte pour les paiements de ce devis que j'approuve."
+    },
+    "paid": {
+      "heading": "Vos trajets sont réservés",
+      "body": "Nous avons envoyé une confirmation à votre adresse e-mail. Vos références de réservation :",
+      "booking": "Réservation {reference}"
+    },
+    "remainderPay": {
+      "heading": "Régler le solde",
+      "due": "Solde à régler : {amount}",
+      "button": "Payer {amount}",
+      "confirming": "Paiement reçu. Nous mettons votre devis à jour…",
+      "paid": "Le solde est réglé. Merci."
+    },
+    "invoice": {
+      "note": "Nous vous enverrons une facture pour le solde de {amount}."
+    },
+    "pdf": {
+      "download": "Télécharger le PDF",
+      "preparing": "Préparation du PDF…",
+      "unavailable": "Le PDF n'est pas disponible pour le moment. Utilisez Imprimer pour enregistrer le devis en PDF.",
+      "print": "Imprimer"
+    },
+    "invalid": {
+      "title": "Ce devis n'est plus disponible",
+      "body": "Le lien a expiré ou a été remplacé par un devis plus récent. Contactez-nous et nous vous aiderons."
+    },
+    "contact": {
+      "heading": "Des questions ?",
+      "call": "Appelez-nous",
+      "email": "Écrivez-nous"
+    },
+    "done": {
+      "title": "Merci",
+      "body": "Nous confirmons votre paiement. Ouvrez le lien du devis reçu par e-mail pour voir vos trajets."
+    },
+    "document": {
+      "title": "Devis",
+      "issued": "Émis le {date}",
+      "reference": "Référence",
+      "acceptOnline": "Acceptez le devis et réglez l'acompte en ligne avec le lien que nous vous avons envoyé.",
+      "operator": "Prestigo est exploité par {company}."
+    }
   }
 }

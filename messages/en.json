@@ -1321,5 +1321,122 @@
         "errorGeneric": "We could not send your request. Please try again or call us: <tel>{phone}</tel>."
       }
     }
+  },
+  "Quote": {
+    "meta": {
+      "title": "Your quote"
+    },
+    "eyebrow": "Prestigo quote",
+    "title": "Quote {reference}",
+    "version": "Version {number}",
+    "preparedFor": "Prepared for {name}",
+    "intro": "Check the trips and the terms below. To confirm, accept the quote and pay the deposit.",
+    "validUntil": "Valid until {date}",
+    "pragueTime": "All dates and times are Prague time.",
+    "status": {
+      "offer": "Waiting for your confirmation",
+      "accepted": "Waiting for the deposit",
+      "paid": "Confirmed"
+    },
+    "lines": {
+      "heading": "Your trips",
+      "trip": "Trip {number}",
+      "tripType": {
+        "transfer": "Transfer",
+        "hourly": "By the hour",
+        "daily": "Full day"
+      },
+      "date": "Date",
+      "pickupTime": "Pickup time",
+      "landing": "Flight lands at {time}",
+      "from": "From",
+      "to": "To",
+      "stops": "Stops",
+      "stopWait": "waiting {minutes} min",
+      "vehicle": "Vehicle",
+      "passengers": "Passengers",
+      "luggage": "Luggage",
+      "duration": "{hours} h",
+      "price": "Price"
+    },
+    "summary": {
+      "heading": "Summary",
+      "total": "Total",
+      "deposit": "Deposit to confirm",
+      "remainder": "Remainder"
+    },
+    "remainder": {
+      "saved_card": "The remainder of each trip is charged to the card you pay the deposit with: we reserve the amount shortly before the trip and charge it after the trip.",
+      "payment_link": "You pay the remainder on this page after the deposit, before your trips.",
+      "cash": "You pay the remainder of each trip in cash to the driver. The card you pay the deposit with is kept as a guarantee.",
+      "invoice": "We send you an invoice for the remainder."
+    },
+    "terms": {
+      "heading": "Cancellation terms",
+      "free": "Free cancellation until {freeUntil}: the deposit is refunded in full.",
+      "lateAll": "After that, the deposit is kept.",
+      "latePercent": "After that, {percent}% of the deposit is kept and the rest is refunded.",
+      "noFree": "Free cancellation is no longer possible for this quote.",
+      "cap": "You are never charged more than the deposit for cancelling.",
+      "howToCancel": "To cancel, contact us by phone or email."
+    },
+    "accept": {
+      "heading": "Accept and pay the deposit",
+      "button": "Pay deposit {amount}",
+      "consentRequired": "Please tick the box to accept the terms.",
+      "processing": "Processing your payment…",
+      "confirming": "Payment received. We are confirming your trips…",
+      "declined": "Your card was declined. Please try another card.",
+      "error": "The payment did not go through. Please try again.",
+      "changed": "This quote has changed. Please reload the page.",
+      "unavailable": "This quote can no longer be accepted."
+    },
+    "consent": {
+      "saved_card": "I accept quote {reference} (version {version}) and its cancellation terms. I authorise Prestigo to charge the deposit of {deposit} now, to save my card, and to charge to it the remainder of each trip as described above, plus waiting beyond the booked time and extras agreed during the trip.",
+      "payment_link": "I accept quote {reference} (version {version}) and its cancellation terms. I authorise Prestigo to charge the deposit of {deposit} now and to save my card for the payments on this quote that I make on this page.",
+      "cash": "I accept quote {reference} (version {version}) and its cancellation terms. I authorise Prestigo to charge the deposit of {deposit} now and to save my card as a guarantee: if a trip is not paid in cash, or for waiting beyond the booked time and extras agreed during the trip, Prestigo may charge the amount due to it.",
+      "invoice": "I accept quote {reference} (version {version}) and its cancellation terms. I authorise Prestigo to charge the deposit of {deposit} now and to save my card for the payments on this quote that I approve."
+    },
+    "paid": {
+      "heading": "Your trips are booked",
+      "body": "We sent a confirmation to your email. Your booking references:",
+      "booking": "Booking {reference}"
+    },
+    "remainderPay": {
+      "heading": "Pay the remainder",
+      "due": "Remainder to pay: {amount}",
+      "button": "Pay {amount}",
+      "confirming": "Payment received. We are updating your quote…",
+      "paid": "The remainder is paid. Thank you."
+    },
+    "invoice": {
+      "note": "We will send you an invoice for the remainder of {amount}."
+    },
+    "pdf": {
+      "download": "Download PDF",
+      "preparing": "Preparing the PDF…",
+      "unavailable": "The PDF is not available right now. Use Print to save the quote as a PDF.",
+      "print": "Print"
+    },
+    "invalid": {
+      "title": "This quote is no longer available",
+      "body": "The link has expired or was replaced by a newer quote. Please contact us and we will help you."
+    },
+    "contact": {
+      "heading": "Questions?",
+      "call": "Call us",
+      "email": "Email us"
+    },
+    "done": {
+      "title": "Thank you",
+      "body": "We are confirming your payment. Open the quote link from your email to see your trips."
+    },
+    "document": {
+      "title": "Quote",
+      "issued": "Issued on {date}",
+      "reference": "Reference",
+      "acceptOnline": "Accept the quote and pay the deposit online with the link we sent you.",
+      "operator": "Prestigo is operated by {company}."
+    }
   }
 }

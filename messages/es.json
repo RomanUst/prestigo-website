@@ -1371,5 +1371,122 @@
         "errorGeneric": "No hemos podido enviar su solicitud. Inténtelo de nuevo o llámenos: <tel>{phone}</tel>."
       }
     }
+  },
+  "Quote": {
+    "meta": {
+      "title": "Su presupuesto"
+    },
+    "eyebrow": "Presupuesto de Prestigo",
+    "title": "Presupuesto {reference}",
+    "version": "Versión {number}",
+    "preparedFor": "Preparado para {name}",
+    "intro": "Revise los trayectos y las condiciones que figuran abajo. Para confirmar, acepte el presupuesto y pague el depósito.",
+    "validUntil": "Válido hasta el {date}",
+    "pragueTime": "Todas las fechas y horas son hora de Praga.",
+    "status": {
+      "offer": "Pendiente de su confirmación",
+      "accepted": "Pendiente del depósito",
+      "paid": "Confirmado"
+    },
+    "lines": {
+      "heading": "Sus trayectos",
+      "trip": "Trayecto {number}",
+      "tripType": {
+        "transfer": "Traslado",
+        "hourly": "Por horas",
+        "daily": "Día completo"
+      },
+      "date": "Fecha",
+      "pickupTime": "Hora de recogida",
+      "landing": "El vuelo aterriza a las {time}",
+      "from": "Origen",
+      "to": "Destino",
+      "stops": "Paradas",
+      "stopWait": "espera de {minutes} min",
+      "vehicle": "Vehículo",
+      "passengers": "Pasajeros",
+      "luggage": "Equipaje",
+      "duration": "{hours} h",
+      "price": "Precio"
+    },
+    "summary": {
+      "heading": "Resumen",
+      "total": "Total",
+      "deposit": "Depósito para confirmar",
+      "remainder": "Resto"
+    },
+    "remainder": {
+      "saved_card": "El resto de cada trayecto se cobra en la tarjeta con la que paga el depósito: reservamos el importe poco antes del trayecto y lo cobramos después del trayecto.",
+      "payment_link": "Usted paga el resto en esta página después del depósito, antes de sus trayectos.",
+      "cash": "Usted paga el resto de cada trayecto en efectivo al conductor. La tarjeta con la que paga el depósito se conserva como garantía.",
+      "invoice": "Le enviamos una factura por el resto."
+    },
+    "terms": {
+      "heading": "Condiciones de cancelación",
+      "free": "Cancelación gratuita hasta el {freeUntil}: el depósito se reembolsa íntegramente.",
+      "lateAll": "Después, el depósito se conserva.",
+      "latePercent": "Después, se conserva el {percent}% del depósito y el resto se reembolsa.",
+      "noFree": "Ya no es posible cancelar gratis este presupuesto.",
+      "cap": "Por cancelar, nunca se le cobra más que el depósito.",
+      "howToCancel": "Para cancelar, contáctenos por teléfono o por correo electrónico."
+    },
+    "accept": {
+      "heading": "Aceptar y pagar el depósito",
+      "button": "Pagar el depósito de {amount}",
+      "consentRequired": "Marque la casilla para aceptar las condiciones.",
+      "processing": "Procesando su pago…",
+      "confirming": "Pago recibido. Estamos confirmando sus trayectos…",
+      "declined": "Su tarjeta fue rechazada. Pruebe con otra tarjeta.",
+      "error": "El pago no se pudo completar. Inténtelo de nuevo.",
+      "changed": "Este presupuesto ha cambiado. Vuelva a cargar la página.",
+      "unavailable": "Este presupuesto ya no se puede aceptar."
+    },
+    "consent": {
+      "saved_card": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. Autorizo a Prestigo a cobrar ahora el depósito de {deposit}, a guardar mi tarjeta y a cobrar en ella el resto de cada trayecto como se describe arriba, así como la espera que supere el tiempo reservado y los extras acordados durante el trayecto.",
+      "payment_link": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. Autorizo a Prestigo a cobrar ahora el depósito de {deposit} y a guardar mi tarjeta para los pagos de este presupuesto que yo realice en esta página.",
+      "cash": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. Autorizo a Prestigo a cobrar ahora el depósito de {deposit} y a guardar mi tarjeta como garantía: si un trayecto no se paga en efectivo, o por la espera que supere el tiempo reservado y los extras acordados durante el trayecto, Prestigo podrá cobrar en ella el importe debido.",
+      "invoice": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. Autorizo a Prestigo a cobrar ahora el depósito de {deposit} y a guardar mi tarjeta para los pagos de este presupuesto que yo apruebe."
+    },
+    "paid": {
+      "heading": "Sus trayectos están reservados",
+      "body": "Hemos enviado una confirmación a su correo electrónico. Sus referencias de reserva:",
+      "booking": "Reserva {reference}"
+    },
+    "remainderPay": {
+      "heading": "Pagar el resto",
+      "due": "Resto por pagar: {amount}",
+      "button": "Pagar {amount}",
+      "confirming": "Pago recibido. Estamos actualizando su presupuesto…",
+      "paid": "El resto está pagado. Gracias."
+    },
+    "invoice": {
+      "note": "Le enviaremos una factura por el resto de {amount}."
+    },
+    "pdf": {
+      "download": "Descargar PDF",
+      "preparing": "Preparando el PDF…",
+      "unavailable": "El PDF no está disponible en este momento. Use Imprimir para guardar el presupuesto como PDF.",
+      "print": "Imprimir"
+    },
+    "invalid": {
+      "title": "Este presupuesto ya no está disponible",
+      "body": "El enlace ha caducado o fue sustituido por un presupuesto más reciente. Contáctenos y le ayudaremos."
+    },
+    "contact": {
+      "heading": "¿Tiene preguntas?",
+      "call": "Llámenos",
+      "email": "Escríbanos"
+    },
+    "done": {
+      "title": "Gracias",
+      "body": "Estamos confirmando su pago. Abra el enlace del presupuesto que recibió por correo para ver sus trayectos."
+    },
+    "document": {
+      "title": "Presupuesto",
+      "issued": "Emitido el {date}",
+      "reference": "Referencia",
+      "acceptOnline": "Acepte el presupuesto y pague el depósito en línea con el enlace que le enviamos.",
+      "operator": "Prestigo es operado por {company}."
+    }
   }
 }

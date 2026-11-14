@@ -256,7 +256,7 @@
       "quoteBody": "我們將在 2 小時內與您聯絡，確認行程和價格。",
       "journeyDetails": "行程詳情",
       "stopLine": "停靠點 {number}：{address}",
-      "stopWait": "等候 {minutes} 分鐘",
+      "stopWait": "等待 {minutes} 分鐘",
       "outboundJourney": "去程行程",
       "returnJourney": "返程行程",
       "hoursLine": "{hours} 小時",
@@ -1127,7 +1127,7 @@
       "fromLabel": "出發地",
       "toLabel": "目的地",
       "stopLabel": "停靠點 {number}",
-      "stopWait": "等候 {minutes} 分鐘",
+      "stopWait": "等待 {minutes} 分鐘",
       "stopPinned": "地圖上標記的位置",
       "landingLabel": "航班降落",
       "dateLabel": "日期",
@@ -1375,6 +1375,123 @@
         "errorRate": "您剛剛已傳送過一次申請。我們會盡快回復。",
         "errorGeneric": "我們無法傳送您的申請。請重試或致電我們：<tel>{phone}</tel>。"
       }
+    }
+  },
+  "Quote": {
+    "meta": {
+      "title": "您的報價"
+    },
+    "eyebrow": "Prestigo 報價",
+    "title": "報價 {reference}",
+    "version": "版本 {number}",
+    "preparedFor": "為 {name} 準備",
+    "intro": "請檢視下方的行程和條款。如需確認，請接受報價並支付定金。",
+    "validUntil": "有效期至 {date}",
+    "pragueTime": "所有日期和時間均為布拉格時間。",
+    "status": {
+      "offer": "等待您的確認",
+      "accepted": "等待支付定金",
+      "paid": "已確認"
+    },
+    "lines": {
+      "heading": "您的行程",
+      "trip": "行程 {number}",
+      "tripType": {
+        "transfer": "接送",
+        "hourly": "按小時",
+        "daily": "全天"
+      },
+      "date": "日期",
+      "pickupTime": "接客時間",
+      "landing": "航班 {time} 降落",
+      "from": "出發地",
+      "to": "目的地",
+      "stops": "停靠點",
+      "stopWait": "等待 {minutes} 分鐘",
+      "vehicle": "車輛",
+      "passengers": "乘客",
+      "luggage": "行李",
+      "duration": "{hours} 小時",
+      "price": "價格"
+    },
+    "summary": {
+      "heading": "彙總",
+      "total": "合計",
+      "deposit": "確認所需定金",
+      "remainder": "餘款"
+    },
+    "remainder": {
+      "saved_card": "每段行程的餘款將從您支付定金的銀行卡扣除：我們會在行程前不久凍結該金額，並在行程結束後扣款。",
+      "payment_link": "餘款請在支付定金後、行程開始前，在本頁面支付。",
+      "cash": "每段行程的餘款由您以現金支付給司機。您支付定金所用的銀行卡將作為擔保儲存。",
+      "invoice": "我們會向您傳送餘款的發票。"
+    },
+    "terms": {
+      "heading": "取消條款",
+      "free": "{freeUntil} 前可免費取消：定金全額退還。",
+      "lateAll": "此後，定金不予退還。",
+      "latePercent": "此後，將扣留定金的 {percent}%，其餘部分退還。",
+      "noFree": "此報價已不能免費取消。",
+      "cap": "取消時，向您收取的費用絕不會超過定金。",
+      "howToCancel": "如需取消，請透過電話或電子郵件聯絡我們。"
+    },
+    "accept": {
+      "heading": "接受並支付定金",
+      "button": "支付定金 {amount}",
+      "consentRequired": "請勾選方框以接受條款。",
+      "processing": "正在處理您的付款…",
+      "confirming": "已收到付款。我們正在確認您的行程…",
+      "declined": "您的銀行卡被拒絕。請換一張卡再試。",
+      "error": "付款未成功。請重試。",
+      "changed": "此報價已更新。請重新整理頁面。",
+      "unavailable": "此報價已無法接受。"
+    },
+    "consent": {
+      "saved_card": "我接受報價 {reference}（版本 {version}）及其取消條款。我授權 Prestigo 現在扣除 {deposit} 的定金，儲存我的銀行卡，並按上文所述從該卡扣除每段行程的餘款，以及超出預訂時間的等候和行程中約定的額外專案。",
+      "payment_link": "我接受報價 {reference}（版本 {version}）及其取消條款。我授權 Prestigo 現在扣除 {deposit} 的定金，並儲存我的銀行卡，用於我在本頁面為此報價所做的付款。",
+      "cash": "我接受報價 {reference}（版本 {version}）及其取消條款。我授權 Prestigo 現在扣除 {deposit} 的定金，並將我的銀行卡作為擔保儲存：如果某段行程未以現金支付，或產生超出預訂時間的等候和行程中約定的額外專案，Prestigo 可從該卡扣除應付金額。",
+      "invoice": "我接受報價 {reference}（版本 {version}）及其取消條款。我授權 Prestigo 現在扣除 {deposit} 的定金，並儲存我的銀行卡，用於我為此報價批准的付款。"
+    },
+    "paid": {
+      "heading": "您的行程已預訂",
+      "body": "我們已向您的郵箱傳送確認郵件。您的預訂編號：",
+      "booking": "預訂 {reference}"
+    },
+    "remainderPay": {
+      "heading": "支付餘款",
+      "due": "待付餘款：{amount}",
+      "button": "支付 {amount}",
+      "confirming": "已收到付款。我們正在更新您的報價…",
+      "paid": "餘款已付清。謝謝您。"
+    },
+    "invoice": {
+      "note": "我們將向您傳送 {amount} 餘款的發票。"
+    },
+    "pdf": {
+      "download": "下載 PDF",
+      "preparing": "正在準備 PDF…",
+      "unavailable": "PDF 暫時無法使用。請使用“列印”將報價儲存為 PDF。",
+      "print": "列印"
+    },
+    "invalid": {
+      "title": "此報價已不可用",
+      "body": "連結已過期，或已被更新的報價取代。請聯絡我們，我們會為您提供幫助。"
+    },
+    "contact": {
+      "heading": "有疑問？",
+      "call": "致電我們",
+      "email": "發郵件給我們"
+    },
+    "done": {
+      "title": "謝謝您",
+      "body": "我們正在確認您的付款。請開啟郵件中的報價連結檢視您的行程。"
+    },
+    "document": {
+      "title": "報價",
+      "issued": "出具日期：{date}",
+      "reference": "編號",
+      "acceptOnline": "請透過我們傳送給您的連結線上接受報價並支付定金。",
+      "operator": "Prestigo 由 {company} 運營。"
     }
   }
 }
