@@ -195,6 +195,7 @@ describe('quote actions: mount and state header (QUOTE-06, SC1)', () => {
   it('the real page renders the actions bar and the history inside the builder, with the badge and the version', async () => {
     await renderPage(detail())
     expect(within(screen.getByTestId('quote-builder')).getByTestId('quote-actions')).toBeInTheDocument()
+    expect(within(screen.getByTestId('quote-builder')).getByTestId('quote-events')).toBeInTheDocument()
     expect(within(bar()).getByText('Draft')).toBeInTheDocument()
     expect(within(bar()).getByTestId('quote-version')).toHaveTextContent('Version 1')
     expect(within(bar()).getByTestId('quote-action-send')).toBeEnabled()
@@ -487,5 +488,50 @@ describe('quote actions: Cancel quote (void)', () => {
     fireEvent.click(within(dialog()).getByRole('button', { name: 'Cancel quote' }))
     expect(await within(dialog()).findByText('The client is paying the deposit right now. Try again in a few minutes.')).toBeInTheDocument()
     expect(within(bar()).getByText('Sent')).toBeInTheDocument()
+  })
+})
+
+describe('quote events and bookings (SC1, QUOTE-06)', () => {
+  const events: Json[] = [
+    { id: 'e1', quote_id: QUOTE_ID, kind: 'created', created_at: '2026-11-14T09:00:00.000Z', version_id: 'v1', amount_minor: null, currency: null, error_code: null, actor_type: 'admin' },
+    { id: 'e3', quote_id: QUOTE_ID, kind: 'deposit_paid', created_at: '2026-11-14T10:05:00.000Z', version_id: 'v1', amount_minor: 9000, currency: 'eur', error_code: null, actor_type: 'webhook', client_email: 'leak@example.com', client_phone: '+420999888777', address: 'Leak Street 1' },
+    { id: 'e2', quote_id: QUOTE_ID, kind: 'email_failed', created_at: '2026-11-14T09:30:00.000Z', version_id: 'v1', amount_minor: null, currency: null, error_code: 'send_failed', actor_type: 'system' },
+  ]
+  const bookings: Json[] = [
+    { id: 'b1', booking_reference: 'PRG-100001', status: 'confirmed', payment_mode: 'quote', payment_state: 'captured', pickup_date: '2027-03-10', pickup_time: '09:30:00', quote_line_id: 'line-1' },
+  ]
+
+  it('lists the events newest first with Prague time, kind, version and amount, and the linked bookings with their payment state', async () => {
+    await renderPage(detail({ status: 'paid', events, bookings }))
+    const list = screen.getByTestId('quote-events')
+    const rows = within(list).getAllByTestId('quote-event-row')
+    expect(rows).toHaveLength(3)
+    expect(within(rows[0]).getByTestId('quote-event-kind')).toHaveTextContent('Deposit paid')
+    expect(within(rows[0]).getByTestId('quote-event-time')).toHaveTextContent('14 Nov, 11:05')
+    expect(within(rows[0]).getByTestId('quote-event-amount')).toHaveTextContent(formatMinor(9000, 'eur'))
+    expect(within(rows[0]).getByText('Version 1')).toBeInTheDocument()
+    expect(within(rows[1]).getByTestId('quote-event-kind')).toHaveTextContent('Email not sent')
+    expect(within(rows[1]).getByText('send_failed')).toBeInTheDocument()
+    expect(within(rows[2]).getByTestId('quote-event-kind')).toHaveTextContent('Quote created')
+    expect(within(rows[2]).queryByTestId('quote-event-amount')).toBeNull()
+
+    const booking = within(list).getByTestId('quote-booking-row')
+    expect(booking).toHaveTextContent('PRG-100001')
+    expect(booking).toHaveTextContent('Captured')
+  })
+
+  it('shows no email, phone or address of the client anywhere in the history', async () => {
+    await renderPage(detail({ status: 'paid', events, bookings }))
+    const text = screen.getByTestId('quote-events').textContent ?? ''
+    for (const secret of ['anna@example.com', '420123456789', 'leak@example.com', '+420999888777', 'Leak Street', 'Prague Airport']) {
+      expect(text).not.toContain(secret)
+    }
+  })
+
+  it('says so when nothing happened and no booking exists', async () => {
+    await renderPage(detail())
+    const list = screen.getByTestId('quote-events')
+    expect(within(list).getByText('Nothing has happened yet.')).toBeInTheDocument()
+    expect(within(list).getByText(/No bookings yet/)).toBeInTheDocument()
   })
 })

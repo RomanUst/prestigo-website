@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { QuoteLineEditor } from '@/components/admin/quotes/QuoteLineEditor'
 import { QuoteSettingsFields } from '@/components/admin/quotes/QuoteSettingsFields'
 import { QuoteActionsBar } from '@/components/admin/quotes/QuoteActionsBar'
+import { QuoteEventsList } from '@/components/admin/quotes/QuoteEventsList'
 import {
   depositProblem,
   draftFromDetail,
@@ -262,6 +263,7 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
       </div>
 
       <QuoteActionsBar detail={detail} unsavedChanges={unsaved} onChanged={() => load(true)} />
+      <QuoteEventsList detail={detail} />
 
       <section aria-label="Trips" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {draft.lines.length === 0 && <p style={mutedStyle}>No trips yet.</p>}
