@@ -1,4 +1,5 @@
-// Server-only Europe/Prague "today" helper.
+// Pure Europe/Prague date helpers. Imports nothing, so it is safe in client bundles
+// (lib/prague-calendar.ts and lib/no-show.ts use it from both tiers).
 //
 // D-01 (Phase 65 CONTEXT.md): "today" for the future-first bookings list must be
 // server-computed in Europe/Prague, never client-derived. This uses Node's

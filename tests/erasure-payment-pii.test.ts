@@ -12,6 +12,7 @@ import { latestFunctionBody, loadMigration } from './helpers/latest-migration'
 
 const m088 = loadMigration('088_erasure_payment_pii.sql')
 const m075 = loadMigration('075_erasure.sql')
+const m089 = loadMigration('089_stops_landing_extra_charges.sql')
 
 const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
 
@@ -41,12 +42,17 @@ function expectSupersetOf075(name: string): void {
 describe('088 erasure_anonymise_person (tracer: consent IP nulling through a copy of the 075 function)', () => {
   const body = latestFunctionBody('erasure_anonymise_person')
 
-  it('is the 088 definition (the last one in filename order) and names the payment tables', () => {
+  it('is the latest definition (089 copies 088 and adds the stop data) and names the payment tables', () => {
     expect(body).toContain('booking_payment_consents')
     expect(body).toContain('booking_manage_tokens')
     expect(body).toContain('booking_payment_notes')
     expect(body).toContain('booking_fee_cases')
-    expect(norm(body)).toBe(norm(bodyIn(m088, 'erasure_anonymise_person')))
+    // Phase 91 (migration 089) re-created the function: the latest body is the 089 one, and the whole 088 body
+    // (statement by statement) is still inside it - see tests/migration-089.test.ts.
+    expect(norm(body)).toBe(norm(bodyIn(m089, 'erasure_anonymise_person')))
+    for (const chunk of bodyIn(m088, 'erasure_anonymise_person').split(';').map(norm).filter((c) => c.length > 0)) {
+      expect(norm(body), chunk.slice(0, 80)).toContain(chunk)
+    }
   })
 
   it('still contains every statement of the 075 body', () => {

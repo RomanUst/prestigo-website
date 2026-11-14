@@ -169,6 +169,16 @@ describe.each(NON_EN)('card-flow copy parity: %s', (locale) => {
       'PaymentEmails.feeCharged.introCashUnpaid': ['amount', 'pickupDate'],
       'PaymentEmails.feeCharged.introCashCard': ['amount'],
       'PaymentEmails.feeWaived.subject': ['reference'],
+      // Phase 91 D-10: the extra-charge receipt. Minutes, amounts, dates and the operator item line are parameters only.
+      'PaymentEmails.extraCharged.subjectWaiting': ['reference'],
+      'PaymentEmails.extraCharged.introWaiting': ['amount', 'minutes', 'pickupDate'],
+      'PaymentEmails.extraCharged.lineWaiting': ['minutes'],
+      'PaymentEmails.extraCharged.subjectOther': ['reference'],
+      'PaymentEmails.extraCharged.introOther': ['amount', 'pickupDate'],
+      'PaymentEmails.extraCharged.lineOther': ['item'],
+      'PaymentEmails.extraCharged.h1Waiting': [],
+      'PaymentEmails.extraCharged.h1Other': [],
+      'PaymentEmails.extraCharged.approved': [],
       'PaymentEmails.paymentFailed.subjectFee': ['reference'],
       'PaymentEmails.paymentFailed.introFeeCancellation': ['amount'],
       'PaymentEmails.paymentFailed.introFeeNoShow': ['amount'],
@@ -248,6 +258,8 @@ describe('card-flow copy: EN source is clean', () => {
     for (const key of Object.keys(EN)) {
       expect({ key, operatorText: /\{(reason|note|adminNote)\}/i.test(EN[key]) }).toEqual({ key, operatorText: false })
     }
+    // T-91-18: the item line the operator writes for the receipt is the one operator-text parameter, in one key only.
+    expect(Object.keys(EN).filter((key) => /\{item\}/.test(EN[key]))).toEqual(['PaymentEmails.extraCharged.lineOther'])
   })
 
   it('the box states the policy: free until, a percent of the fare, the wait, and that a person decides', () => {

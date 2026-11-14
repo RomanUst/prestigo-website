@@ -465,3 +465,72 @@ describe('PUT /api/admin/pricing — hourly range (HOURLY-01)', () => {
     expect(json).toHaveProperty('issues')
   })
 })
+
+describe('PUT /api/admin/pricing — waiting rate per 15 min (Phase 91, STOP-03)', () => {
+  const withWaiting = (rates: Array<number | string | null>) => ({
+    ...validPutBody,
+    config: validPutBody.config.map((row, i) => ({ ...row, waiting_rate_per_15min: rates[i] })),
+  })
+
+  beforeEach(() => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: '1', app_metadata: { is_admin: true } } },
+      error: null,
+    })
+  })
+
+  it('passes a Business rate and two null classes to the upsert unchanged', async () => {
+    const configUpsert = vi.fn((_rows: unknown) => Promise.resolve({ error: null }))
+    const globalsUpsert = vi.fn(() => Promise.resolve({ error: null }))
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table === 'pricing_config') return { upsert: configUpsert }
+      if (table === 'pricing_globals') return { upsert: globalsUpsert }
+    })
+
+    const body = withWaiting([12.5, null, null])
+    const res = await PUT(makeRequest('PUT', body))
+    expect(res.status).toBe(200)
+    expect(configUpsert).toHaveBeenCalledWith(body.config)
+    const sent = configUpsert.mock.calls[0][0] as Array<Record<string, unknown>>
+    expect(sent.map((r) => r.waiting_rate_per_15min)).toEqual([12.5, null, null])
+  })
+
+  it.each([0, -5, '12'])('rejects waiting_rate_per_15min %j with 400 and no upsert', async (bad) => {
+    const configUpsert = vi.fn(() => Promise.resolve({ error: null }))
+    supabaseServiceStub.from.mockImplementation(() => ({ upsert: configUpsert }))
+
+    const res = await PUT(makeRequest('PUT', withWaiting([bad, null, null])))
+    expect(res.status).toBe(400)
+    expect(configUpsert).not.toHaveBeenCalled()
+  })
+
+  it('returns 401 for an unauthenticated PUT before parsing the body', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'No session' },
+    })
+    const res = await PUT(makeRequest('PUT', withWaiting([0, null, null])))
+    expect(res.status).toBe(401)
+  })
+
+  it('GET returns the stored waiting rates untouched (select *)', async () => {
+    const configData = [
+      { vehicle_class: 'business', waiting_rate_per_15min: '12.50' },
+      { vehicle_class: 'first_class', waiting_rate_per_15min: null },
+    ]
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table === 'pricing_config') {
+        return { select: vi.fn(() => Promise.resolve({ data: configData, error: null })) }
+      }
+      return {
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({ single: vi.fn(() => Promise.resolve({ data: { id: 1 }, error: null })) })),
+        })),
+      }
+    })
+    const res = await GET()
+    const json = await res.json()
+    expect(json.config[0].waiting_rate_per_15min).toBe('12.50')
+    expect(json.config[1].waiting_rate_per_15min).toBeNull()
+  })
+})

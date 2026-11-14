@@ -1,6 +1,7 @@
 'use client'
 
 import { useTranslations } from 'next-intl'
+import { useMemo } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { computeExtrasTotal } from '@/lib/extras'
@@ -66,6 +67,12 @@ export default function StickyBookingPanel() {
   const distanceKm = useBookingStore((s) => s.distanceKm)
   const durationMin = useBookingStore((s) => s.durationMin)
   const tripType = useBookingStore((s) => s.tripType)
+  const stops = useBookingStore((s) => s.stops)
+  // Only stops that have a place are drawn; the map keys on the coordinates, so a wait edit never redraws it.
+  const stopPoints = useMemo(
+    () => stops.flatMap((stop) => (stop.place ? [{ lat: stop.place.lat, lng: stop.place.lng }] : [])),
+    [stops],
+  )
 
   // Compute price display
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
@@ -169,6 +176,7 @@ export default function StickyBookingPanel() {
         origin={origin}
         destination={destination}
         pickupTime={pickupTime}
+        stops={stopPoints}
       />
 
       {/* Pickup / dropoff time row */}

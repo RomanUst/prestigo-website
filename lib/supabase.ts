@@ -129,6 +129,11 @@ export function buildBookingRow(
     luggage: parseInt(meta.luggage) || 0,
     pickup_date: meta.pickupDate,
     pickup_time: meta.pickupTime,
+    // Phase 91 STOP-05 (D-18): pickup_date / pickup_time above are the pickup (landing + offset). The landing is
+    // stored beside it; all three are null for a booking without a landing time (the DB check needs all or none).
+    landing_date: meta.landingDate || null,
+    landing_time: meta.landingTime || null,
+    pickup_offset_min: meta.pickupOffsetMin ? parseInt(meta.pickupOffsetMin, 10) : null,
     return_date: meta.returnDate || null,
     vehicle_class: meta.vehicleClass,
     distance_km: meta.distanceKm ? parseFloat(meta.distanceKm) : null,
@@ -457,6 +462,10 @@ export function buildBookingRows(
     // Return leg pickup is the return_date/return_time, NOT the outbound pickup
     pickup_date: meta.returnDate,
     pickup_time: meta.returnTime,
+    // STOP-05: the landing belongs to the outbound (arrival) leg only.
+    landing_date: null,
+    landing_time: null,
+    pickup_offset_min: null,
     return_date: null,
     vehicle_class: meta.vehicleClass,
     distance_km: meta.distanceKm ? parseFloat(meta.distanceKm) : null,

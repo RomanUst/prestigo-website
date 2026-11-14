@@ -200,3 +200,97 @@ describe('Phase 87 additive props (height, onRouteInfo, onRouteError)', () => {
     expect(second).not.toHaveBeenCalled()
   })
 })
+
+describe('Phase 91 stops (STOP-01): waypoints, summed legs, numbered markers', () => {
+  const stopA = { lat: 50.23, lng: 12.87 }
+  const stopB = { lat: 49.74, lng: 13.37 }
+
+  const requests: Array<Record<string, unknown>> = []
+  const markerOptions: Array<Record<string, unknown>> = []
+
+  function installRoutedMaps(legs: Array<{ distance: { value: number }; duration: { value: number } }>) {
+    requests.length = 0
+    markerOptions.length = 0
+    class RecordingDirService {
+      route = (req: Record<string, unknown>, cb: (result: unknown, status: string) => void) => {
+        requests.push(req)
+        cb({ routes: [{ overview_path: [], legs }] }, 'OK')
+      }
+    }
+    class RecordingMarker {
+      constructor(opts: Record<string, unknown>) {
+        markerOptions.push(opts)
+      }
+      setMap = vi.fn()
+      setPosition = vi.fn()
+    }
+    const maps = (window as unknown as { google: { maps: Record<string, unknown> } }).google.maps
+    maps.DirectionsService = RecordingDirService
+    maps.Marker = RecordingMarker
+  }
+
+  const oneLeg = [{ distance: { value: 12400 }, duration: { value: 1080 } }]
+
+  it('sends the stops as stopover waypoints in the given order and never optimises them', async () => {
+    installRoutedMaps(oneLeg)
+    render(<RouteMap origin={pragueCentre} destination={pragueStation} stops={[stopA, stopB]} />)
+    await waitFor(() => expect(requests).toHaveLength(1))
+    const waypoints = requests[0].waypoints as Array<{ location: { lat(): number; lng(): number }; stopover: boolean }>
+    expect(waypoints).toHaveLength(2)
+    expect(waypoints.map((w) => w.stopover)).toEqual([true, true])
+    expect(waypoints.map((w) => [w.location.lat(), w.location.lng()])).toEqual([
+      [stopA.lat, stopA.lng],
+      [stopB.lat, stopB.lng],
+    ])
+    expect(requests[0].optimizeWaypoints).toBeUndefined()
+  })
+
+  it('uses only the first 5 of 6 stops', async () => {
+    installRoutedMaps(oneLeg)
+    const six = Array.from({ length: 6 }, (_, i) => ({ lat: 50 + i / 10, lng: 14 + i / 10 }))
+    render(<RouteMap origin={pragueCentre} destination={pragueStation} stops={six} />)
+    await waitFor(() => expect(requests).toHaveLength(1))
+    expect((requests[0].waypoints as unknown[]).length).toBe(5)
+  })
+
+  it('sums all legs for onRouteInfo (10 km / 15 min + 20 km / 25 min -> 30 km / 40 min)', async () => {
+    installRoutedMaps([
+      { distance: { value: 10000 }, duration: { value: 900 } },
+      { distance: { value: 20000 }, duration: { value: 1500 } },
+    ])
+    const onRouteInfo = vi.fn()
+    render(
+      <RouteMap origin={pragueCentre} destination={pragueStation} stops={[stopA]} onRouteInfo={onRouteInfo} />,
+    )
+    await waitFor(() => expect(onRouteInfo).toHaveBeenCalledTimes(1))
+    expect(onRouteInfo).toHaveBeenCalledWith(30, 40)
+  })
+
+  it('draws one numbered marker per stop', async () => {
+    installRoutedMaps(oneLeg)
+    render(<RouteMap origin={pragueCentre} destination={pragueStation} stops={[stopA, stopB]} />)
+    await waitFor(() => expect(markerOptions.length).toBeGreaterThanOrEqual(2))
+    const labels = markerOptions
+      .map((m) => (m.label as { text?: string } | undefined)?.text)
+      .filter((text): text is string => typeof text === 'string')
+    expect(labels).toEqual(['1', '2'])
+  })
+
+  it('without stops the request has no waypoints and the callback is unchanged', async () => {
+    installRoutedMaps(oneLeg)
+    const onRouteInfo = vi.fn()
+    render(<RouteMap origin={pragueCentre} destination={pragueStation} onRouteInfo={onRouteInfo} />)
+    await waitFor(() => expect(onRouteInfo).toHaveBeenCalledWith(12.4, 18))
+    expect('waypoints' in requests[0]).toBe(false)
+    expect(markerOptions.some((m) => m.label !== undefined)).toBe(false)
+  })
+
+  it('a new stops array with the same points does not rebuild the map', async () => {
+    installRoutedMaps(oneLeg)
+    const { rerender } = render(<RouteMap origin={pragueCentre} destination={pragueStation} stops={[stopA]} />)
+    await waitFor(() => expect(requests).toHaveLength(1))
+    rerender(<RouteMap origin={pragueCentre} destination={pragueStation} stops={[{ ...stopA }]} />)
+    await Promise.resolve()
+    expect(requests).toHaveLength(1)
+  })
+})

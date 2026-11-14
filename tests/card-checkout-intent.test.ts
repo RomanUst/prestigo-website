@@ -13,6 +13,11 @@ const { dbHolder, stripeHolder, pricingConfigMock, rateLimitMock, promoState } =
 }))
 
 // captureUnpaidBooking / state.ts reach the client through createClient, so mock it at that boundary.
+const { routeDistanceMock } = vi.hoisted(() => ({ routeDistanceMock: vi.fn() }))
+// Phase 91 (STOP-02): the checkout prices on the server's Google Routes distance. These fixtures used to send
+// distanceKm; the mock returns the same distance so the assertions stay unchanged.
+vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
+
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => dbHolder.client),
 }))
@@ -92,6 +97,10 @@ function bookingData(over: Record<string, string> = {}) {
     tripType: 'transfer',
     vehicleClass: 'business',
     distanceKm: '50',
+    originLat: '50.0755',
+    originLng: '14.4378',
+    destinationLat: '49.1951',
+    destinationLng: '16.6068',
     pickupDate: '2027-01-16',
     pickupTime: '10:00',
     passengers: '2',
@@ -207,6 +216,8 @@ const bookings = () => db.state.bookings
 const consents = () => db.state.booking_payment_consents
 
 beforeEach(() => {
+  routeDistanceMock.mockReset()
+  routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 50, durationMin: 40 })
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(NOW)
   log = []

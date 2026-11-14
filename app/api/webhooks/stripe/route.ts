@@ -29,6 +29,8 @@ import { sendGa4Purchase } from '@/lib/analytics-server'
 import { logEmail } from '@/lib/email-log'
 import { dispatchPaymentEvent } from '@/lib/stripe-webhook/dispatch'
 import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
+import { loadStopsByBookingIds } from '@/lib/booking-stops'
+import { sendPaymentOperatorAlert } from '@/lib/payments/alerts'
 
 /**
  * Phase 89 (CANC-02): the cancellation box and Manage booking button for the English confirmation mails, in the
@@ -288,6 +290,10 @@ type PaymentLinkReconciledRow = {
   terminal?: string | null
   special_requests?: string | null
   pickup_utc?: string | null
+  // Phase 91 (STOP-05): the airport landing kept beside the pickup; read for the confirmation email.
+  landing_date?: string | null
+  landing_time?: string | null
+  pickup_offset_min?: number | null
   // D-11: absent until plan 75-17 adds the `bookings.locale` column — read
   // through this narrow typed accessor rather than an `as` cast; missing
   // falls through to normalizeSiteLocale's 'en' default at the call site.
@@ -416,6 +422,11 @@ async function handlePaymentLinkSucceeded(
     flightNumber: row.flight_number ?? undefined,
     terminal: row.terminal ?? undefined,
     specialRequests: row.special_requests ?? undefined,
+    // Phase 91 (STOP-04, STOP-05): the id and the landing columns; the email senders read the stored stops themselves.
+    bookingId: row.id,
+    landingDate: row.landing_date ?? undefined,
+    landingTime: row.landing_time ?? undefined,
+    pickupOffsetMin: row.pickup_offset_min ?? undefined,
   }
 
   // Phase 89 CANC-02: box and Manage button when the reconciled row(s) stored a policy; the manager alert never gets it.
@@ -603,6 +614,48 @@ async function handleGroupPaymentSucceeded(
   }))
 }
 
+/**
+ * WR-06: the fallback insert creates a booking from the payment metadata alone, and stops are never restored from it. When
+ * the PaymentIntent says stops were priced (meta.stopCount, a count only) and the new booking has no stored stops, the client
+ * paid for a detour the driver, the calendar and the emails know nothing about: the operator is told so (ids only, deduped
+ * per booking). Never throws and never fails the webhook.
+ */
+async function alertIfPaidStopsMissing(
+  paymentIntent: Stripe.PaymentIntent,
+  meta: Record<string, string>,
+  bookingRow: Record<string, unknown>,
+  bookingId: string,
+): Promise<void> {
+  const priced = Number.parseInt(meta.stopCount ?? '', 10)
+  if (!Number.isInteger(priced) || priced <= 0) return
+  try {
+    let stored: number | null = null
+    try {
+      stored = (await loadStopsByBookingIds([bookingId])).get(bookingId)?.length ?? 0
+    } catch {
+      console.error('[webhook] stops read failed after the fallback insert', { bookingId, stripeObjectId: paymentIntent.id })
+    }
+    if (stored !== null && stored >= priced) return
+    console.error('[webhook] pay-now booking created without its paid stops', {
+      bookingId,
+      stripeObjectId: paymentIntent.id,
+      pricedStops: priced,
+    })
+    await sendPaymentOperatorAlert(
+      'ops_attention',
+      { ...bookingRow, id: bookingId, payment_currency: paymentIntent.currency === 'czk' ? 'czk' : 'eur' },
+      {
+        eventKey: `alert:stops_missing:${bookingId}`,
+        code: 'stops_missing',
+        amountMinor: paymentIntent.amount,
+        note: 'stops_missing',
+      },
+    )
+  } catch {
+    console.error('[webhook] stops-missing alert failed', { bookingId })
+  }
+}
+
 async function handleOneWaySucceeded(
   paymentIntent: Stripe.PaymentIntent,
   meta: Record<string, string>
@@ -640,6 +693,9 @@ async function handleOneWaySucceeded(
       )
       await sendEmergencyAlert(bookingReference, bookingRow)
       return
+    }
+    if (inserted.length > 0) {
+      await alertIfPaidStopsMissing(paymentIntent, meta, bookingRow as unknown as Record<string, unknown>, inserted[0].id)
     }
   }
 
@@ -683,6 +739,14 @@ async function handleOneWaySucceeded(
     flightNumber: meta.flightNumber || undefined,
     terminal: meta.terminal || undefined,
     specialRequests: meta.specialRequests || undefined,
+    // Phase 91 (STOP-04, STOP-05): the booking id lets the email senders read the stored stops; the landing comes from
+    // the payment metadata written at checkout (lib/checkout/compute.ts), absent for a booking without a landing.
+    bookingId: confirmedRows[0].id,
+    landingDate: meta.landingDate || undefined,
+    landingTime: meta.landingTime || undefined,
+    pickupOffsetMin: meta.pickupOffsetMin ? parseInt(meta.pickupOffsetMin, 10) : undefined,
+    // IN-08: the client email prints the waiting total in the currency the client paid in.
+    currency: paymentIntent.currency === 'czk' ? 'czk' : paymentIntent.currency === 'eur' ? 'eur' : undefined,
   }
 
   // Phase 89 CANC-02: box and Manage button in the booking language; the manager alert never gets it.

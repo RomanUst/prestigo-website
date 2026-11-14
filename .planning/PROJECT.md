@@ -81,6 +81,7 @@ v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin li
 - ✓ PANEL-01/02: read-only Chatwoot Dashboard App with the customer's site bookings, origin-validated postMessage, no admin cookie — v4.0 (Phase 84)
 - ✓ SYNC-01..05, GDPR-01/02: Site → EspoCRM/Chatwoot sync via Supabase outbox + QStash (bookings, payments, status changes, admin edits, signups), cross-system contact de-dup by email/E.164 with shared-number flag and admin split, one-time backfill, /admin/outbox health + retry, single erasure request across Supabase/Chatwoot/EspoCRM with audit, privacy policy in all locales — v4.0 (Phase 82, live 2026-10-20, UAT 4/4 + verification 5/5 on 2026-10-26)
 - ✓ STAT-01..03: `/admin/stats` with tabs Overview / Conversion (inquiries → paid bookings by source and chat channel, plus all paid bookings of the period: after inquiry + direct = total) / Customers (repeat rate, repeat revenue share, top 10) / B2B (revenue and bookings per corporate Account); period in the URL; read-only service_role RPCs (migrations 081–083), no Chatwoot/EspoCRM calls at render — v4.0 (Phase 85, live 2026-11-01, UAT 2/2, verification 9/9, security 23/23)
+- ✓ ADM-01..03, DISP-01..05: collapsible admin sidebar and persistent light theme (Phase 86); `/admin/bookings` with List / Board / Calendar tabs — kanban by status with drag-and-drop or card menu (allowed transitions only, money moves confirmed in a dialog), day/week/month calendar in Prague time coloured by status, one shared booking panel, 30 s auto-refresh through an admin-only dispatch route — v5.0 (Phase 90, live 2026-11-11, UAT 6/6 on production, verification 4/4, security 0 open)
 
 ### Active
 
@@ -89,7 +90,6 @@ v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin li
 - [ ] Card-on-file + scheduled hold + capture-on-completion payment model
 - [ ] Cash payment with saved card and 100% no-show charge
 - [ ] Admin multi-trip quotes with quote link, deposit link and remainder method
-- [ ] Admin kanban, calendar, collapsible sidebar, light theme
 - [ ] Driver step-by-step status synced to booking status
 - [ ] Multi-stop transfers with waiting fees; airport pickup offset
 - [ ] Day trips catalogue + booking + custom-tour request
@@ -213,4 +213,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-11-02 after starting v5.0 milestone (Payments, Quotes & Day Trips).*
+*Last updated: 2026-11-11 after Phase 90 (Dispatch Views).*

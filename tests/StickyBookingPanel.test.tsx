@@ -7,8 +7,12 @@ import type { PriceBreakdown, VehicleClass } from '@/types/booking'
 import StickyBookingPanel from '@/components/booking/StickyBookingPanel'
 
 // Mock RouteMap to avoid Google Maps in this test suite
+const routeMapProps = vi.hoisted(() => ({ last: null as null | { stops?: Array<{ lat: number; lng: number }> } }))
 vi.mock('@/components/booking/RouteMap', () => ({
-  default: () => <div data-testid="route-map-stub" />,
+  default: (props: { stops?: Array<{ lat: number; lng: number }> }) => {
+    routeMapProps.last = props
+    return <div data-testid="route-map-stub" />
+  },
 }))
 
 // Mock MetaPixel so trackMetaEvent is observable
@@ -49,6 +53,7 @@ function setupStoreWithVehicle() {
     },
     pickupDate: '2027-01-15',
     pickupTime: '10:00',
+    stops: [],
     currentStep: 2,
     completedSteps: new Set([1]),
   })
@@ -91,6 +96,29 @@ describe('StickyBookingPanel', () => {
     })
   })
 
+  describe('Phase 91: stops on the map', () => {
+    it('passes only the stops that have a place to the map, in order', () => {
+      useBookingStore.setState({
+        stops: [
+          { id: 's1', place: { address: 'Karlovy Vary', placeId: 'p1', lat: 50.23, lng: 12.87 }, waitMinutes: 15 },
+          { id: 's2', place: null, waitMinutes: 0 },
+          { id: 's3', place: { address: 'Plzen', placeId: 'p3', lat: 49.74, lng: 13.37 }, waitMinutes: 0 },
+        ],
+      })
+      render(<StickyBookingPanel />)
+      expect(routeMapProps.last?.stops).toEqual([
+        { lat: 50.23, lng: 12.87 },
+        { lat: 49.74, lng: 13.37 },
+      ])
+    })
+
+    it('passes an empty list without stops', () => {
+      useBookingStore.setState({ stops: [] })
+      render(<StickyBookingPanel />)
+      expect(routeMapProps.last?.stops).toEqual([])
+    })
+  })
+
   describe('Round-trip combined total (desktop panel)', () => {
     const roundTripBreakdown: Record<VehicleClass, PriceBreakdown> = {
       business: { base: 76, extras: 0, total: 76, currency: 'EUR' },
@@ -128,5 +156,18 @@ describe('StickyBookingPanel', () => {
       )
       expect(call?.[2]).toMatchObject({ value: 160 })
     })
+  })
+})
+
+// Owner decision 2026-11-12: the client sees one total; the waiting amount is never listed on its own.
+describe('StickyBookingPanel shows no waiting breakdown', () => {
+  it('shows only the price when the quote carries a waiting amount', () => {
+    setupStoreWithVehicle()
+    useBookingStore.setState({
+      priceBreakdown: { ...mockPriceBreakdown, business: { base: 98, extras: 0, total: 98, currency: 'EUR', waitingEur: 14 } },
+    })
+    render(<StickyBookingPanel />)
+    expect(screen.queryByText(/Waiting at stops/)).not.toBeInTheDocument()
+    expect(screen.getByText('€98')).toBeInTheDocument()
   })
 })

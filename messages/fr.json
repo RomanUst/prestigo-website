@@ -61,6 +61,16 @@
       "minuteAria": "Minute de prise en charge",
       "selectDatePrompt": "Sélectionnez une date de prise en charge pour continuer"
     },
+    "landing": {
+      "dateLabel": "Date d'atterrissage",
+      "timeLabel": "Heure d'atterrissage",
+      "timeAria": "Heure d'atterrissage",
+      "offsetLabel": "Prise en charge après l'atterrissage",
+      "offsetAtLanding": "À l'atterrissage",
+      "offsetMinutes": "{minutes} min après l'atterrissage",
+      "pickupAt": "Votre chauffeur vous retrouve à {time}",
+      "pickupAtDate": "Votre chauffeur vous retrouve le {date} à {time}"
+    },
     "step5": {
       "firstNameLabel": "PRÉNOM",
       "lastNameLabel": "NOM",
@@ -149,12 +159,12 @@
         "holdNowToday": "Nous bloquons {amount} sur votre carte. Un blocage n'est pas un débit, mais votre banque peut l'afficher comme étant en attente.",
         "holdNowAfterTrip": "Le montant bloqué est débité. Si le prix final est inférieur, seul le montant le plus bas est prélevé et le reste est libéré.",
         "cardDetailsLabel": "DONNÉES DE LA CARTE",
-        "consentSetup": "J'autorise Prestigo à enregistrer cette carte, à y bloquer {amount} le {holdDate} et à la débiter après mon trajet. Si j'annule après le {freeUntil}, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
-        "consentSetupNoFree": "J'autorise Prestigo à enregistrer cette carte, à y bloquer {amount} le {holdDate} et à la débiter après mon trajet. Si j'annule, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
-        "consentHoldNow": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte et à la débiter après mon trajet. Si j'annule après le {freeUntil}, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
-        "consentHoldNowNoFree": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte et à la débiter après mon trajet. Si j'annule, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence.",
-        "consentCash": "Je paierai {amount} en espèces au chauffeur. J'autorise Prestigo à enregistrer cette carte et à la débiter, jusqu'à {amount}, si j'annule après le {freeUntil}, si je ne me présente pas ou si je ne paie pas le chauffeur. Une personne chez Prestigo décide de chaque débit. Aucun blocage n'est effectué et rien n'est débité maintenant.",
-        "consentCashNoFree": "Je paierai {amount} en espèces au chauffeur. J'autorise Prestigo à enregistrer cette carte et à la débiter, jusqu'à {amount}, si j'annule, si je ne me présente pas ou si je ne paie pas le chauffeur. Une personne chez Prestigo décide de chaque débit. Aucun blocage n'est effectué et rien n'est débité maintenant.",
+        "consentSetup": "J'autorise Prestigo à enregistrer cette carte, à y bloquer {amount} le {holdDate} et à la débiter après mon trajet. Si j'annule après le {freeUntil}, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence. J'autorise également Prestigo à débiter cette carte après mon trajet pour l'attente au-delà de la durée réservée et pour les suppléments convenus pendant le trajet, comme le stationnement ; une personne chez Prestigo approuve chacun de ces débits et je reçois un e-mail avec le détail.",
+        "consentSetupNoFree": "J'autorise Prestigo à enregistrer cette carte, à y bloquer {amount} le {holdDate} et à la débiter après mon trajet. Si j'annule, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence. J'autorise également Prestigo à débiter cette carte après mon trajet pour l'attente au-delà de la durée réservée et pour les suppléments convenus pendant le trajet, comme le stationnement ; une personne chez Prestigo approuve chacun de ces débits et je reçois un e-mail avec le détail.",
+        "consentHoldNow": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte et à la débiter après mon trajet. Si j'annule après le {freeUntil}, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence. J'autorise également Prestigo à débiter cette carte après mon trajet pour l'attente au-delà de la durée réservée et pour les suppléments convenus pendant le trajet, comme le stationnement ; une personne chez Prestigo approuve chacun de ces débits et je reçois un e-mail avec le détail.",
+        "consentHoldNowNoFree": "J'autorise Prestigo à bloquer dès maintenant {amount} sur cette carte, à enregistrer cette carte et à la débiter après mon trajet. Si j'annule, ou si je ne me présente pas, j'autorise Prestigo à débiter sur cette carte jusqu'au tarif complet de {amount} ; une personne chez Prestigo décide de chaque débit. Si le prix de ma réservation change, j'autorise Prestigo à débiter ou à libérer la différence. J'autorise également Prestigo à débiter cette carte après mon trajet pour l'attente au-delà de la durée réservée et pour les suppléments convenus pendant le trajet, comme le stationnement ; une personne chez Prestigo approuve chacun de ces débits et je reçois un e-mail avec le détail.",
+        "consentCash": "Je paierai {amount} en espèces au chauffeur. J'autorise Prestigo à enregistrer cette carte et à la débiter, jusqu'à {amount}, si j'annule après le {freeUntil}, si je ne me présente pas ou si je ne paie pas le chauffeur. Une personne chez Prestigo décide de chaque débit. Aucun blocage n'est effectué et rien n'est débité maintenant. J'autorise également Prestigo à débiter cette carte après mon trajet pour l'attente au-delà de la durée réservée et pour les suppléments convenus pendant le trajet, comme le stationnement ; une personne chez Prestigo approuve chacun de ces débits et je reçois un e-mail avec le détail.",
+        "consentCashNoFree": "Je paierai {amount} en espèces au chauffeur. J'autorise Prestigo à enregistrer cette carte et à la débiter, jusqu'à {amount}, si j'annule, si je ne me présente pas ou si je ne paie pas le chauffeur. Une personne chez Prestigo décide de chaque débit. Aucun blocage n'est effectué et rien n'est débité maintenant. J'autorise également Prestigo à débiter cette carte après mon trajet pour l'attente au-delà de la durée réservée et pour les suppléments convenus pendant le trajet, comme le stationnement ; une personne chez Prestigo approuve chacun de ces débits et je reçois un e-mail avec le détail.",
         "termsLink": "Conditions générales",
         "privacyLink": "Politique de confidentialité",
         "trustLine": "Les données de la carte sont transmises directement à Stripe. Prestigo ne voit jamais votre numéro de carte.",
@@ -215,7 +225,12 @@
       "waitTimeLabel": "TEMPS D'ATTENTE",
       "waitTimeAria": "Temps d'attente",
       "noWait": "Sans attente",
-      "minutes": "{count} min"
+      "minutes": "{count} min",
+      "minutesFree": "{count} min, gratuit",
+      "freeWaitHint": "Les 15 premières minutes sont gratuites. Ensuite, chaque tranche de 15 min entamée est facturée.",
+      "paidWaitUnavailable": "L'attente payante n'est pas disponible pour le moment",
+      "moveUp": "Monter l'arrêt",
+      "moveDown": "Descendre l'arrêt"
     },
     "routeMap": {
       "empty": "Itinéraire indisponible — vous pouvez néanmoins sélectionner une classe de véhicule.",
@@ -329,7 +344,8 @@
         "waterSub": "Plate et pétillante",
         "meetGreetLabel": "Accueil personnalisé",
         "meetGreetSub": "Pancarte nominative à l'arrivée"
-      }
+      },
+      "waitingUnavailable": "L'attente payante n'est pas proposée pour cette classe. Réglez l'attente sur 15 min ou moins pour la choisir."
     },
     "extras": {
       "meetAndGreet": {
@@ -361,7 +377,8 @@
       "returnLeg": "Trajet de retour",
       "combined": "Total combiné",
       "selectClass": "SÉLECTIONNER {className}",
-      "selectAClass": "CHOISIR UNE CLASSE"
+      "selectAClass": "CHOISIR UNE CLASSE",
+      "waitingLine": "Attente aux arrêts"
     },
     "summaryBlock": {
       "outbound": "ALLER",
@@ -374,7 +391,8 @@
       "returnLeg": "Trajet retour",
       "subtotal": "Sous-total",
       "promo": "Code promo {code}",
-      "final": "Total final"
+      "final": "Total final",
+      "waitingLine": "Attente aux arrêts"
     },
     "bookingWidget": {
       "pickupLocationLabel": "LIEU DE PRISE EN CHARGE",
@@ -1202,6 +1220,17 @@
       "introCashUnpaid": "Votre trajet du {pickupDate} n'a pas été payé en espèces ; nous avons donc débité {amount} sur la carte que vous avez enregistrée.",
       "reasonCashUnpaid": "Motif : le trajet n'a pas été payé en espèces",
       "introCashCard": "Vous avez choisi de payer par carte ; nous avons donc débité {amount} sur la carte que vous avez enregistrée."
+    },
+    "extraCharged": {
+      "subjectWaiting": "Attente supplémentaire pendant votre trajet PRESTIGO — {reference}",
+      "h1Waiting": "Nous avons débité l'attente supplémentaire.",
+      "introWaiting": "Votre chauffeur a attendu {minutes} minutes au-delà de la durée que vous aviez réservée pour votre trajet du {pickupDate}. Nous avons débité {amount} sur la carte que vous avez enregistrée.",
+      "lineWaiting": "Attente au-delà de la durée réservée : {minutes} min",
+      "subjectOther": "Débit supplémentaire pour votre trajet PRESTIGO — {reference}",
+      "h1Other": "Nous avons débité un supplément.",
+      "introOther": "Pour votre trajet du {pickupDate}, nous avons débité {amount} sur la carte que vous avez enregistrée.",
+      "lineOther": "Supplément : {item}",
+      "approved": "Une personne chez Prestigo a approuvé ce débit."
     },
     "feeWaived": {
       "subject": "Aucun frais pour votre réservation PRESTIGO — {reference}",

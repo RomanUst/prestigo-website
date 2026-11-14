@@ -22,7 +22,7 @@
 - [x] **Phase 87: Status Service & Driver Step Flow** - One trusted status writer; driver moves a trip one strict step at a time and admin sees it immediately (completed 2026-11-03)
 - [x] **Phase 88: Card on File & Scheduled Holds** - Save-card booking, automatic hold, capture on completion with fallback, failure recovery, admin payment panel, owner-controlled rollout
 - [x] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, owner-accepted wording, public go-live
-- [ ] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh
+- [x] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh (completed 2026-11-11)
 - [ ] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card
 - [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
 - [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
@@ -382,7 +382,26 @@ Plans:
   3. The operator sees bookings in a calendar with day, week and month views in Prague time, coloured by status; a booking around midnight lands on the correct Prague day regardless of the browser's timezone, including the DST-change weeks.
   4. When a driver taps a step, the board and calendar update on their own without a reload.
 
-**Plans**: TBD
+**Plans**: 9/9 plans complete
+
+Plans:
+**Wave 1**
+- [x] 90-01-PLAN.md — Extract BookingDetailPanel and useBookingMoves from BookingsTable in place (Step A, behaviour-preserving, table suite untouched)
+- [x] 90-02-PLAN.md — Prague calendar math, trip-duration move, dispatch ranges and remembered-view cookies (pure, TZ/DST-tested)
+- [x] 90-03-PLAN.md — Admin-only GET /api/admin/bookings/dispatch range route (security) and the 30 s polling hook with pause rules
+- [x] 90-04-PLAN.md — Pure move planner (UI_TRANSITIONS only), CompleteTripDialog with the capture effect, @dnd-kit install (orchestrator) and React 19 spike
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 90-05-PLAN.md — List opens bookings in the shared right-hand side panel (Step B, D-02/D-03): BookingPanelProvider, Escape guard, dirty pause
+- [x] 90-06-PLAN.md — Shared move routing in useBookingMoves: requestMove, driver picker, toast, no optimism, double-submit guard
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 90-07-PLAN.md — Kanban board: ten columns, drag-and-drop and card menu, allowed-column highlight, card content, ranges, polling
+- [x] 90-08-PLAN.md — Calendar: day/week/month in Prague time, status colours, Show all, remembered view, polling
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 90-09-PLAN.md — Bookings workspace: List/Board/Calendar tabs, shared filters, remembered view in cookie and URL, server page
+
 **UI hint**: yes
 **Planning notes**:
   - Standard patterns, no research needed. Extract `BookingDetailPanel` from the 2,886-line `BookingsTable` first so the list, kanban and calendar share one panel (Phase 91's extra-charge action also lives there).
@@ -400,7 +419,38 @@ Plans:
   4. Stops, waiting times and the landing/pickup times are saved with the booking and visible in admin, on the driver trip page and in the confirmation email.
   5. The operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates and recorded in the payment ledger; it is never offered for GNet bookings.
 
-**Plans**: TBD
+**Plans**: 16/17 plans executed
+
+Plans:
+**Wave 1**
+- [x] 91-01-PLAN.md — Migration 089 (booking_stops, landing columns, waiting rate, booking_extra_charges, ledger kinds, erasure copies), fake DB, live apply by the orchestrator
+- [x] 91-02-PLAN.md — Server quote through stops: route-distance module, waiting fee rules, per-class waiting in /api/calculate-price, no flat per-stop fee (security)
+- [x] 91-05-PLAN.md — Consent wording covers extras (version 2026-11-3, gate function) and the extra_charged receipt email in 7 locales
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 91-03-PLAN.md — Owner sets waiting rates per class in admin; public /api/waiting-config of offered classes
+- [x] 91-04-PLAN.md — Checkout recomputes distance, airport and waiting on the server; client distance ignored; fail closed (security)
+- [x] 91-08-PLAN.md — Extra-charge engine, admin extra route and card_extra webhook routing (security)
+- [x] 91-17-PLAN.md — Wizard copy for stops, waiting and the airport landing in 7 locales (split out of 91-09 / 91-10)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 91-06-PLAN.md — Stops saved with the booking in card, cash and pay-now flows (replace-all, pay-now fail closed)
+- [x] 91-07-PLAN.md — Airport landing + offset derived and validated on the server, stored with the pickup (DST-safe)
+- [x] 91-09-PLAN.md — Wizard: waiting per stop priced and shown as its own summary line, offered options, reorder
+- [x] 91-11-PLAN.md — Operator "Add extra charge…" modal in the booking panel
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 91-10-PLAN.md — Wizard airport landing + offset; both checkout bodies send stops and landing; Step 6 waiting line
+- [x] 91-12-PLAN.md — Admin panel Route section (landing, pickup, stops, waiting); trip-edit guards (stops repricing, landing / pickup consistency)
+- [x] 91-13-PLAN.md — Driver trip page (landing, pickup, free waiting until, stops) and maps through stops
+- [x] 91-14-PLAN.md — Confirmation, driver and manager emails and the ops calendar show landing and stops
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 91-15-PLAN.md — Operator moves the pickup after a flight delay (D-08 / D-11)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 91-16-PLAN.md — Phase integration test, full gate, owner live proofs (rates, canary booking, 1 EUR extra)
+
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix. Closes the current gap where `distanceKm` is trusted from the client, and adds an operator-initiated off-session charge.
 **Research before planning**: Google Routes `computeRoutes` behaviour with many intermediates (cap the stop count, keep the Essentials SKU), airport detection, and the waiting-fee policy.
@@ -567,8 +617,8 @@ Plans:
 | 87. Status Service & Driver Step Flow | v5.0 | 20/20 | In Progress|  |
 | 88. Card on File & Scheduled Holds | v5.0 | 17/17 | Complete | 2026-11-06 |
 | 89. Cancellation Policy, Cash Guarantee & No-Show | v5.0 | 28/28 | Complete | 2026-11-09 |
-| 90. Dispatch Views | v5.0 | 0/0 | Not started | - |
-| 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 0/0 | Not started | - |
+| 90. Dispatch Views | v5.0 | 9/9 | In Progress|  |
+| 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 16/17 | In Progress|  |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
 | 93. Day Trips & Custom Tours | v5.0 | 0/0 | Not started | - |
 

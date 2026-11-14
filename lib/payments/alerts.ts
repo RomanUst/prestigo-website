@@ -35,6 +35,9 @@ export const OPERATOR_ALERT_KINDS = [
   'change_request',
   // Money review 2, WR-03: an untagged Dashboard refund on a round trip could not be matched to a leg.
   'refund_unmatched',
+  // Phase 91 review: money or a booking the operator must look at by hand (an extra charge Stripe did not settle, an extra
+  // collected after it was recorded as declined, a receipt that was not sent, stops that were paid for but not saved).
+  'ops_attention',
 ] as const
 export type OperatorAlertKind = (typeof OPERATOR_ALERT_KINDS)[number]
 
@@ -43,7 +46,7 @@ const FEE_ALERT_KINDS = ['fee_decision_needed', 'fee_no_show_needed', 'fee_pendi
 type FeeAlertKind = (typeof FEE_ALERT_KINDS)[number]
 const isFeeAlert = (kind: OperatorAlertKind): kind is FeeAlertKind => (FEE_ALERT_KINDS as readonly string[]).includes(kind)
 
-type LegacyAlertKind = Exclude<OperatorAlertKind, FeeAlertKind | 'client_cancelled' | 'change_request'>
+type LegacyAlertKind = Exclude<OperatorAlertKind, FeeAlertKind | 'client_cancelled' | 'change_request' | 'ops_attention'>
 
 /** Longest client message the mail carries (the route caps it earlier; this is the last line of defence). */
 const CHANGE_MESSAGE_MAX = 2000
@@ -65,7 +68,10 @@ export interface OperatorAlertDetails {
    * `adopted` (duplicate_payment, code cash_card): a cash card charge went through late and is now the booking's payment.
    * `case_missing` (fee kinds): the late cancel applied but its fee case could not be opened (plan 89-27). `cash_settled`
    * (refund_failed): a booking recorded as paid in cash was cancelled. `cash_interrupted` (charge_failed): a cash card charge
-   * was interrupted and Stripe shows no payment.
+   * was interrupted and Stripe shows no payment. `ops_attention` notes: `extra_unresolved` (an extra charge Stripe did not
+   * settle and that could not be cancelled), `extra_late_success` / `extra_second_payment` (an extra recorded as declined was collected after all, on its own / on another PaymentIntent),
+   * `extra_receipt_failed` (an extra was charged but its receipt email was not sent), `stops_missing` (a pay-now booking
+   * paid for stops that were not saved).
    */
   note?: string
   // --- Phase 89, UI-SPEC 8.3. Instants are ISO strings (shown on the Prague wall clock); a missing field is omitted. ---
@@ -122,6 +128,7 @@ const TITLES: Record<OperatorAlertKind, string> = {
   client_cancelled: 'Cancelled by client',
   change_request: 'Change request',
   refund_unmatched: 'Refund not matched to a leg',
+  ops_attention: 'Needs attention',
 }
 
 /** Subject prefix per kind (UI-SPEC 8.3): the owner filters on it. */
@@ -304,7 +311,39 @@ function buildChangeRequestBody(booking: BookingRow, d: OperatorAlertDetails): s
   ].join('\n')
 }
 
+/** Phase 91 review: one-line lead per note. Ids, amounts and fixed codes only: never an address or an extra's description. */
+function opsAttentionAction(booking: BookingRow, d: OperatorAlertDetails): string {
+  const amount = typeof d.amountMinor === 'number' ? formatMinor(d.amountMinor, currencyOf(booking)) : 'n/a'
+  switch (d.note) {
+    case 'extra_unresolved':
+      return `An extra charge of ${amount} was started on the client's saved card, but Stripe did not say whether it went through and it could not be cancelled. Further extra charges are blocked on this booking until this one is resolved. Check the PaymentIntent in the Stripe Dashboard, then use "Retry the pending charge" in the booking panel after the wait: it reads Stripe first and never creates a second payment while the first may have succeeded. Do not charge again by hand.`
+    case 'extra_late_success':
+      return `An extra charge of ${amount} was recorded as declined, but Stripe collected it after all. It is now recorded as charged and the client was sent the receipt. Do NOT charge it again. If the client should not have paid it, refund it in the Stripe Dashboard.`
+    case 'extra_second_payment':
+      return `An extra charge of ${amount} was recorded as declined, and a DIFFERENT payment for the same extra later succeeded in Stripe. The extra's record was not changed. Check the PaymentIntents in the Stripe Dashboard and refund the one that is not needed.`
+    case 'extra_receipt_failed':
+      return `An extra charge of ${amount} was collected, but the receipt email to the client was not sent. The charge is complete and is never repeated. Send the client the breakdown by hand or tell them.`
+    case 'stops_missing':
+      return `The client paid for a trip with stops, but the stops were not saved on the booking, so the driver, the calendar and the emails show a plain A to B trip. Open the booking, add the stops and tell dispatch before the trip.`
+    default:
+      return 'Open the booking in admin and check it.'
+  }
+}
+
+function buildOpsAttentionBody(booking: BookingRow, d: OperatorAlertDetails): string {
+  return [
+    `Booking reference: ${str(booking.booking_reference) || 'n/a'}`,
+    `Client name: ${clientName(booking)}`,
+    `Pickup (Prague): ${pickupOf(booking)}`,
+    `Reason code: ${d.code ? d.code.slice(0, 60) : 'n/a'}`,
+    `Open in admin: ${siteBase()}/admin/bookings`,
+    '',
+    opsAttentionAction(booking, d),
+  ].join('\n')
+}
+
 function buildBody(kind: OperatorAlertKind, booking: BookingRow, d: OperatorAlertDetails): string {
+  if (kind === 'ops_attention') return buildOpsAttentionBody(booking, d)
   if (isFeeAlert(kind)) return buildFeeBody(kind, booking, d)
   if (kind === 'client_cancelled') return buildClientCancelledBody(booking, d)
   if (kind === 'change_request') return buildChangeRequestBody(booking, d)

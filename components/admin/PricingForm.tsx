@@ -2,8 +2,17 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { X } from 'lucide-react'
+
+const WAITING_RATE_ERROR = 'Enter an amount above 0, or leave empty to not offer waiting'
+
+/** An empty or unreadable field means "paid waiting not offered" (null), never a typed-in amount. */
+function toWaitingRate(raw: unknown): number | null {
+  if (raw === '' || raw === null || raw === undefined) return null
+  const n = Number(raw)
+  return Number.isNaN(n) ? null : n
+}
 
 const pricingSchema = z.object({
   config: z.array(z.object({
@@ -12,6 +21,8 @@ const pricingSchema = z.object({
     hourly_rate: z.number().positive(),
     daily_rate: z.number().positive(),
     min_fare: z.number().min(0),
+    // Phase 91 (D-04/D-05): EUR per extra 15 minutes of waiting at a stop. Empty = null = not offered.
+    waiting_rate_per_15min: z.number().positive(WAITING_RATE_ERROR).nullable().optional(),
   })),
   globals: z.object({
     airport_fee: z.number().min(0),
@@ -86,7 +97,14 @@ const headerLabelStyle: React.CSSProperties = {
 export default function PricingForm({ initialData }: PricingFormProps) {
   const { register, handleSubmit, watch, formState: { isSubmitting, errors } } = useForm<PricingData>({
     resolver: zodResolver(pricingSchema),
-    defaultValues: initialData,
+    defaultValues: {
+      ...initialData,
+      // The DB may return NUMERIC as text and NULL when waiting is not offered: normalise to number | null.
+      config: initialData.config.map((row) => ({
+        ...row,
+        waiting_rate_per_15min: toWaitingRate(row.waiting_rate_per_15min),
+      })),
+    },
   })
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error' | 'range-error'>('idle')
   const [focusedInput, setFocusedInput] = useState<string | null>(null)
@@ -100,6 +118,11 @@ export default function PricingForm({ initialData }: PricingFormProps) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...data,
+        // Every row carries the key (number or null) so a bulk upsert can never clear a rate by omission.
+        config: data.config.map((row) => ({
+          ...row,
+          waiting_rate_per_15min: row.waiting_rate_per_15min ?? null,
+        })),
         globals: {
           ...data.globals,
           holiday_dates: holidayDates,
@@ -129,6 +152,19 @@ export default function PricingForm({ initialData }: PricingFormProps) {
     inputId: string
   ) {
     const registeredProps = register(name, { valueAsNumber: true })
+    return {
+      ...registeredProps,
+      onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+        setFocusedInput(null)
+        void registeredProps.onBlur(e)
+      },
+      onFocus: () => setFocusedInput(inputId),
+    }
+  }
+
+  // Like registerNumeric, but an empty field is null (not NaN): "paid waiting not offered".
+  function registerWaiting(index: number, inputId: string) {
+    const registeredProps = register(`config.${index}.waiting_rate_per_15min`, { setValueAs: toWaitingRate })
     return {
       ...registeredProps,
       onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
@@ -184,9 +220,12 @@ export default function PricingForm({ initialData }: PricingFormProps) {
         {initialData.config.map((row, index) => {
           // eslint-disable-next-line react-hooks/incompatible-library
           const minFareValue = watch(`config.${index}.min_fare`)
+          const classLabel = VEHICLE_LABELS[row.vehicle_class] ?? row.vehicle_class
+          const waitingId = `config-${index}-waiting_rate_per_15min`
+          const waitingError = errors.config?.[index]?.waiting_rate_per_15min?.message
           return (
+            <Fragment key={row.vehicle_class}>
             <div
-              key={row.vehicle_class}
               style={{
                 display: 'grid',
                 gridTemplateColumns: '160px 1fr 1fr 1fr 1fr',
@@ -247,6 +286,51 @@ export default function PricingForm({ initialData }: PricingFormProps) {
                 )}
               </div>
             </div>
+
+            {/* Phase 91 (D-04/D-05): waiting at a stop, per extra 15 minutes. Empty = not offered. */}
+            <div
+              role="group"
+              aria-label={`${classLabel} waiting rate`}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '160px 1fr',
+                gap: '16px',
+                alignItems: 'start',
+                marginTop: '8px',
+              }}
+            >
+              <div />
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    id={waitingId}
+                    type="number"
+                    step="0.01"
+                    aria-invalid={waitingError ? true : undefined}
+                    style={getInputStyle(waitingId)}
+                    {...registerWaiting(index, waitingId)}
+                  />
+                  <label
+                    htmlFor={waitingId}
+                    style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)' }}
+                  >
+                    Waiting per extra 15 min (EUR)
+                  </label>
+                </div>
+                <div style={{ fontFamily: 'var(--font-montserrat)', fontSize: '10px', color: 'var(--warmgrey)', marginTop: '2px' }}>
+                  Leave empty to not offer paid waiting for this class
+                </div>
+                {waitingError && (
+                  <div
+                    role="alert"
+                    style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--status-danger-fg)', marginTop: '4px' }}
+                  >
+                    {waitingError}
+                  </div>
+                )}
+              </div>
+            </div>
+            </Fragment>
           )
         })}
       </div>

@@ -75,6 +75,10 @@ const { storeRef } = vi.hoisted(() => ({
       luggage: 1,
       pickupDate: '2026-12-01',
       pickupTime: '10:00',
+      stops: [] as Array<{ id: string; place: { address: string; lat: number; lng: number; placeId: string } | null; waitMinutes?: number }>,
+      landingDate: null as string | null,
+      landingTime: null as string | null,
+      pickupOffsetMin: 30,
       returnDate: null as string | null,
       returnTime: null as string | null,
       roundTripPriceBreakdown: null,
@@ -101,6 +105,7 @@ vi.mock('@/lib/booking-store', () => {
 })
 
 import Step6Checkout from '@/components/booking/steps/Step6Checkout'
+import { buildCardCheckoutBody } from '@/components/booking/steps/cardCheckoutApi'
 import { SUPPORTED_MODES } from '@/components/booking/steps/Step6CardOnFile'
 
 // ---------------------------------------------------------------------------
@@ -156,6 +161,13 @@ beforeEach(() => {
   h.confirmPaymentMock.mockResolvedValue({ paymentIntent: { status: 'requires_capture' } })
   storeRef.current.promoCode = null
   storeRef.current.promoDiscount = 0
+  storeRef.current.stops = []
+  storeRef.current.landingDate = null
+  storeRef.current.landingTime = null
+  storeRef.current.pickupOffsetMin = 30
+  storeRef.current.tripType = 'transfer'
+  storeRef.current.pickupDate = '2026-12-01'
+  storeRef.current.pickupTime = '10:00'
   storeRef.current.attemptId = 'a1b2c3d4-0000-4000-8000-000000000001'
   window.sessionStorage.clear()
   initReplies = [{ body: eligibleInit() }]
@@ -1258,5 +1270,113 @@ describe('cancellation note and the free-until moment in the consent (CANC-02, D
     const note = screen.getByTestId('cancellation-note')
     expect(note.textContent).not.toMatch(/[٠-٩]/)
     expect(note.textContent).toContain('2026')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Phase 91 (STOP-01, STOP-04, STOP-05): stops and landing travel in the checkout body
+// ---------------------------------------------------------------------------
+
+describe('checkout body carries stops and the landing (Phase 91)', () => {
+  const opts = { attemptId: 'a1b2c3d4-0000-4000-8000-000000000001', currency: 'eur' as const, promoCode: null, locale: 'en' }
+  const placed = (id: string, address: string, wait: number) => ({
+    id,
+    place: { address, lat: 50.05, lng: 14.4, placeId: `p-${id}` },
+    waitMinutes: wait,
+  })
+  const airportOrigin = { address: 'Vaclav Havel Airport Prague (PRG)', lat: 50.1008, lng: 14.26, placeId: 'ChIJA_IVS6-UC0cRTZBQLvHG-ec' }
+  const cityOrigin = { address: 'Wenceslas Square, Prague', lat: 50.0813, lng: 14.4274, placeId: 'city' }
+
+  function state(over: Record<string, unknown> = {}) {
+    return { ...storeRef.current, ...over } as unknown as Parameters<typeof buildCardCheckoutBody>[0]
+  }
+
+  it('a transfer from the airport with a placed stop (wait 45) and an unplaced stop sends the placed one, and the landing', () => {
+    const body = buildCardCheckoutBody(
+      state({
+        origin: airportOrigin,
+        stops: [placed('s1', 'Karlstejn', 45), { id: 's2', place: null, waitMinutes: 0 }],
+        landingDate: '2027-06-10',
+        landingTime: '14:00',
+        pickupOffsetMin: 30,
+        pickupDate: '2027-06-10',
+        pickupTime: '14:30',
+      }),
+      opts,
+    )
+    expect(body.bookingData).toMatchObject({
+      stops: [{ address: 'Karlstejn', lat: 50.05, lng: 14.4, waitMinutes: 45 }],
+      landingDate: '2027-06-10',
+      landingTime: '14:00',
+      pickupOffsetMin: '30',
+      pickupDate: '2027-06-10',
+      pickupTime: '14:30',
+    })
+  })
+
+  it('the pickup sent is always landing + offset, even when the store pickup is stale', () => {
+    const body = buildCardCheckoutBody(
+      state({
+        origin: airportOrigin,
+        landingDate: '2027-06-10',
+        landingTime: '23:50',
+        pickupOffsetMin: 30,
+        pickupDate: '2027-06-10',
+        pickupTime: '09:00',
+      }),
+      opts,
+    )
+    expect(body.bookingData.pickupDate).toBe('2027-06-11')
+    expect(body.bookingData.pickupTime).toBe('00:20')
+  })
+
+  it('a city origin sends no landing keys and no stops key when there are no stops', () => {
+    const body = buildCardCheckoutBody(
+      state({ origin: cityOrigin, landingDate: '2027-06-10', landingTime: '14:00', pickupOffsetMin: 30 }),
+      opts,
+    )
+    expect(body.bookingData).not.toHaveProperty('landingDate')
+    expect(body.bookingData).not.toHaveProperty('landingTime')
+    expect(body.bookingData).not.toHaveProperty('pickupOffsetMin')
+    expect(body.bookingData).not.toHaveProperty('stops')
+  })
+
+  it('an airport origin without a complete landing sends no landing keys', () => {
+    const body = buildCardCheckoutBody(state({ origin: airportOrigin, landingDate: '2027-06-10', landingTime: null }), opts)
+    expect(body.bookingData).not.toHaveProperty('landingDate')
+    expect(body.bookingData).not.toHaveProperty('pickupOffsetMin')
+  })
+
+  it.each(['round_trip', 'hourly', 'daily'] as const)('%s never sends a stops key', (tripType) => {
+    const body = buildCardCheckoutBody(state({ tripType, stops: [placed('s1', 'Karlstejn', 0)] }), opts)
+    expect(body.bookingData).not.toHaveProperty('stops')
+  })
+
+  it.each(['hourly', 'daily'] as const)('%s never sends landing keys (the server refuses them)', (tripType) => {
+    const body = buildCardCheckoutBody(
+      state({ tripType, origin: airportOrigin, landingDate: '2027-06-10', landingTime: '14:00', pickupOffsetMin: 30 }),
+      opts,
+    )
+    expect(body.bookingData).not.toHaveProperty('landingDate')
+  })
+
+  it('409 PRICE_CHANGED after a stop / wait change: the intent body carries the stops and the server amount is shown', async () => {
+    storeRef.current.stops = [placed('s1', 'Karlstejn', 60)]
+    intentReplies = [{ status: 409, body: { code: 'PRICE_CHANGED', amountMinor: 14500 } }]
+    await renderGate()
+    await tickAndSubmit()
+    const intents = fetchCalls.filter((c) => c.url === '/api/card-checkout/intent')
+    const sent = (intents[0].body as { bookingData: { stops: unknown } }).bookingData.stops
+    expect(sent).toEqual([{ address: 'Karlstejn', lat: 50.05, lng: 14.4, waitMinutes: 60 }])
+    expect(await screen.findByText(cof.noticePriceChanged.replace('{amount}', formatMinor(14500, 'eur')))).toBeInTheDocument()
+  })
+
+  it('the init call made on mount carries the stops from the store', async () => {
+    storeRef.current.stops = [placed('s1', 'Karlstejn', 30)]
+    await renderGate()
+    await ready()
+    const init = fetchCalls.find((c) => c.url === '/api/card-checkout/init')
+    const bookingData = (init!.body as { bookingData: Record<string, unknown> }).bookingData
+    expect(bookingData.stops).toEqual([{ address: 'Karlstejn', lat: 50.05, lng: 14.4, waitMinutes: 30 }])
   })
 })

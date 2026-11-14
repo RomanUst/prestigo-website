@@ -145,12 +145,30 @@ describe('subject prefixes', () => {
     const legacy = OPERATOR_ALERT_KINDS.filter(
       (k) => !['fee_decision_needed', 'fee_no_show_needed', 'fee_pending_24h', 'client_cancelled', 'change_request'].includes(k),
     )
-    expect(legacy).toHaveLength(10)
+    // Ten Phase 88 / 89 kinds plus ops_attention (Phase 91 review).
+    expect(legacy).toHaveLength(11)
     for (const kind of legacy) {
       await sendPaymentOperatorAlert(kind, row(), { eventKey: key(kind), code: 'x' })
       expect(lastMail().subject.startsWith('[Payment] ')).toBe(true)
     }
-    expect(sent()).toHaveLength(10)
+    expect(sent()).toHaveLength(11)
+  })
+
+  it('ops_attention: one body per note, ids and amounts only', async () => {
+    const notes = ['extra_unresolved', 'extra_late_success', 'extra_second_payment', 'extra_receipt_failed', 'stops_missing']
+    const seen = new Set<string>()
+    for (const note of notes) {
+      expect(
+        await sendPaymentOperatorAlert('ops_attention', row(), { eventKey: key(`ops_${note}`), code: note, amountMinor: 1500, note }),
+      ).toBe('sent')
+      const mail = lastMail()
+      expect(mail.subject).toBe(`[Payment] Needs attention — ${REF}`)
+      expect(mail.text).toContain(`Booking reference: ${REF}`)
+      expect(mail.text).toContain(`Reason code: ${note}`)
+      seen.add(mail.text.split('\n').slice(-1)[0])
+    }
+    // each note has its own instruction
+    expect(seen.size).toBe(notes.length)
   })
 
   it('exposes the five new kinds', () => {

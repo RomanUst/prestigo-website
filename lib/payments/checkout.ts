@@ -17,6 +17,7 @@
 
 import { generateBookingReference } from '@/lib/booking-reference'
 import { AttemptFlowConflictError, buildBookingRow, captureUnpaidBooking, createSupabaseServiceClient } from '@/lib/supabase'
+import { saveBookingStops } from '@/lib/booking-stops'
 import { buildCheckoutMeta, type CheckoutBookingData, type PricedCheckout } from '@/lib/checkout/compute'
 import { normalizeSiteLocale } from '@/i18n/locales'
 import { buildConsentText, consentSha256 } from '@/lib/payments/consent'
@@ -200,6 +201,11 @@ export async function createCardCheckoutIntent(input: CardCheckoutIntentInput): 
     if (status && CLOSED_STATUSES.has(status)) return { kind: 'attempt_closed' }
     return { kind: 'already_confirmed', bookingReference }
   }
+
+  // Phase 91 (STOP-04): the stops of the captured unpaid row are exactly the ones just priced. Always written, so an
+  // empty list clears the stops of an earlier attempt. Reached only when the capture affected an unpaid row (T-91-19);
+  // an error propagates (the route answers its 500 and the client retries the same attempt: replace-all is safe).
+  await saveBookingStops(affected[0].id, priced.stops)
 
   const { data: capturedData, error: capturedError } = await supabase
     .from('bookings')

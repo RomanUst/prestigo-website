@@ -707,3 +707,115 @@ describe('PaymentPanel Copy link (HOLD-07)', () => {
     expect(screen.queryByText('Payment link')).toBeNull()
   })
 })
+
+// ── Phase 91-11 (EXTRA-01): the extra charge action, dialog and list ─────────
+
+describe('PaymentPanel extra charge (91-11)', () => {
+  const eur = (minor: number) => formatMinor(minor, 'eur')
+  const completed = { state: 'captured', status: 'completed', completed: true }
+  const noExtra = { eligible: false, reason: 'payment_mode', in_flight: null, charges: [] }
+
+  function extraBody(allowed: string[], extra: Record<string, unknown>) {
+    return { ...makeBody({ payment: completed, allowed }), extra }
+  }
+
+  /** GET /payment returns the body each time; POST /extra is answered and recorded. */
+  function stubPanelFetch(get: () => unknown, post?: { status: number; body: unknown }) {
+    const calls: Array<{ url: string; method: string; body: unknown }> = []
+    const fetchMock = vi.fn().mockImplementation((url: string, init?: { method?: string; body?: string }) => {
+      const method = init?.method ?? 'GET'
+      calls.push({ url: String(url), method, body: init?.body ? JSON.parse(init.body) : undefined })
+      const answer = method === 'GET' ? { status: 200, body: get() } : (post ?? { status: 200, body: { outcome: 'ok' } })
+      return Promise.resolve({ ok: answer.status >= 200 && answer.status < 300, status: answer.status, json: () => Promise.resolve(answer.body) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return { calls, posts: () => calls.filter(c => c.method === 'POST'), gets: () => calls.filter(c => c.method === 'GET') }
+  }
+
+  it('shows "Add extra charge…" only when allowed_actions has charge_extra', async () => {
+    stubPanelFetch(() => extraBody(['charge_extra'], { ...noExtra, eligible: true, reason: null }))
+    const { unmount } = render(<PaymentPanel bookingId="b-1" />)
+    expect(await screen.findByRole('button', { name: 'Add extra charge…' })).toBeDefined()
+    unmount()
+
+    stubPanelFetch(() => extraBody([], noExtra))
+    render(<PaymentPanel bookingId="b-1" />)
+    await screen.findByText('Captured')
+    expect(screen.queryByRole('button', { name: 'Add extra charge…' })).toBeNull()
+  })
+
+  it('an older server answer without the extra object still renders and offers nothing', async () => {
+    stubPanelFetch(() => makeBody({ payment: completed, allowed: [] }))
+    render(<PaymentPanel bookingId="b-1" />)
+    await screen.findByText('Captured')
+    expect(screen.queryByRole('button', { name: /extra charge/i })).toBeNull()
+    expect(screen.queryByTestId('extra-charges')).toBeNull()
+  })
+
+  it('opens the dialog, charges an "other" extra once and shows the result line; the panel refetches', async () => {
+    const net = stubPanelFetch(
+      () => extraBody(['charge_extra'], { ...noExtra, eligible: true, reason: null }),
+      { status: 200, body: { outcome: 'charged', charge_id: 'c-1', amount_minor: 1500, currency: 'eur' } },
+    )
+    render(<PaymentPanel bookingId="b-1" />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Add extra charge…' }))
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByText('Add extra charge')).toBeDefined()
+
+    fireEvent.change(screen.getByLabelText('Shown to the client in the receipt'), { target: { value: 'Airport parking' } })
+    fireEvent.change(screen.getByLabelText('Amount (EUR)'), { target: { value: '15.00' } })
+    fireEvent.click(screen.getByRole('button', { name: `Charge ${eur(1500)} to the saved card` }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(net.posts()).toHaveLength(1)
+    expect(net.posts()[0].url).toBe('/api/admin/bookings/b-1/extra')
+    expect(net.posts()[0].body).toEqual({ kind: 'other', description: 'Airport parking', amount_minor: 1500 })
+    expect(await screen.findByText(`${eur(1500)} was charged to the saved card and the client was emailed a receipt.`)).toBeDefined()
+    await waitFor(() => expect(net.gets().length).toBeGreaterThanOrEqual(2))
+  })
+
+  it('lists the extra charges with kind, amount, status and date', async () => {
+    stubPanelFetch(() => extraBody([], {
+      ...noExtra,
+      charges: [
+        {
+          id: 'c-1', kind: 'other', status: 'charged', amount_minor: 1500, currency: 'eur', minutes: null,
+          description: 'Airport parking', requested_at: '2026-11-02T10:00:00Z', charged_at: '2026-11-02T10:00:05Z', last_error_code: null,
+        },
+        {
+          id: 'c-2', kind: 'waiting', status: 'failed', amount_minor: 3000, currency: 'eur', minutes: 45,
+          description: null, requested_at: '2026-11-03T10:00:00Z', charged_at: null, last_error_code: 'card_declined',
+        },
+      ],
+    }))
+    render(<PaymentPanel bookingId="b-1" />)
+    const list = await screen.findByTestId('extra-charges')
+    expect(within(list).getByText('Extra charges', { selector: 'h4' })).toBeDefined()
+    expect(within(list).getByText('Airport parking')).toBeDefined()
+    expect(within(list).getByText(eur(1500))).toBeDefined()
+    expect(within(list).getByText('Charged')).toBeDefined()
+    expect(within(list).getByText('2 Nov, 11:00')).toBeDefined()
+    expect(within(list).getByText('Waiting, 45 min')).toBeDefined()
+    expect(within(list).getByText(eur(3000))).toBeDefined()
+    expect(within(list).getByText('Declined')).toBeDefined()
+    expect(within(list).getByText('(card_declined)')).toBeDefined()
+  })
+
+  it('a pending charge keeps a way in: "Pending extra charge…" opens the resume view', async () => {
+    const net = stubPanelFetch(
+      () => extraBody([], {
+        eligible: false,
+        reason: 'in_flight',
+        in_flight: { id: '22222222-2222-4222-8222-222222222222', kind: 'other', amount_minor: 900, currency: 'eur', requested_at: '2026-11-11T09:00:00Z', resumable: true },
+        charges: [],
+      }),
+      { status: 200, body: { outcome: 'charged', charge_id: '22222222-2222-4222-8222-222222222222', amount_minor: 900, currency: 'eur' } },
+    )
+    render(<PaymentPanel bookingId="b-1" />)
+    expect(screen.queryByRole('button', { name: 'Add extra charge…' })).toBeNull()
+    fireEvent.click(await screen.findByRole('button', { name: 'Pending extra charge…' }))
+    fireEvent.click(await screen.findByRole('button', { name: `Retry the pending charge of ${eur(900)}` }))
+    await waitFor(() => expect(net.posts()).toHaveLength(1))
+    expect(net.posts()[0].body).toEqual({ kind: 'resume', charge_id: '22222222-2222-4222-8222-222222222222' })
+  })
+})

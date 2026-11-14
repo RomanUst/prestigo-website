@@ -21,6 +21,11 @@ const { stripeMock, supabaseServiceStub, pricingConfigMock, saveBookingMock } = 
   return { stripeMock, supabaseServiceStub, pricingConfigMock, saveBookingMock }
 })
 
+const { routeDistanceMock } = vi.hoisted(() => ({ routeDistanceMock: vi.fn() }))
+// Phase 91 (STOP-02): the checkout prices on the server's Google Routes distance. These fixtures used to send
+// distanceKm; the mock returns the same distance so the assertions stay unchanged.
+vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
+
 vi.mock('stripe', () => {
   function MockStripe() {
     return stripeMock
@@ -171,6 +176,10 @@ function makeBookingData(overrides: Record<string, string> = {}): Record<string,
     vehicleClass: 'business',
     currency: 'eur',
     distanceKm: '10',
+    originLat: '50.0755',
+    originLng: '14.4378',
+    destinationLat: '49.1951',
+    destinationLng: '16.6068',
     pickupDate: futureDate(30),
     pickupTime: '10:00',
     passengers: '2',
@@ -191,6 +200,8 @@ function makeBookingData(overrides: Record<string, string> = {}): Record<string,
 }
 
 beforeEach(() => {
+  routeDistanceMock.mockReset()
+  routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 10, durationMin: 40 })
   vi.clearAllMocks()
   // Ensure the Stripe lazy-init guard passes — value is irrelevant because the
   // Stripe constructor is replaced by the vi.mock above.
@@ -923,5 +934,50 @@ describe('Passenger seat limit per vehicle class (server-side)', () => {
       makePostRequest({ bookingData: makeBookingData({ vehicleClass, passengers }) })
     )
     expect(res.status).toBe(status)
+  })
+})
+
+describe('Phase 91 STOP-02: the price follows the server route distance, never the browser', () => {
+  it('Google routing down -> 503 ROUTING_UNAVAILABLE, no PaymentIntent, no fallback to the body distance (D-17)', async () => {
+    routeDistanceMock.mockResolvedValue({ ok: false, reason: 'timeout' })
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const res = await POST(makePostRequest({ bookingData: makeBookingData({ distanceKm: '10' }) }))
+    errSpy.mockRestore()
+    expect(res.status).toBe(503)
+    const json = await res.json()
+    expect(json.code).toBe('ROUTING_UNAVAILABLE')
+    expect(stripeMock.paymentIntents.create).not.toHaveBeenCalled()
+  })
+
+  it('a tampered distanceKm and isAirport flag change neither the amount nor the stored distance', async () => {
+    routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 120, durationMin: 90 })
+    const honest = await POST(makePostRequest({ bookingData: makeBookingData({ distanceKm: '120' }) }))
+    expect(honest.status).toBe(200)
+    const honestAmount = stripeMock.paymentIntents.create.mock.calls[0][0].amount
+
+    stripeMock.paymentIntents.create.mockClear()
+    const tampered = await POST(
+      makePostRequest({ bookingData: makeBookingData({ distanceKm: '1', isAirport: 'true', amountEur: '1' }) }),
+    )
+    expect(tampered.status).toBe(200)
+    const call = stripeMock.paymentIntents.create.mock.calls[0][0]
+    expect(call.amount).toBe(honestAmount)
+    expect(call.metadata.distanceKm).toBe('120')
+  })
+
+  it('a stop that waits beyond 15 minutes on a class without a waiting rate -> 422 WAITING_NOT_AVAILABLE', async () => {
+    const res = await POST(
+      makePostRequest({
+        bookingData: {
+          ...makeBookingData(),
+          stops: [{ address: 'Karlovy Vary', lat: 50.23, lng: 12.87, waitMinutes: 45 }],
+        },
+      }),
+    )
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.code).toBe('WAITING_NOT_AVAILABLE')
+    expect(routeDistanceMock).not.toHaveBeenCalled()
+    expect(stripeMock.paymentIntents.create).not.toHaveBeenCalled()
   })
 })

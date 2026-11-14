@@ -85,3 +85,30 @@ describe('PriceSummary', () => {
     })
   })
 })
+
+describe('Phase 91: no waiting breakdown in the price summary', () => {
+  const noExtras = { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: false, extraLuggage: false }
+
+  function setPrices(waitingEur: number | null | undefined) {
+    useBookingStore.setState({
+      tripType: 'transfer',
+      vehicleClass: 'business',
+      priceBreakdown: {
+        ...outboundBreakdown,
+        business: { base: 324, extras: 0, total: 324, currency: 'EUR', ...(waitingEur === undefined ? {} : { waitingEur }) },
+      },
+      roundTripPriceBreakdown: null,
+      quoteMode: false,
+      extras: noExtras,
+      currentStep: 2,
+    })
+  }
+
+  // Owner decision 2026-11-12: one total, no waiting amount listed on its own.
+  it.each([24, 0, null, undefined])('renders no waiting line when waitingEur is %s; the total is shown', (v) => {
+    setPrices(v)
+    render(<PriceSummary desktopOnly />)
+    expect(screen.queryByText(/Waiting at stops/)).toBeNull()
+    expect(screen.getByText('€324')).toBeInTheDocument()
+  })
+})

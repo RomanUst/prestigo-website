@@ -26,6 +26,20 @@ import {
 import type { TripType, VehicleClass } from '@/types/booking'
 import { VEHICLE_CONFIG } from '@/types/booking'
 import { normalizePhone } from '@/lib/phone'
+import { computeRouteDistance, type RoutePoint } from '@/lib/route-distance'
+import { isAirportTrip } from '@/lib/airport'
+import { isAirportPickup } from '@/lib/no-show-wait'
+import { isLandingOffset, pickupFromLanding } from '@/lib/airport-pickup'
+import {
+  MAX_STOPS,
+  MAX_STOP_WAIT_MIN,
+  isValidStopWait,
+  priceStops,
+  totalWaitingBlocks,
+  waitingFeeEur,
+  type PricedStop,
+  type StopInput,
+} from '@/lib/stops'
 
 const TRIP_TYPES: TripType[] = ['transfer', 'hourly', 'daily', 'round_trip']
 
@@ -46,6 +60,8 @@ export const checkoutBookingSchema = z.object({
     tripType: z.enum(['transfer', 'hourly', 'daily', 'round_trip']),
     vehicleClass: z.enum(['business', 'first_class', 'business_van']),
     currency: z.string().max(10).optional(),
+    // Legacy field: still accepted so old clients validate, never read (STOP-02, Phase 91). The distance
+    // and the airport flag are recomputed on the server from the coordinates.
     distanceKm: z.string().max(20).optional(),
     hours: z.string().max(5).optional(),
     pickupDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
@@ -64,6 +80,26 @@ export const checkoutBookingSchema = z.object({
     // Phase 62 D-06/ASVS-V5: client-generated per-attempt dedup key — must be
     // a well-formed UUID before it is ever used as a DB query key.
     attemptId: z.string().uuid().optional(),
+    // Phase 91 (STOP-01): intermediate stops of a transfer, in driving order. Strict objects, at most
+    // MAX_STOPS, a wait of 0-120 minutes in 15-minute steps. The price follows the coordinates.
+    stops: z
+      .array(
+        z.strictObject({
+          // IN-03: a stop pinned on the map may have no typed address. Storage keeps NULL for '' (the column forbids an empty
+          // string) and the emails and the calendar print "Pinned on the map", so the schema accepts a missing or empty one.
+          address: z.string().trim().max(500).regex(NO_LINE_BREAKS).optional(),
+          lat: z.number().finite().min(-90).max(90),
+          lng: z.number().finite().min(-180).max(180),
+          waitMinutes: z.number().int().min(0).max(MAX_STOP_WAIT_MIN).refine(isValidStopWait),
+        }),
+      )
+      .max(MAX_STOPS)
+      .optional(),
+    // Phase 91 (STOP-05, D-07): an airport pickup is timed after the flight lands. All three together or none; the
+    // server derives the pickup as landing + offset in Prague time (D-18) and refuses a pickup that differs.
+    landingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
+    landingTime: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal('')),
+    pickupOffsetMin: z.string().regex(/^\d{1,2}$/).optional().or(z.literal('')),
   }).catchall(BOUNDED_STRING), // anything else must be string ≤ 2000 chars
 })
 
@@ -81,10 +117,15 @@ export type ValidatedCheckout = {
   ok: true
   tripType: TripType
   vehicleClass: VehicleClass
-  distanceKm: number | null
   hours: number
   days: number
   phone: string
+  /** Server-parsed coordinates; set for transfer and round_trip, best effort for hourly and daily. */
+  origin: RoutePoint | null
+  destination: RoutePoint | null
+  stops: StopInput[]
+  /** STOP-05: the validated landing of an airport pickup (the pickup in bookingData is already the derived one); null otherwise. */
+  landing: { date: string; time: string; offsetMin: number } | null
 }
 
 export type PricedCheckout = {
@@ -96,6 +137,22 @@ export type PricedCheckout = {
   appliedPromoPct: number
   promoCode: string
   returnDiscountPercent: number
+  /** Route distance from Google through the stops; null for hourly and daily. Never a client value. */
+  distanceKm: number | null
+  durationMin: number | null
+  /** Paid waiting at the stops in EUR (already inside combined); 0 without stops. */
+  waitingFeeEur: number
+  stops: PricedStop[]
+}
+
+/** A coordinate pair from the string fields of the booking body; null unless both are finite and in range. */
+function parsePoint(lat: string | undefined, lng: string | undefined): RoutePoint | null {
+  if (!lat || !lng) return null
+  const la = Number(lat)
+  const ln = Number(lng)
+  if (!Number.isFinite(la) || !Number.isFinite(ln)) return null
+  if (la < -90 || la > 90 || ln < -180 || ln > 180) return null
+  return { lat: la, lng: ln }
 }
 
 function fail(status: CheckoutError['status'], code: string, error: string): CheckoutError {
@@ -143,22 +200,70 @@ export function validateCheckoutBooking(
     }
   }
 
-  const distanceKm = bookingData.distanceKm ? parseFloat(bookingData.distanceKm) : null
   const hours = bookingData.hours ? parseInt(bookingData.hours) : 2
   const days =
     bookingData.pickupDate && bookingData.returnDate
       ? dateDiffDays(bookingData.pickupDate, bookingData.returnDate)
       : 1
 
-  if (tripType === 'transfer' && (distanceKm === null || !isFinite(distanceKm) || distanceKm <= 0)) {
-    return fail(400, 'INVALID_REQUEST', 'Invalid distanceKm for transfer')
+  // Stops only exist on a one-way transfer (D-01); every other trip type refuses them.
+  const stops: StopInput[] = bookingData.stops ?? []
+  if (tripType !== 'transfer' && stops.length > 0) {
+    return fail(400, 'STOPS_NOT_ALLOWED', 'Stops are only available on a transfer')
+  }
+
+  // STOP-02: the distance is recomputed on the server from these coordinates; the browser distance is never read.
+  const origin = parsePoint(bookingData.originLat, bookingData.originLng)
+  const destination = parsePoint(bookingData.destinationLat, bookingData.destinationLng)
+  if ((tripType === 'transfer' || tripType === 'round_trip') && (!origin || !destination)) {
+    return fail(400, 'INVALID_REQUEST', 'Invalid coordinates')
+  }
+
+  // STOP-05 / D-07, D-18: landing + offset -> the pickup, derived on the server. Runs before the round-trip checks so
+  // they read the derived pickup. The browser never decides the pickup (T-91-22).
+  let landing: ValidatedCheckout['landing'] = null
+  const landingGiven = [bookingData.landingDate, bookingData.landingTime, bookingData.pickupOffsetMin].filter(Boolean).length
+  if (landingGiven > 0) {
+    if (landingGiven < 3) {
+      return fail(400, 'INVALID_REQUEST', 'Incomplete landing')
+    }
+    if (tripType !== 'transfer' && tripType !== 'round_trip') {
+      return fail(400, 'LANDING_NOT_ALLOWED', 'Landing time is only available on a transfer')
+    }
+    const landingDate = bookingData.landingDate as string
+    const landingTime = bookingData.landingTime as string
+    const offsetMin = parseInt(bookingData.pickupOffsetMin as string, 10)
+    if (!isLandingOffset(offsetMin)) {
+      return fail(400, 'INVALID_REQUEST', 'Invalid landing offset')
+    }
+    // T-91-23: the landing UI only exists for an airport pickup; the same rule gates it here (coordinates or airport address).
+    if (
+      !isAirportPickup({
+        origin_lat: origin ? origin.lat : null,
+        origin_lng: origin ? origin.lng : null,
+        origin_address: bookingData.originAddress ?? null,
+      })
+    ) {
+      return fail(422, 'LANDING_NOT_AIRPORT', 'Landing time is only for an airport pickup')
+    }
+    const derived = pickupFromLanding(landingDate, landingTime, offsetMin)
+    if (!derived) {
+      return fail(400, 'INVALID_REQUEST', 'Invalid landing time')
+    }
+    if (
+      (bookingData.pickupDate && bookingData.pickupDate !== derived.pickupDate) ||
+      (bookingData.pickupTime && bookingData.pickupTime !== derived.pickupTime)
+    ) {
+      return fail(422, 'PICKUP_MISMATCH', 'The pickup does not match the landing time')
+    }
+    // Same style as the phone: the derived values are what gets validated further, priced and stored.
+    bookingData.pickupDate = derived.pickupDate
+    bookingData.pickupTime = derived.pickupTime
+    landing = { date: landingDate, time: landingTime, offsetMin }
   }
 
   // Round-trip specific validation (T-26-01, T-26-06, T-26-09)
   if (tripType === 'round_trip') {
-    if (distanceKm === null || !isFinite(distanceKm) || distanceKm <= 0) {
-      return fail(400, 'INVALID_REQUEST', 'Invalid distanceKm for round_trip')
-    }
     if (!bookingData.returnDate || !bookingData.returnTime) {
       return fail(400, 'ROUND_TRIP_DATES', 'Round trip requires returnDate and returnTime')
     }
@@ -177,7 +282,7 @@ export function validateCheckoutBooking(
     }
   }
 
-  return { ok: true, tripType, vehicleClass, distanceKm, hours, days, phone: phoneE164 }
+  return { ok: true, tripType, vehicleClass, hours, days, phone: phoneE164, origin, destination, stops, landing }
 }
 
 /**
@@ -190,7 +295,7 @@ export async function priceCheckout(input: {
   currency: 'eur' | 'czk'
 }): Promise<PricedCheckout | CheckoutError> {
   const { bookingData, validated, currency } = input
-  const { tripType, vehicleClass, distanceKm, hours, days } = validated
+  const { tripType, vehicleClass, hours, days, origin, destination, stops } = validated
 
   let rates
   try {
@@ -217,7 +322,38 @@ export async function priceCheckout(input: {
     }
   )
 
-  const isAirport = bookingData.isAirport === 'true'
+  // STOP-03 / D-05: a stop that waits beyond the free 15 minutes needs a waiting rate for this class. Checked
+  // before the Google call so a request that can not be priced never spends routing quota.
+  const waitingRatePerBlock = rates.waitingRate?.[vehicleClass]
+  const waitingRate = typeof waitingRatePerBlock === 'number' && waitingRatePerBlock > 0 ? waitingRatePerBlock : null
+  const waitingBlocks = totalWaitingBlocks(stops)
+  if (waitingBlocks > 0 && waitingRate === null) {
+    return fail(422, 'WAITING_NOT_AVAILABLE', 'Waiting at stops is not available for this vehicle class')
+  }
+  const pricedStops = priceStops(stops, waitingRate)
+  const waitingFee = waitingBlocks > 0 && waitingRate !== null ? waitingFeeEur(waitingBlocks, waitingRate) : 0
+
+  // STOP-02 / T-91-12: the airport flag comes from the coordinates only, never from the browser.
+  const isAirport = isAirportTrip(origin, destination)
+
+  // STOP-02 / D-17: the distance is the server's Google Routes distance through origin, stops and destination.
+  // When routing fails the checkout fails closed: there is no fallback to a client distance (T-91-13).
+  let distanceKm: number | null = null
+  let durationMin: number | null = null
+  if (tripType === 'transfer' || tripType === 'round_trip') {
+    if (!origin || !destination) return fail(400, 'INVALID_REQUEST', 'Invalid coordinates') // guarded in validateCheckoutBooking
+    const route = await computeRouteDistance({
+      origin,
+      destination,
+      intermediates: stops.map((stop) => ({ lat: stop.lat, lng: stop.lng })),
+    })
+    if (!route.ok) {
+      console.error('checkout route distance failed:', route.reason)
+      return fail(503, 'ROUTING_UNAVAILABLE', 'Route distance unavailable')
+    }
+    distanceKm = route.distanceKm
+    durationMin = route.durationMin
+  }
   const pickupTimeOrNull = bookingData.pickupTime || null
   const pickupDateOrNull = bookingData.pickupDate || null
 
@@ -237,7 +373,7 @@ export async function priceCheckout(input: {
   if (tripType === 'round_trip') {
     returnLegEur = computeReturnLegTotal(
       vehicleClass,
-      distanceKm as number, // guarded in validateCheckoutBooking
+      distanceKm as number, // set above for round_trip
       bookingData.returnDate ?? '',
       bookingData.returnTime ?? '',
       isAirport,
@@ -245,7 +381,7 @@ export async function priceCheckout(input: {
     )
   }
 
-  const totalEur = outboundLegEur + extrasTotalEur + returnLegEur
+  const totalEur = outboundLegEur + extrasTotalEur + waitingFee + returnLegEur
 
   if (totalEur <= 0) {
     return fail(400, 'INVALID_REQUEST', 'Computed amount must be positive')
@@ -280,7 +416,8 @@ export async function priceCheckout(input: {
   // Single call site for combined-total computation + promo rounding + Stripe amount minor unit (T-26-03)
   const combined = computeCombinedTotalMinor({
     outboundLegEur,
-    extrasEur: extrasTotalEur,
+    // D-14: the waiting joins the extras sum, so a promo reduces the whole total including waiting, once.
+    extrasEur: extrasTotalEur + waitingFee,
     returnLegEur,
     promoPct: appliedPromoPct,
     currency,
@@ -295,6 +432,10 @@ export async function priceCheckout(input: {
     appliedPromoPct,
     promoCode: promoCode || '',
     returnDiscountPercent: rates.globals.returnDiscountPercent,
+    distanceKm,
+    durationMin,
+    waitingFeeEur: waitingFee,
+    stops: pricedStops,
   }
 }
 
@@ -333,7 +474,7 @@ export function buildCheckoutMeta(input: {
   // Per-leg amounts PRE-promo (for Phase 23 outbound_amount_czk / return_amount_czk columns).
   // Phase 28 refund math: refundRatio = finalTotalCzk / combinedBeforePromoCzk;
   //                       actualRefund = leg_amount_czk * refundRatio.
-  const outboundAmountCzk = eurToCzk(priced.outboundLegEur + priced.extrasTotalEur) // extras attributed to outbound
+  const outboundAmountCzk = eurToCzk(priced.outboundLegEur + priced.extrasTotalEur + priced.waitingFeeEur) // extras and waiting attributed to outbound
   const returnAmountCzk = eurToCzk(priced.returnLegEur)
 
   return {
@@ -355,7 +496,8 @@ export function buildCheckoutMeta(input: {
     passengers: bookingData.passengers ?? '',
     luggage: bookingData.luggage ?? '',
     hours: bookingData.hours ?? '',
-    distanceKm: bookingData.distanceKm ?? '',
+    // The server's route distance, never the browser's (STOP-02).
+    distanceKm: priced.distanceKm === null ? '' : String(priced.distanceKm),
     extraChildSeat: bookingData.extraChildSeat ?? 'false',
     extraMeetGreet: bookingData.extraMeetGreet ?? 'false',
     extraLuggage: bookingData.extraLuggage ?? 'false',
@@ -376,5 +518,18 @@ export function buildCheckoutMeta(input: {
     userId: authenticatedUserId ?? '',
     // A compact JSON string (about 150 chars, inside the 500-char limit; never clamped, a cut JSON is useless).
     ...(cancelPolicy ? { cancelPolicy: JSON.stringify(cancelPolicy.snapshot) } : {}),
+    // WR-06: how many stops the amount above was priced with (a count only, no addresses), so the webhook's fallback insert
+    // can tell that a booking it creates without stops has lost what the client paid for. Absent for a booking without stops.
+    ...(priced.stops.length > 0 ? { stopCount: String(priced.stops.length) } : {}),
+    // STOP-05: the landing of an airport pickup, only when present. validateCheckoutBooking guarantees all three are
+    // set together and that pickupDate / pickupTime above are the derived pickup, so the key set is unchanged for every
+    // booking without a landing.
+    ...(bookingData.landingDate && bookingData.landingTime && bookingData.pickupOffsetMin
+      ? {
+          landingDate: bookingData.landingDate,
+          landingTime: bookingData.landingTime,
+          pickupOffsetMin: bookingData.pickupOffsetMin,
+        }
+      : {}),
   }
 }

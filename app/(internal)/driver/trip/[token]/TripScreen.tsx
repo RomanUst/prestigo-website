@@ -51,6 +51,12 @@ export interface TripScreenProps {
     flight: string | null
     clientNotes: string | null
     distanceKm: number | null
+    /** Phase 91 (STOP-05): the flight's landing; null for a booking without one. */
+    landing: { date: string; time: string; offsetMin: number } | null
+    /** Phase 91 (STOP-05): 'HH:MM' Prague, pickup + the live no-show wait; null when the pickup is unknown. */
+    freeWaitUntil: string | null
+    /** Phase 91 (STOP-04): the stops in order, with the wait at each; never a fee. */
+    stops: Array<{ position: number; address: string; waitMinutes: number; lat: number | null; lng: number | null }>
   }
   initialNote: string | null
   /** D-15: server-computed unlock instant and the open request (both null outside on_location). */
@@ -578,6 +584,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow, cas
         originAddress={trip.originAddress}
         destinationAddress={trip.destinationAddress}
         distanceKm={trip.distanceKm}
+        stops={trip.stops}
       />
 
       <section
@@ -708,6 +715,10 @@ export default function TripScreen({ token, view, trip, initialNote, noShow, cas
             vehicleInfo={trip.vehicleInfo}
             flight={trip.flight}
             clientNotes={trip.clientNotes}
+            pickupTime={trip.pickupTime}
+            landing={trip.landing}
+            freeWaitUntil={trip.freeWaitUntil}
+            stops={trip.stops}
             isCash={cash !== undefined}
             draft={noteDraft}
             onDraftChange={setNoteDraft}

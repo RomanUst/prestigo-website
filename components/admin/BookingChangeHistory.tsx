@@ -32,6 +32,10 @@ const FIELD_LABELS: Record<string, string> = {
   destination_address: 'To',
   distance_km: 'Distance (km)',
   amount_czk: 'Total price',
+  // Phase 91: airport pickups store the landing and the minutes between landing and pickup (IN-01).
+  landing_date: 'Landing date',
+  landing_time: 'Landing time',
+  pickup_offset_min: 'Minutes after landing',
 }
 
 function humanizeField(field: string): string {

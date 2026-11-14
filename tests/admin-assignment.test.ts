@@ -250,10 +250,15 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
       client_phone: '+420123456789',
       status: 'pending',
       booking_source: 'website',
+      // Phase 91-14 (STOP-05): an airport booking carries its landing beside the pickup.
+      landing_date: '2026-05-01',
+      landing_time: '09:30',
+      pickup_offset_min: 30,
     }
     const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: true } }
 
+    let bookingSelect = ''
     let callCount = 0
     stubSupabaseFrom.mockImplementation(() => {
       callCount++
@@ -265,7 +270,10 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
       } else if (callCount === 2) {
         const singleFn = vi.fn().mockResolvedValue({ data: mockBooking, error: null })
         const eqFn = vi.fn().mockReturnValue({ single: singleFn })
-        const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+        const selectFn = vi.fn().mockImplementation((cols: string) => {
+          bookingSelect = cols
+          return { eq: eqFn }
+        })
         return { select: selectFn }
       } else if (callCount === 3) {
         const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
@@ -297,6 +305,16 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
     expect(stubSendDriverAssignmentEmail).toHaveBeenCalledWith(
       expect.objectContaining({
         tripUrl: expect.stringContaining('/driver/trip/'),
+      })
+    )
+    // Phase 91-14: the booking id (for the stops) and the landing columns reach the email
+    expect(bookingSelect).toContain('landing_time')
+    expect(stubSendDriverAssignmentEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingId,
+        landingDate: '2026-05-01',
+        landingTime: '09:30',
+        pickupOffsetMin: 30,
       })
     )
   })

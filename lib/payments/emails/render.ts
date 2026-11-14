@@ -19,7 +19,9 @@
  *   policy) and the kinds of UI-SPEC 8.2 (cancelled, fee_charged, fee_waived, card_saved cash, payment_failed fee,
  *   with the shared `money.*` sentences) may state a fee, a percent or a refund. Every other line of card_saved,
  *   hold_placed and charged stays free of it; tests/payments-copy-i18n.test.ts enforces the list per locale.
- * - no template accepts or renders a reason or a note: operator text never reaches a client (T-89-13). A required
+ * - no template accepts or renders a reason or a note: operator text never reaches a client (T-89-13). The one
+ *   exception is the dedicated `extraItem` line of extra_charged other (Phase 91 D-10, T-91-18): the item the operator
+ *   typed for the client's receipt, escaped, never in the subject. A required
  *   var that is missing (freeUntil, waitMin, feeMinor) makes the render throw instead of leaving a parameter open.
  * - the contact pair of "Need assistance?" is built here with a localized "or" (`PaymentEmails.contactOr`);
  *   EMAIL_CONTACT_LINE stays for the English-only legacy emails of lib/email.ts.
@@ -44,10 +46,12 @@ export type PaymentEmailKind =
   | 'cancelled'
   | 'fee_charged'
   | 'fee_waived'
+  | 'extra_charged'
 
 /**
  * Variants by kind (UI-SPEC 8.2): card_saved cash; cancelled free, by_prestigo, late; fee_charged late_cancel,
- * no_show, cash_unpaid, cash_card; payment_failed declined, auth_required, fee; hold_placed at_checkout, scheduled.
+ * no_show, cash_unpaid, cash_card; payment_failed declined, auth_required, fee; hold_placed at_checkout, scheduled;
+ * extra_charged waiting, other (Phase 91 D-10).
  */
 export type PaymentEmailVariant =
   | 'at_checkout'
@@ -63,6 +67,8 @@ export type PaymentEmailVariant =
   | 'cash_unpaid'
   | 'cash_card'
   | 'fee'
+  | 'waiting'
+  | 'other'
 
 /** What happened to the client's money when a booking was cancelled or a fee was waived. */
 export type PaymentMoneyOutcome = 'released' | 'refunded' | 'none'
@@ -108,6 +114,13 @@ export interface PaymentEmailVars {
   waitMin?: number
   /** Localized absolute https URL of the booking page, for the "Book another ride" button of cancelled and fee_waived. */
   bookAgainUrl?: string
+  /** Minutes of waiting beyond the booked time. Required by extra_charged waiting (Phase 91 D-10). */
+  extraMinutes?: number
+  /**
+   * The item line the operator wrote FOR THE CLIENT's receipt (extra_charged other), for example "Airport parking".
+   * HTML-escaped, never in the subject. It is not a reason and not a note: those still never reach a client (T-89-13).
+   */
+  extraItem?: string
 }
 
 export interface PolicyBoxVars {
@@ -185,7 +198,7 @@ function text(t: Translator, key: string, params: Record<string, string> = {}): 
  * Parameters that are localized words (a long date such as "12 نوفمبر 2026"), isolated with dir="auto" so an RTL reader
  * reads them in their own order (88-REVIEW C-IN-01). Amounts, references and times stay ltr.
  */
-const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate', 'freeUntil', 'contact'])
+const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate', 'freeUntil', 'contact', 'item'])
 
 /**
  * The contact pair of "Need assistance?" with a localized "or" (88 deferred item: the shared EMAIL_CONTACT_LINE says
@@ -286,6 +299,21 @@ function waitMinText(c: Ctx, kind: string): string {
   const min = need(c.vars.waitMin, kind, 'waitMin')
   if (!Number.isFinite(min) || min <= 0) throw new Error(`payment email ${kind}: waitMin is not a duration`)
   return String(Math.round(min))
+}
+
+/** Minutes of waiting beyond the booked time (extra_charged waiting), a positive whole number. */
+function extraMinutesText(c: Ctx, kind: string): string {
+  const min = need(c.vars.extraMinutes, kind, 'extraMinutes')
+  if (!Number.isFinite(min) || min <= 0) throw new Error(`payment email ${kind}: extraMinutes is not a duration`)
+  return String(Math.round(min))
+}
+
+/** The client-facing item line of extra_charged other; blank is a render failure, control characters are flattened. */
+function extraItemText(c: Ctx, kind: string): string {
+  const raw = need(c.vars.extraItem, kind, 'extraItem')
+  const item = raw.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim()
+  if (!item) throw new Error(`payment email ${kind} needs extraItem`)
+  return item
 }
 
 /**
@@ -418,6 +446,36 @@ const TEMPLATES: Record<string, (c: Ctx) => Template> = {
       intro: html(c.t, 'feeCharged.introCashCard', { amount }),
       highlightLabel: html(c.t, 'common.receiptLabel'),
       lines: [html(c.t, 'charged.total', { amount })],
+    }
+  },
+  'extra_charged:waiting': (c) => {
+    const minutes = extraMinutesText(c, 'extra_charged:waiting')
+    const amount = needMinor(c, 'extra_charged:waiting', 'feeMinor', c.vars.feeMinor)
+    return {
+      subject: text(c.t, 'extraCharged.subjectWaiting', { reference: c.vars.reference }),
+      h1: html(c.t, 'extraCharged.h1Waiting'),
+      intro: html(c.t, 'extraCharged.introWaiting', { minutes, pickupDate: c.pickupDate, amount }),
+      highlightLabel: html(c.t, 'common.receiptLabel'),
+      lines: [
+        html(c.t, 'charged.total', { amount }),
+        html(c.t, 'extraCharged.lineWaiting', { minutes }),
+        html(c.t, 'extraCharged.approved'),
+      ],
+    }
+  },
+  'extra_charged:other': (c) => {
+    const item = extraItemText(c, 'extra_charged:other')
+    const amount = needMinor(c, 'extra_charged:other', 'feeMinor', c.vars.feeMinor)
+    return {
+      subject: text(c.t, 'extraCharged.subjectOther', { reference: c.vars.reference }),
+      h1: html(c.t, 'extraCharged.h1Other'),
+      intro: html(c.t, 'extraCharged.introOther', { pickupDate: c.pickupDate, amount }),
+      highlightLabel: html(c.t, 'common.receiptLabel'),
+      lines: [
+        html(c.t, 'charged.total', { amount }),
+        html(c.t, 'extraCharged.lineOther', { item }),
+        html(c.t, 'extraCharged.approved'),
+      ],
     }
   },
   fee_waived: (c) => ({
