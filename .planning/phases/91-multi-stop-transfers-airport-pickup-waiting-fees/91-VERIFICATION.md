@@ -1,8 +1,8 @@
 ---
 phase: 91-multi-stop-transfers-airport-pickup-waiting-fees
-verified: 2026-11-12T01:35:00Z
-status: human_needed
-score: 5/5 roadmap success criteria verified in code (6/6 requirements satisfied); 0 failed; 12 human items
+verified: 2026-11-14T13:30:00Z
+status: passed
+score: 6/6 must-haves verified (5/5 roadmap success criteria and the 91-06 stops-replace truth); 6/6 requirements have implementation evidence; 8 human items open (5 deferred by the owner, 3 never observed on production)
 covered_files:
   - .planning/phases/91-multi-stop-transfers-airport-pickup-waiting-fees/91-01-PLAN.md
   - .planning/phases/91-multi-stop-transfers-airport-pickup-waiting-fees/91-01-SUMMARY.md
@@ -40,6 +40,7 @@ covered_files:
   - .planning/phases/91-multi-stop-transfers-airport-pickup-waiting-fees/91-17-SUMMARY.md
   - app/(internal)/driver/trip/[token]/TripDetails.tsx
   - app/(internal)/driver/trip/[token]/page.tsx
+  - app/[locale]/book/confirmation/page.tsx
   - app/api/admin/bookings/[id]/extra/route.ts
   - app/api/admin/bookings/[id]/landing/route.ts
   - app/api/admin/bookings/dispatch/route.ts
@@ -55,9 +56,14 @@ covered_files:
   - components/admin/dispatch/DispatchBoard.tsx
   - components/admin/dispatch/boardModel.ts
   - components/booking/BookingSummaryBlock.tsx
+  - components/booking/BookingWizard.tsx
+  - components/booking/EntryBar.tsx
   - components/booking/LandingPickupFields.tsx
   - components/booking/PriceSummary.tsx
+  - components/booking/StickyBookingPanel.tsx
   - components/booking/StopItem.tsx
+  - components/booking/StopList.tsx
+  - components/booking/steps/Step3Vehicle.tsx
   - components/booking/steps/cardCheckoutApi.ts
   - lib/airport-pickup.ts
   - lib/airport.ts
@@ -70,6 +76,8 @@ covered_files:
   - lib/landing-change.ts
   - lib/payments/checkout.ts
   - lib/payments/consent-text.ts
+  - lib/payments/emails/render.ts
+  - lib/payments/emails/send.ts
   - lib/payments/extra.ts
   - lib/route-distance.ts
   - lib/stops.ts
@@ -78,197 +86,282 @@ covered_files:
   - lib/supabase.ts
   - supabase/migrations/089_admin_search_bookings_hide_cancelled.sql
   - supabase/migrations/089_stops_landing_extra_charges.sql
+  - tests/EntryBar.test.tsx
+  - tests/Step3Vehicle.test.tsx
+  - tests/checkout-stops-persist.test.ts
+  - tests/confirmation-page.test.tsx
   - tests/extra-webhook.test.ts
   - tests/phase91-e2e.test.ts
-covered_digest: "v2:sha256:40c240e3ade82c2dc22ac18be3242c11c987b656f0e11de918f3f03ddd14750e"
+
+covered_digest: "v2:sha256:214ac675955275a5e5c3191560db81766f31645a2ad8155b3d03b4e138607ca7"
 behavior_unverified: 0
 overrides_applied: 0
 re_verification:
-  previous_status: human_needed
-  previous_score: 5/5
-  gaps_closed: []
+  previous_status: gaps_found
+  previous_score: 5/6
+  gaps_closed:
+    - "Stops UI was not mounted on the public wizard (found by production UAT, fixed by PR #105): EntryBar, the real step 1, renders StopList"
+    - "Vehicle step had a second route editor without stops that broke the landing / pickup pair (PR #106): the route bar returns to step 1, no inline editor"
+    - "Stops were missing from the card-on-file confirmation email and from the confirmation page (PR #110)"
+    - "Waiting display rule replaced by the owner (PR #107 then #108): the client sees one total, no separate waiting amount; wait options 0, 15 (free), 30, 45, 60, 90, 120"
+    - "Pay-now one-way retry without stops left the earlier stops on the booking (found by the pass of 13:05Z, fixed by commit 2f8e0cd8)"
+    - "Pay-now attempt re-posted as a round trip kept the stop of the earlier one-way attempt (found by the pass of 13:20Z, fixed by commit 3d33ad1b)"
   gaps_remaining: []
   regressions: []
 gaps: []
 human_verification:
   - test: "Wizard: stops on a transfer (desktop and phone width)"
-    expected: "On a Prague transfer add 1..5 stops (the 6th is refused), pick an address in each, remove one, move one up/down; the order in the list is the order drawn on the map with numbered markers and the km/min chip changes; any change to a stop clears the cached price and the promo and a new price is fetched"
-    why_human: "Layout, reorder interaction, Google Places/Directions rendering and numbered markers cannot be seen by grep or jsdom"
-  - test: "Wizard: waiting select and price line, before and after the owner sets rates"
-    expected: "With NO waiting rate set (D-05) the wait select offers only 0 and 15 minutes. After the owner sets a rate for one class, options up to 120 min in 15-min steps appear; a class without a rate is shown disabled with the 'reduce waiting to 15 minutes' note and is unselected if it was selected; 15 min costs nothing, 30 min costs one block, two stops of 15 min cost nothing; PriceSummary and the Step 6 summary show a separate 'Waiting at stops' line whose amount equals the rate times the paid blocks; the total includes it"
-    why_human: "Visual price summary, disabled-state styling and real /api/waiting-config + /api/calculate-price round trip in a browser"
+    expected: "On a Prague transfer add 1..5 stops (the 6th is not offered), pick an address in each, remove one, move one up/down; the order in the list is the order drawn on the map with numbered markers and the km/min changes; a stop change clears the cached price and the promo and a new price is fetched"
+    why_human: "Layout, reorder interaction, Google Places/Directions rendering"
+    resolution: "Passed on production 2026-11-12 after PR #105 and #106 (91-UAT.md test 1). Not observed there: promo reset after a stop change, phone width"
+  - test: "Wizard: waiting select and price (owner rule of 2026-11-12)"
+    expected: "Without any waiting rate only 'No wait' and 15 min are offered. With rates the options are 0, 15 (labelled free), 30, 45, 60, 90, 120; 15 min costs nothing, 30 min costs one block, two stops of 15 min cost nothing; the client sees ONE total that includes the waiting and no separate waiting amount"
+    why_human: "Visual price panel and the real /api/waiting-config + /api/calculate-price round trip in a browser"
+    resolution: "Passed on production 2026-11-12 (quotes and options) and 2026-11-14 (new option list, one total on the vehicle step) (91-UAT.md test 2 and 'Owner changes'). Not observed there: step 6 summary as rendered, a class without a rate next to classes with one"
   - test: "Wizard: airport pickup landing + offset"
-    expected: "Choose Prague Airport as pickup: the date/time fields become landing date/time and an offset picker (0/15/30/45/60/90, default 30) appears, with 'Your driver meets you at HH:MM'. Landing 14:00 + 30 shows 14:30. Landing 23:50 + 30 shows 00:20 on the next date. Changing the pickup away from the airport clears the landing fields. Try 2027-03-28 landing 01:50 (shows pickup 03:20) and 2027-10-31 landing 02:40. Reads clearly on a phone"
-    why_human: "UI copy, layout and the derived-pickup line in a real browser; DST dates in the real UI"
+    expected: "Prague Airport as pickup turns date/time into landing date/time with an offset picker (0/15/30/45/60/90, default 30) and 'Your driver meets you at HH:MM'; next-day and DST dates give the right pickup; a non-airport pickup clears the landing"
+    why_human: "UI copy, layout and the derived-pickup line in a real browser"
+    resolution: "Passed on production 2026-11-12 (91-UAT.md test 3). Not observed there: phone width"
   - test: "Tamper check on a live checkout"
-    expected: "In the browser devtools resend the card-checkout request with distanceKm changed to 1 and isAirport changed; the booking is created with the server distance (distance_km in admin / DB) and the same amount as the quote, the amount shown never changes; a pickup that differs from landing + offset answers an error"
-    why_human: "Needs a real browser session against real Google Routes (the code path and fakes are covered by tests, the live proof is not)"
+    expected: "A card-checkout request resent with distanceKm=1 and a changed isAirport stores the server distance and the quoted amount; a pickup that differs from landing + offset is refused"
+    why_human: "Needs a real browser session against real Google Routes and creates a live Stripe object"
+    note: "DEFERRED by the owner on 2026-11-14 to the first real card booking (91-UAT.md test 4, Deferred Follow-Ups). Not passed. Storage half seen once on the owner's canary PRG-20261114-59EC72 (server distance 183.324 km stored)"
   - test: "Admin > Pricing: waiting rate per class"
-    expected: "A 'Waiting per 15 min' field exists per class next to the hourly rate; saving a positive number persists it; clearing the field saves empty (paid waiting not offered); 0 or text is rejected; saving other fields never clears an existing rate"
+    expected: "A waiting-rate field per class: a positive number persists, empty saves NULL (not offered), 0 or text is rejected, saving other fields never clears a rate"
     why_human: "Form behaviour and persistence in the real admin"
-  - test: "Admin booking panel: Route section and trip edit (list, board, calendar)"
-    expected: "A booking with stops shows a Route section with every stop in order, its wait and paid blocks and the 'Waiting at stops' total; an airport booking shows landing time, pickup time and offset; a booking without stops or landing shows no Route section. Editing price-related fields of a booking with stops answers the 'set the price by hand' message (stops_edit_unsupported); editing the pickup time of an airport booking to something that is not landing + an allowed offset is refused with a clear message"
-    why_human: "Visual panel layout across three views and the operator-facing messages"
-  - test: "Admin: Add extra charge modal (on a completed card booking made under consent 2026-11-3)"
-    expected: "'Add extra charge...' appears only for such a booking (not for GNet, pay-now, unfinished or old-consent bookings). Waiting mode: entering minutes shows minutes, blocks and the server amount; Other mode: description + amount. The confirm step states amount, currency, 'charged to the saved card now' and the email receipt; the primary button is labelled with the amount; a double click sends one request; the modal cannot be closed while submitting; the extra appears in the panel's list of extra charges afterwards"
-    why_human: "Interaction, button labelling, focus and the money-confirm UX"
+    resolution: "Passed on production 2026-11-12 (91-UAT.md test 5): the owner set 7 / 20 / 10 EUR. Empty, zero and text cases are covered by tests only"
+  - test: "Admin booking panel: Route section and trip edit"
+    expected: "A booking with stops shows each stop in order with wait, paid blocks and the waiting total; an airport booking shows landing, pickup and offset; price edits of a booking with stops answer the set-price-by-hand message; a pickup that is not landing + an allowed offset is refused"
+    why_human: "Panel layout across the list, the board and the calendar"
+    resolution: "Passed on production 2026-11-12 on the TEST booking (91-UAT.md test 6), opened from the list only"
+  - test: "Admin: Add extra charge modal (completed card booking under consent 2026-11-3)"
+    expected: "The action appears only for such a booking; waiting mode shows minutes, blocks and the server amount; Other mode takes a description and an amount; the confirm step states amount, currency and the charge to the saved card; one request on a double click; the extra is listed in the panel afterwards"
+    why_human: "Interaction and the money-confirm UX on a real completed card booking"
+    note: "DEFERRED by the owner on 2026-11-14 to the first real card booking (91-UAT.md test 7). Not passed. Negative case seen: a manual booking shows no extra-charge action"
   - test: "Admin: Move pickup after a flight delay"
-    expected: "On an airport booking press 'Move pickup...', enter a new landing time (prefilled from the flight estimate when known); the dialog shows 'Move pickup to HH:MM' (new landing + stored offset); after confirming, landing and pickup move together, the audit history shows readable rows ('Landing date', 'Minutes after landing'), the client gets the changed-booking email only when 'Notify client' is ticked, and the calendar event time moves"
+    expected: "'Move pickup...' takes a new landing, shows 'Move pickup to HH:MM' before anything is sent; landing and pickup move together, the audit shows readable rows, the calendar event moves, the client is mailed only when 'Notify client' is ticked"
     why_human: "Dialog UX, email delivery and the Google Calendar side effect"
+    resolution: "Passed on production 2026-11-12 on the TEST booking (91-UAT.md test 8). Not observed: prefill from a flight estimate"
   - test: "Driver trip page and maps"
-    expected: "Open the driver link of a booking with 2 stops and an airport pickup: it lists Landing HH:MM, Pickup HH:MM, 'Free waiting until HH:MM' (60 min from the pickup for airport, 30 for city), each stop with its address and 'wait N min'; no price or waiting fee anywhere; the map and the km/min chip go through the stops in order. A booking without stops looks exactly as before. Check on a phone"
-    why_human: "Visual layout, mobile, Google Directions waypoints and numbered markers"
-  - test: "Emails as rendered"
-    expected: "The client confirmation (pay-now and card flow), driver assignment, driver-accepted and manager alert emails show the stops in order with waits, the 'Waiting at stops' amount (in the booking currency) for the client mail, and Landing/Pickup rows for an airport pickup; no stop rows when there are none; addresses are not mangled. The extra_charged receipt renders in all 7 locales (waiting variant with minutes and amount, other variant with the item line). The ops Google Calendar event description lists landing and stops"
+    expected: "A booking with 2 stops and an airport pickup shows Landing, Pickup, 'Free waiting until HH:MM' (60 min from the pickup), each stop with address and wait, no price or fee; the map goes through the stops in order"
+    why_human: "Visual layout, Google Directions waypoints"
+    resolution: "Passed on production 2026-11-12 on the TEST booking (91-UAT.md test 9). Not observed: a city pickup (30 minutes), a booking without stops"
+  - test: "Emails, confirmation page and calendar as rendered"
+    expected: "Client confirmation (pay-now and card flow) lists the stops with waits and the landing row and NO waiting amount (owner rule of 2026-11-12); the confirmation page lists the booked stops; driver mails show stops without money; the manager alert shows the waiting amount; the extra_charged receipt renders in every locale; the ops calendar event lists landing and stops"
     why_human: "Rendered HTML in real mail clients, translations read by a person, real Calendar event"
-  - test: "Live Stripe: owner sets waiting rates, canary booking with a stop, 1 EUR extra (plan 91-16 Task 3)"
-    expected: "After the production deploy the owner sets a rate for each class in Admin > Pricing. A production canary booking with one stop shows the waiting line, stores the server distance and the stop (booking_stops row, hold amount includes waiting). After completing it, a 1 EUR 'Other' extra on the owner's own card creates a separate PaymentIntent with metadata kind card_extra, booking_extra_charges status charged, ledger rows admin_action then extra_charged, one receipt email, and bookings.payment_intent_id / payment_state unchanged; then refund it in Stripe and confirm charge.refunded does not change the booking's own payment state"
-    why_human: "Real Stripe, real card, real production data; explicitly not reproducible with the fake Stripe"
-  - test: "Live Stripe: decline, 3DS-required, unconfirmed and resume paths of the extra charge"
-    expected: "In Stripe test mode (or a restricted live trial) a declined card answers 'declined' with no automatic retry and the PaymentIntent is cancelled; an authentication-required card ends declined and cancelled (never left requires_action); a lost synchronous answer leaves the row 'charging' (second click answers payment_busy), the operator can Resume only after the lease and it replays the same idempotency key and amount; a PaymentIntent that succeeds after its row was marked failed produces the 'late success' operator alert and no second charge. Also confirm the webhook finalises a still-charging row exactly once (one extra_charged row, one receipt)"
-    why_human: "The 'unconfirmed' and resume branches depend on real Stripe timing/network behaviour (code-review CR-01 / WR-02 are marked 'money logic: requires human verification')"
+    note: "DEFERRED by the owner on 2026-11-14 to the first real card booking (91-UAT.md test 10). Not passed. PR #110 (stops in the card-flow mail and on the confirmation page) is live but has not been seen in a mailbox or on the page"
+  - test: "Live Stripe: canary booking with a stop and a 1 EUR extra (plan 91-16 Task 3)"
+    expected: "A separate PaymentIntent with kind card_extra, booking_extra_charges status charged, ledger admin_action then extra_charged, one receipt, booking payment state unchanged; a refund of it does not change the booking's own payment state"
+    why_human: "Real Stripe, real card, real production data"
+    note: "DEFERRED by the owner on 2026-11-14 (91-UAT.md test 11). Not passed. The owner's canary PRG-20261114-59EC72 was cancelled before completion; only its storage (one booking_stops row, server distance, consent 2026-11-3) was read from production"
+  - test: "Live Stripe: decline, authentication-required, unconfirmed and resume paths of the extra charge"
+    expected: "Declined and authentication-required cards end declined with the PaymentIntent cancelled; a lost answer leaves the row charging and resume asks Stripe first; a late success raises the operator alert and no second charge; the webhook finalises a charging row exactly once"
+    why_human: "Depends on real Stripe timing and network behaviour (review CR-01 / WR-02)"
+    note: "DEFERRED by the owner on 2026-11-14 (91-UAT.md test 12). Not passed"
+  - test: "Wizard at phone width (stops, wait select, landing fields, vehicle step)"
+    expected: "On a phone the stop rows with address, wait select and up / down / remove, the landing fields with the offset picker and the vehicle step with its bottom price bar are readable and usable"
+    why_human: "Layout at a real phone width"
+    note: "NOT OBSERVED on production (91-UAT.md tests 1 and 3 were run at desktop width only). Not passed"
+  - test: "Promo reset after a stop change"
+    expected: "With a promo code applied, adding, removing, changing or re-timing a stop clears the promo and the cached price; the next quote and the payment step show the price without the old promo"
+    why_human: "End-to-end behaviour in the real wizard; the store rule is covered by tests/booking-store.test.ts only"
+    note: "NOT OBSERVED on production (91-UAT.md test 1). Not passed"
+  - test: "Step 6 summary after PR #108"
+    expected: "On the payment step of a booking with paid waiting the summary shows one total that includes the waiting and no separate waiting amount"
+    why_human: "Rendered summary on the real payment step; covered by tests/BookingSummaryBlock.test.tsx only"
+    note: "NOT OBSERVED on production (91-UAT.md test 2 and 'Owner changes': the payment step was not reached). Not passed"
 ---
 
 # Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees Verification Report
 
 **Phase Goal:** Clients book transfers with intermediate stops and waiting time at a server-computed price, airport pickups are timed after landing, and the operator can bill waiting beyond what was booked.
-**Verified:** 2026-11-12
+**Verified:** 2026-11-14T13:30:00Z
 **Status:** human_needed
-**Re-verification:** Yes - after merging origin/main (see the note below)
+**Re-verification:** Yes - full pass at 13:05Z against `origin/main` at 665cf0ff (PRs #105, #106, #107, #108, #110), then two passes on truth 6 only after the fix commits 2f8e0cd8 and 3d33ad1b on `docs/91-close` (13:20Z and 13:30Z)
 
-All code-level must-haves are present, substantive, wired and data-flowing. Nothing was checked in a real browser or against live Stripe; the twelve items above are what remains. No gap, no blocker.
+The five roadmap success criteria hold in the code as it is now, and every UI must-have was traced from the component up to the page the user opens. The re-verification found one gap on a side path (the pay-now route did not replace the stored stops of an attempt when a later request of the same attempt had none); it was fixed in two commits and is now verified in code and tests on every branch of the route. No gap is open. The status is `human_needed` because eight human items are open: five deferred by the owner to the first real card booking and three that were never observed on production. None of them is passed.
 
 ## Goal Achievement
 
-### Observable Truths (ROADMAP success criteria)
+### Observable Truths
 
 | #   | Truth | Status | Evidence |
 | --- | ----- | ------ | -------- |
-| 1 | Client can add intermediate stops; price is by distance through all stops, recomputed on the server; a tampered distance or price is ignored | VERIFIED | `lib/route-distance.ts` computeRouteDistance (origin, destination, intermediates in order; field mask `routes.distanceMeters,routes.duration`; no routingPreference/departureTime/optimizeWaypointOrder/via). `app/api/calculate-price/route.ts` skips the fixed route price when `intermediates.length > 0` (D-01), drops `extraStops`/`EXTRA_STOP_PRICE` (grep over app/lib/components: nothing), airport flag from `isAirportTrip` only. `lib/checkout/compute.ts` priceCheckout calls Google through the stops, answers 503 `ROUTING_UNAVAILABLE` on failure (no client fallback), `distanceKm` in the body is "legacy, never read", `buildCheckoutMeta` stores `priced.distanceKm`; card-checkout init/intent use `priced.distanceKm` for the cancellation window. Stops refused outside `transfer` (`STOPS_NOT_ALLOWED`), max 5 (zod). Tests: calculate-price-stops, checkout-stops, route-distance, phase91-e2e (run twice, browser distance 130 and tampered 1, both store 130 km and the same amount) all pass |
-| 2 | Client picks waiting per stop; first 15 min free, each further 15 min costs the admin fee; price summary shows it | VERIFIED | `lib/stops.ts` waitingBlocks (0 for <=15, ceil((w-15)/15)), per stop never pooled, `waitingFeeEur` rounded once per booking. Rate per class from `pricing_config.waiting_rate_per_15min` (migration 089, no default, no UPDATE: D-05); admin field in `components/admin/PricingForm.tsx`, `PUT /api/admin/pricing`, public `/api/waiting-config`. Waiting added after night/holiday/airport/min-fare (D-14) in the quote and joined to extras in `computeCombinedTotalMinor` at checkout (promo reduces it, once); a class without a rate gets `waitingEur: null`, `waitingUnavailable`, and checkout answers 422 `WAITING_NOT_AVAILABLE`. UI: `StopItem.tsx` wait select + `useWaitingConfig`, `Step3Vehicle.tsx` disabled class, `PriceSummary.tsx:145` and `BookingSummaryBlock.tsx:460` waiting line from server `waitingEur` (the euro sign is a symbol around a variable, no typed amount; the pre-commit EUR rule matches nothing). Visual check is a human item |
-| 3 | Airport pickup: landing + offset, pickup derived, 60 min free counted from pickup, both stored and shown to driver, Prague time, DST-safe | VERIFIED | `lib/airport-pickup.ts` pickupFromLanding via `pickupInstantMs` instant arithmetic (23:50+30 -> 00:20 next day; 2027-03-28 01:50+30 -> 03:20; autumn ambiguous hour pinned in tests), `freeWaitUntilMs(pickup, minutes)`. `validateCheckoutBooking` derives the pickup, `PICKUP_MISMATCH` 422 on a differing client pickup, `LANDING_NOT_AIRPORT` 422, partial landing 400, offsets only 0/15/30/45/60/90. Stored: migration 089 `landing_date/landing_time/pickup_offset_min` (all-or-none CHECK) written by `buildBookingRow` (`lib/supabase.ts`), pickup_date/time stay the pickup (D-18). Driver page `page.tsx` reads landing and computes `freeWaitUntil` from the pickup with the live no-show threshold; `TripDetails.tsx` renders Landing / Pickup / "Free waiting until". Tests airport-pickup, checkout-landing, driver-trip pass |
-| 4 | Stops, waits, landing/pickup saved with the booking and visible in admin, on the driver page and in the confirmation email | VERIFIED | `lib/booking-stops.ts` saveBookingStops (replace-all) called from `lib/payments/checkout.ts` (card/cash) and `create-payment-intent/route.ts` (pay-now, fail closed: cancels the PaymentIntent and answers 503 `STOPS_NOT_SAVED`; stops require attemptId). Admin: `attachStops` in `admin/bookings/route.ts` and `dispatch/route.ts`, `TripRouteSection.tsx` in `BookingDetailPanel.tsx:223`; stops_edit_unsupported guard and landing/pickup consistency with compare-and-set in `admin/bookings/route.ts`. Driver: `loadStopsSafe` after the token is validated, no fee columns mapped. Emails/calendar: `lib/email.ts` (loadStopsSafe, landing rows, waiting total in booking currency), `driver-accept-email.ts`, `assign/route.ts`, `webhooks/stripe/route.ts`, `google-calendar.ts` (landing + stops in the description). Tests email-trip-route, google-calendar-sync, driver-accept-email, admin-bookings pass. Rendered output is a human item |
-| 5 | Operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, amount from admin rates, in the payment ledger, never for GNet | VERIFIED | `lib/payments/extra.ts` + `POST/GET /api/admin/bookings/[id]/extra`: admin guard first, strict zod schemas, `isExtraChargeEligible` (partner/GNet via `isPartnerBooking`, erased, not completed, payment mode/state, saved card, `consentCoversExtras`, in-flight), waiting = ceil(min/15) x admin class rate with `amount_changed` 409 when the confirmed amount differs, `other` positive integer up to Stripe's ceiling (D-13), partial unique index = one charging row, idempotency key `extra:<chargeId>:<attempt>`, `admin_action` ledger row before Stripe, `extra_charged` / `extra_failed` after, separate `card_extra` PaymentIntent that never writes `bookings.payment_state` / `payment_intent_id`. Webhook routing in `dispatch.ts` / `charge-events.ts` (`finalizeExtraFromWebhook`). Consent `CARD_CONSENT_VERSION = '2026-11-3'` + `EXTRAS_CONSENT_VERSIONS` gate (D-12). Operator UI `ExtraChargeModal.tsx` wired from `PaymentPanel.tsx`. Tests extra-charge, extra-webhook, admin-extra-route, extra-charge-modal, payment-state-writers-gate pass. Real Stripe is a human item |
+| 1 | SC1: a client can add intermediate stops on a transfer; the price is by distance through all stops, recomputed on the server; a tampered distance or price is ignored | VERIFIED | Mount chain: `app/[locale]/book/page.tsx:143` renders `BookingWizard`; `BookingWizard.tsx:234` step 1 is `EntryBar`; `EntryBar.tsx:294-306` renders `StopList` for `tripType === 'transfer'` with add / remove / update / wait / move bound to the store; a stop row without an address blocks the step (`EntryBar.tsx:125`). Store (`lib/booking-store.ts:105-141`): max 5, every stop change clears the cached price and the promo; round trip, hourly and daily clear the stops. Step 2 is `Step3Vehicle`: no inline editor any more, the four route-bar segments call `prevStep()` (`Step3Vehicle.tsx:90-92, 248-266`); the quote request forwards `intermediates` with `waitMinutes` in list order (`:98-117`). Server unchanged since the last report: `calculate-price` prices per km through the stops (no fixed route when stops exist), `lib/checkout/compute.ts` recomputes the distance through Google (503 `ROUTING_UNAVAILABLE`, client `distanceKm` never read, `STOPS_NOT_ALLOWED` outside a transfer), `lib/route-distance.ts` keeps the stop order. Both checkout bodies send the stops through `tripExtrasForBody` (`Step6CardOnFile.tsx:387, 878`, `Step6Payment.tsx:408`). Tests pass: EntryBar (add stop, sixth not offered, no stops UI on hourly / round trip), BookingWizard (step 1 mounts EntryBar), Step3Vehicle (intermediates forwarded; route bar returns to step 1 keeping stops, landing and pickup), calculate-price-stops, checkout-stops, route-distance, phase91-e2e (tampered distance ignored). Production UAT test 1 passed after #105 and #106 |
+| 2 | SC2: the client chooses a waiting time per stop; the first 15 minutes are free, each further 15 minutes costs the admin fee, and the price the client sees includes it (owner rule of 2026-11-12: one total, no separate waiting amount) | VERIFIED (as amended by the owner) | `StopItem.tsx:26-29` options 0, 15, 30, 45, 60, 90, 120; the 15-minute option uses the 'free' label (`:116`); with no rate at all only 0 and 15 are offered and a stored longer wait is brought back to 15 (`:53-64`). `WaitSelector` is mounted because `EntryBar` passes `onWaitChange={setStopWait}`. Fee rules in `lib/stops.ts` (`waitingBlocks`, per stop, never pooled; `isValidStopWait` accepts 0..120 in 15-minute steps, so 90 and 120 pass the server). `calculate-price/route.ts:89-111, 307-311` adds the waiting to `base` and `total` of every class after the night / holiday / airport / minimum-fare adjustments; a class without a rate is listed in `waitingUnavailable` and `Step3Vehicle.tsx:177-208` shows it disabled with the note and unselects it. One total: no client component reads `waitingEur` (grep over `components/booking`: nothing); `StickyBookingPanel`, `PriceSummary` (mobile bar) and `BookingSummaryBlock` (step 6, mounted by `Step6Checkout`, `Step6CardOnFile`, `Step6Payment`) show `base + extras` only. Tests pass: StopItem (option list, free label, 75 moves up to 90), StickyBookingPanel ('shows only the price when the quote carries a waiting amount'), BookingSummaryBlock ('renders no waiting line'), stops-fee, calculate-price-stops. The amount is still shown to the operator: `components/admin/TripRouteSection.tsx:117` and the manager alert (`lib/email.ts:215-216`). Production UAT test 2 passed; the new rule was seen on production on the vehicle step on 2026-11-14 |
+| 3 | SC3: airport pickup is set as landing + offset; the pickup is derived; the 60 free minutes count from the pickup; both times are stored and shown to the driver (Prague time, DST-safe) | VERIFIED | Mount chain: `EntryBar.tsx:111` `landingMode` (transfer or round trip with an airport origin) switches the date / time fields to the landing and renders `LandingPickupFields` (`:428`); the store derives the pickup from landing + offset (`booking-store.ts:148-160`) and drops the landing when the pickup leaves the airport. The second editor that changed the pickup without the landing is gone (PR #106). Server unchanged: `lib/airport-pickup.ts` (`LANDING_OFFSETS` 0/15/30/45/60/90, instant arithmetic), `compute.ts` `PICKUP_MISMATCH` / `LANDING_NOT_AIRPORT`, landing columns stored beside the pickup, driver page computes 'Free waiting until' from the pickup (`driver/trip/[token]/page.tsx:200-208`, `TripDetails.tsx:156-164`, mounted by `TripScreen.tsx:710`). Tests pass: EntryBar landing block (7 cases), landing-pickup-fields, airport-pickup (DST dates), checkout-landing, driver-trip, driver-trip-screen. Production UAT tests 3 and 9 passed |
+| 4 | SC4: stops, waiting times and landing / pickup are saved with the booking and visible in admin, on the driver trip page and in the confirmation email | VERIFIED | Saved: `lib/payments/checkout.ts:208` (card and cash, always replace-all) and `create-payment-intent/route.ts:175, 185` (pay-now round trip and one-way, replace-all since commits 3d33ad1b and 2f8e0cd8, fail closed with 503 `STOPS_NOT_SAVED` when the request has stops). Admin: `TripRouteSection` in `BookingDetailPanel.tsx:223`, opened through `BookingPanelProvider` from the list, the board and the calendar (`BookingsWorkspace.tsx:348`). Driver: `loadStopsSafe` after the token check, no fee columns. Confirmation email, card-on-file flow (the flow real clients use): `lib/payments/emails/send.ts:204-228` reads the stored stops and the landing columns, `render.ts:691-713` prints the stop rows between From and To and the landing row above the date, never an amount; the stops are written at checkout before the client confirms the card, so they exist when the webhook sends the mail. Pay-now confirmation, driver assignment / accepted and manager alert: `lib/email.ts` rows (no amount for client and driver, amount in the manager alert). Confirmation page: `app/[locale]/book/confirmation/page.tsx:269-270, 518-532` lists the booked stops with their wait. Tests pass: payments-emails (stops in driving order, markup escaped, landing row, no rows without stops in every locale), email-trip-route, confirmation-page (stops listed; none without stops), checkout-stops-persist, booking-stops, trip-route-section, driver-trip, google-calendar-sync. Production: the owner's live booking PRG-20261114-59EC72 stored one `booking_stops` row and the server distance; UAT tests 6 and 9 passed. The mail and the page after #110 have not been seen rendered (deferred item 10) |
+| 5 | SC5: the operator can charge waiting beyond the chosen wait (or other extras) to the saved card as a separate charge, amount from admin rates, recorded in the payment ledger, never for GNet | VERIFIED | No file of the extra engine changed since the last report (`git log --since` is empty for `lib/payments/extra.ts`, the `extra` route, `ExtraChargeModal.tsx`, `charge-events.ts`, `dispatch.ts`). Mount chain: `ExtraChargeModal` in `PaymentPanel.tsx:1154-1166` (only with the `charge_extra` action or an in-flight extra), `PaymentPanel` in `BookingDetailPanel.tsx:468`. Guards still in place: `isExtraChargeEligible` (`isPartnerBooking`, `anonymised_at`, `consentCoversExtras` with `EXTRAS_CONSENT_VERSIONS = {'2026-11-3'}`), `amount_changed` 409, separate `card_extra` PaymentIntent. Tests pass: extra-charge, extra-webhook, admin-extra-route, extra-charge-modal, phase91-e2e. Nothing of this has been exercised against live Stripe (deferred items 7, 11, 12) |
+| 6 | 91-06 must-have: a retry of the same attempt replaces the stops, so the stored stops always equal the last priced request | VERIFIED | Every `captureUnpaidBooking` call site that captures an outbound row is followed by a stops write for the captured row: `lib/payments/checkout.ts:192-208` (card and cash), `create-payment-intent/route.ts:171-175` (pay-now round trip, clears with the empty list a round trip prices) and `:180-185` (pay-now one-way, which is also the path of hourly and daily). An empty capture (the booking is no longer unpaid) never touches the stops. The remaining pay-now branch without an attemptId inserts a new row and stops are refused there (400). Behavioral evidence, `tests/checkout-stops-persist.test.ts`: card 'retry without stops clears the stops of the earlier attempt'; pay-now 'a retry of the same attempt replaces the stops', 'a retry of the same attempt without stops clears the earlier stops (the price no longer includes them)', 'the same attempt re-posted as a round trip clears the stops of the earlier one-way attempt', 'no stops and the booking is already confirmed: its stored stops stay as they were'. All pass. Two extra probes (a transfer with a stop re-posted as hourly and as daily) also pass: 200, one booking, no stop rows. The two probes that failed in the earlier passes (one-way without stops, round trip) are now these real tests |
 
-**Score:** 5/5 roadmap truths verified in code. Plan-level truths (91-01 .. 91-17) were each traced to code and to a passing test; none contradicted. The two `verification: backstop` truths (91-04 coordinate/address mismatch residual, 91-16 UI reads clearly on desktop and mobile) are not inferable from code and are carried as human items 1 and 3 (the first is a documented accepted residual).
+**Score:** 6/6 truths verified (0 present but behavior-unverified).
 
-### Documented deviation from a plan truth (not a gap)
+### Note on truth 2 (owner decision, not a gap)
 
-91-08 plan text says the webhook for `card_extra` "adds a charge_succeeded observation". Code-review fix WR-03 deliberately removed it: `charge-events.ts` writes no generic observation for `card_extra` and only calls `finalizeExtraFromWebhook`, so an extra has exactly one money row (`extra_charged` / `extra_failed`) and the cash settle logic cannot mistake it for the trip charge. Tests (extra-webhook, payments-lifecycle) match the new behaviour. Accepted as a correct improvement.
+ROADMAP SC2 ends with "and the price summary shows it" and 91-CONTEXT D-06 says the summary shows waiting "as its own line". The owner replaced that on 2026-11-12 (PR #108, recorded in `91-UAT.md` "Owner changes after the first run"): the client sees one total and no separate waiting amount; the admin panel and the manager alert keep the amount. The code and the tests follow the new rule and the truth was verified against it. No override entry was written for this, because the decision is the owner's and is already on record; if a strict paper trail is wanted, add an `overrides:` entry for SC2 or bring the wording of ROADMAP SC2 and D-06 in line.
 
-### Review fixes verified in code
+### Advisory (New Scope, Unevidenced)
 
-| Finding | Evidence in code |
-| ------- | ---------------- |
-| CR-01 late success after failed row | `extra.ts` `closeUnfinished` cancels or reconciles an unfinished PaymentIntent, returns `unresolved` -> row stays charging + `extra_unresolved` alert; `repairFailedExtra` + `extra_late_success` / `extra_second_payment` alerts; `ops_attention` kind in `payments/alerts.ts` and the contract test |
-| WR-01 receipt failure | `extra.ts` `sendReceipt` raises `extra_receipt_failed` alert |
-| WR-02 resume reconciles | `reconcileWithStripe`, `idempotency_conflict` ends the row failed, lease check in `resumeExtraCharge` |
-| WR-03 single ledger meaning | see deviation above |
-| WR-04 compare-and-set on landing | `admin/bookings/route.ts` update `.eq('landing_date')`, `.eq('landing_time')` + stale 409 |
-| WR-05 fresh booking + erased | `isExtraChargeEligible` `anonymised_at` -> `erased`; `loadFreshBooking` in the engine |
-| WR-06 fallback insert drops stops | `webhooks/stripe/route.ts` `alertIfPaidStopsMissing` + `stopCount` in checkout meta |
-| IN-01, IN-03, IN-05, IN-08 | `BookingChangeHistory.tsx` labels; address optional in `compute.ts` schema and NULL in `saveBookingStops`; offset choice for the ambiguous hour in `admin/bookings/route.ts`; currency in `lib/email.ts` / webhook meta |
-
-Open info items left by decision (not blockers, recorded in 91-REVIEW-DISPOSITION.md): IN-02 (no client copy for some pay-now server codes), IN-04 (duplicated caps), IN-06 (Google Routes cost control per-IP only, no cache), IN-07 (quote vs checkout distance may differ by metres), IN-09 (admin list / dispatch fail whole when the stops read fails).
-
-### Locked decisions honoured (D-01 .. D-18)
-
-D-01/D-02/D-03 (km through stops, no flat fee, no-stop quote unchanged: confirmed in calculate-price diff), D-04/D-05 (per-class admin rate, NULL = not offered, no default in migration), D-06 (own summary line), D-07/D-18 (landing columns beside the pickup; pickup_utc untouched), D-08/D-11 (only `landing/route.ts` -> `applyLandingChange`; flight-refresh cron not edited), D-09/D-10/D-13/D-15/D-16 (extra engine), D-12 (consent version 2026-11-3 + server gate), D-14 (waiting after coefficients; promo covers it), D-17 (cap 5, Essentials field mask, 503 fail closed).
+None. The one new finding of this re-verification (truth 6) had deterministic evidence, was reported as a gap and is closed.
 
 ### Required Artifacts
 
-| Artifact | Status | Details |
-| -------- | ------ | ------- |
-| `supabase/migrations/089_stops_landing_extra_charges.sql` | VERIFIED | booking_stops, landing columns + CHECKs, `waiting_rate_per_15min`, booking_extra_charges with `booking_extra_charges_one_charging`, ledger kinds extra_charged/extra_failed, erasure function copies; deny-all RLS; live-applied by the orchestrator (smoke `SMOKE_OK_91_01`, per 91-01-SUMMARY) |
-| `lib/stops.ts`, `lib/route-distance.ts`, `lib/booking-stops.ts`, `lib/airport-pickup.ts`, `lib/landing-change.ts` | VERIFIED | Substantive and imported by routes |
-| `lib/payments/extra.ts` + `extra` / `landing` routes | VERIFIED | Substantive (813 lines), wired to routes, webhook and panel |
-| `components/booking/{StopItem,LandingPickupFields,PriceSummary,BookingSummaryBlock}`, `useWaitingConfig` | VERIFIED | Imported in EntryBar, Step2DateTime, Step3Vehicle, Step6Payment |
-| `components/admin/{TripRouteSection,MovePickupDialog,ExtraChargeModal,PricingForm}` | VERIFIED | Mounted in BookingDetailPanel / PaymentPanel / pricing page |
-| `messages/*.json` (7 locales) | VERIFIED | i18n-completeness, payments-copy-i18n, wizard-stops-copy tests pass |
+| Artifact | Expected | Status | Details |
+| -------- | -------- | ------ | ------- |
+| `components/booking/EntryBar.tsx` | Public step 1 with stops and the airport landing | VERIFIED | Renders `StopList` and `LandingPickupFields`; mounted by `BookingWizard` on `/book` |
+| `components/booking/StopList.tsx`, `StopItem.tsx`, `useWaitingConfig` | Stop rows, reorder, wait select | VERIFIED | Substantive; wait select bound to the store; options follow the owner rule |
+| `components/booking/steps/Step3Vehicle.tsx` | Vehicle step without a second route editor | VERIFIED | Route bar returns to step 1; quote carries the stops; class without a rate disabled |
+| `components/booking/StickyBookingPanel.tsx`, `PriceSummary.tsx`, `BookingSummaryBlock.tsx` | One total, no waiting amount | VERIFIED | No use of `waitingEur`; totals come from the server `base` that already includes waiting |
+| `lib/payments/emails/render.ts`, `send.ts` | Stop rows and landing row in the card-on-file mails | VERIFIED | Data read from `booking_stops` and the landing columns; 8 locale files carry the labels (56 key hits) |
+| `app/[locale]/book/confirmation/page.tsx` | Booked stops on the confirmation page | VERIFIED | Reads the stops from the wizard store snapshot taken before the reset |
+| `app/api/create-payment-intent/route.ts` | Pay-now stores stops, fail closed | VERIFIED | One-way (also hourly, daily) and round trip replace the stops of the captured row on every request; fails closed with 503 `STOPS_NOT_SAVED` when a request with stops cannot be stored |
+| Server pricing, checkout, landing, migration 089, extra engine, admin panel, driver page | As in the report of 2026-11-12 | VERIFIED | Unchanged since then except `lib/email.ts` (waiting amount removed from the client rows); all their tests pass |
 
 ### Key Link Verification
 
-| From | To | Status | Details |
-| ---- | -- | ------ | ------- |
-| Wizard store stops/landing | checkout bodies | WIRED | `tripExtrasForBody` (cardCheckoutApi.ts) used by card/cash and `Step6Payment.tsx:408` |
-| Wizard | /api/calculate-price, /api/waiting-config | WIRED | `Step3Vehicle.tsx` (waitMinutes per stop), `useWaitingConfig` |
-| priceCheckout | Google Routes | WIRED | computeRouteDistance with intermediates; 503 on failure |
-| checkout capture | booking_stops | WIRED | saveBookingStops in `payments/checkout.ts` and pay-now route |
-| stored stops | admin list, dispatch, driver page, emails, calendar | WIRED | attachStops / loadStopsSafe |
-| PaymentPanel | ExtraChargeModal -> POST /extra | WIRED | allowed_actions `charge_extra` from the payment GET |
-| Stripe webhook | finalizeExtraFromWebhook | WIRED | dispatch.ts routes `card_extra` success and failure away from the hold handler |
-| TripRouteSection | MovePickupDialog -> POST /landing -> applyLandingChange | WIRED | only caller (D-11) |
+| From | To | Via | Status | Details |
+| ---- | -- | --- | ------ | ------- |
+| `/book` page | `StopList` | `BookingWizard` step 1 -> `EntryBar` | WIRED | The link the code-level verification of 2026-11-12 missed; now checked file by file |
+| `EntryBar` | booking store | `addStop` / `removeStop` / `updateStop` / `setStopWait` / `moveStop`, landing setters | WIRED | Each stop change clears price and promo |
+| `Step3Vehicle` route bar | step 1 | `prevStep()` | WIRED | No other route editor on step 2 |
+| `Step3Vehicle` | `/api/calculate-price` | `intermediates` with `waitMinutes` | WIRED | Response `waitingUnavailable` drives the disabled class |
+| Wizard store | checkout bodies | `tripExtrasForBody` | WIRED | Card, cash and pay-now |
+| Checkout capture | `booking_stops` | `saveBookingStops` | WIRED | Card, cash, pay-now one-way and pay-now round trip all replace the stops of the captured row |
+| `booking_stops` + landing columns | card-on-file mails | `emailVarsFromRow` -> `loadStopsSafe` | WIRED | Added by PR #110 |
+| Wizard store snapshot | confirmation page | `storeRef.current.stops` | WIRED | Transfers only; stops without an address skipped |
+| Stored stops | admin panel, dispatch, driver page, legacy mails, calendar | `attachStops` / `loadStopsSafe` | WIRED | Unchanged |
+| `PaymentPanel` | `ExtraChargeModal` -> `POST /extra` -> `card_extra` webhook | `charge_extra` action | WIRED | Unchanged |
 
 ### Data-Flow Trace (Level 4)
 
-| Artifact | Data | Source | Real data | Status |
-| -------- | ---- | ------ | --------- | ------ |
-| PriceSummary waiting line | `prices[vc].waitingEur` | /api/calculate-price (Google distance + admin rate) | Yes | FLOWING |
-| Admin Route section | `booking.stops`, landing columns | booking_stops via attachStops, bookings row | Yes | FLOWING |
-| Driver page stops / free wait | loadStopsSafe, pickup + live no-show thresholds | DB | Yes | FLOWING |
-| Extra modal amount | GET /extra?minutes=N | server preview from admin rate | Yes | FLOWING |
+| Artifact | Data Variable | Source | Produces Real Data | Status |
+| -------- | ------------- | ------ | ------------------ | ------ |
+| Vehicle cards and price panels | `priceBreakdown[class].base` | `/api/calculate-price` (Google distance through the stops + admin waiting rate) | Yes | FLOWING |
+| Wait select options | `offeredClasses` | `/api/waiting-config` (admin pricing config) | Yes | FLOWING |
+| Card-on-file mail stop rows | `vars.stops`, `vars.landing` | `booking_stops`, `bookings.landing_*` | Yes | FLOWING |
+| Confirmation page stop lines | `bookedStops` | persisted wizard store (the same stops that were sent to the checkout) | Yes | FLOWING |
+| Admin Route section, driver page | `booking.stops`, landing columns | `booking_stops`, bookings row | Yes | FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 | -------- | ------- | ------ | ------ |
-| Phase tests (quote, checkout, stops, landing, extra, webhook, routes, migration, e2e) | `npx vitest run` on 17 files | 17 files, 788 tests passed | PASS |
-| UI / invariants (i18n completeness, no hard-coded colors, ledger writers gate, state vocabulary, driver, email, route section, extra modal, move dialog) | `npx vitest run` on 10 files | 10 files, 275 tests passed | PASS |
-| Full suite (run by orchestrator, not repeated) | `npx vitest run --exclude ...` | 424 files / 13 535 tests passed | PASS (reported) |
+| Files changed after the last report (wizard, panels, mails, confirmation page, copy) | `npx vitest run` on EntryBar, Step3Vehicle, StickyBookingPanel, PriceSummary, BookingSummaryBlock, StopItem, confirmation-page, email-trip-route, payments-emails, wizard-stops-copy, BookingWizard, landing-pickup-fields, use-waiting-config | 13 files, 952 passed, 21 todo | PASS |
+| Server, admin, driver and extra-charge tests of the phase | `npx vitest run` on calculate-price-stops, checkout-stops, checkout-stops-persist, checkout-landing, route-distance, airport-pickup, stops-fee, booking-stops, phase91-e2e, extra-charge, extra-webhook, admin-extra-route, extra-charge-modal, admin-landing-route, landing-change, move-pickup-dialog, trip-route-section, driver-trip, driver-trip-screen, migration-089, waiting-config, pricing-form-waiting, admin-pricing, admin-bookings, google-calendar-sync, driver-accept-email, book-page-render | 27 files, 938 passed | PASS |
+| Stops replace on every pay-now retry (the two earlier failing probes, one-way without stops and re-post as a round trip, are now real tests) | `npx vitest run tests/checkout-stops-persist.test.ts tests/booking-stops.test.ts tests/phase91-e2e.test.ts tests/create-payment-intent.test.ts tests/checkout-stops.test.ts` after commit 3d33ad1b | 5 files, 134 passed, 5 todo | PASS |
+| A pay-now transfer with a stop re-posted as hourly and as daily leaves no stop rows (probe, temporary copy of `tests/checkout-stops-persist.test.ts` with two added cases, deleted after the run) | `npx vitest run tests/zz-probe-paynow-types.test.ts -t "PROBE pay-now retry as"` | 2 passed | PASS |
 | Type check | `npx tsc --noEmit` | 8 errors, all in `tests/` (baseline) | PASS |
-| Debt markers in phase-changed source | grep TBD/FIXME/XXX | none | PASS |
-| Removed flat stop fee | grep `EXTRA_STOP_PRICE\|extraStops` in app/lib/components | none | PASS |
+| Debt markers in the source changed after the last report | grep TBD / FIXME / XXX / TODO / HACK | none | PASS |
+| Removed flat stop fee | grep `EXTRA_STOP_PRICE`, `extraStops` in app, lib, components | none | PASS |
+
+The full suite was not run in this pass (worktree with a linked `node_modules`; seven files that mock `next-intl` server modules do not load there, a known artefact).
 
 ### Probe Execution
 
-Step 7c: SKIPPED - no probe scripts declared by any plan (`scripts/*/tests/probe-*.sh` not referenced).
+Step 7c: SKIPPED - no probe scripts are declared by any plan of this phase.
 
 ### Requirements Coverage
 
-| Requirement | Source Plans | Status | Evidence |
-| ----------- | ------------ | ------ | -------- |
-| STOP-01 add intermediate stops | 91-09, 91-10, 91-13, 91-16, 91-17 | SATISFIED (UI check human) | store, StopItem/StopList, checkout bodies, map through stops |
-| STOP-02 price by distance through all stops, on the server | 91-02, 91-04 | SATISFIED | route-distance, calculate-price, compute.ts |
-| STOP-03 wait per stop, 15 free, fee from admin | 91-01, 91-02, 91-03, 91-04, 91-09, 91-17 | SATISFIED | stops.ts, pricing config, waiting-config, summary lines |
-| STOP-04 stops saved and shown in admin, driver, emails | 91-01, 91-06, 91-10, 91-12, 91-13, 91-14 | SATISFIED | booking_stops + all display surfaces |
-| STOP-05 airport pickup after landing, 60 min from pickup, both stored and shown to driver | 91-01, 91-07, 91-10, 91-12, 91-13, 91-14, 91-15, 91-17 | SATISFIED | airport-pickup, compute.ts, driver page, Move pickup |
-| EXTRA-01 operator extra charge to the saved card | 91-01, 91-05, 91-08, 91-11, 91-16 | SATISFIED (live Stripe human) | extra.ts and route |
+| Requirement | Source Plans | Description | Status | Evidence |
+| ----------- | ------------ | ----------- | ------ | -------- |
+| STOP-01 | 91-09, 91-10, 91-13, 91-16, 91-17 | Client can add intermediate stops on a transfer | SATISFIED | Truth 1; stops UI on the real step 1; production UAT test 1 |
+| STOP-02 | 91-02, 91-04 | Price by distance through all stops, recomputed on the server | SATISFIED | Truth 1; phase91-e2e; server distance stored on the owner's live booking |
+| STOP-03 | 91-01, 91-02, 91-03, 91-04, 91-09, 91-17 | Waiting per stop, 15 minutes free, fee from admin | SATISFIED | Truth 2 (display rule as amended by the owner) |
+| STOP-04 | 91-01, 91-06, 91-10, 91-12, 91-13, 91-14 | Stops saved and visible in admin, driver page, emails | SATISFIED | Truths 4 and 6 |
+| STOP-05 | 91-01, 91-07, 91-10, 91-12, 91-13, 91-14, 91-15, 91-17 | Airport pickup after landing, free wait from the pickup, both times stored and shown | SATISFIED | Truth 3 |
+| EXTRA-01 | 91-01, 91-05, 91-08, 91-11, 91-16 | Operator extra charge to the saved card | SATISFIED in code, live proof deferred | Truth 5; human items 7, 11, 12 |
 
-All six phase IDs are declared in plan frontmatter and match the ROADMAP requirement list; no orphaned requirement for Phase 91 in REQUIREMENTS.md. Bookkeeping to do by the orchestrator: REQUIREMENTS.md still shows the six IDs as `Pending` (and unticked) and ROADMAP shows 16/17 plans with 91-16 unticked, because Task 3 (owner live proofs) is open.
+No orphaned requirement. Bookkeeping left for the orchestrator: REQUIREMENTS.md still shows the six IDs unticked and `Pending`; ROADMAP shows 16/17 plans with 91-16 unticked.
 
 ### Anti-Patterns Found
 
-None blocking. No TODO/FIXME/XXX markers, no stub handlers, no hollow props in the phase's changed source. Warning-level notes: the driver trip page strings are English only (the driver surface is English elsewhere too); two of the five open review info items (IN-06 no routing cache, IN-09 whole-list failure on a stops read error) are operational risks worth a backlog entry.
+| File | Line | Pattern | Severity | Impact |
+| ---- | ---- | ------- | -------- | ------ |
+| `app/api/create-payment-intent/route.ts` | 175, 185, 187-207 | A failed clear on a request without stops is logged and the payment continues | Warning | Deliberate and commented; after a database error on the delete the booking could keep earlier stops with no operator alert |
+| `components/booking/BookingSummaryBlock.tsx` | 40-41 | Comment still describes the removed waiting line ('shown as its own line') | Info | Misleading comment only |
+| `messages/*.json` | `waitingLine` (2 keys per locale) | Message keys no longer used by any component | Info | Dead copy |
+| `91-CONTEXT.md` D-06, ROADMAP SC2 | - | Wording still describes the separate waiting line | Info | Paper trail differs from the owner rule of 2026-11-12 |
+| `supabase/migrations/` | - | Two files share the prefix 089 | Warning (carried from 2026-11-12) | Next migration must be 090 or higher |
+| `91-UAT.md` | tests 4, 7, 10, 11, 12 | Skip reasons now start with 'Deferred follow-up:' (changed by the orchestrator after the first pass) | Info | `gsd-tools phase uat-passed 91` no longer counts the five as blockers; they stay deferred, not passed |
+
+Open review info items recorded in `91-REVIEW-DISPOSITION.md` are unchanged (IN-02, IN-04, IN-06, IN-07, IN-09).
 
 ### Human Verification Required
 
-Twelve items are listed in the frontmatter `human_verification` block (UI in a real browser: wizard stops, waiting, landing; admin pricing, Route section, extra modal, Move pickup; driver page; rendered emails; live-Stripe canary and the unconfirmed / resume paths).
+Fifteen items are in the frontmatter. Seven were done on production on 2026-11-12 and 2026-11-14 and are recorded with a `resolution` (details and what was not observed are in `91-UAT.md`). Eight are open and NOT passed: five deferred by the owner's decision of 2026-11-14 to the first real card booking (1 to 5 below) and three never observed on production (6 to 8 below).
+
+### 1. Tamper check on a live checkout (UAT test 4)
+
+**Test:** Resend the card-checkout request with `distanceKm=1` and a changed `isAirport`; send a pickup that differs from landing + offset.
+**Expected:** The server distance and the quoted amount are stored; the differing pickup is refused.
+**Why human:** Creates a live booking and a live Stripe object.
+
+### 2. Add extra charge modal (UAT test 7)
+
+**Test:** On a completed card booking under consent 2026-11-3 open 'Add extra charge...', try waiting mode and Other mode, confirm, double click.
+**Expected:** Server amount shown, one request, the extra listed in the panel.
+**Why human:** Needs a completed real card booking.
+
+### 3. Emails, confirmation page and calendar as rendered (UAT test 10)
+
+**Test:** Make a booking with a stop and look at the confirmation mail, the confirmation page, the driver and manager mails, the extra_charged receipt and the ops calendar event.
+**Expected:** Stops with waits and the landing row, no waiting amount for the client, the amount in the manager alert.
+**Why human:** Rendered output in real clients; PR #110 has not been seen in a mailbox or on the page yet.
+
+### 4. Live Stripe extra charge proof (UAT test 11)
+
+**Test:** A small 'Other' extra on the owner's own booking (or with the client's agreement), refunded at once.
+**Expected:** `card_extra` PaymentIntent, `booking_extra_charges` charged, ledger `admin_action` then `extra_charged`, one receipt, booking payment state unchanged.
+**Why human:** Real card and production data.
+
+### 5. Extra charge failure paths (UAT test 12)
+
+**Test:** Declined card, authentication required, lost answer and resume, late success.
+**Expected:** As listed in the frontmatter.
+**Why human:** Cannot be forced with a live card; watch the first real cases.
+
+### 6. Wizard at phone width (not observed)
+
+**Test:** Open `/book` on a phone: add stops, choose a wait, set an airport landing, go to the vehicle step.
+**Expected:** Stop rows, the wait select, the landing fields and the bottom price bar are readable and usable.
+**Why human:** Layout at a real phone width; production runs were at desktop width only.
+
+### 7. Promo reset after a stop change (not observed)
+
+**Test:** Apply a promo code, go back, add or change a stop, return to the payment step.
+**Expected:** The promo and the cached price are cleared and the new price carries no old promo.
+**Why human:** End-to-end behaviour in the real wizard; only the store rule is tested (`tests/booking-store.test.ts`).
+
+### 8. Step 6 summary after PR #108 (not observed)
+
+**Test:** Reach the payment step with a stop that has paid waiting.
+**Expected:** One total that includes the waiting, no separate waiting amount.
+**Why human:** Rendered summary on the real payment step; covered by `tests/BookingSummaryBlock.test.tsx` only.
 
 ### Gaps Summary
 
-No code gaps. The phase goal is implemented end to end and covered by passing tests, including one integration test that walks a quote with a stop and 45 minutes of waiting through checkout, storage, the admin list and a charged waiting extra. What remains is human only: browser and mail-client checks, and the live production steps of plan 91-16 Task 3 after deploy (owner sets waiting rates, canary booking with a stop, 1 EUR extra on the owner's card, refund). Until the owner sets rates, paid waiting is "not offered" by design (D-05).
+No open gap. The one gap this re-verification found had one root cause: the pay-now route (`app/api/create-payment-intent/route.ts`) did not replace the stored stops of an attempt when a later request of the same attempt had none, so a client who removed every stop, or turned the trip into a round trip, kept the removed stop on the booking. Commit 2f8e0cd8 fixed the one-way branch and commit 3d33ad1b the round-trip branch; every capture of an unpaid outbound row is now followed by a replace of its stops, and the cases are pinned by tests.
 
-## Re-verification 2026-11-12 after merging main
+Everything the phase promised is in the code and on the page the user opens. The remaining risk is what has not been exercised live: the extra charge against real Stripe and the mails as rendered, which the owner chose to check on the first real card booking, and the three items never seen on production.
 
-Trigger: `verification.status` answered `stale` after commit 2b2d64a4 (one new test) and the merge of `origin/main` (PR #103 "hide cancelled bookings from the working list and the board") into feat/91-stops-waiting. New since the first report: `91-SECURITY.md` (64/65 threats closed, T-91-46 procedural, open until the owner's live proof) and `91-UAT.md` (the 12 human items above). Changes inspected with `git diff f9612810..HEAD`.
-
-Result: no regression of any Phase 91 must-have. Status stays `human_needed`, score stays 5/5.
-
-| Changed file | Phase 91 truth touched | Finding |
-| ------------ | ---------------------- | ------- |
-| `app/api/admin/bookings/route.ts` (GET only: `hideCancelled` + `p_hide_cancelled` RPC argument) | SC4 admin list shows stops/landing | `attachStops(rpcRows)` is still applied to every RPC row (line 325); the RPC still returns `to_jsonb(b.*)`, so `landing_date`, `landing_time`, `pickup_offset_min` still arrive. The PATCH guards (`stops_edit_unsupported`, landing/pickup consistency with compare-and-set) are outside the diff and unchanged. |
-| `supabase/migrations/089_admin_search_bookings_hide_cancelled.sql` | SC4 | Drops the 8-argument `admin_search_bookings`, re-creates it with `p_hide_cancelled boolean DEFAULT false`, re-REVOKEs PUBLIC/anon/authenticated and grants service_role only. With the default the result equals migration 071. The dispatch route (old named arguments) keeps working. Return shape unchanged. |
-| `components/admin/BookingsTable.tsx`, `dispatch/DispatchBoard.tsx`, `dispatch/boardModel.ts` | SC4 panel/board visibility | Only the cancelled-booking filter changed (`isHiddenCancelled`; a cancelled booking with a pending fee case stays visible). The shared booking panel with the Route section and the extra-charge action is untouched. |
-| `tests/extra-webhook.test.ts` (+1 test) | SC5 webhook path, CR-01 | A `payment_intent.canceled` on a `card_extra` PaymentIntent changes nothing on the booking, the charge row or the ledger and sends no mail. Strengthens the CR-01 cancel path; passes. |
-| `91-SECURITY.md`, `91-UAT.md` | none | Documents only. |
-
-Runs on the merged tree: `extra-webhook`, `admin-bookings`, `admin-bookings-dispatch`, `dispatch-board`, `admin-search-bookings-hide-cancelled`, `phase91-e2e`, `admin-bookings-edit-payment`, `migration-089` = 8 files, 291 tests passed. Full suite on the merged tree (reported by the orchestrator): 425 files / 13 554 tests passed; `tsc` baseline only.
-
-Warning (not a Phase 91 gap): two migration files now share the prefix `089` (`089_stops_landing_extra_charges.sql` and `089_admin_search_bookings_hide_cancelled.sql`). Both are live and independent (different objects), and the tests pass with both, but the next migration must be numbered 090 or higher and a fresh-database replay must apply both. Note for the migration-numbering memory: next free number is 090.
-
-Open until the owner: T-91-46 (procedural, closed only by the live proof, human item 11) and all twelve human items (now persisted in `91-UAT.md`).
+The Closing note below was written on 2026-11-14 before this re-verification and is kept as it was. The verifier's status for this report is `human_needed`: no gap is open, and eight human items are open (five deferred by the owner, three never observed), none of them passed. Setting the status to `passed` is the owner's recorded decision that the note describes, not a finding of this verification.
 
 ---
 
-_Verified: 2026-11-12 (re-verified after the merge of main)_
+_Verified: 2026-11-14T13:30:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+---
+
+## Closing note (2026-11-14)
+
+Human verification ran on production on 2026-11-12 and 2026-11-14 (`91-UAT.md`): 7 of 12 items passed, and it found four gaps that the code-level verification above had missed, all fixed and live:
+
+- the stops UI was not mounted on the public wizard (PR #105);
+- the vehicle step had a second route editor without stops that broke the landing / pickup pair (PR #106);
+- stops were missing from the card-on-file confirmation email and from the confirmation page (PR #110);
+- the desktop waiting line (PR #107), later removed on the owner's decision that the client sees one total (PR #108, with the new wait options).
+
+Five items need a completed real card booking (extra charge modal, rendered emails, checkout tamper check, live Stripe proof and its failure paths). The owner closed the phase on 2026-11-14 and deferred them to the first real booking; they are listed in `91-UAT.md` Deferred Follow-Ups. Status is set to passed on that recorded owner decision, not on new evidence.
+
+Lesson recorded for later phases: a must-have about UI needs the name of the component the page really renders and a test that mounts the real parent.

@@ -39,7 +39,7 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Extra charges (EXTRA)
 
-- [ ] **EXTRA-01**: Operator can charge waiting time beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates
+- [x] **EXTRA-01**: Operator can charge waiting time beyond the chosen wait (or other extras) to the saved card as a separate charge, with the amount computed from admin-configured rates
 
 ### Payment emails (MAIL)
 
@@ -69,11 +69,11 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Stops and airport (STOP)
 
-- [ ] **STOP-01**: Client can add intermediate stops when booking a transfer
-- [ ] **STOP-02**: Price is calculated by distance through all stops, recomputed on the server
-- [ ] **STOP-03**: Client chooses a waiting time for each stop; the first 15 min are free and each further 15 min costs a fee set in admin
-- [ ] **STOP-04**: Stops and their waiting times are saved with the booking and visible in admin, on the driver page and in emails
-- [ ] **STOP-05**: For airport pickups the client sets a pickup time after landing (e.g. landing 14:00, pickup 14:30); 60 min free waiting counts from the pickup time; both times are stored and shown to the driver
+- [x] **STOP-01**: Client can add intermediate stops when booking a transfer
+- [x] **STOP-02**: Price is calculated by distance through all stops, recomputed on the server
+- [x] **STOP-03**: Client chooses a waiting time for each stop; the first 15 min are free and each further 15 min costs a fee set in admin
+- [x] **STOP-04**: Stops and their waiting times are saved with the booking and visible in admin, on the driver page and in emails
+- [x] **STOP-05**: For airport pickups the client sets a pickup time after landing (e.g. landing 14:00, pickup 14:30); 60 min free waiting counts from the pickup time; both times are stored and shown to the driver
 
 ### Quotes (QUOTE)
 
@@ -141,7 +141,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CASH-04 | Phase 89 | Complete |
 | CANC-01 | Phase 89 | Complete |
 | CANC-02 | Phase 89 | Complete |
-| EXTRA-01 | Phase 91 | Pending |
+| EXTRA-01 | Phase 91 | Complete |
 | MAIL-01 | Phase 88 | Pending |
 | DRV-01 | Phase 87 | Complete |
 | DRV-02 | Phase 87 | Complete |
@@ -156,11 +156,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DISP-03 | Phase 90 | Complete |
 | DISP-04 | Phase 90 | Complete |
 | DISP-05 | Phase 90 | Complete |
-| STOP-01 | Phase 91 | Pending |
-| STOP-02 | Phase 91 | Pending |
-| STOP-03 | Phase 91 | Pending |
-| STOP-04 | Phase 91 | Pending |
-| STOP-05 | Phase 91 | Pending |
+| STOP-01 | Phase 91 | Complete |
+| STOP-02 | Phase 91 | Complete |
+| STOP-03 | Phase 91 | Complete |
+| STOP-04 | Phase 91 | Complete |
+| STOP-05 | Phase 91 | Complete |
 | QUOTE-01 | Phase 92 | Pending |
 | QUOTE-02 | Phase 92 | Pending |
 | QUOTE-03 | Phase 92 | Pending |

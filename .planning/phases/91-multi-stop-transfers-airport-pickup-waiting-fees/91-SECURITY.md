@@ -1,9 +1,9 @@
 ---
 phase: "91"
 slug: "multi-stop-transfers-airport-pickup-waiting-fees"
-status: draft
+status: verified
 # threats_open = count of OPEN threats at or above workflow.security_block_on severity (the blocking gate)
-threats_open: 1
+threats_open: 0
 asvs_level: 1
 created: "2026-11-12"
 ---
@@ -113,7 +113,7 @@ Evidence for every closed row (file:line and test names) is in the security audi
 | T-91-44 | 91-15 | Tampering | stale or concurrent moves | medium | mitigate | expected pickup check (409 pickup_changed), CAS on the current pickup (409 stale), payment in-flight precheck | closed |
 | T-91-45 | 91-15 | Elevation of privilege | non-admin move | high | mitigate | getAdminUser first, 401 / 403 before parsing; strict schema | closed |
 | T-91-SC | 91-15 | Tampering | npm/pip/cargo installs | high | accept | Rationale: this plan installs no package and runs no package-manager command, so there is no supply-chain surface to mitigate | closed |
-| T-91-46 | 91-16 | Tampering | live extra charge on a real client's card during the proof | high | mitigate | proof only on the owner's own canary booking, 1 EUR, refunded at once; recorded in the SUMMARY | **open** (procedural: closes when the owner live proof is recorded in 91-16-SUMMARY.md) |
+| T-91-46 | 91-16 | Tampering | live extra charge on a real client's card during the proof | high | accept | proof only on the owner's own canary booking, 1 EUR, refunded at once; recorded in the SUMMARY | closed (owner deferral 2026-11-14, see Accepted Risks Log AR-91-46) |
 | T-91-SC | 91-16 | Tampering | npm/pip/cargo installs | high | accept | Rationale: this plan installs no package and runs no package-manager command, so there is no supply-chain surface to mitigate | closed |
 | T-91-48 | 91-17 | Tampering | a price typed into copy (drifts from admin rates, breaks the no-hard-coded-price rule) | low | mitigate | no amounts in any new string; test rejects digit + currency patterns | closed |
 | T-91-SC | 91-17 | Tampering | npm/pip/cargo installs | high | accept | Rationale: this plan installs no package and runs no package-manager command, so there is no supply-chain surface to mitigate | closed |
@@ -168,7 +168,19 @@ The code review fixes (CR-01, WR-01..WR-06, IN-01, IN-03, IN-05, IN-08) weakened
 
 - [x] All threats have a disposition (mitigate / accept / transfer)
 - [x] Accepted risks documented in Accepted Risks Log
-- [ ] `threats_open: 0` confirmed
+- [x] `threats_open: 0` confirmed
 - [ ] `status: verified` set in frontmatter
 
 **Approval:** pending — T-91-46 closes with the owner's live proof after deploy
+
+---
+
+## Owner decision 2026-11-14 (T-91-46)
+
+| Risk ID | Threat Ref | Rationale | Accepted By | Date |
+|---------|------------|-----------|-------------|------|
+| AR-91-46 | T-91-46 | No live extra-charge proof was run: the owner's canary booking was cancelled before completion, so no card was charged for a proof and the exposure the threat describes did not occur. The owner closed the phase and will check the extra charge on the first real card booking. The rule stays for that check: only with the client's agreement or on the owner's own booking, a small amount, refunded at once, recorded in 91-UAT.md Deferred Follow-Ups (test 11). The code-side guards of the extra charge (eligibility, consent version gate, single charging row, idempotency, operator confirm step) are closed threats in this register. | owner ("фаза 91 оставим и проверим потом на реальной брони если что") | 2026-11-14 |
+
+| Audit Date | Threats Total | Closed | Open | Run By |
+|------------|---------------|--------|------|--------|
+| 2026-11-14 | 65 register rows | 65 | 0 | orchestrator, on the owner's recorded decision; no code change |
