@@ -112,6 +112,11 @@ blocked: 0
   test: 2
   fix: "PR #107 (merged 2026-11-12)."
 
+## Owner changes after the first run (2026-11-12, PR #108, live)
+
+- Wait options are now No wait, "15 min, free", 30, 45, 60, 90, 120 (15-minute steps to one hour, then 30-minute steps); the hint reads "First 15 min are free. After that each started 15 min is charged." Checked on production 2026-11-14.
+- The client sees one total: the "Waiting at stops" amount line is removed from the desktop price panel, the mobile summary, the step 6 summary and the client emails. Checked on production 2026-11-14 on the vehicle step (stop with a 60 minute wait: the panel shows the price and "All fees included" only). This replaces the waiting-line expectation of tests 2 and 10 (D-06); the admin panel and the manager alert still show the amount. NOT observed: step 6 and the client email as rendered.
+
 ## Observations
 
 - Admin API answers are slow on production (2.5 to 7.5 s per request); several parallel requests from one tab timed out once (504 / no answer for 12 s) and recovered on reload. Seen in Phase 90 as well.
