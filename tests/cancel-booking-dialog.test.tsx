@@ -271,6 +271,48 @@ describe('CancelBookingDialog: legacy booking with no stored policy (D-18)', () 
   })
 })
 
+// Phase 92 plan 30 (D-11, T-92-34): a quote trip is free on the remainder side whoever cancels, no fee is proposed, and
+// the deposit stays on the quote. The server forces the same outcome (92-11).
+describe('CancelBookingDialog: quote trip (D-11)', () => {
+  const QUOTE_SENTENCE =
+    'Free (quote trip). The card of this trip is released. The deposit stays on the quote; refund part of it there if needed.'
+  const quoteBooking = (over: Partial<CancelDialogBooking> = {}) =>
+    makeBooking({ ...LATE, quote_id: 'q-1', ...over })
+
+  it.each([
+    ['card_hold', { payment_mode: 'card_hold' }],
+    ['cash_guarantee', { payment_mode: 'cash_guarantee' }],
+    ['quote', { payment_mode: 'quote', payment_state: 'none', stripe_payment_method_id: null, hold_payment_intent_id: null }],
+  ])('%s, late: free for both who, no proposed fee, primary Cancel trip', (_mode, over) => {
+    const b = quoteBooking(over)
+    const client = outcomeFor(b, 'client', NOW.getTime())
+    expect(client.late).toBe(false)
+    expect(client.sentence).toBe(QUOTE_SENTENCE)
+    expect(client.primary).toBe('Cancel trip')
+    expect(outcomeFor(b, 'prestigo', NOW.getTime())).toEqual(client)
+    expect(client.sentence).not.toContain('proposed')
+  })
+
+  it('renders the quote sentence and the plain primary button in the dialog, for both tiles', () => {
+    renderDialog(quoteBooking())
+    choose('The client')
+    expect(screen.getByRole('status').textContent).toContain(QUOTE_SENTENCE)
+    expect(screen.getByRole('status').textContent).not.toContain('Late.')
+    expect(primary().textContent).toBe('Cancel trip')
+    choose('Prestigo')
+    expect(screen.getByRole('status').textContent).toContain(QUOTE_SENTENCE)
+    expect(primary().textContent).toBe('Cancel trip')
+  })
+
+  it('a booking without quote_id keeps the ordinary late sentence', () => {
+    const out = outcomeFor(makeBooking(LATE), 'client', NOW.getTime())
+    expect(out.late).toBe(true)
+    expect(out.primary).toBe('Cancel and decide the fee')
+    const empty = outcomeFor(makeBooking({ ...LATE, quote_id: null }), 'client', NOW.getTime())
+    expect(empty).toEqual(out)
+  })
+})
+
 describe('CancelBookingDialog: pure helpers', () => {
   it('outcomeFor is Prestigo-free and situationOf maps each payment situation', () => {
     expect(outcomeFor(makeBooking(LATE), 'prestigo', NOW.getTime()).late).toBe(false)
