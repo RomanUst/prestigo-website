@@ -490,6 +490,14 @@ describe('pay-now stores stops after its capture and fails closed (T-91-20)', ()
     expect(stopRows()).toHaveLength(0)
   })
 
+  it('the same attempt re-posted as a round trip clears the stops of the earlier one-way attempt', async () => {
+    await payNow(payNowBody({ stops: [STOP_KV] }))
+    expect(stopRows()).toHaveLength(1)
+    const out = await payNow(payNowBody({ tripType: 'round_trip', returnDate: '2027-01-18', returnTime: '12:00' }))
+    expect(out.status).toBe(200)
+    expect(stopRows()).toHaveLength(0)
+  })
+
   it('no stops and the booking is already confirmed: its stored stops stay as they were', async () => {
     db = createFakePaymentsDb({
       nowMs: NOW,

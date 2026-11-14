@@ -168,8 +168,11 @@ export async function POST(req: Request) {
             paymentIntent.id,
             'unpaid'
           )
-          await captureUnpaidBooking(outboundUnpaid, bookingData.attemptId, 'outbound', 'pay_now')
+          const capturedOutbound = await captureUnpaidBooking(outboundUnpaid, bookingData.attemptId, 'outbound', 'pay_now')
           await captureUnpaidBooking(returnUnpaid, bookingData.attemptId, 'return', 'pay_now')
+          // A round trip carries no stops (the server refuses them), so priced.stops is []: this clears the stops of an
+          // earlier one-way attempt that reused the same attemptId. Only for a captured (still unpaid) row (T-91-19).
+          if (capturedOutbound.length > 0) await saveBookingStops(capturedOutbound[0].id, priced.stops)
         } else {
           const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
           // 88-REVIEW B-WR-02: an attempt the card flow already captured is never overwritten (AttemptFlowConflictError,
