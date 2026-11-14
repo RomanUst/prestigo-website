@@ -439,3 +439,124 @@ describe('tracer: a deposit event converts the quote through the real webhook ro
     expect(legacyCalls()).toBe(0)
   })
 })
+
+describe('failures, cancellations and disputes of quote payments never reach the hold handlers (T-92-60)', () => {
+  const failedDeposit = (s: Seeded, over: Record<string, unknown> = {}) =>
+    depositIntent(s, {
+      status: 'requires_payment_method',
+      amount_received: 0,
+      last_payment_error: { code: 'card_declined', decline_code: 'insufficient_funds' },
+      ...over,
+    })
+
+  it('Pitfall 1: a failed deposit records deposit_failed with the decline code, alerts once, changes no state and skips the hold handler', async () => {
+    const s = await seed()
+    const before = JSON.stringify([db.state.bookings, db.state.quotes])
+    const res = await deliver(eventOf('payment_intent.payment_failed', failedDeposit(s)))
+
+    expect(res.status).toBe(200)
+    expect(mockHoldFailed).not.toHaveBeenCalled()
+    expect(legacyCalls()).toBe(0)
+    const events = quoteEvents(s.quoteId, 'deposit_failed')
+    expect(events).toHaveLength(1)
+    expect(events[0]).toMatchObject({ error_code: 'insufficient_funds', stripe_object_id: 'pi_1', amount_minor: 5000, actor_type: 'webhook' })
+    expect(JSON.stringify([db.state.bookings, db.state.quotes])).toBe(before)
+
+    expect(mockResendSend).toHaveBeenCalledTimes(1)
+    const mail = mockResendSend.mock.calls[0][0] as { subject: string; text: string }
+    expect(mail.subject).toContain(s.reference)
+    expect(mail.text).toContain('quote_payment_failed')
+    expect(mail.text).not.toMatch(/Eva|Novakova|@example\.com/)
+
+    // Stripe delivers another failed attempt of the same intent under a new event id: no second row, no second mail.
+    await deliver(eventOf('payment_intent.payment_failed', failedDeposit(s), 'evt_again'))
+    expect(quoteEvents(s.quoteId, 'deposit_failed')).toHaveLength(1)
+    expect(mockResendSend).toHaveBeenCalledTimes(1)
+  })
+
+  it('a failed remainder records remainder_failed; the hold handler is not called', async () => {
+    const s = await seed()
+    const remainder = failedDeposit(s, {
+      id: 'pi_rem_1',
+      amount: 7000,
+      metadata: quoteMetadata('card_quote_remainder', { quoteId: s.quoteId, versionId: s.versionId, quoteReference: s.reference }),
+    })
+    const res = await deliver(eventOf('payment_intent.payment_failed', remainder))
+    expect(res.status).toBe(200)
+    expect(mockHoldFailed).not.toHaveBeenCalled()
+    expect(quoteEvents(s.quoteId, 'remainder_failed')).toHaveLength(1)
+    expect(quoteEvents(s.quoteId, 'deposit_failed')).toHaveLength(0)
+  })
+
+  it('a failure of a card_hold booking still reaches the hold-failure handler (existing routing unchanged)', async () => {
+    const res = await deliver(
+      eventOf('payment_intent.payment_failed', { id: 'pi_h', status: 'requires_payment_method', metadata: { kind: 'card_hold', cofBookingId: 'b1' } }),
+    )
+    expect(res.status).toBe(200)
+    expect(mockHoldFailed).toHaveBeenCalledTimes(1)
+    expect(db.state.quote_events).toHaveLength(0)
+  })
+
+  it('a cancelled deposit intent records deposit_canceled only: no alert, no hold handler, no state change', async () => {
+    const s = await seed()
+    const before = JSON.stringify([db.state.bookings, db.state.quotes])
+    const res = await deliver(eventOf('payment_intent.canceled', depositIntent(s, { status: 'canceled' })))
+    expect(res.status).toBe(200)
+    expect(mockHoldCanceled).not.toHaveBeenCalled()
+    expect(mockHoldFailed).not.toHaveBeenCalled()
+    expect(quoteEvents(s.quoteId).map((e) => e.kind)).toEqual(['deposit_canceled'])
+    expect(mockResendSend).not.toHaveBeenCalled()
+    expect(JSON.stringify([db.state.bookings, db.state.quotes])).toBe(before)
+  })
+
+  it('a quote payment for an unknown quote is acknowledged 200 without a write', async () => {
+    const res = await deliver(
+      eventOf('payment_intent.payment_failed', {
+        id: 'pi_x',
+        metadata: { kind: 'card_quote_deposit', quoteId: '99999999-9999-4999-8999-999999999999', versionId: '88888888-8888-4888-8888-888888888888' },
+      }),
+    )
+    expect(res.status).toBe(200)
+    expect(db.state.quote_events).toHaveLength(0)
+    expect(mockHoldFailed).not.toHaveBeenCalled()
+  })
+
+  it('a dispute on the deposit charge sends one quote_dispute alert and records dispute_opened; a repeat sends nothing more', async () => {
+    const s = await seed()
+    await deliver(eventOf('payment_intent.succeeded', depositIntent(s), 'evt_paid'))
+    mockResendSend.mockClear()
+    const dispute = { id: 'dp_1', object: 'dispute', amount: 5000, currency: 'eur', reason: 'fraudulent', charge: 'ch_1', payment_intent: 'pi_1' }
+
+    const res = await deliver(eventOf('charge.dispute.created', dispute, 'evt_dp'))
+    expect(res.status).toBe(200)
+    expect(mockResendSend).toHaveBeenCalledTimes(1)
+    const mail = mockResendSend.mock.calls[0][0] as { subject: string; text: string }
+    expect(mail.text).toContain('quote_dispute')
+    expect(mail.text).toContain('fraudulent')
+    expect(mail.text).not.toMatch(/Eva|Novakova|@example\.com/)
+    expect(quoteEvents(s.quoteId, 'dispute_opened')).toHaveLength(1)
+
+    await deliver(eventOf('charge.dispute.created', dispute, 'evt_dp_2'))
+    expect(mockResendSend).toHaveBeenCalledTimes(1)
+    expect(quoteEvents(s.quoteId, 'dispute_opened')).toHaveLength(1)
+  })
+
+  it("a dispute that names only the charge is matched through the charge's PaymentIntent", async () => {
+    const s = await seed()
+    const retrieve = vi.fn().mockResolvedValue({ id: 'ch_9', payment_intent: 'pi_1' })
+    world.stripe = { stripe: { ...fake.stripe, charges: { retrieve } } }
+    const res = await deliver(eventOf('charge.dispute.created', { id: 'dp_9', amount: 5000, currency: 'eur', reason: 'general', charge: 'ch_9' }))
+    expect(res.status).toBe(200)
+    expect(retrieve).toHaveBeenCalledWith('ch_9')
+    expect(mockResendSend).toHaveBeenCalledTimes(1)
+    expect(quoteEvents(s.quoteId, 'dispute_opened')).toHaveLength(1)
+  })
+
+  it('a dispute on a charge that is not a quote payment sends no quote alert and is still acknowledged', async () => {
+    const s = await seed()
+    const res = await deliver(eventOf('charge.dispute.created', { id: 'dp_2', amount: 1000, currency: 'eur', reason: 'general', payment_intent: 'pi_other' }))
+    expect(res.status).toBe(200)
+    expect(quoteEvents(s.quoteId, 'dispute_opened')).toHaveLength(0)
+    expect(mockResendSend).not.toHaveBeenCalled()
+  })
+})
