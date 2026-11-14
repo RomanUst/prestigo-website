@@ -1506,6 +1506,44 @@
       "validUntil": "Este presupuesto es válido hasta el {date}.",
       "pdfAttached": "El presupuesto va adjunto a este correo en PDF.",
       "pdfLink": "Puede descargar el presupuesto en PDF en la página del presupuesto."
+    },
+    "confirmed": {
+      "subject": "Sus trayectos están reservados – {reference}",
+      "h1": "Sus trayectos están reservados",
+      "intro": "Hemos recibido su depósito de {amount}. Estos trayectos ya están reservados:",
+      "booking": "Reserva {reference}",
+      "remainder": {
+        "saved_card": "Cobramos el resto de cada trayecto a su tarjeta, tal como se describe en las condiciones.",
+        "payment_link": "Por favor, pague el resto de {amount} en la página de su presupuesto.",
+        "cash": "Usted paga el resto de cada trayecto en efectivo al conductor.",
+        "invoice": "Le enviaremos una factura por el resto de {amount}.",
+        "none": "Sus trayectos están totalmente pagados."
+      }
+    },
+    "remainderDue": {
+      "subject": "Resto por pagar – {reference}",
+      "h1": "Resto por pagar",
+      "intro": "Por favor, pague el resto de {amount} de sus trayectos reservados.",
+      "button": "Pagar el resto"
+    },
+    "remainderPaid": {
+      "subject": "Pago recibido – {reference}",
+      "h1": "Gracias",
+      "intro": "Hemos recibido su pago de {amount}. Sus trayectos están totalmente pagados."
+    },
+    "cancelled": {
+      "subject": "El presupuesto {reference} está cancelado",
+      "h1": "Sus trayectos están cancelados",
+      "introClient": "Tal como nos pidió, hemos cancelado los trayectos del presupuesto {reference}.",
+      "introPrestigo": "Lo sentimos: hemos tenido que cancelar los trayectos del presupuesto {reference}.",
+      "refund": "Estamos reembolsando {amount} a su tarjeta. Puede tardar de 5 a 10 días en aparecer.",
+      "kept": "Según las condiciones de cancelación de este presupuesto, nos quedamos con {amount} del depósito.",
+      "nothingCharged": "No se cobra nada más."
+    },
+    "refunded": {
+      "subject": "Reembolso del presupuesto {reference}",
+      "h1": "Su reembolso está en camino",
+      "intro": "Hemos reembolsado {amount} a su tarjeta. Puede tardar de 5 a 10 días en aparecer."
     }
   }
 }

@@ -1511,6 +1511,44 @@
       "validUntil": "此報價有效期至 {date}。",
       "pdfAttached": "報價已作為 PDF 附在本郵件中。",
       "pdfLink": "您可以在報價頁面下載 PDF 版報價。"
+    },
+    "confirmed": {
+      "subject": "您的行程已預訂 – {reference}",
+      "h1": "您的行程已預訂",
+      "intro": "我們已收到您的定金 {amount}。以下行程現已預訂：",
+      "booking": "預訂 {reference}",
+      "remainder": {
+        "saved_card": "每段行程的餘款，我們將按條款所述從您的銀行卡扣取。",
+        "payment_link": "請在您的報價頁面支付餘款 {amount}。",
+        "cash": "每段行程的餘款，由您以現金支付給司機。",
+        "invoice": "我們會向您傳送餘款 {amount} 的發票。",
+        "none": "您的行程已全額付清。"
+      }
+    },
+    "remainderDue": {
+      "subject": "待付餘款 – {reference}",
+      "h1": "待付餘款",
+      "intro": "請支付已預訂行程的餘款 {amount}。",
+      "button": "支付餘款"
+    },
+    "remainderPaid": {
+      "subject": "已收到付款 – {reference}",
+      "h1": "謝謝您",
+      "intro": "我們已收到您支付的 {amount}。您的行程已全額付清。"
+    },
+    "cancelled": {
+      "subject": "報價 {reference} 已取消",
+      "h1": "您的行程已取消",
+      "introClient": "應您的要求，我們已取消報價 {reference} 中的行程。",
+      "introPrestigo": "非常抱歉：我們不得不取消報價 {reference} 中的行程。",
+      "refund": "我們正在將 {amount} 退回您的銀行卡，到賬可能需要 5 至 10 天。",
+      "kept": "根據此報價的取消條款，定金中的 {amount} 不予退還。",
+      "nothingCharged": "不會再收取其他費用。"
+    },
+    "refunded": {
+      "subject": "報價 {reference} 的退款",
+      "h1": "退款已在途中",
+      "intro": "我們已將 {amount} 退回您的銀行卡，到賬可能需要 5 至 10 天。"
     }
   }
 }

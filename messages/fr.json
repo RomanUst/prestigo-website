@@ -1506,6 +1506,44 @@
       "validUntil": "Ce devis est valable jusqu'au {date}.",
       "pdfAttached": "Le devis est joint à cet e-mail au format PDF.",
       "pdfLink": "Vous pouvez télécharger le devis au format PDF sur la page du devis."
+    },
+    "confirmed": {
+      "subject": "Vos trajets sont réservés – {reference}",
+      "h1": "Vos trajets sont réservés",
+      "intro": "Nous avons bien reçu votre acompte de {amount}. Ces trajets sont maintenant réservés :",
+      "booking": "Réservation {reference}",
+      "remainder": {
+        "saved_card": "Nous prélevons le solde de chaque trajet sur votre carte, comme indiqué dans les conditions.",
+        "payment_link": "Merci de régler le solde de {amount} sur la page de votre devis.",
+        "cash": "Vous réglez le solde de chaque trajet en espèces au chauffeur.",
+        "invoice": "Nous vous enverrons une facture pour le solde de {amount}.",
+        "none": "Vos trajets sont entièrement réglés."
+      }
+    },
+    "remainderDue": {
+      "subject": "Solde à régler – {reference}",
+      "h1": "Solde à régler",
+      "intro": "Merci de régler le solde de {amount} pour vos trajets réservés.",
+      "button": "Régler le solde"
+    },
+    "remainderPaid": {
+      "subject": "Paiement reçu – {reference}",
+      "h1": "Merci",
+      "intro": "Nous avons bien reçu votre paiement de {amount}. Vos trajets sont entièrement réglés."
+    },
+    "cancelled": {
+      "subject": "Le devis {reference} est annulé",
+      "h1": "Vos trajets sont annulés",
+      "introClient": "Comme vous l'avez demandé, nous avons annulé les trajets du devis {reference}.",
+      "introPrestigo": "Nous sommes désolés : nous avons dû annuler les trajets du devis {reference}.",
+      "refund": "Nous remboursons {amount} sur votre carte. Cela peut prendre de 5 à 10 jours.",
+      "kept": "Selon les conditions d'annulation de ce devis, {amount} de l'acompte est conservé.",
+      "nothingCharged": "Rien d'autre n'est prélevé."
+    },
+    "refunded": {
+      "subject": "Remboursement du devis {reference}",
+      "h1": "Votre remboursement est en route",
+      "intro": "Nous avons remboursé {amount} sur votre carte. Cela peut prendre de 5 à 10 jours."
     }
   }
 }

@@ -228,8 +228,17 @@ const EMAIL_SENT_KEYS = [
   'sent.subject', 'sent.h1', 'sent.intro', 'sent.total', 'sent.deposit', 'sent.validUntil', 'sent.pdfAttached', 'sent.pdfLink',
 ] as const
 
-/** Task 2 (plan 92-29) extends this list: confirmed, remainder due / paid, cancelled, refunded (26 keys). */
-const EMAIL_LIFECYCLE_KEYS = [] as const
+/** Task 2: confirmed, remainder due / paid, cancelled, refunded (26 keys). */
+const EMAIL_LIFECYCLE_KEYS = [
+  'confirmed.subject', 'confirmed.h1', 'confirmed.intro', 'confirmed.booking',
+  'confirmed.remainder.saved_card', 'confirmed.remainder.payment_link', 'confirmed.remainder.cash',
+  'confirmed.remainder.invoice', 'confirmed.remainder.none',
+  'remainderDue.subject', 'remainderDue.h1', 'remainderDue.intro', 'remainderDue.button',
+  'remainderPaid.subject', 'remainderPaid.h1', 'remainderPaid.intro',
+  'cancelled.subject', 'cancelled.h1', 'cancelled.introClient', 'cancelled.introPrestigo', 'cancelled.refund',
+  'cancelled.kept', 'cancelled.nothingCharged',
+  'refunded.subject', 'refunded.h1', 'refunded.intro',
+] as const
 
 const EMAIL_KEYS = [...EMAIL_SENT_KEYS, ...EMAIL_LIFECYCLE_KEYS].map((k) => `QuoteEmails.${k}`)
 
@@ -245,8 +254,8 @@ const EMAIL_SAME_AS_EN: Record<string, ReadonlySet<string>> = {
 }
 
 describe('quote e-mail copy: the EN source', () => {
-  it('has exactly the planned QuoteEmails key set (13 keys)', () => {
-    expect(EMAIL_KEYS).toHaveLength(13)
+  it('has exactly the planned QuoteEmails key set (39 keys)', () => {
+    expect(EMAIL_KEYS).toHaveLength(39)
     expect(Object.keys(EMAIL_EN).sort()).toEqual([...EMAIL_KEYS].sort())
   })
 
