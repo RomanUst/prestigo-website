@@ -669,3 +669,130 @@ describe('091 deny-all (QUOTE-06, T-92-01)', () => {
     expect(flat).not.toMatch(new RegExp(`GRANT [A-Z, ]+ ON (TABLE )?public\\.${name}\\b`, 'i'))
   })
 })
+
+// -- Section 9: quote_convert_to_bookings (plan 92-06: QUOTE-04, QUOTE-05, D-15, D-18) ----------------------------------
+describe('091 quote_convert_to_bookings (QUOTE-05)', () => {
+  const body = latestFunctionBody('quote_convert_to_bookings')
+  const bodyFlat = body.replace(/\s+/g, ' ')
+
+  it('has the eight-argument signature, SECURITY DEFINER, an empty search_path and a jsonb result', () => {
+    expect(bodyFlat).toContain(
+      "CREATE OR REPLACE FUNCTION public.quote_convert_to_bookings( p_quote_id uuid, p_version_id uuid, p_payment_intent_id text, p_customer_id text, p_payment_method_id text, p_lines jsonb, p_actor_type text, p_actor_id text ) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''",
+    )
+  })
+
+  it('locks the quote row and writes the booking, its stops, its ledger row and its consent row', () => {
+    expect(bodyFlat).toContain('FROM public.quotes q WHERE q.id = p_quote_id FOR UPDATE')
+    expect(bodyFlat).toContain('INSERT INTO public.bookings (')
+    expect(bodyFlat).toContain('INSERT INTO public.booking_stops (')
+    expect(bodyFlat).toContain('FROM public.quote_version_line_stops s')
+    expect(bodyFlat).toContain('PERFORM public.append_payment_event(')
+    expect(bodyFlat).toContain("'key', 'quote_deposit:' || p_payment_intent_id")
+    expect(bodyFlat).toContain("'kind', 'quote_deposit'")
+    expect(bodyFlat).toContain("'stripe_object_id', p_payment_intent_id")
+    expect(bodyFlat).toContain("'amount_minor', v_line.deposit_share_minor")
+    expect(bodyFlat).toContain('INSERT INTO public.booking_payment_consents (')
+    expect(bodyFlat).toContain("v_booking_id, 'quote', v_acceptance.terms_version, v_acceptance.terms_sha256, v_acceptance.terms_rendered")
+  })
+
+  it('assigns the three payment modes and their states, and never assigns the booking payment_intent_id', () => {
+    expect(bodyFlat).toContain("v_mode := 'card_hold'")
+    expect(bodyFlat).toContain("v_mode := 'cash_guarantee'")
+    expect(bodyFlat).toContain("v_mode := 'quote'")
+    expect(bodyFlat).toContain("v_state := 'card_saved'")
+    expect(bodyFlat).toContain("v_state := 'none'")
+    expect(bodyFlat).toContain("IF v_remainder > 0 AND v_version.remainder_method = 'saved_card' THEN")
+    expect(bodyFlat).toContain("ELSIF v_remainder > 0 AND v_version.remainder_method = 'cash' THEN")
+    // T-92-19: the deposit intent is never a column of the bookings insert, and pickup_utc is generated.
+    const start = bodyFlat.indexOf('INSERT INTO public.bookings (')
+    const insert = bodyFlat.slice(start, bodyFlat.indexOf(') VALUES (', start))
+    expect(insert).not.toContain('payment_intent_id')
+    expect(insert).not.toContain('pickup_utc')
+    expect(bodyFlat).not.toMatch(/UPDATE public\.bookings/)
+  })
+
+  it('writes the booking from the frozen version, with the quote-booking constants', () => {
+    expect(bodyFlat).toContain("'manual', v_quote.lead_channel, 'confirmed', 'confirmed'")
+    expect(bodyFlat).toContain('v_version.locale, v_version.cancel_policy, v_version.cancel_policy_version')
+    expect(bodyFlat).toContain('p_quote_id, v_line.id, v_line.deposit_share_minor')
+    for (const col of ['landing_date', 'landing_time', 'pickup_offset_min', 'origin_lat', 'destination_lng', 'distance_km', 'flight_number', 'terminal', 'special_requests', 'extra_child_seat', 'amount_eur', 'amount_czk']) {
+      expect(bodyFlat, col).toContain(`v_line.${col}`)
+    }
+    expect(bodyFlat).toContain("v_entry ->> 'booking_reference'")
+    expect(bodyFlat).toContain("(v_entry ->> 'hold_at')::timestamptz")
+  })
+
+  it('reads nothing but the position, the booking reference and the hold instant from p_lines (T-92-18)', () => {
+    const keys = new Set([...bodyFlat.matchAll(/(?:v_entry|\be)\s*->>?\s*'([a-z_]+)'/g)].map((m) => m[1]))
+    expect([...keys].sort()).toEqual(['booking_reference', 'hold_at', 'position'])
+  })
+
+  it('answers a paid quote from its own intent first (W2) and refuses any other intent as intent_mismatch', () => {
+    const paid = bodyFlat.indexOf("IF v_quote.status = 'paid' OR v_quote.paid_at IS NOT NULL THEN")
+    expect(paid).toBeGreaterThan(0)
+    const compare = bodyFlat.indexOf('IF p_payment_intent_id IS NOT NULL AND v_quote.deposit_payment_intent_id = p_payment_intent_id THEN', paid)
+    const replay = bodyFlat.indexOf("'first_time', false", paid)
+    const mismatch = bodyFlat.indexOf("'reason', 'intent_mismatch'", paid)
+    expect(compare).toBeGreaterThan(paid)
+    expect(replay).toBeGreaterThan(compare)
+    expect(mismatch).toBeGreaterThan(replay)
+    // The replay branch never looks at cancelled_at / voided_at, and nothing is written before it.
+    expect(bodyFlat.slice(paid, mismatch)).not.toMatch(/cancelled_at|voided_at|INSERT|UPDATE/)
+  })
+
+  it('checks ownership before payment: voided, cancelled, accepted, current version, deposit intent', () => {
+    const order = [
+      "'reason', 'not_found'",
+      "'reason', 'voided'",
+      "'reason', 'cancelled'",
+      "'reason', 'not_accepted'",
+      "'reason', 'version_mismatch'",
+      "'reason', 'lines_mismatch'",
+      "'reason', 'hold_at_missing'",
+    ].map((needle) => bodyFlat.indexOf(needle))
+    expect(order.every((i) => i > 0)).toBe(true)
+    expect([...order].sort((a, b) => a - b)).toEqual(order)
+    expect(bodyFlat).toContain('v_quote.current_version_id IS DISTINCT FROM p_version_id')
+    expect(bodyFlat).toContain('v_quote.deposit_payment_intent_id IS DISTINCT FROM p_payment_intent_id')
+    expect(bodyFlat).toContain('v_quote.voided_at IS NOT NULL')
+    expect(bodyFlat).toContain('v_quote.cancelled_at IS NOT NULL')
+    expect(bodyFlat).toContain('IF v_version.frozen_at IS NULL THEN')
+  })
+
+  it('validates every line and the hold instants before the first write', () => {
+    const firstWrite = bodyFlat.indexOf('INSERT INTO public.bookings (')
+    for (const needle of ["'reason', 'lines_mismatch'", "'reason', 'hold_at_missing'", "RAISE EXCEPTION 'quote_card_ids_missing'"]) {
+      expect(bodyFlat.lastIndexOf(needle), needle).toBeLessThan(firstWrite)
+    }
+    expect(bodyFlat).toContain('v_given IS DISTINCT FROM v_expected')
+  })
+
+  it('finishes with the quote paid, the acceptance confirmed and the two quote events', () => {
+    expect(bodyFlat).toContain(
+      "SET status = 'paid', paid_at = now(), stripe_customer_id = COALESCE(q.stripe_customer_id, p_customer_id), stripe_payment_method_id = COALESCE(q.stripe_payment_method_id, p_payment_method_id)",
+    )
+    expect(bodyFlat).toContain('UPDATE public.quote_acceptances a SET confirmed_at = now() WHERE a.id = v_acceptance.id AND a.confirmed_at IS NULL')
+    expect(bodyFlat).toContain("'deposit_paid:' || p_payment_intent_id, 'deposit_paid', p_version_id, p_payment_intent_id, v_version.deposit_minor")
+    expect(bodyFlat).toContain("'converted:' || p_version_id::text, 'converted'")
+    expect(bodyFlat).toContain("RETURN jsonb_build_object('converted', true, 'first_time', true, 'booking_ids', to_jsonb(v_ids))")
+  })
+
+  it('is revoked from PUBLIC, anon and authenticated and granted to service_role only (T-92-20)', () => {
+    expect(flat).toContain(
+      'REVOKE EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, text, text, jsonb, text, text) FROM PUBLIC, anon, authenticated;',
+    )
+    expect(flat).toContain(
+      'GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, text, text, jsonb, text, text) TO service_role;',
+    )
+    expect(flat).not.toMatch(/GRANT EXECUTE ON FUNCTION public\.quote_convert_to_bookings[^;]*TO (PUBLIC|anon|authenticated)/)
+  })
+
+  it('widens only the consent text length, so a 4000-character acceptance text converts', () => {
+    expect(flat).toContain('DROP CONSTRAINT IF EXISTS booking_payment_consents_text_rendered_check')
+    expect(flat).toContain('ADD CONSTRAINT booking_payment_consents_text_rendered_check CHECK (char_length(text_rendered) <= 4000)')
+  })
+
+  it('defines the function once', () => {
+    expect(m091.split('CREATE OR REPLACE FUNCTION public.quote_convert_to_bookings').length - 1).toBe(1)
+  })
+})
