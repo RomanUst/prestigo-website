@@ -31,6 +31,7 @@ import {
   handleQuoteDispute,
   handleQuotePaymentCanceled,
   handleQuotePaymentFailed,
+  handleQuoteRemainderPaid,
 } from '@/lib/stripe-webhook/quote-events'
 import { cardBookingIdForPaymentIntent, handleDispute, handleRecoveryPaid } from '@/lib/stripe-webhook/recovery-events'
 
@@ -56,6 +57,7 @@ export type PaymentRoute =
   | 'dispute'
   // Phase 92 (92-31): the deposit of a quote and the failure / cancellation of a quote's payments. Never the legacy chain, never the hold handlers.
   | 'quote_deposit_paid'
+  | 'quote_remainder_paid'
   | 'quote_payment_failed'
   | 'quote_payment_canceled'
   | 'refund_observe'
@@ -108,6 +110,9 @@ export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
   // 92-31: the event id is the ledger actor id; a throw (money arrived, no bookings) answers 500 so Stripe redelivers.
   quote_deposit_paid: (event) =>
     handleQuoteDepositPaid(event.data.object as Stripe.PaymentIntent, { type: 'webhook', id: event.id ?? null }),
+  // 92-23 (D-16): a remainder paid on the quote page; same rule, a throw answers 500 and Stripe redelivers.
+  quote_remainder_paid: (event) =>
+    handleQuoteRemainderPaid(event.data.object as Stripe.PaymentIntent, { type: 'webhook', id: event.id ?? null }),
   quote_payment_failed: (event) => handleQuotePaymentFailed(event.data.object as Stripe.PaymentIntent),
   quote_payment_canceled: (event) => handleQuotePaymentCanceled(event.data.object as Stripe.PaymentIntent),
 }
@@ -156,8 +161,9 @@ export function classifyPaymentEvent(event: Stripe.Event): PaymentEventClass | n
     case 'payment_intent.succeeded':
       if (!isCard) return null
       if (kind === 'card_recovery') return make('recovery_paid')
-      // 92-31 (QUOTE-05, D-18): a paid quote deposit converts the quote. The remainder is routed by plan 92-23.
+      // 92-31 (QUOTE-05, D-18): a paid quote deposit converts the quote; 92-23 (QUOTE-04, D-16): a paid remainder marks its trips paid.
       if (kind === 'card_quote_deposit') return make('quote_deposit_paid')
+      if (kind === 'card_quote_remainder') return make('quote_remainder_paid')
       if (
         kind === 'card_charge' ||
         kind === 'card_hold' ||

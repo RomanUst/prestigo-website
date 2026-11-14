@@ -8,6 +8,7 @@
 //                              payment tick uses to reconcile a lost event. It THROWS when money arrived without bookings or an
 //                              orphan refund failed: the route then answers 500 and Stripe delivers the event again. Every other
 //                              outcome (converted, replayed, orphan_refunded, ignored) is a normal return, answered 200.
+//   handleQuoteRemainderPaid   a succeeded remainder -> applyQuoteRemainderPaid (lib/quotes/remainder.ts), also the tick's function; a throw answers 500.
 //   handleQuotePaymentFailed   a declined deposit or remainder: one quote event (the decline code) and one operator alert; no
 //                              state change anywhere, the hold engine is never involved.
 //   handleQuotePaymentCanceled a cancelled deposit intent: one deposit_canceled event only.
@@ -24,6 +25,7 @@ import { getPaymentsStripe } from '@/lib/payments/stripe'
 import { sendQuoteOperatorAlert } from '@/lib/quotes/alerts'
 import { applyQuoteDepositPaid } from '@/lib/quotes/convert'
 import { appendQuoteEvent } from '@/lib/quotes/events'
+import { applyQuoteRemainderPaid } from '@/lib/quotes/remainder'
 import type { QuoteRow } from '@/lib/quotes/types'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -84,6 +86,27 @@ export async function handleQuoteDepositPaid(pi: Stripe.PaymentIntent, actor: Le
   }
   const result = await applyQuoteDepositPaid(pi, actor)
   console.log('[quote-webhook] deposit handled', { stripeObjectId: pi.id, quoteId: meta.quoteId, outcome: result.outcome })
+}
+
+/**
+ * payment_intent.succeeded of a quote remainder (92-23, D-16): applyQuoteRemainderPaid, the very function the payment tick uses to
+ * reconcile a lost event. Unusable metadata is acknowledged without a write; a throw is NOT caught, so the route answers 500 and
+ * Stripe delivers the event again (the bookkeeping is exactly-once and a replay finishes an interrupted run).
+ */
+export async function handleQuoteRemainderPaid(pi: Stripe.PaymentIntent, actor: LedgerActor = WEBHOOK_ACTOR): Promise<void> {
+  const meta = metaOf(pi)
+  if (
+    meta.kind !== REMAINDER_KIND ||
+    !meta.quoteId ||
+    !UUID_RE.test(meta.quoteId) ||
+    !meta.versionId ||
+    !UUID_RE.test(meta.versionId)
+  ) {
+    console.error('[quote-webhook] remainder event with unusable metadata', { stripeObjectId: pi.id })
+    return
+  }
+  const result = await applyQuoteRemainderPaid(pi, actor)
+  console.log('[quote-webhook] remainder handled', { stripeObjectId: pi.id, quoteId: meta.quoteId, outcome: result.outcome })
 }
 
 /** payment_intent.payment_failed of a quote deposit or remainder: a ledger event with the decline code and one operator alert. */
