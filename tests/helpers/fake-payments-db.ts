@@ -1006,6 +1006,25 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
       else throw new Error(`fake-payments-db: not(${op}) is not supported`)
       return this
     }
+    /**
+     * PostgREST ilike: case-insensitive LIKE where % and _ are wildcards and a backslash escapes the next character
+     * (Postgres' default LIKE escape), so tests can prove an escaped search value never widens the match.
+     */
+    ilike(col: string, pattern: string): this {
+      let source = ''
+      for (let i = 0; i < pattern.length; i += 1) {
+        const ch = pattern[i]
+        if (ch === '\\' && i + 1 < pattern.length) {
+          i += 1
+          source += pattern[i].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        } else if (ch === '%') source += '[\\s\\S]*'
+        else if (ch === '_') source += '[\\s\\S]'
+        else source += ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      }
+      const re = new RegExp(`^${source}$`, 'i')
+      this.filters.push((r) => typeof r[col] === 'string' && re.test(r[col] as string))
+      return this
+    }
     lt(col: string, val: unknown): this {
       this.filters.push((r) => r[col] != null && compare(r[col], val) < 0)
       return this
