@@ -17,3 +17,8 @@ Not asked, decided by Claude and recorded as D-05..D-10 in 92-CONTEXT.md for the
 8. PDF in the email? — "Файл во вложении" (two new packages accepted, spike first, link as fallback).
 
 Left for the owner's accountant and counsel (not blocking planning): VAT documents for deposits, acceptance wording per remainder method, package-travel risk. See the end of 92-RESEARCH.md.
+
+2026-11-14, before wave 1 (two questions, owner reply "1 ок 2 ок"):
+
+9. What may the saved card be charged for on cash / payment-link / invoice quotes? — option a, the planned scope (D-21, D-22).
+10. Install puppeteer-core 25.16.0 and @sparticuz/chromium-min 153.0.0? — yes.

@@ -43,6 +43,10 @@ Not in scope: the day-trip catalogue and the custom-tour request form (Phase 93;
 - Payment-link and invoice remainders: what may the saved card be charged for (research Owner Question 8)?
 - The answers are recorded above as D-21 and D-22 by 92-03 Task 1.
 
+- **D-21:** Cash remainder — the saved card is a guarantee: it may be charged for a trip not paid in cash, for waiting beyond the booked time and for extras agreed during the trip (the same as today's cash bookings). Owner, 2026-11-14: "1 ок" to the planned scope (option a of 92-03 Task 1).
+- **D-22:** Payment-link and invoice remainders — the saved card is used only for payments the client makes on the quote page (link) or approves (invoice). An unpaid remainder or post-trip waiting on those quotes is collected by the operator by hand. Owner, 2026-11-14: "1 ок" (option a).
+- **D-14 packages approved:** the owner approved `puppeteer-core` 25.16.0 and `@sparticuz/chromium-min` 153.0.0 on 2026-11-14 ("2 ок"); this is the approval of 92-05 Task 1.
+
 ### Decided by Claude after research (owner may override)
 - **D-15:** A booking created from a quote gets the payment mode that matches the quote's remainder method, linked by `bookings.quote_id` / `quote_line_id`: saved card → `card_hold`, cash → `cash_guarantee`, payment link and invoice → `quote`. This replaces the literal reading of "quote bookings carry `payment_mode='quote'`": the existing hold engine, the driver cash step and about 40 checks recognise only `card_hold` and `cash_guarantee`.
 - **D-16:** The "payment link" remainder is paid on the quote page itself (not a Stripe Payment Link or hosted Checkout: no customer binding, 24-hour session life, no Arabic or Hindi).
