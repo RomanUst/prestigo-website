@@ -1,6 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { REVENUE_STATUSES } from '@/lib/booking-status'
+
+// Only real trips count: cancelled, unpaid, pending and no-show bookings stay out of the KPIs and revenue,
+// the same status set the Conversion/Customers/B2B stats use.
+const COUNTED_STATUSES = [...REVENUE_STATUSES]
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -105,14 +110,14 @@ export async function GET() {
     byTripTypeResult,
     monthlyRevenueResult,
   ] = await Promise.all([
-    supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('pickup_date', todayISO),
-    supabase.from('bookings').select('id', { count: 'exact', head: true }).gte('pickup_date', mondayISO).lte('pickup_date', sundayISO),
-    supabase.from('bookings').select('id', { count: 'exact', head: true }).gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO),
-    supabase.from('bookings').select('amount_czk').gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO),
-    supabase.from('bookings').select('amount_czk').gte('pickup_date', prevMonthStartISO).lte('pickup_date', prevMonthEndISO),
-    supabase.from('bookings').select('vehicle_class, amount_czk').gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO),
-    supabase.from('bookings').select('trip_type, amount_czk').gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO),
-    supabase.from('bookings').select('pickup_date, amount_czk').gte('pickup_date', twelveMonthsAgoISO),
+    supabase.from('bookings').select('id', { count: 'exact', head: true }).eq('pickup_date', todayISO).in('status', COUNTED_STATUSES),
+    supabase.from('bookings').select('id', { count: 'exact', head: true }).gte('pickup_date', mondayISO).lte('pickup_date', sundayISO).in('status', COUNTED_STATUSES),
+    supabase.from('bookings').select('id', { count: 'exact', head: true }).gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO).in('status', COUNTED_STATUSES),
+    supabase.from('bookings').select('amount_czk').gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO).in('status', COUNTED_STATUSES),
+    supabase.from('bookings').select('amount_czk').gte('pickup_date', prevMonthStartISO).lte('pickup_date', prevMonthEndISO).in('status', COUNTED_STATUSES),
+    supabase.from('bookings').select('vehicle_class, amount_czk').gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO).in('status', COUNTED_STATUSES),
+    supabase.from('bookings').select('trip_type, amount_czk').gte('pickup_date', monthStartISO).lte('pickup_date', monthEndISO).in('status', COUNTED_STATUSES),
+    supabase.from('bookings').select('pickup_date, amount_czk').gte('pickup_date', twelveMonthsAgoISO).in('status', COUNTED_STATUSES),
   ])
 
   if (
