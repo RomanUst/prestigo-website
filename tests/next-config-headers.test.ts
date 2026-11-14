@@ -13,12 +13,15 @@
  * deployment.
  */
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { pathToRegexp } = require('next/dist/compiled/path-to-regexp') as {
   pathToRegexp: (source: string) => RegExp
 }
 
 import nextConfig from '../next.config'
+import { locales } from '@/i18n/locales'
 
 interface HeaderEntry {
   source: string
@@ -115,4 +118,40 @@ describe('next.config.ts headers() — X-Frame-Options excluded for /embed', () 
       expect(headerOf(hit, 'Referrer-Policy')).toBe('strict-origin-when-cross-origin')
     },
   )
+
+  // Phase 92 (QUOTE-02, T-92-11/12): the quote URL carries the bearer token. Paths are built from the
+  // locale list so a locale missing from the header alternation fails here (B1).
+  const QUOTE_PATHS = locales.map((l) => (l === 'en' ? '/quote/tok' : `/${l}/quote/tok`))
+
+  it.each(QUOTE_PATHS)(
+    '%s: no-referrer, no-store, noindex nofollow, X-Frame-Options stays DENY',
+    async (pathname) => {
+      const hit = matching(await loadEntries(), pathname)
+      expect(headerOf(hit, 'Referrer-Policy')).toBe('no-referrer')
+      expect(headerOf(hit, 'Cache-Control')).toBe('no-store')
+      expect(headerOf(hit, 'X-Robots-Tag')).toBe('noindex, nofollow')
+      expect(headerOf(hit, 'X-Frame-Options')).toBe('DENY')
+    },
+  )
+
+  it('/zh-hant/quote/x is covered explicitly', async () => {
+    const hit = matching(await loadEntries(), '/zh-hant/quote/x')
+    expect(headerOf(hit, 'Referrer-Policy')).toBe('no-referrer')
+    expect(headerOf(hit, 'Cache-Control')).toBe('no-store')
+    expect(headerOf(hit, 'X-Robots-Tag')).toBe('noindex, nofollow')
+  })
+
+  it.each(['/quotes-info', '/zh-hant/routes/x', '/ru/quotes'])(
+    '%s: ordinary pages keep the global Referrer-Policy and no noindex',
+    async (pathname) => {
+      const hit = matching(await loadEntries(), pathname)
+      expect(headerOf(hit, 'Referrer-Policy')).toBe('strict-origin-when-cross-origin')
+      expect(headerOf(hit, 'X-Robots-Tag')).toBeUndefined()
+    },
+  )
+
+  it('public/robots.txt has no /quote rule (a blocked page cannot be read as noindex)', () => {
+    const robots = readFileSync(join(process.cwd(), 'public', 'robots.txt'), 'utf8')
+    expect(robots).not.toMatch(/\/quote/i)
+  })
 })
