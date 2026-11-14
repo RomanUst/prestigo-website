@@ -272,6 +272,37 @@ describe('POST /api/admin/bookings/[id]/payment-link (D-05 attach-later + resend
     expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
   })
 
+  it.each(['quote', 'cash_guarantee', 'card_hold'])(
+    'B2 (92-10): a %s booking with quote_id never gets a legacy payment link (generate and resend) — 409, no Stripe, no email, no update',
+    async (mode) => {
+      const quoteBooking = {
+        ...UNPAID_BOOKING,
+        id: 'booking-quote-1',
+        payment_mode: mode,
+        quote_id: '5b0c8e1a-3d4f-4a6b-9c7d-1e2f3a4b5c6d',
+        payment_link_url: null,
+      }
+      const calls = supabaseServiceStub.from.mock.calls.length
+      supabaseServiceStub.from.mockReturnValueOnce(makeBookingFetchStub(quoteBooking))
+      const gen = await PAYMENT_LINK_POST(makeRequest(quoteBooking.id), makeParams(quoteBooking.id))
+      expect(gen.status).toBe(409)
+      expect(await gen.json()).toEqual({ error: 'Quote bookings are collected on the quote, not a payment link' })
+
+      supabaseServiceStub.from.mockReturnValueOnce(
+        makeBookingFetchStub({ ...quoteBooking, payment_link_url: 'https://buy.stripe.com/x' }),
+      )
+      const resend = await PAYMENT_LINK_POST(makeRequest(quoteBooking.id, { resend: true }), makeParams(quoteBooking.id))
+      expect(resend.status).toBe(409)
+      expect(await resend.json()).toEqual({ error: 'Quote bookings are collected on the quote, not a payment link' })
+
+      expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
+      expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
+      expect(stubLogEmail).not.toHaveBeenCalled()
+      // only the two booking reads: no sibling lookup, no update
+      expect(supabaseServiceStub.from.mock.calls.length - calls).toBe(2)
+    },
+  )
+
   it('Test 5: reject when status=confirmed — 4xx, no Stripe call', async () => {
     supabaseServiceStub.from.mockReturnValueOnce(makeBookingFetchStub(CONFIRMED_BOOKING))
 
