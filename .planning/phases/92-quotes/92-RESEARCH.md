@@ -18,7 +18,7 @@
 - No hard-coded prices in `app/` or `components/`; all 7 locales get real translations for client-facing strings; all times are Prague time, DST-safe.
 - No new runtime dependency for the PDF unless research shows there is no other workable path (v5.0 stance).
 - Stops and waiting on a quote line follow Phase 91: distance through all stops, first 15 minutes free, per-class waiting rate, and the client sees one total per line without a separate waiting amount (owner decision 2026-11-12).
-- Migration numbering: 085–089 exist (two files share 089). The next free number is 090; the roadmap's "088" is out of date.
+- Migration numbering: 085–089 exist (two files share 089) and 090 is the zh-hant consent hotfix (`090_consent_locale_zh_hant.sql`, applied live); the quote migration is 091; the roadmap's "088" is out of date.
 
 **Owner decisions (2026-11-14)**
 - **D-01:** A quote of several days or trips is paid as a deposit plus a remainder. There is never one long hold over the whole quote and no per-day hold as the quote's own payment model. The remainder method per quote is one of: saved card (hold / capture per trip, the existing engine), payment link, cash to the driver, invoice. — **Reversibility:** costly — the booking payment state of every quote booking follows from it.
@@ -370,7 +370,7 @@ Font files for the document (Inter, Fraunces, Noto Sans Arabic, Noto Sans Devana
 - **Rate limits** (new `LIMITS` keys, per IP per minute): `'/quote'` 30 (checked inside the page; on deny render the invalid view), `'/api/quote/view'` 20, `'/api/quote/accept'` 10 (it creates Stripe objects, same value as `/api/card-checkout/intent`), `'/api/quote/state'` 60 (polling after payment), `'/api/quote/pdf'` 10. Body caps of 2 KB like the manage routes. Guessing a 256-bit token is not a practical attack; the limits protect the database and Stripe.
 - **Residual risk to record:** the token is in the URL path, so it appears in platform access logs, as the manage token does today.
 
-### Q7. Schema proposal (migration 090)
+### Q7. Schema proposal (migration 091)
 
 All new tables: `ENABLE ROW LEVEL SECURITY`, `USING (false)` select policy, `WITH CHECK (false)` insert policy, `REVOKE ALL ... FROM anon, authenticated` (the 089 pattern, lines 44-55). All new functions: `SECURITY DEFINER`, `SET search_path = ''`, `REVOKE EXECUTE ... FROM PUBLIC, anon, authenticated`, `GRANT EXECUTE ... TO service_role`.
 
@@ -511,7 +511,7 @@ app/api/admin/quotes/...                  # list, create, patch draft, send, rev
                                           # cancel, refund-deposit, mark-invoice-paid
 app/(internal)/admin/(dashboard)/quotes/  # list + builder
 components/admin/quotes/                  # QuoteBuilder, QuoteList, QuoteStatusBadge, dialogs
-supabase/migrations/090_quotes.sql
+supabase/migrations/091_quotes.sql
 ```
 
 ### Pattern 1: The version is the price authority
@@ -701,7 +701,7 @@ const quoteHeaders = [
 
 ### Conversion function, skeleton
 ```sql
--- 090: one transaction; the caller passes references and hold instants only
+-- 091: one transaction; the caller passes references and hold instants only
 CREATE OR REPLACE FUNCTION public.quote_convert_to_bookings(
   p_quote_id uuid, p_version_id uuid, p_payment_intent_id text,
   p_customer_id text, p_payment_method_id text, p_lines jsonb
@@ -725,11 +725,11 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
   TO service_role;
 ```
 
-## Migration plan (next free number is 090)
+## Migration plan (next free number is 091)
 
 [VERIFIED: `ls supabase/migrations` — last files `089_admin_search_bookings_hide_cancelled.sql` and `089_stops_landing_extra_charges.sql`; no `09x` migration exists on any local or remote ref or worktree, checked with `git ls-tree` this session.] Re-check at write time. The migration is applied live by the orchestrator through the Supabase MCP before code that reads the new columns ships; executors have no database access.
 
-`090_quotes.sql`, all additive: the eight tables of Q7, three `bookings` columns and the unique index, the widened ledger-kind and consent-mode CHECKs, the quote functions and the immutability trigger, full-copy replacements of `erasure_scope`, `erasure_payment_open` and `erasure_anonymise_person`, grants. Additive for old code: new tables are deny-all, new columns are nullable, widened CHECKs only add values.
+`091_quotes.sql`, all additive: the eight tables of Q7, three `bookings` columns and the unique index, the widened ledger-kind and consent-mode CHECKs, the quote functions and the immutability trigger, full-copy replacements of `erasure_scope`, `erasure_payment_open` and `erasure_anonymise_person`, grants. Additive for old code: new tables are deny-all, new columns are nullable, widened CHECKs only add values.
 
 ## State of the Art
 
@@ -741,7 +741,7 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
 | Raw manage token in a table | Hash-only quote links, new link per send | roadmap | No "show link again" |
 | Invoice PDFs made by hand with local Chrome | Same engine idea on the server for the quote PDF, if approved | this research | Two packages or a link instead of a file |
 
-**Deprecated / outdated:** roadmap "Expected migration 088" (it is 090); `.planning/research/ARCHITECTURE.md` quote schema (`public_token` stored raw, `quote_items`, `quote_payments`) is superseded by the hashed-link, versioned shape here.
+**Deprecated / outdated:** roadmap "Expected migration 088" (it is 091); `.planning/research/ARCHITECTURE.md` quote schema (`public_token` stored raw, `quote_items`, `quote_payments`) is superseded by the hashed-link, versioned shape here.
 
 ## Assumptions Log
 
@@ -763,12 +763,12 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
 
 ## Open Questions (technical, for the planner)
 
-1. **Where the suggestion comes from on the server.** The price logic of `/api/calculate-price` is inside the route handler. Recommendation: keep the builder calling the route (as `ManualBookingForm` does), store the returned suggestion as display data only, and treat the operator's amount as the authority. Extracting a shared function is optional and a refactor risk.
-2. **Remainder link form.** Quote page payment (recommended) or a Stripe Payment Link (fallback); the choice changes one plan, not the schema.
-3. **Paid confirmation email.** One localized email for the whole quote through the `lib/payments/emails/render.ts` shell, or the English `lib/email.ts` builders. Recommendation: localized, new `QuoteEmails` namespace, the shell pieces that module exports.
-4. **PDF storage.** bytea in a deny-all table (recommended) or re-render on demand.
-5. **Reconcile placement.** A new step in `runPaymentTick` (recommended, same schedule) or a separate cron route.
-6. **Admin UI contract.** The phase has a UI hint; a UI-SPEC pass before planning the builder and the public page is advisable (the manage page still uses the old anthracite / copper variables, while the brand is navy).
+1. **Where the suggestion comes from on the server.** The price logic of `/api/calculate-price` is inside the route handler. Recommendation: keep the builder calling the route (as `ManualBookingForm` does), store the returned suggestion as display data only, and treat the operator's amount as the authority. Extracting a shared function is optional and a refactor risk. — **Resolved: D-04** (server suggestion per line, operator override; plan 92-08).
+2. **Remainder link form.** Quote page payment (recommended) or a Stripe Payment Link (fallback); the choice changes one plan, not the schema. — **Resolved: D-16** (quote page; plan 92-23).
+3. **Paid confirmation email.** One localized email for the whole quote through the `lib/payments/emails/render.ts` shell, or the English `lib/email.ts` builders. Recommendation: localized, new `QuoteEmails` namespace, the shell pieces that module exports. — **Resolved: D-09** (quote language) with the plan check's W1: 92-13 exports the per-locale pieces of render.ts and the quote shell reuses them; copy in 92-29.
+4. **PDF storage.** bytea in a deny-all table (recommended) or re-render on demand. — **Resolved: D-14** (stored per frozen version in quote_documents; plans 92-01, 92-20).
+5. **Reconcile placement.** A new step in `runPaymentTick` (recommended, same schedule) or a separate cron route. — **Resolved: D-18** (a reconcile covers a lost webhook: tick step Q, plan 92-31).
+6. **Admin UI contract.** The phase has a UI hint; a UI-SPEC pass before planning the builder and the public page is advisable (the manage page still uses the old anthracite / copper variables, while the brand is navy). — **Resolved: Claude's Discretion** in 92-CONTEXT.md (admin UI layout); no UI-SPEC pass, plans 92-14 / 92-15 / 92-19 / 92-25 / 92-26 follow the admin theme variables.
 
 ## Environment Availability
 
@@ -778,7 +778,7 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
 | Vitest | tests | yes | ^4.1.1 | — |
 | Google Chrome (local) | PDF spike and local render | yes | installed in /Applications | — |
 | Stripe live key | deposit proof | no (the local test key is a dead placeholder; no Stripe access in this session) | — | `fake-stripe` in tests; live proof by a script the owner runs |
-| Supabase MCP | apply migration 090 | orchestrator only | — | orchestrator applies and smokes |
+| Supabase MCP | apply migration 091 | orchestrator only | — | orchestrator applies and smokes |
 | Vercel Preview | PDF spike on the platform | no (Preview deploys fail in this project) | — | local Chrome plus one production check behind an admin-only route |
 | Context7 | library docs | no (needs authorization) | — | official docs fetched directly |
 | Upstash Redis | rate limits | assumed present in production (existing limiter) | — | in-memory fallback, fail-open |
@@ -813,7 +813,7 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
 | QUOTE-04 | Mode table: saved card -> `card_hold` + `card_saved` + `hold_at` + amount = remainder and is claimed by the fake claim; cash -> `cash_guarantee`; link / invoice -> `quote`, never claimed | engine | `npx vitest run tests/quote-convert.test.ts` | no, Wave 0 |
 | QUOTE-04 | Remainder paid on the page / by link stamps `paid_at`, one event for two Stripe events; invoice mark-paid action | route | `npx vitest run tests/quote-remainder.test.ts` | no, Wave 0 |
 | QUOTE-05 | Conversion exactly once under a double delivery; stops copied; consent row per booking; deposit PaymentIntent never on a booking; partial failure after commit finishes on retry without a second email | engine | `npx vitest run tests/quote-convert.test.ts` | no, Wave 0 |
-| QUOTE-05 | Migration text: tables deny-all, REVOKEs, function grants, unique index on `quote_line_id`, erasure bodies keep every 089 statement | text | `npx vitest run tests/migration-090.test.ts` | no, Wave 0 |
+| QUOTE-05 | Migration text: tables deny-all, REVOKEs, function grants, unique index on `quote_line_id`, erasure bodies keep every 089 statement | text | `npx vitest run tests/migration-091.test.ts` | no, Wave 0 |
 | QUOTE-06 | Freeze makes the version immutable; revise creates n+1 and old links resolve to null; void; edit refused while a deposit is in flight; lifecycle badge function | unit + route | `npx vitest run tests/quotes-versions.test.ts` | no, Wave 0 |
 | QUOTE-07 | Document HTML per locale: `dir` for Arabic, every user value escaped, one total per line and no waiting amount, terms shown; the email carries the attachment when the renderer returns bytes and a link when it is unavailable | unit | `npx vitest run tests/quote-document.test.ts tests/quote-emails.test.ts` | no, Wave 0 |
 | D-03 / D-06 | `cancelQuote`: free -> full refund with the fixed key; late -> no refund, proposed fee from the deposit; `admin_prestigo` always free; one client email for N bookings; hours 72 / 73 boundary; refund failure keeps the cancel | engine | `npx vitest run tests/quote-cancel.test.ts` | no, Wave 0 |
@@ -829,7 +829,7 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
 ### Wave 0 Gaps
 - [ ] `tests/helpers/fake-payments-db.ts`: add the quote tables to `TABLES` (lines 95-107) and emulate `quote_convert_to_bookings`, the freeze / revise / void functions and the `quote_line_id` unique rule in `rpc()` (line 522).
 - [ ] Pure-module tests written RED first: `tests/quotes-money.test.ts`, `tests/quotes-token.test.ts`, `tests/quotes-status.test.ts`.
-- [ ] `tests/migration-090.test.ts` on `latest-migration.ts`.
+- [ ] `tests/migration-091.test.ts` on `latest-migration.ts`.
 - [ ] A `renderQuotePdf` mock helper so no test launches a browser.
 - [ ] PDF spike result recorded (pass criteria of Q5) before the PDF plan is written.
 - [ ] Framework install: none.
@@ -922,7 +922,7 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
 **Before planning:** the owner answers Questions 1, 2, 3, 4 and 9 below (they change schema, consent wording and the PDF plan).
 
 **Wave 0 (foundation and proof)**
-- 92-01: migration `090_quotes.sql` written; pure modules `lib/quotes/{token,status,money,terms}.ts`; fake-DB tables and RPC emulation; RED tests for money, token, status, migration text. Orchestrator applies 090 live and smokes.
+- 92-01: migration `091_quotes.sql` written; pure modules `lib/quotes/{token,status,money,terms}.ts`; fake-DB tables and RPC emulation; RED tests for money, token, status, migration text. Orchestrator applies 091 live and smokes.
 - 92-02: PDF spike (path B) with the pass criteria of Q5; outcome recorded; owner checkpoint for the two packages.
 
 **Wave 1 (operator side)**
@@ -947,32 +947,32 @@ GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, tex
 
 ## Open Questions for the Owner (and for the accountant / counsel)
 
-**Owner — needed before planning**
-1. **Booking mode for the remainder.** May a quote booking whose remainder is "saved card" be stored as a normal card-hold booking (and "cash" as a normal cash-with-guarantee booking), linked to the quote, so the existing engine runs it unchanged? The alternative keeps the label `quote` on every quote booking and rewrites about 40 checks in the payment code.
-2. **Late cancellation money.** After the free window, is the fee a percent of the deposit (the deposit is what is at stake, nothing more is charged), or a percent of the whole quote (which may mean charging the saved card beyond the deposit)?
-3. **Deposit across trips.** Spread the deposit over the trips in proportion to their prices (recommended), or count it against the first or the last trip? And when one trip of a paid quote is cancelled, is its share refunded, kept, or decided by the operator each time?
-4. **Custom cancellation window.** How long may the free-cancellation period of a quote be? The current limit in the system is 72 hours before the trip; tours may need days or weeks.
-5. **Payment-link remainder.** One payment for the whole remainder or one per trip, and by when must it be paid? Is paying on the quote page (same link, all languages) acceptable instead of a Stripe-hosted link?
-6. **Invoice remainder.** Which billing details are required, what payment term is stated, and who issues the invoice and from which numbering?
-7. **Cash remainder.** Is the saved card a guarantee as in the existing cash flow (no-show or late-cancel fee, and the operator may charge it if the cash was not paid)?
-8. **Purpose of the saved card for link and invoice quotes.** What may it be charged for: fees and extras only, or also an unpaid remainder?
-9. **PDF.** Accept two new server packages (headless Chromium) so the email carries a real PDF in all 7 languages, or keep zero new packages and send a link to a print-ready page instead of a file?
-10. **Who can cancel an accepted quote.** Operator only in this phase (the client writes or calls), or a cancel button for the client on the quote page?
+**Owner — needed before planning** (resolution status added 2026-11-14 after the plan check, W5)
+1. **Booking mode for the remainder.** May a quote booking whose remainder is "saved card" be stored as a normal card-hold booking (and "cash" as a normal cash-with-guarantee booking), linked to the quote, so the existing engine runs it unchanged? The alternative keeps the label `quote` on every quote booking and rewrites about 40 checks in the payment code. — **Resolved: D-15** (with D-01).
+2. **Late cancellation money.** After the free window, is the fee a percent of the deposit (the deposit is what is at stake, nothing more is charged), or a percent of the whole quote (which may mean charging the saved card beyond the deposit)? — **Resolved: D-11.**
+3. **Deposit across trips.** Spread the deposit over the trips in proportion to their prices (recommended), or count it against the first or the last trip? And when one trip of a paid quote is cancelled, is its share refunded, kept, or decided by the operator each time? — **Resolved: D-12** (the operator decides; proportional shares are the planner's allocation in 92-02, A3).
+4. **Custom cancellation window.** How long may the free-cancellation period of a quote be? The current limit in the system is 72 hours before the trip; tours may need days or weeks. — **Resolved: D-13** (up to 30 days).
+5. **Payment-link remainder.** One payment for the whole remainder or one per trip, and by when must it be paid? Is paying on the quote page (same link, all languages) acceptable instead of a Stripe-hosted link? — **Resolved: D-16** (paid on the quote page; one payment for what is due, plan 92-23).
+6. **Invoice remainder.** Which billing details are required, what payment term is stated, and who issues the invoice and from which numbering? — **Resolved: D-17** (record, accounting email, "mark invoice paid"; no invoice document in this phase).
+7. **Cash remainder.** Is the saved card a guarantee as in the existing cash flow (no-show or late-cancel fee, and the operator may charge it if the cash was not paid)? — **OPEN: asked at the owner gate of plan 92-03 (Task 1) before any consent copy is written; recorded as D-21.**
+8. **Purpose of the saved card for link and invoice quotes.** What may it be charged for: fees and extras only, or also an unpaid remainder? — **OPEN: asked at the same owner gate of plan 92-03; recorded as D-22.**
+9. **PDF.** Accept two new server packages (headless Chromium) so the email carries a real PDF in all site languages, or keep zero new packages and send a link to a print-ready page instead of a file? — **Resolved: D-14** (production proof in plan 92-32).
+10. **Who can cancel an accepted quote.** Operator only in this phase (the client writes or calls), or a cancel button for the client on the quote page? — **Resolved: D-03** with the planner's A8 (operator-only cancel in this phase, plans 92-11 / 92-22).
 
 **Owner — can be decided during planning**
-11. One CRM lead per quote or one per trip.
-12. Whether clients get the per-trip "manage booking" link for quote trips (off by default).
-13. Quote currency: EUR only, or CZK as well; rounding of a percent deposit (to cents or to whole units).
-14. Whether post-trip extras (waiting beyond the booked time) may be charged on quote trips.
-15. Whether price edits of a single trip are allowed after the deposit is paid, or blocked in this phase.
+11. One CRM lead per quote or one per trip. — Planner default (A7): the existing insert triggers run unchanged, one Lead per trip; no D-decision.
+12. Whether clients get the per-trip "manage booking" link for quote trips (off by default). — Planner default: off (plan 92-11, A8); no D-decision.
+13. Quote currency: EUR only, or CZK as well; rounding of a percent deposit (to cents or to whole units). — Planner: EUR or CZK per version (091 schema), percent deposit rounded to the cent (92-02); no D-decision.
+14. Whether post-trip extras (waiting beyond the booked time) may be charged on quote trips. — Planner (A12) for saved-card trips; for cash, link and invoice quotes it is part of D-21 / D-22.
+15. Whether price edits of a single trip are allowed after the deposit is paid, or blocked in this phase. — **Resolved: D-20.**
 
-**Accountant**
+**Accountant** (open; routed to plan 92-28 step 8, not blocking the build)
 16. Is the company a VAT payer, and is the recorded VAT id correct?
 17. Must a tax document be issued for each deposit within 15 days of receipt, per quote or per trip, in which numbering series and with what wording?
 18. VAT rate for chauffeur transport, and the treatment of cross-border trips (Czech section and foreign sections) when one deposit covers several trips.
 19. What document is needed when a deposit is refunded in full or in part.
 20. B2B clients in other EU states: reverse charge and what the deposit document must say.
 
-**Counsel**
+**Counsel** (open; routed to plan 92-28 step 8, before quotes go to real clients)
 21. Wording of the acceptance and card-authorisation text for each remainder method, and whether the cancellation fee on a deposit is fair-terms safe for consumers.
 22. Whether any planned quote content (guides, tickets, accommodation) would make a quote a travel package.

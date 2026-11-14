@@ -4,7 +4,7 @@
 **Files analyzed:** 31 (new + modified; new file names are proposals, the planner may rename)
 **Analogs found:** 28 / 31 (every analog path below verified with `git ls-files`)
 
-Migration number: next free is **090** (`supabase/migrations/` ends with two 089 files: `089_admin_search_bookings_hide_cancelled.sql` and `089_stops_landing_extra_charges.sql`). Re-run `ls supabase/migrations` at write time.
+Migration number: **091** (`supabase/migrations/` ends with two 089 files: `089_admin_search_bookings_hide_cancelled.sql` and `089_stops_landing_extra_charges.sql`; 090 is the production hotfix `090_consent_locale_zh_hant.sql`, which reaches this branch through main). Re-run `ls supabase/migrations` at write time.
 
 Three facts the planner must design around (not found as ready patterns in the repo):
 
@@ -16,7 +16,7 @@ Three facts the planner must design around (not found as ready patterns in the r
 
 | New/Modified File | Role | Data Flow | Closest Analog | Match |
 |---|---|---|---|---|
-| `supabase/migrations/090_quotes.sql` (quotes, versions, lines, tokens, acceptance log, ledger kinds, erasure fns, RPC grants) | migration | CRUD | `supabase/migrations/089_stops_landing_extra_charges.sql` (+ 087 L336-358 token table, 085 L413-540 RPC) | exact |
+| `supabase/migrations/091_quotes.sql` (quotes, versions, lines, tokens, acceptance log, ledger kinds, erasure fns, RPC grants) | migration | CRUD | `supabase/migrations/089_stops_landing_extra_charges.sql` (+ 087 L336-358 token table, 085 L413-540 RPC) | exact |
 | `lib/quote-token.ts` | service | request-response | `lib/manage-link.ts` | role-match (hash differs) |
 | `lib/quote-pricing.ts` (suggested price of one line) | service | transform | `app/api/admin/bookings/route.ts` L985-1104 + `lib/checkout/compute.ts` `priceCheckout` | role-match |
 | `lib/quotes.ts` (lifecycle: create, new version, send, void, viewed, accept) | service | CRUD | `lib/payments/extra.ts` (row is the lock, CAS on status) + `lib/manage-link.ts` | role-match |
@@ -46,11 +46,11 @@ Three facts the planner must design around (not found as ready patterns in the r
 | `lib/payments/emails/render.ts` + `send.ts` (quote email kinds) | service | request-response | themselves (`TEMPLATES`, `renderPaymentEmail`) | exact |
 | quote PDF render | service | file-I/O | none | none |
 | remainder method "invoice" (record + email) | service | request-response | none | none |
-| tests (`tests/migration-090.test.ts`, `quote-token`, `quote-routes`, `quote-page`, `quote-deposit-webhook`, `phase92-e2e`, i18n parity) + `tests/helpers/fake-payments-db.ts` | test | n/a | `tests/migration-089.test.ts`, `manage-link.test.ts`, `manage-booking.test.ts`, `manage-page.test.tsx`, `extra-webhook.test.ts`, `phase91-e2e.test.ts`, `payments-copy-i18n.test.ts` | exact |
+| tests (`tests/migration-091.test.ts`, `quote-token`, `quote-routes`, `quote-page`, `quote-deposit-webhook`, `phase92-e2e`, i18n parity) + `tests/helpers/fake-payments-db.ts` | test | n/a | `tests/migration-089.test.ts`, `manage-link.test.ts`, `manage-booking.test.ts`, `manage-page.test.tsx`, `extra-webhook.test.ts`, `phase91-e2e.test.ts`, `payments-copy-i18n.test.ts` | exact |
 
 ## Pattern Assignments
 
-### `supabase/migrations/090_quotes.sql` (migration, CRUD)
+### `supabase/migrations/091_quotes.sql` (migration, CRUD)
 
 **Analog:** `supabase/migrations/089_stops_landing_extra_charges.sql`
 
@@ -512,7 +512,7 @@ getResend().emails.send(
 
 | New test | Analog | What to copy |
 |---|---|---|
-| `tests/migration-090.test.ts` | `tests/migration-089.test.ts` L1-60 | `loadMigration(name)` (comments stripped), whitespace-flattened text, `statementFrom(needle)`, per-table `toContain` of each column / CHECK, the deny-all block (REVOKE, RLS, both policies, no GRANT), ledger list parity with `LEDGER_KINDS`, erasure superset check (`tests/erasure-payment-pii.test.ts` L19-30 `bodyIn` / superset helper) |
+| `tests/migration-091.test.ts` | `tests/migration-089.test.ts` L1-60 | `loadMigration(name)` (comments stripped), whitespace-flattened text, `statementFrom(needle)`, per-table `toContain` of each column / CHECK, the deny-all block (REVOKE, RLS, both policies, no GRANT), ledger list parity with `LEDGER_KINDS`, erasure superset check (`tests/erasure-payment-pii.test.ts` L19-30 `bodyIn` / superset helper) |
 | `tests/quote-token.test.ts` | `tests/manage-link.test.ts` | cases L64-217: token shape, malformed value makes no database call, unknown / revoked / expired all return the same null, a database problem gives null and never throws, the token is never logged (spy on `console`), URL unprefixed for en and prefixed for the others |
 | `tests/quote-routes.test.ts` (public) | `tests/manage-booking.test.ts` L11-60 | `vi.hoisted` mocks for the resolver, the engine and `checkRateLimit`; `vi.mock('@/lib/rate-limit', () => ({ checkRateLimit: mockRate, getClientIp: () => '203.0.113.9' }))`; a `post(url, body, raw?)` Request helper; `beforeEach` resets with `mockRate.mockResolvedValue({ allowed: true, remaining: 9, limit: 10 })`; the route's contract only (guards, uniform 404, every engine outcome mapped, nothing client-written in a log) |
 | `tests/admin-quotes-route.test.ts` | `tests/admin-extra-route.test.ts` L1-75 | `world.auth: 'admin' | '401' | '403'` switch inside the `getAdminUser` mock, service client mocked to the in-memory db, `getPaymentsStripe: () => world.stripe`, route imported AFTER the mocks, a `seed(over)` helper |

@@ -21,10 +21,10 @@ Not in scope: the day-trip catalogue and the custom-tour request form (Phase 93;
 - Quote bookings carry `payment_mode='quote'` (already allowed by migration 085), so the hold engine ignores them until the operator's remainder method applies.
 - The deposit is a client-facing payment on the quote page and also saves the card (QUOTE-03).
 - The server is the price authority: the client never sends an amount; the amounts are the ones stored in the quote version.
-- No hard-coded prices in `app/` or `components/`; all 7 locales get real translations for client-facing strings; all times are Prague time, DST-safe.
+- No hard-coded prices in `app/` or `components/`; every site locale gets real translations for client-facing strings (8 since zh-hant was added: en, ru, es, fr, ar, hi, zh written by hand, zh-hant generated from zh by `scripts/zh-hant-sync.mjs`); all times are Prague time, DST-safe.
 - No new runtime dependency for the PDF unless research shows there is no other workable path (v5.0 stance).
 - Stops and waiting on a quote line follow Phase 91: distance through all stops, first 15 minutes free, per-class waiting rate, and the client sees one total per line without a separate waiting amount (owner decision 2026-11-12).
-- Migration numbering: 085–089 exist (two files share 089). The next free number is 090; the roadmap's "088" is out of date.
+- Migration numbering: 085–089 exist (two files share 089), and 090 is taken by the production hotfix `090_consent_locale_zh_hant.sql` (booking_payment_consents.locale accepts zh-hant; applied live, reaches main in its own PR). The quote migration is 091 (`091_quotes.sql`); the roadmap's "088" and the earlier "090" are out of date.
 
 ### Owner decisions (2026-11-14)
 - **D-01:** A quote of several days or trips is paid as a deposit plus a remainder. There is never one long hold over the whole quote and no per-day hold as the quote's own payment model. The remainder method per quote is one of: saved card (hold / capture per trip, the existing engine), payment link, cash to the driver, invoice. — **Reversibility:** costly — the booking payment state of every quote booking follows from it.
@@ -37,6 +37,11 @@ Not in scope: the day-trip catalogue and the custom-tour request form (Phase 93;
 - **D-12:** The deposit belongs to the whole quote. Cancelling one trip of several does not move it automatically: the operator refunds a part by hand or lowers the remainder.
 - **D-13:** Custom free-cancellation terms on a quote may be up to 30 days before the first trip (the existing 72-hour cap in `policyFromSnapshot` must not silently turn a longer window into the legacy policy).
 - **D-14:** The quote email carries a real PDF attachment in the client's language, and the client can download the PDF from the quote page. Two new server packages are accepted for it (`puppeteer-core` + `@sparticuz/chromium-min`), behind one `renderQuotePdf()` function, proven by a spike first; when the render fails on the host the email carries the link instead. Pin a release at least two weeks old and add a human-verify checkpoint for the install.
+
+### Open owner questions (asked at the owner gate of plan 92-03, before any consent copy is written)
+- Cash remainder: what may the card saved with the deposit be charged for (research Owner Question 7)?
+- Payment-link and invoice remainders: what may the saved card be charged for (research Owner Question 8)?
+- The answers are recorded above as D-21 and D-22 by 92-03 Task 1.
 
 ### Decided by Claude after research (owner may override)
 - **D-15:** A booking created from a quote gets the payment mode that matches the quote's remainder method, linked by `bookings.quote_id` / `quote_line_id`: saved card → `card_hold`, cash → `cash_guarantee`, payment link and invoice → `quote`. This replaces the literal reading of "quote bookings carry `payment_mode='quote'`": the existing hold engine, the driver cash step and about 40 checks recognise only `card_hold` and `cash_guarantee`.
