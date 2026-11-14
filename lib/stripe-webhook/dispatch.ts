@@ -24,7 +24,7 @@ import type Stripe from 'stripe'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { appendPaymentEvent } from '@/lib/payments/state'
 import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
-import { handleCardChargeFailed, handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
+import { handleCardChargeFailed, handleCardChargeSucceeded, observeQuoteRefund } from '@/lib/stripe-webhook/charge-events'
 import { handleHoldAuthorized, handleHoldCanceled, handleHoldFailed } from '@/lib/stripe-webhook/hold-events'
 import {
   handleQuoteDepositPaid,
@@ -262,6 +262,14 @@ export async function dispatchPaymentEvent(
       await observeRefund(event)
     } catch {
       console.error('[webhook] refund observation failed', { eventId: event.id })
+    }
+    // Phase 92 (plan 92-22): the same event may be a refund of a quote deposit or remainder (for example one made in
+    // the Stripe Dashboard). Its own try: a failed booking observation must not skip it, and it must not stop the
+    // shipped refund handler either.
+    try {
+      await observeQuoteRefund(event)
+    } catch {
+      console.error('[webhook] quote refund observation failed', { eventId: event.id })
     }
     return { handled: false }
   }

@@ -159,3 +159,28 @@ describe('refunds that are not a quote payment, or not the quote\'s to count', (
     expect(db.state.bookings.filter((b) => b.quote_id === f.quoteId).map((b) => b.status)).toEqual(['confirmed', 'confirmed'])
   })
 })
+
+// Wiring (done at the wave-4 merge): the webhook dispatch runs the quote observation on every charge.refunded event.
+describe('charge.refunded reaches the quote observation through the webhook dispatch', () => {
+  it('a Dashboard refund of a quote deposit is observed, and the shipped refund handler still runs afterwards', async () => {
+    const { dispatchPaymentEvent } = await import('@/lib/stripe-webhook/dispatch')
+    const f = await seedPaidQuote(db, fake)
+
+    const result = await dispatchPaymentEvent(refundEvent(f.depositIntent, 1500, 'ch_wired'))
+
+    expect(result).toEqual({ handled: false })
+    expect(quoteRow(f.quoteId).deposit_refunded_minor).toBe(1500)
+    expect(observed(f.quoteId)).toHaveLength(1)
+  })
+
+  it('a refund that belongs to no quote changes no quote and does not throw', async () => {
+    const { dispatchPaymentEvent } = await import('@/lib/stripe-webhook/dispatch')
+    const f = await seedPaidQuote(db, fake)
+
+    const result = await dispatchPaymentEvent(refundEvent('pi_not_a_quote', 900, 'ch_other'))
+
+    expect(result).toEqual({ handled: false })
+    expect(quoteRow(f.quoteId).deposit_refunded_minor).toBe(0)
+    expect(observed(f.quoteId)).toHaveLength(0)
+  })
+})
