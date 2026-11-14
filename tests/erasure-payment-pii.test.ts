@@ -42,14 +42,17 @@ function expectSupersetOf075(name: string): void {
 describe('088 erasure_anonymise_person (tracer: consent IP nulling through a copy of the 075 function)', () => {
   const body = latestFunctionBody('erasure_anonymise_person')
 
-  it('is the latest definition (089 copies 088 and adds the stop data) and names the payment tables', () => {
+  it('is the latest definition (089 and 091 copy 088 and add the stop and quote data) and names the payment tables', () => {
     expect(body).toContain('booking_payment_consents')
     expect(body).toContain('booking_manage_tokens')
     expect(body).toContain('booking_payment_notes')
     expect(body).toContain('booking_fee_cases')
-    // Phase 91 (migration 089) re-created the function: the latest body is the 089 one, and the whole 088 body
-    // (statement by statement) is still inside it - see tests/migration-089.test.ts.
-    expect(norm(body)).toBe(norm(bodyIn(m089, 'erasure_anonymise_person')))
+    // Phase 91 (migration 089) and Phase 92 (migration 091) re-created the function: the latest body is the 091
+    // one, and the whole 089 and 088 bodies (statement by statement) are still inside it - see
+    // tests/migration-089.test.ts and tests/migration-091.test.ts.
+    for (const chunk of bodyIn(m089, 'erasure_anonymise_person').split(';').map(norm).filter((c) => c.length > 0)) {
+      expect(norm(body), chunk.slice(0, 80)).toContain(chunk)
+    }
     for (const chunk of bodyIn(m088, 'erasure_anonymise_person').split(';').map(norm).filter((c) => c.length > 0)) {
       expect(norm(body), chunk.slice(0, 80)).toContain(chunk)
     }

@@ -941,4 +941,685 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, text, text, jsonb, text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.quote_convert_to_bookings(uuid, uuid, text, text, text, jsonb, text, text) TO service_role;
 
--- == (the erasure copies of plan 92-12 are appended below) ==
+-- == 10. Erasure coverage for quotes (D-19; QUOTE-01, QUOTE-02, QUOTE-05) ==========
+-- An unconverted quote holds a client's name, email, phone, trip addresses, IP and browser, and is reachable by a
+-- secret link: the erasure functions must cover it. The three public erasure functions are replaced by FULL COPIES of
+-- their latest bodies (erasure_confirm and erasure_scope from 088, erasure_anonymise_person from 089) with the quote
+-- statements ADDED; tests/migration-091.test.ts compares them statement by statement, so nothing of the old bodies can
+-- be edited out unnoticed. Only two old statements change shape: the 'not_found' condition of erasure_scope (a person
+-- who only has a quote is found) and its closing RETURN (counts.quotes).
+--
+-- Matching: a quote belongs to the person by the normalised client email, by the normalised client phone (only the
+-- phones frozen on the request, which never include a shared desk or hotel number), or through a booking it became
+-- (bookings.quote_id). In flight: the deposit is paid and not yet converted (status accepted with a deposit intent), or
+-- a remainder payment was started and neither paid nor cancelled. An erasure waits for those (erasure_confirm answers
+-- 'payment_open') and the Stripe Customer of such a quote is not deleted.
+--
+-- Deleted: a quote with no booking, no payment intent, no paid time and no refund (versions, lines, stops, links,
+-- events, acceptances and documents go with it). Anonymised in place: every other quote of the person. A kept quote
+-- keeps amounts, dates, references, ledgers and the acceptance log rows; client fields, trip addresses and coordinates,
+-- free text, acceptance IP and browser, links, PDFs and Stripe ids go. Client fields cannot be '' (CHECK length >= 1):
+-- the names become '-' and the email 'erased-<id>@erased.invalid' (the 075 pattern), the phone NULL; origin_address is
+-- NOT NULL and becomes 'erased'.
+--
+-- The erasure deletes rows of frozen versions and of the append-only logs, so erasure_anonymise_person sets the
+-- transaction-local prestigo.quote_erasure = 'on' (the guards of section 8 honour it) before the first quote statement
+-- and back to 'off' after the last one.
+
+-- Internal: the ids of the person's quotes that are not anonymised yet.
+CREATE OR REPLACE FUNCTION public.erasure_quote_ids(p_emails text[], p_phones text[], p_booking_ids uuid[])
+RETURNS uuid[]
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT COALESCE(array_agg(DISTINCT q.id), '{}'::uuid[])
+    FROM public.quotes q
+   WHERE q.anonymised_at IS NULL
+     AND (
+          public.identity_normalize_email(q.client_email) = ANY (p_emails)
+       OR (q.client_phone IS NOT NULL AND public.identity_normalize_phone(q.client_phone) = ANY (p_phones))
+       OR q.id IN (SELECT b.quote_id FROM public.bookings b WHERE b.id = ANY (p_booking_ids) AND b.quote_id IS NOT NULL)
+     );
+$$;
+
+-- Internal: how many of the person's quotes have money in flight.
+CREATE OR REPLACE FUNCTION public.erasure_quote_payment_open(p_emails text[], p_phones text[])
+RETURNS integer
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT count(*)::integer
+    FROM public.quotes q
+   WHERE q.id = ANY (public.erasure_quote_ids(p_emails, p_phones, '{}'::uuid[]))
+     AND (
+          (q.status = 'accepted' AND q.deposit_payment_intent_id IS NOT NULL)
+       OR (q.remainder_payment_intent_id IS NOT NULL AND q.remainder_paid_at IS NULL AND q.cancelled_at IS NULL)
+     );
+$$;
+
+-- The Stripe Customers stored on the request person's quotes, for the saga step 'stripe' (lib/erasure.ts). Not the
+-- customer of a quote with money in flight, and not a customer a booking still uses for a payment that is not finished.
+CREATE OR REPLACE FUNCTION public.erasure_quote_customer_ids(p_request_id uuid)
+RETURNS text[]
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT COALESCE(array_agg(DISTINCT q.stripe_customer_id), '{}'::text[])
+    FROM public.erasure_requests r
+    JOIN public.quotes q ON q.id = ANY (public.erasure_quote_ids(r.subject_emails, r.subject_phones, r.booking_ids))
+   WHERE r.id = p_request_id
+     AND q.stripe_customer_id IS NOT NULL
+     AND NOT (
+          (q.status = 'accepted' AND q.deposit_payment_intent_id IS NOT NULL)
+       OR (q.remainder_payment_intent_id IS NOT NULL AND q.remainder_paid_at IS NULL AND q.cancelled_at IS NULL)
+        )
+     AND NOT EXISTS (
+           SELECT 1 FROM public.bookings ob
+            WHERE ob.stripe_customer_id = q.stripe_customer_id
+              AND ob.payment_state NOT IN ('none', 'captured', 'released', 'cash_settled')
+         );
+$$;
+
+-- Full copy of the 088 erasure_confirm + the quote payment guard.
+CREATE OR REPLACE FUNCTION public.erasure_confirm(p_request_id uuid, p_actor uuid)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+#variable_conflict use_column
+DECLARE
+  r           record;
+  v_identity  uuid;
+  v_user      uuid;
+  v_emails    text[];
+  v_phones    text[];
+  v_bookings  uuid[];
+  v_inquiries uuid[];
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended('identity', 0));
+
+  SELECT * INTO r FROM public.erasure_requests e WHERE e.id = p_request_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RETURN 'not_found';
+  END IF;
+  IF r.status IN ('confirmed', 'running') THEN
+    RETURN 'already_in_progress';
+  END IF;
+  IF r.status <> 'previewed' THEN
+    RETURN 'not_previewed';
+  END IF;
+  IF r.expires_at <= now() THEN
+    RETURN 'expired';
+  END IF;
+  IF r.requested_by <> p_actor THEN
+    RETURN 'actor_mismatch';
+  END IF;
+
+  v_identity := r.identity_id;
+  IF v_identity IS NULL THEN
+    SELECT ie.identity_id INTO v_identity
+      FROM public.identity_emails ie
+     WHERE ie.email = ANY (r.subject_emails)
+     LIMIT 1;
+  END IF;
+
+  v_emails := ARRAY(
+    SELECT DISTINCT x
+      FROM unnest(
+             r.subject_emails
+             || ARRAY(SELECT ie.email FROM public.identity_emails ie WHERE ie.identity_id = v_identity)
+           ) AS x
+  );
+
+  -- Only numbers that are not flagged shared: a desk / hotel number must never pull another
+  -- person's chat contact into the deletion.
+  v_phones := ARRAY(
+    SELECT DISTINCT x
+      FROM unnest(
+             r.subject_phones
+             || ARRAY(
+                  SELECT p.phone
+                    FROM public.identity_phones p
+                    LEFT JOIN public.phone_flags f ON f.phone = p.phone
+                   WHERE p.identity_id = v_identity
+                     AND (f.phone IS NULL OR f.shared = false)
+                )
+           ) AS x
+  );
+
+  v_user := COALESCE(
+    r.user_id,
+    (SELECT c.user_id FROM public.contact_identities c WHERE c.id = v_identity),
+    (SELECT u.id FROM auth.users u WHERE public.identity_normalize_email(u.email) = ANY (v_emails) LIMIT 1)
+  );
+
+  v_bookings := public.erasure_booking_ids(v_identity, v_user, v_emails);
+  v_inquiries := public.erasure_inquiry_ids(v_emails);
+
+  -- Phase 89 (T-89-16): refuse while a payment is in play. A live hold, a pending fee case or a card flow still
+  -- open on a future pickup needs the Stripe ids and the booking's contact data; nothing has been written yet.
+  IF public.erasure_payment_open(v_bookings) > 0 THEN
+    RETURN 'payment_open';
+  END IF;
+
+  -- Phase 92 (D-19, T-92-38): the same refusal for a quote whose deposit or remainder is in flight.
+  IF public.erasure_quote_payment_open(v_emails, v_phones) > 0 THEN
+    RETURN 'payment_open';
+  END IF;
+
+  -- The partial unique indexes decide a race between two confirms: nothing else is written then.
+  BEGIN
+    UPDATE public.erasure_requests e
+       SET status         = 'confirmed',
+           confirmed_at   = now(),
+           identity_id    = v_identity,
+           user_id        = v_user,
+           subject_emails = v_emails,
+           subject_phones = v_phones,
+           booking_ids    = v_bookings,
+           inquiry_ids    = v_inquiries
+     WHERE e.id = p_request_id;
+  EXCEPTION WHEN unique_violation THEN
+    RETURN 'already_in_progress';
+  END;
+
+  IF v_identity IS NOT NULL THEN
+    UPDATE public.contact_identities c
+       SET erasing_at = COALESCE(c.erasing_at, now()), updated_at = now()
+     WHERE c.id = v_identity;
+  END IF;
+
+  -- The erase row shares the person aggregate (the identity id), so the claim mutex of 064 never runs
+  -- it beside a sync row. A person without an identity uses the request id.
+  PERFORM public.outbox_enqueue(
+    'erase.person',
+    'person',
+    COALESCE(v_identity, p_request_id),
+    'erase.person:' || p_request_id::text,
+    now()
+  );
+
+  RETURN 'confirmed';
+END;
+$$;
+
+-- Full copy of the 088 erasure_scope + the quote count (counts.quotes) and the quote payments in counts.payment_open.
+CREATE OR REPLACE FUNCTION public.erasure_scope(p_email text, p_phone text)
+RETURNS jsonb
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+#variable_conflict use_column
+DECLARE
+  v_email     text;
+  v_phone     text;
+  v_identity  uuid;
+  v_user      uuid;
+  v_emails    text[];
+  v_phones    text[];
+  v_owners    uuid[];
+  v_shared    boolean;
+  v_bookings  uuid[];
+  v_inquiries uuid[];
+  v_quote     integer;
+  v_upcoming  integer;
+  v_primary   text;
+  v_payment_open integer;
+  v_quotes_cnt integer;
+BEGIN
+  v_email := public.identity_normalize_email(p_email);
+  v_phone := public.identity_normalize_phone(p_phone);
+  IF v_email IS NULL AND v_phone IS NULL THEN
+    RETURN jsonb_build_object('outcome', 'invalid');
+  END IF;
+
+  IF v_email IS NOT NULL THEN
+    SELECT ie.identity_id INTO v_identity FROM public.identity_emails ie WHERE ie.email = v_email;
+  ELSE
+    SELECT COALESCE(array_agg(DISTINCT p.identity_id), '{}'::uuid[])
+      INTO v_owners
+      FROM public.identity_phones p
+     WHERE p.phone = v_phone;
+    SELECT EXISTS (SELECT 1 FROM public.phone_flags f WHERE f.phone = v_phone AND f.shared)
+      INTO v_shared;
+    IF v_shared OR cardinality(v_owners) > 1 THEN
+      RETURN jsonb_build_object('outcome', 'shared_phone', 'identities', cardinality(v_owners));
+    END IF;
+    IF cardinality(v_owners) = 0 THEN
+      RETURN jsonb_build_object('outcome', 'not_found');
+    END IF;
+    v_identity := v_owners[1];
+  END IF;
+
+  v_emails := ARRAY(
+    SELECT DISTINCT x
+      FROM unnest(
+             CASE WHEN v_email IS NULL THEN '{}'::text[] ELSE ARRAY[v_email] END
+             || ARRAY(SELECT ie.email FROM public.identity_emails ie WHERE ie.identity_id = v_identity)
+           ) AS x
+     ORDER BY x
+  );
+  SELECT ie.email INTO v_primary
+    FROM public.identity_emails ie
+   WHERE ie.identity_id = v_identity
+   ORDER BY ie.created_at, ie.email
+   LIMIT 1;
+  v_primary := COALESCE(v_primary, v_email);
+
+  v_user := COALESCE(
+    (SELECT c.user_id FROM public.contact_identities c WHERE c.id = v_identity),
+    (SELECT u.id FROM auth.users u WHERE public.identity_normalize_email(u.email) = ANY (v_emails) LIMIT 1)
+  );
+
+  v_phones := ARRAY(
+    SELECT p.phone
+      FROM public.identity_phones p
+      LEFT JOIN public.phone_flags f ON f.phone = p.phone
+     WHERE p.identity_id = v_identity
+       AND (f.phone IS NULL OR f.shared = false)
+     ORDER BY p.first_seen, p.phone
+  );
+
+  v_bookings := public.erasure_booking_ids(v_identity, v_user, v_emails);
+  v_inquiries := public.erasure_inquiry_ids(v_emails);
+  SELECT count(*)::integer INTO v_quote
+    FROM public.quote_leads q
+   WHERE public.identity_normalize_email(q.email) = ANY (v_emails);
+  SELECT count(*)::integer INTO v_upcoming
+    FROM public.bookings b
+   WHERE b.id = ANY (v_bookings)
+     AND b.pickup_utc >= now()
+     AND b.status <> 'cancelled';
+  v_payment_open := public.erasure_payment_open(v_bookings);
+  v_quotes_cnt := cardinality(public.erasure_quote_ids(v_emails, v_phones, v_bookings));
+  v_payment_open := v_payment_open + public.erasure_quote_payment_open(v_emails, v_phones);
+
+  IF v_identity IS NULL AND v_user IS NULL
+     AND cardinality(v_bookings) = 0 AND cardinality(v_inquiries) = 0 AND v_quote = 0 AND v_quotes_cnt = 0 THEN
+    RETURN jsonb_build_object('outcome', 'not_found');
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+      FROM public.erasure_requests e
+     WHERE e.status IN ('confirmed', 'running')
+       AND ((v_identity IS NOT NULL AND e.identity_id = v_identity) OR e.subject_emails && v_emails)
+  ) THEN
+    RETURN jsonb_build_object('outcome', 'already_in_progress');
+  END IF;
+
+  RETURN jsonb_build_object(
+    'outcome', 'ok',
+    'primary_email', v_primary,
+    'emails', to_jsonb(v_emails),
+    'phones', to_jsonb(v_phones),
+    'identity_id', v_identity,
+    'user_id', v_user,
+    'booking_ids', to_jsonb(v_bookings),
+    'inquiry_ids', to_jsonb(v_inquiries),
+    'counts', jsonb_build_object(
+      'bookings', cardinality(v_bookings),
+      'upcoming', v_upcoming,
+      'payment_open', v_payment_open,
+      'inquiries', cardinality(v_inquiries),
+      'quote_leads', v_quote,
+      'quotes', v_quotes_cnt,
+      'has_account', v_user IS NOT NULL
+    )
+  );
+END;
+$$;
+
+-- Full copy of the 089 erasure_anonymise_person + the quote deletion / anonymisation.
+CREATE OR REPLACE FUNCTION public.erasure_anonymise_person(p_request_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+#variable_conflict use_column
+DECLARE
+  r         record;
+  v_ids     uuid[];
+  v_emails  text[];
+  v_phones  text[];
+  n_book    integer := 0;
+  n_audit   integer := 0;
+  n_mail    integer := 0;
+  n_gnet    integer := 0;
+  n_notes   integer := 0;
+  n_inq     integer := 0;
+  n_ql      integer := 0;
+  n_ident   integer := 0;
+  v_counts  jsonb;
+  n_consent integer := 0;
+  n_token   integer := 0;
+  n_pnote   integer := 0;
+  n_case    integer := 0;
+  n_stripe  integer := 0;
+  n_stops   integer := 0;
+  n_extra   integer := 0;
+  v_quote_ids         uuid[];
+  n_quotes_deleted    integer := 0;
+  n_quotes_anonymised integer := 0;
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtextextended('identity', 0));
+
+  SELECT * INTO r FROM public.erasure_requests e WHERE e.id = p_request_id FOR UPDATE;
+  IF NOT FOUND OR r.status NOT IN ('confirmed', 'running') THEN
+    RAISE EXCEPTION 'erasure_anonymise_person: request is not active';
+  END IF;
+
+  IF r.steps -> 'supabase' IS NOT NULL THEN
+    RETURN (r.steps -> 'supabase') - 'done_at';
+  END IF;
+
+  -- Supabase is last: the CRM and chat steps must be done and verified first.
+  IF r.steps -> 'chatwoot' IS NULL
+     OR r.steps -> 'espocrm' IS NULL
+     OR COALESCE(r.steps -> 'verify' ->> 'verified', 'false') <> 'true' THEN
+    RAISE EXCEPTION 'erasure_anonymise_person: CRM steps are not finished';
+  END IF;
+
+  -- Phase 89: the Stripe Customer is deleted (saga step 'stripe') while the Stripe ids are still on the
+  -- bookings. Anonymising first would orphan the Customer, so the order is enforced here as well.
+  IF r.steps -> 'stripe' IS NULL THEN
+    RAISE EXCEPTION 'erasure_anonymise_person: stripe step is not finished';
+  END IF;
+
+  v_emails := r.subject_emails;
+  v_ids := ARRAY(
+    SELECT DISTINCT x
+      FROM unnest(r.booking_ids || public.erasure_booking_ids(r.identity_id, r.user_id, v_emails)) AS x
+  );
+  v_phones := ARRAY(
+    SELECT DISTINCT x
+      FROM unnest(
+             r.subject_phones
+             || ARRAY(SELECT p.phone FROM public.identity_phones p WHERE p.identity_id = r.identity_id)
+           ) AS x
+  );
+
+  -- D-08: bookings keep date, amount, vehicle class, reference and invoice data; personal data goes.
+  UPDATE public.bookings b
+     SET client_first_name   = '',
+         client_last_name    = '',
+         client_email        = 'erased-' || b.id::text || '@erased.invalid',
+         client_phone        = '',
+         special_requests    = NULL,
+         operator_notes      = NULL,
+         origin_address      = NULL,
+         origin_lat          = NULL,
+         origin_lng          = NULL,
+         destination_address = NULL,
+         destination_lat     = NULL,
+         destination_lng     = NULL,
+         flight_number       = NULL,
+         flight_iata         = NULL,
+         user_id             = NULL,
+         anonymised_at       = now()
+   WHERE b.id = ANY (v_ids)
+     AND b.anonymised_at IS NULL;
+  GET DIAGNOSTICS n_book = ROW_COUNT;
+
+  -- Residual copies of the same data. Edit-audit rows keep the field name and the accounting values
+  -- (price, status, schedule); every other old/new value is wiped.
+  UPDATE public.booking_edit_audit_log a
+     SET old_value = NULL, new_value = NULL
+   WHERE a.booking_id = ANY (v_ids)
+     AND (a.old_value IS NOT NULL OR a.new_value IS NOT NULL)
+     AND a.field NOT IN (
+       'amount_czk', 'amount_eur', 'outbound_amount_czk', 'return_amount_czk', 'driver_price_czk',
+       'status', 'vehicle_class', 'pickup_date', 'pickup_time', 'return_date', 'passengers',
+       'luggage', 'hours', 'distance_km'
+     );
+  GET DIAGNOSTICS n_audit = ROW_COUNT;
+
+  UPDATE public.email_log l
+     SET recipient = 'erased@erased.invalid'
+   WHERE (l.booking_id = ANY (v_ids) OR public.identity_normalize_email(l.recipient) = ANY (v_emails))
+     AND l.recipient <> 'erased@erased.invalid';
+  GET DIAGNOSTICS n_mail = ROW_COUNT;
+
+  UPDATE public.gnet_bookings g
+     SET raw_payload = '{}'::jsonb, last_push_error = NULL
+   WHERE g.booking_id = ANY (v_ids)
+     AND (g.raw_payload <> '{}'::jsonb OR g.last_push_error IS NOT NULL);
+  GET DIAGNOSTICS n_gnet = ROW_COUNT;
+
+  UPDATE public.driver_assignments d
+     SET trip_note = NULL
+   WHERE d.booking_id = ANY (v_ids)
+     AND d.trip_note IS NOT NULL;
+  GET DIAGNOSTICS n_notes = ROW_COUNT;
+
+  -- Phase 89 (88 D-23, T-89-15): the payment flow's own personal data. Consent rows stay (the wording, its
+  -- hash and the acceptance time are accounting evidence); only the network identifiers go.
+  UPDATE public.booking_payment_consents pc
+     SET ip = NULL, user_agent = NULL
+   WHERE pc.booking_id = ANY (v_ids)
+     AND (pc.ip IS NOT NULL OR pc.user_agent IS NOT NULL);
+  GET DIAGNOSTICS n_consent = ROW_COUNT;
+
+  -- The manage-booking link dies with the person.
+  DELETE FROM public.booking_manage_tokens mt
+   WHERE mt.booking_id = ANY (v_ids);
+  GET DIAGNOSTICS n_token = ROW_COUNT;
+
+  -- Operator free text about cash decisions.
+  DELETE FROM public.booking_payment_notes pn
+   WHERE pn.booking_id = ANY (v_ids);
+  GET DIAGNOSTICS n_pnote = ROW_COUNT;
+
+  -- Fee cases keep kind, amounts, status and dates; the free text and the evidence pack go.
+  UPDATE public.booking_fee_cases fc
+     SET reason = NULL, contact_note = NULL, evidence = '{}'::jsonb
+   WHERE fc.booking_id = ANY (v_ids)
+     AND (fc.reason IS NOT NULL OR fc.contact_note IS NOT NULL OR fc.evidence <> '{}'::jsonb);
+  GET DIAGNOSTICS n_case = ROW_COUNT;
+
+  -- Phase 91: the addresses of the extra stops are location data like the pickup and drop-off above; the stop rows
+  -- stay (position, wait and the price snapshot are accounting history). The operator's free text on an extra charge goes.
+  UPDATE public.booking_stops bs
+     SET address = NULL, lat = NULL, lng = NULL
+   WHERE bs.booking_id = ANY (v_ids)
+     AND (bs.address IS NOT NULL OR bs.lat IS NOT NULL OR bs.lng IS NOT NULL);
+  GET DIAGNOSTICS n_stops = ROW_COUNT;
+
+  UPDATE public.booking_extra_charges ec
+     SET description = NULL
+   WHERE ec.booking_id = ANY (v_ids)
+     AND ec.description IS NOT NULL;
+  GET DIAGNOSTICS n_extra = ROW_COUNT;
+
+  -- Stripe ids only where the payment is finished (T-89-16): a live hold or an open fee case still needs them.
+  UPDATE public.bookings sb
+     SET stripe_customer_id       = NULL,
+         stripe_payment_method_id = NULL,
+         setup_intent_id          = NULL,
+         hold_payment_intent_id   = NULL,
+         recovery_link_url        = NULL
+   WHERE sb.id = ANY (v_ids)
+     AND sb.payment_state IN ('captured', 'released', 'cash_settled')
+     AND (sb.stripe_customer_id IS NOT NULL
+          OR sb.stripe_payment_method_id IS NOT NULL
+          OR sb.setup_intent_id IS NOT NULL
+          OR sb.hold_payment_intent_id IS NOT NULL
+          OR sb.recovery_link_url IS NOT NULL);
+  GET DIAGNOSTICS n_stripe = ROW_COUNT;
+
+  -- Phase 92 (D-19, T-92-37): the personal data of the person's quotes. The guards of 091 section 8 let this
+  -- transaction through (and only this one) while prestigo.quote_erasure is 'on'.
+  PERFORM set_config('prestigo.quote_erasure', 'on', true);
+  v_quote_ids := public.erasure_quote_ids(v_emails, r.subject_phones, v_ids);
+
+  -- A quote that never took money and never became a booking is deleted with everything under it (versions, lines,
+  -- stops, links, events, acceptances and documents cascade).
+  DELETE FROM public.quotes dq
+   WHERE dq.id = ANY (v_quote_ids)
+     AND dq.paid_at IS NULL
+     AND dq.remainder_paid_at IS NULL
+     AND dq.deposit_refunded_minor = 0
+     AND dq.remainder_refunded_minor = 0
+     AND dq.deposit_payment_intent_id IS NULL
+     AND dq.remainder_payment_intent_id IS NULL
+     AND NOT EXISTS (SELECT 1 FROM public.bookings qb WHERE qb.quote_id = dq.id)
+     AND NOT EXISTS (SELECT 1 FROM public.quote_acceptances qa WHERE qa.quote_id = dq.id AND qa.payment_intent_id IS NOT NULL);
+  GET DIAGNOSTICS n_quotes_deleted = ROW_COUNT;
+
+  -- Every other quote of the person is anonymised in place: amounts, dates, references and the ledgers stay
+  -- (accounting history); addresses, coordinates, free text, the client fields and the network identifiers go.
+  UPDATE public.quote_version_line_stops qs
+     SET address = NULL, lat = NULL, lng = NULL
+   WHERE qs.line_id IN (
+           SELECT ql.id
+             FROM public.quote_version_lines ql
+             JOIN public.quote_versions qv ON qv.id = ql.version_id
+            WHERE qv.quote_id = ANY (v_quote_ids)
+         )
+     AND (qs.address IS NOT NULL OR qs.lat IS NOT NULL OR qs.lng IS NOT NULL);
+
+  -- origin_address is NOT NULL (1 to 500 characters): it gets a fixed placeholder, everything else is nulled.
+  UPDATE public.quote_version_lines ql
+     SET origin_address      = 'erased',
+         origin_lat          = NULL,
+         origin_lng          = NULL,
+         destination_address = NULL,
+         destination_lat     = NULL,
+         destination_lng     = NULL,
+         flight_number       = NULL,
+         special_requests    = NULL
+   WHERE ql.version_id IN (SELECT qv.id FROM public.quote_versions qv WHERE qv.quote_id = ANY (v_quote_ids))
+     AND (ql.origin_address <> 'erased' OR ql.origin_lat IS NOT NULL OR ql.origin_lng IS NOT NULL
+          OR ql.destination_address IS NOT NULL OR ql.destination_lat IS NOT NULL OR ql.destination_lng IS NOT NULL
+          OR ql.flight_number IS NOT NULL OR ql.special_requests IS NOT NULL);
+
+  UPDATE public.quote_versions qv
+     SET billing_note = NULL
+   WHERE qv.quote_id = ANY (v_quote_ids)
+     AND qv.billing_note IS NOT NULL;
+
+  UPDATE public.quote_acceptances qa
+     SET ip = NULL, user_agent = NULL
+   WHERE qa.quote_id = ANY (v_quote_ids)
+     AND (qa.ip IS NOT NULL OR qa.user_agent IS NOT NULL);
+
+  -- The secret link and the stored PDF (it carries the client's name and the trip addresses) are deleted.
+  DELETE FROM public.quote_links qk
+   WHERE qk.quote_id = ANY (v_quote_ids);
+
+  DELETE FROM public.quote_documents qd
+   WHERE qd.version_id IN (SELECT qv.id FROM public.quote_versions qv WHERE qv.quote_id = ANY (v_quote_ids));
+
+  -- The Stripe ids go where no money is in flight (the saga step 'stripe' has already deleted the Customer).
+  UPDATE public.quotes sq
+     SET stripe_customer_id       = NULL,
+         stripe_payment_method_id = NULL,
+         updated_at               = now()
+   WHERE sq.id = ANY (v_quote_ids)
+     AND NOT (
+          (sq.status = 'accepted' AND sq.deposit_payment_intent_id IS NOT NULL)
+       OR (sq.remainder_payment_intent_id IS NOT NULL AND sq.remainder_paid_at IS NULL AND sq.cancelled_at IS NULL)
+        )
+     AND (sq.stripe_customer_id IS NOT NULL OR sq.stripe_payment_method_id IS NOT NULL);
+
+  UPDATE public.quotes aq
+     SET client_first_name = '-',
+         client_last_name  = '-',
+         client_email      = 'erased-' || aq.id::text || '@erased.invalid',
+         client_phone      = NULL,
+         user_id           = NULL,
+         source_inquiry_id = NULL,
+         anonymised_at     = now(),
+         updated_at        = now()
+   WHERE aq.id = ANY (v_quote_ids)
+     AND aq.anonymised_at IS NULL;
+  GET DIAGNOSTICS n_quotes_anonymised = ROW_COUNT;
+
+  PERFORM set_config('prestigo.quote_erasure', 'off', true);
+
+  -- Contact forms and quote requests of the person's emails are removed, not kept.
+  DELETE FROM public.inquiries i
+   WHERE i.id = ANY (r.inquiry_ids)
+      OR COALESCE(i.email_normalized, public.identity_normalize_email(i.email)) = ANY (v_emails);
+  GET DIAGNOSTICS n_inq = ROW_COUNT;
+
+  DELETE FROM public.quote_leads q
+   WHERE public.identity_normalize_email(q.email) = ANY (v_emails);
+  GET DIAGNOSTICS n_ql = ROW_COUNT;
+
+  -- The identity rows (emails, phones, booking links cascade).
+  IF r.identity_id IS NOT NULL THEN
+    DELETE FROM public.contact_identities c WHERE c.id = r.identity_id;
+    GET DIAGNOSTICS n_ident = ROW_COUNT;
+  END IF;
+
+  -- Automatic "shared" flags for the person's numbers, when no other identity holds the number.
+  DELETE FROM public.phone_flags f
+   WHERE f.phone = ANY (v_phones)
+     AND f.source = 'auto'
+     AND NOT EXISTS (SELECT 1 FROM public.identity_phones p WHERE p.phone = f.phone);
+
+  v_counts := jsonb_build_object(
+    'bookings_anonymised', n_book,
+    'inquiries_deleted', n_inq,
+    'quote_leads_deleted', n_ql,
+    'audit_values_scrubbed', n_audit,
+    'email_log_scrubbed', n_mail,
+    'gnet_payloads_scrubbed', n_gnet,
+    'trip_notes_scrubbed', n_notes,
+    'identity_deleted', n_ident
+  );
+
+  v_counts := v_counts || jsonb_build_object(
+    'consents_scrubbed', n_consent,
+    'manage_tokens_deleted', n_token,
+    'payment_notes_deleted', n_pnote,
+    'fee_cases_scrubbed', n_case,
+    'stripe_ids_cleared', n_stripe
+  );
+
+  v_counts := v_counts || jsonb_build_object(
+    'stops_scrubbed', n_stops,
+    'extra_descriptions_scrubbed', n_extra
+  );
+
+  v_counts := v_counts || jsonb_build_object(
+    'quotes_deleted', n_quotes_deleted,
+    'quotes_anonymised', n_quotes_anonymised
+  );
+
+  UPDATE public.erasure_requests e
+     SET steps  = e.steps || jsonb_build_object('supabase', v_counts || jsonb_build_object('done_at', now())),
+         status = 'running'
+   WHERE e.id = p_request_id;
+
+  RETURN v_counts;
+END;
+$$;
+
+-- Grants: a re-created SECURITY DEFINER function regains PUBLIC EXECUTE, so every function of this section is revoked
+-- again explicitly. The two internal helpers are revoked from service_role too (Supabase default privileges grant new
+-- public functions there); the four callable ones are granted to service_role only.
+REVOKE EXECUTE ON FUNCTION public.erasure_quote_ids(text[], text[], uuid[]) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_quote_ids(text[], text[], uuid[]) FROM service_role;
+REVOKE EXECUTE ON FUNCTION public.erasure_quote_payment_open(text[], text[]) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_quote_payment_open(text[], text[]) FROM service_role;
+REVOKE EXECUTE ON FUNCTION public.erasure_quote_customer_ids(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_confirm(uuid, uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_scope(text, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.erasure_anonymise_person(uuid) FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION public.erasure_quote_customer_ids(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.erasure_confirm(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.erasure_scope(text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.erasure_anonymise_person(uuid) TO service_role;
