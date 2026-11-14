@@ -1488,5 +1488,24 @@
       "acceptOnline": "请通过我们发送给您的链接在线接受报价并支付定金。",
       "operator": "Prestigo 由 {company} 运营。"
     }
+  },
+  "QuoteEmails": {
+    "common": {
+      "greeting": "{name}，您好：",
+      "signoff": "Prestigo 团队",
+      "contact": "有疑问？请回复此邮件或致电我们。",
+      "openQuote": "查看您的报价",
+      "pragueTime": "所有时间均为布拉格时间。"
+    },
+    "sent": {
+      "subject": "您的 Prestigo 报价 {reference}",
+      "h1": "您的报价已准备好",
+      "intro": "我们已为您的行程准备好报价。请打开查看详情和取消条款，然后接受报价并支付定金以确认。",
+      "total": "总计：{amount}",
+      "deposit": "确认所需定金：{amount}",
+      "validUntil": "此报价有效期至 {date}。",
+      "pdfAttached": "报价已作为 PDF 附在本邮件中。",
+      "pdfLink": "您可以在报价页面下载 PDF 版报价。"
+    }
   }
 }

@@ -1488,5 +1488,24 @@
       "acceptOnline": "Acepte el presupuesto y pague el depósito en línea con el enlace que le enviamos.",
       "operator": "Prestigo es operado por {company}."
     }
+  },
+  "QuoteEmails": {
+    "common": {
+      "greeting": "Hola, {name}:",
+      "signoff": "El equipo de Prestigo",
+      "contact": "¿Tiene preguntas? Responda a este correo o llámenos.",
+      "openQuote": "Abrir su presupuesto",
+      "pragueTime": "Todas las horas son hora de Praga."
+    },
+    "sent": {
+      "subject": "Su presupuesto de Prestigo {reference}",
+      "h1": "Su presupuesto está listo",
+      "intro": "Hemos preparado un presupuesto para sus trayectos. Ábralo para revisar los detalles y las condiciones de cancelación; después acéptelo y pague el depósito para confirmar.",
+      "total": "Total: {amount}",
+      "deposit": "Depósito para confirmar: {amount}",
+      "validUntil": "Este presupuesto es válido hasta el {date}.",
+      "pdfAttached": "El presupuesto va adjunto a este correo en PDF.",
+      "pdfLink": "Puede descargar el presupuesto en PDF en la página del presupuesto."
+    }
   }
 }

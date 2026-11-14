@@ -1438,5 +1438,24 @@
       "acceptOnline": "Accept the quote and pay the deposit online with the link we sent you.",
       "operator": "Prestigo is operated by {company}."
     }
+  },
+  "QuoteEmails": {
+    "common": {
+      "greeting": "Hello {name},",
+      "signoff": "Prestigo team",
+      "contact": "Questions? Reply to this email or call us.",
+      "openQuote": "Open your quote",
+      "pragueTime": "All times are Prague time."
+    },
+    "sent": {
+      "subject": "Your Prestigo quote {reference}",
+      "h1": "Your quote is ready",
+      "intro": "We prepared a quote for your trips. Open it to check the details and the cancellation terms, then accept it and pay the deposit to confirm.",
+      "total": "Total: {amount}",
+      "deposit": "Deposit to confirm: {amount}",
+      "validUntil": "This quote is valid until {date}.",
+      "pdfAttached": "The quote is attached to this email as a PDF.",
+      "pdfLink": "You can download the quote as a PDF on the quote page."
+    }
   }
 }

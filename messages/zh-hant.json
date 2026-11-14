@@ -1493,5 +1493,24 @@
       "acceptOnline": "請透過我們傳送給您的連結線上接受報價並支付定金。",
       "operator": "Prestigo 由 {company} 運營。"
     }
+  },
+  "QuoteEmails": {
+    "common": {
+      "greeting": "{name}，您好：",
+      "signoff": "Prestigo 團隊",
+      "contact": "有疑問？請回復此郵件或致電我們。",
+      "openQuote": "檢視您的報價",
+      "pragueTime": "所有時間均為布拉格時間。"
+    },
+    "sent": {
+      "subject": "您的 Prestigo 報價 {reference}",
+      "h1": "您的報價已準備好",
+      "intro": "我們已為您的行程準備好報價。請開啟檢視詳情和取消條款，然後接受報價並支付定金以確認。",
+      "total": "總計：{amount}",
+      "deposit": "確認所需定金：{amount}",
+      "validUntil": "此報價有效期至 {date}。",
+      "pdfAttached": "報價已作為 PDF 附在本郵件中。",
+      "pdfLink": "您可以在報價頁面下載 PDF 版報價。"
+    }
   }
 }

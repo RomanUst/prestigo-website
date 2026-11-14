@@ -1488,5 +1488,24 @@
       "acceptOnline": "Acceptez le devis et réglez l'acompte en ligne avec le lien que nous vous avons envoyé.",
       "operator": "Prestigo est exploité par {company}."
     }
+  },
+  "QuoteEmails": {
+    "common": {
+      "greeting": "Bonjour {name},",
+      "signoff": "L'équipe Prestigo",
+      "contact": "Des questions ? Répondez à cet e-mail ou appelez-nous.",
+      "openQuote": "Ouvrir votre devis",
+      "pragueTime": "Toutes les heures sont à l'heure de Prague."
+    },
+    "sent": {
+      "subject": "Votre devis Prestigo {reference}",
+      "h1": "Votre devis est prêt",
+      "intro": "Nous avons préparé un devis pour vos trajets. Ouvrez-le pour vérifier les détails et les conditions d'annulation, puis acceptez-le et réglez l'acompte pour confirmer.",
+      "total": "Total : {amount}",
+      "deposit": "Acompte pour confirmer : {amount}",
+      "validUntil": "Ce devis est valable jusqu'au {date}.",
+      "pdfAttached": "Le devis est joint à cet e-mail au format PDF.",
+      "pdfLink": "Vous pouvez télécharger le devis au format PDF sur la page du devis."
+    }
   }
 }

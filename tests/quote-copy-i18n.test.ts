@@ -216,3 +216,144 @@ describe('quote copy: zh-hant is generated from zh', () => {
     for (const [key, value] of Object.entries(zh)) expect({ key, text: hant[key] }).toEqual({ key, text: convert(value) })
   })
 })
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Plan 92-29 - QUOTE-04 / QUOTE-05 / QUOTE-07: the QuoteEmails namespace (the quote e-mails in the quote's language).
+// Same checks as the Quote namespace above, over every catalog of `locales`.
+// ---------------------------------------------------------------------------------------------------------------------
+
+/** Task 1: common and sent (13 keys). */
+const EMAIL_SENT_KEYS = [
+  'common.greeting', 'common.signoff', 'common.contact', 'common.openQuote', 'common.pragueTime',
+  'sent.subject', 'sent.h1', 'sent.intro', 'sent.total', 'sent.deposit', 'sent.validUntil', 'sent.pdfAttached', 'sent.pdfLink',
+] as const
+
+/** Task 2 (plan 92-29) extends this list: confirmed, remainder due / paid, cancelled, refunded (26 keys). */
+const EMAIL_LIFECYCLE_KEYS = [] as const
+
+const EMAIL_KEYS = [...EMAIL_SENT_KEYS, ...EMAIL_LIFECYCLE_KEYS].map((k) => `QuoteEmails.${k}`)
+
+function emailsOf(catalog: AbstractIntlMessages): Record<string, string> {
+  return flatten((catalog as Record<string, Json>).QuoteEmails, 'QuoteEmails')
+}
+
+const EMAIL_EN = emailsOf(CATALOGS.en)
+
+/** Genuine cognates / parameter-led values spelled like the English source. */
+const EMAIL_SAME_AS_EN: Record<string, ReadonlySet<string>> = {
+  es: new Set(['QuoteEmails.sent.total']),
+}
+
+describe('quote e-mail copy: the EN source', () => {
+  it('has exactly the planned QuoteEmails key set (13 keys)', () => {
+    expect(EMAIL_KEYS).toHaveLength(13)
+    expect(Object.keys(EMAIL_EN).sort()).toEqual([...EMAIL_KEYS].sort())
+  })
+
+  it('subjects carry the reference only and no line break (T-92-91)', () => {
+    for (const [key, value] of Object.entries(EMAIL_EN)) {
+      if (!key.endsWith('.subject')) continue
+      expect({ key, br: /[\r\n]/.test(value) }).toEqual({ key, br: false })
+      expect(params(value)).toEqual(['reference'])
+    }
+  })
+
+  it('never types an amount or names a separate waiting price (T-92-90)', () => {
+    for (const [key, value] of Object.entries(EMAIL_EN)) {
+      expect({ key, money: TYPED_MONEY.test(value) }).toEqual({ key, money: false })
+      expect({ key, waiting: WAITING_PRICE.en.test(value) }).toEqual({ key, waiting: false })
+    }
+  })
+
+  it('names the card only where D-21 / D-22 allow: saved-card remainder and the refund sentences', () => {
+    for (const key of ['payment_link', 'cash', 'invoice', 'none']) {
+      expect({ key, card: /card/i.test(EMAIL_EN[`QuoteEmails.confirmed.remainder.${key}`]) }).toEqual({ key, card: false })
+    }
+  })
+})
+
+describe.each(NON_EN)('quote e-mail copy parity: %s', (locale) => {
+  const tr = emailsOf(CATALOGS[locale])
+
+  it('has exactly the EN key set', () => {
+    expect(Object.keys(tr).sort()).toEqual(Object.keys(EMAIL_EN).sort())
+  })
+
+  it('keeps exactly the ICU parameters of every EN leaf, subjects without a line break', () => {
+    for (const [key, en] of Object.entries(EMAIL_EN)) {
+      expect({ key, params: params(tr[key] ?? '') }).toEqual({ key, params: params(en) })
+      if (key.endsWith('.subject')) expect({ key, br: /[\r\n]/.test(tr[key]) }).toEqual({ key, br: false })
+    }
+  })
+
+  it('is a real translation: no [XX] stub, differs from EN (cognates excepted)', () => {
+    for (const [key, en] of Object.entries(EMAIL_EN)) {
+      const value = tr[key]
+      expect(typeof value).toBe('string')
+      expect(value.trim().length).toBeGreaterThan(0)
+      expect({ key, stub: /^\[[A-Za-z-]{2,7}\]/.test(value) }).toEqual({ key, stub: false })
+      if (EMAIL_SAME_AS_EN[locale]?.has(key)) continue
+      expect({ key, sameAsEn: value === en }).toEqual({ key, sameAsEn: false })
+    }
+  })
+
+  it('keeps the brand spelling, types no amount and names no separate waiting price', () => {
+    for (const [key, value] of Object.entries(tr)) {
+      expect({ key, misspelt: /Prestigio/i.test(value) }).toEqual({ key, misspelt: false })
+      expect({ key, money: TYPED_MONEY.test(value) }).toEqual({ key, money: false })
+      expect({ key, waiting: WAITING_PRICE[locale].test(value) }).toEqual({ key, waiting: false })
+    }
+  })
+
+  it('has no English left: Latin words appear only in the brand and the PDF acronym', () => {
+    if (locale === 'es' || locale === 'fr') return
+    for (const [key, value] of Object.entries(tr)) {
+      const words = (value.replace(/\{[^}]*\}/g, ' ').match(/[A-Za-z]{2,}/g) ?? []).filter(
+        (w) => w !== 'Prestigo' && w !== 'PDF',
+      )
+      expect({ key, latin: words }).toEqual({ key, latin: [] })
+    }
+  })
+
+  it('Arabic, Hindi and Chinese use Latin digits only (no native digit forms)', () => {
+    if (!['ar', 'hi', 'zh', 'zh-hant'].includes(locale)) return
+    for (const [key, value] of Object.entries(tr)) {
+      expect({ key, native: /[٠-٩۰-۹०-९]/.test(value) }).toEqual({ key, native: false })
+    }
+  })
+})
+
+describe.each(locales)('quote e-mail copy formats through next-intl: %s', (locale) => {
+  it('formats every key with sample values, no throw and no leftover brace', () => {
+    const t = createTranslator({ locale, messages: CATALOGS[locale], namespace: 'QuoteEmails' as never })
+    for (const key of EMAIL_KEYS) {
+      const inner = key.slice('QuoteEmails.'.length)
+      const text = (t as unknown as (k: string, v: Record<string, string | number>) => string)(inner, SAMPLE)
+      expect({ key, text: typeof text }).toEqual({ key, text: 'string' })
+      expect({ key, leftover: /[{}]/.test(text) }).toEqual({ key, leftover: false })
+      expect(text.trim().length).toBeGreaterThan(0)
+    }
+  })
+})
+
+describe('quote e-mail copy: zh-hant is generated from zh', () => {
+  it('equals the OpenCC (cn -> twp) conversion of zh when opencc-js is installed, else keeps key and parameter parity', async () => {
+    const zh = emailsOf(CATALOGS.zh)
+    const hant = emailsOf(CATALOGS['zh-hant'])
+    expect(Object.keys(hant).sort()).toEqual(Object.keys(zh).sort())
+    for (const [key, value] of Object.entries(zh)) expect({ key, params: params(hant[key]) }).toEqual({ key, params: params(value) })
+
+    let convert: ((s: string) => string) | null = null
+    try {
+      const specifier = 'opencc-js'
+      const OpenCC = (await import(/* @vite-ignore */ specifier)) as {
+        Converter: (o: { from: string; to: string }) => (s: string) => string
+      }
+      convert = OpenCC.Converter({ from: 'cn', to: 'twp' })
+    } catch {
+      convert = null
+    }
+    if (!convert) return
+    for (const [key, value] of Object.entries(zh)) expect({ key, text: hant[key] }).toEqual({ key, text: convert(value) })
+  })
+})
