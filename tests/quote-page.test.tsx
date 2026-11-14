@@ -118,6 +118,8 @@ vi.mock('next/navigation', async (importOriginal) => {
 })
 
 import QuotePage, { generateMetadata } from '@/app/[locale]/quote/[token]/page'
+import QuoteDonePage, { generateMetadata as generateDoneMetadata } from '@/app/[locale]/quote/done/page'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 const DAY = 24 * 3_600_000
 
@@ -577,5 +579,57 @@ describe('the one invalid view (T-92-30)', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const html = await invalidMarkup('en', fx.token)
     expect(html).toContain(q('en', 'invalid', 'title'))
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+describe('the tokenless Stripe return page (plan 92-17 Task 2; T-92-54)', () => {
+  async function renderDone(locale: string) {
+    mockLocaleRef.value = locale
+    const element = await QuoteDonePage({ params: Promise.resolve({ locale }) })
+    const { render } = await import('@testing-library/react')
+    return render(element)
+  }
+
+  it.each([...locales])('%s: renders the thank-you title and body in the URL locale', async (locale) => {
+    const { getByTestId } = await renderDone(locale)
+    const main = getByTestId('quote-done')
+    expect(main.querySelector('h1')?.textContent).toBe(q(locale, 'done', 'title'))
+    expect(main.textContent).toContain(q(locale, 'done', 'body'))
+    expect(main.textContent).not.toMatch(/Quote\.[a-z]|\{[a-zA-Z]+\}/)
+  })
+
+  it('reads nothing: no database client, no rate-limit lookup, no request, no price or reference', async () => {
+    world.serviceClients = 0
+    const { container } = await renderDone('en')
+    expect(world.serviceClients).toBe(0)
+    expect(rateLimit.calls).toEqual([])
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(container.innerHTML).not.toMatch(/€|Q-2026|PR-9/)
+  })
+
+  it('is noindex, nofollow and no-referrer in every locale', async () => {
+    for (const locale of locales) {
+      mockLocaleRef.value = locale
+      const meta = await generateDoneMetadata({ params: Promise.resolve({ locale }) })
+      expect(meta.robots).toEqual({ index: false, follow: false })
+      expect(meta.referrer).toBe('no-referrer')
+      expect(meta.title).toBe(q(locale, 'meta', 'title'))
+    }
+  })
+
+  it('the source uses params.locale + setRequestLocale, no bare getLocale(), no database and no search params', () => {
+    const source = readFileSync(join(process.cwd(), 'app/[locale]/quote/done/page.tsx'), 'utf8')
+    expect(source).toContain('setRequestLocale(locale)')
+    expect(source).not.toMatch(/getLocale\(/)
+    expect(source).not.toMatch(/createSupabase|createClient|resolveQuoteToken/)
+    // Stripe appends payment_intent_client_secret to the return URL: the page must never read or echo it.
+    expect(source).not.toMatch(/searchParams/)
+  })
+
+  it('the path is private, so no analytics, chat or banner run there', () => {
+    for (const path of ['/quote/done', '/ru/quote/done', '/zh-hant/quote/done']) {
+      expect(isPrivateLinkPath(path)).toBe(true)
+    }
   })
 })
