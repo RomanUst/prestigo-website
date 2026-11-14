@@ -61,11 +61,11 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Dispatch views (DISP)
 
-- [ ] **DISP-01**: Operator sees bookings as a kanban board by status for a chosen date range
-- [ ] **DISP-02**: Operator can move a card to another status by drag-and-drop or menu; only allowed transitions are accepted and moves with a money effect ask for confirmation
-- [ ] **DISP-03**: Operator sees bookings in a calendar with day, week and month views (Prague time), coloured by status
-- [ ] **DISP-04**: Clicking a booking in the kanban or calendar opens the same booking detail panel as the list
-- [ ] **DISP-05**: Board and calendar refresh automatically so driver updates appear without reload
+- [x] **DISP-01**: Operator sees bookings as a kanban board by status for a chosen date range
+- [x] **DISP-02**: Operator can move a card to another status by drag-and-drop or menu; only allowed transitions are accepted and moves with a money effect ask for confirmation
+- [x] **DISP-03**: Operator sees bookings in a calendar with day, week and month views (Prague time), coloured by status
+- [x] **DISP-04**: Clicking a booking in the kanban or calendar opens the same booking detail panel as the list
+- [x] **DISP-05**: Board and calendar refresh automatically so driver updates appear without reload
 
 ### Stops and airport (STOP)
 
@@ -151,11 +151,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADM-01 | Phase 86 | Complete |
 | ADM-02 | Phase 86 | Complete |
 | ADM-03 | Phase 86 | Complete |
-| DISP-01 | Phase 90 | Pending |
-| DISP-02 | Phase 90 | Pending |
-| DISP-03 | Phase 90 | Pending |
-| DISP-04 | Phase 90 | Pending |
-| DISP-05 | Phase 90 | Pending |
+| DISP-01 | Phase 90 | Complete |
+| DISP-02 | Phase 90 | Complete |
+| DISP-03 | Phase 90 | Complete |
+| DISP-04 | Phase 90 | Complete |
+| DISP-05 | Phase 90 | Complete |
 | STOP-01 | Phase 91 | Pending |
 | STOP-02 | Phase 91 | Pending |
 | STOP-03 | Phase 91 | Pending |

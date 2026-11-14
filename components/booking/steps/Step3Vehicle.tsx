@@ -10,8 +10,6 @@ import VehicleCard from '@/components/booking/VehicleCard'
 import PriceSummary from '@/components/booking/PriceSummary'
 import StickyBookingPanel from '@/components/booking/StickyBookingPanel'
 import VehicleSlideshow from '@/components/booking/VehicleSlideshow'
-import AddressInput from '@/components/booking/AddressInput'
-import type { PlaceResult } from '@/types/booking'
 
 // Structural key list — display copy lives in Booking.step3vehicle.included.*
 const INCLUDED_ITEM_KEYS = [
@@ -58,25 +56,13 @@ function pushVehicleSelect(
   }
 }
 
-const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
-  const h = Math.floor(i / 12).toString().padStart(2, '0')
-  const m = ((i % 12) * 5).toString().padStart(2, '0')
-  return `${h}:${m}`
-})
-
-function fmt12Slot(t: string): string {
-  const [h, m] = t.split(':').map(Number)
-  const isPM = h >= 12
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
-  return `${h12}:${m.toString().padStart(2, '0')} ${isPM ? 'PM' : 'AM'}`
-}
-
 export default function Step3Vehicle() {
   const t = useTranslations('Booking.step3vehicle')
   const tClass = useTranslations('Booking.vehicleClasses')
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(false)
-  const dateInputRef = useRef<HTMLInputElement>(null)
+  // D-05: classes that cannot price the chosen waiting (server answer, display only)
+  const [waitingUnavailable, setWaitingUnavailable] = useState<VehicleClass[]>([])
 
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -87,14 +73,9 @@ export default function Step3Vehicle() {
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
   const returnDiscountPercent = useBookingStore((s) => s.returnDiscountPercent)
   const quoteMode = useBookingStore((s) => s.quoteMode)
-  const returnDate = useBookingStore((s) => s.returnDate)
   const returnTime = useBookingStore((s) => s.returnTime)
   const pickupDate = useBookingStore((s) => s.pickupDate)
 
-  const setOrigin = useBookingStore((s) => s.setOrigin)
-  const setDestination = useBookingStore((s) => s.setDestination)
-  const setPickupDate = useBookingStore((s) => s.setPickupDate)
-  const setPickupTime = useBookingStore((s) => s.setPickupTime)
   const setPriceBreakdown = useBookingStore((s) => s.setPriceBreakdown)
   const setRoundTripPriceBreakdown = useBookingStore((s) => s.setRoundTripPriceBreakdown)
   const setReturnDiscountPercent = useBookingStore((s) => s.setReturnDiscountPercent)
@@ -102,61 +83,13 @@ export default function Step3Vehicle() {
   const setDurationMin = useBookingStore((s) => s.setDurationMin)
   const setQuoteMode = useBookingStore((s) => s.setQuoteMode)
   const setVehicleClass = useBookingStore((s) => s.setVehicleClass)
-  const setTripType = useBookingStore((s) => s.setTripType)
-  const setReturnDate = useBookingStore((s) => s.setReturnDate)
-  const setReturnTime = useBookingStore((s) => s.setReturnTime)
 
-  // Route edit bar state
-  const [isEditingRoute, setIsEditingRoute] = useState(false)
-  const [editOrigin, setEditOrigin] = useState<PlaceResult | null>(null)
-  const [editDest, setEditDest] = useState<PlaceResult | null>(null)
-  const [editDate, setEditDate] = useState<string | null>(null)
-  const [editTime, setEditTime] = useState<string | null>(null)
-  // Return-journey controls inside the route edit form
-  const [editShowReturn, setEditShowReturn] = useState(false)
-  const [editReturnDate, setEditReturnDate] = useState<string | null>(null)
-  const [editReturnTime, setEditReturnTime] = useState<string | null>(null)
-
+  // Editing the route goes back to step 1 (EntryBar): it is the one form that knows the stops, the landing time of an
+  // airport pickup and the return leg. A second editor here changed the pickup without the landing, and the server
+  // then refused the checkout (PICKUP_MISMATCH); it also hid the stops the price was computed with.
   function startEditRoute() {
-    setEditOrigin(origin)
-    setEditDest(destination)
-    setEditShowReturn(useBookingStore.getState().tripType === 'round_trip')
-    setEditReturnDate(returnDate)
-    setEditReturnTime(returnTime)
-    setEditDate(pickupDate)
-    setEditTime(pickupTime)
-    setIsEditingRoute(true)
+    useBookingStore.getState().prevStep()
   }
-
-  function applyRouteEdit() {
-    if (editOrigin) setOrigin(editOrigin)
-    if (editDest) setDestination(editDest)
-    if (editDate) setPickupDate(editDate)
-    if (editTime) setPickupTime(editTime)
-    // Apply the return-journey toggle: enable round trip with the chosen return
-    // date/time, or disable it and clear the return leg.
-    if (editShowReturn) {
-      setTripType('round_trip')
-      setReturnDate(editReturnDate)
-      setReturnTime(editReturnTime)
-    } else {
-      setTripType('transfer')
-      setReturnDate(null)
-      setReturnTime(null)
-    }
-    setIsEditingRoute(false)
-    // fetchPrice reads fresh state via getState() so calling after sync store updates is safe
-    fetchPrice()
-  }
-
-  // Return leg must be fully specified and after pickup when enabled.
-  const editReturnValid =
-    !editShowReturn ||
-    (!!editReturnDate &&
-      !!editReturnTime &&
-      !!editDate &&
-      !!editTime &&
-      `${editReturnDate}T${editReturnTime}` > `${editDate}T${editTime}`)
 
   const fetchPrice = useCallback(async () => {
     const s = useBookingStore.getState()
@@ -164,7 +97,7 @@ export default function Step3Vehicle() {
     // filtered out (they cannot reach the Google Routes API safely — T-30-13).
     const intermediates = s.stops
       .filter((stop) => stop.place !== null)
-      .map((stop) => ({ lat: stop.place!.lat, lng: stop.place!.lng }))
+      .map((stop) => ({ lat: stop.place!.lat, lng: stop.place!.lng, waitMinutes: stop.waitMinutes ?? 0 }))
     setLoading(true)
     try {
       const res = await fetch('/api/calculate-price', {
@@ -184,6 +117,11 @@ export default function Step3Vehicle() {
         }),
       })
       const data = await res.json()
+      // Set before the prices so the default-class effect never sees prices with a stale list.
+      const unavailable: VehicleClass[] = Array.isArray(data.waitingUnavailable) ? data.waitingUnavailable : []
+      setWaitingUnavailable(unavailable)
+      const selected = useBookingStore.getState().vehicleClass
+      if (selected && unavailable.includes(selected)) setVehicleClass(null)
       setPriceBreakdown(data.prices)
       setRoundTripPriceBreakdown(data.returnLegPrices ?? null)
       if (data.returnDiscountPercent !== null && data.returnDiscountPercent !== undefined) {
@@ -194,6 +132,7 @@ export default function Step3Vehicle() {
       setQuoteMode(data.quoteMode)
       setFetchError(false)
     } catch {
+      setWaitingUnavailable([])
       setQuoteMode(true)
       setPriceBreakdown(null)
       setRoundTripPriceBreakdown(null)
@@ -201,7 +140,7 @@ export default function Step3Vehicle() {
     } finally {
       setLoading(false)
     }
-  }, [setPriceBreakdown, setRoundTripPriceBreakdown, setReturnDiscountPercent, setDistanceKm, setDurationMin, setQuoteMode])
+  }, [setPriceBreakdown, setRoundTripPriceBreakdown, setReturnDiscountPercent, setDistanceKm, setDurationMin, setQuoteMode, setVehicleClass])
 
   // Initial fetch on mount
   useEffect(() => {
@@ -215,10 +154,10 @@ export default function Step3Vehicle() {
   // it requires a return date/time which would lock the user into an extra
   // section before they make a deliberate choice.
   useEffect(() => {
-    if (!vehicleClass && priceBreakdown && priceBreakdown.business) {
+    if (!vehicleClass && priceBreakdown && priceBreakdown.business && !waitingUnavailable.includes('business')) {
       setVehicleClass('business')
     }
-  }, [vehicleClass, priceBreakdown, setVehicleClass])
+  }, [vehicleClass, priceBreakdown, waitingUnavailable, setVehicleClass])
 
   // Re-fetch when return date+time are both set (to compute returnLegPrices)
   const prevReturnTime = useRef<string | null>(null)
@@ -235,7 +174,8 @@ export default function Step3Vehicle() {
     const rt = roundTripPriceBreakdown?.[vc.key]
     // Round trip: show combined (both legs) as the headline, one way as caption.
     const combined = isRoundTrip && p && rt ? p.base + rt.total : null
-    return (
+    const unavailable = waitingUnavailable.includes(vc.key)
+    const card = (
       <VehicleCard
         key={vc.key}
         config={vc}
@@ -243,12 +183,28 @@ export default function Step3Vehicle() {
         price={p ? `€${p.base}` : null}
         combinedPrice={combined !== null ? `€${combined}` : null}
         onSelect={() => {
+          if (unavailable) return
           setVehicleClass(vc.key)
           // Preserve the round-trip selection made on Step 1 — selecting a
           // vehicle must not silently downgrade the booking to one-way.
           pushVehicleSelect(vc.key, tClass(`${VEHICLE_CLASS_KEY[vc.key]}.label`), p?.base ?? null, p?.currency ?? 'EUR', tripType === 'round_trip' ? 'round_trip' : 'transfer')
         }}
       />
+    )
+    if (!unavailable) return card
+    // D-05: this class has no admin rate for paid waiting — shown disabled with the reason.
+    return (
+      <div key={vc.key} data-testid={`vehicle-card-unavailable-${vc.key}`}>
+        <div aria-disabled="true" inert style={{ opacity: 0.45, pointerEvents: 'none' }}>
+          {card}
+        </div>
+        <p
+          role="note"
+          style={{ margin: '8px 0 0', fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5 }}
+        >
+          {t('waitingUnavailable')}
+        </p>
+      </div>
     )
   })
 
@@ -282,8 +238,8 @@ export default function Step3Vehicle() {
 
   return (
     <div className="theme-light">
-      {/* Route summary bar — collapsed: 4 clickable segments; expanded: inline edit form */}
-      {origin && destination && !isEditingRoute && (
+      {/* Route summary bar — 4 clickable segments; a click returns to step 1 to edit the trip */}
+      {origin && destination && (
         <div style={{
           display: 'flex', alignItems: 'stretch',
           background: 'var(--anthracite-mid)', border: '1px solid var(--anthracite-light)',
@@ -308,148 +264,6 @@ export default function Step3Vehicle() {
             <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--warmgrey)', marginBottom: 3 }}>{t('time')}</p>
             <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)', whiteSpace: 'nowrap' }}>{pickupTime ? fmt12(pickupTime) : '—'}</p>
           </button>
-        </div>
-      )}
-
-      {/* Inline route edit — same visual style as step 1 EntryBar, no box/border */}
-      {origin && destination && isEditingRoute && (
-        <div className="theme-light" style={{ marginBottom: 28 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-            {/* FROM — full width */}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <AddressInput
-                label={t('pickupLocationLabel')}
-                placeholder={t('pickupLocationPlaceholder')}
-                value={editOrigin}
-                onSelect={setEditOrigin}
-                onClear={() => setEditOrigin(null)}
-                ariaLabel={t('pickupLocationAria')}
-              />
-            </div>
-            {/* TO — full width */}
-            <div style={{ gridColumn: '1 / -1' }}>
-              <AddressInput
-                label={t('destinationLabel')}
-                placeholder={t('destinationPlaceholder')}
-                value={editDest}
-                onSelect={setEditDest}
-                onClear={() => setEditDest(null)}
-                ariaLabel={t('destinationAria')}
-              />
-            </div>
-            {/* DATE — clicking anywhere in the block opens the picker */}
-            <div
-              style={{ cursor: 'pointer' }}
-              onClick={() => dateInputRef.current?.showPicker?.()}
-            >
-              <label className="label" style={{ display: 'block', marginBottom: 8, cursor: 'pointer' }}>{t('dateLabel')}</label>
-              <input
-                ref={dateInputRef}
-                type="date"
-                value={editDate ?? ''}
-                min={new Date().toISOString().slice(0, 10)}
-                onChange={(e) => setEditDate(e.target.value)}
-                className="input"
-                style={{ width: '100%', colorScheme: 'light', cursor: 'pointer' }}
-              />
-            </div>
-            {/* TIME — options formatted as 12h AM/PM */}
-            <div>
-              <label className="label" style={{ display: 'block', marginBottom: 8 }}>{t('timeLabel')}</label>
-              <select
-                value={editTime ?? ''}
-                onChange={(e) => setEditTime(e.target.value)}
-                className="input"
-                style={{ width: '100%', appearance: 'none' }}
-              >
-                {TIME_SLOTS.map((t) => (
-                  <option key={t} value={t}>{fmt12Slot(t)}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Return journey toggle */}
-          <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <input
-              id="edit-route-return"
-              type="checkbox"
-              checked={editShowReturn}
-              onChange={(e) => {
-                const on = e.target.checked
-                setEditShowReturn(on)
-                if (!on) {
-                  setEditReturnDate(null)
-                  setEditReturnTime(null)
-                }
-              }}
-              style={{ accentColor: 'var(--copper)', cursor: 'pointer' }}
-            />
-            <label htmlFor="edit-route-return" style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--offwhite)', cursor: 'pointer' }}>
-              {t('addReturnJourney')}
-            </label>
-          </div>
-
-          {/* Return date / time — only when the toggle is on */}
-          {editShowReturn && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginTop: 16 }}>
-              <div>
-                <label className="label" style={{ display: 'block', marginBottom: 8 }}>{t('returnDateLabel')}</label>
-                <input
-                  type="date"
-                  value={editReturnDate ?? ''}
-                  min={editDate ?? new Date().toISOString().slice(0, 10)}
-                  onChange={(e) => setEditReturnDate(e.target.value || null)}
-                  className="input"
-                  style={{ width: '100%', colorScheme: 'light', cursor: 'pointer' }}
-                />
-              </div>
-              <div>
-                <label className="label" style={{ display: 'block', marginBottom: 8 }}>{t('returnTimeLabel')}</label>
-                <select
-                  aria-label={t('returnTimeAria')}
-                  value={editReturnTime ?? ''}
-                  onChange={(e) => setEditReturnTime(e.target.value || null)}
-                  className="input"
-                  style={{ width: '100%', appearance: 'none' }}
-                >
-                  <option value="">{t('selectReturnTime')}</option>
-                  {TIME_SLOTS.map((t) => (
-                    <option key={t} value={t}>{fmt12Slot(t)}</option>
-                  ))}
-                </select>
-              </div>
-              {!editReturnValid && editReturnDate && editReturnTime && (
-                <p role="alert" style={{ gridColumn: '1 / -1', fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--copper)', margin: 0 }}>
-                  {t('returnAfterPickup')}
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Apply / Cancel row */}
-          <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-            <button
-              type="button"
-              onClick={applyRouteEdit}
-              disabled={!editOrigin || !editDest || !editDate || !editTime || !editReturnValid}
-              className="btn-primary"
-              style={{ flex: 1, letterSpacing: '0.1em', fontSize: 11 }}
-            >
-              {t('updateSearch')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsEditingRoute(false)}
-              style={{
-                fontFamily: 'var(--font-montserrat)', fontSize: 11, letterSpacing: '0.1em',
-                textTransform: 'uppercase', color: 'var(--warmgrey)', background: 'none',
-                border: '1px solid var(--anthracite-light)', padding: '10px 20px', cursor: 'pointer',
-              }}
-            >
-              {t('cancel')}
-            </button>
-          </div>
         </div>
       )}
 

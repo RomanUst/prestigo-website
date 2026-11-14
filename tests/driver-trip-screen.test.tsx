@@ -12,6 +12,7 @@ const { refreshMock, openHelpPageMock, routeMapProbe } = vi.hoisted(() => ({
       height?: number | string
       onRouteInfo?: (km: number, min: number) => void
       onRouteError?: () => void
+      stops?: ReadonlyArray<{ lat: number; lng: number }>
     },
   },
 }))
@@ -68,6 +69,9 @@ function makeProps(
       flight: null,
       clientNotes: null,
       distanceKm: 12.4,
+      landing: null,
+      freeWaitUntil: null,
+      stops: [],
     },
     initialNote: null,
     noShow: { availableAt: null, requestedAt: null, ...noShow },
@@ -750,6 +754,74 @@ describe('ConfirmStepDialog behaviour', () => {
       vi.advanceTimersByTime(1500)
     })
     expect(screen.queryByText(text)).not.toBeInTheDocument()
+  })
+})
+
+describe('TripScreen: landing, free waiting and stops (Phase 91, STOP-04, STOP-05)', () => {
+  function airportProps(): TripScreenProps {
+    const props = makeProps()
+    props.trip.pickupTime = '14:30'
+    props.trip.landing = { date: '2027-06-10', time: '14:00', offsetMin: 30 }
+    props.trip.freeWaitUntil = '15:30'
+    props.trip.stops = [
+      { position: 1, address: 'Karlovy Vary', waitMinutes: 45, lat: 50.23, lng: 12.87 },
+      { position: 2, address: 'Plzen', waitMinutes: 0, lat: 49.74, lng: 13.37 },
+    ]
+    return props
+  }
+
+  function openSheet() {
+    fireEvent.click(screen.getByRole('button', { name: 'Show trip details' }))
+  }
+
+  it('shows landing, pickup, free waiting until and every stop with its wait', () => {
+    render(<TripScreen {...airportProps()} />)
+    openSheet()
+    expect(screen.getByText('Landing 14:00')).toBeInTheDocument()
+    expect(screen.getByText('Pickup 14:30')).toBeInTheDocument()
+    expect(screen.getByText('Free waiting until 15:30')).toBeInTheDocument()
+    expect(screen.getByText('Stop 1')).toBeInTheDocument()
+    expect(screen.getByText('Karlovy Vary')).toBeInTheDocument()
+    expect(screen.getByText('wait 45 min')).toBeInTheDocument()
+    expect(screen.getByText('Stop 2')).toBeInTheDocument()
+    expect(screen.getByText('no waiting')).toBeInTheDocument()
+  })
+
+  it('lists the stops in position order as given and carries no euro sign or amount', () => {
+    const { container } = render(<TripScreen {...airportProps()} />)
+    openSheet()
+    const text = container.textContent ?? ''
+    expect(text.indexOf('Stop 1')).toBeLessThan(text.indexOf('Stop 2'))
+    expect(text).not.toMatch(/€|EUR|CZK|\bfee\b|\bprice\b|amount/i)
+  })
+
+  it('without landing and stops renders no Arrival or Stop rows (exactly as before), the free waiting row is optional', () => {
+    render(<TripScreen {...makeProps()} />)
+    openSheet()
+    expect(screen.queryByText('Arrival')).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Stop \d/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Free waiting until/)).not.toBeInTheDocument()
+  })
+})
+
+describe('TripScreen: map gets the stops (Phase 91, STOP-01)', () => {
+  it('passes the stops that have coordinates to the map, in order', () => {
+    const props = makeProps()
+    props.trip.stops = [
+      { position: 1, address: 'Karlovy Vary', waitMinutes: 45, lat: 50.23, lng: 12.87 },
+      { position: 2, address: 'No coordinates', waitMinutes: 0, lat: null, lng: null },
+      { position: 3, address: 'Plzen', waitMinutes: 0, lat: 49.74, lng: 13.37 },
+    ]
+    render(<TripScreen {...props} />)
+    expect(routeMapProbe.props?.stops).toEqual([
+      { lat: 50.23, lng: 12.87 },
+      { lat: 49.74, lng: 13.37 },
+    ])
+  })
+
+  it('passes an empty stops list for a booking without stops', () => {
+    render(<TripScreen {...makeProps()} />)
+    expect(routeMapProbe.props?.stops ?? []).toEqual([])
   })
 })
 

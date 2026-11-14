@@ -15,10 +15,15 @@
 import { createSign } from 'crypto'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { formatVehicleLabel, getAcceptedDriver } from '@/lib/email'
+import { loadStopsSafe } from '@/lib/booking-stops'
 import { CALENDAR_ACTIVE_STATUSES, type BookingStatus } from '@/lib/booking-status'
+import { estimateDurationMinutes } from '@/lib/trip-duration'
 
 // D-02: one shared set (confirmed through completed, plus on_board and no_show, which keep their event).
 export { CALENDAR_ACTIVE_STATUSES }
+
+// Phase 90: the estimate moved to a client-safe module; re-exported unchanged for existing importers.
+export { estimateDurationMinutes } from '@/lib/trip-duration'
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const API_BASE = 'https://www.googleapis.com/calendar/v3'
@@ -110,15 +115,10 @@ export interface CalendarBooking {
   extra_child_seat: boolean | null
   extra_meet_greet: boolean | null
   driver_name?: string
-}
-
-/** Rough trip length: hourly bookings use their hours, transfers ~70 km/h + 15 min, min 1 h. */
-export function estimateDurationMinutes(b: Pick<CalendarBooking, 'hours' | 'distance_km'>): number {
-  if (b.hours && b.hours > 0) return b.hours * 60
-  if (b.distance_km && b.distance_km > 0) {
-    return Math.max(60, Math.round(((b.distance_km / 70) * 60 + 15) / 15) * 15)
-  }
-  return 60
+  /** Phase 91 (STOP-05): the airport landing kept beside the pickup; null / absent for a booking without one. */
+  landing?: { date: string; time: string; offsetMin: number } | null
+  /** Phase 91 (STOP-04): the stored stops in order; absent or empty for a booking without stops. */
+  stops?: Array<{ position: number; address: string | null; waitMinutes: number }>
 }
 
 export function buildCalendarEvent(b: CalendarBooking) {
@@ -139,6 +139,11 @@ export function buildCalendarEvent(b: CalendarBooking) {
     `Booking: ${b.booking_reference}${legLabel}`,
     `Status: ${b.status}`,
     `Route: ${route}`,
+    b.landing ? `Landing ${b.landing.time} (pickup +${b.landing.offsetMin} min)` : null,
+    ...(b.stops ?? []).map(
+      (s) =>
+        `Stop ${s.position}: ${s.address ?? 'pinned on the map'}${s.waitMinutes > 0 ? ` (wait ${s.waitMinutes} min)` : ''}`,
+    ),
     `Vehicle: ${formatVehicleLabel(b.vehicle_class)}`,
     `Passengers: ${b.passengers ?? '-'} · Luggage: ${b.luggage ?? '-'}`,
     b.flight_number ? `Flight: ${b.flight_number}${b.terminal ? ` (T${b.terminal})` : ''}` : null,
@@ -183,7 +188,7 @@ export async function syncBookingToCalendar(bookingId: string): Promise<Calendar
       origin_address, destination_address, vehicle_class, passengers, luggage,
       client_first_name, client_last_name, client_phone, client_email,
       flight_number, terminal, special_requests, operator_notes,
-      extra_child_seat, extra_meet_greet,
+      extra_child_seat, extra_meet_greet, landing_date, landing_time, pickup_offset_min,
       driver_assignments!left(status, drivers(name, email, vehicle_info))
     `)
     .eq('id', bookingId)
@@ -216,7 +221,29 @@ export async function syncBookingToCalendar(bookingId: string): Promise<Calendar
     : pending?.name
       ? `${pending.name} (awaiting acceptance)`
       : undefined
-  const body = buildCalendarEvent({ ...(row as unknown as CalendarBooking), driver_name: driverName })
+
+  // Phase 91 (STOP-04, STOP-05): the landing and the stops go into the description. A stops read that fails never blocks
+  // the sync: the event is written without the stop lines.
+  let stops: NonNullable<CalendarBooking['stops']> = []
+  try {
+    stops = (await loadStopsSafe(bookingId)).map((s) => ({
+      position: s.position,
+      address: s.address,
+      waitMinutes: s.waitMinutes,
+    }))
+  } catch {
+    stops = []
+  }
+  const landingRow = row as unknown as {
+    landing_date: string | null
+    landing_time: string | null
+    pickup_offset_min: number | null
+  }
+  const landing =
+    landingRow.landing_date && landingRow.landing_time && typeof landingRow.pickup_offset_min === 'number'
+      ? { date: landingRow.landing_date, time: landingRow.landing_time, offsetMin: landingRow.pickup_offset_min }
+      : null
+  const body = buildCalendarEvent({ ...(row as unknown as CalendarBooking), driver_name: driverName, landing, stops })
 
   // PUT restores a previously deleted (cancelled) event with the same ID too.
   const put = await fetch(`${eventUrl}/${eventId}`, {

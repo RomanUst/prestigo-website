@@ -37,6 +37,9 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
   const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
   const totalCzk = eurToCzk(totalEur)
 
+  // D-06: paid waiting at stops, the server's figure for the selected class. It is already inside base / total, so it
+  // is shown as its own line only and never added to the total again.
+
   const classLabel = vehicleClass ? t(`vehicleClasses.${VEHICLE_CLASS_KEY[vehicleClass]}.label`) : ''
 
   const isRoundTripMode = tripType === 'round_trip'

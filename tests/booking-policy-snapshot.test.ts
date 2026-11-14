@@ -16,6 +16,11 @@ const { stripeMock, supabaseServiceStub, pricingConfigMock, saveBookingMock, set
   }
 })
 
+const { routeDistanceMock } = vi.hoisted(() => ({ routeDistanceMock: vi.fn() }))
+// Phase 91 (STOP-02): the checkout prices on the server's Google Routes distance. These fixtures used to send
+// distanceKm; the mock returns the same distance so the assertions stay unchanged.
+vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: routeDistanceMock }))
+
 vi.mock('stripe', () => {
   function MockStripe() {
     return stripeMock
@@ -109,6 +114,10 @@ function bookingData(over: Record<string, string> = {}): Record<string, string> 
     vehicleClass: 'business',
     currency: 'eur',
     distanceKm: '10',
+    originLat: '50.0755',
+    originLng: '14.4378',
+    destinationLat: '49.1951',
+    destinationLng: '16.6068',
     pickupDate: futureDate(30),
     pickupTime: '10:00',
     passengers: '2',
@@ -161,6 +170,8 @@ function wireDb() {
 }
 
 beforeEach(() => {
+  routeDistanceMock.mockReset()
+  routeDistanceMock.mockResolvedValue({ ok: true, distanceKm: 10, durationMin: 40 })
   vi.clearAllMocks()
   process.env.STRIPE_SECRET_KEY = 'sk_test_mock'
   pricingConfigMock.mockResolvedValue(PRICING)
@@ -336,6 +347,7 @@ describe('buildBookingRow / buildBookingRows / parseCancelPolicyMeta (also the w
         appliedPromoPct: 0,
         promoCode: '',
         returnDiscountPercent: 10,
+        stops: [],
       } as never,
       bookingReference: 'PRG-1',
       returnBookingReference: '',

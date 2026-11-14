@@ -148,7 +148,8 @@ export async function POST(req: Request) {
     if (!policy) return fail(422, 'NOT_ELIGIBLE', 'Card checkout is not available for this booking')
     const outcome = evaluateCancellation(
       policy,
-      { tripType: validated.tripType, distanceKm: validated.distanceKm, pickupMs },
+      // STOP-02: the server's route distance decides the cancellation window, never the browser's.
+      { tripType: validated.tripType, distanceKm: priced.distanceKm, pickupMs },
       nowMs,
     )
     const freeUntilPassed = outcome.kind !== 'free'
@@ -180,7 +181,7 @@ export async function POST(req: Request) {
           version: policy.version,
           freeUntilIso,
           freeUntilPassed,
-          hours: freeHoursFor(policy, { tripType: validated.tripType, distanceKm: validated.distanceKm }),
+          hours: freeHoursFor(policy, { tripType: validated.tripType, distanceKm: priced.distanceKm }),
           percent: policy.feePercent,
         },
       })

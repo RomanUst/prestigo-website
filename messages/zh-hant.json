@@ -61,6 +61,16 @@
       "minuteAria": "上車分鐘",
       "selectDatePrompt": "請選擇上車日期以繼續"
     },
+    "landing": {
+      "dateLabel": "降落日期",
+      "timeLabel": "降落時間",
+      "timeAria": "降落時間",
+      "offsetLabel": "降落後接機",
+      "offsetAtLanding": "降落時",
+      "offsetMinutes": "降落後 {minutes} 分鐘",
+      "pickupAt": "司機將在 {time} 與您會合",
+      "pickupAtDate": "司機將在 {date} {time} 與您會合"
+    },
     "step5": {
       "firstNameLabel": "名字",
       "lastNameLabel": "姓氏",
@@ -149,12 +159,12 @@
         "holdNowToday": "我們會在您的銀行卡上凍結 {amount}。凍結不是扣款，但您的銀行可能會將其顯示為待處理。",
         "holdNowAfterTrip": "將扣除凍結的金額。如果最終價格更低，只會扣除較低的金額，其餘部分將被釋放。",
         "cardDetailsLabel": "銀行卡資訊",
-        "consentSetup": "我授權 Prestigo 儲存此銀行卡，在 {holdDate} 於該卡上凍結 {amount}，並在我的行程結束後扣款。如果我在 {freeUntil} 之後取消，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。",
-        "consentSetupNoFree": "我授權 Prestigo 儲存此銀行卡，在 {holdDate} 於該卡上凍結 {amount}，並在我的行程結束後扣款。如果我取消預訂，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。",
-        "consentHoldNow": "我授權 Prestigo 現在在此銀行卡上凍結 {amount}，儲存此銀行卡，並在我的行程結束後扣款。如果我在 {freeUntil} 之後取消，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。",
-        "consentHoldNowNoFree": "我授權 Prestigo 現在在此銀行卡上凍結 {amount}，儲存此銀行卡，並在我的行程結束後扣款。如果我取消預訂，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。",
-        "consentCash": "我將向司機現金支付 {amount}。如果我在 {freeUntil} 之後取消，或我未現身乘車，或我未向司機付款，我授權 Prestigo 儲存此銀行卡，並從該卡扣款，最高 {amount}。每一筆扣款均由 Prestigo 的工作人員決定。不會凍結任何金額，現在也不會扣款。",
-        "consentCashNoFree": "我將向司機現金支付 {amount}。如果我取消預訂，或我未現身乘車，或我未向司機付款，我授權 Prestigo 儲存此銀行卡，並從該卡扣款，最高 {amount}。每一筆扣款均由 Prestigo 的工作人員決定。不會凍結任何金額，現在也不會扣款。",
+        "consentSetup": "我授權 Prestigo 儲存此銀行卡，在 {holdDate} 於該卡上凍結 {amount}，並在我的行程結束後扣款。如果我在 {freeUntil} 之後取消，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。 我還授權 Prestigo 在行程結束後從此銀行卡扣除超出預訂時間的等候費用，以及行程中約定的額外專案（如停車費）的費用；每一筆此類扣款均由 Prestigo 的工作人員批准，我會收到一封附有明細的電子郵件。",
+        "consentSetupNoFree": "我授權 Prestigo 儲存此銀行卡，在 {holdDate} 於該卡上凍結 {amount}，並在我的行程結束後扣款。如果我取消預訂，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。 我還授權 Prestigo 在行程結束後從此銀行卡扣除超出預訂時間的等候費用，以及行程中約定的額外專案（如停車費）的費用；每一筆此類扣款均由 Prestigo 的工作人員批准，我會收到一封附有明細的電子郵件。",
+        "consentHoldNow": "我授權 Prestigo 現在在此銀行卡上凍結 {amount}，儲存此銀行卡，並在我的行程結束後扣款。如果我在 {freeUntil} 之後取消，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。 我還授權 Prestigo 在行程結束後從此銀行卡扣除超出預訂時間的等候費用，以及行程中約定的額外專案（如停車費）的費用；每一筆此類扣款均由 Prestigo 的工作人員批准，我會收到一封附有明細的電子郵件。",
+        "consentHoldNowNoFree": "我授權 Prestigo 現在在此銀行卡上凍結 {amount}，儲存此銀行卡，並在我的行程結束後扣款。如果我取消預訂，或我未現身乘車，我授權 Prestigo 從此銀行卡扣除最高全額車費 {amount}；每一筆扣款均由 Prestigo 的工作人員決定。如果我預訂的價格發生變化，我授權 Prestigo 扣除或釋放差額。 我還授權 Prestigo 在行程結束後從此銀行卡扣除超出預訂時間的等候費用，以及行程中約定的額外專案（如停車費）的費用；每一筆此類扣款均由 Prestigo 的工作人員批准，我會收到一封附有明細的電子郵件。",
+        "consentCash": "我將向司機現金支付 {amount}。如果我在 {freeUntil} 之後取消，或我未現身乘車，或我未向司機付款，我授權 Prestigo 儲存此銀行卡，並從該卡扣款，最高 {amount}。每一筆扣款均由 Prestigo 的工作人員決定。不會凍結任何金額，現在也不會扣款。 我還授權 Prestigo 在行程結束後從此銀行卡扣除超出預訂時間的等候費用，以及行程中約定的額外專案（如停車費）的費用；每一筆此類扣款均由 Prestigo 的工作人員批准，我會收到一封附有明細的電子郵件。",
+        "consentCashNoFree": "我將向司機現金支付 {amount}。如果我取消預訂，或我未現身乘車，或我未向司機付款，我授權 Prestigo 儲存此銀行卡，並從該卡扣款，最高 {amount}。每一筆扣款均由 Prestigo 的工作人員決定。不會凍結任何金額，現在也不會扣款。 我還授權 Prestigo 在行程結束後從此銀行卡扣除超出預訂時間的等候費用，以及行程中約定的額外專案（如停車費）的費用；每一筆此類扣款均由 Prestigo 的工作人員批准，我會收到一封附有明細的電子郵件。",
         "termsLink": "條款與條件",
         "privacyLink": "隱私政策",
         "trustLine": "銀行卡資訊將直接傳送至 Stripe。Prestigo 不會看到您的銀行卡號。",
@@ -215,7 +225,12 @@
       "waitTimeLabel": "等待時間",
       "waitTimeAria": "等待時間",
       "noWait": "無需等待",
-      "minutes": "{count} 分鐘"
+      "minutes": "{count} 分鐘",
+      "minutesFree": "{count} 分鐘，免費",
+      "freeWaitHint": "前 15 分鐘免費，之後每開始的 15 分鐘收費。",
+      "paidWaitUnavailable": "暫不提供付費等待",
+      "moveUp": "上移停靠點",
+      "moveDown": "下移停靠點"
     },
     "routeMap": {
       "empty": "暫無法獲取路線 —— 您仍可選擇車型等級。",
@@ -329,7 +344,8 @@
         "waterSub": "無氣及含氣飲用水",
         "meetGreetLabel": "接機舉牌服務",
         "meetGreetSub": "在到達廳舉牌迎接"
-      }
+      },
+      "waitingUnavailable": "該車型不提供付費等待。請將等待時間設為 15 分鐘或以內後再選擇。"
     },
     "extras": {
       "meetAndGreet": {
@@ -361,7 +377,8 @@
       "returnLeg": "返程",
       "combined": "合計",
       "selectClass": "選擇 {className}",
-      "selectAClass": "選擇車型"
+      "selectAClass": "選擇車型",
+      "waitingLine": "停靠點等待"
     },
     "summaryBlock": {
       "outbound": "去程",
@@ -374,7 +391,8 @@
       "returnLeg": "返程",
       "subtotal": "小計",
       "promo": "優惠碼 {code}",
-      "final": "最終價格"
+      "final": "最終價格",
+      "waitingLine": "停靠點等待"
     },
     "bookingWidget": {
       "pickupLocationLabel": "上車地點",
@@ -1207,6 +1225,17 @@
       "introCashUnpaid": "您 {pickupDate} 的行程未以現金支付，因此我們已從您儲存的銀行卡扣除 {amount}。",
       "reasonCashUnpaid": "原因：行程未以現金支付",
       "introCashCard": "您選擇了刷卡支付，因此我們已從您儲存的銀行卡扣除 {amount}。"
+    },
+    "extraCharged": {
+      "subjectWaiting": "您的 PRESTIGO 行程的額外等候費用 — {reference}",
+      "h1Waiting": "我們已收取額外等候費用。",
+      "introWaiting": "您 {pickupDate} 的行程中，司機在您預訂的時間之外多等候了 {minutes} 分鐘。我們已從您儲存的銀行卡扣除 {amount}。",
+      "lineWaiting": "超出預訂時間的等候：{minutes} 分鐘",
+      "subjectOther": "您的 PRESTIGO 行程的附加費用 — {reference}",
+      "h1Other": "我們已收取一項附加費用。",
+      "introOther": "針對您 {pickupDate} 的行程，我們已從您儲存的銀行卡扣除 {amount}。",
+      "lineOther": "專案：{item}",
+      "approved": "此筆扣款已由 Prestigo 的工作人員批准。"
     },
     "feeWaived": {
       "subject": "您的 PRESTIGO 預訂無需付費 — {reference}",

@@ -110,6 +110,8 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
     idempotency: new Map(),
   }
   const calls: FakeStripeCall[] = []
+  /** Scripted statuses for the next confirmed paymentIntents.create calls (see forceNextCreateStatus). */
+  const forcedCreateStatus: string[] = []
   const failures: Array<{ method: string; kind: 'connection' | 'error'; error?: FakeStripeError }> = []
   let seq = 0
   const nextId = (prefix: string) => {
@@ -250,7 +252,11 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
 
         if (params.confirm === true && typeof params.payment_method === 'string') {
           const pm = params.payment_method
-          if (pm === 'pm_ok') {
+          const forced = forcedCreateStatus.shift()
+          if (forced !== undefined) {
+            // A confirmed create that ANSWERS (no throw) with a status other than succeeded: processing, requires_action, ...
+            pi.status = forced
+          } else if (pm === 'pm_ok') {
             if (manual) {
               pi.status = 'requires_capture'
               pi.amount_capturable = amount
@@ -437,6 +443,21 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
       const refund: Obj = { id: nextId('re'), object: 'refund', status: 'succeeded', metadata: {}, amount, payment_intent: piId }
       state.refunds.set(refund.id, refund)
       return clone(refund)
+    },
+    /**
+     * The next confirmed paymentIntents.create answers with this status instead of its scripted outcome (it does not throw):
+     * the off-session confirm that returns `processing` / `requires_action` rather than a card error.
+     */
+    forceNextCreateStatus(status: string) {
+      forcedCreateStatus.push(status)
+    },
+    /** Make a stored PaymentIntent succeed (or take any status) behind the engine's back, as Stripe does when it settles later. */
+    setPaymentIntentStatus(piId: string, status: string) {
+      const pi = state.paymentIntents.get(piId)
+      if (!pi) throw new Error(`fake-stripe: no payment intent ${piId}`)
+      pi.status = status
+      if (status === 'succeeded') pi.amount_received = pi.amount
+      return clone(pi)
     },
     /** The next call to `method` throws a connection error (executes nothing, stores nothing). */
     failNextWith(method: string, kind: 'connection') {

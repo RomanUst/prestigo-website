@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 import { whatsappUrlWithText } from '@/lib/contact-channels'
+import { isAirportPickupPlace } from '@/types/booking'
+import LandingPickupFields from '@/components/booking/LandingPickupFields'
 
 // Hours 00–23 and minutes in 5-minute increments
 const HOURS: string[] = Array.from({ length: 24 }, (_, i) =>
@@ -162,13 +164,27 @@ function TimeCell({ value, isSelected, onSelect, scrollIntoView, disabled }: Tim
 
 export default function Step2DateTime() {
   const t = useTranslations('Booking.step2')
+  const tl = useTranslations('Booking.landing')
   const tripType = useBookingStore((s) => s.tripType)
-  const pickupDate = useBookingStore((s) => s.pickupDate)
-  const pickupTime = useBookingStore((s) => s.pickupTime)
+  const origin = useBookingStore((s) => s.origin)
+  const storePickupDate = useBookingStore((s) => s.pickupDate)
+  const storePickupTime = useBookingStore((s) => s.pickupTime)
+  const landingDate = useBookingStore((s) => s.landingDate)
+  const landingTime = useBookingStore((s) => s.landingTime)
   const returnDate = useBookingStore((s) => s.returnDate)
-  const setPickupDate = useBookingStore((s) => s.setPickupDate)
-  const setPickupTime = useBookingStore((s) => s.setPickupTime)
+  const storeSetPickupDate = useBookingStore((s) => s.setPickupDate)
+  const storeSetPickupTime = useBookingStore((s) => s.setPickupTime)
+  const setLandingDate = useBookingStore((s) => s.setLandingDate)
+  const setLandingTime = useBookingStore((s) => s.setLandingTime)
   const setReturnDate = useBookingStore((s) => s.setReturnDate)
+
+  // Phase 91 (STOP-05, D-07): an airport pickup (the server's own rule, transfer / round trip only) is booked by
+  // LANDING date and time; the store derives the pickup from them. Every other booking keeps the pickup fields.
+  const landingMode = (tripType === 'transfer' || tripType === 'round_trip') && isAirportPickupPlace(origin)
+  const pickupDate = landingMode ? landingDate : storePickupDate
+  const pickupTime = landingMode ? landingTime : storePickupTime
+  const setPickupDate = landingMode ? setLandingDate : storeSetPickupDate
+  const setPickupTime = landingMode ? setLandingTime : storeSetPickupTime
 
   // Minimum booking: current time + MIN_LEAD_HOURS
   const now = new Date()
@@ -221,17 +237,23 @@ export default function Step2DateTime() {
     return snapped.toString().padStart(2, '0')
   }
 
+  // Fresh read of the time being edited (landing time in airport mode), never the render closure.
+  function readTime(): string | null {
+    const st = useBookingStore.getState()
+    return landingMode ? st.landingTime : st.pickupTime
+  }
+
   function handleHourSelect(hour: string) {
     // Read fresh state from the store to avoid stale closures when the user
     // clicks hour and minute in quick succession before React re-renders.
-    const current = useBookingStore.getState().pickupTime
+    const current = readTime()
     const currentMinute = current ? current.split(':')[1] : null
     const minute = snapMinute(currentMinute)
     setPickupTime(`${hour}:${minute}`)
   }
 
   function handleMinuteSelect(minute: string) {
-    const current = useBookingStore.getState().pickupTime
+    const current = readTime()
     const hour = current ? current.split(':')[0] : '00'
     setPickupTime(`${hour}:${minute}`)
   }
@@ -275,7 +297,7 @@ export default function Step2DateTime() {
         <div className="md:w-[60%] w-full">
           {/* Pickup date label */}
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-            {t('pickupDateLabel')}
+            {landingMode ? tl('dateLabel') : t('pickupDateLabel')}
           </span>
 
           {/* Pickup date picker */}
@@ -338,7 +360,7 @@ export default function Step2DateTime() {
         {/* Right: Time section (~40% on desktop) — hour + minute columns */}
         <div className="md:w-[40%] w-full">
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-            {t('pickupTimeLabel')}
+            {landingMode ? tl('timeLabel') : t('pickupTimeLabel')}
           </span>
 
           {pickupDate ? (
@@ -430,6 +452,13 @@ export default function Step2DateTime() {
             >
               {t('selectDatePrompt')}
             </p>
+          )}
+
+          {/* Offset after landing + the resulting pickup — airport pickups only (STOP-05 / D-07) */}
+          {landingMode && (
+            <div style={{ marginTop: 24 }}>
+              <LandingPickupFields />
+            </div>
           )}
         </div>
       </div>
