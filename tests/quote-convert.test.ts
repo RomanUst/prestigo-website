@@ -47,6 +47,7 @@ vi.mock('@/lib/payments/stripe', async (importActual) => ({
   ...(await importActual<typeof import('@/lib/payments/stripe')>()),
   getPaymentsStripe: () => (world.stripe as FakeStripe).stripe,
 }))
+vi.mock('@/lib/qstash', () => ({ scheduleQStashReminder: vi.fn().mockResolvedValue(undefined) }))
 vi.mock('resend', () => ({
   Resend: vi.fn().mockImplementation(function () {
     return { emails: { send: mockResendSend } }
@@ -412,6 +413,8 @@ async function paidQuote(): Promise<{ s: Seeded; pi: Stripe.PaymentIntent; booki
   const pi = depositIntent(s)
   const first = await applyQuoteDepositPaid(pi, WEBHOOK)
   expect(first.outcome).toBe('converted')
+  // The mails of the first conversion (plan 92-21) are not what these cases count: they start from a paid quote.
+  mockResendSend.mockClear()
   return { s, pi, bookingIds: first.bookingIds as string[] }
 }
 
@@ -505,7 +508,8 @@ describe('D-18: a succeeded deposit the quote does not own goes back, once, and 
       expect(mail.text).not.toContain(fragment)
       expect(mail.subject).not.toContain(fragment)
     }
-    expect(eventsOf(s.quoteId, 'alert_sent')).toHaveLength(1)
+    // (the quote_paid alert of a conversion that came earlier, plan 92-21, is not the orphan alert)
+    expect(eventsOf(s.quoteId, 'alert_sent').filter((e) => String(e.event_key).startsWith('alert:quote_orphan_refunded'))).toHaveLength(1)
 
     // A replay refunds nothing more, records nothing more, mails nothing more.
     const again = await applyQuoteDepositPaid(pi, WEBHOOK)
@@ -620,7 +624,8 @@ describe('a conversion that fails inside the database: money taken, no bookings'
     expect(ok.outcome).toBe('converted')
     expect(bookingsOf(s.quoteId)).toHaveLength(2)
     expect(refundCalls()).toHaveLength(0)
-    expect(mails()).toHaveLength(1)
+    // The conversion's own mails (plan 92-21) are new; the failure alert is still the one it was.
+    expect(mails().filter((m) => m.text?.includes('quote_convert_failed'))).toHaveLength(1)
   })
 
   it('a refusal that is not about ownership (not_accepted, lines_mismatch, hold_at_missing) is a conversion failure, not a refund', async () => {

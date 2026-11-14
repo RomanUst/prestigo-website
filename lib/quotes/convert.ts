@@ -6,8 +6,13 @@ import { DEFAULT_HOLD_LEAD_HOURS } from '@/lib/payments/config'
 import { computeHoldAt } from '@/lib/payments/timing'
 import { convertQuoteToBookings, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
+import { scheduleQStashReminder } from '@/lib/qstash'
 import { sendQuoteOperatorAlert } from '@/lib/quotes/alerts'
+import { renderQuoteAccountingEmail } from '@/lib/quotes/emails/accounting'
+import { renderQuoteConfirmedEmail } from '@/lib/quotes/emails/confirmed'
+import { sendQuoteEmail } from '@/lib/quotes/emails/shell'
 import { appendQuoteEvent, hasQuoteEvent } from '@/lib/quotes/events'
+import { remainderDueMinor } from '@/lib/quotes/money'
 import type { QuoteAcceptanceRow, QuoteLineRow, QuoteRow, QuoteVersionRow } from '@/lib/quotes/types'
 
 /**
@@ -31,6 +36,8 @@ import type { QuoteAcceptanceRow, QuoteLineRow, QuoteRow, QuoteVersionRow } from
  *      automatically, under the fixed key refund:quote:<id>:orphan:<pi>, recorded as orphan_refunded and alerted once.
  *      This is the ONLY automatic refund of the quote flow; it never applies to a deposit the quote recorded (step 2).
  * The wrapper in lib/payments/state.ts is the only caller of the database function.
+ * After a conversion (and after a replay) runQuotePaidEffects (plan 92-21) finishes what the client, the accountant, the
+ * operator and the trip reminders are owed, each at most once.
  *
  * Server only. Errors and logs carry ids and codes, never a client name, an email or an address.
  */
@@ -110,7 +117,9 @@ export async function applyQuoteDepositPaid(pi: Stripe.PaymentIntent, actor: Led
 
   // 2. RECORDED (W2): a deposit this quote already recorded is never decided again, whatever became of the quote since.
   if (quote.deposit_payment_intent_id === pi.id && quote.paid_at) {
-    return { outcome: 'replayed', bookingIds: await bookingIdsOfQuote(quote.id) }
+    const bookingIds = await bookingIdsOfQuote(quote.id)
+    await finishQuotePaid(quote.id)
+    return { outcome: 'replayed', bookingIds }
   }
 
   // 3. OWNED: the recorded intent of the current version of a quote that is neither voided nor cancelled.
@@ -157,7 +166,17 @@ export async function applyQuoteDepositPaid(pi: Stripe.PaymentIntent, actor: Led
     await recordConvertFailed(quote, pi, actor, result.reason)
     throw new Error(`quote conversion refused: ${result.reason}`)
   }
+  await finishQuotePaid(quote.id)
   return { outcome: result.firstTime ? 'converted' : 'replayed', bookingIds: result.bookingIds }
+}
+
+/** The effects of a paid deposit never undo a committed conversion and never fail the webhook: a failure is logged by id. */
+async function finishQuotePaid(quoteId: string): Promise<void> {
+  try {
+    await runQuotePaidEffects(quoteId)
+  } catch {
+    console.error('[quote-effects] effects failed', { quoteId })
+  }
 }
 
 /** Why the payment is not the quote's, as a short code for the event row and the alert. */
@@ -280,4 +299,175 @@ function holdAtFor(line: QuoteLineRow, leadHours: number): string | null {
   const pickupMs = pickupInstantMs({ pickup_utc: null, pickup_date: line.pickup_date, pickup_time: line.pickup_time })
   if (pickupMs === null) return null
   return new Date(computeHoldAt(pickupMs, leadHours).holdAtMs).toISOString()
+}
+
+// -- after the conversion (plan 92-21) --------------------------------------------------------------------------------------
+
+const SYSTEM_ACTOR = { type: 'system', id: null } as const
+
+interface PaidBooking {
+  id: string
+  quote_line_id: string | null
+  status: string
+  paid_at: string | null
+  payment_mode: string
+  booking_reference: string
+  pickup_date: string
+  pickup_time: string
+  pickup_utc: string | null
+  origin_address: string
+  destination_address: string | null
+}
+
+/** One effect: a failure is logged with the quote id and the step name and never stops the other effects. */
+async function effect(quoteId: string, step: string, run: () => Promise<void>): Promise<void> {
+  try {
+    await run()
+  } catch {
+    console.error('[quote-effects] step failed', { quoteId, step })
+  }
+}
+
+async function readPaidBookings(quoteId: string, lineOrder: Map<string, number>): Promise<PaidBooking[]> {
+  const { data, error } = await createSupabaseServiceClient()
+    .from('bookings')
+    .select(
+      'id, quote_line_id, status, paid_at, payment_mode, booking_reference, pickup_date, pickup_time, pickup_utc, origin_address, destination_address',
+    )
+    .eq('quote_id', quoteId)
+  if (error) throw new Error('quote bookings lookup failed')
+  const rows = (Array.isArray(data) ? data : []) as PaidBooking[]
+  return [...rows].sort((a, b) => (lineOrder.get(a.quote_line_id ?? '') ?? 0) - (lineOrder.get(b.quote_line_id ?? '') ?? 0))
+}
+
+/** A message of the quote is recorded as sent, or as failed under its own key (a later delivery tries again). */
+async function recordEmail(quoteId: string, key: string, outcome: 'sent' | 'failed', versionId: string): Promise<void> {
+  if (outcome === 'sent') {
+    await appendQuoteEvent(quoteId, { key, kind: 'email_sent', versionId, actor: SYSTEM_ACTOR })
+    return
+  }
+  await appendQuoteEvent(quoteId, { key: `${key}:failed`, kind: 'email_failed', versionId, errorCode: 'send_failed', actor: SYSTEM_ACTOR })
+}
+
+/**
+ * What a paid deposit still owes after the bookings exist (QUOTE-04, QUOTE-05; D-17, research Q3 / Q4, Q8): the invoice
+ * record, one accounting copy, one operator alert, one confirmation to the client and the trip reminders. Each step is
+ * claimed by a quote event key (`invoice_requested`, `email:accounting`, `alert:quote_paid`, `email:confirmed`,
+ * `reminders`) and every email carries a Resend idempotency key derived from the quote id: send THEN record, so a
+ * redelivery after a crash finishes what is missing and a message that went out without its row is dropped by Resend.
+ *
+ * W2: a quote cancelled (or erased) in the meantime gets no client-facing effect, neither the confirmation nor the
+ * reminders; the accountant and the operator still learn that the deposit was received. A step that fails is logged and
+ * does not stop the others; the function itself throws only when the quote can not be read.
+ */
+export async function runQuotePaidEffects(quoteId: string): Promise<void> {
+  const quote = await readOne<QuoteRow>('quotes', 'id', quoteId)
+  const versionId = quote?.accepted_version_id ?? quote?.current_version_id ?? null
+  if (!quote || !quote.paid_at || !versionId) {
+    console.error('[quote-effects] quote is not a paid quote', { quoteId })
+    return
+  }
+  const version = await readOne<QuoteVersionRow>('quote_versions', 'id', versionId)
+  if (!version) {
+    console.error('[quote-effects] version missing', { quoteId })
+    return
+  }
+  const rawLines = await readMany<QuoteLineRow>('quote_version_lines', 'version_id', versionId, 'position')
+  // PostgREST sends bigint as text: every amount is a number from here on.
+  const lines = rawLines.map((l) => ({
+    ...l,
+    amount_minor: Number(l.amount_minor),
+    deposit_share_minor: l.deposit_share_minor === null ? null : Number(l.deposit_share_minor),
+    remainder_minor: l.remainder_minor === null ? null : Number(l.remainder_minor),
+  }))
+  const lineOrder = new Map(lines.map((l) => [l.id, l.position]))
+  const bookings = await readPaidBookings(quoteId, lineOrder)
+  const paidAt = quote.paid_at
+  const paymentIntentId = quote.deposit_payment_intent_id ?? ''
+
+  // D-17: an invoice remainder is recorded on the quote (once) before anyone is told.
+  if (version.remainder_method === 'invoice') {
+    await effect(quoteId, 'invoice_requested', async () => {
+      if (await hasQuoteEvent(quoteId, 'invoice_requested')) return
+      const { error } = await createSupabaseServiceClient()
+        .from('quotes')
+        .update({ invoice_requested_at: new Date().toISOString() })
+        .eq('id', quoteId)
+        .is('invoice_requested_at', null)
+      if (error) throw new Error('quote invoice request failed')
+      await appendQuoteEvent(quoteId, { key: 'invoice_requested', kind: 'invoice_requested', versionId, actor: SYSTEM_ACTOR })
+    })
+  }
+
+  // Q3 / Q4: the accountant gets the figures of every paid deposit (the business's own mailbox: billing data may go there).
+  await effect(quoteId, 'email:accounting', async () => {
+    if (await hasQuoteEvent(quoteId, 'email:accounting')) return
+    const to = process.env.ACCOUNTING_EMAIL?.trim() || process.env.MANAGER_EMAIL?.trim()
+    if (!to) {
+      console.error('[quote-effects] no accounting address (ACCOUNTING_EMAIL, MANAGER_EMAIL)', { quoteId })
+      await appendQuoteEvent(quoteId, {
+        key: 'email:accounting:failed',
+        kind: 'email_failed',
+        versionId,
+        errorCode: 'no_accounting_address',
+        actor: SYSTEM_ACTOR,
+      })
+      return
+    }
+    const mail = renderQuoteAccountingEmail({ quote, version, lines, depositPaidAt: paidAt, paymentIntentId })
+    const outcome = await sendQuoteEmail({ to, subject: mail.subject, html: mail.html, idempotencyKey: `quote-accounting:${quoteId}` })
+    await recordEmail(quoteId, 'email:accounting', outcome, versionId)
+  })
+
+  // The operator: one notice (sendQuoteOperatorAlert claims the key itself and never throws).
+  await effect(quoteId, 'alert:quote_paid', async () => {
+    await sendQuoteOperatorAlert('quote_paid', { id: quote.id, reference: quote.reference }, {
+      eventKey: 'alert:quote_paid',
+      amountMinor: Number(version.deposit_minor ?? 0),
+      currency: version.currency,
+    })
+  })
+
+  // W2: nothing client-facing for a quote that was cancelled or erased, however the deposit came to be replayed. The state is
+  // read again before each client step, so a cancel that lands between two steps is seen by the next one.
+  const clientBlocked = async (): Promise<boolean> => {
+    const fresh = await readOne<QuoteRow>('quotes', 'id', quoteId)
+    return !fresh || Boolean(fresh.cancelled_at) || Boolean(fresh.anonymised_at) || Boolean(fresh.voided_at)
+  }
+
+  await effect(quoteId, 'email:confirmed', async () => {
+    if (await hasQuoteEvent(quoteId, 'email:confirmed')) return
+    if (await clientBlocked()) return
+    const live = bookings.filter((b) => b.status !== 'cancelled')
+    const liveLines = new Set(live.map((b) => b.quote_line_id))
+    // A payment link or an invoice is collected through quote-mode bookings; a card or cash remainder is what the lines carry.
+    const dueMinor =
+      version.remainder_method === 'payment_link' || version.remainder_method === 'invoice'
+        ? remainderDueMinor(
+            lines.map((l) => ({ id: l.id, remainder_minor: l.remainder_minor })),
+            bookings,
+          )
+        : lines.filter((l) => liveLines.has(l.id)).reduce((sum, l) => sum + (l.remainder_minor ?? 0), 0)
+    // The PDF of the quote is attached by plan 92-20; nothing is attached here (seam: pass `attachments` to sendQuoteEmail).
+    const mail = await renderQuoteConfirmedEmail({ quote, version, bookings: live, remainderDueMinor: dueMinor, quoteUrl: null })
+    const outcome = await sendQuoteEmail({
+      to: quote.client_email,
+      subject: mail.subject,
+      html: mail.html,
+      idempotencyKey: `quote-confirmed:${quoteId}`,
+    })
+    await recordEmail(quoteId, 'email:confirmed', outcome, versionId)
+  })
+
+  // The usual 2-hours-before reminder of every booking, as for a manual booking. scheduleQStashReminder never throws.
+  await effect(quoteId, 'reminders', async () => {
+    if (await hasQuoteEvent(quoteId, 'reminders')) return
+    if (await clientBlocked()) return
+    for (const booking of bookings) {
+      if (booking.status === 'cancelled') continue
+      const pickupMs = pickupInstantMs({ pickup_utc: booking.pickup_utc, pickup_date: booking.pickup_date, pickup_time: booking.pickup_time })
+      if (pickupMs !== null) await scheduleQStashReminder(booking.id, pickupMs)
+    }
+    await appendQuoteEvent(quoteId, { key: 'reminders', kind: 'reminder_scheduled', versionId, actor: SYSTEM_ACTOR })
+  })
 }
