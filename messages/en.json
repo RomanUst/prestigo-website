@@ -1438,5 +1438,62 @@
       "acceptOnline": "Accept the quote and pay the deposit online with the link we sent you.",
       "operator": "Prestigo is operated by {company}."
     }
+  },
+  "QuoteEmails": {
+    "common": {
+      "greeting": "Hello {name},",
+      "signoff": "Prestigo team",
+      "contact": "Questions? Reply to this email or call us.",
+      "openQuote": "Open your quote",
+      "pragueTime": "All times are Prague time."
+    },
+    "sent": {
+      "subject": "Your Prestigo quote {reference}",
+      "h1": "Your quote is ready",
+      "intro": "We prepared a quote for your trips. Open it to check the details and the cancellation terms, then accept it and pay the deposit to confirm.",
+      "total": "Total: {amount}",
+      "deposit": "Deposit to confirm: {amount}",
+      "validUntil": "This quote is valid until {date}.",
+      "pdfAttached": "The quote is attached to this email as a PDF.",
+      "pdfLink": "You can download the quote as a PDF on the quote page."
+    },
+    "confirmed": {
+      "subject": "Your trips are booked – {reference}",
+      "h1": "Your trips are booked",
+      "intro": "We received your deposit of {amount}. These trips are now booked:",
+      "booking": "Booking {reference}",
+      "remainder": {
+        "saved_card": "We charge the remainder of each trip to your card as described in the terms.",
+        "payment_link": "Please pay the remainder of {amount} on your quote page.",
+        "cash": "You pay the remainder of each trip in cash to the driver.",
+        "invoice": "We will send you an invoice for the remainder of {amount}.",
+        "none": "Your trips are fully paid."
+      }
+    },
+    "remainderDue": {
+      "subject": "Remainder to pay – {reference}",
+      "h1": "Remainder to pay",
+      "intro": "Please pay the remainder of {amount} for your booked trips.",
+      "button": "Pay the remainder"
+    },
+    "remainderPaid": {
+      "subject": "Payment received – {reference}",
+      "h1": "Thank you",
+      "intro": "We received your payment of {amount}. Your trips are fully paid."
+    },
+    "cancelled": {
+      "subject": "Quote {reference} is cancelled",
+      "h1": "Your trips are cancelled",
+      "introClient": "As you asked, we cancelled the trips of quote {reference}.",
+      "introPrestigo": "We are sorry: we had to cancel the trips of quote {reference}.",
+      "refund": "We are refunding {amount} to your card. It can take 5 to 10 days to appear.",
+      "kept": "Under the cancellation terms of this quote, {amount} of the deposit is kept.",
+      "nothingCharged": "Nothing else is charged."
+    },
+    "refunded": {
+      "subject": "Refund for quote {reference}",
+      "h1": "Refund on its way",
+      "intro": "We refunded {amount} to your card. It can take 5 to 10 days to appear."
+    }
   }
 }
