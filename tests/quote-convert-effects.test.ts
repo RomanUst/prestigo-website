@@ -347,4 +347,149 @@ describe('tracer: one client confirmation per paid quote, exactly once', () => {
     expect(toClient()).toHaveLength(0)
     expect(mockSchedule).not.toHaveBeenCalled()
   })
+
+  it('W2: the accounting copy and the operator alert missing after a cancel are still completed', async () => {
+    const s = await seed()
+    const pi = depositIntent(s)
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    db.state.quote_events = db.state.quote_events.filter((e) => e.event_key !== 'email:accounting' && e.event_key !== 'alert:quote_paid')
+    mockResendSend.mockClear()
+    await db.client.from('quotes').update({ cancelled_at: '2026-11-14T10:05:00.000Z' }).eq('id', s.quoteId)
+
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    expect(toAccounting()).toHaveLength(1)
+    expect(alerts()).toHaveLength(1)
+    expect(toClient()).toHaveLength(0)
+  })
+})
+
+describe('accounting copy, invoice record, operator alert and reminders', () => {
+  it('every first conversion sends one English accounting email with the figures of the deposit', async () => {
+    const s = await seed({
+      method: 'payment_link',
+      billing: { billing_name: 'Acme s.r.o.', billing_address: 'Main 1, Praha', billing_company_id: '12345678', billing_vat_id: 'CZ12345678', billing_note: 'PO <42>' },
+    })
+    await applyQuoteDepositPaid(depositIntent(s), WEBHOOK)
+
+    const mails = toAccounting()
+    expect(mails).toHaveLength(1)
+    const mail = mails[0]
+    expect(mail.to).toBe('accounting@example.com')
+    expect(mail.key).toBe(`quote-accounting:${s.quoteId}`)
+    expect(mail.subject).toContain(s.reference)
+    const body = mail.html ?? ''
+    expect(body).toContain(s.reference)
+    expect(body).toContain('Acme s.r.o.')
+    expect(body).toContain('Main 1, Praha')
+    expect(body).toContain('CZ12345678')
+    expect(body).toContain('PO &lt;42&gt;')
+    expect(body).not.toContain('PO <42>')
+    expect(body).toContain(formatMinor(s.deposit, 'eur'))
+    expect(body).toContain(formatMinor(s.total, 'eur'))
+    expect(body).toContain(formatMinor(3000, 'eur'))
+    expect(body).toContain(formatMinor(10000, 'eur'))
+    expect(body).toContain('payment_link')
+    expect(body).toContain('pi_1')
+    // No more client data than the booking alert: no email address, no phone number.
+    expect(body).not.toContain(CLIENT_EMAIL)
+    expect(body).not.toContain(CLIENT_PHONE)
+    expect(eventKeys(s.quoteId)).toContain('email:accounting')
+
+    await applyQuoteDepositPaid(depositIntent(s), WEBHOOK)
+    expect(toAccounting()).toHaveLength(1)
+  })
+
+  it('an invoice quote says "Invoice requested", sets invoice_requested_at once and records an event', async () => {
+    const s = await seed({ method: 'invoice' })
+    const pi = depositIntent(s)
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+
+    const mail = toAccounting()[0]
+    expect(mail.subject.startsWith('Invoice requested')).toBe(true)
+    expect(mail.html).toContain('Invoice requested')
+    const quote = db.state.quotes.find((q) => q.id === s.quoteId) as Row
+    const stamp = quote.invoice_requested_at
+    expect(typeof stamp).toBe('string')
+    expect(events(s.quoteId).filter((e) => e.kind === 'invoice_requested')).toHaveLength(1)
+
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    expect((db.state.quotes.find((q) => q.id === s.quoteId) as Row).invoice_requested_at).toBe(stamp)
+    expect(events(s.quoteId).filter((e) => e.kind === 'invoice_requested')).toHaveLength(1)
+  })
+
+  it('a quote of another method does not request an invoice', async () => {
+    const s = await seed({ method: 'cash' })
+    await applyQuoteDepositPaid(depositIntent(s), WEBHOOK)
+    expect((db.state.quotes.find((q) => q.id === s.quoteId) as Row).invoice_requested_at ?? null).toBeNull()
+    expect(toAccounting()[0].subject.startsWith('Invoice requested')).toBe(false)
+  })
+
+  it('without ACCOUNTING_EMAIL the copy goes to MANAGER_EMAIL', async () => {
+    delete process.env.ACCOUNTING_EMAIL
+    const s = await seed()
+    await applyQuoteDepositPaid(depositIntent(s), WEBHOOK)
+    const copies = sent().filter((m) => m.key.startsWith('quote-accounting:'))
+    expect(copies).toHaveLength(1)
+    expect(copies[0].to).toBe('owner@example.com')
+  })
+
+  it('with neither address set the step records email_failed with a code and the other steps still run', async () => {
+    delete process.env.ACCOUNTING_EMAIL
+    delete process.env.MANAGER_EMAIL
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const s = await seed()
+      const result = await applyQuoteDepositPaid(depositIntent(s), WEBHOOK)
+      expect(result.outcome).toBe('converted')
+      const failed = events(s.quoteId).filter((e) => e.kind === 'email_failed')
+      expect(failed.length).toBeGreaterThan(0)
+      expect(failed.some((e) => e.error_code === 'no_accounting_address')).toBe(true)
+      expect(eventKeys(s.quoteId)).not.toContain('email:accounting')
+      expect(toClient()).toHaveLength(1)
+      expect(mockSchedule).toHaveBeenCalledTimes(2)
+    } finally {
+      errors.mockRestore()
+    }
+  })
+
+  it('one quote_paid operator alert, however often the deposit is delivered', async () => {
+    const s = await seed()
+    const pi = depositIntent(s)
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    const mails = alerts()
+    expect(mails).toHaveLength(1)
+    expect(mails[0].to).toBe('owner@example.com')
+    expect(mails[0].subject).toContain(s.reference)
+    expect(eventKeys(s.quoteId).filter((k) => k === 'alert:quote_paid')).toHaveLength(1)
+  })
+
+  it('one reminder per booking with the booking pickup instant; a replay adds none', async () => {
+    const s = await seed()
+    const pi = depositIntent(s)
+    const result = await applyQuoteDepositPaid(pi, WEBHOOK)
+    expect(mockSchedule).toHaveBeenCalledTimes(2)
+    const pickups = new Map(
+      (result.bookingIds ?? []).map((id) => {
+        const b = db.state.bookings.find((row) => row.id === id) as Row
+        return [id, pickupInstantMs({ pickup_utc: (b.pickup_utc as string | null) ?? null, pickup_date: String(b.pickup_date), pickup_time: String(b.pickup_time) })]
+      }),
+    )
+    for (const [id, ms] of pickups) expect(mockSchedule).toHaveBeenCalledWith(id, ms)
+    expect(eventKeys(s.quoteId)).toContain('reminders')
+
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    expect(mockSchedule).toHaveBeenCalledTimes(2)
+  })
+
+  it('a crash after the accounting copy was sent but before it was recorded repeats it under the same Resend key', async () => {
+    const s = await seed()
+    const pi = depositIntent(s)
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    db.state.quote_events = db.state.quote_events.filter((e) => e.event_key !== 'email:accounting')
+    await applyQuoteDepositPaid(pi, WEBHOOK)
+    const copies = toAccounting()
+    expect(copies).toHaveLength(2)
+    expect(new Set(copies.map((m) => m.key)).size).toBe(1)
+  })
 })
