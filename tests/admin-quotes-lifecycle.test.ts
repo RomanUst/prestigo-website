@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
+import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 import { DEFAULT_POLICY } from '@/lib/cancellation-policy'
 import { QUOTE_CONSENT_VERSION } from '@/lib/payments/consent-text'
 import { formatMinor } from '@/lib/payments/money'
@@ -17,6 +18,7 @@ const { world, mockResendSend, computeRouteDistanceMock } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     auth: 'admin' as 'admin' | '401' | '403',
+    stripe: null as unknown,
   },
   mockResendSend: vi.fn(),
   computeRouteDistanceMock: vi.fn(),
@@ -42,6 +44,10 @@ vi.mock('resend', () => ({
   Resend: vi.fn().mockImplementation(function () {
     return { emails: { send: mockResendSend } }
   }),
+}))
+vi.mock('@/lib/payments/stripe', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/payments/stripe')>()),
+  getPaymentsStripe: () => world.stripe,
 }))
 vi.mock('@/lib/cancellation-settings', () => ({
   getCancellationPolicy: async () => ({ ...DEFAULT_POLICY }),
@@ -76,8 +82,11 @@ import { POST as CREATE } from '@/app/api/admin/quotes/route'
 import { PATCH } from '@/app/api/admin/quotes/[id]/route'
 import { POST as SEND } from '@/app/api/admin/quotes/[id]/send/route'
 import { POST as LINK } from '@/app/api/admin/quotes/[id]/link/route'
+import { POST as REVISE } from '@/app/api/admin/quotes/[id]/revise/route'
+import { POST as VOID } from '@/app/api/admin/quotes/[id]/void/route'
 
 let db: FakePaymentsDb
+let fake: FakeStripe
 
 const params = (id: string) => ({ params: Promise.resolve({ id }) })
 
@@ -90,6 +99,8 @@ function req(method: string, url: string, body?: unknown): Request {
 }
 
 const send = (id: string, body?: unknown) => SEND(req('POST', `http://localhost/api/admin/quotes/${id}/send`, body), params(id))
+const revise = (id: string, body?: unknown) => REVISE(req('POST', `http://localhost/api/admin/quotes/${id}/revise`, body), params(id))
+const voidQuote = (id: string, body?: unknown) => VOID(req('POST', `http://localhost/api/admin/quotes/${id}/void`, body), params(id))
 const link = (id: string, body?: unknown) => LINK(req('POST', `http://localhost/api/admin/quotes/${id}/link`, body), params(id))
 
 const PRAGUE = { address: 'Wenceslas Square, Prague', lat: 50.0813, lng: 14.4284 }
@@ -158,8 +169,10 @@ beforeEach(() => {
   world.auth = 'admin'
   computeRouteDistanceMock.mockResolvedValue({ ok: true, distanceKm: 130, durationMin: 90 })
   mockResendSend.mockResolvedValue({ data: { id: 'em_1' }, error: null })
+  fake = createFakeStripe()
+  world.stripe = fake.stripe
   db = createFakePaymentsDb()
-  world.db = { client: { from: (t) => db.client.from(t), rpc: (n, a) => db.client.rpc(n, a) } }
+  world.db ={ client: { from: (t) => db.client.from(t), rpc: (n, a) => db.client.rpc(n, a) } }
 })
 
 afterEach(() => {
@@ -476,5 +489,292 @@ describe('T-92-41: no raw token in any log line', () => {
       expect(logged).not.toContain(hashQuoteToken(tokenOf(url)))
     }
     expect(logged).not.toContain('ivan@example.com')
+  })
+})
+
+// == Task 3: revise and void =========================================================================================
+
+const BRNO = { address: 'Brno', lat: 49.1951, lng: 16.6068 }
+
+/** A sent quote whose first line has one stop. */
+async function sentQuote(): Promise<{ id: string; url: string }> {
+  const id = await draftQuote({
+    lines: [lineBody({ amount_minor: 30000, stops: [{ ...BRNO, wait_minutes: 30 }] }), lineBody({ pickup_date: '2090-05-12', amount_minor: 18000 })],
+  })
+  const out = (await (await send(id)).json()) as { url: string }
+  return { id, url: out.url }
+}
+
+/** A deposit PaymentIntent in the fake Stripe, stored on the quote like the accept flow does. */
+async function depositIntent(id: string, status: string): Promise<string> {
+  const pi = await fake.stripe.paymentIntents.create({ amount: 14400, currency: 'eur' })
+  fake.state.paymentIntents.get(pi.id)!.status = status
+  quoteRow(id).status = 'accepted'
+  quoteRow(id).deposit_payment_intent_id = pi.id
+  return pi.id as string
+}
+
+describe('QUOTE-06: revise into a new version', () => {
+  it('QUOTE-06: version 2 is an unfrozen copy (lines, stops, money), current, the quote is a draft, and the version 1 link resolves to null', async () => {
+    const { id, url } = await sentQuote()
+    expect((await resolveQuoteToken(tokenOf(url)))?.state).toBe('offer')
+    const [v1] = versionsOf(id)
+
+    const res = await revise(id)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+    const { versionId } = (await res.json()) as { versionId: string }
+
+    const versions = versionsOf(id)
+    expect(versions).toHaveLength(2)
+    const v2 = versions.find((v) => v.id === versionId)!
+    expect(v2.version_no).toBe(2)
+    expect(v2.frozen_at).toBeNull()
+    expect(v2).toMatchObject({
+      total_minor: v1.total_minor,
+      deposit_kind: 'percent',
+      deposit_value: 30,
+      deposit_minor: 14400,
+      remainder_method: 'saved_card',
+      cancel_free_hours: 336,
+      currency: 'eur',
+      locale: v1.locale,
+    })
+    expect(v2.terms_version).toBeNull()
+    expect(v2.cancel_policy).toBeNull()
+
+    const oldLines = linesOf(v1.id)
+    const newLines = linesOf(versionId)
+    expect(newLines).toHaveLength(2)
+    expect(newLines.map((l) => l.id)).not.toEqual(oldLines.map((l) => l.id))
+    expect(newLines.map((l) => [l.position, l.amount_minor, l.deposit_share_minor, l.remainder_minor, l.pickup_date])).toEqual(
+      oldLines.map((l) => [l.position, l.amount_minor, l.deposit_share_minor, l.remainder_minor, l.pickup_date]),
+    )
+    const stops = db.state.quote_version_line_stops.filter((s) => s.line_id === newLines[0].id)
+    expect(stops).toHaveLength(1)
+    expect(stops[0]).toMatchObject({ position: 1, address: 'Brno', wait_minutes: 30 })
+    expect(db.state.quote_version_line_stops.filter((s) => s.line_id === newLines[1].id)).toHaveLength(0)
+
+    expect(quoteRow(id).current_version_id).toBe(versionId)
+    expect(quoteRow(id).status).toBe('draft')
+    expect(await resolveQuoteToken(tokenOf(url))).toBeNull()
+    expect(db.state.quote_events.some((e) => e.kind === 'revised' && e.event_key === `revised:${versionId}`)).toBe(true)
+    // Version 1 is untouched.
+    expect(versionsOf(id).find((v) => v.id === v1.id)!.frozen_at).toBeTruthy()
+    expect(linesOf(v1.id)).toHaveLength(2)
+  })
+
+  it('revising again before sending is 422 not_revisable (the quote is a draft)', async () => {
+    const { id } = await sentQuote()
+    expect((await revise(id)).status).toBe(200)
+    const res = await revise(id)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed', reason: 'not_revisable' })
+    expect(versionsOf(id)).toHaveLength(2)
+  })
+
+  it('the revised draft can be edited and sent again: the new link works, the old one stays dead', async () => {
+    const { id, url } = await sentQuote()
+    const { versionId } = (await (await revise(id)).json()) as { versionId: string }
+    const patched = await PATCH(req('PATCH', `http://localhost/api/admin/quotes/${id}`, { deposit: { kind: 'percent', value: 40 } }), params(id))
+    expect(patched.status).toBe(200)
+
+    const resent = (await (await send(id)).json()) as { status: string; url: string }
+    expect(resent.status).toBe('sent')
+    expect(versionsOf(id).find((v) => v.id === versionId)!.frozen_at).toBeTruthy()
+    expect(versionsOf(id).find((v) => v.id === versionId)!.deposit_minor).toBe(19200)
+    const resolved = await resolveQuoteToken(tokenOf(resent.url))
+    expect(resolved?.version.id).toBe(versionId)
+    expect(await resolveQuoteToken(tokenOf(url))).toBeNull()
+  })
+
+  it.each(['draft', 'voided', 'paid'] as const)('a %s quote is not revisable (paid ones are cancelled, not revised)', async (status) => {
+    const { id } = await sentQuote()
+    quoteRow(id).status = status
+    const res = await revise(id)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ reason: 'not_revisable' })
+    expect(versionsOf(id)).toHaveLength(1)
+  })
+
+  it('an unfrozen version 2 left behind by a crash is reused, not duplicated', async () => {
+    const { id } = await sentQuote()
+    const [v1] = versionsOf(id)
+    const crashed = { ...v1, id: '22222222-2222-4222-8222-222222222222', version_no: 2, frozen_at: null, terms_version: null, cancel_policy: null, cancel_policy_version: null }
+    await db.client.from('quote_versions').insert(crashed)
+
+    const res = await revise(id)
+    expect(res.status).toBe(200)
+    expect(((await res.json()) as { versionId: string }).versionId).toBe(crashed.id)
+    expect(versionsOf(id)).toHaveLength(2)
+    expect(linesOf(crashed.id)).toHaveLength(2)
+    expect(quoteRow(id).current_version_id).toBe(crashed.id)
+  })
+
+  it('two concurrent revises: one 200, one 409 busy, exactly one new version', async () => {
+    const { id } = await sentQuote()
+    const [a, b] = await Promise.all([revise(id), revise(id)])
+    expect([a.status, b.status].sort()).toEqual([200, 409])
+    expect(versionsOf(id)).toHaveLength(2)
+    expect(quoteRow(id).current_version_id).toBe(versionsOf(id).find((v) => v.version_no === 2)!.id)
+    expect(linesOf(quoteRow(id).current_version_id)).toHaveLength(2)
+  })
+})
+
+describe('Pitfall 7: no edit while a deposit is in flight', () => {
+  it('revise on an accepted quote with a requires_payment_method intent cancels it (deposit_canceled event) and proceeds', async () => {
+    const { id, url } = await sentQuote()
+    const pi = await depositIntent(id, 'requires_payment_method')
+
+    const res = await revise(id)
+    expect(res.status).toBe(200)
+    expect(fake.state.paymentIntents.get(pi)!.status).toBe('canceled')
+    const cancel = fake.callsTo('paymentIntents.cancel')
+    expect(cancel).toHaveLength(1)
+    expect(cancel[0].idempotencyKey).toBe(`qdep_void:${pi}`)
+    expect(db.state.quote_events.some((e) => e.kind === 'deposit_canceled' && e.event_key === `deposit_canceled:${pi}`)).toBe(true)
+    expect(quoteRow(id).status).toBe('draft')
+    expect(await resolveQuoteToken(tokenOf(url))).toBeNull()
+  })
+
+  it.each(['processing', 'succeeded'])('revise with a %s intent -> 409 deposit_in_flight and nothing changes', async (status) => {
+    const { id, url } = await sentQuote()
+    const pi = await depositIntent(id, status)
+
+    const res = await revise(id)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'deposit_in_flight' })
+    expect(versionsOf(id)).toHaveLength(1)
+    expect(quoteRow(id).status).toBe('accepted')
+    expect(quoteRow(id).current_version_id).toBe(versionsOf(id)[0].id)
+    expect(fake.state.paymentIntents.get(pi)!.status).toBe(status)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect((await resolveQuoteToken(tokenOf(url)))?.state).toBe('offer')
+  })
+
+  it('an intent that became processing between the read and the cancel is still deposit_in_flight', async () => {
+    const { id } = await sentQuote()
+    const pi = await depositIntent(id, 'requires_payment_method')
+    const original = fake.stripe.paymentIntents.cancel
+    fake.stripe.paymentIntents.cancel = (async () => {
+      fake.state.paymentIntents.get(pi)!.status = 'processing'
+      throw new Error('You cannot cancel this PaymentIntent because it has a status of processing.')
+    }) as typeof original
+
+    const res = await revise(id)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'deposit_in_flight' })
+    expect(versionsOf(id)).toHaveLength(1)
+  })
+
+  it('an already cancelled intent does not block the revise and is not cancelled again', async () => {
+    const { id } = await sentQuote()
+    await depositIntent(id, 'canceled')
+    expect((await revise(id)).status).toBe(200)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+  })
+
+  it('void cancels a live deposit intent and voids', async () => {
+    const { id } = await sentQuote()
+    const pi = await depositIntent(id, 'requires_payment_method')
+    expect((await voidQuote(id)).status).toBe(200)
+    expect(fake.state.paymentIntents.get(pi)!.status).toBe('canceled')
+    expect(quoteRow(id).status).toBe('voided')
+    expect(eventKinds(id)).toEqual(expect.arrayContaining(['deposit_canceled', 'voided']))
+  })
+
+  it.each(['processing', 'succeeded'])('void with a %s intent -> 409 deposit_in_flight and nothing changes', async (status) => {
+    const { id } = await sentQuote()
+    await depositIntent(id, status)
+    const res = await voidQuote(id)
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: 'deposit_in_flight' })
+    expect(quoteRow(id).status).toBe('accepted')
+    expect(quoteRow(id).voided_at).toBeNull()
+  })
+})
+
+describe('QUOTE-06: void', () => {
+  it.each(['sent', 'viewed', 'accepted', 'draft'] as const)('a %s quote is voided with voided_at, voided_by and a voided event; its link dies at once', async (status) => {
+    const { id, url } = await sentQuote()
+    quoteRow(id).status = status
+    expect((await resolveQuoteToken(tokenOf(url)))?.state).toBe(status === 'draft' ? undefined : 'offer')
+
+    const res = await voidQuote(id)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(quoteRow(id).status).toBe('voided')
+    expect(quoteRow(id).voided_by).toBe(ADMIN_ID)
+    expect(typeof quoteRow(id).voided_at).toBe('string')
+    expect(db.state.quote_events.some((e) => e.kind === 'voided' && e.event_key === `voided:${id}`)).toBe(true)
+    expect(await resolveQuoteToken(tokenOf(url))).toBeNull()
+  })
+
+  it('a paid quote is 422 already_paid and stays paid', async () => {
+    const { id } = await sentQuote()
+    quoteRow(id).status = 'paid'
+    const res = await voidQuote(id)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'action_not_allowed', reason: 'already_paid' })
+    expect(quoteRow(id).status).toBe('paid')
+    expect(quoteRow(id).voided_at).toBeNull()
+  })
+
+  it('voiding twice is idempotent: 200 and one voided event', async () => {
+    const { id } = await sentQuote()
+    expect((await voidQuote(id)).status).toBe(200)
+    expect((await voidQuote(id)).status).toBe(200)
+    expect(eventKinds(id).filter((k) => k === 'voided')).toHaveLength(1)
+  })
+
+  it('a voided quote cannot be revised, sent or given a link', async () => {
+    const { id } = await sentQuote()
+    await voidQuote(id)
+    expect((await revise(id)).status).toBe(422)
+    expect((await send(id, { resend: true })).status).toBe(422)
+    expect((await link(id)).status).toBe(422)
+  })
+
+  it('an unknown quote is 404 for revise and void', async () => {
+    const unknown = '11111111-1111-4111-8111-111111111111'
+    expect((await revise(unknown)).status).toBe(404)
+    expect((await voidQuote(unknown)).status).toBe(404)
+  })
+})
+
+describe('admin guards (revise and void)', () => {
+  const ID = '11111111-1111-4111-8111-111111111111'
+  const calls = [
+    ['revise', (body?: unknown, id = ID) => revise(id, body)],
+    ['void', (body?: unknown, id = ID) => voidQuote(id, body)],
+  ] as const
+
+  it.each(calls)('%s: 401 / 403 before anything is read', async (_name, call) => {
+    world.auth = '401'
+    expect((await call()).status).toBe(401)
+    world.auth = '403'
+    expect((await call()).status).toBe(403)
+  })
+
+  it.each(calls)('%s: invalid uuid 400, unknown body key 400, malformed JSON 400, body over 1000 bytes 413', async (_name, call) => {
+    expect((await call(undefined, 'nope')).status).toBe(400)
+    expect((await call({ surprise: 1 })).status).toBe(400)
+    expect((await call('{oops')).status).toBe(400)
+    expect((await call({ pad: 'x'.repeat(1500) })).status).toBe(413)
+  })
+
+  it.each(calls)('%s: an empty body is accepted as no input', async (_name, call) => {
+    expect((await call()).status).toBe(404)
+  })
+
+  it('a Stripe failure is a 500 that logs ids only, and the quote is unchanged', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { id } = await sentQuote()
+    await depositIntent(id, 'requires_payment_method')
+    fake.failNextWithError('paymentIntents.retrieve', new Error('stripe down') as never)
+    const res = await voidQuote(id)
+    expect(res.status).toBe(500)
+    expect(quoteRow(id).status).toBe('accepted')
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('ivan@example.com')
   })
 })
