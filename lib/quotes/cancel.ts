@@ -28,6 +28,7 @@
 // Server only. The service client is created inside each call. Logs and events carry ids, amounts and codes only: never
 // a name, an address or an email.
 
+import { STARTED_BOOKING_STATUSES } from '@/lib/booking-status'
 import { cancelBooking } from '@/lib/payments/cancel'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { createSupabaseServiceClient } from '@/lib/supabase'
@@ -74,7 +75,8 @@ export interface QuoteCancelActor {
 const num = (v: unknown): number => Number(v)
 
 /** Statuses of a trip that has started (the driver is on the way, at the pickup, or the trip is over). */
-const STARTED_STATUSES: ReadonlySet<string> = new Set(['en_route', 'on_location', 'on_board', 'completed', 'no_show'])
+// The shared list (lib/booking-status.ts): a hand-written status list here would drift from the status vocabulary.
+const STARTED_STATUSES: ReadonlySet<string> = STARTED_BOOKING_STATUSES
 
 const fail = (what: string, quoteId: string, code: string | null | undefined): never => {
   console.error('[quotes/cancel] database error', { quoteId, what, code: code ?? null })
