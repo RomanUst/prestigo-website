@@ -183,9 +183,12 @@ describe('089 erasure functions', () => {
     return sql.slice(start, sql.indexOf('$$;', sql.indexOf('AS $$', start) + 5) + 3)
   }
 
-  it('the latest definitions are the ones in 089', () => {
-    expect(norm(anonymise)).toBe(norm(bodyIn(m089, 'erasure_anonymise_person')))
+  it('erasure_payment_open is the 089 definition; erasure_anonymise_person (re-created by 091) still holds every 089 statement', () => {
     expect(norm(open)).toBe(norm(bodyIn(m089, 'erasure_payment_open')))
+    const next = norm(anonymise)
+    for (const chunk of bodyIn(m089, 'erasure_anonymise_person').split(';').map(norm).filter((c) => c.length > 0)) {
+      expect(next, `statement missing from the latest body: ${chunk.slice(0, 80)}`).toContain(chunk)
+    }
   })
 
   it('erasure_anonymise_person keeps every statement of the 088 body', () => {

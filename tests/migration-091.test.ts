@@ -834,3 +834,225 @@ describe('091 vocabulary parity', () => {
     for (const s of states) expect(allowedStates).toContain(s)
   })
 })
+
+// -- Section 10: erasure coverage for quotes (plan 92-12: D-19, T-92-37..39) --------------------------------------------
+// The live behaviour is proven by the rolled-back smoke 92-12-smoke.sql after the orchestrator applies 091. These tests
+// pin what must never be edited out: the full latest bodies (088 erasure_confirm / erasure_scope, 089
+// erasure_anonymise_person) are still inside the 091 copies, the quote data is deleted or anonymised, the in-flight
+// guard exists and every re-created SECURITY DEFINER function is revoked again.
+describe('091 erasure coverage for quotes (D-19)', () => {
+  const m088 = loadMigration('088_erasure_payment_pii.sql')
+  const m089 = loadMigration('089_stops_landing_extra_charges.sql')
+  const norm = (s: string) => s.replace(/\s+/g, ' ').trim()
+
+  /** Body of one function in ONE migration text: from its CREATE line up to and including `$$;`. */
+  function bodyIn(sql: string, name: string): string {
+    const start = sql.indexOf(`CREATE OR REPLACE FUNCTION public.${name}(`)
+    expect(start, `${name} in the file`).toBeGreaterThan(-1)
+    const open = sql.indexOf('AS $$', start)
+    return sql.slice(start, sql.indexOf('$$;', open + 5) + 3)
+  }
+
+  /** Every `;`-terminated statement of a body, whitespace-normalised. */
+  const statements = (body: string) =>
+    body
+      .split(';')
+      .map(norm)
+      .filter((c) => c.length > 0)
+
+  /** Every statement of `old` must still be inside `next`, except the ones listed as intentionally changed. */
+  function expectSuperset(old: string, next: string, changed: string[] = []) {
+    const flatNext = norm(next)
+    const list = statements(old)
+    expect(list.length).toBeGreaterThan(10)
+    for (const chunk of list) {
+      if (changed.some((c) => chunk.includes(c))) continue
+      expect(flatNext, `statement missing: ${chunk.slice(0, 90)}`).toContain(chunk)
+    }
+  }
+
+  const anonymise = bodyIn(m091, 'erasure_anonymise_person')
+  const confirm = bodyIn(m091, 'erasure_confirm')
+  const scope = bodyIn(m091, 'erasure_scope')
+  const aFlat = norm(anonymise)
+
+  it('091 holds the latest definition of every erasure function it re-creates', () => {
+    expect(norm(latestFunctionBody('erasure_anonymise_person'))).toBe(aFlat)
+    expect(norm(latestFunctionBody('erasure_confirm'))).toBe(norm(confirm))
+    expect(norm(latestFunctionBody('erasure_scope'))).toBe(norm(scope))
+    // Not touched here: they keep their 089 / 088 definitions.
+    expect(m091).not.toContain('CREATE OR REPLACE FUNCTION public.erasure_payment_open(')
+    expect(m091).not.toContain('CREATE OR REPLACE FUNCTION public.erasure_record_step(')
+    expect(m091).not.toContain('booking_payment_consents_locale_check')
+  })
+
+  it('tracer: erasure_anonymise_person keeps every statement of the 089 body (nothing edited out)', () => {
+    expectSuperset(bodyIn(m089, 'erasure_anonymise_person'), anonymise)
+  })
+
+  it('erasure_confirm keeps every statement of the 088 body', () => {
+    expectSuperset(bodyIn(m088, 'erasure_confirm'), confirm)
+  })
+
+  it('erasure_scope keeps every statement of the 088 body except the not_found condition and the closing RETURN', () => {
+    expectSuperset(bodyIn(m088, 'erasure_scope'), scope, [
+      'IF v_identity IS NULL AND v_user IS NULL',
+      "RETURN jsonb_build_object( 'outcome', 'ok'",
+    ])
+    const f = norm(scope)
+    expect(f).toContain('AND cardinality(v_bookings) = 0 AND cardinality(v_inquiries) = 0 AND v_quote = 0 AND v_quotes_cnt = 0 THEN')
+    for (const outcome of ['invalid', 'shared_phone', 'not_found', 'already_in_progress', 'ok']) {
+      expect(scope, outcome).toContain(`'${outcome}'`)
+    }
+    for (const key of ["'bookings', cardinality(v_bookings)", "'upcoming', v_upcoming", "'payment_open', v_payment_open", "'inquiries', cardinality(v_inquiries)", "'quote_leads', v_quote", "'has_account', v_user IS NOT NULL"]) {
+      expect(f, key).toContain(key)
+    }
+  })
+
+  it('erasure_scope reports counts.quotes and adds the quote payments to counts.payment_open', () => {
+    const f = norm(scope)
+    expect(f).toContain("'quotes', v_quotes_cnt")
+    expect(f).toContain('v_quotes_cnt := cardinality(public.erasure_quote_ids(v_emails, v_phones, v_bookings))')
+    expect(f).toContain('v_payment_open := v_payment_open + public.erasure_quote_payment_open(v_emails, v_phones)')
+  })
+
+  it('erasure_confirm refuses with payment_open while a quote has money in flight, before it writes anything', () => {
+    const f = norm(confirm)
+    const guard = "IF public.erasure_quote_payment_open(v_emails, v_phones) > 0 THEN RETURN 'payment_open'; END IF;"
+    expect(f).toContain(guard)
+    expect(f.indexOf(guard)).toBeGreaterThan(f.indexOf("IF public.erasure_payment_open(v_bookings) > 0 THEN RETURN 'payment_open'"))
+    expect(f.indexOf(guard)).toBeLessThan(f.indexOf('UPDATE public.erasure_requests'))
+  })
+
+  it('erasure_anonymise_person opens the guard bypass before the first quote statement and closes it after the last', () => {
+    const on = aFlat.indexOf("PERFORM set_config('prestigo.quote_erasure', 'on', true)")
+    const off = aFlat.indexOf("PERFORM set_config('prestigo.quote_erasure', 'off', true)")
+    const firstQuote = aFlat.indexOf('DELETE FROM public.quotes dq')
+    const lastQuote = aFlat.indexOf('UPDATE public.quotes aq')
+    expect(on).toBeGreaterThan(-1)
+    expect(on).toBeLessThan(aFlat.indexOf('erasure_quote_ids'))
+    expect(on).toBeLessThan(firstQuote)
+    expect(off).toBeGreaterThan(lastQuote)
+    // Transaction-local only: the third argument of set_config is true both times.
+    expect(aFlat).not.toMatch(/set_config\('prestigo\.quote_erasure', '[a-z]+', false\)/)
+    // The bypass setting is also what the section 8 guards read.
+    expect(m091).toContain("current_setting('prestigo.quote_erasure', true) = 'on'")
+  })
+
+  it('deletes only the quotes with no booking and no money, and anonymises the rest', () => {
+    const start = aFlat.indexOf('DELETE FROM public.quotes dq')
+    const stmt = aFlat.slice(start, aFlat.indexOf('GET DIAGNOSTICS n_quotes_deleted', start))
+    for (const cond of [
+      'dq.id = ANY (v_quote_ids)',
+      'dq.paid_at IS NULL',
+      'dq.remainder_paid_at IS NULL',
+      'dq.deposit_refunded_minor = 0',
+      'dq.remainder_refunded_minor = 0',
+      'dq.deposit_payment_intent_id IS NULL',
+      'dq.remainder_payment_intent_id IS NULL',
+      'NOT EXISTS (SELECT 1 FROM public.bookings qb WHERE qb.quote_id = dq.id)',
+      'qa.payment_intent_id IS NOT NULL',
+    ]) {
+      expect(stmt, cond).toContain(cond)
+    }
+    expect(aFlat).toContain('GET DIAGNOSTICS n_quotes_anonymised = ROW_COUNT')
+    // The person's quotes are matched by email, phone and booking link, never by a free-text field.
+    expect(aFlat).toContain('v_quote_ids := public.erasure_quote_ids(v_emails, r.subject_phones, v_ids)')
+  })
+
+  it('anonymises the client fields and nulls addresses, coordinates and network identifiers of a kept quote', () => {
+    expect(aFlat).toMatch(
+      /UPDATE public\.quotes aq SET client_first_name = '-', client_last_name = '-', client_email = 'erased-' \|\| aq\.id::text \|\| '@erased\.invalid', client_phone = NULL, user_id = NULL, source_inquiry_id = NULL, anonymised_at = now\(\)/,
+    )
+    expect(aFlat).toMatch(/UPDATE public\.quote_version_line_stops qs SET address = NULL, lat = NULL, lng = NULL WHERE qs\.line_id IN/)
+    expect(aFlat).toMatch(
+      /UPDATE public\.quote_version_lines ql SET origin_address = 'erased', origin_lat = NULL, origin_lng = NULL, destination_address = NULL, destination_lat = NULL, destination_lng = NULL, flight_number = NULL, special_requests = NULL/,
+    )
+    expect(aFlat).toMatch(/UPDATE public\.quote_acceptances qa SET ip = NULL, user_agent = NULL WHERE qa\.quote_id = ANY \(v_quote_ids\)/)
+    expect(aFlat).toMatch(/UPDATE public\.quote_versions qv SET billing_note = NULL WHERE qv\.quote_id = ANY \(v_quote_ids\)/)
+    expect(aFlat).toContain('DELETE FROM public.quote_links qk WHERE qk.quote_id = ANY (v_quote_ids)')
+    expect(aFlat).toContain('DELETE FROM public.quote_documents qd WHERE qd.version_id IN')
+    // Money, dates, references and the ledgers are accounting history: no delete of events, no amount touched.
+    expect(aFlat).not.toMatch(/DELETE FROM public\.quote_events/)
+    expect(aFlat).not.toMatch(/DELETE FROM public\.quote_acceptances/)
+    expect(aFlat).not.toMatch(/amount_minor\s*=|total_minor\s*=|deposit_minor\s*=|reference\s*=/)
+    // The client fields respect the 091 CHECKs: no empty string where the column needs 1 or more characters.
+    const quoteStmt = aFlat.slice(aFlat.indexOf('UPDATE public.quotes aq'), aFlat.indexOf('GET DIAGNOSTICS n_quotes_anonymised'))
+    expect(quoteStmt).not.toContain("= ''")
+  })
+
+  it('clears the quote Stripe ids only where no money is in flight', () => {
+    const at = aFlat.indexOf('UPDATE public.quotes sq')
+    expect(at).toBeGreaterThan(-1)
+    const stmt = aFlat.slice(at, aFlat.indexOf(';', at))
+    expect(stmt).toContain('SET stripe_customer_id = NULL, stripe_payment_method_id = NULL')
+    expect(stmt).toContain("NOT ( (sq.status = 'accepted' AND sq.deposit_payment_intent_id IS NOT NULL) OR (sq.remainder_payment_intent_id IS NOT NULL AND sq.remainder_paid_at IS NULL AND sq.cancelled_at IS NULL) )")
+    // It sits after the booking Stripe block, so the 088 / 089 ordering checks keep their anchors.
+    expect(at).toBeGreaterThan(aFlat.indexOf('GET DIAGNOSTICS n_stripe = ROW_COUNT'))
+  })
+
+  it('reports the new counters next to the old ones', () => {
+    expect(aFlat).toContain("v_counts := v_counts || jsonb_build_object( 'quotes_deleted', n_quotes_deleted, 'quotes_anonymised', n_quotes_anonymised )")
+    expect(aFlat.indexOf("'quotes_deleted'")).toBeLessThan(aFlat.indexOf('UPDATE public.erasure_requests e'))
+    expect(aFlat).toContain('n_quotes_deleted integer := 0')
+    expect(aFlat).toContain('n_quotes_anonymised integer := 0')
+  })
+
+  it('erasure_quote_payment_open counts an accepted deposit in flight and an unpaid, uncancelled remainder', () => {
+    const f = norm(bodyIn(m091, 'erasure_quote_payment_open'))
+    expect(f).toContain('RETURNS integer')
+    expect(f).toContain("(q.status = 'accepted' AND q.deposit_payment_intent_id IS NOT NULL)")
+    expect(f).toContain('(q.remainder_payment_intent_id IS NOT NULL AND q.remainder_paid_at IS NULL AND q.cancelled_at IS NULL)')
+    expect(f).toContain("SET search_path = ''")
+    expect(f).toContain('SECURITY DEFINER')
+  })
+
+  it('erasure_quote_ids matches by normalised email, normalised phone and the booking link', () => {
+    const f = norm(bodyIn(m091, 'erasure_quote_ids'))
+    expect(f).toContain('public.identity_normalize_email(q.client_email) = ANY (p_emails)')
+    expect(f).toContain('public.identity_normalize_phone(q.client_phone) = ANY (p_phones)')
+    expect(f).toContain('b.quote_id FROM public.bookings b WHERE b.id = ANY (p_booking_ids)')
+    expect(f).toContain('q.anonymised_at IS NULL')
+  })
+
+  it('erasure_quote_customer_ids returns the Stripe customers of the request person quotes without money in flight', () => {
+    const f = norm(bodyIn(m091, 'erasure_quote_customer_ids'))
+    expect(f).toContain('RETURNS text[]')
+    expect(f).toContain('erasure_quote_ids(r.subject_emails, r.subject_phones, r.booking_ids)')
+    expect(f).toContain('WHERE r.id = p_request_id')
+    expect(f).toContain('q.stripe_customer_id IS NOT NULL')
+    expect(f).toContain("NOT ( (q.status = 'accepted' AND q.deposit_payment_intent_id IS NOT NULL) OR (q.remainder_payment_intent_id IS NOT NULL AND q.remainder_paid_at IS NULL AND q.cancelled_at IS NULL) )")
+    // A customer a booking still uses for an unfinished payment is kept.
+    expect(f).toContain("ob.payment_state NOT IN ('none', 'captured', 'released', 'cash_settled')")
+    expect(f).toContain("SET search_path = ''")
+  })
+
+  it('repeats REVOKE FROM PUBLIC, anon, authenticated for all six functions and grants only service_role (T-92-39)', () => {
+    for (const sig of [
+      'erasure_quote_ids(text[], text[], uuid[])',
+      'erasure_quote_payment_open(text[], text[])',
+      'erasure_quote_customer_ids(uuid)',
+      'erasure_confirm(uuid, uuid)',
+      'erasure_scope(text, text)',
+      'erasure_anonymise_person(uuid)',
+    ]) {
+      expect(flat, sig).toContain(`REVOKE EXECUTE ON FUNCTION public.${sig} FROM PUBLIC, anon, authenticated;`)
+    }
+    // The internal helpers are also revoked from service_role and never granted.
+    for (const sig of ['erasure_quote_ids(text[], text[], uuid[])', 'erasure_quote_payment_open(text[], text[])']) {
+      expect(flat, sig).toContain(`REVOKE EXECUTE ON FUNCTION public.${sig} FROM service_role;`)
+      expect(flat, sig).not.toContain(`GRANT EXECUTE ON FUNCTION public.${sig}`)
+    }
+    for (const sig of ['erasure_quote_customer_ids(uuid)', 'erasure_confirm(uuid, uuid)', 'erasure_scope(text, text)', 'erasure_anonymise_person(uuid)']) {
+      expect(flat, sig).toContain(`GRANT EXECUTE ON FUNCTION public.${sig} TO service_role;`)
+    }
+    expect(flat).not.toMatch(/GRANT EXECUTE ON FUNCTION [^;]* TO (PUBLIC|anon|authenticated)/)
+  })
+
+  it('every erasure function of this section is SECURITY DEFINER with an empty search_path', () => {
+    for (const name of ['erasure_quote_ids', 'erasure_quote_payment_open', 'erasure_quote_customer_ids', 'erasure_confirm', 'erasure_scope', 'erasure_anonymise_person']) {
+      const f = norm(bodyIn(m091, name))
+      expect(f, name).toContain("SECURITY DEFINER SET search_path = ''")
+    }
+  })
+})

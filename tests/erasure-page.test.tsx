@@ -175,6 +175,24 @@ describe('Erasure page: preview', () => {
     expect(screen.queryByRole('note')).toBeNull()
   })
 
+  it('Phase 92: shows the Quotes row with the count and what happens to the quotes', async () => {
+    mockApi({ preview: () => ok(previewBody({ quotes: 3 })) })
+    render(<ErasurePage />)
+    await search()
+    const row = await screen.findByText(/^Quotes: 3\./)
+    expect(row.textContent).toMatch(/no booking and no payment is deleted/)
+    expect(row.textContent).toMatch(/anonymised/)
+    expect(screen.getByText('Quotes')).toBeTruthy()
+  })
+
+  it('Phase 92: a preview with no quote count (stored before quotes existed) shows no Quotes row', async () => {
+    mockApi({})
+    render(<ErasurePage />)
+    await search()
+    await screen.findByRole('heading', { level: 2, name: EMAIL })
+    expect(screen.queryByText(/^Quotes: /)).toBeNull()
+  })
+
   it('says "No account." for a person without an account', async () => {
     mockApi({ preview: () => ok(previewBody({ hasAccount: false, bookings: 1, inquiries: 0, quoteLeads: 0 })) })
     render(<ErasurePage />)
@@ -358,7 +376,7 @@ describe('Erasure page: confirm modal', () => {
     mockApi({ preview: () => ok(previewBody({ paymentOpen: 2 })) })
     render(<ErasurePage />)
     await search()
-    expect(await screen.findByText(/2 bookings have a payment still in play/)).toBeTruthy()
+    expect(await screen.findByText(/2 bookings or quotes have a payment still in play/)).toBeTruthy()
     const button = (await screen.findByRole('button', { name: 'Erase this person...' })) as HTMLButtonElement
     expect(button.disabled).toBe(true)
   })
