@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { Plus } from 'lucide-react'
 import { QuoteLineEditor } from '@/components/admin/quotes/QuoteLineEditor'
 import { QuoteSettingsFields } from '@/components/admin/quotes/QuoteSettingsFields'
-import { QuoteStatusBadge } from '@/components/admin/quotes/QuoteStatusBadge'
+import { QuoteActionsBar } from '@/components/admin/quotes/QuoteActionsBar'
 import {
   depositProblem,
   draftFromDetail,
@@ -24,7 +24,9 @@ import { QUOTE_MAX_LINES } from '@/lib/quotes/vocabulary'
 // QuoteLineEditor per line and saves the WHOLE draft with one PATCH. The server prices, validates and freezes nothing
 // the operator typed over; every refusal code is turned into a plain sentence here.
 //
-// A frozen version is shown read-only (editing goes through Revise, plan 92-25). The send / revise / void bar is 92-25.
+// A frozen version is shown read-only (editing goes through Edit = revise). The state, the version and the send / copy link /
+// edit / cancel actions are QuoteActionsBar (plan 92-25), the history and the linked bookings are QuoteEventsList; both read
+// this component's detail and ask it to read the quote again after every action.
 
 type Status = { kind: 'ok' | 'error'; text: string }
 
@@ -146,6 +148,16 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
   const readOnly = frozen || closed
   const earlierVersions = detail.versions.filter((v) => v.version_no < detail.version.version_no)
 
+  // Send uses the saved version: edits that are not saved yet must be saved first.
+  let unsaved = false
+  if (!readOnly) {
+    try {
+      unsaved = JSON.stringify(draftToPayload(draft, savedExpiry)) !== JSON.stringify(draftToPayload(draftFromDetail(detail), savedExpiry))
+    } catch {
+      unsaved = true
+    }
+  }
+
   const patch = (next: Partial<QuoteDraft>) => setDraft({ ...draft, ...next })
   // The suggestions were made in the old currency: they are dropped, the amounts the operator typed stay for them to correct.
   const patchSettings = (next: Partial<QuoteDraft>) => {
@@ -230,14 +242,10 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
           >
             {detail.quote.reference}
           </h1>
-          <QuoteStatusBadge status={detail.effective_status} />
         </div>
         <p style={{ ...mutedStyle, marginTop: '8px' }}>
           {clientName} · {draft.client.email}
           {draft.client.phone ? ` · ${draft.client.phone}` : ''}
-        </p>
-        <p data-testid="quote-version" style={{ ...mutedStyle, marginTop: '4px', color: 'var(--admin-text)' }}>
-          {`Version ${detail.version.version_no} (${frozen ? 'sent' : 'draft'})`}
         </p>
         {earlierVersions.length > 0 && (
           <p data-testid="quote-earlier-versions" style={{ ...mutedStyle, marginTop: '4px' }}>
@@ -252,6 +260,8 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
           </p>
         )}
       </div>
+
+      <QuoteActionsBar detail={detail} unsavedChanges={unsaved} onChanged={() => load(true)} />
 
       <section aria-label="Trips" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {draft.lines.length === 0 && <p style={mutedStyle}>No trips yet.</p>}
