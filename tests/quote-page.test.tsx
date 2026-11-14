@@ -24,6 +24,8 @@ import zhHantMessages from '../messages/zh-hant.json'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
 import { countingClient, seedPublicQuote, QUOTE_SECRETS, type PublicQuoteSeed } from './helpers/quote-public-fixture'
 import { newQuoteToken } from '@/lib/quotes/token'
+import { resolveQuoteToken } from '@/lib/quotes/resolve'
+import { renderQuoteTerms } from '@/lib/quotes/consent'
 import { formatMinor } from '@/lib/payments/money'
 import { formatLocaleDate } from '@/lib/locale-date'
 
@@ -38,7 +40,8 @@ const ALL_MESSAGES: Record<string, Record<string, unknown>> = {
   'zh-hant': zhHantMessages,
 }
 
-const { mockLocaleRef, world, rateLimit, redirectSpy, reactServerBuild } = vi.hoisted(() => ({
+const { mockLocaleRef, world, rateLimit, redirectSpy, reactServerBuild, stripeDouble } = vi.hoisted(() => ({
+  stripeDouble: { submit: vi.fn(), confirmPayment: vi.fn() },
   // The react-server build of next-intl/server (vitest has no react-server export condition).
   reactServerBuild: { path: `${process.cwd()}/node_modules/next-intl/dist/esm/development/server.react-server.js` },
   mockLocaleRef: { value: 'en' },
@@ -80,6 +83,28 @@ vi.mock('next/headers', () => ({
   headers: async () => new Headers({ 'x-forwarded-for': '203.0.113.9' }),
 }))
 
+// The accept island (plan 92-17) is mounted by the page for real; only Stripe itself and the router are doubles.
+vi.mock('@stripe/stripe-js', () => ({ loadStripe: vi.fn().mockResolvedValue({}) }))
+vi.mock('@stripe/react-stripe-js', async () => {
+  const React = await import('react')
+  return {
+    Elements: ({ children }: { children: React.ReactNode }) => children,
+    PaymentElement: (props: { onReady?: () => void }) => {
+      React.useEffect(() => {
+        props.onReady?.()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [])
+      return React.createElement('div', { 'data-testid': 'payment-element' })
+    },
+    useStripe: () => ({ confirmPayment: stripeDouble.confirmPayment }),
+    useElements: () => ({ submit: stripeDouble.submit }),
+  }
+})
+vi.mock('@/i18n/routing', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/i18n/routing')>()
+  return { ...actual, useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }) }
+})
+
 // next/navigation's redirect throws NEXT_REDIRECT in the app; the spy records the target and throws the same way.
 vi.mock('next/navigation', async (importOriginal) => {
   const actual = await importOriginal<typeof import('next/navigation')>()
@@ -93,6 +118,8 @@ vi.mock('next/navigation', async (importOriginal) => {
 })
 
 import QuotePage, { generateMetadata } from '@/app/[locale]/quote/[token]/page'
+import QuoteDonePage, { generateMetadata as generateDoneMetadata } from '@/app/[locale]/quote/done/page'
+import { isPrivateLinkPath } from '@/lib/private-link-path'
 
 const DAY = 24 * 3_600_000
 
@@ -241,8 +268,9 @@ describe('quote page, live offer', () => {
     // The rows carry stop fees of 14 and 7 euro; they must not surface, and no waiting-fee wording exists.
     expect(text).not.toMatch(/€\s?(14|7)(?!\d)/)
     expect(text).not.toMatch(/waiting (fee|charge|cost|amount)/i)
-    // The only euro amounts are the ones the quote states: two trips, total, deposit, remainder.
-    expect((text.match(/€/g) ?? []).length).toBe(5)
+    // The only euro amounts are the ones the quote states: two trips, total, deposit, remainder, plus the deposit
+    // named once in the consent text and once on the pay button (plan 92-17).
+    expect((text.match(/€/g) ?? []).length).toBe(7)
   })
 
   it('shows the all-of-the-deposit sentence for a default fee, and the operator expiry when one is set', async () => {
@@ -288,6 +316,132 @@ describe('quote page, live offer', () => {
     const fx = await seed()
     await renderPage('en', fx.token)
     expect(rateLimit.calls).toEqual([['/quote', '203.0.113.9']])
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+describe('quote page, accept and pay (plan 92-17; QUOTE-03, QUOTE-05; D-08)', () => {
+  const ltrIsolate = (value: string) => `⁦${value}⁩`
+
+  async function expectedConsent(token: string): Promise<string> {
+    const resolved = await resolveQuoteToken(token)
+    expect(resolved).not.toBeNull()
+    return (await renderQuoteTerms({ resolved: resolved!, nowMs: Date.now() })).text
+  }
+
+  it('tracer: a live offer renders the accept area with the stored consent text and a deposit button', async () => {
+    const fx = await seed({ cancelFreeHours: 72, cancelFeePercent: 40 })
+    const { getByTestId, queryByTestId } = await renderPage('en', fx.token)
+
+    // The mount: the real page renders the real island.
+    const accept = getByTestId('quote-accept')
+    expect(queryByTestId('quote-paid')).toBeNull()
+    expect(accept.textContent).toContain(q('en', 'accept', 'heading'))
+    expect(getByTestId('quote-accept-consent').textContent).toBe(await expectedConsent(fx.token))
+    const button = accept.querySelector('button[type="submit"]') as HTMLButtonElement
+    expect(button.textContent).toBe(`Pay deposit ${ltrIsolate(formatMinor(9000, 'eur'))}`)
+    expect(button.disabled).toBe(true)
+    expect(getByTestId('payment-element')).toBeTruthy()
+  })
+
+  it('the cancellation terms are on the page before the accept area, and the consent text carries them too', async () => {
+    const fx = await seed({ cancelFreeHours: 72, cancelFeePercent: 40 })
+    const { getByTestId } = await renderPage('en', fx.token)
+    const page = getByTestId('quote-page')
+    const terms = getByTestId('quote-terms')
+    const accept = getByTestId('quote-accept')
+    expect(terms.compareDocumentPosition(accept) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const consent = getByTestId('quote-accept-consent').textContent ?? ''
+    expect(consent).toContain('Free cancellation until')
+    expect(consent).toContain('40% of the deposit is kept')
+    expect(consent).toContain(q('en', 'terms', 'cap'))
+    // One total per line and per quote; the accept area adds only the deposit.
+    expect(page.textContent).toContain(formatMinor(30000, 'eur'))
+  })
+
+  it('the consent text names the remainder method of the quote (D-21, D-22)', async () => {
+    for (const method of ['saved_card', 'payment_link', 'cash', 'invoice'] as const) {
+      db = createFakePaymentsDb()
+      counter = countingClient(db)
+      world.client = counter
+      const fx = await seed({ remainderMethod: method })
+      const { getByTestId, unmount } = await renderPage('en', fx.token)
+      expect(getByTestId('quote-accept-consent').textContent).toContain(q('en', 'remainder', method))
+      unmount()
+    }
+  })
+
+  it('an accepted quote that is not paid yet can still pay (the accept route lets the same version continue)', async () => {
+    const fx = await seed({ status: 'accepted' })
+    const { getByTestId } = await renderPage('en', fx.token)
+    expect(getByTestId('quote-accept')).toBeTruthy()
+  })
+
+  it('a paid quote shows the booked trips with each booking reference and no accept area', async () => {
+    const fx = await seed({ status: 'paid', withBooking: true })
+    const { getByTestId, queryByTestId } = await renderPage('en', fx.token)
+    expect(queryByTestId('quote-accept')).toBeNull()
+    expect(queryByTestId('payment-element')).toBeNull()
+    const paid = getByTestId('quote-paid')
+    expect(paid.textContent).toContain(q('en', 'paid', 'heading'))
+    expect(paid.textContent).toContain('PR-9001')
+  })
+
+  it('the token is never written into the markup (it only travels as a prop of the island)', async () => {
+    const fx = await seed()
+    const { container } = await renderPage('en', fx.token)
+    expect(container.innerHTML).not.toContain(fx.token)
+  })
+
+  it('the page props reach the island: the press posts the token, the displayed version and the displayed deposit', async () => {
+    const fx = await seed()
+    stripeDouble.submit.mockResolvedValue({})
+    stripeDouble.confirmPayment.mockResolvedValue({ paymentIntent: { status: 'succeeded' } })
+    fetchMock.mockImplementation(async (url: string) =>
+      url === '/api/quote/accept'
+        ? new Response(JSON.stringify({ clientSecret: 'pi_1_secret_x', amountMinor: 9000, currency: 'eur' }), { status: 200 })
+        : new Response('{}'),
+    )
+    const { getByTestId } = await renderPage('en', fx.token)
+    const { fireEvent, act } = await import('@testing-library/react')
+
+    const accept = getByTestId('quote-accept')
+    const button = accept.querySelector('button[type="submit"]') as HTMLButtonElement
+    fireEvent.click(accept.querySelector('input[type="checkbox"]') as HTMLInputElement)
+    expect(button.disabled).toBe(false)
+    await act(async () => {
+      fireEvent.click(button)
+    })
+
+    const call = fetchMock.mock.calls.find((c) => c[0] === '/api/quote/accept') as [string, RequestInit]
+    expect(JSON.parse(call[1].body as string)).toEqual({
+      token: fx.token,
+      displayedVersionNo: 1,
+      displayedDepositMinor: 9000,
+      consent: true,
+    })
+    const confirm = stripeDouble.confirmPayment.mock.calls[0][0] as { confirmParams: { return_url: string } }
+    expect(confirm.confirmParams.return_url).toMatch(/\/quote\/done$/)
+    expect(confirm.confirmParams.return_url).not.toContain(fx.token)
+  })
+
+  it.each([...locales])('%s: the accept area speaks the quote language, with its own stored consent text', async (locale) => {
+    const fx = await seed({ locale })
+    const { getByTestId } = await renderPage(locale, fx.token)
+    const accept = getByTestId('quote-accept')
+    expect(accept.textContent).toContain(q(locale, 'accept', 'heading'))
+    const button = accept.querySelector('button[type="submit"]') as HTMLButtonElement
+    expect(button.textContent).toBe(
+      (catalog(locale).Quote.accept as Record<string, string>).button.replace('{amount}', ltrIsolate(formatMinor(9000, 'eur'))),
+    )
+    expect(getByTestId('quote-accept-consent').textContent).toBe(await expectedConsent(fx.token))
+    expect(accept.textContent).not.toMatch(/Quote\.[a-z]|\{[a-zA-Z]+\}/)
+  })
+
+  it('the page source mounts QuoteAcceptPay and builds no amount of its own for it', () => {
+    const source = readFileSync(join(process.cwd(), 'app/[locale]/quote/[token]/page.tsx'), 'utf8')
+    expect((source.match(/QuoteAcceptPay/g) ?? []).length).toBeGreaterThanOrEqual(2)
+    expect(source).toContain('renderQuoteTerms')
   })
 })
 
@@ -425,5 +579,57 @@ describe('the one invalid view (T-92-30)', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const html = await invalidMarkup('en', fx.token)
     expect(html).toContain(q('en', 'invalid', 'title'))
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+describe('the tokenless Stripe return page (plan 92-17 Task 2; T-92-54)', () => {
+  async function renderDone(locale: string) {
+    mockLocaleRef.value = locale
+    const element = await QuoteDonePage({ params: Promise.resolve({ locale }) })
+    const { render } = await import('@testing-library/react')
+    return render(element)
+  }
+
+  it.each([...locales])('%s: renders the thank-you title and body in the URL locale', async (locale) => {
+    const { getByTestId } = await renderDone(locale)
+    const main = getByTestId('quote-done')
+    expect(main.querySelector('h1')?.textContent).toBe(q(locale, 'done', 'title'))
+    expect(main.textContent).toContain(q(locale, 'done', 'body'))
+    expect(main.textContent).not.toMatch(/Quote\.[a-z]|\{[a-zA-Z]+\}/)
+  })
+
+  it('reads nothing: no database client, no rate-limit lookup, no request, no price or reference', async () => {
+    world.serviceClients = 0
+    const { container } = await renderDone('en')
+    expect(world.serviceClients).toBe(0)
+    expect(rateLimit.calls).toEqual([])
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(container.innerHTML).not.toMatch(/€|Q-2026|PR-9/)
+  })
+
+  it('is noindex, nofollow and no-referrer in every locale', async () => {
+    for (const locale of locales) {
+      mockLocaleRef.value = locale
+      const meta = await generateDoneMetadata({ params: Promise.resolve({ locale }) })
+      expect(meta.robots).toEqual({ index: false, follow: false })
+      expect(meta.referrer).toBe('no-referrer')
+      expect(meta.title).toBe(q(locale, 'meta', 'title'))
+    }
+  })
+
+  it('the source uses params.locale + setRequestLocale, no bare getLocale(), no database and no search params', () => {
+    const source = readFileSync(join(process.cwd(), 'app/[locale]/quote/done/page.tsx'), 'utf8')
+    expect(source).toContain('setRequestLocale(locale)')
+    expect(source).not.toMatch(/getLocale\(/)
+    expect(source).not.toMatch(/createSupabase|createClient|resolveQuoteToken/)
+    // Stripe appends payment_intent_client_secret to the return URL: the page must never read or echo it.
+    expect(source).not.toMatch(/searchParams/)
+  })
+
+  it('the path is private, so no analytics, chat or banner run there', () => {
+    for (const path of ['/quote/done', '/ru/quote/done', '/zh-hant/quote/done']) {
+      expect(isPrivateLinkPath(path)).toBe(true)
+    }
   })
 })
