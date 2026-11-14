@@ -25,6 +25,7 @@ import { announceLateCashCharge } from '@/lib/payments/fee'
 import { adoptLateCashCharge, cashChargeFacts } from '@/lib/payments/settle'
 import { appendPaymentEvent, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
+import { appendQuoteEvent, hasQuoteEvent } from '@/lib/quotes/events'
 
 const WEBHOOK_ACTOR: LedgerActor = { type: 'webhook', id: null }
 
@@ -185,4 +186,91 @@ export async function handleCardChargeFailed(event: Stripe.Event): Promise<void>
     errorCode: code,
     actor: WEBHOOK_ACTOR,
   })
+}
+
+// == Phase 92 (plan 92-22; QUOTE-04; D-12): refunds on quote payments ====================================================
+
+type QuoteRefundRow = {
+  id: string
+  paid_at: string | null
+  deposit_payment_intent_id: string | null
+  deposit_refunded_minor: number | string | null
+  remainder_payment_intent_id: string | null
+  remainder_paid_at: string | null
+  remainder_refunded_minor: number | string | null
+}
+
+/**
+ * charge.refunded on a quote's deposit or remainder PaymentIntent (also a Dashboard refund): one refund_observed quote
+ * event keyed refund_observed:<charge>:<amount_refunded>, and the stored refunded total raised to Stripe's
+ * amount_refunded when that is larger. Observation only: a booking never changes (a quote payment carries no booking),
+ * and the stored total is never lowered, so a refund the site made itself (a quote cancel, a partial refund) whose total
+ * is already stored counts once, and a delayed older event changes nothing.
+ *
+ * Only a payment the quote RECORDED as paid is counted (deposit: paid_at, remainder: remainder_paid_at). That is what
+ * keeps the orphan refund of plan 92-18 (a deposit of a voided or cancelled-before-payment quote, which may name the same
+ * intent) out of the totals; its own orphan_refunded event is checked as well. Replays: the event row is keyed, and the
+ * raise is idempotent, so a redelivery after a crash between the two still finishes the raise.
+ *
+ * Call it from the charge.refunded observation in dispatch.ts (plan 92-31 owns that file); errors may be swallowed there
+ * like the booking observation.
+ */
+export async function observeQuoteRefund(event: Stripe.Event): Promise<void> {
+  const charge = event.data.object as Stripe.Charge
+  const piId =
+    typeof charge.payment_intent === 'string'
+      ? charge.payment_intent
+      : ((charge.payment_intent as { id?: string } | null)?.id ?? null)
+  if (!piId || !charge.id || !Number.isSafeInteger(charge.amount_refunded) || charge.amount_refunded <= 0) return
+
+  const supabase = createSupabaseServiceClient()
+  const columns =
+    'id, paid_at, deposit_payment_intent_id, deposit_refunded_minor, remainder_payment_intent_id, remainder_paid_at, remainder_refunded_minor'
+  for (const [source, intentColumn] of [
+    ['deposit', 'deposit_payment_intent_id'],
+    ['remainder', 'remainder_payment_intent_id'],
+  ] as const) {
+    const { data, error } = await supabase.from('quotes').select(columns).eq(intentColumn, piId).limit(1)
+    if (error) throw new Error('quote refund lookup failed')
+    const quote = (Array.isArray(data) ? data[0] : null) as QuoteRefundRow | null
+    if (!quote) continue
+
+    const recordedPaid = source === 'deposit' ? Boolean(quote.paid_at) : Boolean(quote.remainder_paid_at)
+    if (!recordedPaid) continue
+    // The site's own orphan refund of this very payment.
+    if (await hasQuoteEvent(quote.id, `orphan_refunded:${piId}`)) continue
+
+    await appendQuoteEvent(quote.id, {
+      key: `refund_observed:${charge.id}:${charge.amount_refunded}`,
+      kind: 'refund_observed',
+      stripeObjectId: charge.id,
+      amountMinor: charge.amount_refunded,
+      currency: charge.currency === 'czk' ? 'czk' : charge.currency === 'eur' ? 'eur' : null,
+      errorCode: source,
+      actor: WEBHOOK_ACTOR,
+    })
+    await raiseQuoteRefunded(quote.id, source, charge.amount_refunded)
+  }
+}
+
+/** Raises the stored refunded total to at least `target` (compare-and-set on the value read); never lowers it. */
+async function raiseQuoteRefunded(quoteId: string, source: 'deposit' | 'remainder', target: number): Promise<void> {
+  const column = source === 'deposit' ? 'deposit_refunded_minor' : 'remainder_refunded_minor'
+  const supabase = createSupabaseServiceClient()
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data, error } = await supabase.from('quotes').select(column).eq('id', quoteId).maybeSingle()
+    if (error) throw new Error('quote refund total read failed')
+    const current = Number((data as Record<string, unknown> | null)?.[column] ?? 0)
+    if (current >= target) return
+    const updated = await supabase
+      .from('quotes')
+      .update({ [column]: target, updated_at: new Date().toISOString() })
+      .eq('id', quoteId)
+      .eq(column, current)
+      .select('id')
+    if (updated.error) throw new Error('quote refund total write failed')
+    if (Array.isArray(updated.data) && updated.data.length > 0) return
+  }
+  // Another writer kept moving it: a thrown error makes the webhook answer 500 and Stripe deliver the event again.
+  throw new Error('quote refund total busy')
 }
