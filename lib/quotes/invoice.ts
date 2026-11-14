@@ -5,6 +5,11 @@
 //                     generated (D-17) and no money moves through Stripe (D-22: the saved card is never charged by the
 //                     operator on an invoice quote).
 //
+//   requestRemainder  asks the client to pay what is left on a payment-link quote (D-16). A fresh quote link is minted
+//                     with mintQuoteLink (only its hash is stored, so the URL exists in this email and nowhere else) and
+//                     emailed in the quote's language with the amount due. The client pays on the quote page (92-23);
+//                     nothing is charged here. No more than one request per 10 minutes, read from the event log.
+//
 // Exactly once: the quote update is a compare-and-set on `invoice_paid_at IS NULL`, so two calls give one change. The
 // same number again is a success with no change (it only finishes bookings an interrupted call did not reach); a
 // different number after the quote is marked is refused. The audit trail is an `admin_action` event written before the
@@ -13,9 +18,14 @@
 // Server only. The service client is created inside each call. Logs and events carry ids, amounts and codes only: never
 // the invoice number, an address or a name.
 
+import { randomUUID } from 'node:crypto'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { renderQuoteRemainderDueEmail } from '@/lib/quotes/emails/remainder-due'
+import { sendQuoteEmail } from '@/lib/quotes/emails/shell'
 import { appendQuoteEvent, type QuoteEventInput } from '@/lib/quotes/events'
+import { mintQuoteLink } from '@/lib/quotes/lifecycle'
 import { remainderDueMinor } from '@/lib/quotes/money'
+import { hashQuoteToken } from '@/lib/quotes/token'
 import type { QuoteRow, QuoteVersionRow } from '@/lib/quotes/types'
 
 type Row = Record<string, unknown>
@@ -206,4 +216,100 @@ async function settleBookings(
     actor: { type: 'admin', id: actor.id },
   })
   return Array.isArray(data) && data.length > 0
+}
+
+// == remainder request ===============================================================================================
+
+/** One request per quote per 10 minutes (T-92-78). */
+export const REMAINDER_REPEAT_MS = 10 * 60 * 1000
+
+export type RequestRemainderResult =
+  | { ok: true; amountMinor: number }
+  | { ok: false; code: 'not_found' | 'not_payment_link' | 'not_paid' | 'nothing_due' | 'recently_sent' | 'email_failed' }
+
+/** True when the latest remainder_requested event of the quote is younger than the repeat guard. */
+async function requestedRecently(supabase: Supabase, quoteId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('quote_events')
+    .select('created_at')
+    .eq('quote_id', quoteId)
+    .eq('kind', 'remainder_requested')
+    .order('created_at', { ascending: false })
+    .limit(1)
+  if (error) fail('read remainder events', quoteId, error.code)
+  const latest = ((data ?? []) as Row[])[0]
+  if (!latest) return false
+  const at = Date.parse(String(latest.created_at))
+  return Number.isFinite(at) && Date.now() - at < REMAINDER_REPEAT_MS
+}
+
+/**
+ * Asks the client to pay the remainder of a paid payment-link quote: mints a fresh link and emails it with the amount
+ * still due. Refused for a quote whose method is not payment link, one that is not paid or is cancelled, one with
+ * nothing due, and one asked less than 10 minutes ago. `remainder_requested` is recorded only after the email went out,
+ * so a failed send never blocks the retry. The link of a failed send exists but was never delivered.
+ */
+export async function requestRemainder(input: { quoteId: string; actor: InvoiceActor }): Promise<RequestRemainderResult> {
+  const { quoteId, actor } = input
+  const supabase = createSupabaseServiceClient()
+  const quote = await readQuote(supabase, quoteId)
+  if (!quote) return { ok: false, code: 'not_found' }
+  const version = await readPaidVersion(supabase, quote)
+  if (!version) return { ok: false, code: 'not_found' }
+
+  if (version.remainder_method !== 'payment_link') return { ok: false, code: 'not_payment_link' }
+  if (quote.status !== 'paid' || quote.cancelled_at) return { ok: false, code: 'not_paid' }
+
+  const amountMinor = await readRemainderDue(supabase, quoteId, version.id)
+  if (!(amountMinor > 0)) return { ok: false, code: 'nothing_due' }
+
+  if (await requestedRecently(supabase, quoteId)) return { ok: false, code: 'recently_sent' }
+
+  await recordEvent(quoteId, {
+    key: `admin:remainder-request:${randomUUID()}`,
+    kind: 'admin_action',
+    versionId: version.id,
+    amountMinor,
+    currency: version.currency,
+    actor: { type: 'admin', id: actor.id },
+  })
+
+  const minted = await mintQuoteLink(quoteId, { id: actor.id })
+  if (!minted.ok) return { ok: false, code: minted.code === 'not_found' ? 'not_found' : 'not_paid' }
+
+  // The link id is not returned by mintQuoteLink and the raw token must not become a key: a hash of the URL is unique
+  // per mint and reveals nothing.
+  const mintKey = hashQuoteToken(minted.url).slice(0, 32)
+  const emailEvent = { key: `email:remainder:${mintKey}`, versionId: version.id, actor: { type: 'system' as const } }
+
+  let rendered: { subject: string; html: string }
+  try {
+    rendered = await renderQuoteRemainderDueEmail({ quote, version, amountMinor, url: minted.url })
+  } catch {
+    console.error('[quotes/invoice] remainder email render failed', { quoteId })
+    await recordEvent(quoteId, { ...emailEvent, kind: 'email_failed', errorCode: 'render_failed' })
+    return { ok: false, code: 'email_failed' }
+  }
+
+  const outcome = await sendQuoteEmail({
+    to: quote.client_email,
+    subject: rendered.subject,
+    html: rendered.html,
+    idempotencyKey: `quote-remainder:${quoteId}:${mintKey}`,
+  })
+  if (outcome !== 'sent') {
+    await recordEvent(quoteId, { ...emailEvent, kind: 'email_failed', errorCode: 'send_failed' })
+    return { ok: false, code: 'email_failed' }
+  }
+
+  await recordEvent(quoteId, { ...emailEvent, kind: 'email_sent' })
+  await recordEvent(quoteId, {
+    key: `remainder_requested:${quoteId}:${mintKey}`,
+    kind: 'remainder_requested',
+    versionId: version.id,
+    amountMinor,
+    currency: version.currency,
+    actor: { type: 'admin', id: actor.id },
+  })
+  return { ok: true, amountMinor }
 }

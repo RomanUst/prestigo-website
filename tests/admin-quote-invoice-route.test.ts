@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
+import { locales } from '@/i18n/locales'
+import { formatMinor } from '@/lib/payments/money'
+import { hashQuoteToken } from '@/lib/quotes/token'
+import { renderQuoteRemainderDueEmail } from '@/lib/quotes/emails/remainder-due'
 
 /**
  * Phase 92 plan 92-24 (QUOTE-04; D-16, D-17, D-22): "mark invoice paid" and "send remainder request". The routes, the
@@ -39,6 +43,7 @@ vi.mock('resend', () => ({
 }))
 
 import { POST as INVOICE_PAID } from '@/app/api/admin/quotes/[id]/invoice-paid/route'
+import { POST as REMAINDER_REQUEST } from '@/app/api/admin/quotes/[id]/remainder-request/route'
 
 type Row = Record<string, unknown>
 
@@ -55,6 +60,9 @@ function req(url: string, body?: unknown): Request {
 }
 
 const markPaid = (id: string, body?: unknown) => INVOICE_PAID(req(`http://localhost/api/admin/quotes/${id}/invoice-paid`, body), params(id))
+
+const requestRemainder = (id: string, body?: unknown) =>
+  REMAINDER_REQUEST(req(`http://localhost/api/admin/quotes/${id}/remainder-request`, body), params(id))
 
 interface SeedOptions {
   method?: 'saved_card' | 'payment_link' | 'cash' | 'invoice'
@@ -422,5 +430,259 @@ describe('input and guards (400 vs 422)', () => {
     expect(logged).not.toContain('2026-0077')
     expect(logged).not.toContain('eva-CCCCCC')
     expect(logged).not.toContain('Eva')
+  })
+})
+
+// == Task 2: the remainder request of a payment-link quote (D-16) ====================================================
+
+const linksOf = (quoteId: string) => db.state.quote_links.filter((l) => l.quote_id === quoteId)
+const tokenOf = (url: string): string => url.split('/').pop() as string
+
+/** The URLs of the buttons in a sent email (every href on the page that points at the quote). */
+function quoteUrlsIn(html: string): string[] {
+  return [...html.matchAll(/href="([^"]*\/quote\/[^"]+)"/g)].map((m) => m[1])
+}
+
+describe('remainder request (D-16)', () => {
+  it('a paid payment-link quote with 12000 due: one new link hash, one email with the amount and the URL, 200 { amountMinor }', async () => {
+    const s = await seed({ method: 'payment_link' })
+    const res = await requestRemainder(s.quoteId)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ amountMinor: 12000 })
+
+    const links = linksOf(s.quoteId)
+    expect(links).toHaveLength(1)
+    expect(links[0].token_hash).toMatch(/^[0-9a-f]{64}$/)
+    expect(links[0].version_id).toBe(s.versionId)
+
+    expect(mockResendSend).toHaveBeenCalledTimes(1)
+    const [message, options] = mockResendSend.mock.calls[0]
+    expect(message.to).toEqual(['eva-AAAAAA@example.com'])
+    expect(message.subject).toContain('Q-20261114-AAAAAA')
+    expect(message.subject).not.toMatch(/[\r\n]/)
+    expect(message.html).toContain(formatMinor(12000, 'eur'))
+    const urls = quoteUrlsIn(message.html)
+    expect(urls).toHaveLength(1)
+    expect(urls[0].startsWith('https://')).toBe(true)
+    // The URL in the email is the one whose hash was stored: the client's link opens this quote.
+    expect(hashQuoteToken(tokenOf(urls[0]))).toBe(links[0].token_hash)
+    expect(typeof options.idempotencyKey).toBe('string')
+  })
+
+  it('records admin_action, link_minted, email_sent and remainder_requested (amount, currency) and keeps the token out of the data', async () => {
+    const s = await seed({ method: 'payment_link' })
+    await requestRemainder(s.quoteId)
+
+    expect(eventKinds(s.quoteId)).toEqual(expect.arrayContaining(['admin_action', 'link_minted', 'email_sent', 'remainder_requested']))
+    expect(eventKinds(s.quoteId).indexOf('admin_action')).toBeLessThan(eventKinds(s.quoteId).indexOf('remainder_requested'))
+    const requested = events(s.quoteId, 'remainder_requested')[0]
+    expect(requested.amount_minor).toBe(12000)
+    expect(requested.currency).toBe('eur')
+    expect(requested.actor_type).toBe('admin')
+    expect(requested.actor_id).toBe(ADMIN_ID)
+    expect(events(s.quoteId, 'admin_action')[0].actor_id).toBe(ADMIN_ID)
+
+    const token = tokenOf(quoteUrlsIn(mockResendSend.mock.calls[0][0].html)[0])
+    expect(stringified(db.state)).not.toContain(token)
+  })
+
+  it('the email is in the language of the quote and escapes the first name (D-09)', async () => {
+    const s = await seed({ method: 'payment_link', locale: 'ar' })
+    quoteRow(s.quoteId).client_first_name = '<b>Eva</b>'
+    await requestRemainder(s.quoteId)
+    const html = mockResendSend.mock.calls[0][0].html as string
+    expect(html).toContain('<html lang="ar" dir="rtl"')
+    expect(html).toContain('&lt;b&gt;Eva&lt;/b&gt;')
+    expect(html).not.toContain('<b>Eva</b>')
+    expect(quoteUrlsIn(html)[0]).toContain('/ar/quote/')
+  })
+
+  it('moves no money and touches no booking: paid_at stays empty, payment_state stays none', async () => {
+    const s = await seed({ method: 'payment_link' })
+    await requestRemainder(s.quoteId)
+    for (const id of s.bookingIds) {
+      expect(bookingRow(id).paid_at ?? null).toBeNull()
+      expect(bookingRow(id).payment_state).toBe('none')
+    }
+    expect(quoteRow(s.quoteId).invoice_paid_at ?? null).toBeNull()
+  })
+
+  it('a second request within 10 minutes: 429 recently_sent, no email and no new link', async () => {
+    const s = await seed({ method: 'payment_link' })
+    expect((await requestRemainder(s.quoteId)).status).toBe(200)
+    const again = await requestRemainder(s.quoteId)
+    expect(again.status).toBe(429)
+    expect(await again.json()).toEqual({ error: 'recently_sent' })
+    expect(mockResendSend).toHaveBeenCalledTimes(1)
+    expect(linksOf(s.quoteId)).toHaveLength(1)
+    expect(events(s.quoteId, 'remainder_requested')).toHaveLength(1)
+  })
+
+  it('after 10 minutes a new request is allowed', async () => {
+    const s = await seed({ method: 'payment_link' })
+    await requestRemainder(s.quoteId)
+    for (const e of events(s.quoteId, 'remainder_requested')) e.created_at = new Date(Date.now() - 11 * 60 * 1000).toISOString()
+    const res = await requestRemainder(s.quoteId)
+    expect(res.status).toBe(200)
+    expect(mockResendSend).toHaveBeenCalledTimes(2)
+    expect(linksOf(s.quoteId)).toHaveLength(2)
+    expect(events(s.quoteId, 'remainder_requested')).toHaveLength(2)
+  })
+
+  it('just under 10 minutes is still too soon', async () => {
+    const s = await seed({ method: 'payment_link' })
+    await requestRemainder(s.quoteId)
+    for (const e of events(s.quoteId, 'remainder_requested')) e.created_at = new Date(Date.now() - 9 * 60 * 1000).toISOString()
+    expect((await requestRemainder(s.quoteId)).status).toBe(429)
+  })
+
+  it('nothing due (every live trip is paid): 422 nothing_due, no link, no email', async () => {
+    const s = await seed({ method: 'payment_link' })
+    for (const id of s.bookingIds) bookingRow(id).paid_at = '2026-11-14T09:00:00.000Z'
+    const res = await requestRemainder(s.quoteId)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'action_not_allowed', reason: 'nothing_due' })
+    expect(mockResendSend).not.toHaveBeenCalled()
+    expect(linksOf(s.quoteId)).toHaveLength(0)
+  })
+
+  it('only the cancelled trip has a remainder left: nothing is due', async () => {
+    const s = await seed({ method: 'payment_link' })
+    bookingRow(s.bookingIds[0]).paid_at = '2026-11-14T09:00:00.000Z'
+    const res = await requestRemainder(s.quoteId)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ reason: 'nothing_due' })
+  })
+
+  it.each(['invoice', 'saved_card', 'cash'] as const)('a %s quote: 422 not_payment_link, nothing sent', async (method) => {
+    const s = await seed({ method })
+    const res = await requestRemainder(s.quoteId)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ error: 'action_not_allowed', reason: 'not_payment_link' })
+    expect(mockResendSend).not.toHaveBeenCalled()
+    expect(linksOf(s.quoteId)).toHaveLength(0)
+    expect(events(s.quoteId)).toHaveLength(0)
+  })
+
+  it('an unpaid or a cancelled payment-link quote: 422 not_paid', async () => {
+    const unpaid = await seed({ method: 'payment_link', status: 'accepted', suffix: 'UNPAID' })
+    expect(await (await requestRemainder(unpaid.quoteId)).json()).toMatchObject({ reason: 'not_paid' })
+    const cancelled = await seed({ method: 'payment_link', cancelled: true, suffix: 'CANCEL' })
+    const res = await requestRemainder(cancelled.quoteId)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({ reason: 'not_paid' })
+    expect(mockResendSend).not.toHaveBeenCalled()
+  })
+
+  it('an unknown quote: 404', async () => {
+    expect((await requestRemainder('11111111-1111-4111-8111-111111111111')).status).toBe(404)
+  })
+
+  it('Resend failing: 502 email_failed with an email_failed event; the link row exists; the retry is not blocked', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResendSend.mockRejectedValue(new Error('resend down'))
+    const s = await seed({ method: 'payment_link' })
+    const res = await requestRemainder(s.quoteId)
+    expect(res.status).toBe(502)
+    expect(await res.json()).toEqual({ error: 'email_failed' })
+    expect(eventKinds(s.quoteId)).toContain('email_failed')
+    expect(eventKinds(s.quoteId)).not.toContain('email_sent')
+    expect(eventKinds(s.quoteId)).not.toContain('remainder_requested')
+    expect(linksOf(s.quoteId)).toHaveLength(1)
+
+    mockResendSend.mockResolvedValue({ data: { id: 'em_2' }, error: null })
+    const retry = await requestRemainder(s.quoteId)
+    expect(retry.status).toBe(200)
+    expect(eventKinds(s.quoteId)).toContain('remainder_requested')
+  })
+
+  it('Resend answering with an error object is the same 502', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResendSend.mockResolvedValue({ data: null, error: { message: 'rejected' } })
+    const s = await seed({ method: 'payment_link' })
+    expect((await requestRemainder(s.quoteId)).status).toBe(502)
+  })
+
+  it('logs carry no token, address or name when the send fails', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    mockResendSend.mockRejectedValue(new Error('resend down for eva-AAAAAA@example.com'))
+    const s = await seed({ method: 'payment_link' })
+    await requestRemainder(s.quoteId)
+    const logged = stringified(spy.mock.calls)
+    expect(logged).not.toContain('eva-AAAAAA')
+    expect(logged).not.toMatch(/[A-Za-z0-9_-]{43}/)
+  })
+
+  it('no session: 401; no admin role: 403; a bad id or body: 400; nothing is sent', async () => {
+    const s = await seed({ method: 'payment_link' })
+    world.auth = '401'
+    expect((await requestRemainder(s.quoteId)).status).toBe(401)
+    world.auth = '403'
+    expect((await requestRemainder(s.quoteId)).status).toBe(403)
+    world.auth = 'admin'
+    expect((await requestRemainder('not-a-uuid')).status).toBe(400)
+    expect((await requestRemainder(s.quoteId, { amount: 1 })).status).toBe(400)
+    expect((await requestRemainder(s.quoteId, '{not json')).status).toBe(400)
+    expect(mockResendSend).not.toHaveBeenCalled()
+    expect(linksOf(s.quoteId)).toHaveLength(0)
+  })
+
+  it('a body-less request and an empty object are both fine; the answer is never cached', async () => {
+    const s = await seed({ method: 'payment_link' })
+    const res = await requestRemainder(s.quoteId, {})
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+    const t = await seed({ method: 'payment_link', suffix: 'BBBBBB' })
+    expect((await requestRemainder(t.quoteId)).status).toBe(200)
+  })
+})
+
+describe('renderQuoteRemainderDueEmail renders in every locale (D-09)', () => {
+  const URL_OK = 'https://rideprestigo.com/quote/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+
+  it('covers all 8 locales', () => {
+    expect(locales).toHaveLength(8)
+  })
+
+  it.each([...locales])('%s: subject, lang, the formatted amount, the button URL, no waiting line', async (locale) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const messages = ((await import(`@/messages/${locale}.json`)) as any).default.QuoteEmails
+    const out = await renderQuoteRemainderDueEmail({
+      quote: { reference: 'Q-20261114-ABC123', client_first_name: 'Ivan' },
+      version: { locale, currency: 'eur' },
+      amountMinor: 12000,
+      url: URL_OK,
+    })
+    expect(out.subject).toBe(String(messages.remainderDue.subject).replace('{reference}', 'Q-20261114-ABC123'))
+    expect(out.subject).not.toMatch(/[\r\n]/)
+    expect(out.html).toContain(`<html lang="${locale}"`)
+    expect(out.html).toContain(formatMinor(12000, 'eur'))
+    expect(out.html).toContain(`href="${URL_OK}"`)
+    expect(out.html).toContain(String(messages.remainderDue.button))
+    expect(out.html).not.toMatch(/waiting|ожидан/i)
+  })
+
+  it('refuses an amount that is not a positive integer', async () => {
+    for (const amountMinor of [0, -5, 1.5, Number.NaN]) {
+      await expect(
+        renderQuoteRemainderDueEmail({
+          quote: { reference: 'Q-20261114-ABC123', client_first_name: 'Ivan' },
+          version: { locale: 'en', currency: 'eur' },
+          amountMinor,
+          url: URL_OK,
+        }),
+      ).rejects.toThrow()
+    }
+  })
+
+  it('refuses a link that is not http(s)', async () => {
+    await expect(
+      renderQuoteRemainderDueEmail({
+        quote: { reference: 'Q-20261114-ABC123', client_first_name: 'Ivan' },
+        version: { locale: 'en', currency: 'eur' },
+        amountMinor: 12000,
+        url: 'javascript:alert(1)',
+      }),
+    ).rejects.toThrow()
   })
 })
