@@ -16,7 +16,7 @@ import { BOOKING_STATUSES } from '@/lib/booking-status'
 import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
-import { assertEditablePrecheck, reevaluateAfterEdit } from '@/lib/payments/edit-hook'
+import { assertEditablePrecheck, assertQuoteEditAmount, reevaluateAfterEdit } from '@/lib/payments/edit-hook'
 import { getPaymentSettings, isPolicyPublic } from '@/lib/payments/config'
 import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
 import { buildPolicyBlockHtml } from '@/lib/payments/emails/policy-block'
@@ -772,6 +772,14 @@ export async function PATCH(request: Request) {
       tripUpdatePayload.payment_link_url = null
       tripUpdatePayload.payment_link_id = null
     }
+
+    // Phase 92 (D-20): a booking created from a quote already collected its deposit share. A new price that leaves nothing
+    // to charge after that share is refused before anything is written, so the deposit is never charged twice.
+    const belowDeposit = assertQuoteEditAmount(current, {
+      amount_czk: tripUpdatePayload.amount_czk,
+      amount_eur: tripUpdatePayload.amount_eur,
+    })
+    if (belowDeposit) return NextResponse.json(belowDeposit.body, { status: belowDeposit.status })
 
     // WR-04 (D-18): when this edit derived pickup_offset_min from the landing it read, the update is compare-and-set on that
     // landing and that pickup (the contract of applyLandingChange): a concurrent Move pickup / trip edit matches no row and
