@@ -132,10 +132,13 @@ describe('classifyPaymentEvent of quote objects (T-92-15)', () => {
     },
   )
 
-  it.each(['card_quote_deposit', 'card_quote_remainder'])(
-    '%s: payment_intent.succeeded is acknowledged as unrouted until the quote webhook route exists',
-    (kind) => {
-      expect(classifyPaymentEvent(eventOf('payment_intent.succeeded', kind))?.route).toBe('unrouted')
+  it.each([
+    ['card_quote_deposit', 'quote_deposit_paid'],
+    ['card_quote_remainder', 'unrouted'],
+  ])(
+    '%s: payment_intent.succeeded is routed to %s (the deposit by 92-31; the remainder stays unrouted until plan 92-23 adds its route)',
+    (kind, route) => {
+      expect(classifyPaymentEvent(eventOf('payment_intent.succeeded', kind))?.route).toBe(route)
     },
   )
 })
