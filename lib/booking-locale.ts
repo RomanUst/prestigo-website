@@ -24,6 +24,7 @@ export const STRIPE_ELEMENTS_LOCALE: Record<AppLocale, StripeElementLocale> = {
   ar: 'ar',
   hi: 'auto', // Stripe has no Hindi locale — let Stripe auto-detect instead of forcing English.
   zh: 'zh',
+  'zh-hant': 'zh-TW',
 }
 
 export const PLACES_LANGUAGE: Record<AppLocale, string> = {
@@ -34,4 +35,5 @@ export const PLACES_LANGUAGE: Record<AppLocale, string> = {
   ar: 'ar',
   hi: 'hi',
   zh: 'zh-CN', // Google Places expects the Simplified-Chinese-specific tag.
+  'zh-hant': 'zh-TW',
 }

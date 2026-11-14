@@ -12,7 +12,7 @@ number: 11
 name: Live Stripe canary after deploy (owner)
 expected: |
   On a Prague transfer the client can add 1 to 5 stops (a 6th is refused), pick addresses, remove one and reorder with up/down. The map shows the route in the same order with numbered markers and an updated km/min. Any stop change clears the cached price and promo and refetches the quote.
-awaiting: owner merge of PR #107 and the live Stripe canary
+awaiting: the owner's live booking with a stop (card), then the 1 EUR extra charge and refund
 
 ## Tests
 
@@ -24,9 +24,9 @@ note: FIRST RUN (before #105): /book had no stops UI at all; the stops UI lived 
 
 ### 2. Waiting select and waiting price line
 expected: With no waiting rate set only 0 and 15 minutes are offered. After the owner sets a rate for a class, options up to 120 minutes in 15-minute steps appear; a class without a rate is disabled with the note and is unselected if it was selected. 15 minutes costs nothing, 30 minutes costs one block, two stops of 15 minutes cost nothing. PriceSummary and the Step 6 summary show a separate "Waiting at stops" line equal to rate times paid blocks, and the total includes it.
-result: issue
+result: pass
 verified_by: Claude in the owner's Chrome on production (rideprestigo.com), 2026-11-12, rates set by the owner (business 7, first class 20, van 10 EUR per 15 min)
-note: Without a rate the stop select offered only No wait and 15 min with the note that paid waiting is not available. After the owner set the rates, /api/waiting-config lists all three classes (after its 60 s CDN cache) and the select offers 0 to 120 min in 15-minute steps with 'First 15 min free, then charged per started 15 min'. Quotes on production: 0 and 15 min add nothing; 30 min adds one block (7 / 20 / 10); 120 min adds seven blocks (49 / 140 / 70); two stops of 15 min add nothing; 45 + 30 min add three blocks (21 / 60 / 30); the total includes the waiting. ISSUE: on desktop the price panel of the vehicle step (StickyBookingPanel) shows only the total, no 'Waiting at stops' line (PriceSummary is rendered for mobile only there). Fixed in PR #107 (line added above the price, 2 tests), not merged yet. NOT observed: a class without a rate next to classes with one (all three have a rate now; covered by tests), the Step 6 summary line (step 5 asks for passenger details, not entered).
+note: Without a rate the stop select offered only No wait and 15 min with the note that paid waiting is not available. After the owner set the rates, /api/waiting-config lists all three classes (after its 60 s CDN cache) and the select offers 0 to 120 min in 15-minute steps with 'First 15 min free, then charged per started 15 min'. Quotes on production: 0 and 15 min add nothing; 30 min adds one block (7 / 20 / 10); 120 min adds seven blocks (49 / 140 / 70); two stops of 15 min add nothing; 45 + 30 min add three blocks (21 / 60 / 30); the total includes the waiting. ISSUE: on desktop the price panel of the vehicle step (StickyBookingPanel) shows only the total, no 'Waiting at stops' line (PriceSummary is rendered for mobile only there). Fixed in PR #107 (line added above the price, 2 tests), merged and live: the panel shows 'Waiting at stops +EUR 14' for Business with a 45 minute wait and '+EUR 40' for First Class, above the total. NOT observed: a class without a rate next to classes with one (all three have a rate now; covered by tests), the Step 6 summary line (step 5 asks for passenger details, not entered).
 
 ### 3. Airport landing and offset UI
 expected: With Prague Airport as pickup the date/time fields become landing fields and an offset picker (0/15/30/45/60/90, default 30) appears with "Your driver meets you at HH:MM". Landing 14:00 shows 14:30; landing 23:50 shows 00:20 on the next date; 2027-03-28 landing 01:50 shows 03:20; 2027-10-31 landing 02:40 gives a sensible pickup. Changing the pickup away from the airport clears the landing fields. Readable on a phone.
@@ -83,8 +83,8 @@ result: [pending]
 ## Summary
 
 total: 12
-passed: 6
-issues: 1
+passed: 7
+issues: 0
 pending: 5
 skipped: 0
 blocked: 0
@@ -106,14 +106,35 @@ blocked: 0
   fix: "PR #106 (merged 2026-11-12): the route bar returns to step 1; the duplicate editor is removed."
 
 - truth: "The wizard price summary shows waiting at stops as its own line (D-06)"
-  status: fixed_pending_deploy
+  status: fixed
   reason: "On the vehicle step the desktop panel (StickyBookingPanel) had no waiting line; PriceSummary is mobile only there."
   severity: minor
   test: 2
-  fix: "PR #107 (branch fix/91-desktop-waiting-line)."
+  fix: "PR #107 (merged 2026-11-12)."
+
+## Owner changes after the first run (2026-11-12, PR #108, live)
+
+- Wait options are now No wait, "15 min, free", 30, 45, 60, 90, 120 (15-minute steps to one hour, then 30-minute steps); the hint reads "First 15 min are free. After that each started 15 min is charged." Checked on production 2026-11-14.
+- The client sees one total: the "Waiting at stops" amount line is removed from the desktop price panel, the mobile summary, the step 6 summary and the client emails. Checked on production 2026-11-14 on the vehicle step (stop with a 60 minute wait: the panel shows the price and "All fees included" only). This replaces the waiting-line expectation of tests 2 and 10 (D-06); the admin panel and the manager alert still show the amount. NOT observed: step 6 and the client email as rendered.
+
+## Owner's live booking with a stop (2026-11-14, PRG-20261114-59EC72)
+
+Read from the production database by Claude; the booking was made by the owner on the public wizard with a real card.
+
+- Stored: one `booking_stops` row (position 1, 15 minutes, 0 paid blocks), `distance_km` 183.324 (the server distance through the stop), `payment_mode` card_hold, `payment_state` card_saved, amount EUR 369, hold scheduled for 2026-11-26 00:30 UTC. Ledger: setup_started, setup_succeeded, hold_scheduled, email_sent, alert_sent.
+- Consent: version 2026-11-3, the rendered text carries the sentence about waiting beyond the booked time and extras (D-12), so an extra charge is allowed on this booking once it is completed.
+- ISSUE found by the owner: neither the confirmation page nor the confirmation email named the stop. Cause: Phase 91 added stop rows to the legacy pay-now email only; card-on-file bookings are confirmed by the localized payment emails, and the confirmation page never listed stops. Fixed in PR #110 (stop rows and landing row in the payment emails, stops on the confirmation page, 8 locales, tests), not merged yet.
+- This covers the storage half of tests 4 and 11. Still open on this booking: completing it, the 1 EUR extra charge and its refund (tests 7, 11, 12), and the emails as rendered after #110 (test 10).
+
+- truth: "Stops and their waiting times are visible in the confirmation email and on the confirmation page (STOP-04)"
+  status: fixed_pending_deploy
+  reason: "Card-on-file confirmations use lib/payments/emails, which had no stop rows; the confirmation page listed no stops."
+  severity: major
+  test: 10
+  fix: "PR #110 (branch fix/91-stops-in-confirmation)."
 
 ## Observations
 
 - Admin API answers are slow on production (2.5 to 7.5 s per request); several parallel requests from one tab timed out once (504 / no answer for 12 s) and recovered on reload. Seen in Phase 90 as well.
 - The TEST booking was cancelled through the admin cancel route after the checks; its driver assignment row was deleted.
-
+- The production build of the #107 merge failed once on the Google Fonts download (known flake); `vercel redeploy` of the same deployment succeeded.

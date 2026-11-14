@@ -93,7 +93,7 @@ export default async function SiteChrome({
       ? notoArabic.variable
       : locale === 'hi'
         ? notoDevanagari.variable
-        : locale === 'zh'
+        : locale === 'zh' || locale === 'zh-hant'
           ? notoSC.variable
           : ''
 

@@ -80,6 +80,7 @@ export const OG_LOCALE: Record<AppLocale, string> = {
   ar: 'ar_AR',
   hi: 'hi_IN',
   zh: 'zh_CN',
+  'zh-hant': 'zh_TW',
 }
 
 const OG_IMAGE = { url: '/og-image.jpg', width: 1200, height: 630 } as const

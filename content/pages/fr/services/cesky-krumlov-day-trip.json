@@ -1,0 +1,167 @@
+{
+  "metadata": {
+    "title": "Excursion à Český Krumlov depuis Prague — voiture privée avec chauffeur",
+    "description": "Une excursion privée à la journée de Prague à Český Krumlov en Mercedes avec votre propre chauffeur : prise en charge à l'hôtel, le chauffeur attend pendant votre visite et vous ramène le jour même.",
+    "ogTitle": "Excursion privée à la journée de Prague à Český Krumlov"
+  },
+  "breadcrumbName": "Excursion à Český Krumlov",
+  "hero": {
+    "label": "Excursion privée · Český Krumlov",
+    "headlineLine1": "Český Krumlov en une journée.",
+    "headlineItalic": "Votre voiture attend pendant votre visite.",
+    "intro": "Une excursion privée à la journée de Prague à Český Krumlov : une Mercedes et un chauffeur viennent vous chercher à votre hôtel, vous conduisent vers le sud à travers la Bohême, attendent pendant que vous visitez le château et la vieille ville, puis vous ramènent le soir même.",
+    "ctaPrimary": "Réserver cette excursion",
+    "ctaSecondary": "Poser une question",
+    "imageAlt": "Mercedes sur la route de Prague à Český Krumlov"
+  },
+  "glance": {
+    "label": "En bref",
+    "items": [
+      {
+        "label": "Trajet",
+        "value": "Environ 2 h 30 dans chaque sens, de porte à porte"
+      },
+      {
+        "label": "Prix",
+        "value": "Par voiture, et non par personne — affiché en totalité avant le paiement"
+      },
+      {
+        "label": "Temps sur place",
+        "value": "La plupart des voyageurs restent quatre à cinq heures"
+      },
+      {
+        "label": "Inclus",
+        "value": "Prise en charge à l'hôtel, trajet aller et retour, carburant et péages d'autoroute"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Un long trajet en train,",
+    "headingItalic": "une journée facile en voiture.",
+    "paragraphs": [
+      "Český Krumlov est l'excursion que les visiteurs de Prague demandent le plus. Toute la vieille ville est inscrite au patrimoine mondial de l'UNESCO : un château à la tour peinte au-dessus d'un méandre serré de la Vltava, en contrebas des ruelles bordées de maisons Renaissance, et l'un des théâtres baroques les mieux conservés d'Europe.",
+      "La ville se trouve aussi à environ 2 h 30 de Prague. En train ou en autocar, cela veut dire des horaires fixes et une correspondance en route. En voiture privée, vous gardez le même siège de la porte de votre hôtel jusqu'à l'entrée de la vieille ville, vous partez quand vous le décidez et vous rentrez quand vous en avez assez vu.",
+      "Cette page concerne l'aller-retour dans la journée. Si vous comptez passer la nuit sur place ou poursuivre vers Vienne, Salzbourg ou Hallstatt, réservez plutôt un transfert aller simple sur l'itinéraire Prague – Český Krumlov."
+    ]
+  },
+  "features": {
+    "label": "La journée",
+    "headingLine1": "À quoi ressemble une journée",
+    "headingItalic": "à Český Krumlov.",
+    "items": [
+      {
+        "title": "Partez tôt, arrivez avant les autocars",
+        "body": "Un départ vers 8 h vous amène à Český Krumlov en milieu de matinée, avant que les autocars de tourisme ne remplissent les ruelles. L'heure du retour, c'est vous qui la fixez."
+      },
+      {
+        "title": "Le château et sa tour",
+        "body": "Le château d'État est le deuxième plus grand de République tchèque. Les cours et les jardins se visitent librement et gratuitement ; la tour, les intérieurs et le théâtre baroque nécessitent des billets, et les visites du théâtre affichent complet en été."
+      },
+      {
+        "title": "La vieille ville à pied",
+        "body": "Le centre est fermé aux voitures. Votre chauffeur vous dépose au parking situé à côté de la vieille ville, à quelques minutes à pied de la place principale, et vous y attend."
+      },
+      {
+        "title": "Un arrêt en chemin",
+        "body": "L'itinéraire passe par České Budějovice et le château de Hluboká. Dites-nous à la réservation si vous souhaitez vous arrêter à l'un ou à l'autre et nous vous le confirmons par écrit."
+      },
+      {
+        "title": "Un seul prix pour la voiture",
+        "body": "Vous payez pour la voiture, non par personne : le trajet aller et retour, plus le temps d'attente du chauffeur. Les 15 premières minutes d'attente sont gratuites ; au-delà, l'attente est facturée par tranche de 15 minutes entamée. Le formulaire de réservation affiche le montant total avant le paiement."
+      },
+      {
+        "title": "Sièges enfant sans supplément",
+        "body": "Les sièges bébé, les sièges enfant et les rehausseurs sont gratuits. Indiquez-nous l'âge des enfants à la réservation et les sièges adaptés seront installés avant la prise en charge."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Comment ça fonctionne",
+    "heading": "Réserver une excursion en quatre étapes.",
+    "items": [
+      {
+        "title": "Envoyez-nous votre programme",
+        "body": "Indiquez la date, votre adresse à Prague, la ville et la durée souhaitée sur place — dans le formulaire de réservation ou par message. Les grandes lignes de la journée suffisent."
+      },
+      {
+        "title": "Choisissez la voiture",
+        "body": "E-Class jusqu'à trois personnes, V-Class jusqu'à six personnes avec de la place en plus, S-Class pour une journée de direction. Vous voyez le prix total de la voiture avant de payer."
+      },
+      {
+        "title": "Rencontrez votre chauffeur",
+        "body": "Vous recevez à l'avance le nom et le numéro de téléphone du chauffeur. Il vient vous chercher à la porte de votre hôtel ou de votre appartement à l'heure convenue."
+      },
+      {
+        "title": "Prenez votre temps",
+        "body": "Le chauffeur attend près du centre pendant la durée que vous avez réservée. Si vous souhaitez rester plus longtemps le jour même, dites-le au chauffeur : l'attente supplémentaire est facturée au même tarif."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Bon à savoir",
+    "headingLine1": "Préparer",
+    "headingItalic": "la journée.",
+    "paragraphs": [
+      "Prévoyez des chaussures adaptées aux pavés : Český Krumlov est pentue par endroits et entièrement pavée. Les intérieurs du château sont fermés le lundi et pendant les mois d'hiver, mais les cours, la vieille ville et les points de vue restent accessibles toute l'année.",
+      "Il est facile de déjeuner sur les terrasses au bord de la rivière, en contrebas du château. En juillet et en août, réservez une table ou déjeunez un peu plus tôt.",
+      "Votre chauffeur est un conducteur professionnel, pas un guide touristique : il connaît la route, sait où vous déposer et où attendre, mais il n'assure pas de visites guidées. Les billets d'entrée, les repas et les visites guidées ne sont pas compris dans le prix. Si vous souhaitez un guide local agréé, réservez-le pour les heures que vous prévoyez de passer sur place et nous calons le trajet en fonction."
+    ]
+  },
+  "faqsHeading": "Questions sur l'excursion à Český Krumlov",
+  "faqs": [
+    {
+      "q": "Combien coûte une excursion privée à la journée de Prague à Český Krumlov ?",
+      "a": "Le prix dépend de la voiture choisie et de la durée de votre visite. Il se compose du trajet aller et retour et du temps d'attente du chauffeur : les 15 premières minutes d'attente sont gratuites, puis l'attente est facturée par tranche de 15 minutes entamée. Le prix s'entend pour la voiture entière, carburant et péages d'autoroute inclus, et le montant exact s'affiche dans le formulaire de réservation avant le paiement."
+    },
+    {
+      "q": "Combien de temps dure l'excursion ?",
+      "a": "Comptez une dizaine d'heures au total : environ 2 h 30 dans chaque sens et quatre à cinq heures à Český Krumlov. En quittant Prague à 8 h, vous êtes de retour vers 18 h. Les deux horaires sont à votre choix."
+    },
+    {
+      "q": "Le chauffeur attend-il et nous ramène-t-il le jour même ?",
+      "a": "Oui. La même voiture et le même chauffeur vous y conduisent, attendent près du centre pendant la durée que vous avez réservée et vous ramènent à votre adresse à Prague. Le temps d'attente fait partie du prix ; si vous décidez de rester plus longtemps le jour même, dites-le au chauffeur et le temps supplémentaire est facturé au même tarif."
+    },
+    {
+      "q": "Un guide ou des billets d'entrée sont-ils inclus ?",
+      "a": "Non. Le prix couvre la voiture et le chauffeur. Les billets et les visites guidées se réservent séparément, et le chauffeur ne fait pas office de guide. Nous organisons volontiers la journée autour d'un guide ou d'un créneau de billets que vous avez réservé."
+    },
+    {
+      "q": "Peut-on s'arrêter à České Budějovice ou au château de Hluboká ?",
+      "a": "Les deux se trouvent sur la route. Indiquez-nous l'arrêt souhaité à la réservation, et nous vous confirmons le programme et le prix par écrit avant le départ."
+    },
+    {
+      "q": "Combien de personnes peuvent voyager dans une voiture ?",
+      "a": "Jusqu'à trois passagers en E-Class ou en S-Class et jusqu'à six en V-Class. Les groupes plus nombreux voyagent dans deux voitures ou plus. Les sièges enfant sont gratuits dans toutes les catégories."
+    }
+  ],
+  "related": {
+    "label": "À voir aussi",
+    "heading": "D'autres façons de passer une journée.",
+    "links": [
+      {
+        "href": "/services/day-trips-from-prague",
+        "title": "Toutes les excursions privées",
+        "body": "Quatre excursions depuis Prague côte à côte, avec les temps de trajet et les prix par voiture."
+      },
+      {
+        "href": "/routes/prague-cesky-krumlov",
+        "title": "Aller simple pour Český Krumlov",
+        "body": "Vous passez la nuit sur place ou poursuivez votre voyage ? Réservez le transfert en aller simple."
+      },
+      {
+        "href": "/services/kutna-hora-day-trip",
+        "title": "Excursion à Kutná Hora",
+        "body": "L'église aux ossements et la cathédrale Sainte-Barbe, à une heure de Prague."
+      },
+      {
+        "href": "/services/karlovy-vary-day-trip",
+        "title": "Excursion à Karlovy Vary",
+        "body": "Colonnades et sources chaudes, avec un arrêt au château de Loket en chemin."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Český Krumlov aller-retour, dans votre propre voiture.",
+    "headingItalic": "Le prix total affiché avant le paiement."
+  }
+}

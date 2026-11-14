@@ -48,6 +48,16 @@ export const LANDING_PAGES: LandingPageConfig[] = [
   { slug: 'private-driver-prague', section: 'services', heroImage: '/hero-city-rides.png', ctaHref: '/book' },
   // 2026-11-03: "limousine prague" / "limo service prague" cluster — executive S-Class, no stretch limos.
   { slug: 'limousine-prague', section: 'services', heroImage: '/vehicles/first-int-2.jpg', ctaHref: '/book?class=first_class' },
+  // 2026-11-11: private day trips — the largest demand cluster in every
+  // English-speaking market ("day trips from prague", "cesky krumlov day trip").
+  // Car + chauffeur who waits and drives back the same day; no guide. No prices
+  // in the copy: fares and waiting rates live in admin and a tour booking engine
+  // is planned (owner decision 2026-11-14).
+  { slug: 'day-trips-from-prague', section: 'services', heroImage: '/hero-intercity-routes.png', ctaHref: '/book' },
+  { slug: 'cesky-krumlov-day-trip', section: 'services', heroImage: '/multi-day-hero.png', ctaHref: '/book' },
+  { slug: 'kutna-hora-day-trip', section: 'services', heroImage: '/vehicles/van-int-1.jpg', ctaHref: '/book' },
+  { slug: 'karlovy-vary-day-trip', section: 'services', heroImage: '/vehicles/business-int-1.jpg', ctaHref: '/book' },
+  { slug: 'dresden-day-trip', section: 'services', heroImage: '/hero-group-transfers.png', ctaHref: '/book' },
   { slug: 'child-seats', section: 'faq', ctaHref: '/book' },
   { slug: 'flight-delays', section: 'faq', ctaHref: '/book' },
   { slug: 'tipping-in-prague', section: 'faq', ctaHref: '/book' },

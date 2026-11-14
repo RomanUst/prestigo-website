@@ -15,7 +15,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
  *     x-default always present, per getAlternates's "en always included"
  *     rule).
  */
-const FULL_KEYS = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh-Hans', 'x-default']
+const FULL_KEYS = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh-Hans', 'zh-Hant', 'x-default']
 
 describe('getAlternates', () => {
   it('emits one key per locale (BCP-47 tag) + x-default for an indexable, fully-translated route', () => {

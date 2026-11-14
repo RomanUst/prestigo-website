@@ -1,0 +1,200 @@
+{
+  "metadata": {
+    "title": "Mercedes E-Class 布拉格專車司機服務 — 商務",
+    "description": "布拉格 Mercedes E-Class 商務專車服務：專職司機，適合機場接送、商務會議和市內出行的商務轎車。舉牌接機，一口價，全天候 24/7。",
+    "ogTitle": "Mercedes E-Class 布拉格專車司機服務 — 商務轎車"
+  },
+  "breadcrumbName": "Mercedes E-Class",
+  "hero": {
+    "label": "Mercedes E-Class · 布拉格",
+    "headlineLine1": "布拉格 Mercedes E-Class 帶司機服務。",
+    "headlineItalic": "商務出行，從容低調。",
+    "intro": "E-Class 是 Prestigo 車隊中的商務轎車，也是我們機場接送和市內出行的首選：舒適、低調、高效。專業司機在布拉格機場或您門口迎接，一口價送您抵達。",
+    "ctaPrimary": "預訂 E-Class",
+    "ctaSecondary": "諮詢問題",
+    "imageAlt": "備有瓶裝水的 Mercedes E-Class 後排車廂，Prestigo 布拉格專車服務"
+  },
+  "glance": {
+    "label": "一覽",
+    "items": [
+      {
+        "label": "載客量",
+        "value": "最多 3 位乘客，2 件大行李 + 2 件隨身行李"
+      },
+      {
+        "label": "機場接送",
+        "value": "€{businessPrice} 起，一口價，含舉牌接機"
+      },
+      {
+        "label": "適合",
+        "value": "機場接送、商務會議、市內出行"
+      },
+      {
+        "label": "按小時",
+        "value": "每小時 €{hourlyFrom} 起，最少 2 小時"
+      }
+    ]
+  },
+  "vehicle": {
+    "label": "車輛",
+    "headingLine1": "Mercedes-Benz E-Class。",
+    "headingItalic": "商務之選的標準。",
+    "photoAlt": "黑色 Mercedes-Benz E-Class — Prestigo 布拉格專車服務",
+    "seatsLabel": "座位",
+    "seatsValue": "最多 3 位乘客",
+    "luggageLabel": "行李",
+    "luggageValue": "2 件大行李 + 2 件隨身行李",
+    "includedLabel": "每次預訂 E-Class 均包含",
+    "included": [
+      "舉牌接機服務",
+      "航班追蹤，機場免費等候 60 分鐘",
+      "車載 Wi-Fi，每個座位均可快充",
+      "常溫水與氣泡水",
+      "可按需提供兒童座椅，免費",
+      "城際路線已含過路費和高速通行證"
+    ]
+  },
+  "intro": {
+    "headingLine1": "我們大多數客戶",
+    "headingItalic": "首先選擇的車型。",
+    "paragraphs": [
+      "獨自出差、帶著公文包和登機箱的高管，攜兩隻行李箱的夫婦，在布拉格各處開會的一天——E-Class 正是為這些行程而生。最多可乘坐 3 位乘客，540 升後備廂可放 2 件大行李和 2 件隨身行李。",
+      "車廂安靜而考究：真皮座椅、雙區自動空調、Wi-Fi 和快充。它是中歐最常見的商務轎車，低調而可靠地完成每一段行程。",
+      "Prestigo 的每一輛 E-Class 均為 E 220 d 或 E 300 de Hybrid，2025 年款或更新，黑色車身配真皮內飾，並在每次行程前精心準備。"
+    ]
+  },
+  "features": {
+    "label": "車內",
+    "headingLine1": "商務出行所需的一切，",
+    "headingItalic": "恰到好處。",
+    "items": [
+      {
+        "title": "真皮內飾",
+        "body": "舒適的真皮座椅，安靜整潔的車廂——為新的一天做準備的安靜空間。"
+      },
+      {
+        "title": "雙區自動空調",
+        "body": "您偏好的車廂溫度會在車輛抵達前設定好——記錄一次，以後每次預訂都會記住。"
+      },
+      {
+        "title": "不限流量 Wi-Fi",
+        "body": "企業級 5G Wi-Fi，從機場到第一場會議的路上即可處理郵件和通話。"
+      },
+      {
+        "title": "快速充電",
+        "body": "USB-C 和 USB-A 介面觸手可及，支援 Apple 和 Samsung 快充。"
+      },
+      {
+        "title": "瓶裝水",
+        "body": "每次行程均備有冰鎮常溫水和氣泡水。"
+      },
+      {
+        "title": "專業司機",
+        "body": "司機均經過背景審查，具備專業資質，英語流利；可按需安排俄語、德語或捷克語司機。"
+      }
+    ]
+  },
+  "steps": {
+    "label": "預訂流程",
+    "heading": "四步預訂 E-Class。",
+    "items": [
+      {
+        "title": "選擇 E-Class",
+        "body": "填寫上車地點、目的地和時間，然後選擇 E-Class。付款前價格即已固定。"
+      },
+      {
+        "title": "新增航班",
+        "body": "機場接機請填寫航班號——司機會實時追蹤您的抵達情況。"
+      },
+      {
+        "title": "與司機會面",
+        "body": "您會提前收到司機的姓名和電話。在機場，司機會在到達大廳內舉牌等候。"
+      },
+      {
+        "title": "準時抵達",
+        "body": "行李有人打理，路線已規劃好，您抵達時已準備好迎接這一天。"
+      }
+    ]
+  },
+  "editorial": {
+    "label": "E-Class 可以帶您去哪裡",
+    "headingLine1": "從機場",
+    "headingItalic": "到下一場會議。",
+    "paragraphs": [
+      "大多數 E-Class 行程從瓦茨拉夫·哈維爾機場出發。每次接送都包含航班追蹤、到達大廳舉牌接機，以及最多 60 分鐘免費等候，航班延誤不會產生額外費用。按小時包車時，車輛和司機可陪您在市內完成一整天的會議。",
+      "前往其他城市——維也納、慕尼黑、柏林、德累斯頓等——一口價路線已包含過路費和高速通行證。經常出行的企業可開設企業賬戶，按月結算。"
+    ]
+  },
+  "faqsHeading": "Mercedes E-Class 常見問題",
+  "faqs": [
+    {
+      "q": "E-Class 能坐幾位乘客、放多少行李？",
+      "a": "E-Class 最多可乘坐 3 位乘客，540 升後備廂可放 2 件大行李和 2 件隨身行李。如乘客或行李更多，請選擇 Mercedes V-Class。"
+    },
+    {
+      "q": "E-Class 適合布拉格機場接送嗎？",
+      "a": "非常適合——這是我們最受歡迎的機場用車。司機會追蹤您的航班，在到達大廳內舉牌等候，落地後最多 60 分鐘免費等候，全部一口價。"
+    },
+    {
+      "q": "E-Class 預訂包含哪些服務？",
+      "a": "專業司機、舉牌接機、航班追蹤及機場免費等候、Wi-Fi、快充、常溫水與氣泡水，以及按需免費提供的兒童座椅。城際路線已包含過路費和高速通行證。"
+    },
+    {
+      "q": "Prestigo 運營哪些 E-Class 車型？",
+      "a": "我們的 E-Class 為 E 220 d 或 E 300 de Hybrid，2025 年款或更新，黑色車身配真皮內飾。車輛由 Mercedes-Benz 授權技師按原廠計劃保養，並在每次行程前檢查。"
+    },
+    {
+      "q": "可以按小時預訂帶司機的 E-Class 嗎？",
+      "a": "可以。按小時包車最少 2 小時，開會、購物或夜晚外出時車輛和司機全程陪同。超出時間按相同費率計算。"
+    },
+    {
+      "q": "E-Class 和 S-Class 有什麼區別？",
+      "a": "兩者均可乘坐 3 位乘客，行李容量相同。S-Class 增加了行政級後排套件，腿部空間更寬敞，配有按摩座椅、Nappa 真皮和更安靜的車廂——適合 VIP 貴賓和長途城際出行。對於大多數機場和市內行程，E-Class 是自然之選。"
+    },
+    {
+      "q": "需要提前多久預訂？",
+      "a": "請至少提前 12 小時線上預訂。如需臨時用車，請致電 +420 725 986 855——我們全天候 24/7 服務。"
+    }
+  ],
+  "related": {
+    "label": "相關推薦",
+    "heading": "車隊其他車型，以及它們能帶您去的地方。",
+    "links": [
+      {
+        "href": "/fleet",
+        "title": "Prestigo 車隊",
+        "body": "E-Class、S-Class 和 V-Class 一覽，附完整引數。"
+      },
+      {
+        "href": "/fleet/s-class",
+        "title": "Mercedes S-Class",
+        "body": "適合 VIP 和長途城際出行的行政級轎車。"
+      },
+      {
+        "href": "/fleet/v-class",
+        "title": "Mercedes V-Class",
+        "body": "最多六位乘客及全部行李，適合家庭和團體。"
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "布拉格機場接送",
+        "body": "PRG 舉牌接機、航班追蹤、一口價。"
+      },
+      {
+        "href": "/services/city-rides",
+        "title": "市內按小時包車",
+        "body": "布拉格市內按小時包車——費率、最低時長及服務方式。"
+      },
+      {
+        "href": "/corporate",
+        "title": "企業賬戶",
+        "body": "為經常性商務出行提供按月結算和優先排程。"
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "一輛 E-Class，一位司機，無論一天從哪裡開始。",
+    "headingItalic": "一口價，線上預訂。",
+    "buttonText": "預訂 E-Class"
+  }
+}
