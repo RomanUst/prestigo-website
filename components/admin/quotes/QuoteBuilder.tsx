@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Plus } from 'lucide-react'
 import { QuoteLineEditor } from '@/components/admin/quotes/QuoteLineEditor'
+import { QuoteSettingsFields } from '@/components/admin/quotes/QuoteSettingsFields'
 import { QuoteStatusBadge } from '@/components/admin/quotes/QuoteStatusBadge'
 import {
+  depositProblem,
   draftFromDetail,
   draftProblems,
   draftToPayload,
@@ -95,7 +97,8 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
   const [savedExpiry, setSavedExpiry] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [status, setStatus] = useState<Status | null>(null)
-  const [problems, setProblems] = useState<string[]>([])
+  // Set by the first Save press; from then on the list of problems follows the draft live, so a fixed one disappears.
+  const [attempted, setAttempted] = useState(false)
   // A second click before React re-renders must send nothing.
   const busy = useRef(false)
 
@@ -143,6 +146,17 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
   const readOnly = frozen || closed
 
   const patch = (next: Partial<QuoteDraft>) => setDraft({ ...draft, ...next })
+  // The suggestions were made in the old currency: they are dropped, the amounts the operator typed stay for them to correct.
+  const patchSettings = (next: Partial<QuoteDraft>) => {
+    if (next.currency !== undefined && next.currency !== draft.currency) {
+      patch({ ...next, lines: draft.lines.map((l) => ({ ...l, suggestedMinor: null })) })
+      return
+    }
+    patch(next)
+  }
+  // D-07: Save waits for a deposit that is chosen, not 0 and not above the total.
+  const depositBlocked = depositProblem(draft) !== null
+  const problems = attempted && !readOnly ? draftProblems(draft) : []
   const setLine = (index: number, line: QuoteLineDraft) =>
     patch({ lines: draft.lines.map((l, i) => (i === index ? line : l)) })
   const removeLine = (index: number) => patch({ lines: draft.lines.filter((_, i) => i !== index) })
@@ -161,7 +175,7 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
   async function save() {
     if (!draft || busy.current) return
     const found = draftProblems(draft)
-    setProblems(found)
+    setAttempted(true)
     if (found.length > 0) {
       setStatus(null)
       return
@@ -247,6 +261,8 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
         )}
       </section>
 
+      {!readOnly && <QuoteSettingsFields draft={draft} onChange={patchSettings} />}
+
       {!readOnly && (
         <div style={cardStyle}>
           {problems.length > 0 && (
@@ -270,11 +286,12 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
           <button
             type="button"
             onClick={save}
-            disabled={saving}
-            style={{ ...primaryButtonStyle, opacity: saving ? 0.7 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
+            disabled={saving || depositBlocked}
+            style={{ ...primaryButtonStyle, opacity: saving || depositBlocked ? 0.5 : 1, cursor: saving || depositBlocked ? 'not-allowed' : 'pointer' }}
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
+          {depositBlocked && <p style={{ ...mutedStyle, marginTop: '8px' }}>Save is available once the deposit is set.</p>}
         </div>
       )}
       {readOnly && status && (

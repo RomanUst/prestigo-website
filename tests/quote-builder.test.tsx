@@ -28,6 +28,7 @@ vi.mock('@/components/booking/AddressInput', () => ({
 
 import QuoteDetailPage from '@/app/(internal)/admin/(dashboard)/quotes/[id]/page'
 import { QuoteBuilder } from '@/components/admin/quotes/QuoteBuilder'
+import { formatMinor } from '@/lib/payments/money'
 
 const QUOTE_ID = '3f2b1c9e-0000-4000-8000-000000000001'
 
@@ -309,5 +310,219 @@ describe('quote detail page: mount and tracer (QUOTE-01)', () => {
     patchAnswer = { status: 500, body: { error: 'x' } }
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     expect(await screen.findByText('Could not save the quote. Nothing was changed. Try again.')).toBeInTheDocument()
+  })
+})
+
+// == Task 2: the quote settings ====================================================================================
+
+const TWO_LINES = [lineRow(1, 30000), lineRow(2, 20000)]
+const freshQuote = () => detail({ lines: TWO_LINES })
+const draftedQuote = () => detail({ lines: TWO_LINES, deposit: { kind: 'percent', value: 30 }, remainder: 'saved_card' })
+
+const depositKind = () => screen.getByLabelText('Deposit type') as HTMLSelectElement
+const depositValue = () => screen.getByLabelText(/^Deposit( \(|$)/) as HTMLInputElement
+const saveButton = () => screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement
+const lastPatch = () => patches()[patches().length - 1].body as Record<string, unknown>
+
+describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13)', () => {
+  it('D-07: no deposit is pre-filled, 0 is refused, and the totals follow the lines', async () => {
+    await renderPage(freshQuote())
+    expect(depositKind().value).toBe('')
+    expect(depositValue().value).toBe('')
+    expect(depositValue()).toBeDisabled()
+    expect(saveButton()).toBeDisabled()
+    expect(screen.getByTestId('quote-total')).toHaveTextContent(formatMinor(50000, 'eur'))
+    expect(screen.getByTestId('quote-deposit')).toHaveTextContent('-')
+
+    fireEvent.change(depositKind(), { target: { value: 'percent' } })
+    expect(depositValue().value).toBe('')
+    expect(saveButton()).toBeDisabled()
+
+    fireEvent.change(depositValue(), { target: { value: '0' } })
+    expect(screen.getByText('The deposit cannot be 0.')).toBeInTheDocument()
+    expect(saveButton()).toBeDisabled()
+
+    fireEvent.change(depositValue(), { target: { value: '30' } })
+    expect(screen.getByTestId('quote-total')).toHaveTextContent(formatMinor(50000, 'eur'))
+    expect(screen.getByTestId('quote-deposit')).toHaveTextContent(formatMinor(15000, 'eur'))
+    expect(screen.getByTestId('quote-remainder')).toHaveTextContent(formatMinor(35000, 'eur'))
+    expect(saveButton()).not.toBeDisabled()
+  })
+
+  it('a percent above 100 and a fixed deposit above the total are refused inline', async () => {
+    await renderPage(freshQuote())
+    fireEvent.change(depositKind(), { target: { value: 'percent' } })
+    fireEvent.change(depositValue(), { target: { value: '101' } })
+    expect(screen.getByText('A percent deposit is 1 to 100.')).toBeInTheDocument()
+    expect(saveButton()).toBeDisabled()
+
+    fireEvent.change(depositKind(), { target: { value: 'fixed' } })
+    expect(depositValue().value).toBe('')
+    fireEvent.change(depositValue(), { target: { value: '500.01' } })
+    expect(screen.getByText('The deposit cannot be more than the total.')).toBeInTheDocument()
+    expect(saveButton()).toBeDisabled()
+    fireEvent.change(depositValue(), { target: { value: '150.50' } })
+    expect(screen.getByTestId('quote-deposit')).toHaveTextContent(formatMinor(15050, 'eur'))
+    expect(saveButton()).not.toBeDisabled()
+  })
+
+  it('the remainder method must be chosen; Invoice shows the billing fields', async () => {
+    await renderPage(freshQuote())
+    fireEvent.change(depositKind(), { target: { value: 'percent' } })
+    fireEvent.change(depositValue(), { target: { value: '30' } })
+
+    expect(screen.getByLabelText(/Saved card \(hold \/ capture per trip\)/)).not.toBeChecked()
+    expect(screen.getByLabelText(/Payment link \(paid on the quote page\)/)).not.toBeChecked()
+    expect(screen.getByLabelText(/Cash to the driver/)).not.toBeChecked()
+    expect(screen.getByLabelText(/^Invoice/)).not.toBeChecked()
+    expect(screen.queryByTestId('quote-billing')).toBeNull()
+
+    fireEvent.click(saveButton())
+    expect(await screen.findByText('Choose how the remainder is paid.')).toBeInTheDocument()
+    expect(patches()).toHaveLength(0)
+
+    fireEvent.click(screen.getByLabelText(/^Invoice/))
+    const billing = screen.getByTestId('quote-billing')
+    for (const label of ['Billing name', 'Billing address', 'Company ID', 'VAT ID', 'Invoice note']) {
+      expect(within(billing).getByLabelText(label)).toBeInTheDocument()
+    }
+    fireEvent.change(screen.getByLabelText('Billing name'), { target: { value: 'ACME s.r.o.' } })
+    fireEvent.change(screen.getByLabelText('VAT ID'), { target: { value: 'CZ12345678' } })
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({
+      remainder_method: 'invoice',
+      billing: { name: 'ACME s.r.o.', address: '', company_id: '', vat_id: 'CZ12345678', note: '' },
+    })
+
+  })
+
+  it('billing is sent only for the invoice method', async () => {
+    await renderPage(draftedQuote())
+    fireEvent.click(screen.getByLabelText(/^Invoice/))
+    fireEvent.change(screen.getByLabelText('Billing name'), { target: { value: 'ACME s.r.o.' } })
+    fireEvent.click(screen.getByLabelText(/Cash to the driver/))
+    expect(screen.queryByTestId('quote-billing')).toBeNull()
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({ remainder_method: 'cash', billing: null })
+  })
+
+  it('free-cancellation hours 0..720 and fee percent 1..100; empty means the standard policy', async () => {
+    await renderPage(draftedQuote())
+    expect(screen.getByText(/Empty = standard policy/)).toBeInTheDocument()
+    expect(screen.getByText(/Empty = all of the deposit/)).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText(/Free cancellation/), { target: { value: '721' } })
+    expect(screen.getByText('Free cancellation is 0 to 720 hours (30 days).')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/Fee after that/), { target: { value: '0' } })
+    expect(screen.getByText('The fee is 1 to 100 percent.')).toBeInTheDocument()
+    fireEvent.click(saveButton())
+    expect(patches()).toHaveLength(0)
+
+    fireEvent.change(screen.getByLabelText(/Free cancellation/), { target: { value: '720' } })
+    fireEvent.change(screen.getByLabelText(/Fee after that/), { target: { value: '100' } })
+    expect(screen.queryByText('Free cancellation is 0 to 720 hours (30 days).')).toBeNull()
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({ cancel_free_hours: 720, cancel_fee_percent: 100 })
+  })
+
+  it('empty terms fields are sent as null (the standard policy)', async () => {
+    await renderPage(draftedQuote())
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({ cancel_free_hours: null, cancel_fee_percent: null })
+  })
+
+  it('0 free hours is accepted', async () => {
+    await renderPage(draftedQuote())
+    fireEvent.change(screen.getByLabelText(/Free cancellation/), { target: { value: '0' } })
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({ cancel_free_hours: 0, cancel_fee_percent: null })
+  })
+
+  it('D-09: the language select has one option per entry of locales, labelled with its endonym', async () => {
+    const { locales, LOCALE_ENDONYMS } = await import('@/i18n/locales')
+    await renderPage(freshQuote())
+    const select = screen.getByLabelText('Language') as HTMLSelectElement
+    const options = Array.from(select.options)
+    expect(options.map((o) => o.value)).toEqual([...locales])
+    expect(options.map((o) => o.textContent)).toEqual(locales.map((l) => LOCALE_ENDONYMS[l]))
+    expect(options.map((o) => o.value)).toContain('zh-hant')
+    expect(select.value).toBe('en')
+  })
+
+  it('currency is EUR or CZK and the amount labels follow it', async () => {
+    await renderPage(freshQuote())
+    const select = screen.getByLabelText('Currency') as HTMLSelectElement
+    expect(Array.from(select.options).map((o) => o.value)).toEqual(['eur', 'czk'])
+    fireEvent.change(select, { target: { value: 'czk' } })
+    expect(screen.getAllByLabelText(/Amount \(CZK\)/)).toHaveLength(2)
+  })
+
+  it('D-02: no expiry by default, and an untouched expiry is not sent', async () => {
+    await renderPage(draftedQuote())
+    expect((screen.getByLabelText(/Link valid until/) as HTMLInputElement).value).toBe('')
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).not.toHaveProperty('expires_at')
+  })
+
+  it('D-02: an expiry the operator sets is sent', async () => {
+    await renderPage(draftedQuote())
+    fireEvent.change(screen.getByLabelText(/Link valid until/), { target: { value: '2099-05-01' } })
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({ expires_at: '2099-05-01' })
+  })
+
+  it('D-02: a stored expiry shows as its Prague day and clearing it sends null', async () => {
+    await renderPage(detail({ lines: TWO_LINES, deposit: { kind: 'percent', value: 30 }, remainder: 'saved_card', expiresAt: '2099-05-01T21:59:59.000Z' }))
+    const expiry = screen.getByLabelText(/Link valid until/) as HTMLInputElement
+    expect(expiry.value).toBe('2099-05-01')
+    fireEvent.change(expiry, { target: { value: '' } })
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toHaveProperty('expires_at', null)
+  })
+
+  it('an expiry date in the past is refused before the request', async () => {
+    await renderPage(draftedQuote())
+    fireEvent.change(screen.getByLabelText(/Link valid until/), { target: { value: '2020-01-01' } })
+    fireEvent.click(saveButton())
+    expect(await screen.findByText('The expiry date is in the past.')).toBeInTheDocument()
+    expect(patches()).toHaveLength(0)
+  })
+
+  it('the PATCH body carries deposit, remainder method, terms, billing, locale, currency and expiry', async () => {
+    await renderPage(freshQuote())
+    fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'zh-hant' } })
+    fireEvent.change(screen.getByLabelText('Currency'), { target: { value: 'czk' } })
+    fireEvent.change(screen.getByLabelText(/Link valid until/), { target: { value: '2099-05-01' } })
+    fireEvent.change(depositKind(), { target: { value: 'fixed' } })
+    fireEvent.change(depositValue(), { target: { value: '150' } })
+    fireEvent.click(screen.getByLabelText(/Payment link/))
+    fireEvent.change(screen.getByLabelText(/Free cancellation/), { target: { value: '168' } })
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({
+      locale: 'zh-hant',
+      currency: 'czk',
+      expires_at: '2099-05-01',
+      deposit: { kind: 'fixed', value: 15000 },
+      remainder_method: 'payment_link',
+      cancel_free_hours: 168,
+      cancel_fee_percent: null,
+      billing: null,
+    })
+    expect((lastPatch().lines as unknown[]).length).toBe(2)
+  })
+
+  it('warns, without blocking, when a remainder is below the smallest card charge', async () => {
+    await renderPage(detail({ lines: [lineRow(1, 30000)], deposit: { kind: 'fixed', value: 29980 }, remainder: 'saved_card' }))
+    expect(screen.getByText(/below the smallest amount a card can be charged/)).toBeInTheDocument()
+    expect(saveButton()).not.toBeDisabled()
   })
 })
