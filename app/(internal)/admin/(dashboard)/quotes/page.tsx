@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { QuotesTable, type QuoteRow } from '@/components/admin/quotes/QuotesTable'
 import { QUOTE_STATUS_BADGE } from '@/components/admin/quotes/QuoteStatusBadge'
@@ -190,6 +190,8 @@ export default function QuotesPage() {
   const [status, setStatus] = useState('')
   const [searchText, setSearchText] = useState('')
   const [search, setSearch] = useState('')
+  // Bumped when an answer shows the rows on screen are stale, so the list is read again.
+  const [reloadTick, setReloadTick] = useState(0)
 
   // The search box refetches after a short pause, so each keystroke does not send a request.
   useEffect(() => {
@@ -225,7 +227,12 @@ export default function QuotesPage() {
     return () => {
       cancelled = true
     }
-  }, [status, search])
+  }, [status, search, reloadTick])
+
+  const reload = useCallback(() => setReloadTick((n) => n + 1), [])
+  const markVoided = useCallback((id: string) => {
+    setQuotes((prev) => prev.map((q) => (q.id === id ? { ...q, effective_status: 'voided' } : q)))
+  }, [])
 
   return (
     <div>
@@ -312,7 +319,7 @@ export default function QuotesPage() {
         </div>
       ) : loadError && quotes.length === 0 ? null : (
         <>
-          <QuotesTable quotes={quotes} />
+          <QuotesTable quotes={quotes} onVoided={markVoided} onRefetch={reload} />
           {total > quotes.length && (
             <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: '13px', fontWeight: 300, color: 'var(--admin-text-muted)', marginTop: '8px' }}>
               {`Showing the newest ${quotes.length} of ${total}. Narrow the list with the status or search.`}

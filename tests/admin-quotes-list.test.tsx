@@ -323,3 +323,139 @@ describe('New quote form (QUOTE-01)', () => {
     expect((screen.getByLabelText('Last name') as HTMLInputElement).value).toBe('Novak')
   })
 })
+
+describe('Cancel quote (QUOTE-06, T-92-45)', () => {
+  const VOID_URL = (id: string) => `/api/admin/quotes/${id}/void`
+
+  function rowFor(reference: string) {
+    return screen.getAllByTestId('quote-row').find((r) => within(r).queryByText(reference)) as HTMLElement
+  }
+
+  function dialog() {
+    return screen.getByRole('dialog')
+  }
+
+  function primary() {
+    return within(dialog()).getByRole('button', { name: 'Cancel quote' })
+  }
+
+  function answerVoid(response: (url: string) => Promise<Response>) {
+    fetchMock.mockImplementation((url: string, init?: RequestInit) =>
+      init?.method === 'POST' && String(url).endsWith('/void') ? response(String(url)) : json(listBody([ROW_A, ROW_B])),
+    )
+  }
+
+  async function openDialogFor(reference = 'Q-2026-0001') {
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    fireEvent.click(within(rowFor(reference)).getByRole('button', { name: 'Cancel quote' }))
+  }
+
+  it.each(['draft', 'sent', 'viewed', 'accepted', 'expired'])('a %s row has a Cancel quote button', async (status) => {
+    fetchMock.mockImplementation(() => json(listBody([row({ effective_status: status })])))
+    render(<QuotesPage />)
+    const r = await screen.findByTestId('quote-row')
+    expect(within(r).getByRole('button', { name: 'Cancel quote' })).toBeDefined()
+  })
+
+  it.each(['voided', 'cancelled'])('a %s row has no Cancel quote action', async (status) => {
+    fetchMock.mockImplementation(() => json(listBody([row({ effective_status: status })])))
+    render(<QuotesPage />)
+    const r = await screen.findByTestId('quote-row')
+    expect(within(r).queryByRole('button', { name: 'Cancel quote' })).toBeNull()
+    expect(within(r).queryByRole('link', { name: 'Cancel quote' })).toBeNull()
+  })
+
+  it('a paid row has Cancel quote as a link to the quote page (refund flow)', async () => {
+    render(<QuotesPage />)
+    await screen.findByTestId('quotes-table')
+    const link = within(rowFor('Q-2026-0002')).getByRole('link', { name: 'Cancel quote' })
+    expect(link.getAttribute('href')).toBe(`/admin/quotes/${ROW_B.id}`)
+    expect(within(rowFor('Q-2026-0002')).queryByRole('button', { name: 'Cancel quote' })).toBeNull()
+  })
+
+  it('opening the dialog states what happens first and sends nothing', async () => {
+    await openDialogFor()
+    expect(within(dialog()).getByText("The client's link stops working. Nothing is charged.")).toBeDefined()
+    expect(within(dialog()).getByText(/Q-2026-0001/)).toBeDefined()
+    expect(calls('/api/admin/quotes/', 'POST')).toHaveLength(0)
+    // The row's own click is not triggered by the button.
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  it('Keep quote closes the dialog without a request', async () => {
+    await openDialogFor()
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Keep quote' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(calls('/api/admin/quotes/', 'POST')).toHaveLength(0)
+  })
+
+  it('confirming posts once to /void and the row becomes Voided; a double click sends one request', async () => {
+    answerVoid(() => json({ ok: true }))
+    await openDialogFor()
+    const btn = primary()
+    fireEvent.click(btn)
+    fireEvent.click(btn)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    const posts = calls(VOID_URL(ROW_A.id), 'POST')
+    expect(posts).toHaveLength(1)
+    expect(within(rowFor('Q-2026-0001')).getByText('Voided')).toBeDefined()
+    expect(within(rowFor('Q-2026-0001')).queryByRole('button', { name: 'Cancel quote' })).toBeNull()
+    // The other row is untouched.
+    expect(within(rowFor('Q-2026-0002')).getByText('Paid')).toBeDefined()
+  })
+
+  it('cannot be dismissed while the request runs', async () => {
+    let release: (r: Response) => void = () => {}
+    answerVoid(() => new Promise<Response>((resolve) => { release = resolve }))
+    await openDialogFor()
+    fireEvent.click(primary())
+    await waitFor(() => expect((within(dialog()).getByRole('button', { name: /working/i }) as HTMLButtonElement).disabled).toBe(true))
+    expect((within(dialog()).getByRole('button', { name: 'Keep quote' }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeNull()
+    release(new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('409 deposit_in_flight keeps the dialog open with the plain sentence and the row unchanged', async () => {
+    answerVoid(() => json({ error: 'deposit_in_flight' }, 409))
+    await openDialogFor()
+    fireEvent.click(primary())
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      'The client is paying the deposit right now. Try again in a few minutes.',
+    )
+    expect(screen.queryByRole('dialog')).not.toBeNull()
+    expect(within(rowFor('Q-2026-0001')).getByText('Sent')).toBeDefined()
+  })
+
+  it('422 already_paid tells the operator to open the quote and refreshes the list', async () => {
+    answerVoid(() => json({ error: 'action_not_allowed', reason: 'already_paid' }, 422))
+    await openDialogFor()
+    const listCallsBefore = calls('/api/admin/quotes?').length
+    fireEvent.click(primary())
+    expect((await screen.findByRole('alert')).textContent).toBe('This quote is paid. Open it to cancel with a refund.')
+    await waitFor(() => expect(calls('/api/admin/quotes?').length).toBeGreaterThan(listCallsBefore))
+  })
+
+  it('a failed request or a lost answer shows a retry line and allows a second try', async () => {
+    let n = 0
+    answerVoid(() => (++n === 1 ? Promise.reject(new Error('offline')) : json({ ok: true })))
+    await openDialogFor()
+    fireEvent.click(primary())
+    expect((await screen.findByRole('alert')).textContent).toMatch(/could not cancel/i)
+    fireEvent.click(primary())
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(calls(VOID_URL(ROW_A.id), 'POST')).toHaveLength(2)
+  })
+
+  it('a reopened dialog starts without the previous error', async () => {
+    answerVoid(() => json({ error: 'deposit_in_flight' }, 409))
+    await openDialogFor()
+    fireEvent.click(primary())
+    await screen.findByRole('alert')
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Keep quote' }))
+    fireEvent.click(within(rowFor('Q-2026-0001')).getByRole('button', { name: 'Cancel quote' }))
+    expect(within(dialog()).queryByRole('alert')).toBeNull()
+  })
+})
