@@ -8,10 +8,27 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
  * tariffs are mocked; the real pricing maths runs.
  */
 
-const { computeRouteDistanceMock } = vi.hoisted(() => ({ computeRouteDistanceMock: vi.fn() }))
+const { computeRouteDistanceMock, state } = vi.hoisted(() => ({
+  computeRouteDistanceMock: vi.fn(),
+  state: { auth: 'admin' as 'admin' | '401' | '403', tariffsFail: false, rates: null as unknown },
+}))
 
 vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: computeRouteDistanceMock }))
+vi.mock('@/lib/supabase/server', () => ({
+  getAdminUser: vi.fn(async () => {
+    if (state.auth === '401') return { user: null, error: '401' as const }
+    if (state.auth === '403') return { user: null, error: '403' as const }
+    return { user: { id: '99999999-9999-4999-8999-999999999999' }, error: null }
+  }),
+}))
+vi.mock('@/lib/pricing-config', () => ({
+  getPricingConfig: async () => {
+    if (state.tariffsFail) throw new Error('tariffs down')
+    return state.rates
+  },
+}))
 
+import { POST as PRICE } from '@/app/api/admin/quotes/price/route'
 import { computeExtrasTotal } from '@/lib/extras'
 import { suggestLinePrice } from '@/lib/quotes/pricing'
 import type { QuotePricingLine } from '@/lib/quotes/pricing'
@@ -67,6 +84,9 @@ function line(over: Partial<QuotePricingLine> = {}): QuotePricingLine {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  state.auth = 'admin'
+  state.tariffsFail = false
+  state.rates = makeRates()
   computeRouteDistanceMock.mockResolvedValue({ ok: true, distanceKm: 130, durationMin: 90 })
 })
 
@@ -185,5 +205,98 @@ describe('failures are answered, never guessed (Phase 91 rule)', () => {
     const result = await suggestLinePrice(line({ destination: null }), { rates: makeRates(), currency: 'eur' })
     expect(result).toEqual({ ok: false, reason: 'pricing_unavailable' })
     expect(computeRouteDistanceMock).not.toHaveBeenCalled()
+  })
+})
+
+// == POST /api/admin/quotes/price (the builder asks for a suggestion before saving) ==================================
+
+function priceLine(over: Record<string, unknown> = {}) {
+  return {
+    trip_type: 'transfer',
+    pickup_date: '2027-05-10',
+    pickup_time: '12:00',
+    origin: PRAGUE,
+    destination: VIENNA,
+    stops: [],
+    vehicle_class: 'business',
+    passengers: 2,
+    luggage: 1,
+    ...over,
+  }
+}
+
+function price(body: unknown): Promise<Response> {
+  return PRICE(
+    new Request('http://localhost/api/admin/quotes/price', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+    }),
+  )
+}
+
+describe('POST /api/admin/quotes/price', () => {
+  it('prices one line on the server: distance, suggestion and the waiting flag, no-store', async () => {
+    const res = await price({ line: priceLine(), currency: 'eur' })
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+    expect(await res.json()).toEqual({ distanceKm: 130, suggestedMinor: 26000, waitingUnavailable: false })
+  })
+
+  it('the same line in czk gives the converted amount', async () => {
+    const res = await price({ line: priceLine(), currency: 'czk' })
+    expect(res.status).toBe(200)
+    // 260 EUR x 25 = 6500 CZK = 650000 hundredths
+    expect(await res.json()).toEqual({ distanceKm: 130, suggestedMinor: 650000, waitingUnavailable: false })
+  })
+
+  it('a class without a waiting rate and a 45-minute wait: waitingUnavailable true, suggestion without paid waiting', async () => {
+    const res = await price({
+      line: priceLine({ vehicle_class: 'first_class', stops: [{ ...BRNO, wait_minutes: 45 }] }),
+      currency: 'eur',
+    })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ distanceKm: 130, suggestedMinor: 39000, waitingUnavailable: true })
+  })
+
+  it('the distance is the server route through the stops, never a number from the body', async () => {
+    await price({ line: priceLine({ stops: [{ ...BRNO, wait_minutes: 0 }] }), currency: 'eur' })
+    expect(computeRouteDistanceMock).toHaveBeenCalledWith({
+      origin: { lat: PRAGUE.lat, lng: PRAGUE.lng },
+      destination: { lat: VIENNA.lat, lng: VIENNA.lng },
+      intermediates: [{ lat: BRNO.lat, lng: BRNO.lng }],
+    })
+    expect((await price({ line: { ...priceLine(), distance_km: 1 }, currency: 'eur' })).status).toBe(400)
+    expect((await price({ line: { ...priceLine(), amount_minor: 100 }, currency: 'eur' })).status).toBe(400)
+  })
+
+  it('401 and 403 come before the body is read', async () => {
+    for (const auth of ['401', '403'] as const) {
+      state.auth = auth
+      expect((await price('not json')).status).toBe(auth === '401' ? 401 : 403)
+    }
+    expect(computeRouteDistanceMock).not.toHaveBeenCalled()
+  })
+
+  it('a malformed line, malformed JSON, an unknown currency and an oversized body are refused', async () => {
+    expect((await price('{"line":')).status).toBe(400)
+    expect((await price({ line: priceLine({ stops: Array.from({ length: 6 }, () => ({ ...BRNO, wait_minutes: 0 })) }), currency: 'eur' })).status).toBe(400)
+    expect((await price({ line: priceLine({ pickup_time: '25:00' }), currency: 'eur' })).status).toBe(400)
+    expect((await price({ line: priceLine(), currency: 'usd' })).status).toBe(400)
+    expect((await price({ line: priceLine(), currency: 'eur', extra: 1 })).status).toBe(400)
+    expect((await price({ line: priceLine({ special_requests: 'x'.repeat(5_000) }), currency: 'eur' })).status).toBe(413)
+    expect(computeRouteDistanceMock).not.toHaveBeenCalled()
+  })
+
+  it('503 pricing_unavailable when the route cannot be computed or the tariffs cannot be loaded', async () => {
+    computeRouteDistanceMock.mockResolvedValue({ ok: false, reason: 'http_error' })
+    let res = await price({ line: priceLine(), currency: 'eur' })
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ error: 'pricing_unavailable' })
+
+    state.tariffsFail = true
+    res = await price({ line: priceLine(), currency: 'eur' })
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ error: 'pricing_unavailable' })
   })
 })
