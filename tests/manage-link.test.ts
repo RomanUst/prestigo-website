@@ -101,6 +101,18 @@ describe('ensureManageToken', () => {
     expect(db.state.booking_manage_tokens).toHaveLength(0)
   })
 
+  it('returns null for a trip of a quote and mints no token (92-11, T-92-36)', async () => {
+    const id = seed({ quote_id: '99999999-9999-4999-8999-999999999991' })
+    expect(await ensureManageToken(id)).toBeNull()
+    expect(db.state.booking_manage_tokens).toHaveLength(0)
+  })
+
+  it('a booking whose quote_id is null keeps today\'s eligibility', async () => {
+    const id = seed({ quote_id: null })
+    expect(await ensureManageToken(id)).toMatch(MANAGE_TOKEN_RE)
+    expect(db.state.booking_manage_tokens).toHaveLength(1)
+  })
+
   it('returns null for an anonymised booking, an unknown id and an empty id', async () => {
     expect(await ensureManageToken(seed({ anonymised_at: '2026-11-01T00:00:00Z' }))).toBeNull()
     expect(await ensureManageToken('does-not-exist')).toBeNull()
