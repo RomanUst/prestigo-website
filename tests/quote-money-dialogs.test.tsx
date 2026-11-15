@@ -207,6 +207,15 @@ async function renderPage(initial: Json) {
   await screen.findByTestId('quote-builder')
 }
 
+// Both clicks land before React re-renders (one act scope): only the in-flight ref can stop the second request, the disabled
+// button cannot.
+async function doubleClick(el: HTMLElement) {
+  await act(async () => {
+    el.click()
+    el.click()
+  })
+}
+
 const bar = () => screen.getByTestId('quote-actions')
 const dialog = () => screen.getByRole('dialog')
 
@@ -256,8 +265,7 @@ describe('cancel a paid quote (D-03, D-11)', () => {
 
     answers.cancel = { status: 200, body: { ok: true, outcome: 'free', refundedMinor: 9000, refundFailed: false }, then: detail({ status: 'cancelled' }) }
     const primary = within(dialog()).getByRole('button', { name: 'Cancel quote and refund' })
-    fireEvent.click(primary)
-    fireEvent.click(primary)
+    await doubleClick(primary)
     await waitFor(() => expect(posts('cancel')).toHaveLength(1))
     expect(posts('cancel')[0].body).toEqual({ initiator: 'admin_client', refund_minor: null })
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -332,8 +340,7 @@ describe('cancel a paid quote (D-03, D-11)', () => {
     hold = new Promise<void>((r) => { release = r })
     answers.cancel = { status: 200, body: { ok: true, outcome: 'free', refundedMinor: 9000, refundFailed: false }, then: detail({ status: 'cancelled' }) }
     const primary = within(dialog()).getByRole('button', { name: 'Cancel quote and refund' })
-    fireEvent.click(primary)
-    fireEvent.click(primary)
+    await doubleClick(primary)
     await waitFor(() => expect(within(dialog()).getByRole('button', { name: 'Go back' })).toBeDisabled())
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -422,8 +429,7 @@ describe('partial refund (D-12)', () => {
     answers.refund = { status: 200, body: { ok: true }, then: detail({ quote: { deposit_refunded_minor: 4550 } }) }
     const primary = within(dialog()).getByRole('button', { name: `Refund ${eur(2550)}` })
     expect(posts()).toHaveLength(0)
-    fireEvent.click(primary)
-    fireEvent.click(primary)
+    await doubleClick(primary)
     await waitFor(() => expect(posts('refund')).toHaveLength(1))
     expect(posts('refund')[0].body).toEqual({ source: 'deposit', amount_minor: 2550 })
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
@@ -497,5 +503,139 @@ describe('partial refund (D-12)', () => {
   it('nothing left to refund hides the Refund action', async () => {
     await renderPage(detail({ quote: { deposit_refunded_minor: 9000 } }))
     expect(within(bar()).queryByTestId('quote-action-refund')).toBeNull()
+  })
+})
+
+describe('mark invoice paid (D-17)', () => {
+  it('is offered only on a paid invoice-method quote', async () => {
+    await renderPage(detail({ method: 'invoice' }))
+    expect(within(bar()).getByTestId('quote-action-invoice-paid')).toBeInTheDocument()
+    expect(within(bar()).getByTestId('quote-invoice-effect')).toHaveTextContent(/No card is charged and no email is sent/)
+    expect(within(bar()).queryByTestId('quote-action-remainder')).toBeNull()
+    for (const method of ['saved_card', 'cash', 'payment_link']) {
+      cleanup()
+      await renderPage(detail({ method }))
+      expect(within(bar()).queryByTestId('quote-action-invoice-paid')).toBeNull()
+    }
+    cleanup()
+    await renderPage(detail({ method: 'invoice', status: 'sent' }))
+    expect(within(bar()).queryByTestId('quote-action-invoice-paid')).toBeNull()
+  })
+
+  it('requires an invoice number, states the effect first and posts once { invoice_number } on a double click', async () => {
+    await renderPage(detail({ method: 'invoice' }))
+    fireEvent.click(within(bar()).getByTestId('quote-action-invoice-paid'))
+    expect(within(dialog()).getByText(/No card is charged and no email is sent/)).toBeInTheDocument()
+    const primary = within(dialog()).getByRole('button', { name: 'Mark invoice paid' })
+    expect(primary).toBeDisabled()
+    fireEvent.change(within(dialog()).getByTestId('invoice-paid-number'), { target: { value: '   ' } })
+    expect(primary).toBeDisabled()
+    fireEvent.change(within(dialog()).getByTestId('invoice-paid-number'), { target: { value: ' 2026-0042 ' } })
+    expect(primary).toBeEnabled()
+    expect(posts()).toHaveLength(0)
+
+    answers['invoice-paid'] = { status: 200, body: { changed: true }, then: detail({ method: 'invoice', quote: { invoice_number: '2026-0042', invoice_paid_at: '2026-11-16T09:00:00.000Z' } }) }
+    await doubleClick(primary)
+    await waitFor(() => expect(posts('invoice-paid')).toHaveLength(1))
+    expect(posts('invoice-paid')[0].body).toEqual({ invoice_number: '2026-0042' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(within(bar()).getByRole('status')).toHaveTextContent('Invoice 2026-0042 marked paid.')
+    // The page refetched: the action is replaced by the fact.
+    await waitFor(() => expect(within(bar()).queryByTestId('quote-action-invoice-paid')).toBeNull())
+    expect(within(bar()).getByTestId('quote-invoice-done')).toHaveTextContent('Invoice 2026-0042 is marked paid.')
+  })
+
+  it('a multi-line or over-long number is refused in the dialog', async () => {
+    await renderPage(detail({ method: 'invoice' }))
+    fireEvent.click(within(bar()).getByTestId('quote-action-invoice-paid'))
+    const primary = within(dialog()).getByRole('button', { name: 'Mark invoice paid' })
+    fireEvent.change(within(dialog()).getByTestId('invoice-paid-number'), { target: { value: 'A'.repeat(61) } })
+    expect(primary).toBeDisabled()
+    fireEvent.change(within(dialog()).getByTestId('invoice-paid-number'), { target: { value: 'A B' } })
+    expect(primary).toBeDisabled()
+    expect(posts()).toHaveLength(0)
+  })
+
+  it('cannot be dismissed while the request runs', async () => {
+    await renderPage(detail({ method: 'invoice' }))
+    fireEvent.click(within(bar()).getByTestId('quote-action-invoice-paid'))
+    let release: () => void = () => {}
+    hold = new Promise<void>((r) => { release = r })
+    answers['invoice-paid'] = { status: 200, body: { changed: true } }
+    fireEvent.change(within(dialog()).getByTestId('invoice-paid-number'), { target: { value: 'INV-1' } })
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Mark invoice paid' }))
+    await waitFor(() => expect(within(dialog()).getByRole('button', { name: 'Go back' })).toBeDisabled())
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await act(async () => { release() })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it.each([
+    [422, { error: 'action_not_allowed', reason: 'number_conflict' }, 'This quote is already marked paid with another invoice number.'],
+    [422, { error: 'action_not_allowed', reason: 'not_invoice' }, /not paid by invoice/],
+    [422, { error: 'action_not_allowed', reason: 'not_paid' }, /not paid, or the quote is cancelled/],
+    [400, { error: 'Invalid payload' }, /not valid/],
+    [500, { error: 'Failed' }, /may have partly completed/],
+  ])('%s %j gets its own sentence', async (status, body, text) => {
+    await renderPage(detail({ method: 'invoice' }))
+    fireEvent.click(within(bar()).getByTestId('quote-action-invoice-paid'))
+    fireEvent.change(within(dialog()).getByTestId('invoice-paid-number'), { target: { value: 'INV-1' } })
+    answers['invoice-paid'] = { status: status as number, body }
+    fireEvent.click(within(dialog()).getByRole('button', { name: 'Mark invoice paid' }))
+    expect(await within(dialog()).findByRole('alert')).toHaveTextContent(text)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+})
+
+describe('send remainder request (D-16)', () => {
+  it('is offered only on a paid payment-link quote with an amount due, and names the amount', async () => {
+    await renderPage(detail({ method: 'payment_link' }))
+    expect(within(bar()).getByTestId('quote-action-remainder')).toHaveTextContent(`Send remainder request (${eur(21000)})`)
+    expect(within(bar()).queryByTestId('quote-action-invoice-paid')).toBeNull()
+    for (const method of ['saved_card', 'cash', 'invoice']) {
+      cleanup()
+      await renderPage(detail({ method }))
+      expect(within(bar()).queryByTestId('quote-action-remainder')).toBeNull()
+    }
+  })
+
+  it('nothing due (every trip paid or cancelled) hides it', async () => {
+    await renderPage(detail({ method: 'payment_link', bookings: [booking({ paid_at: '2026-11-15T09:00:00.000Z' })] }))
+    expect(within(bar()).queryByTestId('quote-action-remainder')).toBeNull()
+    cleanup()
+    await renderPage(detail({ method: 'payment_link', bookings: [booking({ status: 'cancelled' })] }))
+    expect(within(bar()).queryByTestId('quote-action-remainder')).toBeNull()
+  })
+
+  it('states the amount first, posts once on a double click and says "Request sent"', async () => {
+    await renderPage(detail({ method: 'payment_link' }))
+    fireEvent.click(within(bar()).getByTestId('quote-action-remainder'))
+    expect(posts()).toHaveLength(0)
+    expect(within(dialog()).getByText(`Ask Anna Novak to pay the remaining ${eur(21000)}?`)).toBeInTheDocument()
+    expect(within(dialog()).getByText(`anna@example.com gets an email in English with a new link to pay ${eur(21000)} by card.`)).toBeInTheDocument()
+    answers['remainder-request'] = { status: 200, body: { amountMinor: 21000 } }
+    const primary = within(dialog()).getByRole('button', { name: `Send request for ${eur(21000)}` })
+    await doubleClick(primary)
+    await waitFor(() => expect(posts('remainder-request')).toHaveLength(1))
+    expect(posts('remainder-request')[0].body).toEqual({})
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(within(bar()).getByRole('status')).toHaveTextContent(`Request sent. anna@example.com was emailed a link to pay the remaining ${eur(21000)}.`)
+  })
+
+  it.each([
+    [429, { error: 'recently_sent' }, 'A request was sent less than 10 minutes ago.'],
+    [422, { error: 'action_not_allowed', reason: 'nothing_due' }, /Nothing is due/],
+    [422, { error: 'action_not_allowed', reason: 'not_payment_link' }, /does not pay its remainder by payment link/],
+    [422, { error: 'action_not_allowed', reason: 'not_paid' }, /not paid, or the quote is cancelled/],
+    [502, { error: 'email_failed' }, /email could not be sent/],
+    [404, { error: 'Quote not found' }, /no longer exists/],
+  ])('%s %j gets its own sentence', async (status, body, text) => {
+    await renderPage(detail({ method: 'payment_link' }))
+    fireEvent.click(within(bar()).getByTestId('quote-action-remainder'))
+    answers['remainder-request'] = { status: status as number, body }
+    fireEvent.click(within(dialog()).getByRole('button', { name: `Send request for ${eur(21000)}` }))
+    expect(await within(dialog()).findByRole('alert')).toHaveTextContent(text)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
   })
 })

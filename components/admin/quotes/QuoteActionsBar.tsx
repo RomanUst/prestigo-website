@@ -1,17 +1,19 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Copy, Link2, Mail, Pencil, RotateCcw, Send, XCircle } from 'lucide-react'
+import { Banknote, Copy, FileCheck, Link2, Mail, Pencil, RotateCcw, Send, XCircle } from 'lucide-react'
 import { Modal } from '@/components/admin/Modal'
 import { DecisionButtons, DialogError } from '@/components/admin/paymentParts'
 import { COPY_SESSION, bodyStyle, formatPragueShort, labelStyle, money, outlineButtonStyle } from '@/components/admin/paymentShared'
 import { QuoteStatusBadge } from '@/components/admin/quotes/QuoteStatusBadge'
+import { InvoicePaidDialog } from '@/components/admin/quotes/InvoicePaidDialog'
 import { QuoteCancelDialog } from '@/components/admin/quotes/QuoteCancelDialog'
 import { QuoteRefundDialog } from '@/components/admin/quotes/QuoteRefundDialog'
 import { QuoteVoidDialog } from '@/components/admin/quotes/QuoteVoidDialog'
 import { LOCALE_ENDONYMS } from '@/i18n/locales'
 import { STARTED_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
+import { remainderDueMinor } from '@/lib/quotes/money'
 import type { QuoteDetail } from '@/lib/quotes/store'
 
 // The lifecycle controls of a quote (Phase 92, plan 92-25; QUOTE-01, QUOTE-02, QUOTE-06; D-02). Mounted by QuoteBuilder, which
@@ -43,7 +45,7 @@ export interface QuoteActionsBarProps {
   onChanged: () => void | Promise<unknown>
 }
 
-type DialogKind = 'send' | 'resend' | 'revise'
+type DialogKind = 'send' | 'resend' | 'revise' | 'remainder'
 type Revealed = { url: string; emailed: boolean | null; copyFailed: boolean; copied: boolean }
 type Answer = { status: number; body: Record<string, unknown> | null }
 
@@ -111,10 +113,30 @@ function reviseRefusalText(answer: Answer): string {
   return COPY_FAILED_GENERIC
 }
 
+const REMAINDER_REASON_TEXT: Record<string, string> = {
+  not_payment_link: 'This quote does not pay its remainder by payment link, so there is no request to send.',
+  not_paid: 'The deposit of this quote is not paid, or the quote is cancelled, so no remainder can be requested.',
+  nothing_due: 'Nothing is due: every trip of this quote is already paid or cancelled.',
+}
+
+function remainderRefusalText(answer: Answer): string {
+  const { status, body } = answer
+  if (status === 401 || status === 403) return COPY_SESSION
+  if (status === 404) return COPY_GONE
+  if (status === 429) return 'A request was sent less than 10 minutes ago. Wait a little before sending another.'
+  if (status === 400 || status === 413) return COPY_BAD_REQUEST
+  if (status === 422) {
+    const reason = typeof body?.reason === 'string' ? body.reason : ''
+    return REMAINDER_REASON_TEXT[reason] ?? 'The request cannot be sent right now. The page shows the current state.'
+  }
+  if (status === 502) return 'The email could not be sent. Nothing was recorded as sent. Try again.'
+  return COPY_FAILED_GENERIC
+}
+
 /** Answers that mean the page shows a stale state: read it again. */
 const staleAnswer = (a: Answer): boolean => a.status === 404 || a.status === 422 || a.status >= 500
 
-async function post(quoteId: string, action: 'send' | 'link' | 'revise', payload: Record<string, unknown>): Promise<Answer> {
+async function post(quoteId: string, action: string, payload: Record<string, unknown>): Promise<Answer> {
   const res = await fetch(`/api/admin/quotes/${quoteId}/${action}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -291,6 +313,7 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
   const [voidOpen, setVoidOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [refundOpen, setRefundOpen] = useState(false)
+  const [invoiceOpen, setInvoiceOpen] = useState(false)
   const [revealed, setRevealed] = useState<Revealed | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -333,6 +356,19 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
     return reviseRefusalText(answer)
   }
 
+  async function runRemainder(): Promise<string | null> {
+    clearOutcome()
+    const answer = await post(quoteId, 'remainder-request', {})
+    if (answer.status === 200) {
+      const sent = typeof answer.body?.amountMinor === 'number' ? answer.body.amountMinor : dueMinor
+      setNotice(`Request sent. ${detail.quote.client_email} was emailed a link to pay the remaining ${money(sent, detail.version.currency)}.`)
+      await refetch()
+      return null
+    }
+    if (staleAnswer(answer)) void refetch()
+    return remainderRefusalText(answer)
+  }
+
   async function copyNewLink() {
     if (linkInFlight.current) return
     linkInFlight.current = true
@@ -359,6 +395,12 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
     const ok = await copyPaymentLinkToClipboard(revealed.url, 'quote-link-once-text')
     setRevealed((r) => (r ? { ...r, copied: ok, copyFailed: !ok } : r))
   }
+
+  // What is still due on the quote (the remainders of its live, unpaid quote-mode trips), for the remainder request.
+  const dueMinor = remainderDueMinor(
+    detail.lines.map((l) => ({ id: l.id, remainder_minor: l.remainder_minor })),
+    detail.bookings.map((b) => ({ quote_line_id: b.quote_line_id, status: b.status, paid_at: b.paid_at ?? null, payment_mode: b.payment_mode ?? '' })),
+  )
 
   const dialogConfig = ((): DialogConfig | null => {
     if (dialog === 'send') {
@@ -400,6 +442,20 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
         run: runRevise,
       }
     }
+    if (dialog === 'remainder') {
+      const amount = money(dueMinor, detail.version.currency)
+      return {
+        title: 'Send remainder request',
+        lead: `Ask ${clientName} to pay the remaining ${amount}?`,
+        effects: [
+          `${detail.quote.client_email} gets an email in ${language} with a new link to pay ${amount} by card.`,
+          'You can send another request after 10 minutes.',
+        ],
+        primaryLabel: `Send request for ${amount}`,
+        tone: 'accent',
+        run: runRemainder,
+      }
+    }
     return null
   })()
 
@@ -410,6 +466,10 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
   const canVoid = canResend
   const tripStarted = detail.bookings.some((b) => STARTED_BOOKING_STATUSES.has(b.status as BookingStatus))
   const canCancelPaid = status === 'paid'
+  const method = detail.version.remainder_method
+  const canInvoicePaid = status === 'paid' && method === 'invoice' && !detail.quote.invoice_paid_at
+  const invoiceDone = status === 'paid' && method === 'invoice' && Boolean(detail.quote.invoice_paid_at)
+  const canRequestRemainder = status === 'paid' && method === 'payment_link' && dueMinor > 0
   // What can still be refunded (paid minus refunded), by payment. A cancelled quote keeps the refund: that is how a failed
   // refund of a cancel is retried. Only Stripe-collected money has a payment to refund.
   const q = detail.quote
@@ -422,7 +482,7 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
     Math.max(0, depositSource.paidMinor - depositSource.refundedMinor) +
     (remainderSource ? Math.max(0, remainderSource.paidMinor - remainderSource.refundedMinor) : 0)
   const canRefund = (status === 'paid' || status === 'cancelled') && Boolean(q.paid_at) && refundableMinor > 0
-  const none = !canSend && !canLink && !canResend && !canRevise && !canVoid && !canCancelPaid && !canRefund
+  const none = !canSend && !canLink && !canResend && !canRevise && !canVoid && !canCancelPaid && !canRefund && !canInvoicePaid && !canRequestRemainder
   const busyNow = linkBusy
 
   return (
@@ -524,7 +584,7 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
         )}
       </div>
 
-      {(canCancelPaid || canRefund) && (
+      {(canCancelPaid || canRefund || canInvoicePaid || canRequestRemainder || invoiceDone) && (
         <div data-testid="quote-money-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
           {canCancelPaid && (
             <div>
@@ -548,10 +608,45 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
               </p>
             </div>
           )}
+          {canInvoicePaid && (
+            <div>
+              <ActionButton testId="quote-action-invoice-paid" onClick={() => setInvoiceOpen(true)} disabled={busyNow}>
+                <FileCheck size={14} aria-hidden="true" /> Mark invoice paid
+              </ActionButton>
+              <p data-testid="quote-invoice-effect" style={effectStyle}>
+                Records that the client paid the remainder by invoice, under the invoice number you type. No card is charged and no email is sent.
+              </p>
+            </div>
+          )}
+          {invoiceDone && (
+            <p data-testid="quote-invoice-done" style={effectStyle}>{`Invoice ${detail.quote.invoice_number ?? ''} is marked paid.`}</p>
+          )}
+          {canRequestRemainder && (
+            <div>
+              <ActionButton testId="quote-action-remainder" onClick={() => setDialog('remainder')} disabled={busyNow}>
+                <Banknote size={14} aria-hidden="true" /> {`Send remainder request (${money(dueMinor, detail.version.currency)})`}
+              </ActionButton>
+              <p data-testid="quote-remainder-effect" style={effectStyle}>
+                Emails the client a new link to pay what is still due by card. The dialog shows the amount before anything is sent.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       <ActionDialog config={dialogConfig} onClose={() => setDialog(null)} />
+      <InvoicePaidDialog
+        isOpen={invoiceOpen}
+        quoteId={quoteId}
+        onClose={() => setInvoiceOpen(false)}
+        onDone={(text) => {
+          setInvoiceOpen(false)
+          clearOutcome()
+          setNotice(text)
+          void refetch()
+        }}
+        onRefetch={() => void refetch()}
+      />
       <QuoteRefundDialog
         isOpen={refundOpen}
         quoteId={quoteId}

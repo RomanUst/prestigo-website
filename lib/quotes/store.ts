@@ -186,6 +186,8 @@ export interface QuoteDetailBooking {
   status: string
   payment_mode: string | null
   payment_state: string | null
+  /** When the trip's remainder was paid (null while due); the admin page sums what is still due from it. */
+  paid_at?: string | null
   pickup_date: string | null
   pickup_time: string | null
   quote_line_id: string | null
@@ -301,7 +303,7 @@ export async function getQuoteDetail(id: string): Promise<QuoteDetail | null> {
 
   const { data: bookingData, error: bookingError } = await supabase
     .from('bookings')
-    .select('id, booking_reference, status, payment_mode, payment_state, pickup_date, pickup_time, quote_line_id')
+    .select('id, booking_reference, status, payment_mode, payment_state, paid_at, pickup_date, pickup_time, quote_line_id')
     .eq('quote_id', id)
   if (bookingError) fail('bookings', bookingError.code)
 
