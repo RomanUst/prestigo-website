@@ -230,11 +230,12 @@ describe('quote actions: actions by state', () => {
     expect(shown).toEqual(expected)
   })
 
-  it('a paid quote shows no Edit and no Cancel quote here, and says where the money actions will be', async () => {
+  it('a paid quote shows no Edit and no void here; its Cancel quote is the money dialog of plan 92-26', async () => {
     await renderPage(detail({ status: 'paid' }))
     expect(within(bar()).queryByRole('button', { name: /Edit/ })).toBeNull()
-    expect(within(bar()).queryByRole('button', { name: /Cancel quote/ })).toBeNull()
-    expect(within(bar()).getByTestId('quote-money-note')).toBeInTheDocument()
+    expect(within(bar()).queryByTestId('quote-action-void')).toBeNull()
+    expect(within(bar()).getByTestId('quote-action-cancel')).toBeInTheDocument()
+    expect(within(bar()).queryByTestId('quote-money-note')).toBeNull()
   })
 
   it('a voided quote shows no actions and says so', async () => {
