@@ -37,7 +37,7 @@ key-decisions:
   - "Internal helper erasure_quote_ids added (not in the plan's interface list) so the matching exists once; revoked from every role like erasure_payment_open"
   - "erasure_quote_customer_ids also skips a customer a booking still uses for an unfinished payment"
 requirements-completed: [QUOTE-01, QUOTE-02, QUOTE-05]
-status: waiting-for-live-apply-checkpoint
+status: complete
 duration: ~1h30
 completed: 2026-11-14
 estimate:
@@ -138,6 +138,54 @@ None beyond the plan's register. T-92-37 (delete / anonymise by email, phone, bo
 4. Run `92-12-smoke-erasure.sql`: expect `SMOKE_OK_92_12_ERASURE ...`.
 5. Zero-row checks (quotes `Q-20991231-SMOKE%`, bookings `SMOKE-92-12-%`) and `net._http_response` gained no row in the smoke window.
 6. Record "091 live", the apply result, the has_function_privilege rows and the smoke output in this SUMMARY and set `status: complete`.
+
+## Task 3: 091 live (orchestrator, 2026-11-16)
+
+The owner asked the orchestrator to apply it ("сделай сам"). Applied to project `enakcryrtxlnjvjutfpv` through the
+Supabase MCP `apply_migration` in three transactions that follow the file's sections. Comments outside function bodies
+were left out; every function body was sent verbatim.
+
+| Migration name | File lines | Content |
+|---|---|---|
+| `091_quotes_part1_tables` | 27-647 | sections 1-8: the eight tables, policies, `bookings.quote_*`, ledger kinds, consent mode, guard triggers |
+| `091_quotes_part2_convert` | 648-943 | section 9: consent text limit 4000, `quote_convert_to_bookings` |
+| `091_quotes_part3_erasure` | 944-1625 | section 10: erasure helpers and the three full copies, grants |
+
+Preconditions checked before applying: 090 live (`consent_locale_zh_hant`), no quote object present; the live
+`booking_payment_events_kind_check` and `booking_payment_consents_mode_check` were exactly the 089 / 087 lists that 091
+extends; every bookings column the conversion writes exists (`pickup_utc` is generated and not written); manual bookings
+use `booking_type = 'confirmed'` like the conversion.
+
+The full copies were checked against what is live, not only against the old files. `erasure_anonymise_person` and
+`erasure_scope` were byte-identical to 089 / 088. `erasure_confirm` was NOT: the live body is the 088 body with its
+comment lines removed (md5 `a242ba55…`, equal to 088 minus comment lines and to the 091 copy minus its quote block and
+comments), so replacing it changed only the added quote refusal. Line diff of the copies against the old bodies: only
+additions, except the planned `not_found` condition of `erasure_scope`.
+
+Proof that the database holds the file (fingerprints computed from the file with
+`scratchpad/m091/expect.py` and from the catalog with the same canonical form):
+
+| Check | File | Live |
+|---|---|---|
+| CHECK literals, part 1 (211 tokens) | `ea9a2bda…` | `ea9a2bda…` |
+| columns with type and nullability, part 1 (149) | `4c8e5b21…` | `4c8e5b21…` |
+| `md5(prosrc)` of all 10 functions | equal for each | equal for each |
+
+Grants: `public_exec=false anon_exec=false auth_exec=false` for all ten functions; `service_role` can run
+`quote_convert_to_bookings`, `erasure_confirm`, `erasure_scope`, `erasure_anonymise_person`, `erasure_quote_customer_ids`;
+not the two internal helpers. The three guard trigger functions are executable by `service_role` through Supabase's
+default privileges (the smoke header said false); a trigger function cannot be called directly, so this is noted, not
+changed.
+
+Smoke results:
+
+- Statement A (catalog): eight tables `rls=true anon_priv=false auth_priv=false policies=2`; the three booking columns;
+  `bookings_quote_line_id_key` UNIQUE `WHERE (quote_line_id IS NOT NULL)`; locale lists end with `zh-hant`, kind lists
+  with `quote_deposit`, `quote_remainder`, consent mode has `quote`, consent text `<= 4000`.
+- Statement B: `SMOKE_OK_92_12 every 091 check passed; this exception rolls the smoke rows back`.
+- Erasure smoke: `SMOKE_OK_92_12_ERASURE every erasure check passed; this exception rolls the smoke rows back`.
+- Afterwards: 0 quotes, 0 `SMOKE-92-12-%` bookings, 0 smoke erasure requests, `net._http_response` max id 1020 before
+  and after, `net.http_request_queue` empty.
 
 ## Self-Check: PASSED
 
