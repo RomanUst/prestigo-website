@@ -6,8 +6,10 @@ import { Modal } from '@/components/admin/Modal'
 import { DecisionButtons, DialogError } from '@/components/admin/paymentParts'
 import { COPY_SESSION, bodyStyle, formatPragueShort, labelStyle, outlineButtonStyle } from '@/components/admin/paymentShared'
 import { QuoteStatusBadge } from '@/components/admin/quotes/QuoteStatusBadge'
+import { QuoteCancelDialog } from '@/components/admin/quotes/QuoteCancelDialog'
 import { QuoteVoidDialog } from '@/components/admin/quotes/QuoteVoidDialog'
 import { LOCALE_ENDONYMS } from '@/i18n/locales'
+import { STARTED_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
 import type { QuoteDetail } from '@/lib/quotes/store'
 
@@ -18,7 +20,8 @@ import type { QuoteDetail } from '@/lib/quotes/store'
 // state allows, each with the sentence of what it does, written BEFORE anything is sent:
 //   draft                              Send
 //   sent / viewed / accepted / expired Copy new link, Resend, Edit (a new version), Cancel quote (void)
-//   paid                               Copy new link (the money actions are plan 92-26)
+//   paid                               Copy new link, Cancel quote (with the refund decision), Refund, Mark invoice paid, Send
+//                                      remainder request (plan 92-26: the money dialogs)
 //   voided / cancelled                 none
 //
 // Rules of every action (the ExtraChargeModal rules):
@@ -285,6 +288,7 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
 
   const [dialog, setDialog] = useState<DialogKind | null>(null)
   const [voidOpen, setVoidOpen] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
   const [revealed, setRevealed] = useState<Revealed | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -402,6 +406,7 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
   const canResend = ['sent', 'viewed', 'accepted', 'expired'].includes(status)
   const canRevise = canResend
   const canVoid = canResend
+  const tripStarted = detail.bookings.some((b) => STARTED_BOOKING_STATUSES.has(b.status as BookingStatus))
   const none = !canSend && !canLink && !canResend && !canRevise && !canVoid
   const busyNow = linkBusy
 
@@ -505,12 +510,34 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
       </div>
 
       {status === 'paid' && (
-        <p data-testid="quote-money-note" style={effectStyle}>
-          Cancelling with a refund, refunds, marking an invoice paid and asking for the remainder will appear in this bar.
-        </p>
+        <div data-testid="quote-money-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+          <div>
+            <ActionButton testId="quote-action-cancel" onClick={() => setCancelOpen(true)} disabled={busyNow || tripStarted} danger>
+              <XCircle size={14} aria-hidden="true" /> Cancel quote
+            </ActionButton>
+            <p data-testid="quote-cancel-effect" style={effectStyle}>
+              {tripStarted
+                ? 'A trip of this quote has started, so the quote can no longer be cancelled. Cancel single trips in Bookings and refund here.'
+                : 'Only you can cancel a paid quote; it is refused once a trip has started. The dialog shows what is refunded and what is kept before anything is sent.'}
+            </p>
+          </div>
+        </div>
       )}
 
       <ActionDialog config={dialogConfig} onClose={() => setDialog(null)} />
+      <QuoteCancelDialog
+        isOpen={cancelOpen}
+        quoteId={quoteId}
+        currency={detail.version.currency}
+        onClose={() => setCancelOpen(false)}
+        onDone={(text) => {
+          setCancelOpen(false)
+          clearOutcome()
+          setNotice(text)
+          void refetch()
+        }}
+        onRefetch={() => void refetch()}
+      />
       <QuoteVoidDialog
         quote={voidOpen ? { id: quoteId, reference: detail.quote.reference, client_name: clientName } : null}
         onClose={() => setVoidOpen(false)}
