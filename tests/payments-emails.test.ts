@@ -731,13 +731,21 @@ describe('Phase 89 kinds: the tracer through sendPaymentEmail (English)', () => 
   })
 
   it('card_saved cash: the policy box and the manage link flow from the stored policy', async () => {
-    const { emailVarsFromRow } = await import('@/lib/payments/emails/send')
-    const vars = await emailVarsFromRow(db.state.bookings[0], { kind: 'card_saved', variant: 'cash' })
-    expect(vars.freeUntil).toBe(Date.parse('2026-11-15T08:00:00Z'))
-    const out = await renderPaymentEmail('card_saved', 'en', vars)
-    expect(out.html).toContain('Free cancellation until')
-    expect(out.html).toContain('Your card is only a guarantee.')
-    expect(out.html).toContain(`href="${vars.manageUrl}"`)
+    // The stored free-until moment is a fixed date: pin "now" before it, or the box says the free period is over once
+    // the calendar passes it (this test broke on 2026-11-16 for that reason alone).
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-07T10:00:00Z'))
+    try {
+      const { emailVarsFromRow } = await import('@/lib/payments/emails/send')
+      const vars = await emailVarsFromRow(db.state.bookings[0], { kind: 'card_saved', variant: 'cash' })
+      expect(vars.freeUntil).toBe(Date.parse('2026-11-15T08:00:00Z'))
+      const out = await renderPaymentEmail('card_saved', 'en', vars)
+      expect(out.html).toContain('Free cancellation until')
+      expect(out.html).toContain('Your card is only a guarantee.')
+      expect(out.html).toContain(`href="${vars.manageUrl}"`)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('T-89-13: operator reasons and notes on the booking row never reach the vars or the mail', async () => {
