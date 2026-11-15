@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Copy, Link2, Mail, Pencil, Send, XCircle } from 'lucide-react'
+import { Copy, Link2, Mail, Pencil, RotateCcw, Send, XCircle } from 'lucide-react'
 import { Modal } from '@/components/admin/Modal'
 import { DecisionButtons, DialogError } from '@/components/admin/paymentParts'
-import { COPY_SESSION, bodyStyle, formatPragueShort, labelStyle, outlineButtonStyle } from '@/components/admin/paymentShared'
+import { COPY_SESSION, bodyStyle, formatPragueShort, labelStyle, money, outlineButtonStyle } from '@/components/admin/paymentShared'
 import { QuoteStatusBadge } from '@/components/admin/quotes/QuoteStatusBadge'
 import { QuoteCancelDialog } from '@/components/admin/quotes/QuoteCancelDialog'
+import { QuoteRefundDialog } from '@/components/admin/quotes/QuoteRefundDialog'
 import { QuoteVoidDialog } from '@/components/admin/quotes/QuoteVoidDialog'
 import { LOCALE_ENDONYMS } from '@/i18n/locales'
 import { STARTED_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
@@ -289,6 +290,7 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
   const [dialog, setDialog] = useState<DialogKind | null>(null)
   const [voidOpen, setVoidOpen] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
+  const [refundOpen, setRefundOpen] = useState(false)
   const [revealed, setRevealed] = useState<Revealed | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -407,7 +409,20 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
   const canRevise = canResend
   const canVoid = canResend
   const tripStarted = detail.bookings.some((b) => STARTED_BOOKING_STATUSES.has(b.status as BookingStatus))
-  const none = !canSend && !canLink && !canResend && !canRevise && !canVoid
+  const canCancelPaid = status === 'paid'
+  // What can still be refunded (paid minus refunded), by payment. A cancelled quote keeps the refund: that is how a failed
+  // refund of a cancel is retried. Only Stripe-collected money has a payment to refund.
+  const q = detail.quote
+  const depositSource = { paidMinor: Number(detail.version.deposit_minor ?? 0), refundedMinor: Number(q.deposit_refunded_minor ?? 0) }
+  const remainderSource =
+    q.remainder_paid_at && q.remainder_payment_intent_id && q.remainder_amount_minor
+      ? { paidMinor: Number(q.remainder_amount_minor), refundedMinor: Number(q.remainder_refunded_minor ?? 0) }
+      : null
+  const refundableMinor =
+    Math.max(0, depositSource.paidMinor - depositSource.refundedMinor) +
+    (remainderSource ? Math.max(0, remainderSource.paidMinor - remainderSource.refundedMinor) : 0)
+  const canRefund = (status === 'paid' || status === 'cancelled') && Boolean(q.paid_at) && refundableMinor > 0
+  const none = !canSend && !canLink && !canResend && !canRevise && !canVoid && !canCancelPaid && !canRefund
   const busyNow = linkBusy
 
   return (
@@ -509,22 +524,49 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
         )}
       </div>
 
-      {status === 'paid' && (
+      {(canCancelPaid || canRefund) && (
         <div data-testid="quote-money-actions" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-          <div>
-            <ActionButton testId="quote-action-cancel" onClick={() => setCancelOpen(true)} disabled={busyNow || tripStarted} danger>
-              <XCircle size={14} aria-hidden="true" /> Cancel quote
-            </ActionButton>
-            <p data-testid="quote-cancel-effect" style={effectStyle}>
-              {tripStarted
-                ? 'A trip of this quote has started, so the quote can no longer be cancelled. Cancel single trips in Bookings and refund here.'
-                : 'Only you can cancel a paid quote; it is refused once a trip has started. The dialog shows what is refunded and what is kept before anything is sent.'}
-            </p>
-          </div>
+          {canCancelPaid && (
+            <div>
+              <ActionButton testId="quote-action-cancel" onClick={() => setCancelOpen(true)} disabled={busyNow || tripStarted} danger>
+                <XCircle size={14} aria-hidden="true" /> Cancel quote
+              </ActionButton>
+              <p data-testid="quote-cancel-effect" style={effectStyle}>
+                {tripStarted
+                  ? 'A trip of this quote has started, so the quote can no longer be cancelled. Cancel single trips in Bookings and refund here.'
+                  : 'Only you can cancel a paid quote; it is refused once a trip has started. The dialog shows what is refunded and what is kept before anything is sent.'}
+              </p>
+            </div>
+          )}
+          {canRefund && (
+            <div>
+              <ActionButton testId="quote-action-refund" onClick={() => setRefundOpen(true)} disabled={busyNow} danger>
+                <RotateCcw size={14} aria-hidden="true" /> Refund
+              </ActionButton>
+              <p data-testid="quote-refund-effect" style={effectStyle}>
+                {`Returns part of the deposit or of a remainder paid on the page to the client's card. You can refund up to ${money(refundableMinor, detail.version.currency)} in total.`}
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       <ActionDialog config={dialogConfig} onClose={() => setDialog(null)} />
+      <QuoteRefundDialog
+        isOpen={refundOpen}
+        quoteId={quoteId}
+        currency={detail.version.currency}
+        deposit={depositSource}
+        remainder={remainderSource}
+        onClose={() => setRefundOpen(false)}
+        onDone={(text) => {
+          setRefundOpen(false)
+          clearOutcome()
+          setNotice(text)
+          void refetch()
+        }}
+        onRefetch={() => void refetch()}
+      />
       <QuoteCancelDialog
         isOpen={cancelOpen}
         quoteId={quoteId}

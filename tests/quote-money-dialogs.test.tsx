@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { Suspense } from 'react'
-import { render, screen, fireEvent, waitFor, within, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within, act, cleanup } from '@testing-library/react'
 
 // Phase 92-26 (QUOTE-03, QUOTE-04; D-03, D-11, D-12, D-16, D-17): the money dialogs of a paid quote. The REAL page is
 // rendered (page -> QuoteBuilder -> QuoteActionsBar -> dialogs), so the mount is proved. The routes of 92-22 and 92-24 are
@@ -386,5 +386,116 @@ describe('cancel a paid quote (D-03, D-11)', () => {
     await renderPage(detail({ bookings: [booking({ status: 'en_route' })] }))
     expect(within(bar()).getByTestId('quote-action-cancel')).toBeDisabled()
     expect(within(bar()).getByTestId('quote-cancel-effect')).toHaveTextContent(/A trip of this quote has started/)
+  })
+})
+
+const REMAINDER_PAID = {
+  remainder_paid_at: '2026-11-15T09:00:00.000Z',
+  remainder_payment_intent_id: 'pi_remainder',
+  remainder_amount_minor: 21000,
+}
+
+async function openRefund(o: DetailOptions = {}) {
+  await renderPage(detail(o))
+  fireEvent.click(within(bar()).getByTestId('quote-action-refund'))
+  await within(dialog()).findByTestId('quote-refund-amount')
+}
+
+describe('partial refund (D-12)', () => {
+  it('Refund is offered on a paid quote with the total it can return, and not on a quote that is not paid', async () => {
+    await renderPage(detail())
+    expect(within(bar()).getByTestId('quote-refund-effect')).toHaveTextContent(`up to ${eur(9000)} in total`)
+    cleanup()
+    await renderPage(detail({ status: 'sent' }))
+    expect(within(bar()).queryByTestId('quote-action-refund')).toBeNull()
+  })
+
+  it('a deposit refund: states the bound, the button names the amount, one POST { deposit, minor } on a double click', async () => {
+    await openRefund({ quote: { deposit_refunded_minor: 2000 } })
+    expect(within(dialog()).getByTestId('quote-refund-bound')).toHaveTextContent(
+      `Deposit: paid ${eur(9000)}, refunded before ${eur(2000)}. You can refund up to ${eur(7000)}.`,
+    )
+    expect(within(dialog()).queryByTestId('quote-refund-source-remainder')).toBeNull()
+    expect(within(dialog()).getByRole('button', { name: 'Refund' })).toBeDisabled()
+
+    fireEvent.change(within(dialog()).getByTestId('quote-refund-amount'), { target: { value: '25.50' } })
+    answers.refund = { status: 200, body: { ok: true }, then: detail({ quote: { deposit_refunded_minor: 4550 } }) }
+    const primary = within(dialog()).getByRole('button', { name: `Refund ${eur(2550)}` })
+    expect(posts()).toHaveLength(0)
+    fireEvent.click(primary)
+    fireEvent.click(primary)
+    await waitFor(() => expect(posts('refund')).toHaveLength(1))
+    expect(posts('refund')[0].body).toEqual({ source: 'deposit', amount_minor: 2550 })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(within(bar()).getByRole('status')).toHaveTextContent(`${eur(2550)} refunded to the client's card.`)
+    // The page refetched: the new bound is 9000 - 4550.
+    await waitFor(() => expect(within(bar()).getByTestId('quote-refund-effect')).toHaveTextContent(`up to ${eur(4450)}`))
+  })
+
+  it('a remainder paid on the page can be refunded too: the source switch changes the bound and the request', async () => {
+    await openRefund({ quote: { ...REMAINDER_PAID, remainder_refunded_minor: 1000 } })
+    fireEvent.click(within(dialog()).getByTestId('quote-refund-source-remainder'))
+    expect(within(dialog()).getByTestId('quote-refund-bound')).toHaveTextContent(
+      `Remainder: paid ${eur(21000)}, refunded before ${eur(1000)}. You can refund up to ${eur(20000)}.`,
+    )
+    fireEvent.change(within(dialog()).getByTestId('quote-refund-amount'), { target: { value: '200.01' } })
+    expect(within(dialog()).getByTestId('quote-refund-problem')).toHaveTextContent(`At most ${eur(20000)}`)
+    expect(within(dialog()).getByRole('button', { name: 'Refund' })).toBeDisabled()
+    fireEvent.change(within(dialog()).getByTestId('quote-refund-amount'), { target: { value: '200' } })
+    answers.refund = { status: 200, body: { ok: true } }
+    fireEvent.click(within(dialog()).getByRole('button', { name: `Refund ${eur(20000)}` }))
+    await waitFor(() => expect(posts('refund')).toHaveLength(1))
+    expect(posts('refund')[0].body).toEqual({ source: 'remainder', amount_minor: 20000 })
+  })
+
+  it('an amount above the deposit bound, zero, and text are refused in the dialog: nothing is sent', async () => {
+    await openRefund()
+    const input = within(dialog()).getByTestId('quote-refund-amount')
+    for (const value of ['90.01', '0', 'abc', '1.234']) {
+      fireEvent.change(input, { target: { value } })
+      expect(within(dialog()).getByRole('button', { name: 'Refund' })).toBeDisabled()
+    }
+    expect(posts()).toHaveLength(0)
+  })
+
+  it('cannot be dismissed while the request runs', async () => {
+    await openRefund()
+    let release: () => void = () => {}
+    hold = new Promise<void>((r) => { release = r })
+    answers.refund = { status: 200, body: { ok: true } }
+    fireEvent.change(within(dialog()).getByTestId('quote-refund-amount'), { target: { value: '10' } })
+    fireEvent.click(within(dialog()).getByRole('button', { name: `Refund ${eur(1000)}` }))
+    await waitFor(() => expect(within(dialog()).getByRole('button', { name: 'Go back' })).toBeDisabled())
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await act(async () => { release() })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(posts('refund')).toHaveLength(1)
+  })
+
+  it.each([
+    [422, { error: 'out_of_range' }, /more than what was paid minus what was already refunded/],
+    [422, { error: 'not_paid' }, /never made/],
+    [502, { error: 'refund_failed' }, /Nothing was refunded/],
+    [404, { error: 'Quote not found' }, /no longer exists/],
+    [500, { error: 'Failed to refund' }, /may have partly completed/],
+  ])('%s %j gets its own sentence and keeps the dialog open', async (status, body, text) => {
+    await openRefund()
+    fireEvent.change(within(dialog()).getByTestId('quote-refund-amount'), { target: { value: '10' } })
+    answers.refund = { status: status as number, body }
+    fireEvent.click(within(dialog()).getByRole('button', { name: `Refund ${eur(1000)}` }))
+    expect(await within(dialog()).findByRole('alert')).toHaveTextContent(text)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+  })
+
+  it('a cancelled quote keeps the refund (retry of a failed cancel refund) but not the cancel', async () => {
+    await renderPage(detail({ status: 'cancelled' }))
+    expect(within(bar()).getByTestId('quote-action-refund')).toBeInTheDocument()
+    expect(within(bar()).queryByTestId('quote-action-cancel')).toBeNull()
+  })
+
+  it('nothing left to refund hides the Refund action', async () => {
+    await renderPage(detail({ quote: { deposit_refunded_minor: 9000 } }))
+    expect(within(bar()).queryByTestId('quote-action-refund')).toBeNull()
   })
 })
