@@ -13,6 +13,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { createTranslator, type AbstractIntlMessages } from 'next-intl'
 import { locales } from '@/i18n/locales'
+import { WAITING_PRICE } from './helpers/quote-waiting-price'
 
 type Json = string | { [k: string]: Json }
 
@@ -98,17 +99,7 @@ const SAME_AS_EN: Record<string, ReadonlySet<string>> = {
 /** A typed amount: a digit next to a currency sign or code. Amounts are ICU parameters only. */
 const TYPED_MONEY = /\d\s?(€|Kč|CZK|EUR|USD|\$|£)|(€|\$|£)\s?\d|\d\s?(euros?|korun|dollars?)\b/i
 
-/** No copy may name a separate waiting price (owner rule 2026-11-12: a line has one price). */
-const WAITING_PRICE: Record<string, RegExp> = {
-  en: /waiting (fee|charge|cost|price|rate)/i,
-  ru: /(плата|цена|стоимость|тариф) за ожидание|стоимость ожидания|плата за простой/i,
-  es: /(tarifa|cargo|coste|precio|importe) (de|por) (la )?espera/i,
-  fr: /(tarif|frais|coût|prix|supplément) (de|d'|pour l')attente/i,
-  ar: /(رسوم|أجرة|سعر|تكلفة) الانتظار/,
-  hi: /इंतज़ार (शुल्क|का शुल्क|की कीमत)|प्रतीक्षा शुल्क/,
-  zh: /等候(费|费用|价格)/,
-  'zh-hant': /等候(費|費用|價格)/,
-}
+// No copy may name a separate waiting price: WAITING_PRICE (tests/helpers/quote-waiting-price.ts, shared with the page test).
 
 describe('quote copy: the EN source', () => {
   it('has exactly the planned Quote key set', () => {
