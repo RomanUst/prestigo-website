@@ -18,6 +18,8 @@ import InvalidQuoteLinkView, { QUOTE_CONTACT_EMAIL } from './InvalidQuoteLinkVie
 import QuoteViewedPing from './QuoteViewedPing'
 import QuoteAcceptPay, { type QuoteAcceptPayCopy } from './QuoteAcceptPay'
 import QuotePdfButton, { type QuotePdfButtonCopy } from './QuotePdfButton'
+import QuoteRemainderPay, { type QuoteRemainderPayCopy } from './QuoteRemainderPay'
+import { QUOTE_MIN_CHARGE_MINOR, remainderDueMinor } from '@/lib/quotes/money'
 import { quotePdfFileName } from '@/lib/quotes/pdf-file-name'
 
 // The client's quote page (Phase 92, plan 92-09; QUOTE-02, QUOTE-06; D-02, D-05, D-09, D-10; T-92-29..T-92-32).
@@ -37,6 +39,9 @@ import { quotePdfFileName } from '@/lib/quotes/pdf-file-name'
 //   shows the booking references instead.
 // - Plan 92-27 adds "Download PDF" (QuotePdfButton, every live quote; POST /api/quote/pdf with the token in the body)
 //   and a print stylesheet that hides the controls, so Print is the fallback when no PDF can be produced (D-14).
+//   On a paid quote it adds the remainder (D-16): a payment-link quote with an amount due gets QuoteRemainderPay, with
+//   the due computed HERE from the quote's trips (the server is the price authority, T-92-85); once the remainder is
+//   paid the page says so; an invoice quote gets the invoice note with the amount. One amount, no waiting amount.
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
@@ -145,17 +150,49 @@ function SummaryRow({ label, amount, strong, testId }: { label: string; amount: 
   )
 }
 
+/** What the page shows about the remainder of a paid quote (D-16). Null: nothing (an offer, saved card, cash). */
+type RemainderArea =
+  | { kind: 'pay'; dueMinor: number }
+  | { kind: 'below_minimum'; dueMinor: number }
+  | { kind: 'paid' }
+  | { kind: 'invoice'; dueMinor: number }
+  | null
+
+function remainderArea(resolved: ResolvedQuote): RemainderArea {
+  if (resolved.state !== 'paid') return null
+  const method = resolved.version.remainder_method
+  if (method !== 'payment_link' && method !== 'invoice') return null
+  // The quote's live, unpaid quote-mode trips (PostgREST sends bigint as text). Same sum as createRemainderIntent.
+  const due = remainderDueMinor(
+    resolved.lines.map((l) => ({ id: l.id, remainder_minor: l.remainder_minor == null ? null : Number(l.remainder_minor) })),
+    resolved.bookings,
+  )
+  if (!Number.isSafeInteger(due) || due < 0) return null
+  if (method === 'invoice') return due > 0 ? { kind: 'invoice', dueMinor: due } : null
+  if (due > 0) {
+    // Below Stripe's minimum no card payment can be taken (createRemainderIntent refuses it): the amount is shown, the
+    // operator settles it by hand.
+    return due >= QUOTE_MIN_CHARGE_MINOR[resolved.version.currency]
+      ? { kind: 'pay', dueMinor: due }
+      : { kind: 'below_minimum', dueMinor: due }
+  }
+  // Nothing due: paid, unless the trips are simply not created yet (then there is nothing to say).
+  return resolved.quote.remainder_paid_at ? { kind: 'paid' } : null
+}
+
 /** The quote, rendered. An async function (called by the page), so a test can await the element. */
 async function QuoteOfferView({
   view,
   locale,
   token,
   consentText,
+  remainder,
 }: {
   view: QuoteView
   locale: AppLocale
   token: string
   consentText: string | null
+  remainder: RemainderArea
 }) {
   const t = await getTranslations({ locale, namespace: 'Quote' })
   const ta = await getTranslations({ locale, namespace: 'Quote.accept' })
@@ -175,6 +212,22 @@ async function QuoteOfferView({
     unavailable: tp('unavailable'),
     print: tp('print'),
   }
+
+  const tr = await getTranslations({ locale, namespace: 'Quote.remainderPay' })
+  const dueAmount = remainder && 'dueMinor' in remainder ? ltr(money(remainder.dueMinor)) : ''
+  const remainderCopy: QuoteRemainderPayCopy | null =
+    remainder?.kind === 'pay'
+      ? {
+          heading: tr('heading'),
+          due: tr('due', { amount: dueAmount }),
+          button: tr('button', { amount: dueAmount }),
+          processing: ta('processing'),
+          confirming: tr('confirming'),
+          declined: ta('declined'),
+          error: ta('error'),
+          changed: ta('changed'),
+        }
+      : null
 
   const acceptCopy: QuoteAcceptPayCopy = {
     heading: ta('heading'),
@@ -349,7 +402,7 @@ async function QuoteOfferView({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
             <SummaryRow label={t('summary.total')} amount={money(view.totalMinor)} strong testId="quote-total" />
             <SummaryRow label={t('summary.deposit')} amount={money(view.depositMinor)} testId="quote-deposit" />
-            <SummaryRow label={t('summary.remainder')} amount={money(view.remainderMinor)} testId="quote-remainder" />
+            <SummaryRow label={t('summary.remainder')} amount={money(view.remainderMinor)} testId="quote-remainder-amount" />
           </div>
           <p data-testid="quote-remainder-method" style={{ ...bodyStyle, marginTop: 16 }}>
             {t(`remainder.${view.remainderMethod}`)}
@@ -371,6 +424,32 @@ async function QuoteOfferView({
             <p style={bodyStyle}>{t('terms.howToCancel')}</p>
           </div>
         </section>
+
+        {remainder?.kind === 'pay' && remainderCopy ? (
+          <QuoteRemainderPay
+            token={token}
+            locale={locale}
+            dueMinor={remainder.dueMinor}
+            currency={view.currency}
+            copy={remainderCopy}
+          />
+        ) : null}
+        {remainder?.kind === 'below_minimum' ? (
+          <section data-testid="quote-remainder-due" style={sectionStyle}>
+            <h2 style={headingStyle}>{tr('heading')}</h2>
+            <p style={{ ...bodyStyle, marginTop: 12 }}>{tr('due', { amount: dueAmount })}</p>
+          </section>
+        ) : null}
+        {remainder?.kind === 'paid' ? (
+          <p data-testid="quote-remainder-paid" style={{ ...bodyStyle, marginTop: 24 }}>
+            {tr('paid')}
+          </p>
+        ) : null}
+        {remainder?.kind === 'invoice' ? (
+          <p data-testid="quote-invoice-note" style={{ ...bodyStyle, marginTop: 24 }}>
+            {t('invoice.note', { amount: dueAmount })}
+          </p>
+        ) : null}
 
         <QuotePdfButton token={token} fileName={quotePdfFileName(view.reference, view.versionNo)} copy={pdfCopy} />
 
@@ -428,6 +507,7 @@ export default async function QuotePage({ params }: PageProps) {
   // A lookup that throws is an invalid link, never a stack trace. Rate limit first, then token, then the quote.
   let view: QuoteView | null = null
   let consentText: string | null = null
+  let remainder: RemainderArea = null
   try {
     const h = await headers()
     const { allowed } = await checkRateLimit('/quote', getClientIp(new Request('https://localhost', { headers: h })))
@@ -437,6 +517,7 @@ export default async function QuotePage({ params }: PageProps) {
         const nowMs = Date.now()
         view = buildQuoteView(resolved, nowMs)
         consentText = await acceptanceText(resolved, view, nowMs)
+        remainder = remainderArea(resolved)
       }
     }
   } catch {
@@ -449,5 +530,5 @@ export default async function QuotePage({ params }: PageProps) {
   const quoteLocale = normalizeSiteLocale(view.locale)
   if (quoteLocale !== locale) redirect(getPathname({ locale: quoteLocale, href: `/quote/${token}` }))
 
-  return QuoteOfferView({ view, locale, token, consentText })
+  return QuoteOfferView({ view, locale, token, consentText, remainder })
 }

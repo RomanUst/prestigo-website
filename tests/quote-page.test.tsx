@@ -236,7 +236,8 @@ describe('quote page, live offer', () => {
     const summary = getByTestId('quote-summary')
     expect(getByTestId('quote-total').textContent).toBe(formatMinor(30000, 'eur'))
     expect(getByTestId('quote-deposit').textContent).toBe(formatMinor(9000, 'eur'))
-    expect(getByTestId('quote-remainder').textContent).toBe(formatMinor(21000, 'eur'))
+    // The summary row (renamed from quote-remainder in plan 92-27: that test id is the remainder payment area now).
+    expect(getByTestId('quote-remainder-amount').textContent).toBe(formatMinor(21000, 'eur'))
     expect(summary.textContent).toContain(q('en', 'remainder', 'saved_card'))
 
     const terms = getByTestId('quote-terms').textContent ?? ''
@@ -527,6 +528,119 @@ describe('quote page, Download PDF (plan 92-27; QUOTE-07; D-14; T-92-83, T-92-84
   it('the page source mounts QuotePdfButton', () => {
     const source = readFileSync(join(process.cwd(), 'app/[locale]/quote/[token]/page.tsx'), 'utf8')
     expect((source.match(/QuotePdfButton/g) ?? []).length).toBeGreaterThanOrEqual(2)
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+describe('quote page, pay the remainder (plan 92-27; QUOTE-04; D-16; T-92-85)', () => {
+  const ltrIsolate = (value: string) => `⁦${value}⁩`
+  type Method = 'saved_card' | 'payment_link' | 'cash' | 'invoice'
+
+  /**
+   * A paid quote whose line 1 became a quote-mode trip with 12000 left to pay. `remainderPaid` marks that trip paid
+   * and stamps the quote's remainder_paid_at, as applyQuoteRemainderPaid does.
+   */
+  async function seedPaid(method: Method, opts: { remainderPaid?: boolean; locale?: string } = {}) {
+    const fx = await seed({ status: 'paid', remainderMethod: method, locale: opts.locale })
+    const line1 = db.state.quote_version_lines.find((l) => l.id === fx.lineIds[0])!
+    line1.remainder_minor = 12000
+    const paidAt = opts.remainderPaid ? '2026-11-15T10:00:00.000Z' : null
+    const { error } = await db.client.from('bookings').insert({
+      booking_reference: 'PR-9101',
+      quote_id: fx.quoteId,
+      quote_line_id: fx.lineIds[0],
+      status: 'confirmed',
+      payment_mode: 'quote',
+      paid_at: paidAt,
+    })
+    if (error) throw new Error(error.message)
+    if (paidAt) db.state.quotes[0].remainder_paid_at = paidAt
+    counter.writes.count = 0
+    return fx
+  }
+
+  it('tracer: a paid payment-link quote with 12000 due renders the remainder area with the due and the pay button', async () => {
+    const fx = await seedPaid('payment_link')
+    const { getByTestId, queryByTestId } = await renderPage('en', fx.token)
+    const area = getByTestId('quote-remainder')
+    const amount = ltrIsolate(formatMinor(12000, 'eur'))
+    expect(area.textContent).toContain(q('en', 'remainderPay', 'heading'))
+    expect(area.textContent).toContain(`Remainder to pay: ${amount}`)
+    expect((area.querySelector('button[type="submit"]') as HTMLButtonElement).textContent).toBe(`Pay ${amount}`)
+    expect(area.querySelector('input[type="checkbox"]')).toBeNull()
+    expect(queryByTestId('quote-remainder-paid')).toBeNull()
+    expect(queryByTestId('quote-accept')).toBeNull()
+  })
+
+  it('the press posts the token and the server-computed due as the displayed amount', async () => {
+    const fx = await seedPaid('payment_link')
+    stripeDouble.submit.mockResolvedValue({})
+    stripeDouble.confirmPayment.mockResolvedValue({ paymentIntent: { status: 'succeeded' } })
+    fetchMock.mockImplementation(async (url: string) =>
+      url === '/api/quote/remainder'
+        ? new Response(JSON.stringify({ clientSecret: 'pi_r_secret_x', amountMinor: 12000, currency: 'eur' }), { status: 200 })
+        : new Response('{}'),
+    )
+    const { getByTestId } = await renderPage('en', fx.token)
+    const { fireEvent, act } = await import('@testing-library/react')
+    await act(async () => {
+      fireEvent.click(getByTestId('quote-remainder').querySelector('button[type="submit"]') as HTMLButtonElement)
+    })
+    const call = fetchMock.mock.calls.find((c) => c[0] === '/api/quote/remainder') as [string, RequestInit]
+    expect(JSON.parse(call[1].body as string)).toEqual({ token: fx.token, displayedAmountMinor: 12000 })
+    const confirm = stripeDouble.confirmPayment.mock.calls[0][0] as { confirmParams: { return_url: string } }
+    expect(confirm.confirmParams.return_url).toMatch(/\/quote\/done$/)
+    expect(confirm.confirmParams.return_url).not.toContain(fx.token)
+  })
+
+  it('a paid remainder (due 0) shows the paid sentence and no pay button', async () => {
+    const fx = await seedPaid('payment_link', { remainderPaid: true })
+    const { getByTestId, queryByTestId } = await renderPage('en', fx.token)
+    expect(getByTestId('quote-remainder-paid').textContent).toBe(q('en', 'remainderPay', 'paid'))
+    expect(queryByTestId('quote-remainder')).toBeNull()
+  })
+
+  it('a paid quote whose trips are not created yet shows neither the pay area nor the paid sentence', async () => {
+    const fx = await seed({ status: 'paid', remainderMethod: 'payment_link' })
+    const { queryByTestId } = await renderPage('en', fx.token)
+    expect(queryByTestId('quote-remainder')).toBeNull()
+    expect(queryByTestId('quote-remainder-paid')).toBeNull()
+  })
+
+  it('an invoice quote shows the invoice note with the amount, and no pay button', async () => {
+    const fx = await seedPaid('invoice')
+    const { getByTestId, queryByTestId } = await renderPage('en', fx.token)
+    expect(getByTestId('quote-invoice-note').textContent).toBe(
+      `We will send you an invoice for the remainder of ${ltrIsolate(formatMinor(12000, 'eur'))}.`,
+    )
+    expect(queryByTestId('quote-remainder')).toBeNull()
+    expect(queryByTestId('quote-remainder-paid')).toBeNull()
+  })
+
+  it.each(['saved_card', 'cash'] as const)('a paid %s quote renders neither the remainder area nor the invoice note', async (method) => {
+    const fx = await seedPaid(method)
+    const { queryByTestId } = await renderPage('en', fx.token)
+    expect(queryByTestId('quote-remainder')).toBeNull()
+    expect(queryByTestId('quote-remainder-paid')).toBeNull()
+    expect(queryByTestId('quote-invoice-note')).toBeNull()
+  })
+
+  it('an offer on a payment-link quote has no remainder area yet (the deposit comes first)', async () => {
+    const fx = await seed({ remainderMethod: 'payment_link' })
+    const { queryByTestId, getByTestId } = await renderPage('en', fx.token)
+    expect(getByTestId('quote-accept')).toBeTruthy()
+    expect(queryByTestId('quote-remainder')).toBeNull()
+  })
+
+  it('rendering the remainder area writes nothing', async () => {
+    const fx = await seedPaid('payment_link')
+    await renderPage('en', fx.token)
+    expect(counter.writes.count).toBe(0)
+  })
+
+  it('the page source mounts QuoteRemainderPay', () => {
+    const source = readFileSync(join(process.cwd(), 'app/[locale]/quote/[token]/page.tsx'), 'utf8')
+    expect((source.match(/QuoteRemainderPay/g) ?? []).length).toBeGreaterThanOrEqual(2)
   })
 })
 
