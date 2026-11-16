@@ -2,7 +2,8 @@
 // D-07, D-09, D-11, D-13).
 //
 //   sendQuote       freezes the draft version (money, cancellation snapshot, terms version), sets the quote to sent,
-//                   mints a secret link and emails it in the quote's language. The URL is returned once.
+//                   mints a secret link and emails it in the quote's language, with the stored PDF of the version
+//                   attached when the host can render it (92-20, D-14). The URL is returned once.
 //   mintQuoteLink   a fresh link for the current version ("Copy link"). Only the hash of a token is stored, so an old
 //                   link can never be shown again; every call makes a new one and the earlier ones keep working.
 //   reviseQuote     copies the current version into a new draft n+1 and makes it current. Every link of version n now
@@ -21,7 +22,8 @@ import { QUOTE_CONSENT_VERSION } from '@/lib/payments/consent-text'
 import { getPaymentsStripe, stripeKeys } from '@/lib/payments/stripe'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { renderQuoteSentEmail } from '@/lib/quotes/emails/sent'
+import { getOrRenderQuotePdf } from '@/lib/quotes/documents'
+import { quotePdfFilename, renderQuoteSentEmail } from '@/lib/quotes/emails/sent'
 import { sendQuoteEmail } from '@/lib/quotes/emails/shell'
 import { appendQuoteEvent, type QuoteEventInput } from '@/lib/quotes/events'
 import { depositMinorFor, lineMajorAmounts, validateVersionMoney } from '@/lib/quotes/money'
@@ -144,13 +146,19 @@ export async function mintQuoteLink(quoteId: string, actor: LifecycleActor): Pro
 
 // == send ============================================================================================================
 
-/** The email of a freshly minted link. Never throws; false when it could not be rendered or sent. */
+/**
+ * The email of a freshly minted link. Never throws; false when it could not be rendered or sent.
+ *
+ * D-14 (production decision of 92-32: attachment): the stored PDF of the frozen version is attached as
+ * Prestigo-quote-<reference>-v<n>.pdf and the email says so. When the host cannot render it (getOrRenderQuotePdf answers
+ * null) the email is sent without it and says the PDF can be downloaded on the quote page.
+ */
 async function emailQuoteLink(quote: QuoteRow, version: QuoteVersionRow, linkId: string, url: string): Promise<boolean> {
   const eventBase = { key: `email:sent:${linkId}`, versionId: version.id, actor: { type: 'system' as const } }
+  const pdf = await getOrRenderQuotePdf(version.id)
   let rendered: { subject: string; html: string }
   try {
-    // 92-20 attaches the PDF here and passes pdfAttached true; until then the email carries the link sentence.
-    rendered = await renderQuoteSentEmail({ quote, version, url, pdfAttached: false })
+    rendered = await renderQuoteSentEmail({ quote, version, url, pdfAttached: pdf !== null })
   } catch {
     console.error('[quotes/lifecycle] email render failed', { quoteId: quote.id, linkId })
     await recordEvent(quote.id, { ...eventBase, kind: 'email_failed', errorCode: 'render_failed' })
@@ -161,6 +169,7 @@ async function emailQuoteLink(quote: QuoteRow, version: QuoteVersionRow, linkId:
     subject: rendered.subject,
     html: rendered.html,
     idempotencyKey: `quote-sent:${linkId}`,
+    ...(pdf ? { attachments: [{ filename: quotePdfFilename(quote.reference, Number(version.version_no)), content: pdf }] } : {}),
   })
   await recordEvent(
     quote.id,

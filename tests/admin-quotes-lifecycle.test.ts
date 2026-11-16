@@ -14,7 +14,7 @@ import { resolveQuoteToken } from '@/lib/quotes/resolve'
  * Google Routes, the tariffs and the global cancellation policy are doubles, the admin session is a switch.
  */
 
-const { world, mockResendSend, computeRouteDistanceMock } = vi.hoisted(() => ({
+const { world, mockResendSend, computeRouteDistanceMock, renderQuotePdfMock } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     auth: 'admin' as 'admin' | '401' | '403',
@@ -22,6 +22,7 @@ const { world, mockResendSend, computeRouteDistanceMock } = vi.hoisted(() => ({
   },
   mockResendSend: vi.fn(),
   computeRouteDistanceMock: vi.fn(),
+  renderQuotePdfMock: vi.fn(),
 }))
 
 const ADMIN_ID = '99999999-9999-4999-8999-999999999999'
@@ -53,6 +54,11 @@ vi.mock('@/lib/cancellation-settings', () => ({
   getCancellationPolicy: async () => ({ ...DEFAULT_POLICY }),
 }))
 vi.mock('@/lib/route-distance', () => ({ computeRouteDistance: computeRouteDistanceMock }))
+// The PDF engine is a double (92-20): the document HTML is built for real, the browser is not launched.
+vi.mock('@/lib/quotes/pdf', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/quotes/pdf')>()),
+  renderQuotePdf: renderQuotePdfMock,
+}))
 vi.mock('@/lib/pricing-config', () => ({
   getPricingConfig: async () => ({
     ratePerKm: { business: 2, first_class: 3, business_van: 2.5 },
@@ -84,6 +90,9 @@ import { POST as SEND } from '@/app/api/admin/quotes/[id]/send/route'
 import { POST as LINK } from '@/app/api/admin/quotes/[id]/link/route'
 import { POST as REVISE } from '@/app/api/admin/quotes/[id]/revise/route'
 import { POST as VOID } from '@/app/api/admin/quotes/[id]/void/route'
+import { getOrRenderQuotePdf } from '@/lib/quotes/documents'
+import { createHash } from 'node:crypto'
+import { escapeHtml } from '@/lib/email'
 
 let db: FakePaymentsDb
 let fake: FakeStripe
@@ -169,6 +178,8 @@ beforeEach(() => {
   world.auth = 'admin'
   computeRouteDistanceMock.mockResolvedValue({ ok: true, distanceKm: 130, durationMin: 90 })
   mockResendSend.mockResolvedValue({ data: { id: 'em_1' }, error: null })
+  // No engine on this host unless a test says otherwise (the email then carries the download sentence).
+  renderQuotePdfMock.mockResolvedValue(null)
   fake = createFakeStripe()
   world.stripe = fake.stripe
   db = createFakePaymentsDb()
@@ -382,6 +393,83 @@ describe('concurrent sends', () => {
     expect(mockResendSend).toHaveBeenCalledTimes(1)
     expect(linksOf(id)).toHaveLength(1)
     expect(eventKinds(id).filter((k) => k === 'sent')).toHaveLength(1)
+  })
+})
+
+describe('tracer 92-20 (QUOTE-07, D-14): the stored PDF of the version is attached to the quote email', () => {
+  const PDF_BYTES = Buffer.alloc(1024, 7)
+  const sha256 = (b: Buffer) => createHash('sha256').update(b).digest('hex')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ruCatalog = async (): Promise<any> => (await import('@/messages/ru.json')).default
+  const docsOf = (versionId: unknown) => db.state.quote_documents.filter((d) => d.version_id === versionId)
+
+  it('a ru quote: one quote_documents row (sha256, byte_size, locale) and one attachment named Prestigo-quote-<reference>-v1.pdf', async () => {
+    renderQuotePdfMock.mockResolvedValue(PDF_BYTES)
+    const id = await draftQuote({ locale: 'ru' })
+    const res = await send(id)
+    expect(res.status).toBe(200)
+    expect(((await res.json()) as { emailed: boolean }).emailed).toBe(true)
+
+    // The document handed to the engine is the quote's own HTML in its language.
+    expect(renderQuotePdfMock).toHaveBeenCalledTimes(1)
+    expect(String(renderQuotePdfMock.mock.calls[0][0])).toContain('<html lang="ru" dir="ltr"')
+
+    const [version] = versionsOf(id)
+    const docs = docsOf(version.id)
+    expect(docs).toHaveLength(1)
+    expect(docs[0]).toMatchObject({ locale: 'ru', byte_size: 1024, sha256: sha256(PDF_BYTES) })
+
+    const [message] = mockResendSend.mock.calls[0]
+    expect(message.attachments).toHaveLength(1)
+    expect(message.attachments[0].filename).toBe(`Prestigo-quote-${quoteRow(id).reference}-v1.pdf`)
+    expect(Buffer.compare(Buffer.from(message.attachments[0].content), PDF_BYTES)).toBe(0)
+    const ru = await ruCatalog()
+    expect(message.html).toContain(escapeHtml(ru.QuoteEmails.sent.pdfAttached))
+    expect(message.html).not.toContain(escapeHtml(ru.QuoteEmails.sent.pdfLink))
+  })
+
+  it('a resend reuses the stored row: the engine runs once in total and both emails carry the same file', async () => {
+    renderQuotePdfMock.mockResolvedValue(PDF_BYTES)
+    const id = await draftQuote()
+    await send(id)
+    const res = await send(id, { resend: true })
+    expect(res.status).toBe(200)
+    expect(renderQuotePdfMock).toHaveBeenCalledTimes(1)
+    expect(docsOf(versionsOf(id)[0].id)).toHaveLength(1)
+    expect(mockResendSend).toHaveBeenCalledTimes(2)
+    for (const [message] of mockResendSend.mock.calls) {
+      expect(message.attachments).toHaveLength(1)
+      expect(Buffer.compare(Buffer.from(message.attachments[0].content), PDF_BYTES)).toBe(0)
+    }
+  })
+
+  it('no PDF on the host: no row, no attachment, the download sentence, and the send still succeeds', async () => {
+    renderQuotePdfMock.mockResolvedValue(null)
+    const id = await draftQuote()
+    const res = await send(id)
+    expect(res.status).toBe(200)
+    expect(((await res.json()) as { emailed: boolean }).emailed).toBe(true)
+    expect(db.state.quote_documents).toHaveLength(0)
+    const [message] = mockResendSend.mock.calls[0]
+    expect(message.attachments).toBeUndefined()
+    const en = (await import('@/messages/en.json')).default
+    expect(message.html).toContain(escapeHtml(en.QuoteEmails.sent.pdfLink))
+    expect(eventKinds(id)).toContain('email_sent')
+  })
+
+  it('getOrRenderQuotePdf on an unfrozen (draft) version answers null without rendering', async () => {
+    renderQuotePdfMock.mockResolvedValue(PDF_BYTES)
+    const id = await draftQuote()
+    const [version] = versionsOf(id)
+    expect(version.frozen_at).toBeNull()
+    expect(await getOrRenderQuotePdf(String(version.id))).toBeNull()
+    expect(renderQuotePdfMock).not.toHaveBeenCalled()
+    expect(db.state.quote_documents).toHaveLength(0)
+  })
+
+  it('getOrRenderQuotePdf on an unknown version answers null without rendering', async () => {
+    expect(await getOrRenderQuotePdf('00000000-0000-4000-8000-000000000000')).toBeNull()
+    expect(renderQuotePdfMock).not.toHaveBeenCalled()
   })
 })
 
