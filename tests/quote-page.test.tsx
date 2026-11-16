@@ -446,6 +446,91 @@ describe('quote page, accept and pay (plan 92-17; QUOTE-03, QUOTE-05; D-08)', ()
 })
 
 // ---------------------------------------------------------------------------------------------------------------------
+describe('quote page, Download PDF (plan 92-27; QUOTE-07; D-14; T-92-83, T-92-84)', () => {
+  const FILE = 'Prestigo-quote-Q-20261114-ABC123-v1.pdf'
+
+  function stubDownload() {
+    const createObjectURL = vi.fn(() => 'blob:quote-pdf')
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL, revokeObjectURL }))
+    const clicked: Array<{ href: string; download: string }> = []
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicked.push({ href: this.getAttribute('href') ?? '', download: this.download })
+    })
+    return { createObjectURL, revokeObjectURL, clicked }
+  }
+
+  it('tracer: a live offer renders the Download PDF button; the press posts the token and saves the returned bytes', async () => {
+    const fx = await seed()
+    const { createObjectURL, clicked } = stubDownload()
+    fetchMock.mockImplementation(async (url: string) =>
+      url === '/api/quote/pdf'
+        ? new Response(new Uint8Array([37, 80, 68, 70]), { status: 200, headers: { 'Content-Type': 'application/pdf' } })
+        : new Response('{}'),
+    )
+    const { getByTestId } = await renderPage('en', fx.token)
+    const { fireEvent, act } = await import('@testing-library/react')
+
+    const area = getByTestId('quote-pdf')
+    const button = area.querySelector('button') as HTMLButtonElement
+    expect(button.textContent).toBe(q('en', 'pdf', 'download'))
+    await act(async () => {
+      fireEvent.click(button)
+    })
+
+    const call = fetchMock.mock.calls.find((c) => c[0] === '/api/quote/pdf') as [string, RequestInit]
+    expect(call[1].method).toBe('POST')
+    expect(JSON.parse(call[1].body as string)).toEqual({ token: fx.token })
+    expect(createObjectURL).toHaveBeenCalledTimes(1)
+    expect(clicked).toEqual([{ href: 'blob:quote-pdf', download: FILE }])
+    expect(area.textContent).not.toContain(q('en', 'pdf', 'unavailable'))
+  })
+
+  it('a paid quote has the button too', async () => {
+    const fx = await seed({ status: 'paid', withBooking: true })
+    const { getByTestId } = await renderPage('en', fx.token)
+    expect(getByTestId('quote-pdf').querySelector('button')?.textContent).toBe(q('en', 'pdf', 'download'))
+  })
+
+  it('D-14: on 503 the button area says the PDF is unavailable and offers Print, which opens the print dialog', async () => {
+    const fx = await seed()
+    const { createObjectURL } = stubDownload()
+    const print = vi.fn()
+    vi.stubGlobal('print', print)
+    fetchMock.mockImplementation(async (url: string) =>
+      url === '/api/quote/pdf' ? new Response(JSON.stringify({ error: 'pdf_unavailable' }), { status: 503 }) : new Response('{}'),
+    )
+    const { getByTestId } = await renderPage('en', fx.token)
+    const { fireEvent, act } = await import('@testing-library/react')
+    const area = getByTestId('quote-pdf')
+    await act(async () => {
+      fireEvent.click(area.querySelector('button') as HTMLButtonElement)
+    })
+
+    expect(area.textContent).toContain(q('en', 'pdf', 'unavailable'))
+    expect(createObjectURL).not.toHaveBeenCalled()
+    const printButton = [...area.querySelectorAll('button')].find((b) => b.textContent === q('en', 'pdf', 'print'))
+    expect(printButton).toBeTruthy()
+    fireEvent.click(printButton!)
+    expect(print).toHaveBeenCalledTimes(1)
+  })
+
+  it('the page carries a print stylesheet that hides the accept, remainder and PDF controls', async () => {
+    const fx = await seed()
+    const { container } = await renderPage('en', fx.token)
+    const css = [...container.querySelectorAll('style')].map((s) => s.textContent ?? '').join('\n')
+    expect(css).toContain('@media print')
+    for (const id of ['quote-accept', 'quote-remainder', 'quote-pdf']) expect(css).toContain(`[data-testid="${id}"]`)
+    expect(css).toMatch(/display:\s*none/)
+  })
+
+  it('the page source mounts QuotePdfButton', () => {
+    const source = readFileSync(join(process.cwd(), 'app/[locale]/quote/[token]/page.tsx'), 'utf8')
+    expect((source.match(/QuotePdfButton/g) ?? []).length).toBeGreaterThanOrEqual(2)
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
 describe('quote page in every locale (D-09)', () => {
   it.each([...locales])('%s: renders the offer in its own language', async (locale) => {
     const fx = await seed({ locale })

@@ -17,6 +17,8 @@ import ManageHeader from '../../manage/[token]/ManageHeader'
 import InvalidQuoteLinkView, { QUOTE_CONTACT_EMAIL } from './InvalidQuoteLinkView'
 import QuoteViewedPing from './QuoteViewedPing'
 import QuoteAcceptPay, { type QuoteAcceptPayCopy } from './QuoteAcceptPay'
+import QuotePdfButton, { type QuotePdfButtonCopy } from './QuotePdfButton'
+import { quotePdfFileName } from '@/lib/quotes/pdf-file-name'
 
 // The client's quote page (Phase 92, plan 92-09; QUOTE-02, QUOTE-06; D-02, D-05, D-09, D-10; T-92-29..T-92-32).
 //
@@ -32,7 +34,9 @@ import QuoteAcceptPay, { type QuoteAcceptPayCopy } from './QuoteAcceptPay'
 // - Plan 92-17 adds the accept area (QuoteAcceptPay) under the terms for a quote that is not paid yet: the consent and
 //   terms text is rendered HERE, on the server (renderQuoteTerms, the same text the accept route stores and hashes), and
 //   handed to the island with the ready button label; a failed render shows no accept area (fail closed). A paid quote
-//   shows the booking references instead. The PDF button and the remainder payment area are added by plan 92-27.
+//   shows the booking references instead.
+// - Plan 92-27 adds "Download PDF" (QuotePdfButton, every live quote; POST /api/quote/pdf with the token in the body)
+//   and a print stylesheet that hides the controls, so Print is the fallback when no PDF can be produced (D-14).
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
@@ -84,6 +88,15 @@ const bodyStyle = {
 } as const
 
 const mutedStyle = { ...bodyStyle, color: 'var(--warmgrey)' } as const
+
+// Print (D-14 fallback when no PDF can be produced): the quote on white paper, without the controls and the header.
+const PRINT_CSS = `@media print {
+  [data-testid="quote-accept"], [data-testid="quote-remainder"], [data-testid="quote-pdf"], [data-print="hide"] { display: none !important; }
+  html, body { background: #fff !important; }
+  [data-testid="quote-page"], [data-testid="quote-page"] * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  [data-testid="quote-page"] { max-width: none !important; padding: 0 !important; }
+  [data-testid="quote-line"], [data-testid="quote-summary"], [data-testid="quote-terms"] { break-inside: avoid; border-color: #999 !important; }
+}`
 
 // The catalog placeholders are plain, so dates, times and references are isolated left-to-right with Unicode isolates
 // (the text equivalent of <bdi dir="ltr">); digits and percents are weakly directional and need none.
@@ -155,6 +168,14 @@ async function QuoteOfferView({
   const showFree = !terms.freePassed && freeUntil !== ''
 
   // Ready strings for the accept island (it translates nothing). The amount in the label is isolated left-to-right.
+  const tp = await getTranslations({ locale, namespace: 'Quote.pdf' })
+  const pdfCopy: QuotePdfButtonCopy = {
+    download: tp('download'),
+    preparing: tp('preparing'),
+    unavailable: tp('unavailable'),
+    print: tp('print'),
+  }
+
   const acceptCopy: QuoteAcceptPayCopy = {
     heading: ta('heading'),
     button: ta('button', { amount: ltr(money(view.depositMinor)) }),
@@ -169,7 +190,10 @@ async function QuoteOfferView({
 
   return (
     <>
-      <ManageHeader locale={locale} homeLabel="Prestigo" />
+      <style>{PRINT_CSS}</style>
+      <div data-print="hide">
+        <ManageHeader locale={locale} homeLabel="Prestigo" />
+      </div>
       <main
         id="main-content"
         data-testid="quote-page"
@@ -347,6 +371,8 @@ async function QuoteOfferView({
             <p style={bodyStyle}>{t('terms.howToCancel')}</p>
           </div>
         </section>
+
+        <QuotePdfButton token={token} fileName={quotePdfFileName(view.reference, view.versionNo)} copy={pdfCopy} />
 
         {view.state !== 'paid' && consentText !== null ? (
           <QuoteAcceptPay
