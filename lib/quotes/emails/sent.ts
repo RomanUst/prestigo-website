@@ -1,7 +1,7 @@
 // The quote email (Phase 92, plan 92-13; QUOTE-07; D-09, D-14).
 //
 // "Your quote is ready": one total, the deposit, an optional last day, a button with the secret link, and the PDF
-// sentence. The client sees one total for the whole quote and the deposit; there is no waiting amount and no line list
+// sentence (plan 92-20: "attached" when sendQuote attaches the stored PDF, otherwise "download it on the quote page"). The client sees one total for the whole quote and the deposit; there is no waiting amount and no line list
 // here (the quote page shows the trips). Language = the version's locale (D-09). Amounts are formatted once with
 // formatMinor and passed to the catalog as strings; no price is typed anywhere.
 
@@ -15,6 +15,16 @@ import type { QuoteRow, QuoteVersionRow } from '@/lib/quotes/types'
 
 /** A user-supplied word (a name) isolated with its own direction so Arabic and Latin text keep their order. */
 const bdiAuto = (value: string): string => `<bdi dir="auto">${escapeHtml(value)}</bdi>`
+
+/**
+ * The file name of the attached quote PDF (D-14): Prestigo-quote-<reference>-v<n>.pdf. The reference is made by the
+ * server, but the name ends up in a MIME header, so anything other than letters, digits and dashes is dropped.
+ */
+export function quotePdfFilename(reference: string, versionNo: number): string {
+  const ref = reference.replace(/[^A-Za-z0-9-]+/g, '').replace(/^-+|-+$/g, '') || 'quote'
+  const n = Number.isInteger(versionNo) && versionNo > 0 ? versionNo : 1
+  return `Prestigo-quote-${ref}-v${n}.pdf`
+}
 
 export async function renderQuoteSentEmail(input: {
   quote: Pick<QuoteRow, 'reference' | 'client_first_name' | 'expires_at'>

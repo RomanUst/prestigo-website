@@ -6,7 +6,7 @@ import { formatLocaleDate } from '@/lib/locale-date'
 import { formatMinor } from '@/lib/payments/money'
 import { boxHtml, joinLocaleSentences, renderPaymentEmail, shellStyle } from '@/lib/payments/emails/render'
 import { quoteEmailTranslator, renderQuoteEmailShell, sendQuoteEmail } from '@/lib/quotes/emails/shell'
-import { renderQuoteSentEmail } from '@/lib/quotes/emails/sent'
+import { quotePdfFilename, renderQuoteSentEmail } from '@/lib/quotes/emails/sent'
 
 /**
  * Phase 92 plan 92-13 (QUOTE-07; D-09; W1, B1): the quote email is built on the per-locale pieces EXPORTED from
@@ -185,6 +185,13 @@ describe('sendQuoteEmail', () => {
     expect(message.subject).not.toMatch(/[\r\n]/)
     expect(message.attachments).toBeUndefined()
     expect(options).toEqual({ idempotencyKey: 'quote-sent:link-1' })
+  })
+
+  it('names the attached PDF Prestigo-quote-<reference>-v<n>.pdf (D-14) and keeps the name a plain file name', () => {
+    expect(quotePdfFilename('Q-20261114-ABC123', 1)).toBe('Prestigo-quote-Q-20261114-ABC123-v1.pdf')
+    expect(quotePdfFilename('Q-20261114-ABC123', 3)).toBe('Prestigo-quote-Q-20261114-ABC123-v3.pdf')
+    // A reference is server-made, but a header value never carries a path, a quote or a line break.
+    expect(quotePdfFilename('../Q "x"\r\n', 2)).toMatch(/^Prestigo-quote-[A-Za-z0-9-]+-v2\.pdf$/)
   })
 
   it('passes attachments through', async () => {

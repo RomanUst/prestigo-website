@@ -18,6 +18,9 @@ import { sendQuote } from '@/lib/quotes/lifecycle'
 // Guard order: enforceMaxBody -> admin session (401 / 403) -> await params -> id is a uuid (400) -> JSON (400, 413)
 // -> strict schema (400) -> engine. The response is never cached. Logs carry ids only: no token, no address.
 
+// The first send renders the quote PDF (92-20): a cold Chromium start plus a render inside QUOTE_PDF_TIMEOUT_MS (20 s).
+export const maxDuration = 60
+
 const MAX_BODY_BYTES = 2_000
 const idSchema = z.string().uuid()
 const bodySchema = z.object({ resend: z.boolean().optional() }).strict()
