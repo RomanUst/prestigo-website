@@ -70,6 +70,9 @@ The quote is now one self-contained HTML document in the quote's language (A4, n
 - `npx eslint --quiet` on all changed files: clean.
 - Acceptance greps: `getOrRenderQuotePdf` in lifecycle.ts 3; `Prestigo-quote-` in lifecycle+sent 3; `fontFaceCss` in document.ts 2; `escapeHtml` in document.ts 3; `@/i18n/locales` in the test 1; `sha256` in documents.ts 11.
 - Real render check with local Chrome (`QUOTE_PDF_CHROME_PATH`, a temporary test that was not committed): en, ar and zh-hant PDFs were rendered to the scratchpad and inspected. In en, both trips, the summary, terms and footer are on 2 A4 pages. In ar, the text is right-to-left and joined, with Arabic dates in the correct order (after the dir=auto fix). In zh-hant, Traditional glyphs come from Noto Sans TC.
+- Full suite in the worktree (`npx vitest run`): 14865 passed, 3 failed, 10 files failed. None of the failures import a module this plan changed.
+  - 8 files fail to load because of the known worktree artefact: their next-intl server mock cannot resolve `node_modules/next-intl/dist/esm/development/server.react-server.js` through the symlinked node_modules. The files are account-trips, auth-customer, login-actions, manage-actions, manage-page, passenger-actions, profile-actions and quote-page. The orchestrator should re-run them in the main checkout.
+  - quote-builder (2 tests) and seo-volume-pages (1 test) failed under full-suite load but pass in isolation (78/78).
 - Mutation check of the Task 3 tests: when the code returns the local render instead of the read-back row, 4 tests fail. When the integrity check is disabled, 1 test fails.
 
 ## Deviations from Plan
