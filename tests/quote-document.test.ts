@@ -1,5 +1,7 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { createHash } from 'node:crypto'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createFakePaymentsDb, type FakePaymentsDb } from './helpers/fake-payments-db'
 import { locales, rtlLocales, type AppLocale } from '@/i18n/locales'
 import { formatLocaleDate, formatLocaleDateTime } from '@/lib/locale-date'
 import { formatMinor } from '@/lib/payments/money'
@@ -7,6 +9,42 @@ import { QUOTE_OPERATOR_LEGAL, renderQuoteDocumentHtml, type QuoteDocumentInput 
 import { firstPickupMs } from '@/lib/quotes/status'
 import { quoteFreeUntilMs } from '@/lib/quotes/terms'
 import type { QuoteLineRow, QuoteRow, QuoteStopRow, QuoteVersionRow } from '@/lib/quotes/types'
+import { getOrRenderQuotePdf } from '@/lib/quotes/documents'
+
+// The store tests (Task 3) run getOrRenderQuotePdf against the in-memory database with a double of the PDF engine.
+// The document tests above them use neither.
+const { world, renderQuotePdfMock } = vi.hoisted(() => ({
+  world: {
+    db: null as null | { client: { from: (t: string) => unknown } },
+    failTable: null as string | null,
+  },
+  renderQuotePdfMock: vi.fn(),
+}))
+
+/** A query builder whose every call chains and whose result is a database error. */
+function failingBuilder(): unknown {
+  const result = { data: null, error: { code: 'XX000', message: 'boom with a value: Ivan' } }
+  const builder: Record<string, unknown> = new Proxy(
+    {},
+    {
+      get: (_t, prop) => {
+        if (prop === 'then') return (resolve: (v: unknown) => unknown) => resolve(result)
+        return () => builder
+      },
+    },
+  )
+  return builder
+}
+
+vi.mock('@/lib/supabase', () => ({
+  createSupabaseServiceClient: () => ({
+    from: (table: string) => (world.failTable === table ? failingBuilder() : world.db!.client.from(table)),
+  }),
+}))
+vi.mock('@/lib/quotes/pdf', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/quotes/pdf')>()),
+  renderQuotePdf: renderQuotePdfMock,
+}))
 
 /**
  * Phase 92 plan 92-20 (QUOTE-07; D-03, D-09, D-14; B1; T-92-64): the quote document. One self-contained HTML in the
@@ -335,5 +373,124 @@ describe('T-92-64: injection and self-containment', () => {
     expect(html).not.toMatch(/@import/i)
     // Every url() of the CSS is an embedded data: font.
     for (const m of html.matchAll(/url\(([^)]{0,20})/g)) expect(m[1].startsWith('data:')).toBe(true)
+  })
+})
+
+describe('T-92-65: one version has one PDF, verified by its hash', () => {
+  let db: FakePaymentsDb
+  const sha256 = (b: Buffer) => createHash('sha256').update(b).digest('hex')
+  const BYTES_A = Buffer.alloc(2048, 1)
+  const BYTES_B = Buffer.alloc(3072, 2)
+  const VERSION_ID = 'v-1'
+
+  /** A sent quote with a frozen en version, two lines and one stop, seeded straight into the fake tables. */
+  function seed(): void {
+    const v = input('en')
+    db.state.quotes.push({ ...v.quote } as unknown as Record<string, unknown>)
+    db.state.quote_versions.push({ ...v.version } as unknown as Record<string, unknown>)
+    for (const l of v.lines) {
+      const { stops, ...lineRow } = l
+      db.state.quote_version_lines.push({ ...lineRow } as unknown as Record<string, unknown>)
+      for (const s of stops) db.state.quote_version_line_stops.push({ ...s } as unknown as Record<string, unknown>)
+    }
+  }
+
+  const later = <T>(value: T, ms: number) => new Promise<T>((resolve) => setTimeout(() => resolve(value), ms))
+  const docs = () => db.state.quote_documents
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    world.failTable = null
+    db = createFakePaymentsDb()
+    world.db = { client: { from: (t) => db.client.from(t) } }
+    seed()
+  })
+
+  it('renders the stored document of the frozen version once and stores bytes, sha256, byte size and locale', async () => {
+    renderQuotePdfMock.mockResolvedValue(BYTES_A)
+    const out = await getOrRenderQuotePdf(VERSION_ID)
+    expect(out && Buffer.compare(out, BYTES_A)).toBe(0)
+    expect(docs()).toHaveLength(1)
+    expect(docs()[0]).toMatchObject({ version_id: VERSION_ID, locale: 'en', sha256: sha256(BYTES_A), byte_size: 2048 })
+    // bytea in the Postgres hex form.
+    expect(docs()[0].pdf).toBe(`\\x${BYTES_A.toString('hex')}`)
+    // The engine received the document of the version, with its trips.
+    expect(String(renderQuotePdfMock.mock.calls[0][0])).toContain('Q-20261116-ABC123')
+    expect(String(renderQuotePdfMock.mock.calls[0][0])).toContain('Karlovy Vary')
+
+    // A later call returns the stored bytes and renders nothing.
+    const again = await getOrRenderQuotePdf(VERSION_ID)
+    expect(again && Buffer.compare(again, BYTES_A)).toBe(0)
+    expect(renderQuotePdfMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('two concurrent calls store one row and both return the stored bytes', async () => {
+    // Both callers render before either stores: the engine answers different bytes each time.
+    renderQuotePdfMock.mockImplementationOnce(() => later(BYTES_A, 20)).mockImplementationOnce(() => later(BYTES_B, 30))
+    const [a, b] = await Promise.all([getOrRenderQuotePdf(VERSION_ID), getOrRenderQuotePdf(VERSION_ID)])
+    expect(renderQuotePdfMock).toHaveBeenCalledTimes(2)
+    expect(docs()).toHaveLength(1)
+    const stored = docs()[0]
+    expect(a).not.toBeNull()
+    expect(b).not.toBeNull()
+    expect(sha256(a!)).toBe(stored.sha256)
+    expect(sha256(b!)).toBe(stored.sha256)
+    expect(Buffer.compare(a!, b!)).toBe(0)
+  })
+
+  it('a stored row whose sha256 does not match its bytes is treated as missing: re-rendered and stored correctly', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    docs().push({ version_id: VERSION_ID, locale: 'en', pdf: `\\x${BYTES_B.toString('hex')}`, sha256: sha256(BYTES_A), byte_size: 3072 })
+    renderQuotePdfMock.mockResolvedValue(BYTES_A)
+    const out = await getOrRenderQuotePdf(VERSION_ID)
+    expect(renderQuotePdfMock).toHaveBeenCalledTimes(1)
+    expect(out && Buffer.compare(out, BYTES_A)).toBe(0)
+    expect(docs()).toHaveLength(1)
+    expect(docs()[0]).toMatchObject({ sha256: sha256(BYTES_A), byte_size: 2048, pdf: `\\x${BYTES_A.toString('hex')}` })
+  })
+
+  it('a corrupt row is never returned: when the render fails too, the answer is null', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    docs().push({ version_id: VERSION_ID, locale: 'en', pdf: `\\x${BYTES_B.toString('hex')}`, sha256: sha256(BYTES_B), byte_size: 1 })
+    renderQuotePdfMock.mockResolvedValue(null)
+    expect(await getOrRenderQuotePdf(VERSION_ID)).toBeNull()
+    expect(docs()).toHaveLength(0)
+  })
+
+  it('an unreadable bytea value is treated as missing', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    docs().push({ version_id: VERSION_ID, locale: 'en', pdf: 'not-hex', sha256: sha256(BYTES_A), byte_size: 2048 })
+    renderQuotePdfMock.mockResolvedValue(BYTES_A)
+    const out = await getOrRenderQuotePdf(VERSION_ID)
+    expect(out && Buffer.compare(out, BYTES_A)).toBe(0)
+    expect(docs()).toHaveLength(1)
+  })
+
+  it.each(['quote_documents', 'quote_versions', 'quote_version_lines'])(
+    'a database error on %s answers null and logs only the version id and a code',
+    async (table) => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      world.failTable = table
+      renderQuotePdfMock.mockResolvedValue(BYTES_A)
+      expect(await getOrRenderQuotePdf(VERSION_ID)).toBeNull()
+      expect(spy).toHaveBeenCalledTimes(1)
+      const [message, details] = spy.mock.calls[0]
+      expect(message).toBe('[quotes/documents] no pdf')
+      expect(Object.keys(details as object).sort()).toEqual(['code', 'versionId'])
+      expect(details).toMatchObject({ versionId: VERSION_ID })
+      expect(String((details as { code: string }).code)).toMatch(/^[a-z_]+:XX000$/)
+      // The database message (it can echo a value) is never logged.
+      expect(JSON.stringify(spy.mock.calls)).not.toContain('Ivan')
+      spy.mockRestore()
+    },
+  )
+
+  it('a render that throws answers null (never throws) with a code', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderQuotePdfMock.mockRejectedValue(new Error('engine exploded for Ivan'))
+    expect(await getOrRenderQuotePdf(VERSION_ID)).toBeNull()
+    expect(docs()).toHaveLength(0)
+    expect(JSON.stringify(spy.mock.calls)).not.toContain('Ivan')
+    spy.mockRestore()
   })
 })
