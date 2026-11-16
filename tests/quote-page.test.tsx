@@ -28,6 +28,7 @@ import { resolveQuoteToken } from '@/lib/quotes/resolve'
 import { renderQuoteTerms } from '@/lib/quotes/consent'
 import { formatMinor } from '@/lib/payments/money'
 import { formatLocaleDate } from '@/lib/locale-date'
+import { WAITING_PRICE } from './helpers/quote-waiting-price'
 
 const ALL_MESSAGES: Record<string, Record<string, unknown>> = {
   en: enMessages,
@@ -532,32 +533,33 @@ describe('quote page, Download PDF (plan 92-27; QUOTE-07; D-14; T-92-83, T-92-84
 })
 
 // ---------------------------------------------------------------------------------------------------------------------
+type Method = 'saved_card' | 'payment_link' | 'cash' | 'invoice'
+
+/**
+ * A paid quote whose line 1 became a quote-mode trip with 12000 left to pay. `remainderPaid` marks that trip paid
+ * and stamps the quote's remainder_paid_at, as applyQuoteRemainderPaid does.
+ */
+async function seedPaid(method: Method, opts: { remainderPaid?: boolean; locale?: string } = {}) {
+  const fx = await seed({ status: 'paid', remainderMethod: method, locale: opts.locale })
+  const line1 = db.state.quote_version_lines.find((l) => l.id === fx.lineIds[0])!
+  line1.remainder_minor = 12000
+  const paidAt = opts.remainderPaid ? '2026-11-15T10:00:00.000Z' : null
+  const { error } = await db.client.from('bookings').insert({
+    booking_reference: 'PR-9101',
+    quote_id: fx.quoteId,
+    quote_line_id: fx.lineIds[0],
+    status: 'confirmed',
+    payment_mode: 'quote',
+    paid_at: paidAt,
+  })
+  if (error) throw new Error(error.message)
+  if (paidAt) db.state.quotes[0].remainder_paid_at = paidAt
+  counter.writes.count = 0
+  return fx
+}
+
 describe('quote page, pay the remainder (plan 92-27; QUOTE-04; D-16; T-92-85)', () => {
   const ltrIsolate = (value: string) => `⁦${value}⁩`
-  type Method = 'saved_card' | 'payment_link' | 'cash' | 'invoice'
-
-  /**
-   * A paid quote whose line 1 became a quote-mode trip with 12000 left to pay. `remainderPaid` marks that trip paid
-   * and stamps the quote's remainder_paid_at, as applyQuoteRemainderPaid does.
-   */
-  async function seedPaid(method: Method, opts: { remainderPaid?: boolean; locale?: string } = {}) {
-    const fx = await seed({ status: 'paid', remainderMethod: method, locale: opts.locale })
-    const line1 = db.state.quote_version_lines.find((l) => l.id === fx.lineIds[0])!
-    line1.remainder_minor = 12000
-    const paidAt = opts.remainderPaid ? '2026-11-15T10:00:00.000Z' : null
-    const { error } = await db.client.from('bookings').insert({
-      booking_reference: 'PR-9101',
-      quote_id: fx.quoteId,
-      quote_line_id: fx.lineIds[0],
-      status: 'confirmed',
-      payment_mode: 'quote',
-      paid_at: paidAt,
-    })
-    if (error) throw new Error(error.message)
-    if (paidAt) db.state.quotes[0].remainder_paid_at = paidAt
-    counter.writes.count = 0
-    return fx
-  }
 
   it('tracer: a paid payment-link quote with 12000 due renders the remainder area with the due and the pay button', async () => {
     const fx = await seedPaid('payment_link')
@@ -645,6 +647,89 @@ describe('quote page, pay the remainder (plan 92-27; QUOTE-04; D-16; T-92-85)', 
 })
 
 // ---------------------------------------------------------------------------------------------------------------------
+describe('the finished page: every locale, no token or waiting price leaks (plan 92-27 Task 3; QUOTE-02; T-92-84)', () => {
+  const ltrIsolate = (value: string) => `⁦${value}⁩`
+
+  /** Every attribute value that can navigate or load: none may carry the token. */
+  function urlAttributes(container: HTMLElement): string[] {
+    return [...container.querySelectorAll('[href], [src], [action], [formaction]')].flatMap((el) =>
+      ['href', 'src', 'action', 'formaction'].map((a) => el.getAttribute(a)).filter((v): v is string => v !== null),
+    )
+  }
+
+  it.each([...locales])(
+    '%s: a live paid quote with a remainder due renders its own Quote.title, the PDF button and the remainder area, with no missing message',
+    async (locale) => {
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const fx = await seedPaid('payment_link', { locale })
+      const { getByTestId, container } = await renderPage(locale, fx.token)
+      expect(redirectSpy).not.toHaveBeenCalled()
+
+      const page = getByTestId('quote-page')
+      const title = (catalog(locale).Quote.title as string).replace('{reference}', ltrIsolate('Q-20261114-ABC123'))
+      expect(page.querySelector('h1')?.textContent).toBe(title)
+      expect(getByTestId('quote-pdf').querySelector('button')?.textContent).toBe(q(locale, 'pdf', 'download'))
+      const remainder = getByTestId('quote-remainder')
+      expect(remainder.textContent).toContain(q(locale, 'remainderPay', 'heading'))
+      expect(remainder.querySelector('button[type="submit"]')?.textContent).toBe(
+        q(locale, 'remainderPay', 'button').replace('{amount}', ltrIsolate(formatMinor(12000, 'eur'))),
+      )
+
+      // No untranslated key, unfilled ICU placeholder or next-intl missing-message report.
+      expect(page.textContent).not.toMatch(/Quote\.[a-z]|\{[a-zA-Z]+\}/)
+      expect(errors.mock.calls.map((c) => String(c[0])).filter((m) => /MISSING_MESSAGE|IntlError/i.test(m))).toEqual([])
+
+      // The token lives only in the islands' props: never in the markup, a link or any URL attribute.
+      expect(container.innerHTML).not.toContain(fx.token)
+      for (const value of urlAttributes(container)) expect(value).not.toContain(fx.token)
+
+      // One price per line: no separate waiting price in the locale's words, and the stop fees never surface.
+      expect(WAITING_PRICE[locale].test(page.textContent ?? '')).toBe(false)
+      expect(page.textContent).not.toMatch(/€\s?(14|7)(?!\d)/)
+    },
+  )
+
+  it('an offer, a paid remainder and an invoice quote leak neither the token nor a waiting price either', async () => {
+    const setups: Array<() => Promise<{ token: string }>> = [
+      () => seed({ remainderMethod: 'payment_link' }),
+      () => seedPaid('payment_link', { remainderPaid: true }),
+      () => seedPaid('invoice'),
+    ]
+    for (const setup of setups) {
+      db = createFakePaymentsDb()
+      counter = countingClient(db)
+      world.client = counter
+      const fx = await setup()
+      const { container, getByTestId, unmount } = await renderPage('en', fx.token)
+      expect(container.innerHTML).not.toContain(fx.token)
+      for (const value of urlAttributes(container)) expect(value).not.toContain(fx.token)
+      expect(WAITING_PRICE.en.test(getByTestId('quote-page').textContent ?? '')).toBe(false)
+      unmount()
+    }
+  })
+
+  it('the Stripe return URL of the remainder carries no token', async () => {
+    const fx = await seedPaid('payment_link')
+    stripeDouble.submit.mockResolvedValue({})
+    stripeDouble.confirmPayment.mockResolvedValue({ paymentIntent: { status: 'succeeded' } })
+    fetchMock.mockImplementation(async (url: string) =>
+      url === '/api/quote/remainder'
+        ? new Response(JSON.stringify({ clientSecret: 'pi_r_secret_x', amountMinor: 12000, currency: 'eur' }), { status: 200 })
+        : new Response('{}'),
+    )
+    const { getByTestId } = await renderPage('en', fx.token)
+    const { fireEvent, act } = await import('@testing-library/react')
+    await act(async () => {
+      fireEvent.click(getByTestId('quote-remainder').querySelector('button[type="submit"]') as HTMLButtonElement)
+    })
+    const confirm = stripeDouble.confirmPayment.mock.calls[0][0] as { confirmParams: { return_url: string } }
+    expect(confirm.confirmParams.return_url).not.toContain(fx.token)
+    // Every request the page made carried the token in a POST body only, never in its URL.
+    for (const [url] of fetchMock.mock.calls as Array<[string]>) expect(url).not.toContain(fx.token)
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
 describe('quote page in every locale (D-09)', () => {
   it.each([...locales])('%s: renders the offer in its own language', async (locale) => {
     const fx = await seed({ locale })
@@ -699,6 +784,10 @@ describe('the one invalid view (T-92-30)', () => {
     expect(getByTestId('quote-invalid')).toBeTruthy()
     expect(queryByTestId('quote-page')).toBeNull()
     expect(queryByTestId('quote-viewed-ping')).toBeNull()
+    // Plan 92-27: the new islands never appear on the invalid view.
+    for (const id of ['quote-pdf', 'quote-remainder', 'quote-remainder-paid', 'quote-invoice-note']) {
+      expect(queryByTestId(id)).toBeNull()
+    }
     const html = container.innerHTML
     unmount()
     return html
