@@ -12,6 +12,7 @@ import { renderQuoteAccountingEmail } from '@/lib/quotes/emails/accounting'
 import { renderQuoteConfirmedEmail } from '@/lib/quotes/emails/confirmed'
 import { sendQuoteEmail } from '@/lib/quotes/emails/shell'
 import { appendQuoteEvent, hasQuoteEvent } from '@/lib/quotes/events'
+import { mintQuoteLink } from '@/lib/quotes/lifecycle'
 import { remainderDueMinor } from '@/lib/quotes/money'
 import type { QuoteAcceptanceRow, QuoteLineRow, QuoteRow, QuoteVersionRow } from '@/lib/quotes/types'
 
@@ -449,7 +450,16 @@ export async function runQuotePaidEffects(quoteId: string): Promise<void> {
           )
         : lines.filter((l) => liveLines.has(l.id)).reduce((sum, l) => sum + (l.remainder_minor ?? 0), 0)
     // The PDF of the quote is attached by plan 92-20; nothing is attached here (seam: pass `attachments` to sendQuoteEmail).
-    const mail = await renderQuoteConfirmedEmail({ quote, version, bookings: live, remainderDueMinor: dueMinor, quoteUrl: null })
+    // The "Open your quote" button: a fresh link minted by the system (only its hash is stored, the URL lives in this email).
+    // A link that cannot be minted never blocks the confirmation: the email goes out without the button.
+    let quoteUrl: string | null = null
+    try {
+      const minted = await mintQuoteLink(quoteId, null)
+      if (minted.ok) quoteUrl = minted.url
+    } catch {
+      console.error('[quote-convert] confirmation link mint failed', { quoteId })
+    }
+    const mail = await renderQuoteConfirmedEmail({ quote, version, bookings: live, remainderDueMinor: dueMinor, quoteUrl })
     const outcome = await sendQuoteEmail({
       to: quote.client_email,
       subject: mail.subject,
