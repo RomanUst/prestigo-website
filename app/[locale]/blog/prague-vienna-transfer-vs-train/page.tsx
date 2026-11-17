@@ -24,8 +24,8 @@ const ARTICLE_MODIFIED = '2026-10-20'
 // Every number on this page is cross-checked against operator websites,
 // Seat61, Rome2Rio and our own dispatch data — no marketing claims.
 
-const DESCRIPTION = 'Prague to Vienna 2026: train 4h platform-to-platform (5h+ door-to-door) vs private car 3h 15min door-to-door. Honest cost by group size, luggage, FAQ.'
-const TITLE = 'Prague to Vienna 2026: Train 4h vs Car 3h15 Door-to-Door'
+const DESCRIPTION = 'Prague–Vienna transfer vs train: private car 3h15 door-to-door, train 5h+ with station transfers. When the car wins for groups, luggage and tight schedules.'
+const TITLE = 'Prague to Vienna Train vs Car: Car Saves 2h Door-to-Door'
 
 // CR-01: converted from a static `metadata` export to generateMetadata() so
 // the current locale is available. EN-only legacy JSX article (D-08) — no
