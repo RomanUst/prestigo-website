@@ -238,6 +238,14 @@ describe('tracer: one client confirmation per paid quote, exactly once', () => {
     expect(mail.html).toContain(formatMinor(7000, 'eur'))
     expect(mail.html).toContain('Karlovo namesti 1, Praha')
     expect(mail.html).toContain('08:30')
+    // The "Open your quote" button carries a fresh system link of the current version; only its hash is stored.
+    expect(mail.html).toContain(ru.QuoteEmails.common.openQuote)
+    const href = /href="(https?:\/\/[^"]*\/ru\/quote\/[^"]+)"/.exec(mail.html)?.[1]
+    expect(href).toBeTruthy()
+    const systemLinks = (db.state.quote_links as Row[]).filter((l) => l.quote_id === s.quoteId && l.created_by === null)
+    expect(systemLinks).toHaveLength(1)
+    expect(String(href)).not.toContain(String(systemLinks[0].token_hash))
+    expect(events(s.quoteId).some((e) => e.kind === 'link_minted' && e.actor_type === 'system')).toBe(true)
 
     const claimed = events(s.quoteId).filter((e) => e.event_key === 'email:confirmed')
     expect(claimed).toHaveLength(1)

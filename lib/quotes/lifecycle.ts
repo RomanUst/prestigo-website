@@ -106,12 +106,12 @@ async function insertLink(
   supabase: Supabase,
   quote: Pick<QuoteRow, 'id'>,
   version: Pick<QuoteVersionRow, 'id' | 'locale'>,
-  actor: LifecycleActor,
+  actor: LifecycleActor | null,
 ): Promise<{ linkId: string; url: string }> {
   const token = newQuoteToken()
   const { data, error } = await supabase
     .from('quote_links')
-    .insert({ quote_id: quote.id, version_id: version.id, token_hash: hashQuoteToken(token), created_by: actor.id })
+    .insert({ quote_id: quote.id, version_id: version.id, token_hash: hashQuoteToken(token), created_by: actor?.id ?? null })
     .select('id')
     .single()
   if (error || !data) fail('insert link', quote.id, error?.code)
@@ -120,7 +120,7 @@ async function insertLink(
     key: `link:${linkId}`,
     kind: 'link_minted',
     versionId: version.id,
-    actor: { type: 'admin', id: actor.id },
+    actor: actor ? { type: 'admin', id: actor.id } : { type: 'system' },
   })
   return { linkId, url: buildQuoteUrl(token, version.locale) }
 }
@@ -128,9 +128,9 @@ async function insertLink(
 /**
  * A fresh secret link for the current version of a sent, viewed, accepted or paid quote. A draft (nothing to open), a
  * voided or a cancelled quote has no live link to give. Whether the link still opens an offer is decided by the page
- * (expiry, first pickup), not here.
+ * (expiry, first pickup), not here. `actor` null = minted by the system (the confirmation email after the deposit).
  */
-export async function mintQuoteLink(quoteId: string, actor: LifecycleActor): Promise<MintQuoteLinkResult> {
+export async function mintQuoteLink(quoteId: string, actor: LifecycleActor | null): Promise<MintQuoteLinkResult> {
   const supabase = createSupabaseServiceClient()
   const quote = await readQuote(supabase, quoteId)
   if (!quote || !quote.current_version_id) return { ok: false, code: 'not_found' }
