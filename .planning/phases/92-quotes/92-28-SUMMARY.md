@@ -2,7 +2,7 @@
 phase: 92-quotes
 plan: 28
 subsystem: quotes / phase close (integration test, quality gate, live proofs)
-status: checkpoint
+status: complete
 tags: [quotes, e2e, stripe, webhook, quality-gate]
 requires: ["92-10", "92-12", "92-21", "92-26", "92-27", "92-30", "92-32"]
 provides:
@@ -39,7 +39,7 @@ plan_head_after: 151258c9333641d0c2819e9c262c290ec266506e
 
 # Phase 92 Plan 28: Phase close, e2e integration test and full quality gate Summary
 
-One integration test now drives a quote through the real routes of every Phase 92 plan, from the operator's builder to a refunded cancel. The full gate is green: no real test failures, type check at baseline, lint clean, verify pre-pr PASS including the build. **Task 3 (owner live proofs on production) is NOT done. This plan stops at that checkpoint.**
+One integration test now drives a quote through the real routes of every Phase 92 plan, from the operator's builder to a refunded cancel. The full gate is green: no real test failures, type check at baseline, lint clean, verify pre-pr PASS including the build. Task 3 (owner live proofs on production) is done: see "Task 3: live proofs (2026-11-17)".
 
 ## Tasks
 
@@ -157,3 +157,22 @@ The owner and the orchestrator still have to do Task 3 on production. It is not 
 - FOUND: tests/phase92-e2e.test.ts
 - FOUND: .planning/phases/92-quotes/deferred-items.md
 - FOUND: 3a5a5ae3 (test(92-28)), 151258c9 (chore(92-28))
+
+## Task 3: live proofs (2026-11-17), done
+
+Production runs the phase code: PR #116 (merge d18f452d) and PR #117 (f90e4b71, see below). Owner's own email and card only, small amounts. Rows checked by the orchestrator through the Supabase MCP.
+
+**Canary 1: saved card, Q-20261117-1R96ZT** (en; total 138.00, deposit 13.80)
+- Events: created → sent → link_minted → email_sent (PDF stored, 183 638 bytes, byte_size = length) → viewed → accepted → deposit_started → deposit_paid → converted → accounting email → operator alert → confirmation email → reminders.
+- Two bookings, PRG-20261117-575FE9 and PRG-20261117-68C20A: card_hold, quote_line_id set, deposit share 690 each, hold_at 72 h before pickup, payment_intent_id null. Ledger: quote_deposit 690 + 690.
+- The owner cancelled both trips from Bookings (cancel_prestigo). Holds were released and cancellation emails sent. The deposit stayed with the quote (D-11/D-12). The owner then refunded it from the quote page: deposit_refunded and refund_observed are both recorded, and Stripe confirmed.
+
+**Canary 2: payment link, Q-20261117-TDP64Q** (en; total 10.00, deposit 1.00, remainder 9.00)
+- deposit_paid → converted (1 booking) → confirmation email → remainder_started → remainder_paid on the quote page → cancel with refund → deposit_refunded, remainder_refunded, refund_observed ×2, cancellation email. Owner confirmed: "бронь отменена и деньги вернули".
+
+**Found in the proofs and fixed:** the confirmation email told a payment-link client to pay "on your quote page" but had no link to it. PR #117 makes the conversion mint a system link (created_by null) and adds the "Open your quote" button. Merged and deployed (Vercel success).
+
+**Noted, not changed:**
+- iOS mail shows a space before "," and "." after a `<bdi>` value. The stored data has no space, so this is a client rendering quirk.
+- When every trip of a paid quote is cancelled from Bookings, nothing reminds the operator that the deposit is still held. This is a possible UX follow-up.
+- Both canaries were sent in en, not ru. The ru PDF render was already proven by the pdf-check in 92-32.

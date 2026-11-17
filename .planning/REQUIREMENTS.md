@@ -77,13 +77,13 @@ Requirements for this milestone. Each maps to a roadmap phase.
 
 ### Quotes (QUOTE)
 
-- [ ] **QUOTE-01**: Operator can build a quote of several trips or days (each line with route, date, time, vehicle, price) in admin
-- [ ] **QUOTE-02**: Client opens the quote by a secret link (unguessable, expiring, not indexed) and sees an itemised summary
-- [ ] **QUOTE-03**: Operator sets a deposit as a percent or fixed amount; client pays it via the quote page, which also saves the card
-- [ ] **QUOTE-04**: Operator chooses how the remainder is collected per quote: saved card (hold/capture per trip), payment link, cash to driver, or invoice
-- [ ] **QUOTE-05**: Client accepts the quote with a logged acceptance; on deposit payment each line becomes a booking linked to the quote
-- [ ] **QUOTE-06**: Quote lifecycle (draft, sent, viewed, accepted, paid, expired) is visible in admin; editing a sent quote creates a new version and voids the old links
-- [ ] **QUOTE-07**: Client can download the quote as a PDF, and the quote email includes the PDF
+- [x] **QUOTE-01**: Operator can build a quote of several trips or days (each line with route, date, time, vehicle, price) in admin
+- [x] **QUOTE-02**: Client opens the quote by a secret link (unguessable, expiring, not indexed) and sees an itemised summary
+- [x] **QUOTE-03**: Operator sets a deposit as a percent or fixed amount; client pays it via the quote page, which also saves the card
+- [x] **QUOTE-04**: Operator chooses how the remainder is collected per quote: saved card (hold/capture per trip), payment link, cash to driver, or invoice
+- [x] **QUOTE-05**: Client accepts the quote with a logged acceptance; on deposit payment each line becomes a booking linked to the quote
+- [x] **QUOTE-06**: Quote lifecycle (draft, sent, viewed, accepted, paid, expired) is visible in admin; editing a sent quote creates a new version and voids the old links
+- [x] **QUOTE-07**: Client can download the quote as a PDF, and the quote email includes the PDF
 
 ### Day trips (TRIP)
 
@@ -161,13 +161,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | STOP-03 | Phase 91 | Complete |
 | STOP-04 | Phase 91 | Complete |
 | STOP-05 | Phase 91 | Complete |
-| QUOTE-01 | Phase 92 | Pending |
-| QUOTE-02 | Phase 92 | Pending |
-| QUOTE-03 | Phase 92 | Pending |
-| QUOTE-04 | Phase 92 | Pending |
-| QUOTE-05 | Phase 92 | Pending |
-| QUOTE-06 | Phase 92 | Pending |
-| QUOTE-07 | Phase 92 | Pending |
+| QUOTE-01 | Phase 92 | Complete |
+| QUOTE-02 | Phase 92 | Complete |
+| QUOTE-03 | Phase 92 | Complete |
+| QUOTE-04 | Phase 92 | Complete |
+| QUOTE-05 | Phase 92 | Complete |
+| QUOTE-06 | Phase 92 | Complete |
+| QUOTE-07 | Phase 92 | Complete |
 | TRIP-01 | Phase 93 | Pending |
 | TRIP-02 | Phase 93 | Pending |
 | TRIP-03 | Phase 93 | Pending |
