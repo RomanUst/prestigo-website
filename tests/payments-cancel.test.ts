@@ -764,3 +764,117 @@ describe('no refund on any late path (T-89-26 / D-07)', () => {
     expect(fake.callsTo('refunds.create')).toHaveLength(0)
   })
 })
+
+// ── Phase 92 plan 92-11: the quote rule (D-11, D-12) and the quiet mode of a quote-level cancel ──────────────────────
+
+const QUOTE_TRIP = { quote_id: '99999999-9999-4999-8999-999999999991', quote_line_id: '99999999-9999-4999-8999-999999999992' }
+
+describe('D-11: a trip of a quote is always free on the trip side', () => {
+  it('D-11 tracer: a late admin_client cancel of an authorized quote booking releases the hold, opens no case, mails the free variant', async () => {
+    const piId = await holdPi()
+    seed({ ...QUOTE_TRIP, payment_state: 'authorized', hold_payment_intent_id: piId, hold_amount_minor: 10000 })
+    fake.calls.length = 0
+
+    const res = await run('admin_client', LATE_NOW)
+
+    expect(res).toEqual({ kind: 'ok', outcome: 'free', money: 'released' })
+    expect(row()).toMatchObject({ status: 'cancelled', payment_state: 'released' })
+    expect(fake.state.paymentIntents.get(piId)!.status).toBe('canceled')
+    expect(cases()).toHaveLength(0)
+    expect(row().fee_case_status ?? null).toBeNull()
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+    expect(mockEmail).toHaveBeenCalledTimes(1)
+    expect(mockEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ id: ID }),
+      'confirmed',
+      expect.objectContaining({ variant: 'free', moneyOutcome: 'released' }),
+    )
+  })
+
+  it('D-11: the same late cancel of a booking WITHOUT quote_id still keeps the hold and opens a case', async () => {
+    const piId = await holdPi()
+    seed({ payment_state: 'authorized', hold_payment_intent_id: piId, hold_amount_minor: 10000 })
+    expect(await run('admin_client', LATE_NOW)).toMatchObject({ kind: 'ok', outcome: 'late', money: 'kept' })
+    expect(cases()).toHaveLength(1)
+    expect(fake.state.paymentIntents.get(piId)!.status).toBe('requires_capture')
+  })
+
+  it('D-11: card_hold + card_saved, late: nothing is charged, no case', async () => {
+    seed({ ...QUOTE_TRIP, payment_mode: 'card_hold', payment_state: 'card_saved' })
+    fake.calls.length = 0
+    const res = await run('admin_client', LATE_NOW)
+    expect(res).toMatchObject({ kind: 'ok', outcome: 'free' })
+    expect(['released', 'none']).toContain((res as { money: string }).money)
+    expect(row().status).toBe('cancelled')
+    expect(cases()).toHaveLength(0)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+  })
+
+  it('D-11: cash_guarantee, late: no case, no charge', async () => {
+    seed({ ...QUOTE_TRIP, payment_mode: 'cash_guarantee', payment_state: 'card_saved' })
+    fake.calls.length = 0
+    const res = await run('admin_client', LATE_NOW)
+    expect(res).toMatchObject({ kind: 'ok', outcome: 'free' })
+    expect(cases()).toHaveLength(0)
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(0)
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+  })
+
+  it('D-11: payment_mode quote, late: the status changes and Stripe is not touched', async () => {
+    seed({ ...QUOTE_TRIP, payment_mode: 'quote', payment_state: 'none', payment_amount_minor: null, payment_currency: null })
+    fake.calls.length = 0
+    expect(await run('admin_client', LATE_NOW)).toEqual({ kind: 'ok', outcome: 'free', money: 'none' })
+    expect(row().status).toBe('cancelled')
+    expect(fake.calls).toHaveLength(0)
+    expect(cases()).toHaveLength(0)
+  })
+
+  it('D-11: even a cancel after the pickup time opens no case on a quote trip', async () => {
+    seed({ ...QUOTE_TRIP, payment_state: 'card_saved' })
+    expect(await run('admin_client', PICKUP + HOUR)).toMatchObject({ kind: 'ok', outcome: 'free' })
+    expect(cases()).toHaveLength(0)
+  })
+
+  it('D-11: the client path keeps its own limits on a quote trip (too late after the pickup)', async () => {
+    seed({ ...QUOTE_TRIP, payment_state: 'card_saved' })
+    expect(await run('client_token', PICKUP + HOUR, { acknowledge: 'free' })).toEqual({ kind: 'too_late' })
+    expect(row().status).toBe('confirmed')
+  })
+})
+
+describe('suppressClientEmail (a quote-level cancel speaks once)', () => {
+  it('without the flag a single quote trip cancel emails the client with the free outcome', async () => {
+    seed({ ...QUOTE_TRIP, payment_state: 'card_saved' })
+    await run('admin_client', LATE_NOW)
+    expect(mockEmail).toHaveBeenCalledTimes(1)
+    expect(mockEmail.mock.calls[0][2]).toMatchObject({ variant: 'free' })
+  })
+
+  it.each([
+    ['authorized hold', async () => ({ payment_state: 'authorized', hold_payment_intent_id: await holdPi(), hold_amount_minor: 10000 })],
+    ['saved card', async () => ({ payment_state: 'card_saved' })],
+    ['quote mode', async () => ({ payment_mode: 'quote', payment_state: 'none', payment_amount_minor: null, payment_currency: null })],
+    ['partner booking', async () => ({ booking_source: 'gnet', payment_mode: 'partner', payment_state: 'none' })],
+  ])('%s: no client email, the cancel and its money step are unchanged', async (_name, over) => {
+    seed({ ...QUOTE_TRIP, ...(await over()) })
+    const res = await run('admin_client', LATE_NOW, { suppressClientEmail: true })
+    expect(res.kind).toBe('ok')
+    expect(row().status).toBe('cancelled')
+    expect(mockEmail).not.toHaveBeenCalled()
+  })
+
+  it('a paid card booking on a quote trip is refunded without a client email', async () => {
+    seed({ ...QUOTE_TRIP, payment_state: 'captured', payment_intent_id: await paidPi(10000), captured_amount_minor: 10000 })
+    const res = await run('admin_client', LATE_NOW, { suppressClientEmail: true })
+    expect(res).toMatchObject({ kind: 'ok', money: 'refunded' })
+    expect(mockEmail).not.toHaveBeenCalled()
+  })
+
+  it('on a booking without quote_id the flag silences the mail but a late cancel still opens its case', async () => {
+    seed({ payment_state: 'card_saved' })
+    expect(await run('admin_client', LATE_NOW, { suppressClientEmail: true })).toMatchObject({ kind: 'ok', outcome: 'late', money: 'kept' })
+    expect(cases()).toHaveLength(1)
+    expect(mockEmail).not.toHaveBeenCalled()
+  })
+})

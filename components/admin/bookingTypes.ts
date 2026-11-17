@@ -99,6 +99,12 @@ export interface AdminBooking {
   pickup_offset_min?: number | null
   // Phase 91: the stops of the booking, attached by the list and dispatch routes ([] when none).
   stops?: AdminBookingStop[]
+  // Phase 92 (migration 091): set on a booking created from an accepted quote (QUOTE-05). quote_deposit_minor is this
+  // trip's share of the quote deposit in the quote's currency (bigint: JSON number, or a string on some paths).
+  // All three arrive through admin_search_bookings (select b.*); ordinary bookings and old fixtures omit them.
+  quote_id?: string | null
+  quote_line_id?: string | null
+  quote_deposit_minor?: number | string | null
 }
 
 // One definition lives in bookingMoves.ts (Phase 90 plan 06); re-exported so existing importers keep working.

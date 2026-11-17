@@ -3,6 +3,7 @@
  *
  * - /manage/<token>  guest self-service page; the token in the URL is the credential
  * - /driver/...      driver trip page; the trip token is in the URL (Phase 87)
+ * - /quote/<token>   client quote page (Phase 92); the token in the URL is the credential
  * - /admin/...       operator back office
  *
  * Analytics, the cookie banner and chat must not run on these paths, because each of
@@ -14,7 +15,7 @@
  */
 import { locales } from '@/i18n/locales'
 
-const PRIVATE_SEGMENTS = ['admin', 'driver', 'manage'] as const
+const PRIVATE_SEGMENTS = ['admin', 'driver', 'manage', 'quote'] as const
 
 // English is unprefixed in routing, but a literal /en/... is still treated as a prefix: it is
 // redirected, never a different page, so the guard must not be bypassable through it.

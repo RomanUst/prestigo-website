@@ -446,3 +446,89 @@ describe('PATCH trip-edit — card booking payment hook', () => {
     expect(mockCancelHoldIntent).not.toHaveBeenCalled()
   })
 })
+
+describe('PATCH trip-edit — D-20: a quote booking never charges the deposit share again', () => {
+  const QUOTE_ID = '5b0c8e1a-3d4f-4a6b-9c7d-1e2f3a4b5c6d'
+  const quoteBooking = (over: Record<string, unknown> = {}) =>
+    cardBooking({
+      quote_id: QUOTE_ID,
+      quote_deposit_minor: 9000,
+      amount_czk: 7500,
+      amount_eur: 300,
+      payment_amount_minor: 21000,
+      hold_amount_minor: 21000,
+      ...over,
+    })
+
+  it('card_hold quote booking, price 300 -> 320 eur with a 90 eur deposit share: amount to charge 23000, ledger row carries 23000', async () => {
+    wire(quoteBooking(), quoteBooking({ amount_czk: 8000, amount_eur: 320 }))
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 8000, override_price: true }))
+    expect(res.status).toBe(200)
+    expect(updates[0]).toMatchObject({ amount_czk: 8000, amount_eur: 320 })
+    expect(transitionArgs()).toHaveLength(1)
+    expect(transitionArgs()[0]).toMatchObject({
+      patch: { payment_amount_minor: 23000 },
+      event: { kind: 'edit_reevaluated', amountMinor: 23000 },
+    })
+    expect((await res.json()).payment_effect).toEqual({ kind: 'amount_raised', currency: 'eur', held_minor: 21000, diff_minor: 2000 })
+  })
+
+  it('card_saved quote booking: the next hold is planned for the new amount minus the deposit share', async () => {
+    const saved = { payment_state: 'card_saved', hold_amount_minor: null, hold_payment_intent_id: null }
+    wire(quoteBooking(saved), quoteBooking({ ...saved, amount_czk: 8000, amount_eur: 320 }))
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 8000, override_price: true }))
+    expect(res.status).toBe(200)
+    expect(transitionArgs()[0]).toMatchObject({ patch: { payment_amount_minor: 23000 } })
+  })
+
+  it('czk quote booking: the deposit share (czk minor) is subtracted from amount_czk x 100', async () => {
+    const czk = { payment_currency: 'czk', quote_deposit_minor: 225000, payment_amount_minor: 525000, hold_amount_minor: 525000 }
+    wire(quoteBooking(czk), quoteBooking({ ...czk, amount_czk: 8000, amount_eur: 320 }))
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 8000, override_price: true }))
+    expect(res.status).toBe(200)
+    expect(transitionArgs()[0]).toMatchObject({ patch: { payment_amount_minor: 575000 } })
+  })
+
+  it('cash_guarantee quote booking follows the same rule', async () => {
+    const cash = { payment_mode: 'cash_guarantee', payment_state: 'card_saved', hold_amount_minor: null, hold_payment_intent_id: null }
+    wire(quoteBooking(cash), quoteBooking({ ...cash, amount_czk: 8000, amount_eur: 320 }))
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 8000, override_price: true }))
+    expect(res.status).toBe(200)
+    expect(transitionArgs()[0]).toMatchObject({ to: 'card_saved', patch: { payment_amount_minor: 23000 } })
+  })
+
+  it.each([
+    ['card_hold', {}],
+    ['cash_guarantee', { payment_mode: 'cash_guarantee', payment_state: 'card_saved' }],
+  ])('%s: an edit to 80 eur with a 9000 share answers 422 quote_amount_below_deposit and nothing changes', async (_mode, over) => {
+    wire(quoteBooking(over))
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 2000, override_price: true }))
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'quote_amount_below_deposit' })
+    expect(updates).toHaveLength(0)
+    expect(mockApplyTransition).not.toHaveBeenCalled()
+    expect(mockAppendEvent).not.toHaveBeenCalled()
+  })
+
+  it('an edit to exactly the deposit share (nothing left to charge) is refused as well', async () => {
+    wire(quoteBooking())
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 2250, override_price: true }))
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({ error: 'quote_amount_below_deposit' })
+    expect(updates).toHaveLength(0)
+  })
+
+  it('a contact-only edit of a quote booking is not touched by the rule', async () => {
+    wire(quoteBooking())
+    const res = await PATCH(patchRequest({ id: ID, client_first_name: 'Petr' }))
+    expect(res.status).toBe(200)
+    expect(mockApplyTransition).not.toHaveBeenCalled()
+  })
+
+  it('an ordinary booking (no quote_id) is repriced to the full amount, as before', async () => {
+    wire(cardBooking({ quote_deposit_minor: 9000 }), cardBooking({ amount_czk: 8000, amount_eur: 320 }))
+    const res = await PATCH(patchRequest({ id: ID, vehicle_class: 'first_class', amount_czk: 8000, override_price: true }))
+    expect(res.status).toBe(200)
+    expect(transitionArgs()[0]).toMatchObject({ patch: { payment_amount_minor: 32000 } })
+  })
+})

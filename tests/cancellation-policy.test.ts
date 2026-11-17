@@ -20,6 +20,7 @@ import {
   CANCELLATION_POLICY_VERSION,
   DEFAULT_POLICY,
   LEGACY_POLICY,
+  POLICY_BOUNDS,
   evaluateCancellation,
   freeHoursFor,
   policyFromSnapshot,
@@ -145,6 +146,41 @@ describe('policyFromSnapshot (D-18)', () => {
     expect(evaluateCancellation(stored, trip, PICKUP - 30 * HOUR).kind).toBe('free')
     expect(evaluateCancellation(stored, trip, PICKUP - 18 * HOUR).kind).toBe('late')
     expect(evaluateCancellation(POLICY, trip, PICKUP - 18 * HOUR).kind).toBe('free')
+  })
+})
+
+describe('policyFromSnapshot quote bound (Phase 92, D-13, T-92-08)', () => {
+  const quote = (hours: number) => ({
+    ...POLICY,
+    version: 'quote-2026-11-1',
+    freeHoursShort: hours,
+    freeHoursLong: hours,
+    freeHoursHourly: hours,
+  })
+  it('POLICY_BOUNDS.quoteHours is 0..720 and the ordinary hours bound is still 0..72', () => {
+    expect(POLICY_BOUNDS.quoteHours).toEqual({ min: 0, max: 720 })
+    expect(POLICY_BOUNDS.hours).toEqual({ min: 0, max: 72 })
+  })
+  it('D-13: a quote- snapshot keeps 720 hours; 721 falls back to the legacy policy', () => {
+    const kept = policyFromSnapshot(quote(720))
+    expect(kept).not.toBe(LEGACY_POLICY)
+    expect(kept.freeHoursShort).toBe(720)
+    expect(kept.freeHoursLong).toBe(720)
+    expect(kept.freeHoursHourly).toBe(720)
+    expect(policyFromSnapshot(quote(721))).toBe(LEGACY_POLICY)
+    expect(policyFromSnapshot(quote(-1))).toBe(LEGACY_POLICY)
+  })
+  it('D-13: a quote- snapshot keeps an in-between value such as 336', () => {
+    expect(policyFromSnapshot(quote(336)).freeHoursLong).toBe(336)
+  })
+  it('D-13: a non-quote snapshot with 73 hours still falls back to the legacy policy', () => {
+    expect(policyFromSnapshot({ ...POLICY, freeHoursLong: 73 })).toBe(LEGACY_POLICY)
+    expect(policyFromSnapshot({ ...POLICY, version: 'quote', freeHoursLong: 73 })).toBe(LEGACY_POLICY)
+    expect(policyFromSnapshot({ ...POLICY, version: '2026-quote-1', freeHoursLong: 73 })).toBe(LEGACY_POLICY)
+  })
+  it('a quote- snapshot with a bad km threshold or fee percent still falls back', () => {
+    expect(policyFromSnapshot({ ...quote(100), feePercent: 0 })).toBe(LEGACY_POLICY)
+    expect(policyFromSnapshot({ ...quote(100), kmThreshold: 0 })).toBe(LEGACY_POLICY)
   })
 })
 

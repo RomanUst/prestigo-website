@@ -36,6 +36,18 @@ describe('redactSecretPaths', () => {
     )
   })
 
+  it('replaces the token of a quote path, plain and locale-prefixed (zh-hant too)', () => {
+    const q = 'Q'.repeat(43)
+    expect(redactSecretPaths(`https://rideprestigo.com/quote/${q}`)).toBe('https://rideprestigo.com/quote/[redacted]')
+    expect(redactSecretPaths(`https://rideprestigo.com/ar/quote/${q}?x=1`)).toBe(
+      'https://rideprestigo.com/ar/quote/[redacted]?x=1',
+    )
+    expect(redactSecretPaths(`https://rideprestigo.com/zh-hant/quote/${q}`)).toBe(
+      'https://rideprestigo.com/zh-hant/quote/[redacted]',
+    )
+    expect(redactSecretPaths(`https://rideprestigo.com/manage/${TOKEN}`)).toBe('https://rideprestigo.com/manage/[redacted]')
+  })
+
   it('leaves other URLs alone', () => {
     const url = 'https://rideprestigo.com/routes/prague-vienna'
     expect(redactSecretPaths(url)).toBe(url)

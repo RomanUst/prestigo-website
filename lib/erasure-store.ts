@@ -54,6 +54,9 @@ export interface AnonymiseCounts {
   payment_notes_deleted: number
   fee_cases_scrubbed: number
   stripe_ids_cleared: number
+  /** Phase 92 (migration 091): quotes without a booking or money are deleted, the others anonymised in place. */
+  quotes_deleted: number
+  quotes_anonymised: number
 }
 
 export type ConfirmOutcome =
@@ -84,6 +87,12 @@ export interface ErasureStore {
    * fee case) is left out: deleting it would make the hold unreleasable.
    */
   stripeCustomerIds(bookingIds: string[]): Promise<string[]>
+  /**
+   * Phase 92 (D-19): the distinct Stripe Customer ids stored on the request person's quotes (migration 091,
+   * erasure_quote_customer_ids), without those of a quote with money in flight. Read BEFORE the Supabase step
+   * clears them, like stripeCustomerIds.
+   */
+  quoteStripeCustomerIds(requestId: string): Promise<string[]>
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -178,6 +187,8 @@ const COUNT_KEYS: ReadonlyArray<keyof AnonymiseCounts> = [
   'payment_notes_deleted',
   'fee_cases_scrubbed',
   'stripe_ids_cleared',
+  'quotes_deleted',
+  'quotes_anonymised',
 ]
 
 export async function anonymisePerson(requestId: string, client?: SupabaseClient): Promise<AnonymiseCounts> {
@@ -297,6 +308,8 @@ export interface ErasureScopeOk {
     paymentOpen: number
     inquiries: number
     quoteLeads: number
+    /** Phase 92 (migration 091): the person's quotes (deleted or anonymised by the erasure). */
+    quotes: number
     hasAccount: boolean
   }
 }
@@ -346,6 +359,7 @@ export async function erasureScope(
           paymentOpen: count(counts.payment_open),
           inquiries: count(counts.inquiries),
           quoteLeads: count(counts.quote_leads),
+          quotes: count(counts.quotes),
           hasAccount: counts.has_account === true,
         },
       }
@@ -381,6 +395,7 @@ export async function createErasurePreview(
           payment_open: scope.counts.paymentOpen,
           inquiries: scope.counts.inquiries,
           quote_leads: scope.counts.quoteLeads,
+          quotes: scope.counts.quotes,
           has_account: scope.counts.hasAccount,
         },
       },
@@ -427,6 +442,18 @@ export async function erasureLog(limit = 20, client?: SupabaseClient): Promise<E
   return rows
 }
 
+/**
+ * The Stripe Customer ids stored on the request person's quotes (migration 091). The SQL function already leaves out
+ * a quote with a deposit or remainder in flight; a read error or a malformed answer becomes db_error, which the
+ * dispatcher retries (the same rule as stripeCustomerIds).
+ */
+export async function quoteStripeCustomerIds(requestId: string, client?: SupabaseClient): Promise<string[]> {
+  const data = await rpc('erasure_quote_customer_ids', { p_request_id: requestId }, client)
+  if (data === null || data === undefined) return []
+  if (!Array.isArray(data)) throw new OutboxStoreError('db_error')
+  return [...new Set(stringList(data).filter((id) => id !== ''))]
+}
+
 /** The default store the dispatcher uses. */
 export const supabaseErasureStore: ErasureStore = {
   loadErasure: (requestId) => loadErasure(requestId),
@@ -435,4 +462,5 @@ export const supabaseErasureStore: ErasureStore = {
   completeErasure: (requestId, verified, counts, status) => completeErasure(requestId, verified, counts, status),
   deleteAuthUser: (userId) => deleteAuthUser(userId),
   stripeCustomerIds: (bookingIds) => stripeCustomerIds(bookingIds),
+  quoteStripeCustomerIds: (requestId) => quoteStripeCustomerIds(requestId),
 }

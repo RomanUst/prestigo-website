@@ -114,3 +114,36 @@ describe('CSRF Origin check on the card checkout endpoints (Phase 88)', () => {
     expect(res.status).not.toBe(403)
   })
 })
+
+// Phase 92 (T-92-13): the public quote endpoints (view / accept / state / pdf / remainder) are browser-only
+// and token-authenticated, so a missing Origin is refused too. /api/submit-quote (the old lead form) keeps
+// its non-strict behaviour: '/api/quote' must not match it.
+const QUOTE_ROUTES = [
+  '/api/quote/view',
+  '/api/quote/accept',
+  '/api/quote/state',
+  '/api/quote/pdf',
+  '/api/quote/remainder',
+]
+
+describe('CSRF Origin check on the public quote endpoints (Phase 92)', () => {
+  it.each(QUOTE_ROUTES)('%s: a cross-site Origin is refused with 403', async (path) => {
+    const res = await middleware(post(path, 'https://evil.example'))
+    expect(res.status).toBe(403)
+  })
+
+  it.each(QUOTE_ROUTES)('%s: a missing Origin is refused with 403 (strict)', async (path) => {
+    const res = await middleware(post(path, null))
+    expect(res.status).toBe(403)
+  })
+
+  it.each(QUOTE_ROUTES)('%s: the site origin passes', async (path) => {
+    const res = await middleware(post(path, 'https://prestigo.cz'))
+    expect(res.status).not.toBe(403)
+  })
+
+  it('/api/submit-quote keeps its behaviour: foreign Origin refused, missing Origin passes', async () => {
+    expect((await middleware(post('/api/submit-quote', 'https://evil.example'))).status).toBe(403)
+    expect((await middleware(post('/api/submit-quote', null))).status).not.toBe(403)
+  })
+})
