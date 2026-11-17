@@ -240,7 +240,7 @@ describe('tracer: one client confirmation per paid quote, exactly once', () => {
     expect(mail.html).toContain('08:30')
     // The "Open your quote" button carries a fresh system link of the current version; only its hash is stored.
     expect(mail.html).toContain(ru.QuoteEmails.common.openQuote)
-    const href = /href="(https?:\/\/[^"]*\/ru\/quote\/[^"]+)"/.exec(mail.html)?.[1]
+    const href = /href="(https?:\/\/[^"]*\/ru\/quote\/[^"]+)"/.exec(mail.html ?? "")?.[1]
     expect(href).toBeTruthy()
     const systemLinks = (db.state.quote_links as Row[]).filter((l) => l.quote_id === s.quoteId && l.created_by === null)
     expect(systemLinks).toHaveLength(1)
