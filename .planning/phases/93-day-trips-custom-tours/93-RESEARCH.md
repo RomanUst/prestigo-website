@@ -523,18 +523,20 @@ Source: `getReviews()` in `lib/google-reviews.ts` returns Google reviews with `H
 | A9 | Product/aggregateRating can wait until real tour reviews exist (no SERP star loss today) | JSON-LD | None until reviews exist |
 | A10 | Launch photos can be found with acceptable licences for all 6 tours (esp. Bohemian Switzerland / Karlštejn interiors) | Photo licensing | May need own photos or fewer images |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What does "lead in Chatwoot" mean for a custom-tour request?**
+All seven are answered in 93-CONTEXT.md (owner 2026-11-18 and Claude after research).
+
+1. **What does "lead in Chatwoot" mean for a custom-tour request?** — RESOLVED: D-19
    - Known: no inquiry reaches Chatwoot today; only no-show alerts write private notes to the ops conversation.
    - Unclear: owner expectation (note vs contact vs conversation).
    - Recommendation: design A (private ops note, ids only) for PR 2; schedule B/C only if the owner asks. Decide before planning the TRIP-06 plan.
-2. **Initial prices for Karlštejn and Bohemian Switzerland** — no route fare exists; owner or a distance-based estimate must supply E/S/V and hours-included for all 6 + the extra-hour price per class (D-02 says Claude proposes, owner confirms before go-live).
-3. **Does the owner want the 307-to-EN behaviour** for an unpublished locale of a tour (vs 404)? Recommendation: 307 to EN (keeps users, keeps the page recoverable).
-4. **How is "within Prague" (D-05) enforced?** Recommendation: admin-set `pickup_radius_km` around the Prague centre + airport refusal via `isAirportPickup` [VERIFIED: used in compute.ts:240]. Needs a default value from the owner (e.g. city + immediate suburbs).
-5. **Technical cap on extra hours** (D-03 conflict) — see A6/Pitfall 9.
-6. **Does the `zh-hant` content of tours get generated or hand-edited?** Recommendation: generated from zh on save via the converter, editable.
-7. **Hub copy**: confirm the hub stays a static JSON page with DB cards (recommended) rather than moving to the DB.
+2. **Initial prices for Karlštejn and Bohemian Switzerland** — no route fare exists; owner or a distance-based estimate must supply E/S/V and hours-included for all 6 + the extra-hour price per class (D-02 says Claude proposes, owner confirms before go-live). — RESOLVED: D-21
+3. **Does the owner want the 307-to-EN behaviour** for an unpublished locale of a tour (vs 404)? Recommendation: 307 to EN (keeps users, keeps the page recoverable). — RESOLVED: D-23
+4. **How is "within Prague" (D-05) enforced?** Recommendation: admin-set `pickup_radius_km` around the Prague centre + airport refusal via `isAirportPickup` [VERIFIED: used in compute.ts:240]. Needs a default value from the owner (e.g. city + immediate suburbs). — RESOLVED: D-22
+5. **Technical cap on extra hours** (D-03 conflict) — see A6/Pitfall 9. — RESOLVED: D-20
+6. **Does the `zh-hant` content of tours get generated or hand-edited?** Recommendation: generated from zh on save via the converter, editable. — RESOLVED: D-24
+7. **Hub copy**: confirm the hub stays a static JSON page with DB cards (recommended) rather than moving to the DB. — RESOLVED: D-25
 
 ## Environment Availability
 
