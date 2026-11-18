@@ -57,15 +57,15 @@ describe('tour photo manifest', () => {
     expect(slugs.length).toBeGreaterThan(0)
   })
 
-  it('only lists known launch tours', () => {
-    for (const slug of slugs) expect(REQUIRED_SLUGS).toContain(slug)
+  it('lists exactly the 6 launch tours', () => {
+    expect([...slugs].sort()).toEqual([...REQUIRED_SLUGS].sort())
   })
 
   describe.each(slugs)('%s', (slug) => {
     const entries = manifest.tours[slug]
 
-    it('has 1..8 entries and exactly one non-own cover', () => {
-      expect(entries.length).toBeGreaterThanOrEqual(1)
+    it('has 4..8 entries and exactly one non-own cover', () => {
+      expect(entries.length).toBeGreaterThanOrEqual(4)
       expect(entries.length).toBeLessThanOrEqual(8)
       const covers = entries.filter((e) => e.cover)
       expect(covers).toHaveLength(1)
