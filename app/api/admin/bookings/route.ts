@@ -446,6 +446,17 @@ export async function PATCH(request: Request) {
     const inFlight = assertEditablePrecheck(current)
     if (inFlight) return NextResponse.json(inFlight.body, { status: inFlight.status })
 
+    // Phase 93 Pitfall 4 (T-93-15): a day trip has a fixed catalogue price. The recompute below knows nothing of tour
+    // prices, so a price-affecting edit (vehicle, addresses, distance) of a tour booking is refused unless the operator
+    // sets the amount by hand (override_price, audited like every override). The recompute never runs for a tour.
+    const isTourBooking = current.trip_type === 'tour'
+    if (isTourBooking && hasPriceField && parsed.data.override_price !== true) {
+      return NextResponse.json(
+        { code: 'TOUR_PRICE_FIXED', error: 'Tour prices are fixed. Use Override price to change this booking.' },
+        { status: 422 },
+      )
+    }
+
     // Phase 91 Pitfall 10: the recompute below prices the vehicle, the route and the extras. It knows nothing of the
     // detour through the stops or of their waiting time, so repricing a booking that has stops would silently drop
     // what the client paid for them. The operator must set the price by hand (override_price, audited like every
@@ -545,12 +556,15 @@ export async function PATCH(request: Request) {
     let amountKept: { kind: 'amount_kept'; currency: 'eur' | 'czk'; amount_minor: number | null; standard_czk: number } | null = null
 
     if (hasPriceField) {
-      let rates
-      try {
-        rates = await getPricingConfig()
-      } catch (err) {
-        console.error('[admin/bookings.PATCH] failed to load pricing config:', err)
-        return NextResponse.json({ error: 'Pricing configuration unavailable' }, { status: 503 })
+      // A tour booking is never recomputed (Phase 93 Pitfall 4): no pricing config is needed for it.
+      let rates: Awaited<ReturnType<typeof getPricingConfig>> | null = null
+      if (!isTourBooking) {
+        try {
+          rates = await getPricingConfig()
+        } catch (err) {
+          console.error('[admin/bookings.PATCH] failed to load pricing config:', err)
+          return NextResponse.json({ error: 'Pricing configuration unavailable' }, { status: 503 })
+        }
       }
 
       // Effective trip inputs: submitted fields overlaid on the current row.
@@ -603,41 +617,55 @@ export async function PATCH(request: Request) {
 
       const days = effectiveReturnDate ? dateDiffDays(effectivePickupDate, effectiveReturnDate) : 1
 
-      const outboundLegEur = computeOutboundLegTotal(
-        effectiveVehicleClass,
-        effectiveDistanceKm ?? null,
-        effectiveHours,
-        days,
-        effectiveTripType,
-        effectivePickupDate,
-        effectivePickupTime,
-        effectiveIsAirport,
-        rates,
-      )
+      // Tour: the fixed amount on the row is the "standard" price, so the operator's override is compared with it and
+      // nothing is priced from the pricing config.
+      const tourAmountCzk = typeof current.amount_czk === 'number' ? current.amount_czk : Number(current.amount_czk)
+      let computedTotalEur: number
+      if (isTourBooking || !rates) {
+        computedTotalEur = typeof current.amount_eur === 'number' ? current.amount_eur : czkToEur(tourAmountCzk)
+      } else {
+        const pricingRates = rates
+        const outboundLegEur = computeOutboundLegTotal(
+          effectiveVehicleClass,
+          effectiveDistanceKm ?? null,
+          effectiveHours,
+          days,
+          effectiveTripType,
+          effectivePickupDate,
+          effectivePickupTime,
+          effectiveIsAirport,
+          pricingRates,
+        )
 
-      const extrasEur = computeExtrasTotal(
-        {
-          infantSeat: false,
-          childSeat: Boolean(current.extra_child_seat),
-          boosterSeat: false,
-          meetAndGreet: Boolean(current.extra_meet_greet),
-          extraLuggage: Boolean(current.extra_luggage),
-        },
-        {
-          infantSeat: 0,
-          childSeat: rates.globals.extraChildSeat,
-          boosterSeat: 0,
-          meetAndGreet: 0,
-          extraLuggage: rates.globals.extraLuggage,
-        },
-      )
+        const extrasEur = computeExtrasTotal(
+          {
+            infantSeat: false,
+            childSeat: Boolean(current.extra_child_seat),
+            boosterSeat: false,
+            meetAndGreet: Boolean(current.extra_meet_greet),
+            extraLuggage: Boolean(current.extra_luggage),
+          },
+          {
+            infantSeat: 0,
+            childSeat: pricingRates.globals.extraChildSeat,
+            boosterSeat: 0,
+            meetAndGreet: 0,
+            extraLuggage: pricingRates.globals.extraLuggage,
+          },
+        )
 
-      const computedTotalEur = outboundLegEur + extrasEur
+        computedTotalEur = outboundLegEur + extrasEur
+      }
+
       const computedTotalCzk = eurToCzk(computedTotalEur)
       // amount_czk is guaranteed present by the schema's second .refine() whenever
       // a PRICE_EDIT_FIELDS key is set.
       const submittedAmountCzk = parsed.data.amount_czk as number
-      const priceDiverges = Math.abs(computedTotalCzk - submittedAmountCzk) > ADMIN_PRICE_TOLERANCE_CZK
+      // A tour has no standard rate to be within tolerance of: the operator's amount (override_price, guarded above)
+      // is stored exactly as entered whenever it differs from the fixed amount on the row.
+      const priceDiverges = isTourBooking
+        ? submittedAmountCzk !== tourAmountCzk
+        : Math.abs(computedTotalCzk - submittedAmountCzk) > ADMIN_PRICE_TOLERANCE_CZK
 
       // 88-REVIEW A-WR-11: the recompute above knows neither the client's promo code nor the price they agreed to at
       // checkout, and since Phase 88 a card booking's amount is what the engine charges after the trip (a raise is

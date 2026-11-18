@@ -35,12 +35,13 @@
       {
         "name": "tripType",
         "type": "enum",
-        "options": ["transfer", "hourly", "daily", "round_trip"],
+        "options": ["transfer", "hourly", "daily", "round_trip", "tour"],
         "translatedOptions": {
           "transfer": "Transfer",
           "hourly": "Hourly",
           "daily": "Daily",
-          "round_trip": "Round Trip"
+          "round_trip": "Round Trip",
+          "tour": "Day trip"
         },
         "label": "Trip type"
       },
