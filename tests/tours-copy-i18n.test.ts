@@ -37,7 +37,7 @@ const KEY_TREE: Record<string, string> = {
     'pickupLabel pickupPlaceholder pickupHelper details wishes wishesPlaceholder wishesHelper counter continue checking ' +
     'editDetails refusalOutside refusalAirport refusalCta missingTitle missingBody seeAll unavailableTitle unavailableBody ' +
     'tooLate bookingOff networkError serverError',
-  'Tours.confirmation': 'title intro next step1 step2 step3 addToCalendar seeOther icsTitle',
+  'Tours.confirmation': 'title intro next step1 step2 step3 addToCalendar seeOther icsTitle payCard',
   'Tours.request':
     'label title metaTitle metaDescription intro basedOn remove where wherePlaceholder date people wishes wishesPlaceholder ' +
     'name email phone phoneHelper privacy send sending sentTitle sentBody seeTrips errWhere errDate errPeople errName ' +

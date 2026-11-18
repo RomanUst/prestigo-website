@@ -1702,7 +1702,7 @@
       "addToCalendar": "新增到日曆",
       "seeOther": "檢視其他一日遊",
       "icsTitle": "{title} – Prestigo",
-      "payCard": "您的銀行卡已儲存，金額為 <bdi>{amount}</bdi>。我們會在行程前預先授權該金額，並於行程結束後扣款。具體日期請見確認郵件。"
+      "payCard": "您的銀行卡已儲存，金額為 <bdi>{amount}</bdi>。我們會在行程前預授權該金額，並在行程結束後扣款。具體日期請見確認郵件。"
     },
     "request": {
       "label": "定製行程",
