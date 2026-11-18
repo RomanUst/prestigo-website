@@ -17,7 +17,7 @@ interface ErasureConfirmFormProps {
 const CONFIRM_ERROR = 'Could not start the erasure. Nothing was deleted. Try again.'
 const IN_PROGRESS = 'An erasure for this person is already in progress.'
 const PAYMENT_OPEN =
-  'This person still has a card hold, a pending cancellation fee or an upcoming trip with a card on file. Resolve or cancel those bookings first, then try again. Nothing was deleted.'
+  'This person still has a card hold, a pending cancellation fee, an upcoming trip with a card on file, or a quote whose deposit or remainder is still in flight. Resolve or cancel those bookings and quotes first, then try again. Nothing was deleted.'
 const UNCONFIGURED = 'Erasure is not set up on this server yet. Ask your developer to configure it.'
 
 const DESTRUCTIVE = 'var(--admin-danger-solid)'

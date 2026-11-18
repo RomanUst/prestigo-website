@@ -25,6 +25,9 @@ const CSRF_PROTECTED_PREFIXES = [
   // Phase 89 (T-89-06): public guest self-service (cancel / change request), authenticated by the
   // token in the body, browser-only caller.
   '/api/manage',
+  // Phase 92 (T-92-13): public quote endpoints (view / accept / state / pdf / remainder),
+  // authenticated by the quote token, browser-only caller. Does not match /api/submit-quote.
+  '/api/quote',
 ]
 
 // Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also
@@ -41,6 +44,8 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
   '/api/card-checkout',
   // Phase 89: public manage routes, browser-only caller, Origin required.
   '/api/manage',
+  // Phase 92: public quote routes, browser-only caller, Origin required.
+  '/api/quote',
 ]
 
 /**

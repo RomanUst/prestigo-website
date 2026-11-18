@@ -170,12 +170,12 @@ export async function loadMessages(locale: AppLocale): Promise<AbstractIntlMessa
 
 // Narrow structural view of next-intl's translator: the catalog is a runtime
 // JSON import, so keys are plain strings rather than the generated union.
-interface Translator {
+export interface Translator {
   (key: string, values?: Record<string, string>): string
   has(key: string): boolean
 }
 
-function makeTranslator(locale: AppLocale, messages: AbstractIntlMessages, namespace: string): Translator {
+export function makeTranslator(locale: AppLocale, messages: AbstractIntlMessages, namespace: string): Translator {
   return createTranslator({ locale, messages, namespace, onError: throwOnError } as never) as unknown as Translator
 }
 
@@ -191,7 +191,7 @@ function throwOnError(error: unknown): never {
 }
 
 /** Plain-text message (subject line). Control characters are stripped. */
-function text(t: Translator, key: string, params: Record<string, string> = {}): string {
+export function text(t: Translator, key: string, params: Record<string, string> = {}): string {
   const safe = Object.fromEntries(
     Object.entries(params).map(([k, v]) => [k, v.replace(/[\u0000-\u001f\u007f]+/g, ' ').trim()]),
   )
@@ -209,7 +209,7 @@ const AUTO_DIR_PARAMS: ReadonlySet<string> = new Set(['holdDate', 'freeUntil', '
  * an English "or" in every language). Each link is isolated ltr; the word between them sets the direction of the pair.
  */
 const CONTACT_LINK_STYLE = 'color: #BFA06A; text-decoration: none;'
-function contactLine(t: Translator): string {
+export function contactLine(t: Translator): string {
   const mail = `<bdi dir="ltr"><a href="mailto:info@rideprestigo.com" style="${CONTACT_LINK_STYLE}">info@rideprestigo.com</a></bdi>`
   const phone = `<bdi dir="ltr"><a href="${BUSINESS_TEL_URL}" style="${CONTACT_LINK_STYLE}">${BUSINESS_PHONE_DISPLAY}</a></bdi>`
   return `${mail} ${escapeHtml(t('contactOr'))} ${phone}`
@@ -219,7 +219,7 @@ function contactLine(t: Translator): string {
  * HTML message: catalog text escaped, parameters inserted as bdi ltr (localized dates: bdi auto).
  * `trustedHtml` parameters are our own markup (the contact links) and are inserted unescaped.
  */
-function html(
+export function html(
   t: Translator,
   key: string,
   params: Record<string, string> = {},
@@ -337,8 +337,14 @@ function moneySentence(c: Ctx, mode: 'free' | 'sorry' | 'waived'): string {
   return mode === 'sorry' ? '' : nothing
 }
 
-/** Chinese sentences end in a full stop and take no space; every other locale separates them with one. */
-const joinSentences = (c: Ctx, parts: string[]): string => parts.filter((p) => p.length > 0).join(c.locale === 'zh' || c.locale === 'zh-hant' ? '' : ' ')
+/**
+ * Chinese sentences end in a full stop and take no space; every other locale separates them with one. Exported so the
+ * quote emails (Phase 92) join their sentences by the same rule instead of keeping a second copy of it.
+ */
+export const joinLocaleSentences = (locale: AppLocale, parts: string[]): string =>
+  parts.filter((p) => p.length > 0).join(locale === 'zh' || locale === 'zh-hant' ? '' : ' ')
+
+const joinSentences = (c: Ctx, parts: string[]): string => joinLocaleSentences(c.locale, parts)
 
 const TEMPLATES: Record<string, (c: Ctx) => Template> = {
   card_saved: (c) => ({
@@ -589,7 +595,7 @@ function vehicleLabel(tv: Translator, vehicleClass: string): string {
 }
 
 /** Locale-dependent style bits shared by the shell and the policy block. */
-interface ShellStyle {
+export interface ShellStyle {
   rtl: boolean
   upper: boolean
   align: 'left' | 'right'
@@ -599,7 +605,7 @@ interface ShellStyle {
   greyLabel: string
 }
 
-function shellStyle(locale: AppLocale): ShellStyle {
+export function shellStyle(locale: AppLocale): ShellStyle {
   const rtl = (rtlLocales as readonly string[]).includes(locale)
   const upper = LABEL_UPPERCASE_LOCALES.includes(locale)
   const labelBase = upper
@@ -617,7 +623,7 @@ function shellStyle(locale: AppLocale): ShellStyle {
 }
 
 /** The kind-specific box recipe: #17293B, 3px gold leading border, padding 24px. */
-function boxHtml(st: ShellStyle, label: string, body: string): string {
+export function boxHtml(st: ShellStyle, label: string, body: string): string {
   return `
       <div style="background-color: #17293B; border-${st.lead}: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px; text-align: ${st.align};">
         <div style="${st.goldLabel} margin-bottom: 8px;">${label}</div>

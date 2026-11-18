@@ -16,6 +16,15 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
+  // Phase 92 (QUOTE-07, D-14): the PDF engine packages stay outside the server bundle (they start a browser and unpack
+  // a Chromium pack at runtime), and the embedded OFL fonts (31 MB, read from disk by lib/quotes/pdf-fonts.ts through
+  // process.cwd()) are traced into only the routes that render a PDF.
+  serverExternalPackages: ['puppeteer-core', '@sparticuz/chromium-min'],
+  outputFileTracingIncludes: {
+    '/api/quote/pdf': ['./lib/quotes/pdf-fonts/**'],
+    '/api/admin/quotes/[id]/send': ['./lib/quotes/pdf-fonts/**'],
+    '/api/admin/quotes/pdf-check': ['./lib/quotes/pdf-fonts/**'],
+  },
   async redirects() {
     // 20 long-distance route pages removed 2026-04-09 per SEO strategy
     // — see /Users/romanustyugov/Desktop/founder prestigo/routes/03-noindex-rules-20-red-routes.md
@@ -192,6 +201,26 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "Referrer-Policy", value: "no-referrer" },
           { key: "Cache-Control", value: "no-store" },
+        ],
+      },
+      // Phase 92 (QUOTE-02, T-92-11/12): the quote URL carries the client's bearer token. Same
+      // locale alternation as the manage rule (zh-hant included). Not cached, no Referer, and
+      // noindex via header; robots.txt gets no /quote rule, because a blocked page cannot be
+      // fetched and so its noindex could never be read.
+      {
+        source: "/quote/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/:locale(ru|es|fr|ar|hi|zh|zh-hant)/quote/:path*",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "Cache-Control", value: "no-store" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
     ];

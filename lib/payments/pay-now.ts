@@ -143,6 +143,10 @@ export async function listPaymentRefunds(paymentIntentId: string): Promise<Payme
  * caller decides what that means (a cancel stands and alerts, a fee decision asks the operator to try again).
  */
 export async function loadPayNowFacts(booking: BookingRow, known?: PayNowSplit): Promise<PayNowFacts> {
+  // Phase 92 (B2): a booking created from a quote never owns a Stripe payment of its own as a pay-now row. Its deposit and
+  // remainder are the quote's money (refunded only through lib/quotes/cancel.ts). Refusing here, before any Stripe read,
+  // means no cancel, fee or manage path can treat a payment found on such a row as the row's and refund it whole.
+  if (str(booking.quote_id)) throw new Error('quote_booking')
   const paymentIntentId = str(booking.payment_intent_id)
   if (!paymentIntentId) throw new Error('no_payment_intent')
   const split = known ?? (await resolvePayNowSplit(booking))

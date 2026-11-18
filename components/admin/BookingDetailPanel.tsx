@@ -1,5 +1,6 @@
 'use client'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { StatusBadge } from './StatusBadge'
 import PaymentPanel from './PaymentPanel'
 import { NoShowBanner, hasOpenNoShowRequest } from './NoShowBanner'
@@ -12,6 +13,7 @@ import { TripRouteSection } from './TripRouteSection'
 import { PaymentLinkSection } from './PaymentLinkSection'
 import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
+import { formatMinor } from '@/lib/payments/money'
 import type { BookingStatus } from '@/lib/booking-status'
 import { STATUS_LABELS, patchBooking, type AdminBooking } from './bookingTypes'
 import type { BookingMovesApi } from './useBookingMoves'
@@ -23,6 +25,54 @@ import type { BookingMovesApi } from './useBookingMoves'
 // Row changes go out through onPatched(id, patch); status moves and their dialogs come from `moves`.
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error'
+
+// Phase 92 (QUOTE-05, D-12): a booking made from a quote. The deposit belongs to the whole quote, so the panel only
+// says so and points at the quote; refunds of the deposit are made there. Money comes from data, never typed here.
+function quoteDepositLabel(booking: AdminBooking): string | null {
+  const raw = booking.quote_deposit_minor
+  const minor = typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : raw
+  if (typeof minor !== 'number' || !Number.isFinite(minor) || minor <= 0) return null
+  return formatMinor(minor, booking.payment_currency === 'czk' ? 'czk' : 'eur')
+}
+
+function QuoteOrigin({ booking, quoteId }: { booking: AdminBooking; quoteId: string }) {
+  const deposit = quoteDepositLabel(booking)
+  return (
+    <div
+      data-testid="quote-origin"
+      style={{
+        marginTop: '16px',
+        padding: '12px 16px',
+        background: 'var(--admin-hover)',
+        border: '1px solid var(--admin-border-strong)',
+        borderRadius: 'var(--admin-radius-md)',
+        fontFamily: 'var(--font-montserrat)',
+        fontSize: 'var(--admin-fs-body)',
+        color: 'var(--admin-text)',
+        lineHeight: 1.5,
+      }}
+    >
+      <Link
+        href={`/admin/quotes/${quoteId}`}
+        style={{
+          display: 'inline-block',
+          fontSize: 'var(--admin-fs-label)',
+          fontWeight: 'var(--admin-fw-strong)',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          color: 'var(--admin-accent)',
+          textDecoration: 'underline',
+        }}
+      >
+        From quote
+      </Link>
+      <p style={{ margin: '4px 0 0', color: 'var(--admin-text-muted)' }}>
+        {deposit ? `Deposit share ${deposit} belongs to the quote; ` : 'The deposit belongs to the quote; '}
+        refunds of the deposit are made on the quote.
+      </p>
+    </div>
+  )
+}
 
 interface BookingDetailPanelProps {
   booking: AdminBooking
@@ -464,6 +514,9 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
         onAssigned={handleAssigned}
       />
 
+      {/* Phase 92 QUOTE-05: where this booking came from; the deposit is handled on the quote */}
+      {booking.quote_id && <QuoteOrigin booking={booking} quoteId={booking.quote_id} />}
+
       {/* Payment panel (Phase 88 HOLD-07) */}
       <PaymentPanel
         bookingId={booking.id}
@@ -472,15 +525,18 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
         onPaymentState={handlePaymentState}
       />
 
-      {/* Payment Link (D-05) */}
-      <PaymentLinkSection
-        bookingId={booking.id}
-        status={booking.status}
-        paymentLinkUrl={booking.payment_link_url}
-        clientEmail={booking.client_email}
-        amountCzk={booking.amount_czk}
-        onGenerated={handlePaymentLinkGenerated}
-      />
+      {/* Payment Link (D-05). Not for a booking from a quote (92 D-20 / B2): a legacy link charges the full line
+          amount, which would take the deposit share a second time. The payment-link route refuses it too (92-10). */}
+      {!booking.quote_id && (
+        <PaymentLinkSection
+          bookingId={booking.id}
+          status={booking.status}
+          paymentLinkUrl={booking.payment_link_url}
+          clientEmail={booking.client_email}
+          amountCzk={booking.amount_czk}
+          onGenerated={handlePaymentLinkGenerated}
+        />
+      )}
 
       {/* Trip-edit mode (Phase 63 Plan 05) */}
       <TripEditPanel booking={booking} patchBooking={patchBooking} onUpdated={handleTripUpdated} onEditOpenChange={setTripEditOpen} />

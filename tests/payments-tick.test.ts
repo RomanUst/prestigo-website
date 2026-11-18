@@ -14,7 +14,7 @@ import { createFakeStripe, type FakeStripe } from './helpers/fake-stripe'
 const CRON_SECRET = 'test-cron-secret'
 process.env.CRON_SECRET = CRON_SECRET
 
-const { world, mockSendEmail, mockSetupSucceeded, mockHoldNowAuthorized, mockVerify, mockFailure, mockResendSend } = vi.hoisted(() => ({
+const { world, mockSendEmail, mockSetupSucceeded, mockHoldNowAuthorized, mockVerify, mockFailure, mockResendSend, mockApplyQuoteDeposit, mockApplyQuoteRemainder } = vi.hoisted(() => ({
   world: {
     db: null as null | { client: { from: (t: string) => unknown; rpc: (n: string, a?: Record<string, unknown>) => Promise<unknown> } },
     stripe: null as unknown,
@@ -26,6 +26,8 @@ const { world, mockSendEmail, mockSetupSucceeded, mockHoldNowAuthorized, mockVer
   mockVerify: vi.fn(),
   mockFailure: vi.fn(),
   mockResendSend: vi.fn(),
+  mockApplyQuoteDeposit: vi.fn(),
+  mockApplyQuoteRemainder: vi.fn(),
 }))
 
 process.env.RESEND_API_KEY = 're_test'
@@ -49,6 +51,11 @@ vi.mock('@/lib/payments/emails/send', () => ({
   sendPaymentEmail: mockSendEmail,
   bookingEmailDataFromRow: (row: unknown) => row,
 }))
+
+// Step Q (92-31) calls the one conversion function of the quote webhook; its own behaviour is tests/quote-convert.test.ts.
+vi.mock('@/lib/quotes/convert', () => ({ applyQuoteDepositPaid: mockApplyQuoteDeposit }))
+// Step Q also reconciles a lost remainder event (92-23) through the one function of the remainder webhook (tests/quote-remainder.test.ts).
+vi.mock('@/lib/quotes/remainder', () => ({ applyQuoteRemainderPaid: mockApplyQuoteRemainder }))
 
 vi.mock('@/lib/stripe-webhook/card-confirm', () => ({
   applySetupSucceeded: mockSetupSucceeded,
@@ -289,8 +296,8 @@ describe('tracer: GET -> step A -> claim -> placeHold -> authorized + hold_place
 })
 
 describe('TICK_STEPS', () => {
-  it('registers A (place holds), B (auto retry), C (settle completed trips), D (alerts), E (reconcile), F (notices) then R (fee cases)', () => {
-    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'R'])
+  it('registers A (place holds), B (auto retry), C (settle completed trips), D (alerts), E (reconcile), Q (quote deposits), F (notices) then R (fee cases)', () => {
+    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'Q', 'F', 'R'])
   })
 })
 
@@ -464,6 +471,335 @@ describe('step isolation and reconcile (step E)', () => {
     const res = await GET(okRequest())
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ ok: true, placed: 1, errors: ['E'] })
+  })
+})
+
+describe('step Q: reconcile a quote deposit whose webhook never arrived (D-18, T-92-59)', () => {
+  const MIN = 60_000
+  const Q1 = '55555555-5555-4555-8555-555555555551'
+  const Q2 = '55555555-5555-4555-8555-555555555552'
+  const Q3 = '55555555-5555-4555-8555-555555555553'
+
+  function quote(id: string, ageMs: number, over: Record<string, unknown> = {}) {
+    return {
+      id,
+      reference: `Q-20261114-${id.slice(-6)}`,
+      status: 'accepted',
+      current_version_id: '66666666-6666-4666-8666-666666666661',
+      deposit_payment_intent_id: `pi_${id.slice(-3)}`,
+      accepted_at: new Date(Date.now() - ageMs).toISOString(),
+      paid_at: null,
+      cancelled_at: null,
+      voided_at: null,
+      anonymised_at: null,
+      ...over,
+    }
+  }
+
+  function putIntent(quoteRow: Record<string, unknown>, status: string) {
+    const id = quoteRow.deposit_payment_intent_id as string
+    fake.state.paymentIntents.set(id, {
+      id,
+      object: 'payment_intent',
+      status,
+      amount: 5000,
+      currency: 'eur',
+      metadata: { kind: 'card_quote_deposit', quoteId: quoteRow.id as string, versionId: quoteRow.current_version_id as string },
+    })
+  }
+
+  function seedQuotes(rows: Array<Record<string, unknown>>) {
+    db = createFakePaymentsDb({ bookings: [] })
+    db.state.quotes.push(...rows)
+    world.db = db
+  }
+
+  beforeEach(() => {
+    mockApplyQuoteDeposit.mockResolvedValue({ outcome: 'converted', bookingIds: ['b1'] })
+  })
+
+  it('tracer: an accepted quote whose deposit succeeded 15 minutes ago is converted with the system actor and counted in reconciled', async () => {
+    const q = quote(Q1, 15 * MIN)
+    seedQuotes([q])
+    putIntent(q, 'succeeded')
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ ok: true, reconciled: 1, errors: [] })
+    expect(mockApplyQuoteDeposit).toHaveBeenCalledTimes(1)
+    expect(mockApplyQuoteDeposit.mock.calls[0][0]).toMatchObject({ id: q.deposit_payment_intent_id, status: 'succeeded' })
+    expect(mockApplyQuoteDeposit.mock.calls[0][1]).toEqual({ type: 'system', id: 'tick_reconcile' })
+  })
+
+  it('a replayed or ignored answer is not counted as reconciled and is not an error', async () => {
+    const q = quote(Q1, 15 * MIN)
+    seedQuotes([q])
+    putIntent(q, 'succeeded')
+    mockApplyQuoteDeposit.mockResolvedValue({ outcome: 'replayed', bookingIds: ['b1'] })
+    expect(await runPaymentTick()).toMatchObject({ reconciled: 0, errors: [] })
+  })
+
+  it('leaves alone: an intent still requires_payment_method / processing / canceled, a quote younger than 10 minutes, one older than 48 hours', async () => {
+    const open = quote(Q1, 20 * MIN)
+    const processing = quote(Q2, 20 * MIN)
+    const canceled = quote(Q3, 20 * MIN)
+    const young = quote('55555555-5555-4555-8555-555555555554', 5 * MIN)
+    const old = quote('55555555-5555-4555-8555-555555555555', 49 * HOUR)
+    seedQuotes([open, processing, canceled, young, old])
+    putIntent(open, 'requires_payment_method')
+    putIntent(processing, 'processing')
+    putIntent(canceled, 'canceled')
+    putIntent(young, 'succeeded')
+    putIntent(old, 'succeeded')
+
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ reconciled: 0, errors: [] })
+    expect(mockApplyQuoteDeposit).not.toHaveBeenCalled()
+    // The young and the old quote are not even read from Stripe; the open intents are read and left untouched (never cancelled here).
+    const retrieved = fake.callsTo('paymentIntents.retrieve').map((c) => c.targetId)
+    expect(retrieved).not.toContain(young.deposit_payment_intent_id)
+    expect(retrieved).not.toContain(old.deposit_payment_intent_id)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+  })
+
+  it('never selects a paid quote, a cancelled quote, a voided quote, an erased person or a quote without a deposit intent', async () => {
+    const paid = quote(Q1, 20 * MIN, { paid_at: new Date().toISOString() })
+    const cancelled = quote(Q2, 20 * MIN, { cancelled_at: new Date().toISOString() })
+    const voided = quote(Q3, 20 * MIN, { status: 'voided', voided_at: new Date().toISOString() })
+    const erased = quote('55555555-5555-4555-8555-555555555556', 20 * MIN, { anonymised_at: new Date().toISOString() })
+    const none = quote('55555555-5555-4555-8555-555555555557', 20 * MIN, { deposit_payment_intent_id: null })
+    seedQuotes([paid, cancelled, voided, erased, none])
+    for (const q of [paid, cancelled, voided, erased]) putIntent(q, 'succeeded')
+
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ reconciled: 0, errors: [] })
+    expect(fake.callsTo('paymentIntents.retrieve')).toHaveLength(0)
+    expect(mockApplyQuoteDeposit).not.toHaveBeenCalled()
+  })
+
+  it('takes at most 20 quotes per run, oldest first', async () => {
+    const rows = Array.from({ length: 25 }, (_, i) =>
+      quote(`55555555-5555-4555-8555-5555555560${String(i).padStart(2, '0')}`, (20 + i) * MIN),
+    )
+    seedQuotes(rows)
+    for (const q of rows) putIntent(q, 'succeeded')
+    const out = await runPaymentTick()
+    expect(out.reconciled).toBe(20)
+    expect(mockApplyQuoteDeposit).toHaveBeenCalledTimes(20)
+    // Oldest first: the 20 oldest are the last 20 rows.
+    const handled = mockApplyQuoteDeposit.mock.calls.map((c) => (c[0] as { id: string }).id)
+    expect(handled).toContain(rows[24].deposit_payment_intent_id)
+    expect(handled).not.toContain(rows[0].deposit_payment_intent_id)
+  })
+
+  it('a conversion that throws adds "Q" to errors; the other quotes and the other steps still run', async () => {
+    const bad = quote(Q1, 30 * MIN)
+    const good = quote(Q2, 20 * MIN)
+    seed([dueBooking()])
+    db.state.quotes.push(bad, good)
+    putIntent(bad, 'succeeded')
+    putIntent(good, 'succeeded')
+    mockApplyQuoteDeposit.mockImplementation(async (pi: { id: string }) => {
+      if (pi.id === bad.deposit_payment_intent_id) throw new Error('quote conversion failed')
+      return { outcome: 'converted', bookingIds: ['b1'] }
+    })
+    const res = await GET(okRequest())
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ ok: true, placed: 1, reconciled: 1, errors: ['Q'] })
+    expect(mockApplyQuoteDeposit).toHaveBeenCalledTimes(2)
+  })
+
+  it('a Stripe read error on one quote adds "Q" and does not stop the next quote', async () => {
+    const a = quote(Q1, 30 * MIN)
+    const b = quote(Q2, 20 * MIN)
+    seedQuotes([a, b])
+    putIntent(b, 'succeeded') // a's intent is missing at Stripe: retrieve throws
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ reconciled: 1, errors: ['Q'] })
+  })
+
+  it('a database error on the selection adds "Q" and the answer is still 200', async () => {
+    seedQuotes([quote(Q1, 20 * MIN)])
+    const from = db.client.from.bind(db.client)
+    vi.spyOn(db.client, 'from').mockImplementation(((table: string) => {
+      if (table === 'quotes') throw new Error('boom')
+      return from(table)
+    }) as never)
+    const res = await GET(okRequest())
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ ok: true, errors: ['Q'] })
+  })
+})
+
+describe('step Q: reconcile a quote remainder whose webhook never arrived (92-23, D-16, T-92-74)', () => {
+  const MIN = 60_000
+  const R1 = '77777777-7777-4777-8777-777777777771'
+  const R2 = '77777777-7777-4777-8777-777777777772'
+  const R3 = '77777777-7777-4777-8777-777777777773'
+
+  /** A paid payment-link quote whose remainder intent was stored `ageMs` ago and is not recorded as paid. */
+  function rquote(id: string, ageMs: number, over: Record<string, unknown> = {}) {
+    return {
+      id,
+      reference: `Q-20261114-${id.slice(-6)}`,
+      status: 'paid',
+      current_version_id: '88888888-8888-4888-8888-888888888881',
+      deposit_payment_intent_id: `pi_d${id.slice(-3)}`,
+      paid_at: new Date(Date.now() - 5 * HOUR).toISOString(),
+      remainder_payment_intent_id: `pi_r${id.slice(-3)}`,
+      remainder_paid_at: null,
+      cancelled_at: null,
+      voided_at: null,
+      anonymised_at: null,
+      updated_at: new Date(Date.now() - ageMs).toISOString(),
+      ...over,
+    }
+  }
+
+  function putIntent(quoteRow: Record<string, unknown>, status: string) {
+    const id = quoteRow.remainder_payment_intent_id as string
+    fake.state.paymentIntents.set(id, {
+      id,
+      object: 'payment_intent',
+      status,
+      amount: 7000,
+      currency: 'eur',
+      metadata: { kind: 'card_quote_remainder', quoteId: quoteRow.id as string, versionId: quoteRow.current_version_id as string },
+    })
+  }
+
+  function seedQuotes(rows: Array<Record<string, unknown>>) {
+    db = createFakePaymentsDb({ bookings: [] })
+    db.state.quotes.push(...rows)
+    world.db = db
+  }
+
+  beforeEach(() => {
+    mockApplyQuoteDeposit.mockResolvedValue({ outcome: 'ignored' })
+    mockApplyQuoteRemainder.mockResolvedValue({ outcome: 'paid' })
+  })
+
+  it('tracer: a paid quote whose remainder succeeded 15 minutes ago is applied with the system actor and counted in reconciled', async () => {
+    const q = rquote(R1, 15 * MIN)
+    seedQuotes([q])
+    putIntent(q, 'succeeded')
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ ok: true, reconciled: 1, errors: [] })
+    expect(mockApplyQuoteRemainder).toHaveBeenCalledTimes(1)
+    expect(mockApplyQuoteRemainder.mock.calls[0][0]).toMatchObject({ id: q.remainder_payment_intent_id, status: 'succeeded' })
+    expect(mockApplyQuoteRemainder.mock.calls[0][1]).toEqual({ type: 'system', id: 'tick_reconcile' })
+    expect(mockApplyQuoteDeposit).not.toHaveBeenCalled()
+  })
+
+  it('a replayed, mismatch or ignored answer is not counted as reconciled and is not an error', async () => {
+    const q = rquote(R1, 15 * MIN)
+    seedQuotes([q])
+    putIntent(q, 'succeeded')
+    for (const outcome of ['replayed', 'mismatch', 'ignored']) {
+      mockApplyQuoteRemainder.mockResolvedValue({ outcome })
+      expect(await runPaymentTick(), outcome).toMatchObject({ reconciled: 0, errors: [] })
+    }
+  })
+
+  it('leaves alone: an intent still requires_payment_method / processing / canceled, a quote younger than 10 minutes, one older than 48 hours; never cancels or refunds', async () => {
+    const open = rquote(R1, 20 * MIN)
+    const processing = rquote(R2, 20 * MIN)
+    const canceled = rquote(R3, 20 * MIN)
+    const young = rquote('77777777-7777-4777-8777-777777777774', 5 * MIN)
+    const old = rquote('77777777-7777-4777-8777-777777777775', 49 * HOUR)
+    seedQuotes([open, processing, canceled, young, old])
+    putIntent(open, 'requires_payment_method')
+    putIntent(processing, 'processing')
+    putIntent(canceled, 'canceled')
+    putIntent(young, 'succeeded')
+    putIntent(old, 'succeeded')
+
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ reconciled: 0, errors: [] })
+    expect(mockApplyQuoteRemainder).not.toHaveBeenCalled()
+    const retrieved = fake.callsTo('paymentIntents.retrieve').map((c) => c.targetId)
+    expect(retrieved).not.toContain(young.remainder_payment_intent_id)
+    expect(retrieved).not.toContain(old.remainder_payment_intent_id)
+    expect(fake.callsTo('paymentIntents.cancel')).toHaveLength(0)
+    expect(fake.callsTo('refunds.create')).toHaveLength(0)
+  })
+
+  it('never selects a remainder already recorded, a cancelled quote, a voided quote, an erased person, a quote still accepted or one without a remainder intent', async () => {
+    const recorded = rquote(R1, 20 * MIN, { remainder_paid_at: new Date().toISOString() })
+    const cancelled = rquote(R2, 20 * MIN, { cancelled_at: new Date().toISOString() })
+    const voided = rquote(R3, 20 * MIN, { status: 'voided', voided_at: new Date().toISOString() })
+    const erased = rquote('77777777-7777-4777-8777-777777777776', 20 * MIN, { anonymised_at: new Date().toISOString() })
+    const accepted = rquote('77777777-7777-4777-8777-777777777777', 20 * MIN, { status: 'accepted' })
+    const none = rquote('77777777-7777-4777-8777-777777777778', 20 * MIN, { remainder_payment_intent_id: null })
+    seedQuotes([recorded, cancelled, voided, erased, accepted, none])
+    for (const q of [recorded, cancelled, voided, erased, accepted]) putIntent(q, 'succeeded')
+
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ reconciled: 0, errors: [] })
+    expect(fake.callsTo('paymentIntents.retrieve')).toHaveLength(0)
+    expect(mockApplyQuoteRemainder).not.toHaveBeenCalled()
+  })
+
+  it('takes at most 20 quotes per run, oldest first', async () => {
+    const rows = Array.from({ length: 25 }, (_, i) =>
+      rquote(`77777777-7777-4777-8777-7777777780${String(i).padStart(2, '0')}`, (20 + i) * MIN),
+    )
+    seedQuotes(rows)
+    for (const q of rows) putIntent(q, 'succeeded')
+    const out = await runPaymentTick()
+    expect(out.reconciled).toBe(20)
+    expect(mockApplyQuoteRemainder).toHaveBeenCalledTimes(20)
+    const handled = mockApplyQuoteRemainder.mock.calls.map((c) => (c[0] as { id: string }).id)
+    expect(handled).toContain(rows[24].remainder_payment_intent_id)
+    expect(handled).not.toContain(rows[0].remainder_payment_intent_id)
+  })
+
+  it('an apply that throws adds "Q" to errors; the other quotes still run', async () => {
+    const bad = rquote(R1, 30 * MIN)
+    const good = rquote(R2, 20 * MIN)
+    seedQuotes([bad, good])
+    putIntent(bad, 'succeeded')
+    putIntent(good, 'succeeded')
+    mockApplyQuoteRemainder.mockImplementation(async (pi: { id: string }) => {
+      if (pi.id === bad.remainder_payment_intent_id) throw new Error('quote remainder write failed')
+      return { outcome: 'paid' }
+    })
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ reconciled: 1, errors: ['Q'] })
+    expect(mockApplyQuoteRemainder).toHaveBeenCalledTimes(2)
+  })
+
+  it('a deposit and a remainder are both reconciled in the same run', async () => {
+    const dep = {
+      id: '99999999-9999-4999-8999-999999999991',
+      reference: 'Q-20261114-999991',
+      status: 'accepted',
+      current_version_id: '88888888-8888-4888-8888-888888888881',
+      deposit_payment_intent_id: 'pi_dep_x',
+      accepted_at: new Date(Date.now() - 15 * MIN).toISOString(),
+      paid_at: null,
+      remainder_payment_intent_id: null,
+      remainder_paid_at: null,
+      cancelled_at: null,
+      voided_at: null,
+      anonymised_at: null,
+    }
+    const rem = rquote(R1, 15 * MIN)
+    seedQuotes([dep, rem])
+    fake.state.paymentIntents.set('pi_dep_x', {
+      id: 'pi_dep_x',
+      object: 'payment_intent',
+      status: 'succeeded',
+      amount: 5000,
+      currency: 'eur',
+      metadata: { kind: 'card_quote_deposit', quoteId: dep.id, versionId: dep.current_version_id },
+    })
+    putIntent(rem, 'succeeded')
+    mockApplyQuoteDeposit.mockResolvedValue({ outcome: 'converted', bookingIds: ['b1'] })
+
+    const out = await runPaymentTick()
+    expect(out).toMatchObject({ reconciled: 2, errors: [] })
+    expect(mockApplyQuoteDeposit).toHaveBeenCalledTimes(1)
+    expect(mockApplyQuoteRemainder).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -981,7 +1317,7 @@ const feeMails = () => operatorMails().filter((m) => m.subject.startsWith('[Fee]
 
 describe('step R tracer (D-15): a case 25 h old reaches one fee_pending_24h reminder', () => {
   it('registers R after F', () => {
-    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'R'])
+    expect(TICK_STEPS.map((s) => s.code)).toEqual(['A', 'B', 'C', 'D', 'E', 'Q', 'F', 'R'])
   })
 
   it('a pending case opened 25 h ago -> one reminder keyed alert:fee_pending:<caseId>; the next tick sends nothing', async () => {

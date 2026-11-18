@@ -101,3 +101,29 @@ describe('card checkout limits (Phase 88)', () => {
     expect((await checkRateLimit(path, ip)).allowed).toBe(false)
   })
 })
+
+describe('public quote limits (Phase 92, T-92-14)', () => {
+  beforeEach(() => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    vi.useFakeTimers()
+  })
+  afterEach(() => vi.useRealTimers())
+
+  it.each([
+    ['/quote', 30],
+    ['/api/quote/view', 20],
+    ['/api/quote/accept', 10],
+    ['/api/quote/state', 60],
+    ['/api/quote/pdf', 10],
+    ['/api/quote/remainder', 10],
+  ])('%s allows %i per IP per minute and denies the next', async (path, limit) => {
+    const ip = `198.51.100.${limit}-${path}`
+    for (let i = 0; i < limit; i++) {
+      const r = await checkRateLimit(path, ip)
+      expect(r.allowed).toBe(true)
+      expect(r.limit).toBe(limit)
+    }
+    expect((await checkRateLimit(path, ip)).allowed).toBe(false)
+  })
+})

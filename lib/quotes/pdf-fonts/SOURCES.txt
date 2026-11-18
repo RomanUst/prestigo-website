@@ -1,0 +1,8 @@
+# PDF fonts for the quote document (Phase 92, plan 92-05). Licence: SIL Open Font License 1.1 (see OFL.txt).
+# Source: github.com/google/fonts at commit 29b4ec6df2522a8aee279414b78a07910b065874. Format: file | source URL | bytes | sha256
+Inter.ttf | https://raw.githubusercontent.com/google/fonts/29b4ec6df2522a8aee279414b78a07910b065874/ofl/inter/Inter%5Bopsz,wght%5D.ttf | 876576 | sha256 29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031
+Fraunces.ttf | https://raw.githubusercontent.com/google/fonts/29b4ec6df2522a8aee279414b78a07910b065874/ofl/fraunces/Fraunces%5BSOFT,WONK,opsz,wght%5D.ttf | 360440 | sha256 177ff6c0f14e5550a3c624247cd1189611d4eb65d000b14944c63d967958abbb
+NotoSansArabic.ttf | https://raw.githubusercontent.com/google/fonts/29b4ec6df2522a8aee279414b78a07910b065874/ofl/notosansarabic/NotoSansArabic%5Bwdth,wght%5D.ttf | 844676 | sha256 63111b5b2e074dd48cc67692e0a2726d86ee94c1c37fe8598257b7b4e87e869e
+NotoSansDevanagari.ttf | https://raw.githubusercontent.com/google/fonts/29b4ec6df2522a8aee279414b78a07910b065874/ofl/notosansdevanagari/NotoSansDevanagari%5Bwdth,wght%5D.ttf | 641944 | sha256 14ec4af41f27482216d1c2229f417ff9b1425e1babb014e57d1d40d03229853e
+NotoSansSC.ttf | https://raw.githubusercontent.com/google/fonts/29b4ec6df2522a8aee279414b78a07910b065874/ofl/notosanssc/NotoSansSC%5Bwght%5D.ttf | 17772300 | sha256 a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da
+NotoSansTC.ttf | https://raw.githubusercontent.com/google/fonts/29b4ec6df2522a8aee279414b78a07910b065874/ofl/notosanstc/NotoSansTC%5Bwght%5D.ttf | 11941968 | sha256 864727d210d54f2537bbe23b3a839436c3992af72de9322af5270897246bd44f

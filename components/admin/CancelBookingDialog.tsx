@@ -46,6 +46,8 @@ export interface CancelDialogBooking {
   outbound_amount_czk: number | null
   return_amount_czk: number | null
   linked_booking: { booking_reference: string } | null
+  /** Phase 92: set on a booking made from a quote. Its deposit belongs to the quote, not to this trip (D-11, D-12). */
+  quote_id?: string | null
 }
 
 export type CancelSituation = 'pay_now' | 'card' | 'cash' | 'none' | 'card_collected'
@@ -134,6 +136,17 @@ function pickupFacts(b: CancelDialogBooking) {
  */
 export function outcomeFor(b: CancelDialogBooking, who: CancelledBy, nowMs: number): CancelOutcomeView {
   const { situation, base } = situationOf(b)
+
+  // Phase 92 D-11: a trip of a quote is free on the remainder side whoever cancels. The client is never charged more
+  // than the deposit, and the deposit stays on the quote, so no per-trip fee is proposed (the server forces the same, 92-11).
+  if (b.quote_id) {
+    return {
+      situation,
+      late: false,
+      sentence: 'Free (quote trip). The card of this trip is released. The deposit stays on the quote; refund part of it there if needed.',
+      primary: 'Cancel trip',
+    }
+  }
 
   let policyLate = false
   let feePercent = 100

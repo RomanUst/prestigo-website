@@ -24,8 +24,15 @@ import type Stripe from 'stripe'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { appendPaymentEvent } from '@/lib/payments/state'
 import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
-import { handleCardChargeFailed, handleCardChargeSucceeded } from '@/lib/stripe-webhook/charge-events'
+import { handleCardChargeFailed, handleCardChargeSucceeded, observeQuoteRefund } from '@/lib/stripe-webhook/charge-events'
 import { handleHoldAuthorized, handleHoldCanceled, handleHoldFailed } from '@/lib/stripe-webhook/hold-events'
+import {
+  handleQuoteDepositPaid,
+  handleQuoteDispute,
+  handleQuotePaymentCanceled,
+  handleQuotePaymentFailed,
+  handleQuoteRemainderPaid,
+} from '@/lib/stripe-webhook/quote-events'
 import { cardBookingIdForPaymentIntent, handleDispute, handleRecoveryPaid } from '@/lib/stripe-webhook/recovery-events'
 
 /** The six event types the card flow adds to the endpoint (infra/stripe/webhook-events.mjs REQUIRED_EVENTS). */
@@ -48,6 +55,11 @@ export type PaymentRoute =
   | 'charge_succeeded'
   | 'recovery_paid'
   | 'dispute'
+  // Phase 92 (92-31): the deposit of a quote and the failure / cancellation of a quote's payments. Never the legacy chain, never the hold handlers.
+  | 'quote_deposit_paid'
+  | 'quote_remainder_paid'
+  | 'quote_payment_failed'
+  | 'quote_payment_canceled'
   | 'refund_observe'
   | 'unrouted'
 
@@ -69,6 +81,14 @@ async function handlePaymentFailed(event: Stripe.Event): Promise<void> {
   return handleHoldFailed(event)
 }
 
+const isQuoteKind = (kind: string | null): boolean => kind === 'card_quote_deposit' || kind === 'card_quote_remainder'
+
+/** charge.dispute.created: a card booking's dispute alert (88-14) and, when the charge is a quote's deposit or remainder, the quote's. */
+async function handleAnyDispute(event: Stripe.Event): Promise<void> {
+  await handleDispute(event)
+  await handleQuoteDispute(event.data.object as Stripe.Dispute)
+}
+
 /**
  * Route -> handler. 88-09 registered the three confirmation routes; 88-11 adds the hold lifecycle routes
  * (hold_authorized, pi_canceled, pi_failed); 88-13 adds charge_succeeded and chains the charge / difference
@@ -86,7 +106,15 @@ export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
   // 88-14: a paid recovery link closes the failed booking (session and PaymentIntent events share one ledger key);
   // a dispute on a card booking alerts the operator. Both route here before the legacy chain.
   recovery_paid: handleRecoveryPaid,
-  dispute: handleDispute,
+  dispute: handleAnyDispute,
+  // 92-31: the event id is the ledger actor id; a throw (money arrived, no bookings) answers 500 so Stripe redelivers.
+  quote_deposit_paid: (event) =>
+    handleQuoteDepositPaid(event.data.object as Stripe.PaymentIntent, { type: 'webhook', id: event.id ?? null }),
+  // 92-23 (D-16): a remainder paid on the quote page; same rule, a throw answers 500 and Stripe redelivers.
+  quote_remainder_paid: (event) =>
+    handleQuoteRemainderPaid(event.data.object as Stripe.PaymentIntent, { type: 'webhook', id: event.id ?? null }),
+  quote_payment_failed: (event) => handleQuotePaymentFailed(event.data.object as Stripe.PaymentIntent),
+  quote_payment_canceled: (event) => handleQuotePaymentCanceled(event.data.object as Stripe.PaymentIntent),
 }
 
 function metadataOf(event: Stripe.Event): Record<string, unknown> {
@@ -124,12 +152,18 @@ export function classifyPaymentEvent(event: Stripe.Event): PaymentEventClass | n
       if (kind === 'card_hold') return make('hold_authorized')
       return make('unrouted')
     case 'payment_intent.payment_failed':
+      // Pitfall 1 (92-31): a quote payment is answered before the hold-failure fallback.
+      if (isQuoteKind(kind)) return make('quote_payment_failed')
       return isCard ? make('pi_failed') : null
     case 'payment_intent.canceled':
+      if (isQuoteKind(kind)) return make('quote_payment_canceled')
       return isCard ? make('pi_canceled') : null
     case 'payment_intent.succeeded':
       if (!isCard) return null
       if (kind === 'card_recovery') return make('recovery_paid')
+      // 92-31 (QUOTE-05, D-18): a paid quote deposit converts the quote; 92-23 (QUOTE-04, D-16): a paid remainder marks its trips paid.
+      if (kind === 'card_quote_deposit') return make('quote_deposit_paid')
+      if (kind === 'card_quote_remainder') return make('quote_remainder_paid')
       if (
         kind === 'card_charge' ||
         kind === 'card_hold' ||
@@ -234,6 +268,14 @@ export async function dispatchPaymentEvent(
       await observeRefund(event)
     } catch {
       console.error('[webhook] refund observation failed', { eventId: event.id })
+    }
+    // Phase 92 (plan 92-22): the same event may be a refund of a quote deposit or remainder (for example one made in
+    // the Stripe Dashboard). Its own try: a failed booking observation must not skip it, and it must not stop the
+    // shipped refund handler either.
+    try {
+      await observeQuoteRefund(event)
+    } catch {
+      console.error('[webhook] quote refund observation failed', { eventId: event.id })
     }
     return { handled: false }
   }

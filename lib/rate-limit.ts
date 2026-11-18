@@ -29,6 +29,12 @@ const LIMITS: Record<string, number> = {
   '/api/card-checkout/intent':   10, // Phase 88: card-testing guard, creates Stripe objects (Research Pitfall 7)
   '/api/manage/cancel':          10, // Phase 89 (T-89-07): public, token-authenticated; bounds token guessing and refund attempts
   '/api/manage/change-request':   5, // Phase 89 (T-89-07): each call mails the operator, so keep it low
+  '/quote':                      30, // Phase 92 (T-92-14): the quote page itself; checked inside the page, bounds token guessing
+  '/api/quote/view':             20, // Phase 92 (T-92-14): token-gated read of a quote version
+  '/api/quote/accept':           10, // Phase 92 (T-92-14): creates Stripe objects, same value as /api/card-checkout/intent
+  '/api/quote/state':            60, // Phase 92 (T-92-14): polled after payment, so higher than the others
+  '/api/quote/pdf':              10, // Phase 92 (T-92-14): renders a PDF, expensive
+  '/api/quote/remainder':        10, // Phase 92 (T-92-14): creates Stripe objects, same value as /api/card-checkout/intent
   '/admin/login':                 5, // prevent brute force on admin credentials
   '/login':                       5, // customer auth: prevent magic-link / password brute force
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota

@@ -19,6 +19,11 @@
 // ledger row, an operator alert and a money_failed answer.
 //
 // Partner bookings get a status change only (assertMoneyEligible, Pitfall 15).
+//
+// A trip that belongs to a quote (quote_id set, Phase 92 D-11, D-12) is always free on the trip side: whoever cancels and
+// however late, no fee case is opened and nothing is kept. The only money a client can lose on a quote is the deposit,
+// and that sits with the quote, not with its trips. A quote-level cancel (plan 92-22) passes suppressClientEmail so the
+// client gets one quote email instead of one per trip.
 
 import { after } from 'next/server'
 import type Stripe from 'stripe'
@@ -76,6 +81,11 @@ export interface CancelBookingInput {
   /** client_token only: the outcome the client saw and confirmed. A different current outcome cancels nothing. */
   acknowledge?: 'free' | 'late'
   nowMs?: number
+  /**
+   * Send no email to the client (the driver and operator notices are unchanged). A quote-level cancel sets it for every
+   * linked trip and sends one quote email itself.
+   */
+  suppressClientEmail?: boolean
 }
 
 /**
@@ -94,7 +104,7 @@ const BOOKING_COLUMNS =
   'client_first_name, client_last_name, client_email, origin_address, destination_address, vehicle_class, ' +
   'pickup_date, pickup_time, hold_payment_intent_id, hold_amount_minor, hold_attempts, recovery_link_id, ' +
   'recovery_link_url, captured_amount_minor, payment_lease_until, cancel_policy, cancel_policy_version, trip_type, ' +
-  'distance_km, pickup_utc, stripe_payment_method_id, locale, capture_before, leg'
+  'distance_km, pickup_utc, stripe_payment_method_id, locale, capture_before, leg, quote_id'
 
 /** The payment side of the row after the status compare-and-set (88-REVIEW C-WR-01). */
 const PAYMENT_COLUMNS =
@@ -337,6 +347,11 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
     }
   }
 
+  // D-11 / D-12: a trip of a quote never carries a cancellation fee. The terms that can cost the client money are those of
+  // the quote deposit (quote level); for the trip the cancel is free whoever cancels and however late (before the pickup,
+  // or after it for an operator). The client's own too_late limits above are untouched.
+  if (str(booking.quote_id) !== '') outcome = 'free'
+
   // T-89-27: the server recomputes; a client who confirmed other terms cancels nothing and learns the current ones.
   if (isClient && input.acknowledge !== outcome) return { kind: 'policy_changed', outcome }
 
@@ -376,6 +391,10 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
   }
 
   const legKey = split?.leg ?? 'full'
+  // The client's cancelled email, unless a quote-level cancel speaks for all of its trips at once.
+  const clientMail: typeof scheduleCancelRouteEmail = (...args) => {
+    if (!input.suppressClientEmail) scheduleCancelRouteEmail(...args)
+  }
   const statusActor: StatusActor = isClient
     ? { type: 'system', id: 'client_token' }
     : { type: 'admin', id: actor.id }
@@ -451,7 +470,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
 
   // Partner bookings: the status change was all there was to do.
   if (partner) {
-    scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'none'))
+    clientMail(booking, previousStatus, freeNotice(initiator, 'none'))
     return { kind: 'ok', outcome, money: 'none' }
   }
 
@@ -533,7 +552,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
       : await feeBaseNow(current)
     if (!base) {
       console.error('[cancel] late cancel without a computable fee base', { bookingId })
-      scheduleCancelRouteEmail(moneyRow, previousStatus, lateNotice())
+      clientMail(moneyRow, previousStatus, lateNotice())
       return { kind: 'db_failed', cancelled: true }
     }
     try {
@@ -559,10 +578,10 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
         bookingId,
         reason: err instanceof Error ? err.message : 'unknown',
       })
-      scheduleCancelRouteEmail(moneyRow, previousStatus, lateNotice())
+      clientMail(moneyRow, previousStatus, lateNotice())
       return { kind: 'db_failed', cancelled: true }
     }
-    scheduleCancelRouteEmail(moneyRow, previousStatus, lateNotice())
+    clientMail(moneyRow, previousStatus, lateNotice())
     return { kind: 'ok', outcome: 'late', money: 'kept' }
   }
 
@@ -587,7 +606,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
           { payment_intent: paymentIntentId },
           { idempotencyKey: stripeKeys.refund(bookingId, legKey) },
         )
-        scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'refunded', collected))
+        clientMail(booking, previousStatus, freeNotice(initiator, 'refunded', collected))
         return {
           kind: 'ok',
           outcome,
@@ -606,12 +625,12 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
       const released = await releaseHold(current, { actor, reason: 'cancel' })
       if (released === 'busy') throw new Error('busy')
       if (released === 'released') {
-        scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'released'))
+        clientMail(booking, previousStatus, freeNotice(initiator, 'released'))
         return { kind: 'ok', outcome, money: 'released' }
       }
       // noop: fine only when nothing is held any more; never answer ok while a hold or card is still live.
       if (!NOTHING_HELD.has(str(current.payment_state) || 'none')) throw new Error('state_moved')
-      scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'none'))
+      clientMail(booking, previousStatus, freeNotice(initiator, 'none'))
       return { kind: 'ok', outcome, money: 'none' }
     } catch (err) {
       return moneyFailed(err, 'release')
@@ -629,7 +648,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
         idempotencyKey: stripeKeys.refund(bookingId, legKey),
       })
       const refunded = failedAmount(booking, legAmountCents, false, null, payNow)
-      scheduleCancelRouteEmail(moneyRow, previousStatus, freeNotice(initiator, 'refunded', refunded.amount_minor))
+      clientMail(moneyRow, previousStatus, freeNotice(initiator, 'refunded', refunded.amount_minor))
       return {
         kind: 'ok',
         outcome,
@@ -644,7 +663,7 @@ async function runCancel(input: CancelBookingInput, holder: { applied: AppliedCa
   }
 
   // Manual booking, or a pay-now booking nothing was paid for: the status change was all there was to do.
-  scheduleCancelRouteEmail(booking, previousStatus, freeNotice(initiator, 'none'))
+  clientMail(booking, previousStatus, freeNotice(initiator, 'none'))
   return { kind: 'ok', outcome, money: 'none' }
 }
 

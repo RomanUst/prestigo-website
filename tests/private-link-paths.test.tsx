@@ -69,6 +69,11 @@ describe('isPrivateLinkPath', () => {
     '/zh/driver/x',
     '/ru/manage/abc',
     '/fr/manage',
+    '/quote/abc',
+    '/zh/quote/abc',
+    '/zh-hant/quote/abc',
+    '/ru/quote/x',
+    '/quote/done',
   ])('%s is private', (path) => {
     expect(isPrivateLinkPath(path)).toBe(true)
   })
@@ -84,6 +89,8 @@ describe('isPrivateLinkPath', () => {
     '/administrator',
     '/driverless',
     '/blog/manage-your-booking',
+    '/quotes-info',
+    '/en/routes/x',
   ])('%s is public', (path) => {
     expect(isPrivateLinkPath(path)).toBe(false)
   })
@@ -214,7 +221,7 @@ const GUARDED_COMPONENTS = [
   'ChatLauncher',
 ] as const
 
-const PRIVATE_PATHS = ['/manage/tok', '/ar/manage/tok', '/driver/trip/tok']
+const PRIVATE_PATHS = ['/manage/tok', '/ar/manage/tok', '/driver/trip/tok', '/quote/tok', '/zh-hant/quote/tok']
 
 describe('every listed third-party / consent / chat component imports the guard', () => {
   it.each(GUARDED_COMPONENTS)('components/%s.tsx uses isPrivateLinkPath', (name) => {

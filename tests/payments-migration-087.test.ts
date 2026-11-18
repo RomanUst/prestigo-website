@@ -23,8 +23,9 @@ describe('087 vocabulary', () => {
   })
 
   it('the consent mode gains cash_setup', () => {
-    expect(latestCheckValues('booking_payment_consents_mode_check', 'mode').sort()).toEqual(
-      ['cash_setup', 'hold_now', 'setup'].sort(),
+    // Later migrations widen the list again (091 adds 'quote'); 087's own addition must stay in it.
+    expect(latestCheckValues('booking_payment_consents_mode_check', 'mode')).toEqual(
+      expect.arrayContaining(['cash_setup', 'hold_now', 'setup']),
     )
   })
 })

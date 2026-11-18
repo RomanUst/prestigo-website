@@ -42,7 +42,12 @@ export const POLICY_BOUNDS = {
   km: { min: 1, max: 1000 },
   hours: { min: 0, max: 72 },
   percent: { min: 1, max: 100 },
+  /** Free-cancellation hours of a quote snapshot (version starts with QUOTE_POLICY_VERSION_PREFIX): up to 30 days (D-13). */
+  quoteHours: { min: 0, max: 720 },
 } as const
+
+/** Version prefix of a cancellation snapshot made for a quote (Phase 92). Only these may use POLICY_BOUNDS.quoteHours. */
+export const QUOTE_POLICY_VERSION_PREFIX = 'quote-'
 
 /** Used when the settings row cannot be read, and as the admin form's fallbacks. */
 export const DEFAULT_POLICY: CancellationPolicy = {
@@ -97,7 +102,12 @@ export function policyFromSnapshot(snapshot: unknown): CancellationPolicy {
   }
   if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return LEGACY_POLICY
   const s = raw as Record<string, unknown>
-  const { km, hours, percent } = POLICY_BOUNDS
+  const { km, percent } = POLICY_BOUNDS
+  // D-13: a quote snapshot may hold up to 720 free hours; every other snapshot keeps the 72-hour bound.
+  const hours =
+    typeof s.version === 'string' && s.version.startsWith(QUOTE_POLICY_VERSION_PREFIX)
+      ? POLICY_BOUNDS.quoteHours
+      : POLICY_BOUNDS.hours
   if (
     typeof s.version !== 'string' ||
     s.version.length === 0 ||

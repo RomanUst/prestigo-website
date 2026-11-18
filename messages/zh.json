@@ -1371,5 +1371,179 @@
         "errorGeneric": "我们无法发送您的申请。请重试或致电我们：<tel>{phone}</tel>。"
       }
     }
+  },
+  "Quote": {
+    "meta": {
+      "title": "您的报价"
+    },
+    "eyebrow": "Prestigo 报价",
+    "title": "报价 {reference}",
+    "version": "版本 {number}",
+    "preparedFor": "为 {name} 准备",
+    "intro": "请查看下方的行程和条款。如需确认，请接受报价并支付定金。",
+    "validUntil": "有效期至 {date}",
+    "pragueTime": "所有日期和时间均为布拉格时间。",
+    "status": {
+      "offer": "等待您的确认",
+      "accepted": "等待支付定金",
+      "paid": "已确认"
+    },
+    "lines": {
+      "heading": "您的行程",
+      "trip": "行程 {number}",
+      "tripType": {
+        "transfer": "接送",
+        "hourly": "按小时",
+        "daily": "全天"
+      },
+      "date": "日期",
+      "pickupTime": "接客时间",
+      "landing": "航班 {time} 降落",
+      "from": "出发地",
+      "to": "目的地",
+      "stops": "停靠点",
+      "stopWait": "等待 {minutes} 分钟",
+      "vehicle": "车辆",
+      "passengers": "乘客",
+      "luggage": "行李",
+      "duration": "{hours} 小时",
+      "price": "价格"
+    },
+    "summary": {
+      "heading": "汇总",
+      "total": "合计",
+      "deposit": "确认所需定金",
+      "remainder": "余款"
+    },
+    "remainder": {
+      "saved_card": "每段行程的余款将从您支付定金的银行卡扣除：我们会在行程前不久冻结该金额，并在行程结束后扣款。",
+      "payment_link": "余款请在支付定金后、行程开始前，在本页面支付。",
+      "cash": "每段行程的余款由您以现金支付给司机。您支付定金所用的银行卡将作为担保保存。",
+      "invoice": "我们会向您发送余款的发票。"
+    },
+    "terms": {
+      "heading": "取消条款",
+      "free": "{freeUntil} 前可免费取消：定金全额退还。",
+      "lateAll": "此后，定金不予退还。",
+      "latePercent": "此后，将扣留定金的 {percent}%，其余部分退还。",
+      "noFree": "此报价已不能免费取消。",
+      "cap": "取消时，向您收取的费用绝不会超过定金。",
+      "howToCancel": "如需取消，请通过电话或电子邮件联系我们。"
+    },
+    "accept": {
+      "heading": "接受并支付定金",
+      "button": "支付定金 {amount}",
+      "consentRequired": "请勾选方框以接受条款。",
+      "processing": "正在处理您的付款…",
+      "confirming": "已收到付款。我们正在确认您的行程…",
+      "declined": "您的银行卡被拒绝。请换一张卡再试。",
+      "error": "付款未成功。请重试。",
+      "changed": "此报价已更新。请刷新页面。",
+      "unavailable": "此报价已无法接受。"
+    },
+    "consent": {
+      "saved_card": "我接受报价 {reference}（版本 {version}）及其取消条款。我授权 Prestigo 现在扣除 {deposit} 的定金，保存我的银行卡，并按上文所述从该卡扣除每段行程的余款，以及超出预订时间的等候和行程中约定的额外项目。",
+      "payment_link": "我接受报价 {reference}（版本 {version}）及其取消条款。我授权 Prestigo 现在扣除 {deposit} 的定金，并保存我的银行卡，用于我在本页面为此报价所做的付款。",
+      "cash": "我接受报价 {reference}（版本 {version}）及其取消条款。我授权 Prestigo 现在扣除 {deposit} 的定金，并将我的银行卡作为担保保存：如果某段行程未以现金支付，或产生超出预订时间的等候和行程中约定的额外项目，Prestigo 可从该卡扣除应付金额。",
+      "invoice": "我接受报价 {reference}（版本 {version}）及其取消条款。我授权 Prestigo 现在扣除 {deposit} 的定金，并保存我的银行卡，用于我为此报价批准的付款。"
+    },
+    "paid": {
+      "heading": "您的行程已预订",
+      "body": "我们已向您的邮箱发送确认邮件。您的预订编号：",
+      "booking": "预订 {reference}"
+    },
+    "remainderPay": {
+      "heading": "支付余款",
+      "due": "待付余款：{amount}",
+      "button": "支付 {amount}",
+      "confirming": "已收到付款。我们正在更新您的报价…",
+      "paid": "余款已付清。谢谢您。"
+    },
+    "invoice": {
+      "note": "我们将向您发送 {amount} 余款的发票。"
+    },
+    "pdf": {
+      "download": "下载 PDF",
+      "preparing": "正在准备 PDF…",
+      "unavailable": "PDF 暂时无法使用。请使用“打印”将报价保存为 PDF。",
+      "print": "打印"
+    },
+    "invalid": {
+      "title": "此报价已不可用",
+      "body": "链接已过期，或已被更新的报价取代。请联系我们，我们会为您提供帮助。"
+    },
+    "contact": {
+      "heading": "有疑问？",
+      "call": "致电我们",
+      "email": "发邮件给我们"
+    },
+    "done": {
+      "title": "谢谢您",
+      "body": "我们正在确认您的付款。请打开邮件中的报价链接查看您的行程。"
+    },
+    "document": {
+      "title": "报价",
+      "issued": "出具日期：{date}",
+      "reference": "编号",
+      "acceptOnline": "请通过我们发送给您的链接在线接受报价并支付定金。",
+      "operator": "Prestigo 由 {company} 运营。"
+    }
+  },
+  "QuoteEmails": {
+    "common": {
+      "greeting": "{name}，您好：",
+      "signoff": "Prestigo 团队",
+      "contact": "有疑问？请回复此邮件或致电我们。",
+      "openQuote": "查看您的报价",
+      "pragueTime": "所有时间均为布拉格时间。"
+    },
+    "sent": {
+      "subject": "您的 Prestigo 报价 {reference}",
+      "h1": "您的报价已准备好",
+      "intro": "我们已为您的行程准备好报价。请打开查看详情和取消条款，然后接受报价并支付定金以确认。",
+      "total": "总计：{amount}",
+      "deposit": "确认所需定金：{amount}",
+      "validUntil": "此报价有效期至 {date}。",
+      "pdfAttached": "报价已作为 PDF 附在本邮件中。",
+      "pdfLink": "您可以在报价页面下载 PDF 版报价。"
+    },
+    "confirmed": {
+      "subject": "您的行程已预订 – {reference}",
+      "h1": "您的行程已预订",
+      "intro": "我们已收到您的定金 {amount}。以下行程现已预订：",
+      "booking": "预订 {reference}",
+      "remainder": {
+        "saved_card": "每段行程的余款，我们将按条款所述从您的银行卡扣取。",
+        "payment_link": "请在您的报价页面支付余款 {amount}。",
+        "cash": "每段行程的余款，由您以现金支付给司机。",
+        "invoice": "我们会向您发送余款 {amount} 的发票。",
+        "none": "您的行程已全额付清。"
+      }
+    },
+    "remainderDue": {
+      "subject": "待付余款 – {reference}",
+      "h1": "待付余款",
+      "intro": "请支付已预订行程的余款 {amount}。",
+      "button": "支付余款"
+    },
+    "remainderPaid": {
+      "subject": "已收到付款 – {reference}",
+      "h1": "谢谢您",
+      "intro": "我们已收到您支付的 {amount}。您的行程已全额付清。"
+    },
+    "cancelled": {
+      "subject": "报价 {reference} 已取消",
+      "h1": "您的行程已取消",
+      "introClient": "应您的要求，我们已取消报价 {reference} 中的行程。",
+      "introPrestigo": "非常抱歉：我们不得不取消报价 {reference} 中的行程。",
+      "refund": "我们正在将 {amount} 退回您的银行卡，到账可能需要 5 至 10 天。",
+      "kept": "根据此报价的取消条款，定金中的 {amount} 不予退还。",
+      "nothingCharged": "不会再收取其他费用。"
+    },
+    "refunded": {
+      "subject": "报价 {reference} 的退款",
+      "h1": "退款已在途中",
+      "intro": "我们已将 {amount} 退回您的银行卡，到账可能需要 5 至 10 天。"
+    }
   }
 }
