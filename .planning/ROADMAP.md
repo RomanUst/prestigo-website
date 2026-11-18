@@ -24,7 +24,7 @@
 - [x] **Phase 89: Cancellation Policy, Cash Guarantee & No-Show** - Policy-driven free cancellation, cash with card guarantee, operator-confirmed no-show charge, owner-accepted wording, public go-live
 - [x] **Phase 90: Dispatch Views** - Kanban by status and day/week/month calendar in Prague time with auto-refresh (completed 2026-11-11)
 - [x] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card (completed 2026-11-14)
-- [ ] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF
+- [x] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF (completed 2026-11-18)
 - [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
 - [ ] **Phase 94: Driver Cabinet** - Driver login, ride list (upcoming/past), offers instead of email links, profile; ride detail = Phase 87 trip screen
 
@@ -468,54 +468,54 @@ Plans:
   4. When the deposit is paid each line becomes a booking linked to the quote, and the remainder is collected by the method the operator chose for that quote: saved card (hold/capture per trip), payment link, cash to the driver, or invoice.
   5. The client can download the quote as a PDF, and the quote email includes it in the client's language.
 
-**Plans**: 32 plans
+**Plans**: 32/32 plans complete
 
 Plans:
 **Wave 1**
-- [ ] 92-01-PLAN.md — Migration 091 part 1: quote tables (locale CHECK = all 8 site locales), hashed links, acceptance log, event ledger, booking link columns, guards; fake DB; quote events helper
-- [ ] 92-02-PLAN.md — Pure quote core: token, link validity (D-02, D-05), deposit and allocation, booking mode table, quote terms with the 720-hour bound (D-13)
-- [ ] 92-03-PLAN.md — Owner gate on the saved card's use (D-21, D-22), then quote page, consent and PDF copy in all 8 locales (zh-hant generated from zh)
-- [ ] 92-04-PLAN.md — Secret-path hardening (headers incl. zh-hant, private paths, CSP redaction, CSRF, rate limits) and quote Stripe / consent vocabulary (security)
-- [ ] 92-05-PLAN.md — PDF packages: owner legitimacy check, orchestrator install of pinned releases and OFL fonts (incl. Noto Sans TC), pin test
+- [x] 92-01-PLAN.md — Migration 091 part 1: quote tables (locale CHECK = all 8 site locales), hashed links, acceptance log, event ledger, booking link columns, guards; fake DB; quote events helper
+- [x] 92-02-PLAN.md — Pure quote core: token, link validity (D-02, D-05), deposit and allocation, booking mode table, quote terms with the 720-hour bound (D-13)
+- [x] 92-03-PLAN.md — Owner gate on the saved card's use (D-21, D-22), then quote page, consent and PDF copy in all 8 locales (zh-hant generated from zh)
+- [x] 92-04-PLAN.md — Secret-path hardening (headers incl. zh-hant, private paths, CSP redaction, CSRF, rate limits) and quote Stripe / consent vocabulary (security)
+- [x] 92-05-PLAN.md — PDF packages: owner legitimacy check, orchestrator install of pinned releases and OFL fonts (incl. Noto Sans TC), pin test
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 92-06-PLAN.md — Migration 091 part 2: quote_convert_to_bookings (one transaction, exactly once, replay-safe) and its fake DB emulation
-- [ ] 92-07-PLAN.md — PDF render spike: renderQuotePdf, fonts, 8-locale proof with glyph coverage, admin pdf-check route, local D-14 decision
-- [ ] 92-08-PLAN.md — Admin quote store, draft API and server price suggestion per line (D-04)
-- [ ] 92-09-PLAN.md — Public quote page: resolver, client-safe view, invalid view, viewed POST (security)
-- [ ] 92-10-PLAN.md — Quote bookings never charged outside the quote: deposit-aware price edits (D-20), payment-link route 409, pay-now and group-payment guards (security)
-- [ ] 92-11-PLAN.md — Quote bookings in the cancel engine: no trip-side fee (D-11), quiet mode, no manage links (security)
-- [ ] 92-29-PLAN.md — Quote email copy (QuoteEmails) in all 8 locales (zh-hant generated from zh)
-- [ ] 92-30-PLAN.md — Quote bookings in the admin panel: chip, no payment-link section, cancel dialog rule
+- [x] 92-06-PLAN.md — Migration 091 part 2: quote_convert_to_bookings (one transaction, exactly once, replay-safe) and its fake DB emulation
+- [x] 92-07-PLAN.md — PDF render spike: renderQuotePdf, fonts, 8-locale proof with glyph coverage, admin pdf-check route, local D-14 decision
+- [x] 92-08-PLAN.md — Admin quote store, draft API and server price suggestion per line (D-04)
+- [x] 92-09-PLAN.md — Public quote page: resolver, client-safe view, invalid view, viewed POST (security)
+- [x] 92-10-PLAN.md — Quote bookings never charged outside the quote: deposit-aware price edits (D-20), payment-link route 409, pay-now and group-payment guards (security)
+- [x] 92-11-PLAN.md — Quote bookings in the cancel engine: no trip-side fee (D-11), quiet mode, no manage links (security)
+- [x] 92-29-PLAN.md — Quote email copy (QuoteEmails) in all 8 locales (zh-hant generated from zh)
+- [x] 92-30-PLAN.md — Quote bookings in the admin panel: chip, no payment-link section, cancel dialog rule
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 92-12-PLAN.md — Migration 091 part 3: erasure coverage (D-19), smoke, LIVE APPLY by the orchestrator
-- [ ] 92-13-PLAN.md — Admin lifecycle API: send (freeze, link, email on the shared localized shell), copy link, revise into a new version, void (security)
-- [ ] 92-14-PLAN.md — Admin quotes list, sidebar entry, state badges, Cancel quote
-- [ ] 92-15-PLAN.md — Quote line editor with live-tariff suggestion and manual override
-- [ ] 92-16-PLAN.md — Accept and deposit server: logged acceptance, one deposit PaymentIntent that saves the card, state route (security)
-- [ ] 92-18-PLAN.md — Deposit conversion core: single RPC wrapper, replay rule, orphan refund, quote alerts (security)
-- [ ] 92-32-PLAN.md — Early production PDF proof: small PR with 92-05 + 92-07, pdf-check on production, production D-14 decision
+- [x] 92-12-PLAN.md — Migration 091 part 3: erasure coverage (D-19), smoke, LIVE APPLY by the orchestrator
+- [x] 92-13-PLAN.md — Admin lifecycle API: send (freeze, link, email on the shared localized shell), copy link, revise into a new version, void (security)
+- [x] 92-14-PLAN.md — Admin quotes list, sidebar entry, state badges, Cancel quote
+- [x] 92-15-PLAN.md — Quote line editor with live-tariff suggestion and manual override
+- [x] 92-16-PLAN.md — Accept and deposit server: logged acceptance, one deposit PaymentIntent that saves the card, state route (security)
+- [x] 92-18-PLAN.md — Deposit conversion core: single RPC wrapper, replay rule, orphan refund, quote alerts (security)
+- [x] 92-32-PLAN.md — Early production PDF proof: small PR with 92-05 + 92-07, pdf-check on production, production D-14 decision
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 92-17-PLAN.md — Quote page accept-and-pay island and tokenless return page
-- [ ] 92-19-PLAN.md — Admin quote page: builder with deposit, remainder method, terms, language, expiry
-- [ ] 92-20-PLAN.md — Quote PDF document, stored per version, attached to the quote email (link fallback)
-- [ ] 92-22-PLAN.md — Quote cancellation and refunds server (D-03, D-11, D-12) (security)
-- [ ] 92-24-PLAN.md — Invoice mark-paid and remainder request (D-17)
-- [ ] 92-31-PLAN.md — Deposit webhook routing, failure / dispute handlers, tick reconcile (security)
+- [x] 92-17-PLAN.md — Quote page accept-and-pay island and tokenless return page
+- [x] 92-19-PLAN.md — Admin quote page: builder with deposit, remainder method, terms, language, expiry
+- [x] 92-20-PLAN.md — Quote PDF document, stored per version, attached to the quote email (link fallback)
+- [x] 92-22-PLAN.md — Quote cancellation and refunds server (D-03, D-11, D-12) (security)
+- [x] 92-24-PLAN.md — Invoice mark-paid and remainder request (D-17)
+- [x] 92-31-PLAN.md — Deposit webhook routing, failure / dispute handlers, tick reconcile (security)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 92-21-PLAN.md — After payment: client confirmation, accounting copy, operator notice, reminders
-- [ ] 92-23-PLAN.md — Payment-link remainder paid on the quote page (D-16) (security)
-- [ ] 92-25-PLAN.md — Admin quote actions bar: send, copy link, edit (new version), cancel, history
+- [x] 92-21-PLAN.md — After payment: client confirmation, accounting copy, operator notice, reminders
+- [x] 92-23-PLAN.md — Payment-link remainder paid on the quote page (D-16) (security)
+- [x] 92-25-PLAN.md — Admin quote actions bar: send, copy link, edit (new version), cancel, history
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 92-26-PLAN.md — Admin money dialogs: cancel with refund, partial refund, mark invoice paid, remainder request
-- [ ] 92-27-PLAN.md — Quote page: PDF download with print fallback, pay the remainder
+- [x] 92-26-PLAN.md — Admin money dialogs: cancel with refund, partial refund, mark invoice paid, remainder request
+- [x] 92-27-PLAN.md — Quote page: PDF download with print fallback, pay the remainder
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 92-28-PLAN.md — Phase integration test, full gate, owner live proofs, UAT, counsel / accountant items
+- [x] 92-28-PLAN.md — Phase integration test, full gate, owner live proofs, UAT, counsel / accountant items
 
 **UI hint**: yes
 **Security-relevant**: yes — commit with `security:` prefix. Quote tokens are hashed 256-bit secrets with immutable versions, a side-effect-free GET, and no-referrer / no-store / noindex headers; the deposit is a client-facing payment.
