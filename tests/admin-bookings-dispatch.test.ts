@@ -136,6 +136,13 @@ describe('GET /api/admin/bookings/dispatch - tripType and search', () => {
     expect(rpcMock.mock.calls[1][1].p_trip_type).toBeNull()
   })
 
+  it('accepts tripType=tour (Phase 93) and passes it to the dispatch RPC', async () => {
+    rpcMock.mockResolvedValue(page([], 0))
+    const res = await GET(req('startDate=2027-10-31&endDate=2027-10-31&tripType=tour'))
+    expect(res.status).toBe(200)
+    expect(rpcMock.mock.calls[0][1].p_trip_type).toBe('tour')
+  })
+
   it('trims and cuts a 150-character search to its first 100 characters', async () => {
     rpcMock.mockResolvedValue(page([], 0))
     const long = 'a'.repeat(150)
