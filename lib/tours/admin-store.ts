@@ -304,3 +304,82 @@ async function touchTour(db: Db, tourId: string, now: string): Promise<void> {
   const { error } = await db.from('tours').update({ updated_at: now }).eq('id', tourId)
   if (error) dbFail()
 }
+
+/** Updates the basics of a tour. The slug changes only before the first publication (D-07); the start window is checked against the stored value when only one end is sent. */
+export async function updateTourBasics(id: string, patch: TourBasicsInput): Promise<TourRow> {
+  const db = client()
+  const tour = await readTourRow(db, id)
+
+  if (patch.slug !== undefined && patch.slug !== tour.slug && tour.first_published_at) {
+    throw new TourAdminError('SLUG_LOCKED')
+  }
+  const min = patch.start_time_min ?? tour.start_time_min
+  const max = patch.start_time_max ?? tour.start_time_max
+  if (max <= min) throw new TourAdminError('INVALID_WINDOW')
+
+  const { data, error } = await db
+    .from('tours')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select(TOUR_COLS)
+    .maybeSingle()
+  if (error) {
+    if (isUniqueViolation(error)) throw new TourAdminError('SLUG_TAKEN')
+    dbFail()
+  }
+  if (!data) throw new TourAdminError('NOT_FOUND')
+  return toTour(data as Raw)
+}
+
+/** Sets sort_order = index for every tour; ids must be exactly the set of existing tour ids. */
+export async function reorderTours(ids: string[]): Promise<void> {
+  const db = client()
+  const { data, error } = await db.from('tours').select('id')
+  if (error) dbFail()
+  const existing = new Set(((data ?? []) as Array<{ id: string }>).map((r) => r.id))
+  if (existing.size !== ids.length || !ids.every((id) => existing.has(id))) throw new TourAdminError('INVALID_ORDER')
+
+  for (let i = 0; i < ids.length; i += 1) {
+    const { error: upErr } = await db.from('tours').update({ sort_order: i }).eq('id', ids[i])
+    if (upErr) dbFail()
+  }
+}
+
+type ZhConverter = (text: string) => string
+let zhConverter: ZhConverter | null = null
+
+/** Simplified -> Traditional (Taiwan phrases), the same conversion as scripts/zh-hant-sync.mjs (D-24). Loaded on first use. */
+async function getZhConverter(): Promise<ZhConverter> {
+  if (!zhConverter) {
+    const OpenCC = await import('opencc-js')
+    zhConverter = OpenCC.Converter({ from: 'cn', to: 'twp' })
+  }
+  return zhConverter
+}
+
+/** Converts the saved zh translation to zh-hant and stores it; ZH_INCOMPLETE while zh is missing or incomplete (D-24). */
+export async function fillZhHantFromZh(tourId: string): Promise<{ translation: TourTranslationRow }> {
+  const db = client()
+  await readTourRow(db, tourId)
+  const rows = await readTranslations(db, tourId)
+  const zh = rows.find((r) => r.locale === 'zh')
+  if (!zh || !isLocaleComplete('zh', zh, null).complete) throw new TourAdminError('ZH_INCOMPLETE')
+
+  const convert = await getZhConverter()
+  const input: TourTranslationInput = {
+    title: convert(zh.title),
+    short_description: convert(zh.short_description),
+    description: convert(zh.description),
+    pickup_info: convert(zh.pickup_info),
+    important_info: convert(zh.important_info),
+    seo_title: convert(zh.seo_title),
+    seo_description: convert(zh.seo_description),
+    highlights: zh.highlights.map((s) => convert(s)),
+    includes: zh.includes.map((s) => convert(s)),
+    excludes: zh.excludes.map((s) => convert(s)),
+    itinerary: zh.itinerary.map((i) => ({ title: convert(i.title), body: convert(i.body) })),
+    faq: zh.faq.map((f) => ({ q: convert(f.q), a: convert(f.a) })),
+  }
+  const { translation } = await saveTourTranslation(tourId, 'zh-hant', input)
+  return { translation }
+}
