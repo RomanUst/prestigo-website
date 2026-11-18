@@ -16,6 +16,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 import { findLandingPage, getLandingPrices, landingPagesFor, type LandingContent } from '@/lib/landing-pages'
 import { getPublishedTourForLocale, getPublishedTourLocales } from '@/lib/tours/store'
+import { tourPhotoUrl } from '@/lib/tours/photo-url'
 import { TOUR_SLUG_MAX_LENGTH, TOUR_SLUG_PATTERN } from '@/lib/tours/types'
 import { ROUTES_BY_SLUG } from '@/lib/routes'
 import { getPathname, routing } from '@/i18n/routing'
@@ -77,10 +78,23 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!isTourSlug(slug) || !isAppLocale(locale)) return {}
   const result = await loadTour(slug, locale)
   if (result.status !== 'ok') return {}
-  const { translation } = result.data
+  const { translation, photos, completeLocales } = result.data
+  // hreflang and canonical list only the locales whose translation is complete (en always, as x-default).
+  const alternates = getAlternates(`/services/${slug}`, { indexable: true, locale, availableLocales: completeLocales })
+  const cover = photos[0] ? tourPhotoUrl(photos[0].storage_path) : ''
+  const image = cover
+    ? { url: cover, ...(photos[0].width && photos[0].height ? { width: photos[0].width, height: photos[0].height } : {}) }
+    : { url: 'https://rideprestigo.com/og-image.jpg', width: 1200, height: 630 }
   return {
     title: translation.seo_title,
     description: translation.seo_description,
+    alternates,
+    openGraph: {
+      url: toAbsoluteUrl(alternates.canonical),
+      title: translation.seo_title,
+      description: translation.seo_description,
+      images: [image],
+    },
   }
 }
 

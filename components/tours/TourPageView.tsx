@@ -15,6 +15,8 @@ import TourKeyFacts from '@/components/tours/TourKeyFacts'
 import TourSections from '@/components/tours/TourSections'
 import type { TourT } from '@/components/tours/tour-t'
 import { localizedHref } from '@/lib/localized-href'
+import { buildTourJsonLd, safeJsonLd } from '@/lib/tours/jsonld'
+import { tourPhotoUrl } from '@/lib/tours/photo-url'
 import type { TourPageData } from '@/lib/tours/store'
 import type { AppLocale } from '@/i18n/locales'
 
@@ -40,7 +42,23 @@ export default async function TourPageView({
   slots?: TourPageSlots
 }) {
   const t = (await getTranslations({ locale, namespace: 'Tours' })) as unknown as TourT
-  const { tour, translation, settings } = data
+  const { tour, translation, settings, photos } = data
+  const cover = photos[0] ? tourPhotoUrl(photos[0].storage_path) : ''
+  // Offer prices come from the same tour row the page renders (D-01). safeJsonLd escapes tour text.
+  const jsonLd = safeJsonLd(
+    buildTourJsonLd({
+      slug: tour.slug,
+      locale,
+      translation,
+      tour,
+      coverUrl: cover || null,
+      breadcrumb: {
+        home: t('page.breadcrumbHome'),
+        services: t('page.breadcrumbServices'),
+        hub: t('page.breadcrumbHub'),
+      },
+    }),
+  )
 
   const crumbs = [
     { href: localizedHref(locale, '/') ?? '/', label: t('page.breadcrumbHome') },
@@ -54,6 +72,7 @@ export default async function TourPageView({
 
   return (
     <main id="main-content">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <Nav />
 
       <div className="mx-auto max-w-7xl px-6 pt-24 sm:px-8 lg:px-12">

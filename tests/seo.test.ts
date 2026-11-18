@@ -183,3 +183,41 @@ describe('toAbsoluteUrl (WR-02)', () => {
     expect(toAbsoluteUrl('https://rideprestigo.com')).toBe('https://rideprestigo.com')
   })
 })
+
+/**
+ * Phase 93: opts.availableLocales — the hreflang cluster of a DB-backed page (a tour) lists only the locales
+ * the database marks complete; it replaces the filesystem probe.
+ */
+describe('getAlternates — availableLocales (Phase 93)', () => {
+  it('lists only the given locales plus en and x-default', () => {
+    const result = getAlternates('/services/x-day-trip', {
+      indexable: true,
+      locale: 'ru',
+      availableLocales: ['en', 'ru'],
+    })
+    expect(Object.keys(result.languages)).toEqual(['en', 'ru', 'x-default'])
+    expect(result.languages['x-default']).toBe('https://rideprestigo.com/services/x-day-trip')
+    expect(result.languages.ru).toBe('https://rideprestigo.com/ru/services/x-day-trip')
+  })
+
+  it('always includes en even when the list omits it', () => {
+    const result = getAlternates('/services/x-day-trip', { indexable: true, availableLocales: ['ar'] })
+    expect(Object.keys(result.languages)).toEqual(['en', 'ar', 'x-default'])
+  })
+
+  it('self-canonical only for a listed locale; an unlisted locale falls back to the EN canonical', () => {
+    const listed = getAlternates('/services/x-day-trip', { indexable: true, locale: 'ru', availableLocales: ['en', 'ru'] })
+    expect(listed.canonical).toBe('https://rideprestigo.com/ru/services/x-day-trip')
+    const unlisted = getAlternates('/services/x-day-trip', { indexable: true, locale: 'fr', availableLocales: ['en', 'ru'] })
+    expect(unlisted.canonical).toBe('/services/x-day-trip')
+  })
+
+  it('replaces the content probe when both are given', () => {
+    const result = getAlternates('/routes/prague-vienna', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-vienna' },
+      availableLocales: ['en'],
+    })
+    expect(Object.keys(result.languages)).toEqual(['en', 'x-default'])
+  })
+})

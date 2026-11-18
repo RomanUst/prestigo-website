@@ -56,7 +56,7 @@ vi.mock('@/lib/landing-pages', async (orig) => ({
   getLandingPrices: async () => ({ businessPrice: 1, vClassAirport: 2, sClassAirport: 3, hourlyFrom: 4, hourlyV: 5, hourlyS: 6 }),
 }))
 
-import ServicePage, { generateStaticParams } from '@/app/[locale]/services/[slug]/page'
+import ServicePage, { generateMetadata, generateStaticParams } from '@/app/[locale]/services/[slug]/page'
 import TourPageView from '@/components/tours/TourPageView'
 
 const SLUG = 'dresden-day-trip'
@@ -365,5 +365,39 @@ describe('guard contract', () => {
     data.photos = [] as TourPhotoRow[]
     const ui = await TourPageView({ data, locale: 'en', oneWayRoute: null })
     expect(() => render(ui)).not.toThrow()
+  })
+})
+
+describe('metadata and structured data', () => {
+  it('uses the locale seo fields and lists only the complete locales in hreflang and canonical', async () => {
+    const data = fixture()
+    data.completeLocales = ['en', 'ru']
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data })
+    const md = await generateMetadata(params('ru', SLUG))
+    expect(md.title).toBe('SEO title')
+    expect(md.description).toBe('SEO description')
+    expect(Object.keys(md.alternates!.languages as Record<string, string>)).toEqual(['en', 'ru', 'x-default'])
+    expect(md.alternates!.canonical).toBe('https://rideprestigo.com/ru/services/dresden-day-trip')
+    expect((md.openGraph!.images as Array<{ url: string }>)[0].url).toBe('https://rideprestigo.com/og-image.jpg')
+  })
+
+  it('returns no tour metadata for an incomplete locale, an unknown tour or a malformed slug', async () => {
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'locale_incomplete', completeLocales: ['en'] })
+    expect(await generateMetadata(params('ru', SLUG))).toEqual({})
+    expect(await generateMetadata(params('ru', 'nope'))).toEqual({})
+  })
+
+  it('renders one JSON-LD script with the DB prices, escaped against script injection', async () => {
+    const data = fixture({ title: 'Evil </script><script>alert(1)</script>' })
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data })
+    const { container } = await renderPage('en')
+    const scripts = container.querySelectorAll('script[type="application/ld+json"]')
+    expect(scripts).toHaveLength(1)
+    const raw = scripts[0].innerHTML
+    expect(raw).not.toContain('</script')
+    const doc = JSON.parse(raw)
+    const trip = doc['@graph'].find((n: { '@type': string }) => n['@type'] === 'TouristTrip')
+    expect(trip.name).toContain('</script>')
+    expect(trip.offers.map((o: { price: string }) => o.price)).toEqual(['400', '520', '560'])
   })
 })
