@@ -7,8 +7,8 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { locales, type AppLocale } from '@/i18n/locales'
 import { isLocaleComplete } from '@/lib/tours/completeness'
 import { publishChecklist, type PublishFailure } from '@/lib/tours/publish-checklist'
-import type { TourBasicsInput, TourTranslationInput } from '@/lib/tours/admin-schemas'
-import type { TourPhotoRow, TourRow, TourTranslationRow } from '@/lib/tours/types'
+import type { TourBasicsInput, TourSettingsInput, TourTranslationInput } from '@/lib/tours/admin-schemas'
+import type { TourPhotoRow, TourRow, TourSettingsRow, TourTranslationRow } from '@/lib/tours/types'
 
 export type TourAdminErrorCode =
   | 'NOT_FOUND'
@@ -303,6 +303,43 @@ async function recheckEnglishDependents(
 async function touchTour(db: Db, tourId: string, now: string): Promise<void> {
   const { error } = await db.from('tours').update({ updated_at: now }).eq('id', tourId)
   if (error) dbFail()
+}
+
+const SETTINGS_COLS =
+  'id, extra_hour_e_eur, extra_hour_s_eur, extra_hour_v_eur, free_cancel_hours, pickup_radius_km, updated_at'
+
+function toSettings(raw: Raw): TourSettingsRow {
+  return {
+    ...(raw as unknown as TourSettingsRow),
+    extra_hour_e_eur: num(raw.extra_hour_e_eur),
+    extra_hour_s_eur: num(raw.extra_hour_s_eur),
+    extra_hour_v_eur: num(raw.extra_hour_v_eur),
+    free_cancel_hours: Number(raw.free_cancel_hours),
+    pickup_radius_km: Number(raw.pickup_radius_km),
+  }
+}
+
+/** The singleton tour_settings row with numeric fields as numbers; NOT_FOUND when row 1 is missing. */
+export async function readTourSettings(): Promise<TourSettingsRow> {
+  const db = client()
+  const { data, error } = await db.from('tour_settings').select(SETTINGS_COLS).eq('id', 1).maybeSingle()
+  if (error) dbFail()
+  if (!data) throw new TourAdminError('NOT_FOUND')
+  return toSettings(data as Raw)
+}
+
+/** Updates only the sent fields of the settings row (UPDATE ... WHERE id = 1). Bookings keep their stored snapshot (D-12). */
+export async function updateTourSettings(patch: TourSettingsInput): Promise<TourSettingsRow> {
+  const db = client()
+  const { data, error } = await db
+    .from('tour_settings')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', 1)
+    .select(SETTINGS_COLS)
+    .maybeSingle()
+  if (error) dbFail()
+  if (!data) throw new TourAdminError('NOT_FOUND')
+  return toSettings(data as Raw)
 }
 
 /** Updates the basics of a tour. The slug changes only before the first publication (D-07); the start window is checked against the stored value when only one end is sent. */
