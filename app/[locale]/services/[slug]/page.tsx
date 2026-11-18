@@ -13,13 +13,15 @@ import TourPageView from '@/components/tours/TourPageView'
 import TourGallery from '@/components/tours/TourGallery'
 import TourBookingArea from '@/components/tours/TourBookingArea'
 import PhotoCredits from '@/components/tours/PhotoCredits'
+import CustomTourBlock from '@/components/tours/CustomTourBlock'
+import { HubTourSection, RelatedToursSection, relatedCards } from '@/components/tours/TourCardGrid'
 import type { TourT } from '@/components/tours/tour-t'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 import { findLandingPage, getLandingPrices, landingPagesFor, type LandingContent } from '@/lib/landing-pages'
-import { getPublishedTourForLocale, getPublishedTourLocales } from '@/lib/tours/store'
+import { getPublishedTourForLocale, getPublishedTourLocales, listPublishedTours, type TourCardView } from '@/lib/tours/store'
 import { tourPhotoUrl } from '@/lib/tours/photo-url'
 import { TOUR_SLUG_MAX_LENGTH, TOUR_SLUG_PATTERN } from '@/lib/tours/types'
 import { ROUTES_BY_SLUG } from '@/lib/routes'
@@ -34,11 +36,23 @@ export const dynamicParams = true
 
 type Params = Promise<{ locale: string; slug: string }>
 
+// The one landing page that lists the database tours (D-25): a grid after "At a glance", a custom-tour band before the CTA.
+const HUB_SLUG = 'day-trips-from-prague'
+
 // One database read per request for both generateMetadata and the page.
 const loadTour = cache(getPublishedTourForLocale)
 
 function isAppLocale(locale: string): locale is AppLocale {
   return (routing.locales as readonly string[]).includes(locale)
+}
+
+// The store never throws (it returns [] without Supabase env); the catch keeps a page render from failing on any surprise.
+async function loadCards(locale: AppLocale): Promise<TourCardView[]> {
+  try {
+    return await listPublishedTours(locale)
+  } catch {
+    return []
+  }
 }
 
 function isTourSlug(slug: string): boolean {
@@ -110,6 +124,21 @@ export default async function ServicePage({ params }: { params: Params }) {
   if (page) {
     const content = getPageContent(`services/${slug}`, locale) as LandingContent
     const prices = await getLandingPrices()
+    if (slug === HUB_SLUG && isAppLocale(locale)) {
+      const t = (await getTranslations({ locale, namespace: 'Tours' })) as unknown as TourT
+      const cards = await loadCards(locale)
+      return (
+        <LandingView
+          page={page}
+          content={content}
+          locale={locale}
+          prices={prices}
+          rating={getStaticAggregateRating()}
+          afterGlance={<HubTourSection cards={cards} locale={locale} t={t} />}
+          beforeCta={<CustomTourBlock variant="band" locale={locale} t={t} />}
+        />
+      )
+    }
     return <LandingView page={page} content={content} locale={locale} prices={prices} rating={getStaticAggregateRating()} />
   }
 
@@ -145,6 +174,8 @@ export default async function ServicePage({ params }: { params: Params }) {
     credit_url: p.credit_url,
   }))
   const t = (await getTranslations({ locale, namespace: 'Tours' })) as unknown as TourT
+  // "You might also like": up to 3 other tours complete in this locale; the section renders nothing with none.
+  const related = relatedCards(await loadCards(locale), tour.slug)
   const slots = {
     gallery: galleryPhotos.length > 0 ? <TourGallery title={translation.title} photos={galleryPhotos} /> : undefined,
     bookingBox: (
@@ -163,6 +194,9 @@ export default async function ServicePage({ params }: { params: Params }) {
         freeCancelHours={settings.free_cancel_hours}
       />
     ),
+    compactCustom: <CustomTourBlock variant="compact" tourSlug={tour.slug} locale={locale} t={t} />,
+    related: <RelatedToursSection cards={related} locale={locale} t={t} />,
+    band: <CustomTourBlock variant="band" tourSlug={tour.slug} locale={locale} t={t} />,
     credits: <PhotoCredits photos={galleryPhotos} t={t} />,
   }
 

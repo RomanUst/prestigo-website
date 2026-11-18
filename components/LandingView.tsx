@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -33,6 +34,8 @@ export default function LandingView({
   locale,
   prices,
   rating = null,
+  afterGlance,
+  beforeCta,
 }: {
   page: LandingPageConfig
   content: LandingContent
@@ -40,6 +43,10 @@ export default function LandingView({
   prices: Record<string, number>
   /** Google rating — when set, shown as a badge in the hero and added to the business JSON-LD. */
   rating?: AggregateRatingInput | null
+  /** Rendered right after the "At a glance" section (the day-trips hub puts its tour grid here, Phase 93). */
+  afterGlance?: ReactNode
+  /** Rendered between the related links and the final CTA (the hub's custom-tour band, Phase 93). */
+  beforeCta?: ReactNode
 }) {
   const path = `/${page.section}/${page.slug}`
   const sectionName = SECTION_NAME[page.section]
@@ -141,6 +148,8 @@ export default function LandingView({
           </div>
         </div>
       </section>
+
+      {afterGlance}
 
       <Divider />
 
@@ -274,6 +283,8 @@ export default function LandingView({
           </div>
         </div>
       </section>
+
+      {beforeCta}
 
       <Divider />
 

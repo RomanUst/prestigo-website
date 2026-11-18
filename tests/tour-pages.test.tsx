@@ -28,6 +28,7 @@ const CATALOGS: Record<string, Record<string, unknown>> = {
 const storeMock = vi.hoisted(() => ({
   getPublishedTourForLocale: vi.fn(),
   getPublishedTourLocales: vi.fn(),
+  listPublishedTours: vi.fn(),
 }))
 const navMock = vi.hoisted(() => ({
   redirect: vi.fn((to: string) => {
@@ -161,6 +162,7 @@ async function renderPage(locale: string, slug = SLUG) {
 beforeEach(() => {
   vi.clearAllMocks()
   storeMock.getPublishedTourLocales.mockResolvedValue([])
+  storeMock.listPublishedTours.mockResolvedValue([])
 })
 afterEach(() => cleanup())
 
