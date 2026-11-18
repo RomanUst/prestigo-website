@@ -65,6 +65,18 @@ vi.mock('@/components/booking/CardPaymentStage', () => ({
         <button type="button" onClick={() => (props.onFallback as () => void)()}>
           stage-fallback
         </button>
+        <button
+          type="button"
+          onClick={() => (props.onConfirmed as (r: { ref: string; cashLabel: string | null }) => void)({ ref: 'PR-100', cashLabel: null })}
+        >
+          stage-confirmed-card
+        </button>
+        <button
+          type="button"
+          onClick={() => (props.onConfirmed as (r: { ref: string; cashLabel: string | null }) => void)({ ref: 'PR-101', cashLabel: '€420' })}
+        >
+          stage-confirmed-cash
+        </button>
         <button type="button" onClick={() => (props.onAmountChange as (n: number) => void)(43000)}>
           stage-price-changed
         </button>
@@ -98,6 +110,11 @@ vi.mock('@/components/Footer', () => ({ default: () => <footer data-testid="foot
 
 import TourCheckout from '@/components/tours/TourCheckout'
 import { customTourHref } from '@/lib/tours/custom-tour-link'
+import {
+  readTourConfirmation,
+  writeTourConfirmation,
+  type TourConfirmationSnapshot,
+} from '@/lib/tours/confirmation-snapshot'
 import TourCheckoutPage, { generateMetadata } from '@/app/[locale]/book/tour/page'
 
 const en = enMessages as unknown as { Tours: { checkout: Record<string, string> }; Booking: { validation: Record<string, string> } }
@@ -552,6 +569,111 @@ describe('TourCheckout: wishes', () => {
     fireEvent.change(screen.getByLabelText(co.wishes), { target: { value: 'Two child seats' } })
     await continueToPayment()
     expect((fetchCalls[0].body.bookingData as Record<string, unknown>).specialRequests).toBe('Two child seats')
+  })
+})
+
+describe('tour confirmation snapshot', () => {
+  const SNAP: TourConfirmationSnapshot = {
+    ref: 'PR-200',
+    title: 'Karlovy Vary day trip',
+    date: '2027-06-15',
+    time: '09:00',
+    pickupAddress: 'Hotel Mosaic, Prague',
+    carLabelKey: 'business',
+    hoursIncluded: 8,
+    extraHours: 1,
+    payment: 'card',
+    amountLabel: '€465',
+  }
+
+  it('round-trips under tour-confirmation:<ref>', () => {
+    writeTourConfirmation(SNAP)
+    expect(window.sessionStorage.getItem('tour-confirmation:PR-200')).not.toBeNull()
+    expect(readTourConfirmation('PR-200')).toEqual(SNAP)
+  })
+
+  it('returns null for another ref, no entry and unparsable data', () => {
+    writeTourConfirmation(SNAP)
+    expect(readTourConfirmation('PR-999')).toBeNull()
+    expect(readTourConfirmation('')).toBeNull()
+    window.sessionStorage.setItem('tour-confirmation:PR-201', '{not json')
+    expect(readTourConfirmation('PR-201')).toBeNull()
+  })
+
+  it.each([
+    ['unknown car', { carLabelKey: 'limousine' }],
+    ['non-string title', { title: 42 }],
+    ['bad date', { date: '15/06/2027' }],
+    ['bad time', { time: '9am' }],
+    ['unknown payment', { payment: 'crypto' }],
+    ['extra hours out of range', { extraHours: 99 }],
+    ['fractional hours', { hoursIncluded: 1.5 }],
+  ])('returns null for a tampered value (%s)', (_name, patch) => {
+    window.sessionStorage.setItem('tour-confirmation:PR-200', JSON.stringify({ ...SNAP, ...patch }))
+    expect(readTourConfirmation('PR-200')).toBeNull()
+  })
+
+  it('returns null when the stored ref differs from the key', () => {
+    window.sessionStorage.setItem('tour-confirmation:PR-300', JSON.stringify({ ...SNAP, ref: 'PR-200' }))
+    expect(readTourConfirmation('PR-300')).toBeNull()
+  })
+
+  it('stores nothing for an invalid snapshot and never throws when storage does', () => {
+    writeTourConfirmation({ ...SNAP, carLabelKey: 'x' as never })
+    expect(window.sessionStorage.length).toBe(0)
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota')
+    })
+    expect(() => writeTourConfirmation(SNAP)).not.toThrow()
+    spy.mockRestore()
+  })
+})
+
+describe('TourCheckout: confirmation and the way back', () => {
+  it('a confirmed card booking writes the snapshot (reference, trip, pickup, car, hours, mode, amount) and no contact details', async () => {
+    setup()
+    await continueToPayment()
+    fireEvent.click(screen.getByText('stage-confirmed-card'))
+    expect(readTourConfirmation('PR-100')).toEqual({
+      ref: 'PR-100',
+      title: 'Karlovy Vary day trip',
+      date: '2027-06-15',
+      time: '09:00',
+      pickupAddress: PRAGUE.address,
+      carLabelKey: 'business',
+      hoursIncluded: 8,
+      extraHours: 1,
+      payment: 'card',
+      amountLabel: formatMinor(42000, 'eur'),
+    })
+    const raw = window.sessionStorage.getItem('tour-confirmation:PR-100') ?? ''
+    expect(raw).not.toContain('anna@example.com')
+    expect(raw).not.toContain('Novak')
+    expect(raw).not.toContain('+420')
+  })
+
+  it('a confirmed cash booking stores the cash label as the amount', async () => {
+    setup()
+    await continueToPayment()
+    fireEvent.click(screen.getByText('stage-confirmed-cash'))
+    const snap = readTourConfirmation('PR-101')
+    expect(snap?.payment).toBe('cash')
+    expect(snap?.amountLabel).toBe('€420')
+  })
+
+  it("'Change trip details' links to the tour page #book and leaves tour-box:<slug> with the current choices", () => {
+    setup()
+    const link = screen.getByRole('link', { name: co.change })
+    expect(link.getAttribute('href')).toBe('/services/karlovy-vary-day-trip#book')
+    link.addEventListener('click', (e) => e.preventDefault())
+    fireEvent.click(link)
+    expect(JSON.parse(window.sessionStorage.getItem('tour-box:karlovy-vary-day-trip') ?? 'null')).toEqual({
+      date: '2027-06-15',
+      time: '09:00',
+      pax: 2,
+      car: 'business',
+      xh: 1,
+    })
   })
 })
 

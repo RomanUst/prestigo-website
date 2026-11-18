@@ -24,6 +24,7 @@ import { formatMinor } from '@/lib/payments/money'
 import { MIN_BOOKING_LEAD_MS } from '@/lib/payments/timing'
 import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
 import { tourBoxStorageKey, type TourCheckoutQuery } from '@/lib/tours/checkout-query'
+import { writeTourConfirmation } from '@/lib/tours/confirmation-snapshot'
 import { customTourHref } from '@/lib/tours/custom-tour-link'
 import { checkTourPickup } from '@/lib/tours/pickup-area'
 import type { PlaceResult } from '@/types/booking'
@@ -265,6 +266,25 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm }: T
 
   const shownMinor = init ? (amountMinor ?? init.amountMinor) : null
   const totalLabel = init && shownMinor !== null ? formatMinor(shownMinor, init.currency) : formatEUR(fareEur)
+  /**
+   * The payment is confirmed: leave the confirmation page what it shows (T-93-51, display only), before the stage
+   * navigates to /book/confirmation?ref=. A cash booking is the one with a cash label.
+   */
+  const handleConfirmed = ({ ref, cashLabel }: { ref: string; cashLabel: string | null }) => {
+    if (!init || !pickup || shownMinor === null) return
+    writeTourConfirmation({
+      ref,
+      title: tour.title,
+      date: query.date,
+      time: query.time,
+      pickupAddress: pickup.address,
+      carLabelKey: query.car,
+      hoursIncluded: tour.hoursIncluded,
+      extraHours: query.xh,
+      payment: cashLabel ? 'cash' : 'card',
+      amountLabel: cashLabel ?? formatMinor(shownMinor, init.currency),
+    })
+  }
   const customHref = customTourHref({ tour: tour.slug, date: query.date, pax: query.pax })
   // Client check of the picked address (UX only; init / intent repeat it on the server, T-93-49).
   const clientCheck = pickup
@@ -577,6 +597,7 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm }: T
                 onInvalidPhone={handleInvalidPhone}
                 onFallback={handleFallback}
                 onAmountChange={setAmountMinor}
+                onConfirmed={handleConfirmed}
                 totalEur={totalEur}
                 analyticsItems={analyticsItems}
               />
