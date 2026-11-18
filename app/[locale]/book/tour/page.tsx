@@ -128,6 +128,7 @@ export default async function TourCheckoutPage({
             slug: tour.slug,
             title: translation.title,
             hoursIncluded: tour.hours_included,
+            driveMinutesEachWay: tour.drive_minutes_each_way,
             coverUrl: cover || null,
           }}
           query={query}

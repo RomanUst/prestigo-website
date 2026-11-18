@@ -108,6 +108,8 @@ async function ManageBookingView({ view, locale, token }: { view: ManageView; lo
   const t = await getTranslations({ locale, namespace: 'Manage' })
   const ta = await getTranslations({ locale, namespace: 'Manage.actions' })
   const vt = await getTranslations({ locale, namespace: 'Booking.vehicleClasses' })
+  const tm = await getTranslations({ locale, namespace: 'Tours.manage' })
+  const tc = await getTranslations({ locale, namespace: 'Tours.checkout' })
 
   const pickupDate = validIsoDate(view.pickupDate) ? formatLocaleDate(view.pickupDate, locale) : ''
   const money = (m: { amountMinor: number; currency: 'eur' | 'czk' }) => formatMinor(m.amountMinor, m.currency)
@@ -406,6 +408,17 @@ async function ManageBookingView({ view, locale, token }: { view: ManageView; lo
           {view.to ? (
             <DetailRow label={t('details.to')}>
               <bdi dir="auto">{view.to}</bdi>
+            </DetailRow>
+          ) : null}
+          {view.tourTitle ? (
+            <DetailRow label={tm('dayTrip')}>
+              <bdi dir="auto">{view.tourTitle}</bdi>
+            </DetailRow>
+          ) : null}
+          {view.tourTitle && view.hoursIncluded !== null ? (
+            <DetailRow label={tc('timeAtDest')}>
+              {tc('included', { hours: view.hoursIncluded })}
+              {view.extraHours > 0 ? ` ${tc('extra', { count: view.extraHours })}` : ''}
             </DetailRow>
           ) : null}
           {pickupDate ? (

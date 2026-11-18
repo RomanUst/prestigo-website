@@ -88,6 +88,13 @@ export interface BookingEmailData {
    * then the client email shows no waiting amount rather than a wrong currency.
    */
   currency?: 'eur' | 'czk'
+  /**
+   * Phase 93 (TRIP-04, D-11): a tour booking (tripType 'tour') carries its title (the English snapshot stored on the
+   * booking) and the extra hours the client added; `hours` is then the whole time at the destination (included + extra).
+   * Both are optional: every other booking is byte-identical to the email sent before Phase 93.
+   */
+  tourTitle?: string | null
+  tourExtraHours?: number | null
 }
 
 /** Escape user-supplied strings before embedding in HTML */
@@ -111,6 +118,69 @@ function formatPickupDate(dateStr: string): string {
   const [year, month, day] = dateStr.split('-').map(Number)
   const date = new Date(year, month - 1, day)
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+// ── Tour rows (Phase 93, TRIP-04, D-11 / D-12) ──────────────────────────────
+// A tour booking reads as a day trip: its title, the time at the destination (hours included + extra) and the address the
+// car picks the client up from and brings them back to. English, like the shell these emails are built in.
+
+export interface EmailTourFacts {
+  title: string
+  /** The whole time at the destination (included + extra hours). */
+  hours: number | undefined
+  extraHours: number
+  pickupAddress: string
+}
+
+const plural = (n: number, one: string, other: string): string => `${n} ${n === 1 ? one : other}`
+
+/** 'Time at the destination' value: '5 hours included' and, with extra hours, ', +1 hour extra'. */
+export function tourTimeAtDestinationText(hours: number | undefined, extraHours: number): string {
+  const total = hours ?? 0
+  const extra = Math.max(0, Math.min(extraHours, total))
+  const included = total - extra
+  const base = `${plural(included, 'hour', 'hours')} included`
+  return extra > 0 ? `${base}, +${plural(extra, 'hour', 'hours')} extra` : base
+}
+
+/** The tour facts of a booking, or null when it is not a tour (or has no title to show). */
+function tourFactsOf(
+  tripType: string,
+  title: string | null | undefined,
+  hours: number | undefined,
+  extraHours: number | null | undefined,
+  pickupAddress: string,
+): EmailTourFacts | null {
+  if (tripType !== 'tour' || !title) return null
+  return { title, hours, extraHours: extraHours && extraHours > 0 ? extraHours : 0, pickupAddress }
+}
+
+function emailLabelValueRow(label: string, valueHtml: string): string {
+  return `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">${label}</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${valueHtml}</td>
+          </tr>`
+}
+
+/** The table row 'Day trip' (replaces the Route row of a tour). Every operator-authored string is escaped (T-93-53). */
+function tourDayTripRowHtml(t: EmailTourFacts): string {
+  return emailLabelValueRow('Day trip', escapeHtml(t.title))
+}
+
+/** The rows 'Time at the destination' and 'Pickup and return' of a tour. */
+function tourDetailRowsHtml(t: EmailTourFacts): string {
+  return (
+    emailLabelValueRow('Time at the destination', escapeHtml(tourTimeAtDestinationText(t.hours, t.extraHours))) +
+    emailLabelValueRow('Pickup and return', escapeHtml(t.pickupAddress))
+  )
+}
+
+/** The same three facts as plain lines for the manager alert. */
+function tourTextLines(t: EmailTourFacts): string {
+  return `Day trip: ${t.title}
+Time at the destination: ${tourTimeAtDestinationText(t.hours, t.extraHours)}
+Pickup and return: ${t.pickupAddress}`
 }
 
 // ── Trip route rows (Phase 91, STOP-04 / STOP-05) ───────────────────────────
@@ -218,18 +288,23 @@ function tripRouteTextLines(route: EmailTripRoute): string {
 }
 
 export function buildGoogleCalendarUrl(data: BookingEmailData): string {
-  const title = `PRESTIGO Transfer — ${data.bookingReference}`
-  const details = `Booking ${data.bookingReference}. ${data.originAddress} to ${data.destinationAddress}. Vehicle: ${data.vehicleClass}.`
+  // Phase 93: a tour is a day trip; its event runs for the hours at the destination (the drive is not known here), not 1 hour.
+  const tour = tourFactsOf(data.tripType, data.tourTitle, data.hours, data.tourExtraHours, data.originAddress)
+  const title = tour ? `${tour.title} — Prestigo` : `PRESTIGO Transfer — ${data.bookingReference}`
+  const details = tour
+    ? `Booking ${data.bookingReference}. Day trip: ${tour.title}. Pickup and return: ${tour.pickupAddress}. Vehicle: ${data.vehicleClass}.`
+    : `Booking ${data.bookingReference}. ${data.originAddress} to ${data.destinationAddress}. Vehicle: ${data.vehicleClass}.`
   const location = data.originAddress
+  const durationMs = tour && tour.hours && tour.hours > 0 ? tour.hours * 60 * 60 * 1000 : 60 * 60 * 1000
 
   // Convert 'YYYY-MM-DD' + 'HH:MM' to 'YYYYMMDDTHHMMSS'
   const [year, month, day] = data.pickupDate.split('-')
   const [hour, minute] = data.pickupTime.split(':')
   const start = `${year}${month}${day}T${hour}${minute}00`
 
-  // End = start + 1 hour — use Date arithmetic to handle midnight rollover correctly
+  // End = start + 1 hour (a tour: its hours) — use Date arithmetic to handle midnight rollover correctly
   const startDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`)
-  const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
+  const endDate = new Date(startDate.getTime() + durationMs)
   const endYear = String(endDate.getFullYear())
   const endMonth = String(endDate.getMonth() + 1).padStart(2, '0')
   const endDay = String(endDate.getDate()).padStart(2, '0')
@@ -274,6 +349,15 @@ function buildConfirmationHtml(data: BookingEmailData, routeRowsHtml = ''): stri
   const calendarUrl = buildGoogleCalendarUrl(data)
   const extrasRows = buildExtrasRows(data)
   const formattedDate = formatPickupDate(data.pickupDate)
+  // Phase 93: a tour shows its title in place of the Route row, and its hours and pickup address after the date.
+  const tour = tourFactsOf(data.tripType, data.tourTitle, data.hours, data.tourExtraHours, data.originAddress)
+  const routeRowHtml = tour
+    ? tourDayTripRowHtml(tour)
+    : `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.originAddress)} &rarr; ${escapeHtml(data.destinationAddress)}</td>
+          </tr>`
 
   const rideDetailsRows: string[] = []
 
@@ -366,15 +450,11 @@ function buildConfirmationHtml(data: BookingEmailData, routeRowsHtml = ''): stri
       <!-- YOUR JOURNEY section -->
       <div style="padding: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">YOUR JOURNEY</div>
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Route</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.originAddress)} &rarr; ${escapeHtml(data.destinationAddress)}</td>
-          </tr>
+        <table style="width: 100%; border-collapse: collapse;">${routeRowHtml}
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formattedDate} at ${data.pickupTime}</td>
-          </tr>${routeRowsHtml ? `\n          ${routeRowsHtml}` : ''}
+          </tr>${tour ? tourDetailRowsHtml(tour) : ''}${routeRowsHtml ? `\n          ${routeRowsHtml}` : ''}
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formatVehicleLabel(data.vehicleClass)}</td>
@@ -456,6 +536,9 @@ export async function sendManagerAlert(data: BookingEmailData): Promise<void> {
   const extrasText = selectedExtras.length > 0 ? selectedExtras.join(', ') : 'None'
   // Phase 91: landing, stops and waiting of the booking (nothing added for a booking without them).
   const routeLines = tripRouteTextLines(await loadEmailTripRoute(data))
+  // Phase 93: a tour reads as a day trip (title, hours at the destination, pickup and return) in place of the Route line.
+  const tour = tourFactsOf(data.tripType, data.tourTitle, data.hours, data.tourExtraHours, data.originAddress)
+  const routeText = tour ? tourTextLines(tour) : `Route: ${data.originAddress} → ${data.destinationAddress}`
 
   const text = `New booking received. Details below.
 
@@ -463,7 +546,7 @@ Booking Reference: ${data.bookingReference}
 Client: ${data.firstName} ${data.lastName}
 Email: ${data.email}
 Phone: ${data.phone}
-Route: ${data.originAddress} → ${data.destinationAddress}
+${routeText}
 Vehicle: ${formatVehicleLabel(data.vehicleClass)}
 Pickup: ${data.pickupDate} at ${data.pickupTime}
 ${routeLines}Passengers: ${data.passengers}
@@ -2289,11 +2372,25 @@ export interface ReminderEmailBooking {
   client_phone?: string
   /** Cancellation box and Manage booking button in the booking language (Phase 89, CANC-02); client mail only. */
   policyBlockHtml?: string
+  /** Phase 93 (TRIP-04): a tour booking (trip_type 'tour') with its title, extra hours and total hours at the destination. */
+  trip_type?: string | null
+  tour_title?: string | null
+  tour_extra_hours?: number | null
+  hours?: number | null
 }
 
 function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' | '2h'): string {
   const formattedDate = formatPickupDate(booking.pickup_date)
-  const heading = horizon === '24h' ? 'Your Transfer Tomorrow' : 'Your Transfer in 2 Hours'
+  // Phase 93: a tour is a day trip (title, time at the destination, pickup and return) instead of a route.
+  const tour = tourFactsOf(
+    booking.trip_type ?? '',
+    booking.tour_title,
+    booking.hours ?? undefined,
+    booking.tour_extra_hours,
+    booking.origin_address,
+  )
+  const noun = tour ? 'Day Trip' : 'Transfer'
+  const heading = horizon === '24h' ? `Your ${noun} Tomorrow` : `Your ${noun} in 2 Hours`
   const closingLine = horizon === '24h'
     ? 'We look forward to your trip.'
     : 'Your driver will be at the pickup point shortly.'
@@ -2354,15 +2451,15 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
       <!-- YOUR JOURNEY section -->
       <div style="padding: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">YOUR JOURNEY</div>
-        <table style="width: 100%; border-collapse: collapse;">
+        <table style="width: 100%; border-collapse: collapse;">${tour ? tourDayTripRowHtml(tour) : `
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Route</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(booking.origin_address)} &rarr; ${destination}</td>
-          </tr>
+          </tr>`}
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(booking.pickup_time)}</td>
-          </tr>
+          </tr>${tour ? tourDetailRowsHtml(tour) : ''}
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
@@ -2506,9 +2603,10 @@ export async function sendClientReminderEmail(
   horizon: '24h' | '2h'
 ): Promise<void> {
   try {
+    const noun = booking.trip_type === 'tour' && booking.tour_title ? 'day trip' : 'transfer'
     const subject = horizon === '24h'
-      ? 'Your transfer tomorrow — Prestigo'
-      : 'Your transfer in 2 hours — Prestigo'
+      ? `Your ${noun} tomorrow — Prestigo`
+      : `Your ${noun} in 2 hours — Prestigo`
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],

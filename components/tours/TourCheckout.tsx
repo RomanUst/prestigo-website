@@ -30,7 +30,7 @@ import { checkTourPickup } from '@/lib/tours/pickup-area'
 import type { PlaceResult } from '@/types/booking'
 
 export interface TourCheckoutProps {
-  tour: { slug: string; title: string; hoursIncluded: number; coverUrl: string | null }
+  tour: { slug: string; title: string; hoursIncluded: number; coverUrl: string | null; driveMinutesEachWay?: number | null }
   query: TourCheckoutQuery
   /** The client fare in EUR (the shared tourFare, computed on the server page); shown until init answers. */
   fareEur: number
@@ -281,6 +281,8 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm }: T
       carLabelKey: query.car,
       hoursIncluded: tour.hoursIncluded,
       extraHours: query.xh,
+      passengers: query.pax,
+      ...(typeof tour.driveMinutesEachWay === 'number' ? { driveMinutes: tour.driveMinutesEachWay } : {}),
       payment: cashLabel ? 'cash' : 'card',
       amountLabel: cashLabel ?? formatMinor(shownMinor, init.currency),
     })

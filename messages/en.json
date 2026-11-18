@@ -1646,7 +1646,8 @@
       "step3": "You have {hours, plural, one {# hour} other {# hours}} at the destination. The car waits for you and brings you back to the same address.",
       "addToCalendar": "Add to calendar",
       "seeOther": "See other day trips",
-      "icsTitle": "{title} – Prestigo"
+      "icsTitle": "{title} – Prestigo",
+      "payCard": "Your card is saved for <bdi>{amount}</bdi>. We hold that amount before your trip and charge it after your trip. Your confirmation email has the dates."
     },
     "request": {
       "label": "CUSTOM TOUR",

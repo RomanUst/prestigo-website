@@ -1696,7 +1696,8 @@
       "step3": "您在目的地有{hours, plural, other {#小时}}。车辆会等候您，并送您回到同一地址。",
       "addToCalendar": "添加到日历",
       "seeOther": "查看其他一日游",
-      "icsTitle": "{title} – Prestigo"
+      "icsTitle": "{title} – Prestigo",
+      "payCard": "您的银行卡已保存，金额为 <bdi>{amount}</bdi>。我们会在行程前预授权该金额，并在行程结束后扣款。具体日期请见确认邮件。"
     },
     "request": {
       "label": "定制行程",

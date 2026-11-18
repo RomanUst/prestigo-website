@@ -643,6 +643,7 @@ describe('TourCheckout: confirmation and the way back', () => {
       carLabelKey: 'business',
       hoursIncluded: 8,
       extraHours: 1,
+      passengers: 2,
       payment: 'card',
       amountLabel: formatMinor(42000, 'eur'),
     })

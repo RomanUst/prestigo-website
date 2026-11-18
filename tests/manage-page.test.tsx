@@ -485,6 +485,83 @@ describe('manage page, state table (E3 populated)', () => {
 })
 
 // ---------------------------------------------------------------------------------------------------------------------
+describe('tour bookings (Phase 93, plan 93-19; TRIP-04)', () => {
+  const TOUR_POLICY = {
+    version: 'tour-2026-11-1',
+    kmThreshold: 100,
+    freeHoursShort: 24,
+    freeHoursLong: 24,
+    freeHoursHourly: 24,
+    feePercent: 100,
+  }
+  const tourRow = (over: Record<string, unknown> = {}) =>
+    row({
+      trip_type: 'tour',
+      distance_km: null,
+      destination_address: 'Dresden',
+      origin_address: 'Hotel Alcron, Prague',
+      hours: 6,
+      tour_title: 'Dresden',
+      tour_extra_hours: 1,
+      cancel_policy: TOUR_POLICY,
+      cancel_policy_version: TOUR_POLICY.version,
+      pickup_utc: new Date(Date.now() + 72 * HOUR).toISOString(),
+      ...over,
+    })
+
+  it('the view exposes the tour title, the hours included and the extra hours', () => {
+    const v = buildManageView(tourRow(), {}, Date.now())
+    expect(v.tourTitle).toBe('Dresden')
+    expect(v.hoursIncluded).toBe(5)
+    expect(v.extraHours).toBe(1)
+    // The cancellation section reads the stored tour snapshot: 24 free hours, not the transfer window.
+    expect(v.cancel?.outcome).toBe('free')
+    const late = buildManageView(tourRow({ pickup_utc: new Date(Date.now() + 20 * HOUR).toISOString() }), {}, Date.now())
+    expect(late.cancel?.outcome).not.toBe('free')
+  })
+
+  it('a transfer view has no tour fields', () => {
+    const v = buildManageView(row(), {}, Date.now())
+    expect(v.tourTitle).toBeNull()
+    expect(v.hoursIncluded).toBeNull()
+    expect(v.extraHours).toBe(0)
+  })
+
+  it('the column list reads the tour columns and still no personal column', () => {
+    expect(MANAGE_BOOKING_COLUMNS).toMatch(/tour_title/)
+    expect(MANAGE_BOOKING_COLUMNS).toMatch(/tour_extra_hours/)
+    expect(MANAGE_BOOKING_COLUMNS).toMatch(/\bhours\b/)
+  })
+
+  it('en: shows Day trip with the title and Time at the destination with included and extra hours', async () => {
+    const { getByTestId } = await renderPage('en', buildManageView(tourRow(), {}, Date.now()))
+    const details = getByTestId('manage-details').textContent ?? ''
+    expect(details).toContain('Day trip')
+    expect(details).toContain('Dresden')
+    expect(details).toContain('Time at the destination')
+    expect(details).toContain('5 hours included')
+    expect(details).toContain('+1 hour extra')
+  })
+
+  it('ru: the labels come from the page locale', async () => {
+    const { getByTestId } = await renderPage('ru', buildManageView(tourRow(), {}, Date.now()))
+    const details = getByTestId('manage-details').textContent ?? ''
+    expect(details).toContain('Поездка на день')
+    expect(details).toContain('Dresden')
+    expect(details).toContain('Время на месте')
+    expect(details).toContain('Включено: 5 часов')
+    expect(details).not.toContain('Day trip')
+  })
+
+  it('a transfer booking renders without the tour rows', async () => {
+    const { getByTestId } = await renderPage('en', buildManageView(row(), {}, Date.now()))
+    const details = getByTestId('manage-details').textContent ?? ''
+    expect(details).not.toContain('Day trip')
+    expect(details).not.toContain('Time at the destination')
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
 describe('invalid link (E1 error, E7 empty)', () => {
   it('malformed, unknown, revoked, expired and a throwing lookup render the same markup', async () => {
     const markups: string[] = []
