@@ -119,12 +119,33 @@ export interface CalendarBooking {
   landing?: { date: string; time: string; offsetMin: number } | null
   /** Phase 91 (STOP-04): the stored stops in order; absent or empty for a booking without stops. */
   stops?: Array<{ position: number; address: string | null; waitMinutes: number }>
+  /** Phase 93 (TRIP-04): a tour booking's EN title snapshot; `hours` is then the whole time at the destination. */
+  tour_title?: string | null
+  /** Phase 93: the tour's drive minutes one way, for the event length; absent = the default estimate below. */
+  drive_minutes_each_way?: number | null
+}
+
+/** One-way drive minutes assumed for a tour whose drive time could not be read (the event is a window, not a promise). */
+export const TOUR_DRIVE_ESTIMATE_MIN = 60
+
+/** The tour title when this booking is a tour with one to show, else null. */
+function tourTitleOf(b: CalendarBooking): string | null {
+  return b.trip_type === 'tour' && b.tour_title ? b.tour_title : null
+}
+
+/** Event length of a tour: the drive there and back plus the hours at the destination (never 0 minutes or 1 hour). */
+function tourDurationMinutes(b: CalendarBooking): number {
+  const drive = typeof b.drive_minutes_each_way === 'number' && b.drive_minutes_each_way > 0 ? b.drive_minutes_each_way : TOUR_DRIVE_ESTIMATE_MIN
+  const hours = b.hours && b.hours > 0 ? b.hours : 0
+  return 2 * drive + 60 * hours
 }
 
 export function buildCalendarEvent(b: CalendarBooking) {
   const start = new Date(b.pickup_utc)
-  const end = new Date(start.getTime() + estimateDurationMinutes(b) * 60_000)
+  const tourTitle = tourTitleOf(b)
+  const end = new Date(start.getTime() + (tourTitle ? tourDurationMinutes(b) : estimateDurationMinutes(b)) * 60_000)
   const client = [b.client_first_name, b.client_last_name].filter(Boolean).join(' ')
+  const tourLabel = tourTitle ? `Day trip: ${tourTitle} (${b.hours ?? '?'} h)` : null
   const route = b.destination_address
     ? `${b.origin_address} → ${b.destination_address}`
     : `${b.origin_address} (${b.hours ?? '?'} h)`
@@ -138,7 +159,8 @@ export function buildCalendarEvent(b: CalendarBooking) {
   const lines = [
     `Booking: ${b.booking_reference}${legLabel}`,
     `Status: ${b.status}`,
-    `Route: ${route}`,
+    tourLabel ? tourLabel : `Route: ${route}`,
+    tourLabel ? `Pickup and return: ${b.origin_address}` : null,
     b.landing ? `Landing ${b.landing.time} (pickup +${b.landing.offsetMin} min)` : null,
     ...(b.stops ?? []).map(
       (s) =>
@@ -160,7 +182,7 @@ export function buildCalendarEvent(b: CalendarBooking) {
   ].filter((l): l is string => typeof l === 'string')
 
   return {
-    summary: `${b.booking_source === 'gnet' ? 'GNet' : 'Prestigo'}: ${b.booking_reference}${legLabel} · ${client || 'Client'} · ${formatVehicleLabel(b.vehicle_class)}`,
+    summary: `${b.booking_source === 'gnet' ? 'GNet' : 'Prestigo'}: ${b.booking_reference}${legLabel}${tourLabel ? ` · ${tourLabel}` : ''} · ${client || 'Client'} · ${formatVehicleLabel(b.vehicle_class)}`,
     location: b.origin_address,
     description: lines.join('\n'),
     start: { dateTime: start.toISOString(), timeZone: TIME_ZONE },
@@ -185,7 +207,7 @@ export async function syncBookingToCalendar(bookingId: string): Promise<Calendar
     .from('bookings')
     .select(`
       id, booking_reference, status, booking_source, trip_type, leg, pickup_utc, hours, distance_km,
-      origin_address, destination_address, vehicle_class, passengers, luggage,
+      tour_id, tour_title, origin_address, destination_address, vehicle_class, passengers, luggage,
       client_first_name, client_last_name, client_phone, client_email,
       flight_number, terminal, special_requests, operator_notes,
       extra_child_seat, extra_meet_greet, landing_date, landing_time, pickup_offset_min,
@@ -243,7 +265,30 @@ export async function syncBookingToCalendar(bookingId: string): Promise<Calendar
     landingRow.landing_date && landingRow.landing_time && typeof landingRow.pickup_offset_min === 'number'
       ? { date: landingRow.landing_date, time: landingRow.landing_time, offsetMin: landingRow.pickup_offset_min }
       : null
-  const body = buildCalendarEvent({ ...(row as unknown as CalendarBooking), driver_name: driverName, landing, stops })
+  // Phase 93 (TRIP-04): a tour's event covers the drive too, so its drive time is read; a failed read never blocks the sync
+  // (the event then uses the default estimate).
+  let driveMinutes: number | null = null
+  const tourRow = row as unknown as { trip_type: string | null; tour_id?: string | null }
+  if (tourRow.trip_type === 'tour' && tourRow.tour_id) {
+    try {
+      const { data: tour } = await supabase
+        .from('tours')
+        .select('drive_minutes_each_way')
+        .eq('id', tourRow.tour_id)
+        .maybeSingle()
+      const minutes = (tour as { drive_minutes_each_way?: unknown } | null)?.drive_minutes_each_way
+      driveMinutes = typeof minutes === 'number' && Number.isFinite(minutes) ? minutes : null
+    } catch {
+      driveMinutes = null
+    }
+  }
+  const body = buildCalendarEvent({
+    ...(row as unknown as CalendarBooking),
+    driver_name: driverName,
+    landing,
+    stops,
+    drive_minutes_each_way: driveMinutes,
+  })
 
   // PUT restores a previously deleted (cancelled) event with the same ID too.
   const put = await fetch(`${eventUrl}/${eventId}`, {
