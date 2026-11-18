@@ -14,6 +14,39 @@
         "alt_hint": "Old town and castle of Český Krumlov seen from above"
       },
       {
+        "source": "commons",
+        "title": "File:Old town in Český Krumlov with Jelení lávka, 20250504 1251 8862.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Old_town_in_%C4%8Cesk%C3%BD_Krumlov_with_Jelen%C3%AD_l%C3%A1vka%2C_20250504_1251_8862.jpg/1920px-Old_town_in_%C4%8Cesk%C3%BD_Krumlov_with_Jelen%C3%AD_l%C3%A1vka%2C_20250504_1251_8862.jpg",
+        "local_path": null,
+        "credit_text": "Jakub Hałun / Wikimedia Commons",
+        "license": "CC BY 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Old_town_in_%C4%8Cesk%C3%BD_Krumlov_with_Jelen%C3%AD_l%C3%A1vka,_20250504_1251_8862.jpg",
+        "cover": false,
+        "alt_hint": "Pastel houses and the Vltava bridge in the old town"
+      },
+      {
+        "source": "commons",
+        "title": "File:Castle tower in Český Krumlov, 20250504 1311 8882.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Castle_tower_in_%C4%8Cesk%C3%BD_Krumlov%2C_20250504_1311_8882.jpg/1920px-Castle_tower_in_%C4%8Cesk%C3%BD_Krumlov%2C_20250504_1311_8882.jpg",
+        "local_path": null,
+        "credit_text": "Jakub Hałun / Wikimedia Commons",
+        "license": "CC BY 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Castle_tower_in_%C4%8Cesk%C3%BD_Krumlov,_20250504_1311_8882.jpg",
+        "cover": false,
+        "alt_hint": "Castle courtyard and painted round tower"
+      },
+      {
+        "source": "commons",
+        "title": "File:Český Krumlov (Krummau) - panorama.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/61/%C4%8Cesk%C3%BD_Krumlov_%28Krummau%29_-_panorama.JPG/1920px-%C4%8Cesk%C3%BD_Krumlov_%28Krummau%29_-_panorama.JPG",
+        "local_path": null,
+        "credit_text": "Pudelek (Marcin Szala) / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:%C4%8Cesk%C3%BD_Krumlov_(Krummau)_-_panorama.JPG",
+        "cover": false,
+        "alt_hint": "Rooftops of the old town from the castle tower"
+      },
+      {
         "source": "own",
         "title": "first-int-1.jpg",
         "download_url": null,
@@ -23,6 +56,379 @@
         "credit_url": null,
         "cover": false,
         "alt_hint": "First Class chauffeur car, rear cabin"
+      },
+      {
+        "source": "own",
+        "title": "s-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/s-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes S-Class"
+      }
+    ],
+    "kutna-hora-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Saint Barbara Kutna Hora 2010 3.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Saint_Barbara_Kutna_Hora_2010_3.jpg/1920px-Saint_Barbara_Kutna_Hora_2010_3.jpg",
+        "local_path": null,
+        "credit_text": "Perituss / Wikimedia Commons",
+        "license": "CC0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Saint_Barbara_Kutna_Hora_2010_3.jpg",
+        "cover": true,
+        "alt_hint": "St. Barbara's Church, Kutná Hora, east end with flying buttresses"
+      },
+      {
+        "source": "commons",
+        "title": "File:Chrám svaté Barbory - Kutná Hora.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/Chr%C3%A1m_svat%C3%A9_Barbory_-_Kutn%C3%A1_Hora.jpg/1920px-Chr%C3%A1m_svat%C3%A9_Barbory_-_Kutn%C3%A1_Hora.jpg",
+        "local_path": null,
+        "credit_text": "Pudelek (Marcin Szala) / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Chr%C3%A1m_svat%C3%A9_Barbory_-_Kutn%C3%A1_Hora.jpg",
+        "cover": false,
+        "alt_hint": "Nave and high altar of St. Barbara's Church"
+      },
+      {
+        "source": "commons",
+        "title": "File:Ossuary in Sedlec.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/50/Ossuary_in_Sedlec.JPG/1920px-Ossuary_in_Sedlec.JPG",
+        "local_path": null,
+        "credit_text": "Jan Kameníček / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Ossuary_in_Sedlec.JPG",
+        "cover": false,
+        "alt_hint": "Sedlec Ossuary, skulls and bone wall"
+      },
+      {
+        "source": "commons",
+        "title": "File:Sedlec Ossuary - Kutná Hora.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Sedlec_Ossuary_-_Kutn%C3%A1_Hora.jpg/1920px-Sedlec_Ossuary_-_Kutn%C3%A1_Hora.jpg",
+        "local_path": null,
+        "credit_text": "Juliancoccia / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Sedlec_Ossuary_-_Kutn%C3%A1_Hora.jpg",
+        "cover": false,
+        "alt_hint": "Sedlec Ossuary, skulls on a ledge"
+      },
+      {
+        "source": "own",
+        "title": "business-int-1.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/business-int-1.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Business Class chauffeur car, rear cabin"
+      },
+      {
+        "source": "own",
+        "title": "e-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/e-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes E-Class"
+      }
+    ],
+    "karlovy-vary-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Karlovy Vary - Mlýnská Kolonáda - Mill Colonnade 1871-1881 by Josef Zítek - View NW.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1d/Karlovy_Vary_-_Ml%C3%BDnsk%C3%A1_Kolon%C3%A1da_-_Mill_Colonnade_1871-1881_by_Josef_Z%C3%ADtek_-_View_NW.jpg/1920px-Karlovy_Vary_-_Ml%C3%BDnsk%C3%A1_Kolon%C3%A1da_-_Mill_Colonnade_1871-1881_by_Josef_Z%C3%ADtek_-_View_NW.jpg",
+        "local_path": null,
+        "credit_text": "Txllxt TxllxT / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Karlovy_Vary_-_Ml%C3%BDnsk%C3%A1_Kolon%C3%A1da_-_Mill_Colonnade_1871-1881_by_Josef_Z%C3%ADtek_-_View_NW.jpg",
+        "cover": true,
+        "alt_hint": "Mill Colonnade in Karlovy Vary, row of columns"
+      },
+      {
+        "source": "commons",
+        "title": "File:Colonnade in Karlovy Vary.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8c/Colonnade_in_Karlovy_Vary.jpg/1920px-Colonnade_in_Karlovy_Vary.jpg",
+        "local_path": null,
+        "credit_text": "Olga1969 / Wikimedia Commons",
+        "license": "CC BY 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Colonnade_in_Karlovy_Vary.jpg",
+        "cover": false,
+        "alt_hint": "Market Colonnade and colourful spa-town houses"
+      },
+      {
+        "source": "commons",
+        "title": "File:Tržní kolonáda uvnitř.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a6/Tr%C5%BEn%C3%AD_kolon%C3%A1da_uvnit%C5%99.JPG/1920px-Tr%C5%BEn%C3%AD_kolon%C3%A1da_uvnit%C5%99.JPG",
+        "local_path": null,
+        "credit_text": "Juan de Vojníkov / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Tr%C5%BEn%C3%AD_kolon%C3%A1da_uvnit%C5%99.JPG",
+        "cover": false,
+        "alt_hint": "Inside the white wooden Market Colonnade"
+      },
+      {
+        "source": "commons",
+        "title": "File:Karlsbad - Marktkolonnade 1.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Karlsbad_-_Marktkolonnade_1.jpg/1920px-Karlsbad_-_Marktkolonnade_1.jpg",
+        "local_path": null,
+        "credit_text": "Wolfgang Sauber / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Karlsbad_-_Marktkolonnade_1.jpg",
+        "cover": false,
+        "alt_hint": "Detail of the Market Colonnade ironwork"
+      },
+      {
+        "source": "own",
+        "title": "first-int-2.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/first-int-2.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "First Class chauffeur car, interior"
+      },
+      {
+        "source": "own",
+        "title": "s-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/s-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes S-Class"
+      }
+    ],
+    "dresden-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Frauenkirche-dresden.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Frauenkirche-dresden.jpg/1920px-Frauenkirche-dresden.jpg",
+        "local_path": null,
+        "credit_text": "Ronny Kreutel - Kausalkette / Wikimedia Commons",
+        "license": "Public domain",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Frauenkirche-dresden.jpg",
+        "cover": true,
+        "alt_hint": "Frauenkirche on Neumarkt square in Dresden"
+      },
+      {
+        "source": "commons",
+        "title": "File:Dresden, Frauenkirche -- 2023 -- 9387.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e7/Dresden%2C_Frauenkirche_--_2023_--_9387.jpg/1920px-Dresden%2C_Frauenkirche_--_2023_--_9387.jpg",
+        "local_path": null,
+        "credit_text": "Dietmar Rabich / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Dresden,_Frauenkirche_--_2023_--_9387.jpg",
+        "cover": false,
+        "alt_hint": "Frauenkirche dome"
+      },
+      {
+        "source": "commons",
+        "title": "File:Dresden-Zwinger-Wallpavillion-gp.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Dresden-Zwinger-Wallpavillion-gp.jpg/1920px-Dresden-Zwinger-Wallpavillion-gp.jpg",
+        "local_path": null,
+        "credit_text": "Kolossos / Wikimedia Commons",
+        "license": "CC BY 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Dresden-Zwinger-Wallpavillion-gp.jpg",
+        "cover": false,
+        "alt_hint": "Zwinger Wall Pavilion"
+      },
+      {
+        "source": "commons",
+        "title": "File:Dresden, Zwinger, Bogengalerie -- 2023 -- 9327.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2c/Dresden%2C_Zwinger%2C_Bogengalerie_--_2023_--_9327.jpg/1920px-Dresden%2C_Zwinger%2C_Bogengalerie_--_2023_--_9327.jpg",
+        "local_path": null,
+        "credit_text": "Dietmar Rabich / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Dresden,_Zwinger,_Bogengalerie_--_2023_--_9327.jpg",
+        "cover": false,
+        "alt_hint": "Zwinger Crown Gate behind a baroque sculpture"
+      },
+      {
+        "source": "commons",
+        "title": "File:Zwinger gardens.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Zwinger_gardens.jpg/1920px-Zwinger_gardens.jpg",
+        "local_path": null,
+        "credit_text": "Adiel lo / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Zwinger_gardens.jpg",
+        "cover": false,
+        "alt_hint": "Pond and gardens beside the Zwinger"
+      },
+      {
+        "source": "own",
+        "title": "business-int-2.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/business-int-2.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Business Class chauffeur car, interior"
+      },
+      {
+        "source": "own",
+        "title": "e-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/e-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes E-Class"
+      }
+    ],
+    "karlstejn-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Karlštejn Castle, Czech Republic.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Karl%C5%A1tejn_Castle%2C_Czech_Republic.JPG/1920px-Karl%C5%A1tejn_Castle%2C_Czech_Republic.JPG",
+        "local_path": null,
+        "credit_text": "Ввласенко / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Karl%C5%A1tejn_Castle,_Czech_Republic.JPG",
+        "cover": true,
+        "alt_hint": "Karlštejn Castle above the forested valley"
+      },
+      {
+        "source": "commons",
+        "title": "File:View of the castle Karlstejn from the southeast. Czech Republic.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/32/View_of_the_castle_Karlstejn_from_the_southeast._Czech_Republic.jpg/1920px-View_of_the_castle_Karlstejn_from_the_southeast._Czech_Republic.jpg",
+        "local_path": null,
+        "credit_text": "Ввласенко / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:View_of_the_castle_Karlstejn_from_the_southeast._Czech_Republic.jpg",
+        "cover": false,
+        "alt_hint": "Karlštejn Castle from the southeast"
+      },
+      {
+        "source": "commons",
+        "title": "File:Bird view on Karlštejn castle - panoramio.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Bird_view_on_Karl%C5%A1tejn_castle_-_panoramio.jpg/1920px-Bird_view_on_Karl%C5%A1tejn_castle_-_panoramio.jpg",
+        "local_path": null,
+        "credit_text": "melechovsky / Wikimedia Commons",
+        "license": "CC BY 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Bird_view_on_Karl%C5%A1tejn_castle_-_panoramio.jpg",
+        "cover": false,
+        "alt_hint": "Karlštejn Castle and village from above"
+      },
+      {
+        "source": "commons",
+        "title": "File:Nature near Karlštejn Castle 01.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Nature_near_Karl%C5%A1tejn_Castle_01.jpg/1920px-Nature_near_Karl%C5%A1tejn_Castle_01.jpg",
+        "local_path": null,
+        "credit_text": "Екатерина Борисова / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Nature_near_Karl%C5%A1tejn_Castle_01.jpg",
+        "cover": false,
+        "alt_hint": "Castle wall and tower among green hills"
+      },
+      {
+        "source": "own",
+        "title": "van-int-1.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/van-int-1.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes V-Class interior"
+      },
+      {
+        "source": "own",
+        "title": "v-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/v-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes V-Class"
+      }
+    ],
+    "bohemian-switzerland-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Pravčická brána (Prebischtor) - by Pudelek.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Prav%C4%8Dick%C3%A1_br%C3%A1na_%28Prebischtor%29_-_by_Pudelek.jpg/1920px-Prav%C4%8Dick%C3%A1_br%C3%A1na_%28Prebischtor%29_-_by_Pudelek.jpg",
+        "local_path": null,
+        "credit_text": "Pudelek / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Prav%C4%8Dick%C3%A1_br%C3%A1na_(Prebischtor)_-_by_Pudelek.jpg",
+        "cover": true,
+        "alt_hint": "Pravčická brána sandstone arch"
+      },
+      {
+        "source": "commons",
+        "title": "File:Pravčická brána v Českém Švýcarsku - 17.8.2020.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e5/Prav%C4%8Dick%C3%A1_br%C3%A1na_v_%C4%8Cesk%C3%A9m_%C5%A0v%C3%BDcarsku_-_17.8.2020.jpg/1920px-Prav%C4%8Dick%C3%A1_br%C3%A1na_v_%C4%8Cesk%C3%A9m_%C5%A0v%C3%BDcarsku_-_17.8.2020.jpg",
+        "local_path": null,
+        "credit_text": "Zrzek007 / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Prav%C4%8Dick%C3%A1_br%C3%A1na_v_%C4%8Cesk%C3%A9m_%C5%A0v%C3%BDcarsku_-_17.8.2020.jpg",
+        "cover": false,
+        "alt_hint": "Pravčická brána from the viewpoint"
+      },
+      {
+        "source": "commons",
+        "title": "File:Edmundova Soutěska (Edmundsklamm) 2015-08 --2.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4e/Edmundova_Sout%C4%9Bska_%28Edmundsklamm%29_2015-08_--2.JPG/1920px-Edmundova_Sout%C4%9Bska_%28Edmundsklamm%29_2015-08_--2.JPG",
+        "local_path": null,
+        "credit_text": "Zinneke / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Edmundova_Sout%C4%9Bska_(Edmundsklamm)_2015-08_--2.JPG",
+        "cover": false,
+        "alt_hint": "Kamenice gorge boat in the rock canyon"
+      },
+      {
+        "source": "commons",
+        "title": "File:Edmiundsklamm Kamnitz (3).jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4d/Edmiundsklamm_Kamnitz_%283%29.jpg/1920px-Edmiundsklamm_Kamnitz_%283%29.jpg",
+        "local_path": null,
+        "credit_text": "Harke / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Edmiundsklamm_Kamnitz_(3).jpg",
+        "cover": false,
+        "alt_hint": "Kamenice river between forested cliffs"
+      },
+      {
+        "source": "commons",
+        "title": "File:Kamenice - Calm (Edmund's) Canyon 01.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f6/Kamenice_-_Calm_%28Edmund%27s%29_Canyon_01.jpg/1920px-Kamenice_-_Calm_%28Edmund%27s%29_Canyon_01.jpg",
+        "local_path": null,
+        "credit_text": "Radek Bartoš / Wikimedia Commons",
+        "license": "CC BY 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Kamenice_-_Calm_(Edmund%27s)_Canyon_01.jpg",
+        "cover": false,
+        "alt_hint": "Narrow canyon with a stream and moss"
+      },
+      {
+        "source": "own",
+        "title": "van-int-2.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/van-int-2.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes V-Class interior, rear seats"
+      },
+      {
+        "source": "own",
+        "title": "v-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/v-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes V-Class"
       }
     ]
   }
