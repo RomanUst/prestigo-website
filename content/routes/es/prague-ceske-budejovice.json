@@ -84,6 +84,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Desde el aeropuerto de Praga",
+      "value": "Unas 2 horas desde la terminal por la D0, la D1 y la D3, sin entrar en el centro de Praga."
+    },
+    {
       "label": "Paso de frontera",
       "value": "Sin paso de frontera: el trayecto discurre íntegramente por la República Checa."
     },
@@ -140,6 +144,10 @@
     {
       "q": "¿Cuánto cuesta un chófer de Praga a České Budějovice?",
       "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, peajes checos, la viñeta y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Praga y llevarme directamente a České Budějovice?",
+      "a": "Sí. Su chófer sigue el vuelo y le recibe dentro de la sala de llegadas con un cartel con su nombre; la espera de hasta 60 minutos tras el aterrizaje es gratuita. Desde la terminal, el coche toma la circunvalación D0 hasta la D1 y después la D3 hacia el sur, sin entrar en el centro de Praga; calcule unas dos horas hasta el centro de České Budějovice. Resérvelo como traslado desde el aeropuerto de Praga hasta su dirección en České Budějovice."
     },
     {
       "q": "¿Puedo reservar ida y vuelta en el mismo día con una parada en la fábrica de cerveza Budvar?",

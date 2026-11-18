@@ -44,6 +44,7 @@
     { "city": "Brno", "note": "Drop-off at any Brno address, the Exhibition Centre, Brno main station, or your hotel.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
+    { "label": "From Prague Airport", "value": "About 2 h 15 min – 2 h 30 min from the terminal on the D0 ring road and the D1, without entering central Prague." },
     { "label": "Border crossing", "value": "No border crossing — entirely within the Czech Republic." },
     { "label": "Tolls", "value": "Czech motorway vignette included in the quoted price." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
@@ -79,6 +80,7 @@
   "faqs": [
     { "q": "How long does a private transfer from Prague to Brno take?", "a": "Approximately 2.5 hours door-to-door via the D1 motorway east through the Vysočina highlands. Friday afternoon outbound traffic from Prague can add 20–30 minutes." },
     { "q": "How much does a chauffeur from Prague to Brno cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges." },
+    { "q": "Can you pick me up at Prague Airport and drive straight to Brno?", "a": "Yes. Your chauffeur tracks the flight and meets you inside the arrivals hall with a name board; up to 60 minutes of waiting after landing are free. From the terminal the car takes the D0 ring road to the D1 and does not enter central Prague; allow 2 hours 15 minutes to 2 hours 30 minutes to central Brno or the exhibition grounds. Book it as a transfer from Prague Airport to your address in Brno." },
     { "q": "Can I book a same-day round trip from Prague to Brno?", "a": "Yes — and it is the natural pattern for this route. Brno is 2.5 hours each way, which leaves a comfortable day on site without an overnight stay. A same-day return receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Most clients book a 6–8 hour round trip to cover a meeting, a lunch, and the drive back to Prague by evening." },
     { "q": "Is there a border crossing on the way to Brno?", "a": "No. The route is entirely within the Czech Republic on the D1 motorway. No border checks, no vignette changes, no document requirements beyond those for domestic travel." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },

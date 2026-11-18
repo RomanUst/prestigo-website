@@ -44,6 +44,7 @@
     { "city": "Plzeň", "note": "Drop-off at any Plzeň address, the Pilsner Urquell brewery entrance, or the Republic Square.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
+    { "label": "From Prague Airport", "value": "About 1 hour from the terminal on the D0 and the D5, without entering Prague." },
     { "label": "Border crossing", "value": "No border crossing — entirely within the Czech Republic." },
     { "label": "Tolls", "value": "Czech motorway vignette included in the quoted price." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
@@ -75,6 +76,7 @@
   "faqs": [
     { "q": "How long does a private transfer from Prague to Plzeň take?", "a": "Approximately 1 hour door-to-door via the D5 motorway. The D5 is a direct, fully built-out route west from Prague. Traffic leaving Prague during weekday rush hour can add 10–15 minutes." },
     { "q": "How much does a chauffeur from Prague to Plzeň cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, all tolls, the Czech vignette, and driver time. No hidden charges." },
+    { "q": "Can you pick me up at Prague Airport and drive straight to Plzeň?", "a": "Yes. Your chauffeur tracks the flight and meets you inside the arrivals hall with a name board; up to 60 minutes of waiting after landing are free. From the terminal the car takes the D0 ring road south to the D5 and does not enter Prague; allow about one hour to central Plzeň. Book it as a transfer from Prague Airport to your address in Plzeň." },
     { "q": "Can I book a same-day return with a stop at the Pilsner Urquell brewery?", "a": "Yes. Most Plzeň bookings are same-day round trips built around the Pilsner Urquell tour. Your chauffeur waits on site while you tour the brewery and the cellars. Book both directions together for a 10% discount on the return leg. If you need the chauffeur to move around the city with you, add hourly city rental." },
     { "q": "Is there a border crossing on this route?", "a": "No. Plzeň is inside the Czech Republic — the entire Prague to Plzeň journey stays within Czechia. No passports, no vignettes beyond the Czech one, no checks. The D5 does continue west to the German border at Rozvadov/Waidhaus, but only if you extend the route to Nuremberg or Munich." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },

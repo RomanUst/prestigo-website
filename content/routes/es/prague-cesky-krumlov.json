@@ -90,6 +90,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Desde el aeropuerto de Praga",
+      "value": "Unas 2 h 30 min desde la terminal por la D0, la D1 y la D3, sin entrar en el centro de Praga."
+    },
+    {
       "label": "Cruce de frontera",
       "value": "Sin cruce de frontera: íntegramente dentro de la República Checa."
     },
@@ -162,6 +166,10 @@
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Český Krumlov?",
       "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, viñeta de autopista checa y tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Praga y llevarme directamente a Český Krumlov?",
+      "a": "Sí. Su chófer sigue el vuelo y le recibe dentro de la sala de llegadas con un cartel con su nombre; la espera de hasta 60 minutos tras el aterrizaje es gratuita. Desde la terminal, el coche toma la circunvalación D0 hasta la D1 y después la D3 hacia el sur, sin entrar en el centro de Praga; calcule unas 2 horas 30 minutos hasta el límite del Casco Antiguo. Resérvelo como traslado desde el aeropuerto de Praga hasta su dirección en Český Krumlov."
     },
     {
       "q": "¿Puedo reservar una excursión de un día de Praga a Český Krumlov con el chófer esperando?",

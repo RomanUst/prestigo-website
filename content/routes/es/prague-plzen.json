@@ -84,6 +84,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Desde el aeropuerto de Praga",
+      "value": "Alrededor de 1 hora desde la terminal por la D0 y la D5, sin entrar en Praga."
+    },
+    {
       "label": "Paso de frontera",
       "value": "Sin paso de frontera: el trayecto discurre íntegramente por la República Checa."
     },
@@ -140,6 +144,10 @@
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Pilsen?",
       "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, todos los peajes, la viñeta checa y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Praga y llevarme directamente a Pilsen?",
+      "a": "Sí. Su chófer sigue el vuelo y le recibe dentro de la sala de llegadas con un cartel con su nombre; la espera de hasta 60 minutos tras el aterrizaje es gratuita. Desde la terminal, el coche toma la circunvalación D0 hacia el sur hasta la D5 y no entra en Praga; calcule alrededor de una hora hasta el centro de Pilsen. Resérvelo como traslado desde el aeropuerto de Praga hasta su dirección en Pilsen."
     },
     {
       "q": "¿Puedo reservar un regreso el mismo día con una parada en la cervecería Pilsner Urquell?",
