@@ -294,6 +294,55 @@ describe('TourEditor', () => {
     expect(calls('POST', '/publish')).toHaveLength(0)
   })
 
+  it('re-reads the checklist after a photo change and after a language save', async () => {
+    const photoRow = {
+      id: '22222222-2222-4222-8222-222222222221',
+      tour_id: ID,
+      storage_path: `tours/${ID}/22222222-2222-4222-8222-222222222221.jpg`,
+      position: 1,
+      is_cover: false,
+      source: 'own',
+      credit_text: null,
+      license: null,
+      credit_url: null,
+      width: null,
+      height: null,
+      created_at: '2026-11-01T10:00:00.000Z',
+    }
+    current = detail({ failures: ['NO_COVER'], photos: [photoRow] })
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (url === `/api/admin/tours/${ID}` && (!init?.method || init.method === 'GET')) return json(current)
+      if (url === `/api/admin/tours/${ID}/photos/${photoRow.id}` && init?.method === 'PATCH') {
+        current = detail({ failures: [], photos: [{ ...photoRow, is_cover: true }] })
+        return json({ photos: [{ ...photoRow, is_cover: true }] })
+      }
+      return json({}, 404)
+    })
+    render(<TourEditor tourId={ID} />)
+    expect((await screen.findByRole('button', { name: 'Publish' }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('radio', { name: 'Use photo 1 as cover' }))
+    await waitFor(() => expect((screen.getByRole('button', { name: 'Publish' }) as HTMLButtonElement).disabled).toBe(false))
+    expect(calls('GET')).toHaveLength(2)
+  })
+
+  it('shows the content tabs and the photo card', async () => {
+    render(<TourEditor tourId={ID} />)
+    expect(await screen.findByRole('tablist', { name: 'Language' })).toBeDefined()
+    expect(screen.getAllByRole('tab')).toHaveLength(8)
+    expect(screen.getByRole('region', { name: 'Photos' })).toBeDefined()
+    expect(screen.getByText('No photos yet.')).toBeDefined()
+  })
+
+  it('an unsaved language edit turns on the beforeunload warning', async () => {
+    render(<TourEditor tourId={ID} />)
+    fireEvent.change(await screen.findByLabelText('Title'), { target: { value: 'Changed title' } })
+    await waitFor(() => {
+      const ev = new Event('beforeunload', { cancelable: true })
+      window.dispatchEvent(ev)
+      expect(ev.defaultPrevented).toBe(true)
+    })
+  })
+
   it('shows an error with Retry when the tour cannot be loaded', async () => {
     fetchMock.mockImplementation(() => json({ error: 'x' }, 500))
     render(<TourEditor tourId={ID} />)

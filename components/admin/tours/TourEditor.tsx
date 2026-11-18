@@ -6,6 +6,7 @@ import { BadgeShell } from '@/components/admin/StatusBadge'
 import { errorStyle, focusRingHandlers, inputBaseStyle, labelStyle } from '@/components/admin/adminFieldStyles'
 import { outlineButtonStyle } from '@/components/admin/paymentShared'
 import TourContentTabs from '@/components/admin/tours/TourContentTabs'
+import TourPhotoManager from '@/components/admin/tours/TourPhotoManager'
 import {
   COPY_SAVE_FAILED,
   COPY_SESSION,
@@ -335,6 +336,15 @@ export default function TourEditor({ tourId }: TourEditorProps) {
     [load],
   )
 
+  // Photos changed: show the server's new list at once when the answer carried one, then re-read the tour for the checklist.
+  const onPhotosChanged = useCallback(
+    async (next?: TourPhotoRow[]) => {
+      if (next) setDetail((prev) => (prev ? { ...prev, photos: next } : prev))
+      await load(true)
+    },
+    [load],
+  )
+
   const closeDialog = useCallback(() => {
     setDialog(null)
     setDialogError(null)
@@ -633,7 +643,8 @@ export default function TourEditor({ tourId }: TourEditorProps) {
         onDirtyChange={setContentDirty}
       />
 
-      {/* D. Photos are added by the next task. */}
+      {/* D. Photos */}
+      <TourPhotoManager tourId={tourId} photos={detail.photos} onPhotosChanged={onPhotosChanged} onDirtyChange={setPhotosDirty} />
 
       <ConfirmDialog
         isOpen={dialog === 'publish'}
