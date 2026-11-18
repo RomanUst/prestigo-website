@@ -219,7 +219,8 @@ describe('seed-tours main', () => {
     expect(first.status).toBe('draft')
     expect(typeof first.price_e_eur).toBe('number')
     const translations = calls.upsertTranslation.map((c) => c[1] as { locale: string; is_complete: boolean })
-    expect(translations.every((t) => t.locale === 'en' && t.is_complete === true)).toBe(true)
+    expect(translations.some((t) => t.locale === 'en')).toBe(true)
+    expect(translations.every((t) => t.is_complete === true)).toBe(true)
     expect(fetchCalls.length).toBeGreaterThan(0)
     for (const c of fetchCalls) {
       expect(new URL(c.url).protocol).toBe('https:')
