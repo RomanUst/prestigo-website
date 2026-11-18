@@ -16,7 +16,7 @@ import { locales } from '@/i18n/locales'
 
 type Json = string | { [k: string]: Json }
 
-const PENDING = new Set(['ar', 'hi', 'zh', 'zh-hant'])
+const PENDING = new Set([]) as Set<string>
 
 /** The planned key tree: namespace path -> space separated leaf names. */
 const KEY_TREE: Record<string, string> = {
