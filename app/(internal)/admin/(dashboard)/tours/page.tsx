@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { NewTourModal } from '@/components/admin/tours/NewTourModal'
+import TourSettingsCard from '@/components/admin/tours/TourSettingsCard'
 import { ToursTable, type TourListRow } from '@/components/admin/tours/ToursTable'
 import { errorStyle } from '@/components/admin/adminFieldStyles'
 import { outlineButtonStyle } from '@/components/admin/paymentShared'
@@ -11,6 +12,7 @@ import { outlineButtonStyle } from '@/components/admin/paymentShared'
 
 const COPY_SESSION = 'Your session has ended. Sign in again.'
 const COPY_LOAD_FAILED = 'Could not load tours. Try again.'
+const COPY_SAVE_FAILED = 'Could not save. Nothing was changed. Try again.'
 
 const accentButtonStyle: React.CSSProperties = {
   ...outlineButtonStyle,
@@ -73,6 +75,8 @@ export default function ToursPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [moving, setMoving] = useState(false)
+  const [moveError, setMoveError] = useState<string | null>(null)
   // Bumped by Retry so the list is read again.
   const [reloadTick, setReloadTick] = useState(0)
 
@@ -106,6 +110,40 @@ export default function ToursPage() {
     setLoadError(null)
     setReloadTick((n) => n + 1)
   }, [])
+
+  // Move up / down saves at once through /api/admin/tours/reorder. The new order shows immediately; a failed save puts the
+  // previous order back and shows the error. The server stays authoritative.
+  const move = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      if (moving) return
+      const from = tours.findIndex((t) => t.id === id)
+      const to = direction === 'up' ? from - 1 : from + 1
+      if (from < 0 || to < 0 || to >= tours.length) return
+      const previous = tours
+      const next = [...tours]
+      ;[next[from], next[to]] = [next[to], next[from]]
+      setTours(next)
+      setMoveError(null)
+      setMoving(true)
+      try {
+        const res = await fetch('/api/admin/tours/reorder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: next.map((t) => t.id) }),
+        })
+        if (!res.ok) {
+          setTours(previous)
+          setMoveError(res.status === 401 || res.status === 403 ? COPY_SESSION : COPY_SAVE_FAILED)
+        }
+      } catch {
+        setTours(previous)
+        setMoveError(COPY_SAVE_FAILED)
+      } finally {
+        setMoving(false)
+      }
+    },
+    [moving, tours],
+  )
 
   const openNew = useCallback(() => setModalOpen(true), [])
   const closeNew = useCallback(() => setModalOpen(false), [])
@@ -141,6 +179,8 @@ export default function ToursPage() {
         </button>
       </div>
 
+      <TourSettingsCard />
+
       {loadError && (
         <div style={{ marginBottom: '16px' }}>
           <p role="alert" style={errorStyle}>{loadError}</p>
@@ -152,12 +192,14 @@ export default function ToursPage() {
         </div>
       )}
 
+      {moveError && <p role="alert" style={{ ...errorStyle, marginBottom: '16px' }}>{moveError}</p>}
+
       {loading && tours.length === 0 && !loadError ? (
         <SkeletonRows />
       ) : loadError && tours.length === 0 ? null : tours.length === 0 ? (
         <EmptyState onNew={openNew} />
       ) : (
-        <ToursTable tours={tours} />
+        <ToursTable tours={tours} onMove={move} moving={moving} />
       )}
 
       <NewTourModal isOpen={modalOpen} onClose={closeNew} onCreated={(id) => router.push(`/admin/tours/${id}`)} />

@@ -248,6 +248,50 @@ describe('tours page: New tour (TRIP-05)', () => {
   })
 })
 
+describe('tours page: reorder (TRIP-05)', () => {
+  function titles() {
+    return screen.getAllByTestId('tour-row').map((r) => within(r).getByText(/Day Trip$/).textContent)
+  }
+
+  it('Move down on the first row POSTs the swapped id list and shows the new order', async () => {
+    render(<ToursPage />)
+    await screen.findByTestId('tours-table')
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (url === '/api/admin/tours/reorder' && init?.method === 'POST') return json({ ok: true })
+      return json({}, 404)
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Move Karlstejn Castle Day Trip down' }))
+    await waitFor(() => expect(titles()).toEqual(['Cesky Krumlov Day Trip', 'Karlstejn Castle Day Trip']))
+    const post = calls('/api/admin/tours/reorder', 'POST')[0]
+    expect(JSON.parse(String((post[1] as RequestInit).body))).toEqual({
+      ids: ['22222222-2222-4222-8222-222222222222', '11111111-1111-4111-8111-111111111111'],
+    })
+    expect(screen.queryByText('Could not save. Nothing was changed. Try again.')).toBeNull()
+  })
+
+  it('puts the previous order back and shows the error when the save fails', async () => {
+    render(<ToursPage />)
+    await screen.findByTestId('tours-table')
+    fetchMock.mockImplementation(() => json({ error: 'Request failed' }, 500))
+    fireEvent.click(screen.getByRole('button', { name: 'Move Karlstejn Castle Day Trip down' }))
+    expect(await screen.findByText('Could not save. Nothing was changed. Try again.')).toBeDefined()
+    expect(titles()).toEqual(['Karlstejn Castle Day Trip', 'Cesky Krumlov Day Trip'])
+  })
+
+  it('disables Move up on the first row and Move down on the last', async () => {
+    render(<ToursPage />)
+    await screen.findByTestId('tours-table')
+    expect((screen.getByRole('button', { name: 'Move Karlstejn Castle Day Trip up' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: 'Move Cesky Krumlov Day Trip down' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: 'Move Karlstejn Castle Day Trip down' }) as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('shows the Tour settings card above the table', async () => {
+    render(<ToursPage />)
+    expect(await screen.findByRole('heading', { name: 'Tour settings' })).toBeDefined()
+  })
+})
+
 describe('admin sidebar: Tours entry', () => {
   it('links to /admin/tours right after Quotes', () => {
     render(<AdminSidebar />)
