@@ -30,6 +30,10 @@ import { computeRouteDistance, type RoutePoint } from '@/lib/route-distance'
 import { isAirportTrip } from '@/lib/airport'
 import { isAirportPickup } from '@/lib/no-show-wait'
 import { isLandingOffset, pickupFromLanding } from '@/lib/airport-pickup'
+import { getPublishedTourBySlug } from '@/lib/tours/store'
+import { tourFare, TourPriceError } from '@/lib/tours/pricing'
+import { checkTourPickup } from '@/lib/tours/pickup-area'
+import { MAX_EXTRA_HOURS, TOUR_SLUG_PATTERN } from '@/lib/tours/types'
 import {
   MAX_STOPS,
   MAX_STOP_WAIT_MIN,
@@ -41,7 +45,10 @@ import {
   type StopInput,
 } from '@/lib/stops'
 
-const TRIP_TYPES: TripType[] = ['transfer', 'hourly', 'daily', 'round_trip']
+/** Phase 93 (TRIP-04, D-11): a tour books through the same card checkout; it is not a TripType of the transfer wizard. */
+export type CheckoutTripType = TripType | 'tour'
+
+const TRIP_TYPES: CheckoutTripType[] = ['transfer', 'hourly', 'daily', 'round_trip', 'tour']
 
 // Defense-in-depth zod schema — validates primitives BEFORE any RPC or pricing call.
 // Uses .catchall() with a bounded string to allow PII + extras fields without
@@ -57,7 +64,7 @@ const BOUNDED_STRING = z.string().max(2000)
 
 export const checkoutBookingSchema = z.object({
   bookingData: z.object({
-    tripType: z.enum(['transfer', 'hourly', 'daily', 'round_trip']),
+    tripType: z.enum(['transfer', 'hourly', 'daily', 'round_trip', 'tour']),
     vehicleClass: z.enum(['business', 'first_class', 'business_van']),
     currency: z.string().max(10).optional(),
     // Legacy field: still accepted so old clients validate, never read (STOP-02, Phase 91). The distance
@@ -100,6 +107,10 @@ export const checkoutBookingSchema = z.object({
     landingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
     landingTime: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal('')),
     pickupOffsetMin: z.string().regex(/^\d{1,2}$/).optional().or(z.literal('')),
+    // Phase 93 (TRIP-04): the tour being booked and its extra hours. Both are only identifiers / counts; the price is
+    // recomputed from the tours and tour_settings rows (D-01, D-02).
+    tourSlug: z.string().regex(TOUR_SLUG_PATTERN).max(80).optional(),
+    extraHours: z.string().regex(/^\d{1,2}$/).optional(),
   }).catchall(BOUNDED_STRING), // anything else must be string ≤ 2000 chars
 })
 
@@ -115,7 +126,7 @@ export type CheckoutError = {
 
 export type ValidatedCheckout = {
   ok: true
-  tripType: TripType
+  tripType: CheckoutTripType
   vehicleClass: VehicleClass
   hours: number
   days: number
@@ -126,6 +137,8 @@ export type ValidatedCheckout = {
   stops: StopInput[]
   /** STOP-05: the validated landing of an airport pickup (the pickup in bookingData is already the derived one); null otherwise. */
   landing: { date: string; time: string; offsetMin: number } | null
+  /** Phase 93: the requested tour and extra hours (shape only; existence and price are checked in priceCheckout); null for every other trip. */
+  tour: { slug: string; extraHours: number } | null
 }
 
 export type PricedCheckout = {
@@ -143,6 +156,16 @@ export type PricedCheckout = {
   /** Paid waiting at the stops in EUR (already inside combined); 0 without stops. */
   waitingFeeEur: number
   stops: PricedStop[]
+  /** Phase 93: the tour behind the amount, for the booking row and the policy snapshot; null for every non-tour trip. */
+  tour: {
+    id: string
+    slug: string
+    title: string
+    destinationLabel: string
+    hoursIncluded: number
+    extraHours: number
+    freeCancelHours: number
+  } | null
 }
 
 /** A coordinate pair from the string fields of the booking body; null unless both are finite and in range. */
@@ -181,7 +204,7 @@ export function validateCheckoutBooking(
   }
   bookingData.phone = phoneE164
 
-  const tripType = bookingData.tripType as TripType
+  const tripType = bookingData.tripType as CheckoutTripType
   const vehicleClass = bookingData.vehicleClass as VehicleClass
 
   if (!TRIP_TYPES.includes(tripType)) {
@@ -198,6 +221,50 @@ export function validateCheckoutBooking(
     if (!(pax >= 1 && pax <= maxPax)) {
       return fail(400, 'TOO_MANY_PASSENGERS', 'Too many passengers for the selected vehicle')
     }
+  }
+
+  // Phase 93 (TRIP-04, D-05, D-13, D-20): a tour is one fixed-price day out of Prague. Every refusal here is synchronous, so a
+  // crafted body never spends a database read. The pickup area and the price are checked in priceCheckout.
+  let tour: ValidatedCheckout['tour'] = null
+  let tourOrigin: RoutePoint | null = null
+  if (tripType === 'tour') {
+    if (!bookingData.tourSlug || !TOUR_SLUG_PATTERN.test(bookingData.tourSlug)) {
+      return fail(400, 'INVALID_REQUEST', 'Invalid tour')
+    }
+    const extraHours = bookingData.extraHours === undefined || bookingData.extraHours === '' ? 0 : Number(bookingData.extraHours)
+    if (!Number.isInteger(extraHours) || extraHours < 0 || extraHours > MAX_EXTRA_HOURS) {
+      return fail(400, 'INVALID_EXTRA_HOURS', 'Extra hours must be a whole number from 0 to 12')
+    }
+    if ((bookingData.stops ?? []).length > 0) {
+      return fail(400, 'STOPS_NOT_ALLOWED', 'Stops are only available on a transfer')
+    }
+    if (bookingData.landingDate || bookingData.landingTime || bookingData.pickupOffsetMin) {
+      return fail(400, 'LANDING_NOT_ALLOWED', 'Landing time is only available on a transfer')
+    }
+    if (bookingData.returnDate || bookingData.returnTime) {
+      return fail(400, 'INVALID_REQUEST', 'A tour has no return date')
+    }
+    if (typeof bookingData.promoCode === 'string' && bookingData.promoCode.trim() !== '') {
+      return fail(400, 'PROMO_NOT_ALLOWED', 'Promo codes do not apply to a tour')
+    }
+    tourOrigin = parsePoint(bookingData.originLat, bookingData.originLng)
+    if (!tourOrigin) {
+      return fail(400, 'INVALID_REQUEST', 'Invalid coordinates')
+    }
+    if (!bookingData.pickupDate || !bookingData.pickupTime) {
+      return fail(400, 'INVALID_REQUEST', 'A tour requires pickupDate and pickupTime')
+    }
+    // D-22: an airport pickup is never a tour pickup (the radius check follows in priceCheckout).
+    if (
+      isAirportPickup({
+        origin_lat: tourOrigin.lat,
+        origin_lng: tourOrigin.lng,
+        origin_address: bookingData.originAddress ?? null,
+      })
+    ) {
+      return fail(422, 'AIRPORT_PICKUP', 'A tour cannot start at the airport')
+    }
+    tour = { slug: bookingData.tourSlug, extraHours }
   }
 
   const hours = bookingData.hours ? parseInt(bookingData.hours) : 2
@@ -282,7 +349,80 @@ export function validateCheckoutBooking(
     }
   }
 
-  return { ok: true, tripType, vehicleClass, hours, days, phone: phoneE164, origin, destination, stops, landing }
+  return {
+    ok: true,
+    tripType,
+    vehicleClass,
+    hours,
+    days,
+    phone: phoneE164,
+    origin: tripType === 'tour' ? tourOrigin : origin,
+    destination,
+    stops,
+    landing,
+    tour,
+  }
+}
+
+/** The tour branch of priceCheckout: published tour + settings -> pickup area -> tourFare -> combined total. */
+async function priceTour(input: {
+  validated: ValidatedCheckout
+  bookingData: CheckoutBookingData
+  currency: 'eur' | 'czk'
+}): Promise<PricedCheckout | CheckoutError> {
+  const { validated, bookingData, currency } = input
+  if (!validated.tour || !validated.origin) return fail(400, 'INVALID_REQUEST', 'Invalid tour')
+
+  const found = await getPublishedTourBySlug(validated.tour.slug)
+  if (!found) return fail(422, 'TOUR_UNAVAILABLE', 'This tour is not available')
+  const { tour, enTitle, settings } = found
+
+  const area = checkTourPickup(
+    { lat: validated.origin.lat, lng: validated.origin.lng, address: bookingData.originAddress ?? null },
+    settings.pickup_radius_km,
+  )
+  if (area === 'airport') return fail(422, 'AIRPORT_PICKUP', 'A tour cannot start at the airport')
+  if (area === 'out_of_area') return fail(422, 'PICKUP_OUT_OF_AREA', 'The pickup is outside the tour pickup area')
+
+  let fare: number
+  try {
+    fare = tourFare(tour, settings, validated.vehicleClass, validated.tour.extraHours)
+  } catch (err) {
+    if (err instanceof TourPriceError) return fail(422, 'TOUR_UNAVAILABLE', 'This tour is not available')
+    throw err
+  }
+
+  const combined = computeCombinedTotalMinor({
+    outboundLegEur: fare,
+    extrasEur: 0,
+    returnLegEur: 0,
+    promoPct: 0,
+    currency,
+  })
+
+  return {
+    ok: true,
+    combined,
+    outboundLegEur: fare,
+    returnLegEur: 0,
+    extrasTotalEur: 0,
+    appliedPromoPct: 0,
+    promoCode: '',
+    returnDiscountPercent: 0,
+    distanceKm: null,
+    durationMin: null,
+    waitingFeeEur: 0,
+    stops: [],
+    tour: {
+      id: tour.id,
+      slug: tour.slug,
+      title: enTitle,
+      destinationLabel: tour.destination_label,
+      hoursIncluded: tour.hours_included,
+      extraHours: validated.tour.extraHours,
+      freeCancelHours: settings.free_cancel_hours,
+    },
+  }
 }
 
 /**
@@ -296,6 +436,12 @@ export async function priceCheckout(input: {
 }): Promise<PricedCheckout | CheckoutError> {
   const { bookingData, validated, currency } = input
   const { tripType, vehicleClass, hours, days, origin, destination, stops } = validated
+
+  // Phase 93 (TRIP-04, D-01, D-02): a tour is priced from the tours and tour_settings rows only. It never reads the
+  // transfer pricing config, the routing API, extras or a promo (D-13), and no client amount is an input.
+  if (tripType === 'tour') {
+    return priceTour({ validated, bookingData, currency })
+  }
 
   let rates
   try {
@@ -436,6 +582,7 @@ export async function priceCheckout(input: {
     durationMin,
     waitingFeeEur: waitingFee,
     stops: pricedStops,
+    tour: null,
   }
 }
 
