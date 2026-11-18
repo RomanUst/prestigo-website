@@ -50,7 +50,7 @@ const WAITING_MODEL = /15 ?min|started 15|first 15 minutes|15 minutes/i
 const SCARCITY =
   /booked \d+ times|sell(s|ing)? (out|fast)|spots? left|only \d+ left|last chance|popular choice|limited (availability|spots|places)|book (now )?before it/i
 const RATING = /\b(rating|rated|reviews?|stars?|five-star|best-rated)\b/i
-const RIDE_HAILING = /uber|bolt\b|taxi app|ride-?hailing|\btaxi\b/i
+const RIDE_HAILING = /\buber\b|\bbolt\b|taxi app|ride-?hailing|\btaxi\b/i
 // Hours and cancellation numbers come from the tour row and the settings, never from copy.
 const HOUR_NUMBER = /\b(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)[ -](hours?|hrs?)\b|\b\d+\s?h\b/i
 const CANCEL_NUMBER = /cancel[^.]{0,80}\b(\d+|one|two|three|four|five|six|twelve|twenty|twenty-four|forty-eight)\b/i
