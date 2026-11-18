@@ -88,6 +88,7 @@ vi.mock('@/lib/pricing-config', () => ({
 vi.mock('@/lib/route-prices', () => ({ getAllRoutes: async () => [] }))
 
 import ServicePage from '@/app/[locale]/services/[slug]/page'
+import ServicesPage from '@/app/[locale]/services/page'
 import TourPageView from '@/components/tours/TourPageView'
 import CustomTourBlock from '@/components/tours/CustomTourBlock'
 
@@ -421,5 +422,50 @@ describe('CustomTourBlock', () => {
     customLink.live = true
     render(<CustomTourBlock variant="compact" tourSlug="../../evil" locale="en" t={t} />)
     expect(screen.getByRole('link').getAttribute('href')).toBe(buildCustomTourHref({}, true))
+  })
+})
+
+describe('services index: also popular', () => {
+  async function renderIndex(locale = 'en') {
+    const ui = await ServicesPage({ params: Promise.resolve({ locale }) })
+    return render(ui)
+  }
+
+  it('lists the hub and one card per published tour, linking only to the hub or a published tour', async () => {
+    storeMock.listPublishedTours.mockResolvedValue([DRESDEN, KARLOVY])
+    const { container } = await renderIndex()
+    expect(storeMock.listPublishedTours).toHaveBeenCalledWith('en')
+    const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'))
+    expect(hrefs).toContain(`/services/${HUB}`)
+    expect(hrefs).toContain('/services/dresden-day-trip')
+    expect(hrefs).toContain('/services/karlovy-vary-day-trip')
+    expect(screen.getByText(DRESDEN.title)).toBeTruthy()
+    expect(screen.getByText(KARLOVY.title)).toBeTruthy()
+    // no link to a removed day-trip landing page: every */day-trip(s) href is the hub or a published tour
+    const dayTripHrefs = hrefs.filter((h) => h && /\/services\/[^/]*day-trip/.test(h))
+    for (const h of dayTripHrefs) {
+      expect([`/services/${HUB}`, '/services/dresden-day-trip', '/services/karlovy-vary-day-trip']).toContain(h)
+    }
+  })
+
+  it('localizes tour links in ru', async () => {
+    storeMock.listPublishedTours.mockResolvedValue([DRESDEN])
+    const { container } = await renderIndex('ru')
+    const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'))
+    expect(hrefs).toContain('/ru/services/dresden-day-trip')
+  })
+
+  it('with the store returning [] still renders the landing pages and the hub', async () => {
+    storeMock.listPublishedTours.mockResolvedValue([])
+    const { container } = await renderIndex()
+    const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'))
+    expect(hrefs).toContain(`/services/${HUB}`)
+  })
+
+  it('does not break when the store rejects', async () => {
+    storeMock.listPublishedTours.mockRejectedValue(new Error('db down'))
+    const { container } = await renderIndex()
+    const hrefs = Array.from(container.querySelectorAll('a')).map((a) => a.getAttribute('href'))
+    expect(hrefs).toContain(`/services/${HUB}`)
   })
 })
