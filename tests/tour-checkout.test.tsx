@@ -554,14 +554,14 @@ describe('TourCheckout: init answers and errors', () => {
 })
 
 describe('TourCheckout: wishes', () => {
-  it('limits the textarea to 1000 characters and shows the counter from 900', () => {
+  it('limits the textarea to 490 characters (the server keeps 490) and shows the counter from 440', () => {
     setup()
     const box = screen.getByLabelText(co.wishes) as HTMLTextAreaElement
-    expect(box.maxLength).toBe(1000)
-    fireEvent.change(box, { target: { value: 'a'.repeat(899) } })
-    expect(screen.queryByText('899 of 1000')).toBeNull()
-    fireEvent.change(box, { target: { value: 'a'.repeat(900) } })
-    expect(screen.getByText('900 of 1000')).toBeTruthy()
+    expect(box.maxLength).toBe(490)
+    fireEvent.change(box, { target: { value: 'a'.repeat(439) } })
+    expect(screen.queryByText('439 of 490')).toBeNull()
+    fireEvent.change(box, { target: { value: 'a'.repeat(440) } })
+    expect(screen.getByText('440 of 490')).toBeTruthy()
   })
 
   it('sends the wishes in the init bookingData', async () => {

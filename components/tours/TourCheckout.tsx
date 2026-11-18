@@ -475,7 +475,7 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm }: T
                 id="tour-wishes"
                 value={wishes}
                 onChange={(e) => setWishes(e.target.value)}
-                maxLength={1000}
+                maxLength={490}
                 placeholder={t('wishesPlaceholder')}
                 className={`${inputClass(false)} min-h-[120px]`}
               />
@@ -488,7 +488,7 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm }: T
                   ),
                 })}
               </p>
-              {wishes.length >= 900 ? (
+              {wishes.length >= 440 ? (
                 <p className={`${helperClass} text-end`} aria-live="polite">
                   {t('counter', { count: wishes.length })}
                 </p>
