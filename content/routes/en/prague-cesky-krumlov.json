@@ -45,6 +45,7 @@
     { "city": "Český Krumlov", "note": "Drop-off at any Krumlov address, the castle entrance, or your hotel in the old town.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
+    { "label": "From Prague Airport", "value": "About 2 h 30 min from the terminal on the D0, D1 and D3, without entering central Prague." },
     { "label": "Border crossing", "value": "No border crossing — entirely within the Czech Republic." },
     { "label": "Tolls", "value": "Czech motorway vignette included in the quoted price." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
@@ -80,6 +81,7 @@
   "faqs": [
     { "q": "How long does a private transfer from Prague to Český Krumlov take?", "a": "Approximately 2.5 hours door-to-door via Highway 3 and the D3 motorway south through Tábor and České Budějovice. Friday afternoon rush hour out of Prague can add 15–20 minutes." },
     { "q": "How much does a chauffeur from Prague to Český Krumlov cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges." },
+    { "q": "Can you pick me up at Prague Airport and drive straight to Český Krumlov?", "a": "Yes. Your chauffeur tracks the flight and meets you inside the arrivals hall with a name board; up to 60 minutes of waiting after landing are free. From the terminal the car takes the D0 ring road to the D1 and then the D3 south, without entering central Prague; allow about 2 hours 30 minutes to the edge of the old town. Book it as a transfer from Prague Airport to your address in Český Krumlov." },
     { "q": "Can I book a day trip from Prague to Český Krumlov with the chauffeur waiting?", "a": "Yes — this is the standard booking pattern for Český Krumlov. Your chauffeur waits on site while you explore the Old Town and Castle, then drives you back the same evening. A return booked together receives a 10% discount on the return leg. If you need the chauffeur to move around the city with you, add hourly city rental." },
     { "q": "Do you cross any border?", "a": "No. The entire route runs inside the Czech Republic — Prague, Tábor, České Budějovice, and Český Krumlov are all in Bohemia. No passport checks, no vignettes beyond the Czech one, which is included." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },

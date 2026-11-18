@@ -44,6 +44,7 @@
     { "city": "Karlovy Vary", "note": "Drop-off at your hotel, the Grand Colonnade, or Karlovy Vary Airport (KLV) on request.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
+    { "label": "From Prague Airport", "value": "About 1 h 20 min from the terminal on the D6, which starts beside the airport." },
     { "label": "Border crossing", "value": "No border crossing — entirely within the Czech Republic." },
     { "label": "Tolls", "value": "Czech motorway vignette included in the quoted price." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
@@ -79,6 +80,7 @@
   "faqs": [
     { "q": "How long does a private transfer from Prague to Karlovy Vary take?", "a": "Approximately 1 hour 30 minutes door-to-door via the D6 motorway. The route runs entirely inside the Czech Republic and rarely congests outside of Friday afternoons in summer. Prague rush-hour traffic can add 10–15 minutes to the first leg." },
     { "q": "How much does a chauffeur from Prague to Karlovy Vary cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, and driver time. No hidden charges." },
+    { "q": "Can you pick me up at Prague Airport and drive straight to Karlovy Vary?", "a": "Yes. Your chauffeur tracks the flight and meets you inside the arrivals hall with a name board; up to 60 minutes of waiting after landing are free. From the terminal the car joins the D6 motorway, which starts beside the airport, and does not enter Prague; allow about 1 hour 20 minutes to your spa hotel. Book it as a transfer from Prague Airport to your address in Karlovy Vary." },
     { "q": "Can I book a same-day round trip from Prague to Karlovy Vary?", "a": "Yes — this is the most natural day-trip route we run. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Most clients book a 4–6 hour round trip to cover the Mill Colonnade, a lunch at the Grandhotel Pupp, and a walk through the spa quarter." },
     { "q": "Is there a border crossing on the Prague to Karlovy Vary route?", "a": "No. The entire journey is inside the Czech Republic on the D6 motorway. No documents are required beyond what your chauffeur carries as standard. The single Czech motorway vignette is included in the fare." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },

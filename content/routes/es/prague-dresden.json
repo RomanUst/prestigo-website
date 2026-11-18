@@ -90,6 +90,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Desde el aeropuerto de Praga",
+      "value": "Unas 2 horas desde la terminal; el coche cruza los barrios del norte de Praga hasta la D8, ya que la circunvalación norte aún no está construida."
+    },
+    {
       "label": "Paso de frontera",
       "value": "Frontera Schengen checo-alemana en Petrovice/Breitenau. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar sus documentos de viaje."
     },
@@ -162,6 +166,10 @@
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Dresde?",
       "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, todos los peajes y el tiempo del conductor. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Praga y llevarme directamente a Dresde?",
+      "a": "Sí. Su chófer sigue el vuelo y le recibe dentro de la sala de llegadas con un cartel con su nombre; la espera de hasta 60 minutos tras el aterrizaje es gratuita. Desde la terminal, el coche cruza los barrios del norte de Praga para llegar a la D8, porque el tramo norte de la circunvalación aún no está construido; calcule unas dos horas hasta el centro de Dresde y lleve el pasaporte en el equipaje de mano. Resérvelo como traslado desde el aeropuerto de Praga hasta su dirección en Dresde."
     },
     {
       "q": "¿Puedo reservar un viaje de ida y vuelta en el mismo día de Praga a Dresde?",

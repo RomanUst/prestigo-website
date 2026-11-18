@@ -45,6 +45,7 @@
     { "city": "Dresden", "note": "Drop-off at any Dresden address, your hotel, the Frauenkirche, or the Zwinger Palace.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
+    { "label": "From Prague Airport", "value": "About 2 hours from the terminal; the car crosses Prague’s northern districts to the D8, as the northern ring road is not yet built." },
     { "label": "Border crossing", "value": "Czech–German Schengen border at Petrovice/Breitenau on the D8/A17. No passport check for EU citizens — carry travel documents for non-EU passengers." },
     { "label": "Tolls", "value": "Czech motorway vignette and any tolls included in the quoted price. German motorways are toll-free for cars." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
@@ -80,6 +81,7 @@
   "faqs": [
     { "q": "How long does a private transfer from Prague to Dresden take?", "a": "Approximately 2 hours door-to-door via the D8 motorway through Ústí nad Labem and the A17 after the German border. Traffic around Prague during rush hour can add 15–20 minutes." },
     { "q": "How much does a chauffeur from Prague to Dresden cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges." },
+    { "q": "Can you pick me up at Prague Airport and drive straight to Dresden?", "a": "Yes. Your chauffeur tracks the flight and meets you inside the arrivals hall with a name board; up to 60 minutes of waiting after landing are free. From the terminal the car crosses Prague’s northern districts to reach the D8, because the northern section of the ring road is not yet built; allow about two hours to central Dresden and keep your passport in your hand luggage. Book it as a transfer from Prague Airport to your address in Dresden." },
     { "q": "Can I book a same-day round trip from Prague to Dresden?", "a": "Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Dresden with you during the visit, add hourly city rental to the booking. Most clients book a 6–8 hour round trip to cover the Old Masters Gallery, Frauenkirche, and lunch along the Elbe." },
     { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. There are no routine border checks. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },

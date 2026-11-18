@@ -84,6 +84,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Desde el aeropuerto de Praga",
+      "value": "Alrededor de 1 h 30 min desde la terminal por la D10; el chófer va por la circunvalación o cruza la ciudad, según lo que sea más rápido a esa hora."
+    },
+    {
       "label": "Paso de frontera",
       "value": "Sin paso de frontera: el recorrido es íntegramente dentro de la República Checa."
     },
@@ -140,6 +144,10 @@
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Liberec?",
       "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, viñeta de autopista checa y tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Praga y llevarme directamente a Liberec?",
+      "a": "Sí. Su chófer sigue el vuelo y le recibe dentro de la sala de llegadas con un cartel con su nombre; la espera de hasta 60 minutos tras el aterrizaje es gratuita. Desde la terminal, el coche llega a la D10 por la circunvalación o cruzando la ciudad, según lo que sea más rápido a esa hora; calcule alrededor de 1 hora 30 minutos hasta el centro de Liberec. Resérvelo como traslado desde el aeropuerto de Praga hasta su dirección en Liberec."
     },
     {
       "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Liberec?",
