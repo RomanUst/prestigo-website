@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect } from 'vitest'
 import { buildSeedRows, loadSeedTours, type SeedData, type SeedTranslation } from '@/lib/tours/seed'
+import { locales } from '@/i18n/locales'
 import { TOUR_SLUG_PATTERN, type TourPhotoRow, type TourRow } from '@/lib/tours/types'
 import { proposeExtraHourPrices, proposeTourPrices } from '@/scripts/lib/tour-price-proposal'
 import { main, parseFlags, parsePriceOverrides, type SeedDeps, type SeedStore } from '@/scripts/seed-tours'
@@ -62,6 +63,36 @@ describe('loadSeedTours + buildSeedRows (tracer: Dresden EN)', () => {
     expect(hant.short_description).toBe(convert('乘坐奔驰专车，一天游览德累斯顿。'))
     expect(hant.itinerary).toHaveLength(base.itinerary.length)
     expect(hant.is_complete).toBe(true)
+  })
+
+  it('yields 6 x 8: six tours and a complete translation in every locale, zh-hant generated from zh', () => {
+    const built = buildSeedRows(seed, { locales: [...locales] })
+    expect(locales).toHaveLength(8)
+    expect(built.tours).toHaveLength(6)
+    expect(built.translations).toHaveLength(6 * locales.length)
+    for (const slug of seed.tours.map((t) => t.slug)) {
+      expect(built.translations.filter((r) => r.slug === slug).map((r) => r.locale).sort()).toEqual([...locales].sort())
+    }
+    for (const row of built.translations) expect(row.is_complete, `${row.slug}/${row.locale}`).toBe(true)
+    expect(built.reports).toHaveLength(6 * locales.length)
+    for (const r of built.reports) {
+      expect({ key: `${r.slug}/${r.locale}`, present: r.present, complete: r.complete, missing: r.missing, leak: r.leak, overflow: r.overflow }).toEqual({
+        key: `${r.slug}/${r.locale}`,
+        present: true,
+        complete: true,
+        missing: [],
+        leak: null,
+        overflow: [],
+      })
+    }
+    // zh-hant is not a seed folder: every zh-hant row is the opencc conversion of the zh row.
+    expect(fs.existsSync(path.join(ROOT, 'content', 'tours-seed', 'zh-hant'))).toBe(false)
+    for (const slug of seed.tours.map((t) => t.slug)) {
+      const zh = built.translations.find((r) => r.slug === slug && r.locale === 'zh')!
+      const hant = built.translations.find((r) => r.slug === slug && r.locale === 'zh-hant')!
+      expect(hant.title).not.toBe(zh.title)
+      expect(hant.itinerary).toHaveLength(zh.itinerary.length)
+    }
   })
 
   it('flags a field longer than the database allows', () => {
