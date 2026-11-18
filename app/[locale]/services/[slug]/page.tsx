@@ -10,6 +10,8 @@ import { notFound, redirect } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import LandingView from '@/components/LandingView'
 import TourPageView from '@/components/tours/TourPageView'
+import TourGallery from '@/components/tours/TourGallery'
+import TourBookingArea from '@/components/tours/TourBookingArea'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
@@ -127,5 +129,38 @@ export default async function ServicePage({ params }: { params: Params }) {
       }
     : null
 
-  return <TourPageView data={result.data} locale={locale} oneWayRoute={oneWayRoute} />
+  // The box and the gallery read only the tour row, its translation and tour_settings (D-01): no amount is typed here.
+  const { tour, translation, settings, photos } = result.data
+  // Only the fields the gallery needs cross to the client (no tour id or timestamps).
+  const galleryPhotos = photos.map((p) => ({
+    id: p.id,
+    storage_path: p.storage_path,
+    position: p.position,
+    is_cover: p.is_cover,
+    source: p.source,
+    credit_text: p.credit_text,
+    license: p.license,
+    credit_url: p.credit_url,
+  }))
+  const slots = {
+    gallery: galleryPhotos.length > 0 ? <TourGallery title={translation.title} photos={galleryPhotos} /> : undefined,
+    bookingBox: (
+      <TourBookingArea
+        slug={tour.slug}
+        title={translation.title}
+        hoursIncluded={tour.hours_included}
+        prices={{ business: tour.price_e_eur, first_class: tour.price_s_eur, business_van: tour.price_v_eur }}
+        extraHourPrices={{
+          business: settings.extra_hour_e_eur,
+          first_class: settings.extra_hour_s_eur,
+          business_van: settings.extra_hour_v_eur,
+        }}
+        startMin={tour.start_time_min}
+        startMax={tour.start_time_max}
+        freeCancelHours={settings.free_cancel_hours}
+      />
+    ),
+  }
+
+  return <TourPageView data={result.data} locale={locale} oneWayRoute={oneWayRoute} slots={slots} />
 }

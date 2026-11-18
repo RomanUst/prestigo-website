@@ -11,6 +11,7 @@ import path from 'node:path'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { createTranslator } from 'use-intl/core'
+import { NextIntlClientProvider, type AbstractIntlMessages } from 'next-intl'
 import enMessages from '@/messages/en.json'
 import ruMessages from '@/messages/ru.json'
 import arMessages from '@/messages/ar.json'
@@ -46,6 +47,16 @@ vi.mock('next-intl/server', () => ({
     const namespace = typeof arg === 'string' ? arg : arg.namespace
     return createTranslator({ locale, messages: CATALOGS[locale] ?? CATALOGS.en, namespace } as never)
   }),
+}))
+vi.mock('@/i18n/routing', async (orig) => ({
+  ...(await orig<typeof import('@/i18n/routing')>()),
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/',
+  Link: ({ href, children, ...rest }: { href: string; children: React.ReactNode }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
 }))
 vi.mock('@/components/Nav', () => ({ default: () => null }))
 vi.mock('@/components/Footer', () => ({ default: () => null }))
@@ -136,8 +147,15 @@ async function resolve(ui: React.ReactElement): Promise<React.ReactElement> {
   return ui.type === TourPageView ? await (ui.type as (p: unknown) => Promise<React.ReactElement>)(ui.props) : ui
 }
 
+// The page now holds client islands (gallery, booking area) that read the catalogs through a provider, as the
+// locale layout supplies in production.
 async function renderPage(locale: string, slug = SLUG) {
-  return render(await resolve(await ServicePage(params(locale, slug))))
+  const ui = await resolve(await ServicePage(params(locale, slug)))
+  return render(
+    <NextIntlClientProvider locale={locale} messages={(CATALOGS[locale] ?? CATALOGS.en) as unknown as AbstractIntlMessages}>
+      {ui}
+    </NextIntlClientProvider>
+  )
 }
 
 beforeEach(() => {
@@ -368,6 +386,94 @@ describe('guard contract', () => {
   })
 })
 
+function photoRow(n: number, over: Partial<TourPhotoRow> = {}): TourPhotoRow {
+  return {
+    id: `photo-${n}`,
+    tour_id: 'tour-1',
+    storage_path: `tours/tour-1/photo-${n}.jpg`,
+    position: n,
+    is_cover: n === 1,
+    source: 'own',
+    credit_text: null,
+    license: null,
+    credit_url: null,
+    width: 1600,
+    height: 1000,
+    created_at: '2026-11-01T00:00:00Z',
+    ...over,
+  }
+}
+
+describe('gallery and booking area on the page (93-13)', () => {
+  beforeEach(() => {
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://example.supabase.co')
+  })
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('a published tour with 6 photos shows the cover, the +1 tile and a bookable box', async () => {
+    const data = fixture()
+    data.photos = [1, 2, 3, 4, 5, 6].map((n) => photoRow(n))
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data })
+    const { container } = await renderPage('en')
+    const region = screen.getByRole('region', { name: `Photos of ${TITLE}` })
+    expect(region.querySelectorAll('img')).toHaveLength(6)
+    expect(within(region).getByText('+1')).toBeTruthy()
+    expect(container.querySelector('img')!.getAttribute('alt')).toBe(`${TITLE}, photo 1 of 6`)
+    const box = document.getElementById('book')!
+    expect(within(box).getAllByRole('button', { name: 'Book this trip', hidden: true }).length).toBeGreaterThanOrEqual(1)
+    expect(within(box).getByRole('radiogroup', { name: 'CAR' })).toBeTruthy()
+  })
+
+  it('the gallery sits between the title block and the facts; the box is in the box area', async () => {
+    const data = fixture()
+    data.photos = [photoRow(1), photoRow(2)]
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data })
+    const { container } = await renderPage('en')
+    const h1 = container.querySelector('h1')!
+    const gallery = screen.getByRole('region', { name: `Photos of ${TITLE}` })
+    const lead = container.querySelector('[data-area="lead"]')!
+    expect(h1.compareDocumentPosition(gallery) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(gallery.compareDocumentPosition(lead) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(container.querySelector('[data-area="box"] #book')).toBeTruthy()
+    expect(container.querySelectorAll('#book')).toHaveLength(1) // one box instance
+  })
+
+  it('every amount the box shows comes from the tour row and tour_settings', async () => {
+    const data = fixture()
+    data.photos = [photoRow(1)]
+    data.tour.price_e_eur = 777
+    data.tour.price_s_eur = 888
+    data.tour.price_v_eur = 999
+    data.settings.extra_hour_e_eur = 31
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data })
+    await renderPage('en')
+    const box = document.getElementById('book')!
+    const cars = within(box).getByRole('radiogroup', { name: 'CAR' })
+    expect(cars.textContent).toContain('€777')
+    expect(cars.textContent).toContain('€888')
+    expect(cars.textContent).toContain('€999')
+    expect(box.textContent).toContain('From')
+    fireEvent.click(within(cars).getByRole('radio', { name: /777/ }))
+    expect(box.textContent).toContain('€31')
+  })
+
+  it('no photos: the gallery block is not rendered but the box still is', async () => {
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data: fixture() })
+    await renderPage('en')
+    expect(screen.queryByRole('region', { name: /Photos of/ })).toBeNull()
+    expect(document.getElementById('book')).toBeTruthy()
+  })
+
+  it('the aside is sticky at top 88px only from 1024px and only when the viewport is at least 800px high', async () => {
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data: fixture() })
+    const { container } = await renderPage('en')
+    const wrapper = container.querySelector('[data-area="box"] > div')!
+    expect(wrapper.className).toContain('lg:[@media(min-height:800px)]:sticky')
+    expect(wrapper.className).toContain('lg:[@media(min-height:800px)]:top-[88px]')
+    expect(wrapper.className).not.toMatch(/(^|\s)sticky/)
+  })
+})
+
 describe('metadata and structured data', () => {
   it('uses the locale seo fields and lists only the complete locales in hreflang and canonical', async () => {
     const data = fixture()
@@ -416,7 +522,7 @@ describe('guard contract: localized chrome and logical-direction source', () => 
   })
 
   it('the tour components use logical utilities only (ms/me/ps/pe/start/end), never physical left/right', () => {
-    for (const f of ['TourSections.tsx', 'TourKeyFacts.tsx', 'TourPageView.tsx', 'TourFaq.tsx', 'TourReadMore.tsx']) {
+    for (const f of ['TourSections.tsx', 'TourKeyFacts.tsx', 'TourPageView.tsx', 'TourFaq.tsx', 'TourReadMore.tsx', 'TourGallery.tsx', 'TourBookingArea.tsx']) {
       const source = fs.readFileSync(path.join(process.cwd(), 'components', 'tours', f), 'utf-8')
       expect(source, f).not.toMatch(/\b(ml|mr|pl|pr|left|right)-[0-9]/)
       expect(source, f).not.toMatch(/\btext-(left|right)\b/)
