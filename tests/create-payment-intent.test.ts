@@ -981,3 +981,33 @@ describe('Phase 91 STOP-02: the price follows the server route distance, never t
     expect(stripeMock.paymentIntents.create).not.toHaveBeenCalled()
   })
 })
+
+describe('Phase 93: day trips never use the pay-now path', () => {
+  it('refuses tripType tour with 422 TOUR_CARD_FLOW_ONLY and creates no PaymentIntent', async () => {
+    const res = await POST(
+      makePostRequest({
+        bookingData: {
+          tripType: 'tour',
+          tourSlug: 'dresden-day-trip',
+          extraHours: '0',
+          vehicleClass: 'business',
+          currency: 'eur',
+          passengers: '2',
+          originLat: '50.0875',
+          originLng: '14.4213',
+          originAddress: 'Staromestske namesti 1, Praha',
+          pickupDate: futureDate(10),
+          pickupTime: '08:00',
+          firstName: 'Ada',
+          lastName: 'Lovelace',
+          email: 'ada@example.com',
+          phone: '+420123456789',
+        },
+      }),
+    )
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.code).toBe('TOUR_CARD_FLOW_ONLY')
+    expect(supabaseServiceStub.rpc).not.toHaveBeenCalled()
+  })
+})
