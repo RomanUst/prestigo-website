@@ -401,3 +401,25 @@ describe('metadata and structured data', () => {
     expect(trip.offers.map((o: { price: string }) => o.price)).toEqual(['400', '520', '560'])
   })
 })
+
+describe('guard contract: localized chrome and logical-direction source', () => {
+  it('no English leak: ru and ar pages render their own catalog for the facts and fixed lines', async () => {
+    for (const locale of ['ru', 'ar'] as const) {
+      const ui = await TourPageView({ data: fixture({ locale }), locale, oneWayRoute: null })
+      const { container, unmount } = render(ui)
+      const text = container.textContent ?? ''
+      expect(text, locale).toContain((CATALOGS[locale] as { Tours: { page: { importantFixed: string } } }).Tours.page.importantFixed)
+      expect(text, locale).not.toContain(enMessages.Tours.page.importantFixed)
+      expect(text, locale).not.toContain('Private car and chauffeur for your group')
+      unmount()
+    }
+  })
+
+  it('the tour components use logical utilities only (ms/me/ps/pe/start/end), never physical left/right', () => {
+    for (const f of ['TourSections.tsx', 'TourKeyFacts.tsx', 'TourPageView.tsx', 'TourFaq.tsx', 'TourReadMore.tsx']) {
+      const source = fs.readFileSync(path.join(process.cwd(), 'components', 'tours', f), 'utf-8')
+      expect(source, f).not.toMatch(/\b(ml|mr|pl|pr|left|right)-[0-9]/)
+      expect(source, f).not.toMatch(/\btext-(left|right)\b/)
+    }
+  })
+})
