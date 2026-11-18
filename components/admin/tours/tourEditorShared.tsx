@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, type CSSProperties, type FocusEvent, type ReactNode } from 'react'
 import { Modal } from '@/components/admin/Modal'
 import { errorStyle } from '@/components/admin/adminFieldStyles'
 import { outlineButtonStyle } from '@/components/admin/paymentShared'
@@ -137,6 +137,8 @@ type ConfirmDialogProps = {
   initialFocus?: 'confirm' | 'cancel'
   onConfirm: () => void
   onCancel: () => void
+  /** Escape, the X and the backdrop; defaults to onCancel. Set it when cancelling and dismissing differ. */
+  onDismiss?: () => void
 }
 
 /** Modal with a confirm and a cancel button; Escape, the X and the backdrop are ignored while busy. */
@@ -152,9 +154,10 @@ export function ConfirmDialog({
   initialFocus,
   onConfirm,
   onCancel,
+  onDismiss,
 }: ConfirmDialogProps) {
   return (
-    <Modal isOpen={isOpen} onClose={busy ? noop : onCancel} title={title}>
+    <Modal isOpen={isOpen} onClose={busy ? noop : (onDismiss ?? onCancel)} title={title}>
       <ConfirmBody
         tone={tone}
         busy={busy}
@@ -183,7 +186,7 @@ function ConfirmBody({
   initialFocus,
   onConfirm,
   onCancel,
-}: Omit<ConfirmDialogProps, 'isOpen' | 'title' | 'initialFocus'> & { initialFocus: 'confirm' | 'cancel' }) {
+}: Omit<ConfirmDialogProps, 'isOpen' | 'title' | 'initialFocus' | 'onDismiss'> & { initialFocus: 'confirm' | 'cancel' }) {
   const confirmRef = useFocusAfterMount<HTMLButtonElement>(initialFocus === 'confirm')
   const cancelRef = useFocusAfterMount<HTMLButtonElement>(initialFocus === 'cancel')
   return (
@@ -214,4 +217,15 @@ function ConfirmBody({
       </div>
     </div>
   )
+}
+
+/** Focus ring for inputs, selects and textareas (their inline `outline: none` would hide the global ring). */
+export const ringHandlers = {
+  onFocus: (e: FocusEvent<HTMLElement>) => {
+    e.currentTarget.style.outline = '2px solid var(--admin-focus)'
+    e.currentTarget.style.outlineOffset = '2px'
+  },
+  onBlur: (e: FocusEvent<HTMLElement>) => {
+    e.currentTarget.style.outline = 'none'
+  },
 }

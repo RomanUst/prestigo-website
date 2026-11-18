@@ -5,6 +5,7 @@ import { ChevronLeft, CircleCheck, CircleX, ExternalLink } from 'lucide-react'
 import { BadgeShell } from '@/components/admin/StatusBadge'
 import { errorStyle, focusRingHandlers, inputBaseStyle, labelStyle } from '@/components/admin/adminFieldStyles'
 import { outlineButtonStyle } from '@/components/admin/paymentShared'
+import TourContentTabs from '@/components/admin/tours/TourContentTabs'
 import {
   COPY_SAVE_FAILED,
   COPY_SESSION,
@@ -325,6 +326,15 @@ export default function TourEditor({ tourId }: TourEditorProps) {
     }
   }
 
+  // A language was saved or filled: keep the saved row, then re-read the tour so the checklist and the live languages follow.
+  const onTranslationSaved = useCallback(
+    (locale: AppLocale, translation: TourTranslationRow) => {
+      setDetail((prev) => (prev ? { ...prev, translations: { ...prev.translations, [locale]: translation } } : prev))
+      void load(true)
+    },
+    [load],
+  )
+
   const closeDialog = useCallback(() => {
     setDialog(null)
     setDialogError(null)
@@ -615,7 +625,15 @@ export default function TourEditor({ tourId }: TourEditorProps) {
         </div>
       </section>
 
-      {/* C. Content by language and D. Photos are added by the tasks that follow. */}
+      {/* C. Content by language */}
+      <TourContentTabs
+        tourId={tourId}
+        translations={detail.translations}
+        onTranslationSaved={onTranslationSaved}
+        onDirtyChange={setContentDirty}
+      />
+
+      {/* D. Photos are added by the next task. */}
 
       <ConfirmDialog
         isOpen={dialog === 'publish'}
