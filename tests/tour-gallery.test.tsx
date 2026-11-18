@@ -22,6 +22,8 @@ vi.mock('@/i18n/routing', () => ({
 }))
 
 import TourGallery, { type TourGalleryPhoto } from '@/components/tours/TourGallery'
+import TourBookingArea from '@/components/tours/TourBookingArea'
+import { tourBoxStorageKey } from '@/lib/tours/checkout-query'
 import PhotoCredits from '@/components/tours/PhotoCredits'
 import type { TourT } from '@/components/tours/tour-t'
 
@@ -414,3 +416,111 @@ describe('lightbox and credits sources', () => {
 })
 
 void act
+
+describe('booking area: restore from sessionStorage (T-93-35)', () => {
+  const NOW = Date.parse('2027-06-10T08:00:00Z') // 10:00 Prague (CEST)
+  const SLUG = 'x-day-trip'
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(NOW)
+    sessionStorage.clear()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    sessionStorage.clear()
+  })
+
+  function renderArea() {
+    return render(
+      <NextIntlClientProvider locale="en" messages={enMessages as unknown as AbstractIntlMessages}>
+        <TourBookingArea
+          slug={SLUG}
+          title="X day trip"
+          hoursIncluded={8}
+          prices={{ business: 410, first_class: 520, business_van: 640 }}
+          extraHourPrices={{ business: 55, first_class: 75, business_van: 90 }}
+          startMin="08:00"
+          startMax="11:00"
+          freeCancelHours={48}
+        />
+      </NextIntlClientProvider>
+    )
+  }
+
+  const store = (value: unknown) =>
+    sessionStorage.setItem(tourBoxStorageKey(SLUG), typeof value === 'string' ? value : JSON.stringify(value))
+  const section = () => document.getElementById('book')!.querySelector('section')!
+
+  it('mounts with a valid stored date, time, passengers, car and extra hours', async () => {
+    store({ date: '2027-06-15', time: '09:30', pax: 3, car: 'business_van', xh: 2 })
+    renderArea()
+    await act(async () => {})
+    const box = within(section())
+    expect(box.getByRole('button', { name: /June 15, 2027|15 June 2027|2027/ })).toBeTruthy()
+    expect(box.getByRole('radio', { name: '09:30' }).getAttribute('aria-checked')).toBe('true')
+    expect(box.getAllByRole('radiogroup', { name: 'CAR' })).toHaveLength(1)
+    const carRadio = box.getByRole('radio', { checked: true, name: /V-Class|Van|Business/i })
+    expect(carRadio.textContent).toContain('820') // 640 + 2 x 90, from the props
+    expect(section().textContent).toContain('+2 hours')
+    expect(section().querySelector('output')!.textContent).toBe('3')
+  })
+
+  it('a stale date (past) is dropped and the rest of the box still starts', async () => {
+    store({ date: '2027-06-01', time: '09:30', pax: 2, car: 'business', xh: 0 })
+    renderArea()
+    await act(async () => {})
+    expect(within(section()).getByRole('button', { name: /Choose a date/ })).toBeTruthy()
+  })
+
+  it.each([
+    ['xh 40', { date: '2027-06-15', time: '09:30', pax: 2, car: 'business', xh: 40 }],
+    ['unknown car', { date: '2027-06-15', time: '09:30', pax: 2, car: 'limousine', xh: 0 }],
+    ['pax 99', { date: '2027-06-15', time: '09:30', pax: 99, car: 'business', xh: 0 }],
+    ['bad time', { date: '2027-06-15', time: '09:15', pax: 2, car: 'business', xh: 0 }],
+    ['not json', '{oops'],
+    ['an array', ['2027-06-15']],
+  ])('a tampered value (%s) is ignored and the box starts empty', async (_name, value) => {
+    store(value)
+    renderArea()
+    await act(async () => {})
+    const box = within(section())
+    expect(box.getByRole('button', { name: /Choose a date/ })).toBeTruthy()
+    expect(section().querySelector('output')!.textContent).toBe('2')
+    for (const r of box.getAllByRole('radio')) expect(r.getAttribute('aria-checked')).toBe('false')
+  })
+
+  it('works when sessionStorage throws (blocked storage)', async () => {
+    const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked')
+    })
+    renderArea()
+    await act(async () => {})
+    expect(within(section()).getByRole('button', { name: /Choose a date/ })).toBeTruthy()
+    spy.mockRestore()
+  })
+
+  it('without stored state nothing is restored', async () => {
+    renderArea()
+    await act(async () => {})
+    expect(within(section()).getByRole('button', { name: /Choose a date/ })).toBeTruthy()
+  })
+
+  it('the sticky bar follows the box and Book this trip from the bar goes through the same navigation', async () => {
+    store({ date: '2027-06-15', time: '09:30', pax: 2, car: 'business', xh: 0 })
+    renderArea()
+    await act(async () => {})
+    const bar = screen.getByTestId('tour-sticky-bar')
+    expect(document.getElementById('book')!.contains(bar)).toBe(true)
+  })
+})
+
+describe('booking area source', () => {
+  it('reads sessionStorage through tourBoxStorageKey, inside try/catch, and validates with parseTourCheckoutQuery', async () => {
+    const fs = await import('node:fs')
+    const src = fs.readFileSync('components/tours/TourBookingArea.tsx', 'utf-8')
+    expect(src).toContain('tourBoxStorageKey')
+    expect(src).toContain('parseTourCheckoutQuery')
+    expect(src).toMatch(/try\s*{[\s\S]*sessionStorage[\s\S]*}\s*catch/)
+  })
+})

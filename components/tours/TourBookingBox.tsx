@@ -55,6 +55,12 @@ export interface TourBookingBoxProps {
   freeCancelHours: number
   onStateChange?: (s: TourBoxState) => void
   boxRef?: Ref<HTMLElement>
+  /**
+   * Starting values, e.g. restored from sessionStorage for 'Change trip details' (93-13). Every field is checked
+   * again here (a date that is no longer bookable, a time outside the window, a car that does not fit are dropped),
+   * so a stale or tampered value can only leave the box emptier, never invalid.
+   */
+  initial?: Partial<{ date: string; time: string; pax: number; car: TourCarKey; xh: number }>
 }
 
 const FOCUS_RING =
@@ -100,7 +106,7 @@ function arrowStep(key: string, rtl: boolean): 1 | -1 | null {
 }
 
 const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(function TourBookingBox(
-  { slug, hoursIncluded, prices, extraHourPrices, startMin, startMax, freeCancelHours, onStateChange, boxRef },
+  { slug, hoursIncluded, prices, extraHourPrices, startMin, startMax, freeCancelHours, onStateChange, boxRef, initial },
   handleRef
 ) {
   const t = useTranslations('Tours.box')
@@ -145,11 +151,35 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
     return current && visible.includes(current) ? current : null
   }
 
-  const [date, setDate] = useState<string | null>(null)
-  const [time, setTime] = useState<string | null>(null)
-  const [pax, setPax] = useState(2)
-  const [car, setCar] = useState<TourCarKey | null>(() => settleCar(null, 2, 0))
-  const [xh, setXh] = useState(0)
+  // The validated starting state (defaults when there is no `initial` or a value does not hold up).
+  const [seed] = useState(() => {
+    const now = Date.now()
+    const pax =
+      Number.isInteger(initial?.pax) && initial!.pax! >= 1 && initial!.pax! <= MAX_TOUR_PASSENGERS ? initial!.pax! : 2
+    const xh =
+      Number.isInteger(initial?.xh) && initial!.xh! >= 0 && initial!.xh! <= MAX_EXTRA_HOURS ? initial!.xh! : 0
+    const date =
+      typeof initial?.date === 'string' &&
+      /^\d{4}-\d{2}-\d{2}$/.test(initial.date) &&
+      isDateBookable(initial.date, startMin, startMax, now)
+        ? initial.date
+        : null
+    const time =
+      date &&
+      typeof initial?.time === 'string' &&
+      startTimeOptions(startMin, startMax).includes(initial.time) &&
+      isStartBookable(date, initial.time, now)
+        ? initial.time
+        : null
+    const wanted = (TOUR_CAR_KEYS as readonly string[]).includes(initial?.car as string) ? (initial!.car as TourCarKey) : null
+    return { date, time, pax, xh, car: settleCar(wanted, pax, xh) }
+  })
+
+  const [date, setDate] = useState<string | null>(seed.date)
+  const [time, setTime] = useState<string | null>(seed.time)
+  const [pax, setPax] = useState(seed.pax)
+  const [car, setCar] = useState<TourCarKey | null>(seed.car)
+  const [xh, setXh] = useState(seed.xh)
   const [attempted, setAttempted] = useState(false)
   const [dateOpen, setDateOpen] = useState(false)
 
