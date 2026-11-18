@@ -18,15 +18,16 @@ import {
 import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
-import { CalendarDays, Minus, Plus, Users } from 'lucide-react'
-import { useRouter } from '@/i18n/routing'
+import { CalendarDays, CreditCard, Minus, Plus, ShieldCheck, Users } from 'lucide-react'
+import { Link, useRouter } from '@/i18n/routing'
 import { rtlLocales, type AppLocale } from '@/i18n/locales'
 import { VEHICLE_CLASS_KEY, VEHICLE_CONFIG, type VehicleConfig } from '@/types/booking'
 import { formatEUR } from '@/lib/currency'
 import { formatLocaleDate } from '@/lib/locale-date'
 import { getPragueTodayISO } from '@/lib/prague-date'
 import { classesForPassengers, tourFare } from '@/lib/tours/pricing'
-import type { TourCarKey } from '@/lib/tours/types'
+import { MAX_EXTRA_HOURS, TOUR_CAR_KEYS, type TourCarKey } from '@/lib/tours/types'
+import { customTourHref } from '@/lib/tours/custom-tour-link'
 import { buildTourCheckoutHref, MAX_TOUR_PASSENGERS, tourBoxStorageKey } from '@/lib/tours/checkout-query'
 import { isDateBookable, isStartBookable, startTimeOptions } from '@/lib/tours/start-times'
 
@@ -99,10 +100,11 @@ function arrowStep(key: string, rtl: boolean): 1 | -1 | null {
 }
 
 const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(function TourBookingBox(
-  { slug, prices, extraHourPrices, startMin, startMax, onStateChange, boxRef },
+  { slug, hoursIncluded, prices, extraHourPrices, startMin, startMax, freeCancelHours, onStateChange, boxRef },
   handleRef
 ) {
   const t = useTranslations('Tours.box')
+  const tf = useTranslations('Tours.facts')
   const tv = useTranslations('Booking')
   const locale = useLocale()
   const router = useRouter()
@@ -147,7 +149,8 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
   const [time, setTime] = useState<string | null>(null)
   const [pax, setPax] = useState(2)
   const [car, setCar] = useState<TourCarKey | null>(() => settleCar(null, 2, 0))
-  const [xh] = useState(0)
+  const [xh, setXh] = useState(0)
+  const [attempted, setAttempted] = useState(false)
   const [dateOpen, setDateOpen] = useState(false)
 
   const dateBtnRef = useRef<HTMLButtonElement>(null)
@@ -223,10 +226,23 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
     setCar(settleCar(car, n, xh))
   }
 
-  function focusFirstMissing() {
+  function changeExtra(delta: number) {
+    const n = Math.min(MAX_EXTRA_HOURS, Math.max(0, xh + delta))
+    if (n === xh) return
+    setXh(n)
+    setCar(settleCar(car, pax, n))
+  }
+
+  function selectCar(key: TourCarKey) {
+    setCar(key)
+    // A class with no extra-hour price cannot carry extra time (the stepper is hidden for it).
+    if (xh > 0 && fareFor(key, xh) === null) setXh(0)
+  }
+
+  function focusFirstMissing(force?: { time?: boolean }) {
     if (!date) {
       dateBtnRef.current?.focus()
-    } else if (!time) {
+    } else if (!time || force?.time) {
       timeGroupRef.current?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus()
     } else if (!car) {
       carGroupRef.current?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus()
@@ -234,8 +250,12 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
   }
 
   function book() {
-    if (!date || !time || !car) {
-      focusFirstMissing()
+    // A start that slipped inside the lead time while the page was open counts as missing.
+    const timeOk = Boolean(date && time && isStartBookable(date, time, Date.now()))
+    if (date && time && !timeOk) setTime(null)
+    if (!date || !time || !timeOk || !car) {
+      setAttempted(true)
+      focusFirstMissing(!timeOk ? { time: true } : undefined)
       return
     }
     const q = { tour: slug, date, time, pax, car, xh }
@@ -247,7 +267,24 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
     router.push(buildTourCheckoutHref(q))
   }
 
-  useImperativeHandle(handleRef, () => ({ focusFirstMissing, book }))
+  useImperativeHandle(handleRef, () => ({ focusFirstMissing: () => focusFirstMissing(), book }))
+
+  const errDate = attempted && !date
+  const errTime = attempted && !time
+  const errCar = attempted && !car
+  const firstError = errDate ? 'date' : errTime ? 'time' : errCar ? 'car' : null
+  const showStepper = !car || fareFor(car, 1) !== null
+  const extraPrice = car ? extraHourPrices[car] : null
+  const maxedPax = pax >= MAX_TOUR_PASSENGERS
+  const maxedExtra = xh >= MAX_EXTRA_HOURS
+  const customHref = customTourHref({ tour: slug, date: date ?? undefined, pax })
+  const customLink = (chunks: React.ReactNode) => (
+    <Link href={customHref} className={`text-copper-light underline underline-offset-2 hover:text-copper-pale ${FOCUS_RING}`}>
+      {chunks}
+    </Link>
+  )
+  const errorClass = 'mt-2 text-[14px] font-light text-[#f87171]'
+  const errorProps = (field: 'date' | 'time' | 'car') => (firstError === field ? { role: 'alert' as const } : {})
 
   const labelClass = 'label'
   const mutedSmall = 'text-[11px] font-light leading-[1.5] text-warmgrey'
@@ -280,6 +317,8 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
             aria-labelledby={`${uid}-date-label ${uid}-date-value`}
             aria-expanded={dateOpen}
             aria-controls={`${uid}-date-panel`}
+            aria-invalid={errDate || undefined}
+            aria-describedby={errDate ? `${uid}-date-err` : undefined}
             onClick={() => setDateOpen((v) => !v)}
             className={`mt-2 flex min-h-[44px] w-full items-center justify-between gap-2 rounded-[4px] border border-anthracite-light bg-anthracite px-4 py-3 text-start text-[14px] ${FOCUS_RING}`}
           >
@@ -313,6 +352,12 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
           )}
         </div>
 
+        {errDate && (
+          <p id={`${uid}-date-err`} className={`-mt-4 ${errorClass}`} {...errorProps('date')}>
+            {t('errDate')}
+          </p>
+        )}
+
         {/* Start time */}
         <div>
           <div className="flex items-baseline gap-2">
@@ -323,6 +368,7 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
             ref={timeGroupRef}
             role="radiogroup"
             aria-labelledby={`${uid}-time-label`}
+            aria-describedby={errTime ? `${uid}-time-err` : undefined}
             className="mt-2 grid grid-cols-3 gap-2"
           >
             {options.map((o) => {
@@ -355,6 +401,11 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
             })}
           </div>
           {!date && <p className={`mt-2 ${mutedSmall}`}>{t('dateFirst')}</p>}
+          {errTime && (
+            <p id={`${uid}-time-err`} className={errorClass} {...errorProps('time')}>
+              {t('errTime')}
+            </p>
+          )}
         </div>
 
         {/* Passengers */}
@@ -372,12 +423,21 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
             </button>
           </div>
           <p className={`mt-2 ${mutedSmall}`}>{t('paxHelper')}</p>
+          {maxedPax && (
+            <p className={`mt-1 ${mutedSmall}`}>{t.rich('paxMore', { count: MAX_TOUR_PASSENGERS, link: customLink })}</p>
+          )}
         </div>
 
         {/* Car */}
         <div>
           <span id={`${uid}-car-label`} className={labelClass}>{t('car')}</span>
-          <div ref={carGroupRef} role="radiogroup" aria-labelledby={`${uid}-car-label`} className="mt-2 flex flex-col gap-2">
+          <div
+            ref={carGroupRef}
+            role="radiogroup"
+            aria-labelledby={`${uid}-car-label`}
+            aria-describedby={errCar ? `${uid}-car-err` : undefined}
+            className="mt-2 flex flex-col gap-2"
+          >
             {visible.map((key) => {
               const config = CONFIG_BY_KEY[key]
               const fare = fareFor(key, xh)
@@ -392,7 +452,7 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
                   role="radio"
                   aria-checked={selected}
                   tabIndex={tabbableCar === key ? 0 : -1}
-                  onClick={() => setCar(key)}
+                  onClick={() => selectCar(key)}
                   onKeyDown={(e) => onRowKeyDown(e, key)}
                   className={`relative flex min-h-[72px] w-full items-center gap-3 overflow-hidden rounded-[4px] bg-anthracite px-4 py-3 text-start transition-colors duration-200 ${FOCUS_RING} ${
                     selected ? 'border-2 border-copper' : 'border border-anthracite-light hover:border-copper'
@@ -403,13 +463,13 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="text-[14px] font-normal text-offwhite">
                       {tv(`vehicleClasses.${VEHICLE_CLASS_KEY[key]}.label`)}
-                    </span>
-                    <span className="text-[11px] font-light text-warmgrey">{config.model}</span>
+                    </span>{' '}
+                    <span className="text-[11px] font-light text-warmgrey">{config.model}</span>{' '}
                     <span className="flex items-center gap-1 text-[11px] font-normal text-warmgrey" title={t('carUpTo', { count: config.maxPassengers })}>
                       <Users className="h-4 w-4" aria-hidden="true" />
                       <span aria-label={t('carUpTo', { count: config.maxPassengers })}>{config.maxPassengers}</span>
                     </span>
-                  </span>
+                  </span>{' '}
                   <span className="flex shrink-0 flex-col items-end">
                     {fare !== null && (
                       <bdi className={`font-display text-[24px] font-normal leading-none ${selected ? 'text-copper-light' : 'text-offwhite'}`}>
@@ -422,11 +482,64 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
               )
             })}
           </div>
+          {classesForPassengers(pax).length < TOUR_CAR_KEYS.length && (
+            <p className={`mt-2 ${mutedSmall}`}>{t('onlyFit', { count: pax })}</p>
+          )}
+          {errCar && (
+            <p id={`${uid}-car-err`} className={errorClass} {...errorProps('car')}>
+              {t('errCar')}
+            </p>
+          )}
         </div>
+
+        {/* Extra time and total */}
+        {showStepper && (
+          <div>
+            <span id={`${uid}-extra-label`} className={labelClass}>{t('extra')}</span>
+            <div className="mt-2 flex items-center gap-3">
+              <button type="button" aria-label={t('lessTime')} disabled={xh <= 0} onClick={() => changeExtra(-1)} className={stepperBtn}>
+                <Minus className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <output aria-labelledby={`${uid}-extra-label`} aria-live="polite" className="min-w-28 text-center text-[14px] font-normal text-offwhite">
+                {xh === 0 ? t('extraNone') : t('extraCount', { count: xh })}
+              </output>
+              <button type="button" aria-label={t('moreTime')} disabled={maxedExtra} onClick={() => changeExtra(1)} className={stepperBtn}>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+            <p className={`mt-2 ${mutedSmall}`}>
+              {car && extraPrice !== null
+                ? t('extraHelperCar', { hours: hoursIncluded, amount: formatEUR(extraPrice) })
+                : t('extraHelperNoCar', { hours: hoursIncluded })}
+            </p>
+            {maxedExtra && <p className={`mt-1 ${mutedSmall}`}>{t.rich('extraMax', { link: customLink })}</p>}
+          </div>
+        )}
+
+        {car && carFare !== null && (
+          <div className="border-t border-anthracite-light pt-4">
+            <div aria-live="polite" className="flex items-baseline justify-between gap-3">
+              <span className="text-[14px] font-normal text-offwhite">{t('total')}</span>
+              <bdi className="font-display text-[24px] font-normal leading-none text-copper-light">{formatEUR(carFare)}</bdi>
+            </div>
+            <p className={`mt-1 ${mutedSmall}`}>{t('totalHours', { hours: hoursIncluded + xh })}</p>
+          </div>
+        )}
 
         <button type="button" className="btn-primary w-full" onClick={book}>
           {t('cta')}
         </button>
+
+        <ul className="flex list-none flex-col gap-2 p-0">
+          <li className={`flex items-start gap-2 ${mutedSmall}`}>
+            <ShieldCheck className="mt-px h-4 w-4 shrink-0 text-copper-light" aria-hidden="true" />
+            <span>{tf('freeCancel', { hours: freeCancelHours })}</span>
+          </li>
+          <li className={`flex items-start gap-2 ${mutedSmall}`}>
+            <CreditCard className="mt-px h-4 w-4 shrink-0 text-copper-light" aria-hidden="true" />
+            <span>{tf('payLater')}</span>
+          </li>
+        </ul>
       </div>
     </section>
   )
