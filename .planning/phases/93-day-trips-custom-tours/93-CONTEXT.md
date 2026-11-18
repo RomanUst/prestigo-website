@@ -50,6 +50,19 @@ Not in this phase: guides, tickets, multi-day tours, stops added inside a catalo
 - **D-17:** Short request form: where you want to go (free text), date, number of people, wishes, name, email, phone / WhatsApp. The operator clarifies the rest.
 - **D-18:** The request becomes a lead in Supabase, EspoCRM and Chatwoot through the existing lead pipeline (Phase 81/83), without depending on the VPS. In admin the request has a "Create quote" button that opens the Phase 92 quote builder prefilled with client, language and date; the request and the quote are linked.
 
+### Decisions after research (owner, 2026-11-18)
+- **D-19:** "Lead in Chatwoot" = a private note in the operators' ops conversation ("new custom-tour request" + admin link, ids only, no PII), same mechanism as the no-show alert. The client is answered by the quote email, not from Chatwoot.
+- **D-20:** Extra hours at booking are capped at 12 (technical guard; more goes through the custom-tour request). Supersedes the "no limit" wording of D-03.
+- **D-21:** Initial prices (E/S/V per tour, hours included, extra-hour price per class) are proposed by Claude from current tariffs and shown to the owner as a table; tours stay unpublished until the owner approves the table (human checkpoint before go-live).
+- **D-22:** "Within Prague" (D-05) is enforced by an admin-configurable pickup radius from the Old Town Square (default 15 km); the airport and addresses beyond the radius are refused politely with a link to the custom-tour request.
+- Correction to the carried-forward note: the `{day<Dest>*}` tokens and `DAY_TRIP_FALLBACK` were removed in 55b5a179; the current day-trip copy describes a waiting-time price model that contradicts D-01/D-02, so launch copy is rewritten in all locales, not just moved.
+
+### Decided by Claude after research
+- **D-23:** A tour locale that is not complete redirects (307) to the EN tour URL; English is never shown under another locale prefix.
+- **D-24:** zh-hant tour content is generated from zh with the same opencc-js converter (seed and an admin "regenerate zh-hant" action).
+- **D-25:** The hub page `/services/day-trips-from-prague` keeps its static JSON copy; its tour cards come from the DB (published tours).
+- **D-26:** Two PRs: PR 1 = TRIP-01..05 (catalogue, admin, booking); PR 2 = TRIP-06/07 (custom tour + quote). EspoCRM enum values (`Custom tour` lead source, `tour` trip type) are synced by the owner via `infra/espocrm/sync.mjs` before each go-live.
+
 ### Claude's Discretion
 - Data model (tour tables, translations, photos storage), the booking/trip_type representation, how tour bookings reuse the bookings table and payment engine, and ISR/revalidation strategy.
 - Exact UI of the booking box and checkout, following the reference and the site's navy/champagne design system.
