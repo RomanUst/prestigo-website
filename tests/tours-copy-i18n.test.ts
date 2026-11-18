@@ -16,7 +16,7 @@ import { locales } from '@/i18n/locales'
 
 type Json = string | { [k: string]: Json }
 
-const PENDING = new Set(['es', 'fr', 'ar', 'hi', 'zh', 'zh-hant'])
+const PENDING = new Set(['ar', 'hi', 'zh', 'zh-hant'])
 
 /** The planned key tree: namespace path -> space separated leaf names. */
 const KEY_TREE: Record<string, string> = {
@@ -149,7 +149,14 @@ const READY = NON_EN.filter((l) => !PENDING.has(l))
 /** Spelled like the English word in that language (genuine cognates). */
 const SAME_AS_EN: Record<string, ReadonlySet<string>> = {
   es: new Set(['Tours.box.barTotal']),
-  fr: new Set(['Tours.box.barTotal', 'Tours.checkout.date', 'Tours.request.date', 'TourEmails.ack.date', 'Tours.checkout.change']),
+  fr: new Set([
+    'Tours.page.breadcrumbServices',
+    'Tours.box.barTotal',
+    'Tours.box.date',
+    'Tours.checkout.date',
+    'Tours.request.date',
+    'TourEmails.ack.date',
+  ]),
 }
 
 /** A typed amount or currency: a digit next to a currency sign or code, or a currency word on its own. */
