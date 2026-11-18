@@ -551,6 +551,11 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     expect(byName('status').translatedOptions.en_route).toBe('En Route')
   })
 
+  it('tripType options are the four wizard values followed by tour (Phase 93, D-26)', () => {
+    expect(byName('tripType').options).toEqual(['transfer', 'hourly', 'daily', 'round_trip', 'tour'])
+    expect(byName('tripType').translatedOptions.tour).toBe('Day trip')
+  })
+
   it('varchar maxLength equals FIELD_MAX_LENGTH for every limited field; each limited field is declared', () => {
     for (const [name, max] of Object.entries(FIELD_MAX_LENGTH)) expect(byName(name).maxLength, name).toBe(max)
     for (const spec of specs.filter((f) => f.type === 'varchar')) {

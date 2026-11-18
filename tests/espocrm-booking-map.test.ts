@@ -351,7 +351,7 @@ describe('pins against the site sources of truth', () => {
     expect(map.BOOKING_SOURCE_VALUES).toEqual(values)
   })
 
-  it('VEHICLE_CLASS_VALUES and TRIP_TYPE_VALUES equal the unions in types/booking.ts', () => {
+  it('VEHICLE_CLASS_VALUES and TRIP_TYPE_VALUES equal the unions in types/booking.ts (TRIP_TYPE_VALUES adds tour)', () => {
     const ts = read('types/booking.ts')
     const union = (name: string) => {
       const m = ts.match(new RegExp(`export type ${name} = ([^\\n]+)`))
@@ -359,7 +359,8 @@ describe('pins against the site sources of truth', () => {
       return [...m![1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1])
     }
     expect(map.VEHICLE_CLASS_VALUES).toEqual(union('VehicleClass'))
-    expect(map.TRIP_TYPE_VALUES).toEqual(union('TripType'))
+    // 'tour' (Phase 93) is a booking trip_type written by the tours checkout, not a wizard TripType.
+    expect(map.TRIP_TYPE_VALUES).toEqual([...union('TripType'), 'tour'])
   })
 
   it('CZK_TO_EUR_RATE and EUR_TO_CZK_RATE equal the numbers in lib/currency.ts', () => {
