@@ -54,6 +54,7 @@ vi.mock('next/cache', () => ({ revalidatePath: revalidateMock }))
 
 import { POST as SIGN } from '@/app/api/admin/tours/[id]/photos/sign/route'
 import { POST as REGISTER } from '@/app/api/admin/tours/[id]/photos/route'
+import { PATCH, DELETE } from '@/app/api/admin/tours/[id]/photos/[photoId]/route'
 
 let db: FakeToursDb
 
@@ -113,6 +114,24 @@ function json(method: string, body: unknown): Request {
 function ctx(id: string) {
   return { params: Promise.resolve({ id }) }
 }
+
+function pctx(id: string, photoId: string) {
+  return { params: Promise.resolve({ id, photoId }) }
+}
+
+const P1 = '00000000-0000-4000-8000-000000000001'
+const P2 = '00000000-0000-4000-8000-000000000002'
+const P3 = '00000000-0000-4000-8000-000000000003'
+
+function seedThree() {
+  seedPhoto(P1, 1)
+  seedPhoto(P2, 2)
+  seedPhoto(P3, 3)
+}
+
+const order = () =>
+  [...db.tables.tour_photos].sort((a, b) => (a.position as number) - (b.position as number)).map((p) => p.id)
+const covers = () => db.tables.tour_photos.filter((p) => p.is_cover).map((p) => p.id)
 
 beforeEach(() => {
   db = createFakeToursDb()
@@ -329,5 +348,173 @@ describe('tour photos: register after the object exists', () => {
     const res = await REGISTER(json('POST', { path: pathOf(TOUR_ID, U1), source: 'own' }), ctx(TOUR_ID))
     expect(res.status).toBe(500)
     expect(JSON.stringify(await res.json())).not.toContain('secret@example.com')
+  })
+})
+
+describe('tour photos: guards on PATCH and DELETE', () => {
+  it('401 / 403 first, nothing changes and nothing is revalidated', async () => {
+    seedTour()
+    seedThree()
+    for (const auth of ['401', '403'] as const) {
+      world.auth = auth
+      expect((await PATCH(json('PATCH', { is_cover: true }), pctx(TOUR_ID, P2))).status).toBe(Number(auth))
+      expect((await DELETE(new Request('http://localhost/x', { method: 'DELETE' }), pctx(TOUR_ID, P2))).status).toBe(Number(auth))
+    }
+    expect(db.tables.tour_photos).toHaveLength(3)
+    expect(covers()).toEqual([P1])
+    expect(world.removed).toHaveLength(0)
+    expect(revalidateMock).not.toHaveBeenCalled()
+  })
+
+  it('404 for ids that are not uuids, an unknown photo and a photo of another tour', async () => {
+    seedTour()
+    seedTour(OTHER_TOUR_ID)
+    seedThree()
+    expect((await PATCH(json('PATCH', { is_cover: true }), pctx('nope', P1))).status).toBe(404)
+    expect((await PATCH(json('PATCH', { is_cover: true }), pctx(TOUR_ID, 'nope'))).status).toBe(404)
+    expect((await PATCH(json('PATCH', { is_cover: true }), pctx(TOUR_ID, U1))).status).toBe(404)
+    expect((await PATCH(json('PATCH', { is_cover: true }), pctx(OTHER_TOUR_ID, P2))).status).toBe(404)
+    expect((await DELETE(new Request('http://localhost/x', { method: 'DELETE' }), pctx(OTHER_TOUR_ID, P2))).status).toBe(404)
+    expect(db.tables.tour_photos).toHaveLength(3)
+    expect(world.removed).toHaveLength(0)
+  })
+})
+
+describe('tour photos: cover and order', () => {
+  beforeEach(() => {
+    seedTour()
+    seedThree()
+  })
+
+  it('is_cover moves the cover: the old one is cleared, there is never a second cover', async () => {
+    const res = await PATCH(json('PATCH', { is_cover: true }), pctx(TOUR_ID, P3))
+    expect(res.status).toBe(200)
+    expect(covers()).toEqual([P3])
+    const { photos } = await res.json()
+    expect(photos.map((p: { id: string; is_cover: boolean }) => [p.id, p.is_cover])).toEqual([
+      [P1, false],
+      [P2, false],
+      [P3, true],
+    ])
+    expect(revalidateMock).toHaveBeenCalledWith('/[locale]', 'layout')
+  })
+
+  it('is_cover on the current cover changes nothing; is_cover false is refused', async () => {
+    expect((await PATCH(json('PATCH', { is_cover: true }), pctx(TOUR_ID, P1))).status).toBe(200)
+    expect(covers()).toEqual([P1])
+    expect((await PATCH(json('PATCH', { is_cover: false }), pctx(TOUR_ID, P1))).status).toBe(400)
+  })
+
+  it('move up / down swaps with the neighbour and renumbers; it is a no-op at the ends', async () => {
+    let res = await PATCH(json('PATCH', { move: 'down' }), pctx(TOUR_ID, P1))
+    expect((await res.json()).photos.map((p: { id: string }) => p.id)).toEqual([P2, P1, P3])
+    expect(order()).toEqual([P2, P1, P3])
+    res = await PATCH(json('PATCH', { move: 'up' }), pctx(TOUR_ID, P3))
+    expect(order()).toEqual([P2, P3, P1])
+    // P2 is first: up is a no-op, and so is down for the last one (P1)
+    expect((await PATCH(json('PATCH', { move: 'up' }), pctx(TOUR_ID, P2))).status).toBe(200)
+    expect((await PATCH(json('PATCH', { move: 'down' }), pctx(TOUR_ID, P1))).status).toBe(200)
+    expect(order()).toEqual([P2, P3, P1])
+    expect(db.tables.tour_photos.map((p) => p.position).sort()).toEqual([1, 2, 3])
+    // the cover does not follow the order
+    expect(covers()).toEqual([P1])
+  })
+
+  it('edits source, credit text, licence and an https source link; null or blank clears a field', async () => {
+    const res = await PATCH(
+      json('PATCH', { source: 'commons', credit_text: ' Jane Doe ', license: 'CC BY 4.0', credit_url: 'https://commons.wikimedia.org/x' }),
+      pctx(TOUR_ID, P2),
+    )
+    expect(res.status).toBe(200)
+    expect(db.tables.tour_photos.find((p) => p.id === P2)).toMatchObject({
+      source: 'commons',
+      credit_text: 'Jane Doe',
+      license: 'CC BY 4.0',
+      credit_url: 'https://commons.wikimedia.org/x',
+    })
+    const cleared = await PATCH(json('PATCH', { credit_text: '   ', license: null, credit_url: null }), pctx(TOUR_ID, P2))
+    expect(cleared.status).toBe(200)
+    expect(db.tables.tour_photos.find((p) => p.id === P2)).toMatchObject({ credit_text: null, license: null, credit_url: null })
+  })
+
+  it('refuses a javascript: / http: link, an unknown source, unknown keys and an empty patch', async () => {
+    for (const body of [
+      { credit_url: 'javascript:alert(1)' },
+      { credit_url: 'http://example.com' },
+      { source: 'flickr' },
+      { storage_path: 'tours/x/y.jpg' },
+      { position: 1 },
+      { tour_id: OTHER_TOUR_ID },
+      {},
+      { move: 'left' },
+    ]) {
+      expect((await PATCH(json('PATCH', body), pctx(TOUR_ID, P2))).status, JSON.stringify(body)).toBe(400)
+    }
+    expect(db.tables.tour_photos.find((p) => p.id === P2)).toMatchObject({ source: 'own', credit_url: null })
+  })
+
+  it('a database failure is a fixed 500 and the message does not leak', async () => {
+    db.failWritesOn.add('tour_photos')
+    const res = await PATCH(json('PATCH', { is_cover: true }), pctx(TOUR_ID, P2))
+    expect(res.status).toBe(500)
+    expect(JSON.stringify(await res.json())).not.toContain('secret@example.com')
+  })
+})
+
+describe('tour photos: delete', () => {
+  const del = (photoId: string) => DELETE(new Request('http://localhost/x', { method: 'DELETE' }), pctx(TOUR_ID, photoId))
+
+  it('removes the row and then the Storage object, and renumbers the rest', async () => {
+    seedTour()
+    seedThree()
+    const res = await del(P2)
+    expect(res.status).toBe(200)
+    expect((await res.json()).photos.map((p: { id: string; position: number }) => [p.id, p.position])).toEqual([
+      [P1, 1],
+      [P3, 2],
+    ])
+    expect(world.removed).toEqual([`tours/${TOUR_ID}/${P2}.jpg`])
+    expect(covers()).toEqual([P1])
+    expect(revalidateMock).toHaveBeenCalledWith('/[locale]', 'layout')
+  })
+
+  it('deleting the cover makes the next photo the cover', async () => {
+    seedTour()
+    seedThree()
+    expect((await del(P1)).status).toBe(200)
+    expect(covers()).toEqual([P2])
+    expect(order()).toEqual([P2, P3])
+  })
+
+  it('refuses to delete the last photo of a published tour: 409 LAST_PHOTO, row and object stay', async () => {
+    seedTour(TOUR_ID, { status: 'published', first_published_at: '2026-11-01T00:00:00.000Z' })
+    seedPhoto(P1, 1)
+    const res = await del(P1)
+    expect(res.status).toBe(409)
+    expect((await res.json()).code).toBe('LAST_PHOTO')
+    expect(db.tables.tour_photos).toHaveLength(1)
+    expect(world.removed).toHaveLength(0)
+    expect(revalidateMock).not.toHaveBeenCalled()
+  })
+
+  it('a published tour with several photos can lose one; a draft can lose its last one', async () => {
+    seedTour(TOUR_ID, { status: 'published', first_published_at: '2026-11-01T00:00:00.000Z' })
+    seedPhoto(P1, 1)
+    seedPhoto(P2, 2)
+    expect((await del(P2)).status).toBe(200)
+    expect((await del(P1)).status).toBe(409)
+
+    db.tables.tours[0].status = 'draft'
+    expect((await del(P1)).status).toBe(200)
+    expect(db.tables.tour_photos).toHaveLength(0)
+  })
+
+  it('a Storage failure after the row is gone does not fail the request', async () => {
+    seedTour()
+    seedThree()
+    world.failRemove = true
+    const res = await del(P3)
+    expect(res.status).toBe(200)
+    expect(db.tables.tour_photos).toHaveLength(2)
   })
 })
