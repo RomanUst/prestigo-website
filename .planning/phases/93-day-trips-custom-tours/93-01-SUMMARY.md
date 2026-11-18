@@ -3,7 +3,7 @@ phase: 93-day-trips-custom-tours
 plan: 01
 subsystem: database
 tags: [supabase, migration, rls, tours, storage]
-status: complete-pending-live-apply
+status: complete
 requires: []
 provides:
   - "supabase/migrations/092_tours.sql: tours, tour_translations, tour_photos, tour_settings (deny-all), bookings tour columns, tour-photos bucket"
@@ -93,3 +93,12 @@ None beyond the plan's threat model (T-93-01..04 mitigated in 092 and pinned by 
 
 - FOUND: supabase/migrations/092_tours.sql, tests/migration-092.test.ts, lib/tours/types.ts, .planning/phases/93-day-trips-custom-tours/93-01-smoke.sql
 - FOUND commits: c095fdef, f5c2678d
+
+## 092 live (orchestrator, 2026-11-18)
+
+- `apply_migration 092_tours` on enakcryrtxlnjvjutfpv: success (file body without comment lines).
+- Smoke A (catalog): tours, tour_translations, tour_photos, tour_settings each `rls=true anon_priv=false auth_priv=false policies=2` (has_table_privilege anon/authenticated SELECT, INSERT, UPDATE, DELETE = false on all four); settings `id=1 free_cancel_hours=24 pickup_radius_km=15.0 extra_hour_e=null`; bucket `tour-photos public=true limit=8388608 mime=image/jpeg,image/png,image/webp,image/avif`; bookings.tour_id uuid / tour_title text / tour_extra_hours smallint, all nullable; 4 indexes and the slug/status/locale/source/tour_extra_hours(0..12) CHECKs present.
+- Smoke B: `ERROR P0001: SMOKE_OK_93_01 all checks passed (rolled back)`.
+- Leftover `SELECT count(*) FROM public.tours WHERE slug='smoke-test-day-trip'` = 0.
+- Security advisors: no finding on the four tour tables (only the pre-existing rls_enabled_no_policy INFO list and leaked-password WARN).
+- Next migration number: 093.
