@@ -22,6 +22,8 @@ vi.mock('@/i18n/routing', () => ({
 }))
 
 import TourGallery, { type TourGalleryPhoto } from '@/components/tours/TourGallery'
+import PhotoCredits from '@/components/tours/PhotoCredits'
+import type { TourT } from '@/components/tours/tour-t'
 
 const TITLE = 'Dresden Day Trip'
 
@@ -207,6 +209,208 @@ describe('gallery layouts (Surface 1.3)', () => {
   })
 })
 
-// keep act imported for later tasks
+const dialog = () => screen.getByRole('dialog')
+const counter = () => within(dialog()).getByText(/^\d+ of \d+$/)
+const key = (k: string, init: KeyboardEventInit = {}) => fireEvent.keyDown(document, { key: k, ...init })
+
+function openTile(n: number, count: number) {
+  const tile = screen.getByRole('button', { name: `Open photo ${n} of ${count}` })
+  tile.focus()
+  fireEvent.click(tile)
+  return tile
+}
+
+describe('lightbox (Surface 1.3)', () => {
+  it('opens a labelled modal dialog at the clicked photo with an aria-live counter', () => {
+    renderGallery(photos(9))
+    openTile(2, 9)
+    const d = dialog()
+    expect(d.getAttribute('aria-modal')).toBe('true')
+    expect(d.getAttribute('aria-label')).toBe(`Photos of ${TITLE}`)
+    expect(counter().textContent).toBe('2 of 9')
+    expect(counter().closest('[aria-live]')!.getAttribute('aria-live')).toBe('polite')
+    expect(within(d).getByRole('img').getAttribute('alt')).toBe(`${TITLE}, photo 2 of 9`)
+  })
+
+  it('Escape closes and focus returns to the tile that opened it', () => {
+    renderGallery(photos(9))
+    const tile = openTile(2, 9)
+    key('Escape')
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(tile)
+  })
+
+  it('ArrowRight moves to the next photo in en and to the previous one in ar (dir=rtl)', () => {
+    renderGallery(photos(9))
+    openTile(2, 9)
+    key('ArrowRight')
+    expect(counter().textContent).toBe('3 of 9')
+    key('ArrowLeft')
+    key('ArrowLeft')
+    expect(counter().textContent).toBe('1 of 9')
+    cleanup()
+
+    const ar = renderGallery(photos(9), 'ar')
+    const tile = screen.getByRole('button', { name: (arMessages.Tours.gallery.open as string).replace('{n}', '2').replace('{count}', '9') })
+    tile.focus()
+    fireEvent.click(tile)
+    expect(dialog().getAttribute('dir')).toBe('rtl')
+    key('ArrowRight')
+    const arCounter = (arMessages.Tours.gallery.counter as string).replace('{n}', '1').replace('{count}', '9')
+    expect(dialog().querySelector('[aria-live]')!.textContent).toBe(arCounter)
+    ar.unmount()
+  })
+
+  it('the Previous and Next buttons are 44px targets and move in the logical direction', () => {
+    renderGallery(photos(9))
+    openTile(2, 9)
+    const next = within(dialog()).getByRole('button', { name: 'Next photo' })
+    const prev = within(dialog()).getByRole('button', { name: 'Previous photo' })
+    expect(next.className).toContain('h-11')
+    expect(next.className).toContain('w-11')
+    expect(within(dialog()).getByRole('button', { name: 'Close' }).className).toContain('h-11')
+    fireEvent.click(next)
+    expect(counter().textContent).toBe('3 of 9')
+    fireEvent.click(prev)
+    fireEvent.click(prev)
+    expect(counter().textContent).toBe('1 of 9')
+    expect(next.querySelector('svg')!.getAttribute('class')).toContain('rtl:-scale-x-100')
+  })
+
+  it('swipe moves between photos (left swipe = next in ltr)', () => {
+    renderGallery(photos(9))
+    openTile(2, 9)
+    const d = dialog()
+    fireEvent.touchStart(d, { touches: [{ clientX: 300, clientY: 100 }] })
+    fireEvent.touchEnd(d, { changedTouches: [{ clientX: 100, clientY: 100 }] })
+    expect(counter().textContent).toBe('3 of 9')
+    fireEvent.touchStart(d, { touches: [{ clientX: 100, clientY: 100 }] })
+    fireEvent.touchEnd(d, { changedTouches: [{ clientX: 300, clientY: 100 }] })
+    expect(counter().textContent).toBe('2 of 9')
+    // a short drag does nothing
+    fireEvent.touchStart(d, { touches: [{ clientX: 100, clientY: 100 }] })
+    fireEvent.touchEnd(d, { changedTouches: [{ clientX: 120, clientY: 100 }] })
+    expect(counter().textContent).toBe('2 of 9')
+  })
+
+  it('Tab cycles inside the dialog', () => {
+    renderGallery(photos(9))
+    openTile(2, 9)
+    const close = within(dialog()).getByRole('button', { name: 'Close' })
+    const next = within(dialog()).getByRole('button', { name: 'Next photo' })
+    expect(document.activeElement).toBe(close)
+    next.focus()
+    key('Tab')
+    expect(document.activeElement).toBe(close)
+    close.focus()
+    key('Tab', { shiftKey: true })
+    expect(document.activeElement).toBe(next)
+    // focus that escaped the dialog is pulled back in
+    ;(document.activeElement as HTMLElement).blur()
+    key('Tab')
+    expect(dialog().contains(document.activeElement)).toBe(true)
+  })
+
+  it('locks body scroll while open and restores it on close', () => {
+    renderGallery(photos(3))
+    document.body.style.overflow = 'auto'
+    openTile(1, 3)
+    expect(document.body.style.overflow).toBe('hidden')
+    key('Escape')
+    expect(document.body.style.overflow).toBe('auto')
+  })
+
+  it("the '+4' tile opens at photo 6 and 'Show all 9 photos' at photo 1", () => {
+    renderGallery(photos(9))
+    fireEvent.click(screen.getByText('+4'))
+    expect(counter().textContent).toBe('6 of 9')
+    key('Escape')
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 9 photos' }))
+    expect(counter().textContent).toBe('1 of 9')
+  })
+
+  it('a commons photo shows the credit line with a safe source link; an own photo shows none', () => {
+    seq = 0
+    const list = [
+      photo({ is_cover: true }),
+      photo({
+        source: 'commons',
+        credit_text: 'Jane Doe',
+        license: 'CC BY-SA 4.0',
+        credit_url: 'https://commons.wikimedia.org/wiki/File:X.jpg',
+      }),
+    ]
+    renderGallery(list)
+    openTile(2, 2)
+    const link = within(dialog()).getByRole('link', { name: 'Photo: Jane Doe, CC BY-SA 4.0' })
+    expect(link.getAttribute('href')).toBe('https://commons.wikimedia.org/wiki/File:X.jpg')
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer nofollow')
+    key('ArrowLeft')
+    expect(within(dialog()).queryByText(/^Photo: /)).toBeNull()
+    expect(within(dialog()).queryByRole('link')).toBeNull()
+  })
+
+  it('a credit_url that is not https is shown as text, never as a link (T-93-36)', () => {
+    seq = 0
+    renderGallery([
+      photo({ is_cover: true, source: 'commons', credit_text: 'A', license: 'CC0', credit_url: 'javascript:alert(1)' }),
+    ])
+    openTile(1, 1)
+    expect(within(dialog()).queryByRole('link')).toBeNull()
+    expect(within(dialog()).getByText('Photo: A, CC0')).toBeTruthy()
+  })
+})
+
+const tCredits = ((key: string, values?: Record<string, string | number>) => {
+  let text = key.split('.').reduce<unknown>((o, k) => (o as Record<string, unknown>)[k], enMessages.Tours) as string
+  for (const [k, v] of Object.entries(values ?? {})) text = text.replace(`{${k}}`, String(v))
+  return text
+}) as unknown as TourT
+
+describe('photo credits disclosure', () => {
+  it('lists credited photos only, numbered by display order, with nofollow links', () => {
+    seq = 0
+    const list = [
+      photo({ is_cover: true }),
+      photo({ source: 'commons', credit_text: 'Jane Doe', license: 'CC BY 4.0', credit_url: 'https://example.org/a' }),
+      photo(),
+      photo({ source: 'other', credit_text: 'Foto Club', license: 'CC0', credit_url: null }),
+    ]
+    render(<PhotoCredits photos={list} t={tCredits} />)
+    const details = document.querySelector('details')!
+    expect(details.querySelector('summary')!.textContent).toBe('Photo credits')
+    const items = within(details).getAllByRole('listitem')
+    expect(items.map((li) => li.textContent)).toEqual(['Photo 2: Jane Doe, CC BY 4.0', 'Photo 4: Foto Club, CC0'])
+    const link = within(items[0]).getByRole('link')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer nofollow')
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(within(items[1]).queryByRole('link')).toBeNull()
+  })
+
+  it('numbers follow the gallery order (cover first)', () => {
+    seq = 0
+    const list = [
+      photo({ source: 'commons', credit_text: 'Late', license: 'CC0', credit_url: 'https://example.org/b', position: 1 }),
+      photo({ is_cover: true, position: 5 }),
+    ]
+    render(<PhotoCredits photos={list} t={tCredits} />)
+    expect(screen.getByRole('listitem').textContent).toBe('Photo 2: Late, CC0')
+  })
+
+  it('renders nothing when every photo is the visitor-agnostic own kind', () => {
+    const { container } = render(<PhotoCredits photos={photos(4)} t={tCredits} />)
+    expect(container.innerHTML).toBe('')
+  })
+})
+
+describe('lightbox and credits sources', () => {
+  it('carry aria-modal and nofollow', async () => {
+    const fs = await import('node:fs')
+    expect(fs.readFileSync('components/tours/TourLightbox.tsx', 'utf-8')).toContain('aria-modal')
+    expect(fs.readFileSync('components/tours/TourLightbox.tsx', 'utf-8')).toContain('nofollow')
+    expect(fs.readFileSync('components/tours/PhotoCredits.tsx', 'utf-8')).toContain('nofollow')
+  })
+})
+
 void act
-void within

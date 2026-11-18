@@ -7,11 +7,13 @@
 import { cache } from 'react'
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import LandingView from '@/components/LandingView'
 import TourPageView from '@/components/tours/TourPageView'
 import TourGallery from '@/components/tours/TourGallery'
 import TourBookingArea from '@/components/tours/TourBookingArea'
+import PhotoCredits from '@/components/tours/PhotoCredits'
+import type { TourT } from '@/components/tours/tour-t'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
@@ -142,6 +144,7 @@ export default async function ServicePage({ params }: { params: Params }) {
     license: p.license,
     credit_url: p.credit_url,
   }))
+  const t = (await getTranslations({ locale, namespace: 'Tours' })) as unknown as TourT
   const slots = {
     gallery: galleryPhotos.length > 0 ? <TourGallery title={translation.title} photos={galleryPhotos} /> : undefined,
     bookingBox: (
@@ -160,6 +163,7 @@ export default async function ServicePage({ params }: { params: Params }) {
         freeCancelHours={settings.free_cancel_hours}
       />
     ),
+    credits: <PhotoCredits photos={galleryPhotos} t={t} />,
   }
 
   return <TourPageView data={result.data} locale={locale} oneWayRoute={oneWayRoute} slots={slots} />

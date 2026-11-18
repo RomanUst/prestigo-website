@@ -457,6 +457,26 @@ describe('gallery and booking area on the page (93-13)', () => {
     expect(box.textContent).toContain('€31')
   })
 
+  it('the Photo credits disclosure appears for a credited photo and is absent for own photos only', async () => {
+    const data = fixture()
+    data.photos = [
+      photoRow(1),
+      photoRow(2, { source: 'commons', credit_text: 'Jane Doe', license: 'CC BY 4.0', credit_url: 'https://example.org/a' }),
+    ]
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data })
+    const { unmount } = await renderPage('en')
+    const details = document.querySelector('details')!
+    expect(details.querySelector('summary')!.textContent).toBe('Photo credits')
+    expect(details.textContent).toContain('Photo 2: Jane Doe, CC BY 4.0')
+    unmount()
+
+    const own = fixture()
+    own.photos = [photoRow(1), photoRow(2)]
+    storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data: own })
+    await renderPage('en')
+    expect(document.querySelector('details')).toBeNull()
+  })
+
   it('no photos: the gallery block is not rendered but the box still is', async () => {
     storeMock.getPublishedTourForLocale.mockResolvedValue({ status: 'ok', data: fixture() })
     await renderPage('en')

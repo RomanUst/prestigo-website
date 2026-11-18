@@ -12,6 +12,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { Images } from 'lucide-react'
+import TourLightbox from '@/components/tours/TourLightbox'
 import { tourPhotoUrl } from '@/lib/tours/photo-url'
 import type { TourPhotoRow } from '@/lib/tours/types'
 
@@ -55,7 +56,7 @@ export default function TourGallery({ title, photos }: { title: string; photos: 
   const ordered = orderTourPhotos(photos)
   const count = ordered.length
 
-  const [openAt, setOpenAt] = useState<number | null>(null) // lightbox position (rendered from Task 2)
+  const [openAt, setOpenAt] = useState<number | null>(null)
   const [current, setCurrent] = useState(0)
   const [failed, setFailed] = useState<Record<string, boolean>>({})
   const openerRef = useRef<HTMLElement | null>(null)
@@ -157,6 +158,9 @@ export default function TourGallery({ title, photos }: { title: string; photos: 
         </span>
       )}
 
+      {openAt !== null && (
+        <TourLightbox title={title} photos={ordered} startIndex={openAt} onClose={() => setOpenAt(null)} />
+      )}
     </div>
   )
 }
