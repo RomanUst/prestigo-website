@@ -7,6 +7,7 @@ import { buildDriverCash, buildTripView } from '@/lib/driver-trip-step'
 import { getNoShowView } from '@/lib/no-show'
 import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show-wait'
 import { loadStopsSafe } from '@/lib/booking-stops'
+import { tourDisplay } from '@/components/admin/bookingTypes'
 import { freeWaitUntilMs } from '@/lib/airport-pickup'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { formatPragueTime } from '@/lib/prague-calendar'
@@ -59,6 +60,11 @@ interface TripSheetBookingRow {
   landing_date?: string | null
   landing_time?: string | null
   pickup_offset_min?: number | null
+  // Phase 93 (TRIP-04): set for a day trip (trip_type 'tour'); read only to label the trip for the driver.
+  trip_type?: string | null
+  hours?: number | null
+  tour_title?: string | null
+  tour_extra_hours?: number | null
   // Phase 89 (D-11): read only to build the cash label; none of these four reaches the browser as a number.
   payment_mode?: string | null
   payment_state?: string | null
@@ -90,7 +96,7 @@ const TRIP_SELECT =
   'client_first_name, client_last_name, client_phone, flight_number, flight_iata, special_requests, ' +
   'vehicle_class, distance_km, completed_at, no_show_requested_at, status, driver_id, ' +
   'payment_mode, payment_state, payment_amount_minor, payment_currency, ' +
-  'landing_date, landing_time, pickup_offset_min), ' +
+  'landing_date, landing_time, pickup_offset_min, trip_type, hours, tour_title, tour_extra_hours), ' +
   'drivers(name, vehicle_info)'
 
 function coords(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
@@ -230,6 +236,12 @@ export default async function TripSheetPage({ params }: PageProps) {
         landing,
         freeWaitUntil,
         stops,
+        tour: tourDisplay({
+          trip_type: booking.trip_type ?? '',
+          tour_title: booking.tour_title ?? null,
+          hours: booking.hours ?? null,
+          tour_extra_hours: booking.tour_extra_hours ?? null,
+        }),
       }}
       initialNote={assignment.trip_note ?? null}
       noShow={{ availableAt: noShowView.noShowAvailableAt, requestedAt: noShowView.noShowRequestedAt }}

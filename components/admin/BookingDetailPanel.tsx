@@ -15,7 +15,7 @@ import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSect
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import { formatMinor } from '@/lib/payments/money'
 import type { BookingStatus } from '@/lib/booking-status'
-import { STATUS_LABELS, patchBooking, type AdminBooking } from './bookingTypes'
+import { STATUS_LABELS, patchBooking, tourDisplay, type AdminBooking } from './bookingTypes'
 import type { BookingMovesApi } from './useBookingMoves'
 
 // Phase 90 plan 01: the single booking detail panel (RESEARCH Pattern 1, step A). Everything the expanded
@@ -94,6 +94,7 @@ interface BookingDetailPanelProps {
 export function BookingDetailPanel({ booking, moves, onPatched, onSearchReference, refreshSignal = 0, onDirtyChange }: BookingDetailPanelProps) {
   const bookingId = booking.id
   const transitions = UI_TRANSITIONS[booking.status] ?? []
+  const tour = tourDisplay(booking)
 
   const [notes, setNotes] = useState(booking.operator_notes ?? '')
   // The last value known to be stored: seeds from the booking, moves forward on a successful save.
@@ -278,11 +279,14 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
       }}>
         <DetailField label="Origin" value={booking.origin_address} />
         <DetailField label="Destination" value={booking.destination_address} />
+        {tour && <DetailField label="Trip" value={tour.title} />}
+        {tour && <DetailField label="Return to" value={booking.origin_address} />}
         <DetailField label="Email" value={booking.client_email} />
         <DetailField label="Phone" value={booking.client_phone} />
         {booking.trip_type === 'hourly' && booking.hours !== null && (
           <DetailField label="Duration" value={`${booking.hours} hours`} />
         )}
+        {tour?.hoursText && <DetailField label="Time at destination" value={tour.hoursText} />}
         <DetailField label="Passengers" value={String(booking.passengers)} />
         <DetailField label="Luggage" value={String(booking.luggage)} />
         <DetailField
@@ -522,6 +526,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
         bookingId={booking.id}
         refreshKey={paymentBump + moves.paymentBumpFor(booking.id) + refreshSignal}
         paymentMode={booking.payment_mode ?? null}
+        tourVehicleClass={tour ? booking.vehicle_class : null}
         onPaymentState={handlePaymentState}
       />
 
