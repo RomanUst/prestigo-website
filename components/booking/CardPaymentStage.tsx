@@ -780,6 +780,8 @@ export interface CardPaymentStageProps {
   /** 409 POLICY_CHANGED: the server's current free-until moment, percent and hours (the stage already shows them). */
   onPolicyChanged?: (next: PolicyChange) => void
   onBusyChange?: (busy: boolean) => void
+  /** The server told the stage a different amount (409 PRICE_CHANGED): lets the caller keep its own total in step. */
+  onAmountChange?: (amountMinor: number) => void
   totalEur: number
   analyticsItems: AnalyticsItem[]
   /**
@@ -800,6 +802,7 @@ export function CardPaymentStage({
   onFallback,
   onPolicyChanged,
   onBusyChange,
+  onAmountChange,
   totalEur,
   analyticsItems,
   reiniting = false,
@@ -872,16 +875,20 @@ export function CardPaymentStage({
     },
     [onBusyChange],
   )
-  const handleServerPatch = useCallback((patch: Partial<InitEligible>) => {
-    setCurrent((prev) => {
-      const next = { ...prev, ...patch }
-      // The fee shown in the note follows the fare (one-way and hourly only: the card flow never takes a round trip).
-      if (patch.amountMinor !== undefined && patch.amountMinor !== prev.amountMinor) {
-        next.policy = { ...next.policy, feeMinor: proposedFeeMinor(patch.amountMinor, next.policy.percent) }
-      }
-      return next
-    })
-  }, [])
+  const handleServerPatch = useCallback(
+    (patch: Partial<InitEligible>) => {
+      if (patch.amountMinor !== undefined) onAmountChange?.(patch.amountMinor)
+      setCurrent((prev) => {
+        const next = { ...prev, ...patch }
+        // The fee shown in the note follows the fare (one-way and hourly only: the card flow never takes a round trip).
+        if (patch.amountMinor !== undefined && patch.amountMinor !== prev.amountMinor) {
+          next.policy = { ...next.policy, feeMinor: proposedFeeMinor(patch.amountMinor, next.policy.percent) }
+        }
+        return next
+      })
+    },
+    [onAmountChange],
+  )
   const handlePolicyChanged = useCallback(
     (changed: PolicyChange) => {
       setCurrent((prev) => ({

@@ -65,6 +65,9 @@ vi.mock('@/components/booking/CardPaymentStage', () => ({
         <button type="button" onClick={() => (props.onFallback as () => void)()}>
           stage-fallback
         </button>
+        <button type="button" onClick={() => (props.onAmountChange as (n: number) => void)(43000)}>
+          stage-price-changed
+        </button>
       </div>
     )
   },
@@ -94,6 +97,7 @@ vi.mock('@/components/Nav', () => ({ default: () => <nav data-testid="nav" /> })
 vi.mock('@/components/Footer', () => ({ default: () => <footer data-testid="footer" /> }))
 
 import TourCheckout from '@/components/tours/TourCheckout'
+import { customTourHref } from '@/lib/tours/custom-tour-link'
 import TourCheckoutPage, { generateMetadata } from '@/app/[locale]/book/tour/page'
 
 const en = enMessages as unknown as { Tours: { checkout: Record<string, string> }; Booking: { validation: Record<string, string> } }
@@ -335,6 +339,219 @@ describe('TourCheckout: Stage A to init to Stage B', () => {
     expect(screen.queryByTestId('stage')).toBeNull()
     expect(screen.getByText(en.Booking.validation.invalidPhone)).toBeTruthy()
     await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText('PHONE')))
+  })
+})
+
+const AIRPORT = { address: 'Vaclav Havel Airport Prague', placeId: 'p2', lat: 50.1008, lng: 14.26 }
+// About 20 km north of Old Town Square; the radius in these tests is 15.
+const FAR = { address: 'Melnik', placeId: 'p3', lat: 50.2675, lng: 14.4213 }
+
+const OK_TOUR = {
+  status: 'ok',
+  data: {
+    tour: { slug: QUERY.tour, hours_included: 8, price_e_eur: 410, price_s_eur: 520, price_v_eur: 640 },
+    translation: { title: 'Karlovy Vary day trip' },
+    settings: { extra_hour_e_eur: 55, extra_hour_s_eur: 75, extra_hour_v_eur: 90, free_cancel_hours: 36, pickup_radius_km: 15 },
+    photos: [],
+  },
+}
+
+async function renderPage(search: Record<string, string>) {
+  const el = await TourCheckoutPage({
+    params: Promise.resolve({ locale: 'en' }),
+    searchParams: Promise.resolve({
+      tour: QUERY.tour,
+      date: QUERY.date,
+      time: QUERY.time,
+      pax: '2',
+      car: 'business',
+      xh: '1',
+      ...search,
+    }),
+  })
+  return render(el)
+}
+
+describe('TourCheckout page: query and tour states', () => {
+  it('an invalid query (xh=40) shows "We could not find your trip details" with "See all day trips"', async () => {
+    h.tourResult = OK_TOUR
+    await renderPage({ xh: '40' })
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(co.missingTitle)
+    expect(screen.getByText(co.missingBody)).toBeTruthy()
+    const link = screen.getByRole('link', { name: co.seeAll })
+    expect(link.getAttribute('href')).toBe('/services/day-trips-from-prague')
+    expect(screen.queryByText(co.continue)).toBeNull()
+  })
+
+  it('a car that cannot seat the party is an invalid query', async () => {
+    h.tourResult = OK_TOUR
+    await renderPage({ pax: '5', car: 'business' })
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(co.missingTitle)
+  })
+
+  it.each([{ status: 'not_found' }, { status: 'locale_incomplete', completeLocales: ['en'] }])(
+    'an unpublished or incomplete-locale tour (%j) shows "This day trip is not available" with both buttons',
+    async (result) => {
+      h.tourResult = result
+      await renderPage({})
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(co.unavailableTitle)
+      expect(screen.getByText(co.unavailableBody)).toBeTruthy()
+      expect(screen.getByRole('link', { name: co.seeAll })).toBeTruthy()
+      const custom = screen.getByRole('link', { name: co.refusalCta })
+      expect(custom.getAttribute('href')).toBe(customTourHref({ tour: QUERY.tour, date: QUERY.date, pax: 2 }))
+    },
+  )
+
+  it('a car class without a price is "not available" too', async () => {
+    h.tourResult = { ...OK_TOUR, data: { ...OK_TOUR.data, tour: { ...OK_TOUR.data.tour, price_e_eur: null } } }
+    await renderPage({})
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(co.unavailableTitle)
+  })
+})
+
+describe('TourCheckout: pickup refusal (client check)', () => {
+  const customLink = () => screen.getByRole('link', { name: co.refusalCta })
+
+  it('an address 20 km from Old Town Square (radius 15) shows the outside text and a prefilled custom-tour link; Continue stays blocked', () => {
+    h.place = FAR
+    setup()
+    fillDetails()
+    const panel = screen.getByRole('status')
+    expect(panel.textContent).toContain(co.refusalOutside)
+    expect(customLink().getAttribute('href')).toBe(customTourHref({ tour: QUERY.tour, date: QUERY.date, pax: 2 }))
+    expect(screen.queryByText(co.pickupHelper)).toBeNull()
+    fireEvent.click(continueBtn())
+    expect(fetchCalls).toHaveLength(0)
+    expect(screen.queryByTestId('stage')).toBeNull()
+  })
+
+  it('an airport address shows the airport text, never opens Stage B, and a Prague address removes the panel', () => {
+    h.place = AIRPORT
+    setup()
+    fillDetails()
+    expect(screen.getByTestId('pickup-refusal').getAttribute('data-kind')).toBe('airport')
+    expect(screen.getByRole('status').textContent).toContain(co.refusalAirport)
+    fireEvent.click(continueBtn())
+    expect(fetchCalls).toHaveLength(0)
+
+    h.place = PRAGUE
+    fireEvent.click(screen.getByText('choose-address'))
+    expect(screen.queryByTestId('pickup-refusal')).toBeNull()
+    expect(screen.getByText(co.pickupHelper)).toBeTruthy()
+  })
+
+  it('the wishes helper links to the custom tour request', () => {
+    setup()
+    const link = screen.getByRole('link', { name: 'request a custom tour' })
+    expect(link.getAttribute('href')).toBe(customTourHref({ tour: QUERY.tour, date: QUERY.date, pax: 2 }))
+  })
+})
+
+describe('TourCheckout: init answers and errors', () => {
+  it.each([
+    ['PICKUP_OUT_OF_AREA', co.refusalOutside],
+    ['AIRPORT_PICKUP', co.refusalAirport],
+  ])('init reason %s shows the same refusal panel and Stage B never opens', async (reason, text) => {
+    fetchReply = { body: { eligible: false, reason } }
+    setup()
+    fillDetails()
+    fireEvent.click(continueBtn())
+    await waitFor(() => expect(screen.getByRole('status').textContent).toContain(text))
+    expect(screen.queryByTestId('stage')).toBeNull()
+    // Choosing another address removes the server refusal.
+    fireEvent.click(screen.getByText('choose-address'))
+    expect(screen.queryByTestId('pickup-refusal')).toBeNull()
+  })
+
+  it('reason LEAD_TIME shows "Online booking closes 12 hours before pickup" with the custom-tour and contact links', async () => {
+    fetchReply = { body: { eligible: false, reason: 'LEAD_TIME', policy: INIT_OK.policy } }
+    setup()
+    fillDetails()
+    fireEvent.click(continueBtn())
+    const panel = await screen.findByRole('status')
+    expect(panel.textContent).toContain(
+      'Online booking closes 12 hours before pickup. For an earlier trip, message us or request a custom tour.',
+    )
+    expect(screen.getByRole('link', { name: co.refusalCta })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Contact' }).getAttribute('href')).toBe('/contact')
+    expect(screen.queryByTestId('stage')).toBeNull()
+  })
+
+  it('a plain { eligible: false } shows the booking-off panel', async () => {
+    fetchReply = { body: { eligible: false } }
+    setup()
+    fillDetails()
+    fireEvent.click(continueBtn())
+    expect((await screen.findByRole('status')).textContent).toContain(co.bookingOff)
+  })
+
+  it('reason TOUR_UNAVAILABLE shows "This day trip is not available"', async () => {
+    fetchReply = { body: { eligible: false, reason: 'TOUR_UNAVAILABLE' } }
+    setup()
+    fillDetails()
+    fireEvent.click(continueBtn())
+    expect((await screen.findByRole('status')).textContent).toContain(co.unavailableTitle)
+  })
+
+  it('a fetch rejection shows the network message in a role=alert above the button and keeps the typed values', async () => {
+    fetchReply = new Error('offline')
+    setup()
+    fillDetails()
+    fireEvent.click(continueBtn())
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe(co.networkError)
+    expect((screen.getByLabelText('FIRST NAME') as HTMLInputElement).value).toBe('Anna')
+    expect(screen.getByTestId('address-value').textContent).toBe(PRAGUE.address)
+    expect(screen.getByRole('button', { name: co.continue }).getAttribute('aria-busy')).toBe('false')
+  })
+
+  it('a 500 shows "Something went wrong. Nothing was charged. Please try again." in a role=alert', async () => {
+    fetchReply = { status: 500, body: {} }
+    setup()
+    fillDetails()
+    fireEvent.click(continueBtn())
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe('Something went wrong. Nothing was charged. Please try again.')
+    expect((screen.getByLabelText('LAST NAME') as HTMLInputElement).value).toBe('Novak')
+    // The visitor can try again and reach the payment stage.
+    fetchReply = { body: INIT_OK }
+    fireEvent.click(continueBtn())
+    await screen.findByTestId('stage')
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('a price change inside the payment stage updates the summary total', async () => {
+    setup()
+    await continueToPayment()
+    fireEvent.click(screen.getByText('stage-price-changed'))
+    expect(screen.getByTestId('summary-total').textContent).toBe(formatMinor(43000, 'eur'))
+  })
+
+  it('the stage leaving the card flow (fallback) returns to Stage A with the booking-off panel', async () => {
+    setup()
+    await continueToPayment()
+    fireEvent.click(screen.getByText('stage-fallback'))
+    expect(screen.queryByTestId('stage')).toBeNull()
+    expect(screen.getByRole('status').textContent).toContain(co.bookingOff)
+  })
+})
+
+describe('TourCheckout: wishes', () => {
+  it('limits the textarea to 1000 characters and shows the counter from 900', () => {
+    setup()
+    const box = screen.getByLabelText(co.wishes) as HTMLTextAreaElement
+    expect(box.maxLength).toBe(1000)
+    fireEvent.change(box, { target: { value: 'a'.repeat(899) } })
+    expect(screen.queryByText('899 of 1000')).toBeNull()
+    fireEvent.change(box, { target: { value: 'a'.repeat(900) } })
+    expect(screen.getByText('900 of 1000')).toBeTruthy()
+  })
+
+  it('sends the wishes in the init bookingData', async () => {
+    setup()
+    fireEvent.change(screen.getByLabelText(co.wishes), { target: { value: 'Two child seats' } })
+    await continueToPayment()
+    expect((fetchCalls[0].body.bookingData as Record<string, unknown>).specialRequests).toBe('Two child seats')
   })
 })
 

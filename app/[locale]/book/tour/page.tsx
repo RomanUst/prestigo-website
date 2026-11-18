@@ -12,6 +12,8 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import TourCheckout from '@/components/tours/TourCheckout'
 import { locales, type AppLocale } from '@/i18n/locales'
+import { Link } from '@/i18n/routing'
+import { customTourHref } from '@/lib/tours/custom-tour-link'
 import { parseTourCheckoutQuery } from '@/lib/tours/checkout-query'
 import { classesForPassengers, tourFare } from '@/lib/tours/pricing'
 import { getPublishedTourForLocale } from '@/lib/tours/store'
@@ -33,6 +35,42 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return { title: t('metaTitle'), robots: { index: false, follow: false } }
 }
 
+const HUB_HREF = '/services/day-trips-from-prague'
+
+/** The error pages of the checkout (UI-SPEC 4.5): a heading, one line and the way on. */
+function StatePage({
+  title,
+  body,
+  primary,
+  secondary,
+}: {
+  title: string
+  body: string
+  primary: { href: string; label: string }
+  secondary?: { href: string; label: string }
+}) {
+  return (
+    <>
+      <Nav />
+      <main id="main-content" className="mx-auto w-full max-w-[640px] px-6 pb-24 pt-24">
+        <h1 className="display mb-4 text-[length:clamp(28px,7vw,40px)] leading-[1.1]">{title}</h1>
+        <p className="mb-8 text-[14px] font-light leading-[1.75] text-warmgrey">{body}</p>
+        <div className="flex flex-wrap gap-4">
+          <Link href={primary.href} className="btn-primary inline-flex min-h-[44px] items-center">
+            {primary.label}
+          </Link>
+          {secondary ? (
+            <Link href={secondary.href} className="btn-secondary inline-flex min-h-[44px] items-center">
+              {secondary.label}
+            </Link>
+          ) : null}
+        </div>
+      </main>
+      <Footer />
+    </>
+  )
+}
+
 export default async function TourCheckoutPage({
   params,
   searchParams,
@@ -44,21 +82,40 @@ export default async function TourCheckoutPage({
   setRequestLocale(locale)
   if (!isAppLocale(locale)) notFound()
 
-  const query = parseTourCheckoutQuery(await searchParams)
-  if (!query || !classesForPassengers(query.pax).includes(query.car)) notFound()
+  const t = await getTranslations({ locale, namespace: 'Tours.checkout' })
 
+  // Missing or invalid query (any value, or a car that cannot seat the party).
+  const query = parseTourCheckoutQuery(await searchParams)
+  if (!query || !classesForPassengers(query.pax).includes(query.car)) {
+    return (
+      <StatePage
+        title={t('missingTitle')}
+        body={t('missingBody')}
+        primary={{ href: HUB_HREF, label: t('seeAll') }}
+      />
+    )
+  }
+
+  // Unknown, unpublished or this-locale-incomplete tour, or a class / extra hour without a price.
+  const unavailable = (
+    <StatePage
+      title={t('unavailableTitle')}
+      body={t('unavailableBody')}
+      primary={{ href: HUB_HREF, label: t('seeAll') }}
+      secondary={{ href: customTourHref({ tour: query.tour, date: query.date, pax: query.pax }), label: t('refusalCta') }}
+    />
+  )
   const result = await getPublishedTourForLocale(query.tour, locale)
-  if (result.status !== 'ok') notFound()
+  if (result.status !== 'ok') return unavailable
   const { tour, translation, settings, photos } = result.data
 
   let fareEur: number
   try {
     fareEur = tourFare(tour, settings, query.car, query.xh)
   } catch {
-    notFound()
+    return unavailable
   }
 
-  const t = await getTranslations({ locale, namespace: 'Tours.checkout' })
   const cover = photos[0] ? tourPhotoUrl(photos[0].storage_path) : ''
 
   return (

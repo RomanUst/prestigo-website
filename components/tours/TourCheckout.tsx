@@ -15,12 +15,17 @@ import { LoaderCircle } from 'lucide-react'
 import AddressInputNew from '@/components/booking/AddressInputNew'
 import { CardPaymentStage, type PaymentChoice } from '@/components/booking/CardPaymentStage'
 import { parseInitPolicy, type InitEligible } from '@/components/booking/steps/cardCheckoutApi'
+import PickupRefusalPanel, { GuidancePanel, type PickupRefusal } from '@/components/tours/PickupRefusalPanel'
 import TourTripSummary from '@/components/tours/TourTripSummary'
+import { Link } from '@/i18n/routing'
 import { localizedHref } from '@/lib/localized-href'
 import { formatEUR } from '@/lib/currency'
 import { formatMinor } from '@/lib/payments/money'
+import { MIN_BOOKING_LEAD_MS } from '@/lib/payments/timing'
 import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
 import { tourBoxStorageKey, type TourCheckoutQuery } from '@/lib/tours/checkout-query'
+import { customTourHref } from '@/lib/tours/custom-tour-link'
+import { checkTourPickup } from '@/lib/tours/pickup-area'
 import type { PlaceResult } from '@/types/booking'
 
 export interface TourCheckoutProps {
@@ -56,7 +61,15 @@ const inputClass = (invalid: boolean) =>
     invalid ? 'border-[#f87171]' : 'border-anthracite-light'
   } ${FOCUS_RING}`
 
-type InitOutcome = { kind: 'eligible'; init: InitEligible } | { kind: 'network' } | { kind: 'server' }
+/** Why init refused a tour past the eligibility gate (93-17); absent for the opaque { eligible: false }. */
+type RefusalReason = 'TOUR_UNAVAILABLE' | 'AIRPORT_PICKUP' | 'PICKUP_OUT_OF_AREA' | 'LEAD_TIME'
+const REFUSAL_REASONS: readonly string[] = ['TOUR_UNAVAILABLE', 'AIRPORT_PICKUP', 'PICKUP_OUT_OF_AREA', 'LEAD_TIME']
+
+type InitOutcome =
+  | { kind: 'eligible'; init: InitEligible }
+  | { kind: 'refused'; reason: RefusalReason | null }
+  | { kind: 'network' }
+  | { kind: 'server' }
 
 /** POST /api/card-checkout/init for a tour. A non-2xx or malformed answer is a server error, a throw a network error. */
 async function postInit(body: Record<string, unknown>): Promise<InitOutcome> {
@@ -76,6 +89,10 @@ async function postInit(body: Record<string, unknown>): Promise<InitOutcome> {
     data = (await res.json()) as Record<string, unknown>
   } catch {
     return { kind: 'server' }
+  }
+  if (data.eligible === false) {
+    const reason = typeof data.reason === 'string' && REFUSAL_REASONS.includes(data.reason) ? (data.reason as RefusalReason) : null
+    return { kind: 'refused', reason }
   }
   const policy = parseInitPolicy(data.policy)
   if (
@@ -102,11 +119,12 @@ async function postInit(body: Record<string, unknown>): Promise<InitOutcome> {
   return { kind: 'server' }
 }
 
-export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pickupRadiusKm }: TourCheckoutProps) {
+export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm }: TourCheckoutProps) {
   const t = useTranslations('Tours.checkout')
   const tv = useTranslations('Booking.validation')
   const tp = useTranslations('Booking.step6')
   const tc = useTranslations('Booking.step5')
+  const tf = useTranslations('Footer')
   const locale = useLocale()
 
   const [pickup, setPickup] = useState<PlaceResult | null>(null)
@@ -119,6 +137,11 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
   const [phase, setPhase] = useState<Phase>('details')
   const [init, setInit] = useState<InitEligible | null>(null)
   const [payment, setPayment] = useState<PaymentChoice>('card')
+  const [serverRefusal, setServerRefusal] = useState<PickupRefusal | null>(null)
+  const [panel, setPanel] = useState<'tooLate' | 'bookingOff' | 'unavailable' | null>(null)
+  const [requestError, setRequestError] = useState<'network' | 'server' | null>(null)
+  /** A 409 PRICE_CHANGED inside the stage: the summary follows the server's new amount. */
+  const [amountMinor, setAmountMinor] = useState<number | null>(null)
 
   const stageBHeadingRef = useRef<HTMLHeadingElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
@@ -184,21 +207,43 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
 
   const handleContinue = async () => {
     if (phase !== 'details') return
+    if (refusal) return
     if (!validate()) return
     setPhase('checking')
+    setPanel(null)
+    setRequestError(null)
     const outcome = await postInit({ bookingData: buildBookingData(attempt.ensure()), currency: 'eur' })
     if (outcome.kind === 'eligible') {
       setInit(outcome.init)
+      setAmountMinor(null)
       setPhase('payment')
       return
+    }
+    if (outcome.kind === 'refused') {
+      if (outcome.reason === 'AIRPORT_PICKUP') setServerRefusal('airport')
+      else if (outcome.reason === 'PICKUP_OUT_OF_AREA') setServerRefusal('out_of_area')
+      else if (outcome.reason === 'LEAD_TIME') setPanel('tooLate')
+      else if (outcome.reason === 'TOUR_UNAVAILABLE') setPanel('unavailable')
+      else setPanel('bookingOff')
+    } else {
+      setRequestError(outcome.kind)
     }
     setPhase('details')
   }
 
   const handleEdit = () => {
     setInit(null)
+    setAmountMinor(null)
     setPhase('details')
   }
+
+  /** The stage asked to leave the card flow (NOT_ELIGIBLE / MODE_UNSUPPORTED): the trip can no longer be booked online. */
+  const handleFallback = useCallback(() => {
+    setInit(null)
+    setAmountMinor(null)
+    setPanel('bookingOff')
+    setPhase('details')
+  }, [])
 
   // Focus: Stage B heading when it opens; the phone field when the server refused the phone.
   useEffect(() => {
@@ -218,7 +263,16 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
     setPhase('details')
   }, [tv])
 
-  const totalLabel = init ? formatMinor(init.amountMinor, init.currency) : formatEUR(fareEur)
+  const shownMinor = init ? (amountMinor ?? init.amountMinor) : null
+  const totalLabel = init && shownMinor !== null ? formatMinor(shownMinor, init.currency) : formatEUR(fareEur)
+  const customHref = customTourHref({ tour: tour.slug, date: query.date, pax: query.pax })
+  // Client check of the picked address (UX only; init / intent repeat it on the server, T-93-49).
+  const clientCheck = pickup
+    ? checkTourPickup({ lat: pickup.lat, lng: pickup.lng, address: pickup.address }, pickupRadiusKm)
+    : 'ok'
+  const refusal: PickupRefusal | null =
+    clientCheck === 'airport' ? 'airport' : clientCheck === 'out_of_area' ? 'out_of_area' : serverRefusal
+  const leadHours = Math.round(MIN_BOOKING_LEAD_MS / 3_600_000)
   const tourHref = `${localizedHref(locale, `/services/${tour.slug}`) ?? `/services/${tour.slug}`}#book`
   const rememberBox = () => {
     try {
@@ -231,7 +285,7 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
     }
   }
 
-  const totalEur = init ? init.amountMinor / 100 : fareEur
+  const totalEur = shownMinor !== null ? shownMinor / 100 : fareEur
   const analyticsItems = [
     {
       item_id: tour.slug,
@@ -269,9 +323,13 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
                 value={pickup}
                 onSelect={(place) => {
                   setPickup(place)
+                  setServerRefusal(null)
                   setErrors((e) => ({ ...e, pickup: undefined }))
                 }}
-                onClear={() => setPickup(null)}
+                onClear={() => {
+                  setPickup(null)
+                  setServerRefusal(null)
+                }}
                 hasError={Boolean(errors.pickup)}
                 errorMessage={errors.pickup}
                 required
@@ -281,7 +339,13 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
                   {errors.pickup}
                 </p>
               ) : null}
-              <p className={helperClass}>{t('pickupHelper')}</p>
+              {refusal ? (
+                <div className="mt-3">
+                  <PickupRefusalPanel kind={refusal} customHref={customHref} />
+                </div>
+              ) : (
+                <p className={helperClass}>{t('pickupHelper')}</p>
+              )}
             </div>
 
             {/* 2. Your details */}
@@ -395,6 +459,15 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
                 placeholder={t('wishesPlaceholder')}
                 className={`${inputClass(false)} min-h-[120px]`}
               />
+              <p className={helperClass}>
+                {t.rich('wishesHelper', {
+                  link: (chunks) => (
+                    <Link href={customHref} className={`text-copper-light underline underline-offset-2 ${FOCUS_RING}`}>
+                      {chunks}
+                    </Link>
+                  ),
+                })}
+              </p>
               {wishes.length >= 900 ? (
                 <p className={`${helperClass} text-end`} aria-live="polite">
                   {t('counter', { count: wishes.length })}
@@ -402,10 +475,43 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
               ) : null}
             </div>
 
+            {panel ? (
+              <GuidancePanel
+                actions={
+                  <>
+                    <Link
+                      href={customHref}
+                      className={`btn-secondary inline-flex min-h-[44px] items-center ${FOCUS_RING}`}
+                    >
+                      {t('refusalCta')}
+                    </Link>
+                    {panel === 'tooLate' ? (
+                      <Link href="/contact" className={`cta-text inline-flex min-h-[44px] items-center ${FOCUS_RING}`}>
+                        {tf('contactHeading')}
+                      </Link>
+                    ) : null}
+                  </>
+                }
+              >
+                {panel === 'tooLate'
+                  ? t('tooLate', { hours: leadHours })
+                  : panel === 'unavailable'
+                    ? t('unavailableTitle')
+                    : t('bookingOff')}
+              </GuidancePanel>
+            ) : null}
+
+            {requestError ? (
+              <p role="alert" className="m-0 text-[14px] font-light leading-[1.5] text-[#f87171]">
+                {requestError === 'network' ? t('networkError') : t('serverError')}
+              </p>
+            ) : null}
+
             <button
               type="submit"
               className="btn-primary w-full min-h-[44px] sm:w-auto"
               aria-busy={busy}
+              aria-disabled={refusal ? true : undefined}
               disabled={busy}
             >
               {busy ? (
@@ -469,7 +575,8 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm: _pi
                 buildIntentBody={buildIntentBody}
                 attempt={attempt}
                 onInvalidPhone={handleInvalidPhone}
-                onFallback={handleEdit}
+                onFallback={handleFallback}
+                onAmountChange={setAmountMinor}
                 totalEur={totalEur}
                 analyticsItems={analyticsItems}
               />
