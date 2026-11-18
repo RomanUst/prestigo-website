@@ -1696,7 +1696,8 @@
       "step3": "Dispone de {hours, plural, one {# hora} other {# horas}} en el destino. El coche le espera y le lleva de vuelta a la misma dirección.",
       "addToCalendar": "Añadir al calendario",
       "seeOther": "Ver otras excursiones de un día",
-      "icsTitle": "{title} – Prestigo"
+      "icsTitle": "{title} – Prestigo",
+      "payCard": "Su tarjeta queda guardada por <bdi>{amount}</bdi>. Retenemos ese importe antes del viaje y lo cobramos después del viaje. El correo de confirmación incluye las fechas."
     },
     "request": {
       "label": "TOUR A MEDIDA",

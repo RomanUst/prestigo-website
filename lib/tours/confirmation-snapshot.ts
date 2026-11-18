@@ -18,6 +18,10 @@ export interface TourConfirmationSnapshot {
   carLabelKey: TourCarKey
   hoursIncluded: number
   extraHours: number
+  /** Passengers of the booking (the checkout query); optional for snapshots written before 93-19. */
+  passengers?: number
+  /** Drive minutes one way (tour.drive_minutes_each_way): the calendar file covers 2 x this + the hours at the destination. */
+  driveMinutes?: number
   payment: 'card' | 'cash'
   /** The amount as the client saw it (formatMinor), e.g. what the driver is paid for a cash booking. */
   amountLabel: string
@@ -49,6 +53,8 @@ function validate(raw: unknown): TourConfirmationSnapshot | null {
   if (typeof s.carLabelKey !== 'string' || !(TOUR_CAR_KEYS as readonly string[]).includes(s.carLabelKey)) return null
   if (!int(s.hoursIncluded, 1, 24) || !int(s.extraHours, 0, MAX_EXTRA_HOURS)) return null
   if (s.payment !== 'card' && s.payment !== 'cash') return null
+  if (s.passengers !== undefined && !int(s.passengers, 1, 8)) return null
+  if (s.driveMinutes !== undefined && !int(s.driveMinutes, 0, 600)) return null
   return {
     ref: s.ref,
     title: s.title,
@@ -58,6 +64,8 @@ function validate(raw: unknown): TourConfirmationSnapshot | null {
     carLabelKey: s.carLabelKey as TourCarKey,
     hoursIncluded: s.hoursIncluded,
     extraHours: s.extraHours,
+    ...(s.passengers !== undefined ? { passengers: s.passengers } : {}),
+    ...(s.driveMinutes !== undefined ? { driveMinutes: s.driveMinutes } : {}),
     payment: s.payment,
     amountLabel: s.amountLabel,
   }

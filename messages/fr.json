@@ -1696,7 +1696,8 @@
       "step3": "Vous disposez de {hours, plural, one {# heure} other {# heures}} sur place. La voiture vous attend et vous ramène à la même adresse.",
       "addToCalendar": "Ajouter au calendrier",
       "seeOther": "Voir d'autres excursions d'une journée",
-      "icsTitle": "{title} – Prestigo"
+      "icsTitle": "{title} – Prestigo",
+      "payCard": "Votre carte est enregistrée pour <bdi>{amount}</bdi>. Nous bloquons ce montant avant votre trajet et le débitons après votre trajet. L’e-mail de confirmation indique les dates."
     },
     "request": {
       "label": "CIRCUIT SUR MESURE",
