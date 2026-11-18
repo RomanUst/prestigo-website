@@ -85,13 +85,18 @@ describe('tours.json', () => {
 })
 
 describe('seed content rules', () => {
-  it('has English content, the reference locale', () => {
+  it('has English content for all six tours, the reference locale', () => {
     expect(present).toContain('en')
+    for (const slug of SLUGS) expect(seed.translations.en?.[slug], slug).toBeDefined()
   })
 
   for (const locale of present) {
     describe(`locale ${locale}`, () => {
       const built = buildSeedRows(seed, { locales: [locale as AppLocale] })
+
+      it('has a file for every tour', () => {
+        for (const slug of SLUGS) expect(seed.translations[locale as AppLocale]?.[slug], `${locale}/${slug}`).toBeDefined()
+      })
 
       for (const slug of SLUGS) {
         const t = seed.translations[locale as AppLocale]?.[slug]
