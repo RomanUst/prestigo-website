@@ -89,8 +89,8 @@ describe('landing pages', () => {
 })
 
 describe('sitemap', () => {
-  it('lists every mirror route and landing page', () => {
-    const urls = new Set(sitemap().map((e) => e.url))
+  it('lists every mirror route and landing page', async () => {
+    const urls = new Set((await sitemap()).map((e) => e.url))
     for (const m of MIRROR_ROUTES) expect(urls.has(`https://rideprestigo.com/routes/${m.slug}`), m.slug).toBe(true)
     for (const p of LANDING_PAGES) expect(urls.has(`https://rideprestigo.com/${p.section}/${p.slug}`), p.slug).toBe(true)
   }, 60_000) // sitemap() resolves a git lastmod per URL

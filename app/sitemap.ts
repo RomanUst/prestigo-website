@@ -4,6 +4,7 @@ import { lastModFor } from '@/lib/lastmod'
 import { getAllPosts, JSX_POSTS } from '@/lib/blog'
 import { getAlternates, type ContentRef } from '@/lib/seo'
 import { LANDING_PAGES } from '@/lib/landing-pages'
+import { getPublishedTourLocales } from '@/lib/tours/store'
 
 const BASE = 'https://rideprestigo.com'
 
@@ -20,7 +21,14 @@ const BASE = 'https://rideprestigo.com'
 
 type SitemapEntry = MetadataRoute.Sitemap[number]
 
-type EntryOpts = { indexable?: boolean; content?: ContentRef }
+type EntryOpts = {
+  indexable?: boolean
+  content?: ContentRef
+  /** DB-backed pages (tours): explicit complete-locale list instead of the content probe. */
+  availableLocales?: readonly string[]
+  /** DB-backed pages: lastmod from the row instead of git history. */
+  lastModified?: Date
+}
 
 // entry() delegates its alternates.languages cluster to getAlternates() —
 // the same single source of truth every page-level generateMetadata() reads
@@ -28,15 +36,34 @@ type EntryOpts = { indexable?: boolean; content?: ContentRef }
 // never diverge.
 const entry = (urlPath: string, sourceFile: string, opts: EntryOpts = {}): SitemapEntry => {
   const url = urlPath === '' ? BASE : `${BASE}${urlPath}`
-  const { languages } = getAlternates(urlPath, opts)
+  const { lastModified, ...alternatesOpts } = opts
+  const { languages } = getAlternates(urlPath, alternatesOpts)
   return {
     url,
-    lastModified: lastModFor(sourceFile),
+    lastModified: lastModified ?? lastModFor(sourceFile),
     alternates: { languages },
   }
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Phase 93 (TRIP-01 / D-08): published tours, one row each, with the hreflang
+// cluster limited to their complete locales. Without Supabase env (or on any
+// store error) the sitemap still builds, just without tour rows.
+async function tourEntries(): Promise<MetadataRoute.Sitemap> {
+  try {
+    const tours = await getPublishedTourLocales()
+    return tours.map((t) =>
+      entry(`/services/${t.slug}`, 'app/[locale]/services/[slug]/page.tsx', {
+        indexable: true,
+        availableLocales: t.locales,
+        lastModified: new Date(t.updatedAt),
+      }),
+    )
+  } catch {
+    return []
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // sourceFile paths below point at app/[locale]/... (Phase 68 route-tree
   // move) — lastModFor() resolves git history/mtime from these paths, so
   // they must track the physical file location, not the public URL.
@@ -73,6 +100,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
         content: { kind: 'blog', key: p.slug },
       }),
     )
+
+  const tourRows = await tourEntries()
 
   return [
     entry('', 'app/[locale]/page.tsx', { indexable: true, content: { kind: 'page', key: 'home' } }),
@@ -131,6 +160,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/about', 'app/[locale]/about/page.tsx', { indexable: true, content: { kind: 'page', key: 'about' } }),
     entry('/faq', 'app/[locale]/faq/page.tsx', { indexable: true, content: { kind: 'page', key: 'faq' } }),
     ...landingEntries,
+    ...tourRows,
     entry('/contact', 'app/[locale]/contact/page.tsx', {
       indexable: true,
       content: { kind: 'page', key: 'contact' },
