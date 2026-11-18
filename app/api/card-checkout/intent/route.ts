@@ -6,6 +6,7 @@ import { checkoutBookingSchema, validateCheckoutBooking, priceCheckout } from '@
 import { getPaymentSettings, isCardFlowEligible, isPolicyPublic } from '@/lib/payments/config'
 import { buildPolicySnapshot, getCancellationPolicy } from '@/lib/cancellation-settings'
 import { evaluateCancellation, freeHoursFor } from '@/lib/cancellation-policy'
+import { buildTourPolicySnapshot, tourPolicy } from '@/lib/tours/policy'
 import { computeHoldAt, decideHoldMode, holdDateIso, meetsBookingLeadTime } from '@/lib/payments/timing'
 import { createCardCheckoutIntent } from '@/lib/payments/checkout'
 import { classifyStripeError } from '@/lib/payments/stripe'
@@ -107,11 +108,6 @@ export async function POST(req: Request) {
     if (!isCardFlowEligible(settings, { email: bookingData.email ?? '', tripType: bookingData.tripType })) {
       return fail(422, 'NOT_ELIGIBLE', 'Card checkout is not available for this booking')
     }
-    // Phase 89 D-18: the terms stored on the booking come from this one read, built server-side. Card eligibility
-    // implies the policy is public for this client; the check stays explicit so the two can never drift apart.
-    const policy = isPolicyPublic(settings, bookingData.email ?? '') ? await getCancellationPolicy() : null
-    const cancelPolicy = policy ? buildPolicySnapshot(policy) : null
-
     // Only the JSON boolean true is a consent. The stored text is the server rendering, never a client string.
     const consented = consent === true
     if (!consented) {
@@ -134,6 +130,22 @@ export async function POST(req: Request) {
 
     const priced = await priceCheckout({ bookingData, validated, currency })
     if (!priced.ok) return fail(priced.status, priced.code, priced.error)
+
+    // Phase 89 D-18: the terms stored on the booking come from this one read, built server-side. Card eligibility
+    // implies the policy is public for this client; the check stays explicit so the two can never drift apart.
+    // Phase 93 (D-12, T-93-45): a tour has its own terms (tour_settings.free_cancel_hours, fee 100 %). The same tourPolicy
+    // decides the free-until moment below and, as a 'tour-' snapshot, what is stored and enforced later.
+    const policyPublic = isPolicyPublic(settings, bookingData.email ?? '')
+    const policy = !policyPublic
+      ? null
+      : priced.tour
+        ? tourPolicy(priced.tour.freeCancelHours)
+        : await getCancellationPolicy()
+    const cancelPolicy = !policy
+      ? null
+      : priced.tour
+        ? buildTourPolicySnapshot(priced.tour.freeCancelHours)
+        : buildPolicySnapshot(policy)
 
     const serverAmountMinor = priced.combined.stripeAmountMinor
     if (displayedAmountMinor !== serverAmountMinor) {

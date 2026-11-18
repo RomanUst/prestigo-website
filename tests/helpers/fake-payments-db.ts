@@ -213,7 +213,22 @@ function bookingDefaults(): Row {
     quote_id: null,
     quote_line_id: null,
     quote_deposit_minor: null,
+    // Migration 092 (Phase 93): the tour of a tour booking; all three stay null for every other trip.
+    tour_id: null,
+    tour_title: null,
+    tour_extra_hours: null,
   }
+}
+
+/** The 092 CHECKs of the bookings tour columns (Postgres auto-names: table_column_check); the violated one or null. */
+function checkBookingTourColumns(row: Row): string | null {
+  const title = row.tour_title
+  if (title != null && !(typeof title === 'string' && title.length <= 200)) return 'bookings_tour_title_check'
+  const extra = row.tour_extra_hours
+  if (extra != null && !(typeof extra === 'number' && Number.isInteger(extra) && extra >= 0 && extra <= 12)) {
+    return 'bookings_tour_extra_hours_check'
+  }
+  return null
 }
 
 /** Column defaults of booking_fee_cases (migration 087). */
@@ -1386,6 +1401,8 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
           if (this.table === 'bookings') {
             const clash = quoteLineClash(row, null)
             if (clash) return clash
+            const tourViolated = checkBookingTourColumns(row)
+            if (tourViolated) return err(`new row for relation "bookings" violates check constraint "${tourViolated}"`, '23514')
           }
           if (this.table === 'booking_stops' || this.table === 'booking_extra_charges') {
             const failure = validateStopsOrExtras(this.table, row, null)
@@ -1429,6 +1446,11 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
             if (clash) {
               Object.assign(r, before)
               return clash
+            }
+            const tourViolated = checkBookingTourColumns(r)
+            if (tourViolated) {
+              Object.assign(r, before)
+              return err(`new row for relation "bookings" violates check constraint "${tourViolated}"`, '23514')
             }
           }
           if (this.table === 'booking_fee_cases') {

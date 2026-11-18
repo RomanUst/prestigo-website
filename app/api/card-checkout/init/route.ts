@@ -17,6 +17,7 @@ import { evaluateCancellation, freeHoursFor, proposedFeeMinor } from '@/lib/canc
 import { getCancellationPolicy } from '@/lib/cancellation-settings'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show'
+import { tourPolicy } from '@/lib/tours/policy'
 
 // POST /api/card-checkout/init (Phase 88, plan 88-06; PAYF-05, D-09, D-10, D-11, D-12, D-19).
 //
@@ -30,8 +31,16 @@ import { getNoShowThresholds, isAirportPickup } from '@/lib/no-show'
 // policy preview, in the eligible answer and in { eligible: false, policy } when only the card flow is closed to them
 // (round trip, daily, inside the lead rule). A client for whom nothing is public gets exactly the old answer.
 // Phase 89 (plan 89-10; D-08): an eligible answer also says cashAvailable (pay cash to the driver).
+// Phase 93 (plan 93-17; TRIP-04, D-12): a tour is previewed with its own terms (tourPolicy, 'tour-' version). A tour client
+// who passed the eligibility gate above also learns WHY a tour cannot be booked ({ eligible: false, reason }: the tour is
+// unavailable, the pickup is the airport or outside the area, or it is too close to the pickup), so the checkout can show
+// the right state. The gate runs first and the reason exists only on the tour path, so a client for whom payments are closed
+// and every non-tour request still get the opaque answer (T-88-13, T-93-46).
 
 const INELIGIBLE = { eligible: false } as const
+
+/** The refusal codes of the tour branch that init may name to a client past the eligibility gate (T-93-46). */
+const TOUR_REASONS: ReadonlySet<string> = new Set(['TOUR_UNAVAILABLE', 'AIRPORT_PICKUP', 'PICKUP_OUT_OF_AREA'])
 
 const initSchema = checkoutBookingSchema.extend({
   currency: z.enum(['eur', 'czk']),
@@ -69,7 +78,8 @@ async function buildPolicyPreview(input: {
   nowMs: number
 }) {
   const { bookingData, validated, priced, pickupMs, nowMs } = input
-  const policy = await getCancellationPolicy()
+  // D-12 / T-93-45: a tour previews exactly the terms the intent route stores (same tourPolicy, same hours source).
+  const policy = priced.tour ? tourPolicy(priced.tour.freeCancelHours) : await getCancellationPolicy()
   // STOP-02: the server's route distance decides the free-cancellation window, never the browser's.
   const facts = { tripType: validated.tripType, distanceKm: priced.distanceKm, pickupMs }
   const outcome = evaluateCancellation(policy, facts, nowMs)
@@ -101,6 +111,11 @@ async function buildPolicyPreview(input: {
 
 function ineligible() {
   return NextResponse.json({ ...INELIGIBLE })
+}
+
+/** Tour path only, after the eligibility gate: the same not-eligible answer plus the reason code. */
+function ineligibleBecause(reason: string) {
+  return NextResponse.json({ ...INELIGIBLE, reason })
 }
 
 export async function POST(req: Request) {
@@ -143,8 +158,9 @@ export async function POST(req: Request) {
       return ineligible()
     }
 
+    const isTour = bookingData.tripType === 'tour'
     const validated = validateCheckoutBooking(bookingData)
-    if (!validated.ok) return ineligible()
+    if (!validated.ok) return isTour && TOUR_REASONS.has(validated.code) ? ineligibleBecause(validated.code) : ineligible()
 
     // The card flow has its own lead rule on the real pickup instant (Prague wall clock, DST-safe).
     const pickupMs = pickupInstantMs({
@@ -156,13 +172,14 @@ export async function POST(req: Request) {
     if (pickupMs === null) return ineligible()
 
     const priced = await priceCheckout({ bookingData, validated, currency })
-    if (!priced.ok) return ineligible()
+    if (!priced.ok) return isTour && TOUR_REASONS.has(priced.code) ? ineligibleBecause(priced.code) : ineligible()
 
     // The policy is public for this client (card eligibility implies it), so the preview is always built here.
     const policy = await buildPolicyPreview({ bookingData, validated, priced, pickupMs, nowMs })
 
-    if (!cardEligible || !meetsBookingLeadTime(pickupMs, nowMs)) {
-      return NextResponse.json({ eligible: false, policy })
+    const leadTimeMet = meetsBookingLeadTime(pickupMs, nowMs)
+    if (!cardEligible || !leadTimeMet) {
+      return NextResponse.json({ eligible: false, ...(isTour && !leadTimeMet ? { reason: 'LEAD_TIME' } : {}), policy })
     }
 
     const { holdAtMs, rawHoldAtMs } = computeHoldAt(pickupMs, settings.leadHours)

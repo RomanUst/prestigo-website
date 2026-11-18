@@ -665,6 +665,18 @@ export function buildCheckoutMeta(input: {
     userId: authenticatedUserId ?? '',
     // A compact JSON string (about 150 chars, inside the 500-char limit; never clamped, a cut JSON is useless).
     ...(cancelPolicy ? { cancelPolicy: JSON.stringify(cancelPolicy.snapshot) } : {}),
+    // Phase 93 (TRIP-04, D-11, D-20): a tour booking carries the server-resolved tour (id, EN title snapshot, extra hours).
+    // The hours of the day (included + extra) and the destination label replace the body's values, which a tour does not
+    // send. Absent for every other trip, so the key set is unchanged for them. The title is cut to the 200-char column limit.
+    ...(priced.tour
+      ? {
+          tourId: priced.tour.id,
+          tourTitle: priced.tour.title.slice(0, 200),
+          tourExtraHours: String(priced.tour.extraHours),
+          hours: String(priced.tour.hoursIncluded + priced.tour.extraHours),
+          destinationAddress: clamp500(priced.tour.destinationLabel),
+        }
+      : {}),
     // WR-06: how many stops the amount above was priced with (a count only, no addresses), so the webhook's fallback insert
     // can tell that a booking it creates without stops has lost what the client paid for. Absent for a booking without stops.
     ...(priced.stops.length > 0 ? { stopCount: String(priced.stops.length) } : {}),
