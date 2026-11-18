@@ -404,6 +404,7 @@ export default function BookingsTable({
     { label: 'Transfer', value: 'transfer' },
     { label: 'Hourly', value: 'hourly' },
     { label: 'Daily', value: 'daily' },
+    { label: 'Tour', value: 'tour' },
   ]
 
   // DISP-03/D-07: an explicit manual Date Range takes session precedence over

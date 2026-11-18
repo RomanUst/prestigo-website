@@ -105,6 +105,27 @@ export interface AdminBooking {
   quote_id?: string | null
   quote_line_id?: string | null
   quote_deposit_minor?: number | string | null
+  // Phase 93 (migration 092): a day-trip booking (trip_type 'tour'). tour_title is the title kept on the booking, hours
+  // is the tour's hours at the destination and tour_extra_hours the extra hours the client added. All arrive through
+  // admin_search_bookings (select b.*); other bookings and old fixtures omit them.
+  tour_id?: string | null
+  tour_title?: string | null
+  tour_extra_hours?: number | null
+}
+
+// Phase 93 (TRIP-04): how a day-trip booking reads in the admin list, panel and board. Null for every other trip type.
+export function tourDisplay(booking: Pick<AdminBooking, 'trip_type' | 'tour_title' | 'hours' | 'tour_extra_hours'>): {
+  title: string
+  hoursText: string | null
+} | null {
+  if (booking.trip_type !== 'tour') return null
+  const title = `Day trip: ${booking.tour_title?.trim() || 'Tour'}`
+  if (booking.hours === null || booking.hours === undefined) return { title, hoursText: null }
+  const extra = booking.tour_extra_hours ?? 0
+  return {
+    title,
+    hoursText: extra > 0 ? `${booking.hours} h at destination · ${extra} extra` : `${booking.hours} h at destination`,
+  }
 }
 
 // One definition lives in bookingMoves.ts (Phase 90 plan 06); re-exported so existing importers keep working.
