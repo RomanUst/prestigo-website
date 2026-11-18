@@ -1,7 +1,8 @@
 ---
 phase: "93"
 slug: "day-trips-custom-tours"
-status: draft
+status: approved
+reviewed_at: "2026-11-18"
 shadcn_initialized: false
 preset: none
 created: "2026-11-18"
@@ -333,7 +334,7 @@ Table (QuotesTable recipe; below 768px each row becomes a stacked card):
 | Hours | "{hours} h included". |
 | Actions | Outline buttons: "Edit" (`Pencil`), and "View" (`ExternalLink`, opens the EN page in a new tab) only when published. |
 
-New tour (Modal, existing recipe): title "New tour", fields "Address" (prefix text "/services/", input, suffix text "-day-trip"; lowercase letters, digits and single hyphens; live preview of the full path) and "English title". Buttons "Create draft" (accent) / "Cancel". On success it opens the editor. Error copy in the Copywriting table.
+New tour (Modal, existing recipe): title "New tour", fields "Address" (prefix text "/services/", input, suffix text "-day-trip"; lowercase letters, digits and single hyphens; live preview of the full path) and "English title". Buttons "Create draft" (accent) / "Close without creating". On success it opens the editor. Error copy in the Copywriting table.
 
 ### 7.2 Tour settings card (D-02, D-12, D-22)
 
@@ -394,7 +395,7 @@ Photo list (one row per photo, ordered by position; stacked card below 768px):
 - "Cover" radio (one per tour; the first uploaded photo is the cover by default);
 - `ArrowUp` / `ArrowDown` (44x44, `aria-label` "Move photo {n} up/down");
 - "Source" select: "Own photo", "Wikimedia Commons", "Unsplash", "Other". For anything but "Own photo": "Author / credit" (text, required), "Licence" (text, required, e.g. "CC BY-SA 4.0"), "Source link" (https only, required for Wikimedia Commons and Other). Missing credit fields show `--status-danger-fg` "Add the credit and licence. Needed before publishing.";
-- "Save" outline per row when its fields are dirty;
+- "Save photo details" outline per row when its fields are dirty;
 - `Trash2` "Delete photo" outline button; confirm Modal "Delete this photo? It is removed from the site at once." Buttons "Delete photo" (danger) / "Keep photo" (outline). Deleting the last photo of a published tour is refused with "A published tour needs at least one photo. Add another photo first."
 
 Empty state of the photo list: `Images` 24px `--admin-text-muted`, "No photos yet." and "Add at least one photo before publishing."
@@ -469,6 +470,8 @@ Exceptions:
 - Fixed geometry: Nav 64px (existing); breadcrumb top padding 96px; sticky offset 88px (64 + 24); sticky bar 72px plus `env(safe-area-inset-bottom)`; desktop gallery height 440px; car image 72x44 in box rows; admin thumbnails 64x48 (list) and 128x96 (editor); upload progress bar 4px.
 - 1px borders, 2px selected borders, 3px leading rules on panels and selected car rows, 2px focus outline with 4px offset (global `:focus-visible`), admin focus 2px with 2px offset (`focusRingHandlers`).
 - Textarea min-heights 96px and 120px.
+- Inherited field padding `12px 16px` (date field 3.3, car rows 3.6, checkout inputs 4.3): the existing checkout inputs and `VehicleCard` use it; kept for visual parity with the transfer booking flow.
+- Inherited button vertical padding 14px: the global `.btn-primary` uses `14px 32px`; the sticky-bar button keeps the 14px vertical value and only reduces the horizontal padding to 24px to fit a phone width.
 
 ---
 
@@ -545,6 +548,7 @@ Public strings: EN source in a new `Tours.*` namespace (plus `Booking.confirmati
 | Primary CTA, custom-tour page | "Send request" (busy "Sending…") |
 | Custom-tour block CTA | "Request a custom tour" |
 | Primary CTA, admin | "New tour", "Create draft", "Save basics", "Save {language}", "Add photos", "Publish", "Create quote" |
+| Secondary actions, admin | "Close without creating" (New tour modal), "Save photo details" (photo row) |
 | Breadcrumb | "Home" / "Services" / "Day trips from Prague" / {title} |
 | Tour eyebrow | "DAY TRIP FROM PRAGUE" |
 | Key facts | "About {hours} in total" · "{hours} at the destination" + "You can add more time when you book." · "Private car and chauffeur for your group" + "Up to {count} people per car" · "Free cancellation up to {hours} before pickup" · "Reserve now, pay after your trip" + "Card or cash to your driver." |
