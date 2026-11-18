@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "tours": {
+    "cesky-krumlov-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Český Krumlov (Krummau) - panorama - old city.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/%C4%8Cesk%C3%BD_Krumlov_%28Krummau%29_-_panorama_-_old_city.JPG/1920px-%C4%8Cesk%C3%BD_Krumlov_%28Krummau%29_-_panorama_-_old_city.JPG",
+        "local_path": null,
+        "credit_text": "Pudelek (Marcin Szala) / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:%C4%8Cesk%C3%BD_Krumlov_(Krummau)_-_panorama_-_old_city.JPG",
+        "cover": true,
+        "alt_hint": "Old town and castle of Český Krumlov seen from above"
+      },
+      {
+        "source": "own",
+        "title": "first-int-1.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/first-int-1.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "First Class chauffeur car, rear cabin"
+      }
+    ]
+  }
+}
