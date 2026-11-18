@@ -186,6 +186,30 @@ describe('tracer: POST other on a completed captured card booking charges the sa
   })
 })
 
+describe('Phase 93 D-04: the operator extra charge works on a completed tour booking (TRIP-04)', () => {
+  it('charges kind other on a completed tour booking with a saved card, exactly like a transfer booking', async () => {
+    seed({
+      trip_type: 'tour',
+      tour_id: '7c1d3a52-0b1e-4f0a-9d6c-5e2b8f9a1c33',
+      tour_title: 'Dresden day trip',
+      tour_extra_hours: 1,
+      hours: 9,
+      cancel_policy_version: 'tour-2026-11',
+    })
+    const res = await post({ kind: 'other', description: 'Extra hour on the day', amount_minor: 5500 })
+    expect(res.status).toBe(200)
+    const json = (await res.json()) as { outcome: string; amount_minor: number }
+    expect(json).toMatchObject({ outcome: 'charged', amount_minor: 5500 })
+    expect(fake.callsTo('paymentIntents.create')).toHaveLength(1)
+    expect(fake.callsTo('paymentIntents.create')[0].params).toMatchObject({
+      amount: 5500,
+      off_session: true,
+      metadata: { kind: 'card_extra' },
+    })
+    expect(charges()).toHaveLength(1)
+  })
+})
+
 describe('guards before the business rules', () => {
   it('unauthenticated -> 401 and non-admin -> 403, both before the body is parsed and with no write', async () => {
     world.auth = '401'
