@@ -83,3 +83,10 @@ None.
 
 - FOUND: tests/phase93-tours-e2e.test.ts
 - FOUND: commit 5faee79d
+
+## Task 2 (D-21): owner price approval, 2026-11-19
+
+The owner asked to add waiting time ("Добавь ожидание и покажи новую таблицу") and approved the revised table ("ок").
+Rule: route fare one way + return leg with the 10 % return discount + included hours x half the class hourly rate (E 59, S 120, V 80 per hour), rounded to whole EUR. Karlštejn (35 km) and Bohemian Switzerland (120 km) use distance x rate per km for the road part.
+Approved values: `93-approved-prices.json` in this directory (E/S/V per tour, hours included 3/3/4/5/5/5, extra hour E 59 / S 120 / V 80).
+The seed runner cannot read `.env.local` inside the sandbox, so the owner runs the apply step locally.
