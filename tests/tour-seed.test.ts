@@ -225,6 +225,12 @@ describe('seed-tours main', () => {
     expect(out).toContain('| Tour | en | ru |')
   })
 
+  it('--apply without env refuses with exit code 1 and writes nothing', async () => {
+    const { deps, lines } = makeDeps(['--apply'], null)
+    expect(await main(deps)).toBe(1)
+    expect(lines.join('\n')).toContain('Refusing to apply without SUPABASE_URL')
+  })
+
   it('dry run prints the price table (route and estimate rows) and the extra-hour prices, and writes nothing', async () => {
     const { store, calls } = fakeStore()
     const { deps, lines, fetchCalls } = makeDeps([], store)

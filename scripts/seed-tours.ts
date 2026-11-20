@@ -335,6 +335,10 @@ export async function main(deps: SeedDeps): Promise<number> {
   if (!deps.hasEnv()) {
     log('')
     log('Supabase env not available: live prices, existing tours and the write step are skipped.')
+    if (flags.apply) {
+      log('Refusing to apply without SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY: nothing was written.')
+      return 1
+    }
     return 0
   }
 
@@ -567,12 +571,35 @@ async function createSupabaseStore(): Promise<SeedStore> {
   }
 }
 
-function runCli(): void {
+// Reads KEY=value lines without printing anything. process.loadEnvFile rejects a whole file on one line it
+// cannot parse, so a lenient line parser runs as the fallback. Existing env values are never overwritten.
+function loadLocalEnv(file: string): void {
   try {
-    process.loadEnvFile('.env.local')
+    process.loadEnvFile(file)
   } catch {
-    // no .env.local here: the dry run still prints content completeness
+    try {
+      const text = fs.readFileSync(file, 'utf8')
+      for (const raw of text.split(/\r?\n/)) {
+        const m = raw.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/)
+        if (!m || process.env[m[1]] !== undefined) continue
+        let value = m[2].trim()
+        const q = value[0]
+        if ((q === '"' || q === "'") && value.endsWith(q) && value.length >= 2) value = value.slice(1, -1)
+        else value = value.replace(/\s+#.*$/, '')
+        process.env[m[1]] = value
+      }
+    } catch {
+      // no .env.local here: the dry run still prints content completeness
+    }
   }
+  // the app's public URL is the same project URL
+  if (!process.env.SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    process.env.SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  }
+}
+
+function runCli(): void {
+  loadLocalEnv('.env.local')
   main({
     argv: process.argv.slice(2),
     root: process.cwd(),
