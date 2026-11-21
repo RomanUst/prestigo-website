@@ -335,7 +335,7 @@ export const ROUTES: Route[] = [
     road: 'Motorway D1/A22',
     description: 'The classic Central European route. 330 km through the Bohemian countryside, arriving in Vienna\'s Innere Stadt. Business class, without the airport.',
     notes: ['Flight tracking from Vienna Airport on return', 'Stops available on request (Bratislava, Brno)'],
-    image: '/vienna.png',
+    image: '/vienna.jpg',
     wordTarget: 1500,
   },
   {

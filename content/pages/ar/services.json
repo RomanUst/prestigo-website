@@ -43,7 +43,7 @@
       "href": "/services/city-rides",
       "bookHref": "/book",
       "bookCta": "احجز الآن",
-      "image": "/hero-city-rides.png"
+      "image": "/hero-city-rides.jpg"
     },
     {
       "label": "بين المدن",
@@ -60,7 +60,7 @@
       "href": "/services/intercity-routes",
       "bookHref": "/routes",
       "bookCta": "عرض المسارات",
-      "image": "/hero-intercity-routes.png"
+      "image": "/hero-intercity-routes.jpg"
     },
     {
       "label": "كونسيرج",
@@ -94,7 +94,7 @@
       "href": "/services/corporate-accounts",
       "bookHref": "/corporate",
       "bookCta": "افتح حسابًا",
-      "image": "/hero-corporate-accounts.png"
+      "image": "/hero-corporate-accounts.jpg"
     },
     {
       "label": "VIP",
@@ -111,7 +111,7 @@
       "href": "/services/vip-events",
       "bookHref": "/contact",
       "bookCta": "استفسر الآن",
-      "image": "/hero-vip-events.png"
+      "image": "/hero-vip-events.jpg"
     },
     {
       "label": "ليموزين",
@@ -146,7 +146,7 @@
       "href": "/services/group-transfers",
       "bookHref": "/contact",
       "bookCta": "اطلب عرض سعر",
-      "image": "/hero-group-transfers.png"
+      "image": "/hero-group-transfers.jpg"
     },
     {
       "label": "عدة أيام",
@@ -164,7 +164,7 @@
       "bookHref": "/book/multi-day",
       "bookCta": "اطلب عرض سعر",
       "isNew": true,
-      "image": "/multi-day-hero.png"
+      "image": "/multi-day-hero.jpg"
     }
   ],
   "alsoPopularLabel": "خدمات مطلوبة أيضاً",

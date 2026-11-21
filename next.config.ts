@@ -102,6 +102,11 @@ const nextConfig: NextConfig = {
       { source: '/compare', destination: '/blog', permanent: true },
       { source: '/compare/prague-airport-taxi-vs-chauffeur', destination: '/blog/prague-airport-taxi-vs-chauffeur', permanent: true },
       { source: '/compare/prague-vienna-transfer-vs-train', destination: '/blog/prague-vienna-transfer-vs-train', permanent: true },
+      // Hero images re-encoded from 5–7 MB PNG to ~0.3 MB JPEG; keep old URLs (shared links, cached og:image) working.
+      ...[
+        'multi-day-hero', 'multi-day-itineraries-bg', 'hero-group-transfers', 'vienna', 'hero-corporate-accounts',
+        'hero-intercity-routes', 'hero-vip-events', 'hero-city-rides', 'hero-about',
+      ].map((name) => ({ source: `/${name}.png`, destination: `/${name}.jpg`, permanent: true })),
     ]
   },
   images: {
