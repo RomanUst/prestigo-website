@@ -84,6 +84,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Depuis l'aéroport de Prague",
+      "value": "Environ 1 h 30 depuis le terminal par la D10 ; le chauffeur prend le périphérique ou traverse la ville, selon ce qui est le plus rapide à cette heure-là."
+    },
+    {
       "label": "Passage de frontière",
       "value": "Aucun passage de frontière — entièrement en République tchèque."
     },
@@ -140,6 +144,10 @@
     {
       "q": "Combien coûte un chauffeur de Prague à Liberec ?",
       "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers), ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette autoroutière tchèque et le temps du chauffeur. Aucuns frais cachés."
+    },
+    {
+      "q": "Pouvez-vous me prendre en charge à l'aéroport de Prague et me conduire directement à Liberec ?",
+      "a": "Oui. Votre chauffeur suit votre vol et vous accueille dans le hall des arrivées avec une pancarte à votre nom ; jusqu'à 60 minutes d'attente après l'atterrissage sont offertes. Depuis le terminal, la voiture rejoint la D10 par le périphérique ou en traversant la ville, selon ce qui est le plus rapide à cette heure-là ; comptez environ 1 h 30 jusqu'au centre de Liberec. Réservez-le comme un transfert depuis l'aéroport de Prague jusqu'à votre adresse à Liberec."
     },
     {
       "q": "Puis-je réserver un aller-retour dans la journée entre Prague et Liberec ?",

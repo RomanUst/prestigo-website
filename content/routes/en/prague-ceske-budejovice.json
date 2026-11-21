@@ -44,6 +44,7 @@
     { "city": "České Budějovice", "note": "Drop-off at any České Budějovice address, the Budvar brewery, or the main square. Český Krumlov is the natural onward stop — 20 km further south.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
+    { "label": "From Prague Airport", "value": "About 2 hours from the terminal on the D0, D1 and D3, without entering central Prague." },
     { "label": "Border crossing", "value": "No border crossing — entirely within the Czech Republic." },
     { "label": "Tolls", "value": "Czech motorway vignette included in the quoted price." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
@@ -75,6 +76,7 @@
   "faqs": [
     { "q": "How long does a private transfer from Prague to České Budějovice take?", "a": "Approximately 2 hours door-to-door via the D3 / E55 motorway through Tábor. With the České Budějovice bypass opened in December 2024, the drive is faster and calmer than it used to be. Friday afternoon departures out of Prague may add 15–20 minutes." },
     { "q": "How much does a chauffeur from Prague to České Budějovice cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, Czech tolls, the vignette, and driver time. No hidden charges." },
+    { "q": "Can you pick me up at Prague Airport and drive straight to České Budějovice?", "a": "Yes. Your chauffeur tracks the flight and meets you inside the arrivals hall with a name board; up to 60 minutes of waiting after landing are free. From the terminal the car takes the D0 ring road to the D1 and then the D3 south, without entering central Prague; allow about two hours to central České Budějovice. Book it as a transfer from Prague Airport to your address in České Budějovice." },
     { "q": "Can I book a same-day return with a stop at the Budvar brewery?", "a": "Yes. A same-day return is the most common booking on this route. Your chauffeur can wait during a Budějovický Budvar tour, a lunch on Náměstí Přemysla Otakara II, or an onward leg to Český Krumlov. If you need the chauffeur to move around the city with you, add hourly city rental." },
     { "q": "Is there a border crossing on this route?", "a": "No. The entire drive is inside the Czech Republic, from Prague south through Central Bohemia and Tábor into South Bohemia. No passport, no vignette change, no stops." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },

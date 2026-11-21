@@ -84,6 +84,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Depuis l'aéroport de Prague",
+      "value": "Environ 1 heure depuis le terminal par la D0 et la D5, sans entrer dans Prague."
+    },
+    {
       "label": "Passage de frontière",
       "value": "Aucun passage de frontière — entièrement en République tchèque."
     },
@@ -140,6 +144,10 @@
     {
       "q": "Combien coûte un chauffeur de Prague à Pilsen ?",
       "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, tous les péages, la vignette tchèque et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Pouvez-vous me prendre en charge à l'aéroport de Prague et me conduire directement à Pilsen ?",
+      "a": "Oui. Votre chauffeur suit votre vol et vous accueille dans le hall des arrivées avec une pancarte à votre nom ; jusqu'à 60 minutes d'attente après l'atterrissage sont offertes. Depuis le terminal, la voiture emprunte le périphérique D0 vers le sud jusqu'à la D5 et n'entre pas dans Prague ; comptez environ une heure jusqu'au centre de Pilsen. Réservez-le comme un transfert depuis l'aéroport de Prague jusqu'à votre adresse à Pilsen."
     },
     {
       "q": "Puis-je réserver un aller-retour le jour même avec un arrêt à la brasserie Pilsner Urquell ?",

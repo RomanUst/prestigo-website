@@ -84,6 +84,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Desde el aeropuerto de Praga",
+      "value": "Alrededor de 1 h 20 min desde la terminal por la D6, que empieza junto al aeropuerto."
+    },
+    {
       "label": "Paso fronterizo",
       "value": "Sin paso fronterizo: el trayecto transcurre íntegramente dentro de la República Checa."
     },
@@ -156,6 +160,10 @@
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Karlovy Vary?",
       "a": "Tarifa fija desde €{ePrice} en Mercedes E-Class (hasta 3 pasajeros), €{vPrice} en V-Class (hasta 6 pasajeros) o €{sPrice} en S-Class. Los precios incluyen combustible, viñeta checa y tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Praga y llevarme directamente a Karlovy Vary?",
+      "a": "Sí. Su chófer sigue el vuelo y le recibe dentro de la sala de llegadas con un cartel con su nombre; la espera de hasta 60 minutos tras el aterrizaje es gratuita. Desde la terminal, el coche se incorpora a la autopista D6, que empieza junto al aeropuerto, y no entra en Praga; calcule alrededor de 1 hora 20 minutos hasta su hotel balneario. Resérvelo como traslado desde el aeropuerto de Praga hasta su dirección en Karlovy Vary."
     },
     {
       "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Karlovy Vary?",

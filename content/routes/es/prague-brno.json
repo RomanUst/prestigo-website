@@ -84,6 +84,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Desde el aeropuerto de Praga",
+      "value": "Unas 2 h 15 min – 2 h 30 min desde la terminal por la circunvalación D0 y la D1, sin entrar en el centro de Praga."
+    },
+    {
       "label": "Paso fronterizo",
       "value": "Sin paso fronterizo: el trayecto transcurre íntegramente por la República Checa."
     },
@@ -156,6 +160,10 @@
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Brno?",
       "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, viñeta de autopista checa y tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Praga y llevarme directamente a Brno?",
+      "a": "Sí. Su chófer sigue el vuelo y le recibe dentro de la sala de llegadas con un cartel con su nombre; la espera de hasta 60 minutos tras el aterrizaje es gratuita. Desde la terminal, el coche toma la circunvalación D0 hasta la D1 y no entra en el centro de Praga; calcule entre 2 horas 15 minutos y 2 horas 30 minutos hasta el centro de Brno o el recinto ferial. Resérvelo como traslado desde el aeropuerto de Praga hasta su dirección en Brno."
     },
     {
       "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Brno?",

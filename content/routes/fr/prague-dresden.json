@@ -90,6 +90,10 @@
   ],
   "goodToKnow": [
     {
+      "label": "Depuis l'aéroport de Prague",
+      "value": "Environ 2 heures depuis le terminal ; la voiture traverse les quartiers nord de Prague jusqu'à la D8, le périphérique nord n'étant pas encore construit."
+    },
+    {
       "label": "Passage de la frontière",
       "value": "Frontière Schengen tchéco-allemande à Petrovice–Breitenau. Aucun contrôle de passeport pour les citoyens de l'UE — les passagers hors UE doivent se munir de leurs documents de voyage."
     },
@@ -162,6 +166,10 @@
     {
       "q": "Combien coûte un chauffeur de Prague à Dresde ?",
       "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette tchèque, les éventuels péages et le temps du chauffeur — les autoroutes allemandes sont gratuites pour les voitures. Aucun frais caché."
+    },
+    {
+      "q": "Pouvez-vous me prendre en charge à l'aéroport de Prague et me conduire directement à Dresde ?",
+      "a": "Oui. Votre chauffeur suit votre vol et vous accueille dans le hall des arrivées avec une pancarte à votre nom ; jusqu'à 60 minutes d'attente après l'atterrissage sont offertes. Depuis le terminal, la voiture traverse les quartiers nord de Prague pour rejoindre la D8, car la section nord du périphérique n'est pas encore construite ; comptez environ deux heures jusqu'au centre de Dresde et gardez votre passeport dans votre bagage à main. Réservez-le comme un transfert depuis l'aéroport de Prague jusqu'à votre adresse à Dresde."
     },
     {
       "q": "Puis-je réserver un aller-retour dans la journée de Prague à Dresde ?",
