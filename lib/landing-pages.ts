@@ -45,7 +45,7 @@ export type LandingPageConfig = {
 export const LANDING_PAGES: LandingPageConfig[] = [
   { slug: 'airport-meet-and-greet', section: 'services', heroImage: '/journey-03-arrive.jpg', ctaHref: '/book' },
   { slug: 'prague-airport-taxi', section: 'services', heroImage: '/photohero.jpg', ctaHref: '/book' },
-  { slug: 'private-driver-prague', section: 'services', heroImage: '/hero-city-rides.png', ctaHref: '/book' },
+  { slug: 'private-driver-prague', section: 'services', heroImage: '/hero-city-rides.jpg', ctaHref: '/book' },
   // 2026-11-03: "limousine prague" / "limo service prague" cluster — executive S-Class, no stretch limos.
   { slug: 'limousine-prague', section: 'services', heroImage: '/vehicles/first-int-2.jpg', ctaHref: '/book?class=first_class' },
   // 2026-11-11: private day trips — the largest demand cluster in every
@@ -53,11 +53,11 @@ export const LANDING_PAGES: LandingPageConfig[] = [
   // Car + chauffeur who waits and drives back the same day; no guide. No prices
   // in the copy: fares and waiting rates live in admin and a tour booking engine
   // is planned (owner decision 2026-11-14).
-  { slug: 'day-trips-from-prague', section: 'services', heroImage: '/hero-intercity-routes.png', ctaHref: '/book' },
-  { slug: 'cesky-krumlov-day-trip', section: 'services', heroImage: '/multi-day-hero.png', ctaHref: '/book' },
+  { slug: 'day-trips-from-prague', section: 'services', heroImage: '/hero-intercity-routes.jpg', ctaHref: '/book' },
+  { slug: 'cesky-krumlov-day-trip', section: 'services', heroImage: '/multi-day-hero.jpg', ctaHref: '/book' },
   { slug: 'kutna-hora-day-trip', section: 'services', heroImage: '/vehicles/van-int-1.jpg', ctaHref: '/book' },
   { slug: 'karlovy-vary-day-trip', section: 'services', heroImage: '/vehicles/business-int-1.jpg', ctaHref: '/book' },
-  { slug: 'dresden-day-trip', section: 'services', heroImage: '/hero-group-transfers.png', ctaHref: '/book' },
+  { slug: 'dresden-day-trip', section: 'services', heroImage: '/hero-group-transfers.jpg', ctaHref: '/book' },
   { slug: 'child-seats', section: 'faq', ctaHref: '/book' },
   { slug: 'flight-delays', section: 'faq', ctaHref: '/book' },
   { slug: 'tipping-in-prague', section: 'faq', ctaHref: '/book' },

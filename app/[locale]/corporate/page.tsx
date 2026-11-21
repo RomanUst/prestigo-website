@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
-      images: [{ url: 'https://rideprestigo.com/hero-corporate-accounts.png', width: 1200, height: 630 }],
+      images: [{ url: 'https://rideprestigo.com/hero-corporate-accounts.jpg', width: 1200, height: 630 }],
     },
   }
 }

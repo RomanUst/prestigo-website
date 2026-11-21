@@ -60,7 +60,7 @@ const POOL: Array<{ slug: string; to: string; time: string }> = [
 
 // Bento mosaic layout — one photo feature tile (2×2) + wide (2×1) + square (1×1).
 const TILES: BentoTile[] = [
-  { span: 'col-span-2 row-span-2', feature: true, img: '/multi-day-itineraries-bg.png' },
+  { span: 'col-span-2 row-span-2', feature: true, img: '/multi-day-itineraries-bg.jpg' },
   { span: 'col-span-2' },
   { span: 'col-span-1' },
   { span: 'col-span-1' },

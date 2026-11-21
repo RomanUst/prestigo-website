@@ -27,7 +27,7 @@ import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 type Params = Promise<{ locale: string; slug: string }>
 
-const HERO_IMAGE = '/hero-intercity-routes.png'
+const HERO_IMAGE = '/hero-intercity-routes.jpg'
 
 export function generateStaticParams(): Array<{ slug: string }> {
   return MIRROR_ROUTES.map((r) => ({ slug: r.slug }))

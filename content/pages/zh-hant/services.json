@@ -43,7 +43,7 @@
       "href": "/services/city-rides",
       "bookHref": "/book",
       "bookCta": "立即預訂",
-      "image": "/hero-city-rides.png"
+      "image": "/hero-city-rides.jpg"
     },
     {
       "label": "城際",
@@ -60,7 +60,7 @@
       "href": "/services/intercity-routes",
       "bookHref": "/routes",
       "bookCta": "檢視路線",
-      "image": "/hero-intercity-routes.png"
+      "image": "/hero-intercity-routes.jpg"
     },
     {
       "label": "禮賓",
@@ -94,7 +94,7 @@
       "href": "/services/corporate-accounts",
       "bookHref": "/corporate",
       "bookCta": "開通賬戶",
-      "image": "/hero-corporate-accounts.png"
+      "image": "/hero-corporate-accounts.jpg"
     },
     {
       "label": "VIP",
@@ -111,7 +111,7 @@
       "href": "/services/vip-events",
       "bookHref": "/contact",
       "bookCta": "諮詢洽談",
-      "image": "/hero-vip-events.png"
+      "image": "/hero-vip-events.jpg"
     },
     {
       "label": "豪華轎車",
@@ -146,7 +146,7 @@
       "href": "/services/group-transfers",
       "bookHref": "/contact",
       "bookCta": "獲取報價",
-      "image": "/hero-group-transfers.png"
+      "image": "/hero-group-transfers.jpg"
     },
     {
       "label": "多日包車",
@@ -164,7 +164,7 @@
       "bookHref": "/book/multi-day",
       "bookCta": "獲取報價",
       "isNew": true,
-      "image": "/multi-day-hero.png"
+      "image": "/multi-day-hero.jpg"
     }
   ],
   "alsoPopularLabel": "熱門服務",

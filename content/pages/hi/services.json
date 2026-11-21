@@ -43,7 +43,7 @@
       "href": "/services/city-rides",
       "bookHref": "/book",
       "bookCta": "अभी बुक करें",
-      "image": "/hero-city-rides.png"
+      "image": "/hero-city-rides.jpg"
     },
     {
       "label": "शहर-से-शहर",
@@ -60,7 +60,7 @@
       "href": "/services/intercity-routes",
       "bookHref": "/routes",
       "bookCta": "रूट देखें",
-      "image": "/hero-intercity-routes.png"
+      "image": "/hero-intercity-routes.jpg"
     },
     {
       "label": "कंसीयज",
@@ -94,7 +94,7 @@
       "href": "/services/corporate-accounts",
       "bookHref": "/corporate",
       "bookCta": "अकाउंट सेट करें",
-      "image": "/hero-corporate-accounts.png"
+      "image": "/hero-corporate-accounts.jpg"
     },
     {
       "label": "VIP",
@@ -111,7 +111,7 @@
       "href": "/services/vip-events",
       "bookHref": "/contact",
       "bookCta": "पूछताछ करें",
-      "image": "/hero-vip-events.png"
+      "image": "/hero-vip-events.jpg"
     },
     {
       "label": "लिमोज़ीन",
@@ -146,7 +146,7 @@
       "href": "/services/group-transfers",
       "bookHref": "/contact",
       "bookCta": "कोटेशन प्राप्त करें",
-      "image": "/hero-group-transfers.png"
+      "image": "/hero-group-transfers.jpg"
     },
     {
       "label": "बहु-दिवसीय",
@@ -164,7 +164,7 @@
       "bookHref": "/book/multi-day",
       "bookCta": "कोटेशन प्राप्त करें",
       "isNew": true,
-      "image": "/multi-day-hero.png"
+      "image": "/multi-day-hero.jpg"
     }
   ],
   "alsoPopularLabel": "यह भी लोकप्रिय है",
