@@ -52,6 +52,14 @@ describe('mirror routes', () => {
 })
 
 describe('landing pages', () => {
+  // Phase 93 (D-07, D-25): the four day-trip pages are DB-backed tours now (app/[locale]/services/[slug]);
+  // only the hub stays a landing page, so their copy files must not be required by this loop any more.
+  it('keeps the day-trips hub and lists no tour slug (tours resolve from the database)', () => {
+    const slugs = LANDING_PAGES.map((p) => p.slug)
+    expect(slugs).toContain('day-trips-from-prague')
+    expect(slugs.filter((s) => s.endsWith('-day-trip'))).toEqual([])
+  })
+
   for (const p of LANDING_PAGES) {
     it(`/${p.section}/${p.slug}: content in every locale, links resolve`, () => {
       const key = `${p.section}/${p.slug}`
@@ -67,7 +75,10 @@ describe('landing pages', () => {
       for (const { href } of en.related.links) {
         expect(href).not.toBe(`/${key}`)
         const [, section, slug] = href.split('/')
+        // Phase 93 (D-07): /services/<slug>-day-trip is a DB-backed tour under the same URL, not a landing page.
+        const isTourUrl = section === 'services' && /-day-trip$/.test(slug)
         const exists =
+          isTourUrl ||
           LANDING_PAGES.some((l) => l.section === section && l.slug === slug) ||
           fs.existsSync(path.join(ROOT, 'app', '[locale]', ...href.split('/').filter(Boolean), 'page.tsx')) ||
           fs.existsSync(path.join(ROOT, 'content', 'blog', 'en', `${slug}.mdx`))
@@ -78,8 +89,8 @@ describe('landing pages', () => {
 })
 
 describe('sitemap', () => {
-  it('lists every mirror route and landing page', () => {
-    const urls = new Set(sitemap().map((e) => e.url))
+  it('lists every mirror route and landing page', async () => {
+    const urls = new Set((await sitemap()).map((e) => e.url))
     for (const m of MIRROR_ROUTES) expect(urls.has(`https://rideprestigo.com/routes/${m.slug}`), m.slug).toBe(true)
     for (const p of LANDING_PAGES) expect(urls.has(`https://rideprestigo.com/${p.section}/${p.slug}`), p.slug).toBe(true)
   }, 60_000) // sitemap() resolves a git lastmod per URL

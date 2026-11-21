@@ -66,6 +66,9 @@ vi.mock("next/image", () => ({
 
 vi.mock("@/components/Nav", () => ({ default: () => null }));
 vi.mock("@/components/Footer", () => ({ default: () => null }));
+// Phase 93-15: RouteTourLink is an async server component (DB read); its own tests live in
+// tests/tour-route-links.test.tsx. The client-side render here cannot resolve it.
+vi.mock("@/components/tours/RouteTourLink", () => ({ default: () => null }));
 
 const getRoutePriceMock = vi.fn(async (slug: string) => ({
   slug,

@@ -64,6 +64,8 @@ export interface ExtraChargeModalProps {
   bookingId: string
   currency: 'eur' | 'czk'
   inFlight: ExtraInFlight | null
+  /** Phase 93 (D-04): the booked car class of a day-trip booking; shows the extra-hour price of that class as a hint only. */
+  tourVehicleClass?: string | null
   onClose: () => void
   /** The charge went through: the dialog has asked to close; report one result line and refetch. */
   onDone: (result?: DecisionResult) => void
@@ -72,6 +74,13 @@ export interface ExtraChargeModalProps {
 }
 
 type Mode = 'waiting' | 'other'
+
+/** Car class of a booking to the extra-hour column of GET /api/admin/tour-settings. */
+const EXTRA_HOUR_KEY: Record<string, string> = {
+  business: 'extra_hour_e_eur',
+  first_class: 'extra_hour_s_eur',
+  business_van: 'extra_hour_v_eur',
+}
 
 const DESCRIPTION_MIN = 3
 const DESCRIPTION_MAX = 200
@@ -168,7 +177,7 @@ function interpretPost(answer: ExtraAnswer, currency: 'eur' | 'czk'): Outcome {
   return { kind: 'stay', text: COPY_GENERIC }
 }
 
-export function ExtraChargeModal({ isOpen, bookingId, currency, inFlight, onClose, onDone, onRefetch }: ExtraChargeModalProps) {
+export function ExtraChargeModal({ isOpen, bookingId, currency, inFlight, tourVehicleClass = null, onClose, onDone, onRefetch }: ExtraChargeModalProps) {
   const decimals = CURRENCY_DECIMALS[toCurrency(currency)]
   const [mode, setMode] = useState<Mode>('other')
   const [description, setDescription] = useState('')
@@ -182,6 +191,32 @@ export function ExtraChargeModal({ isOpen, bookingId, currency, inFlight, onClos
   const handlersRef = useRef({ onClose, onDone, onRefetch })
   handlersRef.current = { onClose, onDone, onRefetch }
   const firstFieldRef = useFocusOnOpen<HTMLInputElement>(isOpen && inFlight === null)
+
+  // Phase 93 (D-04): for a day trip, the extra-hour price of the booked class from the tour settings, as a hint only. The
+  // operator still types and confirms the amount; a failed fetch just hides the hint.
+  const [extraHourHint, setExtraHourHint] = useState<string | null>(null)
+  useEffect(() => {
+    const key = tourVehicleClass ? EXTRA_HOUR_KEY[tourVehicleClass] : undefined
+    if (!isOpen || inFlight !== null || !key) {
+      setExtraHourHint(null)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch('/api/admin/tour-settings', { cache: 'no-store' })
+        if (!res.ok) throw new Error('tour settings')
+        const body = (await res.json()) as Record<string, unknown> | null
+        const raw = body?.[key]
+        const eur = typeof raw === 'string' ? Number(raw) : raw
+        if (cancelled) return
+        setExtraHourHint(typeof eur === 'number' && Number.isFinite(eur) && eur > 0 ? money(Math.round(eur * 100), 'eur') : null)
+      } catch {
+        if (!cancelled) setExtraHourHint(null)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [isOpen, inFlight, tourVehicleClass])
 
   // A reopened dialog starts clean.
   useEffect(() => {
@@ -395,6 +430,10 @@ export function ExtraChargeModal({ isOpen, bookingId, currency, inFlight, onClos
         {modeButton('waiting', 'Extra waiting')}
         {modeButton('other', 'Other')}
       </div>
+
+      {extraHourHint && (
+        <p data-testid="extra-hour-hint" style={{ ...labelStyle, margin: '12px 0 0' }}>{`Extra hour for this car: ${extraHourHint}`}</p>
+      )}
 
       {mode === 'waiting' ? (
         <div style={{ marginTop: '16px' }}>

@@ -53,6 +53,7 @@ const TRIP_TYPE_CHIPS = [
   { label: 'Transfer', value: 'transfer' },
   { label: 'Hourly', value: 'hourly' },
   { label: 'Daily', value: 'daily' },
+  { label: 'Tour', value: 'tour' },
 ]
 
 interface Filters {

@@ -90,6 +90,8 @@ interface PaymentPanelProps {
    * Omit it to treat the booking as a card booking.
    */
   paymentMode?: string | null
+  /** Phase 93 (D-04): the booked car class of a day-trip booking; the extra charge dialog shows its extra-hour price as a hint. */
+  tourVehicleClass?: string | null
   /**
    * 88-REVIEW C-WR-04: told the payment state every time the panel (re)loads, so the booking list can keep its row badge
    * in step with an action taken here (release, capture, waive, ...).
@@ -717,7 +719,7 @@ function isPaymentResponse(value: unknown): value is PaymentResponse {
   return !!v.payment && typeof v.payment === 'object' && Array.isArray(v.events)
 }
 
-export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, onPaymentState }: PaymentPanelProps) {
+export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, tourVehicleClass = null, onPaymentState }: PaymentPanelProps) {
   const [load, setLoad] = useState<LoadState>({ status: 'loading' })
   const [reloadTick, setReloadTick] = useState(0)
 
@@ -810,6 +812,7 @@ export default function PaymentPanel({ bookingId, refreshKey = 0, paymentMode, o
     <PanelBody
       bookingId={bookingId}
       data={data}
+      tourVehicleClass={tourVehicleClass}
       onRefetch={() => setReloadTick(t => t + 1)}
     />
   )
@@ -951,7 +954,7 @@ function actionLabel(action: PaymentActionName, p: PaymentSnapshot): string {
   }
 }
 
-function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: PaymentResponse; onRefetch: () => void }) {
+function PanelBody({ bookingId, data, tourVehicleClass, onRefetch }: { bookingId: string; data: PaymentResponse; tourVehicleClass: string | null; onRefetch: () => void }) {
   const p = data.payment
   const feeCase = data.fee_case ?? null
   const [modal, setModal] = useState<PaymentActionName | null>(null)
@@ -1157,6 +1160,7 @@ function PanelBody({ bookingId, data, onRefetch }: { bookingId: string; data: Pa
           bookingId={bookingId}
           currency={p.currency === 'czk' ? 'czk' : 'eur'}
           inFlight={pendingExtra}
+          tourVehicleClass={tourVehicleClass}
           onClose={closeDialog}
           onDone={(r) => {
             if (r) showResult(r)

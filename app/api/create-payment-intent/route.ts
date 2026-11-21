@@ -70,6 +70,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: validated.error, code: validated.code }, { status: validated.status })
     }
 
+    // Phase 93: a day trip books only through the card flow (/api/card-checkout), which stores the
+    // tour's own cancellation snapshot (D-11, D-12). The legacy pay-now path never takes a tour.
+    if (validated.tripType === 'tour') {
+      return NextResponse.json(
+        { error: 'Day trips are booked through the card checkout.', code: 'TOUR_CARD_FLOW_ONLY' },
+        { status: 422 },
+      )
+    }
+
     // Resolve authenticated user server-side — never trust client-supplied userId
     const supabaseUser = await createClient()
     const { data: { user: authUser } } = await supabaseUser.auth.getUser()

@@ -15,6 +15,8 @@ import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
 import { landingPagesFor, type LandingContent } from '@/lib/landing-pages'
+import { listPublishedTours, type TourCardView } from '@/lib/tours/store'
+import type { AppLocale } from '@/i18n/locales'
 
 interface ServiceEntry {
   label: string
@@ -77,6 +79,14 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
   const { locale } = await params
   setRequestLocale(locale)
   const content = getPageContent('services', locale) as ServicesHubContent
+  // Published day trips of this locale (Phase 93, D-25): listed next to the hub in "also popular". The store returns
+  // [] without Supabase env; the catch keeps the index rendering on any other failure.
+  let tours: TourCardView[] = []
+  try {
+    tours = await listPublishedTours(locale as AppLocale)
+  } catch {
+    tours = []
+  }
   const { globals, hourlyRate } = await getPricingConfig()
   const routes = await getAllRoutes('display_order')
   const cheapestIntercity = routes.length > 0 ? Math.min(...routes.map(r => r.eClassEur)) : AIRPORT_FALLBACK.regular
@@ -277,6 +287,11 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
                 </a>
               )
             })}
+            {tours.map((tour) => (
+              <a key={tour.slug} href={localizedHref(locale, `/services/${tour.slug}`)} className="border border-anthracite-light p-6 hover:border-[var(--copper)] transition-colors">
+                <p className="font-display font-light text-[18px] text-offwhite">{tour.title}</p>
+              </a>
+            ))}
           </div>
         </div>
       </section>

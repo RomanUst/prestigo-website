@@ -103,6 +103,12 @@ export interface ManageView {
   to: string | null
   vehicleClass: string | null
   passengers: number | null
+  /** Phase 93 (TRIP-04): the English title snapshot of a tour booking; null for every other booking. */
+  tourTitle: string | null
+  /** Hours at the destination included in the tour fare; null for a non-tour booking. */
+  hoursIncluded: number | null
+  /** Extra hours the client added to the tour (0 when none, and for a non-tour booking). */
+  extraHours: number
   fare: ManageMoney | null
   payment: ManagePayment | null
   /** Set for the `active` variant only. */
@@ -148,7 +154,7 @@ export const MANAGE_BOOKING_COLUMNS =
   'destination_address, vehicle_class, passengers, amount_eur, payment_mode, payment_state, payment_currency, ' +
   'payment_amount_minor, payment_intent_id, hold_payment_intent_id, hold_amount_minor, hold_at, ' +
   'captured_amount_minor, outbound_amount_czk, return_amount_czk, leg, cancel_policy, cancel_policy_version, ' +
-  'booking_source, stripe_payment_method_id'
+  'booking_source, stripe_payment_method_id, hours, tour_title, tour_extra_hours'
 
 /** Money the card booking already collected before the trip (a paid recovery link): refunded by an in-time cancel. */
 function collectedMinor(row: Row): number {
@@ -278,6 +284,12 @@ export function buildManageView(row: Row, extras: ManageExtras, nowMs: number): 
     else if (status === 'no_show') variant = 'no_show'
   }
 
+  // Phase 93 (TRIP-04): `hours` of a tour row is included + extra hours.
+  const tourTitle = str(row.trip_type) === 'tour' && str(row.tour_title) !== '' ? str(row.tour_title) : null
+  const extraHours = tourTitle ? (posInt(row.tour_extra_hours) ?? 0) : 0
+  const totalHours = tourTitle ? posInt(row.hours) : null
+  const hoursIncluded = totalHours !== null ? Math.max(1, totalHours - extraHours) : null
+
   const policy = policyFromSnapshot(row.cancel_policy)
   const facts = tripFactsFromRow(row as unknown as Parameters<typeof tripFactsFromRow>[0])
   const evaluated = facts ? evaluateCancellation(policy, facts, nowMs) : null
@@ -327,6 +339,9 @@ export function buildManageView(row: Row, extras: ManageExtras, nowMs: number): 
     to: str(row.destination_address) || null,
     vehicleClass: str(row.vehicle_class) || null,
     passengers: posInt(row.passengers),
+    tourTitle,
+    hoursIncluded,
+    extraHours,
     fare: fareOf(row, extras),
     payment: paymentOf(row, extras),
     cancel,

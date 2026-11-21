@@ -1,0 +1,11 @@
+{
+  "tours": {
+    "kutna-hora-day-trip":           { "e": 368, "s": 587,  "v": 424, "hours_included": 3 },
+    "karlstejn-day-trip":            { "e": 205, "s": 349,  "v": 247, "hours_included": 3 },
+    "karlovy-vary-day-trip":         { "e": 540, "s": 856,  "v": 618, "hours_included": 4 },
+    "dresden-day-trip":              { "e": 634, "s": 1007, "v": 726, "hours_included": 5 },
+    "cesky-krumlov-day-trip":        { "e": 720, "s": 1134, "v": 821, "hours_included": 5 },
+    "bohemian-switzerland-day-trip": { "e": 547, "s": 881,  "v": 633, "hours_included": 5 }
+  },
+  "extra_hour": { "e": 59, "s": 120, "v": 80 }
+}

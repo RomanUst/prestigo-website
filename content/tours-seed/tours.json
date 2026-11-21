@@ -1,0 +1,68 @@
+[
+  {
+    "slug": "kutna-hora-day-trip",
+    "sort_order": 10,
+    "hours_included": 3,
+    "drive_minutes_each_way": 60,
+    "start_time_min": "08:00",
+    "start_time_max": "11:00",
+    "destination_label": "Kutná Hora, Czechia",
+    "route_slug": "prague-kutna-hora",
+    "distance_km_one_way": 70
+  },
+  {
+    "slug": "karlstejn-day-trip",
+    "sort_order": 20,
+    "hours_included": 3,
+    "drive_minutes_each_way": 40,
+    "start_time_min": "08:00",
+    "start_time_max": "11:00",
+    "destination_label": "Karlštejn, Czechia",
+    "route_slug": null,
+    "distance_km_one_way": 35
+  },
+  {
+    "slug": "karlovy-vary-day-trip",
+    "sort_order": 30,
+    "hours_included": 4,
+    "drive_minutes_each_way": 105,
+    "start_time_min": "07:30",
+    "start_time_max": "10:30",
+    "destination_label": "Karlovy Vary, Czechia",
+    "route_slug": "prague-karlovy-vary",
+    "distance_km_one_way": 130
+  },
+  {
+    "slug": "dresden-day-trip",
+    "sort_order": 40,
+    "hours_included": 5,
+    "drive_minutes_each_way": 120,
+    "start_time_min": "07:30",
+    "start_time_max": "10:30",
+    "destination_label": "Dresden, Germany",
+    "route_slug": "prague-dresden",
+    "distance_km_one_way": 150
+  },
+  {
+    "slug": "cesky-krumlov-day-trip",
+    "sort_order": 50,
+    "hours_included": 5,
+    "drive_minutes_each_way": 150,
+    "start_time_min": "07:00",
+    "start_time_max": "09:00",
+    "destination_label": "Český Krumlov, Czechia",
+    "route_slug": "prague-cesky-krumlov",
+    "distance_km_one_way": 175
+  },
+  {
+    "slug": "bohemian-switzerland-day-trip",
+    "sort_order": 60,
+    "hours_included": 5,
+    "drive_minutes_each_way": 105,
+    "start_time_min": "07:00",
+    "start_time_max": "09:30",
+    "destination_label": "Bohemian Switzerland, Czechia",
+    "route_slug": null,
+    "distance_km_one_way": 120
+  }
+]

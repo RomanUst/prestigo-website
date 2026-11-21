@@ -15,7 +15,7 @@ const MAX_PAGES = 5 // hard ceiling: 500 rows per request
 const MAX_RANGE_DAYS = 62 // same value as lib/prague-calendar.ts; the client validates first, the server is the authority
 const DAY_MS = 86_400_000
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
-const KNOWN_TRIP_TYPES = new Set(['transfer', 'hourly', 'daily', 'round_trip'])
+const KNOWN_TRIP_TYPES = new Set(['transfer', 'hourly', 'daily', 'round_trip', 'tour'])
 
 /** Strict YYYY-MM-DD that is also a real calendar date; returns UTC-midnight ms or null. */
 function parseIsoDate(value: string | null): number | null {

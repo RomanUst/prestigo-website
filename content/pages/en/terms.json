@@ -37,7 +37,7 @@
       },
       {
         "label": "Late cancellation",
-        "desc": "If you cancel after that deadline but before pickup, a fee of up to {percent}% of the booking amount may apply. A person at Prestigo decides every charge, may reduce or waive it, and nothing is charged automatically."
+        "desc": "If you cancel after that deadline but before pickup, a fee of up to {percent}% of the booking amount may apply. A person at Prestigo decides every charge, may reduce or waive it, and nothing is charged automatically. Day trips have their own free-cancellation period, shown on the tour page and confirmed at booking; after it the full price of the trip applies. Extra time beyond the booking may be charged only after a person at Prestigo approves it."
       },
       {
         "label": "No-show",

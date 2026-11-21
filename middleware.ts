@@ -49,6 +49,30 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
 ]
 
 /**
+ * Phase 93 (plan 93-08; D-15): tour photos live in the public tour-photos bucket of the Supabase project, so the
+ * project's own origin (https://<ref>.supabase.co, derived from NEXT_PUBLIC_SUPABASE_URL) is added to img-src of the
+ * public, static and admin / driver policies. Only that exact origin and only img-src (connect-src already allows
+ * https://*.supabase.co for the browser upload). Nothing is added when the env is absent, not https or not a URL.
+ */
+function supabaseImageOrigin(): string | null {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!raw) return null
+  try {
+    const url = new URL(raw)
+    return url.protocol === 'https:' ? url.origin : null
+  } catch {
+    return null
+  }
+}
+
+/** Appends the Supabase project origin to an img-src directive; every other directive passes through unchanged. */
+function allowSupabaseImages(directive: string): string {
+  if (!directive.startsWith('img-src ')) return directive
+  const origin = supabaseImageOrigin()
+  return origin ? `${directive} ${origin}` : directive
+}
+
+/**
  * Build a per-request Content-Security-Policy header for dynamic routes.
  *
  * script-src uses a nonce + strict-dynamic instead of unsafe-inline:
@@ -87,7 +111,7 @@ function buildCsp(nonce: string): string {
     "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com",
     "form-action 'self' https://accounts.google.com https://appleid.apple.com",
     "report-uri /api/csp-report",
-  ].join('; ')
+  ].map(allowSupabaseImages).join('; ')
 }
 
 /**
@@ -137,7 +161,7 @@ function buildCspStatic(): string {
     "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com https://chat.rideprestigo.com wss://chat.rideprestigo.com",
     "form-action 'self' https://accounts.google.com https://appleid.apple.com",
     "report-uri /api/csp-report",
-  ].join('; ')
+  ].map(allowSupabaseImages).join('; ')
 }
 
 // 87-UAT gap 3: the one driver page that hosts the Chatwoot widget. Exact path only.
@@ -163,7 +187,7 @@ function buildCspDriverHelp(nonce: string): string {
     "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com https://chat.rideprestigo.com wss://chat.rideprestigo.com",
     "form-action 'self' https://accounts.google.com https://appleid.apple.com",
     "report-uri /api/csp-report",
-  ].join('; ')
+  ].map(allowSupabaseImages).join('; ')
 }
 
 // Phase 84 (PANEL-02): the Chatwoot Dashboard App panel is rendered at /embed

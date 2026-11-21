@@ -1,10 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
 import sitemap from '@/app/sitemap'
 import { JSX_POSTS } from '@/lib/blog'
 
 describe('sitemap /blog entries', () => {
-  const entries = sitemap()
-  const urls = entries.map((e) => e.url)
+  let entries: Awaited<ReturnType<typeof sitemap>> = []
+  let urls: string[] = []
+  beforeAll(async () => {
+    entries = await sitemap()
+    urls = entries.map((e) => e.url)
+  }, 60_000)
 
   it('includes the /blog listing URL', () => {
     expect(urls).toContain('https://rideprestigo.com/blog')
@@ -46,7 +50,10 @@ describe('sitemap /blog entries', () => {
 // source of truth consumed by per-page generateMetadata() — so the sitemap
 // cluster for any URL is identical to that URL's page-level cluster.
 describe('sitemap alternates cluster (SEO-03, delegates to getAlternates)', () => {
-  const entries = sitemap()
+  let entries: Awaited<ReturnType<typeof sitemap>> = []
+  beforeAll(async () => {
+    entries = await sitemap()
+  }, 60_000)
 
   it('a fully-translated route entry (prague-vienna) carries the full 7-locale + x-default cluster', () => {
     const routeEntry = entries.find((e) => e.url === 'https://rideprestigo.com/routes/prague-vienna')

@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       client_first_name, client_last_name, client_phone,
       locale, cancel_policy_version, cancel_policy, trip_type, distance_km, pickup_utc, origin_lat, origin_lng,
       payment_mode, payment_amount_minor, payment_currency, amount_eur, outbound_amount_czk, return_amount_czk,
-      leg, booking_source, anonymised_at,
+      leg, booking_source, anonymised_at, hours, tour_title, tour_extra_hours,
       driver_assignments!left(
         status,
         drivers!inner(name, email, vehicle_info)
@@ -107,6 +107,11 @@ export async function POST(request: Request) {
     driver_name: driver?.name,
     driver_email: driver?.email,
     driver_vehicle_info: driver?.vehicle_info,
+    // Phase 93 (TRIP-04): the client reminder of a tour shows its title and hours.
+    trip_type: booking.trip_type,
+    tour_title: booking.tour_title,
+    tour_extra_hours: booking.tour_extra_hours,
+    hours: booking.hours,
   }
 
   // Phase 89 CANC-02: box and Manage button for the client mail only (a driver never gets the private link).

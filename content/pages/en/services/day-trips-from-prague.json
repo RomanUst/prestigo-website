@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Private Day Trips from Prague — Car & Chauffeur for the Day",
-    "description": "Private day trips from Prague in a Mercedes with your own chauffeur: Český Krumlov, Kutná Hora, Karlovy Vary and Dresden. Hotel pickup, the driver waits, one price per car.",
+    "description": "Private day trips from Prague in a Mercedes with your own chauffeur: castles, spa towns, old towns and national parks. Hotel pickup, the driver waits, one price per car.",
     "ogTitle": "Private Day Trips from Prague with Your Own Chauffeur"
   },
   "breadcrumbName": "Day Trips from Prague",
@@ -9,7 +9,7 @@
     "label": "Private Day Trips · Prague",
     "headlineLine1": "Day trips from Prague.",
     "headlineItalic": "Your own car, your own clock.",
-    "intro": "Private day trips from Prague in a Mercedes with a chauffeur: collected at your hotel, driven to Český Krumlov, Kutná Hora, Karlovy Vary or Dresden, and brought back the same day while the car waits for you.",
+    "intro": "Private day trips from Prague in a Mercedes with a chauffeur: collected at your hotel, driven to a castle, a spa town or a national park, and brought back the same day while the car waits for you.",
     "ctaPrimary": "Book a Day Trip",
     "ctaSecondary": "Ask a Question",
     "imageAlt": "Mercedes on a motorway leaving Prague for a day trip"
@@ -18,8 +18,8 @@
     "label": "At a glance",
     "items": [
       {
-        "label": "Destinations",
-        "value": "Český Krumlov, Kutná Hora, Karlovy Vary, Dresden"
+        "label": "Where",
+        "value": "Castles, spa towns, old towns and national parks, each on its own page below"
       },
       {
         "label": "Price",
@@ -31,7 +31,7 @@
       },
       {
         "label": "Included",
-        "value": "Hotel pickup, the drive both ways, fuel and motorway tolls"
+        "value": "Hotel pickup, the drive both ways, fuel, motorway tolls and time at the destination"
       }
     ]
   },
@@ -39,31 +39,31 @@
     "headingLine1": "A private day trip,",
     "headingItalic": "and what it is not.",
     "paragraphs": [
-      "A private day trip is simple: one car and one chauffeur for your party only. You are collected at your Prague address, driven to the town you chose, left to explore for as long as you like, and driven back to the same door.",
-      "It is not a group tour. There is no coach, no fixed four hours in town and no waiting for other people. It is also not a guided tour: your chauffeur drives and waits, and you see the town on your own or with a local guide you book yourself.",
+      "A private day trip is simple: one car and one chauffeur for your party only. You are collected at your Prague address, driven to the place you chose, left to explore on your own schedule, and driven back to the same door.",
+      "It is not a group tour. There is no coach, no fixed time in town and no waiting for other people. It is also not a guided tour: your chauffeur drives and waits, and you see the place on your own or with a local guide you book yourself.",
       "The price is for the car, so it is the same for one passenger or for six in a V-Class."
     ]
   },
   "features": {
-    "label": "Four day trips",
-    "headingLine1": "Where a day",
-    "headingItalic": "can take you.",
+    "label": "Day trips",
+    "headingLine1": "How a day",
+    "headingItalic": "works.",
     "items": [
       {
-        "title": "Český Krumlov — about 2.5 hours",
-        "body": "A UNESCO castle town in a bend of the Vltava, and the trip visitors ask for most."
+        "title": "One price for the car",
+        "body": "Each trip has one price for the whole car, shown on its page and in full before you pay. It covers the drive there and back, fuel and motorway tolls."
       },
       {
-        "title": "Kutná Hora — about 1 hour",
-        "body": "The Bone Church and St Barbara’s Cathedral, in half a day."
+        "title": "Time at the destination is included",
+        "body": "Every trip includes time at the destination, shown on its page. If you want more, add extra hours when you book."
       },
       {
-        "title": "Karlovy Vary — about 1 hour 45 minutes",
-        "body": "Colonnades, hot springs and the Grandhotel Pupp, with an optional stop at Loket Castle."
+        "title": "Pickup and return at your Prague address",
+        "body": "Your chauffeur collects you at your hotel or apartment and brings you back to the same door."
       },
       {
-        "title": "Dresden — about 2 hours",
-        "body": "Across the German border to the Frauenkirche, the Zwinger and the Old Masters."
+        "title": "Pick the kind of day you like",
+        "body": "Castles, spa towns, old towns, cities across the border or walking in a national park: each trip page tells you what the day looks like."
       },
       {
         "title": "The chauffeur waits",
@@ -80,8 +80,8 @@
     "heading": "Booking a day trip in four steps.",
     "items": [
       {
-        "title": "Send us the plan",
-        "body": "Give the date, your Prague address, the town and how long you would like to stay — in the booking form or in a message. A rough outline of the day is enough."
+        "title": "Choose a trip",
+        "body": "Open the trip you like, pick the date, the start time and the number of passengers. You see the cars that fit your group."
       },
       {
         "title": "Choose the car",
@@ -93,7 +93,7 @@
       },
       {
         "title": "Take your time",
-        "body": "The chauffeur waits near the centre for the time you booked. If you would like to stay longer on the day, tell the chauffeur: extra waiting is charged at the same rate."
+        "body": "The chauffeur waits near the centre for the time you booked. If you would like to stay longer on the day, tell the chauffeur: extra time is charged only after a person at Prestigo agrees to it."
       }
     ]
   },
@@ -102,8 +102,8 @@
     "headingLine1": "Which day trip",
     "headingItalic": "suits you.",
     "paragraphs": [
-      "With only half a day, choose Kutná Hora: an hour each way and three to four hours there. With a full day and a wish for one unforgettable town, choose Český Krumlov and leave early. For a slower day of walking, coffee and spa water, choose Karlovy Vary. For museums, architecture or the December Christmas market, choose Dresden.",
-      "All four run all year. Castle interiors in Český Krumlov close in the winter months and many Dresden museums close on Mondays, so check the date before you book.",
+      "Choose by the kind of day you want. For a short trip that fits a spare morning or afternoon, look for the places closest to Prague. For one unforgettable town, pick a castle town and leave early. For a slower day of walking, coffee and spa water, choose a spa town. For museums, architecture or a Christmas market, choose a city across the border. For fresh air, choose a national park and bring walking shoes.",
+      "The trips run all year. Some castle interiors close in the winter months and many museums close on Mondays, so check the date before you book.",
       "Your chauffeur is a professional driver, not a tour guide: they know the road, where to drop you and where to wait, but they do not lead tours. Entrance tickets, meals and guided tours are not part of the price."
     ]
   },
@@ -111,7 +111,7 @@
   "faqs": [
     {
       "q": "How much does a private day trip from Prague cost?",
-      "a": "It depends on the distance, the car and how long you stay: Kutná Hora is the shortest trip and Český Krumlov the longest. The price is made up of the drive there and back and the chauffeur’s waiting time — the first 15 minutes of waiting are free, and after that waiting is charged for each started 15 minutes. It is for the whole car, and you see the exact total in the booking form before you pay."
+      "a": "Every trip has one price for the whole car, set for each car class and shown on the trip page. It covers the drive there and back, fuel, motorway tolls and the time at the destination included in your booking. You can add extra hours when you book, and you see the exact total before you pay."
     },
     {
       "q": "Is the price per person or per car?",
@@ -119,44 +119,44 @@
     },
     {
       "q": "Does the chauffeur wait and drive us back the same day?",
-      "a": "Yes. The same car and chauffeur take you there, wait near the centre for the time you booked and drive you back to your Prague address. Waiting time is part of the price; if you decide to stay longer on the day, tell the chauffeur and the extra time is charged at the same rate."
+      "a": "Yes. The same car and chauffeur take you there, wait near the centre for the time you booked and drive you back to your Prague address. If you decide to stay longer on the day, tell the chauffeur: extra time is charged only after a person at Prestigo agrees to it."
     },
     {
       "q": "Is a guide included?",
-      "a": "No. The price covers the car and the chauffeur, and the chauffeur does not act as a guide. Tickets and guided tours are booked separately; we are glad to time the day around a guide or a ticket slot you have booked."
+      "a": "No. The price covers the car and the chauffeur, and the chauffeur does not act as a guide. Tickets and guided tours are booked separately; we are glad to help you time the day around a guide or a ticket slot you have booked."
     },
     {
       "q": "Which is the best day trip from Prague?",
-      "a": "Český Krumlov is the most requested and the most striking, but it is the longest day. Kutná Hora is the easiest and fits half a day. Karlovy Vary suits a relaxed day, and Dresden suits visitors who want museums and a second country."
+      "a": "That depends on what you like. Castle towns suit history and photography, spa towns suit a relaxed day, cities across the border suit museums and a second country, and national parks suit walking. Each trip page lists what the day includes."
     },
     {
-      "q": "Can we go somewhere that is not on this list?",
-      "a": "Yes. Tell us the place and the date and we send you the price. For a day with several stops, or a trip of two days or more, write to us and we plan it with you."
+      "q": "Can we go somewhere that is not on this page?",
+      "a": "Yes. Tell us the place and the date and we send you the price. For a day with several stops, a pickup outside Prague, or a trip of two days or more, send a custom tour request and we plan it with you."
     }
   ],
   "related": {
     "label": "Related",
-    "heading": "Choose your day.",
+    "heading": "More ways to travel.",
     "links": [
       {
-        "href": "/services/cesky-krumlov-day-trip",
-        "title": "Český Krumlov day trip",
-        "body": "The castle town in a bend of the Vltava, with the chauffeur waiting while you explore."
+        "href": "/services/intercity-routes",
+        "title": "One-way intercity transfers",
+        "body": "Travelling on to another city? Book the transfer one way."
       },
       {
-        "href": "/services/kutna-hora-day-trip",
-        "title": "Kutná Hora day trip",
-        "body": "The Bone Church and St Barbara’s Cathedral, an hour from Prague."
+        "href": "/services/city-rides",
+        "title": "Chauffeur by the hour",
+        "body": "A car and a driver in Prague for as long as you need."
       },
       {
-        "href": "/services/karlovy-vary-day-trip",
-        "title": "Karlovy Vary day trip",
-        "body": "Colonnades and hot springs, with a stop at Loket Castle on the way."
+        "href": "/services/private-driver-prague",
+        "title": "Private driver in Prague",
+        "body": "One chauffeur for your whole stay."
       },
       {
-        "href": "/services/dresden-day-trip",
-        "title": "Dresden day trip",
-        "body": "Across the border to the Frauenkirche, the Zwinger and the Old Masters."
+        "href": "/services/airport-transfer",
+        "title": "Airport transfer",
+        "body": "Fixed price, flight tracking and a driver waiting at arrivals."
       }
     ]
   },

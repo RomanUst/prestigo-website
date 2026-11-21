@@ -66,6 +66,9 @@ export function bookingEmailDataFromRow(row: BookingRow): BookingEmailData {
     flightNumber: str(row.flight_number) || undefined,
     terminal: str(row.terminal) || undefined,
     specialRequests: str(row.special_requests) || undefined,
+    // Phase 93 (TRIP-04): a tour booking carries its title and extra hours (hours above is included + extra).
+    tourTitle: str(row.tour_title) || undefined,
+    tourExtraHours: num(row.tour_extra_hours),
   }
 }
 

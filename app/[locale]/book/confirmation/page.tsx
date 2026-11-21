@@ -2,7 +2,7 @@
 
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, Suspense } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { consumePurchaseSnapshot } from '@/lib/analytics-snapshot'
@@ -11,6 +11,9 @@ import { Link } from '@/i18n/routing'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { siteLocaleFromPathname } from '@/i18n/locales'
+import { readTourConfirmation, type TourConfirmationSnapshot } from '@/lib/tours/confirmation-snapshot'
+import { formatLocaleDate } from '@/lib/locale-date'
+import { VEHICLE_CLASS_KEY } from '@/types/booking'
 
 // English names for the analytics item (GA4 reports stay in one language); the page itself shows the localized label.
 const VEHICLE_LABELS: Record<string, string> = {
@@ -98,6 +101,187 @@ function generateICSContent(
 }
 
 /**
+ * Phase 93 (plan 93-19; TRIP-04): the calendar file of a tour booking. One event from the pickup time to pickup + the
+ * whole trip: the drive there and back (2 x the tour's one-way minutes, carried in the snapshot; 0 for a snapshot
+ * without it) plus the hours at the destination (included + extra). Location is the pickup address.
+ */
+function buildTourIcs(snap: TourConfirmationSnapshot, summary: string, description: string): string {
+  const totalMinutes = 2 * (snap.driveMinutes ?? 0) + 60 * (snap.hoursIncluded + snap.extraHours)
+  return buildIcs([
+    {
+      uid: `${snap.ref}-tour@prestigo.cz`,
+      date: snap.date,
+      time: snap.time,
+      durationMinutes: totalMinutes,
+      summary,
+      description,
+      location: snap.pickupAddress,
+    },
+  ])
+}
+
+/**
+ * Phase 93 (plan 93-19; UI-SPEC Surface 5): the tour variant of the confirmation. Fed only by the snapshot the tour
+ * checkout wrote (display only); it never reads the wizard store.
+ */
+function TourConfirmation({ snap }: { snap: TourConfirmationSnapshot }) {
+  const t = useTranslations('Booking.confirmation')
+  const tt = useTranslations('Tours.confirmation')
+  const tc = useTranslations('Tours.checkout')
+  const tv = useTranslations('Booking')
+  const locale = useLocale()
+
+  const totalHours = snap.hoursIncluded + snap.extraHours
+  const carLabel = tv(`vehicleClasses.${VEHICLE_CLASS_KEY[snap.carLabelKey]}.label`)
+  const dateLabel = formatLocaleDate(snap.date, locale)
+
+  const handleDownloadICS = () => {
+    const ics = buildTourIcs(
+      snap,
+      tt('icsTitle', { title: snap.title }),
+      `${tc('pickupReturn')}: ${snap.pickupAddress}\nRef: ${snap.ref}`,
+    )
+    const blob = new Blob([ics], { type: 'text/calendar' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${snap.ref}.ics`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const labelClass = 'label'
+  const valueClass = 'mt-1 text-[14px] font-light leading-[1.5] text-offwhite'
+  const steps = [
+    tt('step1'),
+    tt('step2', { date: dateLabel, time: snap.time }),
+    tt('step3', { hours: totalHours }),
+  ]
+  const bdi = (chunks: React.ReactNode) => <bdi dir="ltr">{chunks}</bdi>
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--anthracite)', padding: '64px 0' }}>
+      <div className="max-w-[640px] mx-auto px-4" data-testid="tour-confirmation">
+        <span className="copper-line" style={{ display: 'block', marginBottom: 24 }} />
+        <Link
+          href="/"
+          className="wordmark"
+          style={{ display: 'block', marginBottom: 32, textDecoration: 'none' }}
+          aria-label={t('homeAria')}
+        >
+          <span className="wordmark-presti">PRESTI</span>
+          <span className="wordmark-go">GO</span>
+        </Link>
+
+        <p className="label" style={{ display: 'block', marginBottom: 16 }}>
+          {t('headingBooking')}
+        </p>
+        <h1 className="display" style={{ fontSize: 'clamp(28px, 7vw, 40px)', lineHeight: 1.1, margin: '0 0 16px' }}>
+          {tt('title')}
+        </h1>
+        <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 32 }}>
+          {tt('intro')}
+        </p>
+
+        <section
+          aria-labelledby="tour-ref-label"
+          style={{
+            padding: 16,
+            marginBottom: 32,
+            background: 'var(--anthracite-mid)',
+            borderRadius: 4,
+            borderInlineStart: '3px solid var(--copper)',
+          }}
+        >
+          <span id="tour-ref-label" className="label" style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}>
+            {t('refBooking')}
+          </span>
+          <p style={{ fontFamily: 'var(--font-display, var(--font-cormorant))', fontSize: 24, color: 'var(--offwhite)', margin: 0 }}>
+            <bdi dir="ltr">{snap.ref}</bdi>
+          </p>
+        </section>
+
+        <div style={{ background: 'var(--anthracite-mid)', borderRadius: 4, padding: 24, marginBottom: 32 }}>
+          <h2 className="label" style={{ display: 'block', marginBottom: 16 }}>
+            {snap.title}
+          </h2>
+          <dl style={{ display: 'flex', flexDirection: 'column', gap: 16, margin: 0 }}>
+            <div>
+              <dt className={labelClass}>{tc('date')}</dt>
+              <dd className={valueClass} style={{ margin: 0 }}>{dateLabel}</dd>
+            </div>
+            <div>
+              <dt className={labelClass}>{tc('start')}</dt>
+              <dd className={valueClass} style={{ margin: 0 }}>{tc('startValue', { time: snap.time })}</dd>
+            </div>
+            {snap.passengers !== undefined && (
+              <div>
+                <dt className={labelClass}>{tc('passengers')}</dt>
+                <dd className={valueClass} style={{ margin: 0 }}>{snap.passengers}</dd>
+              </div>
+            )}
+            <div>
+              <dt className={labelClass}>{tc('car')}</dt>
+              <dd className={valueClass} style={{ margin: 0 }}>{carLabel}</dd>
+            </div>
+            <div>
+              <dt className={labelClass}>{tc('timeAtDest')}</dt>
+              <dd className={valueClass} style={{ margin: 0 }}>
+                {tc('included', { hours: snap.hoursIncluded })}
+                {snap.extraHours > 0 ? <span> {tc('extra', { count: snap.extraHours })}</span> : null}
+              </dd>
+            </div>
+            <div>
+              <dt className={labelClass}>{tc('pickupReturn')}</dt>
+              <dd className={valueClass} style={{ margin: 0 }}>
+                <bdi dir="auto">{snap.pickupAddress}</bdi>
+              </dd>
+            </div>
+          </dl>
+          <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, margin: '24px 0 0' }}>
+            {snap.payment === 'cash'
+              ? t.rich('payCash', { amount: snap.amountLabel, bdi })
+              : tt.rich('payCard', { amount: snap.amountLabel, bdi })}
+          </p>
+        </div>
+
+        <section aria-labelledby="tour-next-label" style={{ marginBottom: 32 }}>
+          <h2 id="tour-next-label" className="label" style={{ display: 'block', marginBottom: 16 }}>
+            {tt('next')}
+          </h2>
+          <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {steps.map((text, index) => (
+              <li key={index} style={{ display: 'flex', gap: 16, alignItems: 'baseline' }}>
+                <span
+                  aria-hidden="true"
+                  style={{ fontFamily: 'var(--font-display, var(--font-cormorant))', fontSize: 24, color: 'var(--copper)', minWidth: 36 }}
+                >
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 300, color: 'var(--offwhite)', lineHeight: 1.5 }}>{text}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <div style={{ height: 1, background: 'var(--anthracite-light)', margin: '24px 0' }} role="separator" />
+
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <button type="button" className="btn-ghost" onClick={handleDownloadICS} aria-label={t('calendarAria')}>
+            {tt('addToCalendar')}
+          </button>
+          <Link href="/services/day-trips-from-prague" className="btn-secondary" style={{ textDecoration: 'none' }}>
+            {tt('seeOther')}
+          </Link>
+        </div>
+
+        <span className="copper-line" style={{ display: 'block', marginTop: 48 }} />
+      </div>
+    </div>
+  )
+}
+
+/**
  * Validates a booking/quote reference against the expected format.
  * Accepts both the current hex suffix (PRG-YYYYMMDD-AB12CD) and the
  * legacy numeric suffix (PRG-YYYYMMDD-1234) for backward compatibility.
@@ -140,8 +324,20 @@ function ConfirmationContent() {
     setNotice(readConfirmationNotice(ref))
   }, [ref, isQuote])
 
+  // Phase 93 (TRIP-04): a booking made through the tour checkout leaves a display snapshot (sessionStorage, not one-shot).
+  // It is read after mount (storage is client-only); until it has been looked up the analytics / reset effect waits.
+  const [tour, setTour] = useState<TourConfirmationSnapshot | null>(null)
+  const [tourChecked, setTourChecked] = useState(false)
   useEffect(() => {
-    // Capture the latest state before we reset the store.
+    setTour(ref && !isQuote ? readTourConfirmation(ref) : null)
+    setTourChecked(true)
+  }, [ref, isQuote])
+
+  useEffect(() => {
+    if (!tourChecked) return
+    // Capture the latest state before we reset the store. A tour booking never uses it (it may hold an earlier visitor's
+    // wizard data): its purchase comes from the snapshot the payment stage wrote and no wizard contact data is sent.
+    const isTour = tour !== null
     const snap = useBookingStore.getState()
     storeRef.current = snap
 
@@ -171,6 +367,10 @@ function ConfirmationContent() {
         totalEur = purchaseSnapshot.value
         currency = purchaseSnapshot.currency
         items = purchaseSnapshot.items
+      } else if (isTour) {
+        totalEur = 0
+        currency = 'EUR'
+        items = [{ item_id: 'tour', item_name: 'Day trip', item_category: 'tour', item_variant: 'tour', price: 0, quantity: 1 }]
       } else {
         // Fallback: reconstruct from the Zustand store (used for the quote
         // flow and as a safety net if sessionStorage is unavailable).
@@ -243,10 +443,10 @@ function ConfirmationContent() {
             event_name: 'Purchase',
             event_id: ref,
             url: window.location.href,
-            email: snap.passengerDetails?.email,
-            first_name: snap.passengerDetails?.firstName,
-            last_name: snap.passengerDetails?.lastName,
-            phone: snap.passengerDetails?.phone,
+            email: isTour ? undefined : snap.passengerDetails?.email,
+            first_name: isTour ? undefined : snap.passengerDetails?.firstName,
+            last_name: isTour ? undefined : snap.passengerDetails?.lastName,
+            phone: isTour ? undefined : snap.passengerDetails?.phone,
             custom_data: {
               value: totalEur,
               currency,
@@ -262,7 +462,7 @@ function ConfirmationContent() {
     }
 
     resetBooking()
-  }, [resetBooking, ref, isQuote])
+  }, [resetBooking, ref, isQuote, tourChecked, tour])
 
   const { origin, destination, pickupDate, pickupTime, vehicleClass, passengers, hours, tripType, returnDate, returnTime } =
     storeRef.current
@@ -323,6 +523,8 @@ function ConfirmationContent() {
       )}
     </div>
   ) : null
+
+  if (ref && tour) return <TourConfirmation snap={tour} />
 
   if (!ref) {
     return (

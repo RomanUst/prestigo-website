@@ -182,7 +182,7 @@ describe('needsReplace (lead 72 h)', () => {
 
 describe('lib/payments/config exports the engine constants (plan contract)', () => {
   it('has the documented values', () => {
-    expect(config.CARD_FLOW_TRIP_TYPES).toEqual(['transfer', 'hourly'])
+    expect(config.CARD_FLOW_TRIP_TYPES).toEqual(['transfer', 'hourly', 'tour'])
     expect(config.MIN_BOOKING_LEAD_MS).toBe(12 * H)
     expect(config.RETRY_DELAY_MS).toBe(12 * H)
     expect(config.RETRY_MIN_GAP_MS).toBe(1 * H)

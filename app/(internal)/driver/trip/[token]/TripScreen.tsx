@@ -57,6 +57,8 @@ export interface TripScreenProps {
     freeWaitUntil: string | null
     /** Phase 91 (STOP-04): the stops in order, with the wait at each; never a fee. */
     stops: Array<{ position: number; address: string; waitMinutes: number; lat: number | null; lng: number | null }>
+    /** Phase 93 (TRIP-04): a day trip (trip_type 'tour'); absent for every other booking. The drop-off is the destination, the return is the pickup. */
+    tour?: { title: string; hoursText: string | null } | null
   }
   initialNote: string | null
   /** D-15: server-computed unlock instant and the open request (both null outside on_location). */
@@ -667,6 +669,19 @@ export default function TripScreen({ token, view, trip, initialNote, noShow, cas
           </div>
           <StatusBadge variant={badgeVariant} label={statusLabel(view.status)} />
         </div>
+
+        {trip.tour ? (
+          <div data-testid="driver-tour-line" style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 500, lineHeight: 1.5, color: 'var(--admin-text)', overflowWrap: 'anywhere' }}>
+              {trip.tour.title}
+            </p>
+            {trip.tour.hoursText ? (
+              <p style={{ margin: 0, fontSize: 'var(--driver-fs-label)', fontWeight: 400, lineHeight: 1.4, color: 'var(--admin-text-muted)' }}>
+                {`${trip.tour.hoursText}. Return to the pickup address.`}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
 
         <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column' }}>
           <AddressRow

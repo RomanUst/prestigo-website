@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Excursiones privadas de un día desde Praga: coche con chófer",
-    "description": "Excursiones privadas de un día desde Praga en un Mercedes con su propio chófer: Český Krumlov, Kutná Hora, Karlovy Vary y Dresde. Recogida en el hotel, el chófer le espera y un solo precio por coche.",
+    "description": "Excursiones privadas de un día desde Praga en un Mercedes con su propio chófer: castillos, ciudades balneario, cascos antiguos y parques nacionales. Recogida en el hotel, el chófer le espera y un solo precio por coche.",
     "ogTitle": "Excursiones privadas de un día desde Praga con su propio chófer"
   },
   "breadcrumbName": "Excursiones de un día desde Praga",
@@ -9,7 +9,7 @@
     "label": "Excursiones privadas de un día · Praga",
     "headlineLine1": "Excursiones de un día desde Praga.",
     "headlineItalic": "Su coche, su horario.",
-    "intro": "Excursiones privadas de un día desde Praga en un Mercedes con chófer: le recogemos en su hotel, le llevamos a Český Krumlov, Kutná Hora, Karlovy Vary o Dresde y le traemos de vuelta el mismo día, mientras el coche le espera.",
+    "intro": "Excursiones privadas de un día desde Praga en un Mercedes con chófer: le recogemos en su hotel, le llevamos a un castillo, a una ciudad balneario o a un parque nacional y le traemos de vuelta el mismo día, mientras el coche le espera.",
     "ctaPrimary": "Reservar una excursión",
     "ctaSecondary": "Hacer una pregunta",
     "imageAlt": "Mercedes en una autopista saliendo de Praga para una excursión de un día"
@@ -18,8 +18,8 @@
     "label": "De un vistazo",
     "items": [
       {
-        "label": "Destinos",
-        "value": "Český Krumlov, Kutná Hora, Karlovy Vary, Dresde"
+        "label": "Dónde",
+        "value": "Castillos, ciudades balneario, cascos antiguos y parques nacionales, cada uno en su propia página más abajo"
       },
       {
         "label": "Precio",
@@ -31,7 +31,7 @@
       },
       {
         "label": "Incluido",
-        "value": "Recogida en el hotel, el trayecto de ida y de vuelta, combustible y peajes de autopista"
+        "value": "Recogida en el hotel, el trayecto de ida y de vuelta, combustible, peajes de autopista y tiempo en el destino"
       }
     ]
   },
@@ -39,31 +39,31 @@
     "headingLine1": "Una excursión privada de un día:",
     "headingItalic": "qué es y qué no es.",
     "paragraphs": [
-      "Una excursión privada de un día es algo sencillo: un coche y un chófer solo para su grupo. Le recogemos en su dirección en Praga, le llevamos a la ciudad que haya elegido, le dejamos visitarla el tiempo que quiera y le traemos de vuelta a la misma puerta.",
-      "No es un tour en grupo. No hay autocar, ni cuatro horas fijas en la ciudad, ni esperas por otras personas. Tampoco es una visita guiada: su chófer conduce y espera, y usted recorre la ciudad por su cuenta o con un guía local que reserve usted mismo.",
+      "Una excursión privada de un día es algo sencillo: un coche y un chófer solo para su grupo. Le recogemos en su dirección en Praga, le llevamos al lugar que haya elegido, le dejamos visitarlo a su ritmo y le traemos de vuelta a la misma puerta.",
+      "No es un tour en grupo. No hay autocar, ni un tiempo fijo en la ciudad, ni esperas por otras personas. Tampoco es una visita guiada: su chófer conduce y espera, y usted recorre el lugar por su cuenta o con un guía local que reserve usted mismo.",
       "El precio es por coche, así que es el mismo para un pasajero que para seis en un V-Class."
     ]
   },
   "features": {
-    "label": "Cuatro excursiones de un día",
-    "headingLine1": "Adónde puede llevarle",
-    "headingItalic": "un solo día.",
+    "label": "Excursiones de un día",
+    "headingLine1": "Cómo funciona",
+    "headingItalic": "un día.",
     "items": [
       {
-        "title": "Český Krumlov: unas 2,5 horas",
-        "body": "Una ciudad con castillo, Patrimonio Mundial de la UNESCO, en un meandro del Moldava, y la excursión que más piden los visitantes."
+        "title": "Un precio por coche",
+        "body": "Cada excursión tiene un solo precio para todo el coche, que se muestra en su página y completo antes de pagar. Cubre el trayecto de ida y vuelta, el combustible y los peajes de autopista."
       },
       {
-        "title": "Kutná Hora: alrededor de 1 hora",
-        "body": "La iglesia de los huesos y la catedral de Santa Bárbara, en medio día."
+        "title": "El tiempo en el destino está incluido",
+        "body": "Cada excursión incluye tiempo en el destino, que se muestra en su página. Si desea más, añada horas extra al reservar."
       },
       {
-        "title": "Karlovy Vary: alrededor de 1 hora y 45 minutos",
-        "body": "Columnatas, fuentes termales y el Grandhotel Pupp, con una parada opcional en el castillo de Loket."
+        "title": "Recogida y regreso en su dirección de Praga",
+        "body": "Su chófer le recoge en su hotel o apartamento y le trae de vuelta a la misma puerta."
       },
       {
-        "title": "Dresde: unas 2 horas",
-        "body": "Al otro lado de la frontera alemana: la Frauenkirche, el Zwinger y los Maestros Antiguos."
+        "title": "Elija el tipo de día que le gusta",
+        "body": "Castillos, ciudades balneario, cascos antiguos, ciudades al otro lado de la frontera o caminatas en un parque nacional: la página de cada excursión le cuenta cómo es el día."
       },
       {
         "title": "El chófer le espera",
@@ -80,8 +80,8 @@
     "heading": "Reservar una excursión de un día en cuatro pasos.",
     "items": [
       {
-        "title": "Envíenos el plan",
-        "body": "Indique la fecha, su dirección en Praga, la ciudad y cuánto tiempo desea quedarse, en el formulario de reserva o en un mensaje. Basta con un esquema aproximado del día."
+        "title": "Elija una excursión",
+        "body": "Abra la excursión que le guste y elija la fecha, la hora de inicio y el número de pasajeros. Verá los coches que se ajustan a su grupo."
       },
       {
         "title": "Elija el coche",
@@ -93,7 +93,7 @@
       },
       {
         "title": "Tómese su tiempo",
-        "body": "El chófer espera cerca del centro durante el tiempo que usted reservó. Si ese día desea quedarse más tiempo, dígaselo al chófer: la espera adicional se cobra con la misma tarifa."
+        "body": "El chófer espera cerca del centro durante el tiempo que usted reservó. Si ese día desea quedarse más tiempo, dígaselo al chófer: el tiempo adicional solo se cobra después de que una persona de Prestigo lo apruebe."
       }
     ]
   },
@@ -102,8 +102,8 @@
     "headingLine1": "Qué excursión",
     "headingItalic": "le conviene.",
     "paragraphs": [
-      "Si solo dispone de medio día, elija Kutná Hora: una hora por trayecto y tres o cuatro horas allí. Si tiene un día completo y quiere una ciudad inolvidable, elija Český Krumlov y salga temprano. Para un día más pausado de paseos, café y aguas termales, elija Karlovy Vary. Para museos, arquitectura o el mercado de Navidad de diciembre, elija Dresde.",
-      "Las cuatro se hacen todo el año. Los interiores del castillo de Český Krumlov cierran en los meses de invierno y muchos museos de Dresde cierran los lunes, así que compruebe la fecha antes de reservar.",
+      "Elija según el tipo de día que desea. Para una excursión corta que cabe en una mañana o una tarde libres, busque los lugares más cercanos a Praga. Para una ciudad inolvidable, elija una ciudad con castillo y salga temprano. Para un día más pausado de paseos, café y aguas termales, elija una ciudad balneario. Para museos, arquitectura o un mercado de Navidad, elija una ciudad al otro lado de la frontera. Para aire libre, elija un parque nacional y lleve calzado de marcha.",
+      "Las excursiones se hacen todo el año. Algunos interiores de castillos cierran en los meses de invierno y muchos museos cierran los lunes, así que compruebe la fecha antes de reservar.",
       "Su chófer es un conductor profesional, no un guía turístico: conoce la carretera, dónde dejarle y dónde esperar, pero no hace visitas guiadas. Las entradas, las comidas y las visitas guiadas no están incluidas en el precio."
     ]
   },
@@ -111,7 +111,7 @@
   "faqs": [
     {
       "q": "¿Cuánto cuesta una excursión privada de un día desde Praga?",
-      "a": "Depende de la distancia, del coche y de cuánto tiempo se quede: Kutná Hora es la excursión más corta y Český Krumlov la más larga. El precio se compone del trayecto de ida y vuelta y del tiempo de espera del chófer: los primeros 15 minutos de espera son gratuitos y, después, la espera se cobra por cada 15 minutos iniciados. Es por el coche completo, y verá el total exacto en el formulario de reserva antes de pagar."
+      "a": "Cada excursión tiene un solo precio para todo el coche, fijado para cada categoría de coche y mostrado en la página de la excursión. Cubre el trayecto de ida y vuelta, el combustible, los peajes de autopista y el tiempo en el destino incluido en su reserva. Puede añadir horas extra al reservar, y verá el total exacto antes de pagar."
     },
     {
       "q": "¿El precio es por persona o por coche?",
@@ -119,44 +119,44 @@
     },
     {
       "q": "¿El chófer nos espera y nos lleva de vuelta el mismo día?",
-      "a": "Sí. El mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro durante el tiempo que usted reservó y le traen de vuelta a su dirección en Praga. El tiempo de espera forma parte del precio; si ese día decide quedarse más tiempo, dígaselo al chófer y el tiempo adicional se cobra con la misma tarifa."
+      "a": "Sí. El mismo coche y el mismo chófer le llevan hasta allí, esperan cerca del centro durante el tiempo que usted reservó y le traen de vuelta a su dirección en Praga. Si ese día decide quedarse más tiempo, dígaselo al chófer: el tiempo adicional solo se cobra después de que una persona de Prestigo lo apruebe."
     },
     {
       "q": "¿Está incluido un guía?",
-      "a": "No. El precio cubre el coche y el chófer, y el chófer no hace de guía. Las entradas y las visitas guiadas se reservan aparte; con mucho gusto organizamos el día en torno al guía o a la franja horaria de la entrada que usted haya reservado."
+      "a": "No. El precio cubre el coche y el chófer, y el chófer no hace de guía. Las entradas y las visitas guiadas se reservan aparte; con mucho gusto le ayudamos a organizar el día en torno al guía o a la franja horaria de la entrada que usted haya reservado."
     },
     {
       "q": "¿Cuál es la mejor excursión de un día desde Praga?",
-      "a": "Český Krumlov es la más solicitada y la más espectacular, pero también la jornada más larga. Kutná Hora es la más fácil y cabe en medio día. Karlovy Vary es ideal para un día tranquilo, y Dresde para quienes buscan museos y un segundo país."
+      "a": "Depende de lo que le guste. Las ciudades con castillo son ideales para la historia y la fotografía, las ciudades balneario para un día tranquilo, las ciudades al otro lado de la frontera para museos y un segundo país, y los parques nacionales para caminar. La página de cada excursión indica qué incluye el día."
     },
     {
-      "q": "¿Podemos ir a un lugar que no esté en esta lista?",
-      "a": "Sí. Indíquenos el lugar y la fecha y le enviamos el precio. Para un día con varias paradas, o un viaje de dos días o más, escríbanos y lo planificamos con usted."
+      "q": "¿Podemos ir a un lugar que no esté en esta página?",
+      "a": "Sí. Indíquenos el lugar y la fecha y le enviamos el precio. Para un día con varias paradas, una recogida fuera de Praga o un viaje de dos días o más, envíe una solicitud de tour a medida y lo planificamos con usted."
     }
   ],
   "related": {
     "label": "Relacionado",
-    "heading": "Elija su día.",
+    "heading": "Más formas de viajar.",
     "links": [
       {
-        "href": "/services/cesky-krumlov-day-trip",
-        "title": "Excursión de un día a Český Krumlov",
-        "body": "La ciudad del castillo en un meandro del Moldava, con el chófer esperando mientras usted la recorre."
+        "href": "/services/intercity-routes",
+        "title": "Traslados de ida entre ciudades",
+        "body": "¿Sigue su camino a otra ciudad? Reserve el traslado solo de ida."
       },
       {
-        "href": "/services/kutna-hora-day-trip",
-        "title": "Excursión de un día a Kutná Hora",
-        "body": "La iglesia de los huesos y la catedral de Santa Bárbara, a una hora de Praga."
+        "href": "/services/city-rides",
+        "title": "Chófer por horas",
+        "body": "Un coche y un conductor en Praga durante el tiempo que necesite."
       },
       {
-        "href": "/services/karlovy-vary-day-trip",
-        "title": "Excursión de un día a Karlovy Vary",
-        "body": "Columnatas y fuentes termales, con una parada en el castillo de Loket por el camino."
+        "href": "/services/private-driver-prague",
+        "title": "Conductor privado en Praga",
+        "body": "Un solo chófer para toda su estancia."
       },
       {
-        "href": "/services/dresden-day-trip",
-        "title": "Excursión de un día a Dresde",
-        "body": "Al otro lado de la frontera: la Frauenkirche, el Zwinger y los Maestros Antiguos."
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto",
+        "body": "Precio fijo, seguimiento del vuelo y un conductor esperándole en llegadas."
       }
     ]
   },

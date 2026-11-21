@@ -19,6 +19,7 @@ import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import ReverseRouteLink from '@/components/ReverseRouteLink'
 import HeroRating from '@/components/HeroRating'
+import RouteTourLink from '@/components/tours/RouteTourLink'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -304,6 +305,7 @@ export default async function PragueKarlovyVaryPage({ params }: { params: Promis
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
             {content.dayTrip.footnote}
           </p>
+          <RouteTourLink locale={locale} routeSlug="prague-karlovy-vary" />
         </div>
       </section>
 
