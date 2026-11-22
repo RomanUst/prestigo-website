@@ -28,7 +28,7 @@ export const BOOKING_STATUS_VALUES = [
 ]
 export const BOOKING_SOURCE_VALUES = ['online', 'manual', 'gnet']
 export const VEHICLE_CLASS_VALUES = ['business', 'first_class', 'business_van']
-export const TRIP_TYPE_VALUES = ['transfer', 'hourly', 'daily', 'round_trip']
+export const TRIP_TYPE_VALUES = ['transfer', 'hourly', 'daily', 'round_trip', 'tour']
 export const LEG_VALUES = ['', 'outbound', 'return']
 export const PAYMENT_METHOD_VALUES = ['Stripe', 'Invoice', 'Cash', 'Other']
 

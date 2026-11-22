@@ -1,0 +1,149 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildTourJsonLd > snapshot with priceValidUntil normalized 1`] = `
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@id": "https://rideprestigo.com/#business",
+      "@type": [
+        "LocalBusiness",
+        "TaxiService",
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "CZ",
+        "addressLocality": "Vysoký Újezd",
+        "addressRegion": "Central Bohemian Region",
+        "postalCode": "252 16",
+        "streetAddress": "Spojovací 685",
+      },
+      "image": "https://rideprestigo.com/og-image.jpg",
+      "logo": {
+        "@type": "ImageObject",
+        "height": 512,
+        "url": "https://rideprestigo.com/logo.png",
+        "width": 512,
+      },
+      "name": "PRESTIGO",
+      "priceRange": "€€€",
+      "telephone": "+420725986855",
+      "url": "https://rideprestigo.com",
+    },
+    {
+      "@id": "https://rideprestigo.com/services/dresden-day-trip#trip",
+      "@type": "TouristTrip",
+      "description": "A private day trip to Dresden.",
+      "image": "https://img/x.jpg",
+      "inLanguage": "en",
+      "itinerary": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "name": "Pickup in Prague",
+            "position": 1,
+          },
+          {
+            "@type": "ListItem",
+            "name": "Frauenkirche",
+            "position": 2,
+          },
+          {
+            "@type": "ListItem",
+            "name": "Return to Prague",
+            "position": 3,
+          },
+        ],
+      },
+      "name": "Dresden Day Trip",
+      "offers": [
+        {
+          "@type": "Offer",
+          "availability": "https://schema.org/InStock",
+          "name": "Mercedes E-Class — Business",
+          "price": "400",
+          "priceCurrency": "EUR",
+          "priceValidUntil": "<DATE>",
+          "url": "https://rideprestigo.com/services/dresden-day-trip#e-class",
+        },
+        {
+          "@type": "Offer",
+          "availability": "https://schema.org/InStock",
+          "name": "Mercedes S-Class — First Class",
+          "price": "520.5",
+          "priceCurrency": "EUR",
+          "priceValidUntil": "<DATE>",
+          "url": "https://rideprestigo.com/services/dresden-day-trip#s-class",
+        },
+        {
+          "@type": "Offer",
+          "availability": "https://schema.org/InStock",
+          "name": "Mercedes V-Class — Business Van",
+          "price": "560",
+          "priceCurrency": "EUR",
+          "priceValidUntil": "<DATE>",
+          "url": "https://rideprestigo.com/services/dresden-day-trip#v-class",
+        },
+      ],
+      "provider": {
+        "@id": "https://rideprestigo.com/#business",
+      },
+      "url": "https://rideprestigo.com/services/dresden-day-trip",
+    },
+    {
+      "@id": "https://rideprestigo.com/services/dresden-day-trip#faq",
+      "@type": "FAQPage",
+      "inLanguage": "en",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No, your chauffeur is not a guide.",
+          },
+          "name": "Is a guide included?",
+        },
+        {
+          "@type": "Question",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, at booking.",
+          },
+          "name": "Can I add time?",
+        },
+      ],
+    },
+    {
+      "@id": "https://rideprestigo.com/services/dresden-day-trip#breadcrumb",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "item": "https://rideprestigo.com",
+          "name": "Home",
+          "position": 1,
+        },
+        {
+          "@type": "ListItem",
+          "item": "https://rideprestigo.com/services",
+          "name": "Services",
+          "position": 2,
+        },
+        {
+          "@type": "ListItem",
+          "item": "https://rideprestigo.com/services/day-trips-from-prague",
+          "name": "Day trips from Prague",
+          "position": 3,
+        },
+        {
+          "@type": "ListItem",
+          "item": "https://rideprestigo.com/services/dresden-day-trip",
+          "name": "Dresden Day Trip",
+          "position": 4,
+        },
+      ],
+    },
+  ],
+}
+`;

@@ -144,6 +144,9 @@ interface PriceReviewState {
   errorMessage: string | null
 }
 
+// Phase 93 (Pitfall 4): same wording as the server's TOUR_PRICE_FIXED answer (93-06).
+const TOUR_PRICE_NOTE = 'Tour prices are fixed. Use Override price to change this booking.'
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const editInputStyle: React.CSSProperties = {
@@ -247,6 +250,8 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
   )
   const [priceReview, setPriceReview] = useState<PriceReviewState | null>(null)
   const hasStops = (booking.stops?.length ?? 0) > 0
+  // Phase 93 (Pitfall 4): a day trip has a fixed price; no standard rate exists to recompute, only an operator override.
+  const isTour = booking.trip_type === 'tour'
   const landingHint = landingPickupHint(booking)
   // Phase 88: what the edit did to the card payment (price raised / lowered, hold released).
   const [paymentNote, setPaymentNote] = useState<string | null>(null)
@@ -315,6 +320,15 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
   // trigger a client round trip to POST /api/calculate-price for a fresh
   // preview price before opening the price-review step.
   const openPriceReview = useCallback(async (trigger: 'vehicle' | 'route') => {
+    if (isTour) {
+      // No /api/calculate-price round trip: the fixed price is shown read-only until the operator ticks Override price.
+      setPriceReview({
+        trigger, status: 'ready', oldAmountCzk: booking.amount_czk, newAmountCzk: booking.amount_czk,
+        distanceKm: null, overrideValue: String(booking.amount_czk), overrideActive: false, overrideAcknowledged: false,
+        notifyClient: false, mismatch: null, errorMessage: null,
+      })
+      return
+    }
     setPriceReview({
       trigger, status: 'loading', oldAmountCzk: booking.amount_czk, newAmountCzk: null,
       distanceKm: null, overrideValue: '', overrideActive: false, overrideAcknowledged: false,
@@ -363,7 +377,7 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
     } catch {
       setPriceReview(prev => prev ? { ...prev, status: 'error', errorMessage: 'Price calculation failed.' } : prev)
     }
-  }, [booking, hasStops, originPlace, destinationPlace, vehicleClass, fields.pickup_date, fields.pickup_time])
+  }, [booking, isTour, hasStops, originPlace, destinationPlace, vehicleClass, fields.pickup_date, fields.pickup_time])
 
   const confirmPriceReview = useCallback(async () => {
     if (!priceReview) return
@@ -416,7 +430,7 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
   }, [priceReview, booking.id, booking.vehicle_class, vehicleClass, originPlace, destinationPlace, patchBooking, onUpdated])
 
   const confirmDisabled = priceReview
-    ? priceReview.status === 'saving' || (!!priceReview.mismatch && !priceReview.overrideAcknowledged)
+    ? priceReview.status === 'saving' || (!!priceReview.mismatch && !priceReview.overrideAcknowledged) || (isTour && !priceReview.overrideActive)
     : true
 
   return (
@@ -667,11 +681,33 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
 
                   {priceReview.newAmountCzk !== null && (
                     <>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16, fontSize: 13, fontFamily: 'var(--font-montserrat)' }}>
-                        <span style={{ color: 'var(--warmgrey)' }}>{priceReview.oldAmountCzk} CZK</span>
-                        <span style={{ color: 'var(--warmgrey)' }}>→</span>
-                        <span style={{ color: 'var(--copper)', fontWeight: 500 }}>{priceReview.newAmountCzk} CZK</span>
-                      </div>
+                      {!isTour && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 16, fontSize: 13, fontFamily: 'var(--font-montserrat)' }}>
+                          <span style={{ color: 'var(--warmgrey)' }}>{priceReview.oldAmountCzk} CZK</span>
+                          <span style={{ color: 'var(--warmgrey)' }}>→</span>
+                          <span style={{ color: 'var(--copper)', fontWeight: 500 }}>{priceReview.newAmountCzk} CZK</span>
+                        </div>
+                      )}
+
+                      {isTour && (
+                        <>
+                          <div data-testid="tour-price-note" style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)', marginTop: 16 }}>
+                            {TOUR_PRICE_NOTE}
+                          </div>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, cursor: 'pointer' }}>
+                            <input
+                              type="checkbox"
+                              checked={priceReview.overrideActive}
+                              onChange={(e) => setPriceReview(prev => prev ? {
+                                ...prev,
+                                overrideActive: e.target.checked,
+                                overrideValue: e.target.checked ? prev.overrideValue : String(booking.amount_czk),
+                              } : prev)}
+                            />
+                            <span style={{ fontSize: 13, fontFamily: 'var(--font-montserrat)', color: 'var(--offwhite)' }}>Override price</span>
+                          </label>
+                        </>
+                      )}
 
                       {booking.payment_mode === 'card_hold' && (
                         <div data-testid="card-price-note" style={{ fontSize: 11, fontFamily: 'var(--font-montserrat)', color: 'var(--warmgrey)', marginTop: 8 }}>
@@ -701,6 +737,8 @@ export function TripEditPanel({ booking, patchBooking, onUpdated, onEditOpenChan
                         <input
                           type="number"
                           value={priceReview.overrideValue}
+                          readOnly={isTour && !priceReview.overrideActive}
+                          aria-readonly={isTour && !priceReview.overrideActive ? true : undefined}
                           onChange={(e) => setPriceReview(prev => prev ? { ...prev, overrideValue: e.target.value, overrideActive: true } : prev)}
                           style={editInputStyle}
                           onFocus={editFocusOn}

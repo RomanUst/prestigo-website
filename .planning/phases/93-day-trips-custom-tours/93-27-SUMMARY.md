@@ -1,0 +1,80 @@
+---
+phase: 93-day-trips-custom-tours
+plan: 27
+subsystem: tours-content
+tags: [tours, seed, content, zh, zh-hant, i18n]
+requires: ["93-21", "93-22", "93-23", "93-24", "93-25", "93-26"]
+provides:
+  - "content/tours-seed/zh/{6 slugs}.json: complete Simplified Chinese launch content (source of zh-hant)"
+  - "zh and zh-hant hub and terms updated for the fixed-price + hours-included model"
+  - "tests/tour-seed.test.ts: 6 x 8 completeness proof over the whole seed tree"
+affects: [93-28]
+key-files:
+  created:
+    - content/tours-seed/zh/dresden-day-trip.json
+    - content/tours-seed/zh/cesky-krumlov-day-trip.json
+    - content/tours-seed/zh/kutna-hora-day-trip.json
+    - content/tours-seed/zh/karlovy-vary-day-trip.json
+    - content/tours-seed/zh/karlstejn-day-trip.json
+    - content/tours-seed/zh/bohemian-switzerland-day-trip.json
+  modified:
+    - content/pages/zh/services/day-trips-from-prague.json
+    - content/pages/zh/terms.json
+    - content/pages/zh-hant/services/day-trips-from-prague.json
+    - content/pages/zh-hant/terms.json
+    - tests/tour-seed.test.ts
+decisions:
+  - "The day-trip terms sentence was appended to section4.items[1].desc (the late-cancellation item) in zh, so no key or array length changed; zh-hant carries it through scripts/zh-hant-sync.mjs. The sentence has no digit."
+  - "Place names follow the existing zh pages: capital-K Czech town as 捷克克鲁姆洛夫, plus 库特纳霍拉, 卡罗维发利, 德累斯顿; Karlstejn as 卡尔施泰因, Hrensko as 赫热恩斯科, Prave brana as 普拉夫契采拱门."
+metrics:
+  completed: 2026-11-18
+status: complete
+commits: 3
+plan_head_before: 6ae92cbba366f9b7700fe7aceddf7dd6133d3622
+plan_head_after: 52bfaf39bfec001133cc908b6a906646b02c5edc
+actuals:
+  tokens: 40000
+  tasks: 3
+  commits: 3
+---
+
+# Phase 93 Plan 27: Simplified Chinese tour content and 6 x 8 proof Summary
+
+Six Simplified Chinese tour files translated in-session from the EN seed, the zh hub and terms updated, zh-hant regenerated mechanically, and a test proving all six tours are complete in all eight locales.
+
+## What was built
+
+- **Task 1 (tracer)** - six `content/tours-seed/zh/*.json` files, every field translated, facts identical to the EN source: no prices, no hours or cancellation numbers, chauffeur is not a guide, tickets and guides excluded, itinerary starts with the pickup and ends with the return to the same address. Commit `48bfd243`.
+- **Task 2** - zh hub: metadata.description, hero.intro, glance items[0] and [3], intro paragraphs 0 and 1, features (label, heading and items 0-3), steps items[0] and [3], editorial paragraphs 0 and 1, faqs 0, 2, 3, 4, 5, related (heading and all four links, now service pages). zh terms: the day-trip sentence appended to the late-cancellation item. `node scripts/zh-hant-sync.mjs` regenerated zh-hant. Commit `802b36c6`.
+- **Task 3** - test "yields 6 x 8" in `tests/tour-seed.test.ts`: `buildSeedRows(loadSeedTours(root), { locales })` with the locale list from `i18n/locales.ts` gives 6 tour rows and 48 translation rows, every one present, complete, no leak, no overflow; every zh-hant row is the opencc conversion of its zh row and no `content/tours-seed/zh-hant` folder exists. Commit `52bfaf39`.
+
+## Deviations from Plan
+
+**1. zh-hant-sync side effect cleaned up (as instructed by the orchestrator).** The script generated three untracked files whose zh sources have no committed zh-hant version: `content/blog/zh-hant/bohemian-crystal-day-trip.mdx`, `content/blog/zh-hant/prague-airport-to-karlovy-vary-spa-transfer.mdx`, `content/blog/zh-hant/prague-airport-transfer-christmas-new-year.mdx`. Deleted by name, not committed. `git diff --stat -- content/blog content/routes messages` is empty; the only zh-hant changes are the hub and terms.
+
+**2. Task 1 inline fix.** An English fragment ("local road") slipped into the Kutna Hora itinerary on first write and was replaced with Chinese before the commit.
+
+Otherwise the plan was executed as written. Task 3 required no edit of another plan's content: all eight locales were already complete.
+
+## Verification
+
+- `npx vitest run --exclude '.claude/**' tests/tour-seed.test.ts tests/tour-seed-content.test.ts` - 239 passed.
+- Also green (8 files, 972 tests): i18n-completeness, landing-change, content-locale-parity, legal, public-cancellation-wording, seo-snippets-no-prices, tour-seed, tour-seed-content.
+- All six zh JSON files parse; Dresden zh title contains Han script; `content/tours-seed/zh-hant` does not exist.
+- `npx tsc --noEmit`: 8 errors, the known baseline in `tests/`, none in files touched here. `npx eslint --quiet tests/tour-seed.test.ts` clean.
+
+## Known Stubs
+
+None.
+
+## Threat Flags
+
+None. T-93-85 mitigated: the same content test as EN runs on zh (no amounts, waiting model, scarcity, rating or ride-hailing wording), zh-hant is generated mechanically, and the 6 x 8 test passes.
+
+## Notes for 93-28
+
+The content precondition of the seed is met: 6 tours x 8 locales, all complete, zh-hant generated by `buildSeedRows` from zh. The `node_modules` symlink in this worktree is not committed.
+
+## Self-Check: PASSED
+
+- Six zh seed files exist; commits 48bfd243, 802b36c6, 52bfaf39 exist; `git rev-list --count 6ae92cbb..HEAD` = 3 before this SUMMARY.

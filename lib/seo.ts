@@ -26,6 +26,8 @@
  *                                 model (e.g. /book) — all locales are
  *                                 assumed valid since UI chrome is already
  *                                 externalized via message catalogs.
+ *   opts.availableLocales      -> Phase 93: explicit locale list for DB-backed
+ *                                 pages (tours); replaces the `content` probe.
  *
  * Every locale URL is resolved through the i18n/routing navigation bridge's
  * getPathname() — never hand-rolled `${locale}${path}` string concatenation.
@@ -72,6 +74,13 @@ interface GetAlternatesOpts {
    * app/sitemap.ts, which never passes `locale` — sees no change at all.
    */
   locale?: string
+  /**
+   * Phase 93: explicit list of locales that have genuine content for this page (a DB-backed page such as a
+   * tour, whose per-locale completeness lives in the database, not on the filesystem). When present it
+   * replaces the `content` filesystem probe. 'en' is always included; x-default stays the EN URL; the
+   * self-referencing canonical applies only to a listed locale.
+   */
+  availableLocales?: readonly string[]
 }
 
 // One module-level constant per content kind, each a literal
@@ -137,9 +146,12 @@ export function getAlternates(
   // D-07: only locales with a genuine translation (or 'en', the canonical
   // source locale) join the cluster. No content ref supplied -> chrome-only
   // page, all locales assumed valid (UI chrome is already externalized).
-  const availableLocales: readonly AppLocale[] = opts.content
-    ? routing.locales.filter((locale) => locale === 'en' || hasLocaleContent(opts.content!, locale))
-    : routing.locales
+  const explicit = opts.availableLocales
+  const availableLocales: readonly AppLocale[] = explicit
+    ? routing.locales.filter((locale) => locale === 'en' || explicit.includes(locale))
+    : opts.content
+      ? routing.locales.filter((locale) => locale === 'en' || hasLocaleContent(opts.content!, locale))
+      : routing.locales
 
   const href = normPath === '' ? '/' : canonicalPath
   const languages: Record<string, string> = {}

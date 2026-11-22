@@ -83,7 +83,7 @@ const FIXTURES: Array<[string, CrmBookingRecord]> = [
   ...['business', 'first_class', 'business_van'].map(
     (vehicle) => [`vehicle ${vehicle}`, row({ vehicle_class: vehicle })] as [string, CrmBookingRecord],
   ),
-  ...['transfer', 'hourly', 'daily', 'round_trip'].map(
+  ...['transfer', 'hourly', 'daily', 'round_trip', 'tour'].map(
     (trip) => [`trip ${trip}`, row({ trip_type: trip })] as [string, CrmBookingRecord],
   ),
 ]

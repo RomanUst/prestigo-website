@@ -157,6 +157,7 @@ describe('files added by the phase hold no typed euro amount', () => {
     ...listFiles('app/api/card-checkout', ['.ts', '.tsx']),
     'components/booking/steps/Step6Checkout.tsx',
     'components/booking/steps/Step6CardOnFile.tsx',
+    'components/booking/CardPaymentStage.tsx',
     'components/booking/CardPaymentExplainer.tsx',
     'components/booking/steps/PromoCodeField.tsx',
     'components/admin/PaymentPanel.tsx',

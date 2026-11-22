@@ -37,7 +37,7 @@
       },
       {
         "label": "Annulation tardive",
-        "desc": "Si vous annulez après ce délai mais avant la prise en charge, des frais pouvant aller jusqu'à {percent} % du montant de la réservation peuvent s'appliquer. Une personne chez Prestigo décide de chaque débit et peut le réduire ou y renoncer. Rien n'est débité automatiquement."
+        "desc": "Si vous annulez après ce délai mais avant la prise en charge, des frais pouvant aller jusqu'à {percent} % du montant de la réservation peuvent s'appliquer. Une personne chez Prestigo décide de chaque débit et peut le réduire ou y renoncer. Rien n'est débité automatiquement. Les excursions d'une journée ont leur propre délai d'annulation gratuite, indiqué sur la page de l'excursion et confirmé lors de la réservation ; passé ce délai, le prix total de l'excursion s'applique. Le temps supplémentaire au-delà de la réservation ne peut être facturé qu'après accord d'une personne chez Prestigo."
       },
       {
         "label": "Absence du passager",

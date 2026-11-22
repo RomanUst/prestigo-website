@@ -5,7 +5,8 @@ import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import type { LucideIcon } from 'lucide-react'
 import { LoaderCircle, MessageCircle, MessagesSquare, Phone, Send, X } from 'lucide-react'
-import { rtlLocales, usePathname, type AppLocale } from '@/i18n/routing'
+import { rtlLocales, stripLocalePrefix, usePathname, locales, type AppLocale } from '@/i18n/routing'
+import { TOUR_SLUG_PATTERN } from '@/lib/tours/types'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { WHATSAPP_CHAT_URL, TELEGRAM_CHAT_URL } from '@/lib/contact-channels'
 import { getLandingHref, rememberLandingHref } from '@/lib/chat-visit-context'
@@ -65,6 +66,11 @@ function ChatLauncherInner() {
   // sticky action row at the bottom — lift the launcher above them on /book.
   const path = pathname ?? ''
   const onBookingPage = path === '/book' || path.startsWith('/book/')
+  // Phase 93 (UI-SPEC 3.9): a tour page (/services/<slug>-day-trip; the hub slug does not match) carries the mobile
+  // sticky booking bar, so the launcher is lifted above it and the greeting card stays away.
+  const tourMatch = /^\/services\/([^/]+)\/?$/.exec(stripLocalePrefix(path, locales))
+  const isTourPage = tourMatch !== null && TOUR_SLUG_PATTERN.test(tourMatch[1])
+  const noGreeting = onBookingPage || isTourPage
 
   // First-touch landing URL (D-06): remembered in memory only — no cookie, no
   // storage, no network. Not a loader start: nothing third-party happens here.
@@ -76,7 +82,7 @@ function ChatLauncherInner() {
   // was answered on an earlier visit. Never on /book (checkout stays clear).
   // Pure DOM — the Chatwoot SDK still loads only after a click.
   useEffect(() => {
-    if (onBookingPage) return
+    if (noGreeting) return
     function show() {
       try {
         if (sessionStorage.getItem(GREETING_SEEN_KEY)) return
@@ -92,7 +98,7 @@ function ChatLauncherInner() {
     }
     window.addEventListener('prestigo:consent-answered', show)
     return () => window.removeEventListener('prestigo:consent-answered', show)
-  }, [onBookingPage])
+  }, [noGreeting])
 
   // Esc and outside-press handling exist only while the menu is open.
   useEffect(() => {
@@ -157,8 +163,13 @@ function ChatLauncherInner() {
   return (
     <div
       ref={containerRef}
-      className={`chat-launcher-enter fixed end-4 z-40 flex flex-col items-end gap-6 md:bottom-6 md:end-6 ${
-        onBookingPage ? 'bottom-24' : 'bottom-4'
+      className={`chat-launcher-enter fixed end-4 z-40 flex flex-col items-end gap-6 md:end-6 ${
+        onBookingPage
+          ? 'bottom-24 md:bottom-6'
+          : isTourPage
+            ? // the sticky bar is visible below lg (1024px), so the lift holds until then
+              'bottom-24 md:bottom-24 lg:bottom-6'
+            : 'bottom-4 md:bottom-6'
       }`}
     >
       {open && (
@@ -217,7 +228,7 @@ function ChatLauncherInner() {
           </div>
         </div>
       )}
-      {greeting && !open && !onBookingPage && (
+      {greeting && !open && !noGreeting && (
         <div
           role="region"
           aria-label={t('greeting.regionAria')}

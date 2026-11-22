@@ -14,6 +14,18 @@ const withMDX = createMDX({
 // See i18n/request.ts (Phase 68 stub — messages: {} until Phase 69).
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
+// Phase 93 (plan 93-08; D-15): tour photos are served from the public tour-photos bucket of the Supabase project.
+// The host comes from NEXT_PUBLIC_SUPABASE_URL (https only); nothing is added when the env is absent or not a URL.
+function tourPhotoRemotePatterns(): NonNullable<NonNullable<NextConfig['images']>['remotePatterns']> {
+  try {
+    const url = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '');
+    if (url.protocol !== 'https:') return [];
+    return [{ protocol: 'https', hostname: url.hostname, pathname: '/storage/v1/object/public/tour-photos/**' }];
+  } catch {
+    return [];
+  }
+}
+
 const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   // Phase 92 (QUOTE-07, D-14): the PDF engine packages stay outside the server bundle (they start a browser and unpack
@@ -116,6 +128,7 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      ...tourPhotoRemotePatterns(),
     ],
   },
   async headers() {

@@ -247,8 +247,8 @@ describe('the checkout steps write the notice only for a stored policy', () => {
     expect(src.indexOf('writePurchaseSnapshot({')).toBeLessThan(src.indexOf('writeConfirmationNotice({'))
   })
 
-  it('Step6CardOnFile writes it before the redirect and names the cash amount with formatMinor', () => {
-    const src = read('components/booking/steps/Step6CardOnFile.tsx')
+  it('CardPaymentStage (the Step6CardOnFile payment UI) writes it before the redirect and names the cash amount with formatMinor', () => {
+    const src = read('components/booking/CardPaymentStage.tsx')
     expect(src).toMatch(/writeConfirmationNotice\(\{ ref: bookingReference, \.\.\.\(cash \? \{ cash: formatMinor\(amountMinor, currency\) \} : \{\}\) \}\)/)
     expect(src.indexOf('writeConfirmationNotice({')).toBeLessThan(src.indexOf('navigateToConfirmation(bookingReference)'))
   })

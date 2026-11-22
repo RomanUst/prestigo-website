@@ -302,3 +302,81 @@ describe('POST /api/webhooks/booking-calendar', () => {
     expect(res.status).toBe(502)
   })
 })
+
+// ── Tours (Phase 93, plan 93-19; TRIP-04) ────────────────────────────────────
+
+describe('tour bookings in the operations calendar', () => {
+  const TOUR: CalendarBooking = {
+    ...BOOKING,
+    trip_type: 'tour',
+    tour_title: 'Dresden',
+    hours: 6,
+    distance_km: null,
+    origin_address: 'Hotel Alcron, Prague',
+    destination_address: 'Dresden',
+    flight_number: null,
+    terminal: null,
+  }
+
+  const minutes = (ev: ReturnType<typeof buildCalendarEvent>) =>
+    (new Date(ev.end.dateTime).getTime() - new Date(ev.start.dateTime).getTime()) / 60_000
+
+  it('reads "Day trip: Dresden (6 h)" with the pickup address as pickup and return', () => {
+    const ev = buildCalendarEvent(TOUR)
+    expect(ev.summary).toContain('Day trip: Dresden (6 h)')
+    expect(ev.description).toContain('Day trip: Dresden (6 h)')
+    expect(ev.description).toContain('Pickup and return: Hotel Alcron, Prague')
+    expect(ev.description).not.toContain('Route:')
+    expect(ev.location).toBe('Hotel Alcron, Prague')
+  })
+
+  it('covers the hours at the destination plus the drive there and back (no 0-minute or 1-hour event)', () => {
+    // Known drive time: 2 x 90 + 6 x 60.
+    expect(minutes(buildCalendarEvent({ ...TOUR, drive_minutes_each_way: 90 }))).toBe(540)
+    // Unknown drive time: the default estimate, still longer than the hours alone.
+    expect(minutes(buildCalendarEvent(TOUR))).toBe(2 * 60 + 6 * 60)
+  })
+
+  it('a transfer and an hourly booking are unchanged', () => {
+    const transfer = buildCalendarEvent(BOOKING)
+    expect(transfer.summary).toBe('Prestigo: PRG-123 · Anna Novak · Business')
+    expect(transfer.description).toContain('Route: Václav Havel Airport Prague → Hotel Paris Prague')
+    expect(transfer.description).not.toContain('Day trip')
+    const hourly = buildCalendarEvent({ ...BOOKING, trip_type: 'hourly', hours: 3, distance_km: null, destination_address: null })
+    expect(minutes(hourly)).toBe(180)
+  })
+
+  it('a tour row without a title falls back to the plain route', () => {
+    const ev = buildCalendarEvent({ ...TOUR, tour_title: null })
+    expect(ev.description).toContain('Route: Hotel Alcron, Prague → Dresden')
+  })
+
+  it('the sync selects the tour columns and reads the drive time of the tour for the event length', async () => {
+    mockMaybeSingle
+      .mockResolvedValueOnce({ data: { ...TOUR, tour_id: 'tour-1' }, error: null })
+      .mockResolvedValueOnce({ data: { drive_minutes_each_way: 120 }, error: null })
+    expect(await syncBookingToCalendar(BOOKING_ID)).toEqual({ action: 'upserted' })
+    const cols = mockSelect.mock.calls[0][0] as string
+    expect(cols).toContain('tour_title')
+    expect(cols).toContain('tour_id')
+    expect(mockSelect.mock.calls[1][0]).toBe('drive_minutes_each_way')
+    const body = JSON.parse(apiCalls()[0].body!) as { summary: string; start: { dateTime: string }; end: { dateTime: string } }
+    expect(body.summary).toContain('Day trip: Dresden (6 h)')
+    expect((new Date(body.end.dateTime).getTime() - new Date(body.start.dateTime).getTime()) / 60_000).toBe(2 * 120 + 6 * 60)
+  })
+
+  it('a drive-time read that fails still syncs the event with the default estimate', async () => {
+    mockMaybeSingle
+      .mockResolvedValueOnce({ data: { ...TOUR, tour_id: 'tour-1' }, error: null })
+      .mockRejectedValueOnce(new Error('boom'))
+    expect(await syncBookingToCalendar(BOOKING_ID)).toEqual({ action: 'upserted' })
+    const body = JSON.parse(apiCalls()[0].body!) as { start: { dateTime: string }; end: { dateTime: string } }
+    expect((new Date(body.end.dateTime).getTime() - new Date(body.start.dateTime).getTime()) / 60_000).toBe(2 * 60 + 6 * 60)
+  })
+
+  it('a transfer sync makes no tour read', async () => {
+    mockMaybeSingle.mockResolvedValue({ data: BOOKING, error: null })
+    await syncBookingToCalendar(BOOKING_ID)
+    expect(mockSelect).toHaveBeenCalledTimes(1)
+  })
+})

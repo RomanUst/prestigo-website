@@ -63,7 +63,7 @@ export type CBookingResult = { ok: true; draft: CBookingDraft } | { ok: false; c
 const BOOKING_STATUS_VALUES: string[] = [...BOOKING_STATUSES]
 const BOOKING_SOURCE_VALUES = ['online', 'manual', 'gnet']
 const VEHICLE_CLASS_VALUES = ['business', 'first_class', 'business_van']
-const TRIP_TYPE_VALUES = ['transfer', 'hourly', 'daily', 'round_trip']
+const TRIP_TYPE_VALUES = ['transfer', 'hourly', 'daily', 'round_trip', 'tour']
 const LEG_VALUES = ['', 'outbound', 'return']
 
 const FIELD_MAX_LENGTH = {

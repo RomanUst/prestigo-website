@@ -26,8 +26,11 @@ export {
 const MINUTE_MS = 60_000
 const HOUR_MS = 3_600_000
 
-/** Trip types that may use the card flow. round_trip and daily keep pay-now (D-19); multi-day is a quote (D-03). */
-export const CARD_FLOW_TRIP_TYPES = ['transfer', 'hourly'] as const
+/**
+ * Trip types that may use the card flow. round_trip and daily keep pay-now (D-19); multi-day is a quote (D-03).
+ * Phase 93 (TRIP-04, D-11): a tour uses the same card flow, with no second payment engine.
+ */
+export const CARD_FLOW_TRIP_TYPES = ['transfer', 'hourly', 'tour'] as const
 
 /** Bookings claimed per tick run. */
 export const HOLD_CLAIM_LIMIT = 20

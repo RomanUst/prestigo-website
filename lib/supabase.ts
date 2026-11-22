@@ -152,6 +152,15 @@ export function buildBookingRow(
     user_id: meta.userId || null,
     // Phase 89 D-18: the terms the client saw; null while the policy is not public (legacy terms apply).
     ...parseCancelPolicyMeta(meta.cancelPolicy),
+    // Phase 93 (TRIP-04, D-20): the tour of a tour booking (migration 092). Present only for a tour, so the row of every
+    // other trip has exactly the keys it had before.
+    ...(meta.tourId
+      ? {
+          tour_id: meta.tourId,
+          tour_title: meta.tourTitle || null,
+          tour_extra_hours: meta.tourExtraHours ? parseInt(meta.tourExtraHours, 10) : null,
+        }
+      : {}),
   }
 }
 

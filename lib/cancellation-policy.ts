@@ -72,6 +72,8 @@ export const LEGACY_POLICY: CancellationPolicy = {
 /** Free-cancellation hours for a trip: hourly has its own, up to the km threshold is short, else (or unknown) long. */
 export function freeHoursFor(p: CancellationPolicy, b: Pick<TripFacts, 'tripType' | 'distanceKm'> & { pickupMs?: number }): number {
   if (b.tripType === 'hourly') return p.freeHoursHourly
+  // Phase 93: a tour has one window whatever the distance (lib/tours/policy.ts sets all three windows equal).
+  if (b.tripType === 'tour') return p.freeHoursLong
   if (b.distanceKm !== null && Number.isFinite(b.distanceKm) && b.distanceKm <= p.kmThreshold) return p.freeHoursShort
   return p.freeHoursLong
 }

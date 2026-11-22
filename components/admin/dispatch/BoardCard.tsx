@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import { useBookingPanel } from '../BookingPanelProvider'
-import { STATUS_LABELS, showsPaymentBadge, vehicleClassMap, type AdminBooking } from '../bookingTypes'
+import { STATUS_LABELS, showsPaymentBadge, tourDisplay, vehicleClassMap, type AdminBooking } from '../bookingTypes'
 import { STATUS_CONFLICT_STYLE } from '../statusConflict'
 import { BadgeShell } from '../StatusBadge'
 import { PaymentStateBadge } from '../PaymentStateBadge'
@@ -280,6 +280,7 @@ function CardContent({
 }) {
   const muted: React.CSSProperties = { color: 'var(--admin-text-muted)', fontSize: 'var(--admin-fs-label)' }
   const flags = flagsOf(booking)
+  const tour = tourDisplay(booking)
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px' }}>
@@ -294,6 +295,12 @@ function CardContent({
       <div style={{ overflowWrap: 'anywhere' }}>
         {booking.origin_address} to {booking.destination_address}
       </div>
+      {tour && (
+        <div data-testid="board-tour-line" style={{ ...muted, overflowWrap: 'anywhere' }}>
+          {tour.title}
+          {tour.hoursText ? ` · ${tour.hoursText}` : ''}
+        </div>
+      )}
       <div data-testid="board-driver-line" style={{ ...muted, overflowWrap: 'anywhere' }}>
         {/* Pitfall 8: the name comes from driver_id; a driver id the list does not know still reads as assigned. */}
         {booking.driver_id ? (driverName ?? 'Assigned driver') : 'Not assigned'}
