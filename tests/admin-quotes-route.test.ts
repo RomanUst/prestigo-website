@@ -67,14 +67,61 @@ import type { QuoteDetail } from '@/lib/quotes/store'
 
 let db: FakePaymentsDb
 
-function seed(bookings: Array<Record<string, unknown>> = []) {
+// The inquiries table of 065 (+ kind 'custom_tour' of 093) is not part of the shared fake: a read-only double of the
+// two reads the quote store makes (select id, kind ... eq id ... maybeSingle).
+type InquiryRow = { id: string; kind: string }
+function inquiriesTable(rows: InquiryRow[]) {
+  const filters: Array<(r: InquiryRow) => boolean> = []
+  const builder = {
+    select: () => builder,
+    eq: (col: string, val: unknown) => {
+      filters.push((r) => (r as unknown as Record<string, unknown>)[col] === val)
+      return builder
+    },
+    maybeSingle: () => Promise.resolve({ data: rows.find((r) => filters.every((f) => f(r))) ?? null, error: null }),
+  }
+  return builder
+}
+
+function seed(bookings: Array<Record<string, unknown>> = [], inquiries: InquiryRow[] = []) {
   db = createFakePaymentsDb({ bookings })
-  // The same database, except that one insert into the stops table can be made to fail (rollback test).
+  // The same database, except that one insert into the stops table can be made to fail (rollback test), plus the
+  // inquiries double and the unique partial index quotes_source_inquiry_id_key of 093 on quote inserts.
   world.db = {
     client: {
       rpc: (name, args) => db.client.rpc(name, args),
       from: (table) => {
+        if (table === 'inquiries') return inquiriesTable(inquiries)
         const query = db.client.from(table) as unknown as Record<string, unknown>
+        if (table === 'quotes') {
+          return new Proxy(query, {
+            get(target, prop) {
+              if (prop === 'insert') {
+                return (payload: Record<string, unknown>) => {
+                  const sid = payload?.source_inquiry_id
+                  if (sid != null && db.state.quotes.some((q) => q.source_inquiry_id === sid)) {
+                    const failed = {
+                      select: () => ({
+                        single: () =>
+                          Promise.resolve({
+                            data: null,
+                            error: {
+                              code: '23505',
+                              message: 'duplicate key value violates unique constraint "quotes_source_inquiry_id_key"',
+                            },
+                          }),
+                      }),
+                    }
+                    return failed
+                  }
+                  return (target.insert as (p: unknown) => unknown).call(target, payload)
+                }
+              }
+              const value = target[prop as string]
+              return typeof value === 'function' ? value.bind(target) : value
+            },
+          })
+        }
         if (table !== 'quote_version_line_stops') return query
         return new Proxy(query, {
           get(target, prop) {
@@ -302,7 +349,7 @@ describe('guards run in order: body cap, admin session, id, JSON, strict schema'
     expect((await create('{"client":')).status).toBe(400)
     expect((await patch(id, '{"lines":')).status).toBe(400)
     expect((await patch(id, { surprise: 1 })).status).toBe(400)
-    expect((await create({ client: CLIENT, lead_channel: 'email', currency: 'eur', locale: 'ru' })).status).toBe(400)
+    expect((await create({ client: CLIENT, lead_channel: 'email', currency: 'eur', language: 'ru' })).status).toBe(400)
     expect((await create({ client: { ...CLIENT, email: 'a@b.com\r\nBcc: x@y.com' }, lead_channel: 'email', currency: 'eur' })).status).toBe(400)
     expect((await create({ client: { ...CLIENT, first_name: 'Iv\nan' }, lead_channel: 'email', currency: 'eur' })).status).toBe(400)
     expect((await create({ client: CLIENT, lead_channel: 'carrier-pigeon', currency: 'eur' })).status).toBe(400)
@@ -649,5 +696,83 @@ describe('GET /api/admin/quotes: the list with the effective status (D-02)', () 
     expect(await rows('?search=a%5C')).toHaveLength(0)
     // a search longer than 100 characters is cut, not an error
     expect((await list(`?search=${'a'.repeat(300)}`)).status).toBe(200)
+  })
+})
+
+describe('Phase 93 TRIP-07 / D-18: a quote created from a custom-tour request', () => {
+  const TOUR_REQ = '11111111-1111-4111-8111-111111111111'
+  const CONTACT_REQ = '22222222-2222-4222-8222-222222222222'
+  const UNKNOWN_REQ = '33333333-3333-4333-8333-333333333333'
+
+  beforeEach(() => {
+    seed(
+      [{ client_email: 'ivan@example.com', locale: 'fr', created_at: '2026-06-01T10:00:00Z' }],
+      [
+        { id: TOUR_REQ, kind: 'custom_tour' },
+        { id: CONTACT_REQ, kind: 'contact' },
+      ],
+    )
+  })
+
+  it('links the quote to the request, uses the request locale over the latest booking, keeps the channel as sent', async () => {
+    const res = await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ, locale: 'ru' })
+    expect(res.status).toBe(201)
+    const { id } = (await res.json()) as { id: string }
+    expect(quoteRow(id).source_inquiry_id).toBe(TOUR_REQ)
+    expect(quoteRow(id).lead_channel).toBe('other')
+    expect(versionsOf(id)[0].locale).toBe('ru')
+  })
+
+  it('without a locale in the body the latest-booking rule still applies', async () => {
+    const id = await createQuote({ source_inquiry_id: TOUR_REQ })
+    expect(versionsOf(id)[0].locale).toBe('fr')
+  })
+
+  it('a contact inquiry is 422 INQUIRY_NOT_CUSTOM_TOUR and stores nothing', async () => {
+    const res = await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: CONTACT_REQ })
+    expect(res.status).toBe(422)
+    expect(((await res.json()) as { error: string }).error).toBe('INQUIRY_NOT_CUSTOM_TOUR')
+    expect(db.state.quotes).toHaveLength(0)
+  })
+
+  it('an unknown (erased) request is 404 INQUIRY_NOT_FOUND and stores nothing', async () => {
+    const res = await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: UNKNOWN_REQ })
+    expect(res.status).toBe(404)
+    expect(((await res.json()) as { error: string }).error).toBe('INQUIRY_NOT_FOUND')
+    expect(db.state.quotes).toHaveLength(0)
+  })
+
+  it('a second quote for the same request is 409 INQUIRY_ALREADY_QUOTED and nothing new is stored', async () => {
+    const first = await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })
+    expect(first.status).toBe(201)
+    const quotesBefore = db.state.quotes.length
+    const versionsBefore = db.state.quote_versions.length
+
+    const second = await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })
+    expect(second.status).toBe(409)
+    expect(((await second.json()) as { error: string }).error).toBe('INQUIRY_ALREADY_QUOTED')
+    expect(db.state.quotes).toHaveLength(quotesBefore)
+    expect(db.state.quote_versions).toHaveLength(versionsBefore)
+  })
+
+  it('a quote without source_inquiry_id behaves as before, and quotes without a request never collide', async () => {
+    const a = await createQuote()
+    const b = await createQuote()
+    expect(a).not.toBe(b)
+    expect(quoteRow(a).source_inquiry_id).toBeNull()
+  })
+
+  it('input checks stay 400: a non-uuid id, an unsupported locale and an unknown extra key', async () => {
+    const base = { client: CLIENT, lead_channel: 'other', currency: 'eur' }
+    expect((await create({ ...base, source_inquiry_id: 'not-a-uuid' })).status).toBe(400)
+    expect((await create({ ...base, locale: 'de' })).status).toBe(400)
+    expect((await create({ ...base, extra: 1 })).status).toBe(400)
+  })
+
+  it('the admin guard still answers 401 / 403 first', async () => {
+    world.auth = '401'
+    expect((await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })).status).toBe(401)
+    world.auth = '403'
+    expect((await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })).status).toBe(403)
   })
 })

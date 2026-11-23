@@ -3,13 +3,16 @@ import { getAdminUser } from '@/lib/supabase/server'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { NO_STORE, forbidden, readCappedJson, unauthorized } from '@/lib/quotes/admin-http'
 import { quoteCreateSchema } from '@/lib/quotes/schemas'
-import { createQuoteDraft, listQuotes } from '@/lib/quotes/store'
+import { QuoteCreateRefusal, createQuoteDraft, listQuotes } from '@/lib/quotes/store'
 
 // The operator's quote list and quote creation (Phase 92, plan 92-08; QUOTE-01, QUOTE-06; D-09).
 //
 //   GET  ?page&limit&status&search   quotes newest first with their EFFECTIVE status (expired derived, cancelled shown)
 //   POST { client, lead_channel, currency }   a new draft: Q- reference, unfrozen version 1, language from the client's
 //                                             latest booking with that email, else en
+//   POST { ..., source_inquiry_id?, locale? }  answers a custom-tour request (Phase 93, D-18): the request must exist (404
+//                                             INQUIRY_NOT_FOUND) and be a custom_tour (422 INQUIRY_NOT_CUSTOM_TOUR), one
+//                                             quote per request (409 INQUIRY_ALREADY_QUOTED); the locale is the request's
 //
 // Guard order (project API patterns): enforceMaxBody -> admin session (401 / 403) -> JSON (400, 413) -> strict schema
 // (400) -> engine. Logs carry ids and codes only.
@@ -62,7 +65,11 @@ export async function POST(request: Request) {
   try {
     const { id } = await createQuoteDraft(parsed.data, { type: 'admin', id: user.id })
     return NextResponse.json({ id }, { status: 201, headers: NO_STORE })
-  } catch {
+  } catch (err) {
+    if (err instanceof QuoteCreateRefusal) {
+      const status = err.code === 'INQUIRY_NOT_FOUND' ? 404 : err.code === 'INQUIRY_ALREADY_QUOTED' ? 409 : 422
+      return NextResponse.json({ error: err.code }, { status, headers: NO_STORE })
+    }
     console.error('[admin/quotes] create failed', { adminId: user.id })
     return NextResponse.json({ error: 'Failed to create quote' }, { status: 500, headers: NO_STORE })
   }
