@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildTourCheckoutHref, parseTourCheckoutQuery, tourBoxStorageKey, type TourCheckoutQuery } from '@/lib/tours/checkout-query'
-import { startTimeOptions, startHours, isStartBookable, isDateBookable } from '@/lib/tours/start-times'
+import { ALL_START_TIMES, startTimeOptions, startHours, isStartBookable, isDateBookable } from '@/lib/tours/start-times'
 
 const Q: TourCheckoutQuery = { tour: 'dresden-day-trip', date: '2027-05-10', time: '09:30', pax: 3, car: 'first_class', xh: 2 }
 
@@ -88,12 +88,18 @@ describe('start times', () => {
     expect(isStartBookable('2027-02-31', '09:00', 0)).toBe(false)
   })
 
-  it('isDateBookable: not before today, and needs one start 12 h ahead', () => {
+  it('isDateBookable: not before today, and needs one start of the day (up to 23:45) 12 h ahead', () => {
     const now = Date.parse('2027-06-10T08:00:00Z') // 10:00 Prague
-    expect(isDateBookable('2027-06-09', '08:00', '11:00', now)).toBe(false) // past day
-    expect(isDateBookable('2027-06-10', '08:00', '11:00', now)).toBe(false) // latest start is 1 h ahead
-    expect(isDateBookable('2027-06-11', '08:00', '11:00', now)).toBe(true) // 25 h ahead
-    expect(isDateBookable('2027-06-10', '08:00', '22:00', now)).toBe(true) // 22:00 is exactly 12 h ahead
-    expect(isDateBookable('2027-06-10', '08:00', '21:30', now)).toBe(false)
+    expect(isDateBookable('2027-06-09', now)).toBe(false) // past day
+    expect(isDateBookable('2027-06-10', now)).toBe(true) // 22:00-23:45 are 12 h+ ahead
+    expect(isDateBookable('2027-06-11', now)).toBe(true)
+    const late = Date.parse('2027-06-10T12:00:00Z') // 14:00 Prague: 23:45 is under 12 h ahead
+    expect(isDateBookable('2027-06-10', late)).toBe(false)
+  })
+
+  it('ALL_START_TIMES covers the whole day every 15 minutes', () => {
+    expect(ALL_START_TIMES).toHaveLength(96)
+    expect(ALL_START_TIMES[0]).toBe('00:00')
+    expect(ALL_START_TIMES[95]).toBe('23:45')
   })
 })

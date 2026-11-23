@@ -189,8 +189,6 @@ export default async function ServicePage({ params }: { params: Params }) {
           first_class: settings.extra_hour_s_eur,
           business_van: settings.extra_hour_v_eur,
         }}
-        startMin={tour.start_time_min}
-        startMax={tour.start_time_max}
         freeCancelHours={settings.free_cancel_hours}
       />
     ),

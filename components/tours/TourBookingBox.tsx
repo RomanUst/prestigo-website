@@ -29,7 +29,7 @@ import { classesForPassengers, tourFare } from '@/lib/tours/pricing'
 import { MAX_EXTRA_HOURS, TOUR_CAR_KEYS, type TourCarKey } from '@/lib/tours/types'
 import { customTourHref } from '@/lib/tours/custom-tour-link'
 import { buildTourCheckoutHref, MAX_TOUR_PASSENGERS, tourBoxStorageKey } from '@/lib/tours/checkout-query'
-import { isDateBookable, isStartBookable, START_MINUTES, startHours, startTimeOptions } from '@/lib/tours/start-times'
+import { ALL_START_TIMES, isDateBookable, isStartBookable, START_MINUTES, startHours } from '@/lib/tours/start-times'
 
 export interface TourBoxState {
   complete: boolean
@@ -50,8 +50,6 @@ export interface TourBookingBoxProps {
   hoursIncluded: number
   prices: Record<TourCarKey, number | null>
   extraHourPrices: Record<TourCarKey, number | null>
-  startMin: string
-  startMax: string
   freeCancelHours: number
   onStateChange?: (s: TourBoxState) => void
   boxRef?: Ref<HTMLElement>
@@ -106,7 +104,7 @@ function arrowStep(key: string, rtl: boolean): 1 | -1 | null {
 }
 
 const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(function TourBookingBox(
-  { slug, hoursIncluded, prices, extraHourPrices, startMin, startMax, freeCancelHours, onStateChange, boxRef, initial },
+  { slug, hoursIncluded, prices, extraHourPrices, freeCancelHours, onStateChange, boxRef, initial },
   handleRef
 ) {
   const t = useTranslations('Tours.box')
@@ -161,13 +159,13 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
     const date =
       typeof initial?.date === 'string' &&
       /^\d{4}-\d{2}-\d{2}$/.test(initial.date) &&
-      isDateBookable(initial.date, startMin, startMax, now)
+      isDateBookable(initial.date, now)
         ? initial.date
         : null
     const time =
       date &&
       typeof initial?.time === 'string' &&
-      startTimeOptions(startMin, startMax).includes(initial.time) &&
+      ALL_START_TIMES.includes(initial.time) &&
       isStartBookable(date, initial.time, now)
         ? initial.time
         : null
@@ -189,7 +187,7 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
   const rowRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const pendingChipFocus = useRef(false)
 
-  const options = useMemo(() => startTimeOptions(startMin, startMax), [startMin, startMax])
+  const options = ALL_START_TIMES
   const visible = visibleFor(pax, xh)
   const enabledTimes = date ? options.filter((o) => isStartBookable(date, o, Date.now())) : []
   const hours = useMemo(() => startHours(options), [options])
@@ -380,7 +378,7 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
                 selected={date ? dateOf(date) : undefined}
                 defaultMonth={dateOf(date ?? getPragueTodayISO())}
                 onSelect={selectDate}
-                disabled={(d: Date) => !isDateBookable(isoOf(d), startMin, startMax, Date.now())}
+                disabled={(d: Date) => !isDateBookable(isoOf(d), Date.now())}
                 styles={calendarStyles as Parameters<typeof DayPicker>[0]['styles']}
                 modifiersStyles={calendarModifiers}
               />

@@ -35,7 +35,6 @@ const COPY_NOT_FOUND = 'This tour was not found.'
 const COPY_SLUG_TAKEN = 'This address is already used by another tour.'
 const COPY_BAD_ADDRESS = 'Use lowercase letters, numbers and single hyphens.'
 const COPY_ADDRESS_LOCKED = 'The address cannot change after publishing. Google has indexed it.'
-const COPY_WINDOW = 'Latest start must be later than the earliest start.'
 
 const SLUG_PREFIX = '/services/'
 const SLUG_SUFFIX = '-day-trip'
@@ -54,8 +53,6 @@ type BasicsForm = {
   destination_label: string
   hours_included: string
   drive_minutes_each_way: string
-  start_time_min: string
-  start_time_max: string
   price_e_eur: string
   price_s_eur: string
   price_v_eur: string
@@ -70,22 +67,11 @@ function formFromTour(tour: TourRow): BasicsForm {
     destination_label: tour.destination_label ?? '',
     hours_included: text(tour.hours_included),
     drive_minutes_each_way: text(tour.drive_minutes_each_way),
-    start_time_min: tour.start_time_min,
-    start_time_max: tour.start_time_max,
     price_e_eur: text(tour.price_e_eur),
     price_s_eur: text(tour.price_s_eur),
     price_v_eur: text(tour.price_v_eur),
   }
 }
-
-/** 05:00 ... 14:00 in 30-minute steps (same window as tourBasicsSchema). */
-const START_OPTIONS: string[] = (() => {
-  const out: string[] = []
-  for (let m = 5 * 60; m <= 14 * 60; m += 30) {
-    out.push(`${String(Math.floor(m / 60)).padStart(2, '0')}:${m % 60 === 0 ? '00' : '30'}`)
-  }
-  return out
-})()
 
 function parseWhole(text: string, min: number, max: number): number | null {
   const t = text.trim()
@@ -110,7 +96,6 @@ function validateBasics(form: BasicsForm, addressEditable: boolean): Partial<Rec
   }
   if (parseWhole(form.hours_included, 1, 12) === null) errors.hours_included = 'Enter a whole number from 1 to 12.'
   if (parseWhole(form.drive_minutes_each_way, 10, 600) === null) errors.drive_minutes_each_way = 'Enter a whole number from 10 to 600.'
-  if (form.start_time_max <= form.start_time_min) errors.start_time_max = COPY_WINDOW
   for (const key of ['price_e_eur', 'price_s_eur', 'price_v_eur'] as const) {
     if (parsePrice(form[key]) === null) errors[key] = 'Enter a price greater than 0.'
   }
@@ -232,8 +217,6 @@ export default function TourEditor({ tourId }: TourEditorProps) {
     if (form.destination_label !== base.destination_label) patch.destination_label = form.destination_label.trim()
     if (form.hours_included !== base.hours_included) patch.hours_included = Number(form.hours_included)
     if (form.drive_minutes_each_way !== base.drive_minutes_each_way) patch.drive_minutes_each_way = Number(form.drive_minutes_each_way)
-    if (form.start_time_min !== base.start_time_min) patch.start_time_min = form.start_time_min
-    if (form.start_time_max !== base.start_time_max) patch.start_time_max = form.start_time_max
     if (form.price_e_eur !== base.price_e_eur) patch.price_e_eur = Number(form.price_e_eur)
     if (form.price_s_eur !== base.price_s_eur) patch.price_s_eur = Number(form.price_s_eur)
     if (form.price_v_eur !== base.price_v_eur) patch.price_v_eur = Number(form.price_v_eur)
@@ -264,7 +247,6 @@ export default function TourEditor({ tourId }: TourEditorProps) {
       if (res.status === 401 || res.status === 403) setSaveError(COPY_SESSION)
       else if (body?.code === 'SLUG_TAKEN') setServerFieldError({ address: COPY_SLUG_TAKEN })
       else if (body?.code === 'SLUG_LOCKED') setServerFieldError({ address: COPY_ADDRESS_LOCKED })
-      else if (body?.code === 'INVALID_WINDOW') setServerFieldError({ start_time_max: COPY_WINDOW })
       else setSaveError(COPY_SAVE_FAILED)
     } catch {
       if (alive.current) setSaveError(COPY_SAVE_FAILED)
@@ -575,20 +557,6 @@ export default function TourEditor({ tourId }: TourEditorProps) {
             onChange={(v) => setField('drive_minutes_each_way', v)}
           />
 
-          <TimeField
-            id="tb-start-min"
-            label="Earliest start"
-            value={form.start_time_min}
-            onChange={(v) => setField('start_time_min', v)}
-          />
-          <TimeField
-            id="tb-start-max"
-            label="Latest start"
-            value={form.start_time_max}
-            error={showError('start_time_max')}
-            onChange={(v) => setField('start_time_max', v)}
-          />
-
           <PriceField
             id="tb-price-e"
             label="Price per car, Business (E)"
@@ -768,49 +736,6 @@ function PriceField({
         />
         <span style={{ ...mutedTextStyle, whiteSpace: 'nowrap' }}>EUR</span>
       </div>
-      {error && (
-        <p id={`${id}-error`} role="alert" style={errorStyle}>
-          {error}
-        </p>
-      )}
-    </div>
-  )
-}
-
-function TimeField({
-  id,
-  label,
-  value,
-  error,
-  onChange,
-}: {
-  id: string
-  label: string
-  value: string
-  error?: string
-  onChange: (value: string) => void
-}) {
-  // A stored value outside the 05:00-14:00 window (older rows) still shows instead of silently jumping to the first option.
-  const options = START_OPTIONS.includes(value) ? START_OPTIONS : [value, ...START_OPTIONS]
-  return (
-    <div>
-      <label htmlFor={id} style={labelStyle}>
-        {label}
-      </label>
-      <select
-        id={id}
-        value={value}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ ...inputBaseStyle, fontWeight: 400, appearance: 'auto' }}
-      >
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
       {error && (
         <p id={`${id}-error`} role="alert" style={errorStyle}>
           {error}

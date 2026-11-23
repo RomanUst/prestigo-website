@@ -149,8 +149,6 @@ describe('TourEditor', () => {
     render(<TourEditor tourId={ID} />)
     expect((await field('Hours at the destination (included)')).value).toBe('5')
     expect((await field('Drive time each way, minutes')).value).toBe('45')
-    expect((await field('Earliest start')).value).toBe('08:00')
-    expect((await field('Latest start')).value).toBe('11:00')
     expect((await field('Price per car, Business (E)')).value).toBe('320')
     expect((await field('Price per car, First Class (S)')).value).toBe('420')
     expect((await field('Price per car, Business Van (V)')).value).toBe('380')
@@ -158,14 +156,11 @@ describe('TourEditor', () => {
     expect((await field('Address')).value).toBe('karlstejn')
   })
 
-  it('offers start times in 30-minute steps from 05:00 to 14:00', async () => {
+  it('has no start-time window: guests book any time of day', async () => {
     render(<TourEditor tourId={ID} />)
-    const select = (await field('Earliest start')) as unknown as HTMLSelectElement
-    const values = Array.from(select.options).map((o) => o.value)
-    expect(values[0]).toBe('05:00')
-    expect(values[1]).toBe('05:30')
-    expect(values[values.length - 1]).toBe('14:00')
-    expect(values).toHaveLength(19)
+    await field('Hours at the destination (included)')
+    expect(screen.queryByLabelText('Earliest start')).toBeNull()
+    expect(screen.queryByLabelText('Latest start')).toBeNull()
   })
 
   it('shows Unsaved changes and PATCHes only the changed field, then re-reads the tour and the checklist', async () => {
@@ -181,14 +176,6 @@ describe('TourEditor', () => {
     await waitFor(() => expect(calls('GET')).toHaveLength(2))
     await waitFor(() => expect(screen.queryByText('Unsaved changes')).toBeNull())
     expect(((await field('Hours at the destination (included)')) as HTMLInputElement).value).toBe('6')
-  })
-
-  it('refuses a latest start that is not after the earliest start, without a request', async () => {
-    render(<TourEditor tourId={ID} />)
-    fireEvent.change(await field('Latest start'), { target: { value: '08:00' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save basics' }))
-    expect(await screen.findByText('Latest start must be later than the earliest start.')).toBeDefined()
-    expect(calls('PATCH')).toHaveLength(0)
   })
 
   it('refuses hours outside 1 to 12 and a price of 0', async () => {
