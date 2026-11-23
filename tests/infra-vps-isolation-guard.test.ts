@@ -187,6 +187,11 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'QStash-invoked outbox dispatcher handler (alert.no_show): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact/driver request path; reachable only from lib/lead-sync.ts',
   },
   {
+    path: 'lib/custom-tour-alert.ts',
+    reason:
+      'QStash-invoked outbox dispatcher handler (alert.custom_tour): runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact/custom-tour request path (the request route imports lib/custom-tour-enqueue.ts, which has no Chatwoot import); reachable only from lib/lead-sync.ts',
+  },
+  {
     path: 'app/api/webhooks/chatwoot/route.ts',
     reason:
       'server-to-server receiver called only by the Chatwoot server with an HMAC-signed request; reads its signing secret from env, verifies and enqueues one outbox row through a single RPC; makes no network call to the VPS and never runs on a page render or a booking/payment/contact request path',

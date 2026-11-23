@@ -5,7 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 // inside its own try, gives up after 3 s, and logs only a code (never a value).
 // No IP address and no browser identification are stored (D-17).
 
-export type InquiryKind = 'contact' | 'corporate' | 'multiday_quote'
+export type InquiryKind = 'contact' | 'corporate' | 'multiday_quote' | 'custom_tour'
 
 export interface InquiryInput {
   email: string

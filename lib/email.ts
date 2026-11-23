@@ -1422,6 +1422,220 @@ export async function sendMultidayClientAck(data: MultidayEmailData): Promise<vo
   }
 }
 
+// ── Custom-tour request emails (Phase 93, plan 93-32; TRIP-06, D-17, D-18; UI-SPEC Surface 9) ─────────────────────────
+// The operator alert is English; the client acknowledgement is localized from TourEmails.ack in the request locale.
+// Both are non-fatal (the route answers { ok: true } whatever Resend does). Every visitor string is escaped.
+
+export interface CustomTourAlertData {
+  /** The stored inquiry id; null when the store failed (the alert then carries no admin link). */
+  inquiryId: string | null
+  /** Request locale, as stored. */
+  locale: string
+  /** Slug of the tour the visitor started from, or null. */
+  tourSlug: string | null
+  name: string
+  email: string
+  phone: string
+  where: string
+  date: string
+  people: number
+  wishes: string | null
+  receivedAt?: Date
+}
+
+export interface CustomTourAckData {
+  locale: string
+  name: string
+  email: string
+  date: string
+  people: number
+}
+
+const CUSTOM_TOUR_ALERT_SUBJECT = '[Custom tour] New request from the site'
+
+function buildCustomTourOperatorHtml(data: CustomTourAlertData): string {
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com').trim().replace(/\/+$/, '')
+  const received = (data.receivedAt ?? new Date()).toLocaleString('en-GB', {
+    timeZone: 'Europe/Prague',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  const label = (text: string) =>
+    `<div style="font-size:10px;letter-spacing:0.32em;color:#D4BB86;text-transform:uppercase;margin:0 0 8px;">${text}</div>`
+  const line = (k: string, v: string) =>
+    `<div style="font-size:13px;line-height:1.7;color:#F3EEE3;"><span style="color:#A9AEB0;">${k}:</span> ${v}</div>`
+
+  const adminUrl = data.inquiryId ? `${base}/admin/custom-tours/${encodeURIComponent(data.inquiryId)}` : null
+  const adminBlock = adminUrl
+    ? `<div style="font-size:14px;line-height:1.7;"><a href="${escapeHtml(adminUrl)}" style="color:#E6D6B0;">${escapeHtml(adminUrl)}</a></div>`
+    : `<div style="font-size:13px;line-height:1.7;color:#A9AEB0;">The request could not be saved to the admin. Reply to this email to reach the client.</div>`
+
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#0F1D2C;font-family:'Inter',Helvetica,Arial,sans-serif;color:#F3EEE3;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0F1D2C;padding:32px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#0B1622;border:1px solid #2B4056;">
+        <tr><td style="padding:32px 24px;border-bottom:1px solid #2B4056;">
+          <div style="font-size:10px;letter-spacing:0.32em;color:#D4BB86;text-transform:uppercase;">PRESTIGO · Custom tour</div>
+          <h1 style="margin:12px 0 0;font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:400;color:#F3EEE3;">New custom tour request</h1>
+        </td></tr>
+        <tr><td style="padding:24px;">
+          ${line('Received', escapeHtml(received) + ' (Prague)')}
+          ${line('Language', escapeHtml(data.locale))}
+          ${line('Starting tour', data.tourSlug ? escapeHtml(data.tourSlug) : 'None')}
+        </td></tr>
+        <tr><td style="padding:0 24px 24px;">
+          ${label('Admin')}
+          ${adminBlock}
+        </td></tr>
+        <tr><td style="padding:0 24px 24px;">
+          ${label('Request')}
+          <div style="font-size:13px;line-height:1.7;color:#F3EEE3;white-space:pre-wrap;"><span style="color:#A9AEB0;">Where:</span> ${escapeHtml(data.where)}</div>
+          ${line('Date', escapeHtml(data.date))}
+          ${line('People', escapeHtml(String(data.people)))}
+          ${data.wishes ? `<div style="font-size:13px;line-height:1.7;color:#F3EEE3;white-space:pre-wrap;"><span style="color:#A9AEB0;">Wishes:</span> ${escapeHtml(data.wishes)}</div>` : ''}
+        </td></tr>
+        <tr><td style="padding:0 24px 24px;">
+          ${label('Client')}
+          ${line('Name', escapeHtml(data.name))}
+          ${line('Email', escapeHtml(data.email))}
+          ${line('Phone', escapeHtml(data.phone))}
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`
+}
+
+/** True when Resend accepted the alert; false when it was skipped (no MANAGER_EMAIL) or failed (WR-03). Never throws. */
+export async function sendCustomTourOperatorAlert(data: CustomTourAlertData): Promise<boolean> {
+  const to = process.env.MANAGER_EMAIL
+  if (!to) {
+    console.warn('[email] MANAGER_EMAIL not set — skipping custom tour operator alert')
+    return false
+  }
+  try {
+    const result = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [to],
+      subject: CUSTOM_TOUR_ALERT_SUBJECT,
+      html: buildCustomTourOperatorHtml(data),
+      replyTo: data.email,
+    })
+    // The Resend SDK reports a rejected send as { error } instead of throwing.
+    if (result && typeof result === 'object' && 'error' in result && result.error) {
+      console.warn('[email] sendCustomTourOperatorAlert rejected (non-fatal)')
+      return false
+    }
+    return true
+  } catch {
+    // No error object: Resend errors can echo the recipient address.
+    console.warn('[email] sendCustomTourOperatorAlert failed (non-fatal)')
+    return false
+  }
+}
+
+/** Longest first name the acknowledgement greets (CR-01). */
+const ACK_NAME_MAX = 40
+
+/**
+ * The greeting name of the client acknowledgement: the first word of the name, capped. Empty when it looks like a link
+ * or an address, so the mail can never carry an attacker's URL in the heading.
+ */
+export function ackFirstName(name: string): string {
+  const first = name.trim().split(/\s+/)[0] ?? ''
+  if (/[@/\\:]|www\.|\.[a-z]{2,}/i.test(first)) return ''
+  return Array.from(first).slice(0, ACK_NAME_MAX).join('')
+}
+
+/** Renders the client acknowledgement (subject + HTML) in the request locale; English when the locale has no copy. */
+export async function renderCustomTourClientAck(
+  data: CustomTourAckData,
+): Promise<{ subject: string; html: string; locale: string }> {
+  // Dynamic import: lib/payments/emails/render.ts imports this module, a static import would be a cycle.
+  const render = await import('@/lib/payments/emails/render')
+  const { normalizeSiteLocale } = await import('@/i18n/locales')
+  const { formatLocaleDate } = await import('@/lib/locale-date')
+
+  let locale = normalizeSiteLocale(data.locale)
+  let messages = await render.loadMessages(locale)
+  if (locale !== 'en' && !(messages as Record<string, Record<string, unknown> | undefined>).TourEmails?.ack) {
+    locale = 'en'
+    messages = await render.loadMessages('en')
+  }
+  const t = render.makeTranslator(locale, messages, 'TourEmails.ack')
+  const st = render.shellStyle(locale)
+
+  const dateText = formatLocaleDate(data.date, locale)
+  // CR-01: the address is never verified, so the mail carries server-controlled data only: the date and head count
+  // the form validated, and at most a short first name. The visitor's free text (where, wishes) is never echoed.
+  const firstName = ackFirstName(data.name)
+  // Escape once, after the parameters are inserted: the visitor's name never becomes markup.
+  const subject = t('subject')
+  const NAME_TOKEN = '\uE000'
+  const heading = firstName
+    ? escapeHtml(t('heading', { name: NAME_TOKEN })).replace(NAME_TOKEN, `<bdi dir="auto">${escapeHtml(firstName)}</bdi>`)
+    : escapeHtml(t('heading', { name: '' }).replace(/[\s,\u060C\uFF0C\u3001]+$/u, ''))
+  const body = escapeHtml(t('body', { date: dateText }))
+
+  const row = (k: string, v: string) => `
+          <tr>
+            <td style="${st.greyLabel} padding:8px 16px 8px 0;width:35%;vertical-align:top;text-align:${st.align};">${escapeHtml(k)}</td>
+            <td style="font-size:14px;font-weight:400;color:#F3EEE3;padding:8px 0;vertical-align:top;text-align:${st.align};word-break:break-word;overflow-wrap:anywhere;white-space:pre-wrap;">${v}</td>
+          </tr>`
+  const summary = render.boxHtml(
+    st,
+    escapeHtml(t('date')),
+    `<table role="presentation" style="width:100%;border-collapse:collapse;">${[
+      row(t('date'), `<bdi dir="auto">${escapeHtml(dateText)}</bdi>`),
+      row(t('people'), `<bdi dir="ltr">${escapeHtml(String(data.people))}</bdi>`),
+    ].join('')}</table>`,
+  )
+
+  const html = `<!DOCTYPE html>
+<html lang="${locale}"${st.dirAttr}>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(subject)}</title>
+</head>
+<body${st.dirAttr} style="margin:0;padding:0;background-color:#0F1D2C;">
+  <div style="background-color:#0F1D2C;padding:0;margin:0;font-family:'Inter',Arial,sans-serif;">
+    <div style="max-width:600px;margin:0 auto;background-color:#0F1D2C;">
+      <div style="height:2px;background:linear-gradient(90deg,#BFA06A 0%,#E6D6B0 50%,transparent 100%);"></div>
+      <div style="padding:32px 32px 16px;text-align:center;">${emailLogoImg(28)}</div>
+      <h1 style="font-family:'Inter',Arial,sans-serif;font-size:28px;font-weight:400;color:#F3EEE3;text-align:center;margin:0 0 16px;padding:0 32px;">${heading}</h1>
+      <div style="font-size:14px;font-weight:400;color:#F3EEE3;line-height:1.6;padding:0 32px;margin:0 0 24px;text-align:${st.align};">${body}</div>
+${summary}
+      <div style="padding-top:24px;padding-bottom:32px;">
+        <div style="border-top:1px solid #BFA06A;margin:0 32px 24px;"></div>
+        <div style="text-align:center;">${emailLogoImg(18)}</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`
+  return { subject, html, locale }
+}
+
+export async function sendCustomTourClientAck(data: CustomTourAckData): Promise<void> {
+  try {
+    const { subject, html } = await renderCustomTourClientAck(data)
+    await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.email],
+      replyTo: CUSTOMER_REPLY_TO,
+      subject,
+      html,
+    })
+  } catch {
+    console.warn('[email] sendCustomTourClientAck failed (non-fatal)')
+  }
+}
+
 interface StatusEmailBooking {
   id: string
   booking_reference: string

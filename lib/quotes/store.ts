@@ -349,11 +349,41 @@ async function latestBookingLocale(email: string): Promise<AppLocale> {
   }
 }
 
-/** Creates the quote header and its unfrozen version 1. Returns the new quote id. */
+export type QuoteCreateRefusalCode = 'INQUIRY_NOT_FOUND' | 'INQUIRY_NOT_CUSTOM_TOUR' | 'INQUIRY_ALREADY_QUOTED'
+
+/** A well-formed create the state does not allow (Phase 93, D-18). Carries a code only, never a value. */
+export class QuoteCreateRefusal extends Error {
+  constructor(readonly code: QuoteCreateRefusalCode) {
+    super(code)
+  }
+}
+
+/** The unique partial index of migrations 093/094: one live (not voided) quote per custom-tour request. */
+const INQUIRY_UNIQUE_INDEX = 'quotes_source_inquiry_id_key'
+
+/** The request must exist (an erased one is gone) and be a custom-tour request: an id must never link a quote to a contact form. */
+async function assertCustomTourInquiry(inquiryId: string): Promise<void> {
+  const { data, error } = await createSupabaseServiceClient().from('inquiries').select('id, kind').eq('id', inquiryId).maybeSingle()
+  if (error) {
+    console.error('[quotes/store] create inquiry read failed', { code: error.code ?? null })
+    throw new Error('quote create failed')
+  }
+  if (!data) throw new QuoteCreateRefusal('INQUIRY_NOT_FOUND')
+  if ((data as Row).kind !== 'custom_tour') throw new QuoteCreateRefusal('INQUIRY_NOT_CUSTOM_TOUR')
+}
+
+/**
+ * Creates the quote header and its unfrozen version 1. Returns the new quote id. With `source_inquiry_id` (D-18) the
+ * quote answers a custom-tour request: the inquiry is verified first, the version language is the request's, and the
+ * unique index of 093/094 turns a second live quote for the same request into INQUIRY_ALREADY_QUOTED. A voided quote
+ * does not count (094), so a request whose quote was voided can be quoted again.
+ */
 export async function createQuoteDraft(input: QuoteCreatePayload, actor: QuoteActor): Promise<{ id: string }> {
   const supabase = createSupabaseServiceClient()
   const email = input.client.email.trim()
-  const locale = await latestBookingLocale(email)
+  const sourceInquiryId = input.source_inquiry_id ?? null
+  if (sourceInquiryId) await assertCustomTourInquiry(sourceInquiryId)
+  const locale = input.locale ?? (await latestBookingLocale(email))
 
   let quoteId: string | null = null
   for (let attempt = 0; attempt < 2 && quoteId === null; attempt += 1) {
@@ -368,11 +398,14 @@ export async function createQuoteDraft(input: QuoteCreatePayload, actor: QuoteAc
         client_phone: input.client.phone?.trim() ? input.client.phone.trim() : null,
         lead_channel: input.lead_channel,
         created_by: actor.id,
+        ...(sourceInquiryId ? { source_inquiry_id: sourceInquiryId } : {}),
       })
       .select('id')
       .single()
     if (!error && data) {
       quoteId = String((data as Row).id)
+    } else if (error?.code === UNIQUE_VIOLATION && sourceInquiryId && error.message?.includes(INQUIRY_UNIQUE_INDEX)) {
+      throw new QuoteCreateRefusal('INQUIRY_ALREADY_QUOTED')
     } else if (error?.code === UNIQUE_VIOLATION) {
       continue // a reference collision: one more random reference
     } else {

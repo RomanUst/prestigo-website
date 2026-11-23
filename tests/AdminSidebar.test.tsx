@@ -137,6 +137,7 @@ const NAV = [
   ['Bookings', '/admin/bookings'],
   ['Quotes', '/admin/quotes'],
   ['Tours', '/admin/tours'],
+  ['Custom tours', '/admin/custom-tours'],
   ['Accounts', '/admin/accounts'],
   ['Drivers', '/admin/drivers'],
   ['Promos', '/admin/promo-codes'],
@@ -168,7 +169,7 @@ describe('AdminSidebar nav, icons and active state (D-09)', () => {
     window.history.pushState({}, '', '/')
   })
 
-  it('renders all 13 items in order with hrefs, an svg icon and the label', () => {
+  it('renders all 14 items in order with hrefs, an svg icon and the label', () => {
     render(<AdminSidebar />)
     const links = screen.getAllByRole('link')
     expect(links.map((l) => l.getAttribute('href'))).toEqual(NAV.map(([, href]) => href))

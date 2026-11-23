@@ -535,7 +535,7 @@ Plans:
   4. A client can book a tour online with date, time, vehicle and passengers, using the same payment modes as transfers (card on file with hold, cash with card guarantee).
   5. A visitor who finds nothing suitable can send a custom-tour request (destinations, date, people, wishes) that becomes a lead in Supabase, EspoCRM and Chatwoot without depending on the VPS, and the operator can answer it with a quote from admin.
 
-**Plans**: 4/35 plans executed (PR 1 = 93-01..93-28, TRIP-01..05; PR 2 = 93-29..93-35, TRIP-06/07 — D-26)
+**Plans**: 34/35 plans executed (PR 1 = 93-01..93-28, TRIP-01..05; PR 2 = 93-29..93-35, TRIP-06/07 — D-26)
 
 Plans:
 **Wave 1**
@@ -545,52 +545,52 @@ Plans:
 - [x] 93-04-PLAN.md — Licensed launch photo manifest for the 6 tours
 
 **Wave 2**
-- [ ] 93-05-PLAN.md — Tour core: guarded store, price math, completeness, publish checklist, tour policy, pickup area, custom-tour link switch
-- [ ] 93-06-PLAN.md — trip_type 'tour' in CRM mapping, dispatch filter, admin PATCH price guard
+- [x] 93-05-PLAN.md — Tour core: guarded store, price math, completeness, publish checklist, tour policy, pickup area, custom-tour link switch
+- [x] 93-06-PLAN.md — trip_type 'tour' in CRM mapping, dispatch filter, admin PATCH price guard
 
 **Wave 3**
-- [ ] 93-07-PLAN.md — Admin tours API (CRUD, translations, zh-Hant fill, reorder, tour settings)
-- [ ] 93-11-PLAN.md — DB-backed tour page, redirect for incomplete locales, TouristTrip JSON-LD, hreflang
-- [ ] 93-12-PLAN.md — Booking box and mobile sticky bar
-- [ ] 93-16-PLAN.md — Card checkout tour branch (server price, pickup area, refusals)
-- [ ] 93-20-PLAN.md — Tour bookings in admin, dispatch and driver views; overrun hint
-- [ ] 93-21-PLAN.md — Seed pipeline, price proposal, English content for 6 tours, hub and terms
+- [x] 93-07-PLAN.md — Admin tours API (CRUD, translations, zh-Hant fill, reorder, tour settings)
+- [x] 93-11-PLAN.md — DB-backed tour page, redirect for incomplete locales, TouristTrip JSON-LD, hreflang
+- [x] 93-12-PLAN.md — Booking box and mobile sticky bar
+- [x] 93-16-PLAN.md — Card checkout tour branch (server price, pickup area, refusals)
+- [x] 93-20-PLAN.md — Tour bookings in admin, dispatch and driver views; overrun hint
+- [x] 93-21-PLAN.md — Seed pipeline, price proposal, English content for 6 tours, hub and terms
 
 **Wave 4**
-- [ ] 93-08-PLAN.md — Admin photo upload / credits / publish route; CSP and image host
-- [ ] 93-09-PLAN.md — Admin tours list, tour settings card, new tour
-- [ ] 93-13-PLAN.md — Gallery, lightbox, credits; box placed on the page
-- [ ] 93-17-PLAN.md — Init / intent tour policy snapshot and booking row
-- [ ] 93-22-PLAN.md — Russian tour content, hub and terms
-- [ ] 93-23-PLAN.md — Spanish tour content, hub and terms
-- [ ] 93-24-PLAN.md — French tour content, hub and terms
-- [ ] 93-25-PLAN.md — Arabic tour content, hub and terms
-- [ ] 93-26-PLAN.md — Hindi tour content, hub and terms
+- [x] 93-08-PLAN.md — Admin photo upload / credits / publish route; CSP and image host
+- [x] 93-09-PLAN.md — Admin tours list, tour settings card, new tour
+- [x] 93-13-PLAN.md — Gallery, lightbox, credits; box placed on the page
+- [x] 93-17-PLAN.md — Init / intent tour policy snapshot and booking row
+- [x] 93-22-PLAN.md — Russian tour content, hub and terms
+- [x] 93-23-PLAN.md — Spanish tour content, hub and terms
+- [x] 93-24-PLAN.md — French tour content, hub and terms
+- [x] 93-25-PLAN.md — Arabic tour content, hub and terms
+- [x] 93-26-PLAN.md — Hindi tour content, hub and terms
 
 **Wave 5**
-- [ ] 93-10-PLAN.md — Admin tour editor (basics, language tabs, photos, publish)
-- [ ] 93-14-PLAN.md — Catalogue cards, hub grid, related tours, custom-tour blocks, services index
-- [ ] 93-18-PLAN.md — Tour checkout page (pickup, details, payment stage, states)
-- [ ] 93-27-PLAN.md — Simplified Chinese tour content, zh-hant generated, 6 x 8 completeness proof
+- [x] 93-10-PLAN.md — Admin tour editor (basics, language tabs, photos, publish)
+- [x] 93-14-PLAN.md — Catalogue cards, hub grid, related tours, custom-tour blocks, services index
+- [x] 93-18-PLAN.md — Tour checkout page (pickup, details, payment stage, states)
+- [x] 93-27-PLAN.md — Simplified Chinese tour content, zh-hant generated, 6 x 8 completeness proof
 
 **Wave 6**
-- [ ] 93-15-PLAN.md — Async sitemap with tours, route-to-tour links, retire old day-trip JSON
-- [ ] 93-19-PLAN.md — Tour confirmation, email rows, calendar, manage page
+- [x] 93-15-PLAN.md — Async sitemap with tours, route-to-tour links, retire old day-trip JSON
+- [x] 93-19-PLAN.md — Tour confirmation, email rows, calendar, manage page
 
 **Wave 7**
-- [ ] 93-28-PLAN.md — PR 1 e2e, owner price approval (D-21), seed + publish, EspoCRM sync, merge, live proofs
+- [x] 93-28-PLAN.md — PR 1 e2e, owner price approval (D-21), seed + publish, EspoCRM sync, merge, live proofs
 
 **Wave 8**
-- [ ] 93-29-PLAN.md — Migration 093 custom_tour inquiries, Lead mapping, EspoCRM source, stats (live apply)
+- [x] 93-29-PLAN.md — Migration 093 custom_tour inquiries, Lead mapping, EspoCRM source, stats (live apply)
 
 **Wave 9**
-- [ ] 93-30-PLAN.md — Chatwoot ops note through the outbox (D-19)
-- [ ] 93-31-PLAN.md — Quote from request API, custom-tour requests admin API
-- [ ] 93-34-PLAN.md — Custom-tour request page and live entry-point switch
+- [x] 93-30-PLAN.md — Chatwoot ops note through the outbox (D-19)
+- [x] 93-31-PLAN.md — Quote from request API, custom-tour requests admin API
+- [x] 93-34-PLAN.md — Custom-tour request page and live entry-point switch
 
 **Wave 10**
-- [ ] 93-32-PLAN.md — POST /api/custom-tour with guards and emails
-- [ ] 93-33-PLAN.md — Admin custom tours inbox, Create quote, builder request card
+- [x] 93-32-PLAN.md — POST /api/custom-tour with guards and emails
+- [x] 93-33-PLAN.md — Admin custom tours inbox, Create quote, builder request card
 
 **Wave 11**
 - [ ] 93-35-PLAN.md — PR 2 e2e, EspoCRM sync, merge, live custom-tour proof
@@ -727,7 +727,7 @@ Plans:
 | 90. Dispatch Views | v5.0 | 9/9 | In Progress|  |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 16/17 | In Progress|  |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
-| 93. Day Trips & Custom Tours | v5.0 | 4/35 | In Progress|  |
+| 93. Day Trips & Custom Tours | v5.0 | 34/35 | In Progress|  |
 
 ## Backlog
 

@@ -157,6 +157,10 @@ export const quoteCreateSchema = z.strictObject({
   client: clientSchema,
   lead_channel: z.enum(QUOTE_LEAD_CHANNELS),
   currency: quoteCurrencySchema,
+  // Phase 93 (D-18): answer a custom-tour request. The server checks the inquiry exists and has kind custom_tour; the
+  // locale is the request's (the operator's quote is written in the client's language), else the latest-booking rule.
+  source_inquiry_id: z.string().uuid().optional(),
+  locale: quoteLocaleSchema.optional(),
 })
 export type QuoteCreatePayload = z.infer<typeof quoteCreateSchema>
 

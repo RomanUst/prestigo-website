@@ -114,6 +114,8 @@ export const FUNNEL_SOURCES = [
   'form_corporate',
   'form_multiday_quote',
   'abandoned',
+  // Phase 93 (093): the custom-tour request form, appended after the 083 sources.
+  'form_custom_tour',
 ] as const
 export type FunnelSource = (typeof FUNNEL_SOURCES)[number]
 
@@ -127,6 +129,7 @@ export const FUNNEL_SOURCE_LABELS: Record<FunnelSource, string> = {
   form_corporate: 'Form · corporate',
   form_multiday_quote: 'Form · multiday quote',
   abandoned: 'Abandoned checkout',
+  form_custom_tour: 'Form · custom tour',
 }
 
 export const DIRECT_SOURCES = [

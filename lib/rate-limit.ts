@@ -22,6 +22,8 @@ const LIMITS: Record<string, number> = {
   '/api/calculate-price':        30, // users recalculate several times while booking
   '/api/submit-quote':            5, // 5 quote submissions per minute is already suspicious
   '/api/submit-multiday-quote':   5, // same as /api/submit-quote — public quote endpoint
+  '/api/custom-tour':             5, // Phase 93 (T-93-72): public custom-tour request, each one mails the operator and the client
+  '/api/custom-tour#ack':         3, // Phase 93 (CR-01): acknowledgement mails per recipient address per 24 h (see WINDOWS_MS); keyed on the hashed email, not the IP
   '/api/contact':                 3, // 3 contact form submissions per minute
   '/api/create-payment-intent':  10, // prevent cost abuse and promo-code enumeration
   '/api/validate-promo':         20, // prevent promo code enumeration
@@ -43,6 +45,14 @@ const LIMITS: Record<string, number> = {
   '/api/driver/trip/progress':   20, // DTRIP-08: driver taps through up to 5 states, higher than respond's 10
   '/api/driver/trip/help':       10, // Phase 87 UAT gap 3: Help chat opens, a few per trip; token-gated identity mint
   '/api/chatwoot/dashboard-app': 30, // operator panel: conversation switches + 30 s refresh per open tab; used fail-closed because the route proxies token checks to Chatwoot
+}
+
+/**
+ * Window length in ms for routes that do not use the default 60 s. The recipient-keyed
+ * acknowledgement limit counts per day, because it bounds how often one inbox can be mailed.
+ */
+const WINDOWS_MS: Record<string, number> = {
+  '/api/custom-tour#ack': 24 * 60 * 60 * 1000,
 }
 
 export interface RateLimitResult {
@@ -70,6 +80,8 @@ export interface RateLimitOptions {
 
 const WINDOW_MS = 60_000
 
+const windowFor = (pathname: string): number => WINDOWS_MS[pathname] ?? WINDOW_MS
+
 /**
  * Atomic sliding-window log via Lua EVAL over a sorted set.
  *
@@ -81,7 +93,7 @@ const WINDOW_MS = 60_000
  * admitted; the whole script runs atomically so concurrent requests can't race
  * past the limit.
  */
-async function checkUpstash(key: string, limit: number): Promise<RateLimitResult | null> {
+async function checkUpstash(key: string, limit: number, windowMs: number): Promise<RateLimitResult | null> {
   const url   = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
@@ -117,7 +129,7 @@ async function checkUpstash(key: string, limit: number): Promise<RateLimitResult
       // Upstash REST API: send full Redis command as JSON array
       body: JSON.stringify([
         'EVAL', luaScript, 1, key,
-        String(now), String(WINDOW_MS), String(limit), member,
+        String(now), String(windowMs), String(limit), member,
       ]),
       // Tell Next.js not to cache this request
       cache: 'no-store',
@@ -149,8 +161,10 @@ function maybePrune() {
   const now = Date.now()
   if (now - lastPrune < WINDOW_MS) return
   lastPrune = now
-  const cutoff = now - WINDOW_MS
   for (const [key, hits] of store) {
+    // Keys are `${pathname}:${id}`; a route with a long window keeps its hits that long.
+    const longWindow = Object.keys(WINDOWS_MS).find(p => key.startsWith(`${p}:`))
+    const cutoff = now - (longWindow ? WINDOWS_MS[longWindow] : WINDOW_MS)
     const fresh = hits.filter(t => t > cutoff)
     if (fresh.length === 0) store.delete(key)
     else store.set(key, fresh)
@@ -161,7 +175,7 @@ function checkInMemory(pathname: string, ip: string, limit: number): RateLimitRe
   maybePrune()
   const key = `${pathname}:${ip}`
   const now = Date.now()
-  const cutoff = now - WINDOW_MS
+  const cutoff = now - windowFor(pathname)
   const hits = (store.get(key) ?? []).filter(t => t > cutoff)
 
   if (hits.length >= limit) {
@@ -196,7 +210,7 @@ export async function checkRateLimit(
   if (!limit) return { allowed: true, remaining: Infinity, limit: Infinity }
 
   const key = `prestigo:rl:${pathname}:${ip}`
-  const upstash = await checkUpstash(key, limit)
+  const upstash = await checkUpstash(key, limit, windowFor(pathname))
   if (upstash !== null) return upstash
 
   // Upstash is down. Log every fallback so repeated occurrences are visible

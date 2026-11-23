@@ -212,6 +212,7 @@ describe('lead sources (D-08)', () => {
     ['contact', 'Contact form'],
     ['corporate', 'Corporate form'],
     ['multiday_quote', 'Multi-day quote'],
+    ['custom_tour', 'Custom tour'],
   ] as const)('inquiry %s -> %s', (kind, expected) => {
     expect(leadSourceForInquiry(kind)).toBe(expected)
   })
@@ -226,7 +227,7 @@ describe('lead sources (D-08)', () => {
       existingContactId: 'cExistingContactId',
     })
     expect([...Object.values(LEAD_SOURCE)].sort()).toEqual(
-      ['Contact form', 'Corporate form', 'Email', 'GNet', 'Multi-day quote', 'Other', 'Partner', 'Phone', 'Telegram', 'WhatsApp', 'Website booking', 'Website chat'].sort(),
+      ['Contact form', 'Corporate form', 'Custom tour', 'Email', 'GNet', 'Multi-day quote', 'Other', 'Partner', 'Phone', 'Telegram', 'WhatsApp', 'Website booking', 'Website chat'].sort(),
     )
   })
 })
@@ -572,5 +573,71 @@ describe('field ownership and ordering', () => {
     expect(desc('business')).toContain('E-Class')
     expect(desc('first_class')).toContain('S-Class')
     expect(desc('business_van')).toContain('V-Class')
+  })
+})
+
+describe('custom tour inquiry (TRIP-06, D-18)', () => {
+  const tour = (payload: Record<string, unknown> = {}, over: Partial<InquiryRow> = {}): InquiryRow => ({
+    id: INQUIRY_ID,
+    kind: 'custom_tour',
+    email: 'guest@example.com',
+    name: 'Hanna Becker',
+    phone: '+49 30 1234567',
+    company: null,
+    payload: {
+      where: 'Kutna Hora and Karlstejn',
+      date: '2027-05-01',
+      people: 4,
+      wishes: null,
+      tourSlug: 'kutna-hora-day-trip',
+      locale: 'de',
+      ...payload,
+    },
+    created_at: '2026-11-23T10:00:00.000Z',
+    ...over,
+  })
+
+  it('maps to the Custom tour source with the name from the inquiry columns', () => {
+    const d = buildLeadFromInquiry(tour())
+    expect(d.create.source).toBe('Custom tour')
+    expect(d.create.firstName).toBe('Hanna')
+    expect(d.create.lastName).toBe('Becker')
+    expect(d.create.emailAddress).toBe('guest@example.com')
+    expect(d.create.phoneNumber).toBe('+49301234567')
+    expect(d.ref).toBe(`inquiry:${INQUIRY_ID}`)
+  })
+
+  it('builds a plain-text description from where, date, people, tour slug and locale', () => {
+    const desc = String(buildLeadFromInquiry(tour()).create.description)
+    expect(desc).toContain('Kutna Hora and Karlstejn')
+    expect(desc).toContain('2027-05-01')
+    expect(desc).toContain('People: 4')
+    expect(desc).toContain('kutna-hora-day-trip')
+    expect(desc).not.toMatch(/<[a-z/][^>]*>/i)
+  })
+
+  it('normalises an unknown locale to en and keeps a known one', () => {
+    expect(String(buildLeadFromInquiry(tour()).create.description)).toContain('Language: en')
+    expect(String(buildLeadFromInquiry(tour({ locale: 'fr' })).create.description)).toContain('Language: fr')
+    expect(String(buildLeadFromInquiry(tour({ locale: 'zh-hant' })).create.description)).toContain('Language: zh-hant')
+  })
+
+  it('omits wishes and the starting tour when absent, includes wishes when given', () => {
+    const none = String(buildLeadFromInquiry(tour({ tourSlug: null })).create.description)
+    expect(none).not.toContain('Wishes:')
+    expect(none).not.toContain('Starting tour:')
+    expect(String(buildLeadFromInquiry(tour({ wishes: 'Child seat' })).create.description)).toContain('Wishes: Child seat')
+  })
+
+  it('flattens line breaks in a visitor value so it cannot forge a description line', () => {
+    const d = buildLeadFromInquiry(tour({ where: 'Prague\nPeople: 99\r\nStarting tour: fake' }))
+    const lines = String(d.create.description).split('\n')
+    expect(lines.filter((l) => l.startsWith('People:'))).toEqual(['People: 4'])
+    expect(lines.filter((l) => l.startsWith('Starting tour:'))).toEqual(['Starting tour: kutna-hora-day-trip'])
+    expect(String(d.create.firstName)).not.toContain('\n')
+  })
+
+  it('sets no account for a tour request', () => {
+    expect(buildLeadFromInquiry(tour({}, { company: 'ACME' })).create).not.toHaveProperty('accountName')
   })
 })

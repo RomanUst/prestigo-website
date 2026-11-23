@@ -25,6 +25,7 @@ import { deliverEspoSync } from '@/lib/crm-sync'
 import { deliverChatwootSync } from '@/lib/chatwoot-sync'
 import { deliverErasure, type ErasureStripe } from '@/lib/erasure'
 import { deliverNoShowAlert, type NoShowAlertDeps } from '@/lib/noshow-alert'
+import { deliverCustomTourAlert, type CustomTourAlertDeps } from '@/lib/custom-tour-alert'
 import type { ErasureStore } from '@/lib/erasure-store'
 import {
   buildLeadFromBooking,
@@ -67,6 +68,8 @@ export interface DispatchDeps {
   chat?: ChatStore
   /** Phase 87 (plan 87-06): no-show alert store and operations conversation; undefined = Supabase / env. */
   noShowAlert?: NoShowAlertDeps
+  /** Phase 93 (plan 93-30): custom-tour alert store and operations conversation; undefined = Supabase / env. */
+  customTourAlert?: CustomTourAlertDeps
 }
 
 const LEASE_SECONDS = 120
@@ -98,6 +101,7 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     erasureStripe: deps.erasureStripe,
     chat: deps.chat,
     noShowAlert: deps.noShowAlert,
+    customTourAlert: deps.customTourAlert,
   }
 }
 
@@ -204,6 +208,17 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
     if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
     try {
       return await deliverNoShowAlert(row, d, d.noShowAlert)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+
+  // Phase 93 (D-18, D-19): custom-tour request -> Chatwoot private note in the ops conversation. Same
+  // gate as the no-show alert: Chatwoot only, inside this QStash-invoked dispatcher.
+  if (row.event_type === 'alert.custom_tour') {
+    if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
+    try {
+      return await deliverCustomTourAlert(row, d, d.customTourAlert)
     } catch (err) {
       return handleFailure(row, err, d)
     }
