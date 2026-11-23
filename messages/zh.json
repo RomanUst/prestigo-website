@@ -1629,6 +1629,7 @@
       "lessTime": "减少额外时间",
       "moreTime": "增加额外时间",
       "errDate": "请选择日期。",
+      "seasonNote": "仅限 {from} 至 {until} 期间预订。",
       "errTime": "请选择出发时间。",
       "errCar": "请选择车辆。",
       "cta": "预订本次行程"

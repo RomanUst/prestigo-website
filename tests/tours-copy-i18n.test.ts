@@ -27,7 +27,7 @@ const KEY_TREE: Record<string, string> = {
   'Tours.sections': 'highlights about itinerary included notIncluded pickup important cancellation faq related credits',
   'Tours.gallery': 'showAll more counter lightboxLabel close prev next alt open credit creditItem',
   'Tours.box':
-    'heading from perCar date chooseDate time pragueTime dateFirst passengers paxHelper paxMore car onlyFit carUpTo extra ' +
+    'heading from perCar date chooseDate seasonNote time pragueTime dateFirst passengers paxHelper paxMore car onlyFit carUpTo extra ' +
     'extraNone extraCount extraHelperCar extraHelperNoCar extraMax total totalHours barTotal fewer more lessTime moreTime ' +
     'errDate errTime errCar cta',
   'Tours.custom': 'heading compactBody bandLabel bandBody cta',

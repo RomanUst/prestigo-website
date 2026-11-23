@@ -53,6 +53,8 @@ type BasicsForm = {
   destination_label: string
   hours_included: string
   drive_minutes_each_way: string
+  bookable_from: string
+  bookable_until: string
   price_e_eur: string
   price_s_eur: string
   price_v_eur: string
@@ -67,6 +69,8 @@ function formFromTour(tour: TourRow): BasicsForm {
     destination_label: tour.destination_label ?? '',
     hours_included: text(tour.hours_included),
     drive_minutes_each_way: text(tour.drive_minutes_each_way),
+    bookable_from: tour.bookable_from ?? '',
+    bookable_until: tour.bookable_until ?? '',
     price_e_eur: text(tour.price_e_eur),
     price_s_eur: text(tour.price_s_eur),
     price_v_eur: text(tour.price_v_eur),
@@ -98,6 +102,9 @@ function validateBasics(form: BasicsForm, addressEditable: boolean): Partial<Rec
   if (parseWhole(form.drive_minutes_each_way, 10, 600) === null) errors.drive_minutes_each_way = 'Enter a whole number from 10 to 600.'
   for (const key of ['price_e_eur', 'price_s_eur', 'price_v_eur'] as const) {
     if (parsePrice(form[key]) === null) errors[key] = 'Enter a price greater than 0.'
+  }
+  if (form.bookable_from && form.bookable_until && form.bookable_until < form.bookable_from) {
+    errors.bookable_until = 'The last date must be on or after the first date.'
   }
   return errors
 }
@@ -212,11 +219,13 @@ export default function TourEditor({ tourId }: TourEditorProps) {
     if (Object.keys(local).length > 0) return
 
     // Only the fields the operator changed go to the server.
-    const patch: Record<string, string | number> = {}
+    const patch: Record<string, string | number | null> = {}
     if (form.address !== base.address && addressEditable) patch.slug = `${form.address.trim()}${SLUG_SUFFIX}`
     if (form.destination_label !== base.destination_label) patch.destination_label = form.destination_label.trim()
     if (form.hours_included !== base.hours_included) patch.hours_included = Number(form.hours_included)
     if (form.drive_minutes_each_way !== base.drive_minutes_each_way) patch.drive_minutes_each_way = Number(form.drive_minutes_each_way)
+    if (form.bookable_from !== base.bookable_from) patch.bookable_from = form.bookable_from || null
+    if (form.bookable_until !== base.bookable_until) patch.bookable_until = form.bookable_until || null
     if (form.price_e_eur !== base.price_e_eur) patch.price_e_eur = Number(form.price_e_eur)
     if (form.price_s_eur !== base.price_s_eur) patch.price_s_eur = Number(form.price_s_eur)
     if (form.price_v_eur !== base.price_v_eur) patch.price_v_eur = Number(form.price_v_eur)
@@ -556,6 +565,36 @@ export default function TourEditor({ tourId }: TourEditorProps) {
             error={showError('drive_minutes_each_way')}
             onChange={(v) => setField('drive_minutes_each_way', v)}
           />
+
+          <div>
+            <span style={labelStyle}>Seasonal tour: bookable dates (optional)</span>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 4 }}>
+              <label htmlFor="tb-season-from" style={mutedTextStyle}>
+                From{' '}
+                <input
+                  id="tb-season-from"
+                  type="date"
+                  value={form.bookable_from}
+                  onChange={(e) => setField('bookable_from', e.target.value)}
+                  {...focusRingHandlers}
+                  style={{ ...inputBaseStyle, fontWeight: 400, width: 'auto' }}
+                />
+              </label>
+              <label htmlFor="tb-season-until" style={mutedTextStyle}>
+                Until{' '}
+                <input
+                  id="tb-season-until"
+                  type="date"
+                  value={form.bookable_until}
+                  onChange={(e) => setField('bookable_until', e.target.value)}
+                  {...focusRingHandlers}
+                  style={{ ...inputBaseStyle, fontWeight: 400, width: 'auto' }}
+                />
+              </label>
+            </div>
+            {showError('bookable_until') && <p role="alert" style={{ ...mutedTextStyle, color: 'var(--status-danger-fg)' }}>{showError('bookable_until')}</p>}
+            <p style={mutedTextStyle}>Leave empty for a tour that runs all year. Outside these dates the tour cannot be booked; after the last date it leaves the tour list.</p>
+          </div>
 
           <PriceField
             id="tb-price-e"

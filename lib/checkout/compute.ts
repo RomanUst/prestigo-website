@@ -33,6 +33,7 @@ import { isLandingOffset, pickupFromLanding } from '@/lib/airport-pickup'
 import { getPublishedTourBySlug } from '@/lib/tours/store'
 import { tourFare, TourPriceError } from '@/lib/tours/pricing'
 import { checkTourPickup } from '@/lib/tours/pickup-area'
+import { isInSeason } from '@/lib/tours/season'
 import { MAX_EXTRA_HOURS, TOUR_SLUG_PATTERN } from '@/lib/tours/types'
 import {
   MAX_STOPS,
@@ -376,6 +377,10 @@ async function priceTour(input: {
   const found = await getPublishedTourBySlug(validated.tour.slug)
   if (!found) return fail(422, 'TOUR_UNAVAILABLE', 'This tour is not available')
   const { tour, enTitle, settings } = found
+  // Migration 094: a seasonal tour books only for a pickup date inside its window.
+  if (!bookingData.pickupDate || !isInSeason(bookingData.pickupDate, { from: tour.bookable_from, until: tour.bookable_until })) {
+    return fail(422, 'TOUR_UNAVAILABLE', 'This tour is not available on this date')
+  }
 
   const area = checkTourPickup(
     { lat: validated.origin.lat, lng: validated.origin.lng, address: bookingData.originAddress ?? null },

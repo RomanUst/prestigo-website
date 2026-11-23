@@ -29,7 +29,8 @@ import { classesForPassengers, tourFare } from '@/lib/tours/pricing'
 import { MAX_EXTRA_HOURS, TOUR_CAR_KEYS, type TourCarKey } from '@/lib/tours/types'
 import { customTourHref } from '@/lib/tours/custom-tour-link'
 import { buildTourCheckoutHref, MAX_TOUR_PASSENGERS, tourBoxStorageKey } from '@/lib/tours/checkout-query'
-import { ALL_START_TIMES, isDateBookable, isStartBookable, START_MINUTES, startHours } from '@/lib/tours/start-times'
+import { ALL_START_TIMES, isDateBookable as isDateBookableBase, isStartBookable, START_MINUTES, startHours } from '@/lib/tours/start-times'
+import { hasSeason, isInSeason, type TourSeason } from '@/lib/tours/season'
 
 export interface TourBoxState {
   complete: boolean
@@ -59,6 +60,8 @@ export interface TourBookingBoxProps {
    * so a stale or tampered value can only leave the box emptier, never invalid.
    */
   initial?: Partial<{ date: string; time: string; pax: number; car: TourCarKey; xh: number }>
+  /** Seasonal tour window (migration 095); dates outside it cannot be picked. Absent = all year. */
+  season?: TourSeason
 }
 
 const FOCUS_RING =
@@ -104,10 +107,12 @@ function arrowStep(key: string, rtl: boolean): 1 | -1 | null {
 }
 
 const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(function TourBookingBox(
-  { slug, hoursIncluded, prices, extraHourPrices, freeCancelHours, onStateChange, boxRef, initial },
+  { slug, hoursIncluded, prices, extraHourPrices, freeCancelHours, onStateChange, boxRef, initial, season },
   handleRef
 ) {
   const t = useTranslations('Tours.box')
+  /** Lead time and the seasonal window together. */
+  const isDateBookable = (iso: string, nowMs: number) => isDateBookableBase(iso, nowMs) && isInSeason(iso, season)
   const tf = useTranslations('Tours.facts')
   const tv = useTranslations('Booking')
   const locale = useLocale()
@@ -345,6 +350,11 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
         {/* Date */}
         <div>
           <span id={`${uid}-date-label`} className={labelClass}>{t('date')}</span>
+          {hasSeason(season) && season.from && season.until && (
+            <p className="mt-1 text-[12px] text-warmgrey">
+              {t('seasonNote', { from: formatLocaleDate(season.from, locale), until: formatLocaleDate(season.until, locale) })}
+            </p>
+          )}
           <button
             ref={dateBtnRef}
             type="button"
@@ -376,7 +386,10 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
                 mode="single"
                 dir={rtl ? 'rtl' : 'ltr'}
                 selected={date ? dateOf(date) : undefined}
-                defaultMonth={dateOf(date ?? getPragueTodayISO())}
+                defaultMonth={dateOf(
+                  date ??
+                    (season?.from && season.from > getPragueTodayISO() ? season.from : getPragueTodayISO())
+                )}
                 onSelect={selectDate}
                 disabled={(d: Date) => !isDateBookable(isoOf(d), Date.now())}
                 styles={calendarStyles as Parameters<typeof DayPicker>[0]['styles']}

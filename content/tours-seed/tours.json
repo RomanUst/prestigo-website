@@ -64,5 +64,51 @@
     "destination_label": "Bohemian Switzerland, Czechia",
     "route_slug": null,
     "distance_km_one_way": 120
+  },
+  {
+    "slug": "dresden-christmas-markets-day-trip",
+    "sort_order": 45,
+    "hours_included": 6,
+    "drive_minutes_each_way": 120,
+    "start_time_min": "08:00",
+    "start_time_max": "12:00",
+    "destination_label": "Dresden Christmas markets, Germany",
+    "route_slug": "prague-dresden",
+    "distance_km_one_way": 150,
+    "bookable_from": "2026-11-26",
+    "bookable_until": "2026-12-23"
+  },
+  {
+    "slug": "dresden-bastei-day-trip",
+    "sort_order": 47,
+    "hours_included": 7,
+    "drive_minutes_each_way": 120,
+    "start_time_min": "07:00",
+    "start_time_max": "10:00",
+    "destination_label": "Bastei Bridge and Dresden, Germany",
+    "route_slug": "prague-dresden",
+    "distance_km_one_way": 150
+  },
+  {
+    "slug": "pilsen-brewery-day-trip",
+    "sort_order": 35,
+    "hours_included": 4,
+    "drive_minutes_each_way": 75,
+    "start_time_min": "08:00",
+    "start_time_max": "12:00",
+    "destination_label": "Pilsen, Czechia",
+    "route_slug": "prague-plzen",
+    "distance_km_one_way": 95
+  },
+  {
+    "slug": "cesky-krumlov-hluboka-day-trip",
+    "sort_order": 55,
+    "hours_included": 7,
+    "drive_minutes_each_way": 150,
+    "start_time_min": "07:00",
+    "start_time_max": "09:00",
+    "destination_label": "Hluboká Castle and Český Krumlov, Czechia",
+    "route_slug": "prague-cesky-krumlov",
+    "distance_km_one_way": 175
   }
 ]

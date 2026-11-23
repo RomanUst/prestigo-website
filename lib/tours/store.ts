@@ -7,6 +7,8 @@
 
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { lowestFittingPrice, totalTripHours } from '@/lib/tours/pricing'
+import { isSeasonOver } from '@/lib/tours/season'
+import { getPragueTodayISO } from '@/lib/prague-date'
 import type { AppLocale } from '@/i18n/locales'
 import type { TourPhotoRow, TourRow, TourSettingsRow, TourTranslationRow } from '@/lib/tours/types'
 
@@ -35,7 +37,7 @@ export type TourPageResult =
   | { status: 'not_found' }
 
 const TOUR_COLS =
-  'id, slug, status, sort_order, hours_included, drive_minutes_each_way, start_time_min, start_time_max, price_e_eur, price_s_eur, price_v_eur, destination_label, first_published_at, created_at, updated_at'
+  'id, slug, status, sort_order, hours_included, drive_minutes_each_way, start_time_min, start_time_max, price_e_eur, price_s_eur, price_v_eur, destination_label, bookable_from, bookable_until, first_published_at, created_at, updated_at'
 const TRANSLATION_COLS =
   'tour_id, locale, title, short_description, description, pickup_info, important_info, seo_title, seo_description, highlights, itinerary, includes, excludes, faq, is_complete, updated_at'
 const PHOTO_COLS =
@@ -141,7 +143,12 @@ export async function listPublishedTours(locale: AppLocale): Promise<TourCardVie
       .eq('status', 'published')
       .order('sort_order', { ascending: true })
     if (error || !toursRaw || toursRaw.length === 0) return []
-    const tours = (toursRaw as Record<string, unknown>[]).map(toTour)
+    // A seasonal tour whose window has passed leaves the listings (its page stays, with no bookable date).
+    const today = getPragueTodayISO()
+    const tours = (toursRaw as Record<string, unknown>[])
+      .map(toTour)
+      .filter((t) => !isSeasonOver({ from: t.bookable_from, until: t.bookable_until }, today))
+    if (tours.length === 0) return []
     const ids = tours.map((t) => t.id)
 
     const [trRes, photoRes] = await Promise.all([

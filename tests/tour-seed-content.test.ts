@@ -19,6 +19,10 @@ const SLUGS = [
   'dresden-day-trip',
   'karlstejn-day-trip',
   'bohemian-switzerland-day-trip',
+  'dresden-christmas-markets-day-trip',
+  'dresden-bastei-day-trip',
+  'pilsen-brewery-day-trip',
+  'cesky-krumlov-hluboka-day-trip',
 ]
 
 const seed = loadSeedTours(ROOT)
@@ -58,7 +62,7 @@ const CANCEL_NUMBER = /cancel[^.]{0,80}\b(\d+|one|two|three|four|five|six|twelve
 describe('tours.json', () => {
   const tours = seed.tours
 
-  it('lists the six launch slugs, all valid tour slugs', () => {
+  it('lists the catalogue slugs, all valid tour slugs', () => {
     expect(tours.map((t) => t.slug).sort()).toEqual([...SLUGS].sort())
     for (const t of tours) expect(t.slug).toMatch(TOUR_SLUG_PATTERN)
   })
@@ -78,14 +82,23 @@ describe('tours.json', () => {
     expect(/price|eur/i.test(raw)).toBe(false)
   })
 
-  it('names a route only for the four tours that have a route page', () => {
+  it('names a route only for the tours that have a route page', () => {
     const withRoute = tours.filter((t) => t.route_slug).map((t) => t.slug).sort()
-    expect(withRoute).toEqual(['cesky-krumlov-day-trip', 'dresden-day-trip', 'karlovy-vary-day-trip', 'kutna-hora-day-trip'])
+    expect(withRoute).toEqual([
+      'cesky-krumlov-day-trip',
+      'cesky-krumlov-hluboka-day-trip',
+      'dresden-bastei-day-trip',
+      'dresden-christmas-markets-day-trip',
+      'dresden-day-trip',
+      'karlovy-vary-day-trip',
+      'kutna-hora-day-trip',
+      'pilsen-brewery-day-trip',
+    ])
   })
 })
 
 describe('seed content rules', () => {
-  it('has English content for all six tours, the reference locale', () => {
+  it('has English content for every tour, the reference locale', () => {
     expect(present).toContain('en')
     for (const slug of SLUGS) expect(seed.translations.en?.[slug], slug).toBeDefined()
   })

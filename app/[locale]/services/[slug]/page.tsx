@@ -190,6 +190,11 @@ export default async function ServicePage({ params }: { params: Params }) {
           business_van: settings.extra_hour_v_eur,
         }}
         freeCancelHours={settings.free_cancel_hours}
+        season={
+          tour.bookable_from || tour.bookable_until
+            ? { from: tour.bookable_from, until: tour.bookable_until }
+            : undefined
+        }
       />
     ),
     compactCustom: <CustomTourBlock variant="compact" tourSlug={tour.slug} locale={locale} t={t} />,
