@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const revalidate = 3600
 
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getCachedAggregateRating } from '@/lib/google-reviews'
 import { GOOGLE_MAPS_URL } from '@/lib/google-maps-url'
 import { getPricingConfig } from '@/lib/pricing-config'
@@ -23,6 +23,9 @@ import Routes from '@/components/Routes'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import { TourShowcaseSection } from '@/components/tours/TourCardGrid'
+import type { TourT } from '@/components/tours/tour-t'
+import { listPublishedTours, type TourCardView } from '@/lib/tours/store'
 
 // Canonical and openGraph URL are both set to the exact form the server
 // actually returns (no trailing slash, matching next.config behaviour) so
@@ -205,10 +208,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params
   setRequestLocale(locale)
   const content = getPageContent('home', locale) as HomeContent
-  const [aggregateRating, config, allRoutes] = await Promise.all([
+  const [aggregateRating, config, allRoutes, tours, tourT] = await Promise.all([
     getCachedAggregateRating().catch(() => null),
     getPricingConfig().catch(() => DEV_PRICING_FALLBACK),
     getAllRoutes('display_order').catch(() => [] as Awaited<ReturnType<typeof getAllRoutes>>),
+    // Published day trips of this locale (Phase 93): [] on any failure, the section then renders nothing.
+    listPublishedTours(locale as AppLocale).catch(() => [] as TourCardView[]),
+    getTranslations({ locale, namespace: 'Tours' }) as unknown as Promise<TourT>,
   ])
 
   const { globals, hourlyRate } = config
@@ -256,6 +262,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <BookingSection />
       <Divider />
       <Services airportPrice={heroPrice} hourlyFrom={hourlyFrom} cheapestIntercity={cheapestIntercity} />
+      <Divider />
+      <TourShowcaseSection cards={tours} locale={locale} t={tourT} />
       <Divider />
       <Fleet />
       <Divider />

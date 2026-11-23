@@ -5,7 +5,7 @@ export const revalidate = 3600
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
-import { setRequestLocale } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
@@ -17,6 +17,8 @@ import { localizedHref } from '@/lib/localized-href'
 import { landingPagesFor, type LandingContent } from '@/lib/landing-pages'
 import { listPublishedTours, type TourCardView } from '@/lib/tours/store'
 import type { AppLocale } from '@/i18n/locales'
+import { TourShowcaseSection } from '@/components/tours/TourCardGrid'
+import type { TourT } from '@/components/tours/tour-t'
 
 interface ServiceEntry {
   label: string
@@ -79,7 +81,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
   const { locale } = await params
   setRequestLocale(locale)
   const content = getPageContent('services', locale) as ServicesHubContent
-  // Published day trips of this locale (Phase 93, D-25): listed next to the hub in "also popular". The store returns
+  // Published day trips of this locale (Phase 93, D-25): shown as photo cards above "also popular". The store returns
   // [] without Supabase env; the catch keeps the index rendering on any other failure.
   let tours: TourCardView[] = []
   try {
@@ -87,6 +89,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
   } catch {
     tours = []
   }
+  const tourT = (await getTranslations({ locale, namespace: 'Tours' })) as unknown as TourT
   const { globals, hourlyRate } = await getPricingConfig()
   const routes = await getAllRoutes('display_order')
   const cheapestIntercity = routes.length > 0 ? Math.min(...routes.map(r => r.eClassEur)) : AIRPORT_FALLBACK.regular
@@ -274,6 +277,9 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
         <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, var(--copper) 50%, transparent 100%)' }} />
       </section>
 
+      {/* Day trips (Phase 93): full photo cards from the tours store */}
+      <TourShowcaseSection cards={tours} locale={locale} t={tourT} />
+
       {/* Keyword-variant service pages (/services/<slug>) */}
       <section className="bg-anthracite py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -287,11 +293,6 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
                 </a>
               )
             })}
-            {tours.map((tour) => (
-              <a key={tour.slug} href={localizedHref(locale, `/services/${tour.slug}`)} className="border border-anthracite-light p-6 hover:border-[var(--copper)] transition-colors">
-                <p className="font-display font-light text-[18px] text-offwhite">{tour.title}</p>
-              </a>
-            ))}
           </div>
         </div>
       </section>

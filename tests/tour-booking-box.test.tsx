@@ -56,7 +56,14 @@ function chooseDate() {
 }
 
 const carGroup = () => within(screen.getByRole('radiogroup', { name: 'CAR' }))
-const timeGroup = () => within(screen.getByRole('radiogroup', { name: /START TIME/ }))
+const timeGroup = () => within(screen.getByRole('group', { name: /START TIME/ }))
+const hourCol = () => within(screen.getByRole('group', { name: 'Pickup hour' }))
+const minuteCol = () => within(screen.getByRole('group', { name: 'Pickup minute' }))
+/** Picks a start like a guest: the hour, then the minute. */
+function pickTime(hhmm: string) {
+  fireEvent.click(hourCol().getByRole('button', { name: hhmm.slice(0, 2) }))
+  fireEvent.click(minuteCol().getByRole('button', { name: hhmm.slice(3, 5) }))
+}
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'] })
@@ -80,15 +87,17 @@ describe('TourBookingBox: tracer (date, time, car lead to /book/tour)', () => {
     expect(container.textContent?.toLowerCase()).not.toContain('per person')
   })
 
-  it('disables every chip until a date is chosen, then enables them and focuses the first enabled chip', () => {
+  it('disables the hour and minute columns until a date is chosen, then enables the hours and focuses the first', () => {
     renderBox()
     expect(screen.getByText('Choose a date first.')).toBeTruthy()
-    for (const chip of timeGroup().getAllByRole('radio')) expect(chip.getAttribute('aria-disabled')).toBe('true')
+    for (const b of timeGroup().getAllByRole('button')) expect(b.getAttribute('aria-disabled')).toBe('true')
     chooseDate()
-    const chips = timeGroup().getAllByRole('radio')
-    expect(chips).toHaveLength(7)
-    for (const chip of chips) expect(chip.getAttribute('aria-disabled')).toBe('false')
-    expect(document.activeElement).toBe(chips[0])
+    const hours = hourCol().getAllByRole('button')
+    expect(hours.map((b) => b.textContent)).toEqual(['08', '09', '10', '11'])
+    for (const b of hours) expect(b.getAttribute('aria-disabled')).toBe('false')
+    // minutes wait for an hour
+    for (const b of minuteCol().getAllByRole('button')) expect(b.getAttribute('aria-disabled')).toBe('true')
+    expect(document.activeElement).toBe(hours[0])
     expect(screen.queryByText('Choose a date first.')).toBeNull()
   })
 
@@ -127,7 +136,7 @@ describe('TourBookingBox: tracer (date, time, car lead to /book/tour)', () => {
   it("choosing First Class and pressing 'Book this trip' pushes the checkout URL and stores the box values", () => {
     renderBox()
     chooseDate()
-    fireEvent.click(timeGroup().getByRole('radio', { name: '09:30' }))
+    pickTime('09:30')
     fireEvent.click(carGroup().getByRole('radio', { name: /First Class/ }))
     fireEvent.click(screen.getByRole('button', { name: 'Book this trip' }))
     expect(pushMock).toHaveBeenCalledTimes(1)
@@ -141,15 +150,19 @@ describe('TourBookingBox: tracer (date, time, car lead to /book/tour)', () => {
     })
   })
 
-  it('moves the selected time with the arrow keys (roving radiogroup)', () => {
+  it('steps minutes by 15, keeps the minute across hours and stops at the end of the start window', () => {
     renderBox()
     chooseDate()
-    const chips = timeGroup().getAllByRole('radio')
-    fireEvent.keyDown(chips[0], { key: 'ArrowRight' })
-    expect(chips[1].getAttribute('aria-checked')).toBe('true')
-    expect(document.activeElement).toBe(chips[1])
-    expect(chips[1].getAttribute('tabindex')).toBe('0')
-    expect(chips[0].getAttribute('tabindex')).toBe('-1')
+    expect(minuteCol().getAllByRole('button').map((b) => b.textContent)).toEqual(['00', '15', '30', '45'])
+    pickTime('09:45')
+    expect(hourCol().getByRole('button', { name: '09' }).getAttribute('aria-pressed')).toBe('true')
+    expect(minuteCol().getByRole('button', { name: '45' }).getAttribute('aria-pressed')).toBe('true')
+    fireEvent.click(hourCol().getByRole('button', { name: '10' }))
+    expect(minuteCol().getByRole('button', { name: '45' }).getAttribute('aria-pressed')).toBe('true')
+    // the window ends at 11:00: in hour 11 only :00 exists, so the minute falls back to it
+    fireEvent.click(hourCol().getByRole('button', { name: '11' }))
+    expect(minuteCol().getByRole('button', { name: '00' }).getAttribute('aria-pressed')).toBe('true')
+    for (const m of ['15', '30', '45']) expect(minuteCol().getByRole('button', { name: m }).getAttribute('aria-disabled')).toBe('true')
   })
 })
 
@@ -262,7 +275,7 @@ describe('TourBookingBox: extra time and total (D-20)', () => {
   it('the pushed URL carries the extra hours', () => {
     renderBox()
     chooseDate()
-    fireEvent.click(timeGroup().getByRole('radio', { name: '08:00' }))
+    pickTime('08:00')
     fireEvent.click(carGroup().getByRole('radio', { name: /Business Van/ }))
     fireEvent.click(moreTime())
     fireEvent.click(moreTime())
@@ -293,9 +306,9 @@ describe('TourBookingBox: inline errors and focus', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Book this trip' }))
     expect(screen.queryByText('Choose a date.')).toBeNull()
     expect(screen.getByRole('alert').textContent).toBe('Choose a start time.')
-    expect(document.activeElement).toBe(timeGroup().getAllByRole('radio')[0])
+    expect(document.activeElement).toBe(hourCol().getAllByRole('button')[0])
 
-    fireEvent.click(timeGroup().getByRole('radio', { name: '10:00' }))
+    pickTime('10:00')
     fireEvent.click(screen.getByRole('button', { name: 'Book this trip' }))
     expect(screen.getByRole('alert').textContent).toBe('Choose a car.')
     expect(document.activeElement).toBe(carGroup().getAllByRole('radio')[0])
@@ -324,7 +337,7 @@ describe('TourBookingBox: inline errors and focus', () => {
     renderBox({ onStateChange })
     expect(onStateChange).toHaveBeenLastCalledWith({ complete: false, totalEur: null, fromEur: 410 })
     chooseDate()
-    fireEvent.click(timeGroup().getByRole('radio', { name: '09:00' }))
+    pickTime('09:00')
     fireEvent.click(carGroup().getByRole('radio', { name: /First Class/ }))
     expect(onStateChange).toHaveBeenLastCalledWith({ complete: true, totalEur: 520, fromEur: 410 })
   })

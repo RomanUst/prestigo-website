@@ -8,6 +8,7 @@
 import TourCard from '@/components/tours/TourCard'
 import { localizedCustomHref } from '@/components/tours/CustomTourBlock'
 import { customTourHref } from '@/lib/tours/custom-tour-link'
+import { localizedHref } from '@/lib/localized-href'
 import type { TourT } from '@/components/tours/tour-t'
 import type { TourCardView } from '@/lib/tours/store'
 
@@ -70,6 +71,33 @@ export function RelatedToursSection({ cards, locale, t }: { cards: readonly Tour
           {t('sections.related')}
         </h2>
         <TourCardGrid cards={cards} locale={locale} t={t} />
+      </div>
+    </section>
+  )
+}
+
+const HUB_PATH = '/services/day-trips-from-prague'
+
+/**
+ * Day-trip cards outside the catalogue (home page, /services index): label, heading, the photo cards and a link to
+ * the catalogue. Nothing at all with 0 tours, so a page never shows an empty block.
+ */
+export function TourShowcaseSection({ cards, locale, t }: { cards: readonly TourCardView[]; locale: string; t: TourT }) {
+  if (cards.length === 0) return null
+  return (
+    <section className="bg-anthracite py-16 md:py-24" data-testid="tour-showcase" aria-labelledby="tour-showcase-heading">
+      <div className="mx-auto max-w-7xl px-6 md:px-12">
+        <p className="label mb-6">{t('hub.label')}</p>
+        <span className="copper-line mb-8 block" />
+        <h2 id="tour-showcase-heading" className="display mb-12 text-[32px] md:text-[40px]">
+          {t('hub.heading')}
+        </h2>
+        <TourCardGrid cards={cards} locale={locale} t={t} />
+        <div className="mt-10 flex justify-center">
+          <a href={localizedHref(locale, HUB_PATH) ?? HUB_PATH} className="btn-secondary">
+            {t('checkout.seeAll')}
+          </a>
+        </div>
       </div>
     </section>
   )

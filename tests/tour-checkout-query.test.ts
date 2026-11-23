@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { buildTourCheckoutHref, parseTourCheckoutQuery, tourBoxStorageKey, type TourCheckoutQuery } from '@/lib/tours/checkout-query'
-import { startTimeOptions, isStartBookable, isDateBookable } from '@/lib/tours/start-times'
+import { startTimeOptions, startHours, isStartBookable, isDateBookable } from '@/lib/tours/start-times'
 
 const Q: TourCheckoutQuery = { tour: 'dresden-day-trip', date: '2027-05-10', time: '09:30', pax: 3, car: 'first_class', xh: 2 }
 
@@ -28,7 +28,7 @@ describe('checkout query (T-93-33)', () => {
     ['xh fractional', { xh: '1.5' }],
     ['pax 0', { pax: '0' }],
     ['pax 7', { pax: '7' }],
-    ["time '10:15'", { time: '10:15' }],
+    ["time '10:10'", { time: '10:10' }],
     ["time '24:00'", { time: '24:00' }],
     ["car 'van'", { car: 'van' }],
     ['uppercase slug', { tour: 'Dresden-day-trip' }],
@@ -57,12 +57,16 @@ describe('checkout query (T-93-33)', () => {
 })
 
 describe('start times', () => {
-  it("startTimeOptions('08:00', '11:00') is 7 chips every 30 minutes", () => {
-    expect(startTimeOptions('08:00', '11:00')).toEqual(['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00'])
+  it("startTimeOptions('08:00', '09:30') is every 15 minutes, both ends included", () => {
+    expect(startTimeOptions('08:00', '09:30')).toEqual(['08:00', '08:15', '08:30', '08:45', '09:00', '09:15', '09:30'])
+  })
+
+  it('startHours lists each hour of the window once', () => {
+    expect(startHours(startTimeOptions('07:00', '09:00'))).toEqual(['07', '08', '09'])
   })
 
   it('startTimeOptions returns [] for bad or inverted input', () => {
-    expect(startTimeOptions('08:15', '11:00')).toEqual([])
+    expect(startTimeOptions('08:10', '11:00')).toEqual([])
     expect(startTimeOptions('11:00', '08:00')).toEqual([])
   })
 

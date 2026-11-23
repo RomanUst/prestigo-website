@@ -18,7 +18,7 @@ export type TourCheckoutQuery = {
 export const MAX_TOUR_PASSENGERS = Math.max(...VEHICLE_CONFIG.map((v) => v.maxPassengers))
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/
-const TIME_RE = /^([01]\d|2[0-3]):(00|30)$/
+const TIME_RE = /^([01]\d|2[0-3]):(00|15|30|45)$/
 const INT_RE = /^\d{1,3}$/
 
 function validDate(v: string): boolean {

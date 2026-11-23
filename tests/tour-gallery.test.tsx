@@ -458,7 +458,8 @@ describe('booking area: restore from sessionStorage (T-93-35)', () => {
     await act(async () => {})
     const box = within(section())
     expect(box.getByRole('button', { name: /June 15, 2027|15 June 2027|2027/ })).toBeTruthy()
-    expect(box.getByRole('radio', { name: '09:30' }).getAttribute('aria-checked')).toBe('true')
+    expect(within(box.getByRole('group', { name: 'Pickup hour' })).getByRole('button', { name: '09' }).getAttribute('aria-pressed')).toBe('true')
+    expect(within(box.getByRole('group', { name: 'Pickup minute' })).getByRole('button', { name: '30' }).getAttribute('aria-pressed')).toBe('true')
     expect(box.getAllByRole('radiogroup', { name: 'CAR' })).toHaveLength(1)
     const carRadio = box.getByRole('radio', { checked: true, name: /V-Class|Van|Business/i })
     expect(carRadio.textContent).toContain('820') // 640 + 2 x 90, from the props
@@ -477,7 +478,7 @@ describe('booking area: restore from sessionStorage (T-93-35)', () => {
     ['xh 40', { date: '2027-06-15', time: '09:30', pax: 2, car: 'business', xh: 40 }],
     ['unknown car', { date: '2027-06-15', time: '09:30', pax: 2, car: 'limousine', xh: 0 }],
     ['pax 99', { date: '2027-06-15', time: '09:30', pax: 99, car: 'business', xh: 0 }],
-    ['bad time', { date: '2027-06-15', time: '09:15', pax: 2, car: 'business', xh: 0 }],
+    ['bad time', { date: '2027-06-15', time: '09:10', pax: 2, car: 'business', xh: 0 }],
     ['not json', '{oops'],
     ['an array', ['2027-06-15']],
   ])('a tampered value (%s) is ignored and the box starts empty', async (_name, value) => {
