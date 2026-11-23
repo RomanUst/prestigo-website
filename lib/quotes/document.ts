@@ -11,7 +11,8 @@
 // waiting minutes, never a waiting amount), total, deposit, remainder and the remainder sentence of the method, the
 // cancellation terms of THIS quote (D-03: read from the frozen snapshot, the free window measured from the first trip),
 // and the operator's legal name. It carries the first name only: no last name, email, phone, billing data, flight
-// number or special requests.
+// number or special requests. A tour line is headed by its title and any line shows the operator's description
+// (migration 096), both escaped.
 //
 // Every operator and client value is HTML-escaped (escapeHtml, or html() of render.ts which escapes the sentence and
 // isolates each value in a bdi). The translator throws on a missing message, so a hole in a catalog fails the render
@@ -51,6 +52,9 @@ const esc = (value: string | number): string => escapeHtml(String(value))
 const ltr = (value: string | number): string => `<bdi dir="ltr">${esc(value)}</bdi>`
 /** A free text value (a name, an address) that keeps its own direction. */
 const auto = (value: string): string => `<bdi dir="auto">${esc(value)}</bdi>`
+/** A multi-line plain text of the operator (a line description): escaped, every line break kept as <br>. */
+const multiline = (value: string): string =>
+  `<div dir="auto" class="desc">${value.split(/\r\n|\r|\n/).map((part) => esc(part)).join('<br>')}</div>`
 
 /** The moment the version was issued (frozen); now for a version that is not frozen. */
 function issuedAtMs(version: QuoteVersionRow): number {
@@ -78,6 +82,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { text-align: start; vertical-align: top; padding: 1mm 0; }
 th { width: 32%; font-weight: 600; color: #4A5560; padding-inline-end: 4mm; }
 .stops { margin: 0; padding: 0; list-style: none; }
+.desc { overflow-wrap: anywhere; }
 .muted { color: #4A5560; }
 .price td, .price th { border-top: 0.3mm solid #E6D6B0; padding-top: 2mm; font-weight: 600; color: #0F1D2C; }
 .summary { background: #0F1D2C; color: #F3EEE3; padding: 5mm 6mm; margin-top: 6mm; break-inside: avoid; page-break-inside: avoid; }
@@ -142,14 +147,18 @@ function tripHtml(
         )
       : ''
 
+  // A tour reads under its own headline; every other line under its trip-type label.
+  const heading = line.trip_type === 'tour' && line.title ? auto(line.title) : esc(t(`lines.tripType.${line.trip_type}`))
+
   return `<section class="trip" data-trip="${esc(line.position)}">
-<h3>${esc(t('lines.trip', { number: String(line.position) }))} · ${esc(t(`lines.tripType.${line.trip_type}`))}</h3>
+<h3>${esc(t('lines.trip', { number: String(line.position) }))} · ${heading}</h3>
 <table>
 ${row(t('lines.date'), auto(formatLocaleDate(line.pickup_date, locale)))}
 ${row(t('lines.pickupTime'), `${ltr(line.pickup_time)}${pickupNotes}`)}
 ${row(t('lines.from'), auto(line.origin_address))}
 ${stops}
 ${line.destination_address ? row(t('lines.to'), auto(line.destination_address)) : ''}
+${line.description ? row(t('lines.description'), multiline(line.description)) : ''}
 ${row(t('lines.vehicle'), esc(vt(`${VEHICLE_CLASS_KEY[line.vehicle_class]}.label`)))}
 ${row(t('lines.passengers'), ltr(line.passengers))}
 ${line.luggage > 0 ? row(t('lines.luggage'), ltr(line.luggage)) : ''}

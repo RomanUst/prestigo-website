@@ -1394,7 +1394,8 @@
       "tripType": {
         "transfer": "接送",
         "hourly": "按小时",
-        "daily": "全天"
+        "daily": "全天",
+        "tour": "私人游览"
       },
       "date": "日期",
       "pickupTime": "接客时间",
@@ -1407,6 +1408,7 @@
       "passengers": "乘客",
       "luggage": "行李",
       "duration": "{hours} 小时",
+      "description": "详情",
       "price": "价格"
     },
     "summary": {

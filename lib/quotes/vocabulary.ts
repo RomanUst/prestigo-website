@@ -19,3 +19,13 @@ export const QUOTE_MAX_LINES = 20
 
 /** Human reference: Q-<Prague date YYYYMMDD>-<6 chars A-Z0-9>. Matches quotes.reference CHECK. */
 export const QUOTE_REFERENCE_RE = /^Q-[0-9]{8}-[A-Z0-9]{6}$/
+
+/** The trip types of a quote line. Matches quote_version_lines_trip_type_check (migration 096 adds 'tour'). */
+export const QUOTE_TRIP_TYPES = ['transfer', 'hourly', 'daily', 'tour'] as const
+export type QuoteLineTripType = (typeof QUOTE_TRIP_TYPES)[number]
+
+/** A tour line's client-visible headline: 1..200 characters (quote_version_lines.title CHECK, bookings.tour_title). */
+export const QUOTE_LINE_TITLE_MAX = 200
+
+/** A line's client-visible description (itinerary, what is included): up to 4000 characters, multi-line plain text. */
+export const QUOTE_LINE_DESCRIPTION_MAX = 4000

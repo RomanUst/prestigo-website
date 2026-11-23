@@ -17,7 +17,7 @@ import { dateDiffDays } from '@/lib/pricing'
 import { computeRouteDistance } from '@/lib/route-distance'
 import { computeOutboundLegTotal } from '@/lib/server-pricing'
 import { priceStops, totalWaitingBlocks, waitingFeeEur, type PricedStop } from '@/lib/stops'
-import type { QuoteCurrency } from '@/lib/quotes/vocabulary'
+import type { QuoteCurrency, QuoteLineTripType } from '@/lib/quotes/vocabulary'
 
 interface Point {
   lat: number
@@ -27,7 +27,7 @@ interface Point {
 
 /** The fields of a line that decide its price. The operator's amount and the free-text fields are not here. */
 export interface QuotePricingLine {
-  trip_type: 'transfer' | 'hourly' | 'daily'
+  trip_type: QuoteLineTripType
   pickup_date: string
   pickup_time: string
   origin: Point
@@ -70,8 +70,8 @@ function toMinor(totalEur: number, currency: QuoteCurrency): number {
 /**
  * The suggested amount of one line in minor units of `currency`, plus the server distance it was computed with.
  *   route_unavailable   - a transfer whose route Google could not compute (no fallback distance, ever)
- *   pricing_unavailable - the line cannot be priced from the tariffs (no tariff for the class, no destination, a
- *                         total that is not a positive number)
+ *   pricing_unavailable - the line cannot be priced from the tariffs (a tour, no tariff for the class, no
+ *                         destination, a total that is not a positive number)
  */
 export async function suggestLinePrice(
   line: QuotePricingLine,
@@ -79,6 +79,8 @@ export async function suggestLinePrice(
 ): Promise<LinePriceSuggestion> {
   const { rates, currency } = input
   const vehicleClass = line.vehicle_class
+  // A custom tour has no tariff: the operator types its price (no suggestion is ever made for it).
+  if (line.trip_type === 'tour') return { ok: false, reason: 'pricing_unavailable' }
 
   const waitingRate = waitingRateFor(rates, vehicleClass)
   const stops = line.trip_type === 'transfer' ? line.stops : []

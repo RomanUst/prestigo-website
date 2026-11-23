@@ -459,7 +459,17 @@ export async function runQuotePaidEffects(quoteId: string): Promise<void> {
     } catch {
       console.error('[quote-convert] confirmation link mint failed', { quoteId })
     }
-    const mail = await renderQuoteConfirmedEmail({ quote, version, bookings: live, remainderDueMinor: dueMinor, quoteUrl })
+    // The tour headline and the description the client accepted come from the frozen lines, by line id.
+    const lineById = new Map(lines.map((l) => [l.id, l]))
+    const withText = live.map((b) => {
+      const line = b.quote_line_id ? lineById.get(b.quote_line_id) : undefined
+      return {
+        ...b,
+        title: line?.trip_type === 'tour' ? (line.title ?? null) : null,
+        description: line?.description ?? null,
+      }
+    })
+    const mail = await renderQuoteConfirmedEmail({ quote, version, bookings: withText, remainderDueMinor: dueMinor, quoteUrl })
     const outcome = await sendQuoteEmail({
       to: quote.client_email,
       subject: mail.subject,

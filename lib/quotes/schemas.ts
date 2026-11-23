@@ -16,8 +16,12 @@ import { MAX_STOPS, isValidStopWait } from '@/lib/stops'
 import {
   DEPOSIT_KINDS,
   QUOTE_CURRENCIES,
+  QUOTE_LINE_DESCRIPTION_MAX,
+  QUOTE_LINE_TITLE_MAX,
   QUOTE_MAX_LINES,
+  QUOTE_TRIP_TYPES,
   REMAINDER_METHODS,
+  type QuoteLineTripType,
 } from '@/lib/quotes/vocabulary'
 
 /** The five lead channels of a manual booking and of a quote (bookings.lead_channel CHECK). */
@@ -64,7 +68,7 @@ const landing = z.strictObject({
 
 /** The line fields both the draft save and the price suggestion accept. No amount, no distance, no suggestion. */
 const lineShape = {
-  trip_type: z.enum(['transfer', 'hourly', 'daily']),
+  trip_type: z.enum(QUOTE_TRIP_TYPES),
   pickup_date: dateString,
   pickup_time: timeString,
   origin: place,
@@ -79,13 +83,17 @@ const lineShape = {
   flight_number: singleLine(0, 20).nullish(),
   terminal: singleLine(0, 20).nullish(),
   special_requests: z.string().max(1000).nullish(),
+  // A tour's client-visible headline (one line: it reaches the PDF heading and the booking title).
+  title: singleLine(1, QUOTE_LINE_TITLE_MAX).nullish(),
+  // Client-visible plain text of any line (itinerary, what is included). Multi-line; every renderer escapes it.
+  description: z.string().max(QUOTE_LINE_DESCRIPTION_MAX).nullish(),
   extra_child_seat: z.boolean().default(false),
   extra_meet_greet: z.boolean().default(false),
   extra_luggage: z.boolean().default(false),
 }
 
 type LineCheckInput = {
-  trip_type: 'transfer' | 'hourly' | 'daily'
+  trip_type: QuoteLineTripType
   pickup_date: string
   pickup_time: string
   destination?: unknown
@@ -93,13 +101,21 @@ type LineCheckInput = {
   landing?: { date: string; time: string; offset_min: number } | null
   hours?: number | null
   return_date?: string | null
+  title?: string | null
 }
 
 /** The rules that tie the fields of one line together (each is a shape error: 400). */
 function checkLine(line: LineCheckInput, ctx: z.RefinementCtx): void {
   const issue = (path: string, message: string) => ctx.addIssue({ code: 'custom', path: [path], message })
 
-  if (line.trip_type === 'transfer') {
+  if (line.trip_type === 'tour') {
+    // A custom private tour: the operator's headline and the hours of service; the drop-off address is optional.
+    if (line.title == null || line.title.trim() === '') issue('title', 'A tour needs a title')
+    if (line.hours == null) issue('hours', 'A tour needs its hours of service')
+    if (line.stops.length > 0) issue('stops', 'Stops belong to a transfer')
+    if (line.landing != null) issue('landing', 'A landing belongs to a transfer')
+    if (line.return_date != null) issue('return_date', 'A return date belongs to a daily trip')
+  } else if (line.trip_type === 'transfer') {
     if (!line.destination) issue('destination', 'A transfer needs a destination')
     if (line.hours != null) issue('hours', 'Hours belong to an hourly trip')
     if (line.return_date != null) issue('return_date', 'A return date belongs to a daily trip')
@@ -115,6 +131,7 @@ function checkLine(line: LineCheckInput, ctx: z.RefinementCtx): void {
       if (line.hours != null) issue('hours', 'Hours belong to an hourly trip')
     }
   }
+  if (line.trip_type !== 'tour' && line.title != null) issue('title', 'A title belongs to a tour')
 
   // D-18 of Phase 91: the pickup of an airport arrival is the landing plus the offset, derived on the server.
   if (line.landing) {
