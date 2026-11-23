@@ -64,5 +64,16 @@
     "destination_label": "Bohemian Switzerland, Czechia",
     "route_slug": null,
     "distance_km_one_way": 120
+  },
+  {
+    "slug": "terezin-day-trip",
+    "sort_order": 70,
+    "hours_included": 3,
+    "drive_minutes_each_way": 50,
+    "start_time_min": "08:00",
+    "start_time_max": "11:00",
+    "destination_label": "Terezín, Czechia",
+    "route_slug": null,
+    "distance_km_one_way": 62
   }
 ]

@@ -14,8 +14,8 @@ const ROOT = path.resolve(__dirname, '..')
 const seed = loadSeedTours(ROOT)
 
 describe('loadSeedTours + buildSeedRows (tracer: Dresden EN)', () => {
-  it('reads the six launch tours with valid slugs', () => {
-    expect(seed.tours).toHaveLength(6)
+  it('reads the launch tours with valid slugs', () => {
+    expect(seed.tours).toHaveLength(7)
     for (const t of seed.tours) expect(t.slug).toMatch(TOUR_SLUG_PATTERN)
   })
 
@@ -65,16 +65,16 @@ describe('loadSeedTours + buildSeedRows (tracer: Dresden EN)', () => {
     expect(hant.is_complete).toBe(true)
   })
 
-  it('yields 6 x 8: six tours and a complete translation in every locale, zh-hant generated from zh', () => {
+  it('yields 7 x 8: seven tours and a complete translation in every locale, zh-hant generated from zh', () => {
     const built = buildSeedRows(seed, { locales: [...locales] })
     expect(locales).toHaveLength(8)
-    expect(built.tours).toHaveLength(6)
-    expect(built.translations).toHaveLength(6 * locales.length)
+    expect(built.tours).toHaveLength(7)
+    expect(built.translations).toHaveLength(7 * locales.length)
     for (const slug of seed.tours.map((t) => t.slug)) {
       expect(built.translations.filter((r) => r.slug === slug).map((r) => r.locale).sort()).toEqual([...locales].sort())
     }
     for (const row of built.translations) expect(row.is_complete, `${row.slug}/${row.locale}`).toBe(true)
-    expect(built.reports).toHaveLength(6 * locales.length)
+    expect(built.reports).toHaveLength(7 * locales.length)
     for (const r of built.reports) {
       expect({ key: `${r.slug}/${r.locale}`, present: r.present, complete: r.complete, missing: r.missing, leak: r.leak, overflow: r.overflow }).toEqual({
         key: `${r.slug}/${r.locale}`,
@@ -251,7 +251,7 @@ describe('seed-tours main', () => {
     const { store, calls } = fakeStore()
     const { deps, lines, fetchCalls } = makeDeps(['--apply'], store)
     expect(await main(deps)).toBe(0)
-    expect(calls.insertTour).toHaveLength(6)
+    expect(calls.insertTour).toHaveLength(7)
     const first = calls.insertTour[0][0] as Record<string, unknown>
     expect(first.status).toBe('draft')
     expect(typeof first.price_e_eur).toBe('number')
@@ -272,7 +272,7 @@ describe('seed-tours main', () => {
     const covers = new Map<string, number>()
     for (const p of photos) if (p.is_cover) covers.set(p.tour_id, (covers.get(p.tour_id) ?? 0) + 1)
     expect([...covers.values()].every((c) => c === 1)).toBe(true)
-    expect(covers.size).toBe(6)
+    expect(covers.size).toBe(7)
     expect(calls.setExtraHourPrices[0][0]).toEqual({ e: 40, s: 70, v: 50 })
     expect(lines.join('\n')).not.toMatch(/SUPABASE|service_role|eyJ/i)
   })
@@ -284,7 +284,7 @@ describe('seed-tours main', () => {
     const { deps } = makeDeps(['--apply'], store)
     expect(await main(deps)).toBe(0)
     const slugs = calls.insertTour.map((c) => (c[0] as { slug: string }).slug)
-    expect(slugs).toHaveLength(5)
+    expect(slugs).toHaveLength(6)
     expect(slugs).not.toContain('dresden-day-trip')
     expect(calls.updateTour ?? []).toEqual([])
   })

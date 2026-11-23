@@ -430,6 +430,85 @@
         "cover": false,
         "alt_hint": "Mercedes V-Class"
       }
+    ],
+    "terezin-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Terezín - Malá pevnost a Národní hřbitov.JPG",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Terez%C3%ADn_-_Mal%C3%A1_pevnost_a_N%C3%A1rodn%C3%AD_h%C5%99bitov.JPG/1920px-Terez%C3%ADn_-_Mal%C3%A1_pevnost_a_N%C3%A1rodn%C3%AD_h%C5%99bitov.JPG",
+        "local_path": null,
+        "credit_text": "Petr1888 / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Terez%C3%ADn_-_Mal%C3%A1_pevnost_a_N%C3%A1rodn%C3%AD_h%C5%99bitov.JPG",
+        "cover": true,
+        "alt_hint": "National Cemetery with grave markers and a tall cross, Small Fortress walls behind"
+      },
+      {
+        "source": "commons",
+        "title": "File:Terezin (KZ Theresienstadt) Festungstor.JPG",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Terezin_%28KZ_Theresienstadt%29_Festungstor.JPG/1920px-Terezin_%28KZ_Theresienstadt%29_Festungstor.JPG",
+        "local_path": null,
+        "credit_text": "Guido Radig / Wikimedia Commons",
+        "license": "CC BY 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Terezin_%28KZ_Theresienstadt%29_Festungstor.JPG",
+        "cover": false,
+        "alt_hint": "Small Fortress main gate with a striped arch and a cobbled forecourt"
+      },
+      {
+        "source": "commons",
+        "title": "File:Terezín magdeburská kasárna 3.jpg",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Terez%C3%ADn_magdebursk%C3%A1_kas%C3%A1rna_3.jpg/1920px-Terez%C3%ADn_magdebursk%C3%A1_kas%C3%A1rna_3.jpg",
+        "local_path": null,
+        "credit_text": "VitVit / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Terez%C3%ADn_magdebursk%C3%A1_kas%C3%A1rna_3.jpg",
+        "cover": false,
+        "alt_hint": "Long facade of the former Magdeburg Barracks in Terezín"
+      },
+      {
+        "source": "commons",
+        "title": "File:Terezín náměstí střed 1.jpg",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Terez%C3%ADn_n%C3%A1m%C4%9Bst%C3%AD_st%C5%99ed_1.jpg/1920px-Terez%C3%ADn_n%C3%A1m%C4%9Bst%C3%AD_st%C5%99ed_1.jpg",
+        "local_path": null,
+        "credit_text": "VitVit / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Terez%C3%ADn_n%C3%A1m%C4%9Bst%C3%AD_st%C5%99ed_1.jpg",
+        "cover": false,
+        "alt_hint": "Terezín main square with lawns and classicist facades"
+      },
+      {
+        "source": "commons",
+        "title": "File:Terezin (KZ Theresienstadt)-Jüdischer Friedhof-Gedenkstätte II.jpg",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Terezin_%28KZ_Theresienstadt%29-J%C3%BCdischer_Friedhof-Gedenkst%C3%A4tte_II.jpg/1920px-Terezin_%28KZ_Theresienstadt%29-J%C3%BCdischer_Friedhof-Gedenkst%C3%A4tte_II.jpg",
+        "local_path": null,
+        "credit_text": "Guido Radig / Wikimedia Commons",
+        "license": "CC BY 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Terezin_%28KZ_Theresienstadt%29-J%C3%BCdischer_Friedhof-Gedenkst%C3%A4tte_II.jpg",
+        "cover": false,
+        "alt_hint": "Menorah memorial and headstones at the Jewish Cemetery, crematorium behind"
+      },
+      {
+        "source": "own",
+        "title": "first-int-1.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/first-int-1.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "First Class chauffeur car, rear cabin"
+      },
+      {
+        "source": "own",
+        "title": "s-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/s-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes S-Class"
+      }
     ]
   }
 }
