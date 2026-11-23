@@ -877,7 +877,9 @@ describe('091 erasure coverage for quotes (D-19)', () => {
   const aFlat = norm(anonymise)
 
   it('091 holds the latest definition of every erasure function it re-creates', () => {
-    expect(norm(latestFunctionBody('erasure_anonymise_person'))).toBe(aFlat)
+    // Migration 096 re-creates erasure_anonymise_person with two added statements (tests/migration-096.test.ts): every
+    // 091 statement is still in the live definition.
+    expectSuperset(anonymise, latestFunctionBody('erasure_anonymise_person'))
     expect(norm(latestFunctionBody('erasure_confirm'))).toBe(norm(confirm))
     expect(norm(latestFunctionBody('erasure_scope'))).toBe(norm(scope))
     // Not touched here: they keep their 089 / 088 definitions.
