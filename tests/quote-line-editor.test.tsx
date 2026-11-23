@@ -452,3 +452,90 @@ describe('QuoteLineEditor: order, remove and read-only', () => {
     expect(root.textContent).toContain('Manual price')
   })
 })
+
+describe('quick task quote-tour-line: the Tour trip type and the client description', () => {
+  function chooseTripType(value: string) {
+    fireEvent.change(screen.getByLabelText('Trip type'), { target: { value } })
+  }
+
+  it('offers Tour; a tour line asks for a title and hours of service, offers an optional drop-off, no stops, no landing, no suggestion', () => {
+    const spy = vi.fn()
+    render(<Harness spy={spy} />)
+    const options = Array.from((screen.getByLabelText('Trip type') as HTMLSelectElement).options).map((o) => [o.value, o.text])
+    expect(options).toContainEqual(['tour', 'Tour'])
+
+    fillBasics()
+    chooseTripType('tour')
+    expect(screen.queryByRole('button', { name: 'Add stop' })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Add flight landing/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /Suggest price/ })).toBeNull()
+    expect(screen.getByText('A tour has no tariff: enter its price.')).toBeInTheDocument()
+    expect(screen.getByText('pick Drop-off address (optional)')).toBeInTheDocument()
+
+    const title = screen.getByLabelText(/Tour title/) as HTMLInputElement
+    expect(title.maxLength).toBe(200)
+    fireEvent.change(title, { target: { value: 'Private day trip: Kutná Hora' } })
+    fireEvent.change(screen.getByLabelText('Hours of service'), { target: { value: '9' } })
+    fireEvent.change(screen.getByLabelText(/Amount \(EUR\)/), { target: { value: '650.00' } })
+
+    const last = spy.mock.calls.at(-1)?.[0] as QuoteLineDraft
+    expect(lineToPayload(last, 'eur')).toMatchObject({
+      trip_type: 'tour',
+      title: 'Private day trip: Kutná Hora',
+      hours: 9,
+      // The transfer destination picked before the switch stays as the tour's optional drop-off.
+      destination: { address: 'Vienna Hotel', lat: 48.2, lng: 16.37 },
+      stops: [],
+      landing: null,
+      return_date: null,
+      amount_minor: 65000,
+    })
+    fireEvent.click(screen.getByText('clear Drop-off address (optional)'))
+    expect(lineToPayload(spy.mock.calls.at(-1)?.[0] as QuoteLineDraft, 'eur')).toMatchObject({ destination: null })
+  })
+
+  it('every trip type has the client description with a counter n / 4000; it is sent trimmed, null when empty', () => {
+    const spy = vi.fn()
+    render(<Harness spy={spy} />)
+    for (const type of ['transfer', 'hourly', 'daily', 'tour']) {
+      chooseTripType(type)
+      expect(screen.getByLabelText('Description for the client (itinerary, what is included)')).toBeInTheDocument()
+    }
+    chooseTripType('transfer')
+    const area = screen.getByLabelText(/Description for the client/) as HTMLTextAreaElement
+    expect(area.maxLength).toBe(4000)
+    expect(screen.getByTestId('quote-line-description-count')).toHaveTextContent('0 / 4000')
+    const typed = '  Day 1: Prague\nDay 2: Vienna  '
+    fireEvent.change(area, { target: { value: typed } })
+    expect(screen.getByTestId('quote-line-description-count')).toHaveTextContent(`${typed.length} / 4000`)
+    const last = spy.mock.calls.at(-1)?.[0] as QuoteLineDraft
+    expect(lineToPayload(last, 'eur')).toMatchObject({ description: 'Day 1: Prague\nDay 2: Vienna', title: null })
+    expect(lineToPayload(emptyLine(), 'eur')).toMatchObject({ description: null, title: null })
+    // The price request carries no client text.
+    expect(lineToPriceRequest(last)).not.toHaveProperty('description')
+  })
+
+  it('a title typed on a tour is not sent once the line becomes a transfer', () => {
+    const tour: QuoteLineDraft = { ...emptyLine(), trip_type: 'tour', title: 'Kutná Hora', hours: 8 }
+    expect(lineToPayload(tour, 'eur')).toMatchObject({ title: 'Kutná Hora', hours: 8 })
+    expect(lineToPayload({ ...tour, trip_type: 'transfer', hours: null }, 'eur')).toMatchObject({ title: null })
+  })
+
+  it('a frozen tour line shows its title, hours of service, drop-off and description as text', () => {
+    const line: QuoteLineDraft = {
+      ...emptyLine(),
+      trip_type: 'tour',
+      title: 'Private day trip: Karlštejn',
+      hours: 7,
+      destination: { address: 'Hotel Paris, Prague', lat: 50.08, lng: 14.43 },
+      description: 'Castle tour\nLunch not included',
+      amountInput: '500.00',
+    }
+    render(<Harness initial={line} readOnly />)
+    expect(screen.getByText('Tour')).toBeInTheDocument()
+    expect(screen.getByText('Private day trip: Karlštejn')).toBeInTheDocument()
+    expect(screen.getByText('Hours of service')).toBeInTheDocument()
+    expect(screen.getByText('Hotel Paris, Prague')).toBeInTheDocument()
+    expect(screen.getByText(/Castle tour/)).toHaveTextContent('Castle tour Lunch not included')
+  })
+})

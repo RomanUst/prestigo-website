@@ -496,3 +496,34 @@ describe('quote_convert_to_bookings in the fake DB', () => {
     expect(db.state.quote_events.every((e) => e.actor_type === 'system')).toBe(true)
   })
 })
+
+describe('quick task quote-tour-line (migration 096): a tour line becomes a custom tour booking', () => {
+  it('maps trip_type tour, tour_title = title, hours, tour_id null and the description; a transfer keeps tour_description null', async () => {
+    const db = createFakePaymentsDb({ nowMs: NOW })
+    const s = await seed(db)
+    const [first, second] = s.lineIds.map((id) => db.state.quote_version_lines.find((l) => l.id === id)!)
+    // The frozen lines as the builder saves them: a transfer with a description, a tour with its title and hours.
+    Object.assign(first, { description: 'Water on board' })
+    Object.assign(second, {
+      trip_type: 'tour',
+      title: 'Private day trip: Kutná Hora',
+      hours: 8,
+      description: 'Kutná Hora\nLunch not included',
+      destination_address: null,
+      distance_km: null,
+    })
+    db.state.quote_version_line_stops = db.state.quote_version_line_stops.filter((st) => st.line_id !== second.id)
+
+    expect(await convert(db, s)).toMatchObject({ converted: true, first_time: true })
+    const [b1, b2] = bookingsOf(db, s.quoteId)
+    expect(b1).toMatchObject({ trip_type: 'transfer', tour_id: null, tour_title: null, tour_description: null })
+    expect(b2).toMatchObject({
+      trip_type: 'tour',
+      tour_id: null,
+      tour_title: 'Private day trip: Kutná Hora',
+      tour_description: 'Kutná Hora\nLunch not included',
+      hours: 8,
+      destination_address: null,
+    })
+  })
+})

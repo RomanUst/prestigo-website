@@ -336,7 +336,8 @@ describe('guards run in order: body cap, admin session, id, JSON, strict schema'
     const id = await createQuote()
     const padded = { client: { ...CLIENT, last_name: 'x'.repeat(21_000) }, lead_channel: 'email', currency: 'eur' }
     expect((await create(padded)).status).toBe(413)
-    expect((await patch(id, { lines: [lineBody({ special_requests: 'x'.repeat(21_000) })] })).status).toBe(413)
+    // The patch cap is 400 000 bytes since migration 096 (20 lines of 4000-character descriptions).
+    expect((await patch(id, { lines: [lineBody({ special_requests: 'x'.repeat(401_000) })] })).status).toBe(413)
   })
 
   it('an id that is not a uuid is 400 (patch and get)', async () => {
@@ -786,5 +787,103 @@ describe('Phase 93 TRIP-07 / D-18: a quote created from a custom-tour request', 
     expect((await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })).status).toBe(401)
     world.auth = '403'
     expect((await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })).status).toBe(403)
+  })
+})
+
+describe('quick task quote-tour-line (migration 096): tour lines and client descriptions', () => {
+  const tourBody = (over: Record<string, unknown> = {}) =>
+    lineBody({
+      trip_type: 'tour',
+      title: 'Private day trip: Kutná Hora and Karlštejn',
+      hours: 9,
+      destination: null,
+      stops: [],
+      description: 'Day 1: Kutná Hora\nLunch not included',
+      amount_minor: 65000,
+      ...over,
+    })
+
+  it('a tour line is saved with its title, hours and description; no route call, no suggestion, no stops', async () => {
+    const id = await createQuote()
+    const res = await patch(id, { lines: [tourBody()] })
+    expect(res.status).toBe(200)
+    expect(computeRouteDistanceMock).not.toHaveBeenCalled()
+    const line = linesOf(versionsOf(id)[0].id)[0]
+    expect(line).toMatchObject({
+      trip_type: 'tour',
+      title: 'Private day trip: Kutná Hora and Karlštejn',
+      hours: 9,
+      description: 'Day 1: Kutná Hora\nLunch not included',
+      destination_address: null,
+      distance_km: null,
+      suggested_amount_minor: null,
+      price_overridden: false,
+      amount_minor: 65000,
+    })
+    expect(stopsOf(line.id)).toHaveLength(0)
+  })
+
+  it('round trip: GET returns the stored title and description; a re-save keeps them', async () => {
+    const id = await createQuote()
+    await patch(id, { lines: [tourBody({ destination: VIENNA })] })
+    const body = (await (await detail(id)).json()) as { lines: Array<Record<string, unknown>> }
+    expect(body.lines[0]).toMatchObject({
+      trip_type: 'tour',
+      title: 'Private day trip: Kutná Hora and Karlštejn',
+      description: 'Day 1: Kutná Hora\nLunch not included',
+      destination_address: VIENNA.address,
+    })
+    expect((await patch(id, { lines: [tourBody({ destination: VIENNA, amount_minor: 70000 })] })).status).toBe(200)
+    expect(linesOf(versionsOf(id)[0].id)[0]).toMatchObject({ title: 'Private day trip: Kutná Hora and Karlštejn', amount_minor: 70000 })
+  })
+
+  it('a description on a transfer is stored, Windows line ends normalised and outer blanks trimmed; the title stays null', async () => {
+    const id = await createQuote()
+    expect((await patch(id, { lines: [lineBody({ description: '  Meet at gate 2\r\nWater on board  ' })] })).status).toBe(200)
+    expect(linesOf(versionsOf(id)[0].id)[0]).toMatchObject({ description: 'Meet at gate 2\nWater on board', title: null })
+  })
+
+  it('refuses a tour without a title or without hours, and a tour with stops or a landing (400)', async () => {
+    const id = await createQuote()
+    expect((await patch(id, { lines: [tourBody({ title: null })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ title: '   ' })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ hours: null })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ hours: 25 })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ stops: [{ ...BRNO, wait_minutes: 0 }] })] })).status).toBe(400)
+    expect(
+      (await patch(id, { lines: [tourBody({ landing: { date: '2027-05-10', time: '11:00', offset_min: 60 } })] })).status,
+    ).toBe(400)
+    expect(linesOf(versionsOf(id)[0].id)).toHaveLength(0)
+  })
+
+  it('refuses a title on a non-tour line, a title over 200 or with a line break, and a description over 4000 (400)', async () => {
+    const id = await createQuote()
+    expect((await patch(id, { lines: [lineBody({ title: 'Not a tour' })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ title: 'x'.repeat(201) })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ title: 'Two\nlines' })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ description: 'x'.repeat(4001) })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ description: 'x'.repeat(4000) })] })).status).toBe(200)
+  })
+
+  it('a tour line has no tariff: the price route answers pricing_unavailable without a route call', async () => {
+    const { suggestLinePrice } = await import('@/lib/quotes/pricing')
+    const result = await suggestLinePrice(
+      {
+        trip_type: 'tour',
+        pickup_date: '2027-05-10',
+        pickup_time: '09:00',
+        origin: PRAGUE,
+        destination: null,
+        stops: [],
+        vehicle_class: 'business',
+        hours: 8,
+        extra_child_seat: false,
+        extra_meet_greet: false,
+        extra_luggage: false,
+      },
+      { rates: {} as never, currency: 'eur' },
+    )
+    expect(result).toEqual({ ok: false, reason: 'pricing_unavailable' })
+    expect(computeRouteDistanceMock).not.toHaveBeenCalled()
   })
 })
