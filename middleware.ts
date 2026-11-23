@@ -28,6 +28,9 @@ const CSRF_PROTECTED_PREFIXES = [
   // Phase 92 (T-92-13): public quote endpoints (view / accept / state / pdf / remainder),
   // authenticated by the quote token, browser-only caller. Does not match /api/submit-quote.
   '/api/quote',
+  // Phase 93 (T-93-73): public custom-tour request form, browser-only caller. Like the other lead forms a missing
+  // Origin still passes (not in CSRF_STRICT_ORIGIN_REQUIRED).
+  '/api/custom-tour',
 ]
 
 // Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also
