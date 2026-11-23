@@ -535,7 +535,7 @@ Plans:
   4. A client can book a tour online with date, time, vehicle and passengers, using the same payment modes as transfers (card on file with hold, cash with card guarantee).
   5. A visitor who finds nothing suitable can send a custom-tour request (destinations, date, people, wishes) that becomes a lead in Supabase, EspoCRM and Chatwoot without depending on the VPS, and the operator can answer it with a quote from admin.
 
-**Plans**: 32/35 plans executed (PR 1 = 93-01..93-28, TRIP-01..05; PR 2 = 93-29..93-35, TRIP-06/07 — D-26)
+**Plans**: 33/35 plans executed (PR 1 = 93-01..93-28, TRIP-01..05; PR 2 = 93-29..93-35, TRIP-06/07 — D-26)
 
 Plans:
 **Wave 1**
@@ -589,7 +589,7 @@ Plans:
 - [x] 93-34-PLAN.md — Custom-tour request page and live entry-point switch
 
 **Wave 10**
-- [ ] 93-32-PLAN.md — POST /api/custom-tour with guards and emails
+- [x] 93-32-PLAN.md — POST /api/custom-tour with guards and emails
 - [ ] 93-33-PLAN.md — Admin custom tours inbox, Create quote, builder request card
 
 **Wave 11**
@@ -727,7 +727,7 @@ Plans:
 | 90. Dispatch Views | v5.0 | 9/9 | In Progress|  |
 | 91. Multi-Stop Transfers, Airport Pickup & Waiting Fees | v5.0 | 16/17 | In Progress|  |
 | 92. Quotes | v5.0 | 0/0 | Not started | - |
-| 93. Day Trips & Custom Tours | v5.0 | 32/35 | In Progress|  |
+| 93. Day Trips & Custom Tours | v5.0 | 33/35 | In Progress|  |
 
 ## Backlog
 
