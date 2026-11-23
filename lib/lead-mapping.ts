@@ -10,6 +10,7 @@
  */
 
 import { czkToEur } from '@/lib/currency'
+import { locales } from '@/i18n/locales'
 import { normalizePhone } from '@/lib/phone'
 
 // ── Fixed CRM names ────────────────────────────────────────────────────────
@@ -29,6 +30,8 @@ export const LEAD_SOURCE = {
   contactForm: 'Contact form',
   corporateForm: 'Corporate form',
   multidayQuote: 'Multi-day quote',
+  // Phase 93 (TRIP-06): the custom-tour request form; the value must exist in the live Lead source enum.
+  customTour: 'Custom tour',
   whatsapp: 'WhatsApp',
   phone: 'Phone',
   email: 'Email',
@@ -70,7 +73,7 @@ export const BOOKING_LEAD_STATUS: Readonly<Record<string, LeadStatusKey>> = {
 
 export interface InquiryRow {
   id: string
-  kind: 'contact' | 'corporate' | 'multiday_quote'
+  kind: 'contact' | 'corporate' | 'multiday_quote' | 'custom_tour'
   email: string
   name: string | null
   phone: string | null
@@ -150,6 +153,7 @@ export function leadSourceForBooking(bookingSource: string, leadChannel: string 
 export function leadSourceForInquiry(kind: InquiryRow['kind']): string {
   if (kind === 'corporate') return LEAD_SOURCE.corporateForm
   if (kind === 'multiday_quote') return LEAD_SOURCE.multidayQuote
+  if (kind === 'custom_tour') return LEAD_SOURCE.customTour
   return LEAD_SOURCE.contactForm
 }
 
@@ -280,6 +284,29 @@ export interface MultidayDay {
   hours?: number
 }
 
+/** One visitor value on one line: line breaks and runs of whitespace collapse, so it cannot forge another line. */
+function oneLine(value: unknown): string {
+  return str(value).replace(/\s+/g, ' ').trim()
+}
+
+/** TRIP-06: where, date, people, wishes, starting tour and language of a custom-tour request (plain text, no HTML). */
+function customTourDescription(payload: Record<string, unknown>): string {
+  const lines: string[] = []
+  const where = oneLine(payload.where)
+  const date = oneLine(payload.date)
+  if (where) lines.push(`Where: ${where}`)
+  if (date) lines.push(`Date: ${date}`)
+  const people = typeof payload.people === 'number' ? payload.people : Number(oneLine(payload.people))
+  if (Number.isFinite(people) && people > 0) lines.push(`People: ${Math.trunc(people)}`)
+  const wishes = oneLine(payload.wishes)
+  if (wishes) lines.push(`Wishes: ${wishes}`)
+  const tourSlug = oneLine(payload.tourSlug)
+  if (tourSlug) lines.push(`Starting tour: ${tourSlug}`)
+  const locale = oneLine(payload.locale)
+  lines.push(`Language: ${(locales as readonly string[]).includes(locale) ? locale : 'en'}`)
+  return lines.join('\n')
+}
+
 /**
  * LEAD-03: one readable line per day, in submitted order.
  * transfer: date, time, from -> to, stops; hourly: date, time, city, hours.
@@ -350,6 +377,9 @@ export function buildLeadFromInquiry(row: InquiryRow): LeadDraft {
       name = splitName(row.name, email)
     }
     description = multidayDescription(payload)
+  } else if (row.kind === 'custom_tour') {
+    name = splitName(row.name, email)
+    description = customTourDescription(payload)
   } else {
     name = splitName(row.name, email)
     description = row.kind === 'corporate' ? corporateDescription(payload) : contactDescription(payload)
