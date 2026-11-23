@@ -448,6 +448,22 @@ describe('services index: also popular', () => {
     }
   })
 
+  it('shows the published tours as full photo cards with a link to the catalogue', async () => {
+    storeMock.listPublishedTours.mockResolvedValue([DRESDEN, KARLOVY])
+    await renderIndex()
+    const showcase = screen.getByTestId('tour-showcase')
+    expect(within(showcase).getAllByRole('article')).toHaveLength(2)
+    expect(within(showcase).getByRole('heading', { level: 2 }).textContent).toBe(T.hub.heading)
+    const all = within(showcase).getByRole('link', { name: T.checkout.seeAll })
+    expect(all.getAttribute('href')).toBe(`/services/${HUB}`)
+  })
+
+  it('renders no tour block without published tours', async () => {
+    storeMock.listPublishedTours.mockResolvedValue([])
+    await renderIndex()
+    expect(screen.queryByTestId('tour-showcase')).toBeNull()
+  })
+
   it('localizes tour links in ru', async () => {
     storeMock.listPublishedTours.mockResolvedValue([DRESDEN])
     const { container } = await renderIndex('ru')

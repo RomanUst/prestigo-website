@@ -90,3 +90,11 @@ The owner asked to add waiting time ("Добавь ожидание и пока�
 Rule: route fare one way + return leg with the 10 % return discount + included hours x half the class hourly rate (E 59, S 120, V 80 per hour), rounded to whole EUR. Karlštejn (35 km) and Bohemian Switzerland (120 km) use distance x rate per km for the road part.
 Approved values: `93-approved-prices.json` in this directory (E/S/V per tour, hours included 3/3/4/5/5/5, extra hour E 59 / S 120 / V 80).
 The seed runner cannot read `.env.local` inside the sandbox, so the owner runs the apply step locally.
+
+## Task 3: seed + PR 1 live, 2026-11-22
+
+- Seed applied 2026-11-21 (owner's secret key passed inline; `.env.local` holds no service key, seed-tours now loads env leniently and `--apply` without env exits 1, commit 6aab22a3): 6 tours published, 48/48 translations complete, 38 photos in `tour-photos` (Commons with licence + credit URL, `own` = fleet photos from public/vehicles), owner prices, extra hour E 59 / S 120 / V 80.
+- EspoCRM sync run by owner: CBooking.tripType + status updated.
+- PR #123 merged (1b9ef996), Vercel production success.
+- Live check: 48/48 tour URLs (8 locales x 6) return 200 with DB photos, catalogue lists 6 tours (en, ru), ru title + price from DB, ar `dir="rtl"`, sitemap lists the 6 tour URLs.
+- Still open: canary bookings on owner's card/email (ru card hold, en cash), email/calendar/EspoCRM checks; owner to retire the `default` secret key that was pasted in chat.

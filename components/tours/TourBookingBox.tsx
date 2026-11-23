@@ -29,7 +29,7 @@ import { classesForPassengers, tourFare } from '@/lib/tours/pricing'
 import { MAX_EXTRA_HOURS, TOUR_CAR_KEYS, type TourCarKey } from '@/lib/tours/types'
 import { customTourHref } from '@/lib/tours/custom-tour-link'
 import { buildTourCheckoutHref, MAX_TOUR_PASSENGERS, tourBoxStorageKey } from '@/lib/tours/checkout-query'
-import { isDateBookable, isStartBookable, startTimeOptions } from '@/lib/tours/start-times'
+import { isDateBookable, isStartBookable, START_MINUTES, startHours, startTimeOptions } from '@/lib/tours/start-times'
 
 export interface TourBoxState {
   complete: boolean
@@ -186,14 +186,16 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
   const dateBtnRef = useRef<HTMLButtonElement>(null)
   const timeGroupRef = useRef<HTMLDivElement>(null)
   const carGroupRef = useRef<HTMLDivElement>(null)
-  const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const rowRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const pendingChipFocus = useRef(false)
 
   const options = useMemo(() => startTimeOptions(startMin, startMax), [startMin, startMax])
   const visible = visibleFor(pax, xh)
   const enabledTimes = date ? options.filter((o) => isStartBookable(date, o, Date.now())) : []
-  const tabbableTime = time && enabledTimes.includes(time) ? time : (enabledTimes[0] ?? null)
+  const hours = useMemo(() => startHours(options), [options])
+  const selectedHour = time ? time.slice(0, 2) : null
+  const selectedMinute = time ? time.slice(3, 5) : null
+  const hourEnabled = (h: string) => enabledTimes.some((o) => o.startsWith(`${h}:`))
   const tabbableCar = car && visible.includes(car) ? car : (visible[0] ?? null)
 
   const carFare = car ? fareFor(car, xh) : null
@@ -212,7 +214,7 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
   useEffect(() => {
     if (!pendingChipFocus.current || dateOpen) return
     pendingChipFocus.current = false
-    timeGroupRef.current?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus()
+    timeGroupRef.current?.querySelector<HTMLElement>('button:not([aria-disabled="true"])')?.focus()
   }, [date, dateOpen])
 
   function selectDate(d: Date | undefined) {
@@ -229,14 +231,18 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
     dateBtnRef.current?.focus()
   }
 
-  function onChipKeyDown(e: KeyboardEvent<HTMLButtonElement>, current: string) {
-    const step = arrowStep(e.key, rtl)
-    if (step === null || enabledTimes.length === 0) return
-    e.preventDefault()
-    const idx = enabledTimes.indexOf(current)
-    const next = enabledTimes[(idx + step + enabledTimes.length) % enabledTimes.length]
-    setTime(next)
-    chipRefs.current[next]?.focus()
+  // Hour first (like the main booking engine): keep the chosen minute when that start exists in the new hour,
+  // otherwise take the first bookable minute of the hour.
+  function selectHour(h: string) {
+    if (!hourEnabled(h)) return
+    const keep = selectedMinute ? `${h}:${selectedMinute}` : null
+    setTime(keep && enabledTimes.includes(keep) ? keep : (enabledTimes.find((o) => o.startsWith(`${h}:`)) ?? null))
+  }
+
+  function selectMinute(m: string) {
+    if (!selectedHour) return
+    const next = `${selectedHour}:${m}`
+    if (enabledTimes.includes(next)) setTime(next)
   }
 
   function onRowKeyDown(e: KeyboardEvent<HTMLButtonElement>, current: TourCarKey) {
@@ -273,7 +279,7 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
     if (!date) {
       dateBtnRef.current?.focus()
     } else if (!time || force?.time) {
-      timeGroupRef.current?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus()
+      timeGroupRef.current?.querySelector<HTMLElement>('button:not([aria-disabled="true"])')?.focus()
     } else if (!car) {
       carGroupRef.current?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')?.focus()
     }
@@ -396,39 +402,27 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
           </div>
           <div
             ref={timeGroupRef}
-            role="radiogroup"
+            role="group"
             aria-labelledby={`${uid}-time-label`}
             aria-describedby={errTime ? `${uid}-time-err` : undefined}
-            className="mt-2 grid grid-cols-3 gap-2"
+            className="mt-2 grid grid-cols-2 gap-3"
           >
-            {options.map((o) => {
-              const enabled = enabledTimes.includes(o)
-              const selected = time === o
-              return (
-                <button
-                  key={o}
-                  ref={(el) => {
-                    chipRefs.current[o] = el
-                  }}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  aria-disabled={!enabled}
-                  tabIndex={enabled && tabbableTime === o ? 0 : -1}
-                  onClick={() => {
-                    if (enabled) setTime(o)
-                  }}
-                  onKeyDown={(e) => {
-                    if (enabled) onChipKeyDown(e, o)
-                  }}
-                  className={`min-h-[44px] rounded-[4px] border px-2 text-[14px] font-normal transition-colors duration-200 ${FOCUS_RING} ${
-                    selected ? 'border-2 border-copper text-copper' : 'border-anthracite-light text-offwhite'
-                  } ${enabled ? 'cursor-pointer hover:border-copper' : 'cursor-not-allowed opacity-40'}`}
-                >
-                  <bdi dir="ltr">{o}</bdi>
-                </button>
-              )
-            })}
+            <TimeColumn
+              label={tv('step2.hourLabel')}
+              aria={tv('step2.hourAria')}
+              values={hours}
+              selected={selectedHour}
+              isEnabled={(h) => Boolean(date) && hourEnabled(h)}
+              onSelect={selectHour}
+            />
+            <TimeColumn
+              label={tv('step2.minuteLabel')}
+              aria={tv('step2.minuteAria')}
+              values={START_MINUTES}
+              selected={selectedMinute}
+              isEnabled={(m) => Boolean(selectedHour) && enabledTimes.includes(`${selectedHour}:${m}`)}
+              onSelect={selectMinute}
+            />
           </div>
           {!date && <p className={`mt-2 ${mutedSmall}`}>{t('dateFirst')}</p>}
           {errTime && (
@@ -576,3 +570,54 @@ const TourBookingBox = forwardRef<TourBookingBoxHandle, TourBookingBoxProps>(fun
 })
 
 export default TourBookingBox
+
+/** One column of the start-time picker (hour or minute), the same scrolling list as the main booking engine. */
+function TimeColumn({
+  label,
+  aria,
+  values,
+  selected,
+  isEnabled,
+  onSelect,
+}: {
+  label: string
+  aria: string
+  values: readonly string[]
+  selected: string | null
+  isEnabled: (v: string) => boolean
+  onSelect: (v: string) => void
+}) {
+  const listRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!selected) return
+    listRef.current?.querySelector<HTMLElement>(`[data-value="${selected}"]`)?.scrollIntoView({ block: 'nearest' })
+  }, [selected])
+  return (
+    <div>
+      <span className="mb-2 block font-body text-[11px] font-normal uppercase tracking-[0.12em] text-warmgrey">{label}</span>
+      <div ref={listRef} role="group" aria-label={aria} className="max-h-[200px] overflow-y-auto border border-anthracite-light">
+        {values.map((v) => {
+          const enabled = isEnabled(v)
+          const on = selected === v
+          return (
+            <button
+              key={v}
+              type="button"
+              data-value={v}
+              aria-pressed={on}
+              aria-disabled={!enabled}
+              onClick={() => {
+                if (enabled) onSelect(v)
+              }}
+              className={`flex min-h-[44px] w-full items-center justify-center border-s-4 font-body text-[14px] tracking-[0.05em] transition-colors duration-150 ${FOCUS_RING} ${
+                on && enabled ? 'border-copper bg-anthracite-mid text-offwhite' : 'border-transparent text-warmgrey'
+              } ${enabled ? 'cursor-pointer hover:bg-anthracite-mid hover:text-offwhite' : 'cursor-not-allowed opacity-35'}`}
+            >
+              <bdi dir="ltr">{v}</bdi>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

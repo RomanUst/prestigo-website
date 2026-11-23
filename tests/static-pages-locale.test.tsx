@@ -17,6 +17,8 @@ import { getPageContent } from "@/lib/page-content";
 vi.mock("next-intl/server", () => ({
   getLocale: vi.fn(async () => "en"),
   setRequestLocale: vi.fn(),
+  // ServicesPage builds the Tours translator for the day-trip cards (none render here: the store has no env).
+  getTranslations: vi.fn(async () => Object.assign((key: string) => key, { rich: (key: string) => key })),
 }));
 
 vi.mock("next/image", () => ({
