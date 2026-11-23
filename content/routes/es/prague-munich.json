@@ -3,11 +3,11 @@
     "label": "Praga → Múnich",
     "headlineLine1": "Traslado de Praga a Múnich,",
     "headlineItalic": "la capital bávara.",
-    "intro": "385 km hacia el suroeste a través de Bohemia y Baviera. Marienplatz, el Jardín Inglés, el Oktoberfest y el Aeropuerto de Múnich: cuatro horas, un precio fijo, puerta a puerta.",
+    "intro": "{routeKm} km hacia el suroeste a través de Bohemia y Baviera. Marienplatz, el Jardín Inglés, el Oktoberfest y el Aeropuerto de Múnich: cuatro horas, un precio fijo, puerta a puerta.",
     "imageAlt": "Múnich — traslado en chófer privado desde Praga a Múnich"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Múnich recorre 385 km por las autopistas D5 y A93 y dura aproximadamente 4 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Pilsen o Ratisbona— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
+    "Un traslado privado de Praga a Múnich recorre {routeKm} km por las autopistas D5 y A93 y dura aproximadamente 4 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Pilsen o Ratisbona— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
     "No es un servicio de traslado compartido. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en cuatro horas.",
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el Aeropuerto Václav Havel—, su chófer toma la autopista D5 hacia el suroeste, pasando por Pilsen y los suaves paisajes de Bohemia Occidental. La frontera Schengen checo-alemana de Rozvadov/Waidhaus es invisible: sin paradas ni controles de documentos. Una vez en Baviera, la vía se convierte en la A6 en dirección oeste hacia Núremberg.",
-      "La ruta rápida convencional gira después hacia el sur por la A93, pasando por Ratisbona, y enlaza con la A9 para la aproximación final a Múnich. El destino final es donde usted lo necesite: un hotel en el Altstadt junto a Marienplatz, una oficina en Maxvorstadt, el BMW Welt o la terminal ejecutiva del Aeropuerto de Múnich (MUC). La distancia total es de aproximadamente 385 kilómetros.",
+      "La ruta rápida convencional gira después hacia el sur por la A93, pasando por Ratisbona, y enlaza con la A9 para la aproximación final a Múnich. El destino final es donde usted lo necesite: un hotel en el Altstadt junto a Marienplatz, una oficina en Maxvorstadt, el BMW Welt o la terminal ejecutiva del Aeropuerto de Múnich (MUC). La distancia total es de aproximadamente {routeKm} kilómetros.",
       "El tiempo de conducción es de cuatro horas en condiciones despejadas. El anillo de autopistas de Múnich, la A99, puede estar cargado en las horas punta de la mañana y de la tarde, así que conviene añadir 20-30 minutos para llegadas entre las 7:30 y las 9:30 o entre las 16:30 y las 18:30. Su chófer consulta la información de tráfico antes de cada salida y desvía la ruta por las afueras de la ciudad cuando es necesario. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
@@ -220,7 +220,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~385 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -246,8 +246,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Múnich — Mercedes ejecutivo",
-    "description": "Traslado ejecutivo Praga – Múnich: 385 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Praga – Múnich: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Múnich — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Praga – Múnich: 385 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Praga – Múnich: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

@@ -3,11 +3,11 @@
     "label": "Graz → Prague",
     "headlineLine1": "Graz to Prague,",
     "headlineItalic": "without a change.",
-    "intro": "Graz to Prague by private chauffeur is a 450 km door-to-door transfer north through Styria and Upper Austria via Linz, then across South Bohemia, around 4.5 to 5 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, tolls and both Austrian and Czech vignettes included. Pickup from any Graz address or Graz Airport (GRZ), drop-off anywhere in Prague.",
+    "intro": "Graz to Prague by private chauffeur is a {routeKm} km door-to-door transfer north through Styria and Upper Austria via Linz, then across South Bohemia, around 4.5 to 5 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, tolls and both Austrian and Czech vignettes included. Pickup from any Graz address or Graz Airport (GRZ), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Graz to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Graz to Prague covers 450 km — north on the A9 Pyhrn motorway through Styria and Upper Austria to Linz, the S10 to the Czech border at Wullowitz–Dolní Dvořiště, then České Budějovice and the D3 motorway via Tábor to Prague — and takes approximately 4.5 to 5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in the Old Town, an office, Graz Hauptbahnhof or Graz Airport, and drops you at the door of your Prague address.",
+    "A private transfer from Graz to Prague covers {routeKm} km — north on the A9 Pyhrn motorway through Styria and Upper Austria to Linz, the S10 to the Czech border at Wullowitz–Dolní Dvořiště, then České Budějovice and the D3 motorway via Tábor to Prague — and takes approximately 4.5 to 5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in the Old Town, an office, Graz Hauptbahnhof or Graz Airport, and drops you at the door of your Prague address.",
     "The fare is set when you book and stays that way: fuel, tolls, the Austrian and Czech vignettes, bottled water, Wi-Fi and child seats on request are included. No change of trains in Vienna, no luggage carried between platforms, no taxi to find in Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in four and a half to five hours.",
     "paragraphs": [
       "From a pickup below the Schlossberg, in the university quarter or at Graz Airport south of the city, your chauffeur takes the A9 Pyhrn motorway north through the Styrian valleys and the tunnels under the Gleinalpe and the Bosruck into Upper Austria. The tunnel sections carry their own tolls, already in your fare. The motorway comes down the Krems valley and joins the A1 for the short run to Linz on the Danube, where the route turns north on the S10 Mühlviertel expressway.",
-      "The Austrian–Czech border at Wullowitz–Dolní Dvořiště is a Schengen crossing — no stop, no document check in normal conditions. On the Czech side the road runs past Kaplice to České Budějovice, and the D3 motorway carries you north through Tábor to Prague. Total distance is approximately 450 kilometres; driving time is four and a half to five hours in normal traffic.",
+      "The Austrian–Czech border at Wullowitz–Dolní Dvořiště is a Schengen crossing — no stop, no document check in normal conditions. On the Czech side the road runs past Kaplice to České Budějovice, and the D3 motorway carries you north through Tábor to Prague. Total distance is approximately {routeKm} kilometres; driving time is four and a half to five hours in normal traffic.",
       "Your chauffeur checks the Pyhrn tunnels, the S10 and the D3 before you leave and adjusts the route around roadworks without asking. If you want an afternoon in Vienna on the way, that is possible as an optional detour — tell us at booking. Either way, you arrive in Prague with the evening still ahead of you."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "bratislava-prague", "city": "Bratislava", "label": "Bratislava → Prague", "distance": "330 km", "duration": "3h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "450 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Duration", "value": "~4.5–5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Graz to Prague Transfer — Executive Mercedes",
-    "description": "Premium Graz to Prague transfer: 450 km, about 4.5–5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Graz to Prague transfer: {routeKm} km, about 4.5–5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Graz to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Graz to Prague transfer: 450 km, about 4.5–5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Graz to Prague transfer: {routeKm} km, about 4.5–5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

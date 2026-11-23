@@ -3,11 +3,11 @@
     "label": "Budapest → Prague",
     "headlineLine1": "Budapest to Prague,",
     "headlineItalic": "three borders, one car.",
-    "intro": "Budapest to Prague by private chauffeur is a 535 km door-to-door transfer west along the M1, through Bratislava and Brno, around 5h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Hungarian, Slovak and Czech vignettes included. Pickup from any Budapest address or Budapest Airport (BUD), drop-off anywhere in Prague.",
+    "intro": "Budapest to Prague by private chauffeur is a {routeKm} km door-to-door transfer west along the M1, through Bratislava and Brno, around 5h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Hungarian, Slovak and Czech vignettes included. Pickup from any Budapest address or Budapest Airport (BUD), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Budapest to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Budapest to Prague covers 535 km — west on the M1 motorway past Tatabánya and Győr, the M15 to the Slovak border at Rajka–Čunovo, the D2 through Bratislava to the Czech border at Brodské–Lanžhot, then Brno and the D1 to Prague — and takes approximately 5.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you on either side of the Danube — a hotel in Pest, an apartment on the Buda hills, Keleti station or Budapest Ferenc Liszt International Airport — and drops you at your Prague door.",
+    "A private transfer from Budapest to Prague covers {routeKm} km — west on the M1 motorway past Tatabánya and Győr, the M15 to the Slovak border at Rajka–Čunovo, the D2 through Bratislava to the Czech border at Brodské–Lanžhot, then Brno and the D1 to Prague — and takes approximately 5.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you on either side of the Danube — a hotel in Pest, an apartment on the Buda hills, Keleti station or Budapest Ferenc Liszt International Airport — and drops you at your Prague door.",
     "The fare is fixed when you book: fuel, the Hungarian, Slovak and Czech motorway vignettes, bottled water, Wi-Fi and child seats on request are all included. Three countries, one car, and nothing left to arrange when you reach Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in five and a half hours.",
     "paragraphs": [
       "From a pickup in Belváros, along Andrássy út, on Castle Hill or at the airport east of the city, your chauffeur leaves Budapest westbound on the M1. The motorway runs past Tatabánya and Győr across the Little Hungarian Plain, then the M15 branches north to the Slovak border at Rajka–Čunovo — a Schengen crossing with no stop in normal conditions.",
-      "Inside Slovakia the road passes Bratislava and continues north on the D2 through the flat Záhorie lowland to the Czech border at Brodské–Lanžhot. On the Czech side the D2 leads up past Břeclav to Brno, where the D1 takes over for the final 205 km to Prague. Total distance is approximately 535 kilometres; driving time is five and a half hours in normal traffic.",
+      "Inside Slovakia the road passes Bratislava and continues north on the D2 through the flat Záhorie lowland to the Czech border at Brodské–Lanžhot. On the Czech side the D2 leads up past Břeclav to Brno, where the D1 takes over for the final 205 km to Prague. Total distance is approximately {routeKm} kilometres; driving time is five and a half hours in normal traffic.",
       "Your chauffeur checks the M1 and the D1 before departure and plans a proper break around the halfway point. If there are roadworks between Brno and Jihlava, they take the alternative without asking. You arrive in Prague in time for dinner, not ready for bed."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "krakow-prague", "city": "Kraków", "label": "Kraków → Prague", "distance": "530 km", "duration": "5h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "535 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Duration", "value": "~5.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Budapest to Prague Transfer — Premium, 5.5h",
-    "description": "Executive Budapest to Prague transfer: 535 km, about 5.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Budapest to Prague transfer: {routeKm} km, about 5.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Budapest to Prague Transfer — Premium, 5.5h Door-to-Door",
-    "ogDescription": "Executive Budapest to Prague transfer: 535 km, about 5.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. All vignettes included. Child seats on request at no extra cost."
+    "ogDescription": "Executive Budapest to Prague transfer: {routeKm} km, about 5.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. All vignettes included. Child seats on request at no extra cost."
   }
 }

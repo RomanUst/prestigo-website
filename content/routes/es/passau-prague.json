@@ -3,11 +3,11 @@
     "label": "Passau → Praga",
     "headlineLine1": "De Passau a Praga,",
     "headlineItalic": "a través del Bosque de Bohemia.",
-    "intro": "El traslado de Passau a Praga con chófer privado es un trayecto puerta a puerta de 220 km hacia el norte, cruzando el Bosque Bávaro y el Bosque de Bohemia, con unas 2 h 30 min de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier hotel de Passau, en el embarcadero de cruceros del Danubio o en la Passau Hauptbahnhof, y llegada a cualquier punto de Praga.",
+    "intro": "El traslado de Passau a Praga con chófer privado es un trayecto puerta a puerta de {routeKm} km hacia el norte, cruzando el Bosque Bávaro y el Bosque de Bohemia, con unas 2 h 30 min de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier hotel de Passau, en el embarcadero de cruceros del Danubio o en la Passau Hauptbahnhof, y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Passau a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Passau a Praga cubre 220 km —hacia el norte por la B12 a través del Bosque Bávaro, paso de la frontera checa en Philippsreut–Strážný, descenso por las estribaciones de Šumava pasando por Vimperk y Strakonice y, por último, la autopista D4 pasando por Příbram hasta Praga— y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Passau, en el embarcadero de cruceros fluviales del Danubio o en la Passau Hauptbahnhof, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Passau a Praga cubre {routeKm} km —hacia el norte por la B12 a través del Bosque Bávaro, paso de la frontera checa en Philippsreut–Strážný, descenso por las estribaciones de Šumava pasando por Vimperk y Strakonice y, por último, la autopista D4 pasando por Příbram hasta Praga— y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Passau, en el embarcadero de cruceros fluviales del Danubio o en la Passau Hauptbahnhof, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se fija antes del viaje: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Si llega de un crucero por el Danubio con el equipaje de una semana, lo carga una sola vez junto al barco y no vuelve a verlo hasta su hotel de Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en dos horas y media.",
     "paragraphs": [
       "Desde la península del casco antiguo, la Residenzplatz o el embarcadero de cruceros bajo la catedral, su chófer se dirige hacia el norte por la B12, adentrándose en el Bosque Bávaro. La carretera sube de forma constante por Freyung y las colinas boscosas hasta la frontera de Philippsreut–Strážný, en lo alto del bosque. Está dentro del espacio Schengen: sin paradas ni controles en condiciones normales.",
-      "En el lado checo, la carretera 4 desciende por las estribaciones de Šumava hasta Vimperk y continúa por el campo abierto de Bohemia del Sur hasta Strakonice. Más al norte, la vía se convierte en la autopista D4, que pasa por Příbram y entra directamente en el suroeste de Praga. La distancia total es de aproximadamente 220 kilómetros; el tiempo de conducción es de dos horas y media en condiciones normales, cerca de tres en un fin de semana de verano con mucho tráfico.",
+      "En el lado checo, la carretera 4 desciende por las estribaciones de Šumava hasta Vimperk y continúa por el campo abierto de Bohemia del Sur hasta Strakonice. Más al norte, la vía se convierte en la autopista D4, que pasa por Příbram y entra directamente en el suroeste de Praga. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción es de dos horas y media en condiciones normales, cerca de tres en un fin de semana de verano con mucho tráfico.",
       "En invierno, el paso de la B12 puede tener nieve y hielo cuando en Passau solo está nublado. Su chófer comprueba la carretera fronteriza antes de salir y, si el paso está complicado, toma el camino más largo en lugar de arriesgarse. Aun así, llegará a Praga esa misma tarde, con tiempo para instalarse antes de la cena."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "220 km"
+      "value": "{routeKm} km"
     },
     {
       "label": "Duración",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Traslado Passau – Praga — Chófer ejecutivo",
-    "description": "Traslado premium Passau – Praga: 220 km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Passau – Praga: {routeKm} km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Passau – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Passau – Praga: 220 km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Passau – Praga: {routeKm} km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

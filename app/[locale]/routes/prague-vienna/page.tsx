@@ -12,7 +12,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
-import { getRouteContent } from '@/lib/route-content'
+import { getLiveRouteContent } from '@/lib/route-distances'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
@@ -23,7 +23,7 @@ import { getStaticAggregateRating } from '@/lib/google-reviews'
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   setRequestLocale(locale)
-  const content = getRouteContent('prague-vienna', locale)
+  const content = await getLiveRouteContent('prague-vienna', locale)
   const route = await getRoutePrice('prague-vienna')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const prices = { ePrice }
@@ -50,7 +50,7 @@ export default async function PragueViennaPage({ params }: { params: Promise<{ l
   const { locale } = await params
   setRequestLocale(locale)
   const bookHref = `${getPathname({ locale, href: '/book' })}${routeBookQuery('prague-vienna')}`
-  const content = getRouteContent('prague-vienna', locale)
+  const content = await getLiveRouteContent('prague-vienna', locale)
   const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-vienna')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur

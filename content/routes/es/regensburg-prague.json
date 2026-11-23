@@ -3,11 +3,11 @@
     "label": "Ratisbona → Praga",
     "headlineLine1": "De Ratisbona a Praga,",
     "headlineItalic": "del Danubio al Moldava.",
-    "intro": "El traslado de Ratisbona a Praga con chófer privado es un trayecto puerta a puerta de 285 km por la A93, la A6 y la D5, con unas 3 horas de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Ratisbona o en la Regensburg Hauptbahnhof, y llegada a cualquier punto de Praga.",
+    "intro": "El traslado de Ratisbona a Praga con chófer privado es un trayecto puerta a puerta de {routeKm} km por la A93, la A6 y la D5, con unas 3 horas de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Ratisbona o en la Regensburg Hauptbahnhof, y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Ratisbona a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Ratisbona a Praga cubre 285 km —hacia el norte por la A93 a través del Alto Palatinado, hacia el este por la A6 hasta la frontera checa en Waidhaus–Rozvadov y, por último, la autopista D5 pasando por Pilsen y Beroun hasta Praga— y dura aproximadamente 3 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Ratisbona, en una oficina o en la Regensburg Hauptbahnhof, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Ratisbona a Praga cubre {routeKm} km —hacia el norte por la A93 a través del Alto Palatinado, hacia el este por la A6 hasta la frontera checa en Waidhaus–Rozvadov y, por último, la autopista D5 pasando por Pilsen y Beroun hasta Praga— y dura aproximadamente 3 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Ratisbona, en una oficina o en la Regensburg Hauptbahnhof, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se acuerda de antemano y no cambia: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Sin conexiones que coger, sin maletas que subir a un portaequipajes, sin cola de taxis al llegar a Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en unas tres horas.",
     "paragraphs": [
       "Desde la recogida en el casco antiguo, cerca del Puente de Piedra o en un hotel junto al Danubio, su chófer sale de Ratisbona por la A93 en dirección norte. La autopista sigue el valle del Naab a través del Alto Palatinado, pasando por Schwandorf, hasta el enlace con la A6, donde la ruta gira hacia el este en dirección a la frontera checa.",
-      "El paso de Waidhaus–Rozvadov está dentro del espacio Schengen: sin paradas, sin colas y sin control de documentación en condiciones normales. A partir de ahí, la D5 cruza en línea recta Bohemia Occidental: pasa por Pilsen y las chimeneas de sus cervecerías, atraviesa Rokycany y Beroun y entra en el suroeste de Praga. La distancia total es de aproximadamente 285 kilómetros; el tiempo de conducción es de tres horas con tráfico normal, más 15–20 minutos un viernes por la tarde, cuando la D5 se llena de tráfico hacia la ciudad.",
+      "El paso de Waidhaus–Rozvadov está dentro del espacio Schengen: sin paradas, sin colas y sin control de documentación en condiciones normales. A partir de ahí, la D5 cruza en línea recta Bohemia Occidental: pasa por Pilsen y las chimeneas de sus cervecerías, atraviesa Rokycany y Beroun y entra en el suroeste de Praga. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción es de tres horas con tráfico normal, más 15–20 minutos un viernes por la tarde, cuando la D5 se llena de tráfico hacia la ciudad.",
       "Su chófer comprueba la A93 y la D5 antes de salir. El tráfico de las vacaciones de verano y las obras van y vienen en ambas, y si hay un atasco ajusta la ruta sin necesidad de preguntar. Llegará a Praga a tiempo para un almuerzo tardío en Malá Strana o una reunión por la tarde en la Ciudad Nueva."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "285 km"
+      "value": "{routeKm} km"
     },
     {
       "label": "Duración",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Traslado Ratisbona – Praga — Chófer premium",
-    "description": "Traslado premium Ratisbona – Praga: 285 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Ratisbona – Praga: {routeKm} km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Ratisbona – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Ratisbona – Praga: 285 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Ratisbona – Praga: {routeKm} km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

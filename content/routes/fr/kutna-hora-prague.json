@@ -3,11 +3,11 @@
     "label": "Kutná Hora → Prague",
     "headlineLine1": "De Kutná Hora à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Kutná Hora à Prague avec chauffeur privé, c'est un transfert de porte à porte de 70 km vers l'ouest via Kolín et la D11, soit environ une heure de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quel hôtel de Kutná Hora, à l'ossuaire de Sedlec ou à la gare principale, dépose partout dans Prague.",
+    "intro": "De Kutná Hora à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'ouest via Kolín et la D11, soit environ une heure de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quel hôtel de Kutná Hora, à l'ossuaire de Sedlec ou à la gare principale, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Kutná Hora à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Kutná Hora à Prague représente 70 km — vers le nord en quittant la cité de l'argent jusqu'à Kolín, puis vers l'ouest par l'autoroute D11 jusqu'à la ville — et dure environ une heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Kutná Hora, à l'entrée de l'ossuaire de Sedlec ou à la gare principale de Kutná Hora, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague — ou à l'aéroport Václav Havel pour un vol en soirée.",
+    "Un transfert privé de Kutná Hora à Prague représente {routeKm} km — vers le nord en quittant la cité de l'argent jusqu'à Kolín, puis vers l'ouest par l'autoroute D11 jusqu'à la ville — et dure environ une heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Kutná Hora, à l'entrée de l'ossuaire de Sedlec ou à la gare principale de Kutná Hora, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague — ou à l'aéroport Václav Havel pour un vol en soirée.",
     "Le tarif est convenu avant le départ et ne bouge pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas d'horaire à consulter après une longue journée de visites, pas de correspondance à Kolín, pas de file d'attente aux taxis à l'arrivée à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en une heure.",
     "paragraphs": [
       "Après une prise en charge dans la vieille ville, au pied de la cathédrale Sainte-Barbe, ou à Sedlec, à côté de l'ossuaire, votre chauffeur file vers le nord à travers la plaine de l'Elbe jusqu'à Kolín. La route est courte et plate — champs, vergers et quelques clochers çà et là — et l'église gothique Saint-Barthélemy de Kolín se dessine à l'horizon au bout d'une vingtaine de minutes.",
-      "Après Kolín, la voiture rejoint l'autoroute D11 et file vers l'ouest en passant Poděbrady, puis entre dans Prague par sa périphérie nord-est. La distance totale est d'environ 70 kilomètres ; le temps de trajet est d'une heure environ en conditions normales. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
+      "Après Kolín, la voiture rejoint l'autoroute D11 et file vers l'ouest en passant Poděbrady, puis entre dans Prague par sa périphérie nord-est. La distance totale est d'environ {routeKm} kilomètres ; le temps de trajet est d'une heure environ en conditions normales. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
       "Votre chauffeur vérifie le trafic sur la D11 avant le départ. Le dimanche en fin d'après-midi et aux heures de pointe du soir en semaine, la dernière portion vers Prague ralentit ; en cas d'accident ou de travaux, il prend une route de campagne sans avoir à demander. Vous quittez Kutná Hora après la dernière visite de la journée et vous êtes de retour à Prague à temps pour le dîner."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~70 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Kutná Hora – Prague — Chauffeur premium",
-    "description": "Transfert premium Kutná Hora – Prague : 70 km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Kutná Hora – Prague : {routeKm} km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Kutná Hora – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Kutná Hora – Prague : 70 km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Kutná Hora – Prague : {routeKm} km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

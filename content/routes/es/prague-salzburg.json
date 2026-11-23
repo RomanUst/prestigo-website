@@ -3,11 +3,11 @@
     "label": "Praga → Salzburgo",
     "headlineLine1": "Traslado de Praga a Salzburgo,",
     "headlineItalic": "la ciudad de Mozart.",
-    "intro": "375 km hacia el sur atravesando Bohemia y Austria hasta el Salzach, la fortaleza de Hohensalzburg y la casa natal de Mozart. Unas cuatro horas, un precio fijo.",
+    "intro": "{routeKm} km hacia el sur atravesando Bohemia y Austria hasta el Salzach, la fortaleza de Hohensalzburg y la casa natal de Mozart. Unas cuatro horas, un precio fijo.",
     "imageAlt": "Salzburgo — traslado en chófer privado desde Praga a Salzburgo"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Salzburgo cubre 375 km y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles a peticón sin coste adicional. No se añade nada en el momento de la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Linz o Mondsee— están disponibles con la misma tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce una demora.",
+    "Un traslado privado de Praga a Salzburgo cubre {routeKm} km y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles a peticón sin coste adicional. No se añade nada en el momento de la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Linz o Mondsee— están disponibles con la misma tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce una demora.",
     "Esto no es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en cuatro horas.",
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D3 hacia el sur, pasando por Tábor y České Budějovice: la línea más directa hasta la frontera austriaca. El paso Schengen checo-austriaco de Wullowitz, en el lado austriaco, y Dolní Dvořiště, en el checo, es invisible. Sin cabina, sin control de documentos, sin paradas. La carretera se convierte en la vía rápida S10 del Mühlviertel y desciende hasta Linz, a orillas del Danubio.",
-      "Desde Linz, la ruta enlaza con la A1 Westautobahn y avanza hacia el oeste pasando por Wels y Attnang-Puchheim hasta las primeras laderas de los Alpes, para llegar a Salzburgo, al Altstadt: el casco antiguo declarado Patrimonio de la Humanidad por la UNESCO, extendido a ambas orillas del Salzach y coronado por la fortaleza de Hohensalzburg, con la casa natal de Mozart en la Getreidegasse y los jardines del palacio de Mirabell al otro lado del río. Si la D3 tiene algún tramo cerrado, su chófer puede pasar a la antigua carretera 3, paralela a la autopista. La distancia total es de aproximadamente 375 kilómetros.",
+      "Desde Linz, la ruta enlaza con la A1 Westautobahn y avanza hacia el oeste pasando por Wels y Attnang-Puchheim hasta las primeras laderas de los Alpes, para llegar a Salzburgo, al Altstadt: el casco antiguo declarado Patrimonio de la Humanidad por la UNESCO, extendido a ambas orillas del Salzach y coronado por la fortaleza de Hohensalzburg, con la casa natal de Mozart en la Getreidegasse y los jardines del palacio de Mirabell al otro lado del río. Si la D3 tiene algún tramo cerrado, su chófer puede pasar a la antigua carretera 3, paralela a la autopista. La distancia total es de aproximadamente {routeKm} kilómetros.",
       "Su chófer consulta el tráfico de la A1 antes de cada salida. Durante el Festival de Salzburgo (Festspiele), a finales de julio y en agosto, y los fines de semana de invierno, cuando el tráfico de esquiadores se dirige hacia el Tirol, la A1 al oeste de Linz puede ralentizarse. Si ocurre, el chófer modifica el itinerario sin necesidad de preguntar. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~375 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Salzburgo — Chófer ejecutivo",
-    "description": "Traslado ejecutivo Praga – Salzburgo: 375 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Praga – Salzburgo: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Salzburgo — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Praga – Salzburgo: 375 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Praga – Salzburgo: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

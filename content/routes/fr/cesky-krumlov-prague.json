@@ -3,11 +3,11 @@
     "label": "Český Krumlov → Prague",
     "headlineLine1": "De Český Krumlov à Prague,",
     "headlineItalic": "de la ville-château à la capitale.",
-    "intro": "De Český Krumlov à Prague avec chauffeur privé, c'est un transfert de porte à porte de 175 km vers le nord via České Budějovice et Tábor, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à tout hôtel ou adresse de Český Krumlov, dépose partout dans Prague.",
+    "intro": "De Český Krumlov à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le nord via České Budějovice et Tábor, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à tout hôtel ou adresse de Český Krumlov, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Český Krumlov à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Český Krumlov à Prague couvre 175 km — vers le nord jusqu'à České Budějovice, puis la D3 au-delà de Tábor et le dernier tronçon à travers la Bohême centrale jusqu'à Prague — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou à votre maison d'hôtes à Český Krumlov, et vous dépose devant votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
+    "Un transfert privé de Český Krumlov à Prague couvre {routeKm} km — vers le nord jusqu'à České Budějovice, puis la D3 au-delà de Tábor et le dernier tronçon à travers la Bohême centrale jusqu'à Prague — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou à votre maison d'hôtes à Český Krumlov, et vous dépose devant votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
     "Le tarif est convenu avant le départ et ne change pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas de bus à réserver, pas de changement de train à České Budějovice, pas de taxi à chercher à Prague."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "La majeure partie du centre historique de Český Krumlov est fermée aux voitures : votre chauffeur vous attend donc au point autorisé le plus proche de votre hôtel et prend vos bagages en charge à partir de là. La voiture quitte ensuite la vallée de la Vltava par la route 39 et file vers le nord à travers la campagne de Bohême du Sud jusqu'à České Budějovice, à une vingtaine de kilomètres.",
       "À České Budějovice, l'itinéraire rejoint l'autoroute D3 vers le nord, au-delà de Hluboká et jusqu'à Tábor. Au nord de Tábor, la D3 est encore en cours d'achèvement : la dernière partie suit donc l'ancienne route nationale 3 à travers la Bohême centrale avant de rejoindre la D1 vers Prague. Tout le trajet se fait en République tchèque — aucune frontière, aucune seconde vignette.",
-      "La distance totale est d'environ 175 kilomètres ; le temps de conduite est de deux heures et demie en conditions normales. Comptez 15 à 20 minutes de plus le vendredi après-midi ou le dimanche soir aux abords de Prague. Votre chauffeur vérifie la route avant le départ et adapte l'itinéraire en cas de travaux. Vous arrivez à Prague par le sud-est, près de Vinohrady et du centre, l'aéroport se rejoignant par le périphérique."
+      "La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est de deux heures et demie en conditions normales. Comptez 15 à 20 minutes de plus le vendredi après-midi ou le dimanche soir aux abords de Prague. Votre chauffeur vérifie la route avant le départ et adapte l'itinéraire en cas de travaux. Vous arrivez à Prague par le sud-est, près de Vinohrady et du centre, l'aéroport se rejoignant par le périphérique."
     ]
   },
   "includedLabel": "Ce qui est inclus",
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~175 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Český Krumlov – Prague — Haut de gamme",
-    "description": "Transfert haut de gamme Český Krumlov – Prague : 175 km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
+    "description": "Transfert haut de gamme Český Krumlov – Prague : {routeKm} km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
     "ogTitle": "Transfert Český Krumlov – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Český Krumlov – Prague : 175 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Český Krumlov – Prague : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

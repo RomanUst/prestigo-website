@@ -195,6 +195,24 @@ export default function Footer() {
                 </a>
               </li>
             ))}
+            <li className="flex items-center">
+              <a
+                href="https://tourist.com/p/91102?s=website"
+                target="_blank"
+                rel="noopener"
+                className="inline-flex items-center min-h-[64px]"
+              >
+                {/* Partner badge served by tourist.com (host allowed in middleware CSP img-src). */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://partners.tourist.com/badge/91102.svg?variant=button&theme=teal&msg=discount&d=10&lang=en&v=2"
+                  height={44}
+                  alt="Tourist Friendly – up to 10% off with Tourist Card"
+                  loading="lazy"
+                  style={{ border: 0, height: 44, width: 'auto' }}
+                />
+              </a>
+            </li>
           </ul>
         </div>
 

@@ -3,11 +3,11 @@
     "label": "Hradec Králové → Prague",
     "headlineLine1": "De Hradec Králové à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Hradec Králové à Prague avec chauffeur privé, c'est un transfert de porte à porte de 115 km vers l'ouest par l'autoroute D11, soit environ une heure et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quelle adresse de Hradec Králové ou à la gare principale, dépose partout dans Prague.",
+    "intro": "De Hradec Králové à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'ouest par l'autoroute D11, soit environ une heure et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quelle adresse de Hradec Králové ou à la gare principale, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Hradec Králové à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Hradec Králové à Prague représente 115 km — vers l'ouest par l'autoroute D11 en passant Chlumec nad Cidlinou et Poděbrady, directement jusqu'à Prague — et dure environ une heure et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel, votre bureau ou votre université à Hradec Králové, ou à la gare principale, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague — ou à l'aéroport Václav Havel pour un vol de correspondance.",
+    "Un transfert privé de Hradec Králové à Prague représente {routeKm} km — vers l'ouest par l'autoroute D11 en passant Chlumec nad Cidlinou et Poděbrady, directement jusqu'à Prague — et dure environ une heure et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel, votre bureau ou votre université à Hradec Králové, ou à la gare principale, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague — ou à l'aéroport Václav Havel pour un vol de correspondance.",
     "Le tarif est convenu avant le départ et ne bouge pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas d'horaire, pas de correspondance, pas de second taxi à l'arrivée à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre-vingt-dix minutes.",
     "paragraphs": [
       "Après une prise en charge dans la vieille ville, au pied de la Tour blanche, dans les rues fonctionnalistes dessinées par Kotěra et Gočár ou à la gare principale, votre chauffeur quitte Hradec Králové vers l'ouest et rejoint la D11 aux portes de la ville. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
-      "La D11 est une autoroute unique et directe entre les deux villes. Elle file vers l'ouest à travers les terres agricoles plates des vallées de la Cidlina et de l'Elbe, passe Chlumec nad Cidlinou et la ville thermale de Poděbrady, puis entre dans Prague par sa périphérie nord-est. La distance totale est d'environ 115 kilomètres ; le temps de trajet est d'environ une heure et demie en conditions normales.",
+      "La D11 est une autoroute unique et directe entre les deux villes. Elle file vers l'ouest à travers les terres agricoles plates des vallées de la Cidlina et de l'Elbe, passe Chlumec nad Cidlinou et la ville thermale de Poděbrady, puis entre dans Prague par sa périphérie nord-est. La distance totale est d'environ {routeKm} kilomètres ; le temps de trajet est d'environ une heure et demie en conditions normales.",
       "Votre chauffeur vérifie l'état de la D11 avant le départ. Aux heures de pointe du soir en semaine et le dimanche après-midi, les derniers kilomètres vers Prague ralentissent ; en cas d'accident ou de travaux, il quitte l'autoroute pour la route parallèle sans avoir à demander. Vous arrivez à votre adresse à Prague avec le reste de la journée devant vous."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~115 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Hradec Králové – Prague — Haut de gamme",
-    "description": "Transfert haut de gamme Hradec Králové – Prague : 115 km, environ 1h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
+    "description": "Transfert haut de gamme Hradec Králové – Prague : {routeKm} km, environ 1h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
     "ogTitle": "Transfert Hradec Králové – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Hradec Králové – Prague : 115 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Hradec Králové – Prague : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

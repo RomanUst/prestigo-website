@@ -3,11 +3,11 @@
     "label": "Prague → Vienne",
     "headlineLine1": "Transfert de Prague à Vienne,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Prague à Vienne avec chauffeur privé, c'est un transfert de porte à porte de 330 km par la D1 et l'A5, soit environ 3 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, tous péages et vignettes tchèque et autrichienne inclus. Prise en charge à n'importe quelle adresse de Prague, dépose partout dans Vienne.",
+    "intro": "De Prague à Vienne avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km par la D1 et l'A5, soit environ 3 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, tous péages et vignettes tchèque et autrichienne inclus. Prise en charge à n'importe quelle adresse de Prague, dépose partout dans Vienne.",
     "imageAlt": "Vienne — transfert en chauffeur privé de Prague à Vienne"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Vienne couvre 330 km par les autoroutes D1 et D52, puis l'A5 jusqu'à Vienne, et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Les arrêts en route — Brno, Bratislava ou un domaine viticole de Moravie du Sud — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de ralentissement.",
+    "Un transfert privé de Prague à Vienne couvre {routeKm} km par les autoroutes D1 et D52, puis l'A5 jusqu'à Vienne, et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Les arrêts en route — Brno, Bratislava ou un domaine viticole de Moravie du Sud — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de ralentissement.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en trois heures et demie.",
     "paragraphs": [
       "Après une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers le sud-est, à travers les Hautes-Terres de Bohême-Moravie en direction de Brno. Passé Brno, l'itinéraire rejoint la D52 et descend tout droit à travers le vignoble de Moravie du Sud jusqu'à la frontière Schengen tchéco-autrichienne de Mikulov–Drasenhofen — le seul passage autoroutier entre les deux pays, invisible au sein de l'espace Schengen : aucun arrêt, aucun contrôle de documents.",
-      "Côté autrichien, la route devient l'A5 Nordautobahn et mène directement à la limite nord de Vienne, où elle rejoint le périphérique S1 avant de vous déposer à votre hôtel dans l'Innere Stadt ou à votre terminal de Vienne-Schwechat (VIE). La distance totale est d'environ 330 kilomètres. Le temps de conduite est de trois heures et demie en conditions normales. Comptez 20 à 30 minutes de plus aux heures de pointe du vendredi après-midi à la sortie de Prague.",
+      "Côté autrichien, la route devient l'A5 Nordautobahn et mène directement à la limite nord de Vienne, où elle rejoint le périphérique S1 avant de vous déposer à votre hôtel dans l'Innere Stadt ou à votre terminal de Vienne-Schwechat (VIE). La distance totale est d'environ {routeKm} kilomètres. Le temps de conduite est de trois heures et demie en conditions normales. Comptez 20 à 30 minutes de plus aux heures de pointe du vendredi après-midi à la sortie de Prague.",
       "Votre chauffeur surveille le trafic sur la D1 avant chaque départ. En cas de ralentissement lié à des travaux près de Brno — comme il en survient par intermittence depuis les récents élargissements —, il modifie l'itinéraire par Znojmo et l'ancien corridor E59 sans avoir à demander. Vous ne payez pas pour les embouteillages ; vous payez pour votre temps."
     ]
   },
@@ -220,7 +220,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "330 km"
+      "value": "{routeKm} km"
     },
     {
       "label": "Durée",
@@ -247,8 +247,8 @@
   "trainArticle": {"text": "Vous hésitez entre le RailJet et la voiture ? Notre guide compare train, bus et transfert privé : durée totale, coût par personne et bagages.", "linkLabel": "Prague – Vienne : transfert ou train"},
   "metadata": {
     "title": "Transfert Prague – Vienne — Premium, 3h30",
-    "description": "Transfert premium Prague – Vienne : 330 km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Prague – Vienne : {routeKm} km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Vienne — Premium, 3h30 porte à porte",
-    "ogDescription": "Transfert premium Prague – Vienne : 330 km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Péages inclus, arrêts en route. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Prague – Vienne : {routeKm} km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Péages inclus, arrêts en route. Sièges enfant sur demande, sans supplément."
   }
 }

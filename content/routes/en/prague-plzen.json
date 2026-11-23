@@ -3,11 +3,11 @@
     "label": "Prague → Plzeň",
     "headlineLine1": "Prague to Plzeň Private Transfer,",
     "headlineItalic": "the brewery capital.",
-    "intro": "90 km west on the D5. Home of Pilsner Urquell, West Bohemia's industrial capital, and a Republic Square that demands a slow coffee. One hour, one vehicle, one fixed price.",
+    "intro": "{routeKm} km west on the D5. Home of Pilsner Urquell, West Bohemia's industrial capital, and a Republic Square that demands a slow coffee. One hour, one vehicle, one fixed price.",
     "imageAlt": "Plzeň — private chauffeur transfer from Prague to Plzeň"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Plzeň covers 90 km via the D5 motorway and takes approximately 1 hour door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Beroun, Rokycany, or a Pilsner Urquell brewery visit — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Plzeň covers {routeKm} km via the D5 motorway and takes approximately 1 hour door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Beroun, Rokycany, or a Pilsner Urquell brewery visit — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in one hour.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway west. The road runs past Beroun, through the Valík tunnel on the ring south of Plzeň, and drops you into the city from whichever exit is closest to your destination. The entire route is inside the Czech Republic — there is no border crossing on this transfer. The same D5 continues beyond Plzeň to the German border at Rozvadov/Waidhaus, but only if you extend the booking west into Bavaria.",
-      "Total distance is approximately 90 kilometres. Driving time is one hour in normal conditions. Add 10–15 minutes during Friday afternoon rush hour out of Prague, when the westbound D5 fills with weekenders heading for the spa triangle and Bavaria.",
+      "Total distance is approximately {routeKm} kilometres. Driving time is one hour in normal conditions. Add 10–15 minutes during Friday afternoon rush hour out of Prague, when the westbound D5 fills with weekenders heading for the spa triangle and Bavaria.",
       "The D5 has been fully built between Prague and the German border since 2006, and it remains one of the smoother motorway runs in Czechia. Your chauffeur still checks traffic before every departure. If there is a closure near Beroun or roadwork on the Plzeň ring, they reroute without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -91,7 +91,7 @@
     { "slug": "prague-cesky-krumlov", "city": "Český Krumlov", "distance": "170 km", "duration": "2h 15min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~90 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~1 hour" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -102,8 +102,8 @@
   },
   "metadata": {
     "title": "Prague to Plzeň Transfer — Executive Mercedes",
-    "description": "Executive Prague to Plzeň transfer: 90 km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Plzeň transfer: {routeKm} km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Plzeň Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Plzeň transfer: 90 km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Plzeň transfer: {routeKm} km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

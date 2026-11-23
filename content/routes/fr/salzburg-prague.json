@@ -3,11 +3,11 @@
     "label": "Salzbourg → Prague",
     "headlineLine1": "De Salzbourg à Prague,",
     "headlineItalic": "une voiture, un tarif.",
-    "intro": "De Salzbourg à Prague avec chauffeur privé, c'est un transfert de porte à porte de 375 km vers l'est par l'A1 jusqu'à Linz, puis vers le nord à travers la Bohême du Sud, soit environ 4 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignettes autrichienne et tchèque incluses. Prise en charge à n'importe quelle adresse de Salzbourg ou à l'aéroport de Salzbourg (SZG), dépose partout dans Prague.",
+    "intro": "De Salzbourg à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'est par l'A1 jusqu'à Linz, puis vers le nord à travers la Bohême du Sud, soit environ 4 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignettes autrichienne et tchèque incluses. Prise en charge à n'importe quelle adresse de Salzbourg ou à l'aéroport de Salzbourg (SZG), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Salzbourg à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Salzbourg à Prague couvre 375 km — vers l'est par l'A1 Westautobahn jusqu'à Linz, vers le nord par la S10 à travers le Mühlviertel jusqu'à la frontière tchèque de Wullowitz–Dolní Dvořiště, puis par České Budějovice et l'autoroute D3 jusqu'à Prague — et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de l'Altstadt, à votre résidence de festival, à Salzburg Hauptbahnhof ou à l'aéroport de Salzbourg, et vous conduit jusqu'à la porte de votre hôtel, appartement ou bureau à Prague.",
+    "Un transfert privé de Salzbourg à Prague couvre {routeKm} km — vers l'est par l'A1 Westautobahn jusqu'à Linz, vers le nord par la S10 à travers le Mühlviertel jusqu'à la frontière tchèque de Wullowitz–Dolní Dvořiště, puis par České Budějovice et l'autoroute D3 jusqu'à Prague — et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de l'Altstadt, à votre résidence de festival, à Salzburg Hauptbahnhof ou à l'aéroport de Salzbourg, et vous conduit jusqu'à la porte de votre hôtel, appartement ou bureau à Prague.",
     "Le tarif est fixé avant de quitter Salzbourg. Carburant, péages, vignettes autrichienne et tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande en font partie. Pas de changement de train à Linz, pas de valises sur un quai, rien à régler en arrivant à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre heures environ.",
     "paragraphs": [
       "Après une prise en charge sur l'une ou l'autre rive de la Salzach — l'Altstadt, les hôtels autour de Mirabell ou l'aéroport à l'ouest de la ville —, votre chauffeur rejoint l'A1 en direction de l'est. L'autoroute longe le Salzkammergut en passant par Mondsee, puis traverse les terres agricoles de Haute-Autriche vers Wels et Linz, sur le Danube.",
-      "À Linz, l'itinéraire bifurque vers le nord sur la voie rapide S10 du Mühlviertel, qui grimpe dans des collines boisées et vallonnées jusqu'à la frontière tchèque de Wullowitz–Dolní Dvořiště. C'est un passage Schengen : aucune guérite, aucun arrêt en temps normal. Côté tchèque, la route continue par Kaplice jusqu'à České Budějovice, où l'autoroute D3 prend le relais vers le nord, par Tábor, jusqu'à Prague. La distance totale est d'environ 375 kilomètres, pour environ quatre heures de route.",
+      "À Linz, l'itinéraire bifurque vers le nord sur la voie rapide S10 du Mühlviertel, qui grimpe dans des collines boisées et vallonnées jusqu'à la frontière tchèque de Wullowitz–Dolní Dvořiště. C'est un passage Schengen : aucune guérite, aucun arrêt en temps normal. Côté tchèque, la route continue par Kaplice jusqu'à České Budějovice, où l'autoroute D3 prend le relais vers le nord, par Tábor, jusqu'à Prague. La distance totale est d'environ {routeKm} kilomètres, pour environ quatre heures de route.",
       "Votre chauffeur vérifie la route avant le départ. Pendant le Festival de Salzbourg, fin juillet et en août, et les week-ends d'hiver où le trafic des skieurs remplit l'A1, le tronçon vers Linz peut être lent — dans ce cas, il ajuste l'heure de départ ou l'itinéraire sans avoir à demander. Vous arrivez à Prague à temps pour vous installer, avec encore toute la soirée pour la Vieille Ville."
     ]
   },
@@ -80,7 +80,7 @@
   },
   "faqsHeading": "Questions fréquentes",
   "faqs": [
-    { "q": "Combien de temps dure un transfert privé de Salzbourg à Prague ?", "a": "Environ 4 heures de porte à porte pour quelque 375 km : l'A1 vers l'est jusqu'à Linz, la S10 vers le nord jusqu'à la frontière de Wullowitz–Dolní Dvořiště, puis České Budějovice et la D3 jusqu'à Prague. Les week-ends de festival et le trafic des skieurs en hiver sur l'A1 peuvent rallonger le trajet." },
+    { "q": "Combien de temps dure un transfert privé de Salzbourg à Prague ?", "a": "Environ 4 heures de porte à porte pour quelque {routeKm} km : l'A1 vers l'est jusqu'à Linz, la S10 vers le nord jusqu'à la frontière de Wullowitz–Dolní Dvořiště, puis České Budějovice et la D3 jusqu'à Prague. Les week-ends de festival et le trafic des skieurs en hiver sur l'A1 peuvent rallonger le trajet." },
     { "q": "Combien coûte un taxi ou un chauffeur de Salzbourg à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, tous les péages, les vignettes autrichienne et tchèque et le temps du chauffeur — il s'entend par voiture, et non par personne." },
     { "q": "Pouvez-vous me prendre en charge à l'aéroport de Salzbourg et me conduire directement à Prague ?", "a": "Oui. Envoyez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de l'aéroport de Salzbourg (SZG) avec votre nom et vous conduit directement à votre adresse à Prague. Jusqu'à 60 minutes d'attente à l'aéroport sont offertes." },
     { "q": "Un transfert privé est-il préférable au train de Salzbourg à Prague ?", "a": "Les liaisons ferroviaires entre Salzbourg et Prague comportent généralement un changement, souvent à Linz, et prennent plus de temps que la route une fois ajoutés le trajet jusqu'à la gare et un taxi à Prague. Une voiture privée vous conduit de porte à porte et coûte le même prix pour un passager ou pour trois. Pour un voyageur seul avec peu de bagages, le train reste l'option la moins chère." },
@@ -96,7 +96,7 @@
     { "slug": "vienna-prague", "city": "Vienne", "label": "Vienne → Prague", "distance": "330 km", "duration": "3 h 30" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "375 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Durée", "value": "~4 heures" },
     { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
     { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Transfert Salzbourg – Prague — Chauffeur premium",
-    "description": "Transfert haut de gamme Salzbourg – Prague : 375 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Salzbourg – Prague : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Salzbourg – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Salzbourg – Prague : 375 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Salzbourg – Prague : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

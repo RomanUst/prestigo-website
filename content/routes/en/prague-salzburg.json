@@ -3,11 +3,11 @@
     "label": "Prague → Salzburg",
     "headlineLine1": "Prague to Salzburg Private Transfer,",
     "headlineItalic": "Mozart's city.",
-    "intro": "375 km south through Bohemia and Austria to the Salzach, the Hohensalzburg fortress, and the birthplace of Mozart. About four hours, one fixed price.",
+    "intro": "{routeKm} km south through Bohemia and Austria to the Salzach, the Hohensalzburg fortress, and the birthplace of Mozart. About four hours, one fixed price.",
     "imageAlt": "Salzburg — private chauffeur transfer from Prague to Salzburg"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Salzburg covers approximately 375 km and takes about 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Linz or Mondsee — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Salzburg covers approximately {routeKm} km and takes about 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Linz or Mondsee — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes across the Czech–Austrian border, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in about four hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D3 motorway south through Tábor and České Budějovice — the most direct line to the Austrian border. The Czech–Austrian Schengen crossing at Wullowitz on the Austrian side and Dolní Dvořiště on the Czech side is invisible. No booth, no document check, no stop. The road becomes the S10 Mühlviertel expressway and drops into Linz on the Danube.",
-      "From Linz the route joins the A1 Westautobahn and runs west past Wels and Attnang-Puchheim into the foothills of the Alps, arriving in Salzburg at the Altstadt — the UNESCO-listed old town spread along both banks of the Salzach, crowned by the Hohensalzburg fortress, with Mozart's birthplace on Getreidegasse and the Mirabell Palace gardens across the river. If the D3 has a section closure, your chauffeur can switch to the parallel older road 3. Total distance is approximately 375 kilometres.",
+      "From Linz the route joins the A1 Westautobahn and runs west past Wels and Attnang-Puchheim into the foothills of the Alps, arriving in Salzburg at the Altstadt — the UNESCO-listed old town spread along both banks of the Salzach, crowned by the Hohensalzburg fortress, with Mozart's birthplace on Getreidegasse and the Mirabell Palace gardens across the river. If the D3 has a section closure, your chauffeur can switch to the parallel older road 3. Total distance is approximately {routeKm} kilometres.",
       "Your chauffeur watches traffic on the A1 before every departure. During the Salzburg Festspiele in late July and August, and on winter weekends when ski traffic pours toward Tyrol, the A1 west of Linz can slow. If it does, they reroute without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -78,7 +78,7 @@
   },
   "faqsHeading": "Frequently asked questions",
   "faqs": [
-    { "q": "How long does a private transfer from Prague to Salzburg take?", "a": "Approximately 4 hours door-to-door for about 375 km. The primary route runs south on the D3 through Tábor and České Budějovice, crosses the Austrian border at Wullowitz/Dolní Dvořiště, then joins the S10 to Linz and the A1 west to Salzburg. Friday afternoon traffic out of Prague or summer Festspiele congestion can add 20–30 minutes." },
+    { "q": "How long does a private transfer from Prague to Salzburg take?", "a": "Approximately 4 hours door-to-door for about {routeKm} km. The primary route runs south on the D3 through Tábor and České Budějovice, crosses the Austrian border at Wullowitz/Dolní Dvořiště, then joins the S10 to Linz and the A1 west to Salzburg. Friday afternoon traffic out of Prague or summer Festspiele congestion can add 20–30 minutes." },
     { "q": "How much does a chauffeur from Prague to Salzburg cost?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price covers fuel, both the Czech and Austrian vignettes, all tolls, and driver time. No hidden charges at drop-off." },
     { "q": "Is a same-day round trip from Prague to Salzburg workable?", "a": "It is possible — roughly eight hours of driving plus time on site — but most clients choose to overnight in Salzburg. The Altstadt, Hohensalzburg fortress, and Mirabell gardens are difficult to see properly in a few hours. If you do want a same-day return, your chauffeur waits on site and the return leg qualifies for a 10% discount." },
     { "q": "Is there a border crossing between the Czech Republic and Austria?", "a": "Both countries are inside the Schengen Area. The crossing at Wullowitz/Dolní Dvořiště is invisible — no passport booth, no stop. All Prestigo vehicles carry both the Czech e-vignette and the Austrian motorway vignette." },
@@ -94,7 +94,7 @@
     { "slug": "prague-cesky-krumlov", "city": "Český Krumlov", "distance": "170 km", "duration": "2h 15min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~375 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~4 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Salzburg Transfer — Executive Chauffeur",
-    "description": "Executive Prague to Salzburg transfer: 375 km, about 4 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Salzburg transfer: {routeKm} km, about 4 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Salzburg Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Salzburg transfer: 375 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Salzburg transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

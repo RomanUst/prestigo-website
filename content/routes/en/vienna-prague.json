@@ -3,11 +3,11 @@
     "label": "Vienna → Prague",
     "headlineLine1": "Vienna to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Vienna to Prague by private chauffeur is a 330 km door-to-door transfer north on the A5 and D1, around 3h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, tolls and both Austrian and Czech vignettes included. Pickup from any Vienna address or Vienna Airport (VIE), drop-off anywhere in Prague.",
+    "intro": "Vienna to Prague by private chauffeur is a {routeKm} km door-to-door transfer north on the A5 and D1, around 3h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, tolls and both Austrian and Czech vignettes included. Pickup from any Vienna address or Vienna Airport (VIE), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Vienna to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Vienna to Prague covers 330 km — north out of the city on the A5 Nordautobahn, across the Czech border at Drasenhofen–Mikulov, then the D52 and D1 motorways through Brno to Prague — and takes approximately 3.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Vienna hotel, office, Wien Hauptbahnhof or the Arrivals hall at Vienna International Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "A private transfer from Vienna to Prague covers {routeKm} km — north out of the city on the A5 Nordautobahn, across the Czech border at Drasenhofen–Mikulov, then the D52 and D1 motorways through Brno to Prague — and takes approximately 3.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Vienna hotel, office, Wien Hauptbahnhof or the Arrivals hall at Vienna International Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
     "The fare is agreed before you travel and does not move: fuel, tolls, the Austrian and Czech motorway vignettes, bottled water, Wi-Fi and child seats on request are all included. No second taxi at the Prague end, no luggage dragged through a station, no transfer to manage on arrival."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in three and a half hours.",
     "paragraphs": [
       "From a pickup in the Innere Stadt, Leopoldstadt or at Vienna Schwechat, your chauffeur leaves the city northbound on the A5 Nordautobahn through the Weinviertel — Austria’s largest wine region, flat vineyard country all the way to the border. The crossing at Drasenhofen–Mikulov sits inside Schengen: no stop, no queue, no document check in normal conditions, just a change of road signs and the limestone ridge of the Pálava hills on your right.",
-      "On the Czech side the road becomes the D52 through the South Moravian wine villages to Brno, where it joins the D1 for the final 205 km to Prague across the Bohemian-Moravian Highlands. Total distance is approximately 330 kilometres; driving time is three and a half hours in normal traffic. Allow 20–30 minutes more on a Friday afternoon, when the D1 fills with weekend traffic heading into Prague.",
+      "On the Czech side the road becomes the D52 through the South Moravian wine villages to Brno, where it joins the D1 for the final 205 km to Prague across the Bohemian-Moravian Highlands. Total distance is approximately {routeKm} kilometres; driving time is three and a half hours in normal traffic. Allow 20–30 minutes more on a Friday afternoon, when the D1 fills with weekend traffic heading into Prague.",
       "Your chauffeur checks the D1 before departure. If there is roadwork or an accident between Brno and Jihlava, they take the older road via Znojmo and Jihlava without asking. You arrive in Prague with the evening still ahead of you — check in, change, and be at dinner in Malá Strana within the hour."
     ]
   },
@@ -87,7 +87,7 @@
     { "q": "Is a private transfer better than the train from Vienna to Prague?", "a": "The direct train takes about four hours station to station, before you add the trip to Wien Hauptbahnhof and a taxi at the Prague end. A private transfer is door to door, leaves when you want, carries all your luggage and costs the same for one passenger or three — the train is cheaper for a solo traveller with light bags." },
     { "q": "Can we stop on the way from Vienna to Prague?", "a": "Yes. Mikulov, Brno and Telč are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included at no extra cost." },
     { "q": "Do I need my passport between Austria and Czech Republic?", "a": "Both countries are in the Schengen Area, so there is no routine border control at Drasenhofen–Mikulov. Carry your passport or EU ID card anyway — spot checks happen, and non-EU travellers must have their documents with them." },
-    { "q": "Do you also drive from Prague to Vienna?", "a": "Yes. The Prague to Vienna transfer runs the same 330 km route in the opposite direction at the same fixed fares, with pickup at any Prague address or Václav Havel Airport (PRG). Booking both directions for the same day takes 10% off the return leg." }
+    { "q": "Do you also drive from Prague to Vienna?", "a": "Yes. The Prague to Vienna transfer runs the same {routeKm} km route in the opposite direction at the same fixed fares, with pickup at any Prague address or Václav Havel Airport (PRG). Booking both directions for the same day takes 10% off the return leg." }
   ],
   "relatedRoutesIntro": "Vienna to Prague is often one leg of a longer trip through Central Europe. Clients arriving from Budapest, Bratislava or Salzburg book the same way — one car, one fixed fare, drop-off at the door in Prague.",
   "trainArticle": { "text": "Weighing the RailJet against a car? Our guide compares train, bus and private transfer between Vienna and Prague by total time, cost per person and luggage.", "linkLabel": "Prague to Vienna: transfer vs train" },
@@ -99,7 +99,7 @@
     { "slug": "salzburg-prague", "city": "Salzburg", "label": "Salzburg → Prague", "distance": "375 km", "duration": "4h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "330 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Duration", "value": "~3.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -110,8 +110,8 @@
   },
   "metadata": {
     "title": "Vienna to Prague Transfer — Premium, 3.5h",
-    "description": "Premium Vienna to Prague transfer: 330 km, about 3.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Vienna to Prague transfer: {routeKm} km, about 3.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Vienna to Prague Transfer — Premium, 3.5h Door-to-Door",
-    "ogDescription": "Premium Vienna to Prague transfer: 330 km, about 3.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Vignettes and tolls included. Child seats on request at no extra cost."
+    "ogDescription": "Premium Vienna to Prague transfer: {routeKm} km, about 3.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Vignettes and tolls included. Child seats on request at no extra cost."
   }
 }

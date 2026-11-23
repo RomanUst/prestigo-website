@@ -3,11 +3,11 @@
     "label": "Praga → Františkovy Lázně",
     "headlineLine1": "Traslado de Praga a Františkovy Lázně,",
     "headlineItalic": "el balneario tranquilo.",
-    "intro": "175 km hacia el oeste, hasta el más íntimo del trío termal de Bohemia Occidental. Veinticuatro manantiales minerales, columnatas de estilo Imperio y sosiego entre bosques: dos horas y media, un precio fijo.",
+    "intro": "{routeKm} km hacia el oeste, hasta el más íntimo del trío termal de Bohemia Occidental. Veinticuatro manantiales minerales, columnatas de estilo Imperio y sosiego entre bosques: dos horas y media, un precio fijo.",
     "imageAlt": "Františkovy Lázně — traslado en chófer privado desde Praga a Františkovy Lázně"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Františkovy Lázně recorre 175 km por la autopista D6 y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de teléfono y sillitas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Karlovy Vary o Mariánské Lázně— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si se produce un retraso.",
+    "Un traslado privado de Praga a Františkovy Lázně recorre {routeKm} km por la autopista D6 y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de teléfono y sillitas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Karlovy Vary o Mariánské Lázně— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si se produce un retraso.",
     "No se trata de una lanzadera compartida. Un Mercedes privado, un chófer y una tarifa que no cambia entre la Plaza de Wenceslao y el Pabellón de los Manantiales de Glauber."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en dos horas y media.",
     "paragraphs": [
       "Desde la recogida en Praga —en el Casco Antiguo, Vinohrady, Malá Strana o el Aeropuerto Václav Havel—, su chófer toma la autopista D5 en dirección oeste atravesando Pilsen —con el conocido perfil pilsner pasando a la izquierda— antes de desviarse hacia la carretera 21 y la carretera 6 rumbo a Cheb. Desde Cheb quedan solo unos minutos hasta Františkovy Lázně, la más pequeña de las tres ciudades balneario de Bohemia, junto a la frontera alemana. En este trayecto no hay ningún paso fronterizo formal; el destino se encuentra plenamente dentro de la República Checa, aunque la frontera bávara está lo bastante cerca como para percibirla en la arquitectura.",
-      "La distancia total es de aproximadamente 175 kilómetros. El tiempo de conducción es de dos horas y media en condiciones normales. La ciudad fue incluida en la Lista del Patrimonio Mundial de la UNESCO en 2021 como parte de la inscripción de las Grandes Ciudades Termales de Europa, junto a Karlovy Vary, Mariánské Lázně y otros ocho balnearios hermanos repartidos por el continente, y el paisaje urbano lo refleja. Su llegada discurre entre las columnatas de estilo Imperio, el pabellón Františkův Pramen que dio nombre a la ciudad, el Pabellón de los Manantiales de Glauber y las fachadas amarillas de edificios emblemáticos como el Lázeňský Dům Imperial.",
+      "La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción es de dos horas y media en condiciones normales. La ciudad fue incluida en la Lista del Patrimonio Mundial de la UNESCO en 2021 como parte de la inscripción de las Grandes Ciudades Termales de Europa, junto a Karlovy Vary, Mariánské Lázně y otros ocho balnearios hermanos repartidos por el continente, y el paisaje urbano lo refleja. Su llegada discurre entre las columnatas de estilo Imperio, el pabellón Františkův Pramen que dio nombre a la ciudad, el Pabellón de los Manantiales de Glauber y las fachadas amarillas de edificios emblemáticos como el Lázeňský Dům Imperial.",
       "Su chófer vigila el tráfico en la D5 antes de cada salida. Si hay un corte cerca de Beroun, modifica la ruta sin preguntar. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~175 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Františkovy Lázně — Ejecutivo",
-    "description": "Traslado ejecutivo Praga – Františkovy Lázně: 175 km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Praga – Františkovy Lázně: {routeKm} km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Františkovy Lázně — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Praga – Františkovy Lázně: 175 km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Praga – Františkovy Lázně: {routeKm} km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

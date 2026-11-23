@@ -3,11 +3,11 @@
     "label": "Olomouc → Prague",
     "headlineLine1": "Olomouc to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Olomouc to Prague by private chauffeur is a 280 km door-to-door transfer via the D46 and D1, around 3 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Olomouc address or Olomouc main station, drop-off anywhere in Prague.",
+    "intro": "Olomouc to Prague by private chauffeur is a {routeKm} km door-to-door transfer via the D46 and D1, around 3 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Olomouc address or Olomouc main station, drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Olomouc to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Olomouc to Prague covers 280 km — south-west on the D46 past Prostějov to Vyškov, then the D1 through Brno and across the Bohemian-Moravian Highlands to Prague — and takes approximately 3 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Olomouc hotel, apartment, university building or Olomouc hlavní nádraží, and drops you at the door of your Prague hotel, office or Václav Havel Airport.",
+    "A private transfer from Olomouc to Prague covers {routeKm} km — south-west on the D46 past Prostějov to Vyškov, then the D1 through Brno and across the Bohemian-Moravian Highlands to Prague — and takes approximately 3 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Olomouc hotel, apartment, university building or Olomouc hlavní nádraží, and drops you at the door of your Prague hotel, office or Václav Havel Airport.",
     "One fare, set before you travel: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. Nothing to carry between platforms and nothing to arrange when you arrive in Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in three hours.",
     "paragraphs": [
       "From a pickup near Upper Square, in the university quarter or at the main station, your chauffeur leaves Olomouc south-west on the D46 across the flat farmland of the Haná plain. The road passes Prostějov and joins the D1 at Vyškov. There is no border on this route — it stays inside the Czech Republic from start to finish.",
-      "From Vyškov the D1 runs past Slavkov u Brna, the Austerlitz of 1805, and around the northern edge of Brno. From there it is 205 km west to Prague across the Vysočina, past Velké Meziříčí, Jihlava and Humpolec, before the road drops into Central Bohemia and reaches the south-eastern edge of the capital. Total distance is approximately 280 kilometres; driving time is three hours in normal traffic.",
+      "From Vyškov the D1 runs past Slavkov u Brna, the Austerlitz of 1805, and around the northern edge of Brno. From there it is 205 km west to Prague across the Vysočina, past Velké Meziříčí, Jihlava and Humpolec, before the road drops into Central Bohemia and reaches the south-eastern edge of the capital. Total distance is approximately {routeKm} kilometres; driving time is three hours in normal traffic.",
       "Your chauffeur checks the D1 before leaving Olomouc. If there is a closure in the highlands, they take the parallel roads around it without asking. Friday afternoons and Sunday evenings into Prague are the slowest times and can add 20–30 minutes; everything else is a steady, predictable drive."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "pardubice-prague", "city": "Pardubice", "label": "Pardubice → Prague", "distance": "110 km", "duration": "1h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~280 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~3 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Olomouc to Prague Transfer — Executive Chauffeur",
-    "description": "Executive Olomouc to Prague transfer: 280 km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Olomouc to Prague transfer: {routeKm} km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Olomouc to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Olomouc to Prague transfer: 280 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Olomouc to Prague transfer: {routeKm} km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

@@ -3,11 +3,11 @@
     "label": "Brno → Prague",
     "headlineLine1": "De Brno à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Brno à Prague avec chauffeur privé, c'est un transfert de porte à porte de 205 km vers l'ouest par la D1, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quelle adresse de Brno, à la gare centrale de Brno ou à l'aéroport de Brno–Tuřany (BRQ), dépose partout dans Prague.",
+    "intro": "De Brno à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'ouest par la D1, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quelle adresse de Brno, à la gare centrale de Brno ou à l'aéroport de Brno–Tuřany (BRQ), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Brno à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Brno à Prague couvre 205 km sur une seule autoroute — la D1, vers l'ouest à travers les Hautes-Terres de Bohême-Moravie en passant par Velké Meziříčí, Jihlava et Humpolec — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou bureau à Brno, au Parc des expositions, à Brno hlavní nádraží ou à l'aéroport de Brno–Tuřany, et vous dépose devant votre hôtel, appartement ou rendez-vous à Prague.",
+    "Un transfert privé de Brno à Prague couvre {routeKm} km sur une seule autoroute — la D1, vers l'ouest à travers les Hautes-Terres de Bohême-Moravie en passant par Velké Meziříčí, Jihlava et Humpolec — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou bureau à Brno, au Parc des expositions, à Brno hlavní nádraží ou à l'aéroport de Brno–Tuřany, et vous dépose devant votre hôtel, appartement ou rendez-vous à Prague.",
     "Le tarif est fixé à la réservation : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas de quai, pas de correspondance, pas de taxi à chercher en arrivant à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en deux heures et demie.",
     "paragraphs": [
       "Après une prise en charge dans le centre au pied du Špilberk, à un hôtel près du Parc des expositions ou à Brno–Tuřany, votre chauffeur rejoint la D1 à la sortie ouest de la ville et quitte la plaine morave en direction de Velké Meziříčí. Il n'y a aucune frontière sur cet itinéraire. Tout le trajet reste en République tchèque, sur une seule autoroute, avec une seule vignette.",
-      "Le milieu du parcours traverse la Vysočina — les Hautes-Terres de Bohême-Moravie — en passant par Jihlava et Humpolec, une campagne ouverte de champs, de forêts et de petites collines. Après Humpolec, la route descend progressivement vers la Bohême centrale et file tout droit jusqu'au sud-est de Prague. La distance totale est d'environ 205 kilomètres ; le temps de conduite est de deux heures et demie en circulation normale. Le dimanche soir et le vendredi après-midi, l'entrée dans Prague est la plus chargée et peut ajouter 20 à 30 minutes.",
+      "Le milieu du parcours traverse la Vysočina — les Hautes-Terres de Bohême-Moravie — en passant par Jihlava et Humpolec, une campagne ouverte de champs, de forêts et de petites collines. Après Humpolec, la route descend progressivement vers la Bohême centrale et file tout droit jusqu'au sud-est de Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est de deux heures et demie en circulation normale. Le dimanche soir et le vendredi après-midi, l'entrée dans Prague est la plus chargée et peut ajouter 20 à 30 minutes.",
       "Votre chauffeur vérifie l'état de la D1 avant de quitter Brno. En cas d'accident ou de fermeture sur les hauteurs, il quitte l'autoroute et emprunte les routes parallèles sans avoir à demander. Vous arrivez à Prague à temps pour une réunion l'après-midi, un enregistrement à l'hôtel ou un vol du soir depuis l'aéroport Václav Havel."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "zlin-prague", "city": "Zlín", "label": "Zlín → Prague", "distance": "310 km", "duration": "3 h 30" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~205 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Durée", "value": "~2 h 30" },
     { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
     { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Transfert Brno – Prague — Mercedes haut de gamme",
-    "description": "Transfert premium Brno – Prague : 205 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Brno – Prague : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Brno – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Brno – Prague : 205 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Brno – Prague : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

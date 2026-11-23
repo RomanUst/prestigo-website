@@ -3,11 +3,11 @@
     "label": "Praga → Varsovia",
     "headlineLine1": "Traslado de Praga a Varsovia,",
     "headlineItalic": "la capital polaca.",
-    "intro": "660 km hacia el norte a través de Moravia y cruzando Polonia hasta el Vístula. La Ciudad Vieja reconstruida, el Palacio de la Cultura, el parque Łazienki y el corazón económico de Polonia: siete horas, un precio cerrado.",
+    "intro": "{routeKm} km hacia el norte a través de Moravia y cruzando Polonia hasta el Vístula. La Ciudad Vieja reconstruida, el Palacio de la Cultura, el parque Łazienki y el corazón económico de Polonia: siete horas, un precio cerrado.",
     "imageAlt": "Varsovia — traslado en chófer privado desde Praga a Varsovia"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Varsovia cubre 660 km y dura aproximadamente 7 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Wrocław o Łódź— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce un retraso.",
+    "Un traslado privado de Praga a Varsovia cubre {routeKm} km y dura aproximadamente 7 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Wrocław o Łódź— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce un retraso.",
     "Esto no es una lanzadera compartida. Ni un tren con transbordo en Katowice. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en siete horas.",
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección este pasando por Brno y continúa por la D1 y la D48 hacia el noreste, hasta la frontera checo-polaca en Chotěbuz/Cieszyn, cerca de Český Těšín. El cruce es imperceptible dentro del espacio Schengen: sin paradas ni controles de documentación. Ya en Polonia, la ruta enlaza con la A1 hacia el norte pasando Katowice y después gira al este por la vía rápida S8 a través del centro de Polonia hasta Varsovia.",
-      "Un itinerario alternativo por el norte sale de Praga por la D11 pasando por Hradec Králové, cruza la frontera en Náchod/Kudowa-Zdrój y se incorpora a la S8 hacia el noreste pasando por Wrocław y Łódź. Su chófer elige la opción más rápida la mañana del trayecto en función del tráfico en tiempo real. La distancia total es de unos 660 kilómetros por cualquiera de las dos rutas.",
+      "Un itinerario alternativo por el norte sale de Praga por la D11 pasando por Hradec Králové, cruza la frontera en Náchod/Kudowa-Zdrój y se incorpora a la S8 hacia el noreste pasando por Wrocław y Łódź. Su chófer elige la opción más rápida la mañana del trayecto en función del tráfico en tiempo real. La distancia total es de unos {routeKm} kilómetros por cualquiera de las dos rutas.",
       "Varsovia, a la llegada, es una ciudad reconstruida desde cero. La Ciudad Vieja fue reconstruida tras la Segunda Guerra Mundial y figura en la lista de la UNESCO precisamente por esa reconstrucción. El Castillo Real en la Plac Zamkowy, el parque Łazienki, el Palacio de la Cultura y la Ciencia y el Museo del Levantamiento de Varsovia están a pocos minutos en coche de cualquier punto de destino céntrico. El corazón de Frédéric Chopin reposa en un pilar de la Iglesia de la Santa Cruz, en Krakowskie Przedmieście. Conviene tener en cuenta las retenciones entre semana en el tramo de peaje polaco de la A4 cerca de Katowice: su chófer lo evita si es necesario. Usted no paga por el tráfico; paga por su tiempo."
     ]
   },
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~660 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Varsovia — Chófer premium",
-    "description": "Traslado ejecutivo Praga – Varsovia: 660 km, unas 7 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Praga – Varsovia: {routeKm} km, unas 7 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Varsovia — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Praga – Varsovia: 660 km, unas 7 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Praga – Varsovia: {routeKm} km, unas 7 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

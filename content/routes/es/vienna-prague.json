@@ -3,11 +3,11 @@
     "label": "Viena → Praga",
     "headlineLine1": "De Viena a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "De Viena a Praga con chófer privado son 330 km de traslado puerta a puerta hacia el norte por la A5 y la D1, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con los peajes y las viñetas austriaca y checa incluidos. Recogida en cualquier dirección de Viena o en el aeropuerto de Viena (VIE) y llegada a cualquier punto de Praga.",
+    "intro": "De Viena a Praga con chófer privado son {routeKm} km de traslado puerta a puerta hacia el norte por la A5 y la D1, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con los peajes y las viñetas austriaca y checa incluidos. Recogida en cualquier dirección de Viena o en el aeropuerto de Viena (VIE) y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Viena a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Viena a Praga recorre 330 km: sale de la ciudad hacia el norte por la A5 Nordautobahn, cruza la frontera checa en Drasenhofen–Mikulov y continúa por las autopistas D52 y D1, pasando por Brno, hasta Praga. Dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel u oficina de Viena, en la Wien Hauptbahnhof o en la sala de llegadas del Aeropuerto Internacional de Viena, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Viena a Praga recorre {routeKm} km: sale de la ciudad hacia el norte por la A5 Nordautobahn, cruza la frontera checa en Drasenhofen–Mikulov y continúa por las autopistas D52 y D1, pasando por Brno, hasta Praga. Dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel u oficina de Viena, en la Wien Hauptbahnhof o en la sala de llegadas del Aeropuerto Internacional de Viena, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se acuerda antes del viaje y no cambia: combustible, peajes, las viñetas de autopista austriaca y checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Sin un segundo taxi al llegar a Praga, sin arrastrar maletas por una estación, sin trasbordos que organizar a la llegada."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en tres horas y media.",
     "paragraphs": [
       "Desde una recogida en el Innere Stadt, en Leopoldstadt o en Viena-Schwechat, su chófer sale de la ciudad hacia el norte por la A5 Nordautobahn, a través del Weinviertel: la mayor región vinícola de Austria, un paisaje llano de viñedos hasta la frontera. El paso de Drasenhofen–Mikulov está dentro de Schengen: sin paradas, sin colas y sin control de documentos en condiciones normales; solo cambian las señales de tráfico y aparece a su derecha la cresta caliza de las colinas de Pálava.",
-      "En el lado checo la carretera se convierte en la D52, que atraviesa los pueblos vinícolas de Moravia del Sur hasta Brno, donde enlaza con la D1 para los últimos 205 km hasta Praga a través de las Tierras Altas de Bohemia y Moravia. La distancia total es de aproximadamente 330 kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal. Cuente con 20–30 minutos más un viernes por la tarde, cuando la D1 se llena de tráfico de fin de semana con destino a Praga.",
+      "En el lado checo la carretera se convierte en la D52, que atraviesa los pueblos vinícolas de Moravia del Sur hasta Brno, donde enlaza con la D1 para los últimos 205 km hasta Praga a través de las Tierras Altas de Bohemia y Moravia. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal. Cuente con 20–30 minutos más un viernes por la tarde, cuando la D1 se llena de tráfico de fin de semana con destino a Praga.",
       "Su chófer consulta el estado de la D1 antes de salir. Si hay obras o un accidente entre Brno y Jihlava, toma la carretera antigua por Znojmo y Jihlava sin preguntar. Llega a Praga con toda la tarde por delante: registro en el hotel, un cambio de ropa y, en menos de una hora, a cenar en Malá Strana."
     ]
   },
@@ -192,7 +192,7 @@
     },
     {
       "q": "¿También hacen el trayecto de Praga a Viena?",
-      "a": "Sí. El traslado de Praga a Viena recorre los mismos 330 km en sentido contrario con las mismas tarifas fijas, con recogida en cualquier dirección de Praga o en el aeropuerto Václav Havel (PRG). Si reserva ambos sentidos para el mismo día, el trayecto de vuelta tiene un 10 % de descuento."
+      "a": "Sí. El traslado de Praga a Viena recorre los mismos {routeKm} km en sentido contrario con las mismas tarifas fijas, con recogida en cualquier dirección de Praga o en el aeropuerto Václav Havel (PRG). Si reserva ambos sentidos para el mismo día, el trayecto de vuelta tiene un 10 % de descuento."
     }
   ],
   "relatedRoutesIntro": "El trayecto de Viena a Praga suele ser una etapa de un viaje más largo por Europa Central. Los clientes que llegan desde Budapest, Bratislava o Salzburgo reservan del mismo modo: un solo coche, una tarifa fija y llegada a la puerta en Praga.",
@@ -234,7 +234,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "330 km"
+      "value": "{routeKm} km"
     },
     {
       "label": "Duración",
@@ -260,8 +260,8 @@
   },
   "metadata": {
     "title": "Traslado Viena – Praga — Premium, 3,5 h",
-    "description": "Traslado premium Viena – Praga: 330 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Viena – Praga: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Viena – Praga — Premium, 3,5 h puerta a puerta",
-    "ogDescription": "Traslado premium Viena – Praga: 330 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Viñetas y peajes incluidos. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Viena – Praga: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Viñetas y peajes incluidos. Sillas infantiles bajo petición sin coste."
   }
 }

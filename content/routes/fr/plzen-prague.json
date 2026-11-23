@@ -3,11 +3,11 @@
     "label": "Pilsen → Prague",
     "headlineLine1": "De Pilsen à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Pilsen à Prague avec chauffeur privé, c'est un transfert de porte à porte de 90 km vers l'est par l'autoroute D5, soit environ une heure de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quel hôtel ou bureau de Pilsen ou à la gare principale, dépose partout dans Prague.",
+    "intro": "De Pilsen à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'est par l'autoroute D5, soit environ une heure de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quel hôtel ou bureau de Pilsen ou à la gare principale, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Pilsen à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Pilsen à Prague représente 90 km — vers l'est par l'autoroute D5 en passant Rokycany et Beroun, puis l'entrée dans Prague par l'ouest — et dure environ une heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Pilsen, à un rendez-vous près de la place de la République, à l'entrée de la brasserie Pilsner Urquell ou à la gare principale de Pilsen, et vous dépose devant votre hôtel, votre appartement ou votre bureau à Prague.",
+    "Un transfert privé de Pilsen à Prague représente {routeKm} km — vers l'est par l'autoroute D5 en passant Rokycany et Beroun, puis l'entrée dans Prague par l'ouest — et dure environ une heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Pilsen, à un rendez-vous près de la place de la République, à l'entrée de la brasserie Pilsner Urquell ou à la gare principale de Pilsen, et vous dépose devant votre hôtel, votre appartement ou votre bureau à Prague.",
     "Le tarif est convenu avant le départ et ne bouge pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Comme la D5 arrive à Prague du côté de l'aéroport, c'est aussi l'un des moyens les plus simples d'attraper un vol d'après-midi à l'aéroport Václav Havel."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en une heure.",
     "paragraphs": [
       "Après une prise en charge dans le centre, près de la brasserie ou à la gare principale, votre chauffeur rejoint la D5 aux portes de Pilsen et prend la direction de l'est. La première portion traverse les collines boisées autour de Rokycany ; aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
-      "Après Rokycany, l'autoroute descend dans la vallée de la Berounka à Beroun, avec au sud les collines calcaires du Karst de Bohême — le château de Karlštejn s'y cache, à un court détour. La distance totale est d'environ 90 kilomètres ; le temps de trajet est d'une heure environ en conditions normales.",
+      "Après Rokycany, l'autoroute descend dans la vallée de la Berounka à Beroun, avec au sud les collines calcaires du Karst de Bohême — le château de Karlštejn s'y cache, à un court détour. La distance totale est d'environ {routeKm} kilomètres ; le temps de trajet est d'une heure environ en conditions normales.",
       "La D5 entre dans Prague par l'ouest, à quelques minutes de l'aéroport Václav Havel et à une vingtaine de minutes du centre. Votre chauffeur vérifie le trafic avant le départ ; le dimanche soir et aux heures de pointe en semaine, les derniers kilomètres vers la ville peuvent ralentir, et en cas de fermeture près de Beroun, il prend l'ancienne route sans avoir à demander."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~90 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Pilsen – Prague — Chauffeur premium",
-    "description": "Transfert haut de gamme Pilsen – Prague : 90 km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Pilsen – Prague : {routeKm} km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Pilsen – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Pilsen – Prague : 90 km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Pilsen – Prague : {routeKm} km, environ 1 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

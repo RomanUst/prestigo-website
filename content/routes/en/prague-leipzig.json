@@ -7,7 +7,7 @@
     "imageAlt": "Leipzig — private chauffeur transfer from Prague to Leipzig"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Leipzig covers approximately 260 km via the D8, A17 and A14 motorways and takes about 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Meissen — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Leipzig covers approximately {routeKm} km via the D8, A17 and A14 motorways and takes about 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Meissen — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "three motorways north.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D8 motorway north through Ústí nad Labem. The Czech–German Schengen border at Petrovice–Breitenau is invisible — no stops, no document checks, just a seam of asphalt between two countries. In Germany the road becomes the A17, which loops around Dresden on its southern edge, before the A14 peels off northwest across rolling Saxon farmland to Leipzig.",
-      "Dresden is the natural midpoint of the drive. Many clients pause there for a coffee, an hour in the Altstadt, or a full half-day before continuing on to Leipzig. The A14 then delivers you to the Markt, St. Thomas Church with Bach's tomb in the chancel, the Neue Messe exhibition grounds north of the city, the Spinnerei art quarter in Plagwitz, or the Völkerschlachtdenkmal on the southern edge. Total distance is roughly 260 kilometres; driving time is about three hours in normal conditions.",
+      "Dresden is the natural midpoint of the drive. Many clients pause there for a coffee, an hour in the Altstadt, or a full half-day before continuing on to Leipzig. The A14 then delivers you to the Markt, St. Thomas Church with Bach's tomb in the chancel, the Neue Messe exhibition grounds north of the city, the Spinnerei art quarter in Plagwitz, or the Völkerschlachtdenkmal on the southern edge. Total distance is roughly {routeKm} kilometres; driving time is about three hours in normal conditions.",
       "Your chauffeur watches traffic on the A14 corridor before every departure — the Grimma stretch has been prone to lane closures during recent resurfacing, and the workaround via the B6 adds fifteen minutes rather than an hour of standstill. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -94,7 +94,7 @@
     { "slug": "prague-munich", "city": "Munich", "distance": "385 km", "duration": "4h 15min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~260 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~3h" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Leipzig Transfer — Executive Chauffeur",
-    "description": "Executive Prague to Leipzig transfer: 260 km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Leipzig transfer: {routeKm} km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Leipzig Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Leipzig transfer: 260 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Leipzig transfer: {routeKm} km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

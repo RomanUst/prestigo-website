@@ -3,11 +3,11 @@
     "label": "Praga → Passau",
     "headlineLine1": "Traslado de Praga a Passau,",
     "headlineItalic": "la ciudad de los tres ríos.",
-    "intro": "220 km hacia el sur, hasta Baviera, donde confluyen el Danubio, el Inn y el Ilz. Una ciudad episcopal medieval, punto de partida de los cruceros por el Danubio y puerta entre Bohemia y Baviera.",
+    "intro": "{routeKm} km hacia el sur, hasta Baviera, donde confluyen el Danubio, el Inn y el Ilz. Una ciudad episcopal medieval, punto de partida de los cruceros por el Danubio y puerta entre Bohemia y Baviera.",
     "imageAlt": "Passau — traslado en chófer privado desde Praga a Passau"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Passau cubre 220 km y dura aproximadamente 2,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Strakonice o Freyung— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce alguna demora.",
+    "Un traslado privado de Praga a Passau cubre {routeKm} km y dura aproximadamente 2,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Strakonice o Freyung— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce alguna demora.",
     "No es un servicio compartido. Es un Mercedes privado, un solo chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en dos horas y media.",
     "paragraphs": [
       "Desde la recogida en Praga en el Casco Antiguo, Vinohrady, Malá Strana o el aeropuerto, su chófer toma la autopista D4 en dirección sur pasando por Příbram y continúa por la carretera 4 pasando Strakonice y Vimperk hasta las tierras altas de Šumava. La frontera Schengen checo-alemana en Strážný/Philippsreut es invisible: sin paradas ni controles de documentos. La carretera se convierte en la B12 en el lado bávaro y desciende por la Selva de Baviera hasta llegar a la confluencia de los ríos Danubio, Inn e Ilz, donde el casco antiguo se asienta sobre su estrecha península.",
-      "La distancia total es de aproximadamente 220 kilómetros. El tiempo de conducción es de dos horas y media en condiciones normales, cercano a las tres horas durante los fines de semana de verano o en los alrededores de las áreas de descanso de Vimperk. La llegada puede ser en cualquier punto de Passau: la catedral de San Esteban, con el mayor órgano catedralicio del mundo, la fortaleza de Veste Oberhaus con vistas a la confluencia de los ríos, o un hotel en la Residenzplatz, en el corazón barroco del casco antiguo.",
+      "La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción es de dos horas y media en condiciones normales, cercano a las tres horas durante los fines de semana de verano o en los alrededores de las áreas de descanso de Vimperk. La llegada puede ser en cualquier punto de Passau: la catedral de San Esteban, con el mayor órgano catedralicio del mundo, la fortaleza de Veste Oberhaus con vistas a la confluencia de los ríos, o un hotel en la Residenzplatz, en el corazón barroco del casco antiguo.",
       "Su chófer comprueba las condiciones del puerto de montaña de la B12 antes de cada salida en invierno. Si la nieve o el hielo han cerrado el acceso por Philippsreut, desvía la ruta por Linz y la A8 por el lado austriaco sin necesidad de preguntar. Usted no paga el tráfico; paga el tiempo."
     ]
   },
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~220 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Passau — Chófer ejecutivo",
-    "description": "Traslado premium Praga – Passau: 220 km, unas 2,5–3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Passau: {routeKm} km, unas 2,5–3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Passau — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Passau: 220 km, unas 2,5–3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Passau: {routeKm} km, unas 2,5–3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

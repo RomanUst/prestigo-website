@@ -44,7 +44,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-berlin: byte-parity spot-check", () => {
     assertRouteParity("prague-berlin", {
       "hero.intro":
-        "350 km north through Bohemia and Saxony to the German capital. Brandenburger Tor, Museum Island, and one of Europe's most dynamic cities — four hours, one fixed price.",
+        "{routeKm} km north through Bohemia and Saxony to the German capital. Brandenburger Tor, Museum Island, and one of Europe's most dynamic cities — four hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -62,7 +62,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-bratislava: byte-parity spot-check", () => {
     assertRouteParity("prague-bratislava", {
       "hero.intro":
-        "330 km east to Slovakia's compact capital on the Danube. Bratislava Castle, the Old Town's café culture, and Vienna just 65 km away — three and a half hours, one fixed price.",
+        "{routeKm} km east to Slovakia's compact capital on the Danube. Bratislava Castle, the Old Town's café culture, and Vienna just 65 km away — three and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -75,7 +75,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-brno: byte-parity spot-check", () => {
     assertRouteParity("prague-brno", {
       "hero.intro":
-        "205 km east on the D1 to the Czech Republic's second city. Špilberk Castle, Villa Tugendhat, the Brno Exhibition Centre, and Moravian wine country — two and a half hours, one fixed price.",
+        "{routeKm} km east on the D1 to the Czech Republic's second city. Špilberk Castle, Villa Tugendhat, the Brno Exhibition Centre, and Moravian wine country — two and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -88,7 +88,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-budapest: byte-parity spot-check", () => {
     assertRouteParity("prague-budapest", {
       "hero.intro":
-        "535 km south through Moravia, Slovakia, and into Hungary. Buda Castle, the Chain Bridge, the thermal baths, and the ruin bars of Pest — five and a half hours, one fixed price.",
+        "{routeKm} km south through Moravia, Slovakia, and into Hungary. Buda Castle, the Chain Bridge, the thermal baths, and the ruin bars of Pest — five and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -101,7 +101,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-ceske-budejovice: byte-parity spot-check", () => {
     assertRouteParity("prague-ceske-budejovice", {
       "hero.intro":
-        "155 km south to the capital of South Bohemia. The baroque main square, Budějovický Budvar, and a gateway to Šumava and Český Krumlov — two hours, one fixed price.",
+        "{routeKm} km south to the capital of South Bohemia. The baroque main square, Budějovický Budvar, and a gateway to Šumava and Český Krumlov — two hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -120,7 +120,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-cesky-krumlov: byte-parity spot-check", () => {
     assertRouteParity("prague-cesky-krumlov", {
       "hero.intro":
-        "175 km south to one of Bohemia's most remarkable medieval towns. A castle above a Vltava horseshoe, baroque theatre, and winding cobbled streets — two and a half hours, one fixed price.",
+        "{routeKm} km south to one of Bohemia's most remarkable medieval towns. A castle above a Vltava horseshoe, baroque theatre, and winding cobbled streets — two and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -145,7 +145,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-frantiskovy-lazne: byte-parity spot-check", () => {
     assertRouteParity("prague-frantiskovy-lazne", {
       "hero.intro":
-        "175 km west to the most intimate of West Bohemia's spa trio. Twenty-four mineral springs, Empire-style colonnades, and forested tranquillity — two and a half hours, one fixed price.",
+        "{routeKm} km west to the most intimate of West Bohemia's spa trio. Twenty-four mineral springs, Empire-style colonnades, and forested tranquillity — two and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -164,7 +164,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-graz: byte-parity spot-check", () => {
     assertRouteParity("prague-graz", {
       "hero.intro":
-        "450 km south through Bohemia and Austria to the City of Design. Schlossberg, the Kunsthaus, and the Styrian mountains behind — four and a half to five hours, one fixed price.",
+        "{routeKm} km south through Bohemia and Austria to the City of Design. Schlossberg, the Kunsthaus, and the Styrian mountains behind — four and a half to five hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -183,7 +183,7 @@ describe("Group A route content (71-02)", () => {
   it("prague-hradec-kralove: byte-parity spot-check", () => {
     assertRouteParity("prague-hradec-kralove", {
       "hero.intro":
-        "115 km east on the D11 to the royal city on the upper Elbe. Modernist architecture by Kotěra and Gočár, the East Bohemia Museum, and East Bohemia's cultural capital. One fixed price.",
+        "{routeKm} km east on the D11 to the royal city on the upper Elbe. Modernist architecture by Kotěra and Gočár, the East Bohemia Museum, and East Bohemia's cultural capital. One fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":

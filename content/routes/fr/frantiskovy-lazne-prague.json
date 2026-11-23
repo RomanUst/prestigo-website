@@ -3,11 +3,11 @@
     "label": "Františkovy Lázně → Prague",
     "headlineLine1": "De Františkovy Lázně à Prague,",
     "headlineItalic": "une route paisible vers l'est.",
-    "intro": "De Františkovy Lázně à Prague avec chauffeur privé, c'est un transfert de porte à porte de 175 km vers l'est depuis le bassin de Cheb, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quel hôtel thermal ou adresse de Františkovy Lázně, dépose partout dans Prague.",
+    "intro": "De Františkovy Lázně à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'est depuis le bassin de Cheb, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quel hôtel thermal ou adresse de Františkovy Lázně, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Františkovy Lázně à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Františkovy Lázně à Prague représente 175 km — en passant par Cheb, puis vers l'est par l'autoroute à travers la Bohême de l'Ouest et la Bohême centrale — et dure environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel thermal ou votre appartement à Františkovy Lázně, ou à la gare de Cheb, et vous dépose à votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
+    "Un transfert privé de Františkovy Lázně à Prague représente {routeKm} km — en passant par Cheb, puis vers l'est par l'autoroute à travers la Bohême de l'Ouest et la Bohême centrale — et dure environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel thermal ou votre appartement à Františkovy Lázně, ou à la gare de Cheb, et vous dépose à votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
     "Le tarif est convenu avant le départ et ne change pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. De la plus petite des villes thermales de Bohême de l'Ouest jusqu'au centre de Prague : une voiture, un chauffeur, et rien à organiser à l'arrivée."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en deux heures et demie.",
     "paragraphs": [
       "Après une prise en charge parmi les façades jaunes de style Empire du quartier thermal, votre chauffeur rejoint en quelques minutes Cheb, au sud, puis prend la direction de l'est. Deux bonnes routes mènent à Prague d'ici : la D6 par Sokolov et Karlovy Vary, ou vers le sud-est jusqu'à la D5, puis par Pilsen. Les deux restent entièrement en République tchèque — la frontière allemande est proche de la ville, mais vous ne la franchissez jamais.",
-      "La distance totale est d'environ 175 kilomètres ; le temps de trajet est de deux heures et demie en conditions normales. Votre chauffeur vérifie les deux routes avant le départ et prend la plus dégagée ce jour-là — des travaux sur la D6 ou une portion lente sur la D5 peuvent faire pencher la balance.",
+      "La distance totale est d'environ {routeKm} kilomètres ; le temps de trajet est de deux heures et demie en conditions normales. Votre chauffeur vérifie les deux routes avant le départ et prend la plus dégagée ce jour-là — des travaux sur la D6 ou une portion lente sur la D5 peuvent faire pencher la balance.",
       "Dans les deux cas, vous arrivez par l'ouest de Prague. L'aéroport Václav Havel est à deux pas de la fin de l'autoroute ; la Vieille Ville, Malá Strana ou Vinohrady sont à 20 à 30 minutes de plus, selon l'heure de la journée. La voiture s'arrête devant votre porte."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~175 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Františkovy Lázně – Prague — Premium",
-    "description": "Transfert haut de gamme Františkovy Lázně – Prague : 175 km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
+    "description": "Transfert haut de gamme Františkovy Lázně – Prague : {routeKm} km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
     "ogTitle": "Transfert Františkovy Lázně – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Františkovy Lázně – Prague : 175 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Františkovy Lázně – Prague : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

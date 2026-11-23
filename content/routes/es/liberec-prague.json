@@ -3,11 +3,11 @@
     "label": "Liberec → Praga",
     "headlineLine1": "De Liberec a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "Un traslado de Liberec a Praga con chófer privado: 105 km de puerta a puerta hacia el sur, por Turnov y Mladá Boleslav en la D10, en aproximadamente una hora y media de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier dirección de Liberec o en un hotel de los Montes de Jizera, y llegada a cualquier dirección de Praga.",
+    "intro": "Un traslado de Liberec a Praga con chófer privado: {routeKm} km de puerta a puerta hacia el sur, por Turnov y Mladá Boleslav en la D10, en aproximadamente una hora y media de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier dirección de Liberec o en un hotel de los Montes de Jizera, y llegada a cualquier dirección de Praga.",
     "imageAlt": "Traslado con chófer privado de Liberec a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Liberec a Praga cubre 105 km —hacia el sur, desde las estribaciones de los Montes de Jizera hasta Turnov, y después por la autopista D10, pasando por Mladá Boleslav, hasta Praga— y dura aproximadamente una hora y media de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel u oficina de Liberec, en la estación de Liberec o en un hotel de montaña de los Montes de Jizera, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Liberec a Praga cubre {routeKm} km —hacia el sur, desde las estribaciones de los Montes de Jizera hasta Turnov, y después por la autopista D10, pasando por Mladá Boleslav, hasta Praga— y dura aproximadamente una hora y media de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel u oficina de Liberec, en la estación de Liberec o en un hotel de montaña de los Montes de Jizera, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Esquís, botas y maletas se cargan una sola vez y no vuelven a salir del maletero hasta su dirección de Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en noventa minutos.",
     "paragraphs": [
       "Desde la recogida cerca del Ayuntamiento, a los pies del Ještěd o en un hotel de las colinas, su chófer sale de Liberec por la carretera de cuatro carriles en dirección sur. La primera media hora transcurre por valles boscosos hasta Turnov, la puerta norte del Paraíso de Bohemia: ciudades de roca arenisca y, en los días despejados, las torres en ruinas del castillo de Trosky visibles al este.",
-      "En Turnov la carretera se convierte en la autopista D10, que le lleva más allá de Mladá Boleslav, cuna de Škoda, y a través de la llanura del Elba hasta el borde nororiental de Praga. La distancia total es de aproximadamente 105 kilómetros; el tiempo de conducción, de una hora y media en condiciones normales de tráfico. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
+      "En Turnov la carretera se convierte en la autopista D10, que le lleva más allá de Mladá Boleslav, cuna de Škoda, y a través de la llanura del Elba hasta el borde nororiental de Praga. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción, de una hora y media en condiciones normales de tráfico. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
       "Su chófer consulta el estado de la D10 antes de salir. Los domingos por la tarde en temporada de esquí y la hora punta de los días laborables ralentizan la llegada a Praga; si hay un accidente u obras, toma una carretera más antigua a través de los pueblos sin preguntar. Llega con la tarde o la noche todavía a su disposición."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "pardubice-prague", "city": "Pardubice", "label": "Pardubice → Praga", "distance": "110 km", "duration": "1 h 30 min" }
   ],
   "highlights": [
-    { "label": "Distancia", "value": "~105 km" },
+    { "label": "Distancia", "value": "~{routeKm} km" },
     { "label": "Duración", "value": "~1,5 horas" },
     { "label": "Vehículos", "value": ["Clase Business", "Primera Clase", "Monovolumen Business"] },
     { "label": "Precio desde", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Traslado Liberec – Praga — Mercedes ejecutivo",
-    "description": "Traslado premium Liberec – Praga: 105 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Liberec – Praga: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Liberec – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Liberec – Praga: 105 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Liberec – Praga: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

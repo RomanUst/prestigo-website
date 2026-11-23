@@ -3,11 +3,11 @@
     "label": "Prague → Františkovy Lázně",
     "headlineLine1": "Transfert de Prague à Františkovy Lázně,",
     "headlineItalic": "la ville d'eaux paisible.",
-    "intro": "175 km vers l'ouest, jusqu'à la plus intime du triangle thermal de Bohême de l'Ouest. Vingt-quatre sources minérales, des colonnades de style Empire et la quiétude des forêts — deux heures et demie, un prix fixe.",
+    "intro": "{routeKm} km vers l'ouest, jusqu'à la plus intime du triangle thermal de Bohême de l'Ouest. Vingt-quatre sources minérales, des colonnades de style Empire et la quiétude des forêts — deux heures et demie, un prix fixe.",
     "imageAlt": "Františkovy Lázně — transfert en chauffeur privé de Prague à Františkovy Lázně"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Františkovy Lázně couvre 175 km par l'autoroute D6 et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en chemin — Karlovy Vary ou Mariánské Lázně — sont inclus dans le tarif fixe lorsqu'ils sont prévus lors de la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans vous solliciter en cas de ralentissement.",
+    "Un transfert privé de Prague à Františkovy Lázně couvre {routeKm} km par l'autoroute D6 et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en chemin — Karlovy Vary ou Mariánské Lázně — sont inclus dans le tarif fixe lorsqu'ils sont prévus lors de la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans vous solliciter en cas de ralentissement.",
     "Il ne s'agit pas d'une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas entre la place Venceslas et le pavillon des sources Glauber."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en deux heures et demie.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers l'ouest en traversant Pilsen, dont la silhouette familière défile sur la gauche, avant de bifurquer sur la route 21 puis la route 6 en direction de Cheb. De Cheb, quelques minutes suffisent pour rejoindre Františkovy Lázně, la plus petite des trois villes d'eaux de Bohême, à la frontière allemande. Aucun passage de frontière n'est prévu sur ce trajet : la destination se situe pleinement en République tchèque, même si la frontière bavaroise est assez proche pour se deviner dans l'architecture.",
-      "La distance totale avoisine 175 kilomètres. Le temps de trajet est de deux heures et demie en conditions normales. La ville a été inscrite au patrimoine mondial de l'UNESCO en 2021 au titre des Grandes villes d'eaux d'Europe, aux côtés de Karlovy Vary, de Mariánské Lázně et de huit autres villes thermales du continent — et le paysage urbain en témoigne. Votre arrivée longe les colonnades de style Empire, le pavillon Františkův Pramen qui a donné son nom à la ville, le pavillon des sources Glauber et les façades jaunes de monuments tels que le Lázeňský Dům Imperial.",
+      "La distance totale avoisine {routeKm} kilomètres. Le temps de trajet est de deux heures et demie en conditions normales. La ville a été inscrite au patrimoine mondial de l'UNESCO en 2021 au titre des Grandes villes d'eaux d'Europe, aux côtés de Karlovy Vary, de Mariánské Lázně et de huit autres villes thermales du continent — et le paysage urbain en témoigne. Votre arrivée longe les colonnades de style Empire, le pavillon Františkův Pramen qui a donné son nom à la ville, le pavillon des sources Glauber et les façades jaunes de monuments tels que le Lázeňský Dům Imperial.",
       "Votre chauffeur surveille la circulation sur la D5 avant chaque départ. En cas de fermeture près de Beroun, il modifie l'itinéraire sans vous solliciter. Vous ne payez pas pour la circulation ; vous payez pour votre temps."
     ]
   },
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~175 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Františkovy Lázně — Premium",
-    "description": "Transfert haut de gamme Prague – Františkovy Lázně : 175 km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Františkovy Lázně : {routeKm} km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
     "ogTitle": "Transfert Prague – Františkovy Lázně — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Františkovy Lázně : 175 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Františkovy Lázně : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

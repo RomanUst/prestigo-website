@@ -3,11 +3,11 @@
     "label": "Varsovie → Prague",
     "headlineLine1": "De Varsovie à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Varsovie à Prague avec chauffeur privé, c'est un transfert de porte à porte de 660 km vers le sud à travers la Pologne puis la Moravie, soit environ sept heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages autoroutiers et vignette tchèque inclus. Prise en charge à toute adresse de Varsovie, à Warszawa Centralna ou à l'aéroport Chopin de Varsovie (WAW), dépose partout dans Prague.",
+    "intro": "De Varsovie à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le sud à travers la Pologne puis la Moravie, soit environ sept heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages autoroutiers et vignette tchèque inclus. Prise en charge à toute adresse de Varsovie, à Warszawa Centralna ou à l'aéroport Chopin de Varsovie (WAW), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Varsovie à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Varsovie à Prague couvre environ 660 km — vers le sud-ouest par la voie express S8, vers le sud par l'A1 au-delà de Częstochowa, passage de la frontière tchèque près d'Ostrava, puis l'autoroute D1 à travers la Moravie jusqu'à Prague — et demande environ sept heures de porte à porte, pauses comprises. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel à Śródmieście, à Warszawa Centralna ou dans le hall des arrivées de l'aéroport Chopin de Varsovie, et vous dépose devant la porte à Prague.",
+    "Un transfert privé de Varsovie à Prague couvre environ {routeKm} km — vers le sud-ouest par la voie express S8, vers le sud par l'A1 au-delà de Częstochowa, passage de la frontière tchèque près d'Ostrava, puis l'autoroute D1 à travers la Moravie jusqu'à Prague — et demande environ sept heures de porte à porte, pauses comprises. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel à Śródmieście, à Warszawa Centralna ou dans le hall des arrivées de l'aéroport Chopin de Varsovie, et vous dépose devant la porte à Prague.",
     "Le tarif est convenu avant le départ et reste fixe : carburant, péages autoroutiers, vignette tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. C'est une longue journée, mais une seule voiture, un seul chauffeur et aucune correspondance de votre porte à Varsovie jusqu'à votre adresse à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en une seule journée.",
     "paragraphs": [
       "Après une prise en charge dans le centre-ville, près de la Vieille Ville ou à l'aéroport Chopin de Varsovie, votre chauffeur quitte Varsovie vers le sud-ouest par la voie express S8 en direction de Piotrków Trybunalski, où l'itinéraire rejoint l'autoroute A1 vers le sud. L'A1 passe Częstochowa et les villes de Haute-Silésie jusqu'à la frontière tchèque près d'Ostrava.",
-      "Le passage se fait au sein de l'espace Schengen : pas de contrôle systématique, pas de file. Côté tchèque, l'autoroute D1 continue à travers la Moravie — au-delà de Přerov, puis via Brno ou Olomouc — et entre dans Prague par le sud-est. Un itinéraire alternatif passe à l'ouest par Wrocław et la vallée de Kłodzko jusqu'à Náchod et la D11 ; votre chauffeur choisit la route la plus rapide le matin du départ. La distance totale est d'environ 660 kilomètres ; le temps de conduite est d'environ sept heures, courtes pauses comprises.",
+      "Le passage se fait au sein de l'espace Schengen : pas de contrôle systématique, pas de file. Côté tchèque, l'autoroute D1 continue à travers la Moravie — au-delà de Přerov, puis via Brno ou Olomouc — et entre dans Prague par le sud-est. Un itinéraire alternatif passe à l'ouest par Wrocław et la vallée de Kłodzko jusqu'à Náchod et la D11 ; votre chauffeur choisit la route la plus rapide le matin du départ. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est d'environ sept heures, courtes pauses comprises.",
       "Votre chauffeur planifie les pauses avant le départ et surveille la circulation sur l'A1 et la D1 au fil de la journée. Partez de Varsovie après le petit-déjeuner et vous êtes à Prague pour le dîner, sans bagages à gérer ni gare à trouver."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~660 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Varsovie – Prague — Chauffeur premium",
-    "description": "Transfert haut de gamme Varsovie – Prague : 660 km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Varsovie – Prague : {routeKm} km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Varsovie – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Varsovie – Prague : 660 km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Varsovie – Prague : {routeKm} km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

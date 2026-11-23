@@ -3,11 +3,11 @@
     "label": "Passau → Prague",
     "headlineLine1": "De Passau à Prague,",
     "headlineItalic": "à travers la forêt de Bohême.",
-    "intro": "De Passau à Prague avec chauffeur privé, c'est un transfert de porte à porte de 220 km vers le nord à travers la forêt bavaroise et la forêt de Bohême, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quel hôtel de Passau, au débarcadère des croisières sur le Danube ou à la Passau Hauptbahnhof, dépose partout dans Prague.",
+    "intro": "De Passau à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le nord à travers la forêt bavaroise et la forêt de Bohême, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quel hôtel de Passau, au débarcadère des croisières sur le Danube ou à la Passau Hauptbahnhof, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Passau à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Passau à Prague couvre 220 km — vers le nord par la B12 à travers la forêt bavaroise, passage de la frontière tchèque à Philippsreut–Strážný, descente par les contreforts de la Šumava via Vimperk et Strakonice, puis l'autoroute D4 par Příbram jusqu'à Prague — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Passau, au débarcadère des croisières fluviales sur le Danube ou à la Passau Hauptbahnhof, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Un transfert privé de Passau à Prague couvre {routeKm} km — vers le nord par la B12 à travers la forêt bavaroise, passage de la frontière tchèque à Philippsreut–Strážný, descente par les contreforts de la Šumava via Vimperk et Strakonice, puis l'autoroute D4 par Příbram jusqu'à Prague — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Passau, au débarcadère des croisières fluviales sur le Danube ou à la Passau Hauptbahnhof, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
     "Le tarif est fixé avant le départ : carburant, vignette autoroutière tchèque, chaque péage, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Au retour d'une croisière sur le Danube avec une semaine de bagages, vous les chargez une seule fois au bateau et les retrouvez à votre hôtel à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en deux heures et demie.",
     "paragraphs": [
       "Depuis la presqu'île de l'Altstadt, la Residenzplatz ou le débarcadère des croisières au pied de la cathédrale, votre chauffeur prend la B12 vers le nord, en direction de la forêt bavaroise. La route monte régulièrement par Freyung et les collines boisées jusqu'à la frontière de Philippsreut–Strážný, en pleine forêt. C'est un passage Schengen : aucun arrêt ni contrôle en temps normal.",
-      "Côté tchèque, la route 4 descend par les contreforts de la Šumava jusqu'à Vimperk, puis traverse la campagne ouverte de Bohême du Sud jusqu'à Strakonice. Plus au nord, la route devient l'autoroute D4, qui passe par Příbram et entre directement dans le sud-ouest de Prague. La distance totale est d'environ 220 kilomètres ; le temps de conduite est de deux heures et demie en conditions normales, plutôt trois heures lors d'un week-end d'été chargé.",
+      "Côté tchèque, la route 4 descend par les contreforts de la Šumava jusqu'à Vimperk, puis traverse la campagne ouverte de Bohême du Sud jusqu'à Strakonice. Plus au nord, la route devient l'autoroute D4, qui passe par Příbram et entre directement dans le sud-ouest de Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est de deux heures et demie en conditions normales, plutôt trois heures lors d'un week-end d'été chargé.",
       "En hiver, le col de la B12 peut être enneigé et verglacé alors qu'à Passau le ciel est simplement gris. Votre chauffeur vérifie la route frontalière avant le départ et, si le col est difficile, prend l'itinéraire plus long plutôt que de prendre un risque. Vous arrivez tout de même à Prague dans l'après-midi, avec le temps de vous installer avant le dîner."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4 h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "220 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Durée", "value": "~2 h 30" },
     { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
     { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Transfert Passau – Prague — Chauffeur premium",
-    "description": "Transfert premium Passau – Prague : 220 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Passau – Prague : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Passau – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Passau – Prague : 220 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Passau – Prague : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

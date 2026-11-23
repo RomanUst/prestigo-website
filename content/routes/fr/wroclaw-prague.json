@@ -3,11 +3,11 @@
     "label": "Wrocław → Prague",
     "headlineLine1": "De Wrocław à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Wrocław à Prague avec chauffeur privé, c'est un transfert de porte à porte de 285 km vers le sud par la vallée de Kłodzko et la frontière à Náchod, soit environ trois heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages et vignette autoroutière tchèque inclus. Prise en charge à toute adresse de Wrocław, à Wrocław Główny ou à l'aéroport de Wrocław (WRO), dépose partout dans Prague.",
+    "intro": "De Wrocław à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le sud par la vallée de Kłodzko et la frontière à Náchod, soit environ trois heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages et vignette autoroutière tchèque inclus. Prise en charge à toute adresse de Wrocław, à Wrocław Główny ou à l'aéroport de Wrocław (WRO), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Wrocław à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Wrocław à Prague couvre environ 285 km — vers le sud en direction de Kłodzko, passage de la frontière tchèque à Kudowa-Zdrój et Náchod, puis Hradec Králové et l'autoroute D11 jusqu'à Prague — et demande environ trois heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel près du Rynek, à Wrocław Główny ou dans le hall des arrivées de l'aéroport de Wrocław, et vous dépose devant votre hôtel, appartement ou bureau à Prague.",
+    "Un transfert privé de Wrocław à Prague couvre environ {routeKm} km — vers le sud en direction de Kłodzko, passage de la frontière tchèque à Kudowa-Zdrój et Náchod, puis Hradec Králové et l'autoroute D11 jusqu'à Prague — et demande environ trois heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel près du Rynek, à Wrocław Główny ou dans le hall des arrivées de l'aéroport de Wrocław, et vous dépose devant votre hôtel, appartement ou bureau à Prague.",
     "Le tarif est fixé à la réservation et ne change pas : carburant, péages, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Il n'existe pas de train direct rapide sur ce trajet — la voiture privée est le moyen le plus simple de passer de la Basse-Silésie à une porte pragoise."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en trois heures environ.",
     "paragraphs": [
       "Après une prise en charge près du Rynek, sur Ostrów Tumski ou à l'aéroport de Wrocław, votre chauffeur quitte la ville vers le sud par la voie express S8 et poursuit à travers la vallée de Kłodzko, les Sudètes s'élevant de part et d'autre. La route passe sous la forteresse de Kłodzko et monte doucement jusqu'à la ville thermale de Kudowa-Zdrój.",
-      "La frontière entre Kudowa-Zdrój et Náchod se trouve au sein de l'espace Schengen : pas de contrôle systématique, pas de file, seulement un changement de langue sur les panneaux et le château de Náchod qui domine la ville. Côté tchèque, la route file vers l'ouest jusqu'à Hradec Králové, où elle rejoint l'autoroute D11 pour le dernier tronçon à travers la plaine de l'Elbe jusqu'à Prague. La distance totale est d'environ 285 kilomètres ; le temps de conduite est d'environ trois heures. Le week-end, la circulation à la frontière peut ajouter 15 à 20 minutes.",
+      "La frontière entre Kudowa-Zdrój et Náchod se trouve au sein de l'espace Schengen : pas de contrôle systématique, pas de file, seulement un changement de langue sur les panneaux et le château de Náchod qui domine la ville. Côté tchèque, la route file vers l'ouest jusqu'à Hradec Králové, où elle rejoint l'autoroute D11 pour le dernier tronçon à travers la plaine de l'Elbe jusqu'à Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est d'environ trois heures. Le week-end, la circulation à la frontière peut ajouter 15 à 20 minutes.",
       "Votre chauffeur vérifie l'itinéraire avant le départ. Si le passage de Náchod est ralenti, il peut emprunter la route nord par Liberec — un peu plus longue, mais régulière. Vous arrivez à Prague avec la journée encore devant vous : le temps de vous installer, puis de sortir à Vinohrady ou dans la Vieille Ville pour la soirée."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~285 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Wrocław – Prague — Chauffeur premium",
-    "description": "Transfert premium Wrocław – Prague : 285 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Wrocław – Prague : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Wrocław – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Wrocław – Prague : 285 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Wrocław – Prague : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

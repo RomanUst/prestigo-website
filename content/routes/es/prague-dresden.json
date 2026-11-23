@@ -7,7 +7,7 @@
     "imageAlt": "Dresde — traslado en chófer privado desde Praga a Dresde"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Dresde cubre 150 km por las autopistas D8 y A17 y dura aproximadamente 2 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Ústí nad Labem o el mirador del valle del Elba— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
+    "Un traslado privado de Praga a Dresde cubre {routeKm} km por las autopistas D8 y A17 y dura aproximadamente 2 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Ústí nad Labem o el mirador del valle del Elba— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
     "No es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en dos horas.",
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto—, su chófer toma la autopista D8 hacia el norte pasando por Ústí nad Labem. El paso de la frontera checo-alemana en Petrovice–Breitenau resulta imperceptible dentro del espacio Schengen: sin paradas ni controles de documentos. Ya en Alemania, la vía se convierte en la A17 y desciende hacia Dresde a través de las colinas de Weißer Hirsch, hasta llegar a su hotel o punto de encuentro en el centro de Dresde.",
-      "La distancia total es de aproximadamente 150 kilómetros. El tiempo de conducción es de dos horas en condiciones normales. Añada entre 15 y 20 minutos durante la hora punta del viernes por la tarde a la salida de Praga.",
+      "La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción es de dos horas en condiciones normales. Añada entre 15 y 20 minutos durante la hora punta del viernes por la tarde a la salida de Praga.",
       "Su chófer consulta el tráfico de la D8 antes de cada salida. Si hay retenciones por obras cerca de Lovosice —como ha ocurrido de forma intermitente desde 2024—, modifica la ruta por la R63 sin necesidad de preguntar. Usted no paga el tráfico; paga el tiempo."
     ]
   },
@@ -222,7 +222,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~150 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -248,8 +248,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Dresde — Chófer premium",
-    "description": "Traslado premium Praga – Dresde: 150 km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Dresde: {routeKm} km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Dresde — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Dresde: 150 km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Dresde: {routeKm} km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

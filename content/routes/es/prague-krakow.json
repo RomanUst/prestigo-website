@@ -3,11 +3,11 @@
     "label": "Praga → Cracovia",
     "headlineLine1": "Traslado de Praga a Cracovia,",
     "headlineItalic": "la ciudad real de Polonia.",
-    "intro": "530 km hacia el noreste, hasta la capital cultural de Polonia. El castillo de Wawel, la plaza del mercado Rynek, el barrio judío de Kazimierz y las minas de sal de Wieliczka: unas cinco horas y media, un precio fijo.",
+    "intro": "{routeKm} km hacia el noreste, hasta la capital cultural de Polonia. El castillo de Wawel, la plaza del mercado Rynek, el barrio judío de Kazimierz y las minas de sal de Wieliczka: unas cinco horas y media, un precio fijo.",
     "imageAlt": "Cracovia — traslado en chófer privado desde Praga a Cracovia"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Cracovia cubre 530 km y dura aproximadamente 5,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Ostrava o Katowice— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
+    "Un traslado privado de Praga a Cracovia cubre {routeKm} km y dura aproximadamente 5,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Ostrava o Katowice— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
     "No es un servicio compartido. Es un Mercedes privado, un chófer, un cruce de frontera gestionado por nosotros y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en cinco horas y media.",
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección este pasando por Brno y continúa hacia el noreste por la D1 hasta Ostrava. La frontera Schengen checo-polaca se cruza en Věřňovice, del lado checo, y Gorzyczki, del lado polaco: invisible, sin paradas ni controles de documentación. Desde allí, la A1 polaca lleva hasta Gliwice, donde enlaza con la A4 hacia el este; el tramo de peaje entre Katowice y Cracovia completa el trayecto hasta Cracovia, para llegar a su hotel o punto de encuentro en el centro de Małopolska.",
-      "La distancia total es de aproximadamente 530 kilómetros. El tiempo de conducción es de unas cinco horas y media en condiciones normales, algo más con el tráfico de salida de Praga los viernes por la tarde. Si el chófer prefiere un trazado algo distinto un día determinado —por Olomouc a través de la D35 y después por la D48—, esa opción también está sobre la mesa. Ambas rutas llegan a Cracovia en prácticamente el mismo tiempo, y la elección se toma la mañana del trayecto en función del tráfico en tiempo real.",
+      "La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción es de unas cinco horas y media en condiciones normales, algo más con el tráfico de salida de Praga los viernes por la tarde. Si el chófer prefiere un trazado algo distinto un día determinado —por Olomouc a través de la D35 y después por la D48—, esa opción también está sobre la mesa. Ambas rutas llegan a Cracovia en prácticamente el mismo tiempo, y la elección se toma la mañana del trayecto en función del tráfico en tiempo real.",
       "En Cracovia, el punto de llegada puede ser cualquiera: Stare Miasto y la plaza del Mercado Principal, el castillo de Wawel sobre el Vístula, Kazimierz —el antiguo barrio judío— o el trazado realista socialista de Nowa Huta, en el extremo oriental de la ciudad. Su chófer revisa el tráfico en la D1 y en la A4 polaca antes de cada salida. La A4 es una autopista de peaje y ese coste ya está incluido en su tarifa; si hay algún incidente cerca de Katowice, modifica la ruta sin necesidad de preguntar. Usted no paga el tráfico; paga el tiempo."
     ]
   },
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~530 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Cracovia — Mercedes ejecutivo",
-    "description": "Traslado ejecutivo Praga – Cracovia: 530 km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Praga – Cracovia: {routeKm} km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Cracovia — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Praga – Cracovia: 530 km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Praga – Cracovia: {routeKm} km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

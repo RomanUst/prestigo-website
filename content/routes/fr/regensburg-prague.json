@@ -3,11 +3,11 @@
     "label": "Ratisbonne → Prague",
     "headlineLine1": "De Ratisbonne à Prague,",
     "headlineItalic": "du Danube à la Vltava.",
-    "intro": "De Ratisbonne à Prague avec chauffeur privé, c'est un transfert de porte à porte de 285 km par l'A93, l'A6 et la D5, soit environ 3 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quelle adresse de Ratisbonne ou à la Regensburg Hauptbahnhof, dépose partout dans Prague.",
+    "intro": "De Ratisbonne à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km par l'A93, l'A6 et la D5, soit environ 3 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quelle adresse de Ratisbonne ou à la Regensburg Hauptbahnhof, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Ratisbonne à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Ratisbonne à Prague couvre 285 km — vers le nord par l'A93 à travers le Haut-Palatinat, vers l'est par l'A6 jusqu'à la frontière tchèque de Waidhaus–Rozvadov, puis l'autoroute D5 par Pilsen et Beroun jusqu'à Prague — et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Ratisbonne, à un bureau ou à la Regensburg Hauptbahnhof, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Un transfert privé de Ratisbonne à Prague couvre {routeKm} km — vers le nord par l'A93 à travers le Haut-Palatinat, vers l'est par l'A6 jusqu'à la frontière tchèque de Waidhaus–Rozvadov, puis l'autoroute D5 par Pilsen et Beroun jusqu'à Prague — et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Ratisbonne, à un bureau ou à la Regensburg Hauptbahnhof, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
     "Le tarif est convenu à l'avance et ne change pas : carburant, vignette autoroutière tchèque, chaque péage, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Pas de correspondance à attraper, pas de valises à hisser dans un porte-bagages, pas de file d'attente pour un taxi en arrivant à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en trois heures environ.",
     "paragraphs": [
       "Après une prise en charge dans l'Altstadt, près du Pont de pierre ou à un hôtel au bord du Danube, votre chauffeur quitte Ratisbonne par l'A93 en direction du nord. L'autoroute suit la vallée de la Naab à travers le Haut-Palatinat, passe Schwandorf et rejoint l'A6, où l'itinéraire bifurque vers l'est en direction de la frontière tchèque.",
-      "Le passage de Waidhaus–Rozvadov se trouve dans l'espace Schengen : aucun arrêt, aucune file d'attente ni contrôle de documents en temps normal. De là, la D5 traverse tout droit la Bohême de l'Ouest : elle passe Pilsen et les cheminées de ses brasseries, Rokycany et Beroun, puis entre dans le sud-ouest de Prague. La distance totale est d'environ 285 kilomètres ; le temps de conduite est de trois heures en circulation normale, plus 15 à 20 minutes le vendredi après-midi, lorsque la D5 se charge à l'entrée de la ville.",
+      "Le passage de Waidhaus–Rozvadov se trouve dans l'espace Schengen : aucun arrêt, aucune file d'attente ni contrôle de documents en temps normal. De là, la D5 traverse tout droit la Bohême de l'Ouest : elle passe Pilsen et les cheminées de ses brasseries, Rokycany et Beroun, puis entre dans le sud-ouest de Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est de trois heures en circulation normale, plus 15 à 20 minutes le vendredi après-midi, lorsque la D5 se charge à l'entrée de la ville.",
       "Votre chauffeur vérifie l'A93 et la D5 avant le départ. Le trafic des vacances d'été et les travaux vont et viennent sur ces deux axes ; en cas de ralentissement, il adapte l'itinéraire sans avoir à demander. Vous arrivez à Prague à temps pour un déjeuner tardif à Malá Strana ou un rendez-vous l'après-midi dans la Nouvelle Ville."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "plzen-prague", "city": "Pilsen", "label": "Pilsen → Prague", "distance": "90 km", "duration": "1 h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "285 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Durée", "value": "~3 heures" },
     { "label": "Véhicules", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Transfert Ratisbonne – Prague — Chauffeur premium",
-    "description": "Transfert premium Ratisbonne – Prague : 285 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Ratisbonne – Prague : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Ratisbonne – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Ratisbonne – Prague : 285 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Ratisbonne – Prague : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

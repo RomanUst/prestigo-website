@@ -3,11 +3,11 @@
     "label": "Prague → Mariánské Lázně",
     "headlineLine1": "Prague to Mariánské Lázně Private Transfer,",
     "headlineItalic": "Goethe's spa.",
-    "intro": "165 km west to the most elegant of the West Bohemian spa towns. Colonnaded promenades, mineral springs, the Singing Fountain, and forested hills — two hours, one fixed price.",
+    "intro": "{routeKm} km west to the most elegant of the West Bohemian spa towns. Colonnaded promenades, mineral springs, the Singing Fountain, and forested hills — two hours, one fixed price.",
     "imageAlt": "Mariánské Lázně — private chauffeur transfer from Prague to Mariánské Lázně"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Mariánské Lázně covers 165 km via the D6 motorway and takes approximately 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Karlovy Vary or Cheb — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Mariánské Lázně covers {routeKm} km via the D6 motorway and takes approximately 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Karlovy Vary or Cheb — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway west through the bypass of Plzeň — past the Valík Tunnel and the bridge over the Úhlava — and leaves at exit 128 for Highway 21. The road then curves north through the rolling West Bohemian hills into the spa triangle, arriving in Mariánské Lázně at your hotel or the spa address you specified. No border crossing. Entirely Czech motorway from pickup to drop-off.",
       "Mariánské Lázně is the green pearl of the West Bohemian spa triangle. Its centrepiece is the cast-iron Main Colonnade of 1889, a neo-baroque gallery 119 metres long that frames the Singing Fountain, which plays Chopin, Mozart, and Smetana on the hour. A few steps away sit the Maxim Gorky Colonnade, the spa parks designed by the town gardener Václav Skalník, the Russian Orthodox Church of St. Vladimir, and the Mariánské Lázně Golf Club — founded 1905, one of the oldest courses in continental Europe.",
-      "Total distance is approximately 165 kilometres. Driving time is two hours in normal conditions. Your chauffeur watches the D5 before every departure, and if Friday afternoon traffic builds up around the Prague ring, they shift the pickup without asking. You are not paying for traffic; you are paying for time."
+      "Total distance is approximately {routeKm} kilometres. Driving time is two hours in normal conditions. Your chauffeur watches the D5 before every departure, and if Friday afternoon traffic builds up around the Prague ring, they shift the pickup without asking. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
@@ -90,7 +90,7 @@
     { "slug": "prague-cesky-krumlov", "city": "Český Krumlov", "distance": "170 km", "duration": "2h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~165 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -101,8 +101,8 @@
   },
   "metadata": {
     "title": "Prague to Mariánské Lázně Transfer — Executive",
-    "description": "Premium Prague to Mariánské Lázně transfer: 165 km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Mariánské Lázně transfer: {routeKm} km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Mariánské Lázně Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Mariánské Lázně transfer: 165 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Mariánské Lázně transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

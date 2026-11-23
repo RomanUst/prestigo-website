@@ -3,11 +3,11 @@
     "label": "Prague → Berlin",
     "headlineLine1": "Prague to Berlin Private Transfer,",
     "headlineItalic": "capitals connected.",
-    "intro": "350 km north through Bohemia and Saxony to the German capital. Brandenburger Tor, Museum Island, and one of Europe's most dynamic cities — four hours, one fixed price.",
+    "intro": "{routeKm} km north through Bohemia and Saxony to the German capital. Brandenburger Tor, Museum Island, and one of Europe's most dynamic cities — four hours, one fixed price.",
     "imageAlt": "Berlin — private chauffeur transfer from Prague to Berlin"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Berlin covers 350 km via the D8 and A17 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Cottbus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Berlin covers {routeKm} km via the D8 and A17 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Cottbus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in four hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D8 motorway north through Ústí nad Labem and toward the Czech–German border. The motorway crossing at Petrovice and Breitenau is invisible inside the Schengen Area — no stops, no document checks, just a quiet transition from Bohemian forest into the Saxon foothills. The road becomes the A17, sweeps around Dresden, and joins the A13 for the long northbound leg through Brandenburg into Berlin.",
-      "Total distance is approximately 350 kilometres. Driving time is four hours in normal conditions, with a single coffee stop included if you want one. Drop-off can be anywhere in the city — Mitte for the cultural core, Charlottenburg for the elegant west, or directly at Berlin Brandenburg Airport (BER) for an onward flight. Tegel is closed and has been since 2020; we mention it because clients still ask.",
+      "Total distance is approximately {routeKm} kilometres. Driving time is four hours in normal conditions, with a single coffee stop included if you want one. Drop-off can be anywhere in the city — Mitte for the cultural core, Charlottenburg for the elegant west, or directly at Berlin Brandenburg Airport (BER) for an onward flight. Tegel is closed and has been since 2020; we mention it because clients still ask.",
       "Your chauffeur watches traffic on the D8 and the A13 before every departure. There has been recurring construction on the A13 between Dresden and Cottbus over the past two years; if a closure is flagged, the route diverts via the A4 and the A15 without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -94,7 +94,7 @@
     { "slug": "prague-munich", "city": "Munich", "distance": "385 km", "duration": "4h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~350 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~4 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Berlin Transfer — Premium Chauffeur",
-    "description": "Premium Prague to Berlin transfer: 350 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Berlin transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Berlin Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Berlin transfer: 350 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Berlin transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

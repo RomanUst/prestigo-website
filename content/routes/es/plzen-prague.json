@@ -3,11 +3,11 @@
     "label": "Pilsen → Praga",
     "headlineLine1": "De Pilsen a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "Un traslado de Pilsen a Praga con chófer privado: 90 km de puerta a puerta hacia el este por la autopista D5, en aproximadamente una hora de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier hotel u oficina de Pilsen o en la estación principal, y llegada a cualquier dirección de Praga.",
+    "intro": "Un traslado de Pilsen a Praga con chófer privado: {routeKm} km de puerta a puerta hacia el este por la autopista D5, en aproximadamente una hora de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier hotel u oficina de Pilsen o en la estación principal, y llegada a cualquier dirección de Praga.",
     "imageAlt": "Traslado con chófer privado de Pilsen a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Pilsen a Praga cubre 90 km —hacia el este por la autopista D5, pasando por Rokycany y Beroun, para entrar en Praga por el oeste— y dura aproximadamente una hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Pilsen, en una reunión cerca de la plaza de la República, en la puerta de la fábrica Pilsner Urquell o en la estación principal de Pilsen, y le deja en la puerta de su hotel, apartamento u oficina en Praga.",
+    "Un traslado privado de Pilsen a Praga cubre {routeKm} km —hacia el este por la autopista D5, pasando por Rokycany y Beroun, para entrar en Praga por el oeste— y dura aproximadamente una hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Pilsen, en una reunión cerca de la plaza de la República, en la puerta de la fábrica Pilsner Urquell o en la estación principal de Pilsen, y le deja en la puerta de su hotel, apartamento u oficina en Praga.",
     "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Como la D5 llega a Praga por el lado del aeropuerto, es también una de las formas más sencillas de llegar a tiempo a un vuelo de tarde desde el aeropuerto Václav Havel."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en una hora.",
     "paragraphs": [
       "Desde la recogida en el centro, junto a la fábrica de cerveza o en la estación principal, su chófer toma la D5 a las afueras de Pilsen y se dirige al este. El primer tramo atraviesa las colinas boscosas que rodean Rokycany; en esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
-      "Pasado Rokycany, la autopista desciende al valle del Berounka en Beroun, con las colinas calizas del Karst de Bohemia al sur; entre ellas se esconde el castillo de Karlštejn, a un breve desvío. La distancia total es de aproximadamente 90 kilómetros; el tiempo de conducción, de una hora en condiciones normales de tráfico.",
+      "Pasado Rokycany, la autopista desciende al valle del Berounka en Beroun, con las colinas calizas del Karst de Bohemia al sur; entre ellas se esconde el castillo de Karlštejn, a un breve desvío. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción, de una hora en condiciones normales de tráfico.",
       "La D5 entra en Praga por su lado occidental, a pocos minutos del aeropuerto Václav Havel y a unos veinte minutos del centro. Su chófer consulta el tráfico antes de salir; los domingos por la tarde y la hora punta de los días laborables pueden ralentizar los últimos kilómetros hacia la ciudad, y si hay un corte cerca de Beroun toma la carretera antigua sin preguntar."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "regensburg-prague", "city": "Ratisbona", "label": "Ratisbona → Praga", "distance": "285 km", "duration": "3 h" }
   ],
   "highlights": [
-    { "label": "Distancia", "value": "~90 km" },
+    { "label": "Distancia", "value": "~{routeKm} km" },
     { "label": "Duración", "value": "~1 hora" },
     { "label": "Vehículos", "value": ["Clase Business", "Primera Clase", "Furgoneta Business"] },
     { "label": "Precio desde", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Traslado Pilsen – Praga — Mercedes ejecutivo",
-    "description": "Traslado ejecutivo Pilsen – Praga: 90 km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Pilsen – Praga: {routeKm} km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Pilsen – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Pilsen – Praga: 90 km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Pilsen – Praga: {routeKm} km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

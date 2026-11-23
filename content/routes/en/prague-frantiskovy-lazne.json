@@ -3,11 +3,11 @@
     "label": "Prague → Františkovy Lázně",
     "headlineLine1": "Prague to Františkovy Lázně Private Transfer,",
     "headlineItalic": "the quiet spa.",
-    "intro": "175 km west to the most intimate of West Bohemia's spa trio. Twenty-four mineral springs, Empire-style colonnades, and forested tranquillity — two and a half hours, one fixed price.",
+    "intro": "{routeKm} km west to the most intimate of West Bohemia's spa trio. Twenty-four mineral springs, Empire-style colonnades, and forested tranquillity — two and a half hours, one fixed price.",
     "imageAlt": "Františkovy Lázně — private chauffeur transfer from Prague to Františkovy Lázně"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Františkovy Lázně covers 175 km via the D6 motorway and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Karlovy Vary or Mariánské Lázně — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Františkovy Lázně covers {routeKm} km via the D6 motorway and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Karlovy Vary or Mariánské Lázně — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change between Wenceslas Square and the Glauber Springs Pavilion."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two and a half hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway west through Plzeň — the familiar Pilsner skyline passing on the left — before branching onto Highway 21 and Highway 6 toward Cheb. From Cheb it is only a few minutes further to Františkovy Lázně, the smallest of the three Bohemian spa towns at the German border. There is no formal border crossing on this run; the destination sits firmly inside the Czech Republic, though the Bavarian frontier is close enough that you can feel it in the architecture.",
-      "Total distance is approximately 175 kilometres. Driving time is two and a half hours in normal conditions. The town was added to the UNESCO World Heritage List in 2021 as part of the Great Spa Towns of Europe inscription, alongside Karlovy Vary, Mariánské Lázně, and eight sister spas across the continent — and the streetscape reflects it. Your arrival passes the Empire-style colonnades, the Františkův Pramen pavilion that gave the town its name, the Glauber Springs Pavilion, and the yellow façades of landmarks such as the Lázeňský Dům Imperial.",
+      "Total distance is approximately {routeKm} kilometres. Driving time is two and a half hours in normal conditions. The town was added to the UNESCO World Heritage List in 2021 as part of the Great Spa Towns of Europe inscription, alongside Karlovy Vary, Mariánské Lázně, and eight sister spas across the continent — and the streetscape reflects it. Your arrival passes the Empire-style colonnades, the Františkův Pramen pavilion that gave the town its name, the Glauber Springs Pavilion, and the yellow façades of landmarks such as the Lázeňský Dům Imperial.",
       "Your chauffeur watches traffic on the D5 before every departure. If there is a closure near Beroun, they reroute without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -90,7 +90,7 @@
     { "slug": "prague-regensburg", "city": "Regensburg", "distance": "290 km", "duration": "3h 15min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~175 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -101,8 +101,8 @@
   },
   "metadata": {
     "title": "Prague to Františkovy Lázně Transfer — Premium",
-    "description": "Executive Prague to Františkovy Lázně transfer: 175 km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price.",
+    "description": "Executive Prague to Františkovy Lázně transfer: {routeKm} km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price.",
     "ogTitle": "Prague to Františkovy Lázně Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Františkovy Lázně transfer: 175 km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Františkovy Lázně transfer: {routeKm} km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

@@ -18,9 +18,13 @@ const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
 const ROOT = process.cwd()
 const ALL_ROUTE_SLUGS = new Set([...ROUTES.map((r) => r.slug), ...MIRROR_ROUTES.map((r) => r.slug)])
 
-/** Recursively collects every {token} used in a JSON value. */
+/**
+ * Recursively collects every {token} used in a JSON value. `{routeKm}` (the
+ * admin distance, lib/route-distances.ts) is left out: how often a locale
+ * repeats the distance is a matter of prose, not of parity.
+ */
 function tokens(v: unknown): string[] {
-  if (typeof v === 'string') return (v.match(/\{\w+\}/g) ?? []).sort()
+  if (typeof v === 'string') return (v.match(/\{\w+\}/g) ?? []).filter((t) => t !== '{routeKm}').sort()
   if (Array.isArray(v)) return v.flatMap(tokens)
   if (v && typeof v === 'object') return Object.values(v).flatMap(tokens)
   return []

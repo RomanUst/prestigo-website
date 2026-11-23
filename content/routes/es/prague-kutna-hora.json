@@ -3,11 +3,11 @@
     "label": "Praga → Kutná Hora",
     "headlineLine1": "Traslado de Praga a Kutná Hora,",
     "headlineItalic": "la ciudad de la plata.",
-    "intro": "A 70 km al este de Praga le espera la capital medieval de la minería de plata de Bohemia. Casco antiguo declarado Patrimonio de la Humanidad por la UNESCO, el sobrecogedor Osario de Sedlec y la catedral de Santa Bárbara. Una hora, un vehículo, un precio fijo.",
+    "intro": "A {routeKm} km al este de Praga le espera la capital medieval de la minería de plata de Bohemia. Casco antiguo declarado Patrimonio de la Humanidad por la UNESCO, el sobrecogedor Osario de Sedlec y la catedral de Santa Bárbara. Una hora, un vehículo, un precio fijo.",
     "imageAlt": "Kutná Hora — traslado en chófer privado desde Praga a Kutná Hora"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Kutná Hora cubre 70 km y dura aproximadamente 1 hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles a petición sin coste adicional. La viñeta de autopista checa que exige la D11 también está incluida. No se añade nada al llegar al destino. Las paradas en ruta o el tiempo de espera prolongado en el Osario de Sedlec o en la catedral de Santa Bárbara están disponibles con la tarifa fija si se acuerdan al reservar. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin preguntar si hay algún retraso.",
+    "Un traslado privado de Praga a Kutná Hora cubre {routeKm} km y dura aproximadamente 1 hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles a petición sin coste adicional. La viñeta de autopista checa que exige la D11 también está incluida. No se añade nada al llegar al destino. Las paradas en ruta o el tiempo de espera prolongado en el Osario de Sedlec o en la catedral de Santa Bárbara están disponibles con la tarifa fija si se acuerdan al reservar. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin preguntar si hay algún retraso.",
     "No se trata de una excursión en autocar compartido. Ni de un traslado en tren con diez minutos de caminata al llegar. Un Mercedes privado, un chófer y una tarifa que no cambia — desde una ciudad que, hace seis siglos, rivalizaba con Praga misma."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en una hora.",
     "paragraphs": [
       "Desde un punto de recogida en Praga —Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D11 en dirección este hacia Kolín y después continúa hacia el sur por carreteras comarcales a través de las llanuras del Elba. No hay paso de frontera: Kutná Hora se encuentra en la región de Bohemia Central, íntegramente dentro de la República Checa. De hecho, es el destino de categoría Green más cercano del mapa de rutas de Prestigo.",
-      "La distancia total es de aproximadamente 70 kilómetros. El tiempo de conducción es de una hora en condiciones normales. La llegada al casco antiguo le lleva junto a la silueta de la catedral de Santa Bárbara sobre su ladera —una joya del gótico tardío inscrita en la lista de la UNESCO desde 1995—, con la Corte Italiana (Vlašský Dvůr) y el Osario de Sedlec (la iglesia de los huesos) esperando en el núcleo histórico. Para las visitas a Sedlec con un grupo, su chófer confirma la reserva anticipada que la iglesia exige ahora a los grupos organizados.",
+      "La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción es de una hora en condiciones normales. La llegada al casco antiguo le lleva junto a la silueta de la catedral de Santa Bárbara sobre su ladera —una joya del gótico tardío inscrita en la lista de la UNESCO desde 1995—, con la Corte Italiana (Vlašský Dvůr) y el Osario de Sedlec (la iglesia de los huesos) esperando en el núcleo histórico. Para las visitas a Sedlec con un grupo, su chófer confirma la reserva anticipada que la iglesia exige ahora a los grupos organizados.",
       "Su chófer consulta el tráfico de la D11 antes de cada salida. Si la salida de Praga por la D11 está congestionada —como ocurre a menudo los viernes por la tarde—, modifica el itinerario por la carretera 2, pasando por Kostelec nad Černými lesy, sin preguntar. No paga usted por el tráfico; paga por el tiempo."
     ]
   },
@@ -163,7 +163,7 @@
     },
     {
       "q": "¿Hay algún paso de frontera de camino a Kutná Hora?",
-      "a": "No. Kutná Hora se encuentra íntegramente dentro de la República Checa, a unos 70 kilómetros al este de Praga, en la región de Bohemia Central. Sin trámites fronterizos, sin viñetas más allá de la checa y sin controles de pasaporte."
+      "a": "No. Kutná Hora se encuentra íntegramente dentro de la República Checa, a unos {routeKm} kilómetros al este de Praga, en la región de Bohemia Central. Sin trámites fronterizos, sin viñetas más allá de la checa y sin controles de pasaporte."
     },
     {
       "q": "¿Hay sillas infantiles disponibles?",
@@ -208,7 +208,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~70 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -234,8 +234,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Kutná Hora — Chófer premium",
-    "description": "Traslado premium Praga – Kutná Hora: 70 km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Kutná Hora: {routeKm} km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Kutná Hora — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Kutná Hora: 70 km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Kutná Hora: {routeKm} km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

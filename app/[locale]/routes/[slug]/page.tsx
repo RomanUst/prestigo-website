@@ -16,7 +16,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getRoutePrice, type RoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
-import { getRouteContent } from '@/lib/route-content'
+import { getLiveRouteContent } from '@/lib/route-distances'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { locale, slug } = await params
   const mirror = MIRROR_ROUTES_BY_SLUG[slug]
   if (!mirror) return {}
-  const content = getRouteContent(slug, locale)
+  const content = await getLiveRouteContent(slug, locale)
   const route = await getMirrorPrice(mirror.sourceSlug)
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const prices = { ePrice }
@@ -72,7 +72,7 @@ export default async function MirrorRoutePage({ params }: { params: Params }) {
   if (!mirror) notFound()
   setRequestLocale(locale)
   const bookHref = `${getPathname({ locale, href: '/book' })}${mirror ? routeBookQuery(mirror.sourceSlug, { reverse: true }) : ''}`
-  const content = getRouteContent(slug, locale)
+  const content = await getLiveRouteContent(slug, locale)
   const t = await getTranslations('RoutePage')
   const route = await getMirrorPrice(mirror.sourceSlug)
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur

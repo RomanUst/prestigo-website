@@ -3,11 +3,11 @@
     "label": "Prague → Passau",
     "headlineLine1": "Prague to Passau Private Transfer,",
     "headlineItalic": "three rivers city.",
-    "intro": "220 km south into Bavaria to where the Danube, Inn, and Ilz converge. A medieval cathedral city, a starting point for Danube cruises, and a gateway between Bohemia and Bavaria.",
+    "intro": "{routeKm} km south into Bavaria to where the Danube, Inn, and Ilz converge. A medieval cathedral city, a starting point for Danube cruises, and a gateway between Bohemia and Bavaria.",
     "imageAlt": "Passau — private chauffeur transfer from Prague to Passau"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Passau covers approximately 220 km and takes about 2.5 to 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Strakonice or Freyung — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Passau covers approximately {routeKm} km and takes about 2.5 to 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Strakonice or Freyung — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two and a half hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D4 motorway south past Příbram and continues on Route 4 via Strakonice and Vimperk through the Šumava highlands. The Czech–German Schengen border at Strážný/Philippsreut is invisible — no stops, no document checks. The road becomes the B12 on the Bavarian side and descends the Bayerischer Wald, arriving at the confluence of the Danube, Inn, and Ilz rivers where the Altstadt sits on its narrow peninsula.",
-      "Total distance is approximately 220 kilometres. Driving time is two and a half hours in normal conditions, closer to three during summer weekends or around the Vimperk rest stops. The drop-off can be anywhere in Passau — St. Stephan\\'s Cathedral with the world\\'s largest cathedral organ, the Veste Oberhaus fortress overlooking the river confluence, or a hotel on Residenzplatz in the baroque heart of the Altstadt.",
+      "Total distance is approximately {routeKm} kilometres. Driving time is two and a half hours in normal conditions, closer to three during summer weekends or around the Vimperk rest stops. The drop-off can be anywhere in Passau — St. Stephan\\'s Cathedral with the world\\'s largest cathedral organ, the Veste Oberhaus fortress overlooking the river confluence, or a hotel on Residenzplatz in the baroque heart of the Altstadt.",
       "Your chauffeur watches conditions on the B12 mountain pass before every winter departure. If snow or ice has closed the Philippsreut approach, they reroute via Linz and the A8 on the Austrian side without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -94,7 +94,7 @@
     { "slug": "prague-munich", "city": "Munich", "distance": "380 km", "duration": "4h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~220 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2.5–3 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Passau Transfer — Executive Chauffeur",
-    "description": "Premium Prague to Passau transfer: 220 km, about 2.5–3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Passau transfer: {routeKm} km, about 2.5–3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Passau Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Passau transfer: 220 km, about 2.5–3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Passau transfer: {routeKm} km, about 2.5–3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

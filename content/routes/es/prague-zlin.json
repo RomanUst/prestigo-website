@@ -3,11 +3,11 @@
     "label": "Praga → Zlín",
     "headlineLine1": "Traslado de Praga a Zlín,",
     "headlineItalic": "la ciudad de Baťa.",
-    "intro": "310 km hacia el este, hasta la ciudad funcionalista de Moravia. Construida por el imperio del calzado Baťa, Zlín es un raro monumento al urbanismo industrial del siglo XX: tres horas y media, un precio fijo.",
+    "intro": "{routeKm} km hacia el este, hasta la ciudad funcionalista de Moravia. Construida por el imperio del calzado Baťa, Zlín es un raro monumento al urbanismo industrial del siglo XX: tres horas y media, un precio fijo.",
     "imageAlt": "Zlín — traslado en chófer privado desde Praga a Zlín"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Zlín cubre 310 km y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Brno o Uherské Hradiště— están disponibles con la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Un traslado privado de Praga a Zlín cubre {routeKm} km y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Brno o Uherské Hradiště— están disponibles con la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
     "No es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección este, a través de las Tierras Altas Bohemio-Moravas y luego por Brno. Desde Brno, la carretera se desvía hacia el sur por la D55 o continúa hacia el este por la carretera 50, atravesando la región vitivinícola de Moravia en dirección a la región de Zlín. No hay paso de frontera: todo el recorrido transcurre dentro de la República Checa, por lo que no hay controles de pasaporte ni cambios de viñeta.",
       "Zlín no se parece a ninguna otra ciudad checa. Es la ciudad-fábrica funcionalista construida por el zapatero Tomáš Baťa en las décadas de 1920 y 1930, una ciudad industrial planificada de inconfundibles tramas de ladrillo rojo, tejados planos y escaleras acristaladas. El edificio 21 —el rascacielos de Baťa, terminado en 1938— fue uno de los primeros edificios de gran altura de Europa y sigue marcando el perfil de la ciudad. La villa Baťa, las naves fabriles conservadas y los Estudios Cinematográficos de Zlín se encuentran a poca distancia a pie entre sí. Los Estudios Cinematográficos de Zlín son uno de los centros de animación más antiguos de Europa, y la ciudad acoge cada año el Festival de Cine de Zlín para la Infancia y la Juventud, el certamen más antiguo de su género en el mundo, celebrado desde 1961.",
-      "La distancia total es de aproximadamente 310 kilómetros. El tiempo de conducción ronda las tres horas y media. Las tardes de viernes al salir de Praga añaden entre 20 y 30 minutos, y su chófer comprueba el estado de la D1 antes de cada salida. No paga por el tráfico; paga por el tiempo."
+      "La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción ronda las tres horas y media. Las tardes de viernes al salir de Praga añaden entre 20 y 30 minutos, y su chófer comprueba el estado de la D1 antes de cada salida. No paga por el tráfico; paga por el tiempo."
     ]
   },
   "includedLabel": "Qué está incluido",
@@ -125,7 +125,7 @@
     "items": [
       {
         "title": "Tarifa fija, sin sorpresas",
-        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa y tiempo del chófer en un recorrido de 310 kilómetros. Nada se añade a la llegada."
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa y tiempo del chófer en un recorrido de {routeKm} kilómetros. Nada se añade a la llegada."
       },
       {
         "title": "Flota propia, chóferes seleccionados",
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~310 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Zlín — Mercedes ejecutivo",
-    "description": "Traslado ejecutivo Praga – Zlín: 310 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Praga – Zlín: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Zlín — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Praga – Zlín: 310 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Praga – Zlín: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

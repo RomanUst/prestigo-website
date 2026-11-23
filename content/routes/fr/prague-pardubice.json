@@ -3,11 +3,11 @@
     "label": "Prague → Pardubice",
     "headlineLine1": "Transfert de Prague à Pardubice,",
     "headlineItalic": "la Bohême de l'Est en direct.",
-    "intro": "110 km vers l'est par la D11, jusqu'à la ville équestre de Bohême de l'Est. Le Grand Steeple-chase, l'industrie chimique et une Vieille Ville remarquablement préservée. Une heure et demie, un prix fixe.",
+    "intro": "{routeKm} km vers l'est par la D11, jusqu'à la ville équestre de Bohême de l'Est. Le Grand Steeple-chase, l'industrie chimique et une Vieille Ville remarquablement préservée. Une heure et demie, un prix fixe.",
     "imageAlt": "Pardubice — transfert en chauffeur privé de Prague à Pardubice"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Pardubice couvre 110 km par l'autoroute D11 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en route — Poděbrady ou Kolín — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
+    "Un transfert privé de Prague à Pardubice couvre {routeKm} km par l'autoroute D11 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en route — Poděbrady ou Kolín — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur et un tarif qui ne change pas entre Prague et la Bohême de l'Est."
   ],
   "routeNarrative": {
@@ -192,7 +192,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~110 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -218,8 +218,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Pardubice — Chauffeur premium",
-    "description": "Transfert haut de gamme Prague – Pardubice : 110 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Pardubice : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Pardubice — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Pardubice : 110 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Pardubice : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

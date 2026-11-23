@@ -3,11 +3,11 @@
     "label": "Františkovy Lázně → Praga",
     "headlineLine1": "De Františkovy Lázně a Praga,",
     "headlineItalic": "un trayecto tranquilo hacia el este.",
-    "intro": "Un traslado de Františkovy Lázně a Praga con chófer privado: 175 km de puerta a puerta hacia el este desde la cuenca de Cheb, en aproximadamente 2 h 30 min de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta de autopista checa incluidos. Recogida en cualquier hotel balneario o dirección de Františkovy Lázně, y llegada a cualquier dirección de Praga.",
+    "intro": "Un traslado de Františkovy Lázně a Praga con chófer privado: {routeKm} km de puerta a puerta hacia el este desde la cuenca de Cheb, en aproximadamente 2 h 30 min de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta de autopista checa incluidos. Recogida en cualquier hotel balneario o dirección de Františkovy Lázně, y llegada a cualquier dirección de Praga.",
     "imageAlt": "Traslado con chófer privado de Františkovy Lázně a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Františkovy Lázně a Praga cubre 175 km —pasando por Cheb y después hacia el este por autopista a través de Bohemia Occidental y Central— y dura aproximadamente 2,5 horas de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel balneario o apartamento de Františkovy Lázně, o en la estación de Cheb, y le deja en su hotel de Praga, en su reunión o en el aeropuerto Václav Havel.",
+    "Un traslado privado de Františkovy Lázně a Praga cubre {routeKm} km —pasando por Cheb y después hacia el este por autopista a través de Bohemia Occidental y Central— y dura aproximadamente 2,5 horas de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel balneario o apartamento de Františkovy Lázně, o en la estación de Cheb, y le deja en su hotel de Praga, en su reunión o en el aeropuerto Václav Havel.",
     "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Desde la más pequeña de las ciudades balneario de Bohemia Occidental hasta el centro de Praga: un coche, un chófer y nada que organizar a la llegada."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en dos horas y media.",
     "paragraphs": [
       "Desde la recogida entre las fachadas amarillas de estilo Imperio del barrio balneario, su chófer recorre los pocos minutos hacia el sur hasta Cheb y después gira hacia el este. Desde aquí hay dos buenas rutas a Praga: la D6, pasando por Sokolov y Karlovy Vary, o hacia el sureste hasta la D5 y después por Pilsen. Ambas transcurren íntegramente dentro de la República Checa: la frontera alemana está cerca de la ciudad, pero nunca se cruza.",
-      "La distancia total es de aproximadamente 175 kilómetros; el tiempo de conducción, de dos horas y media en condiciones normales. Su chófer consulta ambas carreteras antes de salir y toma la que esté más despejada ese día: unas obras en la D6 o un tramo lento en la D5 pueden cambiar la elección.",
+      "La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción, de dos horas y media en condiciones normales. Su chófer consulta ambas carreteras antes de salir y toma la que esté más despejada ese día: unas obras en la D6 o un tramo lento en la D5 pueden cambiar la elección.",
       "En cualquier caso, llega por el lado occidental de Praga. El aeropuerto Václav Havel está a poca distancia del final de la autopista; la Ciudad Vieja, Malá Strana o Vinohrady, a otros 20–30 minutos según la hora del día. El coche para en su puerta."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "regensburg-prague", "city": "Ratisbona", "label": "Ratisbona → Praga", "distance": "285 km", "duration": "3 h" }
   ],
   "highlights": [
-    { "label": "Distancia", "value": "~175 km" },
+    { "label": "Distancia", "value": "~{routeKm} km" },
     { "label": "Duración", "value": "~2,5 horas" },
     { "label": "Vehículos", "value": ["Clase Business", "Primera Clase", "Monovolumen Business"] },
     { "label": "Precio desde", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Traslado Františkovy Lázně – Praga — Ejecutivo",
-    "description": "Traslado ejecutivo Františkovy Lázně – Praga: 175 km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Františkovy Lázně – Praga: {routeKm} km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Františkovy Lázně – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Františkovy Lázně – Praga: 175 km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Františkovy Lázně – Praga: {routeKm} km, unas 2,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

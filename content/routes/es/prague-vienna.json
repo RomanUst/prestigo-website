@@ -3,11 +3,11 @@
     "label": "Praga → Viena",
     "headlineLine1": "Traslado de Praga a Viena,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "De Praga a Viena con chófer privado son 330 km de traslado puerta a puerta por la D1 y la A5, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con todos los peajes y ambas viñetas, checa y austriaca, incluidos. Recogida en cualquier dirección de Praga y llegada a cualquier punto de Viena.",
+    "intro": "De Praga a Viena con chófer privado son {routeKm} km de traslado puerta a puerta por la D1 y la A5, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con todos los peajes y ambas viñetas, checa y austriaca, incluidos. Recogida en cualquier dirección de Praga y llegada a cualquier punto de Viena.",
     "imageAlt": "Viena — traslado en chófer privado desde Praga a Viena"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Viena recorre 330 km por las autopistas D1 y D52, continúa por la A5 hasta Viena y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar al destino. Las paradas en ruta —Brno, Bratislava o un viñedo en Moravia del Sur— están disponibles con la misma tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Un traslado privado de Praga a Viena recorre {routeKm} km por las autopistas D1 y D52, continúa por la A5 hasta Viena y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar al destino. Las paradas en ruta —Brno, Bratislava o un viñedo en Moravia del Sur— están disponibles con la misma tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
     "Esto no es un servicio colectivo. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en tres horas y media.",
     "paragraphs": [
       "Desde una recogida en Praga —Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección sureste, atravesando las Tierras Altas de Bohemia y Moravia hacia Brno. Pasado Brno, la ruta enlaza con la D52 y desciende en línea recta por la región vinícola de Moravia del Sur hasta la frontera Schengen checo-austriaca de Mikulov–Drasenhofen, el único paso de autopista entre ambos países, invisible dentro de Schengen: sin paradas ni controles documentales.",
-      "En el lado austriaco la carretera se convierte en la A5 Nordautobahn y llega directamente al extremo norte de Viena, enlazando con el anillo S1 antes de dejarle en su hotel del Innere Stadt o en su terminal de Viena-Schwechat (VIE). La distancia total es de aproximadamente 330 kilómetros. El tiempo de conducción es de tres horas y media en condiciones normales. Añada entre 20 y 30 minutos durante la hora punta del viernes por la tarde a la salida de Praga.",
+      "En el lado austriaco la carretera se convierte en la A5 Nordautobahn y llega directamente al extremo norte de Viena, enlazando con el anillo S1 antes de dejarle en su hotel del Innere Stadt o en su terminal de Viena-Schwechat (VIE). La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción es de tres horas y media en condiciones normales. Añada entre 20 y 30 minutos durante la hora punta del viernes por la tarde a la salida de Praga.",
       "Su chófer consulta el tráfico de la D1 antes de cada salida. Si hay un retraso por obras cerca de Brno —como ha ocurrido de forma intermitente durante las recientes obras de ampliación—, desvía la ruta por Znojmo y el antiguo corredor E59 sin preguntar. Usted no paga el tráfico; paga el tiempo."
     ]
   },
@@ -220,7 +220,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "330 km"
+      "value": "{routeKm} km"
     },
     {
       "label": "Duración",
@@ -247,8 +247,8 @@
   "trainArticle": {"text": "¿Dudas entre el RailJet y el coche? Nuestra guía compara tren, autobús y traslado privado por tiempo total, coste por persona y equipaje.", "linkLabel": "Praga a Viena: traslado o tren"},
   "metadata": {
     "title": "Traslado Praga – Viena — Premium, 3,5 h",
-    "description": "Traslado premium Praga – Viena: 330 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Viena: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Viena — Premium, 3,5 h puerta a puerta",
-    "ogDescription": "Traslado premium Praga – Viena: 330 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Peajes incluidos, paradas en ruta. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Viena: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Peajes incluidos, paradas en ruta. Sillas infantiles bajo petición sin coste."
   }
 }

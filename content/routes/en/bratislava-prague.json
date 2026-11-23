@@ -3,11 +3,11 @@
     "label": "Bratislava → Prague",
     "headlineLine1": "Bratislava to Prague,",
     "headlineItalic": "capital to capital.",
-    "intro": "Bratislava to Prague by private chauffeur is a 330 km door-to-door transfer north on the D2 and D1 through Brno, around 3h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Slovak and Czech vignettes included. Pickup from any Bratislava address or Bratislava Airport (BTS), drop-off anywhere in Prague.",
+    "intro": "Bratislava to Prague by private chauffeur is a {routeKm} km door-to-door transfer north on the D2 and D1 through Brno, around 3h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Slovak and Czech vignettes included. Pickup from any Bratislava address or Bratislava Airport (BTS), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Bratislava to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Bratislava to Prague covers 330 km — north on the D2 motorway to the Czech border at Brodské–Lanžhot, past Břeclav to Brno, then the D1 across the Bohemian-Moravian Highlands to Prague — and takes approximately 3.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your hotel in the Old Town, an office along the Danube, Bratislava main station or Bratislava Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "A private transfer from Bratislava to Prague covers {routeKm} km — north on the D2 motorway to the Czech border at Brodské–Lanžhot, past Břeclav to Brno, then the D1 across the Bohemian-Moravian Highlands to Prague — and takes approximately 3.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your hotel in the Old Town, an office along the Danube, Bratislava main station or Bratislava Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
     "The fare is agreed before you travel and does not move. Fuel, tolls, the Slovak and Czech motorway vignettes, bottled water, Wi-Fi and child seats on request are included. One car from door to door, and no second taxi to find in Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in three and a half hours.",
     "paragraphs": [
       "From a pickup in Staré Mesto, below the castle, in the new riverside quarter or at Bratislava Airport, your chauffeur heads north out of the city on the D2. The motorway crosses the flat, pine-wooded Záhorie lowland along the Morava valley to the Czech border at Brodské–Lanžhot. Both countries are in Schengen, so there is no stop — and with Czech and Slovak so close, even the road signs barely change.",
-      "On the Czech side the D2 runs past Břeclav and the vineyards of South Moravia to Brno, where it joins the D1 for the final 205 km to Prague through the Vysočina highlands. Total distance is approximately 330 kilometres; driving time is three and a half hours in normal traffic. Friday afternoons into Prague can add 20–30 minutes.",
+      "On the Czech side the D2 runs past Břeclav and the vineyards of South Moravia to Brno, where it joins the D1 for the final 205 km to Prague through the Vysočina highlands. Total distance is approximately {routeKm} kilometres; driving time is three and a half hours in normal traffic. Friday afternoons into Prague can add 20–30 minutes.",
       "Your chauffeur checks the D1 before departure. If there are roadworks or an accident between Brno and Jihlava, they take the alternative without asking. You arrive in Prague with time to check in, change and walk to dinner."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "graz-prague", "city": "Graz", "label": "Graz → Prague", "distance": "450 km", "duration": "4h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "330 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Duration", "value": "~3.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Bratislava to Prague Transfer — Premium Chauffeur",
-    "description": "Executive Bratislava to Prague transfer: 330 km, about 3.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Bratislava to Prague transfer: {routeKm} km, about 3.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Bratislava to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Bratislava to Prague transfer: 330 km, about 3.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Bratislava to Prague transfer: {routeKm} km, about 3.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

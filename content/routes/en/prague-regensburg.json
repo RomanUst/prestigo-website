@@ -3,11 +3,11 @@
     "label": "Prague → Regensburg",
     "headlineLine1": "Prague to Regensburg Private Transfer,",
     "headlineItalic": "medieval Danube.",
-    "intro": "285 km southwest into Bavaria's most perfectly preserved medieval city. A UNESCO old town, a 12th-century stone bridge, and the Danube flowing beneath — three hours, one fixed price.",
+    "intro": "{routeKm} km southwest into Bavaria's most perfectly preserved medieval city. A UNESCO old town, a 12th-century stone bridge, and the Danube flowing beneath — three hours, one fixed price.",
     "imageAlt": "Regensburg — private chauffeur transfer from Prague to Regensburg"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Regensburg covers 285 km via the D5 and A93 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Waidhaus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Regensburg covers {routeKm} km via the D5 and A93 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Waidhaus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in three hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway southwest, past Beroun and through Plzeň, and on to the Czech–German Schengen border at Rozvadov/Waidhaus. The crossing is invisible inside Schengen — no stops, no document checks. Once in Germany, the road becomes the A6 for a short stretch west, then the A93 drops south through the Upper Palatinate and into Regensburg on the Danube. Drop-off is at your hotel, the Altstadt, the Dom St. Peter, or the Steinerne Brücke.",
-      "Total distance is approximately 285 kilometres. Driving time is three hours in normal conditions. Add 15–20 minutes during Friday afternoon rush hour out of Prague or during summer traffic on the A93 corridor — the main feeder to southern Bavaria sees heavy holiday flow and intermittent roadworks.",
+      "Total distance is approximately {routeKm} kilometres. Driving time is three hours in normal conditions. Add 15–20 minutes during Friday afternoon rush hour out of Prague or during summer traffic on the A93 corridor — the main feeder to southern Bavaria sees heavy holiday flow and intermittent roadworks.",
       "Your chauffeur watches traffic on the D5 and the A93 before every departure. If there is a closure near Cham or a backup approaching the Regensburg ring, they reroute via Schwandorf without asking. You are not paying for traffic; you are paying for time. Regensburg itself rewards the drive — the UNESCO Altstadt, the Stone Bridge over the Danube, the cathedral with its twin spires, and the Walhalla memorial just east of the city in Donaustauf."
     ]
   },
@@ -94,7 +94,7 @@
     { "slug": "prague-plzen", "city": "Plzeň", "distance": "90 km", "duration": "1h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~285 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~3 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Regensburg Transfer — Premium Chauffeur",
-    "description": "Premium Prague to Regensburg transfer: 285 km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Regensburg transfer: {routeKm} km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Regensburg Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Regensburg transfer: 285 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Regensburg transfer: {routeKm} km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

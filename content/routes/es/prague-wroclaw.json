@@ -3,11 +3,11 @@
     "label": "Praga → Breslavia",
     "headlineLine1": "Traslado de Praga a Breslavia,",
     "headlineItalic": "la Baja Silesia sin rodeos.",
-    "intro": "285 km hacia el noreste, hasta la ciudad de los enanos de Polonia y una de las plazas de mercado más vibrantes de Europa Central. Tres horas, un precio fijo, de puerta a puerta y cruzando la frontera.",
+    "intro": "{routeKm} km hacia el noreste, hasta la ciudad de los enanos de Polonia y una de las plazas de mercado más vibrantes de Europa Central. Tres horas, un precio fijo, de puerta a puerta y cruzando la frontera.",
     "imageAlt": "Breslavia — traslado en chófer privado desde Praga a Breslavia"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Breslavia recorre 285 km y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos de dirección o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillitas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas por el camino —Liberec o Jelenia Góra— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Un traslado privado de Praga a Breslavia recorre {routeKm} km y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos de dirección o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillitas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas por el camino —Liberec o Jelenia Góra— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
     "Esto no es una lanzadera compartida. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en tres horas.",
     "paragraphs": [
       "Tras recogerle en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto—, su chófer toma la autopista D11 hacia el norte en dirección a Hradec Králové y enlaza después con la carretera 33 hacia el noreste, atravesando las estribaciones checas hasta la frontera de Náchod y Kudowa-Zdrój. El paso Schengen checo-polaco es imperceptible: sin paradas ni controles de documentación. Ya en Polonia, la vía se convierte en la DK8 y luego en la autovía S8, que desciende hasta Breslavia desde el suroeste.",
-      "La distancia total es de unos 285 kilómetros. El tiempo de conducción es de tres horas en condiciones normales. Añada entre 15 y 20 minutos los viernes por la tarde al salir de Praga. Los fines de semana con tráfico intenso en la frontera polaca, su chófer puede desviarse por Liberec y el paso de Bogatynia: un trayecto algo más largo a través de los Montes de Jizera, pero una entrada más limpia en la Baja Silesia.",
+      "La distancia total es de unos {routeKm} kilómetros. El tiempo de conducción es de tres horas en condiciones normales. Añada entre 15 y 20 minutos los viernes por la tarde al salir de Praga. Los fines de semana con tráfico intenso en la frontera polaca, su chófer puede desviarse por Liberec y el paso de Bogatynia: un trayecto algo más largo a través de los Montes de Jizera, pero una entrada más limpia en la Baja Silesia.",
       "Breslavia bien merece el viaje. El Rynek es una de las mayores plazas de mercado medievales de Europa. Los enanos de bronce de Breslavia —unos seiscientos— nacieron como una única figurita de protesta en los años ochenta y hoy convierten cualquier paseo en una búsqueda. La Isla de la Catedral (Ostrów Tumski), la Sala del Centenario con su pionera cúpula de hormigón armado declarada Patrimonio de la Humanidad por la UNESCO y el inmenso Panorama de Racławice en su rotonda construida a medida completan la lista breve. Su chófer vigila el tráfico de la D11 antes de cada salida. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~285 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Breslavia — Chófer ejecutivo",
-    "description": "Traslado premium Praga – Breslavia: 285 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Breslavia: {routeKm} km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Breslavia — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Breslavia: 285 km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Breslavia: {routeKm} km, unas 3 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

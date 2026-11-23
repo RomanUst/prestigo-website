@@ -3,11 +3,11 @@
     "label": "Prague → Graz",
     "headlineLine1": "Prague to Graz Private Transfer,",
     "headlineItalic": "Styrian capital.",
-    "intro": "450 km south through Bohemia and Austria to the City of Design. Schlossberg, the Kunsthaus, and the Styrian mountains behind — four and a half to five hours, one fixed price.",
+    "intro": "{routeKm} km south through Bohemia and Austria to the City of Design. Schlossberg, the Kunsthaus, and the Styrian mountains behind — four and a half to five hours, one fixed price.",
     "imageAlt": "Graz — private chauffeur transfer from Prague to Graz"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Graz covers approximately 450 km and takes about 4.5 to 5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, the A9 Pyhrn tunnel tolls, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Linz — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Graz covers approximately {routeKm} km and takes about 4.5 to 5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, the A9 Pyhrn tunnel tolls, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Linz — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -90,7 +90,7 @@
     { "slug": "prague-brno", "city": "Brno", "distance": "210 km", "duration": "2h 15min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~450 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~4.5–5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -101,8 +101,8 @@
   },
   "metadata": {
     "title": "Prague to Graz Transfer — Executive Mercedes",
-    "description": "Premium Prague to Graz transfer: 450 km, about 4.5–5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Graz transfer: {routeKm} km, about 4.5–5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Graz Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Graz transfer: 450 km, about 4.5–5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Graz transfer: {routeKm} km, about 4.5–5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

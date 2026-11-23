@@ -7,7 +7,7 @@
     "imageAlt": "Dresden — private chauffeur transfer from Prague to Dresden"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Dresden covers approximately 150 km via the D8 and A17 motorways and takes about 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ústí nad Labem or the Elbe valley viewpoint — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Dresden covers approximately {routeKm} km via the D8 and A17 motorways and takes about 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ústí nad Labem or the Elbe valley viewpoint — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D8 motorway north through Ústí nad Labem. The Czech–German motorway crossing at Petrovice–Breitenau is invisible inside the Schengen Area — no stops, no document checks. Once in Germany, the road becomes the A17 and drops into Dresden through the Weißer Hirsch hills, arriving at your hotel or meeting point in central Dresden.",
-      "Total distance is approximately 150 kilometres. Driving time is two hours in normal conditions. Add 15–20 minutes during Friday afternoon rush hour out of Prague.",
+      "Total distance is approximately {routeKm} kilometres. Driving time is two hours in normal conditions. Add 15–20 minutes during Friday afternoon rush hour out of Prague.",
       "Your chauffeur watches traffic on the D8 before every departure. If there is a construction delay near Lovosice — as there has been on and off since 2024 — they reroute via the R63 without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "300 km", "duration": "3h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~150 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Prague to Dresden Transfer — Premium Chauffeur",
-    "description": "Premium Prague to Dresden transfer: 150 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Dresden transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Dresden Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Dresden transfer: 150 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Dresden transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

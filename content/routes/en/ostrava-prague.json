@@ -3,11 +3,11 @@
     "label": "Ostrava → Prague",
     "headlineLine1": "Ostrava to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Ostrava to Prague by private chauffeur is a 370 km door-to-door transfer on the D1, around 4 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Ostrava address, Ostrava main station or Leoš Janáček Airport (OSR), drop-off anywhere in Prague.",
+    "intro": "Ostrava to Prague by private chauffeur is a {routeKm} km door-to-door transfer on the D1, around 4 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Ostrava address, Ostrava main station or Leoš Janáček Airport (OSR), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Ostrava to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Ostrava to Prague covers 370 km on the D1 — south-west out of Moravia-Silesia, across central Moravia to Brno, then west over the Bohemian-Moravian Highlands to Prague — and takes approximately 4 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Ostrava hotel or office, at Ostrava hlavní nádraží or Ostrava-Svinov, or inside Arrivals at Leoš Janáček Airport, and drops you at your Prague door.",
+    "A private transfer from Ostrava to Prague covers {routeKm} km on the D1 — south-west out of Moravia-Silesia, across central Moravia to Brno, then west over the Bohemian-Moravian Highlands to Prague — and takes approximately 4 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Ostrava hotel or office, at Ostrava hlavní nádraží or Ostrava-Svinov, or inside Arrivals at Leoš Janáček Airport, and drops you at your Prague door.",
     "The price is set at booking: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are included. One car the whole way — no connection, no luggage on a platform, nothing to arrange when you arrive in Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in four hours.",
     "paragraphs": [
       "From a pickup near Stodolní, at Dolní Vítkovice or at one of the city’s stations, your chauffeur joins the D1 on the south-western side of Ostrava. Leoš Janáček Airport at Mošnov sits just off this stretch, so an airport pickup does not need a detour into the city. There is no border on this route — although Ostrava is close to both Poland and Slovakia, the drive to Prague stays inside the Czech Republic.",
-      "The motorway runs south-west through the Moravian Gate past Hranice, then across the open Haná plain past Přerov and Kroměříž to Vyškov and Brno. From Brno it is the long westward stretch through the Vysočina — Velké Meziříčí, Jihlava, Humpolec — and down into Central Bohemia. Total distance is approximately 370 kilometres; driving time is four hours in normal traffic.",
+      "The motorway runs south-west through the Moravian Gate past Hranice, then across the open Haná plain past Přerov and Kroměříž to Vyškov and Brno. From Brno it is the long westward stretch through the Vysočina — Velké Meziříčí, Jihlava, Humpolec — and down into Central Bohemia. Total distance is approximately {routeKm} kilometres; driving time is four hours in normal traffic.",
       "Your chauffeur checks the D1 before leaving Ostrava. If there is roadwork or an accident in the highlands, they take the parallel roads around it without asking. On a four-hour drive a proper rest stop is part of the plan, and Friday afternoons or Sunday evenings into Prague can add 20–30 minutes."
     ]
   },
@@ -73,7 +73,7 @@
     "headingLine1": "Why book with Prestigo",
     "headingItalic": "from Ostrava to Prague.",
     "items": [
-      { "title": "Fixed fare for 370 km", "body": "Fuel, the Czech vignette and the chauffeur’s time are in the price. Traffic on the D1 does not change it, and nothing is added in Prague." },
+      { "title": "Fixed fare for {routeKm} km", "body": "Fuel, the Czech vignette and the chauffeur’s time are in the price. Traffic on the D1 does not change it, and nothing is added in Prague." },
       { "title": "One car, start to finish", "body": "No ride to Svinov or the main station, no carriage to find, no taxi queue in Prague. Your bags go in the boot once in Ostrava and come out at your Prague door." },
       { "title": "A Prague-based company", "body": "Prestigo operates its own Mercedes fleet from Prague. Your chauffeur knows the city you are arriving in — hotel drive-ups, the Old Town’s closed streets, the real journey time to the airport." }
     ]
@@ -96,7 +96,7 @@
     { "slug": "zlin-prague", "city": "Zlín", "label": "Zlín → Prague", "distance": "310 km", "duration": "3h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~370 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~4 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Ostrava to Prague Transfer — Executive Mercedes",
-    "description": "Premium Ostrava to Prague transfer: 370 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Ostrava to Prague transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Ostrava to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Ostrava to Prague transfer: 370 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Ostrava to Prague transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

@@ -3,7 +3,7 @@ import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { getRouteContent } from '@/lib/route-content'
+import { getLiveRouteContent } from '@/lib/route-distances'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
@@ -25,7 +25,7 @@ import { getStaticAggregateRating } from '@/lib/google-reviews'
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   setRequestLocale(locale)
-  const content = getRouteContent('prague-karlovy-vary', locale)
+  const content = await getLiveRouteContent('prague-karlovy-vary', locale)
   const route = await getRoutePrice('prague-karlovy-vary')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const prices = { ePrice }
@@ -52,7 +52,7 @@ export default async function PragueKarlovyVaryPage({ params }: { params: Promis
   const { locale } = await params
   setRequestLocale(locale)
   const bookHref = `${getPathname({ locale, href: '/book' })}${routeBookQuery('prague-karlovy-vary')}`
-  const content = getRouteContent('prague-karlovy-vary', locale)
+  const content = await getLiveRouteContent('prague-karlovy-vary', locale)
   const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-karlovy-vary')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur

@@ -3,11 +3,11 @@
     "label": "Cracovia → Praga",
     "headlineLine1": "De Cracovia a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "De Cracovia a Praga con chófer privado son unos 530 km de traslado puerta a puerta hacia el oeste a través de Silesia y Moravia, unas cinco horas y media de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con los peajes de autopista polacos y la viñeta checa incluidos. Recogida en cualquier dirección de Cracovia, en Kraków Główny o en el aeropuerto de Cracovia (KRK) y llegada a cualquier punto de Praga.",
+    "intro": "De Cracovia a Praga con chófer privado son unos {routeKm} km de traslado puerta a puerta hacia el oeste a través de Silesia y Moravia, unas cinco horas y media de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con los peajes de autopista polacos y la viñeta checa incluidos. Recogida en cualquier dirección de Cracovia, en Kraków Główny o en el aeropuerto de Cracovia (KRK) y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Cracovia a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Cracovia a Praga cubre unos 530 km —hacia el oeste por la autopista de peaje A4 pasando por Katowice hasta Gliwice, al sur por la A1 hasta la frontera checa de Gorzyczki–Věřňovice y después por la autopista D1 pasando por Ostrava y Brno hasta Praga— y dura unas cinco horas y media de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel de Stare Miasto o Kazimierz, en Kraków Główny o en la sala de llegadas del aeropuerto de Cracovia, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Cracovia a Praga cubre unos {routeKm} km —hacia el oeste por la autopista de peaje A4 pasando por Katowice hasta Gliwice, al sur por la A1 hasta la frontera checa de Gorzyczki–Věřňovice y después por la autopista D1 pasando por Ostrava y Brno hasta Praga— y dura unas cinco horas y media de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel de Stare Miasto o Kazimierz, en Kraków Główny o en la sala de llegadas del aeropuerto de Cracovia, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se fija antes del viaje: el combustible, el peaje de la A4, la viñeta de autopista checa, el agua embotellada, el Wi-Fi y las sillas infantiles bajo petición están incluidos. Sin madrugar para el tren, sin cambiar de andén, sin buscar taxi en la estación principal de Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en unas cinco horas y media.",
     "paragraphs": [
       "Desde la recogida cerca de la Rynek Główny, a los pies del Wawel o en el aeropuerto de Cracovia en Balice, su chófer toma la A4 en dirección oeste. El tramo hasta Katowice es una autopista de peaje, y el peaje ya está incluido en su tarifa. Pasado Katowice, la A4 sigue hasta Gliwice, donde la ruta gira hacia el sur por la A1 a través de la Alta Silesia en dirección a la frontera checa, cerca de Ostrava.",
-      "El cruce está dentro del espacio Schengen: sin control rutinario, sin colas. Su chófer utiliza el paso de autopista de Gorzyczki–Věřňovice. En el lado checo, la D1 avanza desde Ostrava hacia el suroeste a través de Moravia —por la Puerta de Moravia, pasando por Přerov— hasta Brno, y desde allí continúa por las Tierras Altas de Bohemia y Moravia hasta Praga, donde entra por el sureste. La distancia total es de unos 530 kilómetros; el tiempo de conducción es de unas cinco horas y media, algo más un viernes por la tarde.",
+      "El cruce está dentro del espacio Schengen: sin control rutinario, sin colas. Su chófer utiliza el paso de autopista de Gorzyczki–Věřňovice. En el lado checo, la D1 avanza desde Ostrava hacia el suroeste a través de Moravia —por la Puerta de Moravia, pasando por Přerov— hasta Brno, y desde allí continúa por las Tierras Altas de Bohemia y Moravia hasta Praga, donde entra por el sureste. La distancia total es de unos {routeKm} kilómetros; el tiempo de conducción es de unas cinco horas y media, algo más un viernes por la tarde.",
       "Su chófer revisa la A4 y la D1 antes de salir y elige la ruta más rápida del día. Llega a Praga a tiempo para instalarse, pasear junto al río y cenar en Malá Strana."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~530 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Traslado Cracovia – Praga — Mercedes ejecutivo",
-    "description": "Traslado ejecutivo Cracovia – Praga: 530 km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Cracovia – Praga: {routeKm} km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Cracovia – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Cracovia – Praga: 530 km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Cracovia – Praga: {routeKm} km, unas 5,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

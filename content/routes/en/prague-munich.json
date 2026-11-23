@@ -3,11 +3,11 @@
     "label": "Prague → Munich",
     "headlineLine1": "Prague to Munich Private Transfer,",
     "headlineItalic": "Bavarian capital.",
-    "intro": "385 km southwest through Bohemia and Bavaria. Marienplatz, the English Garden, Oktoberfest, and Munich Airport — four hours, one fixed price, door to door.",
+    "intro": "{routeKm} km southwest through Bohemia and Bavaria. Marienplatz, the English Garden, Oktoberfest, and Munich Airport — four hours, one fixed price, door to door.",
     "imageAlt": "Munich — private chauffeur transfer from Prague to Munich"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Munich covers 385 km via the D5 and A93 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Munich covers {routeKm} km via the D5 and A93 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in four hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway southwest through Pilsen and the rolling West Bohemian countryside. The Czech-German Schengen border at Rozvadov/Waidhaus is invisible — no stops, no document checks. Once in Bavaria, the road becomes the A6 heading west toward Nuremberg.",
-      "The conventional fast route then turns south on the A93 past Regensburg and joins the A9 for the final approach into Munich. Drop-off is anywhere you need it — a hotel in the Altstadt near Marienplatz, an office in Maxvorstadt, the BMW Welt, or the executive terminal at Munich Airport (MUC). Total distance is approximately 385 kilometres.",
+      "The conventional fast route then turns south on the A93 past Regensburg and joins the A9 for the final approach into Munich. Drop-off is anywhere you need it — a hotel in the Altstadt near Marienplatz, an office in Maxvorstadt, the BMW Welt, or the executive terminal at Munich Airport (MUC). Total distance is approximately {routeKm} kilometres.",
       "Driving time is four hours in clean conditions. The Munich autobahn ring, the A99, can be heavy at morning and evening rush hour, so add 20–30 minutes for arrivals between 7:30 and 9:30 or 16:30 and 18:30. Your chauffeur watches the boards before every departure and shifts the route through the city outskirts when needed. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -100,7 +100,7 @@
     { "slug": "prague-salzburg", "city": "Salzburg", "distance": "375 km", "duration": "4h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~385 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~4 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -111,8 +111,8 @@
   },
   "metadata": {
     "title": "Prague to Munich Transfer — Executive Mercedes",
-    "description": "Executive Prague to Munich transfer: 385 km, about 4 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Munich transfer: {routeKm} km, about 4 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Munich Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Munich transfer: 385 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Munich transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

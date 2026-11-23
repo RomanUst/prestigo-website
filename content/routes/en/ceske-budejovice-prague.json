@@ -3,11 +3,11 @@
     "label": "České Budějovice → Prague",
     "headlineLine1": "České Budějovice to Prague,",
     "headlineItalic": "north, door to door.",
-    "intro": "České Budějovice to Prague by private chauffeur is a 155 km door-to-door transfer north on the D3 through Tábor, around 2 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any České Budějovice address or the main station, drop-off anywhere in Prague.",
+    "intro": "České Budějovice to Prague by private chauffeur is a {routeKm} km door-to-door transfer north on the D3 through Tábor, around 2 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any České Budějovice address or the main station, drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from České Budějovice to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from České Budějovice to Prague covers 155 km — north on the D3 motorway past Tábor, then the last stretch through Central Bohemia into Prague — and takes approximately 2 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your hotel, office or České Budějovice main station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
+    "A private transfer from České Budějovice to Prague covers {routeKm} km — north on the D3 motorway past Tábor, then the last stretch through Central Bohemia into Prague — and takes approximately 2 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your hotel, office or České Budějovice main station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
     "The fare is agreed before you travel and does not change: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. No taxi to the station, no luggage on the platform, no second taxi in Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two hours.",
     "paragraphs": [
       "From a pickup on Náměstí Přemysla Otakara II, at a hotel in the centre or at an office on the edge of town, your chauffeur joins the D3 on the city’s northern side. The motorway runs north through the South Bohemian pond country, past Hluboká and Veselí nad Lužnicí, to Tábor. The whole route is inside the Czech Republic — no border, no second vignette.",
-      "North of Tábor the D3 is still being completed, so the last part of the drive follows the older Highway 3 through Central Bohemia before joining the D1 into Prague. Total distance is approximately 155 kilometres; driving time is two hours in normal traffic. Allow 15–20 minutes more on a Friday afternoon or a Sunday evening on the approach to Prague.",
+      "North of Tábor the D3 is still being completed, so the last part of the drive follows the older Highway 3 through Central Bohemia before joining the D1 into Prague. Total distance is approximately {routeKm} kilometres; driving time is two hours in normal traffic. Allow 15–20 minutes more on a Friday afternoon or a Sunday evening on the approach to Prague.",
       "Your chauffeur checks the road before departure and adjusts if there is roadwork or an accident. You arrive in Prague from the south-east — Vinohrady, the New Town and the Old Town are close, and Václav Havel Airport is reached on the ring road."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "salzburg-prague", "city": "Salzburg", "label": "Salzburg → Prague", "distance": "375 km", "duration": "4h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~155 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "České Budějovice to Prague Transfer — Executive",
-    "description": "Premium České Budějovice to Prague transfer: 155 km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium České Budějovice to Prague transfer: {routeKm} km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "České Budějovice to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium České Budějovice to Prague transfer: 155 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium České Budějovice to Prague transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

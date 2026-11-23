@@ -10,6 +10,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect } from 'vitest'
+import { ROUTES_BY_SLUG, MIRROR_ROUTES_BY_SLUG } from '@/lib/routes'
 
 const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
 type Locale = (typeof LOCALES)[number]
@@ -67,7 +68,11 @@ describe('route metadata: search-phrase titles, no prices in snippets', () => {
         expect(slug.startsWith('prague-') ? from : to, `${locale}/${slug} hero.label`).toBe(
           { en: 'Prague', ru: 'Прага', es: 'Praga', fr: 'Prague', ar: 'براغ', hi: 'प्राग', zh: '布拉格' }[locale],
         )
-        const m = c.metadata as Record<'title' | 'description' | 'ogTitle' | 'ogDescription', string>
+        // {routeKm} is filled with the admin distance at render time (lib/route-distances.ts);
+        // measure the snippet as rendered, with the route's fallback distance.
+        const m = Object.fromEntries(
+          Object.entries(c.metadata as Record<string, string>).map(([k, v]) => [k, v.replaceAll('{routeKm}', String(ROUTES_BY_SLUG[MIRROR_ROUTES_BY_SLUG[slug]?.sourceSlug ?? slug].distanceKm))]),
+        ) as Record<'title' | 'description' | 'ogTitle' | 'ogDescription', string>
         for (const [k, v] of Object.entries(m)) expect(v, `${locale}/${slug} ${k}`).not.toMatch(PRICE)
         expect(m.title.startsWith(TITLE_PHRASE[locale](from, to)), `${locale}/${slug} title: ${m.title}`).toBe(true)
         expect(m.ogTitle.startsWith(TITLE_PHRASE[locale](from, to)), `${locale}/${slug} ogTitle`).toBe(true)
