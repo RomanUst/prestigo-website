@@ -129,7 +129,7 @@ export default function CustomTourDetail({ requestId }: { requestId: string }) {
     async (silent: boolean): Promise<CustomTourRequestDetail | null> => {
       if (!silent) setLoadState('loading')
       try {
-        const res = await fetch(`/api/admin/custom-tours/${requestId}`, { cache: 'no-store' })
+        const res = await fetch(`/api/admin/custom-tours/${encodeURIComponent(requestId)}`, { cache: 'no-store' })
         if (res.status === 404) {
           setLoadState('notfound')
           return null

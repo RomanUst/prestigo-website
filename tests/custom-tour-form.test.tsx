@@ -335,3 +335,11 @@ describe('custom-tour form: errors', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('We could not send your request.')
   })
 })
+
+describe('custom-tour form: input limits (IN-04)', () => {
+  it('name and email carry the server limits as maxLength (100 and 200)', async () => {
+    await renderPage()
+    expect(field('YOUR NAME').maxLength).toBe(100)
+    expect(field('EMAIL').maxLength).toBe(200)
+  })
+})

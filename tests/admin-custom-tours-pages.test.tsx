@@ -363,3 +363,20 @@ describe('sidebar entry', () => {
     expect(screen.getByRole('link', { name: /Custom tours/ })).toHaveAttribute('href', '/admin/custom-tours')
   })
 })
+
+describe('route param in fetch paths (IN-07)', () => {
+  it('the detail page encodes the request id, so an id that decodes to another route stays one path segment', async () => {
+    installFetch(() => ({ status: 404, body: {} }))
+    const params = Promise.resolve({ id: '../quotes' })
+    await act(async () => {
+      render(
+        <Suspense fallback={<p>suspended</p>}>
+          <CustomTourDetailPage params={params} />
+        </Suspense>,
+      )
+      await params
+    })
+    await waitFor(() => expect(calls.length).toBeGreaterThan(0))
+    expect(calls[0].url).toBe('/api/admin/custom-tours/..%2Fquotes')
+  })
+})

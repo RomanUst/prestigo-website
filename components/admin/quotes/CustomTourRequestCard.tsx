@@ -77,7 +77,7 @@ export default function CustomTourRequestCard({
     let cancelled = false
     ;(async () => {
       try {
-        const res = await fetch(`/api/admin/custom-tours/${requestId}`, { cache: 'no-store' })
+        const res = await fetch(`/api/admin/custom-tours/${encodeURIComponent(requestId)}`, { cache: 'no-store' })
         if (cancelled) return
         if (res.status === 404) {
           setState('gone')
@@ -119,7 +119,7 @@ export default function CustomTourRequestCard({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
         <h2 style={headingStyle}>Custom-tour request</h2>
         <Link
-          href={`/admin/custom-tours/${requestId}`}
+          href={`/admin/custom-tours/${encodeURIComponent(requestId)}`}
           style={{ ...outlineButtonStyle, minHeight: '36px', padding: '0 12px', display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}
         >
           Open request
