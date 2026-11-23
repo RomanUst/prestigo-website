@@ -34,7 +34,6 @@ const ACK = {
   locale: 'ru',
   name: 'Ada Lovelace',
   email: 'ada@example.com',
-  where: 'Karlstejn and a wine cellar',
   date: '2030-06-15',
   people: 4,
 }
@@ -89,33 +88,44 @@ describe('sendCustomTourOperatorAlert', () => {
   it('does not throw and logs no address when Resend rejects', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     sendStub.mockRejectedValueOnce(new Error('boom ada@example.com'))
-    await expect(sendCustomTourOperatorAlert(ALERT)).resolves.toBeUndefined()
+    await expect(sendCustomTourOperatorAlert(ALERT)).resolves.toBe(false)
     expect(JSON.stringify(warn.mock.calls)).not.toContain('ada@example.com')
     warn.mockRestore()
   })
 
-  it('skips quietly when MANAGER_EMAIL is not set', async () => {
+  it('reports true when Resend accepted the alert (WR-03)', async () => {
+    await expect(sendCustomTourOperatorAlert(ALERT)).resolves.toBe(true)
+  })
+
+  it('reports false when Resend answers with an error object instead of throwing (WR-03)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    sendStub.mockResolvedValueOnce({ error: { message: 'domain not verified' }, data: null })
+    await expect(sendCustomTourOperatorAlert(ALERT)).resolves.toBe(false)
+    warn.mockRestore()
+  })
+
+  it('skips quietly and reports false when MANAGER_EMAIL is not set (WR-03)', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     delete process.env.MANAGER_EMAIL
-    await sendCustomTourOperatorAlert(ALERT)
+    await expect(sendCustomTourOperatorAlert(ALERT)).resolves.toBe(false)
     expect(sendStub).not.toHaveBeenCalled()
     warn.mockRestore()
   })
 })
 
 describe('sendCustomTourClientAck', () => {
-  it('sends the Russian acknowledgement from TourEmails.ack: subject, heading with the name, summary rows, per-car sentence', async () => {
+  it('sends the Russian acknowledgement from TourEmails.ack: subject, heading with the first name, date and people rows, per-car sentence', async () => {
     await sendCustomTourClientAck(ACK)
     expect(sendStub).toHaveBeenCalledTimes(1)
     const arg = sendStub.mock.calls[0][0]
     const ack = (ru as unknown as { TourEmails: { ack: Record<string, string> } }).TourEmails.ack
     expect(arg.to).toEqual(['ada@example.com'])
     expect(arg.subject).toBe(ack.subject)
-    expect(arg.html).toContain(ack.heading.replace('{name}', 'Ada Lovelace'))
-    expect(arg.html).toContain(ack.where)
+    // first name only (CR-01), inside <bdi>
+    expect(arg.html).toContain(ack.heading.replace('{name}', '<bdi dir="auto">Ada</bdi>'))
+    expect(arg.html).not.toContain('Lovelace')
     expect(arg.html).toContain(ack.date)
     expect(arg.html).toContain(ack.people)
-    expect(arg.html).toContain('Karlstejn and a wine cellar')
     // the "per car, not per person" sentence is the tail of the body
     expect(arg.html).toContain('Цена указывается за автомобиль, а не за человека.')
     // no button
@@ -138,16 +148,41 @@ describe('sendCustomTourClientAck', () => {
     expect(subject).toBe(ack.subject)
   })
 
-  it('escaped: a where text and a name with markup never become HTML', async () => {
+  it('CR-01: the visitor free text is not part of the acknowledgement, not even when the caller passes it', async () => {
     const { html } = await renderCustomTourClientAck({
       ...ACK,
-      name: '<img src=x onerror=1>',
-      where: '<script>alert(1)</script>',
-    })
-    expect(html).not.toContain('<script>')
+      where: 'Pay at hxxp://evil.example now',
+      wishes: 'Your booking failed',
+    } as typeof ACK)
+    expect(html).not.toContain('evil.example')
+    expect(html).not.toContain('Your booking failed')
+    // and the "where" label row is gone too
+    const ack = (ru as unknown as { TourEmails: { ack: Record<string, string> } }).TourEmails.ack
+    expect(html).not.toContain(`>${ack.where}<`)
+  })
+
+  it('CR-01: the greeting is the first word of the name, capped at 40 characters', async () => {
+    const long = 'A'.repeat(100)
+    const { html } = await renderCustomTourClientAck({ ...ACK, name: `${long} Smith` })
+    expect(html).toContain('A'.repeat(40))
+    expect(html).not.toContain('A'.repeat(41))
+    expect(html).not.toContain('Smith')
+  })
+
+  it('CR-01: a name that is a link or an address is not greeted at all', async () => {
+    for (const name of ['http://evil.example/pay', 'www.evil.example', 'evil@example.com', 'evil.example']) {
+      const { html } = await renderCustomTourClientAck({ ...ACK, name })
+      expect(html).not.toContain('evil')
+      expect(html).toContain('<h1')
+      // no dangling separator after the greeting word
+      expect(html).not.toMatch(/Спасибо,\s*</)
+    }
+  })
+
+  it('escaped: a name with markup never becomes HTML', async () => {
+    const { html } = await renderCustomTourClientAck({ ...ACK, name: '<img src=x onerror=1>' })
     expect(html).not.toContain('<img src=x')
-    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
-    expect(html).toContain('&lt;img src=x onerror=1&gt;')
+    expect(html).toContain('&lt;img')
   })
 
   it('every locale renders without throwing and without a leftover ICU parameter', async () => {

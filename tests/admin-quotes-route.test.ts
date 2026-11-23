@@ -86,7 +86,7 @@ function inquiriesTable(rows: InquiryRow[]) {
 function seed(bookings: Array<Record<string, unknown>> = [], inquiries: InquiryRow[] = []) {
   db = createFakePaymentsDb({ bookings })
   // The same database, except that one insert into the stops table can be made to fail (rollback test), plus the
-  // inquiries double and the unique partial index quotes_source_inquiry_id_key of 093 on quote inserts.
+  // inquiries double and the unique partial index quotes_source_inquiry_id_key of 093/094 (not voided) on quote inserts.
   world.db = {
     client: {
       rpc: (name, args) => db.client.rpc(name, args),
@@ -99,7 +99,7 @@ function seed(bookings: Array<Record<string, unknown>> = [], inquiries: InquiryR
               if (prop === 'insert') {
                 return (payload: Record<string, unknown>) => {
                   const sid = payload?.source_inquiry_id
-                  if (sid != null && db.state.quotes.some((q) => q.source_inquiry_id === sid)) {
+                  if (sid != null && db.state.quotes.some((q) => q.source_inquiry_id === sid && q.status !== 'voided')) {
                     const failed = {
                       select: () => ({
                         single: () =>
@@ -753,6 +753,18 @@ describe('Phase 93 TRIP-07 / D-18: a quote created from a custom-tour request', 
     expect(((await second.json()) as { error: string }).error).toBe('INQUIRY_ALREADY_QUOTED')
     expect(db.state.quotes).toHaveLength(quotesBefore)
     expect(db.state.quote_versions).toHaveLength(versionsBefore)
+  })
+
+  it('WR-01: after the quote of a request is voided the request can be quoted again (094), a live second one is still refused', async () => {
+    const first = await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })
+    expect(first.status).toBe(201)
+    const firstId = ((await first.json()) as { id: string }).id
+    expect((await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })).status).toBe(409)
+
+    db.state.quotes.find((q) => q.id === firstId)!.status = 'voided'
+    const again = await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })
+    expect(again.status).toBe(201)
+    expect((await create({ client: CLIENT, lead_channel: 'other', currency: 'eur', source_inquiry_id: TOUR_REQ })).status).toBe(409)
   })
 
   it('a quote without source_inquiry_id behaves as before, and quotes without a request never collide', async () => {

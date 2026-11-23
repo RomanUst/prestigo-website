@@ -461,6 +461,7 @@ export default function CustomTourForm({ tour, initialDate, initialPax }: Custom
           id={`${uid}-name`}
           type="text"
           autoComplete="name"
+          maxLength={100}
           value={name}
           readOnly={busy}
           onChange={(e) => {
@@ -488,6 +489,7 @@ export default function CustomTourForm({ tour, initialDate, initialPax }: Custom
           id={`${uid}-email`}
           type="email"
           autoComplete="email"
+          maxLength={200}
           value={email}
           readOnly={busy}
           onChange={(e) => {

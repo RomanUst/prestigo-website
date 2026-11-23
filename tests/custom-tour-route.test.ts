@@ -21,7 +21,7 @@ vi.mock('@/lib/custom-tour-enqueue', () => ({
 }))
 
 vi.mock('@/lib/email', () => ({
-  sendCustomTourOperatorAlert: vi.fn().mockResolvedValue(undefined),
+  sendCustomTourOperatorAlert: vi.fn().mockResolvedValue(true),
   sendCustomTourClientAck: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -63,7 +63,7 @@ beforeEach(() => {
   vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, remaining: 4, limit: 5 })
   vi.mocked(storeInquiry).mockResolvedValue(INQUIRY_ID)
   vi.mocked(enqueueCustomTourAlert).mockResolvedValue(undefined)
-  vi.mocked(sendCustomTourOperatorAlert).mockResolvedValue(undefined)
+  vi.mocked(sendCustomTourOperatorAlert).mockResolvedValue(true)
   vi.mocked(sendCustomTourClientAck).mockResolvedValue(undefined)
 })
 
@@ -237,22 +237,89 @@ describe('POST /api/custom-tour: emails', () => {
       email: 'ada@example.com',
     })
     expect(sendCustomTourClientAck).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(sendCustomTourClientAck).mock.calls[0][0]).toMatchObject({
-      locale: 'ru',
-      name: 'Ada Lovelace',
-      email: 'ada@example.com',
-      people: 4,
-    })
+    const ackArg = vi.mocked(sendCustomTourClientAck).mock.calls[0][0]
+    expect(ackArg).toMatchObject({ locale: 'ru', name: 'Ada Lovelace', email: 'ada@example.com', people: 4 })
+    // CR-01: no visitor free text reaches the acknowledgement
+    expect(ackArg).not.toHaveProperty('where')
+    expect(ackArg).not.toHaveProperty('wishes')
   })
 
-  it('the alert gets no inquiry id when nothing was stored, and the request still answers 200', async () => {
+  it('CR-01: the ack is limited per recipient on /api/custom-tour#ack, keyed on a hash of the normalised address', async () => {
+    await POST(makeRequest(validBody({ email: 'Ada+promo@Example.com' })))
+    const ackCall = vi.mocked(checkRateLimit).mock.calls.find((c) => c[0] === '/api/custom-tour#ack')
+    expect(ackCall).toBeDefined()
+    expect(ackCall![1]).toMatch(/^[0-9a-f]{32}$/)
+    await POST(makeRequest(validBody({ email: 'ada@example.com' })))
+    const keys = vi
+      .mocked(checkRateLimit)
+      .mock.calls.filter((c) => c[0] === '/api/custom-tour#ack')
+      .map((c) => c[1])
+    expect(keys).toHaveLength(2)
+    expect(keys[0]).toBe(keys[1])
+  })
+
+  it('CR-01: over the per-recipient limit only the ack is skipped; the request is stored, alerted and answered 200', async () => {
+    vi.mocked(checkRateLimit).mockImplementation(async (route: string) =>
+      route === '/api/custom-tour#ack'
+        ? { allowed: false, remaining: 0, limit: 3 }
+        : { allowed: true, remaining: 4, limit: 5 },
+    )
+    const res = await POST(makeRequest(validBody()))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect(storeInquiry).toHaveBeenCalledTimes(1)
+    expect(enqueueCustomTourAlert).toHaveBeenCalledWith(INQUIRY_ID)
+    expect(sendCustomTourOperatorAlert).toHaveBeenCalledTimes(1)
+    expect(sendCustomTourClientAck).not.toHaveBeenCalled()
+  })
+
+  it('WR-03: nothing stored and no operator mail sent answers 500 (the form shows its error), no false success', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.mocked(storeInquiry).mockResolvedValueOnce(null)
+    vi.mocked(sendCustomTourOperatorAlert).mockResolvedValueOnce(false)
+    const res = await POST(makeRequest(validBody()))
+    expect(res.status).toBe(500)
+    expect(await res.json()).toEqual({ error: 'Failed to submit custom tour request' })
+    err.mockRestore()
+  })
+
+  it('WR-03: nothing stored and the operator alert rejecting answers 500', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {})
+    vi.mocked(storeInquiry).mockResolvedValueOnce(null)
+    vi.mocked(sendCustomTourOperatorAlert).mockRejectedValueOnce(new Error('resend down'))
+    const res = await POST(makeRequest(validBody()))
+    expect(res.status).toBe(500)
+    err.mockRestore()
+  })
+
+  it('WR-03: stored but the operator mail failed still answers 200 (the request is in the admin)', async () => {
+    vi.mocked(sendCustomTourOperatorAlert).mockResolvedValueOnce(false)
+    const res = await POST(makeRequest(validBody()))
+    expect(res.status).toBe(200)
+  })
+
+  it('IN-03: NUL characters are stripped from the free text before it is stored', async () => {
+    const res = await POST(makeRequest(validBody({ where: 'Kar\u0000lstejn', wishes: 'a\u0000b' })))
+    expect(res.status).toBe(200)
+    const [, input] = vi.mocked(storeInquiry).mock.calls[0]
+    expect(input.payload.where).toBe('Karlstejn')
+    expect(input.payload.wishes).toBe('ab')
+  })
+
+  it('IN-03: a where made only of NUL characters is empty and rejected', async () => {
+    const res = await POST(makeRequest(validBody({ where: '\u0000\u0000' })))
+    expect(res.status).toBe(400)
+    expect(Object.keys((await res.json()).fieldErrors)).toContain('where')
+  })
+
+  it('the alert gets no inquiry id when nothing was stored (the alert went out, so the request still answers 200)', async () => {
     vi.mocked(storeInquiry).mockResolvedValueOnce(null)
     const res = await POST(makeRequest(validBody()))
     expect(res.status).toBe(200)
     expect(vi.mocked(sendCustomTourOperatorAlert).mock.calls[0][0].inquiryId).toBeNull()
   })
 
-  it('a rejected send still answers 200 { ok: true }', async () => {
+  it('a rejected send of a stored request still answers 200 { ok: true }', async () => {
     vi.mocked(sendCustomTourOperatorAlert).mockRejectedValueOnce(new Error('resend down'))
     vi.mocked(sendCustomTourClientAck).mockRejectedValueOnce(new Error('resend down'))
     const res = await POST(makeRequest(validBody()))
@@ -262,6 +329,25 @@ describe('POST /api/custom-tour: emails', () => {
 })
 
 describe('LIMITS entry', () => {
+  it("'/api/custom-tour#ack' allows 3 per recipient per 24 h, the 4th is denied (real limiter, in-memory path)", async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    const real = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit')
+    vi.useFakeTimers()
+    try {
+      const key = 'recipient-hash-ack-test'
+      for (let i = 0; i < 3; i++) expect((await real.checkRateLimit('/api/custom-tour#ack', key)).allowed).toBe(true)
+      expect((await real.checkRateLimit('/api/custom-tour#ack', key)).allowed).toBe(false)
+      // still denied after the default 60 s window, free again after 24 h
+      vi.advanceTimersByTime(2 * 60 * 60 * 1000)
+      expect((await real.checkRateLimit('/api/custom-tour#ack', key)).allowed).toBe(false)
+      vi.advanceTimersByTime(23 * 60 * 60 * 1000)
+      expect((await real.checkRateLimit('/api/custom-tour#ack', key)).allowed).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it("'/api/custom-tour' allows 5 requests a minute, the 6th is denied (real limiter, in-memory path)", async () => {
     delete process.env.UPSTASH_REDIS_REST_URL
     delete process.env.UPSTASH_REDIS_REST_TOKEN

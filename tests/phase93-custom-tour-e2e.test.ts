@@ -37,7 +37,7 @@ vi.mock('@/lib/rate-limit', () => ({
 }))
 
 vi.mock('@/lib/email', () => ({
-  sendCustomTourOperatorAlert: vi.fn().mockResolvedValue(undefined),
+  sendCustomTourOperatorAlert: vi.fn().mockResolvedValue(true),
   sendCustomTourClientAck: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -84,9 +84,33 @@ vi.mock('@/lib/supabase', () => ({
       }
       return world.quotesDb!.client.from(table)
     },
-    rpc: (name: string, args?: Record<string, unknown>) => (world.quotesDb!.client as any).rpc(name, args),
+    rpc: (name: string, args?: Record<string, unknown>) =>
+      name === 'list_custom_tour_requests'
+        ? Promise.resolve({ data: listRpc(args ?? {}), error: null })
+        : (world.quotesDb!.client as any).rpc(name, args),
   }),
 }))
+
+// list_custom_tour_requests of migration 094: custom_tour inquiries with their non-voided quote, newest first, filtered by status.
+function listRpc(args: Record<string, unknown>): Row[] {
+  const status = String(args.p_status)
+  return world.inquiries
+    .filter((i) => i.kind === 'custom_tour')
+    .map((i) => ({ i, q: world.getQuotes().find((x) => x.source_inquiry_id === i.id && x.status !== 'voided') }))
+    .filter(({ q }) => status === 'all' || (status === 'quoted' ? Boolean(q) : !q))
+    .sort((a, b) => (String(a.i.created_at) < String(b.i.created_at) ? 1 : -1))
+    .slice(0, Number(args.p_limit ?? 51))
+    .map(({ i, q }) => ({
+      id: i.id,
+      name: i.name,
+      email: i.email,
+      payload: i.payload,
+      created_at: i.created_at,
+      quote_id: q ? q.id : null,
+      quote_reference: q ? q.reference : null,
+      quote_created_at: q ? q.created_at ?? null : null,
+    }))
+}
 
 type Row = Record<string, any>
 

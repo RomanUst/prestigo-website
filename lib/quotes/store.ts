@@ -358,7 +358,7 @@ export class QuoteCreateRefusal extends Error {
   }
 }
 
-/** The unique partial index of migration 093: one quote per custom-tour request. */
+/** The unique partial index of migrations 093/094: one live (not voided) quote per custom-tour request. */
 const INQUIRY_UNIQUE_INDEX = 'quotes_source_inquiry_id_key'
 
 /** The request must exist (an erased one is gone) and be a custom-tour request: an id must never link a quote to a contact form. */
@@ -375,7 +375,8 @@ async function assertCustomTourInquiry(inquiryId: string): Promise<void> {
 /**
  * Creates the quote header and its unfrozen version 1. Returns the new quote id. With `source_inquiry_id` (D-18) the
  * quote answers a custom-tour request: the inquiry is verified first, the version language is the request's, and the
- * unique index of 093 turns a second quote for the same request into INQUIRY_ALREADY_QUOTED.
+ * unique index of 093/094 turns a second live quote for the same request into INQUIRY_ALREADY_QUOTED. A voided quote
+ * does not count (094), so a request whose quote was voided can be quoted again.
  */
 export async function createQuoteDraft(input: QuoteCreatePayload, actor: QuoteActor): Promise<{ id: string }> {
   const supabase = createSupabaseServiceClient()
