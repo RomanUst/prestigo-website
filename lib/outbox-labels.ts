@@ -27,6 +27,8 @@ export function outboxEventLabel(eventType: string): string {
       return 'EspoCRM contact edit'
     case 'alert.no_show':
       return 'No-show alert'
+    case 'alert.custom_tour':
+      return 'Custom tour alert'
     default:
       return eventType
   }

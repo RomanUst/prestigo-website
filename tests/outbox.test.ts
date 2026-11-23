@@ -26,6 +26,7 @@ import {
   parseHookTag,
   publishAfterResponse,
   noShowAlertKey,
+  customTourAlertKey,
 } from '@/lib/outbox'
 
 const ID = '0b9f2c1e-5d3a-4e8b-9c7d-1a2b3c4d5e6f'
@@ -153,6 +154,28 @@ describe('noShowAlertKey (Phase 87, D-16 b)', () => {
     expect(parseOutboxKey(`alert.no_show:${ID}:r1767268800:extra`)).toBeNull()
     expect(parseOutboxKey(`alert.no_show:${ID.toUpperCase()}:r1767268800`)).toBeNull()
     expect(parseOutboxKey(`alert.other:${ID}:r1767268800`)).toBeNull()
+  })
+})
+
+describe('customTourAlertKey (Phase 93, D-18)', () => {
+  it('builds alert.custom_tour:<inquiryId>', () => {
+    expect(customTourAlertKey(ID)).toBe(`alert.custom_tour:${ID}`)
+  })
+
+  it('round-trips through parseOutboxKey', () => {
+    expect(parseOutboxKey(customTourAlertKey(ID))).toEqual({
+      eventType: 'alert.custom_tour',
+      aggregateId: ID,
+      leadStatus: null,
+    })
+  })
+
+  it('rejects every other shape', () => {
+    expect(parseOutboxKey('alert.custom_tour:not-a-uuid')).toBeNull()
+    expect(parseOutboxKey(`alert.custom_tour:${ID}:r1767268800`)).toBeNull()
+    expect(parseOutboxKey(`alert.custom_tour:${ID.toUpperCase()}`)).toBeNull()
+    expect(parseOutboxKey('alert.custom_tour:')).toBeNull()
+    expect(parseOutboxKey(`alert.custom:${ID}`)).toBeNull()
   })
 })
 
