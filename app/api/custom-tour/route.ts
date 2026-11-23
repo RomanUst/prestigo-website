@@ -6,13 +6,14 @@ import { enforceMaxBody, safeEmail, safeString } from '@/lib/request-guards'
 import { storeInquiry } from '@/lib/inquiries'
 import { dispatchAfterResponse, inquiryOutboxKey } from '@/lib/outbox'
 import { enqueueCustomTourAlert } from '@/lib/custom-tour-enqueue'
+import { sendCustomTourOperatorAlert, sendCustomTourClientAck } from '@/lib/email'
 import { normalizeSiteLocale } from '@/i18n/locales'
 import { getPragueTodayISO } from '@/lib/prague-date'
 import { TOUR_SLUG_MAX_LENGTH, TOUR_SLUG_PATTERN } from '@/lib/tours/types'
 
 // Phase 93 (plan 93-32; TRIP-06; D-17, D-18): the public custom-tour request endpoint.
 // Guard order (CLAUDE.md): body size -> rate limit -> strict zod (400 + field errors) -> honeypot (silent 200)
-// -> phone (422) -> best-effort store + outbox. The answer never depends on the VPS: the CRM lead and the
+// -> phone (422) -> best-effort store + outbox -> emails. The answer never depends on the VPS: the CRM lead and the
 // Chatwoot note go through the outbox, which the dispatcher delivers after the response.
 // Logs carry ids and codes only, never a name, email, phone or free text.
 
@@ -117,7 +118,32 @@ export async function POST(req: Request) {
       await enqueueCustomTourAlert(inquiryId)
     }
 
-    // (7) Response
+    // (7) Emails: operator alert (English, admin link only when an id exists) and the localized client
+    // acknowledgement. allSettled so a failing send can never fail a request that is already stored.
+    await Promise.allSettled([
+      sendCustomTourOperatorAlert({
+        inquiryId,
+        locale,
+        tourSlug,
+        name: body.name,
+        email: body.email,
+        phone: phoneE164,
+        where: body.where,
+        date: body.date,
+        people: body.people,
+        wishes,
+      }),
+      sendCustomTourClientAck({
+        locale,
+        name: body.name,
+        email: body.email,
+        where: body.where,
+        date: body.date,
+        people: body.people,
+      }),
+    ])
+
+    // (8) Response
     return NextResponse.json(
       { ok: true },
       {

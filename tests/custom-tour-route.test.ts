@@ -20,10 +20,16 @@ vi.mock('@/lib/custom-tour-enqueue', () => ({
   enqueueCustomTourAlert: vi.fn().mockResolvedValue(undefined),
 }))
 
+vi.mock('@/lib/email', () => ({
+  sendCustomTourOperatorAlert: vi.fn().mockResolvedValue(undefined),
+  sendCustomTourClientAck: vi.fn().mockResolvedValue(undefined),
+}))
+
 import { checkRateLimit } from '@/lib/rate-limit'
 import { storeInquiry } from '@/lib/inquiries'
 import { dispatchAfterResponse } from '@/lib/outbox'
 import { enqueueCustomTourAlert } from '@/lib/custom-tour-enqueue'
+import { sendCustomTourOperatorAlert, sendCustomTourClientAck } from '@/lib/email'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 import { POST } from '@/app/api/custom-tour/route'
 
@@ -57,6 +63,8 @@ beforeEach(() => {
   vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, remaining: 4, limit: 5 })
   vi.mocked(storeInquiry).mockResolvedValue(INQUIRY_ID)
   vi.mocked(enqueueCustomTourAlert).mockResolvedValue(undefined)
+  vi.mocked(sendCustomTourOperatorAlert).mockResolvedValue(undefined)
+  vi.mocked(sendCustomTourClientAck).mockResolvedValue(undefined)
 })
 
 describe('POST /api/custom-tour: happy path', () => {
@@ -212,6 +220,44 @@ describe('POST /api/custom-tour: guards', () => {
     expect(storeInquiry).not.toHaveBeenCalled()
     expect(dispatchAfterResponse).not.toHaveBeenCalled()
     expect(enqueueCustomTourAlert).not.toHaveBeenCalled()
+    expect(sendCustomTourOperatorAlert).not.toHaveBeenCalled()
+    expect(sendCustomTourClientAck).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/custom-tour: emails', () => {
+  it('sends the operator alert (with the inquiry id) and the client ack in the request locale', async () => {
+    const res = await POST(makeRequest(validBody({ tourSlug: 'karlstejn-day-trip' })))
+    expect(res.status).toBe(200)
+    expect(sendCustomTourOperatorAlert).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(sendCustomTourOperatorAlert).mock.calls[0][0]).toMatchObject({
+      inquiryId: INQUIRY_ID,
+      locale: 'ru',
+      tourSlug: 'karlstejn-day-trip',
+      email: 'ada@example.com',
+    })
+    expect(sendCustomTourClientAck).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(sendCustomTourClientAck).mock.calls[0][0]).toMatchObject({
+      locale: 'ru',
+      name: 'Ada Lovelace',
+      email: 'ada@example.com',
+      people: 4,
+    })
+  })
+
+  it('the alert gets no inquiry id when nothing was stored, and the request still answers 200', async () => {
+    vi.mocked(storeInquiry).mockResolvedValueOnce(null)
+    const res = await POST(makeRequest(validBody()))
+    expect(res.status).toBe(200)
+    expect(vi.mocked(sendCustomTourOperatorAlert).mock.calls[0][0].inquiryId).toBeNull()
+  })
+
+  it('a rejected send still answers 200 { ok: true }', async () => {
+    vi.mocked(sendCustomTourOperatorAlert).mockRejectedValueOnce(new Error('resend down'))
+    vi.mocked(sendCustomTourClientAck).mockRejectedValueOnce(new Error('resend down'))
+    const res = await POST(makeRequest(validBody()))
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
   })
 })
 
@@ -240,6 +286,7 @@ describe('POST /api/custom-tour: logging', () => {
   afterEach(() => spies.forEach((s) => s.mockRestore()))
 
   it('never logs the email, phone or name, on success or failure', async () => {
+    vi.mocked(sendCustomTourClientAck).mockRejectedValueOnce(new Error('resend down'))
     await POST(makeRequest(validBody()))
     await POST(makeRequest(validBody({ phone: '12345' })))
     await POST(makeRequest(validBody({ people: 0 })))
