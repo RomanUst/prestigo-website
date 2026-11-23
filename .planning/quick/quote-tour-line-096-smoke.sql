@@ -43,7 +43,7 @@ BEGIN
   SELECT count(*) INTO v_n
     FROM pg_constraint
    WHERE conrelid = 'public.quote_version_lines'::regclass AND contype = 'c'
-     AND pg_get_constraintdef(oid) LIKE '%trip_type%IN%';
+     AND pg_get_constraintdef(oid) LIKE '%trip_type = ANY%';
   r := r || jsonb_build_object('one_trip_type_in_check', v_n = 1);
   r := r || jsonb_build_object('trip_type_check_def', (
     SELECT string_agg(conname || ': ' || pg_get_constraintdef(oid), ' | ')
