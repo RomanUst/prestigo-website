@@ -40,8 +40,6 @@ function renderBox(props: Props = {}) {
         hoursIncluded={8}
         prices={PRICES}
         extraHourPrices={EXTRA}
-        startMin="08:00"
-        startMax="11:00"
         freeCancelHours={48}
         {...props}
       />
@@ -93,7 +91,10 @@ describe('TourBookingBox: tracer (date, time, car lead to /book/tour)', () => {
     for (const b of timeGroup().getAllByRole('button')) expect(b.getAttribute('aria-disabled')).toBe('true')
     chooseDate()
     const hours = hourCol().getAllByRole('button')
-    expect(hours.map((b) => b.textContent)).toEqual(['08', '09', '10', '11'])
+    // any hour of the day: 00 to 23 (15 Jun is days ahead, so the lead time blocks none)
+    expect(hours).toHaveLength(24)
+    expect(hours[0].textContent).toBe('00')
+    expect(hours[23].textContent).toBe('23')
     for (const b of hours) expect(b.getAttribute('aria-disabled')).toBe('false')
     // minutes wait for an hour
     for (const b of minuteCol().getAllByRole('button')) expect(b.getAttribute('aria-disabled')).toBe('true')
@@ -104,9 +105,9 @@ describe('TourBookingBox: tracer (date, time, car lead to /book/tour)', () => {
   it('disables days before today and days with no start 12 hours ahead', () => {
     renderBox()
     fireEvent.click(screen.getByRole('button', { name: /Choose a date/ }))
-    // today (10 Jun): latest start 11:00 is 1 h ahead; 9 Jun is past; 11 Jun 08:00-11:00 is 22+ h ahead
+    // 9 Jun is past; today (10 Jun) has late-evening starts 12 h ahead, so it stays open; 11 Jun is open
     expect((screen.getByRole('button', { name: /June 9th, 2027/ }) as HTMLButtonElement).disabled).toBe(true)
-    expect((screen.getByRole('button', { name: /June 10th, 2027/ }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: /June 10th, 2027/ }) as HTMLButtonElement).disabled).toBe(false)
     expect((screen.getByRole('button', { name: /June 11th, 2027/ }) as HTMLButtonElement).disabled).toBe(false)
   })
 
@@ -150,7 +151,7 @@ describe('TourBookingBox: tracer (date, time, car lead to /book/tour)', () => {
     })
   })
 
-  it('steps minutes by 15, keeps the minute across hours and stops at the end of the start window', () => {
+  it('steps minutes by 15 and keeps the minute across hours', () => {
     renderBox()
     chooseDate()
     expect(minuteCol().getAllByRole('button').map((b) => b.textContent)).toEqual(['00', '15', '30', '45'])
@@ -159,10 +160,9 @@ describe('TourBookingBox: tracer (date, time, car lead to /book/tour)', () => {
     expect(minuteCol().getByRole('button', { name: '45' }).getAttribute('aria-pressed')).toBe('true')
     fireEvent.click(hourCol().getByRole('button', { name: '10' }))
     expect(minuteCol().getByRole('button', { name: '45' }).getAttribute('aria-pressed')).toBe('true')
-    // the window ends at 11:00: in hour 11 only :00 exists, so the minute falls back to it
-    fireEvent.click(hourCol().getByRole('button', { name: '11' }))
-    expect(minuteCol().getByRole('button', { name: '00' }).getAttribute('aria-pressed')).toBe('true')
-    for (const m of ['15', '30', '45']) expect(minuteCol().getByRole('button', { name: m }).getAttribute('aria-disabled')).toBe('true')
+    pickTime('23:45')
+    expect(hourCol().getByRole('button', { name: '23' }).getAttribute('aria-pressed')).toBe('true')
+    expect(minuteCol().getByRole('button', { name: '45' }).getAttribute('aria-pressed')).toBe('true')
   })
 })
 

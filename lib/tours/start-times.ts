@@ -1,6 +1,7 @@
 // Phase 93 (plan 93-12; TRIP-04; D-10): start times and bookable days of the tour booking box.
-// The box picks the start like the main booking engine: an hour column and a minute column in 15-minute steps,
-// limited to the tour's start window (start_time_min..start_time_max).
+// The box picks the start like the main booking engine: an hour column and a minute column in 15-minute steps.
+// Any time of day can be booked (owner decision 2026-11-23: we fit the guest's schedule); only the 12-hour lead
+// time limits it. The tours.start_time_min/max columns are no longer read by the box.
 // Times are Europe/Prague wall clock; the 12-hour lead time is evaluated on the real instant (pickupInstantMs),
 // so it holds across the daylight-saving changes. Pure and client-safe.
 
@@ -37,18 +38,19 @@ export function isStartBookable(date: string, time: string, nowMs: number): bool
   return ms !== null && meetsBookingLeadTime(ms, nowMs)
 }
 
+/** Every bookable start of a day: 00:00 to 23:45 every 15 minutes. */
+export const ALL_START_TIMES: readonly string[] = startTimeOptions('00:00', '23:45')
+
 /**
- * True when the day is not before today (Prague) and at least one start time of the window is 12 hours ahead.
- * The lead time only shrinks as the time grows, so the latest start decides.
+ * True when the day is not before today (Prague) and at least one start of the day is 12 hours ahead.
+ * The lead time only shrinks as the time grows, so the latest start (23:45) decides.
  */
-export function isDateBookable(date: string, min: string, max: string, nowMs: number): boolean {
-  const options = startTimeOptions(min, max)
-  if (options.length === 0) return false
+export function isDateBookable(date: string, nowMs: number): boolean {
   if (date < getPragueTodayISO(new Date(nowMs))) return false
-  return isStartBookable(date, options[options.length - 1], nowMs)
+  return isStartBookable(date, ALL_START_TIMES[ALL_START_TIMES.length - 1], nowMs)
 }
 
-/** The hour column: every hour ('HH') that has at least one start time of the window, in order. */
+/** The hour column: every hour ('HH') that has at least one start time, in order. */
 export function startHours(options: readonly string[]): string[] {
   return Array.from(new Set(options.map((o) => o.slice(0, 2))))
 }

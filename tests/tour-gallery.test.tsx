@@ -440,8 +440,6 @@ describe('booking area: restore from sessionStorage (T-93-35)', () => {
           hoursIncluded={8}
           prices={{ business: 410, first_class: 520, business_van: 640 }}
           extraHourPrices={{ business: 55, first_class: 75, business_van: 90 }}
-          startMin="08:00"
-          startMax="11:00"
           freeCancelHours={48}
         />
       </NextIntlClientProvider>
