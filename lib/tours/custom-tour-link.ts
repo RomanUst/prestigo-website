@@ -5,7 +5,7 @@
 
 import { TOUR_SLUG_PATTERN, TOUR_SLUG_MAX_LENGTH } from '@/lib/tours/types'
 
-export const CUSTOM_TOUR_REQUEST_LIVE = false
+export const CUSTOM_TOUR_REQUEST_LIVE = true
 
 export interface CustomTourQuery {
   tour?: string | null

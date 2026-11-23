@@ -40,12 +40,12 @@ describe('checkTourPickup', () => {
 describe('customTourHref', () => {
   const q = { tour: 'dresden-day-trip', date: '2027-05-01', pax: 4 }
 
-  it('ships with the request page not live yet', () => {
-    expect(CUSTOM_TOUR_REQUEST_LIVE).toBe(false)
-    expect(customTourHref(q)).toBe('/contact')
-    expect(customTourHref()).toBe('/contact')
+  it('ships live: every entry point opens the request page with the prefill query (93-34)', () => {
+    expect(CUSTOM_TOUR_REQUEST_LIVE).toBe(true)
+    expect(customTourHref(q)).toBe('/book/custom-tour?tour=dresden-day-trip&date=2027-05-01&pax=4')
+    expect(customTourHref()).toBe('/book/custom-tour')
   })
-  it('points to /contact while not live, whatever the query', () => {
+  it('points to /contact when the switch is off, whatever the query', () => {
     expect(buildCustomTourHref(q, false)).toBe('/contact')
   })
   it('opens /book/custom-tour with the prefill query when live', () => {
