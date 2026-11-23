@@ -27,7 +27,8 @@ function post(pathname: string, origin: string | null): NextRequest {
   return new NextRequest(`https://prestigo.cz${pathname}`, { method: 'POST', headers, body: '{}' })
 }
 
-const FORM_ROUTES = ['/api/contact', '/api/corporate-contact', '/api/submit-multiday-quote']
+// Phase 93 (T-93-73): /api/custom-tour joins the lead forms.
+const FORM_ROUTES = ['/api/contact', '/api/corporate-contact', '/api/submit-multiday-quote', '/api/custom-tour']
 
 describe('CSRF Origin check on the lead form endpoints (WR-04)', () => {
   it.each(FORM_ROUTES)('%s: a cross-site Origin is refused with 403', async (path) => {
