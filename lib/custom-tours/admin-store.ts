@@ -1,7 +1,8 @@
 // The operator's read path for custom-tour requests (Phase 93, plan 93-31; TRIP-07; D-18, D-19).
 //
 // A request is an `inquiries` row of kind 'custom_tour' (migration 093). Its status is derived, never stored: 'quoted'
-// when a quote has source_inquiry_id = the inquiry id, else 'open'. Server only: the inquiries and quotes tables are
+// when a LIVE quote (any status but 'voided', migration 094) has source_inquiry_id = the inquiry id, else 'open'. A
+// voided quote is terminal and no longer counts, so the request can be quoted again. Server only: the inquiries and quotes tables are
 // deny-all, so every read goes through the service client, created inside each function and never at module load.
 //
 // The payload is visitor-supplied JSON: every field is narrowed here, nothing is trusted to have the right type.
@@ -51,9 +52,6 @@ export interface CustomTourRequestDetail {
 export const CUSTOM_TOUR_PAGE_SIZE = 50
 const MAX_PAGE_SIZE = 100
 const WHERE_FIRST_LINE_MAX = 120
-/** Most quoted requests one status filter reads (an operator's quotes, not a data lake). */
-const QUOTED_IDS_CEILING = 5000
-const ID_CHUNK = 200
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 /** A Postgres timestamptz as PostgREST prints it, e.g. 2026-11-23T10:15:00.123456+00:00. */
@@ -100,47 +98,31 @@ export function decodeCursor(cursor: string): { createdAt: string; id: string } 
   return TIMESTAMP_RE.test(createdAt) && UUID_RE.test(id) ? { createdAt, id } : null
 }
 
-// == quote links ===================================================================================================
+// == quote link ====================================================================================================
 
-async function linkedQuotes(inquiryIds: string[]): Promise<Map<string, CustomTourQuoteLink>> {
-  const links = new Map<string, CustomTourQuoteLink>()
-  if (inquiryIds.length === 0) return links
-  const supabase = createSupabaseServiceClient()
-  for (let i = 0; i < inquiryIds.length; i += ID_CHUNK) {
-    const { data, error } = await supabase
-      .from('quotes')
-      .select('id, reference, source_inquiry_id')
-      .in('source_inquiry_id', inquiryIds.slice(i, i + ID_CHUNK))
-    if (error) {
-      console.error('[custom-tours/admin-store] quote links failed', { code: error.code ?? null })
-      throw new Error('custom tour quote links failed')
-    }
-    for (const row of (data ?? []) as Row[]) {
-      links.set(String(row.source_inquiry_id), { id: String(row.id), reference: String(row.reference) })
-    }
-  }
-  return links
-}
-
-/** Ids of every inquiry that has a quote (the status filter of the list). */
-async function quotedInquiryIds(): Promise<string[]> {
+/** The live (not voided) quote that answers one request, if any. */
+async function linkedQuote(inquiryId: string): Promise<CustomTourQuoteLink | null> {
   const { data, error } = await createSupabaseServiceClient()
     .from('quotes')
-    .select('source_inquiry_id')
-    .not('source_inquiry_id', 'is', null)
-    .limit(QUOTED_IDS_CEILING)
+    .select('id, reference')
+    .eq('source_inquiry_id', inquiryId)
+    .neq('status', 'voided')
+    .limit(1)
   if (error) {
-    console.error('[custom-tours/admin-store] quoted ids failed', { code: error.code ?? null })
-    throw new Error('custom tour quoted ids failed')
+    console.error('[custom-tours/admin-store] quote link failed', { code: error.code ?? null })
+    throw new Error('custom tour quote link failed')
   }
-  return ((data ?? []) as Row[]).map((r) => String(r.source_inquiry_id)).filter((id) => UUID_RE.test(id))
+  const row = ((data ?? []) as Row[])[0]
+  return row ? { id: String(row.id), reference: String(row.reference) } : null
 }
 
 // == list ==========================================================================================================
 
 /**
  * custom_tour inquiries newest first (created_at, then id), `limit` per page (default 50), with a keyset cursor.
- * `status` 'open' / 'quoted' filters on the derived status; a cursor that does not decode is an error the route maps to 400.
+ * `status` 'open' / 'quoted' filters on the derived status. The filter, the join with the live quote and the keyset
+ * all run in the database (migration 094, list_custom_tour_requests), so nothing here grows with the number of quotes.
+ * A cursor that does not decode is an error the route maps to 400.
  */
 export async function listCustomTourRequests(params: {
   status?: CustomTourStatusFilter
@@ -152,42 +134,24 @@ export async function listCustomTourRequests(params: {
   const cursor = params.cursor ? decodeCursor(params.cursor) : null
   if (params.cursor && !cursor) throw new Error('invalid cursor')
 
-  const supabase = createSupabaseServiceClient()
-  let query = supabase
-    .from('inquiries')
-    .select('id, name, email, payload, created_at')
-    .eq('kind', 'custom_tour')
-    .order('created_at', { ascending: false })
-    .order('id', { ascending: false })
-    .limit(limit + 1)
-
-  if (status !== 'all') {
-    const quoted = await quotedInquiryIds()
-    if (status === 'quoted') {
-      if (quoted.length === 0) return { items: [], nextCursor: null }
-      query = query.in('id', quoted)
-    } else if (quoted.length > 0) {
-      query = query.not('id', 'in', `(${quoted.join(',')})`)
-    }
-  }
-  if (cursor) {
-    query = query.or(`created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`)
-  }
-
-  const { data, error } = await query
+  const { data, error } = await createSupabaseServiceClient().rpc('list_custom_tour_requests', {
+    p_status: status,
+    p_cursor_created_at: cursor?.createdAt ?? null,
+    p_cursor_id: cursor?.id ?? null,
+    p_limit: limit + 1,
+  })
   if (error) {
     console.error('[custom-tours/admin-store] list failed', { code: error.code ?? null })
     throw new Error('custom tour list failed')
   }
 
-  const rows = (data ?? []) as Row[]
+  const rows = (Array.isArray(data) ? data : []) as Row[]
   const hasMore = rows.length > limit
   const pageRows = rows.slice(0, limit)
-  const links = await linkedQuotes(pageRows.map((r) => String(r.id)))
 
   const items = pageRows.map((row): CustomTourRequestListItem => {
     const payload = payloadOf(row)
-    const quote = links.get(String(row.id)) ?? null
+    const quote = row.quote_id ? { id: String(row.quote_id), reference: String(row.quote_reference) } : null
     return {
       id: String(row.id),
       receivedAt: String(row.created_at),
@@ -224,7 +188,7 @@ export async function getCustomTourRequest(id: string): Promise<CustomTourReques
 
   const row = data as Row
   const payload = payloadOf(row)
-  const quote = (await linkedQuotes([id])).get(id) ?? null
+  const quote = await linkedQuote(id)
   return {
     id: String(row.id),
     receivedAt: String(row.created_at),

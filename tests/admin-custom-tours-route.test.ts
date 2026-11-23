@@ -4,7 +4,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 /**
  * Phase 93 plan 93-31 (TRIP-07; D-18, D-19): the operator's list and detail of custom-tour requests. The routes and the
  * store run for real; the Supabase service client is a small in-memory double of the query surface the store uses
- * (eq, in, not in, not is null, or keyset, order, limit, maybeSingle), the admin session is a switch.
+ * (eq, neq, order, limit, maybeSingle for the detail, and the list_custom_tour_requests function of migration 094 for
+ * the list: its SQL is mirrored by fakeListRpc), the admin session is a switch.
  */
 
 type Row = Record<string, unknown>
@@ -15,6 +16,7 @@ const { world } = vi.hoisted(() => ({
     inquiries: [] as Array<Record<string, unknown>>,
     quotes: [] as Array<Record<string, unknown>>,
     failTable: null as null | string,
+    rpcCalls: [] as Array<Record<string, unknown>>,
   },
 }))
 
@@ -27,8 +29,45 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: () => ({ from: (table: string) => new FakeQuery(table) }),
+  createSupabaseServiceClient: () => ({
+    from: (table: string) => new FakeQuery(table),
+    rpc: (fn: string, args: Record<string, unknown>) => fakeListRpc(fn, args),
+  }),
 }))
+
+// Mirrors list_custom_tour_requests (migration 094): custom_tour inquiries LEFT JOIN the non-voided quote, the derived
+// status filter, the keyset (created_at, id) < cursor, newest first, LIMIT clamp 1..101.
+function fakeListRpc(fn: string, args: Record<string, unknown>) {
+  expect(fn).toBe('list_custom_tour_requests')
+  world.rpcCalls.push(args)
+  if (world.failTable === 'rpc') return Promise.resolve({ data: null, error: { code: 'XX000' } })
+  const status = String(args.p_status)
+  const cAt = args.p_cursor_created_at as string | null
+  const cId = args.p_cursor_id as string | null
+  const limit = Math.min(101, Math.max(1, Number(args.p_limit ?? 51)))
+  const rows = world.inquiries
+    .filter((i) => i.kind === 'custom_tour')
+    .map((i) => ({ i, q: world.quotes.find((q) => q.source_inquiry_id === i.id && q.status !== 'voided') }))
+    .filter(({ q }) => status === 'all' || (status === 'quoted' ? Boolean(q) : !q))
+    .filter(({ i }) => cAt == null || cId == null || String(i.created_at) < cAt || (String(i.created_at) === cAt && String(i.id) < cId))
+    .sort((a, b) => {
+      const x = `${String(a.i.created_at)}|${String(a.i.id)}`
+      const y = `${String(b.i.created_at)}|${String(b.i.id)}`
+      return x < y ? 1 : x > y ? -1 : 0
+    })
+    .slice(0, limit)
+    .map(({ i, q }) => ({
+      id: i.id,
+      name: i.name,
+      email: i.email,
+      payload: i.payload,
+      created_at: i.created_at,
+      quote_id: q ? q.id : null,
+      quote_reference: q ? q.reference : null,
+      quote_created_at: q ? '2026-11-23T10:00:00.000000+00:00' : null,
+    }))
+  return Promise.resolve({ data: rows, error: null })
+}
 
 class FakeQuery implements PromiseLike<{ data: Row[] | Row | null; error: { code: string } | null }> {
   private filters: Array<(r: Row) => boolean> = []
@@ -44,25 +83,8 @@ class FakeQuery implements PromiseLike<{ data: Row[] | Row | null; error: { code
     this.filters.push((r) => r[col] === val)
     return this
   }
-  in(col: string, vals: unknown[]) {
-    this.filters.push((r) => vals.includes(r[col]))
-    return this
-  }
-  not(col: string, op: string, val: unknown) {
-    if (op === 'is') this.filters.push((r) => (val === null ? r[col] != null : r[col] !== val))
-    else if (op === 'in') {
-      const list = String(val).replace(/^\(|\)$/g, '').split(',')
-      this.filters.push((r) => !list.includes(String(r[col])))
-    } else throw new Error(`fake: not(${op})`)
-    return this
-  }
-  // Only the keyset form of the store: created_at.lt.<ts>,and(created_at.eq.<ts>,id.lt.<id>)
-  or(expr: string) {
-    const m = /^created_at\.lt\.(.+),and\(created_at\.eq\.(.+),id\.lt\.(.+)\)$/.exec(expr)
-    if (!m) throw new Error(`fake: or(${expr})`)
-    const [, ts, ts2, id] = m
-    expect(ts2).toBe(ts)
-    this.filters.push((r) => String(r.created_at) < ts || (String(r.created_at) === ts && String(r.id) < id))
+  neq(col: string, val: unknown) {
+    this.filters.push((r) => r[col] !== val)
     return this
   }
   order(col: string, opts?: { ascending?: boolean }) {
@@ -124,6 +146,7 @@ beforeEach(() => {
   world.failTable = null
   world.inquiries = []
   world.quotes = []
+  world.rpcCalls = []
   vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
@@ -179,6 +202,50 @@ describe('GET /api/admin/custom-tours', () => {
     expect(await ids('?status=open')).toEqual([uuid(1), uuid(2), uuid(3)])
   })
 
+  it('asks the database for the filter: status, page size + 1 and the decoded keyset go to the function, no id list', async () => {
+    world.inquiries = Array.from({ length: 3 }, (_, i) => tourRow(i + 1))
+    await list('?status=quoted')
+    expect(world.rpcCalls[0]).toEqual({ p_status: 'quoted', p_cursor_created_at: null, p_cursor_id: null, p_limit: 51 })
+    const first = (await (await list('?status=open')).json()) as { nextCursor: string | null }
+    expect(first.nextCursor).toBeNull()
+    world.inquiries = Array.from({ length: 51 }, (_, i) =>
+      tourRow(i + 1, { created_at: `2026-11-01T10:00:${String(i).padStart(2, '0')}.000000+00:00` }),
+    )
+    const page = (await (await list()).json()) as { nextCursor: string }
+    await list(`?cursor=${encodeURIComponent(page.nextCursor)}`)
+    const sent = world.rpcCalls[world.rpcCalls.length - 1]
+    expect(sent.p_cursor_created_at).toBe('2026-11-01T10:00:01.000000+00:00')
+    expect(sent.p_cursor_id).toBe(uuid(2))
+  })
+
+  it('stays correct with thousands of quoted requests: the quoted ids are never read or sent', async () => {
+    world.inquiries = [tourRow(1), tourRow(2)]
+    world.quotes = Array.from({ length: 3000 }, (_, i) => ({
+      id: `q-${i}`,
+      reference: `Q-${i}`,
+      source_inquiry_id: i === 0 ? uuid(2) : uuid(10_000 + i),
+    }))
+    const ids = async (q: string) => ((await (await list(q)).json()) as { items: Array<{ id: string }> }).items.map((i) => i.id)
+    expect(await ids('?status=quoted')).toEqual([uuid(2)])
+    expect(await ids('?status=open')).toEqual([uuid(1)])
+  })
+
+  it('WR-01: a voided quote does not make the request quoted, a live one next to it does', async () => {
+    world.inquiries = [tourRow(1), tourRow(2)]
+    world.quotes = [
+      { id: 'q-void', reference: 'Q-VOID', source_inquiry_id: uuid(1), status: 'voided' },
+      { id: 'q-void2', reference: 'Q-VOID2', source_inquiry_id: uuid(2), status: 'voided' },
+      { id: 'q-live', reference: 'Q-LIVE', source_inquiry_id: uuid(2), status: 'sent' },
+    ]
+    const { items } = (await (await list()).json()) as { items: Array<Record<string, unknown>> }
+    const byId = Object.fromEntries(items.map((i) => [i.id as string, i]))
+    expect(byId[uuid(1)]).toMatchObject({ status: 'open', quote: null })
+    expect(byId[uuid(2)]).toMatchObject({ status: 'quoted', quote: { id: 'q-live', reference: 'Q-LIVE' } })
+    const ids = async (q: string) => ((await (await list(q)).json()) as { items: Array<{ id: string }> }).items.map((i) => i.id)
+    expect(await ids('?status=open')).toEqual([uuid(1)])
+    expect(await ids('?status=quoted')).toEqual([uuid(2)])
+  })
+
   it('orders newest first, 51 rows give 50 items and a cursor, and the next page continues without a repeat', async () => {
     world.inquiries = Array.from({ length: 51 }, (_, i) =>
       tourRow(i + 1, { created_at: `2026-11-01T10:00:${String(i).padStart(2, '0')}.000000+00:00` }),
@@ -220,7 +287,7 @@ describe('GET /api/admin/custom-tours', () => {
 
   it('a database failure is 500 with no data in the body', async () => {
     world.inquiries = [tourRow(1)]
-    world.failTable = 'inquiries'
+    world.failTable = 'rpc'
     const res = await list()
     expect(res.status).toBe(500)
     expect(JSON.stringify(await res.json())).not.toContain('example.com')
@@ -247,6 +314,17 @@ describe('GET /api/admin/custom-tours/[id]', () => {
       status: 'quoted',
       quote: { id: 'q-1', reference: 'Q-20261123-ABC123' },
     })
+  })
+
+  it('WR-01: the detail ignores a voided quote and shows the live one', async () => {
+    world.inquiries = [tourRow(1), tourRow(2)]
+    world.quotes = [
+      { id: 'q-void', reference: 'Q-VOID', source_inquiry_id: uuid(1), status: 'voided' },
+      { id: 'q-void2', reference: 'Q-VOID2', source_inquiry_id: uuid(2), status: 'voided' },
+      { id: 'q-live', reference: 'Q-LIVE', source_inquiry_id: uuid(2), status: 'draft' },
+    ]
+    expect(await (await detail(uuid(1))).json()).toMatchObject({ status: 'open', quote: null })
+    expect(await (await detail(uuid(2))).json()).toMatchObject({ status: 'quoted', quote: { id: 'q-live', reference: 'Q-LIVE' } })
   })
 
   it('an open request has no quote', async () => {
