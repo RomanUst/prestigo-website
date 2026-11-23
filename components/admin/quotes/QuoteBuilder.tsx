@@ -20,7 +20,7 @@ import { errorStyle, labelStyle } from '@/components/admin/adminFieldStyles'
 import { outlineButtonStyle } from '@/components/admin/paymentShared'
 import type { CustomTourRequestDetail } from '@/lib/custom-tours/admin-store'
 import type { QuoteDetail } from '@/lib/quotes/store'
-import { QUOTE_MAX_LINES } from '@/lib/quotes/vocabulary'
+import { QUOTE_LINE_DESCRIPTION_MAX, QUOTE_LINE_TITLE_MAX, QUOTE_MAX_LINES } from '@/lib/quotes/vocabulary'
 
 // The quote draft editor (Phase 92, plan 92-19; QUOTE-01, QUOTE-06). Mounted by
 // app/(internal)/admin/(dashboard)/quotes/[id]/page.tsx. It loads the detail, holds the whole draft in state, mounts one
@@ -77,16 +77,29 @@ export function saveErrorText(
 
 // The passenger and notes limits of a quote line (lib/quotes/schemas.ts); a request's people and wishes are capped to them.
 const LINE_MAX_PASSENGERS = 20
-const LINE_MAX_NOTES = 1000
+const TOUR_DEFAULT_HOURS = 8
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
 
-/** The first trip of a quote that answers a custom-tour request (D-18): date, people and wishes only; no price, no addresses. */
-function lineFromRequest(request: CustomTourRequestDetail): QuoteLineDraft {
+/** The first non-empty line of the visitor's "where" text, trimmed and capped: the tour's suggested headline. */
+export function tourTitleFromWhere(where: string | null | undefined): string {
+  const first = (where ?? '').split(/\r\n|\r|\n/).map((l) => l.trim()).find((l) => l !== '') ?? ''
+  return first.slice(0, QUOTE_LINE_TITLE_MAX).trim()
+}
+
+/**
+ * The first trip of a quote that answers a custom-tour request (D-18): a tour line with the request's date and people,
+ * its "where" as the headline and its wishes as the client description; no price, no addresses. The operator edits all
+ * of it before saving. 8 hours of service is the starting value of a day trip.
+ */
+export function lineFromRequest(request: CustomTourRequestDetail): QuoteLineDraft {
   return {
     ...emptyLine(),
+    trip_type: 'tour',
+    hours: TOUR_DEFAULT_HOURS,
+    title: tourTitleFromWhere(request.where),
+    description: (request.wishes ?? '').replace(/\r\n?/g, '\n').slice(0, QUOTE_LINE_DESCRIPTION_MAX),
     pickup_date: request.date && ISO_DATE.test(request.date) ? request.date : '',
     passengers: Math.min(Math.max(request.people ?? 1, 1), LINE_MAX_PASSENGERS),
-    special_requests: (request.wishes ?? '').slice(0, LINE_MAX_NOTES),
   }
 }
 

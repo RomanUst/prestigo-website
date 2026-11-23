@@ -20,6 +20,7 @@ import {
 import type { PlaceResult } from '@/types/booking'
 import { DEFAULT_LANDING_OFFSET, LANDING_OFFSETS, pickupFromLanding } from '@/lib/airport-pickup'
 import { MAX_STOPS, MAX_STOP_WAIT_MIN, STOP_FREE_WAIT_MIN, WAIT_BLOCK_MIN } from '@/lib/stops'
+import { QUOTE_LINE_DESCRIPTION_MAX, QUOTE_LINE_TITLE_MAX } from '@/lib/quotes/vocabulary'
 
 // Editor of one quote line (Phase 92, plan 92-15; QUOTE-01, D-04). Mounted by components/admin/quotes/QuoteBuilder.tsx
 // (plan 92-19), which holds the QuoteDraft and passes one line at a time.
@@ -60,6 +61,7 @@ const TRIP_TYPE_OPTIONS: ReadonlyArray<{ value: QuoteTripType; label: string }> 
   { value: 'transfer', label: 'Transfer' },
   { value: 'hourly', label: 'Hourly' },
   { value: 'daily', label: 'Daily' },
+  { value: 'tour', label: 'Tour' },
 ]
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i + 1)
@@ -157,6 +159,8 @@ function derivedPickup(landing: QuoteLandingDraft | null): { pickupDate: string;
 }
 
 function canSuggest(line: QuoteLineDraft): boolean {
+  // A custom tour has no tariff: the operator types its price.
+  if (line.trip_type === 'tour') return false
   if (line.pickup_date === '' || line.pickup_time === '') return false
   if (!line.origin || line.origin.address === '') return false
   if (line.trip_type === 'hourly') return line.hours !== null
@@ -172,7 +176,9 @@ const EXTRAS: ReadonlyArray<{ field: 'extra_child_seat' | 'extra_meet_greet' | '
   { field: 'extra_luggage', label: 'Extra luggage' },
 ]
 
-const TRIP_TYPE_LABEL: Record<QuoteTripType, string> = { transfer: 'Transfer', hourly: 'Hourly', daily: 'Daily' }
+const TRIP_TYPE_LABEL: Record<QuoteTripType, string> = { transfer: 'Transfer', hourly: 'Hourly', daily: 'Daily', tour: 'Tour' }
+
+const DESCRIPTION_LABEL = 'Description for the client (itinerary, what is included)'
 const VEHICLE_LABEL: Record<QuoteVehicleClass, string> = {
   business: 'Business',
   first_class: 'First Class',
@@ -209,6 +215,7 @@ function ReadOnlyLine({
       <div style={sectionTitleStyle}>{`Trip ${index + 1} of ${total}`}</div>
       <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <ReadOnlyRow label="Trip type">{TRIP_TYPE_LABEL[line.trip_type]}</ReadOnlyRow>
+        {line.trip_type === 'tour' ? <ReadOnlyRow label="Tour title">{line.title || '-'}</ReadOnlyRow> : null}
         <ReadOnlyRow label="Pickup">{`${line.pickup_date} ${line.pickup_time}`}</ReadOnlyRow>
         {line.landing ? (
           <ReadOnlyRow label="Flight landing">
@@ -222,7 +229,10 @@ function ReadOnlyLine({
           </ReadOnlyRow>
         ))}
         {line.trip_type === 'transfer' ? <ReadOnlyRow label="To">{line.destination?.address ?? '-'}</ReadOnlyRow> : null}
-        {line.hours !== null ? <ReadOnlyRow label="Hours">{String(line.hours)}</ReadOnlyRow> : null}
+        {line.trip_type === 'tour' && line.destination ? <ReadOnlyRow label="Drop-off">{line.destination.address}</ReadOnlyRow> : null}
+        {line.hours !== null ? (
+          <ReadOnlyRow label={line.trip_type === 'tour' ? 'Hours of service' : 'Hours'}>{String(line.hours)}</ReadOnlyRow>
+        ) : null}
         {line.return_date ? <ReadOnlyRow label="Return date">{line.return_date}</ReadOnlyRow> : null}
         <ReadOnlyRow label="Vehicle">{VEHICLE_LABEL[line.vehicle_class]}</ReadOnlyRow>
         <ReadOnlyRow label="Passengers">{String(line.passengers)}</ReadOnlyRow>
@@ -231,6 +241,11 @@ function ReadOnlyLine({
         {line.terminal ? <ReadOnlyRow label="Terminal">{line.terminal}</ReadOnlyRow> : null}
         {extras.length > 0 ? <ReadOnlyRow label="Extras">{extras.join(', ')}</ReadOnlyRow> : null}
         {line.special_requests ? <ReadOnlyRow label="Notes for the driver">{line.special_requests}</ReadOnlyRow> : null}
+        {line.description ? (
+          <ReadOnlyRow label="Description for the client">
+            <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{line.description}</span>
+          </ReadOnlyRow>
+        ) : null}
         <ReadOnlyRow label="Amount">
           {amount === null ? '-' : money(amount, currency)}
           {isManualPrice(line, currency) ? ' · Manual price' : ''}
@@ -285,13 +300,14 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
   /** Fields that do not belong to the new trip type are cleared, so the payload never carries them (the server refuses them). */
   function changeTripType(tripType: QuoteTripType) {
     const transfer = tripType === 'transfer'
+    const tour = tripType === 'tour'
     commit({
       ...line,
       trip_type: tripType,
-      destination: transfer ? line.destination : null,
+      destination: transfer || tour ? line.destination : null,
       stops: transfer ? line.stops : [],
       landing: transfer ? line.landing : null,
-      hours: tripType === 'hourly' ? line.hours : null,
+      hours: tripType === 'hourly' || tour ? line.hours : null,
       return_date: tripType === 'daily' ? line.return_date : null,
     })
   }
@@ -363,6 +379,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
   }
 
   const transfer = line.trip_type === 'transfer'
+  const tour = line.trip_type === 'tour'
   const pickupDerived = transfer && derivedPickup(line.landing) !== null
 
   return (
@@ -394,7 +411,21 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
         </div>
       </div>
 
-      <section aria-label="Pickup">
+      <section aria-label="Pickup" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {tour ? (
+          <Field label="Tour title (shown to the client)" htmlFor={id('title')}>
+            <input
+              id={id('title')}
+              type="text"
+              maxLength={QUOTE_LINE_TITLE_MAX}
+              placeholder="Private day trip: Kutná Hora and Karlštejn"
+              value={line.title}
+              onChange={(e) => commit({ ...line, title: e.target.value.replace(/[\r\n]+/g, ' ') })}
+              style={fieldInputStyle}
+              {...focusRingHandlers}
+            />
+          </Field>
+        ) : null}
         <div style={gridStyle}>
           <Field label="Trip type" htmlFor={id('trip-type')}>
             <select
@@ -441,8 +472,8 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
               </Field>
             </>
           )}
-          {line.trip_type === 'hourly' ? (
-            <Field label="Hours" htmlFor={id('hours')}>
+          {line.trip_type === 'hourly' || tour ? (
+            <Field label={tour ? 'Hours of service' : 'Hours'} htmlFor={id('hours')}>
               <select
                 id={id('hours')}
                 value={line.hours ?? ''}
@@ -546,14 +577,14 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
           </div>
         ) : null}
 
-        {transfer ? (
+        {transfer || tour ? (
           <AddressInput
-            label="Destination address"
+            label={tour ? 'Drop-off address (optional)' : 'Destination address'}
             placeholder="Start typing an address…"
             value={toPlaceResult(line.destination)}
             onSelect={(place) => commit({ ...line, destination: fromPlaceResult(place) })}
             onClear={() => commit({ ...line, destination: null })}
-            ariaLabel="Destination address"
+            ariaLabel={tour ? 'Drop-off address' : 'Destination address'}
             neverDisabled
           />
         ) : null}
@@ -723,6 +754,20 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
             style={{ ...fieldInputStyle, resize: 'vertical' }}
           />
         </Field>
+        <Field label={DESCRIPTION_LABEL} htmlFor={id('description')}>
+          <textarea
+            id={id('description')}
+            rows={6}
+            maxLength={QUOTE_LINE_DESCRIPTION_MAX}
+            value={line.description}
+            onChange={(e) => commit({ ...line, description: e.target.value })}
+            aria-describedby={id('description-count')}
+            style={{ ...fieldInputStyle, resize: 'vertical' }}
+          />
+          <div id={id('description-count')} data-testid="quote-line-description-count" style={{ ...mutedTextStyle, marginTop: '4px' }}>
+            {`${line.description.length} / ${QUOTE_LINE_DESCRIPTION_MAX}`}
+          </div>
+        </Field>
       </section>
 
       <section aria-label="Price" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -742,16 +787,19 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
               />
             </Field>
           </div>
-          <button
-            type="button"
-            onClick={suggestPrice}
-            disabled={busy || !canSuggest(line)}
-            style={{ ...buttonStyle, opacity: busy || !canSuggest(line) ? 0.5 : 1 }}
-          >
-            <Calculator size={14} aria-hidden="true" />
-            Suggest price
-          </button>
+          {tour ? null : (
+            <button
+              type="button"
+              onClick={suggestPrice}
+              disabled={busy || !canSuggest(line)}
+              style={{ ...buttonStyle, opacity: busy || !canSuggest(line) ? 0.5 : 1 }}
+            >
+              <Calculator size={14} aria-hidden="true" />
+              Suggest price
+            </button>
+          )}
         </div>
+        {tour ? <div style={mutedTextStyle}>A tour has no tariff: enter its price.</div> : null}
         {amountInvalid ? <div style={errorStyle}>Enter an amount like 120.00</div> : null}
         {line.suggestedMinor !== null ? (
           <div data-testid="quote-line-suggestion" style={mutedTextStyle}>

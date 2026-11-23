@@ -6,7 +6,8 @@ import { outlineButtonStyle } from '@/components/admin/paymentShared'
 
 // Phase 93 (plan 93-33; TRIP-07; UI-SPEC 8.3): what the client asked for, shown above the lines of a quote that answers a
 // custom-tour request (quotes.source_inquiry_id). It loads /api/admin/custom-tours/<id> and hands the request to the builder
-// (onLoaded) so the empty first trip can start from its date, people and wishes. The text is visitor-supplied: rendered as
+// (onLoaded) so the empty first trip starts as a tour line: the first line of "where" as its title, the wishes as its client
+// description, the date and the people (QuoteBuilder lineFromRequest). The text is visitor-supplied: rendered as
 // React text only (T-93-76). Colours only through the --status-info-* tokens.
 
 const WHERE_LINES = 6
