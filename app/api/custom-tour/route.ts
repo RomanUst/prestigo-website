@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
@@ -21,6 +22,23 @@ const MAX_BODY_BYTES = 10_000
 const MAX_TEXT = 1000
 const MAX_PEOPLE = 50
 
+/** Route key of the per-recipient acknowledgement limit (lib/rate-limit.ts: 3 per 24 h). */
+const ACK_LIMIT_ROUTE = '/api/custom-tour#ack'
+
+/** IN-03: Postgres jsonb rejects U+0000, which would make the best-effort store fail without notice. */
+// eslint-disable-next-line no-control-regex
+const stripNul = (v: string): string => v.replace(/\u0000/g, '')
+
+/**
+ * The limiter key of one recipient: the address lower-cased with any +tag removed, hashed so no address reaches the
+ * limiter store. Plus-aliases all land in the same inbox, so they must share one count.
+ */
+function ackRecipientKey(email: string): string {
+  const [local = '', domain = ''] = email.trim().toLowerCase().split('@')
+  const normalized = `${local.split('+')[0]}@${domain}`
+  return createHash('sha256').update(normalized).digest('hex').slice(0, 32)
+}
+
 /** A real calendar date in YYYY-MM-DD form. */
 function isRealIsoDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
@@ -30,14 +48,14 @@ function isRealIsoDate(value: string): boolean {
 
 const customTourSchema = z.strictObject({
   // Free text (a textarea): line breaks allowed, length capped. Single-line fields below reject them.
-  where: z.string().trim().min(1).max(MAX_TEXT),
+  where: z.string().transform(stripNul).pipe(z.string().trim().min(1).max(MAX_TEXT)),
   date: z
     .string()
     .refine(isRealIsoDate, 'Invalid date')
     // Today or later in Prague time; ISO dates compare as strings. The form itself asks for tomorrow or later.
     .refine((v) => v >= getPragueTodayISO(), 'Date is in the past'),
   people: z.number().int().min(1).max(MAX_PEOPLE),
-  wishes: z.string().trim().max(MAX_TEXT).optional(),
+  wishes: z.string().transform(stripNul).pipe(z.string().trim().max(MAX_TEXT)).optional(),
   name: safeString(100).trim().min(1),
   email: safeEmail(200),
   phone: safeString(30).trim().min(5),
@@ -119,8 +137,16 @@ export async function POST(req: Request) {
     }
 
     // (7) Emails: operator alert (English, admin link only when an id exists) and the localized client
-    // acknowledgement. allSettled so a failing send can never fail a request that is already stored.
-    await Promise.allSettled([
+    // acknowledgement. The ack goes to an address nobody verified, so it carries no free text (CR-01) and is limited
+    // per recipient; when that limit is spent only the ack is skipped, the request is still stored and alerted.
+    let ackAllowed = true
+    try {
+      ackAllowed = (await checkRateLimit(ACK_LIMIT_ROUTE, ackRecipientKey(body.email))).allowed
+    } catch {
+      ackAllowed = true
+    }
+    // allSettled so a failing send can never fail a request that is already stored.
+    const [alert] = await Promise.allSettled([
       sendCustomTourOperatorAlert({
         inquiryId,
         locale,
@@ -133,15 +159,23 @@ export async function POST(req: Request) {
         people: body.people,
         wishes,
       }),
-      sendCustomTourClientAck({
-        locale,
-        name: body.name,
-        email: body.email,
-        where: body.where,
-        date: body.date,
-        people: body.people,
-      }),
+      ackAllowed
+        ? sendCustomTourClientAck({
+            locale,
+            name: body.name,
+            email: body.email,
+            date: body.date,
+            people: body.people,
+          })
+        : Promise.resolve(),
     ])
+
+    // WR-03: a request that was neither stored nor mailed to the operator is lost. Do not tell the visitor it was sent.
+    const alertSent = alert.status === 'fulfilled' && alert.value === true
+    if (!inquiryId && !alertSent) {
+      console.error('[custom-tour] request not recorded')
+      return NextResponse.json({ error: 'Failed to submit custom tour request' }, { status: 500 })
+    }
 
     // (8) Response
     return NextResponse.json(

@@ -1447,7 +1447,6 @@ export interface CustomTourAckData {
   locale: string
   name: string
   email: string
-  where: string
   date: string
   people: number
 }
@@ -1511,24 +1510,45 @@ function buildCustomTourOperatorHtml(data: CustomTourAlertData): string {
 </body></html>`
 }
 
-export async function sendCustomTourOperatorAlert(data: CustomTourAlertData): Promise<void> {
+/** True when Resend accepted the alert; false when it was skipped (no MANAGER_EMAIL) or failed (WR-03). Never throws. */
+export async function sendCustomTourOperatorAlert(data: CustomTourAlertData): Promise<boolean> {
   const to = process.env.MANAGER_EMAIL
   if (!to) {
     console.warn('[email] MANAGER_EMAIL not set — skipping custom tour operator alert')
-    return
+    return false
   }
   try {
-    await getResend().emails.send({
+    const result = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [to],
       subject: CUSTOM_TOUR_ALERT_SUBJECT,
       html: buildCustomTourOperatorHtml(data),
       replyTo: data.email,
     })
+    // The Resend SDK reports a rejected send as { error } instead of throwing.
+    if (result && typeof result === 'object' && 'error' in result && result.error) {
+      console.warn('[email] sendCustomTourOperatorAlert rejected (non-fatal)')
+      return false
+    }
+    return true
   } catch {
     // No error object: Resend errors can echo the recipient address.
     console.warn('[email] sendCustomTourOperatorAlert failed (non-fatal)')
+    return false
   }
+}
+
+/** Longest first name the acknowledgement greets (CR-01). */
+const ACK_NAME_MAX = 40
+
+/**
+ * The greeting name of the client acknowledgement: the first word of the name, capped. Empty when it looks like a link
+ * or an address, so the mail can never carry an attacker's URL in the heading.
+ */
+export function ackFirstName(name: string): string {
+  const first = name.trim().split(/\s+/)[0] ?? ''
+  if (/[@/\\:]|www\.|\.[a-z]{2,}/i.test(first)) return ''
+  return Array.from(first).slice(0, ACK_NAME_MAX).join('')
 }
 
 /** Renders the client acknowledgement (subject + HTML) in the request locale; English when the locale has no copy. */
@@ -1550,9 +1570,15 @@ export async function renderCustomTourClientAck(
   const st = render.shellStyle(locale)
 
   const dateText = formatLocaleDate(data.date, locale)
+  // CR-01: the address is never verified, so the mail carries server-controlled data only: the date and head count
+  // the form validated, and at most a short first name. The visitor's free text (where, wishes) is never echoed.
+  const firstName = ackFirstName(data.name)
   // Escape once, after the parameters are inserted: the visitor's name never becomes markup.
   const subject = t('subject')
-  const heading = escapeHtml(t('heading', { name: data.name }))
+  const NAME_TOKEN = '\uE000'
+  const heading = firstName
+    ? escapeHtml(t('heading', { name: NAME_TOKEN })).replace(NAME_TOKEN, `<bdi dir="auto">${escapeHtml(firstName)}</bdi>`)
+    : escapeHtml(t('heading', { name: '' }).replace(/[\s,\u060C\uFF0C\u3001]+$/u, ''))
   const body = escapeHtml(t('body', { date: dateText }))
 
   const row = (k: string, v: string) => `
@@ -1562,9 +1588,8 @@ export async function renderCustomTourClientAck(
           </tr>`
   const summary = render.boxHtml(
     st,
-    escapeHtml(t('where')),
+    escapeHtml(t('date')),
     `<table role="presentation" style="width:100%;border-collapse:collapse;">${[
-      row(t('where'), `<bdi dir="auto">${escapeHtml(data.where)}</bdi>`),
       row(t('date'), `<bdi dir="auto">${escapeHtml(dateText)}</bdi>`),
       row(t('people'), `<bdi dir="ltr">${escapeHtml(String(data.people))}</bdi>`),
     ].join('')}</table>`,

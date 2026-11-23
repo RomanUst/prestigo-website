@@ -37,7 +37,7 @@ vi.mock('@/lib/rate-limit', () => ({
 }))
 
 vi.mock('@/lib/email', () => ({
-  sendCustomTourOperatorAlert: vi.fn().mockResolvedValue(undefined),
+  sendCustomTourOperatorAlert: vi.fn().mockResolvedValue(true),
   sendCustomTourClientAck: vi.fn().mockResolvedValue(undefined),
 }))
 
