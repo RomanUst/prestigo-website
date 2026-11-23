@@ -56,7 +56,8 @@
         { "value": "Partner", "label": "Partner" },
         { "value": "Other", "label": "Other" },
         { "value": "Website chat", "label": "Website chat" },
-        { "value": "Telegram", "label": "Telegram" }
+        { "value": "Telegram", "label": "Telegram" },
+        { "value": "Custom tour", "label": "Custom tour" }
       ],
       "retire": []
     }

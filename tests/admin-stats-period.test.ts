@@ -274,7 +274,7 @@ describe('formatEur (D-15)', () => {
 })
 
 describe('source labels (D-05 / D-06)', () => {
-  it('lists the nine funnel sources in RPC order', () => {
+  it('lists the ten funnel sources in RPC order (093 appends form_custom_tour)', () => {
     expect([...FUNNEL_SOURCES]).toEqual([
       'chat_web',
       'chat_whatsapp',
@@ -285,7 +285,9 @@ describe('source labels (D-05 / D-06)', () => {
       'form_corporate',
       'form_multiday_quote',
       'abandoned',
+      'form_custom_tour',
     ])
+    expect(FUNNEL_SOURCE_LABELS.form_custom_tour).toBe('Form · custom tour')
   })
   it('lists the eight direct sources in RPC order', () => {
     expect([...DIRECT_SOURCES]).toEqual([

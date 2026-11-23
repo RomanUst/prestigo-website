@@ -4,7 +4,7 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import { BOOKING_LEAD_STATUS } from '@/lib/lead-mapping'
 import { BOOKING_STATUSES } from '@/lib/booking-status'
-import { latestFunctionBody } from './helpers/latest-migration'
+import { latestCheckValues, latestFunctionBody } from './helpers/latest-migration'
 
 function load(name: string): string {
   return readFileSync(join(process.cwd(), 'supabase', 'migrations', name), 'utf8')
@@ -114,7 +114,13 @@ describe('065_inquiries.sql', () => {
   })
 
   it('only stores the allowed kinds', () => {
-    expect(m065).toContain("CHECK (kind IN ('contact', 'corporate', 'multiday_quote'))")
+    // 093 widened the CHECK; the newest definition is the live one.
+    expect(latestCheckValues('inquiries_kind_check', 'kind')).toEqual([
+      'contact',
+      'corporate',
+      'multiday_quote',
+      'custom_tour',
+    ])
   })
 })
 
