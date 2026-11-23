@@ -10,7 +10,7 @@ vi.mock('resend', () => ({
   },
 }))
 
-import { sendCustomTourOperatorAlert, sendCustomTourClientAck, renderCustomTourClientAck } from '@/lib/email'
+import { sendCustomTourOperatorAlert, sendCustomTourClientAck, renderCustomTourClientAck, ACK_TEXT_MAX } from '@/lib/email'
 import ru from '@/messages/ru.json'
 import en from '@/messages/en.json'
 
@@ -121,8 +121,11 @@ describe('sendCustomTourClientAck', () => {
     const ack = (ru as unknown as { TourEmails: { ack: Record<string, string> } }).TourEmails.ack
     expect(arg.to).toEqual(['ada@example.com'])
     expect(arg.subject).toBe(ack.subject)
-    // first name only (CR-01), inside <bdi>
-    expect(arg.html).toContain(ack.heading.replace('{name}', '<bdi dir="auto">Ada</bdi>'))
+    // first name only (CR-01), plain text inside the heading (a <bdi> there was pulled out of the h1 by iOS mail)
+    expect(arg.html).toContain(ack.heading.replace('{name}', 'Ada'))
+    expect(arg.html).not.toContain('<bdi')
+    // the box is titled "Ваш запрос", not with the date label a second time
+    expect(arg.html).toContain(ack.summary)
     expect(arg.html).not.toContain('Lovelace')
     expect(arg.html).toContain(ack.date)
     expect(arg.html).toContain(ack.people)
@@ -148,17 +151,26 @@ describe('sendCustomTourClientAck', () => {
     expect(subject).toBe(ack.subject)
   })
 
-  it('CR-01: the visitor free text is not part of the acknowledgement, not even when the caller passes it', async () => {
+  it('echoes the request (where, wishes) back to the client, escaped, with the line breaks kept', async () => {
+    const ack = (ru as unknown as { TourEmails: { ack: Record<string, string> } }).TourEmails.ack
     const { html } = await renderCustomTourClientAck({
       ...ACK,
-      where: 'Pay at hxxp://evil.example now',
-      wishes: 'Your booking failed',
-    } as typeof ACK)
-    expect(html).not.toContain('evil.example')
-    expect(html).not.toContain('Your booking failed')
-    // and the "where" label row is gone too
+      where: 'Dresden\nand <b>Bastei</b>',
+      wishes: 'Child seat & water',
+    })
+    expect(html).toContain(`>${ack.where}<`)
+    expect(html).toContain(`>${ack.wishes}<`)
+    expect(html).toContain('Dresden\nand &lt;b&gt;Bastei&lt;/b&gt;')
+    expect(html).toContain('Child seat &amp; water')
+    expect(html).toContain('white-space:pre-wrap')
+  })
+
+  it('caps the echoed request text at ACK_TEXT_MAX characters with an ellipsis', async () => {
+    const { html } = await renderCustomTourClientAck({ ...ACK, where: 'x'.repeat(1000), wishes: null })
+    expect(html).toContain('x'.repeat(ACK_TEXT_MAX) + '…')
+    expect(html).not.toContain('x'.repeat(ACK_TEXT_MAX + 1))
     const ack = (ru as unknown as { TourEmails: { ack: Record<string, string> } }).TourEmails.ack
-    expect(html).not.toContain(`>${ack.where}<`)
+    expect(html).not.toContain(`>${ack.wishes}<`)
   })
 
   it('CR-01: the greeting is the first word of the name, capped at 40 characters', async () => {

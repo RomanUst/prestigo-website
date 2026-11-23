@@ -1742,9 +1742,11 @@
       "subject": "Nous avons bien reçu votre demande de circuit sur mesure",
       "heading": "Merci, {name}",
       "body": "Nous avons bien reçu votre demande pour le {date}. Nous vous répondrons par e-mail avec un prix pour votre groupe. Le prix est par voiture, pas par personne.",
+      "summary": "Votre demande",
       "where": "Où",
       "date": "Date",
-      "people": "Personnes"
+      "people": "Personnes",
+      "wishes": "Souhaits"
     }
   }
 }

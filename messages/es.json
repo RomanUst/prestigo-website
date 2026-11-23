@@ -1742,9 +1742,11 @@
       "subject": "Hemos recibido su solicitud de tour a medida",
       "heading": "Gracias, {name}",
       "body": "Hemos recibido su solicitud para el {date}. Le responderemos por correo con un precio para su grupo. El precio es por coche, no por persona.",
+      "summary": "Su solicitud",
       "where": "Adónde",
       "date": "Fecha",
-      "people": "Personas"
+      "people": "Personas",
+      "wishes": "Deseos"
     }
   }
 }
