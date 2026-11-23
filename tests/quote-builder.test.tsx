@@ -87,6 +87,7 @@ interface DetailOptions {
   freeHours?: number | null
   feePercent?: number | null
   effectiveStatus?: string
+  sourceInquiryId?: string | null
 }
 
 function detail(o: DetailOptions = {}): Json {
@@ -104,6 +105,7 @@ function detail(o: DetailOptions = {}): Json {
       lead_channel: 'email',
       expires_at: o.expiresAt ?? null,
       cancelled_at: null,
+      source_inquiry_id: o.sourceInquiryId ?? null,
     },
     version: {
       id: 'v1',
@@ -143,6 +145,8 @@ interface Call {
 let calls: Call[]
 let getAnswers: Array<{ status: number; body: unknown }>
 let patchAnswer: { status: number; body: unknown }
+// The custom-tour request the request card reads (Phase 93, 93-33); every other GET answers from getAnswers.
+let requestAnswer: { status: number; body: unknown } = { status: 404, body: {} }
 
 function installFetch() {
   calls = []
@@ -151,7 +155,11 @@ function installFetch() {
     vi.fn(async (url: string, init?: RequestInit) => {
       const method = init?.method ?? 'GET'
       calls.push({ url, method, body: init?.body ? (JSON.parse(String(init.body)) as Json) : null })
-      const answer = method === 'PATCH' ? patchAnswer : (getAnswers.length > 1 ? getAnswers.shift()! : getAnswers[0])
+      const answer = method === 'PATCH'
+        ? patchAnswer
+        : String(url).startsWith('/api/admin/custom-tours/')
+          ? requestAnswer
+          : (getAnswers.length > 1 ? getAnswers.shift()! : getAnswers[0])
       return { ok: answer.status >= 200 && answer.status < 300, status: answer.status, json: async () => answer.body } as Response
     }),
   )
@@ -179,6 +187,7 @@ async function renderPage(initial: Json = detail({ deposit: { kind: 'percent', v
 
 beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {})
+  requestAnswer = { status: 404, body: {} }
 })
 
 afterEach(() => {
@@ -581,5 +590,114 @@ describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13
     await renderPage(detail({ lines: [lineRow(1, 30000)], deposit: { kind: 'fixed', value: 29980 }, remainder: 'saved_card' }))
     expect(screen.getByText(/below the smallest amount a card can be charged/)).toBeInTheDocument()
     expect(saveButton()).not.toBeDisabled()
+  })
+})
+
+// == Phase 93, plan 93-33: the custom-tour request card and the first-line prefill (TRIP-07, D-18) ==================
+
+const REQUEST_ID = '3f2b1c9e-0000-4000-8000-0000000000a1'
+
+function requestPayload(over: Json = {}): Json {
+  return {
+    id: REQUEST_ID,
+    receivedAt: '2026-11-20T09:05:00.000Z',
+    name: 'Anna Novak',
+    email: 'anna@example.com',
+    phone: null,
+    where: 'Karlovy Vary and Loket',
+    date: '2027-03-10',
+    people: 4,
+    wishes: 'A guide who speaks Russian',
+    tourSlug: null,
+    locale: 'ru',
+    status: 'quoted',
+    quote: { id: QUOTE_ID, reference: 'Q-20261114-ABC123' },
+    ...over,
+  }
+}
+
+describe('custom-tour request card in the builder (TRIP-07, D-18)', () => {
+  it('a quote without source_inquiry_id renders no card and does not ask for a request', async () => {
+    await renderPage()
+    expect(screen.queryByTestId('custom-tour-request-card')).toBeNull()
+    expect(calls.some((c) => c.url.startsWith('/api/admin/custom-tours/'))).toBe(false)
+  })
+
+  it('shows the request above the trips with where, date, people, wishes and the Open request link', async () => {
+    requestAnswer = { status: 200, body: requestPayload() }
+    await renderPage(detail({ lines: [lineRow(1, 30000)], sourceInquiryId: REQUEST_ID }))
+    const card = await screen.findByTestId('custom-tour-request-card')
+    expect(within(card).getByRole('heading', { name: 'Custom-tour request' })).toBeInTheDocument()
+    expect(await within(card).findByText('Karlovy Vary and Loket')).toBeInTheDocument()
+    expect(within(card).getByText('2027-03-10')).toBeInTheDocument()
+    expect(within(card).getByText('4')).toBeInTheDocument()
+    expect(within(card).getByText('A guide who speaks Russian')).toBeInTheDocument()
+    expect(within(card).getByRole('link', { name: 'Open request' })).toHaveAttribute('href', `/admin/custom-tours/${REQUEST_ID}`)
+    expect(calls.some((c) => c.url === `/api/admin/custom-tours/${REQUEST_ID}`)).toBe(true)
+    // The card sits above the trips.
+    const trips = screen.getByRole('region', { name: 'Trips' })
+    expect(card.compareDocumentPosition(trips) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('a long where is clamped to 6 lines with Show all, and Show all opens it', async () => {
+    const long = 'Castle tour with many stops. '.repeat(40)
+    requestAnswer = { status: 200, body: requestPayload({ where: long }) }
+    await renderPage(detail({ lines: [lineRow(1, 30000)], sourceInquiryId: REQUEST_ID }))
+    const where = await screen.findByTestId('custom-tour-request-where')
+    expect(where.style.webkitLineClamp || where.style.getPropertyValue('-webkit-line-clamp')).toBe('6')
+    fireEvent.click(screen.getByRole('button', { name: 'Show all' }))
+    expect(screen.getByTestId('custom-tour-request-where').style.overflow).not.toBe('hidden')
+    expect(screen.getByRole('button', { name: 'Show less' })).toBeInTheDocument()
+  })
+
+  it('a short where has no Show all button', async () => {
+    requestAnswer = { status: 200, body: requestPayload() }
+    await renderPage(detail({ lines: [lineRow(1, 30000)], sourceInquiryId: REQUEST_ID }))
+    await screen.findByText('Karlovy Vary and Loket')
+    expect(screen.queryByRole('button', { name: 'Show all' })).toBeNull()
+  })
+
+  it('request text is shown as text, never as HTML (T-93-76)', async () => {
+    requestAnswer = { status: 200, body: requestPayload({ where: '<img src=x onerror=alert(1)>' }) }
+    await renderPage(detail({ lines: [lineRow(1, 30000)], sourceInquiryId: REQUEST_ID }))
+    expect(await screen.findByText('<img src=x onerror=alert(1)>')).toBeInTheDocument()
+    expect(document.querySelector('img')).toBeNull()
+  })
+
+  it('a quote with no trips opens its first trip from the request: date, people, wishes; no amount, no addresses', async () => {
+    requestAnswer = { status: 200, body: requestPayload() }
+    await renderPage(detail({ lines: [], sourceInquiryId: REQUEST_ID }))
+    const editor = await screen.findByTestId('quote-line-editor')
+    expect(screen.getAllByTestId('quote-line-editor')).toHaveLength(1)
+    expect((within(editor).getByLabelText(/Amount \(EUR\)/) as HTMLInputElement).value).toBe('')
+    expect((within(editor).getByLabelText(/Notes for the driver/) as HTMLTextAreaElement).value).toBe('A guide who speaks Russian')
+    expect((within(editor).getByLabelText('Passengers') as HTMLSelectElement).value).toBe('4')
+    expect((editor.querySelector('input[type="date"]') as HTMLInputElement).value).toBe('2027-03-10')
+    expect(within(editor).queryByText(/= /)).toBeNull()
+  })
+
+  it('people above the line maximum are capped, and the prefill happens once (a removed trip stays removed)', async () => {
+    requestAnswer = { status: 200, body: requestPayload({ people: 45, wishes: null, date: null }) }
+    await renderPage(detail({ lines: [], sourceInquiryId: REQUEST_ID }))
+    const editor = await screen.findByTestId('quote-line-editor')
+    expect((within(editor).getByLabelText('Passengers') as HTMLSelectElement).value).toBe('20')
+    fireEvent.click(screen.getByLabelText('Remove trip'))
+    expect(screen.queryByTestId('quote-line-editor')).toBeNull()
+    expect(screen.getByText('No trips yet.')).toBeInTheDocument()
+  })
+
+  it('a quote that already has trips keeps them: the request never overwrites a line', async () => {
+    requestAnswer = { status: 200, body: requestPayload() }
+    await renderPage(detail({ lines: [lineRow(1, 30000)], sourceInquiryId: REQUEST_ID }))
+    await screen.findByText('Karlovy Vary and Loket')
+    expect(screen.getAllByTestId('quote-line-editor')).toHaveLength(1)
+    expect((screen.getByLabelText(/Amount \(EUR\)/) as HTMLInputElement).value).toBe('300.00')
+  })
+
+  it('an erased request says so and the Open request link stays', async () => {
+    requestAnswer = { status: 404, body: {} }
+    await renderPage(detail({ lines: [lineRow(1, 30000)], sourceInquiryId: REQUEST_ID }))
+    expect(await screen.findByText('This request was erased.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open request' })).toBeInTheDocument()
   })
 })

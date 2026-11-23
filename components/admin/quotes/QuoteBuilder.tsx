@@ -6,6 +6,7 @@ import { QuoteLineEditor } from '@/components/admin/quotes/QuoteLineEditor'
 import { QuoteSettingsFields } from '@/components/admin/quotes/QuoteSettingsFields'
 import { QuoteActionsBar } from '@/components/admin/quotes/QuoteActionsBar'
 import { QuoteEventsList } from '@/components/admin/quotes/QuoteEventsList'
+import CustomTourRequestCard from '@/components/admin/quotes/CustomTourRequestCard'
 import {
   depositProblem,
   draftFromDetail,
@@ -17,6 +18,7 @@ import {
 } from '@/components/admin/quotes/quoteDraft'
 import { errorStyle, labelStyle } from '@/components/admin/adminFieldStyles'
 import { outlineButtonStyle } from '@/components/admin/paymentShared'
+import type { CustomTourRequestDetail } from '@/lib/custom-tours/admin-store'
 import type { QuoteDetail } from '@/lib/quotes/store'
 import { QUOTE_MAX_LINES } from '@/lib/quotes/vocabulary'
 
@@ -71,6 +73,21 @@ export function saveErrorText(
     return known || 'The quote cannot be saved in its current state.'
   }
   return COPY_SAVE_FAILED
+}
+
+// The passenger and notes limits of a quote line (lib/quotes/schemas.ts); a request's people and wishes are capped to them.
+const LINE_MAX_PASSENGERS = 20
+const LINE_MAX_NOTES = 1000
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+
+/** The first trip of a quote that answers a custom-tour request (D-18): date, people and wishes only; no price, no addresses. */
+function lineFromRequest(request: CustomTourRequestDetail): QuoteLineDraft {
+  return {
+    ...emptyLine(),
+    pickup_date: request.date && ISO_DATE.test(request.date) ? request.date : '',
+    passengers: Math.min(Math.max(request.people ?? 1, 1), LINE_MAX_PASSENGERS),
+    special_requests: (request.wishes ?? '').slice(0, LINE_MAX_NOTES),
+  }
 }
 
 const cardStyle: CSSProperties = {
@@ -137,6 +154,15 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
     // The detail is read from the server once per quote id.
     void load(false)
   }, [load])
+
+  // A quote made from a custom-tour request starts its empty first trip from the request, once (D-18). A quote that already
+  // has trips, or one the operator already emptied, is left alone.
+  const seeded = useRef(false)
+  const seedFromRequest = useCallback((request: CustomTourRequestDetail) => {
+    if (seeded.current) return
+    seeded.current = true
+    setDraft((current) => (current && current.lines.length === 0 ? { ...current, lines: [lineFromRequest(request)] } : current))
+  }, [])
 
   if (loadState === 'loading') return <p style={mutedStyle}>Loading…</p>
   if (loadState === 'notfound') return <p role="alert" style={errorStyle}>This quote does not exist.</p>
@@ -264,6 +290,10 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
 
       <QuoteActionsBar detail={detail} unsavedChanges={unsaved} onChanged={() => load(true)} />
       <QuoteEventsList detail={detail} />
+
+      {detail.quote.source_inquiry_id && (
+        <CustomTourRequestCard requestId={detail.quote.source_inquiry_id} onLoaded={readOnly ? undefined : seedFromRequest} />
+      )}
 
       <section aria-label="Trips" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {draft.lines.length === 0 && <p style={mutedStyle}>No trips yet.</p>}
