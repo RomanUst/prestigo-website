@@ -3,11 +3,11 @@
     "label": "Múnich → Praga",
     "headlineLine1": "De Múnich a Praga,",
     "headlineItalic": "un solo coche todo el camino.",
-    "intro": "El traslado de Múnich a Praga con chófer privado es un trayecto puerta a puerta de 385 km hacia el norte por la A9 y la A93, y después hacia el este por la A6 y la D5, con unas 4 horas de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Múnich, en la München Hauptbahnhof o en el aeropuerto de Múnich (MUC), y llegada a cualquier punto de Praga.",
+    "intro": "El traslado de Múnich a Praga con chófer privado es un trayecto puerta a puerta de {routeKm} km hacia el norte por la A9 y la A93, y después hacia el este por la A6 y la D5, con unas 4 horas de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Múnich, en la München Hauptbahnhof o en el aeropuerto de Múnich (MUC), y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Múnich a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Múnich a Praga cubre 385 km —hacia el norte por la A9, después la A93 pasando por Ratisbona, hacia el este por la A6 hasta la frontera checa en Waidhaus–Rozvadov y la autopista D5 pasando por Pilsen hasta Praga— y dura aproximadamente 4 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Múnich, en una oficina, en la München Hauptbahnhof o en la sala de llegadas del aeropuerto de Múnich, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Múnich a Praga cubre {routeKm} km —hacia el norte por la A9, después la A93 pasando por Ratisbona, hacia el este por la A6 hasta la frontera checa en Waidhaus–Rozvadov y la autopista D5 pasando por Pilsen hasta Praga— y dura aproximadamente 4 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Múnich, en una oficina, en la München Hauptbahnhof o en la sala de llegadas del aeropuerto de Múnich, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se fija al reservar: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Si aterriza en MUC tras un vuelo de largo recorrido, sale de la sala de llegadas, se sienta y no vuelve a levantarse hasta su hotel en Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en unas cuatro horas.",
     "paragraphs": [
       "Desde la recogida en el casco antiguo, cerca de Marienplatz, en Schwabing o en Maxvorstadt, su chófer toma la A9 hacia el norte para salir de Múnich. Desde el aeropuerto de Múnich, el coche llega a la misma autopista en pocos minutos por la A92. En el enlace de Holledau, la ruta se desvía a la A93 y avanza hacia el norte entre los campos de lúpulo de la Hallertau hasta Ratisbona y el Danubio.",
-      "Pasada Ratisbona, la A93 sigue el valle del Naab a través del Alto Palatinado hasta la A6, que lleva hacia el este hasta la frontera de Waidhaus–Rozvadov. El paso está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. La D5 le lleva después a través de Bohemia Occidental, pasando por Pilsen, Rokycany y Beroun, hasta el suroeste de Praga. La distancia total es de aproximadamente 385 kilómetros; el tiempo de conducción es de cuatro horas con tráfico normal.",
+      "Pasada Ratisbona, la A93 sigue el valle del Naab a través del Alto Palatinado hasta la A6, que lleva hacia el este hasta la frontera de Waidhaus–Rozvadov. El paso está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. La D5 le lleva después a través de Bohemia Occidental, pasando por Pilsen, Rokycany y Beroun, hasta el suroeste de Praga. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción es de cuatro horas con tráfico normal.",
       "Los tramos más lentos suelen estar en los dos extremos: el anillo de Múnich en hora punta y la entrada a Praga un viernes por la tarde, cada uno con 20–30 minutos más. Su chófer comprueba ambos antes de salir y ajusta la hora de recogida o cambia la ruta para evitarlos. Llegará a Praga con la tarde por delante."
     ]
   },
@@ -229,7 +229,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "385 km"
+      "value": "{routeKm} km"
     },
     {
       "label": "Duración",
@@ -255,8 +255,8 @@
   },
   "metadata": {
     "title": "Traslado Múnich – Praga — Mercedes ejecutivo",
-    "description": "Traslado ejecutivo Múnich – Praga: 385 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Múnich – Praga: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Múnich – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Múnich – Praga: 385 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Múnich – Praga: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

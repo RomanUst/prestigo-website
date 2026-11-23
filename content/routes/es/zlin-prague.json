@@ -3,11 +3,11 @@
     "label": "Zlín → Praga",
     "headlineLine1": "De Zlín a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "De Zlín a Praga con chófer privado son 310 km de traslado puerta a puerta hacia el oeste por la D55 y la D1, unas 3,5 horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con el combustible y la viñeta de autopista checa incluidos. Recogida en cualquier dirección de Zlín o de una ciudad balneario cercana y llegada a cualquier punto de Praga.",
+    "intro": "De Zlín a Praga con chófer privado son {routeKm} km de traslado puerta a puerta hacia el oeste por la D55 y la D1, unas 3,5 horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con el combustible y la viñeta de autopista checa incluidos. Recogida en cualquier dirección de Zlín o de una ciudad balneario cercana y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Zlín a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Zlín a Praga recorre 310 km: hacia el oeste hasta Otrokovice, un breve tramo hacia el norte por la D55 hasta Hulín y después la D1, pasando por Kroměříž, Vyškov y Brno y a través de las Tierras Altas de Bohemia y Moravia hasta Praga. Dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel, oficina o domicilio de Zlín y le deja en la puerta de su hotel o reunión en Praga, o en el aeropuerto Václav Havel.",
+    "Un traslado privado de Zlín a Praga recorre {routeKm} km: hacia el oeste hasta Otrokovice, un breve tramo hacia el norte por la D55 hasta Hulín y después la D1, pasando por Kroměříž, Vyškov y Brno y a través de las Tierras Altas de Bohemia y Moravia hasta Praga. Dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel, oficina o domicilio de Zlín y le deja en la puerta de su hotel o reunión en Praga, o en el aeropuerto Václav Havel.",
     "La tarifa se acuerda antes de la salida y no cambia: el combustible, la viñeta de autopista checa, el agua embotellada, el wifi y las sillas infantiles a petición están incluidos. Zlín no tiene tren rápido directo a Praga; con un coche privado no hay trasbordo en Otrokovice ni nada que organizar al otro lado."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "a través de Moravia.",
     "paragraphs": [
       "Desde una recogida entre los edificios de ladrillo rojo de Baťa, en un hotel del centro o en la universidad, su chófer se dirige hacia el oeste por el valle del Dřevnice hasta Otrokovice y toma la D55 hacia el norte hasta Hulín. Allí la ruta enlaza con la D1 y gira hacia el oeste por la llanura de Haná, pasando por Kroměříž y Vyškov. En esta ruta no hay frontera: transcurre dentro de la República Checa todo el camino.",
-      "A la altura de Brno, la D1 inicia su largo tramo hacia el oeste a través de la Vysočina: Velké Meziříčí, Jihlava, Humpolec y, después, el suave descenso hacia Bohemia Central y el extremo sureste de Praga. La distancia total es de aproximadamente 310 kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal, y los viernes por la tarde y los domingos por la noche la entrada a Praga añade entre 20 y 30 minutos.",
+      "A la altura de Brno, la D1 inicia su largo tramo hacia el oeste a través de la Vysočina: Velké Meziříčí, Jihlava, Humpolec y, después, el suave descenso hacia Bohemia Central y el extremo sureste de Praga. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal, y los viernes por la tarde y los domingos por la noche la entrada a Praga añade entre 20 y 30 minutos.",
       "Su chófer consulta el estado de la D1 antes de salir de Zlín. Si hay un corte entre Brno y Praga, lo rodea por las carreteras paralelas sin preguntar. En un trayecto tan largo, una pausa hacia la mitad del camino forma parte del plan."
     ]
   },
@@ -148,7 +148,7 @@
     "items": [
       {
         "title": "Tarifa fija, cerrada al reservar",
-        "body": "El combustible, la viñeta checa y 310 km de tiempo del chófer están incluidos en el precio. No se añade nada en la carretera ni en Praga."
+        "body": "El combustible, la viñeta checa y {routeKm} km de tiempo del chófer están incluidos en el precio. No se añade nada en la carretera ni en Praga."
       },
       {
         "title": "Sin trasbordo en Otrokovice",
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~310 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Traslado Zlín – Praga — Mercedes ejecutivo",
-    "description": "Traslado ejecutivo Zlín – Praga: 310 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Zlín – Praga: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Zlín – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Zlín – Praga: 310 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Zlín – Praga: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

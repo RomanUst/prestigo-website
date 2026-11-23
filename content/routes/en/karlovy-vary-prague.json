@@ -3,11 +3,11 @@
     "label": "Karlovy Vary → Prague",
     "headlineLine1": "Karlovy Vary to Prague,",
     "headlineItalic": "from the colonnade to your door.",
-    "intro": "Karlovy Vary to Prague by private chauffeur is a 130 km door-to-door transfer east on the D6, around 1h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Karlovy Vary hotel or address, drop-off anywhere in Prague or at Václav Havel Airport.",
+    "intro": "Karlovy Vary to Prague by private chauffeur is a {routeKm} km door-to-door transfer east on the D6, around 1h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Karlovy Vary hotel or address, drop-off anywhere in Prague or at Václav Havel Airport.",
     "imageAlt": "Private chauffeur transfer from Karlovy Vary to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Karlovy Vary to Prague covers 130 km — out of the spa valley and east along the D6 across the Bohemian plateau into the western edge of Prague — and takes approximately 1.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel, apartment or office in Karlovy Vary, and drops you at your Prague hotel, your meeting or the departures hall at Václav Havel Airport.",
+    "A private transfer from Karlovy Vary to Prague covers {routeKm} km — out of the spa valley and east along the D6 across the Bohemian plateau into the western edge of Prague — and takes approximately 1.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel, apartment or office in Karlovy Vary, and drops you at your Prague hotel, your meeting or the departures hall at Václav Havel Airport.",
     "The fare is set before you travel and stays the same: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. After a week of treatments or a festival programme, there is nothing left to organise — no bus timetable, no taxi rank at the other end."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in ninety minutes.",
     "paragraphs": [
       "From a pickup in the spa quarter along the Teplá, at the Grandhotel Pupp or in the newer part of town, your chauffeur climbs out of the valley and joins the D6 heading east. The road runs through open West Bohemian farmland and forest past Lubenec and Nové Strašecí. The whole journey stays inside the Czech Republic — no border, no second vignette, no document check.",
-      "Total distance is approximately 130 kilometres; driving time is one and a half hours in normal conditions. The D6 has been upgraded to motorway standard section by section, and a few stretches still carry roadworks. Your chauffeur checks the road before departure and uses the older parallel road where a works zone would slow you down.",
+      "Total distance is approximately {routeKm} kilometres; driving time is one and a half hours in normal conditions. The D6 has been upgraded to motorway standard section by section, and a few stretches still carry roadworks. Your chauffeur checks the road before departure and uses the older parallel road where a works zone would slow you down.",
       "The D6 enters Prague on its western side, close to Václav Havel Airport — if you are flying out, the terminal is minutes from the end of the motorway. For the city centre, allow another 20–30 minutes through Břevnov or Dejvice to Malá Strana, the Old Town or Vinohrady, depending on the time of day."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "dresden-prague", "city": "Dresden", "label": "Dresden → Prague", "distance": "150 km", "duration": "2h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~130 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~1.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Karlovy Vary to Prague Transfer — Executive",
-    "description": "Premium Karlovy Vary to Prague transfer: 130 km, about 1.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Karlovy Vary to Prague transfer: {routeKm} km, about 1.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Karlovy Vary to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Karlovy Vary to Prague transfer: 130 km, about 1.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Karlovy Vary to Prague transfer: {routeKm} km, about 1.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

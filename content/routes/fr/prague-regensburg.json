@@ -3,11 +3,11 @@
     "label": "Prague → Ratisbonne",
     "headlineLine1": "Transfert de Prague à Ratisbonne,",
     "headlineItalic": "le Danube médiéval.",
-    "intro": "285 km vers le sud-ouest, jusqu'à la cité médiévale la mieux préservée de Bavière. Une vieille ville inscrite à l'UNESCO, un pont de pierre du XIIe siècle et le Danube qui coule en dessous — trois heures, un prix fixe.",
+    "intro": "{routeKm} km vers le sud-ouest, jusqu'à la cité médiévale la mieux préservée de Bavière. Une vieille ville inscrite à l'UNESCO, un pont de pierre du XIIe siècle et le Danube qui coule en dessous — trois heures, un prix fixe.",
     "imageAlt": "Ratisbonne — transfert en chauffeur privé de Prague à Ratisbonne"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Ratisbonne couvre 285 km par les autoroutes D5 et A93 et dure environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau minérale, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quelles que soient la circulation ou l'attente à destination. Des arrêts en route — Pilsen ou Waidhaus — sont possibles au tarif fixe s'ils sont prévus lors de la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
+    "Un transfert privé de Prague à Ratisbonne couvre {routeKm} km par les autoroutes D5 et A93 et dure environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau minérale, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quelles que soient la circulation ou l'attente à destination. Des arrêts en route — Pilsen ou Waidhaus — sont possibles au tarif fixe s'ils sont prévus lors de la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne bouge pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en trois heures.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers le sud-ouest, passe Beroun, traverse Pilsen, puis rejoint la frontière Schengen tchéco-allemande à Rozvadov/Waidhaus. Le passage est invisible à l'intérieur de l'espace Schengen — aucun arrêt, aucun contrôle de documents. En Allemagne, la route devient l'A6 sur un court tronçon vers l'ouest, puis l'A93 descend vers le sud à travers le Haut-Palatinat jusqu'à Ratisbonne, sur le Danube. La dépose se fait à votre hôtel, dans l'Altstadt, devant la cathédrale Saint-Pierre ou au Steinerne Brücke.",
-      "La distance totale est d'environ 285 kilomètres. Le temps de conduite est de trois heures en conditions normales. Comptez 15 à 20 minutes de plus le vendredi après-midi à la sortie de Prague, ou en été sur le corridor de l'A93 — principal axe vers le sud de la Bavière, il connaît un fort trafic de vacanciers et des travaux intermittents.",
+      "La distance totale est d'environ {routeKm} kilomètres. Le temps de conduite est de trois heures en conditions normales. Comptez 15 à 20 minutes de plus le vendredi après-midi à la sortie de Prague, ou en été sur le corridor de l'A93 — principal axe vers le sud de la Bavière, il connaît un fort trafic de vacanciers et des travaux intermittents.",
       "Votre chauffeur consulte l'état du trafic sur la D5 et l'A93 avant chaque départ. En cas de fermeture près de Cham ou de bouchon à l'approche du périphérique de Ratisbonne, il passe par Schwandorf sans avoir à demander. Vous ne payez pas les embouteillages ; vous payez du temps. Ratisbonne récompense le trajet — l'Altstadt classée à l'UNESCO, le pont de pierre sur le Danube, la cathédrale et ses deux flèches, et le mémorial du Walhalla juste à l'est de la ville, à Donaustauf."
     ]
   },
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~285 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Ratisbonne — Chauffeur premium",
-    "description": "Transfert premium Prague – Ratisbonne : 285 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Prague – Ratisbonne : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Ratisbonne — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Prague – Ratisbonne : 285 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Prague – Ratisbonne : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

@@ -3,11 +3,11 @@
     "label": "Prague → Olomouc",
     "headlineLine1": "Transfert de Prague à Olomouc,",
     "headlineItalic": "la Moravie baroque.",
-    "intro": "280 km vers l'est, jusqu'à la grande capitale historique de la Moravie. Six fontaines baroques, une colonne de la Sainte-Trinité inscrite à l'UNESCO et l'un des centres anciens les mieux préservés d'Europe centrale — trois heures, un prix fixe.",
+    "intro": "{routeKm} km vers l'est, jusqu'à la grande capitale historique de la Moravie. Six fontaines baroques, une colonne de la Sainte-Trinité inscrite à l'UNESCO et l'un des centres anciens les mieux préservés d'Europe centrale — trois heures, un prix fixe.",
     "imageAlt": "Olomouc — transfert en chauffeur privé de Prague à Olomouc"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Olomouc parcourt 280 km par les autoroutes D1 et D46 et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfant sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en route — Brno ou Vyškov — sont possibles au même tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
+    "Un transfert privé de Prague à Olomouc parcourt {routeKm} km par les autoroutes D1 et D46 et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfant sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en route — Brno ou Vyškov — sont possibles au même tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur et un tarif qui ne change pas entre la réservation et l'arrivée."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers l'est, à travers les hauteurs de la Vysočina, en direction de Brno. Quelque part après la moitié du trajet, le paysage s'ouvre sur les champs vallonnés de la plaine de Haná et la route bifurque vers le nord sur la D46, jusqu'à Olomouc — le deuxième plus grand centre historique de République tchèque après Prague elle-même. Aucun passage de frontière ; l'itinéraire reste entièrement en République tchèque, sans contrôle de passeport ni péage international.",
       "Olomouc récompense le voyage. La colonne de la Sainte-Trinité, inscrite au patrimoine mondial de l'UNESCO, domine la place Haute, ou Horní náměstí, et constitue le plus grand ensemble sculpté baroque du pays. Six fontaines baroques distinctes — César, Hercule, Neptune, Jupiter, Mercure et Triton — se trouvent à quelques minutes de marche les unes des autres. La cathédrale Saint-Venceslas s'élève sur la colline au-dessus du centre ancien, l'horloge astronomique égrène les heures devant sa mosaïque d'époque communiste sur la place, et l'université Palacký, fondée en 1573, est l'une des plus anciennes d'Europe centrale.",
-      "La distance totale est d'environ 280 kilomètres. Votre chauffeur vérifie l'état de la D1 avant chaque départ. En cas de fermeture de voie près de Velké Meziříčí, il emprunte la R602 parallèle sans avoir à le demander. Vous ne payez pas la circulation ; vous payez du temps."
+      "La distance totale est d'environ {routeKm} kilomètres. Votre chauffeur vérifie l'état de la D1 avant chaque départ. En cas de fermeture de voie près de Velké Meziříčí, il emprunte la R602 parallèle sans avoir à le demander. Vous ne payez pas la circulation ; vous payez du temps."
     ]
   },
   "includedLabel": "Ce qui est inclus",
@@ -206,7 +206,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~280 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -232,8 +232,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Olomouc — Chauffeur premium",
-    "description": "Transfert haut de gamme Prague – Olomouc : 280 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Olomouc : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Olomouc — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Olomouc : 280 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Olomouc : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

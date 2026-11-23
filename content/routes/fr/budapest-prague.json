@@ -3,11 +3,11 @@
     "label": "Budapest → Prague",
     "headlineLine1": "De Budapest à Prague,",
     "headlineItalic": "trois frontières, une voiture.",
-    "intro": "De Budapest à Prague avec chauffeur privé, c'est un transfert de porte à porte de 535 km vers l'ouest par la M1, en passant par Bratislava et Brno, soit environ 5 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignettes hongroise, slovaque et tchèque incluses. Prise en charge à n'importe quelle adresse de Budapest ou à l'aéroport de Budapest (BUD), dépose partout dans Prague.",
+    "intro": "De Budapest à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'ouest par la M1, en passant par Bratislava et Brno, soit environ 5 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignettes hongroise, slovaque et tchèque incluses. Prise en charge à n'importe quelle adresse de Budapest ou à l'aéroport de Budapest (BUD), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Budapest à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Budapest à Prague couvre 535 km — vers l'ouest par l'autoroute M1 en passant par Tatabánya et Győr, la M15 jusqu'à la frontière slovaque de Rajka–Čunovo, la D2 à travers Bratislava jusqu'à la frontière tchèque de Brodské–Lanžhot, puis Brno et la D1 jusqu'à Prague — et demande environ 5 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge sur l'une ou l'autre rive du Danube — un hôtel à Pest, un appartement sur les collines de Buda, la gare Keleti ou l'aéroport international Ferenc Liszt de Budapest — et vous dépose devant votre porte à Prague.",
+    "Un transfert privé de Budapest à Prague couvre {routeKm} km — vers l'ouest par l'autoroute M1 en passant par Tatabánya et Győr, la M15 jusqu'à la frontière slovaque de Rajka–Čunovo, la D2 à travers Bratislava jusqu'à la frontière tchèque de Brodské–Lanžhot, puis Brno et la D1 jusqu'à Prague — et demande environ 5 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge sur l'une ou l'autre rive du Danube — un hôtel à Pest, un appartement sur les collines de Buda, la gare Keleti ou l'aéroport international Ferenc Liszt de Budapest — et vous dépose devant votre porte à Prague.",
     "Le tarif est fixé à la réservation : carburant, vignettes autoroutières hongroise, slovaque et tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Trois pays, une seule voiture, et rien à organiser en arrivant à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en cinq heures et demie.",
     "paragraphs": [
       "Après une prise en charge à Belváros, sur l'avenue Andrássy, sur la colline du Château ou à l'aéroport à l'est de la ville, votre chauffeur quitte Budapest vers l'ouest par la M1. L'autoroute passe Tatabánya et Győr à travers la Petite Plaine hongroise, puis la M15 bifurque vers le nord jusqu'à la frontière slovaque de Rajka–Čunovo — un passage Schengen sans arrêt en temps normal.",
-      "En Slovaquie, la route passe Bratislava et continue vers le nord par la D2 à travers la plaine de Záhorie jusqu'à la frontière tchèque de Brodské–Lanžhot. Côté tchèque, la D2 remonte par Břeclav jusqu'à Brno, où la D1 prend le relais pour les 205 derniers kilomètres jusqu'à Prague. La distance totale est d'environ 535 kilomètres ; le temps de conduite est de cinq heures et demie en circulation normale.",
+      "En Slovaquie, la route passe Bratislava et continue vers le nord par la D2 à travers la plaine de Záhorie jusqu'à la frontière tchèque de Brodské–Lanžhot. Côté tchèque, la D2 remonte par Břeclav jusqu'à Brno, où la D1 prend le relais pour les 205 derniers kilomètres jusqu'à Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est de cinq heures et demie en circulation normale.",
       "Votre chauffeur vérifie l'état de la M1 et de la D1 avant le départ et prévoit une vraie pause à mi-parcours. En cas de travaux entre Brno et Jihlava, il prend l'itinéraire de délestage sans avoir à demander. Vous arrivez à Prague à l'heure du dîner, pas à celle du coucher."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "krakow-prague", "city": "Cracovie", "label": "Cracovie → Prague", "distance": "530 km", "duration": "5 h 30" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "535 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Durée", "value": "~5 h 30" },
     { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
     { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Transfert Budapest – Prague — Premium, 5h30",
-    "description": "Transfert haut de gamme Budapest – Prague : 535 km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Budapest – Prague : {routeKm} km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Budapest – Prague — Premium, 5h30 porte à porte",
-    "ogDescription": "Transfert haut de gamme Budapest – Prague : 535 km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Vignettes incluses. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Budapest – Prague : {routeKm} km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Vignettes incluses. Sièges enfant sur demande, sans supplément."
   }
 }

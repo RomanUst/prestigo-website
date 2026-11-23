@@ -3,11 +3,11 @@
     "label": "Dresden → Prague",
     "headlineLine1": "Dresden to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Dresden to Prague by private chauffeur is a 150 km door-to-door transfer south on the A17 and D8, around two hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Czech motorway vignette included. Pickup from any Dresden address, Dresden Hauptbahnhof or Dresden Airport (DRS), drop-off anywhere in Prague.",
+    "intro": "Dresden to Prague by private chauffeur is a {routeKm} km door-to-door transfer south on the A17 and D8, around two hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Czech motorway vignette included. Pickup from any Dresden address, Dresden Hauptbahnhof or Dresden Airport (DRS), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Dresden to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Dresden to Prague covers about 150 km — south out of the city on the A17, over the eastern Ore Mountains into the Czech Republic, then the D8 motorway past Ústí nad Labem and down the Bohemian plain into Prague — and takes around two hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in the Altstadt or Neustadt, from Dresden Hauptbahnhof or from Arrivals at Dresden Airport, and drops you at the door of your Prague hotel, apartment or office.",
+    "A private transfer from Dresden to Prague covers about {routeKm} km — south out of the city on the A17, over the eastern Ore Mountains into the Czech Republic, then the D8 motorway past Ústí nad Labem and down the Bohemian plain into Prague — and takes around two hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in the Altstadt or Neustadt, from Dresden Hauptbahnhof or from Arrivals at Dresden Airport, and drops you at the door of your Prague hotel, apartment or office.",
     "The price is set when you book and stays that way: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. Two hours after leaving the Elbe in Saxony you step out in Prague with nothing left to organise — no platform, no luggage on the stairs, no second taxi."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in about two hours.",
     "paragraphs": [
       "From a pickup near the Frauenkirche, in the Neustadt or at Dresden Airport, your chauffeur joins the A17 on the southern edge of the city and climbs out of the Elbe valley toward the Ore Mountains. Germany charges no motorway toll for cars, so there is nothing to stop for. The border sits on the motorway itself, inside the Schengen Area: no routine check, no queue, just Czech signs and the descent toward Ústí nad Labem.",
-      "On the Czech side the road becomes the D8. It runs past Ústí and Lovosice through the volcanic cones of the České středohoří hills, then flattens out across the Bohemian plain and enters Prague from the north. Total distance is approximately 150 kilometres; driving time is about two hours. Weekday evening traffic on the northern approach to Prague can add 15–20 minutes.",
+      "On the Czech side the road becomes the D8. It runs past Ústí and Lovosice through the volcanic cones of the České středohoří hills, then flattens out across the Bohemian plain and enters Prague from the north. Total distance is approximately {routeKm} kilometres; driving time is about two hours. Weekday evening traffic on the northern approach to Prague can add 15–20 minutes.",
       "Your chauffeur checks the D8 before setting off. If there is roadwork or a closure near Lovosice, they take the parallel road without asking. You reach Prague with time to spare — check in at a hotel in Malá Strana, leave the bags, and be on the Charles Bridge before the light goes."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~150 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duration",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Dresden to Prague Transfer — Premium Chauffeur",
-    "description": "Premium Dresden to Prague transfer: 150 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Dresden to Prague transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Dresden to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Dresden to Prague transfer: 150 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Dresden to Prague transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

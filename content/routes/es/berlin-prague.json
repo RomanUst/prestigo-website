@@ -3,11 +3,11 @@
     "label": "Berlín → Praga",
     "headlineLine1": "De Berlín a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "De Berlín a Praga con chófer privado son 350 km de traslado puerta a puerta hacia el sur por la A13, la A17 y la D8, unas cuatro horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta de autopista checa incluida. Recogida en cualquier dirección de Berlín, en Berlin Hauptbahnhof o en el aeropuerto de Berlín-Brandeburgo (BER) y llegada a cualquier punto de Praga.",
+    "intro": "De Berlín a Praga con chófer privado son {routeKm} km de traslado puerta a puerta hacia el sur por la A13, la A17 y la D8, unas cuatro horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta de autopista checa incluida. Recogida en cualquier dirección de Berlín, en Berlin Hauptbahnhof o en el aeropuerto de Berlín-Brandeburgo (BER) y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Berlín a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Berlín a Praga cubre unos 350 km —hacia el sur, saliendo de la ciudad junto al aeropuerto de Berlín-Brandeburgo, por la A13 a través de Brandeburgo hasta Dresde, la A17 cruzando los Montes Metálicos y después la D8 checa hasta Praga— y dura unas cuatro horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel de Mitte o Charlottenburg, en Berlin Hauptbahnhof o en la sala de llegadas de BER, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Berlín a Praga cubre unos {routeKm} km —hacia el sur, saliendo de la ciudad junto al aeropuerto de Berlín-Brandeburgo, por la A13 a través de Brandeburgo hasta Dresde, la A17 cruzando los Montes Metálicos y después la D8 checa hasta Praga— y dura unas cuatro horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel de Mitte o Charlottenburg, en Berlin Hauptbahnhof o en la sala de llegadas de BER, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se acuerda antes del viaje y no cambia: el combustible, la viñeta de autopista checa, el agua embotellada, el Wi-Fi y las sillas infantiles bajo petición están incluidos. Un solo coche de su puerta en Berlín a su puerta en Praga, sin traslados a la estación en ninguno de los dos extremos."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en unas cuatro horas.",
     "paragraphs": [
       "Desde la recogida en Mitte, Charlottenburg o el aeropuerto de Berlín-Brandeburgo, su chófer sale de la ciudad hacia el sureste y toma la A13 en dirección sur a través de Brandeburgo: pinares, lagos y el borde del Spreewald en torno a Lübbenau. Las autopistas alemanas no tienen peaje para turismos, así que la única parada es la que usted elija. La A13 entra en Sajonia y llega al anillo de Dresde unas dos horas y media después de salir de Berlín.",
-      "Pasado Dresde, la A17 sube hacia los Montes Metálicos orientales y cruza la frontera checa por la propia autopista, dentro del espacio Schengen: sin control rutinario, sin colas. En el lado checo, la D8 desciende pasando por Ústí nad Labem y Lovosice y cruza la llanura bohemia hasta Praga. La distancia total es de unos 350 kilómetros; el tiempo de conducción es de unas cuatro horas con tráfico normal. Los viernes por la tarde, la salida de Berlín puede añadir 20–30 minutos.",
+      "Pasado Dresde, la A17 sube hacia los Montes Metálicos orientales y cruza la frontera checa por la propia autopista, dentro del espacio Schengen: sin control rutinario, sin colas. En el lado checo, la D8 desciende pasando por Ústí nad Labem y Lovosice y cruza la llanura bohemia hasta Praga. La distancia total es de unos {routeKm} kilómetros; el tiempo de conducción es de unas cuatro horas con tráfico normal. Los viernes por la tarde, la salida de Berlín puede añadir 20–30 minutos.",
       "Su chófer revisa la A13, la A17 y la D8 antes de salir y evita los cierres sin necesidad de preguntar. Si lo desea, hay una parada para el café prevista. Llega a Praga a tiempo para registrarse, cambiarse y cruzar el río a pie para cenar."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~350 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Traslado Berlín – Praga — Chófer premium",
-    "description": "Traslado premium Berlín – Praga: 350 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Berlín – Praga: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Berlín – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Berlín – Praga: 350 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Berlín – Praga: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

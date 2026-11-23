@@ -3,11 +3,11 @@
     "label": "Prague → Brno",
     "headlineLine1": "Prague to Brno Private Transfer,",
     "headlineItalic": "Moravia's capital.",
-    "intro": "205 km east on the D1 to the Czech Republic's second city. Špilberk Castle, Villa Tugendhat, the Brno Exhibition Centre, and Moravian wine country — two and a half hours, one fixed price.",
+    "intro": "{routeKm} km east on the D1 to the Czech Republic's second city. Špilberk Castle, Villa Tugendhat, the Brno Exhibition Centre, and Moravian wine country — two and a half hours, one fixed price.",
     "imageAlt": "Brno — private chauffeur transfer from Prague to Brno"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Brno covers 205 km via the D1 motorway and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Jihlava or a Moravian wine village — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Brno covers {routeKm} km via the D1 motorway and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Jihlava or a Moravian wine village — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two and a half hours.",
     "paragraphs": [
       "From a Prague pickup in the Old Town, Vinohrady, Karlín, or Václav Havel Airport, your chauffeur takes the D1 motorway east. The D1 is the busiest motorway in the Czech Republic and the central spine of the country, running from the capital through the Vysočina — the Bohemian-Moravian Highlands — and down into Brno. There is no border crossing; the route stays entirely within Czechia, which means no vignette changes, no document checks, and no stop at a frontier.",
-      "Total distance is approximately 205 kilometres. Much of the corridor has been progressively widened and rebuilt over the last several years, and the drive now moves at a steady rhythm through Humpolec, Jihlava, and Velké Meziříčí before descending into Brno. In the city, the route branches to where you actually need to go — the Old Town under Špilberk Castle and the Cathedral of St. Peter and Paul, the Brno Exhibition Centre (BVV) for trade fairs, Villa Tugendhat on the hill above Černá Pole, or south into the Moravian wine country around Mikulov.",
+      "Total distance is approximately {routeKm} kilometres. Much of the corridor has been progressively widened and rebuilt over the last several years, and the drive now moves at a steady rhythm through Humpolec, Jihlava, and Velké Meziříčí before descending into Brno. In the city, the route branches to where you actually need to go — the Old Town under Špilberk Castle and the Cathedral of St. Peter and Paul, the Brno Exhibition Centre (BVV) for trade fairs, Villa Tugendhat on the hill above Černá Pole, or south into the Moravian wine country around Mikulov.",
       "Friday afternoon outbound from Prague is the one pattern worth planning around — it is reliably heavy and can add half an hour. Your chauffeur watches the D1 before every departure and shifts the pickup time if the map is red. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -95,7 +95,7 @@
     { "slug": "prague-zlin", "city": "Zlín", "distance": "300 km", "duration": "3h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~205 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -106,8 +106,8 @@
   },
   "metadata": {
     "title": "Prague to Brno Transfer — Executive Mercedes",
-    "description": "Premium Prague to Brno transfer: 205 km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Brno transfer: {routeKm} km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Brno Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Brno transfer: 205 km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Brno transfer: {routeKm} km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

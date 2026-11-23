@@ -3,11 +3,11 @@
     "label": "Plzeň → Prague",
     "headlineLine1": "Plzeň to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Plzeň to Prague by private chauffeur is a 90 km door-to-door transfer east on the D5 motorway, around one hour drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech vignette included. Pickup from any Plzeň hotel, office or the main station, drop-off anywhere in Prague.",
+    "intro": "Plzeň to Prague by private chauffeur is a {routeKm} km door-to-door transfer east on the D5 motorway, around one hour drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech vignette included. Pickup from any Plzeň hotel, office or the main station, drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Plzeň to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Plzeň to Prague covers 90 km — east on the D5 motorway past Rokycany and Beroun, then into Prague from the west — and takes approximately one hour door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Plzeň hotel, a meeting near Republic Square, the Pilsner Urquell brewery gate or Plzeň main station, and drops you at the door of your Prague hotel, apartment or office.",
+    "A private transfer from Plzeň to Prague covers {routeKm} km — east on the D5 motorway past Rokycany and Beroun, then into Prague from the west — and takes approximately one hour door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Plzeň hotel, a meeting near Republic Square, the Pilsner Urquell brewery gate or Plzeň main station, and drops you at the door of your Prague hotel, apartment or office.",
     "The fare is agreed before you travel and does not move: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. Because the D5 reaches Prague on the airport side of the city, it is also one of the easiest ways to make an afternoon flight from Václav Havel Airport."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in one hour.",
     "paragraphs": [
       "From a pickup in the centre, near the brewery or at the main station, your chauffeur joins the D5 on the edge of Plzeň and heads east. The first stretch runs through the wooded hills around Rokycany; there is no border on this route — it stays entirely inside the Czech Republic.",
-      "Past Rokycany the motorway drops into the Berounka valley at Beroun, with the limestone hills of the Bohemian Karst to the south — Karlštejn Castle is hidden among them, a short detour away. Total distance is approximately 90 kilometres; driving time is about one hour in normal traffic.",
+      "Past Rokycany the motorway drops into the Berounka valley at Beroun, with the limestone hills of the Bohemian Karst to the south — Karlštejn Castle is hidden among them, a short detour away. Total distance is approximately {routeKm} kilometres; driving time is about one hour in normal traffic.",
       "The D5 enters Prague on its western side, a few minutes from Václav Havel Airport and around twenty minutes from the centre. Your chauffeur checks traffic before departure; Sunday evenings and weekday rush hour can slow the last kilometres into the city, and if there is a closure near Beroun they take the old road without asking."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~90 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~1 hour" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Plzeň to Prague Transfer — Executive Mercedes",
-    "description": "Executive Plzeň to Prague transfer: 90 km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Plzeň to Prague transfer: {routeKm} km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Plzeň to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Plzeň to Prague transfer: 90 km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Plzeň to Prague transfer: {routeKm} km, about 1 hour door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

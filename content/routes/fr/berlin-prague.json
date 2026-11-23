@@ -3,11 +3,11 @@
     "label": "Berlin → Prague",
     "headlineLine1": "De Berlin à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Berlin à Prague avec chauffeur privé, c'est un transfert de porte à porte de 350 km vers le sud par l'A13, l'A17 et la D8, soit environ quatre heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette autoroutière tchèque incluse. Prise en charge à toute adresse de Berlin, à Berlin Hauptbahnhof ou à l'aéroport de Berlin-Brandebourg (BER), dépose partout dans Prague.",
+    "intro": "De Berlin à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le sud par l'A13, l'A17 et la D8, soit environ quatre heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette autoroutière tchèque incluse. Prise en charge à toute adresse de Berlin, à Berlin Hauptbahnhof ou à l'aéroport de Berlin-Brandebourg (BER), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Berlin à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Berlin à Prague couvre environ 350 km — vers le sud en passant par l'aéroport de Berlin-Brandebourg, l'A13 à travers le Brandebourg jusqu'à Dresde, l'A17 à travers les monts Métallifères, puis la D8 tchèque jusqu'à Prague — et demande environ quatre heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel à Mitte ou Charlottenburg, à Berlin Hauptbahnhof ou dans le hall des arrivées de BER, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Un transfert privé de Berlin à Prague couvre environ {routeKm} km — vers le sud en passant par l'aéroport de Berlin-Brandebourg, l'A13 à travers le Brandebourg jusqu'à Dresde, l'A17 à travers les monts Métallifères, puis la D8 tchèque jusqu'à Prague — et demande environ quatre heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel à Mitte ou Charlottenburg, à Berlin Hauptbahnhof ou dans le hall des arrivées de BER, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
     "Le tarif est convenu avant le départ et ne change pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Une seule voiture, de votre porte à Berlin à votre porte à Prague — aucun trajet vers une gare, ni au départ ni à l'arrivée."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre heures environ.",
     "paragraphs": [
       "Après une prise en charge à Mitte, à Charlottenburg ou à l'aéroport de Berlin-Brandebourg, votre chauffeur quitte la ville vers le sud-est et rejoint l'A13 en direction du sud à travers le Brandebourg — forêts de pins, lacs et lisière du Spreewald autour de Lübbenau. Les autoroutes allemandes sont gratuites pour les voitures : le seul arrêt est celui que vous choisissez. L'A13 entre en Saxe et rejoint le périphérique de Dresde environ deux heures et demie après Berlin.",
-      "Après Dresde, l'A17 grimpe dans l'est des monts Métallifères et franchit la frontière tchèque sur l'autoroute, au sein de l'espace Schengen : pas de contrôle systématique, pas de file. Côté tchèque, la D8 descend au-delà d'Ústí nad Labem et de Lovosice et traverse la plaine de Bohême jusqu'à Prague. La distance totale est d'environ 350 kilomètres ; le temps de conduite est d'environ quatre heures en circulation normale. Le vendredi après-midi, la sortie de Berlin peut ajouter 20 à 30 minutes.",
+      "Après Dresde, l'A17 grimpe dans l'est des monts Métallifères et franchit la frontière tchèque sur l'autoroute, au sein de l'espace Schengen : pas de contrôle systématique, pas de file. Côté tchèque, la D8 descend au-delà d'Ústí nad Labem et de Lovosice et traverse la plaine de Bohême jusqu'à Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est d'environ quatre heures en circulation normale. Le vendredi après-midi, la sortie de Berlin peut ajouter 20 à 30 minutes.",
       "Votre chauffeur vérifie l'A13, l'A17 et la D8 avant le départ et contourne les fermetures sans avoir à demander. Une pause café est prévue si vous le souhaitez. Vous arrivez à Prague à temps pour vous installer, vous changer et traverser la rivière à pied pour dîner."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~350 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Berlin – Prague — Chauffeur premium",
-    "description": "Transfert premium Berlin – Prague : 350 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Berlin – Prague : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Berlin – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Berlin – Prague : 350 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Berlin – Prague : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

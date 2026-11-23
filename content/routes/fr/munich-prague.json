@@ -3,11 +3,11 @@
     "label": "Munich → Prague",
     "headlineLine1": "De Munich à Prague,",
     "headlineItalic": "une seule voiture, de bout en bout.",
-    "intro": "De Munich à Prague avec chauffeur privé, c'est un transfert de porte à porte de 385 km vers le nord par l'A9 et l'A93, puis vers l'est par l'A6 et la D5, soit environ 4 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quelle adresse de Munich, à la München Hauptbahnhof ou à l'aéroport de Munich (MUC), dépose partout dans Prague.",
+    "intro": "De Munich à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le nord par l'A9 et l'A93, puis vers l'est par l'A6 et la D5, soit environ 4 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quelle adresse de Munich, à la München Hauptbahnhof ou à l'aéroport de Munich (MUC), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Munich à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Munich à Prague couvre 385 km — vers le nord par l'A9, puis l'A93 par Ratisbonne, vers l'est par l'A6 jusqu'à la frontière tchèque de Waidhaus–Rozvadov, et l'autoroute D5 par Pilsen jusqu'à Prague — et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Munich, à un bureau, à la München Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Munich, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Un transfert privé de Munich à Prague couvre {routeKm} km — vers le nord par l'A9, puis l'A93 par Ratisbonne, vers l'est par l'A6 jusqu'à la frontière tchèque de Waidhaus–Rozvadov, et l'autoroute D5 par Pilsen jusqu'à Prague — et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Munich, à un bureau, à la München Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Munich, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
     "Le tarif est fixé à la réservation : carburant, vignette autoroutière tchèque, chaque péage, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Vous atterrissez à MUC après un long-courrier, sortez du hall des arrivées, vous asseyez — et ne vous relevez qu'à votre hôtel à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre heures environ.",
     "paragraphs": [
       "Après une prise en charge dans l'Altstadt près de Marienplatz, à Schwabing ou à Maxvorstadt, votre chauffeur quitte Munich vers le nord par l'A9. Depuis l'aéroport de Munich, la voiture rejoint la même autoroute en quelques minutes par l'A92. À l'échangeur de Holledau, l'itinéraire bifurque sur l'A93 et file vers le nord à travers les houblonnières de la Hallertau jusqu'à Ratisbonne et le Danube.",
-      "Après Ratisbonne, l'A93 suit la vallée de la Naab à travers le Haut-Palatinat jusqu'à l'A6, qui mène vers l'est à la frontière de Waidhaus–Rozvadov. Le passage se trouve dans l'espace Schengen : aucun arrêt ni contrôle en temps normal. La D5 vous fait ensuite traverser la Bohême de l'Ouest, par Pilsen, Rokycany et Beroun, jusqu'au sud-ouest de Prague. La distance totale est d'environ 385 kilomètres ; le temps de conduite est de quatre heures en circulation normale.",
+      "Après Ratisbonne, l'A93 suit la vallée de la Naab à travers le Haut-Palatinat jusqu'à l'A6, qui mène vers l'est à la frontière de Waidhaus–Rozvadov. Le passage se trouve dans l'espace Schengen : aucun arrêt ni contrôle en temps normal. La D5 vous fait ensuite traverser la Bohême de l'Ouest, par Pilsen, Rokycany et Beroun, jusqu'au sud-ouest de Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est de quatre heures en circulation normale.",
       "Les tronçons les plus lents se trouvent généralement aux deux extrémités : le périphérique de Munich aux heures de pointe et l'entrée dans Prague le vendredi après-midi, chacun pouvant coûter 20 à 30 minutes. Votre chauffeur vérifie les deux avant le départ et ajuste l'heure de prise en charge ou l'itinéraire pour les éviter. Vous arrivez à Prague avec toute la soirée devant vous."
     ]
   },
@@ -97,7 +97,7 @@
     { "slug": "salzburg-prague", "city": "Salzbourg", "label": "Salzbourg → Prague", "distance": "375 km", "duration": "4 h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "385 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Durée", "value": "~4 heures" },
     { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
     { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
@@ -108,8 +108,8 @@
   },
   "metadata": {
     "title": "Transfert Munich – Prague — Chauffeur premium",
-    "description": "Transfert haut de gamme Munich – Prague : 385 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Munich – Prague : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Munich – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Munich – Prague : 385 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Munich – Prague : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

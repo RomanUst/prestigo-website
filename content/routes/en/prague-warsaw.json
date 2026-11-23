@@ -3,11 +3,11 @@
     "label": "Prague → Warsaw",
     "headlineLine1": "Prague to Warsaw Private Transfer,",
     "headlineItalic": "Polish capital.",
-    "intro": "660 km north through Moravia and across Poland to the Vistula. The rebuilt Old Town, the Palace of Culture, Łazienki Park, and Poland's economic heart — seven hours, one fixed price.",
+    "intro": "{routeKm} km north through Moravia and across Poland to the Vistula. The rebuilt Old Town, the Palace of Culture, Łazienki Park, and Poland's economic heart — seven hours, one fixed price.",
     "imageAlt": "Warsaw — private chauffeur transfer from Prague to Warsaw"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Warsaw covers 660 km and takes approximately 7 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Wrocław or Łódź — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Warsaw covers {routeKm} km and takes approximately 7 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Wrocław or Łódź — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. Not a train with a change in Katowice. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in seven hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east through Brno, then continues along the D1 and D48 northeast toward the Czech–Polish border at Chotěbuz/Cieszyn near Český Těšín. The crossing is invisible inside the Schengen Area — no stops, no document checks. Once in Poland, the road joins the A1 north past Katowice, then turns east onto the S8 expressway through central Poland and into Warsaw.",
-      "An alternative northern routing runs the D11 out of Prague through Hradec Králové, crosses the border at Náchod/Kudowa-Zdrój, and joins the S8 northeast past Wrocław and Łódź. Your chauffeur picks the faster option on the morning of the drive based on live traffic. Total distance is approximately 660 kilometres on either path.",
+      "An alternative northern routing runs the D11 out of Prague through Hradec Králové, crosses the border at Náchod/Kudowa-Zdrój, and joins the S8 northeast past Wrocław and Łódź. Your chauffeur picks the faster option on the morning of the drive based on live traffic. Total distance is approximately {routeKm} kilometres on either path.",
       "Warsaw on arrival is a city rebuilt from the ground up. The Old Town was reconstructed after the Second World War and is listed by UNESCO for that reconstruction alone. The Royal Castle on Plac Zamkowy, Łazienki Park, the Palace of Culture and Science, and the Warsaw Uprising Museum are all within a short drive of any central drop-off. Frédéric Chopin's heart rests in a pillar of the Holy Cross Church on Krakowskie Przedmieście. Watch for weekday congestion on the Polish A4 toll section near Katowice — your chauffeur routes around it if needed. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -90,7 +90,7 @@
     { "slug": "prague-brno", "city": "Brno", "distance": "210 km", "duration": "2h 15min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~660 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~7 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -101,8 +101,8 @@
   },
   "metadata": {
     "title": "Prague to Warsaw Transfer — Premium Chauffeur",
-    "description": "Executive Prague to Warsaw transfer: 660 km, about 7 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Warsaw transfer: {routeKm} km, about 7 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Warsaw Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Warsaw transfer: 660 km, about 7 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Warsaw transfer: {routeKm} km, about 7 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

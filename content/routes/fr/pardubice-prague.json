@@ -3,11 +3,11 @@
     "label": "Pardubice → Prague",
     "headlineLine1": "De Pardubice à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Pardubice à Prague avec chauffeur privé, c'est un transfert de porte à porte de 110 km vers l'ouest par l'autoroute D11, soit environ une heure et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quelle adresse de Pardubice, à la gare principale ou à l'aéroport de Pardubice (PED), dépose partout dans Prague.",
+    "intro": "De Pardubice à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'ouest par l'autoroute D11, soit environ une heure et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quelle adresse de Pardubice, à la gare principale ou à l'aéroport de Pardubice (PED), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Pardubice à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Pardubice à Prague représente 110 km — vers le nord en quittant la ville pour rejoindre la D11, puis vers l'ouest en passant Poděbrady jusqu'à Prague — et dure environ une heure et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou votre bureau à Pardubice, à la gare principale de Pardubice, à l'hippodrome ou à l'aéroport de Pardubice, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Un transfert privé de Pardubice à Prague représente {routeKm} km — vers le nord en quittant la ville pour rejoindre la D11, puis vers l'ouest en passant Poděbrady jusqu'à Prague — et dure environ une heure et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou votre bureau à Pardubice, à la gare principale de Pardubice, à l'hippodrome ou à l'aéroport de Pardubice, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
     "Le tarif est convenu avant le départ et ne bouge pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Vous atterrissez à Pardubice et séjournez à Prague ? Votre chauffeur vous attend dans le hall des arrivées et vous y conduit directement."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre-vingt-dix minutes.",
     "paragraphs": [
       "Après une prise en charge sur la place Pernštýnská, près du château ou à la gare principale, votre chauffeur quitte Pardubice vers le nord en direction de Hradec Králové et rejoint l'autoroute D11. Selon le trafic et votre point de départ, il peut aussi prendre une route vers l'ouest pour rejoindre la D11 plus loin — toutes les options sont des routes tchèques rapides et bien balisées.",
-      "Une fois sur la D11, le trajet file tout droit vers l'ouest à travers la plaine de l'Elbe, passe la ville thermale de Poděbrady et entre dans Prague par sa périphérie nord-est. La distance totale est d'environ 110 kilomètres ; le temps de trajet est d'environ une heure et demie en conditions normales. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
+      "Une fois sur la D11, le trajet file tout droit vers l'ouest à travers la plaine de l'Elbe, passe la ville thermale de Poděbrady et entre dans Prague par sa périphérie nord-est. La distance totale est d'environ {routeKm} kilomètres ; le temps de trajet est d'environ une heure et demie en conditions normales. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
       "Votre chauffeur vérifie l'état de la D11 avant le départ. Aux heures de pointe du soir en semaine et le dimanche après-midi, la dernière portion vers Prague ralentit, et le trafic des jours de course autour de l'hippodrome de Pardubice est anticipé. En cas d'accident ou de travaux, il change d'itinéraire sans avoir à demander."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~110 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Pardubice – Prague — Chauffeur premium",
-    "description": "Transfert haut de gamme Pardubice – Prague : 110 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Pardubice – Prague : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Pardubice – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Pardubice – Prague : 110 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Pardubice – Prague : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

@@ -3,11 +3,11 @@
     "label": "Prague → Munich",
     "headlineLine1": "Transfert de Prague à Munich,",
     "headlineItalic": "la capitale bavaroise.",
-    "intro": "385 km vers le sud-ouest, à travers la Bohême et la Bavière. Marienplatz, le Jardin anglais, l'Oktoberfest et l'aéroport de Munich — quatre heures, un tarif fixe, de porte à porte.",
+    "intro": "{routeKm} km vers le sud-ouest, à travers la Bohême et la Bavière. Marienplatz, le Jardin anglais, l'Oktoberfest et l'aéroport de Munich — quatre heures, un tarif fixe, de porte à porte.",
     "imageAlt": "Munich — transfert en chauffeur privé de Prague à Munich"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Munich couvre 385 km par les autoroutes D5 et A93 et dure environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement exécutif ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient le trafic ou le temps d'attente à destination. Les arrêts en chemin — Pilsen ou Ratisbonne — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur consulte les conditions de circulation avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
+    "Un transfert privé de Prague à Munich couvre {routeKm} km par les autoroutes D5 et A93 et dure environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement exécutif ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient le trafic ou le temps d'attente à destination. Les arrêts en chemin — Pilsen ou Ratisbonne — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur consulte les conditions de circulation avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre heures.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers le sud-ouest, à travers Pilsen et les paysages vallonnés de Bohême occidentale. La frontière tchéco-allemande de Schengen à Rozvadov/Waidhaus est invisible : aucun arrêt, aucun contrôle de documents. Une fois en Bavière, la route devient l'A6 en direction de l'ouest, vers Nuremberg.",
-      "L'itinéraire rapide classique bifurque ensuite vers le sud sur l'A93, passe Ratisbonne et rejoint l'A9 pour l'approche finale de Munich. La dépose se fait où vous le souhaitez : un hôtel de l'Altstadt près de Marienplatz, un bureau à Maxvorstadt, le BMW Welt ou le terminal d'affaires de l'aéroport de Munich (MUC). La distance totale est d'environ 385 kilomètres.",
+      "L'itinéraire rapide classique bifurque ensuite vers le sud sur l'A93, passe Ratisbonne et rejoint l'A9 pour l'approche finale de Munich. La dépose se fait où vous le souhaitez : un hôtel de l'Altstadt près de Marienplatz, un bureau à Maxvorstadt, le BMW Welt ou le terminal d'affaires de l'aéroport de Munich (MUC). La distance totale est d'environ {routeKm} kilomètres.",
       "Le temps de trajet est de quatre heures dans de bonnes conditions. Le périphérique autoroutier de Munich, l'A99, peut être chargé aux heures de pointe du matin et du soir : comptez 20 à 30 minutes de plus pour une arrivée entre 7h30 et 9h30 ou entre 16h30 et 18h30. Votre chauffeur consulte les informations routières avant chaque départ et contourne la ville par la périphérie lorsque c'est nécessaire. Vous ne payez pas le trafic ; vous payez du temps."
     ]
   },
@@ -220,7 +220,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~385 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -246,8 +246,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Munich — Chauffeur premium",
-    "description": "Transfert haut de gamme Prague – Munich : 385 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Munich : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Munich — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Munich : 385 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Munich : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

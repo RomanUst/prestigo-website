@@ -3,11 +3,11 @@
     "label": "Prague → Varsovie",
     "headlineLine1": "Transfert de Prague à Varsovie,",
     "headlineItalic": "capitale polonaise.",
-    "intro": "660 km vers le nord, à travers la Moravie puis la Pologne, jusqu'à la Vistule. La Vieille Ville reconstruite, le Palais de la Culture, le parc Łazienki et le cœur économique du pays — sept heures, un prix fixe.",
+    "intro": "{routeKm} km vers le nord, à travers la Moravie puis la Pologne, jusqu'à la Vistule. La Vieille Ville reconstruite, le Palais de la Culture, le parc Łazienki et le cœur économique du pays — sept heures, un prix fixe.",
     "imageAlt": "Varsovie — transfert en chauffeur privé de Prague à Varsovie"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Varsovie couvre 660 km et demande environ 7 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Wrocław ou Łódź — sont possibles au tarif fixe lorsqu'ils sont organisés à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
+    "Un transfert privé de Prague à Varsovie couvre {routeKm} km et demande environ 7 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Wrocław ou Łódź — sont possibles au tarif fixe lorsqu'ils sont organisés à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
     "Ce n'est pas une navette partagée. Ni un train avec changement à Katowice. Une Mercedes privée, un chauffeur, et un tarif qui ne bouge pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en sept heures.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers l'est en passant par Brno, puis poursuit sur la D1 et la D48 en direction du nord-est jusqu'à la frontière tchéco-polonaise de Chotěbuz/Cieszyn, près de Český Těšín. Le passage est invisible au sein de l'espace Schengen — aucun arrêt, aucun contrôle de documents. Une fois en Pologne, la route rejoint l'A1 vers le nord au-delà de Katowice, puis bifurque vers l'est sur la voie rapide S8 à travers la Pologne centrale jusqu'à Varsovie.",
-      "Un itinéraire alternatif, plus septentrional, suit la D11 au départ de Prague via Hradec Králové, franchit la frontière à Náchod/Kudowa-Zdrój et rejoint la S8 vers le nord-est en passant par Wrocław et Łódź. Votre chauffeur choisit l'option la plus rapide le matin du trajet, en fonction du trafic en temps réel. La distance totale est d'environ 660 kilomètres dans les deux cas.",
+      "Un itinéraire alternatif, plus septentrional, suit la D11 au départ de Prague via Hradec Králové, franchit la frontière à Náchod/Kudowa-Zdrój et rejoint la S8 vers le nord-est en passant par Wrocław et Łódź. Votre chauffeur choisit l'option la plus rapide le matin du trajet, en fonction du trafic en temps réel. La distance totale est d'environ {routeKm} kilomètres dans les deux cas.",
       "À l'arrivée, Varsovie se révèle comme une ville reconstruite de fond en comble. La Vieille Ville a été rebâtie après la Seconde Guerre mondiale et figure au patrimoine de l'UNESCO pour cette reconstruction même. Le Château royal sur la place Zamkowy, le parc Łazienki, le Palais de la culture et de la science et le musée de l'Insurrection de Varsovie se trouvent tous à quelques minutes de voiture de n'importe quel point de dépose central. Le cœur de Frédéric Chopin repose dans un pilier de l'église Sainte-Croix, sur Krakowskie Przedmieście. Attention aux encombrements en semaine sur la section à péage de l'A4 polonaise près de Katowice — votre chauffeur la contourne si nécessaire. Vous ne payez pas pour la circulation ; vous payez pour votre temps."
     ]
   },
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~660 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Varsovie — Chauffeur premium",
-    "description": "Transfert haut de gamme Prague – Varsovie : 660 km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Varsovie : {routeKm} km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Varsovie — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Varsovie : 660 km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Varsovie : {routeKm} km, environ 7 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

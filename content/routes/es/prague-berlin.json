@@ -3,11 +3,11 @@
     "label": "Praga → Berlín",
     "headlineLine1": "Traslado de Praga a Berlín,",
     "headlineItalic": "capitales conectadas.",
-    "intro": "350 km hacia el norte atravesando Bohemia y Sajonia hasta la capital alemana. La Puerta de Brandeburgo, la Isla de los Museos y una de las ciudades más dinámicas de Europa: cuatro horas, un precio fijo.",
+    "intro": "{routeKm} km hacia el norte atravesando Bohemia y Sajonia hasta la capital alemana. La Puerta de Brandeburgo, la Isla de los Museos y una de las ciudades más dinámicas de Europa: cuatro horas, un precio fijo.",
     "imageAlt": "Berlín — traslado en chófer privado desde Praga a Berlín"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Berlín recorre 350 km por las autopistas D8 y A17 y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en la V-Class desde {vPrice} €; la S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar a destino. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Dresde o Cottbus— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna incidencia.",
+    "Un traslado privado de Praga a Berlín recorre {routeKm} km por las autopistas D8 y A17 y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en la V-Class desde {vPrice} €; la S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar a destino. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Dresde o Cottbus— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna incidencia.",
     "Esto no es una lanzadera compartida. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en cuatro horas.",
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el Aeropuerto Václav Havel—, su chófer toma la autopista D8 en dirección norte, pasando por Ústí nad Labem y hacia la frontera checo-alemana. El paso por Petrovice y Breitenau resulta imperceptible dentro del Espacio Schengen: sin paradas, sin controles de documentación, solo una transición silenciosa del bosque bohemio a las estribaciones sajonas. La carretera se convierte en la A17, rodea Dresde y enlaza con la A13 para el largo tramo hacia el norte a través de Brandeburgo hasta Berlín.",
-      "La distancia total es de aproximadamente 350 kilómetros. El tiempo de conducción es de cuatro horas en condiciones normales, con una única parada para un café incluida si así lo desea. La llegada puede ser en cualquier punto de la ciudad: Mitte para el núcleo cultural, Charlottenburg para el elegante oeste, o directamente en el Aeropuerto de Berlín-Brandeburgo (BER) para un vuelo de conexión. Tegel está cerrado desde 2020; lo mencionamos porque los clientes siguen preguntándolo.",
+      "La distancia total es de aproximadamente {routeKm} kilómetros. El tiempo de conducción es de cuatro horas en condiciones normales, con una única parada para un café incluida si así lo desea. La llegada puede ser en cualquier punto de la ciudad: Mitte para el núcleo cultural, Charlottenburg para el elegante oeste, o directamente en el Aeropuerto de Berlín-Brandeburgo (BER) para un vuelo de conexión. Tegel está cerrado desde 2020; lo mencionamos porque los clientes siguen preguntándolo.",
       "Su chófer revisa el tráfico en la D8 y en la A13 antes de cada salida. En los dos últimos años ha habido obras recurrentes en la A13 entre Dresde y Cottbus; si se señaliza un corte, la ruta se desvía por la A4 y la A15 sin necesidad de consultarlo. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~350 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Berlín — Chófer premium",
-    "description": "Traslado premium Praga – Berlín: 350 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Berlín: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Berlín — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Berlín: 350 km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Berlín: {routeKm} km, unas 4 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

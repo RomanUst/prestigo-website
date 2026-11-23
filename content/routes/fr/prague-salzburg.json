@@ -3,11 +3,11 @@
     "label": "Prague → Salzbourg",
     "headlineLine1": "Transfert de Prague à Salzbourg,",
     "headlineItalic": "la ville de Mozart.",
-    "intro": "375 km vers le sud, à travers la Bohême et l'Autriche, jusqu'à la Salzach, la forteresse de Hohensalzburg et la maison natale de Mozart. Environ quatre heures, un prix fixe.",
+    "intro": "{routeKm} km vers le sud, à travers la Bohême et l'Autriche, jusqu'à la Salzach, la forteresse de Hohensalzburg et la maison natale de Mozart. Environ quatre heures, un prix fixe.",
     "imageAlt": "Salzbourg — transfert en chauffeur privé de Prague à Salzbourg"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Salzbourg couvre environ 375 km et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Linz ou Mondsee — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
+    "Un transfert privé de Prague à Salzbourg couvre environ {routeKm} km et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Linz ou Mondsee — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre heures environ.",
     "paragraphs": [
       "Depuis une prise en charge à Prague dans la Vieille Ville, à Vinohrady, à Malá Strana ou à l'aéroport Václav Havel, votre chauffeur emprunte l'autoroute D3 vers le sud, par Tábor et České Budějovice — la ligne la plus directe vers la frontière autrichienne. Le passage Schengen tchéco-autrichien, à Wullowitz côté autrichien et à Dolní Dvořiště côté tchèque, est invisible. Pas de poste-frontière, pas de contrôle de documents, pas d'arrêt. La route devient la voie express S10 du Mühlviertel et descend vers Linz, sur le Danube.",
-      "Depuis Linz, l'itinéraire rejoint l'A1 Westautobahn et file vers l'ouest, passant Wels et Attnang-Puchheim, jusqu'aux contreforts des Alpes, pour arriver à Salzbourg dans l'Altstadt — la vieille ville classée à l'UNESCO, étendue sur les deux rives de la Salzach, couronnée par la forteresse de Hohensalzburg, avec la maison natale de Mozart sur la Getreidegasse et les jardins du palais Mirabell de l'autre côté de la rivière. Si une section de la D3 est fermée, votre chauffeur peut emprunter l'ancienne route 3, parallèle à l'autoroute. La distance totale est d'environ 375 kilomètres.",
+      "Depuis Linz, l'itinéraire rejoint l'A1 Westautobahn et file vers l'ouest, passant Wels et Attnang-Puchheim, jusqu'aux contreforts des Alpes, pour arriver à Salzbourg dans l'Altstadt — la vieille ville classée à l'UNESCO, étendue sur les deux rives de la Salzach, couronnée par la forteresse de Hohensalzburg, avec la maison natale de Mozart sur la Getreidegasse et les jardins du palais Mirabell de l'autre côté de la rivière. Si une section de la D3 est fermée, votre chauffeur peut emprunter l'ancienne route 3, parallèle à l'autoroute. La distance totale est d'environ {routeKm} kilomètres.",
       "Votre chauffeur surveille la circulation sur l'A1 avant chaque départ. Pendant les Salzburg Festspiele, fin juillet et en août, et lors des week-ends d'hiver où le trafic des skieurs se déverse vers le Tyrol, l'A1 à l'ouest de Linz peut ralentir. Le cas échéant, il modifie l'itinéraire sans avoir à demander. Vous ne payez pas la circulation ; vous payez du temps."
     ]
   },
@@ -157,7 +157,7 @@
   "faqs": [
     {
       "q": "Combien de temps dure un transfert privé de Prague à Salzbourg ?",
-      "a": "Environ 4 heures de porte à porte, pour quelque 375 km. L'itinéraire principal descend vers le sud par la D3, via Tábor et České Budějovice, franchit la frontière autrichienne à Wullowitz/Dolní Dvořiště, puis rejoint la S10 jusqu'à Linz et l'A1 vers l'ouest jusqu'à Salzbourg. La circulation du vendredi après-midi à la sortie de Prague ou les encombrements estivaux liés aux Festspiele peuvent ajouter 20 à 30 minutes."
+      "a": "Environ 4 heures de porte à porte, pour quelque {routeKm} km. L'itinéraire principal descend vers le sud par la D3, via Tábor et České Budějovice, franchit la frontière autrichienne à Wullowitz/Dolní Dvořiště, puis rejoint la S10 jusqu'à Linz et l'A1 vers l'ouest jusqu'à Salzbourg. La circulation du vendredi après-midi à la sortie de Prague ou les encombrements estivaux liés aux Festspiele peuvent ajouter 20 à 30 minutes."
     },
     {
       "q": "Combien coûte un chauffeur de Prague à Salzbourg ?",
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~375 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Salzbourg — Chauffeur premium",
-    "description": "Transfert haut de gamme Prague – Salzbourg : 375 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Salzbourg : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Salzbourg — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Salzbourg : 375 km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Salzbourg : {routeKm} km, environ 4 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

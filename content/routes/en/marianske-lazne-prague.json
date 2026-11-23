@@ -3,11 +3,11 @@
     "label": "Mariánské Lázně → Prague",
     "headlineLine1": "Mariánské Lázně to Prague,",
     "headlineItalic": "spa hotel to city door.",
-    "intro": "Mariánské Lázně to Prague by private chauffeur is a 165 km door-to-door transfer east via Plzeň and the D5, around 2 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any spa hotel or address in Mariánské Lázně, drop-off anywhere in Prague.",
+    "intro": "Mariánské Lázně to Prague by private chauffeur is a {routeKm} km door-to-door transfer east via Plzeň and the D5, around 2 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any spa hotel or address in Mariánské Lázně, drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Mariánské Lázně to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Mariánské Lázně to Prague covers 165 km — out of the wooded spa valley, across the West Bohemian hills to the D5 motorway, then east past Plzeň to Prague — and takes approximately 2 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel, apartment or Mariánské Lázně station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
+    "A private transfer from Mariánské Lázně to Prague covers {routeKm} km — out of the wooded spa valley, across the West Bohemian hills to the D5 motorway, then east past Plzeň to Prague — and takes approximately 2 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel, apartment or Mariánské Lázně station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
     "The fare is agreed before you travel and does not change: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. At the end of a cure, the last thing you need is a connection in Plzeň with your suitcases — the car goes from your hotel entrance to your Prague door."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two hours.",
     "paragraphs": [
       "From a pickup near the Main Colonnade, the Singing Fountain or one of the spa hotels on the hillside, your chauffeur leaves town through the forest and crosses the gentle West Bohemian uplands to join the D5 motorway. The route stays inside the Czech Republic from start to finish — no border, no second vignette.",
-      "On the D5 the car runs east around Plzeň and on past Rokycany and Beroun toward Prague. Total distance is approximately 165 kilometres; driving time is two hours in normal traffic. Friday afternoons and Sunday evenings bring heavier traffic on the approach to Prague, so allow 15–20 minutes more.",
+      "On the D5 the car runs east around Plzeň and on past Rokycany and Beroun toward Prague. Total distance is approximately {routeKm} kilometres; driving time is two hours in normal traffic. Friday afternoons and Sunday evenings bring heavier traffic on the approach to Prague, so allow 15–20 minutes more.",
       "The D5 reaches Prague on its south-western edge. From there your chauffeur takes the ring road to Václav Havel Airport for an onward flight, or heads into the centre — Smíchov, Malá Strana, the Old Town or Vinohrady — straight to your door."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~165 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Mariánské Lázně to Prague Transfer — Executive",
-    "description": "Premium Mariánské Lázně to Prague transfer: 165 km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Mariánské Lázně to Prague transfer: {routeKm} km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Mariánské Lázně to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Mariánské Lázně to Prague transfer: 165 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Mariánské Lázně to Prague transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

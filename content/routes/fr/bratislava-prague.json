@@ -3,11 +3,11 @@
     "label": "Bratislava → Prague",
     "headlineLine1": "De Bratislava à Prague,",
     "headlineItalic": "de capitale à capitale.",
-    "intro": "De Bratislava à Prague avec chauffeur privé, c'est un transfert de porte à porte de 330 km vers le nord par la D2 et la D1 via Brno, soit environ 3 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignettes slovaque et tchèque incluses. Prise en charge à n'importe quelle adresse de Bratislava ou à l'aéroport de Bratislava (BTS), dépose partout dans Prague.",
+    "intro": "De Bratislava à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le nord par la D2 et la D1 via Brno, soit environ 3 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignettes slovaque et tchèque incluses. Prise en charge à n'importe quelle adresse de Bratislava ou à l'aéroport de Bratislava (BTS), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Bratislava à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Bratislava à Prague couvre 330 km — vers le nord par l'autoroute D2 jusqu'à la frontière tchèque de Brodské–Lanžhot, par Břeclav jusqu'à Brno, puis la D1 à travers les Hautes-Terres de Bohême-Moravie jusqu'à Prague — et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de la Vieille Ville, à un bureau au bord du Danube, à la gare centrale de Bratislava ou à l'aéroport de Bratislava, et vous dépose devant votre hôtel, appartement ou rendez-vous à Prague.",
+    "Un transfert privé de Bratislava à Prague couvre {routeKm} km — vers le nord par l'autoroute D2 jusqu'à la frontière tchèque de Brodské–Lanžhot, par Břeclav jusqu'à Brno, puis la D1 à travers les Hautes-Terres de Bohême-Moravie jusqu'à Prague — et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de la Vieille Ville, à un bureau au bord du Danube, à la gare centrale de Bratislava ou à l'aéroport de Bratislava, et vous dépose devant votre hôtel, appartement ou rendez-vous à Prague.",
     "Le tarif est fixé avant le départ et ne bouge pas. Carburant, péages, vignettes autoroutières slovaque et tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Une seule voiture de porte à porte, et aucun second taxi à chercher à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en trois heures et demie.",
     "paragraphs": [
       "Après une prise en charge à Staré Mesto, au pied du château, dans le nouveau quartier riverain ou à l'aéroport de Bratislava, votre chauffeur quitte la ville vers le nord par la D2. L'autoroute traverse la plaine plate et boisée de pins de Záhorie, le long de la vallée de la Morava, jusqu'à la frontière tchèque de Brodské–Lanžhot. Les deux pays font partie de l'espace Schengen, il n'y a donc aucun arrêt — et le tchèque et le slovaque étant si proches, même les panneaux changent à peine.",
-      "Côté tchèque, la D2 passe par Břeclav et les vignobles de Moravie du Sud jusqu'à Brno, où elle rejoint la D1 pour les 205 derniers kilomètres jusqu'à Prague à travers les hauteurs de la Vysočina. La distance totale est d'environ 330 kilomètres ; le temps de conduite est de trois heures et demie en circulation normale. Le vendredi après-midi, l'entrée dans Prague peut ajouter 20 à 30 minutes.",
+      "Côté tchèque, la D2 passe par Břeclav et les vignobles de Moravie du Sud jusqu'à Brno, où elle rejoint la D1 pour les 205 derniers kilomètres jusqu'à Prague à travers les hauteurs de la Vysočina. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est de trois heures et demie en circulation normale. Le vendredi après-midi, l'entrée dans Prague peut ajouter 20 à 30 minutes.",
       "Votre chauffeur vérifie l'état de la D1 avant le départ. En cas de travaux ou d'accident entre Brno et Jihlava, il prend l'itinéraire de délestage sans avoir à demander. Vous arrivez à Prague avec le temps de vous installer, de vous changer et de rejoindre à pied votre dîner."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "graz-prague", "city": "Graz", "label": "Graz → Prague", "distance": "450 km", "duration": "4 h 30" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "330 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Durée", "value": "~3 h 30" },
     { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
     { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Transfert Bratislava – Prague — Chauffeur premium",
-    "description": "Transfert haut de gamme Bratislava – Prague : 330 km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Bratislava – Prague : {routeKm} km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Bratislava – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Bratislava – Prague : 330 km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Bratislava – Prague : {routeKm} km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

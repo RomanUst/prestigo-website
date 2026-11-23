@@ -3,11 +3,11 @@
     "label": "Praga → Mariánské Lázně",
     "headlineLine1": "Traslado de Praga a Mariánské Lázně,",
     "headlineItalic": "el balneario de Goethe.",
-    "intro": "165 km hacia el oeste, hasta la más elegante de las ciudades balneario de Bohemia Occidental. Paseos con columnatas, manantiales minerales, la Fuente Cantarina y colinas boscosas: dos horas, un precio fijo.",
+    "intro": "{routeKm} km hacia el oeste, hasta la más elegante de las ciudades balneario de Bohemia Occidental. Paseos con columnatas, manantiales minerales, la Fuente Cantarina y colinas boscosas: dos horas, un precio fijo.",
     "imageAlt": "Mariánské Lázně — traslado en chófer privado desde Praga a Mariánské Lázně"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Mariánské Lázně recorre 165 km por la autopista D6 y dura aproximadamente 2 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Karlovy Vary o Cheb— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay retenciones.",
+    "Un traslado privado de Praga a Mariánské Lázně recorre {routeKm} km por la autopista D6 y dura aproximadamente 2 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Karlovy Vary o Cheb— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay retenciones.",
     "No es un servicio compartido. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D5 en dirección oeste por la circunvalación de Pilsen —pasando por el túnel de Valík y el puente sobre el Úhlava— y sale en la salida 128 hacia la carretera 21. La vía gira entonces al norte, entre las suaves colinas de Bohemia Occidental, hasta el triángulo termal, y llega a Mariánské Lázně, a su hotel o a la dirección del balneario que usted haya indicado. Sin paso de frontera. Autopista checa en su totalidad, desde la recogida hasta el destino.",
       "Mariánské Lázně es la perla verde del triángulo termal de Bohemia Occidental. Su pieza central es la Columnata Principal de hierro fundido de 1889, una galería neobarroca de 119 metros de longitud que enmarca la Fuente Cantarina, la cual interpreta a Chopin, Mozart y Smetana cada hora en punto. A pocos pasos se encuentran la Columnata Máximo Gorki, los parques termales diseñados por el jardinero municipal Václav Skalník, la Iglesia Ortodoxa Rusa de San Vladimiro y el Club de Golf de Mariánské Lázně, fundado en 1905 y uno de los campos más antiguos de la Europa continental.",
-      "La distancia total es de unos 165 kilómetros. El tiempo de conducción es de dos horas en condiciones normales. Su chófer vigila la D5 antes de cada salida y, si el tráfico de los viernes por la tarde se acumula en torno a la ronda de Praga, adelanta la recogida sin necesidad de preguntar. Usted no paga por el tráfico; paga por el tiempo."
+      "La distancia total es de unos {routeKm} kilómetros. El tiempo de conducción es de dos horas en condiciones normales. Su chófer vigila la D5 antes de cada salida y, si el tráfico de los viernes por la tarde se acumula en torno a la ronda de Praga, adelanta la recogida sin necesidad de preguntar. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
   "includedLabel": "Qué incluye",
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~165 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Mariánské Lázně — Chófer premium",
-    "description": "Traslado premium Praga – Mariánské Lázně: 165 km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Mariánské Lázně: {routeKm} km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Mariánské Lázně — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Mariánské Lázně: 165 km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Mariánské Lázně: {routeKm} km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

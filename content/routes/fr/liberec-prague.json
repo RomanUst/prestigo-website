@@ -3,11 +3,11 @@
     "label": "Liberec → Prague",
     "headlineLine1": "De Liberec à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Liberec à Prague avec chauffeur privé, c'est un transfert de porte à porte de 105 km vers le sud via Turnov et Mladá Boleslav par la D10, soit environ une heure et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quelle adresse de Liberec ou à un hôtel des monts Jizera, dépose partout dans Prague.",
+    "intro": "De Liberec à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers le sud via Turnov et Mladá Boleslav par la D10, soit environ une heure et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quelle adresse de Liberec ou à un hôtel des monts Jizera, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Liberec à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Liberec à Prague représente 105 km — vers le sud en quittant les contreforts des monts Jizera jusqu'à Turnov, puis l'autoroute D10 via Mladá Boleslav jusqu'à Prague — et dure environ une heure et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou votre bureau à Liberec, à la gare de Liberec ou à un hôtel de montagne des monts Jizera, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Un transfert privé de Liberec à Prague représente {routeKm} km — vers le sud en quittant les contreforts des monts Jizera jusqu'à Turnov, puis l'autoroute D10 via Mladá Boleslav jusqu'à Prague — et dure environ une heure et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou votre bureau à Liberec, à la gare de Liberec ou à un hôtel de montagne des monts Jizera, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
     "Le tarif est convenu avant le départ et ne bouge pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Skis, chaussures et valises vont une seule fois dans le coffre, et en ressortent à votre adresse à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre-vingt-dix minutes.",
     "paragraphs": [
       "Après une prise en charge près de l'hôtel de ville, au pied du Ještěd ou dans un hôtel sur les hauteurs, votre chauffeur quitte Liberec par la route à quatre voies vers le sud. La première demi-heure traverse des vallées boisées jusqu'à Turnov, porte nord du Paradis de Bohême — avec ses villes de rochers en grès et, par temps clair, les tours en ruine du château de Trosky visibles à l'est.",
-      "À Turnov, la route devient l'autoroute D10, qui vous mène devant Mladá Boleslav, berceau de Škoda, puis à travers la plaine de l'Elbe jusqu'à la périphérie nord-est de Prague. La distance totale est d'environ 105 kilomètres ; le temps de trajet est d'environ une heure et demie en conditions normales. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
+      "À Turnov, la route devient l'autoroute D10, qui vous mène devant Mladá Boleslav, berceau de Škoda, puis à travers la plaine de l'Elbe jusqu'à la périphérie nord-est de Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de trajet est d'environ une heure et demie en conditions normales. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
       "Votre chauffeur vérifie l'état de la D10 avant le départ. Le dimanche soir en saison de ski et aux heures de pointe en semaine, l'approche de Prague ralentit ; en cas d'accident ou de travaux, il emprunte une ancienne route à travers les villages sans avoir à demander. Vous arrivez avec l'après-midi ou la soirée encore devant vous."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~105 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Liberec – Prague — Chauffeur premium",
-    "description": "Transfert premium Liberec – Prague : 105 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Liberec – Prague : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Liberec – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Liberec – Prague : 105 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Liberec – Prague : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

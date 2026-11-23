@@ -3,11 +3,11 @@
     "label": "Hradec Králové → Praga",
     "headlineLine1": "De Hradec Králové a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "Un traslado de Hradec Králové a Praga con chófer privado: 115 km de puerta a puerta hacia el oeste por la autopista D11, en aproximadamente una hora y media de conducción. La tarifa fija de Prestigo comienza en €{ePrice} en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier dirección de Hradec Králové o en la estación principal, y llegada a cualquier dirección de Praga.",
+    "intro": "Un traslado de Hradec Králové a Praga con chófer privado: {routeKm} km de puerta a puerta hacia el oeste por la autopista D11, en aproximadamente una hora y media de conducción. La tarifa fija de Prestigo comienza en €{ePrice} en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier dirección de Hradec Králové o en la estación principal, y llegada a cualquier dirección de Praga.",
     "imageAlt": "Traslado con chófer privado de Hradec Králové a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Hradec Králové a Praga cubre 115 km —hacia el oeste por la autopista D11, pasando por Chlumec nad Cidlinou y Poděbrady, directamente hasta Praga— y dura aproximadamente una hora y media de puerta a puerta. La tarifa fija comienza en €{ePrice} en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde €{vPrice}; el S-Class está disponible desde €{sPrice} para viajes ejecutivos o VIP. Su chófer le recoge en su hotel, oficina o universidad de Hradec Králové, o en la estación principal, y le deja en la puerta de su hotel, apartamento o reunión en Praga, o en el aeropuerto Václav Havel para un vuelo de conexión.",
+    "Un traslado privado de Hradec Králové a Praga cubre {routeKm} km —hacia el oeste por la autopista D11, pasando por Chlumec nad Cidlinou y Poděbrady, directamente hasta Praga— y dura aproximadamente una hora y media de puerta a puerta. La tarifa fija comienza en €{ePrice} en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde €{vPrice}; el S-Class está disponible desde €{sPrice} para viajes ejecutivos o VIP. Su chófer le recoge en su hotel, oficina o universidad de Hradec Králové, o en la estación principal, y le deja en la puerta de su hotel, apartamento o reunión en Praga, o en el aeropuerto Václav Havel para un vuelo de conexión.",
     "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Sin horarios, sin transbordos, sin un segundo taxi al llegar a Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en noventa minutos.",
     "paragraphs": [
       "Desde la recogida en el casco antiguo, a los pies de la Torre Blanca, en las calles funcionalistas trazadas por Kotěra y Gočár, o en la estación principal, su chófer sale de Hradec Králové hacia el oeste y toma la D11 a las afueras de la ciudad. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
-      "La D11 es una única autopista directa entre las dos ciudades. Avanza hacia el oeste por las llanuras agrícolas de los valles del Cidlina y del Elba, pasando por Chlumec nad Cidlinou y la ciudad balneario de Poděbrady, y entra en Praga por su borde nororiental. La distancia total es de aproximadamente 115 kilómetros; el tiempo de conducción, de una hora y media en condiciones normales de tráfico.",
+      "La D11 es una única autopista directa entre las dos ciudades. Avanza hacia el oeste por las llanuras agrícolas de los valles del Cidlina y del Elba, pasando por Chlumec nad Cidlinou y la ciudad balneario de Poděbrady, y entra en Praga por su borde nororiental. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción, de una hora y media en condiciones normales de tráfico.",
       "Su chófer consulta el estado de la D11 antes de salir. La hora punta de las tardes laborables y los domingos por la tarde ralentizan los últimos kilómetros hacia Praga; si hay un accidente u obras, deja la autopista por la carretera paralela sin preguntar. Llega a su dirección de Praga con el resto del día libre."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "wroclaw-prague", "city": "Breslavia", "label": "Breslavia → Praga", "distance": "285 km", "duration": "3 h" }
   ],
   "highlights": [
-    { "label": "Distancia", "value": "~115 km" },
+    { "label": "Distancia", "value": "~{routeKm} km" },
     { "label": "Duración", "value": "~1,5 horas" },
     { "label": "Vehículos", "value": ["Clase Business", "Primera Clase", "Furgoneta Business"] },
     { "label": "Precio desde", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Traslado Hradec Králové – Praga — Chófer premium",
-    "description": "Traslado ejecutivo Hradec Králové – Praga: 115 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Hradec Králové – Praga: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Hradec Králové – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Hradec Králové – Praga: 115 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Hradec Králové – Praga: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

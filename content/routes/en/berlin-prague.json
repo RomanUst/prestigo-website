@@ -3,11 +3,11 @@
     "label": "Berlin → Prague",
     "headlineLine1": "Berlin to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Berlin to Prague by private chauffeur is a 350 km door-to-door transfer south on the A13, A17 and D8, around four hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Czech motorway vignette included. Pickup from any Berlin address, Berlin Hauptbahnhof or Berlin Brandenburg Airport (BER), drop-off anywhere in Prague.",
+    "intro": "Berlin to Prague by private chauffeur is a {routeKm} km door-to-door transfer south on the A13, A17 and D8, around four hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Czech motorway vignette included. Pickup from any Berlin address, Berlin Hauptbahnhof or Berlin Brandenburg Airport (BER), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Berlin to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Berlin to Prague covers about 350 km — south out of the city past Berlin Brandenburg Airport, the A13 through Brandenburg to Dresden, the A17 over the Ore Mountains, then the Czech D8 into Prague — and takes around four hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in Mitte or Charlottenburg, from Berlin Hauptbahnhof or from Arrivals at BER, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "A private transfer from Berlin to Prague covers about {routeKm} km — south out of the city past Berlin Brandenburg Airport, the A13 through Brandenburg to Dresden, the A17 over the Ore Mountains, then the Czech D8 into Prague — and takes around four hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in Mitte or Charlottenburg, from Berlin Hauptbahnhof or from Arrivals at BER, and drops you at the door of your Prague hotel, apartment or meeting.",
     "The fare is agreed before you travel and does not change: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. One car from your Berlin door to your Prague door — no station transfer at either end."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in about four hours.",
     "paragraphs": [
       "From a pickup in Mitte, Charlottenburg or at Berlin Brandenburg Airport, your chauffeur leaves the city southeast and joins the A13 heading south through Brandenburg — pine forest, lakes and the edge of the Spreewald around Lübbenau. German motorways carry no toll for cars, so the only stop is the one you choose. The A13 crosses into Saxony and meets the Dresden ring about two and a half hours out of Berlin.",
-      "Past Dresden the A17 climbs into the eastern Ore Mountains and crosses the Czech border on the motorway, inside the Schengen Area: no routine check, no queue. On the Czech side the D8 descends past Ústí nad Labem and Lovosice and crosses the Bohemian plain into Prague. Total distance is approximately 350 kilometres; driving time is about four hours in normal traffic. Friday afternoons out of Berlin can add 20–30 minutes.",
+      "Past Dresden the A17 climbs into the eastern Ore Mountains and crosses the Czech border on the motorway, inside the Schengen Area: no routine check, no queue. On the Czech side the D8 descends past Ústí nad Labem and Lovosice and crosses the Bohemian plain into Prague. Total distance is approximately {routeKm} kilometres; driving time is about four hours in normal traffic. Friday afternoons out of Berlin can add 20–30 minutes.",
       "Your chauffeur checks the A13, the A17 and the D8 before departure and reroutes around closures without asking. A coffee stop is built in if you want one. You arrive in Prague in time to check in, change and walk across the river for dinner."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~350 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duration",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Berlin to Prague Transfer — Premium Chauffeur",
-    "description": "Premium Berlin to Prague transfer: 350 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Berlin to Prague transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Berlin to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Berlin to Prague transfer: 350 km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Berlin to Prague transfer: {routeKm} km, about 4 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

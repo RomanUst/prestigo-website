@@ -3,11 +3,11 @@
     "label": "Prague → Hradec Králové",
     "headlineLine1": "Transfert de Prague à Hradec Králové,",
     "headlineItalic": "la ville royale.",
-    "intro": "115 km vers l'est par la D11 jusqu'à la ville royale sur le cours supérieur de l'Elbe. L'architecture moderniste de Kotěra et Gočár, le Musée de Bohême orientale et la capitale culturelle de la Bohême orientale. Un prix fixe.",
+    "intro": "{routeKm} km vers l'est par la D11 jusqu'à la ville royale sur le cours supérieur de l'Elbe. L'architecture moderniste de Kotěra et Gočár, le Musée de Bohême orientale et la capitale culturelle de la Bohême orientale. Un prix fixe.",
     "imageAlt": "Hradec Králové — transfert en chauffeur privé de Prague à Hradec Králové"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Hradec Králové représente 115 km par l'autoroute D11 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Poděbrady ou Chlumec nad Cidlinou — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire sans qu'il soit nécessaire de le demander en cas de retard.",
+    "Un transfert privé de Prague à Hradec Králové représente {routeKm} km par l'autoroute D11 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Poděbrady ou Chlumec nad Cidlinou — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire sans qu'il soit nécessaire de le demander en cas de retard.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas entre la réservation et l'arrivée."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D11 vers l'est. La D11 est la principale autoroute tchèque en direction de l'est, reliant la capitale à la Bohême orientale ; elle conduit directement du périphérique de Prague aux abords de Hradec Králové, sans embranchement. Aucun passage de frontière, aucune vignette étrangère à prévoir, aucun contrôle de documents à anticiper : l'itinéraire se déroule intégralement en République tchèque.",
       "À l'arrivée, Hradec Králové se déploie au confluent de l'Elbe et de l'Orlice. Le cœur médiéval s'organise autour du campanile Bílá Věž (la Tour blanche), au-dessus de la place de la Vieille Ville, et de la cathédrale gothique du Saint-Esprit. Autour de cette colonne vertébrale médiévale, la ville a été réaménagée au début du XXe siècle par Jan Kotěra et son protégé Josef Gočár pour devenir l'un des ensembles civiques fonctionnalistes les plus cohérents d'Europe — ce qui a valu à Hradec le surnom de Salon de la République. Le Musée de Bohême orientale, conçu par Kotěra, fait partie de cet héritage.",
-      "La distance totale est d'environ 115 kilomètres. Le temps de trajet normal est de quatre-vingt-dix minutes. La circulation du vendredi soir à la sortie de Prague peut ajouter quinze minutes ; votre chauffeur vérifie les conditions sur la D11 avant chaque départ et modifie l'itinéraire si nécessaire. Vous ne payez pas la circulation ; vous payez le temps."
+      "La distance totale est d'environ {routeKm} kilomètres. Le temps de trajet normal est de quatre-vingt-dix minutes. La circulation du vendredi soir à la sortie de Prague peut ajouter quinze minutes ; votre chauffeur vérifie les conditions sur la D11 avant chaque départ et modifie l'itinéraire si nécessaire. Vous ne payez pas la circulation ; vous payez le temps."
     ]
   },
   "includedLabel": "Ce qui est compris",
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~115 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Hradec Králové — Haut de gamme",
-    "description": "Transfert haut de gamme Prague – Hradec Králové : 115 km, environ 1h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Hradec Králové : {routeKm} km, environ 1h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
     "ogTitle": "Transfert Prague – Hradec Králové — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Hradec Králové : 115 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Hradec Králové : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

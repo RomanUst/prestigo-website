@@ -3,11 +3,11 @@
     "label": "Prague → Wrocław",
     "headlineLine1": "Prague to Wrocław Private Transfer,",
     "headlineItalic": "Lower Silesia direct.",
-    "intro": "285 km northeast to Poland's city of dwarfs and one of Central Europe's most vibrant market squares. Three hours, one fixed price, door to door across the border.",
+    "intro": "{routeKm} km northeast to Poland's city of dwarfs and one of Central Europe's most vibrant market squares. Three hours, one fixed price, door to door across the border.",
     "imageAlt": "Wrocław — private chauffeur transfer from Prague to Wrocław"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Wrocław covers 285 km and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Liberec or Jelenia Góra — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Wrocław covers {routeKm} km and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Liberec or Jelenia Góra — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in three hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D11 motorway north toward Hradec Králové, then joins Highway 33 northeast through the Czech foothills to the border at Náchod and Kudowa-Zdrój. The Czech–Polish Schengen crossing is invisible — no stops, no document checks. Once inside Poland, the road becomes the DK8 and then the S8 expressway, dropping into Wrocław from the south-west.",
-      "Total distance is approximately 285 kilometres. Driving time is three hours in normal conditions. Add 15–20 minutes on Friday afternoons leaving Prague. On weekends with heavy Polish border traffic, your chauffeur can reroute via Liberec and the Bogatynia crossing — a slightly longer drive through the Jizera Mountains but a cleaner run into Lower Silesia.",
+      "Total distance is approximately {routeKm} kilometres. Driving time is three hours in normal conditions. Add 15–20 minutes on Friday afternoons leaving Prague. On weekends with heavy Polish border traffic, your chauffeur can reroute via Liberec and the Bogatynia crossing — a slightly longer drive through the Jizera Mountains but a cleaner run into Lower Silesia.",
       "Wrocław itself is worth the drive. The Rynek is one of the largest medieval market squares in Europe. The bronze Wrocław dwarves — roughly six hundred of them — began as a single protest figurine in the 1980s and now turn every walk into a hunt. Cathedral Island (Ostrów Tumski), the Centennial Hall with its pioneering reinforced-concrete dome listed by UNESCO, and the immense Racławice Panorama in its purpose-built rotunda complete the short list. Your chauffeur watches traffic on the D11 before every departure. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -90,7 +90,7 @@
     { "slug": "prague-warsaw", "city": "Warsaw", "distance": "680 km", "duration": "6h 45min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~285 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~3 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -101,8 +101,8 @@
   },
   "metadata": {
     "title": "Prague to Wrocław Transfer — Executive Chauffeur",
-    "description": "Premium Prague to Wrocław transfer: 285 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to Wrocław transfer: {routeKm} km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Wrocław Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to Wrocław transfer: 285 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to Wrocław transfer: {routeKm} km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

@@ -3,11 +3,11 @@
     "label": "Passau → Prague",
     "headlineLine1": "Passau to Prague,",
     "headlineItalic": "through the Bohemian Forest.",
-    "intro": "Passau to Prague by private chauffeur is a 220 km door-to-door transfer north over the Bavarian and Bohemian Forest, around 2h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, the Czech vignette and all tolls included. Pickup from any Passau hotel, the Danube cruise landing or Passau Hauptbahnhof, drop-off anywhere in Prague.",
+    "intro": "Passau to Prague by private chauffeur is a {routeKm} km door-to-door transfer north over the Bavarian and Bohemian Forest, around 2h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, the Czech vignette and all tolls included. Pickup from any Passau hotel, the Danube cruise landing or Passau Hauptbahnhof, drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Passau to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Passau to Prague covers 220 km — north on the B12 through the Bavarian Forest, across the Czech border at Philippsreut–Strážný, down through the Šumava foothills past Vimperk and Strakonice, then the D4 motorway past Příbram into Prague — and takes approximately 2.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Passau hotel, at the river cruise landing on the Danube or at Passau Hauptbahnhof, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "A private transfer from Passau to Prague covers {routeKm} km — north on the B12 through the Bavarian Forest, across the Czech border at Philippsreut–Strážný, down through the Šumava foothills past Vimperk and Strakonice, then the D4 motorway past Příbram into Prague — and takes approximately 2.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Passau hotel, at the river cruise landing on the Danube or at Passau Hauptbahnhof, and drops you at the door of your Prague hotel, apartment or meeting.",
     "The fare is set before you travel: fuel, the Czech motorway vignette, every toll, bottled water, Wi-Fi and child seats on request are included. Coming off a Danube cruise with a week of luggage, you load it once at the ship and see it again at your Prague hotel."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two and a half hours.",
     "paragraphs": [
       "From the Altstadt peninsula, the Residenzplatz or the cruise landing below the cathedral, your chauffeur heads north on the B12 into the Bavarian Forest. The road climbs steadily through Freyung and the wooded hills to the border at Philippsreut–Strážný, high in the forest. It sits inside Schengen: no stop, no check in normal conditions.",
-      "On the Czech side Route 4 descends through the Šumava foothills to Vimperk and on across open South Bohemian country to Strakonice. Further north the road becomes the D4 motorway, which runs past Příbram and straight into the southwest of Prague. Total distance is approximately 220 kilometres; driving time is two and a half hours in normal conditions, closer to three on a busy summer weekend.",
+      "On the Czech side Route 4 descends through the Šumava foothills to Vimperk and on across open South Bohemian country to Strakonice. Further north the road becomes the D4 motorway, which runs past Příbram and straight into the southwest of Prague. Total distance is approximately {routeKm} kilometres; driving time is two and a half hours in normal conditions, closer to three on a busy summer weekend.",
       "In winter the B12 pass can carry snow and ice when Passau is only grey. Your chauffeur checks the border road before departure and, if the pass is difficult, takes the longer way round rather than risk it. You still arrive in Prague the same afternoon, with time to settle in before dinner."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "220 km" },
+    { "label": "Distance", "value": "{routeKm} km" },
     { "label": "Duration", "value": "~2.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Passau to Prague Transfer — Executive Chauffeur",
-    "description": "Premium Passau to Prague transfer: 220 km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Passau to Prague transfer: {routeKm} km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Passau to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Passau to Prague transfer: 220 km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Passau to Prague transfer: {routeKm} km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

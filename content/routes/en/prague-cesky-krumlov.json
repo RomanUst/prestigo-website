@@ -3,11 +3,11 @@
     "label": "Prague → Český Krumlov",
     "headlineLine1": "Prague to Český Krumlov Private Transfer,",
     "headlineItalic": "UNESCO on the Vltava.",
-    "intro": "175 km south to one of Bohemia's most remarkable medieval towns. A castle above a Vltava horseshoe, baroque theatre, and winding cobbled streets — two and a half hours, one fixed price.",
+    "intro": "{routeKm} km south to one of Bohemia's most remarkable medieval towns. A castle above a Vltava horseshoe, baroque theatre, and winding cobbled streets — two and a half hours, one fixed price.",
     "imageAlt": "Český Krumlov — private chauffeur transfer from Prague to Český Krumlov"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Český Krumlov covers 175 km and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Třeboň — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Český Krumlov covers {routeKm} km and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Třeboň — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two and a half hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes Highway 3 and the E55 south through the rolling farmland of Central Bohemia. The D3 motorway is only partially finished — the middle section from Mezno through Tábor and around the České Budějovice bypass opened in late 2024, but the northern stretch into Prague is still under construction. Your chauffeur uses the parallel Highway 3 until it joins the motorway, then runs the D3 all the way past České Budějovice before dropping onto the 39 for the final approach to Český Krumlov.",
-      "Total distance is approximately 175 kilometres, all inside the Czech Republic — no border crossing, no second vignette. Driving time is two and a half hours in normal conditions. Your drop-off point is the UNESCO Old Town on the Vltava horseshoe bend, beneath the Castle complex and across from the Egon Schiele Art Centrum and the Latrán quarter.",
+      "Total distance is approximately {routeKm} kilometres, all inside the Czech Republic — no border crossing, no second vignette. Driving time is two and a half hours in normal conditions. Your drop-off point is the UNESCO Old Town on the Vltava horseshoe bend, beneath the Castle complex and across from the Egon Schiele Art Centrum and the Latrán quarter.",
       "One seasonal note — in summer, parking inside the Old Town is restricted and every approach road is congested. Your chauffeur drops you at the most accessible permitted point near the historic core and collects you from the same spot when you are ready. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "prague-salzburg", "city": "Salzburg", "distance": "375 km", "duration": "4h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~175 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Prague to Český Krumlov Transfer — Premium",
-    "description": "Executive Prague to Český Krumlov transfer: 175 km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Český Krumlov transfer: {routeKm} km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Český Krumlov Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Český Krumlov transfer: 175 km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Český Krumlov transfer: {routeKm} km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

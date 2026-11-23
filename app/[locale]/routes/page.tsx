@@ -138,6 +138,14 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
   // Country cards show the live route_prices fare; lib/routes.ts prices are
   // a static snapshot and only serve as the fallback when the DB is absent.
   const liveFrom: Record<string, number> = Object.fromEntries(dbRoutes.map((r) => [r.slug, r.eClassEur]))
+  // Distances come from the admin too (same number as the fares, JSON-LD and
+  // /llms.txt); lib/routes.ts distanceKm is the fallback when the DB is absent.
+  const liveKm: Record<string, number> = Object.fromEntries(
+    ROUTES.map((r) => {
+      const km = dbRoutes.find((d) => d.slug === r.slug)?.distanceKm
+      return [r.slug, km && km > 0 ? Math.round(km) : r.distanceKm]
+    }),
+  )
 
   return (
     <main id="main-content">
@@ -249,12 +257,12 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
             const order = Object.keys(byCountry).sort((a, b) => {
               if (a === 'Czech Republic') return -1
               if (b === 'Czech Republic') return 1
-              const minA = Math.min(...byCountry[a].map((x) => x.distanceKm))
-              const minB = Math.min(...byCountry[b].map((x) => x.distanceKm))
+              const minA = Math.min(...byCountry[a].map((x) => liveKm[x.slug]))
+              const minB = Math.min(...byCountry[b].map((x) => liveKm[x.slug]))
               return minA - minB
             })
             return order.map((country) => {
-              const routes = byCountry[country].slice().sort((a, b) => a.distanceKm - b.distanceKm)
+              const routes = byCountry[country].slice().sort((a, b) => liveKm[a.slug] - liveKm[b.slug])
               const countryId = country.toLowerCase().replace(/\s+/g, '-')
               const countryLabel = countryNames[country] ?? country
               const headingSuffix =
@@ -288,14 +296,14 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
                 <div>
                   <p className="label mb-4">{interpolate(content.fromToLabel, { city: cityName })}</p>
                   <h3 className="display text-[26px] md:text-[32px] mb-4">{r.h2}</h3>
-                  <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{r.description}</p>
+                  <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{interpolate(r.description, { routeKm: liveKm[r.slug] })}</p>
                 </div>
                 <div className="flex flex-col justify-between gap-6">
                   <div className="flex flex-col gap-3">
                     <div className="flex gap-6">
                       <div>
                         <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.distance}</p>
-                        <p className="font-body font-light text-[13px] text-offwhite">{r.distance}</p>
+                        <p className="font-body font-light text-[13px] text-offwhite">~{liveKm[r.slug]} km</p>
                       </div>
                       <div>
                         <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.duration}</p>
@@ -378,10 +386,10 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
             <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>{content.inbound.intro}</p>
           </div></Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {MIRROR_ROUTES.slice().sort((a, b) => (ROUTES.find((r) => r.slug === a.sourceSlug)?.distanceKm ?? 0) - (ROUTES.find((r) => r.slug === b.sourceSlug)?.distanceKm ?? 0)).map((m) => (
+            {MIRROR_ROUTES.slice().sort((a, b) => liveKm[a.sourceSlug] - liveKm[b.sourceSlug]).map((m) => (
               <a key={m.slug} href={getPathname({ locale, href: `/routes/${m.slug}` })} className="border border-anthracite-light p-5 flex justify-between items-center gap-4 hover:border-[var(--copper)] transition-colors">
                 <span className="font-display font-light text-[17px] text-offwhite">{interpolate(content.inbound.toPragueLabel, { city: destinationNames[m.sourceSlug] ?? m.city })}</span>
-                <span className="font-body font-light text-[11px] text-warmgrey whitespace-nowrap">{m.distance}</span>
+                <span className="font-body font-light text-[11px] text-warmgrey whitespace-nowrap">~{liveKm[m.sourceSlug]} km</span>
               </a>
             ))}
           </div>

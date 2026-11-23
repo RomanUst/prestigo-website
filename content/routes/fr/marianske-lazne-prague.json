@@ -3,11 +3,11 @@
     "label": "Mariánské Lázně → Prague",
     "headlineLine1": "De Mariánské Lázně à Prague,",
     "headlineItalic": "de l'hôtel thermal à votre porte en ville.",
-    "intro": "De Mariánské Lázně à Prague avec chauffeur privé, c'est un transfert de porte à porte de 165 km vers l'est via Pilsen et la D5, soit environ 2 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quel hôtel thermal ou adresse de Mariánské Lázně, dépose partout dans Prague.",
+    "intro": "De Mariánské Lázně à Prague avec chauffeur privé, c'est un transfert de porte à porte de {routeKm} km vers l'est via Pilsen et la D5, soit environ 2 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quel hôtel thermal ou adresse de Mariánské Lázně, dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Mariánské Lázně à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Mariánské Lázně à Prague représente 165 km — on quitte la vallée thermale boisée, on traverse les collines de Bohême de l'Ouest jusqu'à l'autoroute D5, puis on file vers l'est en passant Pilsen jusqu'à Prague — et dure environ 2 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel thermal, votre appartement ou à la gare de Mariánské Lázně, et vous dépose à votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
+    "Un transfert privé de Mariánské Lázně à Prague représente {routeKm} km — on quitte la vallée thermale boisée, on traverse les collines de Bohême de l'Ouest jusqu'à l'autoroute D5, puis on file vers l'est en passant Pilsen jusqu'à Prague — et dure environ 2 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel thermal, votre appartement ou à la gare de Mariánské Lázně, et vous dépose à votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
     "Le tarif est convenu avant le départ et ne change pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. À la fin d'une cure, la dernière chose dont vous avez besoin, c'est d'une correspondance à Pilsen avec vos valises — la voiture vous mène de l'entrée de votre hôtel jusqu'à votre porte à Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en deux heures.",
     "paragraphs": [
       "Après une prise en charge près de la Colonnade principale, de la Fontaine chantante ou de l'un des hôtels thermaux à flanc de colline, votre chauffeur quitte la ville à travers la forêt et traverse les douces hauteurs de Bohême de l'Ouest pour rejoindre l'autoroute D5. L'itinéraire reste en République tchèque du début à la fin — pas de frontière, pas de seconde vignette.",
-      "Sur la D5, la voiture file vers l'est en contournant Pilsen, puis passe Rokycany et Beroun en direction de Prague. La distance totale est d'environ 165 kilomètres ; le temps de trajet est de deux heures en conditions normales. Le vendredi après-midi et le dimanche soir, la circulation est plus dense à l'approche de Prague : comptez 15 à 20 minutes de plus.",
+      "Sur la D5, la voiture file vers l'est en contournant Pilsen, puis passe Rokycany et Beroun en direction de Prague. La distance totale est d'environ {routeKm} kilomètres ; le temps de trajet est de deux heures en conditions normales. Le vendredi après-midi et le dimanche soir, la circulation est plus dense à l'approche de Prague : comptez 15 à 20 minutes de plus.",
       "La D5 arrive à Prague par le sud-ouest. De là, votre chauffeur prend le périphérique jusqu'à l'aéroport Václav Havel pour un vol de correspondance, ou se dirige vers le centre — Smíchov, Malá Strana, la Vieille Ville ou Vinohrady — directement jusqu'à votre porte."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~165 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Mariánské Lázně – Prague — Premium",
-    "description": "Transfert premium Mariánské Lázně – Prague : 165 km, environ 2 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Mariánské Lázně – Prague : {routeKm} km, environ 2 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Mariánské Lázně – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Mariánské Lázně – Prague : 165 km, environ 2 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Mariánské Lázně – Prague : {routeKm} km, environ 2 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

@@ -43,7 +43,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-ostrava: byte-parity spot-check", () => {
     assertRouteParity("prague-ostrava", {
       "hero.intro":
-        "370 km east to the Czech Republic's steel city on the Polish border. Colours of Ostrava, the Dolní Vítkovice ironworks, and a city in creative transformation — four hours, one fixed price.",
+        "{routeKm} km east to the Czech Republic's steel city on the Polish border. Colours of Ostrava, the Dolní Vítkovice ironworks, and a city in creative transformation — four hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -62,7 +62,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-pardubice: byte-parity spot-check", () => {
     assertRouteParity("prague-pardubice", {
       "hero.intro":
-        "110 km east on the D11 to East Bohemia's equestrian city. The Grand Steeplechase, chemical industry, and a well-preserved Old Town. One and a half hours, one fixed price.",
+        "{routeKm} km east on the D11 to East Bohemia's equestrian city. The Grand Steeplechase, chemical industry, and a well-preserved Old Town. One and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -81,7 +81,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-passau: byte-parity spot-check", () => {
     assertRouteParity("prague-passau", {
       "hero.intro":
-        "220 km south into Bavaria to where the Danube, Inn, and Ilz converge. A medieval cathedral city, a starting point for Danube cruises, and a gateway between Bohemia and Bavaria.",
+        "{routeKm} km south into Bavaria to where the Danube, Inn, and Ilz converge. A medieval cathedral city, a starting point for Danube cruises, and a gateway between Bohemia and Bavaria.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -99,7 +99,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-plzen: byte-parity spot-check", () => {
     assertRouteParity("prague-plzen", {
       "hero.intro":
-        "90 km west on the D5. Home of Pilsner Urquell, West Bohemia's industrial capital, and a Republic Square that demands a slow coffee. One hour, one vehicle, one fixed price.",
+        "{routeKm} km west on the D5. Home of Pilsner Urquell, West Bohemia's industrial capital, and a Republic Square that demands a slow coffee. One hour, one vehicle, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -118,7 +118,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-regensburg: byte-parity spot-check", () => {
     assertRouteParity("prague-regensburg", {
       "hero.intro":
-        "285 km southwest into Bavaria's most perfectly preserved medieval city. A UNESCO old town, a 12th-century stone bridge, and the Danube flowing beneath — three hours, one fixed price.",
+        "{routeKm} km southwest into Bavaria's most perfectly preserved medieval city. A UNESCO old town, a 12th-century stone bridge, and the Danube flowing beneath — three hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -136,7 +136,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-salzburg: byte-parity spot-check", () => {
     assertRouteParity("prague-salzburg", {
       "hero.intro":
-        "375 km south through Bohemia and Austria to the Salzach, the Hohensalzburg fortress, and the birthplace of Mozart. About four hours, one fixed price.",
+        "{routeKm} km south through Bohemia and Austria to the Salzach, the Hohensalzburg fortress, and the birthplace of Mozart. About four hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -154,7 +154,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-warsaw: byte-parity spot-check", () => {
     assertRouteParity("prague-warsaw", {
       "hero.intro":
-        "660 km north through Moravia and across Poland to the Vistula. The rebuilt Old Town, the Palace of Culture, Łazienki Park, and Poland's economic heart — seven hours, one fixed price.",
+        "{routeKm} km north through Moravia and across Poland to the Vistula. The rebuilt Old Town, the Palace of Culture, Łazienki Park, and Poland's economic heart — seven hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -173,7 +173,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-wroclaw: byte-parity spot-check", () => {
     assertRouteParity("prague-wroclaw", {
       "hero.intro":
-        "285 km northeast to Poland's city of dwarfs and one of Central Europe's most vibrant market squares. Three hours, one fixed price, door to door across the border.",
+        "{routeKm} km northeast to Poland's city of dwarfs and one of Central Europe's most vibrant market squares. Three hours, one fixed price, door to door across the border.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -192,7 +192,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-zlin: byte-parity spot-check", () => {
     assertRouteParity("prague-zlin", {
       "hero.intro":
-        "310 km east to Moravia's functionalist city. Built by the Baťa shoe empire, Zlín is a rare monument to 20th-century industrial urbanism — three and a half hours, one fixed price.",
+        "{routeKm} km east to Moravia's functionalist city. Built by the Baťa shoe empire, Zlín is a rare monument to 20th-century industrial urbanism — three and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":

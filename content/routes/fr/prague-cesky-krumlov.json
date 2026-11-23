@@ -3,11 +3,11 @@
     "label": "Prague → Český Krumlov",
     "headlineLine1": "Transfert de Prague à Český Krumlov,",
     "headlineItalic": "l'UNESCO au bord de la Vltava.",
-    "intro": "175 km vers le sud, jusqu'à l'une des plus remarquables villes médiévales de Bohême. Un château dominant un méandre en fer à cheval de la Vltava, un théâtre baroque et des ruelles pavées sinueuses — deux heures et demie, un prix fixe.",
+    "intro": "{routeKm} km vers le sud, jusqu'à l'une des plus remarquables villes médiévales de Bohême. Un château dominant un méandre en fer à cheval de la Vltava, un théâtre baroque et des ruelles pavées sinueuses — deux heures et demie, un prix fixe.",
     "imageAlt": "Český Krumlov — transfert en chauffeur privé de Prague à Český Krumlov"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Český Krumlov couvre 175 km et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à €{ePrice} en Mercedes E-Class pour 3 passagers maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de €{vPrice} ; la S-Class est disponible à partir de €{sPrice} pour les déplacements dirigeants ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — České Budějovice ou Třeboň — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
+    "Un transfert privé de Prague à Český Krumlov couvre {routeKm} km et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à €{ePrice} en Mercedes E-Class pour 3 passagers maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de €{vPrice} ; la S-Class est disponible à partir de €{sPrice} pour les déplacements dirigeants ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — České Budějovice ou Třeboň — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
     "Il ne s'agit pas d'une navette partagée. Une Mercedes privée, un chauffeur et un tarif qui ne change pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en deux heures et demie.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte la route nationale 3 puis l'E55 vers le sud, à travers les campagnes vallonnées de Bohême centrale. L'autoroute D3 n'est que partiellement achevée : le tronçon central, de Mezno jusqu'à Tábor et au contournement de České Budějovice, a ouvert fin 2024, mais la portion nord vers Prague est toujours en construction. Votre chauffeur utilise la route nationale 3 parallèle jusqu'à ce qu'elle rejoigne l'autoroute, puis suit la D3 bien au-delà de České Budějovice avant de basculer sur la 39 pour l'approche finale de Český Krumlov.",
-      "La distance totale est d'environ 175 kilomètres, intégralement en République tchèque — aucun passage de frontière, aucune seconde vignette. Le temps de route est de deux heures et demie en conditions normales. Votre point de dépose est la Vieille Ville classée à l'UNESCO, dans le méandre en fer à cheval de la Vltava, au pied du complexe du château et face à l'Egon Schiele Art Centrum et au quartier de Latrán.",
+      "La distance totale est d'environ {routeKm} kilomètres, intégralement en République tchèque — aucun passage de frontière, aucune seconde vignette. Le temps de route est de deux heures et demie en conditions normales. Votre point de dépose est la Vieille Ville classée à l'UNESCO, dans le méandre en fer à cheval de la Vltava, au pied du complexe du château et face à l'Egon Schiele Art Centrum et au quartier de Latrán.",
       "Une précision saisonnière : en été, le stationnement dans la Vieille Ville est restreint et toutes les voies d'accès sont congestionnées. Votre chauffeur vous dépose au point autorisé le plus accessible près du cœur historique et vient vous reprendre au même endroit lorsque vous êtes prêt. Vous ne payez pas la circulation ; vous payez du temps."
     ]
   },
@@ -222,7 +222,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~175 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -248,8 +248,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Český Krumlov — Haut de gamme",
-    "description": "Transfert haut de gamme Prague – Český Krumlov : 175 km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Český Krumlov : {routeKm} km, environ 2h30 de porte à porte. Limousine avec chauffeur en Mercedes E, S ou V, prix fixe.",
     "ogTitle": "Transfert Prague – Český Krumlov — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Český Krumlov : 175 km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Český Krumlov : {routeKm} km, environ 2h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

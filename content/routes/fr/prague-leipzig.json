@@ -7,7 +7,7 @@
     "imageAlt": "Leipzig — transfert en chauffeur privé de Prague à Leipzig"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Leipzig couvre environ 260 km par les autoroutes D8, A17 et A14 et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Dresde ou Meissen — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
+    "Un transfert privé de Prague à Leipzig couvre environ {routeKm} km par les autoroutes D8, A17 et A14 et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Dresde ou Meissen — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
     "Il ne s'agit pas d'une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne bouge pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "trois autoroutes vers le nord.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D8 vers le nord en traversant Ústí nad Labem. La frontière Schengen tchéco-allemande, au passage autoroutier de Petrovice–Breitenau, est invisible : aucun arrêt, aucun contrôle de documents, seulement une couture d'asphalte entre deux pays. En Allemagne, la route devient l'A17, qui contourne Dresde par le sud, avant que l'A14 ne s'en détache vers le nord-ouest, à travers les campagnes vallonnées de Saxe, jusqu'à Leipzig.",
-      "Dresde constitue le point médian naturel du trajet. De nombreux clients y font une pause pour un café, une heure dans l'Altstadt, ou une demi-journée complète avant de poursuivre vers Leipzig. L'A14 vous conduit ensuite au Markt, à l'église Saint-Thomas où repose Bach dans le chœur, au parc des expositions de la Neue Messe au nord de la ville, au quartier artistique de la Spinnerei à Plagwitz, ou encore au Völkerschlachtdenkmal, en bordure sud. La distance totale est d'environ 260 kilomètres ; le temps de conduite, d'environ trois heures en conditions normales.",
+      "Dresde constitue le point médian naturel du trajet. De nombreux clients y font une pause pour un café, une heure dans l'Altstadt, ou une demi-journée complète avant de poursuivre vers Leipzig. L'A14 vous conduit ensuite au Markt, à l'église Saint-Thomas où repose Bach dans le chœur, au parc des expositions de la Neue Messe au nord de la ville, au quartier artistique de la Spinnerei à Plagwitz, ou encore au Völkerschlachtdenkmal, en bordure sud. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite, d'environ trois heures en conditions normales.",
       "Votre chauffeur observe le trafic sur le corridor de l'A14 avant chaque départ : le tronçon de Grimma a été sujet à des fermetures de voies lors des récents travaux de réfection, et le contournement par la B6 ajoute quinze minutes plutôt qu'une heure d'immobilisation. Vous ne payez pas la circulation ; vous payez du temps."
     ]
   },
@@ -157,7 +157,7 @@
   "faqs": [
     {
       "q": "Combien de temps dure un transfert privé de Prague à Leipzig ?",
-      "a": "Environ 3 heures de porte à porte, pour quelque 260 km,, par l'autoroute D8 vers le nord depuis Prague en traversant Ústí nad Labem, l'A17 autour de Dresde, puis l'A14 vers le nord-ouest jusqu'à Leipzig. Les heures de pointe du vendredi à la sortie de Prague ou des travaux sur le corridor de l'A14 peuvent ajouter 20 minutes."
+      "a": "Environ 3 heures de porte à porte, pour quelque {routeKm} km,, par l'autoroute D8 vers le nord depuis Prague en traversant Ústí nad Labem, l'A17 autour de Dresde, puis l'A14 vers le nord-ouest jusqu'à Leipzig. Les heures de pointe du vendredi à la sortie de Prague ou des travaux sur le corridor de l'A14 peuvent ajouter 20 minutes."
     },
     {
       "q": "Combien coûte un chauffeur de Prague à Leipzig ?",
@@ -214,7 +214,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~260 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -240,8 +240,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Leipzig — Chauffeur premium",
-    "description": "Transfert haut de gamme Prague – Leipzig : 260 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Leipzig : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Leipzig — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Leipzig : 260 km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Leipzig : {routeKm} km, environ 3 h de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

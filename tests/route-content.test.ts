@@ -43,7 +43,7 @@ describe("getRouteContent()", () => {
   it("assertRouteParity spot-checks prague-vienna's five representative fields", () => {
     assertRouteParity("prague-vienna", {
       "hero.intro":
-        "Prague to Vienna by private chauffeur is a 330 km door-to-door transfer via the D1 and A5, around 3h 30min drive time. Prestigo’s fixed fare starts at €485 in a Mercedes-Benz E-Class, all tolls and both Czech and Austrian vignettes included. Pickup from any Prague address, drop-off anywhere in Vienna.",
+        "Prague to Vienna by private chauffeur is a {routeKm} km door-to-door transfer via the D1 and A5, around 3h 30min drive time. Prestigo’s fixed fare starts at €485 in a Mercedes-Benz E-Class, all tolls and both Czech and Austrian vignettes included. Pickup from any Prague address, drop-off anywhere in Vienna.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":

@@ -3,11 +3,11 @@
     "label": "Praga → Liberec",
     "headlineLine1": "Traslado de Praga a Liberec,",
     "headlineItalic": "la puerta de la montaña.",
-    "intro": "105 km hacia el norte, hasta la capital de Bohemia del Norte, a los pies de los Montes de Jizera. Teleférico, ayuntamiento neobarroco y la tradición del cristal checo: una hora y media, un precio fijo.",
+    "intro": "{routeKm} km hacia el norte, hasta la capital de Bohemia del Norte, a los pies de los Montes de Jizera. Teleférico, ayuntamiento neobarroco y la tradición del cristal checo: una hora y media, un precio fijo.",
     "imageAlt": "Liberec — traslado en chófer privado desde Praga a Liberec"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Liberec cubre 105 km y dura aproximadamente 1,5 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. Nada se añade al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Mladá Boleslav o Jablonec nad Nisou— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay retrasos.",
+    "Un traslado privado de Praga a Liberec cubre {routeKm} km y dura aproximadamente 1,5 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. Nada se añade al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Mladá Boleslav o Jablonec nad Nisou— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay retrasos.",
     "No es un servicio de lanzadera compartida. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
@@ -200,7 +200,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~105 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -226,8 +226,8 @@
   },
   "metadata": {
     "title": "Traslado Praga – Liberec — Mercedes ejecutivo",
-    "description": "Traslado premium Praga – Liberec: 105 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Praga – Liberec: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Praga – Liberec — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Praga – Liberec: 105 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Praga – Liberec: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

@@ -3,11 +3,11 @@
     "label": "Prague → Olomouc",
     "headlineLine1": "Prague to Olomouc Private Transfer,",
     "headlineItalic": "baroque Moravia.",
-    "intro": "280 km east to Moravia's grand historic capital. Six baroque fountains, a UNESCO Holy Trinity Column, and one of Central Europe's most intact old towns — three hours, one fixed price.",
+    "intro": "{routeKm} km east to Moravia's grand historic capital. Six baroque fountains, a UNESCO Holy Trinity Column, and one of Central Europe's most intact old towns — three hours, one fixed price.",
     "imageAlt": "Olomouc — private chauffeur transfer from Prague to Olomouc"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Olomouc covers 280 km via the D1 and D46 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Vyškov — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Olomouc covers {routeKm} km via the D1 and D46 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Vyškov — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change between booking and drop-off."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east through the Vysočina highlands toward Brno. Somewhere past the midpoint, the landscape opens onto the rolling fields of the Hanácká plain and the road turns north onto the D46, arriving in Olomouc — the second-largest historical city centre in the Czech Republic after Prague itself. No border crossing; the whole route stays inside the Czech Republic, so there are no passport checks and no international toll charges.",
       "Olomouc rewards the drive. The UNESCO-listed Holy Trinity Column dominates Upper Square, or Horní náměstí, and is the largest baroque sculpture group in the country. Six separate baroque fountains — Caesar, Hercules, Neptune, Jupiter, Mercury, and Triton — sit within a few minutes' walk of each other. The Saint Wenceslas Cathedral rises on the hill above the old town, the Astronomical Clock ticks through its communist-era mosaic on the square, and Palacký University, founded in 1573, is one of the oldest universities in Central Europe.",
-      "Total distance is approximately 280 kilometres. Your chauffeur checks the D1 before every departure. When there is a lane closure near Velké Meziříčí, they reroute via the parallel R602 without asking. You are not paying for traffic; you are paying for time."
+      "Total distance is approximately {routeKm} kilometres. Your chauffeur checks the D1 before every departure. When there is a lane closure near Velké Meziříčí, they reroute via the parallel R602 without asking. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
@@ -92,7 +92,7 @@
     { "slug": "prague-krakow", "city": "Kraków", "distance": "530 km", "duration": "5h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~280 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~3 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -103,8 +103,8 @@
   },
   "metadata": {
     "title": "Prague to Olomouc Transfer — Executive Chauffeur",
-    "description": "Executive Prague to Olomouc transfer: 280 km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Olomouc transfer: {routeKm} km, about 3 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Olomouc Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Olomouc transfer: 280 km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Olomouc transfer: {routeKm} km, about 3 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

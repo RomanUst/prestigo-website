@@ -3,11 +3,11 @@
     "label": "Prague → Zlín",
     "headlineLine1": "Prague to Zlín Private Transfer,",
     "headlineItalic": "Baťa's city.",
-    "intro": "310 km east to Moravia's functionalist city. Built by the Baťa shoe empire, Zlín is a rare monument to 20th-century industrial urbanism — three and a half hours, one fixed price.",
+    "intro": "{routeKm} km east to Moravia's functionalist city. Built by the Baťa shoe empire, Zlín is a rare monument to 20th-century industrial urbanism — three and a half hours, one fixed price.",
     "imageAlt": "Zlín — private chauffeur transfer from Prague to Zlín"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Zlín covers 310 km and takes approximately 3.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Uherské Hradiště — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Zlín covers {routeKm} km and takes approximately 3.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Uherské Hradiště — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east through the Bohemian–Moravian Highlands and on through Brno. From Brno, the road branches south onto the D55 or continues east on Highway 50 through the Moravian wine country toward the Zlín region. There is no border crossing — the entire route is within the Czech Republic, so no passport checks and no vignette changes.",
       "Zlín itself is unlike any other Czech city. It is the functionalist company town built by the shoemaker Tomáš Baťa in the 1920s and 1930s, a planned industrial city of unmistakable red-brick grids, flat roofs, and glass stairwells. The 21st building — Baťa's skyscraper, finished in 1938 — was one of the first high-rise buildings in Europe and still anchors the skyline. The Baťa Villa, the preserved factory halls, and the Zlín Film Studios sit within walking distance of each other. The Zlín Film Studios are one of the oldest animation centres in Europe, and the city hosts the Zlín Film Festival for Children and Youth every year — the oldest event of its kind in the world, running since 1961.",
-      "Total distance is approximately 310 kilometres. Driving time is around three and a half hours. Friday afternoons out of Prague add 20–30 minutes, and your chauffeur checks D1 conditions before every departure. You are not paying for traffic; you are paying for time."
+      "Total distance is approximately {routeKm} kilometres. Driving time is around three and a half hours. Friday afternoons out of Prague add 20–30 minutes, and your chauffeur checks D1 conditions before every departure. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
@@ -90,7 +90,7 @@
     { "slug": "prague-bratislava", "city": "Bratislava", "distance": "330 km", "duration": "3h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~310 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~3.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -101,8 +101,8 @@
   },
   "metadata": {
     "title": "Prague to Zlín Transfer — Executive Mercedes",
-    "description": "Executive Prague to Zlín transfer: 310 km, about 3.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Prague to Zlín transfer: {routeKm} km, about 3.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to Zlín Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Prague to Zlín transfer: 310 km, about 3.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Prague to Zlín transfer: {routeKm} km, about 3.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

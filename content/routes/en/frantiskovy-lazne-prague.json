@@ -3,11 +3,11 @@
     "label": "Františkovy Lázně → Prague",
     "headlineLine1": "Františkovy Lázně to Prague,",
     "headlineItalic": "a calm drive east.",
-    "intro": "Františkovy Lázně to Prague by private chauffeur is a 175 km door-to-door transfer east from the Cheb basin, around 2h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any spa hotel or address in Františkovy Lázně, drop-off anywhere in Prague.",
+    "intro": "Františkovy Lázně to Prague by private chauffeur is a {routeKm} km door-to-door transfer east from the Cheb basin, around 2h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any spa hotel or address in Františkovy Lázně, drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Františkovy Lázně to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Františkovy Lázně to Prague covers 175 km — past Cheb and then east on the motorway across West and Central Bohemia — and takes approximately 2.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel or apartment in Františkovy Lázně, or at Cheb station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
+    "A private transfer from Františkovy Lázně to Prague covers {routeKm} km — past Cheb and then east on the motorway across West and Central Bohemia — and takes approximately 2.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel or apartment in Františkovy Lázně, or at Cheb station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
     "The fare is agreed before you travel and does not change: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. From the smallest of the West Bohemian spa towns to the centre of Prague, there is one car, one chauffeur and nothing to arrange on arrival."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in two and a half hours.",
     "paragraphs": [
       "From a pickup among the yellow Empire-style façades of the spa quarter, your chauffeur drives the few minutes south to Cheb and then turns east. There are two good ways to Prague from here: the D6 past Sokolov and Karlovy Vary, or south-east to the D5 and on through Plzeň. Both stay entirely inside the Czech Republic — the German border is close to town, but you never cross it.",
-      "Total distance is approximately 175 kilometres; driving time is two and a half hours in normal conditions. Your chauffeur checks both roads before departure and takes whichever is clearer that day — roadworks on the D6 or a slow stretch on the D5 can change the choice.",
+      "Total distance is approximately {routeKm} kilometres; driving time is two and a half hours in normal conditions. Your chauffeur checks both roads before departure and takes whichever is clearer that day — roadworks on the D6 or a slow stretch on the D5 can change the choice.",
       "Either way you arrive on the western side of Prague. Václav Havel Airport is a short run from the end of the motorway; the Old Town, Malá Strana or Vinohrady are another 20–30 minutes, depending on the time of day. The car stops at your door."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~175 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Františkovy Lázně to Prague Transfer — Premium",
-    "description": "Executive Františkovy Lázně to Prague transfer: 175 km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price.",
+    "description": "Executive Františkovy Lázně to Prague transfer: {routeKm} km, about 2.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price.",
     "ogTitle": "Františkovy Lázně to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Františkovy Lázně to Prague transfer: 175 km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Františkovy Lázně to Prague transfer: {routeKm} km, about 2.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

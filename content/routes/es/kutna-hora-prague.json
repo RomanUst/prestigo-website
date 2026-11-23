@@ -3,11 +3,11 @@
     "label": "Kutná Hora → Praga",
     "headlineLine1": "De Kutná Hora a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "Un traslado de Kutná Hora a Praga con chófer privado: 70 km de puerta a puerta hacia el oeste, por Kolín y la D11, en aproximadamente una hora de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier hotel de Kutná Hora, en el Osario de Sedlec o en la estación principal, y llegada a cualquier dirección de Praga.",
+    "intro": "Un traslado de Kutná Hora a Praga con chófer privado: {routeKm} km de puerta a puerta hacia el oeste, por Kolín y la D11, en aproximadamente una hora de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier hotel de Kutná Hora, en el Osario de Sedlec o en la estación principal, y llegada a cualquier dirección de Praga.",
     "imageAlt": "Traslado con chófer privado de Kutná Hora a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Kutná Hora a Praga cubre 70 km —hacia el norte, saliendo de la ciudad de la plata hasta Kolín, y después hacia el oeste por la autopista D11 hasta la capital— y dura aproximadamente una hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Kutná Hora, en la puerta del Osario de Sedlec o en la estación principal de Kutná Hora, y le deja en la puerta de su hotel, apartamento o reunión en Praga, o en el aeropuerto Václav Havel para un vuelo de tarde.",
+    "Un traslado privado de Kutná Hora a Praga cubre {routeKm} km —hacia el norte, saliendo de la ciudad de la plata hasta Kolín, y después hacia el oeste por la autopista D11 hasta la capital— y dura aproximadamente una hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Kutná Hora, en la puerta del Osario de Sedlec o en la estación principal de Kutná Hora, y le deja en la puerta de su hotel, apartamento o reunión en Praga, o en el aeropuerto Václav Havel para un vuelo de tarde.",
     "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Sin horarios que consultar tras un largo día de visitas, sin transbordo de tren en Kolín, sin colas de taxi al llegar a Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en una hora.",
     "paragraphs": [
       "Desde la recogida en el casco antiguo, a los pies de la catedral de Santa Bárbara, o en Sedlec, junto al Osario, su chófer se dirige al norte por las llanuras del Elba hacia Kolín. El tramo es corto y llano —campos, huertos y algún que otro campanario— y la iglesia gótica de San Bartolomé de Kolín aparece en el horizonte a los veinte minutos.",
-      "Pasado Kolín, el coche toma la autopista D11 hacia el oeste, deja atrás Poděbrady y entra en Praga por su borde nororiental. La distancia total es de aproximadamente 70 kilómetros; el tiempo de conducción, de una hora en condiciones normales de tráfico. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
+      "Pasado Kolín, el coche toma la autopista D11 hacia el oeste, deja atrás Poděbrady y entra en Praga por su borde nororiental. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción, de una hora en condiciones normales de tráfico. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
       "Su chófer consulta el tráfico de la D11 antes de salir. Los domingos a última hora de la tarde y la hora punta de los días laborables ralentizan el último tramo hacia Praga; si hay un accidente u obras, toma una carretera secundaria sin preguntar. Sale de Kutná Hora después de la última visita del día y está de vuelta en Praga a tiempo para cenar."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "brno-prague", "city": "Brno", "label": "Brno → Praga", "distance": "205 km", "duration": "2 h 30 min" }
   ],
   "highlights": [
-    { "label": "Distancia", "value": "~70 km" },
+    { "label": "Distancia", "value": "~{routeKm} km" },
     { "label": "Duración", "value": "~1 hora" },
     { "label": "Vehículos", "value": ["Clase Business", "Primera Clase", "Van Business"] },
     { "label": "Precio desde", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Traslado Kutná Hora – Praga — Chófer premium",
-    "description": "Traslado premium Kutná Hora – Praga: 70 km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Kutná Hora – Praga: {routeKm} km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Kutná Hora – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Kutná Hora – Praga: 70 km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Kutná Hora – Praga: {routeKm} km, una hora puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

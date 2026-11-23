@@ -3,11 +3,11 @@
     "label": "Dresde → Praga",
     "headlineLine1": "De Dresde a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "De Dresde a Praga con chófer privado son 150 km de traslado puerta a puerta hacia el sur por la A17 y la D8, unas dos horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta de autopista checa incluida. Recogida en cualquier dirección de Dresde, en Dresden Hauptbahnhof o en el aeropuerto de Dresde (DRS) y llegada a cualquier punto de Praga.",
+    "intro": "De Dresde a Praga con chófer privado son {routeKm} km de traslado puerta a puerta hacia el sur por la A17 y la D8, unas dos horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta de autopista checa incluida. Recogida en cualquier dirección de Dresde, en Dresden Hauptbahnhof o en el aeropuerto de Dresde (DRS) y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Dresde a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Dresde a Praga cubre unos 150 km —hacia el sur por la A17, cruzando los Montes Metálicos orientales hasta la República Checa y después por la autopista D8, pasando por Ústí nad Labem y bajando por la llanura bohemia hasta Praga— y dura unas dos horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel de la Altstadt o la Neustadt, en Dresden Hauptbahnhof o en la sala de llegadas del aeropuerto de Dresde, y le deja en la puerta de su hotel, apartamento u oficina en Praga.",
+    "Un traslado privado de Dresde a Praga cubre unos {routeKm} km —hacia el sur por la A17, cruzando los Montes Metálicos orientales hasta la República Checa y después por la autopista D8, pasando por Ústí nad Labem y bajando por la llanura bohemia hasta Praga— y dura unas dos horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel de la Altstadt o la Neustadt, en Dresden Hauptbahnhof o en la sala de llegadas del aeropuerto de Dresde, y le deja en la puerta de su hotel, apartamento u oficina en Praga.",
     "El precio se fija al reservar y no cambia: el combustible, la viñeta de autopista checa, el agua embotellada, el Wi-Fi y las sillas infantiles bajo petición están incluidos. Dos horas después de dejar el Elba en Sajonia, baja del coche en Praga sin nada más que organizar: sin andén, sin maletas por las escaleras, sin un segundo taxi."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en unas dos horas.",
     "paragraphs": [
       "Desde la recogida cerca de la Frauenkirche, en la Neustadt o en el aeropuerto de Dresde, su chófer toma la A17 en el extremo sur de la ciudad y sube desde el valle del Elba hacia los Montes Metálicos. Alemania no cobra peaje de autopista a los turismos, así que no hay nada por lo que detenerse. La frontera está en la propia autopista, dentro del espacio Schengen: sin control rutinario, sin colas, solo señales checas y el descenso hacia Ústí nad Labem.",
-      "En el lado checo la carretera pasa a ser la D8. Pasa junto a Ústí y Lovosice entre los conos volcánicos de las colinas de České středohoří, después se allana a través de la llanura bohemia y entra en Praga por el norte. La distancia total es de unos 150 kilómetros; el tiempo de conducción es de unas dos horas. El tráfico de las tardes entre semana en el acceso norte a Praga puede añadir 15–20 minutos.",
+      "En el lado checo la carretera pasa a ser la D8. Pasa junto a Ústí y Lovosice entre los conos volcánicos de las colinas de České středohoří, después se allana a través de la llanura bohemia y entra en Praga por el norte. La distancia total es de unos {routeKm} kilómetros; el tiempo de conducción es de unas dos horas. El tráfico de las tardes entre semana en el acceso norte a Praga puede añadir 15–20 minutos.",
       "Su chófer revisa la D8 antes de salir. Si hay obras o un cierre cerca de Lovosice, toma la carretera paralela sin necesidad de preguntar. Llega a Praga con tiempo de sobra: registrarse en un hotel de Malá Strana, dejar las maletas y estar en el Puente de Carlos antes de que caiga la luz."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~150 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duración",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Traslado Dresde – Praga — Chófer premium",
-    "description": "Traslado premium Dresde – Praga: 150 km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado premium Dresde – Praga: {routeKm} km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Dresde – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado premium Dresde – Praga: 150 km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado premium Dresde – Praga: {routeKm} km, unas 2 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

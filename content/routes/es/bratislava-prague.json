@@ -3,11 +3,11 @@
     "label": "Bratislava → Praga",
     "headlineLine1": "De Bratislava a Praga,",
     "headlineItalic": "de capital a capital.",
-    "intro": "De Bratislava a Praga con chófer privado son 330 km de traslado puerta a puerta hacia el norte por la D2 y la D1, pasando por Brno, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con las viñetas eslovaca y checa incluidas. Recogida en cualquier dirección de Bratislava o en el aeropuerto de Bratislava (BTS) y llegada a cualquier punto de Praga.",
+    "intro": "De Bratislava a Praga con chófer privado son {routeKm} km de traslado puerta a puerta hacia el norte por la D2 y la D1, pasando por Brno, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con las viñetas eslovaca y checa incluidas. Recogida en cualquier dirección de Bratislava o en el aeropuerto de Bratislava (BTS) y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Bratislava a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Bratislava a Praga recorre 330 km: hacia el norte por la autopista D2 hasta la frontera checa de Brodské–Lanžhot, pasando por Břeclav hasta Brno, y después la D1 a través de las Tierras Altas de Bohemia y Moravia hasta Praga. Dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel del casco antiguo, en una oficina junto al Danubio, en la estación central de Bratislava o en el aeropuerto de Bratislava, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Bratislava a Praga recorre {routeKm} km: hacia el norte por la autopista D2 hasta la frontera checa de Brodské–Lanžhot, pasando por Břeclav hasta Brno, y después la D1 a través de las Tierras Altas de Bohemia y Moravia hasta Praga. Dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel del casco antiguo, en una oficina junto al Danubio, en la estación central de Bratislava o en el aeropuerto de Bratislava, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se acuerda antes del viaje y no cambia. El combustible, los peajes, las viñetas de autopista eslovaca y checa, el agua embotellada, el wifi y las sillas infantiles a petición están incluidos. Un solo coche de puerta a puerta y ningún segundo taxi que buscar en Praga."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en tres horas y media.",
     "paragraphs": [
       "Desde una recogida en Staré Mesto, a los pies del castillo, en el nuevo barrio junto al río o en el aeropuerto de Bratislava, su chófer sale de la ciudad hacia el norte por la D2. La autopista cruza la llanura de Záhorie, cubierta de pinares, a lo largo del valle del Morava hasta la frontera checa de Brodské–Lanžhot. Ambos países están en Schengen, así que no hay paradas; y siendo el checo y el eslovaco tan parecidos, ni siquiera las señales de tráfico cambian mucho.",
-      "En el lado checo, la D2 pasa por Břeclav y los viñedos de Moravia del Sur hasta Brno, donde enlaza con la D1 para los últimos 205 km hasta Praga a través de las tierras altas de Vysočina. La distancia total es de aproximadamente 330 kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal. Los viernes por la tarde, la entrada a Praga puede añadir entre 20 y 30 minutos.",
+      "En el lado checo, la D2 pasa por Břeclav y los viñedos de Moravia del Sur hasta Brno, donde enlaza con la D1 para los últimos 205 km hasta Praga a través de las tierras altas de Vysočina. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal. Los viernes por la tarde, la entrada a Praga puede añadir entre 20 y 30 minutos.",
       "Su chófer consulta el estado de la D1 antes de salir. Si hay obras o un accidente entre Brno y Jihlava, toma la alternativa sin preguntar. Llega a Praga con tiempo para registrarse en el hotel, cambiarse y salir a cenar dando un paseo."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "330 km"
+      "value": "{routeKm} km"
     },
     {
       "label": "Duración",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Traslado Bratislava – Praga — Chófer ejecutivo",
-    "description": "Traslado ejecutivo Bratislava – Praga: 330 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Bratislava – Praga: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Bratislava – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Bratislava – Praga: 330 km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Bratislava – Praga: {routeKm} km, unas 3,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

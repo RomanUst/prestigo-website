@@ -3,11 +3,11 @@
     "label": "Hradec Králové → Prague",
     "headlineLine1": "Hradec Králové to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Hradec Králové to Prague by private chauffeur is a 115 km door-to-door transfer west on the D11 motorway, around one and a half hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech vignette included. Pickup from any Hradec Králové address or the main station, drop-off anywhere in Prague.",
+    "intro": "Hradec Králové to Prague by private chauffeur is a {routeKm} km door-to-door transfer west on the D11 motorway, around one and a half hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech vignette included. Pickup from any Hradec Králové address or the main station, drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Hradec Králové to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Hradec Králové to Prague covers 115 km — west on the D11 motorway past Chlumec nad Cidlinou and Poděbrady, straight into Prague — and takes approximately one and a half hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Hradec Králové hotel, office or university, or at the main station, and drops you at the door of your Prague hotel, apartment or meeting — or at Václav Havel Airport for an onward flight.",
+    "A private transfer from Hradec Králové to Prague covers {routeKm} km — west on the D11 motorway past Chlumec nad Cidlinou and Poděbrady, straight into Prague — and takes approximately one and a half hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Hradec Králové hotel, office or university, or at the main station, and drops you at the door of your Prague hotel, apartment or meeting — or at Václav Havel Airport for an onward flight.",
     "The fare is agreed before you travel and does not move: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. No timetable, no connection, no second taxi when you reach Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in ninety minutes.",
     "paragraphs": [
       "From a pickup in the old town below the White Tower, in the functionalist streets laid out by Kotěra and Gočár, or at the main station, your chauffeur leaves Hradec Králové westbound and joins the D11 on the edge of the city. There is no border on this route — it stays entirely inside the Czech Republic.",
-      "The D11 is a single, direct motorway between the two cities. It runs west across the flat farmland of the Cidlina and Elbe valleys, past Chlumec nad Cidlinou and the spa town of Poděbrady, and enters Prague on its north-eastern edge. Total distance is approximately 115 kilometres; driving time is about one and a half hours in normal traffic.",
+      "The D11 is a single, direct motorway between the two cities. It runs west across the flat farmland of the Cidlina and Elbe valleys, past Chlumec nad Cidlinou and the spa town of Poděbrady, and enters Prague on its north-eastern edge. Total distance is approximately {routeKm} kilometres; driving time is about one and a half hours in normal traffic.",
       "Your chauffeur checks the D11 before departure. Weekday evening rush hour and Sunday afternoons slow the last kilometres into Prague; if there is an accident or roadwork, they leave the motorway for the parallel road without asking. You reach your Prague address with the rest of the day still free."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "wroclaw-prague", "city": "Wrocław", "label": "Wrocław → Prague", "distance": "285 km", "duration": "3h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~115 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~1.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Hradec Králové to Prague Transfer — Premium",
-    "description": "Executive Hradec Králové to Prague transfer: 115 km, about 1.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Hradec Králové to Prague transfer: {routeKm} km, about 1.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Hradec Králové to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Hradec Králové to Prague transfer: 115 km, about 1.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Hradec Králové to Prague transfer: {routeKm} km, about 1.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

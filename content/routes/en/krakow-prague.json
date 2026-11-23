@@ -3,11 +3,11 @@
     "label": "Kraków → Prague",
     "headlineLine1": "Kraków to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Kraków to Prague by private chauffeur is a 530 km door-to-door transfer west through Silesia and across Moravia, around five and a half hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Polish motorway tolls and the Czech vignette included. Pickup from any Kraków address, Kraków Główny or Kraków Airport (KRK), drop-off anywhere in Prague.",
+    "intro": "Kraków to Prague by private chauffeur is a {routeKm} km door-to-door transfer west through Silesia and across Moravia, around five and a half hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Polish motorway tolls and the Czech vignette included. Pickup from any Kraków address, Kraków Główny or Kraków Airport (KRK), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Kraków to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Kraków to Prague covers about 530 km — west on the A4 toll motorway past Katowice to Gliwice, south on the A1 to the Czech border at Gorzyczki–Věřňovice, then the D1 motorway past Ostrava and Brno to Prague — and takes around five and a half hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in Stare Miasto or Kazimierz, from Kraków Główny or from Arrivals at Kraków Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "A private transfer from Kraków to Prague covers about {routeKm} km — west on the A4 toll motorway past Katowice to Gliwice, south on the A1 to the Czech border at Gorzyczki–Věřňovice, then the D1 motorway past Ostrava and Brno to Prague — and takes around five and a half hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in Stare Miasto or Kazimierz, from Kraków Główny or from Arrivals at Kraków Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
     "The fare is fixed before you travel: fuel, the A4 toll, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. No early train, no change of platform, no taxi to find at Prague’s main station."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "in about five and a half hours.",
     "paragraphs": [
       "From a pickup near the Rynek Główny, below Wawel or at Kraków Airport in Balice, your chauffeur joins the A4 heading west. The stretch to Katowice is a toll motorway — the toll is already in your fare. At Gliwice the route turns south on the A1 through Upper Silesia toward the Czech border near Ostrava.",
-      "The crossing is inside the Schengen Area: no routine check, no queue. The motorway crosses at Gorzyczki–Věřňovice. On the Czech side the D1 runs past Ostrava and southwest across Moravia — through the Moravian Gate, past Přerov to Brno — then northwest over the Bohemian-Moravian Highlands to Prague, entering the city from the southeast. Total distance is approximately 530 kilometres; driving time is about five and a half hours, longer on a Friday afternoon.",
+      "The crossing is inside the Schengen Area: no routine check, no queue. The motorway crosses at Gorzyczki–Věřňovice. On the Czech side the D1 runs past Ostrava and southwest across Moravia — through the Moravian Gate, past Přerov to Brno — then northwest over the Bohemian-Moravian Highlands to Prague, entering the city from the southeast. Total distance is approximately {routeKm} kilometres; driving time is about five and a half hours, longer on a Friday afternoon.",
       "Your chauffeur checks the A4 and the D1 before departure and chooses the faster line on the day. You reach Prague in time to settle in, walk the riverbank and have dinner in Malá Strana."
     ]
   },
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~530 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Duration",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Kraków to Prague Transfer — Executive Mercedes",
-    "description": "Executive Kraków to Prague transfer: 530 km, about 5.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Executive Kraków to Prague transfer: {routeKm} km, about 5.5 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Kraków to Prague Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Executive Kraków to Prague transfer: 530 km, about 5.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Executive Kraków to Prague transfer: {routeKm} km, about 5.5 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }

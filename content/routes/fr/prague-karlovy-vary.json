@@ -3,11 +3,11 @@
     "label": "Prague → Karlovy Vary",
     "headlineLine1": "Transfert de Prague à Karlovy Vary,",
     "headlineItalic": "au pays des thermes, sans détour.",
-    "intro": "130 km vers l'ouest par la D6, à travers les hauts plateaux de Bohême. La ville thermale la plus célèbre d'Europe centrale — festival du film, colonnades thermales et Becherovka. Un véhicule, un prix fixe.",
+    "intro": "{routeKm} km vers l'ouest par la D6, à travers les hauts plateaux de Bohême. La ville thermale la plus célèbre d'Europe centrale — festival du film, colonnades thermales et Becherovka. Un véhicule, un prix fixe.",
     "imageAlt": "Karlovy Vary — transfert en chauffeur privé de Prague à Karlovy Vary"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Karlovy Vary représente 130 km par l'autoroute D6 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à €{ePrice} en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de €{vPrice} ; la S-Class est proposée à partir de €{sPrice} pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfants sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en chemin — Kladno ou Rakovník — sont possibles au même tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
+    "Un transfert privé de Prague à Karlovy Vary représente {routeKm} km par l'autoroute D6 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à €{ePrice} en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de €{vPrice} ; la S-Class est proposée à partir de €{sPrice} pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfants sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en chemin — Kladno ou Rakovník — sont possibles au même tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
     "Il ne s'agit pas d'une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en quatre-vingt-dix minutes.",
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur quitte la ville par l'autoroute D6 en direction de l'ouest. La route s'élève à travers le plateau de Bohême, passe Nové Strašecí et Krušovice, le paysage s'ouvrant sur des champs vallonnés et des vergers avant de redescendre dans la vallée thermale de Karlovy Vary. L'ensemble du trajet reste en République tchèque — aucun passage de frontière, aucun contrôle de documents, aucun changement de vignette.",
-      "La distance totale avoisine les 130 kilomètres. Le temps de route est d'une heure et demie en conditions normales. Comptez 10 à 15 minutes de plus aux heures de pointe du vendredi après-midi à la sortie de Prague, en particulier l'été.",
+      "La distance totale avoisine les {routeKm} kilomètres. Le temps de route est d'une heure et demie en conditions normales. Comptez 10 à 15 minutes de plus aux heures de pointe du vendredi après-midi à la sortie de Prague, en particulier l'été.",
       "La D6 a été progressivement élargie aux normes autoroutières ces dernières années, les sections de Hořesedly et de Krupá ayant été achevées récemment et les derniers tronçons vers Karlovy Vary étant programmés d'ici 2027. Votre chauffeur vérifie l'état de chaque section avant chaque départ. Si une zone de travaux apparaît près de Lubenec ou si une fermeture affecte la nouvelle rocade, il emprunte l'ancienne route 6 sans avoir à le demander. Vous ne payez pas la circulation ; vous payez le temps."
     ]
   },
@@ -216,7 +216,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~130 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -242,8 +242,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Karlovy Vary — Premium",
-    "description": "Transfert premium Prague – Karlovy Vary : 130 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert premium Prague – Karlovy Vary : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Karlovy Vary — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert premium Prague – Karlovy Vary : 130 km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert premium Prague – Karlovy Vary : {routeKm} km, environ 1h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

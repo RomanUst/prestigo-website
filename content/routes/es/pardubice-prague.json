@@ -3,11 +3,11 @@
     "label": "Pardubice → Praga",
     "headlineLine1": "De Pardubice a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "Un traslado de Pardubice a Praga con chófer privado: 110 km de puerta a puerta hacia el oeste por la autopista D11, en aproximadamente una hora y media de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier dirección de Pardubice, en la estación principal o en el aeropuerto de Pardubice (PED), y llegada a cualquier dirección de Praga.",
+    "intro": "Un traslado de Pardubice a Praga con chófer privado: {routeKm} km de puerta a puerta hacia el oeste por la autopista D11, en aproximadamente una hora y media de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier dirección de Pardubice, en la estación principal o en el aeropuerto de Pardubice (PED), y llegada a cualquier dirección de Praga.",
     "imageAlt": "Traslado con chófer privado de Pardubice a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Pardubice a Praga cubre 110 km —hacia el norte para salir de la ciudad y tomar la D11, y después hacia el oeste, pasando por Poděbrady, hasta Praga— y dura aproximadamente una hora y media de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel u oficina de Pardubice, en la estación principal de Pardubice, en el hipódromo o en el aeropuerto de Pardubice, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Pardubice a Praga cubre {routeKm} km —hacia el norte para salir de la ciudad y tomar la D11, y después hacia el oeste, pasando por Poděbrady, hasta Praga— y dura aproximadamente una hora y media de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel u oficina de Pardubice, en la estación principal de Pardubice, en el hipódromo o en el aeropuerto de Pardubice, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. ¿Aterriza en Pardubice y se aloja en Praga? Su chófer le espera en la sala de llegadas y le lleva directamente."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en noventa minutos.",
     "paragraphs": [
       "Desde la recogida en la plaza Pernštýnská, cerca del castillo o en la estación principal, su chófer sale de Pardubice hacia el norte, en dirección a Hradec Králové, y toma la autopista D11. Según el tráfico y su punto de partida, puede optar por una carretera hacia el oeste para incorporarse a la D11 más adelante: todas las opciones son carreteras checas rápidas y bien señalizadas.",
-      "Una vez en la D11, el trayecto es una recta hacia el oeste a través de la llanura del Elba, pasando por la ciudad balneario de Poděbrady, hasta entrar en Praga por su borde nororiental. La distancia total es de aproximadamente 110 kilómetros; el tiempo de conducción, de una hora y media en condiciones normales de tráfico. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
+      "Una vez en la D11, el trayecto es una recta hacia el oeste a través de la llanura del Elba, pasando por la ciudad balneario de Poděbrady, hasta entrar en Praga por su borde nororiental. La distancia total es de aproximadamente {routeKm} kilómetros; el tiempo de conducción, de una hora y media en condiciones normales de tráfico. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
       "Su chófer consulta el estado de la D11 antes de salir. La hora punta de las tardes laborables y los domingos por la tarde ralentizan el último tramo hacia Praga, y el tráfico de los días de carreras en torno al hipódromo de Pardubice se tiene en cuenta con antelación. Si hay un accidente u obras, cambia de ruta sin preguntar."
     ]
   },
@@ -96,7 +96,7 @@
     { "slug": "brno-prague", "city": "Brno", "label": "Brno → Praga", "distance": "205 km", "duration": "2 h 30 min" }
   ],
   "highlights": [
-    { "label": "Distancia", "value": "~110 km" },
+    { "label": "Distancia", "value": "~{routeKm} km" },
     { "label": "Duración", "value": "~1,5 horas" },
     { "label": "Vehículos", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Precio desde", "value": "{ePrice} €", "copper": true }
@@ -107,8 +107,8 @@
   },
   "metadata": {
     "title": "Traslado Pardubice – Praga — Chófer premium",
-    "description": "Traslado ejecutivo Pardubice – Praga: 110 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
+    "description": "Traslado ejecutivo Pardubice – Praga: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo.",
     "ogTitle": "Traslado Pardubice – Praga — chófer privado premium en Mercedes",
-    "ogDescription": "Traslado ejecutivo Pardubice – Praga: 110 km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
+    "ogDescription": "Traslado ejecutivo Pardubice – Praga: {routeKm} km, unas 1,5 horas puerta a puerta. Servicio de limusina con chófer en Mercedes E, S o V-Class, precio fijo acordado de antemano. Sillas infantiles bajo petición sin coste."
   }
 }

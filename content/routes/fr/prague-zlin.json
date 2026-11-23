@@ -3,11 +3,11 @@
     "label": "Prague → Zlín",
     "headlineLine1": "Transfert de Prague à Zlín,",
     "headlineItalic": "la ville de Baťa.",
-    "intro": "310 km vers l'est, jusqu'à la cité fonctionnaliste de Moravie. Édifiée par l'empire de la chaussure Baťa, Zlín est un rare monument de l'urbanisme industriel du XXe siècle — trois heures et demie, un prix fixe.",
+    "intro": "{routeKm} km vers l'est, jusqu'à la cité fonctionnaliste de Moravie. Édifiée par l'empire de la chaussure Baťa, Zlín est un rare monument de l'urbanisme industriel du XXe siècle — trois heures et demie, un prix fixe.",
     "imageAlt": "Zlín — transfert en chauffeur privé de Prague à Zlín"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Zlín couvre 310 km et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en chemin — Brno ou Uherské Hradiště — sont possibles au tarif fixe s'ils sont convenus lors de la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
+    "Un transfert privé de Prague à Zlín couvre {routeKm} km et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en chemin — Brno ou Uherské Hradiště — sont possibles au tarif fixe s'ils sont convenus lors de la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
     "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers l'est, traverse les Hautes-Terres tchéco-moraves puis Brno. À partir de Brno, la route bifurque vers le sud sur la D55 ou se poursuit à l'est par la route 50, à travers le vignoble morave, en direction de la région de Zlín. Il n'y a aucun passage de frontière : l'itinéraire se déroule entièrement en République tchèque, donc aucun contrôle de passeport ni changement de vignette.",
       "Zlín ne ressemble à aucune autre ville tchèque. C'est la cité ouvrière fonctionnaliste édifiée par le chausseur Tomáš Baťa dans les années 1920 et 1930, une ville industrielle planifiée aux trames de brique rouge caractéristiques, aux toits plats et aux cages d'escalier vitrées. Le bâtiment n° 21 — le gratte-ciel de Baťa, achevé en 1938 — fut l'un des premiers immeubles de grande hauteur d'Europe et domine encore l'horizon. La villa Baťa, les halles d'usine préservées et les studios de cinéma de Zlín se trouvent à quelques minutes de marche les uns des autres. Les studios de Zlín comptent parmi les plus anciens centres d'animation d'Europe, et la ville accueille chaque année le Festival du film de Zlín pour l'enfance et la jeunesse — la plus ancienne manifestation de ce genre au monde, organisée depuis 1961.",
-      "La distance totale est d'environ 310 kilomètres. Le temps de route avoisine trois heures et demie. Les vendredis après-midi au départ de Prague ajoutent 20 à 30 minutes, et votre chauffeur vérifie l'état de la D1 avant chaque départ. Vous ne payez pas la circulation ; vous payez du temps."
+      "La distance totale est d'environ {routeKm} kilomètres. Le temps de route avoisine trois heures et demie. Les vendredis après-midi au départ de Prague ajoutent 20 à 30 minutes, et votre chauffeur vérifie l'état de la D1 avant chaque départ. Vous ne payez pas la circulation ; vous payez du temps."
     ]
   },
   "includedLabel": "Ce qui est inclus",
@@ -125,7 +125,7 @@
     "items": [
       {
         "title": "Tarif fixe, aucune surprise",
-        "body": "Le prix que vous voyez est le prix que vous payez. Carburant, vignette tchèque, temps du chauffeur sur un trajet de 310 kilomètres. Rien n'est ajouté à l'arrivée."
+        "body": "Le prix que vous voyez est le prix que vous payez. Carburant, vignette tchèque, temps du chauffeur sur un trajet de {routeKm} kilomètres. Rien n'est ajouté à l'arrivée."
       },
       {
         "title": "Flotte en propre, chauffeurs sélectionnés",
@@ -198,7 +198,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~310 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -224,8 +224,8 @@
   },
   "metadata": {
     "title": "Transfert Prague – Zlín — Mercedes haut de gamme",
-    "description": "Transfert haut de gamme Prague – Zlín : 310 km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Prague – Zlín : {routeKm} km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Prague – Zlín — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Prague – Zlín : 310 km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Prague – Zlín : {routeKm} km, environ 3h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

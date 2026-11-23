@@ -3,11 +3,11 @@
     "label": "Cracovie → Prague",
     "headlineLine1": "De Cracovie à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Cracovie à Prague avec chauffeur privé, c'est un transfert de porte à porte d'environ 530 km vers l'ouest à travers la Silésie puis la Moravie, soit environ cinq heures et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages autoroutiers polonais et vignette tchèque inclus. Prise en charge à toute adresse de Cracovie, à Kraków Główny ou à l'aéroport de Cracovie (KRK), dépose partout dans Prague.",
+    "intro": "De Cracovie à Prague avec chauffeur privé, c'est un transfert de porte à porte d'environ {routeKm} km vers l'ouest à travers la Silésie puis la Moravie, soit environ cinq heures et demie de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages autoroutiers polonais et vignette tchèque inclus. Prise en charge à toute adresse de Cracovie, à Kraków Główny ou à l'aéroport de Cracovie (KRK), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Cracovie à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Cracovie à Prague couvre environ 530 km — vers l'ouest par l'autoroute à péage A4 jusqu'à Katowice et Gliwice, puis l'A1 vers le sud jusqu'à la frontière tchèque à Gorzyczki–Věřňovice, puis l'autoroute D1 par Ostrava et Brno jusqu'à Prague — et demande environ cinq heures et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel dans la Vieille Ville (Stare Miasto) ou à Kazimierz, à Kraków Główny ou dans le hall des arrivées de l'aéroport de Cracovie, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Un transfert privé de Cracovie à Prague couvre environ {routeKm} km — vers l'ouest par l'autoroute à péage A4 jusqu'à Katowice et Gliwice, puis l'A1 vers le sud jusqu'à la frontière tchèque à Gorzyczki–Věřňovice, puis l'autoroute D1 par Ostrava et Brno jusqu'à Prague — et demande environ cinq heures et demie de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel dans la Vieille Ville (Stare Miasto) ou à Kazimierz, à Kraków Główny ou dans le hall des arrivées de l'aéroport de Cracovie, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
     "Le tarif est fixé avant le départ : carburant, péage de l'A4, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas de train à l'aube, pas de changement de quai, pas de taxi à chercher à la gare principale de Prague."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en cinq heures et demie environ.",
     "paragraphs": [
       "Après une prise en charge près du Rynek Główny, au pied du Wawel ou à l'aéroport de Cracovie à Balice, votre chauffeur rejoint l'A4 en direction de l'ouest. Le tronçon jusqu'à Katowice est une autoroute à péage — le péage est déjà compris dans votre tarif. À Gliwice, l'itinéraire quitte l'A4 pour l'A1, qui descend vers le sud à travers la Haute-Silésie jusqu'à la frontière tchèque près d'Ostrava.",
-      "Le passage se fait au sein de l'espace Schengen : pas de contrôle systématique, pas de file. La voiture franchit la frontière sur l'autoroute, au passage Gorzyczki–Věřňovice. Côté tchèque, la D1 file vers le sud-ouest au-delà d'Ostrava, à travers la Moravie — par la Porte morave, au-delà de Přerov — puis continue via Brno vers Prague, où elle entre par le sud-est. La distance totale est d'environ 530 kilomètres ; le temps de conduite est d'environ cinq heures et demie, davantage un vendredi après-midi.",
+      "Le passage se fait au sein de l'espace Schengen : pas de contrôle systématique, pas de file. La voiture franchit la frontière sur l'autoroute, au passage Gorzyczki–Věřňovice. Côté tchèque, la D1 file vers le sud-ouest au-delà d'Ostrava, à travers la Moravie — par la Porte morave, au-delà de Přerov — puis continue via Brno vers Prague, où elle entre par le sud-est. La distance totale est d'environ {routeKm} kilomètres ; le temps de conduite est d'environ cinq heures et demie, davantage un vendredi après-midi.",
       "Votre chauffeur vérifie l'A4 et la D1 avant le départ et choisit l'itinéraire le plus rapide du jour. Vous arrivez à Prague à temps pour vous installer, flâner au bord de la Vltava et dîner à Malá Strana."
     ]
   },
@@ -164,7 +164,7 @@
   "faqs": [
     {
       "q": "Combien de temps dure un transfert privé de Cracovie à Prague ?",
-      "a": "Environ cinq heures et demie de porte à porte pour quelque 530 km : l'A4 vers l'ouest jusqu'à Gliwice, l'A1 jusqu'à la frontière de Gorzyczki–Věřňovice, puis la D1 par Ostrava et Brno jusqu'à Prague. Le vendredi après-midi, la circulation peut ajouter 20 à 30 minutes."
+      "a": "Environ cinq heures et demie de porte à porte pour quelque {routeKm} km : l'A4 vers l'ouest jusqu'à Gliwice, l'A1 jusqu'à la frontière de Gorzyczki–Věřňovice, puis la D1 par Ostrava et Brno jusqu'à Prague. Le vendredi après-midi, la circulation peut ajouter 20 à 30 minutes."
     },
     {
       "q": "Combien coûte un taxi ou un chauffeur de Cracovie à Prague ?",
@@ -225,7 +225,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~530 km"
+      "value": "~{routeKm} km"
     },
     {
       "label": "Durée",
@@ -251,8 +251,8 @@
   },
   "metadata": {
     "title": "Transfert Cracovie – Prague — Chauffeur premium",
-    "description": "Transfert haut de gamme Cracovie – Prague : 530 km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
+    "description": "Transfert haut de gamme Cracovie – Prague : {routeKm} km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe.",
     "ogTitle": "Transfert Cracovie – Prague — chauffeur privé premium en Mercedes",
-    "ogDescription": "Transfert haut de gamme Cracovie – Prague : 530 km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
+    "ogDescription": "Transfert haut de gamme Cracovie – Prague : {routeKm} km, environ 5h30 de porte à porte. Service de limousine avec chauffeur en Mercedes E, S ou V-Class, prix fixe convenu à l’avance. Sièges enfant sur demande, sans supplément."
   }
 }

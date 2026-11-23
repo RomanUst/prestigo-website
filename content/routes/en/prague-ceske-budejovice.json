@@ -3,11 +3,11 @@
     "label": "Prague → České Budějovice",
     "headlineLine1": "Prague to České Budějovice Private Transfer,",
     "headlineItalic": "South Bohemia, direct.",
-    "intro": "155 km south to the capital of South Bohemia. The baroque main square, Budějovický Budvar, and a gateway to Šumava and Český Krumlov — two hours, one fixed price.",
+    "intro": "{routeKm} km south to the capital of South Bohemia. The baroque main square, Budějovický Budvar, and a gateway to Šumava and Český Krumlov — two hours, one fixed price.",
     "imageAlt": "České Budějovice — private chauffeur transfer from Prague to České Budějovice"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to České Budějovice covers 155 km and takes approximately 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Tábor or a Budvar brewery visit — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to České Budějovice covers {routeKm} km and takes approximately 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Tábor or a Budvar brewery visit — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
@@ -16,7 +16,7 @@
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D3 / E55 motorway south through Central Bohemia and past Tábor. The central segment of the D3 has been in place for years; the final piece — the České Budějovice bypass from Úsilné through Hodějovice to Kaplice-nádraží — opened in stages through December 2024, making the full motorway from Prague into the city largely continuous for the first time. The road arrives directly into the northern edge of České Budějovice without a border crossing, because there is none to cross.",
       "Your destination is the capital of South Bohemia: the arcaded main square Náměstí Přemysla Otakara II, among the largest in Central Europe, with the Black Tower bell tower rising beside St. Nicholas Cathedral. A few streets west sits the Budějovický Budvar brewery, the original Budweiser source since 1895. South Bohemian Museum, Hluboká Castle ten kilometres north, and the Šumava National Park gateway are all reachable from the same drop-off.",
-      "Total distance is approximately 155 kilometres. Driving time is two hours in normal conditions. Friday afternoons out of Prague can add 15–20 minutes near the D1 junction. Your chauffeur checks the D3 before every departure and reroutes without asking if there is a slow stretch. You are not paying for traffic; you are paying for time."
+      "Total distance is approximately {routeKm} kilometres. Driving time is two hours in normal conditions. Friday afternoons out of Prague can add 15–20 minutes near the D1 junction. Your chauffeur checks the D3 before every departure and reroutes without asking if there is a slow stretch. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
@@ -91,7 +91,7 @@
     { "slug": "prague-plzen", "city": "Plzeň", "distance": "95 km", "duration": "1h 15min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~155 km" },
+    { "label": "Distance", "value": "~{routeKm} km" },
     { "label": "Duration", "value": "~2 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -102,8 +102,8 @@
   },
   "metadata": {
     "title": "Prague to České Budějovice Transfer — Executive",
-    "description": "Premium Prague to České Budějovice transfer: 155 km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
+    "description": "Premium Prague to České Budějovice transfer: {routeKm} km, about 2 hours door to door. Limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront.",
     "ogTitle": "Prague to České Budějovice Transfer — Premium Private Chauffeur by Mercedes",
-    "ogDescription": "Premium Prague to České Budějovice transfer: 155 km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
+    "ogDescription": "Premium Prague to České Budějovice transfer: {routeKm} km, about 2 hours door to door. Chauffeured limousine service in a Mercedes E, S or V-Class, fixed price agreed upfront. Child seats on request at no extra cost."
   }
 }
