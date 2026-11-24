@@ -55,7 +55,7 @@ const data: LlmsData = {
       title: 'Prague to Vienna 2026',
       description: 'Honest comparison.',
       date: '2026-04-09',
-      coverImage: '/vienna.png',
+      coverImage: '/vienna.jpg',
       category: 'Intercity Routes',
       author: 'roman-ustyugov',
       source: 'jsx',

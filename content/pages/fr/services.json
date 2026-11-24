@@ -43,7 +43,7 @@
       "href": "/services/city-rides",
       "bookHref": "/book",
       "bookCta": "RÉSERVER",
-      "image": "/hero-city-rides.png"
+      "image": "/hero-city-rides.jpg"
     },
     {
       "label": "DE VILLE À VILLE",
@@ -60,7 +60,7 @@
       "href": "/services/intercity-routes",
       "bookHref": "/routes",
       "bookCta": "VOIR LES ITINÉRAIRES",
-      "image": "/hero-intercity-routes.png"
+      "image": "/hero-intercity-routes.jpg"
     },
     {
       "label": "CONCIERGE",
@@ -94,7 +94,7 @@
       "href": "/services/corporate-accounts",
       "bookHref": "/corporate",
       "bookCta": "OUVRIR UN COMPTE",
-      "image": "/hero-corporate-accounts.png"
+      "image": "/hero-corporate-accounts.jpg"
     },
     {
       "label": "VIP",
@@ -111,7 +111,7 @@
       "href": "/services/vip-events",
       "bookHref": "/contact",
       "bookCta": "NOUS CONSULTER",
-      "image": "/hero-vip-events.png"
+      "image": "/hero-vip-events.jpg"
     },
     {
       "label": "LIMOUSINE",
@@ -146,7 +146,7 @@
       "href": "/services/group-transfers",
       "bookHref": "/contact",
       "bookCta": "DEMANDER UN DEVIS",
-      "image": "/hero-group-transfers.png"
+      "image": "/hero-group-transfers.jpg"
     },
     {
       "label": "PLUSIEURS JOURS",
@@ -164,7 +164,7 @@
       "bookHref": "/book/multi-day",
       "bookCta": "DEMANDER UN DEVIS",
       "isNew": true,
-      "image": "/multi-day-hero.png"
+      "image": "/multi-day-hero.jpg"
     }
   ],
   "alsoPopularLabel": "Également demandé",

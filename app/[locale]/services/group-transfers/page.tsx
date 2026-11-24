@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.ogDescription,
-      images: [{ url: 'https://rideprestigo.com/hero-group-transfers.png', width: 1200, height: 630 }],
+      images: [{ url: 'https://rideprestigo.com/hero-group-transfers.jpg', width: 1200, height: 630 }],
     },
   }
 }
@@ -97,7 +97,7 @@ export default async function GroupTransfersPage({ params }: { params: Promise<{
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-group-transfers.png" alt={content.hero.imageAlt} fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-group-transfers.jpg" alt={content.hero.imageAlt} fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>

@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       url: toAbsoluteUrl(alternates.canonical),
       title: interpolate(content.metadata.ogTitle, prices),
       description: interpolate(content.metadata.ogDescription, prices),
-      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.jpg", width: 1200, height: 630 }],
     },
   }
 }

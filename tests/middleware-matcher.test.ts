@@ -26,7 +26,7 @@ describe('middleware matcher — static/SEO files bypass locale routing', () => 
     '/favicon.ico',
     '/icon.svg',
     '/vehicles/s-class.avif',
-    '/hero-about.png',
+    '/hero-about.jpg',
   ])('%s does not enter middleware', (pathname) => {
     expect(entersMiddleware(pathname)).toBe(false)
   })
