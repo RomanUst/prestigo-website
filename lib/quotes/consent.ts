@@ -59,6 +59,18 @@ export async function renderQuoteTerms(input: { resolved: ResolvedQuote; nowMs: 
   const freeUntil = freeUntilMs === null ? '' : formatLocaleDateTime(freeUntilMs, locale)
   const showFree = !freePassed && freeUntil !== ''
 
+  // Migration 098: without a deposit the client agrees to the no-deposit consent of the method, and there is nothing to
+  // keep on a cancellation (the deposit is the cap of every cancellation fee).
+  if (depositMinor === 0) {
+    const noDepositLines = [
+      t(`noDeposit.consent.${method}`, { reference: ltr(quote.reference), version: ltr(version.version_no) }),
+      t(`noDeposit.remainder.${method}`),
+      t('noDeposit.terms'),
+    ]
+    const text = noDepositLines.join('\n')
+    return { text, sha256: consentSha256(text), version: QUOTE_CONSENT_VERSION }
+  }
+
   const lines = [
     t(`consent.${method}`, {
       reference: ltr(quote.reference),

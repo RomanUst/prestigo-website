@@ -465,6 +465,7 @@ type DepositRefusal = 'deposit_zero' | 'deposit_above_total'
 
 /** Why a deposit is not valid for this total (D-07: never 0, never above the total), or null when it is. */
 function depositRefusal(kind: DepositKind, value: number, totalMinor: number): DepositRefusal | null {
+  if (kind === 'none') return null
   if (!Number.isFinite(value) || value <= 0) return 'deposit_zero'
   if (totalMinor <= 0) return null
   if (kind === 'percent') {
@@ -727,6 +728,8 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
     depositKind = payload.deposit?.kind ?? null
     depositValue = payload.deposit?.value ?? null
   }
+  // Migration 098: no deposit carries no value (and a deposit of 0).
+  if (depositKind === 'none') depositValue = 0
   let depositMinor: number | null = null
   let shares: number[] | null = null
   if (depositKind !== null && depositValue !== null) {
@@ -854,7 +857,7 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
     const versionPatch: Row = {
       total_minor: totalMinor,
       deposit_kind: depositKind,
-      deposit_value: depositKind === null ? null : depositValue,
+      deposit_value: depositKind === null || depositKind === 'none' ? null : depositValue,
       deposit_minor: depositMinor,
     }
     if (payload.locale !== undefined) versionPatch.locale = payload.locale

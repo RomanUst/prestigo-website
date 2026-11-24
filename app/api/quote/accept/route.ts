@@ -84,6 +84,10 @@ export async function POST(request: Request) {
   }
 
   if (result.ok) {
+    if ('confirmed' in result) return json({ confirmed: true, amountMinor: result.amountMinor, currency: result.currency })
+    if ('mode' in result) {
+      return json({ clientSecret: result.clientSecret, mode: result.mode, amountMinor: result.amountMinor, currency: result.currency })
+    }
     return json({ clientSecret: result.clientSecret, amountMinor: result.amountMinor, currency: result.currency })
   }
   switch (result.code) {

@@ -16,7 +16,7 @@ import { normalizeSiteLocale, type AppLocale } from '@/i18n/locales'
 import ManageHeader from '../../manage/[token]/ManageHeader'
 import InvalidQuoteLinkView, { QUOTE_CONTACT_EMAIL } from './InvalidQuoteLinkView'
 import QuoteViewedPing from './QuoteViewedPing'
-import QuoteAcceptPay, { type QuoteAcceptPayCopy } from './QuoteAcceptPay'
+import QuoteAcceptPay, { type QuoteAcceptMode, type QuoteAcceptPayCopy } from './QuoteAcceptPay'
 import QuotePdfButton, { type QuotePdfButtonCopy } from './QuotePdfButton'
 import QuoteRemainderPay, { type QuoteRemainderPayCopy } from './QuoteRemainderPay'
 import { QUOTE_MIN_CHARGE_MINOR, remainderDueMinor } from '@/lib/quotes/money'
@@ -229,17 +229,38 @@ async function QuoteOfferView({
         }
       : null
 
-  const acceptCopy: QuoteAcceptPayCopy = {
-    heading: ta('heading'),
-    button: ta('button', { amount: ltr(money(view.depositMinor)) }),
-    consentRequired: ta('consentRequired'),
-    processing: ta('processing'),
-    confirming: ta('confirming'),
-    declined: ta('declined'),
-    error: ta('error'),
-    changed: ta('changed'),
-    unavailable: ta('unavailable'),
-  }
+  // Migration 098: a quote without a deposit is confirmed (payment link, invoice) or confirmed with a saved card (saved
+  // card, cash); nothing is charged on this page then.
+  const noDeposit = view.depositMinor === 0
+  const acceptMode: QuoteAcceptMode = !noDeposit
+    ? 'deposit'
+    : view.remainderMethod === 'saved_card' || view.remainderMethod === 'cash'
+      ? 'setup'
+      : 'confirm'
+  const acceptCopy: QuoteAcceptPayCopy =
+    acceptMode === 'deposit'
+      ? {
+          heading: ta('heading'),
+          button: ta('button', { amount: ltr(money(view.depositMinor)) }),
+          consentRequired: ta('consentRequired'),
+          processing: ta('processing'),
+          confirming: ta('confirming'),
+          declined: ta('declined'),
+          error: ta('error'),
+          changed: ta('changed'),
+          unavailable: ta('unavailable'),
+        }
+      : {
+          heading: acceptMode === 'setup' ? t('noDeposit.headingCard') : t('noDeposit.headingConfirm'),
+          button: acceptMode === 'setup' ? t('noDeposit.buttonCard') : t('noDeposit.buttonConfirm'),
+          consentRequired: ta('consentRequired'),
+          processing: t('noDeposit.processing'),
+          confirming: t('noDeposit.confirmingCard'),
+          declined: ta('declined'),
+          error: acceptMode === 'setup' ? t('noDeposit.errorCard') : ta('error'),
+          changed: ta('changed'),
+          unavailable: ta('unavailable'),
+        }
 
   return (
     <>
@@ -292,7 +313,7 @@ async function QuoteOfferView({
               backgroundColor: view.state === 'paid' ? 'var(--warmgrey)' : 'var(--copper-light)',
             }}
           />
-          <span>{t(`status.${view.state}`)}</span>
+          <span>{noDeposit && view.state === 'accepted' ? t('noDeposit.statusAccepted') : t(`status.${view.state}`)}</span>
         </p>
 
         {view.state === 'paid' ? (
@@ -306,7 +327,7 @@ async function QuoteOfferView({
             </ul>
           </section>
         ) : (
-          <p style={{ ...bodyStyle, marginTop: 16 }}>{t('intro')}</p>
+          <p style={{ ...bodyStyle, marginTop: 16 }}>{noDeposit ? t('noDeposit.intro') : t('intro')}</p>
         )}
 
         {view.expiresAt ? (
@@ -409,11 +430,20 @@ async function QuoteOfferView({
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
             <SummaryRow label={t('summary.total')} amount={money(view.totalMinor)} strong testId="quote-total" />
-            <SummaryRow label={t('summary.deposit')} amount={money(view.depositMinor)} testId="quote-deposit" />
-            <SummaryRow label={t('summary.remainder')} amount={money(view.remainderMinor)} testId="quote-remainder-amount" />
+            {noDeposit ? (
+              <>
+                <SummaryRow label={t('noDeposit.deposit')} amount={t('noDeposit.none')} testId="quote-deposit" />
+                <SummaryRow label={t('noDeposit.toPay')} amount={money(view.remainderMinor)} testId="quote-remainder-amount" />
+              </>
+            ) : (
+              <>
+                <SummaryRow label={t('summary.deposit')} amount={money(view.depositMinor)} testId="quote-deposit" />
+                <SummaryRow label={t('summary.remainder')} amount={money(view.remainderMinor)} testId="quote-remainder-amount" />
+              </>
+            )}
           </div>
           <p data-testid="quote-remainder-method" style={{ ...bodyStyle, marginTop: 16 }}>
-            {t(`remainder.${view.remainderMethod}`)}
+            {noDeposit ? t(`noDeposit.remainder.${view.remainderMethod}`) : t(`remainder.${view.remainderMethod}`)}
           </p>
         </section>
 
@@ -422,13 +452,19 @@ async function QuoteOfferView({
             {t('terms.heading')}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-            <p style={bodyStyle}>{showFree ? t('terms.free', { freeUntil: ltr(freeUntil) }) : t('terms.noFree')}</p>
-            <p style={bodyStyle}>
-              {terms.feePercent >= 100
-                ? t('terms.lateAll')
-                : t('terms.latePercent', { percent: terms.feePercent })}
-            </p>
-            <p style={bodyStyle}>{t('terms.cap')}</p>
+            {noDeposit ? (
+              <p style={bodyStyle}>{t('noDeposit.terms')}</p>
+            ) : (
+              <>
+                <p style={bodyStyle}>{showFree ? t('terms.free', { freeUntil: ltr(freeUntil) }) : t('terms.noFree')}</p>
+                <p style={bodyStyle}>
+                  {terms.feePercent >= 100
+                    ? t('terms.lateAll')
+                    : t('terms.latePercent', { percent: terms.feePercent })}
+                </p>
+                <p style={bodyStyle}>{t('terms.cap')}</p>
+              </>
+            )}
             <p style={bodyStyle}>{t('terms.howToCancel')}</p>
           </div>
         </section>
@@ -467,6 +503,7 @@ async function QuoteOfferView({
             locale={locale}
             versionNo={view.versionNo}
             depositMinor={view.depositMinor}
+            mode={acceptMode}
             currency={view.currency}
             consentText={consentText}
             copy={acceptCopy}

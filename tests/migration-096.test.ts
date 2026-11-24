@@ -58,11 +58,13 @@ describe('096 bookings.tour_description', () => {
 })
 
 describe('096 quote_convert_to_bookings', () => {
-  const latest = latestFunctionBody('quote_convert_to_bookings')
+  // Migration 098 re-creates this function (the no-deposit paths, tests/migration-098.test.ts); these tests pin the 096
+  // definition itself.
+  const latest = bodyIn(m096, 'quote_convert_to_bookings')
   const latestFlat = latest.replace(/\s+/g, ' ')
 
-  it('the live definition is the 096 one', () => {
-    expect(latest).toBe(bodyIn(m096, 'quote_convert_to_bookings'))
+  it('the live definition is the 098 one, which supersedes 096', () => {
+    expect(latestFunctionBody('quote_convert_to_bookings')).toBe(bodyIn(loadMigration('098_quote_no_deposit.sql'), 'quote_convert_to_bookings'))
   })
 
   it('is the 091 definition verbatim plus the tour mapping only', () => {

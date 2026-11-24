@@ -134,7 +134,7 @@ function lineBody(over: Record<string, unknown> = {}) {
 interface DraftOptions {
   firstName?: string
   lines?: Array<Record<string, unknown>>
-  deposit?: { kind: 'percent' | 'fixed'; value: number }
+  deposit?: { kind: 'percent' | 'fixed' | 'none'; value: number }
   remainderMethod?: 'saved_card' | 'payment_link' | 'cash' | 'invoice'
   cancelFreeHours?: number | null
   locale?: string
@@ -300,6 +300,26 @@ describe('tracer: send = freeze + link + email, the URL returned once', () => {
     expect(res.status).toBe(422)
     expect(((await res.json()) as { code: string }).code).toBe('not_sendable')
     expect(mockResendSend).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('migration 098: a quote without a deposit', () => {
+  it('saves "none" with no value and a deposit of 0, freezes with zero shares, and the email says no deposit is needed', async () => {
+    const id = await draftQuote({ deposit: { kind: 'none', value: 0 }, remainderMethod: 'invoice' })
+    const draftVersion = versionsOf(id)[0]
+    expect(draftVersion).toMatchObject({ deposit_kind: 'none', deposit_value: null, deposit_minor: 0 })
+    const res = await send(id)
+    expect(res.status).toBe(200)
+    const frozen = versionsOf(id)[0]
+    expect(frozen.frozen_at).not.toBeNull()
+    expect(frozen.deposit_minor).toBe(0)
+    expect(linesOf(frozen.id).map((l) => [l.deposit_share_minor, l.remainder_minor])).toEqual([
+      [0, 30000],
+      [0, 18000],
+    ])
+    const html = String(mockResendSend.mock.calls.at(-1)?.[0]?.html ?? '')
+    expect(html).toContain('No deposit is needed to confirm.')
+    expect(html).not.toContain('Deposit to confirm')
   })
 })
 

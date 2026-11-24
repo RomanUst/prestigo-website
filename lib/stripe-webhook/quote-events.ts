@@ -23,7 +23,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import type { LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe } from '@/lib/payments/stripe'
 import { sendQuoteOperatorAlert } from '@/lib/quotes/alerts'
-import { applyQuoteDepositPaid } from '@/lib/quotes/convert'
+import { applyQuoteCardSaved, applyQuoteDepositPaid } from '@/lib/quotes/convert'
 import { appendQuoteEvent } from '@/lib/quotes/events'
 import { applyQuoteRemainderPaid } from '@/lib/quotes/remainder'
 import type { QuoteRow } from '@/lib/quotes/types'
@@ -86,6 +86,15 @@ export async function handleQuoteDepositPaid(pi: Stripe.PaymentIntent, actor: Le
   }
   const result = await applyQuoteDepositPaid(pi, actor)
   console.log('[quote-webhook] deposit handled', { stripeObjectId: pi.id, quoteId: meta.quoteId, outcome: result.outcome })
+}
+
+/**
+ * setup_intent.succeeded of a quote without a deposit (migration 098): applyQuoteCardSaved, also the tick's function. A
+ * throw (the conversion was refused) is NOT caught: the route answers 500 and Stripe delivers the event again.
+ */
+export async function handleQuoteCardSaved(si: Stripe.SetupIntent, actor: LedgerActor = WEBHOOK_ACTOR): Promise<void> {
+  const result = await applyQuoteCardSaved(si, actor)
+  console.log('[quote-webhook] card setup handled', { stripeObjectId: si.id, outcome: result.outcome })
 }
 
 /**

@@ -40,6 +40,8 @@ export async function renderQuoteSentEmail(input: {
   if (version.deposit_minor === null) throw new Error('renderQuoteSentEmail: the version has no deposit')
   const total = formatMinor(Number(version.total_minor), version.currency)
   const deposit = formatMinor(Number(version.deposit_minor), version.currency)
+  // Migration 098: a quote without a deposit is only accepted (or accepted with a saved card).
+  const noDeposit = Number(version.deposit_minor) === 0
 
   const subject = text(t, 'sent.subject', { reference: quote.reference })
 
@@ -56,11 +58,14 @@ export async function renderQuoteSentEmail(input: {
     tr,
     subject,
     h1: html(t, 'sent.h1'),
-    paragraphs: [html(t, 'common.greeting', {}, { name: bdiAuto(quote.client_first_name) }), html(t, 'sent.intro')],
+    paragraphs: [
+      html(t, 'common.greeting', {}, { name: bdiAuto(quote.client_first_name) }),
+      html(t, noDeposit ? 'sent.introNoDeposit' : 'sent.intro'),
+    ],
     reference: quote.reference,
     lines: [
       html(t, 'sent.total', { amount: total }),
-      html(t, 'sent.deposit', { amount: deposit }),
+      noDeposit ? html(t, 'sent.noDeposit') : html(t, 'sent.deposit', { amount: deposit }),
       ...(validUntil ? [validUntil] : []),
     ],
     button: { label: t('common.openQuote'), url: input.url },

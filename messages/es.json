@@ -1373,6 +1373,34 @@
     }
   },
   "Quote": {
+    "noDeposit": {
+      "intro": "Revise los viajes y las condiciones a continuación. Para confirmar, acepte el presupuesto.",
+      "statusAccepted": "Esperando su tarjeta",
+      "deposit": "Depósito",
+      "none": "Ninguno",
+      "toPay": "A pagar por los viajes",
+      "remainder": {
+        "saved_card": "Cada viaje se cobra en la tarjeta que guarde: reservamos el importe poco antes del viaje y lo cobramos después.",
+        "payment_link": "Paga sus viajes en esta página, después de confirmar y antes de sus viajes.",
+        "cash": "Paga cada viaje en efectivo al conductor. La tarjeta que guarde queda como garantía.",
+        "invoice": "Le enviaremos una factura por sus viajes."
+      },
+      "terms": "No hay depósito: cancelar no cuesta nada.",
+      "headingConfirm": "Aceptar el presupuesto",
+      "headingCard": "Aceptar el presupuesto y guardar su tarjeta",
+      "buttonConfirm": "Confirmar la reserva",
+      "buttonCard": "Guardar tarjeta y confirmar",
+      "processing": "Confirmando…",
+      "confirmingCard": "Tarjeta guardada. Estamos confirmando sus viajes…",
+      "errorCard": "No se pudo guardar su tarjeta. Inténtelo de nuevo.",
+      "consent": {
+        "saved_card": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. No se cobra ningún depósito ahora. Autorizo a Prestigo a guardar mi tarjeta y a cobrar en ella cada viaje como se describe arriba, además de la espera más allá del tiempo reservado y los extras acordados durante el viaje.",
+        "payment_link": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. No se cobra ningún depósito ahora; pago mis viajes en esta página.",
+        "cash": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. No se cobra ningún depósito ahora. Autorizo a Prestigo a guardar mi tarjeta como garantía: si un viaje no se paga en efectivo, o por la espera más allá del tiempo reservado y los extras acordados durante el viaje, Prestigo puede cobrar en ella el importe debido.",
+        "invoice": "Acepto el presupuesto {reference} (versión {version}) y sus condiciones de cancelación. No se cobra ningún depósito ahora; pago mis viajes con la factura que me envíe Prestigo."
+      },
+      "acceptOnline": "Acepte el presupuesto en línea con el enlace que le enviamos."
+    },
     "meta": {
       "title": "Su presupuesto"
     },
@@ -1503,6 +1531,8 @@
       "subject": "Su presupuesto de Prestigo {reference}",
       "h1": "Su presupuesto está listo",
       "intro": "Hemos preparado un presupuesto para sus trayectos. Ábralo para revisar los detalles y las condiciones de cancelación; después acéptelo y pague el depósito para confirmar.",
+      "introNoDeposit": "Hemos preparado un presupuesto para sus viajes. Ábralo para revisar los detalles y las condiciones de cancelación y luego acéptelo para confirmar.",
+      "noDeposit": "No se necesita ningún depósito para confirmar.",
       "total": "Total: {amount}",
       "deposit": "Depósito para confirmar: {amount}",
       "validUntil": "Este presupuesto es válido hasta el {date}.",
@@ -1513,6 +1543,7 @@
       "subject": "Sus trayectos están reservados – {reference}",
       "h1": "Sus trayectos están reservados",
       "intro": "Hemos recibido su depósito de {amount}. Estos trayectos ya están reservados:",
+      "introNoDeposit": "Su reserva está confirmada. Estos viajes ya están reservados:",
       "booking": "Reserva {reference}",
       "remainder": {
         "saved_card": "Cobramos el resto de cada trayecto a su tarjeta, tal como se describe en las condiciones.",

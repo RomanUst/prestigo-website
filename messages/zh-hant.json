@@ -1378,6 +1378,34 @@
     }
   },
   "Quote": {
+    "noDeposit": {
+      "intro": "請檢視下方的行程和條款。如需確認，請接受報價。",
+      "statusAccepted": "等待您的銀行卡",
+      "deposit": "訂金",
+      "none": "無",
+      "toPay": "行程應付金額",
+      "remainder": {
+        "saved_card": "每段行程的費用從您儲存的銀行卡扣取：我們會在行程前不久預留金額，並在行程結束後扣款。",
+        "payment_link": "您在確認後、行程開始前在本頁面支付行程費用。",
+        "cash": "每段行程您以現金支付給司機。您儲存的銀行卡作為擔保。",
+        "invoice": "我們會向您傳送行程發票。"
+      },
+      "terms": "無需訂金：取消不收取任何費用。",
+      "headingConfirm": "接受報價",
+      "headingCard": "接受報價並儲存您的銀行卡",
+      "buttonConfirm": "確認預訂",
+      "buttonCard": "儲存銀行卡並確認",
+      "processing": "正在確認…",
+      "confirmingCard": "銀行卡已儲存。我們正在確認您的行程…",
+      "errorCard": "無法儲存您的銀行卡，請重試。",
+      "consent": {
+        "saved_card": "我接受報價 {reference}（版本 {version}）及其取消條款。現在不收取訂金。我授權 Prestigo 儲存我的銀行卡，並按上述方式從中扣取每段行程的費用，以及超出預訂時間的等候和行程中商定的額外服務。",
+        "payment_link": "我接受報價 {reference}（版本 {version}）及其取消條款。現在不收取訂金；我在本頁面支付行程費用。",
+        "cash": "我接受報價 {reference}（版本 {version}）及其取消條款。現在不收取訂金。我授權 Prestigo 儲存我的銀行卡作為擔保：如某段行程未以現金支付，或因超出預訂時間的等候和行程中商定的額外服務產生費用，Prestigo 可從中扣取應付金額。",
+        "invoice": "我接受報價 {reference}（版本 {version}）及其取消條款。現在不收取訂金；我憑 Prestigo 傳送的發票支付行程費用。"
+      },
+      "acceptOnline": "請透過我們傳送給您的連結線上接受報價。"
+    },
     "meta": {
       "title": "您的報價"
     },
@@ -1508,6 +1536,8 @@
       "subject": "您的 Prestigo 報價 {reference}",
       "h1": "您的報價已準備好",
       "intro": "我們已為您的行程準備好報價。請開啟檢視詳情和取消條款，然後接受報價並支付定金以確認。",
+      "introNoDeposit": "我們已為您的行程準備好報價。請開啟檢視詳情和取消條款，然後接受報價以確認。",
+      "noDeposit": "確認無需支付訂金。",
       "total": "總計：{amount}",
       "deposit": "確認所需定金：{amount}",
       "validUntil": "此報價有效期至 {date}。",
@@ -1518,6 +1548,7 @@
       "subject": "您的行程已預訂 – {reference}",
       "h1": "您的行程已預訂",
       "intro": "我們已收到您的定金 {amount}。以下行程現已預訂：",
+      "introNoDeposit": "您的預訂已確認。以下行程現已預訂：",
       "booking": "預訂 {reference}",
       "remainder": {
         "saved_card": "每段行程的餘款，我們將按條款所述從您的銀行卡扣取。",

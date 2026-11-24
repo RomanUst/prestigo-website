@@ -309,6 +309,9 @@ describe('classification: a quote deposit is routed, never null and never unrout
     for (const [type, kind, route] of kinds) {
       expect(classifyPaymentEvent(eventOf(type, { metadata: { kind } }) as unknown as Stripe.Event)?.route, `${type} ${kind}`).toBe(route)
     }
+    // Migration 098: the card setup of a quote without a deposit has its own route; a booking's card setup keeps its own.
+    expect(classifyPaymentEvent(eventOf('setup_intent.succeeded', { metadata: { kind: 'card_quote_setup' } }) as unknown as Stripe.Event)?.route).toBe('quote_card_saved')
+    expect(classifyPaymentEvent(eventOf('setup_intent.succeeded', { metadata: { kind: 'card_setup' } }) as unknown as Stripe.Event)?.route).toBe('setup_succeeded')
     // A plain checkout PaymentIntent (no card kind) is still not a card event.
     expect(classifyPaymentEvent(eventOf('payment_intent.succeeded', { metadata: { bookingReference: 'PRG-1' } }) as unknown as Stripe.Event)).toBeNull()
   })

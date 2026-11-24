@@ -35,7 +35,22 @@ const REMAINDER_LABEL: Record<RemainderMethod, { title: string; hint: string }> 
   invoice: { title: 'Invoice', hint: 'The remainder is invoiced to the billing details below.' },
 }
 
-const DEPOSIT_KIND_LABEL: Record<DepositKind, string> = { percent: 'Percent of the total', fixed: 'Fixed amount' }
+const DEPOSIT_KIND_LABEL: Record<DepositKind, string> = {
+  percent: 'Percent of the total',
+  fixed: 'Fixed amount',
+  none: 'No deposit',
+}
+
+/** What the client does to confirm a quote without a deposit, by the remainder method (migration 098). */
+export function noDepositEffect(method: RemainderMethod | null): string {
+  if (method === 'saved_card' || method === 'cash') {
+    return 'No deposit: the client saves a card to confirm (nothing is charged now). Each trip is then charged or guaranteed as chosen below. Late cancellation costs nothing.'
+  }
+  if (method === 'payment_link' || method === 'invoice') {
+    return 'No deposit: the client only confirms, no card is asked. The bookings are made at once. Late cancellation costs nothing.'
+  }
+  return 'No deposit: choose how the trips are paid below.'
+}
 
 const cardStyle: CSSProperties = {
   backgroundColor: 'var(--admin-surface)',
@@ -80,7 +95,9 @@ function ReadOnlySettings({ draft }: { draft: QuoteDraft }) {
   const deposit = parseDeposit(draft.deposit, draft.currency)
   const depositLabel = !deposit.ok
     ? 'Not set'
-    : deposit.kind === 'percent'
+    : deposit.kind === 'none'
+      ? 'No deposit'
+      : deposit.kind === 'percent'
       ? `${deposit.value}%${totals.depositMinor === null ? '' : ` (${money(totals.depositMinor, draft.currency)})`}`
       : money(deposit.value, draft.currency)
   const locale = (locales as readonly string[]).includes(draft.locale) ? LOCALE_ENDONYMS[draft.locale as keyof typeof LOCALE_ENDONYMS] : draft.locale
@@ -95,7 +112,7 @@ function ReadOnlySettings({ draft }: { draft: QuoteDraft }) {
     ['Remainder', totals.remainderMinor === null ? '-' : money(totals.remainderMinor, draft.currency)],
     ['Remainder paid by', draft.remainder_method === null ? 'Not set' : REMAINDER_LABEL[draft.remainder_method].title],
     ['Free cancellation', hours === '' ? 'Standard policy' : `${hours} hours before the first trip`],
-    ['Cancellation fee', fee === '' ? 'All of the deposit' : `${fee}% of the deposit`],
+    ['Cancellation fee', deposit.ok && deposit.kind === 'none' ? 'None (no deposit)' : fee === '' ? 'All of the deposit' : `${fee}% of the deposit`],
   ]
   if (draft.remainder_method === 'invoice') {
     rows.push(
@@ -210,7 +227,7 @@ export function QuoteSettingsFields({ draft, onChange, readOnly = false }: Quote
               inputMode="decimal"
               autoComplete="off"
               value={draft.deposit.valueInput}
-              disabled={draft.deposit.kind === null}
+              disabled={draft.deposit.kind === null || draft.deposit.kind === 'none'}
               onChange={(e) => onChange({ deposit: { ...draft.deposit, valueInput: e.target.value } })}
               aria-invalid={depositText !== null && !depositIsPrompt}
               {...focusRingHandlers}
@@ -219,6 +236,11 @@ export function QuoteSettingsFields({ draft, onChange, readOnly = false }: Quote
           </Field>
         </div>
         {depositText && <div style={depositIsPrompt ? hintStyle : errorStyle}>{depositText}</div>}
+        {draft.deposit.kind === 'none' && (
+          <div data-testid="quote-no-deposit-hint" style={hintStyle}>
+            {noDepositEffect(draft.remainder_method)}
+          </div>
+        )}
 
         <div data-testid="quote-totals" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
           <div>

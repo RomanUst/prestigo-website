@@ -66,6 +66,7 @@ function recordingStripe(inner: FakeStripe['stripe']): unknown {
   return {
     customers: wrapGroup('customers', inner.customers as unknown as Record<string, unknown>),
     paymentIntents: wrapGroup('paymentIntents', inner.paymentIntents as unknown as Record<string, unknown>),
+    setupIntents: wrapGroup('setupIntents', inner.setupIntents as unknown as Record<string, unknown>),
   }
 }
 
@@ -112,7 +113,7 @@ describe('acceptQuote (tracer)', () => {
     if (!res.ok) return
     expect(res.amountMinor).toBe(9000)
     expect(res.currency).toBe('eur')
-    expect(res.clientSecret).toMatch(/^pi_\d+_secret_fake$/)
+    expect((res as { clientSecret?: string }).clientSecret).toMatch(/^pi_\d+_secret_fake$/)
 
     // One acceptance row with everything D-08 asks for.
     expect(acceptances()).toHaveLength(1)
@@ -310,7 +311,7 @@ describe('acceptQuote: one live deposit intent per quote (Pitfall 8, T-92-50)', 
     expect(first.ok && second.ok).toBe(true)
     if (!first.ok || !second.ok) return
 
-    expect(second.clientSecret).toBe(first.clientSecret)
+    expect((second as { clientSecret?: string }).clientSecret).toBe((first as { clientSecret?: string }).clientSecret)
     expect(fake.executed('paymentIntents.create')).toBe(1)
     expect(acceptances()).toHaveLength(2)
     const piId = [...fake.state.paymentIntents.keys()][0]

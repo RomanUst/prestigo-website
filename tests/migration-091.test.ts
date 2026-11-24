@@ -734,7 +734,8 @@ describe('091 quote_convert_to_bookings (QUOTE-05)', () => {
   it('answers a paid quote from its own intent first (W2) and refuses any other intent as intent_mismatch', () => {
     const paid = bodyFlat.indexOf("IF v_quote.status = 'paid' OR v_quote.paid_at IS NOT NULL THEN")
     expect(paid).toBeGreaterThan(0)
-    const compare = bodyFlat.indexOf('IF p_payment_intent_id IS NOT NULL AND v_quote.deposit_payment_intent_id = p_payment_intent_id THEN', paid)
+    // Migration 098 widens the replay to the card setup of a no-deposit quote and to a plain confirmation.
+    const compare = bodyFlat.indexOf('IF (p_payment_intent_id IS NOT NULL AND v_quote.deposit_payment_intent_id = p_payment_intent_id)', paid)
     const replay = bodyFlat.indexOf("'first_time', false", paid)
     const mismatch = bodyFlat.indexOf("'reason', 'intent_mismatch'", paid)
     expect(compare).toBeGreaterThan(paid)

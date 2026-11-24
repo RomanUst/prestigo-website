@@ -46,7 +46,15 @@ const DOCUMENT_KEYS = [
   'document.title', 'document.issued', 'document.reference', 'document.acceptOnline', 'document.operator',
 ] as const
 
-const KEYS = [...PAGE_KEYS, ...DOCUMENT_KEYS].map((k) => `Quote.${k}`)
+/** Migration 098: the copy of a quote without a deposit. */
+const NO_DEPOSIT_KEYS = [
+  'intro', 'statusAccepted', 'deposit', 'none', 'toPay',
+  'remainder.saved_card', 'remainder.payment_link', 'remainder.cash', 'remainder.invoice',
+  'terms', 'headingConfirm', 'headingCard', 'buttonConfirm', 'buttonCard', 'processing', 'confirmingCard', 'errorCard',
+  'consent.saved_card', 'consent.payment_link', 'consent.cash', 'consent.invoice', 'acceptOnline',
+].map((k) => `noDeposit.${k}`)
+
+const KEYS = [...PAGE_KEYS, ...DOCUMENT_KEYS, ...NO_DEPOSIT_KEYS].map((k) => `Quote.${k}`)
 
 /** Sample ICU values: a leftover '{' after formatting means a parameter was lost or misspelt. */
 const SAMPLE: Record<string, string | number> = {
@@ -218,12 +226,12 @@ describe('quote copy: zh-hant is generated from zh', () => {
 /** Task 1: common and sent (13 keys). */
 const EMAIL_SENT_KEYS = [
   'common.greeting', 'common.signoff', 'common.contact', 'common.openQuote', 'common.pragueTime',
-  'sent.subject', 'sent.h1', 'sent.intro', 'sent.total', 'sent.deposit', 'sent.validUntil', 'sent.pdfAttached', 'sent.pdfLink',
+  'sent.subject', 'sent.h1', 'sent.intro', 'sent.introNoDeposit', 'sent.noDeposit', 'sent.total', 'sent.deposit', 'sent.validUntil', 'sent.pdfAttached', 'sent.pdfLink',
 ] as const
 
 /** Task 2: confirmed, remainder due / paid, cancelled, refunded (26 keys). */
 const EMAIL_LIFECYCLE_KEYS = [
-  'confirmed.subject', 'confirmed.h1', 'confirmed.intro', 'confirmed.booking',
+  'confirmed.subject', 'confirmed.h1', 'confirmed.intro', 'confirmed.introNoDeposit', 'confirmed.booking',
   'confirmed.remainder.saved_card', 'confirmed.remainder.payment_link', 'confirmed.remainder.cash',
   'confirmed.remainder.invoice', 'confirmed.remainder.none',
   'remainderDue.subject', 'remainderDue.h1', 'remainderDue.intro', 'remainderDue.button',
@@ -247,8 +255,8 @@ const EMAIL_SAME_AS_EN: Record<string, ReadonlySet<string>> = {
 }
 
 describe('quote e-mail copy: the EN source', () => {
-  it('has exactly the planned QuoteEmails key set (39 keys)', () => {
-    expect(EMAIL_KEYS).toHaveLength(39)
+  it('has exactly the planned QuoteEmails key set (42 keys)', () => {
+    expect(EMAIL_KEYS).toHaveLength(42)
     expect(Object.keys(EMAIL_EN).sort()).toEqual([...EMAIL_KEYS].sort())
   })
 

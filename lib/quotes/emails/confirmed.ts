@@ -85,7 +85,7 @@ export async function renderQuoteConfirmedEmail(input: {
     h1: html(t, 'confirmed.h1'),
     paragraphs: [
       html(t, 'common.greeting', {}, { name: bdiAuto(quote.client_first_name) }),
-      html(t, 'confirmed.intro', { amount: deposit }),
+      Number(version.deposit_minor) === 0 ? html(t, 'confirmed.introNoDeposit') : html(t, 'confirmed.intro', { amount: deposit }),
     ],
     reference: quote.reference,
     lines: bookingLines,

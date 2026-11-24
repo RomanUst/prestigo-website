@@ -222,6 +222,14 @@ export function createFakeStripe(opts: FakeStripeOptions = {}) {
         if (!si) throw badRequest(`No such setupintent: '${id}'`, 'resource_missing')
         return clone(si)
       }),
+    cancel: async (id: string, params: Params = {}, options?: Options) =>
+      request('setupIntents.cancel', id, params, options, () => {
+        const si = state.setupIntents.get(id)
+        if (!si) throw badRequest(`No such setupintent: '${id}'`, 'resource_missing')
+        if (si.status === 'succeeded') throw badRequest('You cannot cancel this SetupIntent because it has a status of succeeded.', 'setup_intent_unexpected_state')
+        si.status = 'canceled'
+        return clone(si)
+      }),
   }
 
   // ── payment intents ────────────────────────────────────────────────────────
