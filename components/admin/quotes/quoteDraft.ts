@@ -12,9 +12,16 @@ import { depositMinorFor, validateVersionMoney } from '@/lib/quotes/money'
 import type { QuoteDraftPayload, QuoteLinePayload, QuotePriceLinePayload } from '@/lib/quotes/schemas'
 import type { QuoteDetail } from '@/lib/quotes/store'
 import type { QuoteLineRow, QuoteStopRow } from '@/lib/quotes/types'
-import { QUOTE_MAX_LINES, type QuoteCurrency, type DepositKind, type RemainderMethod } from '@/lib/quotes/vocabulary'
+import {
+  QUOTE_LINE_DESCRIPTION_MAX,
+  QUOTE_MAX_LINES,
+  type QuoteCurrency,
+  type DepositKind,
+  type QuoteLineTripType,
+  type RemainderMethod,
+} from '@/lib/quotes/vocabulary'
 
-export type QuoteTripType = 'transfer' | 'hourly' | 'daily'
+export type QuoteTripType = QuoteLineTripType
 export type QuoteVehicleClass = 'business' | 'first_class' | 'business_van'
 
 export interface QuotePlace {
@@ -55,6 +62,10 @@ export interface QuoteLineDraft {
   flight_number: string
   terminal: string
   special_requests: string
+  /** A tour's client-visible headline (sent only for a tour line). */
+  title: string
+  /** Client-visible text of the line (itinerary, what is included), any trip type. */
+  description: string
   extra_child_seat: boolean
   extra_meet_greet: boolean
   extra_luggage: boolean
@@ -106,6 +117,8 @@ export function emptyLine(): QuoteLineDraft {
     flight_number: '',
     terminal: '',
     special_requests: '',
+    title: '',
+    description: '',
     extra_child_seat: false,
     extra_meet_greet: false,
     extra_luggage: false,
@@ -137,17 +150,19 @@ const NO_PLACE: QuotePlace = { address: '', lat: 0, lng: 0 }
 /**
  * The line as the price route and the draft save accept it, without the amount. Fields that do not belong to the trip
  * type are left out (the server schema refuses them). A missing place becomes an empty placeholder the server rejects;
- * the editor does not offer "Suggest price" until the places are chosen.
+ * the editor does not offer "Suggest price" until the places are chosen. The client texts (title, description) are not
+ * part of the price request (they do not change a price); lineToPayload adds them.
  */
 export function lineToPriceRequest(line: QuoteLineDraft): QuotePriceLinePayload {
   const transfer = line.trip_type === 'transfer'
+  const tour = line.trip_type === 'tour'
   const place = (p: QuotePlace | null): QuotePlace => (p ? { address: p.address, lat: p.lat, lng: p.lng } : NO_PLACE)
   return {
     trip_type: line.trip_type,
     pickup_date: line.pickup_date,
     pickup_time: line.pickup_time,
     origin: place(line.origin),
-    destination: transfer && line.destination ? place(line.destination) : null,
+    destination: (transfer || tour) && line.destination ? place(line.destination) : null,
     stops: transfer
       ? line.stops.map((s) => ({ address: s.address, lat: s.lat, lng: s.lng, wait_minutes: s.wait_minutes }))
       : [],
@@ -158,7 +173,7 @@ export function lineToPriceRequest(line: QuoteLineDraft): QuotePriceLinePayload 
     vehicle_class: line.vehicle_class,
     passengers: line.passengers,
     luggage: line.luggage,
-    hours: line.trip_type === 'hourly' ? line.hours : null,
+    hours: line.trip_type === 'hourly' || tour ? line.hours : null,
     return_date: line.trip_type === 'daily' ? line.return_date : null,
     flight_number: trimmedOrNull(line.flight_number),
     terminal: trimmedOrNull(line.terminal),
@@ -175,7 +190,12 @@ export function lineToPriceRequest(line: QuoteLineDraft): QuotePriceLinePayload 
  * is no distance and no suggestion key (T-92-48).
  */
 export function lineToPayload(line: QuoteLineDraft, currency: QuoteCurrency): QuoteLinePayload {
-  return { ...lineToPriceRequest(line), amount_minor: lineAmountMinor(line, currency) ?? 0 }
+  return {
+    ...lineToPriceRequest(line),
+    title: line.trip_type === 'tour' ? trimmedOrNull(line.title) : null,
+    description: trimmedOrNull(line.description),
+    amount_minor: lineAmountMinor(line, currency) ?? 0,
+  }
 }
 
 const clock = (value: string | null | undefined): string => (typeof value === 'string' ? value.slice(0, 5) : '')
@@ -217,6 +237,8 @@ export function lineFromDetail(
     flight_number: row.flight_number ?? '',
     terminal: row.terminal ?? '',
     special_requests: row.special_requests ?? '',
+    title: row.title ?? '',
+    description: row.description ?? '',
     extra_child_seat: row.extra_child_seat,
     extra_meet_greet: row.extra_meet_greet,
     extra_luggage: row.extra_luggage,
@@ -385,6 +407,11 @@ export function draftProblems(draft: QuoteDraft): string[] {
     if (line.stops.some((s) => !s.address)) out.push(`Trip ${n}: choose an address for every stop or remove the stop.`)
     if (line.trip_type === 'hourly' && !line.hours) out.push(`Trip ${n}: choose the number of hours.`)
     if (line.trip_type === 'daily' && !line.return_date) out.push(`Trip ${n}: choose the return date.`)
+    if (line.trip_type === 'tour' && !line.title.trim()) out.push(`Trip ${n}: enter the tour title.`)
+    if (line.trip_type === 'tour' && !line.hours) out.push(`Trip ${n}: choose the hours of service.`)
+    if (line.description.length > QUOTE_LINE_DESCRIPTION_MAX) {
+      out.push(`Trip ${n}: the description is longer than ${QUOTE_LINE_DESCRIPTION_MAX} characters.`)
+    }
   })
   const deposit = depositProblem(draft)
   if (deposit) out.push(deposit)

@@ -2,13 +2,13 @@
 //
 // An allow-list builder: the public page and its client islands receive THIS object and never the rows. It carries the
 // first name only; no email, phone, last name, billing data, notes, special requests or
-// ids exist in it. A trip shows ONE price (owner rule 2026-11-12): stop waiting fees are not in the view at all, only
+// ids exist in it. The line title and description (migration 096) are operator text written FOR the client. A trip shows ONE price (owner rule 2026-11-12): stop waiting fees are not in the view at all, only
 // the waiting minutes. Pure and client-safe (type import only from the server resolver).
 
 import { firstPickupMs } from '@/lib/quotes/status'
 import { quoteFreeUntilMs, termsFromSnapshot } from '@/lib/quotes/terms'
 import type { ResolvedQuote } from '@/lib/quotes/resolve'
-import type { QuoteCurrency, RemainderMethod } from '@/lib/quotes/vocabulary'
+import type { QuoteCurrency, QuoteLineTripType, RemainderMethod } from '@/lib/quotes/vocabulary'
 
 export interface QuoteView {
   reference: string
@@ -20,7 +20,11 @@ export interface QuoteView {
   expiresAt: string | null
   lines: Array<{
     position: number
-    tripType: 'transfer' | 'hourly' | 'daily'
+    tripType: QuoteLineTripType
+    /** A tour's headline, shown instead of the trip-type label; null for every other line. */
+    title: string | null
+    /** The operator's client-visible text of the line (plain text, line breaks kept); null when none. */
+    description: string | null
     pickupDate: string
     pickupTime: string
     landingTime: string | null
@@ -62,6 +66,8 @@ export function buildQuoteView(r: ResolvedQuote, nowMs: number): QuoteView {
     lines: r.lines.map((l) => ({
       position: l.position,
       tripType: l.trip_type,
+      title: l.trip_type === 'tour' && l.title ? l.title : null,
+      description: l.description ? l.description : null,
       pickupDate: l.pickup_date,
       pickupTime: l.pickup_time,
       landingTime: l.landing_time,

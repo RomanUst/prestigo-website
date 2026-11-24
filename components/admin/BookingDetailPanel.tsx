@@ -287,6 +287,14 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
           <DetailField label="Duration" value={`${booking.hours} hours`} />
         )}
         {tour?.hoursText && <DetailField label="Time at destination" value={tour.hoursText} />}
+        {tour?.description && (
+          <div style={{ gridColumn: '1 / -1' }}>
+            <DetailField
+              label="Tour description"
+              value={<span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{tour.description}</span>}
+            />
+          </div>
+        )}
         <DetailField label="Passengers" value={String(booking.passengers)} />
         <DetailField label="Luggage" value={String(booking.luggage)} />
         <DetailField

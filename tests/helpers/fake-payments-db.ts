@@ -544,7 +544,11 @@ function checkQuoteRow(table: QuoteTable, row: Row): string | null {
     }
     case 'quote_version_lines': {
       if (!intBetween(row.position, 1, 20)) return 'quote_version_lines_position_check'
-      if (!inList(row.trip_type, ['transfer', 'hourly', 'daily'])) return 'quote_version_lines_trip_type_check'
+      // Migration 096 adds 'tour', the title (1..200) and description (<= 4000) columns and the tour completeness check.
+      if (!inList(row.trip_type, ['transfer', 'hourly', 'daily', 'tour'])) return 'quote_version_lines_trip_type_check'
+      if (!nullOr(row.title, (v) => lenBetween(v, 1, 200))) return 'quote_version_lines_title_check'
+      if (!nullOr(row.description, (v) => lenBetween(v, 0, 4000))) return 'quote_version_lines_description_check'
+      if (row.trip_type === 'tour' && (row.title == null || row.hours == null)) return 'quote_version_lines_tour_complete_check'
       if (typeof row.pickup_date !== 'string' || !ISO_DATE.test(row.pickup_date)) return 'quote_version_lines_pickup_date_check'
       if (typeof row.pickup_time !== 'string' || !CLOCK.test(row.pickup_time)) return 'quote_version_lines_pickup_time_check'
       if (!nullOr(row.landing_date, (v) => typeof v === 'string' && ISO_DATE.test(v))) return 'quote_version_lines_landing_date_check'
@@ -1090,6 +1094,10 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
           flight_number: line.flight_number,
           terminal: line.terminal,
           special_requests: line.special_requests,
+          // Migration 096: a tour line becomes a custom tour booking (no catalogue tour); other lines leave both null.
+          tour_id: null,
+          tour_title: line.trip_type === 'tour' ? (line.title ?? null) : null,
+          tour_description: line.trip_type === 'tour' ? (line.description ?? null) : null,
           extra_child_seat: line.extra_child_seat,
           extra_meet_greet: line.extra_meet_greet,
           extra_luggage: line.extra_luggage,

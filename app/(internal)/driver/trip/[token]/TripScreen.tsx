@@ -58,7 +58,7 @@ export interface TripScreenProps {
     /** Phase 91 (STOP-04): the stops in order, with the wait at each; never a fee. */
     stops: Array<{ position: number; address: string; waitMinutes: number; lat: number | null; lng: number | null }>
     /** Phase 93 (TRIP-04): a day trip (trip_type 'tour'); absent for every other booking. The drop-off is the destination, the return is the pickup. */
-    tour?: { title: string; hoursText: string | null } | null
+    tour?: { title: string; hoursText: string | null; description?: string } | null
   }
   initialNote: string | null
   /** D-15: server-computed unlock instant and the open request (both null outside on_location). */
@@ -678,6 +678,14 @@ export default function TripScreen({ token, view, trip, initialNote, noShow, cas
             {trip.tour.hoursText ? (
               <p style={{ margin: 0, fontSize: 'var(--driver-fs-label)', fontWeight: 400, lineHeight: 1.4, color: 'var(--admin-text-muted)' }}>
                 {`${trip.tour.hoursText}. Return to the pickup address.`}
+              </p>
+            ) : null}
+            {trip.tour.description ? (
+              <p
+                data-testid="driver-tour-description"
+                style={{ margin: 0, fontSize: 'var(--driver-fs-label)', fontWeight: 400, lineHeight: 1.5, color: 'var(--admin-text)', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}
+              >
+                {trip.tour.description}
               </p>
             ) : null}
           </div>

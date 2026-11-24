@@ -22,6 +22,8 @@ const PAGE_KEYS = [
   'meta.title', 'eyebrow', 'title', 'version', 'preparedFor', 'intro', 'validUntil', 'pragueTime',
   'status.offer', 'status.accepted', 'status.paid',
   'lines.heading', 'lines.trip', 'lines.tripType.transfer', 'lines.tripType.hourly', 'lines.tripType.daily',
+  // quick task quote-tour-line (migration 096): the tour trip type and the line description label.
+  'lines.tripType.tour', 'lines.description',
   'lines.date', 'lines.pickupTime', 'lines.landing', 'lines.from', 'lines.to', 'lines.stops', 'lines.stopWait',
   'lines.vehicle', 'lines.passengers', 'lines.luggage', 'lines.duration', 'lines.price',
   'summary.heading', 'summary.total', 'summary.deposit', 'summary.remainder',

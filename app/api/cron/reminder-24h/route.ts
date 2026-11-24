@@ -53,7 +53,7 @@ export async function GET(request: Request) {
       client_first_name, client_last_name, client_phone,
       locale, cancel_policy_version, cancel_policy, trip_type, distance_km, pickup_utc, origin_lat, origin_lng,
       payment_mode, payment_amount_minor, payment_currency, amount_eur, outbound_amount_czk, return_amount_czk,
-      leg, booking_source, anonymised_at, hours, tour_title, tour_extra_hours,
+      leg, booking_source, anonymised_at, hours, tour_title, tour_extra_hours, tour_description,
       driver_assignments!left(
         status,
         drivers!inner(name, email, vehicle_info)
@@ -95,6 +95,7 @@ export async function GET(request: Request) {
         trip_type: booking.trip_type,
         tour_title: booking.tour_title,
         tour_extra_hours: booking.tour_extra_hours,
+        tour_description: booking.tour_description,
         hours: booking.hours,
       }
 

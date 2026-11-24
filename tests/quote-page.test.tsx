@@ -921,3 +921,29 @@ describe('the tokenless Stripe return page (plan 92-17 Task 2; T-92-54)', () => 
     }
   })
 })
+
+describe('quote page, tour lines and client descriptions (quick task quote-tour-line, migration 096)', () => {
+  it('a tour line is headed by its title; a description is shown as escaped text with its line breaks', async () => {
+    const fx = await seed()
+    const lines = db.state.quote_version_lines.filter((l) => l.version_id === fx.versionId)
+    Object.assign(lines[0], { description: 'Water on board\n<img src=x onerror=alert(1)>' })
+    Object.assign(lines[1], {
+      trip_type: 'tour',
+      title: 'Private day trip: Kutná Hora',
+      hours: 9,
+      description: 'Kutná Hora\nLunch not included',
+      destination_address: null,
+    })
+    const { container } = await renderPage('en', fx.token)
+    const cards = Array.from(container.querySelectorAll('[data-testid="quote-line"]')) as HTMLElement[]
+    expect(cards[1].querySelector('h3')?.textContent).toBe('Trip 2 · Private day trip: Kutná Hora')
+    expect(cards[0].querySelector('h3')?.textContent).toBe('Trip 1 · Transfer')
+    const descriptions = Array.from(container.querySelectorAll('[data-testid="quote-line-description"]')) as HTMLElement[]
+    expect(descriptions).toHaveLength(2)
+    expect(descriptions[0].textContent).toBe('Water on board\n<img src=x onerror=alert(1)>')
+    expect(descriptions[0].style.whiteSpace).toBe('pre-wrap')
+    expect(container.querySelector('img[src="x"]')).toBeNull()
+    expect(descriptions[1].textContent).toBe('Kutná Hora\nLunch not included')
+    expect(cards[1].textContent).toContain('Details')
+  })
+})

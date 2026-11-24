@@ -111,20 +111,29 @@ export interface AdminBooking {
   tour_id?: string | null
   tour_title?: string | null
   tour_extra_hours?: number | null
+  // Migration 096: the client-visible description of a tour that came from a quote line (itinerary, what is included).
+  tour_description?: string | null
 }
 
 // Phase 93 (TRIP-04): how a day-trip booking reads in the admin list, panel and board. Null for every other trip type.
-export function tourDisplay(booking: Pick<AdminBooking, 'trip_type' | 'tour_title' | 'hours' | 'tour_extra_hours'>): {
+export function tourDisplay(
+  booking: Pick<AdminBooking, 'trip_type' | 'tour_title' | 'hours' | 'tour_extra_hours' | 'tour_description'>,
+): {
   title: string
   hoursText: string | null
+  /** The quote line's description (migration 096), plain text with its line breaks; absent when there is none. */
+  description?: string
 } | null {
   if (booking.trip_type !== 'tour') return null
   const title = `Day trip: ${booking.tour_title?.trim() || 'Tour'}`
-  if (booking.hours === null || booking.hours === undefined) return { title, hoursText: null }
+  const text = booking.tour_description?.trim()
+  const description = text ? { description: text } : {}
+  if (booking.hours === null || booking.hours === undefined) return { title, hoursText: null, ...description }
   const extra = booking.tour_extra_hours ?? 0
   return {
     title,
     hoursText: extra > 0 ? `${booking.hours} h at destination · ${extra} extra` : `${booking.hours} h at destination`,
+    ...description,
   }
 }
 

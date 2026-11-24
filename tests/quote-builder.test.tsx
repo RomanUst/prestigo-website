@@ -27,7 +27,7 @@ vi.mock('@/components/booking/AddressInput', () => ({
 }))
 
 import QuoteDetailPage from '@/app/(internal)/admin/(dashboard)/quotes/[id]/page'
-import { QuoteBuilder } from '@/components/admin/quotes/QuoteBuilder'
+import { QuoteBuilder, lineFromRequest, tourTitleFromWhere } from '@/components/admin/quotes/QuoteBuilder'
 import { formatMinor } from '@/lib/payments/money'
 
 const QUOTE_ID = '3f2b1c9e-0000-4000-8000-000000000001'
@@ -664,13 +664,18 @@ describe('custom-tour request card in the builder (TRIP-07, D-18)', () => {
     expect(document.querySelector('img')).toBeNull()
   })
 
-  it('a quote with no trips opens its first trip from the request: date, people, wishes; no amount, no addresses', async () => {
+  it('a quote with no trips opens its first trip from the request as a tour: title, description, date, people; no amount, no addresses', async () => {
     requestAnswer = { status: 200, body: requestPayload() }
     await renderPage(detail({ lines: [], sourceInquiryId: REQUEST_ID }))
     const editor = await screen.findByTestId('quote-line-editor')
     expect(screen.getAllByTestId('quote-line-editor')).toHaveLength(1)
     expect((within(editor).getByLabelText(/Amount \(EUR\)/) as HTMLInputElement).value).toBe('')
-    expect((within(editor).getByLabelText(/Notes for the driver/) as HTMLTextAreaElement).value).toBe('A guide who speaks Russian')
+    expect((within(editor).getByLabelText('Trip type') as HTMLSelectElement).value).toBe('tour')
+    expect((within(editor).getByLabelText(/Tour title/) as HTMLInputElement).value).toBe('Karlovy Vary and Loket')
+    expect((within(editor).getByLabelText(/Description for the client/) as HTMLTextAreaElement).value).toBe('A guide who speaks Russian')
+    expect((within(editor).getByLabelText('Hours of service') as HTMLSelectElement).value).toBe('8')
+    expect((within(editor).getByLabelText(/Notes for the driver/) as HTMLTextAreaElement).value).toBe('')
+    expect(within(editor).queryByRole('button', { name: /Suggest price/ })).toBeNull()
     expect((within(editor).getByLabelText('Passengers') as HTMLSelectElement).value).toBe('4')
     expect((editor.querySelector('input[type="date"]') as HTMLInputElement).value).toBe('2027-03-10')
     expect(within(editor).queryByText(/= /)).toBeNull()
@@ -699,5 +704,36 @@ describe('custom-tour request card in the builder (TRIP-07, D-18)', () => {
     await renderPage(detail({ lines: [lineRow(1, 30000)], sourceInquiryId: REQUEST_ID }))
     expect(await screen.findByText('This request was erased.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Open request' })).toBeInTheDocument()
+  })
+})
+
+describe('quick task quote-tour-line: seeding the first trip from a custom-tour request', () => {
+  const request = (over: Record<string, unknown> = {}) =>
+    ({ ...(requestPayload() as Record<string, unknown>), ...over }) as unknown as Parameters<typeof lineFromRequest>[0]
+
+  it('the title is the first non-empty line of "where", trimmed and capped at 200 characters', () => {
+    expect(tourTitleFromWhere('  Kutná Hora and Karlštejn  \nthen a wine cellar')).toBe('Kutná Hora and Karlštejn')
+    expect(tourTitleFromWhere('\r\n\n   \r\nČeský Krumlov\r\nHluboká')).toBe('Český Krumlov')
+    expect(tourTitleFromWhere('x'.repeat(250))).toHaveLength(200)
+    expect(tourTitleFromWhere('')).toBe('')
+    expect(tourTitleFromWhere(null)).toBe('')
+  })
+
+  it('the line is a tour of 8 hours with the wishes as its description (capped at 4000), date and people; no driver notes', () => {
+    const line = lineFromRequest(request({ where: 'Kutná Hora\nKarlštejn', wishes: 'Guide\r\nNo stairs' }))
+    expect(line).toMatchObject({
+      trip_type: 'tour',
+      hours: 8,
+      title: 'Kutná Hora',
+      description: 'Guide\nNo stairs',
+      pickup_date: '2027-03-10',
+      passengers: 4,
+      special_requests: '',
+      amountInput: '',
+      origin: null,
+      destination: null,
+    })
+    expect(lineFromRequest(request({ wishes: 'y'.repeat(5000) })).description).toHaveLength(4000)
+    expect(lineFromRequest(request({ wishes: null })).description).toBe('')
   })
 })

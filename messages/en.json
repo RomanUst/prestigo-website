@@ -1344,7 +1344,8 @@
       "tripType": {
         "transfer": "Transfer",
         "hourly": "By the hour",
-        "daily": "Full day"
+        "daily": "Full day",
+        "tour": "Private tour"
       },
       "date": "Date",
       "pickupTime": "Pickup time",
@@ -1357,6 +1358,7 @@
       "passengers": "Passengers",
       "luggage": "Luggage",
       "duration": "{hours} h",
+      "description": "Details",
       "price": "Price"
     },
     "summary": {

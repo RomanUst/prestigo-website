@@ -1,7 +1,7 @@
 // Row shapes of the quote tables (migration 091, plan 92-01). Snake_case column names, bigint money as number
 // (minor units stay far below 2^53), timestamps as ISO strings. Types only; client-safe.
 
-import type { DepositKind, QuoteCurrency, QuoteStatus, RemainderMethod } from '@/lib/quotes/vocabulary'
+import type { DepositKind, QuoteCurrency, QuoteLineTripType, QuoteStatus, RemainderMethod } from '@/lib/quotes/vocabulary'
 
 export interface QuoteRow {
   id: string
@@ -72,7 +72,7 @@ export interface QuoteLineRow {
   id: string
   version_id: string
   position: number
-  trip_type: 'transfer' | 'hourly' | 'daily'
+  trip_type: QuoteLineTripType
   pickup_date: string
   pickup_time: string
   landing_date: string | null
@@ -93,6 +93,10 @@ export interface QuoteLineRow {
   flight_number: string | null
   terminal: string | null
   special_requests: string | null
+  /** Migration 096: a tour line's client-visible headline (required for 'tour', null otherwise). */
+  title?: string | null
+  /** Migration 096: client-visible plain text of the line (itinerary, what is included); null when none. */
+  description?: string | null
   extra_child_seat: boolean
   extra_meet_greet: boolean
   extra_luggage: boolean

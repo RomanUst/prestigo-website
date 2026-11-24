@@ -252,6 +252,18 @@ describe('client reminder of a tour (24 h and 2 h)', () => {
     expect(html).toContain('&lt;script&gt;x&lt;/script&gt;')
   })
 
+  it('migration 096: a tour sold through a quote shows its description escaped, line breaks as <br>', async () => {
+    mockResendSend.mockClear()
+    await sendClientReminderEmail(reminder({ tour_description: 'Kutná Hora\n<b>Lunch</b> not included' }), '24h')
+    const html = (mockResendSend.mock.calls[0][0] as { html: string }).html
+    expect(html).toContain('>About the trip</td>')
+    expect(html).toContain('Kutná Hora<br>&lt;b&gt;Lunch&lt;/b&gt; not included')
+    expect(html).not.toContain('<b>Lunch</b>')
+    mockResendSend.mockClear()
+    await sendClientReminderEmail(reminder({ tour_description: '   ' }), '24h')
+    expect((mockResendSend.mock.calls[0][0] as { html: string }).html).not.toContain('About the trip')
+  })
+
   it('a transfer reminder keeps its Route row and subject', async () => {
     mockResendSend.mockClear()
     await sendClientReminderEmail(

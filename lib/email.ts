@@ -130,6 +130,8 @@ export interface EmailTourFacts {
   hours: number | undefined
   extraHours: number
   pickupAddress: string
+  /** Migration 096: the itinerary of a tour sold through a quote (operator plain text); absent when there is none. */
+  description?: string
 }
 
 const plural = (n: number, one: string, other: string): string => `${n} ${n === 1 ? one : other}`
@@ -150,9 +152,11 @@ function tourFactsOf(
   hours: number | undefined,
   extraHours: number | null | undefined,
   pickupAddress: string,
+  description?: string | null,
 ): EmailTourFacts | null {
   if (tripType !== 'tour' || !title) return null
-  return { title, hours, extraHours: extraHours && extraHours > 0 ? extraHours : 0, pickupAddress }
+  const text = description?.trim()
+  return { title, hours, extraHours: extraHours && extraHours > 0 ? extraHours : 0, pickupAddress, ...(text ? { description: text } : {}) }
 }
 
 function emailLabelValueRow(label: string, valueHtml: string): string {
@@ -172,15 +176,24 @@ function tourDayTripRowHtml(t: EmailTourFacts): string {
 function tourDetailRowsHtml(t: EmailTourFacts): string {
   return (
     emailLabelValueRow('Time at the destination', escapeHtml(tourTimeAtDestinationText(t.hours, t.extraHours))) +
-    emailLabelValueRow('Pickup and return', escapeHtml(t.pickupAddress))
+    emailLabelValueRow('Pickup and return', escapeHtml(t.pickupAddress)) +
+    (t.description ? emailLabelValueRow('About the trip', multilineHtml(t.description)) : '')
   )
+}
+
+/** Operator plain text with its line breaks: every line escaped, joined with <br>. */
+function multilineHtml(text: string): string {
+  return text
+    .split(/\r\n|\r|\n/)
+    .map((part) => escapeHtml(part))
+    .join('<br>')
 }
 
 /** The same three facts as plain lines for the manager alert. */
 function tourTextLines(t: EmailTourFacts): string {
   return `Day trip: ${t.title}
 Time at the destination: ${tourTimeAtDestinationText(t.hours, t.extraHours)}
-Pickup and return: ${t.pickupAddress}`
+Pickup and return: ${t.pickupAddress}${t.description ? `\nAbout the trip:\n${t.description}` : ''}`
 }
 
 // ── Trip route rows (Phase 91, STOP-04 / STOP-05) ───────────────────────────
@@ -2612,6 +2625,8 @@ export interface ReminderEmailBooking {
   tour_title?: string | null
   tour_extra_hours?: number | null
   hours?: number | null
+  /** Migration 096: the itinerary of a tour sold through a quote. */
+  tour_description?: string | null
 }
 
 function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' | '2h'): string {
@@ -2623,6 +2638,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
     booking.hours ?? undefined,
     booking.tour_extra_hours,
     booking.origin_address,
+    booking.tour_description,
   )
   const noun = tour ? 'Day Trip' : 'Transfer'
   const heading = horizon === '24h' ? `Your ${noun} Tomorrow` : `Your ${noun} in 2 Hours`

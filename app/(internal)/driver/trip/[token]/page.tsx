@@ -65,6 +65,8 @@ interface TripSheetBookingRow {
   hours?: number | null
   tour_title?: string | null
   tour_extra_hours?: number | null
+  // Migration 096: the itinerary of a tour sold through a quote; shown to the driver as plain text.
+  tour_description?: string | null
   // Phase 89 (D-11): read only to build the cash label; none of these four reaches the browser as a number.
   payment_mode?: string | null
   payment_state?: string | null
@@ -96,7 +98,7 @@ const TRIP_SELECT =
   'client_first_name, client_last_name, client_phone, flight_number, flight_iata, special_requests, ' +
   'vehicle_class, distance_km, completed_at, no_show_requested_at, status, driver_id, ' +
   'payment_mode, payment_state, payment_amount_minor, payment_currency, ' +
-  'landing_date, landing_time, pickup_offset_min, trip_type, hours, tour_title, tour_extra_hours), ' +
+  'landing_date, landing_time, pickup_offset_min, trip_type, hours, tour_title, tour_extra_hours, tour_description), ' +
   'drivers(name, vehicle_info)'
 
 function coords(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
@@ -241,6 +243,7 @@ export default async function TripSheetPage({ params }: PageProps) {
           tour_title: booking.tour_title ?? null,
           hours: booking.hours ?? null,
           tour_extra_hours: booking.tour_extra_hours ?? null,
+          tour_description: booking.tour_description ?? null,
         }),
       }}
       initialNote={assignment.trip_note ?? null}
