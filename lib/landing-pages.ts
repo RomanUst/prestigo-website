@@ -45,7 +45,7 @@ export type LandingPageConfig = {
 export const LANDING_PAGES: LandingPageConfig[] = [
   { slug: 'airport-meet-and-greet', section: 'services', heroImage: '/journey-03-arrive.jpg', ctaHref: '/book' },
   { slug: 'prague-airport-taxi', section: 'services', heroImage: '/photohero.jpg', ctaHref: '/book' },
-  { slug: 'private-driver-prague', section: 'services', heroImage: '/hero-city-rides.png', ctaHref: '/book' },
+  { slug: 'private-driver-prague', section: 'services', heroImage: '/hero-city-rides.jpg', ctaHref: '/book' },
   // 2026-11-03: "limousine prague" / "limo service prague" cluster — executive S-Class, no stretch limos.
   { slug: 'limousine-prague', section: 'services', heroImage: '/vehicles/first-int-2.jpg', ctaHref: '/book?class=first_class' },
   // 2026-11-11: private day trips hub — the largest demand cluster in every
@@ -54,7 +54,7 @@ export const LANDING_PAGES: LandingPageConfig[] = [
   // landing pages: since Phase 93 (D-07) they are DB-backed tours resolved by
   // app/[locale]/services/[slug]/page.tsx under the same /services/<slug> URLs.
   // No prices in the copy: fares live in the admin.
-  { slug: 'day-trips-from-prague', section: 'services', heroImage: '/hero-intercity-routes.png', ctaHref: '/book' },
+  { slug: 'day-trips-from-prague', section: 'services', heroImage: '/hero-intercity-routes.jpg', ctaHref: '/book' },
   { slug: 'child-seats', section: 'faq', ctaHref: '/book' },
   { slug: 'flight-delays', section: 'faq', ctaHref: '/book' },
   { slug: 'tipping-in-prague', section: 'faq', ctaHref: '/book' },

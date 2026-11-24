@@ -33,7 +33,7 @@
       "href": "/services/city-rides",
       "bookHref": "/book",
       "bookCta": "BOOK NOW",
-      "image": "/hero-city-rides.png"
+      "image": "/hero-city-rides.jpg"
     },
     {
       "label": "CITY-TO-CITY",
@@ -45,7 +45,7 @@
       "href": "/services/intercity-routes",
       "bookHref": "/routes",
       "bookCta": "VIEW ROUTES",
-      "image": "/hero-intercity-routes.png"
+      "image": "/hero-intercity-routes.jpg"
     },
     {
       "label": "CONCIERGE",
@@ -69,7 +69,7 @@
       "href": "/services/corporate-accounts",
       "bookHref": "/corporate",
       "bookCta": "SET UP ACCOUNT",
-      "image": "/hero-corporate-accounts.png"
+      "image": "/hero-corporate-accounts.jpg"
     },
     {
       "label": "VIP",
@@ -81,7 +81,7 @@
       "href": "/services/vip-events",
       "bookHref": "/contact",
       "bookCta": "ENQUIRE",
-      "image": "/hero-vip-events.png"
+      "image": "/hero-vip-events.jpg"
     },
     {
       "label": "LIMOUSINE",
@@ -106,7 +106,7 @@
       "href": "/services/group-transfers",
       "bookHref": "/contact",
       "bookCta": "GET QUOTE",
-      "image": "/hero-group-transfers.png"
+      "image": "/hero-group-transfers.jpg"
     },
     {
       "label": "MULTI-DAY",
@@ -119,7 +119,7 @@
       "bookHref": "/book/multi-day",
       "bookCta": "GET QUOTE",
       "isNew": true,
-      "image": "/multi-day-hero.png"
+      "image": "/multi-day-hero.jpg"
     }
   ],
   "alsoPopularLabel": "Also popular",
