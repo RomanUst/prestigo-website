@@ -73,12 +73,13 @@ export interface QuoteLineRow {
   version_id: string
   position: number
   trip_type: QuoteLineTripType
-  pickup_date: string
-  pickup_time: string
+  /** Null = TBC on a draft line (migration 097); always set on a frozen version. */
+  pickup_date: string | null
+  pickup_time: string | null
   landing_date: string | null
   landing_time: string | null
   pickup_offset_min: number | null
-  origin_address: string
+  origin_address: string | null
   origin_lat: number | null
   origin_lng: number | null
   destination_address: string | null
@@ -101,7 +102,7 @@ export interface QuoteLineRow {
   extra_meet_greet: boolean
   extra_luggage: boolean
   suggested_amount_minor: number | null
-  amount_minor: number
+  amount_minor: number | null
   price_overridden: boolean
   deposit_share_minor: number | null
   remainder_minor: number | null

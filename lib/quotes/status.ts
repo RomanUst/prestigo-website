@@ -7,12 +7,13 @@
 import { pickupInstantMs } from '@/lib/prague-date'
 import type { QuoteStatus } from '@/lib/quotes/vocabulary'
 
-type PickupFields = { pickup_date: string; pickup_time: string }
+/** A draft line may still have a TBC pickup (null, migration 097): it has no instant and is skipped. */
+type PickupFields = { pickup_date: string | null; pickup_time: string | null }
 
 function instants(lines: readonly PickupFields[]): number[] {
   const out: number[] = []
   for (const line of lines) {
-    const ms = pickupInstantMs({ pickup_utc: null, pickup_date: line.pickup_date, pickup_time: line.pickup_time })
+    const ms = pickupInstantMs({ pickup_utc: null, pickup_date: line.pickup_date ?? '', pickup_time: line.pickup_time ?? '' })
     if (ms !== null) out.push(ms)
   }
   return out

@@ -548,22 +548,22 @@ function checkQuoteRow(table: QuoteTable, row: Row): string | null {
       if (!inList(row.trip_type, ['transfer', 'hourly', 'daily', 'tour'])) return 'quote_version_lines_trip_type_check'
       if (!nullOr(row.title, (v) => lenBetween(v, 1, 200))) return 'quote_version_lines_title_check'
       if (!nullOr(row.description, (v) => lenBetween(v, 0, 4000))) return 'quote_version_lines_description_check'
-      if (row.trip_type === 'tour' && (row.title == null || row.hours == null)) return 'quote_version_lines_tour_complete_check'
-      if (typeof row.pickup_date !== 'string' || !ISO_DATE.test(row.pickup_date)) return 'quote_version_lines_pickup_date_check'
-      if (typeof row.pickup_time !== 'string' || !CLOCK.test(row.pickup_time)) return 'quote_version_lines_pickup_time_check'
+      // Migration 097: a draft line may leave the pickup date, time, address and amount null (TBC); the tour check is gone.
+      if (!nullOr(row.pickup_date, (v) => typeof v === 'string' && ISO_DATE.test(v))) return 'quote_version_lines_pickup_date_check'
+      if (!nullOr(row.pickup_time, (v) => typeof v === 'string' && CLOCK.test(v))) return 'quote_version_lines_pickup_time_check'
       if (!nullOr(row.landing_date, (v) => typeof v === 'string' && ISO_DATE.test(v))) return 'quote_version_lines_landing_date_check'
       if (!nullOr(row.landing_time, (v) => typeof v === 'string' && CLOCK.test(v))) return 'quote_version_lines_landing_time_check'
       if (!nullOr(row.pickup_offset_min, (v) => [0, 15, 30, 45, 60, 90].includes(v as number))) return 'quote_version_lines_pickup_offset_min_check'
       if ((row.landing_date == null) !== (row.landing_time == null) || (row.landing_time == null) !== (row.pickup_offset_min == null)) {
         return 'quote_version_lines_landing_complete_check'
       }
-      if (!lenBetween(row.origin_address, 1, 500)) return 'quote_version_lines_origin_address_check'
+      if (!nullOr(row.origin_address, (v) => lenBetween(v, 1, 500))) return 'quote_version_lines_origin_address_check'
       if (!inList(row.vehicle_class, ['business', 'first_class', 'business_van'])) return 'quote_version_lines_vehicle_class_check'
       if (!intBetween(row.passengers, 1, 20)) return 'quote_version_lines_passengers_check'
       if (!intBetween(row.luggage, 0, 20)) return 'quote_version_lines_luggage_check'
       if (!nullOr(row.hours, (v) => intBetween(v, 1, 24))) return 'quote_version_lines_hours_check'
       if (!nullOr(row.suggested_amount_minor, (v) => isInt(v) && v > 0)) return 'quote_version_lines_suggested_amount_minor_check'
-      if (!(isInt(row.amount_minor) && row.amount_minor > 0)) return 'quote_version_lines_amount_minor_check'
+      if (!nullOr(row.amount_minor, (v) => isInt(v) && v > 0)) return 'quote_version_lines_amount_minor_check'
       if (!nullOr(row.deposit_share_minor, (v) => isInt(v) && v >= 0)) return 'quote_version_lines_deposit_share_minor_check'
       if (!nullOr(row.remainder_minor, (v) => isInt(v) && v >= 0)) return 'quote_version_lines_remainder_minor_check'
       if (
@@ -735,6 +735,22 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     const frozen = () => err('quote_version_frozen', 'P0001')
     const appendOnly = () => err('quote_log_append_only', 'P0001')
     if (table === 'quote_versions' && before && before.frozen_at != null) return frozen()
+    // Migration 097: freezing needs every line of the version complete.
+    if (table === 'quote_versions' && op === 'update' && after && after.frozen_at != null && before && before.frozen_at == null) {
+      const incomplete = state.quote_version_lines.some(
+        (l) =>
+          l.version_id === after.id &&
+          (l.pickup_date == null ||
+            l.pickup_time == null ||
+            l.origin_address == null ||
+            l.amount_minor == null ||
+            (l.trip_type === 'transfer' && l.destination_address == null) ||
+            (l.trip_type === 'hourly' && l.hours == null) ||
+            (l.trip_type === 'daily' && l.return_date == null) ||
+            (l.trip_type === 'tour' && (l.title == null || l.hours == null))),
+      )
+      if (incomplete) return err('quote_lines_incomplete', 'P0001')
+    }
     if (table === 'quote_version_lines' || table === 'quote_version_line_stops') {
       if (before && quoteVersionFrozen(versionOfChild(table, before))) return frozen()
       if (after && quoteVersionFrozen(versionOfChild(table, after))) return frozen()

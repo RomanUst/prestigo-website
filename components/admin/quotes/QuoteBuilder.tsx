@@ -13,6 +13,7 @@ import {
   draftProblems,
   draftToPayload,
   emptyLine,
+  sendBlockers,
   type QuoteDraft,
   type QuoteLineDraft,
 } from '@/components/admin/quotes/quoteDraft'
@@ -207,9 +208,10 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
     }
     patch(next)
   }
-  // D-07: Save waits for a deposit that is chosen, not 0 and not above the total.
+  // D-07: a deposit that is typed must be valid (not 0, not above the total); one not entered yet is TBC.
   const depositBlocked = depositProblem(draft) !== null
   const problems = attempted && !readOnly ? draftProblems(draft) : []
+  const tbc = readOnly ? [] : sendBlockers(draft)
   const setLine = (index: number, line: QuoteLineDraft) =>
     patch({ lines: draft.lines.map((l, i) => (i === index ? line : l)) })
   const removeLine = (index: number) => patch({ lines: draft.lines.filter((_, i) => i !== index) })
@@ -336,6 +338,16 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
 
       {!readOnly && (
         <div style={cardStyle}>
+          {tbc.length > 0 && (
+            <div data-testid="quote-tbc-list" style={{ marginBottom: '12px' }}>
+              <div style={labelStyle}>TBC: fill in before sending (you can save without them)</div>
+              <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                {tbc.map((p) => (
+                  <li key={p} style={mutedStyle}>{p}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {problems.length > 0 && (
             <div role="alert" style={{ marginBottom: '12px' }}>
               <div style={{ ...labelStyle, color: 'var(--status-danger-fg)' }}>Fix these before saving</div>
@@ -362,7 +374,7 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
-          {depositBlocked && <p style={{ ...mutedStyle, marginTop: '8px' }}>Save is available once the deposit is set.</p>}
+          {depositBlocked && <p style={{ ...mutedStyle, marginTop: '8px' }}>Correct the deposit to save.</p>}
         </div>
       )}
       {readOnly && status && (

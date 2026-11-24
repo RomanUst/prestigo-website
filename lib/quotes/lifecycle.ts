@@ -27,6 +27,7 @@ import { quotePdfFilename, renderQuoteSentEmail } from '@/lib/quotes/emails/sent
 import { sendQuoteEmail } from '@/lib/quotes/emails/shell'
 import { appendQuoteEvent, type QuoteEventInput } from '@/lib/quotes/events'
 import { depositMinorFor, lineMajorAmounts, validateVersionMoney } from '@/lib/quotes/money'
+import { lineMissingFields } from '@/lib/quotes/completeness'
 import { firstPickupMs } from '@/lib/quotes/status'
 import { buildQuoteUrl, hashQuoteToken, newQuoteToken } from '@/lib/quotes/token'
 import { resolveQuotePolicy } from '@/lib/quotes/terms'
@@ -44,7 +45,15 @@ export type SendQuoteResult =
   | { ok: true; status: 'sent' | 'viewed' | 'accepted' | 'paid'; url: string; emailed: boolean }
   | {
       ok: false
-      code: 'not_found' | 'not_sendable' | 'first_pickup_passed' | 'expired' | 'money_invalid' | 'distance_missing' | 'busy'
+      code:
+        | 'not_found'
+        | 'not_sendable'
+        | 'incomplete'
+        | 'first_pickup_passed'
+        | 'expired'
+        | 'money_invalid'
+        | 'distance_missing'
+        | 'busy'
       reason?: string
     }
 
@@ -206,6 +215,9 @@ export async function sendQuote(quoteId: string, actor: LifecycleActor, opts: { 
   // D-02, D-05: a paid quote stays readable whatever the date; everything else must still be an open offer.
   if (quote.status !== 'paid') {
     if (lines.length === 0) return { ok: false, code: 'money_invalid', reason: 'no_lines' }
+    // Migration 097: a draft may hold TBC fields; only a complete version is sent (the version guard says the same).
+    const incomplete = incompleteLines(lines)
+    if (incomplete) return { ok: false, code: 'incomplete', reason: incomplete }
     if (quote.expires_at && Date.parse(quote.expires_at) <= nowMs) return { ok: false, code: 'expired' }
     const first = firstPickupMs(lines as unknown as Array<{ pickup_date: string; pickup_time: string }>)
     if (first === null || first <= nowMs) return { ok: false, code: 'first_pickup_passed' }
@@ -236,6 +248,29 @@ export async function sendQuote(quoteId: string, actor: LifecycleActor, opts: { 
   const { linkId, url } = await insertLink(supabase, quote, frozen, actor)
   const emailed = await emailQuoteLink(quote, frozen, linkId, url)
   return { ok: true, status, url, emailed }
+}
+
+/**
+ * The lines that still have TBC fields, as "1:pickup_time,origin;3:amount" (position:fields), or null when every line
+ * is complete. Ids and field names only: no address or text of the line.
+ */
+function incompleteLines(lines: Row[]): string | null {
+  const parts: string[] = []
+  for (const l of lines) {
+    const missing = lineMissingFields({
+      trip_type: l.trip_type as Parameters<typeof lineMissingFields>[0]['trip_type'],
+      pickup_date: (l.pickup_date as string | null) ?? null,
+      pickup_time: (l.pickup_time as string | null) ?? null,
+      origin: (l.origin_address as string | null) ?? null,
+      destination: (l.destination_address as string | null) ?? null,
+      hours: numOrNull(l.hours),
+      return_date: (l.return_date as string | null) ?? null,
+      title: (l.title as string | null) ?? null,
+      amount: numOrNull(l.amount_minor),
+    })
+    if (missing.length > 0) parts.push(`${num(l.position)}:${missing.join(',')}`)
+  }
+  return parts.length > 0 ? parts.join(';') : null
 }
 
 /** Why a deposit that depositMinorFor refused is invalid. */
@@ -331,6 +366,10 @@ async function freezeVersion(
     .eq('id', version.id)
     .is('frozen_at', null)
     .select('id')
+  if (error?.message?.includes('quote_lines_incomplete')) {
+    // The guard of migration 097: a line was emptied between the read above and the freeze.
+    return { ok: false, code: 'money_invalid', reason: 'lines_incomplete' }
+  }
   if (error && !error.message?.includes('quote_version_frozen')) fail('freeze version', quote.id, error.code)
   return { ok: true }
 }

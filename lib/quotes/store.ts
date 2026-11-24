@@ -18,7 +18,7 @@ import { getPricingConfig, type PricingRates } from '@/lib/pricing-config'
 import { normalizeSiteLocale, type AppLocale } from '@/i18n/locales'
 import { appendQuoteEvent } from '@/lib/quotes/events'
 import { allocateDeposit, depositMinorFor, lineMajorAmounts } from '@/lib/quotes/money'
-import { priceLineStops, suggestLinePrice } from '@/lib/quotes/pricing'
+import { priceLineStops, suggestLinePrice, type QuotePricingLine } from '@/lib/quotes/pricing'
 import type { QuoteCreatePayload, QuoteDraftPayload, QuoteLinePayload } from '@/lib/quotes/schemas'
 import { effectiveQuoteStatus } from '@/lib/quotes/status'
 import { generateQuoteReference } from '@/lib/quotes/token'
@@ -149,6 +149,7 @@ export async function listQuotes(params: {
     }
     for (const l of (lData ?? []) as Row[]) {
       const key = String(l.version_id)
+      if (l.pickup_date == null) continue
       const date = String(l.pickup_date)
       const current = firstPickup.get(key)
       if (current === undefined || date < current) firstPickup.set(key, date)
@@ -477,9 +478,9 @@ function depositRefusal(kind: DepositKind, value: number, totalMinor: number): D
 function priceKey(input: {
   currency: string
   trip_type: string
-  pickup_date: string
-  pickup_time: string
-  origin: [number | null, number | null]
+  pickup_date: string | null
+  pickup_time: string | null
+  origin: [number | null, number | null] | null
   destination: [number | null, number | null] | null
   stops: Array<[number | null, number | null, number]>
   vehicle_class: string
@@ -495,9 +496,9 @@ function payloadPriceKey(line: QuoteLinePayload, currency: string): string {
   return priceKey({
     currency,
     trip_type: line.trip_type,
-    pickup_date: line.pickup_date,
-    pickup_time: line.pickup_time,
-    origin: [line.origin.lat, line.origin.lng],
+    pickup_date: line.pickup_date ?? null,
+    pickup_time: line.pickup_time ?? null,
+    origin: line.origin ? [line.origin.lat, line.origin.lng] : null,
     destination: line.destination ? [line.destination.lat, line.destination.lng] : null,
     stops: line.stops.map((s) => [s.lat, s.lng, s.wait_minutes]),
     vehicle_class: line.vehicle_class,
@@ -513,9 +514,9 @@ function storedPriceKey(line: Row, stops: Row[], currency: string): string {
   return priceKey({
     currency,
     trip_type: String(line.trip_type),
-    pickup_date: String(line.pickup_date),
-    pickup_time: String(line.pickup_time),
-    origin: [numOrNull(line.origin_lat), numOrNull(line.origin_lng)],
+    pickup_date: (line.pickup_date as string | null) ?? null,
+    pickup_time: line.pickup_time == null ? null : String(line.pickup_time),
+    origin: line.origin_address == null ? null : [numOrNull(line.origin_lat), numOrNull(line.origin_lng)],
     destination: hasDestination ? [numOrNull(line.destination_lat), numOrNull(line.destination_lng)] : null,
     stops: stops.map((s) => [numOrNull(s.lat), numOrNull(s.lng), num(s.wait_minutes)]),
     vehicle_class: String(line.vehicle_class),
@@ -552,6 +553,18 @@ const optionalText = (v: string | null | undefined): string | null => {
 
 /** A multi-line client text: outer blank space and Windows line ends go, the inner line breaks stay. */
 const optionalDescription = (v: string | null | undefined): string | null => optionalText((v ?? '').replace(/\r\n?/g, '\n'))
+
+/**
+ * The line as the tariff takes it, or null while a field the price depends on is still TBC (migration 097): such a line
+ * is stored without a distance and without a suggestion, and is priced on the save that completes it.
+ */
+function pricingLineOf(line: QuoteLinePayload): QuotePricingLine | null {
+  if (!line.pickup_date || !line.pickup_time || !line.origin) return null
+  if (line.trip_type === 'transfer' && !line.destination) return null
+  if (line.trip_type === 'hourly' && line.hours == null) return null
+  if (line.trip_type === 'daily' && !line.return_date) return null
+  return { ...line, pickup_date: line.pickup_date, pickup_time: line.pickup_time, origin: line.origin }
+}
 
 /**
  * Saves the header fields and, when `lines` is present, replaces ALL lines and stops of the unfrozen current version.
@@ -635,12 +648,13 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
 
   // 1. Price every changed line BEFORE any write, so a failing route leaves the stored draft untouched.
   const priced: Array<PricedLine | null> = []
-  let amounts: number[]
+  let amounts: Array<number | null>
   if (replacing) {
     const lines = payload.lines!
     let rates: PricingRates | null = null
     const needsRates = lines.some(
-      (line, i) => line.trip_type !== 'tour' && !canReuse(line, oldLines[i], oldStopsByLine, currency, oldCurrency),
+      (line, i) =>
+        (line.trip_type !== 'tour' && !canReuse(line, oldLines[i], oldStopsByLine, currency, oldCurrency)) || line.stops.length > 0,
     )
     if (needsRates) {
       try {
@@ -668,7 +682,17 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
             })),
           }
         }
-        const suggestion = await suggestLinePrice(line, { rates: rates as PricingRates, currency })
+        const pricing = pricingLineOf(line)
+        const stopSnapshot = () =>
+          priceLineStops(line, rates as PricingRates).map((s) => ({
+            blocks: s.blocks,
+            free_minutes: s.freeMinutes,
+            fee_per_block_eur: s.feePerBlockEur,
+            fee_eur: s.feeEur,
+          }))
+        // A line with a TBC field the price depends on is kept unpriced; the save that completes it prices it.
+        if (pricing === null) return { distanceKm: null, suggestedMinor: null, stops: stopSnapshot() }
+        const suggestion = await suggestLinePrice(pricing, { rates: rates as PricingRates, currency })
         if (!suggestion.ok) return 'unavailable'
         return {
           distanceKm: suggestion.distanceKm,
@@ -684,11 +708,14 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
     )
     if (results.includes('unavailable')) return { ok: false, code: 'pricing_unavailable' }
     for (const r of results) priced.push(r as PricedLine)
-    amounts = lines.map((l) => l.amount_minor)
+    amounts = lines.map((l) => l.amount_minor ?? null)
   } else {
-    amounts = oldLines.map((l) => num(l.amount_minor))
+    amounts = oldLines.map((l) => numOrNull(l.amount_minor))
   }
-  const totalMinor = amounts.reduce((a, b) => a + b, 0)
+  // A TBC price counts as nothing in the total; the deposit shares wait until every line has its price.
+  const pricedAmounts = amounts.filter((a): a is number => a !== null)
+  const allPriced = pricedAmounts.length === amounts.length
+  const totalMinor = pricedAmounts.reduce((a, b) => a + b, 0)
 
   // 2. The deposit (D-07): the operator's kind and value; the shares follow the amounts.
   let depositKind: DepositKind | null
@@ -705,10 +732,10 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
   if (depositKind !== null && depositValue !== null) {
     const refusal = depositRefusal(depositKind, depositValue, totalMinor)
     if (refusal) return { ok: false, code: 'action_not_allowed', reason: refusal }
-    if (totalMinor > 0) {
+    if (totalMinor > 0 && allPriced) {
       depositMinor = depositMinorFor(depositKind, depositValue, totalMinor)
       if (depositMinor === null) return { ok: false, code: 'action_not_allowed', reason: 'deposit_above_total' }
-      shares = allocateDeposit(amounts, depositMinor)
+      shares = allocateDeposit(pricedAmounts, depositMinor)
     }
   }
 
@@ -734,19 +761,21 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
 
       const lineRows = lines.map((line, i) => {
         const p = priced[i] as PricedLine
-        const { amountEur, amountCzk } = lineMajorAmounts(line.amount_minor, currency)
+        const amountMinor = line.amount_minor ?? null
+        const { amountEur, amountCzk } =
+          amountMinor === null ? { amountEur: null, amountCzk: null } : lineMajorAmounts(amountMinor, currency)
         return {
           version_id: versionId,
           position: i + 1,
           trip_type: line.trip_type,
-          pickup_date: line.pickup_date,
-          pickup_time: line.pickup_time,
+          pickup_date: line.pickup_date ?? null,
+          pickup_time: line.pickup_time ?? null,
           landing_date: line.landing?.date ?? null,
           landing_time: line.landing?.time ?? null,
           pickup_offset_min: line.landing?.offset_min ?? null,
-          origin_address: line.origin.address,
-          origin_lat: line.origin.lat,
-          origin_lng: line.origin.lng,
+          origin_address: line.origin?.address ?? null,
+          origin_lat: line.origin?.lat ?? null,
+          origin_lng: line.origin?.lng ?? null,
           destination_address: line.destination?.address ?? null,
           destination_lat: line.destination?.lat ?? null,
           destination_lng: line.destination?.lng ?? null,
@@ -765,10 +794,10 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
           extra_meet_greet: line.extra_meet_greet,
           extra_luggage: line.extra_luggage,
           suggested_amount_minor: p.suggestedMinor,
-          amount_minor: line.amount_minor,
-          price_overridden: p.suggestedMinor !== null && line.amount_minor !== p.suggestedMinor,
+          amount_minor: amountMinor,
+          price_overridden: p.suggestedMinor !== null && amountMinor !== null && amountMinor !== p.suggestedMinor,
           deposit_share_minor: shares ? shares[i] : null,
-          remainder_minor: shares ? line.amount_minor - shares[i] : null,
+          remainder_minor: shares && amountMinor !== null ? amountMinor - shares[i] : null,
           amount_eur: amountEur,
           amount_czk: amountCzk,
         }

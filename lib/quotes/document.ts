@@ -153,9 +153,9 @@ function tripHtml(
   return `<section class="trip" data-trip="${esc(line.position)}">
 <h3>${esc(t('lines.trip', { number: String(line.position) }))} · ${heading}</h3>
 <table>
-${row(t('lines.date'), auto(formatLocaleDate(line.pickup_date, locale)))}
-${row(t('lines.pickupTime'), `${ltr(line.pickup_time)}${pickupNotes}`)}
-${row(t('lines.from'), auto(line.origin_address))}
+${row(t('lines.date'), auto(formatLocaleDate(line.pickup_date ?? '', locale)))}
+${row(t('lines.pickupTime'), `${ltr(line.pickup_time ?? '')}${pickupNotes}`)}
+${row(t('lines.from'), auto(line.origin_address ?? ''))}
 ${stops}
 ${line.destination_address ? row(t('lines.to'), auto(line.destination_address)) : ''}
 ${line.description ? row(t('lines.description'), multiline(line.description)) : ''}

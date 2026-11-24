@@ -297,7 +297,7 @@ async function readAcceptance(quoteId: string, paymentIntentId: string): Promise
 
 /** The instant the tick places the hold: computeHoldAt of the pickup instant, or null when the pickup does not parse. */
 function holdAtFor(line: QuoteLineRow, leadHours: number): string | null {
-  const pickupMs = pickupInstantMs({ pickup_utc: null, pickup_date: line.pickup_date, pickup_time: line.pickup_time })
+  const pickupMs = pickupInstantMs({ pickup_utc: null, pickup_date: line.pickup_date ?? '', pickup_time: line.pickup_time ?? '' })
   if (pickupMs === null) return null
   return new Date(computeHoldAt(pickupMs, leadHours).holdAtMs).toISOString()
 }

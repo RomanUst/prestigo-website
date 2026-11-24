@@ -276,7 +276,7 @@ describe('quote detail page: mount and tracer (QUOTE-01)', () => {
     await renderPage()
     fireEvent.change(screen.getByLabelText(/Amount \(EUR\)/), { target: { value: 'abc' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-    expect(await screen.findByText('Trip 1: enter an amount greater than 0.')).toBeInTheDocument()
+    expect(await screen.findByText('Trip 1: the price is not a valid amount greater than 0 (leave it empty if it is TBC).')).toBeInTheDocument()
     expect(patches()).toHaveLength(0)
   })
 
@@ -340,13 +340,15 @@ describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13
     expect(depositKind().value).toBe('')
     expect(depositValue().value).toBe('')
     expect(depositValue()).toBeDisabled()
-    expect(saveButton()).toBeDisabled()
+    // Migration 097: a deposit not entered yet is TBC, the draft can still be saved; it is listed before sending.
+    expect(saveButton()).not.toBeDisabled()
+    expect(screen.getByTestId('quote-tbc-list')).toHaveTextContent('Deposit')
     expect(screen.getByTestId('quote-total')).toHaveTextContent(formatMinor(50000, 'eur'))
     expect(screen.getByTestId('quote-deposit')).toHaveTextContent('-')
 
     fireEvent.change(depositKind(), { target: { value: 'percent' } })
     expect(depositValue().value).toBe('')
-    expect(saveButton()).toBeDisabled()
+    expect(saveButton()).not.toBeDisabled()
 
     fireEvent.change(depositValue(), { target: { value: '0' } })
     expect(screen.getByText('The deposit cannot be 0.')).toBeInTheDocument()
@@ -376,7 +378,7 @@ describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13
     expect(saveButton()).not.toBeDisabled()
   })
 
-  it('the remainder method must be chosen; Invoice shows the billing fields', async () => {
+  it('the remainder method is TBC until chosen (the draft saves without it); Invoice shows the billing fields', async () => {
     await renderPage(freshQuote())
     fireEvent.change(depositKind(), { target: { value: 'percent' } })
     fireEvent.change(depositValue(), { target: { value: '30' } })
@@ -387,9 +389,10 @@ describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13
     expect(screen.getByLabelText(/^Invoice/)).not.toBeChecked()
     expect(screen.queryByTestId('quote-billing')).toBeNull()
 
+    expect(screen.getByTestId('quote-tbc-list')).toHaveTextContent('How the remainder is paid')
     fireEvent.click(saveButton())
-    expect(await screen.findByText('Choose how the remainder is paid.')).toBeInTheDocument()
-    expect(patches()).toHaveLength(0)
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({ remainder_method: null })
 
     fireEvent.click(screen.getByLabelText(/^Invoice/))
     const billing = screen.getByTestId('quote-billing')

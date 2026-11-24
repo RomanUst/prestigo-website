@@ -118,12 +118,24 @@ const buttonStyle: CSSProperties = {
 const selectStyle: CSSProperties = { ...inputBaseStyle, fontWeight: 400 }
 const fieldInputStyle: CSSProperties = { ...inputBaseStyle, fontWeight: 400 }
 
-function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) {
+/** The "TBC" mark of a field the quote still needs before it can be sent (migration 097); outside the label text. */
+function TbcMark() {
+  return (
+    <span data-testid="quote-tbc-mark" style={{ ...labelStyle, display: 'inline', marginLeft: '6px', color: 'var(--status-warn-fg, var(--admin-accent))' }}>
+      TBC
+    </span>
+  )
+}
+
+function Field({ label, htmlFor, tbc = false, children }: { label: string; htmlFor: string; tbc?: boolean; children: ReactNode }) {
   return (
     <div>
-      <label htmlFor={htmlFor} style={labelStyle}>
-        {label}
-      </label>
+      <div style={{ display: 'flex', alignItems: 'baseline' }}>
+        <label htmlFor={htmlFor} style={labelStyle}>
+          {label}
+        </label>
+        {tbc ? <TbcMark /> : null}
+      </div>
       {children}
     </div>
   )
@@ -216,7 +228,7 @@ function ReadOnlyLine({
       <dl style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <ReadOnlyRow label="Trip type">{TRIP_TYPE_LABEL[line.trip_type]}</ReadOnlyRow>
         {line.trip_type === 'tour' ? <ReadOnlyRow label="Tour title">{line.title || '-'}</ReadOnlyRow> : null}
-        <ReadOnlyRow label="Pickup">{`${line.pickup_date} ${line.pickup_time}`}</ReadOnlyRow>
+        <ReadOnlyRow label="Pickup">{`${line.pickup_date || 'TBC'} ${line.pickup_time || 'TBC'}`}</ReadOnlyRow>
         {line.landing ? (
           <ReadOnlyRow label="Flight landing">
             {`${line.landing.date} ${line.landing.time}, pickup ${line.landing.offset_min} min after landing`}
@@ -413,7 +425,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
 
       <section aria-label="Pickup" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {tour ? (
-          <Field label="Tour title (shown to the client)" htmlFor={id('title')}>
+          <Field label={'Tour title (shown to the client)'} tbc={line.title.trim() === ''} htmlFor={id('title')}>
             <input
               id={id('title')}
               type="text"
@@ -450,7 +462,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
             </div>
           ) : (
             <>
-              <Field label="Pickup date" htmlFor={id('date')}>
+              <Field label={'Pickup date'} tbc={!line.pickup_date} htmlFor={id('date')}>
                 <input
                   id={id('date')}
                   type="date"
@@ -460,7 +472,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
                   {...focusRingHandlers}
                 />
               </Field>
-              <Field label="Pickup time" htmlFor={id('time')}>
+              <Field label={'Pickup time'} tbc={!line.pickup_time} htmlFor={id('time')}>
                 <input
                   id={id('time')}
                   type="time"
@@ -473,14 +485,14 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
             </>
           )}
           {line.trip_type === 'hourly' || tour ? (
-            <Field label={tour ? 'Hours of service' : 'Hours'} htmlFor={id('hours')}>
+            <Field label={tour ? 'Hours of service' : 'Hours'} tbc={line.hours == null} htmlFor={id('hours')}>
               <select
                 id={id('hours')}
                 value={line.hours ?? ''}
                 onChange={(e) => commit({ ...line, hours: e.target.value === '' ? null : Number(e.target.value) })}
                 style={selectStyle}
               >
-                <option value="">Select</option>
+                <option value="">TBC</option>
                 {HOUR_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {n}
@@ -490,7 +502,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
             </Field>
           ) : null}
           {line.trip_type === 'daily' ? (
-            <Field label="Return date" htmlFor={id('return')}>
+            <Field label={'Return date'} tbc={!line.return_date} htmlFor={id('return')}>
               <input
                 id={id('return')}
                 type="date"
@@ -505,6 +517,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
       </section>
 
       <section aria-label="Route" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {!line.origin?.address ? <TbcMark /> : null}
         <AddressInput
           label="Pickup address"
           placeholder="Start typing an address…"
@@ -577,6 +590,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
           </div>
         ) : null}
 
+        {transfer && !line.destination?.address ? <TbcMark /> : null}
         {transfer || tour ? (
           <AddressInput
             label={tour ? 'Drop-off address (optional)' : 'Destination address'}
@@ -707,6 +721,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
           <Field label="Flight number" htmlFor={id('flight')}>
             <input
               id={id('flight')}
+              placeholder="TBC"
               type="text"
               maxLength={20}
               value={line.flight_number}
@@ -718,6 +733,7 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
           <Field label="Terminal" htmlFor={id('terminal')}>
             <input
               id={id('terminal')}
+              placeholder="TBC"
               type="text"
               maxLength={20}
               value={line.terminal}
@@ -773,9 +789,10 @@ export function QuoteLineEditor({ line, index, total, currency, readOnly, onChan
       <section aria-label="Price" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
           <div style={{ minWidth: '180px', flex: 1 }}>
-            <Field label={`Amount (${currencyLabel})`} htmlFor={id('amount')}>
+            <Field label={`Amount (${currencyLabel})`} tbc={line.amountInput.trim() === ''} htmlFor={id('amount')}>
               <input
                 id={id('amount')}
+                placeholder="TBC"
                 type="text"
                 inputMode="decimal"
                 autoComplete="off"

@@ -92,10 +92,22 @@ const lineShape = {
   extra_luggage: z.boolean().default(false),
 }
 
+/**
+ * The same fields as a DRAFT line takes them (migration 097, owner request 2026-11-24): a quote is created first so no
+ * data is lost and filled in later, so the pickup date, time and address may still be unknown (null = TBC). The send
+ * (lib/quotes/lifecycle.ts, and the version guard in the database) refuses a version whose lines are not complete.
+ */
+const draftLineShape = {
+  ...lineShape,
+  pickup_date: dateString.nullish(),
+  pickup_time: timeString.nullish(),
+  origin: place.nullish(),
+}
+
 type LineCheckInput = {
   trip_type: QuoteLineTripType
-  pickup_date: string
-  pickup_time: string
+  pickup_date?: string | null
+  pickup_time?: string | null
   destination?: unknown
   stops: unknown[]
   landing?: { date: string; time: string; offset_min: number } | null
@@ -104,30 +116,38 @@ type LineCheckInput = {
   title?: string | null
 }
 
-/** The rules that tie the fields of one line together (each is a shape error: 400). */
-function checkLine(line: LineCheckInput, ctx: z.RefinementCtx): void {
+/**
+ * The rules that tie the fields of one line together (each is a shape error: 400). A field that belongs to another trip
+ * type is always refused. What a trip type NEEDS (a destination, hours, a return date, a title) is checked only when
+ * `complete` is set: the price suggestion needs it, a draft may still leave it TBC (it is a send rule then, see
+ * lineMissingFields).
+ */
+function checkLine(line: LineCheckInput, ctx: z.RefinementCtx, complete: boolean): void {
   const issue = (path: string, message: string) => ctx.addIssue({ code: 'custom', path: [path], message })
+  const need = (path: string, message: string) => {
+    if (complete) issue(path, message)
+  }
 
   if (line.trip_type === 'tour') {
     // A custom private tour: the operator's headline and the hours of service; the drop-off address is optional.
-    if (line.title == null || line.title.trim() === '') issue('title', 'A tour needs a title')
-    if (line.hours == null) issue('hours', 'A tour needs its hours of service')
+    if (line.title == null || line.title.trim() === '') need('title', 'A tour needs a title')
+    if (line.hours == null) need('hours', 'A tour needs its hours of service')
     if (line.stops.length > 0) issue('stops', 'Stops belong to a transfer')
     if (line.landing != null) issue('landing', 'A landing belongs to a transfer')
     if (line.return_date != null) issue('return_date', 'A return date belongs to a daily trip')
   } else if (line.trip_type === 'transfer') {
-    if (!line.destination) issue('destination', 'A transfer needs a destination')
+    if (!line.destination) need('destination', 'A transfer needs a destination')
     if (line.hours != null) issue('hours', 'Hours belong to an hourly trip')
     if (line.return_date != null) issue('return_date', 'A return date belongs to a daily trip')
   } else {
     if (line.stops.length > 0) issue('stops', 'Stops belong to a transfer')
     if (line.landing != null) issue('landing', 'A landing belongs to a transfer')
     if (line.trip_type === 'hourly') {
-      if (line.hours == null) issue('hours', 'An hourly trip needs hours')
+      if (line.hours == null) need('hours', 'An hourly trip needs hours')
       if (line.return_date != null) issue('return_date', 'A return date belongs to a daily trip')
     } else {
-      if (!line.return_date) issue('return_date', 'A daily trip needs a return date')
-      else if (line.return_date <= line.pickup_date) issue('return_date', 'The return date is after the pickup date')
+      if (!line.return_date) need('return_date', 'A daily trip needs a return date')
+      else if (line.pickup_date && line.return_date <= line.pickup_date) issue('return_date', 'The return date is after the pickup date')
       if (line.hours != null) issue('hours', 'Hours belong to an hourly trip')
     }
   }
@@ -137,24 +157,25 @@ function checkLine(line: LineCheckInput, ctx: z.RefinementCtx): void {
   if (line.landing) {
     const derived = pickupFromLanding(line.landing.date, line.landing.time, line.landing.offset_min)
     if (!derived) issue('landing', 'Invalid landing time')
-    else if (derived.pickupDate !== line.pickup_date || derived.pickupTime !== line.pickup_time) {
+    else if ((complete || line.pickup_date || line.pickup_time) && (derived.pickupDate !== line.pickup_date || derived.pickupTime !== line.pickup_time)) {
       issue('pickup_time', 'The pickup does not match the landing time')
     }
   }
 }
 
-const baseLineSchema = z.strictObject(lineShape)
+/** A line without an amount: the body of the price suggestion. Every field the price depends on is required. */
+export const quotePriceLineSchema = z.strictObject(lineShape).superRefine((line, ctx) => checkLine(line, ctx, true))
 
-/** A line without an amount: the body of the price suggestion. */
-export const quotePriceLineSchema = baseLineSchema.superRefine(checkLine)
-
-/** A line of a draft: the same fields plus the operator's amount (positive whole minor units). */
+/**
+ * A line of a draft: the draft fields plus the operator's amount (positive whole minor units, or null while the price
+ * is TBC).
+ */
 export const quoteLineSchema = z
   .strictObject({
-    ...lineShape,
-    amount_minor: z.number().int().min(1).max(QUOTE_LINE_AMOUNT_CEILING_MINOR),
+    ...draftLineShape,
+    amount_minor: z.number().int().min(1).max(QUOTE_LINE_AMOUNT_CEILING_MINOR).nullable(),
   })
-  .superRefine(checkLine)
+  .superRefine((line, ctx) => checkLine(line, ctx, false))
 
 export type QuoteLinePayload = z.infer<typeof quoteLineSchema>
 export type QuotePriceLinePayload = z.infer<typeof quotePriceLineSchema>
