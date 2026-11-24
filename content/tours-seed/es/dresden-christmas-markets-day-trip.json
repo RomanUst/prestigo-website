@@ -52,7 +52,7 @@
   ],
   "excludes": [
     "Comida, bebida y compras en los mercados",
-    "La entrada al mercado medieval del Stallhof y a los museos",
+    "Las entradas, por ejemplo al mercado medieval del Stallhof o a los museos",
     "Un guía o una visita guiada: su chófer conduce y espera, pero no es guía",
     "Horas extra más allá de su reserva, salvo que las añada al reservar"
   ],
@@ -61,7 +61,7 @@
   "faq": [
     {
       "q": "¿Cuándo se puede reservar esta excursión?",
-      "a": "Solo durante la temporada de mercados de Navidad, desde finales de noviembre hasta poco antes de Navidad. El calendario de reservas muestra únicamente las fechas de ese periodo. Fuera de temporada, nuestra excursión habitual de un día a Dresde funciona todo el año."
+      "a": "Solo durante la temporada de mercados de Navidad, desde finales de noviembre hasta poco antes de Navidad. El calendario de reservas muestra únicamente las fechas de ese periodo. Fuera de temporada, nuestra excursión habitual de un día a Dresde se ofrece todo el año."
     },
     {
       "q": "¿A qué hora conviene salir de Praga?",
@@ -84,6 +84,6 @@
       "a": "Sí, lleve el pasaporte o el documento nacional de identidad. Ambos países forman parte del espacio Schengen y normalmente no hay control en la frontera, pero la policía puede pedir documentos."
     }
   ],
-  "seo_title": "Mercados de Navidad de Dresde desde Praga: coche privado y chófer",
-  "seo_description": "Excursión privada de un día de Praga a los mercados de Navidad de Dresde: el Striezelmarkt, el Stollen y el casco antiguo iluminado de noche, con su propio chófer de puerta a puerta."
+  "seo_title": "Mercados de Navidad de Dresde desde Praga con chófer privado",
+  "seo_description": "Excursión privada de Praga a los mercados de Navidad de Dresde: el Striezelmarkt, el Stollen y el casco antiguo iluminado, con su propio chófer."
 }
