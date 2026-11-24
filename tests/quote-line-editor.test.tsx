@@ -255,9 +255,14 @@ describe('quoteDraft payload mappers', () => {
     expect(keys).not.toContain('suggested_amount_minor')
   })
 
-  it('lineToPayload sends 0 for an empty or invalid amount so the server refuses it', () => {
-    expect(lineToPayload({ ...pricedLine(), amountInput: '' }, 'eur').amount_minor).toBe(0)
-    expect(lineToPayload({ ...pricedLine(), amountInput: '12.345' }, 'eur').amount_minor).toBe(0)
+  it('lineToPayload sends null for an empty amount (TBC, migration 097); an invalid one is blocked before saving', () => {
+    expect(lineToPayload({ ...pricedLine(), amountInput: '' }, 'eur').amount_minor).toBeNull()
+    expect(lineToPayload({ ...pricedLine(), amountInput: '12.345' }, 'eur').amount_minor).toBeNull()
+  })
+
+  it('lineToPayload sends every field not filled in yet as null (TBC)', () => {
+    const payload = lineToPayload({ ...pricedLine(), pickup_date: '', pickup_time: '', origin: null, destination: null }, 'eur')
+    expect(payload).toMatchObject({ pickup_date: null, pickup_time: null, origin: null, destination: null })
   })
 
   it('lineToPriceRequest carries no amount', () => {
@@ -537,5 +542,25 @@ describe('quick task quote-tour-line: the Tour trip type and the client descript
     expect(screen.getByText('Hours of service')).toBeInTheDocument()
     expect(screen.getByText('Hotel Paris, Prague')).toBeInTheDocument()
     expect(screen.getByText(/Castle tour/)).toHaveTextContent('Castle tour Lunch not included')
+  })
+})
+
+describe('QuoteLineEditor: TBC marks (migration 097)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', vi.fn())
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('marks every field a transfer still needs as TBC and drops the mark as each is filled in', () => {
+    render(<Harness />)
+    // pickup date, pickup time, pickup address, destination, amount
+    expect(screen.getAllByTestId('quote-tbc-mark')).toHaveLength(5)
+    fireEvent.change(screen.getByLabelText('Pickup date'), { target: { value: '2027-03-10' } })
+    fireEvent.change(screen.getByLabelText('Pickup time'), { target: { value: '09:30' } })
+    expect(screen.getAllByTestId('quote-tbc-mark')).toHaveLength(3)
+    fireEvent.change(screen.getByLabelText(/Amount \(EUR\)/), { target: { value: '120' } })
+    expect(screen.getAllByTestId('quote-tbc-mark')).toHaveLength(2)
   })
 })

@@ -57,8 +57,8 @@ export function renderQuoteAccountingEmail(input: {
     .sort((a, b) => a.position - b.position)
     .map(
       (l) =>
-        `<tr><td style="${CELL}">${l.position}</td><td style="${CELL}">${escapeHtml(l.pickup_date)} ${escapeHtml(l.pickup_time.slice(0, 5))}</td>` +
-        `<td style="${CELL}">${escapeHtml(l.origin_address)}${l.destination_address ? ` &rarr; ${escapeHtml(l.destination_address)}` : ''}</td>` +
+        `<tr><td style="${CELL}">${l.position}</td><td style="${CELL}">${escapeHtml(l.pickup_date ?? '')} ${escapeHtml((l.pickup_time ?? '').slice(0, 5))}</td>` +
+        `<td style="${CELL}">${escapeHtml(l.origin_address ?? '')}${l.destination_address ? ` &rarr; ${escapeHtml(l.destination_address)}` : ''}</td>` +
         `<td style="${CELL}">${money(l.amount_minor)}</td><td style="${CELL}">${money(l.deposit_share_minor)}</td><td style="${CELL}">${money(l.remainder_minor)}</td></tr>`,
     )
     .join('')

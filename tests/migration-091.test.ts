@@ -465,6 +465,8 @@ describe('fake DB mirrors the quote tables', () => {
     pickup_date: '2026-12-01',
     pickup_time: '10:00',
     origin_address: 'Vaclav Havel Airport Prague',
+    // Migration 097: a transfer freezes only with its destination (the version guard checks every line is complete).
+    destination_address: 'Wenceslas Square, Prague',
     vehicle_class: 'business',
     passengers: 2,
     amount_minor: 9000,

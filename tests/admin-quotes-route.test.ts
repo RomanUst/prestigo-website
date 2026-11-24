@@ -367,17 +367,41 @@ describe('guards run in order: body cap, admin session, id, JSON, strict schema'
     expect(computeRouteDistanceMock).not.toHaveBeenCalled()
   })
 
-  it('the fields of a line must fit its trip type: no destination, hours on a transfer, stops on an hourly trip are 400', async () => {
+  it('the fields of a line must fit its trip type: hours on a transfer, stops on an hourly trip are 400', async () => {
     const id = await createQuote()
-    expect((await patch(id, { lines: [lineBody({ destination: null })] })).status).toBe(400)
     expect((await patch(id, { lines: [lineBody({ hours: 3 })] })).status).toBe(400)
-    expect((await patch(id, { lines: [lineBody({ trip_type: 'hourly', destination: null, hours: null, stops: [] })] })).status).toBe(400)
     expect((await patch(id, { lines: [lineBody({ trip_type: 'hourly', destination: null, hours: 3 })] })).status).toBe(400)
     expect((await patch(id, { lines: [lineBody({ trip_type: 'daily', destination: null, stops: [], return_date: '2027-05-10' })] })).status).toBe(400)
     expect((await patch(id, { lines: [lineBody({ pickup_date: '2027-02-31' })] })).status).toBe(400)
     expect((await patch(id, { lines: [lineBody({ amount_minor: 0 })] })).status).toBe(400)
     expect((await patch(id, { lines: [lineBody({ amount_minor: 10.5 })] })).status).toBe(400)
     expect((await patch(id, { lines: [lineBody({ origin: { ...PRAGUE, address: 'A\nB' } })] })).status).toBe(400)
+  })
+
+  it('migration 097: a draft line may leave its date, time, addresses, price and type fields TBC (null); it is stored unpriced', async () => {
+    const id = await createQuote()
+    const tbc = lineBody({
+      pickup_date: null,
+      pickup_time: null,
+      origin: null,
+      destination: null,
+      stops: [],
+      amount_minor: null,
+    })
+    const res = await patch(id, { lines: [tbc, lineBody({ trip_type: 'hourly', destination: null, hours: null, stops: [] })] })
+    expect(res.status).toBe(200)
+    const [first, second] = linesOf(versionsOf(id)[0].id)
+    expect(first).toMatchObject({
+      pickup_date: null,
+      pickup_time: null,
+      origin_address: null,
+      destination_address: null,
+      amount_minor: null,
+      distance_km: null,
+      suggested_amount_minor: null,
+      deposit_share_minor: null,
+    })
+    expect(second).toMatchObject({ trip_type: 'hourly', hours: null, suggested_amount_minor: null })
   })
 
   it('a landing must give the pickup: landing + offset in Prague time', async () => {
@@ -843,11 +867,9 @@ describe('quick task quote-tour-line (migration 096): tour lines and client desc
     expect(linesOf(versionsOf(id)[0].id)[0]).toMatchObject({ description: 'Meet at gate 2\nWater on board', title: null })
   })
 
-  it('refuses a tour without a title or without hours, and a tour with stops or a landing (400)', async () => {
+  it('refuses an empty-string title, 25 hours, and a tour with stops or a landing (400); a missing title or hours is TBC', async () => {
     const id = await createQuote()
-    expect((await patch(id, { lines: [tourBody({ title: null })] })).status).toBe(400)
-    expect((await patch(id, { lines: [tourBody({ title: '   ' })] })).status).toBe(400)
-    expect((await patch(id, { lines: [tourBody({ hours: null })] })).status).toBe(400)
+    expect((await patch(id, { lines: [tourBody({ title: '' })] })).status).toBe(400)
     expect((await patch(id, { lines: [tourBody({ hours: 25 })] })).status).toBe(400)
     expect((await patch(id, { lines: [tourBody({ stops: [{ ...BRNO, wait_minutes: 0 }] })] })).status).toBe(400)
     expect(

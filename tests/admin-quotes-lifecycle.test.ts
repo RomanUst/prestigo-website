@@ -348,6 +348,32 @@ describe('refusals before anything is written', () => {
     expect(await (await send(id2)).json()).toMatchObject({ code: 'money_invalid', reason: 'remainder_method_missing' })
   })
 
+  it('migration 097: a draft with TBC fields -> 422 incomplete naming the trips and fields, nothing frozen, no email', async () => {
+    const id = await draftQuote()
+    const lines = linesOf(versionsOf(id)[0].id)
+    lines[0].pickup_time = null
+    lines[0].amount_minor = null
+    lines[1].origin_address = null
+    const res = await send(id)
+    expect(res.status).toBe(422)
+    expect(await res.json()).toMatchObject({
+      error: 'action_not_allowed',
+      code: 'incomplete',
+      reason: `${lines[0].position}:pickup_time,amount;${lines[1].position}:origin`,
+    })
+    expect(versionsOf(id)[0].frozen_at).toBeNull()
+    expect(quoteRow(id).status).toBe('draft')
+    expect(mockResendSend).not.toHaveBeenCalled()
+  })
+
+  it('migration 097: the database guard refuses to freeze a version with an incomplete line', async () => {
+    const id = await draftQuote()
+    const version = versionsOf(id)[0]
+    linesOf(version.id)[0].pickup_date = null
+    const { error } = await db.client.from('quote_versions').update({ frozen_at: new Date().toISOString() }).eq('id', version.id)
+    expect(error?.message).toContain('quote_lines_incomplete')
+  })
+
   it('a transfer line without a server distance -> 422 distance_missing', async () => {
     const id = await draftQuote()
     linesOf(versionsOf(id)[0].id)[1].distance_km = null

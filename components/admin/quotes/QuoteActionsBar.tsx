@@ -14,6 +14,8 @@ import { LOCALE_ENDONYMS } from '@/i18n/locales'
 import { STARTED_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
 import { remainderDueMinor } from '@/lib/quotes/money'
+import { MISSING_FIELD_LABEL, type QuoteLineRequiredField } from '@/lib/quotes/completeness'
+import { draftFromDetail, sendBlockers } from '@/components/admin/quotes/quoteDraft'
 import type { QuoteDetail } from '@/lib/quotes/store'
 
 // The lifecycle controls of a quote (Phase 92, plan 92-25; QUOTE-01, QUOTE-02, QUOTE-06; D-02). Mounted by QuoteBuilder, which
@@ -62,6 +64,7 @@ const MONEY_REASON_TEXT: Record<string, string> = {
   terms_invalid: 'The cancellation terms are out of range. Correct them and save before sending.',
   no_lines: 'Add at least one trip before sending.',
   amount_invalid: 'Every trip needs an amount greater than 0.',
+  lines_incomplete: 'Some trips still have TBC fields. Fill them in, save, then send.',
   deposit_zero: 'The deposit cannot be 0.',
   deposit_above_total: 'The deposit is more than the total of the trips.',
   deposit_below_minimum: 'The deposit is below the smallest amount a card can be charged.',
@@ -77,6 +80,24 @@ const SEND_CODE_TEXT: Record<string, string> = {
   distance_missing: 'A transfer has no distance. Choose its pickup and destination again, save, then send.',
 }
 
+/** "1:pickup_time,amount;3:origin" (the reason of a 422 incomplete) as one plain sentence. */
+export function incompleteText(reason: string): string {
+  const trips = reason
+    .split(';')
+    .map((part) => {
+      const [position, fields] = part.split(':')
+      const labels = (fields ?? '')
+        .split(',')
+        .map((f) => MISSING_FIELD_LABEL[f as QuoteLineRequiredField])
+        .filter(Boolean)
+      return position && labels.length > 0 ? `trip ${position}: ${labels.join(', ')}` : null
+    })
+    .filter((t): t is string => t !== null)
+  return trips.length > 0
+    ? `These fields are still TBC. Fill them in, save, then send (${trips.join('; ')}).`
+    : 'Some trips still have TBC fields. Fill them in, save, then send.'
+}
+
 function sendRefusalText(answer: Answer): string {
   const { status, body } = answer
   if (status === 401 || status === 403) return COPY_SESSION
@@ -85,6 +106,10 @@ function sendRefusalText(answer: Answer): string {
   if (status === 400 || status === 413) return COPY_BAD_REQUEST
   if (status === 422) {
     const code = typeof body?.code === 'string' ? body.code : ''
+    if (code === 'incomplete') {
+      const reason = typeof body?.reason === 'string' ? body.reason : ''
+      return incompleteText(reason)
+    }
     if (code === 'money_invalid') {
       const reason = typeof body?.reason === 'string' ? body.reason : ''
       return MONEY_REASON_TEXT[reason] ?? 'The deposit or the amounts are not valid. Check them, save, then send.'
@@ -460,6 +485,8 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
   })()
 
   const canSend = status === 'draft'
+  // Migration 097: a draft may be saved with TBC fields; Send waits until the SAVED version is complete.
+  const stillTbc = canSend ? sendBlockers(draftFromDetail(detail)) : []
   const canLink = ['sent', 'viewed', 'accepted', 'expired', 'paid'].includes(status)
   const canResend = ['sent', 'viewed', 'accepted', 'expired'].includes(status)
   const canRevise = canResend
@@ -536,13 +563,20 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
         {canSend && (
           <div>
-            <ActionButton testId="quote-action-send" onClick={() => setDialog('send')} disabled={unsavedChanges || busyNow} primary>
+            <ActionButton
+              testId="quote-action-send"
+              onClick={() => setDialog('send')}
+              disabled={unsavedChanges || busyNow || stillTbc.length > 0}
+              primary
+            >
               <Send size={14} aria-hidden="true" /> Send
             </ActionButton>
-            <p style={effectStyle}>
+            <p style={effectStyle} data-testid="quote-send-hint">
               {unsavedChanges
                 ? 'You have unsaved changes. Save the quote first: Send uses the saved version.'
-                : 'Freezes this version, emails the client in their language and gives you the secret link.'}
+                : stillTbc.length > 0
+                  ? `Still TBC before sending: ${stillTbc.join('; ')}.`
+                  : 'Freezes this version, emails the client in their language and gives you the secret link.'}
             </p>
           </div>
         )}

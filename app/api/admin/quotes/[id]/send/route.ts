@@ -12,8 +12,9 @@ import { sendQuote } from '@/lib/quotes/lifecycle'
 //     resend: true on a sent, viewed, accepted or paid quote mints one more link and sends the email again.
 //   -> 200 { status, url, emailed }   the URL is in this response and the email only: it cannot be shown again
 //      | 400 invalid | 404 | 409 { error: 'busy' } | 413
-//      | 422 { error: 'action_not_allowed', code, reason }   code: not_sendable | first_pickup_passed | expired |
-//        money_invalid | distance_missing (reason: the money rule, or the code itself)
+//      | 422 { error: 'action_not_allowed', code, reason }   code: not_sendable | incomplete | first_pickup_passed |
+//        expired | money_invalid | distance_missing (reason: the money rule, the TBC fields as "1:pickup_time;2:amount",
+//        or the code itself)
 //
 // Guard order: enforceMaxBody -> admin session (401 / 403) -> await params -> id is a uuid (400) -> JSON (400, 413)
 // -> strict schema (400) -> engine. The response is never cached. Logs carry ids only: no token, no address.

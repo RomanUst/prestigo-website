@@ -12,6 +12,7 @@ import { depositMinorFor, validateVersionMoney } from '@/lib/quotes/money'
 import type { QuoteDraftPayload, QuoteLinePayload, QuotePriceLinePayload } from '@/lib/quotes/schemas'
 import type { QuoteDetail } from '@/lib/quotes/store'
 import type { QuoteLineRow, QuoteStopRow } from '@/lib/quotes/types'
+import { lineMissingFields, MISSING_FIELD_LABEL, type QuoteLineRequiredField } from '@/lib/quotes/completeness'
 import {
   QUOTE_LINE_DESCRIPTION_MAX,
   QUOTE_MAX_LINES,
@@ -185,17 +186,38 @@ export function lineToPriceRequest(line: QuoteLineDraft): QuotePriceLinePayload 
 }
 
 /**
- * One line of the draft save. `amount_minor` comes from the operator's text by parseAmountToMinor; an empty or invalid
- * amount becomes 0, which the server refuses (amount_minor is at least 1), so it can never be saved by accident. There
- * is no distance and no suggestion key (T-92-48).
+ * One line of the draft save. Every field the operator has not filled in yet is sent as null (TBC, migration 097): the
+ * pickup date, time and address, the fields of the trip type and the price. `amount_minor` comes from the operator's
+ * text by parseAmountToMinor; empty is null (TBC), a typed text that is not a valid amount is refused before saving
+ * (saveProblems). There is no distance and no suggestion key (T-92-48).
  */
 export function lineToPayload(line: QuoteLineDraft, currency: QuoteCurrency): QuoteLinePayload {
+  const request = lineToPriceRequest(line)
   return {
-    ...lineToPriceRequest(line),
+    ...request,
+    pickup_date: line.pickup_date || null,
+    pickup_time: line.pickup_time || null,
+    origin: line.origin?.address ? request.origin : null,
+    destination: request.destination && request.destination.address ? request.destination : null,
     title: line.trip_type === 'tour' ? trimmedOrNull(line.title) : null,
     description: trimmedOrNull(line.description),
-    amount_minor: lineAmountMinor(line, currency) ?? 0,
+    amount_minor: lineAmountMinor(line, currency),
   }
+}
+
+/** What this draft line still misses before the quote can be sent (shown as TBC). */
+export function lineTbcFields(line: QuoteLineDraft, currency: QuoteCurrency): QuoteLineRequiredField[] {
+  return lineMissingFields({
+    trip_type: line.trip_type,
+    pickup_date: line.pickup_date,
+    pickup_time: line.pickup_time,
+    origin: line.origin?.address ?? null,
+    destination: line.destination?.address ?? null,
+    hours: line.hours,
+    return_date: line.return_date,
+    title: line.title,
+    amount: lineAmountMinor(line, currency),
+  })
 }
 
 const clock = (value: string | null | undefined): string => (typeof value === 'string' ? value.slice(0, 5) : '')
@@ -215,7 +237,7 @@ export function lineFromDetail(
   return {
     key: row.id || newKey('line'),
     trip_type: row.trip_type,
-    pickup_date: row.pickup_date,
+    pickup_date: row.pickup_date ?? '',
     pickup_time: clock(row.pickup_time),
     origin: placeOf(row.origin_address, row.origin_lat, row.origin_lng),
     destination: placeOf(row.destination_address, row.destination_lat, row.destination_lng),
@@ -242,7 +264,7 @@ export function lineFromDetail(
     extra_child_seat: row.extra_child_seat,
     extra_meet_greet: row.extra_meet_greet,
     extra_luggage: row.extra_luggage,
-    amountInput: minorToInput(Number(row.amount_minor), CURRENCY_DECIMALS[currency]),
+    amountInput: row.amount_minor == null ? '' : minorToInput(Number(row.amount_minor), CURRENCY_DECIMALS[currency]),
     suggestedMinor: row.suggested_amount_minor === null ? null : Number(row.suggested_amount_minor),
     distanceKm: row.distance_km === null ? null : Number(row.distance_km),
   }
@@ -351,8 +373,17 @@ export function draftTotals(draft: QuoteDraft): DraftTotals {
   }
 }
 
-/** The inline sentence of a deposit that cannot be saved, or null when it can. */
+/** True while the operator has not entered a deposit yet (no value typed): a draft may be saved so, not sent. */
+export function depositUnset(draft: QuoteDraft): boolean {
+  return draft.deposit.valueInput.trim() === ''
+}
+
+/**
+ * The inline sentence of a deposit that cannot be saved, or null when it can. A deposit not entered yet is not a
+ * problem for a save (the draft keeps it empty); it is one of the things to fill in before sending (sendBlockers).
+ */
 export function depositProblem(draft: QuoteDraft): string | null {
+  if (depositUnset(draft)) return null
   const parsed = parseDeposit(draft.deposit, draft.currency)
   if (!parsed.ok) {
     switch (parsed.reason) {
@@ -392,34 +423,49 @@ export function termsProblems(draft: QuoteDraft): { hours: string | null; fee: s
   return { hours, fee }
 }
 
-/** One short sentence per problem that would make the server refuse the save with a bare 400 or 422. Empty = ready. */
+/**
+ * One short sentence per problem that would make the server refuse the SAVE. Empty = it can be saved. A field that is
+ * simply not filled in yet is not a problem here: the draft keeps it as TBC (migration 097, owner request 2026-11-24:
+ * a quote is created first so no data is lost, then completed). Only a value that is typed but not valid blocks.
+ */
 export function draftProblems(draft: QuoteDraft): string[] {
   const out: string[] = []
   if (draft.lines.length === 0) out.push('Add at least one trip.')
   if (draft.lines.length > QUOTE_MAX_LINES) out.push(`A quote has at most ${QUOTE_MAX_LINES} trips.`)
   draft.lines.forEach((line, i) => {
     const n = i + 1
-    if (lineAmountMinor(line, draft.currency) === null) out.push(`Trip ${n}: enter an amount greater than 0.`)
-    if (!line.pickup_date) out.push(`Trip ${n}: choose the pickup date.`)
-    if (!line.pickup_time) out.push(`Trip ${n}: choose the pickup time.`)
-    if (!line.origin?.address) out.push(`Trip ${n}: choose the pickup address.`)
-    if (line.trip_type === 'transfer' && !line.destination?.address) out.push(`Trip ${n}: choose the destination.`)
+    if (line.amountInput.trim() !== '' && lineAmountMinor(line, draft.currency) === null) {
+      out.push(`Trip ${n}: the price is not a valid amount greater than 0 (leave it empty if it is TBC).`)
+    }
     if (line.stops.some((s) => !s.address)) out.push(`Trip ${n}: choose an address for every stop or remove the stop.`)
-    if (line.trip_type === 'hourly' && !line.hours) out.push(`Trip ${n}: choose the number of hours.`)
-    if (line.trip_type === 'daily' && !line.return_date) out.push(`Trip ${n}: choose the return date.`)
-    if (line.trip_type === 'tour' && !line.title.trim()) out.push(`Trip ${n}: enter the tour title.`)
-    if (line.trip_type === 'tour' && !line.hours) out.push(`Trip ${n}: choose the hours of service.`)
+    if (line.trip_type === 'daily' && line.pickup_date && line.return_date && line.return_date <= line.pickup_date) {
+      out.push(`Trip ${n}: the return date must be after the pickup date.`)
+    }
     if (line.description.length > QUOTE_LINE_DESCRIPTION_MAX) {
       out.push(`Trip ${n}: the description is longer than ${QUOTE_LINE_DESCRIPTION_MAX} characters.`)
     }
   })
   const deposit = depositProblem(draft)
   if (deposit) out.push(deposit)
-  if (draft.remainder_method === null) out.push('Choose how the remainder is paid.')
   const terms = termsProblems(draft)
   if (terms.hours) out.push(terms.hours)
   if (terms.fee) out.push(terms.fee)
   if (draft.expires_at && draft.expires_at < pragueDay(new Date().toISOString())) out.push('The expiry date is in the past.')
+  return out
+}
+
+/**
+ * What is still TBC before this draft can be sent: one sentence per trip with its missing fields, then the deposit and
+ * the remainder method when they are not chosen. Empty = complete. The server checks the same on send.
+ */
+export function sendBlockers(draft: QuoteDraft): string[] {
+  const out: string[] = []
+  draft.lines.forEach((line, i) => {
+    const missing = lineTbcFields(line, draft.currency)
+    if (missing.length > 0) out.push(`Trip ${i + 1}: ${missing.map((f) => MISSING_FIELD_LABEL[f]).join(', ')}`)
+  })
+  if (depositUnset(draft) || draft.deposit.kind === null) out.push('Deposit')
+  if (draft.remainder_method === null) out.push('How the remainder is paid')
   return out
 }
 
@@ -457,7 +503,7 @@ const numberOrNull = (text: string): number | null => (text.trim() === '' ? null
  * Billing is sent only for the invoice method. Call only when draftProblems is empty.
  */
 export function draftToPayload(draft: QuoteDraft, savedExpiry: string | null): QuoteDraftPayload {
-  const deposit = parseDeposit(draft.deposit, draft.currency)
+  const deposit = depositUnset(draft) ? ({ ok: false } as const) : parseDeposit(draft.deposit, draft.currency)
   const invoice = draft.remainder_method === 'invoice'
   const trimmed = (v: string): string => v.trim()
   return {
