@@ -205,6 +205,19 @@ describe('tour checkout: refusals before any database read', () => {
 })
 
 describe('tour checkout: refusals from the tour rows', () => {
+  it('answers 422 TOUR_UNAVAILABLE for a pickup date outside a seasonal window (migration 095)', async () => {
+    getTourMock.mockResolvedValue({
+      tour: { ...TOUR, bookable_from: futureDate(20), bookable_until: futureDate(40) },
+      enTitle: 'Dresden day trip',
+      settings: SETTINGS,
+    })
+    const err = expectError(await price(tourBody({ pickupDate: futureDate(10) })))
+    expect(err.status).toBe(422)
+    expect(err.code).toBe('TOUR_UNAVAILABLE')
+    const ok = await price(tourBody({ pickupDate: futureDate(25) }))
+    expect(ok.ok).toBe(true)
+  })
+
   it('answers 422 TOUR_UNAVAILABLE for an unknown, draft or unreadable tour', async () => {
     getTourMock.mockResolvedValue(null)
     const err = expectError(await price(tourBody()))

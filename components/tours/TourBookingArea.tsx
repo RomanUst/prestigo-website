@@ -17,7 +17,7 @@ import { parseTourCheckoutQuery, tourBoxStorageKey } from '@/lib/tours/checkout-
 
 export type TourBookingAreaProps = Pick<
   TourBookingBoxProps,
-  'slug' | 'title' | 'hoursIncluded' | 'prices' | 'extraHourPrices' | 'freeCancelHours'
+  'slug' | 'title' | 'hoursIncluded' | 'prices' | 'extraHourPrices' | 'freeCancelHours' | 'season'
 >
 
 type Restored = NonNullable<TourBookingBoxProps['initial']>

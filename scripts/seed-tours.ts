@@ -58,6 +58,8 @@ export interface TourWrite {
   start_time_min: string
   start_time_max: string
   destination_label: string
+  bookable_from?: string
+  bookable_until?: string
   price_e_eur: number | null
   price_s_eur: number | null
   price_v_eur: number | null

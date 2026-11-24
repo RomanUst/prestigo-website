@@ -1631,6 +1631,7 @@
       "lessTime": "Moins de temps supplémentaire",
       "moreTime": "Plus de temps supplémentaire",
       "errDate": "Choisissez une date.",
+      "seasonNote": "Disponible uniquement du {from} au {until}.",
       "errTime": "Choisissez une heure de départ.",
       "errCar": "Choisissez une voiture.",
       "cta": "Réserver cette excursion"

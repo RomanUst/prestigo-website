@@ -21,6 +21,7 @@ const ALLOWED_LICENSES = new Set([
   'CC BY-SA 2.0',
   'CC BY-SA 2.5',
   'CC BY-SA 3.0',
+  'CC BY-SA 3.0 de',
   'CC BY-SA 4.0',
   'Unsplash License',
 ])
@@ -32,6 +33,10 @@ const REQUIRED_SLUGS = [
   'dresden-day-trip',
   'karlstejn-day-trip',
   'bohemian-switzerland-day-trip',
+  'dresden-christmas-markets-day-trip',
+  'dresden-bastei-day-trip',
+  'pilsen-brewery-day-trip',
+  'cesky-krumlov-hluboka-day-trip',
   'terezin-day-trip',
 ]
 
@@ -58,19 +63,20 @@ describe('tour photo manifest', () => {
     expect(slugs.length).toBeGreaterThan(0)
   })
 
-  it('lists exactly the 6 launch tours', () => {
+  it('lists exactly the catalogue tours', () => {
     expect([...slugs].sort()).toEqual([...REQUIRED_SLUGS].sort())
   })
 
   describe.each(slugs)('%s', (slug) => {
     const entries = manifest.tours[slug]
 
-    it('has 4..8 entries and exactly one non-own cover', () => {
+    it('has 4..8 entries and exactly one cover that is not a car photo', () => {
       expect(entries.length).toBeGreaterThanOrEqual(4)
       expect(entries.length).toBeLessThanOrEqual(8)
       const covers = entries.filter((e) => e.cover)
       expect(covers).toHaveLength(1)
-      expect(covers[0].source).not.toBe('own')
+      // an own cover is a destination picture in public/tours/, never a vehicle photo
+      if (covers[0].source === 'own') expect(covers[0].local_path).toMatch(/^public\/tours\//)
     })
 
     it('has at least one own car photo', () => {
@@ -89,7 +95,7 @@ describe('tour photo manifest', () => {
       if (e.source === 'own') {
         expect(e.download_url).toBeNull()
         expect(e.local_path).toBeTruthy()
-        expect(e.local_path).toMatch(/^public\/vehicles\//)
+        expect(e.local_path).toMatch(/^public\/(vehicles|tours)\//)
         expect(fs.existsSync(path.join(ROOT, e.local_path as string))).toBe(true)
       } else {
         expect(e.local_path).toBeNull()
@@ -110,8 +116,12 @@ describe('tour photo manifest', () => {
     })
   })
 
-  it('never reuses a download_url', () => {
-    const urls = slugs.flatMap((s) => manifest.tours[s].map((e) => e.download_url).filter(Boolean))
-    expect(new Set(urls).size).toBe(urls.length)
+  it('never reuses a download_url within a tour, and never reuses another tour cover', () => {
+    for (const s of slugs) {
+      const urls = manifest.tours[s].map((e) => e.download_url).filter(Boolean)
+      expect(new Set(urls).size, s).toBe(urls.length)
+    }
+    const covers = slugs.map((s) => manifest.tours[s].find((e) => e.cover)!).map((e) => e.download_url ?? e.local_path)
+    expect(new Set(covers).size).toBe(covers.length)
   })
 })

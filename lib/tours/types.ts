@@ -42,6 +42,9 @@ export interface TourRow {
   price_s_eur: number | null
   price_v_eur: number | null
   destination_label: string
+  /** Seasonal tour window (migration 095): inclusive Prague pickup dates 'YYYY-MM-DD'; null = open-ended. */
+  bookable_from?: string | null
+  bookable_until?: string | null
   first_published_at: string | null
   created_at: string
   updated_at: string

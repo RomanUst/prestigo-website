@@ -25,6 +25,9 @@ export interface SeedTour {
   route_slug: string | null
   /** One-way road distance, the source of the estimate when route_slug is null. */
   distance_km_one_way: number
+  /** Seasonal window (migration 095), inclusive 'YYYY-MM-DD'; absent = all year. */
+  bookable_from?: string
+  bookable_until?: string
 }
 
 /** The text of one tour in one locale: the fields the admin edits (D-08). */
@@ -59,6 +62,8 @@ export interface SeedTourRow {
   start_time_min: string
   start_time_max: string
   destination_label: string
+  bookable_from?: string
+  bookable_until?: string
 }
 
 /** Row for public.tour_translations keyed by slug; the runner swaps the slug for the tour id after the tour insert. */
@@ -164,7 +169,20 @@ function parseTour(raw: unknown, i: number): SeedTour {
     destination_label: str(o, 'destination_label', where),
     route_slug: route,
     distance_km_one_way: num('distance_km_one_way'),
+    ...seasonOf(o, where),
   }
+}
+
+function seasonOf(o: Record<string, unknown>, where: string): Pick<SeedTour, 'bookable_from' | 'bookable_until'> {
+  const out: Pick<SeedTour, 'bookable_from' | 'bookable_until'> = {}
+  for (const key of ['bookable_from', 'bookable_until'] as const) {
+    const v = o[key]
+    if (v === undefined || v === null) continue
+    if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) fail(where, `"${key}" must be YYYY-MM-DD`)
+    out[key] = v
+  }
+  if (out.bookable_from && out.bookable_until && out.bookable_from > out.bookable_until) fail(where, 'bookable_from is after bookable_until')
+  return out
 }
 
 /** Reads the seed files under `<rootDir>/content/tours-seed`. Throws on malformed content so a bad file never reaches the database. */
@@ -249,6 +267,8 @@ export function buildSeedRows(seed: SeedData, opts: { locales: readonly AppLocal
     start_time_min: t.start_time_min,
     start_time_max: t.start_time_max,
     destination_label: t.destination_label,
+    ...(t.bookable_from ? { bookable_from: t.bookable_from } : {}),
+    ...(t.bookable_until ? { bookable_until: t.bookable_until } : {}),
   }))
 
   const translations: SeedTranslationRow[] = []

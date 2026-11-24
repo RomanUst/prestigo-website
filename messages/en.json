@@ -1581,6 +1581,7 @@
       "lessTime": "Less extra time",
       "moreTime": "More extra time",
       "errDate": "Choose a date.",
+      "seasonNote": "Available only from {from} to {until}.",
       "errTime": "Choose a start time.",
       "errCar": "Choose a car.",
       "cta": "Book this trip"

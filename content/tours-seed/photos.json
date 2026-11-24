@@ -509,6 +509,278 @@
         "cover": false,
         "alt_hint": "Mercedes S-Class"
       }
+    ],
+    "dresden-christmas-markets-day-trip": [
+      {
+        "source": "own",
+        "title": "dresden-christmas-markets-cover.jpg",
+        "download_url": null,
+        "local_path": "public/tours/dresden-christmas-markets-cover.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": true,
+        "alt_hint": "Christmas market on the Altmarkt in Dresden at dusk, with the Christmas pyramid and the Frauenkirche"
+      },
+      {
+        "source": "commons",
+        "title": "File:Dresden, Striezelmarkt -- 2023 -- 9306.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/01/Dresden%2C_Striezelmarkt_--_2023_--_9306.jpg/1920px-Dresden%2C_Striezelmarkt_--_2023_--_9306.jpg",
+        "local_path": null,
+        "credit_text": "Dietmar Rabich / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Dresden,_Striezelmarkt_--_2023_--_9306.jpg",
+        "cover": false,
+        "alt_hint": "Entrance arch of the Striezelmarkt and the Christmas tree at night"
+      },
+      {
+        "source": "commons",
+        "title": "File:Dresden, Striezelmarkt -- 2023 -- 9361.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/31/Dresden%2C_Striezelmarkt_--_2023_--_9361.jpg/1920px-Dresden%2C_Striezelmarkt_--_2023_--_9361.jpg",
+        "local_path": null,
+        "credit_text": "Dietmar Rabich / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Dresden,_Striezelmarkt_--_2023_--_9361.jpg",
+        "cover": false,
+        "alt_hint": "Moravian stars decorating a market stall"
+      },
+      {
+        "source": "commons",
+        "title": "File:Frauenkirche-dresden.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Frauenkirche-dresden.jpg/1920px-Frauenkirche-dresden.jpg",
+        "local_path": null,
+        "credit_text": "Ronny Kreutel - Kausalkette / Wikimedia Commons",
+        "license": "Public domain",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Frauenkirche-dresden.jpg",
+        "cover": false,
+        "alt_hint": "Frauenkirche on Neumarkt square in Dresden"
+      },
+      {
+        "source": "own",
+        "title": "business-int-2.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/business-int-2.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Business Class chauffeur car, rear cabin"
+      },
+      {
+        "source": "own",
+        "title": "e-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/e-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes E-Class chauffeur car"
+      }
+    ],
+    "dresden-bastei-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Basteibrücke morgens.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/34/Basteibr%C3%BCcke_morgens.jpg/1920px-Basteibr%C3%BCcke_morgens.jpg",
+        "local_path": null,
+        "credit_text": "Thomas Wolf, www.foto-tw.de / Wikimedia Commons",
+        "license": "CC BY-SA 3.0 de",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Basteibr%C3%BCcke_morgens.jpg",
+        "cover": true,
+        "alt_hint": "The Bastei Bridge between sandstone towers in the morning mist"
+      },
+      {
+        "source": "commons",
+        "title": "File:Basteibrücke 02.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f0/Basteibr%C3%BCcke_02.jpg/1920px-Basteibr%C3%BCcke_02.jpg",
+        "local_path": null,
+        "credit_text": "John Samuel / Wikimedia Commons",
+        "license": "CC BY-SA 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Basteibr%C3%BCcke_02.jpg",
+        "cover": false,
+        "alt_hint": "Stone arches of the Bastei Bridge"
+      },
+      {
+        "source": "commons",
+        "title": "File:Frauenkirche-dresden.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b7/Frauenkirche-dresden.jpg/1920px-Frauenkirche-dresden.jpg",
+        "local_path": null,
+        "credit_text": "Ronny Kreutel - Kausalkette / Wikimedia Commons",
+        "license": "Public domain",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Frauenkirche-dresden.jpg",
+        "cover": false,
+        "alt_hint": "Frauenkirche on Neumarkt square in Dresden"
+      },
+      {
+        "source": "commons",
+        "title": "File:Dresden-Zwinger-Wallpavillion-gp.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/cb/Dresden-Zwinger-Wallpavillion-gp.jpg/1920px-Dresden-Zwinger-Wallpavillion-gp.jpg",
+        "local_path": null,
+        "credit_text": "Kolossos / Wikimedia Commons",
+        "license": "CC BY 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Dresden-Zwinger-Wallpavillion-gp.jpg",
+        "cover": false,
+        "alt_hint": "Zwinger Wall Pavilion"
+      },
+      {
+        "source": "own",
+        "title": "van-int-1.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/van-int-1.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "V-Class chauffeur van, rear cabin"
+      },
+      {
+        "source": "own",
+        "title": "v-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/v-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes V-Class chauffeur van"
+      }
+    ],
+    "pilsen-brewery-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Pilsner Urquell Brewery - panoramio (2).jpg",
+        "download_url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Pilsner_Urquell_Brewery_-_panoramio_%282%29.jpg",
+        "local_path": null,
+        "credit_text": "Mister No / Wikimedia Commons",
+        "license": "CC BY 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Pilsner_Urquell_Brewery_-_panoramio_(2).jpg",
+        "cover": true,
+        "alt_hint": "The double-arched gate of the Pilsner Urquell brewery"
+      },
+      {
+        "source": "commons",
+        "title": "File:Pilsner-Urquell-Main-Gate-Perspective.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/Pilsner-Urquell-Main-Gate-Perspective.jpg/1920px-Pilsner-Urquell-Main-Gate-Perspective.jpg",
+        "local_path": null,
+        "credit_text": "David J. Fred / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Pilsner-Urquell-Main-Gate-Perspective.jpg",
+        "cover": false,
+        "alt_hint": "Jubilee gate of the brewery with the dates 1842 and 1892"
+      },
+      {
+        "source": "commons",
+        "title": "File:Plzen 114.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Plzen_114.JPG/1920px-Plzen_114.JPG",
+        "local_path": null,
+        "credit_text": "Norbert Aepli / Wikimedia Commons",
+        "license": "CC BY 2.5",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Plzen_114.JPG",
+        "cover": false,
+        "alt_hint": "The Great Synagogue and the rooftops of Pilsen"
+      },
+      {
+        "source": "own",
+        "title": "business-int-1.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/business-int-1.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Business Class chauffeur car, rear cabin"
+      },
+      {
+        "source": "own",
+        "title": "e-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/e-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes E-Class chauffeur car"
+      }
+    ],
+    "cesky-krumlov-hluboka-day-trip": [
+      {
+        "source": "commons",
+        "title": "File:Hluboka Castle during sunset.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Hluboka_Castle_during_sunset.jpg/1920px-Hluboka_Castle_during_sunset.jpg",
+        "local_path": null,
+        "credit_text": "Michal Klajban / Wikimedia Commons",
+        "license": "CC BY 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Hluboka_Castle_during_sunset.jpg",
+        "cover": true,
+        "alt_hint": "White towers of Hluboká Castle in the evening sun"
+      },
+      {
+        "source": "commons",
+        "title": "File:Overview of Hluboká Castle in 2013 in Hluboká nad Vltavou, České Budějovice District.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ee/Overview_of_Hlubok%C3%A1_Castle_in_2013_in_Hlubok%C3%A1_nad_Vltavou%2C_%C4%8Cesk%C3%A9_Bud%C4%9Bjovice_District.JPG/1920px-Overview_of_Hlubok%C3%A1_Castle_in_2013_in_Hlubok%C3%A1_nad_Vltavou%2C_%C4%8Cesk%C3%A9_Bud%C4%9Bjovice_District.JPG",
+        "local_path": null,
+        "credit_text": "Jiří Sedláček / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Overview_of_Hlubok%C3%A1_Castle_in_2013_in_Hlubok%C3%A1_nad_Vltavou,_%C4%8Cesk%C3%A9_Bud%C4%9Bjovice_District.JPG",
+        "cover": false,
+        "alt_hint": "Hluboká Castle and its park"
+      },
+      {
+        "source": "commons",
+        "title": "File:Český Krumlov (Krummau) - panorama - old city.JPG",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0d/%C4%8Cesk%C3%BD_Krumlov_%28Krummau%29_-_panorama_-_old_city.JPG/1920px-%C4%8Cesk%C3%BD_Krumlov_%28Krummau%29_-_panorama_-_old_city.JPG",
+        "local_path": null,
+        "credit_text": "Pudelek (Marcin Szala) / Wikimedia Commons",
+        "license": "CC BY-SA 3.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:%C4%8Cesk%C3%BD_Krumlov_(Krummau)_-_panorama_-_old_city.JPG",
+        "cover": false,
+        "alt_hint": "Old town and castle of Český Krumlov seen from above"
+      },
+      {
+        "source": "commons",
+        "title": "File:Old town in Český Krumlov with Jelení lávka, 20250504 1251 8862.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c5/Old_town_in_%C4%8Cesk%C3%BD_Krumlov_with_Jelen%C3%AD_l%C3%A1vka%2C_20250504_1251_8862.jpg/1920px-Old_town_in_%C4%8Cesk%C3%BD_Krumlov_with_Jelen%C3%AD_l%C3%A1vka%2C_20250504_1251_8862.jpg",
+        "local_path": null,
+        "credit_text": "Jakub Hałun / Wikimedia Commons",
+        "license": "CC BY 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Old_town_in_%C4%8Cesk%C3%BD_Krumlov_with_Jelen%C3%AD_l%C3%A1vka,_20250504_1251_8862.jpg",
+        "cover": false,
+        "alt_hint": "Pastel houses and the Vltava bridge in the old town"
+      },
+      {
+        "source": "commons",
+        "title": "File:Castle tower in Český Krumlov, 20250504 1311 8882.jpg",
+        "download_url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/73/Castle_tower_in_%C4%8Cesk%C3%BD_Krumlov%2C_20250504_1311_8882.jpg/1920px-Castle_tower_in_%C4%8Cesk%C3%BD_Krumlov%2C_20250504_1311_8882.jpg",
+        "local_path": null,
+        "credit_text": "Jakub Hałun / Wikimedia Commons",
+        "license": "CC BY 4.0",
+        "credit_url": "https://commons.wikimedia.org/wiki/File:Castle_tower_in_%C4%8Cesk%C3%BD_Krumlov,_20250504_1311_8882.jpg",
+        "cover": false,
+        "alt_hint": "Castle courtyard and painted round tower"
+      },
+      {
+        "source": "own",
+        "title": "first-int-1.jpg",
+        "download_url": null,
+        "local_path": "public/vehicles/first-int-1.jpg",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "First Class chauffeur car, rear cabin"
+      },
+      {
+        "source": "own",
+        "title": "s-class.avif",
+        "download_url": null,
+        "local_path": "public/vehicles/s-class.avif",
+        "credit_text": null,
+        "license": null,
+        "credit_url": null,
+        "cover": false,
+        "alt_hint": "Mercedes S-Class chauffeur car"
+      }
     ]
   }
 }

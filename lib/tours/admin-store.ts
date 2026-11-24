@@ -51,7 +51,7 @@ export type AdminTourDetail = {
 }
 
 const TOUR_COLS =
-  'id, slug, status, sort_order, hours_included, drive_minutes_each_way, start_time_min, start_time_max, price_e_eur, price_s_eur, price_v_eur, destination_label, first_published_at, created_at, updated_at'
+  'id, slug, status, sort_order, hours_included, drive_minutes_each_way, start_time_min, start_time_max, price_e_eur, price_s_eur, price_v_eur, destination_label, bookable_from, bookable_until, first_published_at, created_at, updated_at'
 const TRANSLATION_COLS =
   'tour_id, locale, title, short_description, description, pickup_info, important_info, seo_title, seo_description, highlights, itinerary, includes, excludes, faq, is_complete, updated_at'
 const PHOTO_COLS =

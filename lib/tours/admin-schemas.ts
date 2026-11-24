@@ -41,6 +41,9 @@ const startTime = z.string().refine((v) => {
   return minutes >= 5 * 60 && minutes <= 14 * 60
 }, 'Start time must be HH:00 or HH:30 between 05:00 and 14:00')
 
+/** A calendar date 'YYYY-MM-DD' (seasonal tour window, migration 095). */
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD')
+
 /** POST /api/admin/tours: a new draft needs only the slug and the English title (UI-SPEC 7.1). */
 export const tourCreateSchema = z.strictObject({
   slug,
@@ -56,11 +59,17 @@ export const tourBasicsSchema = z
     drive_minutes_each_way: z.number().int().min(10).max(600).optional(),
     start_time_min: startTime.optional(),
     start_time_max: startTime.optional(),
+    bookable_from: isoDate.nullable().optional(),
+    bookable_until: isoDate.nullable().optional(),
     price_e_eur: price.optional(),
     price_s_eur: price.optional(),
     price_v_eur: price.optional(),
   })
   .refine((v) => Object.keys(v).length > 0, 'Nothing to update')
+  .refine(
+    (v) => !v.bookable_from || !v.bookable_until || v.bookable_from <= v.bookable_until,
+    { message: 'The last bookable date must be on or after the first', path: ['bookable_until'] },
+  )
   .refine(
     (v) => v.start_time_min === undefined || v.start_time_max === undefined || v.start_time_max > v.start_time_min,
     { message: 'Latest start must be after the earliest start', path: ['start_time_max'] },
