@@ -3,6 +3,7 @@
 //   npx tsx scripts/seed-tours.ts                      dry run (default): prints the price proposal and completeness, writes nothing
 //   npx tsx scripts/seed-tours.ts --apply              inserts draft tours, translations, photos and the extra-hour prices
 //   npx tsx scripts/seed-tours.ts --apply --force      also updates tours that already exist (photos are only added to a tour that has none)
+//   npx tsx scripts/seed-tours.ts --apply --force --only=a   limits the apply step to those tours and leaves the extra-hour prices alone
 //   npx tsx scripts/seed-tours.ts --publish=a,b        checks publishChecklist for those tours; with --apply it publishes the ones that pass
 //   npx tsx scripts/seed-tours.ts --prices=file.json   owner-approved overrides: { tours: { <slug>: { e, s, v, hours_included? } }, extra_hour: { e, s, v } }
 //
@@ -97,6 +98,7 @@ interface Flags {
   force: boolean
   publish: string[]
   pricesFile: string | null
+  only?: string[]
 }
 
 interface PriceOverrides {
@@ -122,6 +124,8 @@ export function parseFlags(argv: string[]): Flags | { error: string } {
     else if (arg === '--dry-run') dry = true
     else if (arg === '--force') flags.force = true
     else if (arg.startsWith('--publish=')) flags.publish = arg.slice('--publish='.length).split(',').map((s) => s.trim()).filter(Boolean)
+    else if (arg === '--photo-cache') continue
+    else if (arg.startsWith('--only=')) flags.only = arg.slice('--only='.length).split(',').map((s) => s.trim()).filter(Boolean)
     else if (arg.startsWith('--prices=')) flags.pricesFile = arg.slice('--prices='.length) || null
     else return { error: `unknown flag ${arg}` }
   }
@@ -245,6 +249,16 @@ async function fetchPhoto(entry: PhotoEntry, deps: SeedDeps): Promise<{ bytes: U
   if (!entry.download_url) throw new Error(`photo has neither download_url nor local_path: ${entry.title}`)
   const url = new URL(entry.download_url)
   if (url.protocol !== 'https:' || !ALLOWED_PHOTO_HOSTS.has(url.hostname)) throw new Error(`photo host not allowed: ${url.hostname}`)
+  // --photo-cache: use a copy pre-downloaded to .photo-cache/<file name> (when the host rate-limits the run)
+  if (deps.argv.includes('--photo-cache')) {
+    const cached = path.resolve(deps.root, '.photo-cache', path.basename(url.pathname))
+    const contentType = MIME_BY_EXT[path.extname(cached).slice(1).toLowerCase()]
+    if (contentType && fs.existsSync(cached)) {
+      const bytes = new Uint8Array(fs.readFileSync(cached))
+      if (bytes.byteLength === 0 || bytes.byteLength > MAX_PHOTO_BYTES) throw new Error(`photo size out of range: ${entry.title}`)
+      return { bytes, contentType }
+    }
+  }
   let lastStatus = 0
   for (let attempt = 0; attempt < 4; attempt++) {
     if (attempt > 0) await deps.sleep(PHOTO_PACE_MS * attempt * 2)
@@ -390,6 +404,7 @@ export async function main(deps: SeedDeps): Promise<number> {
     log('')
     for (const row of priceRows) {
       const slug = row.tour.slug
+      if (flags.only?.length && !flags.only.includes(slug)) continue
       const en = built.reports.find((r) => r.slug === slug && r.locale === 'en')
       if (!en?.complete) {
         log(`${slug}: skipped, the English content is not complete`)
@@ -436,7 +451,9 @@ export async function main(deps: SeedDeps): Promise<number> {
     }
 
     // extra-hour prices: only fill what is empty unless --force
-    if (extra) {
+    if (extra && flags.only?.length) {
+      log('extra-hour prices untouched (--only)')
+    } else if (extra) {
       const current = await store.getExtraHourPrices()
       const patch: Partial<ClassPrices> = {}
       for (const c of ['e', 's', 'v'] as const) if (flags.force || current[c] === null) patch[c] = extra[c]
