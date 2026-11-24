@@ -1344,7 +1344,8 @@
       "tripType": {
         "transfer": "Transfer",
         "hourly": "By the hour",
-        "daily": "Full day"
+        "daily": "Full day",
+        "tour": "Private tour"
       },
       "date": "Date",
       "pickupTime": "Pickup time",
@@ -1357,6 +1358,7 @@
       "passengers": "Passengers",
       "luggage": "Luggage",
       "duration": "{hours} h",
+      "description": "Details",
       "price": "Price"
     },
     "summary": {
@@ -1693,9 +1695,11 @@
       "subject": "We received your custom tour request",
       "heading": "Thank you, {name}",
       "body": "We have your request for {date}. We will reply by email with a price for your group. The price is per car, not per person.",
+      "summary": "Your request",
       "where": "Where",
       "date": "Date",
-      "people": "People"
+      "people": "People",
+      "wishes": "Wishes"
     }
   }
 }

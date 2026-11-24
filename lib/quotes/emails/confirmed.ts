@@ -17,6 +17,12 @@ import type { QuoteRow, QuoteVersionRow } from '@/lib/quotes/types'
 /** A user-supplied word (an address) isolated with its own direction so Arabic and Latin text keep their order. */
 const bdiAuto = (value: string): string => `<bdi dir="auto">${escapeHtml(value)}</bdi>`
 const bdiLtr = (value: string): string => `<bdi dir="ltr">${escapeHtml(value)}</bdi>`
+/** The operator's multi-line description: every line escaped, the line breaks kept as <br>. */
+const multiline = (value: string): string =>
+  `<div dir="auto" style="margin-top: 4px; overflow-wrap: anywhere;">${value
+    .split(/\r\n|\r|\n/)
+    .map((part) => escapeHtml(part))
+    .join('<br>')}</div>`
 
 export interface QuoteConfirmedBooking {
   booking_reference: string
@@ -24,6 +30,10 @@ export interface QuoteConfirmedBooking {
   pickup_time: string
   origin_address: string
   destination_address: string | null
+  /** Migration 096: the headline of a tour line (shown before the date), null for other trips. */
+  title?: string | null
+  /** Migration 096: the operator's client-visible text of the line, shown under the trip. */
+  description?: string | null
 }
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -54,7 +64,10 @@ export async function renderQuoteConfirmedEmail(input: {
   const bookingLines = input.bookings.map((b) => {
     const date = ISO_DATE.test(b.pickup_date) ? formatLocaleDate(b.pickup_date, locale) : b.pickup_date
     const route = b.destination_address ? `${bdiAuto(b.origin_address)} → ${bdiAuto(b.destination_address)}` : bdiAuto(b.origin_address)
-    return [html(t, 'confirmed.booking', { reference: b.booking_reference }), bdiAuto(date), bdiLtr(b.pickup_time.slice(0, 5)), route].join(' · ')
+    const parts = [html(t, 'confirmed.booking', { reference: b.booking_reference })]
+    if (b.title) parts.push(bdiAuto(b.title))
+    parts.push(bdiAuto(date), bdiLtr(b.pickup_time.slice(0, 5)), route)
+    return parts.join(' · ') + (b.description ? multiline(b.description) : '')
   })
 
   // The remainder sentence: nothing left is "fully paid" whatever the method; the card is named only by the saved-card text.

@@ -37,6 +37,7 @@ const REQUIRED_SLUGS = [
   'dresden-bastei-day-trip',
   'pilsen-brewery-day-trip',
   'cesky-krumlov-hluboka-day-trip',
+  'terezin-day-trip',
 ]
 
 type PhotoEntry = {

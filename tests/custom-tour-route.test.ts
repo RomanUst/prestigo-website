@@ -239,9 +239,9 @@ describe('POST /api/custom-tour: emails', () => {
     expect(sendCustomTourClientAck).toHaveBeenCalledTimes(1)
     const ackArg = vi.mocked(sendCustomTourClientAck).mock.calls[0][0]
     expect(ackArg).toMatchObject({ locale: 'ru', name: 'Ada Lovelace', email: 'ada@example.com', people: 4 })
-    // CR-01: no visitor free text reaches the acknowledgement
-    expect(ackArg).not.toHaveProperty('where')
-    expect(ackArg).not.toHaveProperty('wishes')
+    // the client sees their own request (owner decision 2026-11-23); lib/email caps and escapes it
+    expect(ackArg).toHaveProperty('where')
+    expect(ackArg).toHaveProperty('wishes')
   })
 
   it('CR-01: the ack is limited per recipient on /api/custom-tour#ack, keyed on a hash of the normalised address', async () => {

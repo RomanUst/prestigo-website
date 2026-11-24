@@ -332,7 +332,7 @@ async function QuoteOfferView({
                   <h3 style={{ ...headingStyle, fontSize: 16 }}>
                     {t('lines.trip', { number: line.position })}
                     {' · '}
-                    {t(`lines.tripType.${line.tripType}`)}
+                    {line.title ? <bdi dir="auto">{line.title}</bdi> : t(`lines.tripType.${line.tripType}`)}
                   </h3>
                   <DetailRow label={t('lines.date')} strong>
                     <bdi dir="ltr">{formatLocaleDate(line.pickupDate, locale)}</bdi>
@@ -373,6 +373,14 @@ async function QuoteOfferView({
                   {line.destination ? (
                     <DetailRow label={t('lines.to')}>
                       <bdi dir="auto">{line.destination}</bdi>
+                    </DetailRow>
+                  ) : null}
+                  {line.description ? (
+                    <DetailRow label={t('lines.description')}>
+                      {/* Plain text from the operator: React escapes it, pre-wrap keeps its line breaks. */}
+                      <bdi dir="auto" data-testid="quote-line-description" style={{ display: 'block', whiteSpace: 'pre-wrap' }}>
+                        {line.description}
+                      </bdi>
                     </DetailRow>
                   ) : null}
                   <DetailRow label={t('lines.vehicle')}>{vt(`${classKey}.label`)}</DetailRow>

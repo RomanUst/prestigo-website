@@ -19,7 +19,9 @@ import { getQuoteDetail, saveQuoteDraft } from '@/lib/quotes/store'
 // -> JSON (400, 413) -> strict schema (400) -> row (404) -> state rules (422, 409) -> engine. A shape error is 400; a
 // well-formed request the state does not allow is 422. Logs carry ids and codes only.
 
-const MAX_BODY_BYTES = 20_000
+// 20 lines of up to 4000 characters of client description each (migration 096), plus their notes and fields, in UTF-8
+// (Cyrillic and CJK take 2 to 3 bytes a character). Still a bound: the schema caps every field again.
+const MAX_BODY_BYTES = 400_000
 const idSchema = z.string().uuid()
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -43,7 +43,7 @@ const KEY_TREE: Record<string, string> = {
     'name email phone phoneHelper privacy send sending sentTitle sentBody seeTrips errWhere errDate errPeople errName ' +
     'errEmail errPhone err429 errGeneric errNetwork',
   'Tours.manage': 'dayTrip',
-  'TourEmails.ack': 'subject heading body where date people',
+  'TourEmails.ack': 'subject heading body summary where date people wishes',
 }
 
 const KEYS = Object.entries(KEY_TREE).flatMap(([ns, leaves]) => leaves.split(' ').map((leaf) => `${ns}.${leaf}`))

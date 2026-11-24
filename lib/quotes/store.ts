@@ -531,7 +531,8 @@ function storedPriceKey(line: Row, stops: Row[], currency: string): string {
 
 interface PricedLine {
   distanceKm: number | null
-  suggestedMinor: number
+  /** Null for a tour: it has no tariff, the operator's amount is the only price. */
+  suggestedMinor: number | null
   stops: Array<{ blocks: number; free_minutes: number; fee_per_block_eur: number | null; fee_eur: number }>
 }
 
@@ -548,6 +549,9 @@ const optionalText = (v: string | null | undefined): string | null => {
   const t = (v ?? '').trim()
   return t === '' ? null : t
 }
+
+/** A multi-line client text: outer blank space and Windows line ends go, the inner line breaks stay. */
+const optionalDescription = (v: string | null | undefined): string | null => optionalText((v ?? '').replace(/\r\n?/g, '\n'))
 
 /**
  * Saves the header fields and, when `lines` is present, replaces ALL lines and stops of the unfrozen current version.
@@ -635,7 +639,9 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
   if (replacing) {
     const lines = payload.lines!
     let rates: PricingRates | null = null
-    const needsRates = lines.some((line, i) => !canReuse(line, oldLines[i], oldStopsByLine, currency, oldCurrency))
+    const needsRates = lines.some(
+      (line, i) => line.trip_type !== 'tour' && !canReuse(line, oldLines[i], oldStopsByLine, currency, oldCurrency),
+    )
     if (needsRates) {
       try {
         rates = await getPricingConfig()
@@ -646,6 +652,8 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
     }
     const results = await Promise.all(
       lines.map(async (line, i): Promise<PricedLine | 'unavailable'> => {
+        // A custom tour is priced by the operator only: no route, no tariff, no suggestion, no stops.
+        if (line.trip_type === 'tour') return { distanceKm: null, suggestedMinor: null, stops: [] }
         const stored = oldLines[i]
         if (stored && canReuse(line, stored, oldStopsByLine, currency, oldCurrency)) {
           const storedStops = oldStopsByLine.get(String(stored.id)) ?? []
@@ -751,12 +759,14 @@ export async function saveQuoteDraft(id: string, payload: QuoteDraftPayload, act
           flight_number: optionalText(line.flight_number),
           terminal: optionalText(line.terminal),
           special_requests: optionalText(line.special_requests),
+          title: line.trip_type === 'tour' ? optionalText(line.title) : null,
+          description: optionalDescription(line.description),
           extra_child_seat: line.extra_child_seat,
           extra_meet_greet: line.extra_meet_greet,
           extra_luggage: line.extra_luggage,
           suggested_amount_minor: p.suggestedMinor,
           amount_minor: line.amount_minor,
-          price_overridden: line.amount_minor !== p.suggestedMinor,
+          price_overridden: p.suggestedMinor !== null && line.amount_minor !== p.suggestedMinor,
           deposit_share_minor: shares ? shares[i] : null,
           remainder_minor: shares ? line.amount_minor - shares[i] : null,
           amount_eur: amountEur,

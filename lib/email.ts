@@ -130,6 +130,8 @@ export interface EmailTourFacts {
   hours: number | undefined
   extraHours: number
   pickupAddress: string
+  /** Migration 096: the itinerary of a tour sold through a quote (operator plain text); absent when there is none. */
+  description?: string
 }
 
 const plural = (n: number, one: string, other: string): string => `${n} ${n === 1 ? one : other}`
@@ -150,9 +152,11 @@ function tourFactsOf(
   hours: number | undefined,
   extraHours: number | null | undefined,
   pickupAddress: string,
+  description?: string | null,
 ): EmailTourFacts | null {
   if (tripType !== 'tour' || !title) return null
-  return { title, hours, extraHours: extraHours && extraHours > 0 ? extraHours : 0, pickupAddress }
+  const text = description?.trim()
+  return { title, hours, extraHours: extraHours && extraHours > 0 ? extraHours : 0, pickupAddress, ...(text ? { description: text } : {}) }
 }
 
 function emailLabelValueRow(label: string, valueHtml: string): string {
@@ -172,15 +176,24 @@ function tourDayTripRowHtml(t: EmailTourFacts): string {
 function tourDetailRowsHtml(t: EmailTourFacts): string {
   return (
     emailLabelValueRow('Time at the destination', escapeHtml(tourTimeAtDestinationText(t.hours, t.extraHours))) +
-    emailLabelValueRow('Pickup and return', escapeHtml(t.pickupAddress))
+    emailLabelValueRow('Pickup and return', escapeHtml(t.pickupAddress)) +
+    (t.description ? emailLabelValueRow('About the trip', multilineHtml(t.description)) : '')
   )
+}
+
+/** Operator plain text with its line breaks: every line escaped, joined with <br>. */
+function multilineHtml(text: string): string {
+  return text
+    .split(/\r\n|\r|\n/)
+    .map((part) => escapeHtml(part))
+    .join('<br>')
 }
 
 /** The same three facts as plain lines for the manager alert. */
 function tourTextLines(t: EmailTourFacts): string {
   return `Day trip: ${t.title}
 Time at the destination: ${tourTimeAtDestinationText(t.hours, t.extraHours)}
-Pickup and return: ${t.pickupAddress}`
+Pickup and return: ${t.pickupAddress}${t.description ? `\nAbout the trip:\n${t.description}` : ''}`
 }
 
 // ── Trip route rows (Phase 91, STOP-04 / STOP-05) ───────────────────────────
@@ -1449,6 +1462,9 @@ export interface CustomTourAckData {
   email: string
   date: string
   people: number
+  /** The visitor's own request text, echoed back capped (ACK_TEXT_MAX) so the client sees what was sent. */
+  where?: string | null
+  wishes?: string | null
 }
 
 const CUSTOM_TOUR_ALERT_SUBJECT = '[Custom tour] New request from the site'
@@ -1540,6 +1556,19 @@ export async function sendCustomTourOperatorAlert(data: CustomTourAlertData): Pr
 
 /** Longest first name the acknowledgement greets (CR-01). */
 const ACK_NAME_MAX = 40
+/**
+ * Longest piece of the visitor's own text (where, wishes) the acknowledgement echoes back. Owner decision 2026-11-23: the
+ * client must see the request they sent. Abuse as a relay stays bounded by the cap, the per-recipient limit (3 acks per
+ * address per 24 h) and the per-IP limit of the route; the text is always escaped plain text.
+ */
+export const ACK_TEXT_MAX = 300
+
+/** The visitor's text for the acknowledgement: trimmed, capped at ACK_TEXT_MAX with an ellipsis, '' when empty. */
+export function ackEchoText(text: string | null | undefined): string {
+  const t = (text ?? '').trim()
+  const chars = Array.from(t)
+  return chars.length > ACK_TEXT_MAX ? `${chars.slice(0, ACK_TEXT_MAX).join('').trimEnd()}…` : t
+}
 
 /**
  * The greeting name of the client acknowledgement: the first word of the name, capped. Empty when it looks like a link
@@ -1570,14 +1599,16 @@ export async function renderCustomTourClientAck(
   const st = render.shellStyle(locale)
 
   const dateText = formatLocaleDate(data.date, locale)
-  // CR-01: the address is never verified, so the mail carries server-controlled data only: the date and head count
-  // the form validated, and at most a short first name. The visitor's free text (where, wishes) is never echoed.
+  // CR-01: the address is never verified. The mail carries the validated date and head count, a short first name and
+  // the visitor's own request text capped at ACK_TEXT_MAX (owner decision 2026-11-23), all escaped.
   const firstName = ackFirstName(data.name)
+  const whereText = ackEchoText(data.where)
+  const wishesText = ackEchoText(data.wishes)
   // Escape once, after the parameters are inserted: the visitor's name never becomes markup.
   const subject = t('subject')
-  const NAME_TOKEN = '\uE000'
+  // Plain escaped text: a <bdi> inside the heading was pulled out of the h1 by some mail apps (iOS, 2026-11-23).
   const heading = firstName
-    ? escapeHtml(t('heading', { name: NAME_TOKEN })).replace(NAME_TOKEN, `<bdi dir="auto">${escapeHtml(firstName)}</bdi>`)
+    ? escapeHtml(t('heading', { name: firstName }))
     : escapeHtml(t('heading', { name: '' }).replace(/[\s,\u060C\uFF0C\u3001]+$/u, ''))
   const body = escapeHtml(t('body', { date: dateText }))
 
@@ -1586,13 +1617,16 @@ export async function renderCustomTourClientAck(
             <td style="${st.greyLabel} padding:8px 16px 8px 0;width:35%;vertical-align:top;text-align:${st.align};">${escapeHtml(k)}</td>
             <td style="font-size:14px;font-weight:400;color:#F3EEE3;padding:8px 0;vertical-align:top;text-align:${st.align};word-break:break-word;overflow-wrap:anywhere;white-space:pre-wrap;">${v}</td>
           </tr>`
+  const rows = [
+    whereText ? row(t('where'), escapeHtml(whereText)) : '',
+    row(t('date'), escapeHtml(dateText)),
+    row(t('people'), escapeHtml(String(data.people))),
+    wishesText ? row(t('wishes'), escapeHtml(wishesText)) : '',
+  ]
   const summary = render.boxHtml(
     st,
-    escapeHtml(t('date')),
-    `<table role="presentation" style="width:100%;border-collapse:collapse;">${[
-      row(t('date'), `<bdi dir="auto">${escapeHtml(dateText)}</bdi>`),
-      row(t('people'), `<bdi dir="ltr">${escapeHtml(String(data.people))}</bdi>`),
-    ].join('')}</table>`,
+    escapeHtml(t('summary')),
+    `<table role="presentation" style="width:100%;border-collapse:collapse;">${rows.join('')}</table>`,
   )
 
   const html = `<!DOCTYPE html>
@@ -2591,6 +2625,8 @@ export interface ReminderEmailBooking {
   tour_title?: string | null
   tour_extra_hours?: number | null
   hours?: number | null
+  /** Migration 096: the itinerary of a tour sold through a quote. */
+  tour_description?: string | null
 }
 
 function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' | '2h'): string {
@@ -2602,6 +2638,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
     booking.hours ?? undefined,
     booking.tour_extra_hours,
     booking.origin_address,
+    booking.tour_description,
   )
   const noun = tour ? 'Day Trip' : 'Transfer'
   const heading = horizon === '24h' ? `Your ${noun} Tomorrow` : `Your ${noun} in 2 Hours`

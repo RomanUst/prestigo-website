@@ -1394,7 +1394,8 @@
       "tripType": {
         "transfer": "接送",
         "hourly": "按小时",
-        "daily": "全天"
+        "daily": "全天",
+        "tour": "私人游览"
       },
       "date": "日期",
       "pickupTime": "接客时间",
@@ -1407,6 +1408,7 @@
       "passengers": "乘客",
       "luggage": "行李",
       "duration": "{hours} 小时",
+      "description": "详情",
       "price": "价格"
     },
     "summary": {
@@ -1743,9 +1745,11 @@
       "subject": "我们已收到您的定制行程申请",
       "heading": "谢谢您，{name}",
       "body": "我们已收到您 {date} 的申请。我们会通过邮件回复适合您团体的价格。价格按每辆车计算，而非按人数。",
+      "summary": "您的申请",
       "where": "目的地",
       "date": "日期",
-      "people": "人数"
+      "people": "人数",
+      "wishes": "特别要求"
     }
   }
 }
