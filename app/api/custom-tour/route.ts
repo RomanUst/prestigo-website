@@ -166,6 +166,8 @@ export async function POST(req: Request) {
             email: body.email,
             date: body.date,
             people: body.people,
+            where: body.where,
+            wishes: wishes,
           })
         : Promise.resolve(),
     ])
