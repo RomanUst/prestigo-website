@@ -12,6 +12,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, whatsappUrlWithText } from '@/lib/contact-channels'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import { contactPageDoc } from '@/lib/jsonld'
 
 type ContactContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -70,6 +71,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageDoc(locale)) }} />
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
