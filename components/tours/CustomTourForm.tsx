@@ -13,7 +13,8 @@ import { Link } from '@/i18n/routing'
 import { rtlLocales, type AppLocale } from '@/i18n/locales'
 import { formatLocaleDate } from '@/lib/locale-date'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
-import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
+import { isValidIntlPhone, normalizePhone } from '@/lib/phone'
+import PhoneInput from '@/components/PhoneInput'
 
 export interface CustomTourFormProps {
   /** The starting tour (published and complete in this locale) or null. */
@@ -513,25 +514,17 @@ export default function CustomTourForm({ tour, initialDate, initialPax }: Custom
         <label htmlFor={`${uid}-phone`} className={labelClass}>
           {t('phone')}
         </label>
-        <input
+        <PhoneInput
           id={`${uid}-phone`}
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder={PHONE_PLACEHOLDER}
           value={phone}
           readOnly={busy}
-          onChange={(e) => {
-            setPhone(e.target.value)
+          onChange={(v) => {
+            setPhone(v)
             clearError('phone')
           }}
-          onBlur={(e) => {
-            const normalized = normalizePhone(e.target.value)
-            if (normalized && normalized !== e.target.value) setPhone(normalized)
-          }}
-          aria-required="true"
-          aria-invalid={errors.phone ? true : undefined}
-          aria-describedby={errors.phone ? `${uid}-phone-err` : `${uid}-phone-help`}
+          required
+          invalid={Boolean(errors.phone)}
+          describedBy={errors.phone ? `${uid}-phone-err` : `${uid}-phone-help`}
           className={inputClass(Boolean(errors.phone))}
         />
         <p id={`${uid}-phone-help`} className={helperClass}>

@@ -1,4 +1,7 @@
 {
+  "PhoneInput": {
+    "countryLabel": "Country code"
+  },
   "Booking": {
     "entryBar": {
       "pickupLocationLabel": "PICKUP LOCATION",
@@ -33,7 +36,7 @@
       "firstNameRequired": "First name is required",
       "lastNameRequired": "Last name is required",
       "invalidEmail": "Enter a valid email address",
-      "invalidPhone": "Enter the number with the country code, e.g. +420 123 456 789",
+      "invalidPhone": "Check the phone number: choose your country and type the number",
       "invalidFlightFormat": "Invalid IATA format — e.g. BA256 or OK123",
       "maxCharacters": "Maximum 500 characters"
     },
@@ -439,7 +442,7 @@
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
       "validEmailRequired": "Valid email is required.",
-      "validPhoneRequired": "Enter a phone number with the country code, e.g. +420 123 456 789.",
+      "validPhoneRequired": "Check the phone number: choose your country and type the number.",
       "tooManyRequests": "Too many requests. Please wait a minute and try again.",
       "submitError": "We could not submit your request. Please check your entries and try again.",
       "networkError": "Network error. Please check your connection and try again."
@@ -1710,7 +1713,7 @@
       "name": "YOUR NAME",
       "email": "EMAIL",
       "phone": "PHONE / WHATSAPP",
-      "phoneHelper": "With country code, for example +44.",
+      "phoneHelper": "Choose your country, then type your number.",
       "privacy": "We use your details only to answer this request. <link>Privacy Policy</link>",
       "send": "Send request",
       "sending": "Sending…",
@@ -1722,7 +1725,7 @@
       "errPeople": "Enter the number of people.",
       "errName": "Enter your name.",
       "errEmail": "Enter a valid email address.",
-      "errPhone": "Enter a phone number with the country code.",
+      "errPhone": "Check the phone number and the country.",
       "err429": "Too many requests. Please wait a minute and try again.",
       "errGeneric": "We could not send your request. Please try again or message us on WhatsApp.",
       "errNetwork": "We could not reach our server. Check your connection and try again."

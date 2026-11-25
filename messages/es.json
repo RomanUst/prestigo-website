@@ -1,4 +1,7 @@
 {
+  "PhoneInput": {
+    "countryLabel": "Prefijo del país"
+  },
   "Booking": {
     "entryBar": {
       "pickupLocationLabel": "LUGAR DE RECOGIDA",
@@ -33,7 +36,7 @@
       "firstNameRequired": "El nombre es obligatorio",
       "lastNameRequired": "Los apellidos son obligatorios",
       "invalidEmail": "Introduzca una dirección de correo electrónico válida",
-      "invalidPhone": "Introduzca el número con el prefijo del país, p. ej. +420 123 456 789",
+      "invalidPhone": "Revise el número: elija su país y escriba el número",
       "invalidFlightFormat": "Formato IATA no válido: p. ej., BA256 u OK123",
       "maxCharacters": "Máximo 500 caracteres"
     },
@@ -449,7 +452,7 @@
       "firstNameRequired": "El nombre es obligatorio.",
       "lastNameRequired": "Los apellidos son obligatorios.",
       "validEmailRequired": "Se requiere un correo electrónico válido.",
-      "validPhoneRequired": "Introduzca un número de teléfono con el prefijo del país, p. ej. +420 123 456 789.",
+      "validPhoneRequired": "Revise el número: elija su país y escriba el número.",
       "tooManyRequests": "Demasiadas solicitudes. Espere un minuto e inténtelo de nuevo.",
       "submitError": "No hemos podido enviar su solicitud. Compruebe los datos introducidos e inténtelo de nuevo.",
       "networkError": "Error de red. Compruebe su conexión e inténtelo de nuevo."
@@ -1760,7 +1763,7 @@
       "name": "SU NOMBRE",
       "email": "CORREO ELECTRÓNICO",
       "phone": "TELÉFONO / WHATSAPP",
-      "phoneHelper": "Con prefijo del país, por ejemplo +44.",
+      "phoneHelper": "Elija su país y escriba su número.",
       "privacy": "Usamos sus datos solo para responder a esta solicitud. <link>Política de privacidad</link>",
       "send": "Enviar solicitud",
       "sending": "Enviando…",
@@ -1772,7 +1775,7 @@
       "errPeople": "Indique el número de personas.",
       "errName": "Escriba su nombre.",
       "errEmail": "Escriba una dirección de correo válida.",
-      "errPhone": "Escriba un número de teléfono con el prefijo del país.",
+      "errPhone": "Revise el número de teléfono y el país.",
       "err429": "Demasiadas solicitudes. Espere un minuto e inténtelo de nuevo.",
       "errGeneric": "No hemos podido enviar su solicitud. Inténtelo de nuevo o escríbanos por WhatsApp.",
       "errNetwork": "No hemos podido conectar con nuestro servidor. Revise su conexión e inténtelo de nuevo."

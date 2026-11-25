@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createBrowserSupabase } from '@/lib/supabase/browser'
@@ -10,7 +10,8 @@ import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace, VEHICLE_CONFIG } from '@/types/booking'
 import Stepper from '@/components/booking/Stepper'
 import type { FlightStatus } from '@/types/booking'
-import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
+import { isValidIntlPhone } from '@/lib/phone'
+import PhoneInput from '@/components/PhoneInput'
 
 // Mirrors IATA_RE from lib/flight-status.ts (server-only module — cannot be imported client-side)
 const IATA_RE = /^([A-Z]{2,3}|[A-Z][0-9]|[0-9][A-Z])\d{1,4}$/i
@@ -94,6 +95,7 @@ export default function Step5Passenger() {
 
   const {
     register,
+    control,
     watch,
     setValue,
     trigger,
@@ -317,35 +319,36 @@ export default function Step5Passenger() {
       {/* Row 3: Phone */}
       <div style={{ marginTop: 24 }}>
         <label htmlFor="phone" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('phoneLabel')}</label>
-        <input
-          id="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder={PHONE_PLACEHOLDER}
-          {...register('phone', {
-            // Show the stored E.164 form once the field is left.
-            onBlur: (e) => {
-              const normalized = normalizePhone(e.target.value)
-              if (normalized && normalized !== e.target.value) {
-                setValue('phone', normalized, { shouldValidate: true, shouldDirty: true })
-              }
-            },
-          })}
-          aria-required="true"
-          aria-describedby={errors.phone ? 'phone-error' : undefined}
-          onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-          style={{
-            width: '100%',
-            background: 'var(--anthracite-mid)',
-            border: `1px solid ${errors.phone ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
-            padding: '12px 16px',
-            fontFamily: 'var(--font-montserrat)',
-            fontSize: 14,
-            fontWeight: 300,
-            color: 'var(--offwhite)',
-            borderRadius: 4,
-          }}
+        <Controller
+          name="phone"
+          control={control}
+          render={({ field }) => (
+            <PhoneInput
+              id="phone"
+              value={field.value ?? ''}
+              onChange={(v) => {
+                field.onChange(v)
+                // Re-check straight away once an error is showing, so it clears as soon as the number is right.
+                if (errors.phone) void trigger('phone')
+              }}
+              onBlur={field.onBlur}
+              inputRef={field.ref}
+              required
+              invalid={Boolean(errors.phone)}
+              describedBy={errors.phone ? 'phone-error' : undefined}
+              style={{
+                width: '100%',
+                background: 'var(--anthracite-mid)',
+                border: `1px solid ${errors.phone ? 'var(--status-danger-fg, #f87171)' : 'var(--anthracite-light)'}`,
+                padding: '12px 16px',
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: 14,
+                fontWeight: 300,
+                color: 'var(--offwhite)',
+                borderRadius: 4,
+              }}
+            />
+          )}
         />
         {errors.phone && (
           <p id="phone-error" style={{ color: 'var(--status-danger-fg, #f87171)', fontSize: 14, fontWeight: 300, marginTop: 8 }}>

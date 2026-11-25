@@ -86,5 +86,3 @@ export function isValidIntlPhone(raw: string | null | undefined): boolean {
   return normalizePhone(raw) !== null
 }
 
-/** Placeholder shown in phone inputs (same in every locale). */
-export const PHONE_PLACEHOLDER = '+420 123 456 789'

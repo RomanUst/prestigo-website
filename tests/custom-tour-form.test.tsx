@@ -270,11 +270,11 @@ describe('custom-tour form: errors', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('a phone without a country code or a bad email is refused on the client', async () => {
+  it('a too-short phone or a bad email is refused on the client', async () => {
     await renderPage()
     fillForm({ where: 'Dresden', phone: '12345', email: 'nope' })
     fireEvent.click(send())
-    expect(screen.getByText('Enter a phone number with the country code.')).toBeTruthy()
+    expect(screen.getByText('Check the phone number and the country.')).toBeTruthy()
     expect(screen.getByText('Enter a valid email address.')).toBeTruthy()
     expect(fetchMock).not.toHaveBeenCalled()
   })
@@ -306,7 +306,7 @@ describe('custom-tour form: errors', () => {
 
   it('422 INVALID_PHONE shows the phone message', async () => {
     await submitWith(() => jsonResponse(422, { code: 'INVALID_PHONE' }))
-    expect(await screen.findByText('Enter a phone number with the country code.')).toBeTruthy()
+    expect(await screen.findByText('Check the phone number and the country.')).toBeTruthy()
     expectTypedKept()
   })
 
