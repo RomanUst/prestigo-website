@@ -9,7 +9,9 @@
 
 import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { safeDriverNext } from '@/lib/driver-cabinet/safe-next'
 
 export const DRIVER_SESSION_COOKIE = 'prestigo_driver_session'
 export const DRIVER_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000
@@ -194,4 +196,20 @@ export async function getDriverSession(): Promise<{ driverId: string; sessionId:
   if (new Date(row.expires_at).getTime() <= Date.now()) return null
   if (row.drivers?.cabinet_enabled !== true) return null
   return { driverId: row.driver_id, sessionId: row.id }
+}
+
+/**
+ * The page gate (Pitfall 4): every cabinet page calls this itself, the (cabinet) layout holds no auth. Returns the
+ * signed-in driver, or redirects to /driver/login?next=<safe path> (UI-SPEC "Session end"). `ended=1` is added only
+ * when the request carried a driver cookie that is no longer valid (expired, signed out, disabled), so a first-time
+ * visitor does not see "Your session ended".
+ */
+export async function requireDriver(nextPath: string): Promise<{ driverId: string; sessionId: string }> {
+  const session = await getDriverSession()
+  if (session) return session
+
+  const jar = await cookies()
+  const hadCookie = Boolean(jar.get(DRIVER_SESSION_COOKIE)?.value)
+  const target = safeDriverNext(nextPath) ?? '/driver/rides'
+  redirect(`/driver/login?next=${encodeURIComponent(target)}${hadCookie ? '&ended=1' : ''}`)
 }
