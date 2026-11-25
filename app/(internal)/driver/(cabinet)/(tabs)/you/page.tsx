@@ -5,6 +5,8 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { getDriverProfile, getDriverStats } from '@/lib/driver-cabinet/profile'
 import YouHelpSection from '@/components/driver/YouHelpSection'
 import SignOutButton from '@/components/driver/SignOutButton'
+import PushToggle from '@/components/driver/PushToggle'
+import { pushConfigured, vapidPublicKey } from '@/lib/driver-cabinet/push'
 
 // Phase 94 plan 94-12 (DCAB-10; D-13): the You tab. The driver's own details (read-only), two simple stats and Help.
 // Per request (reads the session cookie), gated by this page itself (a layout is not a gate, Pitfall 4). The service
@@ -78,6 +80,9 @@ function StatTile({ text, label }: { text: string; label: string }) {
 export default async function DriverYouPage() {
   const { driverId } = await requireDriver('/driver/you')
 
+  // Push is dormant without the VAPID keys (email still goes out): no section then. Only the public key is passed on.
+  const publicKey = pushConfigured() ? vapidPublicKey() : null
+
   const supabase = createSupabaseServiceClient()
   const [profile, stats] = await Promise.all([getDriverProfile(supabase, driverId), getDriverStats(supabase, driverId)])
 
@@ -134,7 +139,23 @@ export default async function DriverYouPage() {
 
       <YouHelpSection />
 
-      {/* Slot: Notifications (94-13) goes here; Sign out closes the page. */}
+      {publicKey ? (
+        <section id="notifications" aria-labelledby="you-notifications-heading" style={{ ...card, scrollMarginTop: 16 }}>
+          <h2
+            id="you-notifications-heading"
+            style={{
+              margin: '0 0 16px',
+              fontFamily: 'var(--admin-font-heading)',
+              fontSize: 'var(--driver-fs-heading)',
+              fontWeight: 500,
+              lineHeight: 1.2,
+            }}
+          >
+            Notifications
+          </h2>
+          <PushToggle publicKey={publicKey} />
+        </section>
+      ) : null}
 
       <SignOutButton />
     </main>
