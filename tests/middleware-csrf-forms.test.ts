@@ -148,3 +148,24 @@ describe('CSRF Origin check on the public quote endpoints (Phase 92)', () => {
     expect((await middleware(post('/api/submit-quote', null))).status).not.toBe(403)
   })
 })
+
+// Phase 94 (T-94-08, DCAB-13): the driver cabinet routes are cookie-authenticated and browser-only, so a
+// missing Origin is refused too (strict).
+const CABINET_ROUTES = ['/api/driver/cabinet/verify', '/api/driver/cabinet/request-code']
+
+describe('CSRF Origin check on the driver cabinet endpoints (Phase 94)', () => {
+  it.each(CABINET_ROUTES)('%s: a cross-site Origin is refused with 403', async (path) => {
+    const res = await middleware(post(path, 'https://evil.example'))
+    expect(res.status).toBe(403)
+  })
+
+  it.each(CABINET_ROUTES)('%s: a missing Origin is refused with 403 (strict)', async (path) => {
+    const res = await middleware(post(path, null))
+    expect(res.status).toBe(403)
+  })
+
+  it.each(CABINET_ROUTES)('%s: the site origin passes', async (path) => {
+    const res = await middleware(post(path, 'https://prestigo.cz'))
+    expect(res.status).not.toBe(403)
+  })
+})

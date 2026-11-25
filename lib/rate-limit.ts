@@ -44,6 +44,12 @@ const LIMITS: Record<string, number> = {
   '/api/driver/respond':         10, // SEC-02: prevent token oracle enumeration
   '/api/driver/trip/progress':   20, // DTRIP-08: driver taps through up to 5 states, higher than respond's 10
   '/api/driver/trip/help':       10, // Phase 87 UAT gap 3: Help chat opens, a few per trip; token-gated identity mint
+  '/api/driver/cabinet/request-code':        5, // Phase 94 (DCAB-13): per IP, each call may mail a sign-in code; fail-closed
+  '/api/driver/cabinet/request-code#email':  3, // Phase 94 (DCAB-13): codes per hashed email address per 10 min (see WINDOWS_MS); bounds mail bombing of one driver inbox
+  '/api/driver/cabinet/verify':             10, // Phase 94 (DCAB-13): per IP, bounds code guessing across codes; the per-code cap of 5 lives in consume_driver_login_code; fail-closed
+  '/api/driver/cabinet/offers/respond':     20, // Phase 94 (DCAB-13): signed-in driver accepts / declines offers, higher than the token-based respond's 10
+  '/api/driver/cabinet/push':               10, // Phase 94 (DCAB-13): push subscribe / unsubscribe, a few per device
+  '/api/driver/cabinet/help':               10, // Phase 94 (DCAB-13): cabinet Help chat identity mint, a few per session
   '/api/chatwoot/dashboard-app': 30, // operator panel: conversation switches + 30 s refresh per open tab; used fail-closed because the route proxies token checks to Chatwoot
 }
 
@@ -53,6 +59,7 @@ const LIMITS: Record<string, number> = {
  */
 const WINDOWS_MS: Record<string, number> = {
   '/api/custom-tour#ack': 24 * 60 * 60 * 1000,
+  '/api/driver/cabinet/request-code#email': 10 * 60 * 1000, // Phase 94 (research Pitfall 7)
 }
 
 export interface RateLimitResult {

@@ -16,6 +16,8 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/calculate-price',
   '/api/driver/respond',
   '/api/driver/trip',
+  // Phase 94 (DCAB-13): cookie-authenticated driver cabinet, browser-only caller.
+  '/api/driver/cabinet',
   // Phase 84 (PANEL-02): same-origin fetch from the Dashboard App page,
   // authenticated by the operator's Chatwoot token. CSRF is defence in depth,
   // so it is deliberately NOT in CSRF_STRICT_ORIGIN_REQUIRED below.
@@ -49,6 +51,8 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
   '/api/manage',
   // Phase 92: public quote routes, browser-only caller, Origin required.
   '/api/quote',
+  // Phase 94: driver cabinet, Origin required.
+  '/api/driver/cabinet',
 ]
 
 /**
