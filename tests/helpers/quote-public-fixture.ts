@@ -23,6 +23,8 @@ export interface PublicQuoteSeed {
   cancelFeePercent?: number
   /** Migration 098: the operator chose no deposit (deposit_kind 'none', deposit 0, every line's remainder its amount). */
   noDeposit?: boolean
+  /** Migration 099: line 1 is sent with its pickup time and pickup address still TBC (null). */
+  tbcLine1?: boolean
 }
 
 export interface PublicQuoteFixture {
@@ -111,11 +113,11 @@ export async function seedPublicQuote(db: FakePaymentsDb, seed: PublicQuoteSeed 
         position: 1,
         trip_type: 'transfer',
         pickup_date: seed.pickupDate ?? '2027-06-10',
-        pickup_time: seed.pickupTime ?? '10:30',
+        pickup_time: seed.tbcLine1 ? null : (seed.pickupTime ?? '10:30'),
         landing_date: '2027-06-10',
         landing_time: '10:05',
         pickup_offset_min: 30,
-        origin_address: 'Vaclav Havel Airport Prague',
+        origin_address: seed.tbcLine1 ? null : 'Vaclav Havel Airport Prague',
         destination_address: 'Hotel Aria, Prague',
         vehicle_class: 'business',
         passengers: 2,

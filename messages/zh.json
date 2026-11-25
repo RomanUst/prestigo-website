@@ -1373,6 +1373,9 @@
     }
   },
   "Quote": {
+    "tbc": "待确认",
+    "tbcFree": "首段行程前 {hours} 小时之前可免费取消：订金全额退还。",
+    "pendingBody": "您的预订已确定。部分行程细节仍待确认：一经确定，我们会通过电子邮件发送您的预订编号。",
     "noDeposit": {
       "intro": "请查看下方的行程和条款。如需确认，请接受报价。",
       "statusAccepted": "等待您的银行卡",
@@ -1520,6 +1523,13 @@
     }
   },
   "QuoteEmails": {
+    "received": {
+      "subject": "我们已收到您的确认 – {reference}",
+      "h1": "您的预订已确定",
+      "intro": "感谢您确认报价。",
+      "introDeposit": "我们已收到您的订金 {amount}。谢谢。",
+      "details": "部分行程细节仍待确认。一经确定，我们会通过电子邮件发送您的预订编号。"
+    },
     "common": {
       "greeting": "{name}，您好：",
       "signoff": "Prestigo 团队",

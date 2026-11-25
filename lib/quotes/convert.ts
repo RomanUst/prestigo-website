@@ -4,12 +4,12 @@ import { generateBookingReference } from '@/lib/booking-reference'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { DEFAULT_HOLD_LEAD_HOURS } from '@/lib/payments/config'
 import { computeHoldAt } from '@/lib/payments/timing'
-import { convertQuoteToBookings, type LedgerActor } from '@/lib/payments/state'
+import { convertQuoteToBookings, createPendingQuoteBookings, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { sendQuoteOperatorAlert } from '@/lib/quotes/alerts'
 import { renderQuoteAccountingEmail } from '@/lib/quotes/emails/accounting'
-import { renderQuoteConfirmedEmail } from '@/lib/quotes/emails/confirmed'
+import { renderQuoteConfirmedEmail, renderQuoteReceivedEmail } from '@/lib/quotes/emails/confirmed'
 import { sendQuoteEmail } from '@/lib/quotes/emails/shell'
 import { appendQuoteEvent, hasQuoteEvent } from '@/lib/quotes/events'
 import { mintQuoteLink } from '@/lib/quotes/lifecycle'
@@ -385,6 +385,10 @@ export async function runQuotePaidEffects(quoteId: string): Promise<void> {
   const bookings = await readPaidBookings(quoteId, lineOrder)
   const paidAt = quote.paid_at
   const paymentIntentId = quote.deposit_payment_intent_id ?? ''
+  // Migration 099: paid while a line is still TBC. The client gets a "received, details to follow" email now; the
+  // confirmation with the booking references and the reminders run when the bookings are made (runQuotePaidEffects is
+  // called again then, and those two keys were not used yet).
+  const pending = quote.bookings_pending === true
 
   // D-17: an invoice remainder is recorded on the quote (once) before anyone is told.
   if (version.remainder_method === 'invoice') {
@@ -434,6 +438,29 @@ export async function runQuotePaidEffects(quoteId: string): Promise<void> {
   const clientBlocked = async (): Promise<boolean> => {
     const fresh = await readOne<QuoteRow>('quotes', 'id', quoteId)
     return !fresh || Boolean(fresh.cancelled_at) || Boolean(fresh.anonymised_at) || Boolean(fresh.voided_at)
+  }
+
+  if (pending) {
+    await effect(quoteId, 'email:received', async () => {
+      if (await hasQuoteEvent(quoteId, 'email:received')) return
+      if (await clientBlocked()) return
+      let quoteUrl: string | null = null
+      try {
+        const minted = await mintQuoteLink(quoteId, null)
+        if (minted.ok) quoteUrl = minted.url
+      } catch {
+        console.error('[quote-convert] received link mint failed', { quoteId })
+      }
+      const mail = await renderQuoteReceivedEmail({ quote, version, quoteUrl })
+      const outcome = await sendQuoteEmail({
+        to: quote.client_email,
+        subject: mail.subject,
+        html: mail.html,
+        idempotencyKey: `quote-received:${quoteId}`,
+      })
+      await recordEmail(quoteId, 'email:received', outcome, versionId)
+    })
+    return
   }
 
   await effect(quoteId, 'email:confirmed', async () => {
@@ -623,4 +650,56 @@ export async function applyQuoteCardSaved(si: Stripe.SetupIntent, actor: LedgerA
     paymentMethodId: idOf(si.payment_method as string | { id?: string } | null),
     actor,
   })
+}
+
+// == Migration 099: the bookings of a quote sent with TBC fields =======================================================
+
+export type PendingBookingsOutcome =
+  | { outcome: 'created' | 'replayed'; bookingIds: string[] }
+  | { outcome: 'not_pending' | 'incomplete' | 'refused'; reason?: string }
+
+/**
+ * Makes the bookings of a paid quote whose lines were TBC, once every line is complete (called after the operator fills
+ * the details). The holds of a saved card are planned from the now known pickups, with the lead time the client accepted.
+ * Then the paid effects run again: the confirmation with the booking references and the reminders.
+ */
+export async function createQuoteBookingsWhenComplete(quoteId: string, actor: LedgerActor): Promise<PendingBookingsOutcome> {
+  const quote = await readOne<QuoteRow>('quotes', 'id', quoteId)
+  if (!quote || !quote.bookings_pending || !quote.paid_at) return { outcome: 'not_pending' }
+  const versionId = quote.accepted_version_id ?? quote.current_version_id
+  if (!versionId) return { outcome: 'not_pending' }
+  const version = await readOne<QuoteVersionRow>('quote_versions', 'id', versionId)
+  const lines = await readMany<QuoteLineRow>('quote_version_lines', 'version_id', versionId, 'position')
+  if (lines.some((l) => !l.pickup_date || !l.pickup_time || !l.origin_address)) return { outcome: 'incomplete' }
+
+  const { data: accData, error: accError } = await createSupabaseServiceClient()
+    .from('quote_acceptances')
+    .select('hold_lead_hours, confirmed_at')
+    .eq('quote_id', quoteId)
+    .eq('version_id', versionId)
+    .not('confirmed_at', 'is', null)
+    .order('confirmed_at', { ascending: false })
+    .limit(1)
+  if (accError) throw new Error('quote acceptance lookup failed')
+  const leadHours = ((accData ?? [])[0] as { hold_lead_hours?: number | null } | undefined)?.hold_lead_hours ?? DEFAULT_HOLD_LEAD_HOURS
+  const cardHold = version?.remainder_method === 'saved_card'
+  const references = freshReferences(lines.length)
+
+  const result = await createPendingQuoteBookings({
+    quoteId,
+    lines: lines.map((line, i) => ({
+      position: line.position,
+      bookingReference: references[i],
+      holdAt: cardHold && (line.remainder_minor ?? 0) > 0 ? holdAtFor(line, leadHours) : null,
+    })),
+    actor,
+  })
+  if (!result.created) {
+    if (result.reason === 'incomplete') return { outcome: 'incomplete' }
+    if (result.reason === 'not_pending') return { outcome: 'not_pending' }
+    console.error('[quote-pending] bookings refused', { quoteId, code: result.reason })
+    return { outcome: 'refused', reason: result.reason }
+  }
+  await finishQuotePaid(quoteId)
+  return { outcome: result.firstTime ? 'created' : 'replayed', bookingIds: result.bookingIds }
 }

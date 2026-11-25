@@ -63,8 +63,8 @@ describe('096 quote_convert_to_bookings', () => {
   const latest = bodyIn(m096, 'quote_convert_to_bookings')
   const latestFlat = latest.replace(/\s+/g, ' ')
 
-  it('the live definition is the 098 one, which supersedes 096', () => {
-    expect(latestFunctionBody('quote_convert_to_bookings')).toBe(bodyIn(loadMigration('098_quote_no_deposit.sql'), 'quote_convert_to_bookings'))
+  it('is superseded by a later migration (the live definition is pinned by tests/migration-099.test.ts)', () => {
+    expect(latestFunctionBody('quote_convert_to_bookings')).not.toBe(bodyIn(m096, 'quote_convert_to_bookings'))
   })
 
   it('is the 091 definition verbatim plus the tour mapping only', () => {

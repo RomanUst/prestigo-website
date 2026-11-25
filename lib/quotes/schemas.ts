@@ -245,3 +245,29 @@ export const quotePriceSchema = z.strictObject({
   line: quotePriceLineSchema,
   currency: quoteCurrencySchema,
 })
+
+/**
+ * POST /api/admin/quotes/[id]/details (migration 099): the TBC fields of a sent quote, filled in by the operator. Only
+ * fields that are still empty on the version the client has are written (the database refuses to change anything else),
+ * so every field here is optional; a line is named by its position.
+ */
+export const quoteDetailsSchema = z.strictObject({
+  lines: z
+    .array(
+      z.strictObject({
+        position: z.number().int().min(1).max(QUOTE_MAX_LINES),
+        pickup_date: dateString.optional(),
+        pickup_time: timeString.optional(),
+        origin: place.optional(),
+        destination: place.optional(),
+        hours: z.number().int().min(1).max(24).optional(),
+        return_date: dateString.optional(),
+        title: singleLine(1, QUOTE_LINE_TITLE_MAX).optional(),
+        flight_number: singleLine(1, 20).optional(),
+        terminal: singleLine(1, 20).optional(),
+      }),
+    )
+    .min(1)
+    .max(QUOTE_MAX_LINES),
+})
+export type QuoteDetailsPayload = z.infer<typeof quoteDetailsSchema>

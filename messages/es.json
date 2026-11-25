@@ -1373,6 +1373,9 @@
     }
   },
   "Quote": {
+    "tbc": "Por confirmar",
+    "tbcFree": "Cancelación gratuita hasta {hours} horas antes del primer viaje: el depósito se reembolsa íntegramente.",
+    "pendingBody": "Su reserva está asegurada. Algunos detalles de los viajes están por confirmar: le enviaremos las referencias de reserva por correo en cuanto estén definidos.",
     "noDeposit": {
       "intro": "Revise los viajes y las condiciones a continuación. Para confirmar, acepte el presupuesto.",
       "statusAccepted": "Esperando su tarjeta",
@@ -1520,6 +1523,13 @@
     }
   },
   "QuoteEmails": {
+    "received": {
+      "subject": "Hemos recibido su confirmación – {reference}",
+      "h1": "Su reserva está asegurada",
+      "intro": "Gracias por confirmar su presupuesto.",
+      "introDeposit": "Hemos recibido su depósito de {amount}. Gracias.",
+      "details": "Algunos detalles de los viajes están por confirmar. Le enviaremos las referencias de reserva por correo en cuanto estén definidos."
+    },
     "common": {
       "greeting": "Hola, {name}:",
       "signoff": "El equipo de Prestigo",

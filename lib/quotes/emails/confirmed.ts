@@ -95,3 +95,37 @@ export async function renderQuoteConfirmedEmail(input: {
 
   return { subject, html: body }
 }
+
+/**
+ * Migration 099: "We received your confirmation": the client paid (or confirmed) a quote whose trips still have details
+ * to be confirmed, so there is no booking reference yet. The confirmation with the references follows when the operator
+ * has filled the details.
+ */
+export async function renderQuoteReceivedEmail(input: {
+  quote: Pick<QuoteRow, 'reference' | 'client_first_name'>
+  version: Pick<QuoteVersionRow, 'locale' | 'currency' | 'deposit_minor'>
+  quoteUrl: string | null
+}): Promise<{ subject: string; html: string }> {
+  const { quote, version } = input
+  const tr = await quoteEmailTranslator(version.locale)
+  const { t } = tr
+  const deposit = Number(version.deposit_minor ?? 0)
+  const subject = text(t, 'received.subject', { reference: quote.reference })
+  const body = renderQuoteEmailShell({
+    tr,
+    subject,
+    h1: html(t, 'received.h1'),
+    paragraphs: [
+      html(t, 'common.greeting', {}, { name: bdiAuto(quote.client_first_name) }),
+      deposit > 0
+        ? html(t, 'received.introDeposit', { amount: formatMinor(deposit, version.currency) })
+        : html(t, 'received.intro'),
+      html(t, 'received.details'),
+    ],
+    reference: quote.reference,
+    lines: [],
+    ...(input.quoteUrl ? { button: { label: t('common.openQuote'), url: input.quoteUrl } } : {}),
+    footnotes: [],
+  })
+  return { subject, html: body }
+}

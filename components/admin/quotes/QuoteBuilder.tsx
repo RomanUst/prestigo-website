@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 import { QuoteLineEditor } from '@/components/admin/quotes/QuoteLineEditor'
 import { QuoteSettingsFields } from '@/components/admin/quotes/QuoteSettingsFields'
 import { QuoteActionsBar } from '@/components/admin/quotes/QuoteActionsBar'
+import { QuoteDetailsPanel } from '@/components/admin/quotes/QuoteDetailsPanel'
 import { QuoteEventsList } from '@/components/admin/quotes/QuoteEventsList'
 import CustomTourRequestCard from '@/components/admin/quotes/CustomTourRequestCard'
 import {
@@ -14,6 +15,7 @@ import {
   draftToPayload,
   emptyLine,
   sendBlockers,
+  tbcFields,
   type QuoteDraft,
   type QuoteLineDraft,
 } from '@/components/admin/quotes/quoteDraft'
@@ -212,6 +214,7 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
   const depositBlocked = depositProblem(draft) !== null
   const problems = attempted && !readOnly ? draftProblems(draft) : []
   const tbc = readOnly ? [] : sendBlockers(draft)
+  const tbcInfo = readOnly ? [] : tbcFields(draft)
   const setLine = (index: number, line: QuoteLineDraft) =>
     patch({ lines: draft.lines.map((l, i) => (i === index ? line : l)) })
   const removeLine = (index: number) => patch({ lines: draft.lines.filter((_, i) => i !== index) })
@@ -304,6 +307,7 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
       </div>
 
       <QuoteActionsBar detail={detail} unsavedChanges={unsaved} onChanged={() => load(true)} />
+      <QuoteDetailsPanel detail={detail} onSaved={() => load(true)} />
       <QuoteEventsList detail={detail} />
 
       {detail.quote.source_inquiry_id && (
@@ -340,9 +344,19 @@ export function QuoteBuilder({ quoteId }: { quoteId: string }) {
         <div style={cardStyle}>
           {tbc.length > 0 && (
             <div data-testid="quote-tbc-list" style={{ marginBottom: '12px' }}>
-              <div style={labelStyle}>TBC: fill in before sending (you can save without them)</div>
+              <div style={labelStyle}>Needed before sending</div>
               <ul style={{ margin: 0, paddingLeft: '18px' }}>
                 {tbc.map((p) => (
+                  <li key={p} style={mutedStyle}>{p}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {tbcInfo.length > 0 && (
+            <div data-testid="quote-tbc-info" style={{ marginBottom: '12px' }}>
+              <div style={labelStyle}>TBC: the client sees these as to be confirmed; the bookings wait for them</div>
+              <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                {tbcInfo.map((p) => (
                   <li key={p} style={mutedStyle}>{p}</li>
                 ))}
               </ul>

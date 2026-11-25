@@ -78,6 +78,7 @@ export function quoteLinkState(input: {
 
   if (quote.status !== 'sent' && quote.status !== 'viewed' && quote.status !== 'accepted') return null
   if (isPast(quote.expires_at, nowMs)) return null
-  if (input.firstPickupMs === null || nowMs >= input.firstPickupMs) return null
+  // Migration 099: with every pickup still TBC the offer lives until the operator's expiry (or a cancel).
+  if (input.firstPickupMs !== null && nowMs >= input.firstPickupMs) return null
   return 'offer'
 }

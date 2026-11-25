@@ -54,7 +54,10 @@ const NO_DEPOSIT_KEYS = [
   'consent.saved_card', 'consent.payment_link', 'consent.cash', 'consent.invoice', 'acceptOnline',
 ].map((k) => `noDeposit.${k}`)
 
-const KEYS = [...PAGE_KEYS, ...DOCUMENT_KEYS, ...NO_DEPOSIT_KEYS].map((k) => `Quote.${k}`)
+/** Migration 099: a quote sent with TBC fields. */
+const TBC_KEYS = ['tbc', 'tbcFree', 'pendingBody']
+
+const KEYS = [...PAGE_KEYS, ...DOCUMENT_KEYS, ...NO_DEPOSIT_KEYS, ...TBC_KEYS].map((k) => `Quote.${k}`)
 
 /** Sample ICU values: a leftover '{' after formatting means a parameter was lost or misspelt. */
 const SAMPLE: Record<string, string | number> = {
@@ -232,6 +235,7 @@ const EMAIL_SENT_KEYS = [
 /** Task 2: confirmed, remainder due / paid, cancelled, refunded (26 keys). */
 const EMAIL_LIFECYCLE_KEYS = [
   'confirmed.subject', 'confirmed.h1', 'confirmed.intro', 'confirmed.introNoDeposit', 'confirmed.booking',
+  'received.subject', 'received.h1', 'received.intro', 'received.introDeposit', 'received.details',
   'confirmed.remainder.saved_card', 'confirmed.remainder.payment_link', 'confirmed.remainder.cash',
   'confirmed.remainder.invoice', 'confirmed.remainder.none',
   'remainderDue.subject', 'remainderDue.h1', 'remainderDue.intro', 'remainderDue.button',
@@ -255,8 +259,8 @@ const EMAIL_SAME_AS_EN: Record<string, ReadonlySet<string>> = {
 }
 
 describe('quote e-mail copy: the EN source', () => {
-  it('has exactly the planned QuoteEmails key set (42 keys)', () => {
-    expect(EMAIL_KEYS).toHaveLength(42)
+  it('has exactly the planned QuoteEmails key set (47 keys)', () => {
+    expect(EMAIL_KEYS).toHaveLength(47)
     expect(Object.keys(EMAIL_EN).sort()).toEqual([...EMAIL_KEYS].sort())
   })
 

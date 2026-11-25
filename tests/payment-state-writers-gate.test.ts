@@ -31,6 +31,8 @@ const RPC_NAMES = [
   'claim_due_payment_work',
   // Phase 92 (plan 92-18): the quote conversion RPC of migration 091; convertQuoteToBookings is its one caller.
   'quote_convert_to_bookings',
+  // Migration 099: the deferred bookings of a quote sent with TBC fields; createPendingQuoteBookings is its one caller.
+  'quote_create_pending_bookings',
 ] as const
 
 function listCodeFiles(dir: string): string[] {

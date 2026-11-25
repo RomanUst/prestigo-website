@@ -21,6 +21,8 @@ export interface QuoteRow {
   deposit_payment_intent_id: string | null
   /** Migration 098: the SetupIntent of a quote without a deposit (saved card / cash). */
   card_setup_intent_id?: string | null
+  /** Migration 099: paid while a line is still TBC; the bookings are made once the operator fills it in. */
+  bookings_pending?: boolean
   accepted_version_id: string | null
   accepted_at: string | null
   paid_at: string | null

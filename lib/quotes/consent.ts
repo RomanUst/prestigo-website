@@ -78,7 +78,7 @@ export async function renderQuoteTerms(input: { resolved: ResolvedQuote; nowMs: 
       deposit: ltr(formatMinor(depositMinor, version.currency)),
     }),
     t(`remainder.${method}`),
-    showFree ? t('terms.free', { freeUntil: ltr(freeUntil) }) : t('terms.noFree'),
+    first === null ? t('tbcFree', { hours: freeHours }) : showFree ? t('terms.free', { freeUntil: ltr(freeUntil) }) : t('terms.noFree'),
     feePercent >= 100 ? t('terms.lateAll') : t('terms.latePercent', { percent: feePercent }),
     t('terms.cap'),
   ]
