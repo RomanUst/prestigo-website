@@ -1,0 +1,43 @@
+/* Driver cabinet (Phase 94, 94-UI-SPEC "Theme Architecture").
+   Selector-scoped to .admin-shell.driver-shell. Size and layout only: colours come from the
+   --admin-* / --status-* tokens of admin-theme.css (no colour literal belongs in this file). */
+
+/* One centered column, never wider than a phone. dvh + flex column so a 200% text zoom scrolls instead of clipping. */
+.admin-shell.driver-shell .driver-cabinet-column {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .admin-shell.driver-shell .driver-cabinet-column {
+    border-left: 1px solid var(--admin-border);
+    border-right: 1px solid var(--admin-border);
+  }
+}
+
+/* Visually hidden, still read by screen readers. */
+.admin-shell.driver-shell .driver-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.admin-shell.driver-shell .driver-cabinet-header {
+  box-sizing: border-box;
+  height: 56px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
