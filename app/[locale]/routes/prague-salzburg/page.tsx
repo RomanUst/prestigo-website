@@ -5,6 +5,7 @@ export const revalidate = 3600
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import ReverseRouteLink from '@/components/ReverseRouteLink'
@@ -18,7 +19,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
 import { routeBookQuery } from '@/lib/route-match'
 import HeroRating from '@/components/HeroRating'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
@@ -82,7 +83,7 @@ export default async function PragueSalzburgPage({ params }: { params: Promise<{
 
   const vehicles = content.vehicles.map((v) => ({ ...v, price: interpolate(v.price, prices) }))
 
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
 
   const pageSchema = {
     '@context': 'https://schema.org',
@@ -357,6 +358,7 @@ export default async function PragueSalzburgPage({ params }: { params: Promise<{
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

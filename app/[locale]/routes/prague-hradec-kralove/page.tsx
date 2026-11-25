@@ -15,11 +15,12 @@ export const revalidate = 3600
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import ReverseRouteLink from '@/components/ReverseRouteLink'
 import HeroRating from '@/components/HeroRating'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
@@ -71,7 +72,7 @@ export default async function PragueHradecKralovePage({ params }: { params: Prom
 
   const faqs = content.faqs.map((f) => ({ q: f.q, a: interpolate(f.a, prices), aBidi: interpolateBidi(f.a, prices) }))
 
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
 
   const pageSchema = {
     '@context': 'https://schema.org' as const,
@@ -365,6 +366,7 @@ export default async function PragueHradecKralovePage({ params }: { params: Prom
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

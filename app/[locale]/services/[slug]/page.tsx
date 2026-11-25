@@ -19,7 +19,7 @@ import type { TourT } from '@/components/tours/tour-t'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 import { findLandingPage, getLandingPrices, landingPagesFor, type LandingContent } from '@/lib/landing-pages'
 import { getPublishedTourForLocale, getPublishedTourLocales, listPublishedTours, type TourCardView } from '@/lib/tours/store'
 import { tourPhotoUrl } from '@/lib/tours/photo-url'
@@ -133,13 +133,13 @@ export default async function ServicePage({ params }: { params: Params }) {
           content={content}
           locale={locale}
           prices={prices}
-          rating={getStaticAggregateRating()}
+          rating={(await getLiveAggregateRating())}
           afterGlance={<HubTourSection cards={cards} locale={locale} t={t} />}
           beforeCta={<CustomTourBlock variant="band" locale={locale} t={t} />}
         />
       )
     }
-    return <LandingView page={page} content={content} locale={locale} prices={prices} rating={getStaticAggregateRating()} />
+    return <LandingView page={page} content={content} locale={locale} prices={prices} rating={(await getLiveAggregateRating())} />
   }
 
   // Only a well-formed tour slug in a real locale ever reaches the database or a redirect (T-93-30).

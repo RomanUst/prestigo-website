@@ -7,6 +7,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import ArticleByline from '@/components/ArticleByline'
 import { getAllPosts, resolveLocalizedMdx, blogCanonical, type BlogPost } from '@/lib/blog'
 import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
@@ -217,6 +218,7 @@ export default async function BlogArticlePage({
           </div>
         </section>
       </main>
+      <Testimonials />
       <Footer />
     </>
   )

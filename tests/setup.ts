@@ -44,3 +44,8 @@ vi.mock('@stripe/react-stripe-js', () => ({
 vi.mock('@stripe/stripe-js', () => ({
   loadStripe: vi.fn().mockResolvedValue({}),
 }))
+
+// <Testimonials> is an async Server Component (fetches Google reviews); the
+// jsdom renderer used by page tests cannot render async components, so it is
+// stubbed globally like Nav/Footer. Tests that assert on it override this mock.
+vi.mock('@/components/Testimonials', () => ({ default: () => null }))

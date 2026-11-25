@@ -5,13 +5,14 @@ export const revalidate = 3600
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Divider from '@/components/Divider'
 import BookingSection from '@/components/BookingSection'
 import { setRequestLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { buildAirportTransferJsonLd } from '@/lib/jsonld'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
@@ -98,7 +99,7 @@ export default async function AirportTransferPage({ params }: { params: Promise<
     name: content.metadata.ogTitle,
     description: interpolate(content.metadata.description, { businessPrice }),
   })
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
 
   const features = content.features
   const faqs = content.faqs
@@ -388,6 +389,7 @@ export default async function AirportTransferPage({ params }: { params: Promise<
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )
