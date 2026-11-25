@@ -41,3 +41,10 @@
   align-items: center;
   flex-shrink: 0;
 }
+
+/* Bottom tab bar and ride rows (94-06): pressed states only; every colour is a token. */
+.admin-shell.driver-shell .driver-tab-link:active,
+.admin-shell.driver-shell .driver-ride-row:active,
+.admin-shell.driver-shell .driver-text-link:active {
+  background-color: var(--admin-hover);
+}
