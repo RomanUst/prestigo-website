@@ -276,3 +276,161 @@ describe('notifyCabinetDriverOfOffer (never rejects)', () => {
   })
 })
 
+// ───────────────────────────────────────────────────────────────────────────
+// Part 2: the assign route
+// ───────────────────────────────────────────────────────────────────────────
+
+const bookingId = 'a0000001-0000-4000-8000-000000000001'
+const driverId = 'a0000002-0000-4000-8000-000000000002'
+const assignmentToken = 'a0000003-0000-4000-8000-000000000003'
+const tripToken = 'a0000004-0000-4000-8000-000000000004'
+
+const booking = {
+  id: bookingId,
+  booking_reference: 'PRG-001',
+  pickup_date: '2026-11-27',
+  pickup_time: '14:30',
+  origin_address: 'Prague Airport',
+  destination_address: 'Wenceslas Square',
+  client_first_name: 'Alice',
+  client_last_name: 'Smith',
+  client_phone: '+420123456789',
+  vehicle_class: 'business',
+  status: 'pending',
+  booking_source: 'website',
+  driver_price_czk: 2500,
+  special_requests: null,
+  landing_date: null,
+  landing_time: null,
+  pickup_offset_min: null,
+}
+
+function setupRoute(opts: { driver: Record<string, unknown>; flags?: unknown }) {
+  const assignment = { id: ASSIGNMENT_ID, driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
+  let n = 0
+  h.from.mockImplementation(() => {
+    n++
+    if (n === 1) {
+      return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: opts.driver, error: null }) }) }) }
+    }
+    if (n === 2) {
+      return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: booking, error: null }) }) }) }
+    }
+    if (n === 3) {
+      return { insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: assignment, error: null }) }) }) }
+    }
+    return {
+      select: () => ({
+        eq: () => ({ single: () => Promise.resolve({ data: { notification_flags: opts.flags ?? { driver_assigned: true } }, error: null }) }),
+      }),
+    }
+  })
+}
+
+function assignRequest(): Request {
+  return new Request(`http://localhost/api/admin/bookings/${bookingId}/assign`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ driver_id: driverId }),
+  })
+}
+
+async function runAssign() {
+  const res = await assignPost(assignRequest(), { params: Promise.resolve({ id: bookingId }) })
+  await new Promise((r) => setTimeout(r, 10))
+  return res
+}
+
+describe('assign route: cabinet branch (D-18, D-15, D-09)', () => {
+  beforeEach(() => {
+    h.adminUser.mockResolvedValue({ user: { id: '1', app_metadata: { is_admin: true } }, error: null })
+    h.rpc.mockResolvedValue({ data: { applied: true }, error: null })
+    h.logEmail.mockResolvedValue(true)
+    h.assignmentEmail.mockResolvedValue(undefined)
+    h.notifyStub.mockResolvedValue(undefined)
+  })
+
+  it('a cabinet driver gets the cabinet notification, not the token email', async () => {
+    setupRoute({ driver: { id: driverId, name: 'John', email: 'driver@example.com', cabinet_enabled: true } })
+    const res = await runAssign()
+    expect(res.status).toBe(201)
+    expect(h.notifyStub).toHaveBeenCalledTimes(1)
+    const arg = h.notifyStub.mock.calls[0][0]
+    expect(arg.driverId).toBe(driverId)
+    expect(arg.assignmentId).toBe(ASSIGNMENT_ID)
+    expect(arg.email).toEqual({
+      to: 'driver@example.com',
+      pickupDate: '2026-11-27',
+      pickupTime: '14:30',
+      originAddress: 'Prague Airport',
+      destinationAddress: 'Wenceslas Square',
+      passengerFirstName: 'Alice',
+      vehicleClass: 'business',
+      driverPriceCzk: 2500,
+    })
+    expect(h.assignmentEmail).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['false', { cabinet_enabled: false }],
+    ['absent', {}],
+  ])('a driver with cabinet_enabled %s keeps today\'s email argument object', async (_label, extra) => {
+    setupRoute({ driver: { id: driverId, name: 'John', email: 'driver@example.com', ...extra } })
+    const res = await runAssign()
+    expect(res.status).toBe(201)
+    expect(h.notifyStub).not.toHaveBeenCalled()
+    expect(h.assignmentEmail).toHaveBeenCalledTimes(1)
+    expect(h.assignmentEmail.mock.calls[0][0]).toEqual({
+      driverName: 'John',
+      driverEmail: 'driver@example.com',
+      bookingReference: 'PRG-001',
+      pickupDate: '2026-11-27',
+      pickupTime: '14:30',
+      originAddress: 'Prague Airport',
+      destinationAddress: 'Wenceslas Square',
+      passengerFirstName: 'Alice',
+      passengerLastName: 'Smith',
+      passengerPhone: '+420123456789',
+      driverPriceCzk: 2500,
+      specialRequests: null,
+      bookingId,
+      landingDate: null,
+      landingTime: null,
+      pickupOffsetMin: null,
+      acceptUrl: `https://rideprestigo.com/driver/response?token=${assignmentToken}&action=accepted`,
+      declineUrl: `https://rideprestigo.com/driver/response?token=${assignmentToken}&action=declined`,
+      tripUrl: `https://rideprestigo.com/driver/trip/${tripToken}`,
+    })
+  })
+
+  it('notification_flags.driver_assigned === false suppresses both', async () => {
+    setupRoute({
+      driver: { id: driverId, name: 'John', email: 'driver@example.com', cabinet_enabled: true },
+      flags: { driver_assigned: false },
+    })
+    const res = await runAssign()
+    expect(res.status).toBe(201)
+    expect(h.notifyStub).not.toHaveBeenCalled()
+    expect(h.assignmentEmail).not.toHaveBeenCalled()
+  })
+
+  it('a deduped logEmail suppresses both', async () => {
+    h.logEmail.mockResolvedValue(false)
+    setupRoute({ driver: { id: driverId, name: 'John', email: 'driver@example.com', cabinet_enabled: true } })
+    await runAssign()
+    expect(h.notifyStub).not.toHaveBeenCalled()
+    expect(h.assignmentEmail).not.toHaveBeenCalled()
+  })
+
+  it('a rejecting notifier does not change the 201 response', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    h.notifyStub.mockRejectedValue(new Error('boom'))
+    setupRoute({ driver: { id: driverId, name: 'John', email: 'driver@example.com', cabinet_enabled: true } })
+    const res = await runAssign()
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.assignment).toEqual({ id: ASSIGNMENT_ID, driver_id: driverId, status: 'pending' })
+    expect(json.booking_status).toBe('pending')
+    spy.mockRestore()
+  })
+})

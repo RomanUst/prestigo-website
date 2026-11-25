@@ -79,6 +79,10 @@ vi.mock('@/lib/email', () => ({
   sendDriverDeclineNotification: stubSendDriverDeclineNotification,
 }))
 
+vi.mock('@/lib/driver-cabinet/offer-notify', () => ({
+  notifyCabinetDriverOfOffer: vi.fn().mockResolvedValue(undefined),
+}))
+
 vi.mock('@/lib/driver-accept-email', () => ({
   sendDriverAcceptedTripEmail: stubSendDriverAcceptedTripEmail,
 }))
