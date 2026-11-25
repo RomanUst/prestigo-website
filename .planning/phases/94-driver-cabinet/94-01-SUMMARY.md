@@ -8,7 +8,7 @@ provides:
   - "lib/driver-cabinet/auth.ts: code issue/verify, driver session create/lookup (getDriverSession)"
   - "POST /api/driver/cabinet/request-code and /verify"
   - "sendDriverLoginCodeEmail / buildDriverLoginCodeHtml"
-  - "supabase/migrations/100_driver_cabinet.sql (file written, live apply PENDING)"
+  - "supabase/migrations/100_driver_cabinet.sql (applied live 2026-11-25 as 100_driver_cabinet)"
   - "tests/helpers/fake-driver-cabinet-db.ts (createFakeDriverCabinetDb)"
 affects: [94-02, 94-03, 94-04, 94-05, 94-06, 94-07, 94-08, 94-09, 94-10, 94-11, 94-12, 94-13, 94-14]
 tech-stack:
@@ -66,7 +66,7 @@ Invited drivers sign in with a 6-digit emailed code and hold a 30-day opaque dri
 - `npx eslint --quiet` on all new/changed source and test files: exit 0.
 - Acceptance greps: no `@/lib/supabase/server` in auth.ts or the routes; `failClosed: true` twice in request-code, once in verify; no `logEmail` in request-code; `sameSite: 'lax'` present.
 
-## Task 3: live apply (PENDING, ORCHESTRATOR_MCP_REQUIRED)
+## Task 3: live apply (done by the orchestrator, 2026-11-25)
 
 Executors have no Supabase MCP. The orchestrator must:
 
@@ -78,12 +78,12 @@ Executors have no Supabase MCP. The orchestrator must:
 
 Results to record here once done:
 
-- STEP 0 output: PENDING
-- apply result ("100 live"): PENDING
-- SMOKE_OK_94_01 output: PENDING
-- zero-row check: PENDING
-- unchanged pg_policies rows: PENDING
-- advisors: PENDING
+- STEP 0 output: drivers(id, name, email, phone, vehicle_info, created_at); driver_assignments(id, booking_id, driver_id, status, token, token_expires_at, token_used_at, created_at, trip_token, trip_progress, trip_note, trip_progress_updated_at); 13 policies (bookings 5, driver_assignments 4, drivers 4); none of the three new tables or the RPC existed.
+- apply result: 100 live (apply_migration success).
+- SMOKE_OK_94_01 output: all 25 checks true (defaults, 5-attempt cap, single use, expiry, wrong driver, unique/hex/https checks, cascade, deny-all on 3 tables, RPC service_role only).
+- zero-row check: smoke driver 0 rows; codes+sessions+subscriptions 0 rows; 0 drivers cabinet_enabled.
+- unchanged pg_policies rows: 13, same as STEP 0.
+- advisors: security advisors list no finding for driver_login_codes, driver_sessions, driver_push_subscriptions or consume_driver_login_code (only pre-existing items).
 
 ## Deviations from Plan
 
