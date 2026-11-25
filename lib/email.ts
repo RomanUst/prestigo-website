@@ -2436,6 +2436,86 @@ export async function sendDriverAcceptedEmail(data: DriverAcceptedEmailData): Pr
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// DRIVER CABINET SIGN-IN CODE EMAIL (Phase 94-01, DCAB-01)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * The 6-digit sign-in code email: one centered panel with the code, no link, no button, no passenger data.
+ * The code is validated as exactly six digits before it is inlined.
+ */
+export function buildDriverLoginCodeHtml(code: string): string {
+  if (!/^\d{6}$/.test(code)) throw new Error('login code must be 6 digits')
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your sign-in code — PRESTIGO</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C;">
+  <div style="background-color: #0F1D2C; padding: 0; margin: 0; font-family: 'Inter', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0F1D2C;">
+
+      <!-- Header gold gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        ${emailLogoImg(28)}
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 32px;">Your sign-in code</h1>
+
+      <!-- Code panel -->
+      <div style="background-color: #17293B; border-left: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px; text-align: center;">
+        <div style="font-family: 'Inter', Arial, sans-serif; font-size: 32px; font-weight: 600; color: #E6D6B0; letter-spacing: 8px; font-variant-numeric: tabular-nums;">${code}</div>
+      </div>
+
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <p style="font-size: 14px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif; margin: 0;">This code works for 10 minutes. If you did not ask for it, you can ignore this email.</p>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #BFA06A; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          ${emailLogoImg(18)}
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send the cabinet sign-in code. Non-fatal: returns false on a Resend error or an exception, never throws.
+ * Does not go through the email dedup log (lib/email-log.ts suppresses repeats for 10 minutes and would block
+ * "Send a new code"; the rate limiter bounds repeats instead). Never logs the code or the address.
+ */
+export async function sendDriverLoginCodeEmail(data: { to: string; code: string }): Promise<boolean> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.to],
+      subject: 'Your Prestigo sign-in code',
+      html: buildDriverLoginCodeHtml(data.code),
+    })
+    if (error) {
+      console.error('[driver-cabinet] code email error')
+      return false
+    }
+    return true
+  } catch {
+    console.error('[driver-cabinet] code email exception')
+    return false
+  }
+}
+
 export interface DriverDeclineNotificationData {
   bookingReference: string
   pickupDate: string
