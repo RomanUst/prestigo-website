@@ -1,4 +1,7 @@
 {
+  "PhoneInput": {
+    "countryLabel": "国家/地区代码"
+  },
   "Booking": {
     "entryBar": {
       "pickupLocationLabel": "上车地点",
@@ -33,7 +36,7 @@
       "firstNameRequired": "请填写名字",
       "lastNameRequired": "请填写姓氏",
       "invalidEmail": "请输入有效的电子邮箱地址",
-      "invalidPhone": "请输入带国家代码的号码，例如 +420 123 456 789",
+      "invalidPhone": "请检查号码：选择您的国家/地区并输入电话号码",
       "invalidFlightFormat": "IATA 格式无效 — 例如 BA256 或 OK123",
       "maxCharacters": "最多 500 个字符"
     },
@@ -449,7 +452,7 @@
       "firstNameRequired": "请填写名字。",
       "lastNameRequired": "请填写姓氏。",
       "validEmailRequired": "请填写有效的电子邮箱。",
-      "validPhoneRequired": "请输入带国家代码的电话号码，例如 +420 123 456 789。",
+      "validPhoneRequired": "请检查号码：选择您的国家/地区并输入电话号码。",
       "tooManyRequests": "请求过于频繁。请稍等一分钟后重试。",
       "submitError": "我们无法提交您的请求。请检查您填写的内容后重试。",
       "networkError": "网络错误。请检查您的网络连接后重试。"
@@ -1750,7 +1753,7 @@
       "name": "您的姓名",
       "email": "电子邮箱",
       "phone": "电话 / WhatsApp",
-      "phoneHelper": "请带国家区号，例如 +44。",
+      "phoneHelper": "请选择国家/地区，然后输入号码。",
       "privacy": "我们仅使用您的信息来回复此申请。<link>隐私政策</link>",
       "send": "发送申请",
       "sending": "正在发送…",
@@ -1762,7 +1765,7 @@
       "errPeople": "请输入人数。",
       "errName": "请输入您的姓名。",
       "errEmail": "请输入有效的电子邮箱地址。",
-      "errPhone": "请输入带国家区号的电话号码。",
+      "errPhone": "请检查电话号码和国家/地区。",
       "err429": "请求过于频繁，请稍等一分钟后重试。",
       "errGeneric": "我们无法发送您的申请。请重试，或通过 WhatsApp 联系我们。",
       "errNetwork": "无法连接到我们的服务器。请检查网络后重试。"

@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import DayCard, { createDay, type Day } from '@/components/booking/DayCard'
-import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
+import { isValidIntlPhone, normalizePhone } from '@/lib/phone'
+import PhoneInput from '@/components/PhoneInput'
 import { Link } from '@/i18n/routing'
 
 type MultiDayTranslator = (key: string, values?: Record<string, string | number>) => string
@@ -454,24 +455,17 @@ export default function MultiDayForm() {
             required
           />
         </label>
-        <label style={labelStyle}>
-          {t('phone')}
-          <input
+        <div style={labelStyle}>
+          <label htmlFor="multiday-phone">{t('phone')}</label>
+          <PhoneInput
+            id="multiday-phone"
             name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder={PHONE_PLACEHOLDER}
             value={passenger.phone}
-            onChange={(e) => setPassenger({ ...passenger, phone: e.target.value })}
-            onBlur={(e) => {
-              const normalized = normalizePhone(e.target.value)
-              if (normalized && normalized !== e.target.value) setPassenger({ ...passenger, phone: normalized })
-            }}
+            onChange={(v) => setPassenger({ ...passenger, phone: v })}
             style={inputStyle}
             required
           />
-        </label>
+        </div>
         <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
           {t('specialRequests')}
           <textarea

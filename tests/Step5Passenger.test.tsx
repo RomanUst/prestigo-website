@@ -167,17 +167,30 @@ describe('Step5Passenger', () => {
     it.todo('shows "First name is required" after blur on empty First Name')
     it.todo('shows "Last name is required" after blur on empty Last Name')
     it.todo('shows "Enter a valid email address" after blur on invalid email')
-    it('rejects a phone without the country code and normalises a valid one on blur', async () => {
+    it('builds the number from the country picker and a UK number typed the British way', async () => {
       render(<Step5Passenger />)
-      const input = screen.getByPlaceholderText('+420 123 456 789') as HTMLInputElement
-      fireEvent.change(input, { target: { value: '725123456' } })
+      const picker = screen.getByLabelText('Country code') as HTMLSelectElement
+      const input = screen.getByPlaceholderText('123 456 789') as HTMLInputElement
+      fireEvent.change(picker, { target: { value: 'GB' } })
+      fireEvent.change(input, { target: { value: '07700 900123' } })
       fireEvent.blur(input)
-      expect(await screen.findByText(/country code/i)).toBeInTheDocument()
+      await waitFor(() =>
+        expect(mockSetPassengerDetails).toHaveBeenLastCalledWith(expect.objectContaining({ phone: '+447700900123' })),
+      )
+      expect(screen.queryByText(/check the phone number/i)).not.toBeInTheDocument()
+    })
+    it('rejects a number that is too short and switches the picker on a pasted +44 number', async () => {
+      render(<Step5Passenger />)
+      const picker = screen.getByLabelText('Country code') as HTMLSelectElement
+      const input = screen.getByPlaceholderText('123 456 789') as HTMLInputElement
+      fireEvent.change(input, { target: { value: '12' } })
+      fireEvent.blur(input)
+      expect(await screen.findByText(/check the phone number/i)).toBeInTheDocument()
 
-      fireEvent.change(input, { target: { value: '00420 725 123 456' } })
-      fireEvent.blur(input)
-      await waitFor(() => expect(input.value).toBe('+420725123456'))
-      await waitFor(() => expect(screen.queryByText(/country code/i)).not.toBeInTheDocument())
+      fireEvent.change(input, { target: { value: '+44 7700 900123' } })
+      await waitFor(() => expect(picker.value).toBe('GB'))
+      expect(input.value).toBe('7700900123')
+      await waitFor(() => expect(screen.queryByText(/check the phone number/i)).not.toBeInTheDocument())
     })
     it('validates a phone restored from the session on mount, without waiting for blur', async () => {
       storeRef.current.passengerDetails = {
@@ -185,7 +198,7 @@ describe('Step5Passenger', () => {
         flightNumber: '', terminal: '', specialRequests: '',
       } as never
       render(<Step5Passenger />)
-      expect(await screen.findByText(/country code/i)).toBeInTheDocument()
+      expect(await screen.findByText(/check the phone number/i)).toBeInTheDocument()
     })
     it.todo('shows "Flight number is required for airport rides" after blur on empty Flight Number for airport ride')
     it.todo('clears error message when valid value entered and field blurred again')

@@ -22,7 +22,8 @@ import { localizedHref } from '@/lib/localized-href'
 import { formatEUR } from '@/lib/currency'
 import { formatMinor } from '@/lib/payments/money'
 import { MIN_BOOKING_LEAD_MS } from '@/lib/payments/timing'
-import { isValidIntlPhone, normalizePhone, PHONE_PLACEHOLDER } from '@/lib/phone'
+import { isValidIntlPhone, normalizePhone } from '@/lib/phone'
+import PhoneInput from '@/components/PhoneInput'
 import { tourBoxStorageKey, type TourCheckoutQuery } from '@/lib/tours/checkout-query'
 import { writeTourConfirmation } from '@/lib/tours/confirmation-snapshot'
 import { customTourHref } from '@/lib/tours/custom-tour-link'
@@ -442,22 +443,14 @@ export default function TourCheckout({ tour, query, fareEur, pickupRadiusKm }: T
                 <label htmlFor="tour-phone" className={labelClass}>
                   {tc('phoneLabel')}
                 </label>
-                <input
+                <PhoneInput
                   id="tour-phone"
-                  ref={phoneRef}
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  placeholder={PHONE_PLACEHOLDER}
+                  inputRef={phoneRef}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onBlur={(e) => {
-                    const normalized = normalizePhone(e.target.value)
-                    if (normalized && normalized !== e.target.value) setPhone(normalized)
-                  }}
-                  aria-required="true"
-                  aria-invalid={errors.phone ? true : undefined}
-                  aria-describedby={errors.phone ? 'tour-phone-error' : undefined}
+                  onChange={setPhone}
+                  required
+                  invalid={Boolean(errors.phone)}
+                  describedBy={errors.phone ? 'tour-phone-error' : undefined}
                   className={inputClass(Boolean(errors.phone))}
                 />
                 {errors.phone ? (

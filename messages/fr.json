@@ -1,4 +1,7 @@
 {
+  "PhoneInput": {
+    "countryLabel": "Indicatif du pays"
+  },
   "Booking": {
     "entryBar": {
       "pickupLocationLabel": "LIEU DE PRISE EN CHARGE",
@@ -33,7 +36,7 @@
       "firstNameRequired": "Le prénom est requis",
       "lastNameRequired": "Le nom est requis",
       "invalidEmail": "Saisissez une adresse e-mail valide",
-      "invalidPhone": "Saisissez le numéro avec l’indicatif du pays, par ex. +420 123 456 789",
+      "invalidPhone": "Vérifiez le numéro : choisissez votre pays et saisissez le numéro",
       "invalidFlightFormat": "Format IATA invalide — ex. BA256 ou OK123",
       "maxCharacters": "500 caractères maximum"
     },
@@ -449,7 +452,7 @@
       "firstNameRequired": "Le prénom est requis.",
       "lastNameRequired": "Le nom est requis.",
       "validEmailRequired": "Une adresse e-mail valide est requise.",
-      "validPhoneRequired": "Saisissez un numéro de téléphone avec l’indicatif du pays, par ex. +420 123 456 789.",
+      "validPhoneRequired": "Vérifiez le numéro : choisissez votre pays et saisissez le numéro.",
       "tooManyRequests": "Trop de demandes. Veuillez patienter une minute, puis réessayer.",
       "submitError": "Nous n’avons pas pu transmettre votre demande. Veuillez vérifier vos informations et réessayer.",
       "networkError": "Erreur de réseau. Veuillez vérifier votre connexion et réessayer."
@@ -1750,7 +1753,7 @@
       "name": "VOTRE NOM",
       "email": "E-MAIL",
       "phone": "TÉLÉPHONE / WHATSAPP",
-      "phoneHelper": "Avec l'indicatif du pays, par exemple +44.",
+      "phoneHelper": "Choisissez votre pays, puis saisissez votre numéro.",
       "privacy": "Nous utilisons vos coordonnées uniquement pour répondre à cette demande. <link>Politique de confidentialité</link>",
       "send": "Envoyer la demande",
       "sending": "Envoi…",
@@ -1762,7 +1765,7 @@
       "errPeople": "Indiquez le nombre de personnes.",
       "errName": "Saisissez votre nom.",
       "errEmail": "Saisissez une adresse e-mail valide.",
-      "errPhone": "Saisissez un numéro de téléphone avec l'indicatif du pays.",
+      "errPhone": "Vérifiez le numéro de téléphone et le pays.",
       "err429": "Trop de demandes. Patientez une minute et réessayez.",
       "errGeneric": "Nous n'avons pas pu envoyer votre demande. Réessayez ou écrivez-nous sur WhatsApp.",
       "errNetwork": "Nous n'avons pas pu joindre notre serveur. Vérifiez votre connexion et réessayez."

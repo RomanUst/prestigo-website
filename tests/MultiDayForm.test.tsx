@@ -212,7 +212,7 @@ describe('MultiDayForm (MULTIDAY-03, MULTIDAY-04, MULTIDAY-05 client)', () => {
     expect(screen.queryByTestId('multiday-confirmation')).not.toBeInTheDocument()
   })
 
-  it('on 422 INVALID_PHONE shows the country-code message, not the generic submit error', async () => {
+  it('on 422 INVALID_PHONE shows the phone message, not the generic submit error', async () => {
     fetchMock.mockImplementation((url: string) => {
       if (url === '/api/hourly-config') {
         return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ min: 2, max: 8 }) })
@@ -230,7 +230,7 @@ describe('MultiDayForm (MULTIDAY-03, MULTIDAY-04, MULTIDAY-05 client)', () => {
     fillPassenger()
     await user.click(screen.getByRole('button', { name: /Request quote/i }))
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent(/country code/i)
+      expect(screen.getByRole('alert')).toHaveTextContent(/check the phone number/i)
     })
     expect(screen.getByRole('alert')).not.toHaveTextContent(/could not submit/i)
     expect(screen.queryByTestId('multiday-confirmation')).not.toBeInTheDocument()

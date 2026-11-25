@@ -1,4 +1,7 @@
 {
+  "PhoneInput": {
+    "countryLabel": "國家/地區代碼"
+  },
   "Booking": {
     "entryBar": {
       "pickupLocationLabel": "上車地點",
@@ -33,7 +36,7 @@
       "firstNameRequired": "請填寫名字",
       "lastNameRequired": "請填寫姓氏",
       "invalidEmail": "請輸入有效的電子郵箱地址",
-      "invalidPhone": "請輸入帶國家程式碼的號碼，例如 +420 123 456 789",
+      "invalidPhone": "請檢查號碼：選擇您的國家/地區並輸入電話號碼",
       "invalidFlightFormat": "IATA 格式無效 — 例如 BA256 或 OK123",
       "maxCharacters": "最多 500 個字元"
     },
@@ -449,7 +452,7 @@
       "firstNameRequired": "請填寫名字。",
       "lastNameRequired": "請填寫姓氏。",
       "validEmailRequired": "請填寫有效的電子郵箱。",
-      "validPhoneRequired": "請輸入帶國家程式碼的電話號碼，例如 +420 123 456 789。",
+      "validPhoneRequired": "請檢查號碼：選擇您的國家/地區並輸入電話號碼。",
       "tooManyRequests": "請求過於頻繁。請稍等一分鐘後重試。",
       "submitError": "我們無法提交您的請求。請檢查您填寫的內容後重試。",
       "networkError": "網路錯誤。請檢查您的網路連線後重試。"
@@ -1755,7 +1758,7 @@
       "name": "您的姓名",
       "email": "電子郵箱",
       "phone": "電話 / WhatsApp",
-      "phoneHelper": "請帶國家區號，例如 +44。",
+      "phoneHelper": "請選擇國家/地區，然後輸入號碼。",
       "privacy": "我們僅使用您的資訊來回復此申請。<link>隱私政策</link>",
       "send": "傳送申請",
       "sending": "正在傳送…",
@@ -1767,7 +1770,7 @@
       "errPeople": "請輸入人數。",
       "errName": "請輸入您的姓名。",
       "errEmail": "請輸入有效的電子郵箱地址。",
-      "errPhone": "請輸入帶國家區號的電話號碼。",
+      "errPhone": "請檢查電話號碼和國家/地區。",
       "err429": "請求過於頻繁，請稍等一分鐘後重試。",
       "errGeneric": "我們無法傳送您的申請。請重試，或透過 WhatsApp 聯絡我們。",
       "errNetwork": "無法連線到我們的伺服器。請檢查網路後重試。"
