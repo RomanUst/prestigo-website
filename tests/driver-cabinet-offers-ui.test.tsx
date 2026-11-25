@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, within, fireEvent, act, waitFor } from '@testing-library/react'
 import { createFakeDriverCabinetDb } from './helpers/fake-driver-cabinet-db'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 import type { OfferView } from '@/lib/driver-cabinet/offers'
@@ -27,6 +27,7 @@ vi.mock('next/navigation', () => ({
 
 import OffersPage from '@/app/(internal)/driver/(cabinet)/(tabs)/offers/page'
 import OfferCard from '@/components/driver/OfferCard'
+import OffersList from '@/components/driver/OffersList'
 
 const DRIVER = 'd0000000-0000-4000-8000-000000000001'
 const TODAY = getPragueTodayISO()
@@ -121,6 +122,8 @@ describe('/driver/offers page', () => {
     expect(screen.getByText('Rides the office has offered to you. Only you can see them.')).toBeInTheDocument()
     const times = screen.getAllByText(/^\d\d:\d\d$/).map((n) => n.textContent)
     expect(times).toEqual(['09:15', '16:00', '08:00'])
+    expect(screen.getAllByRole('button', { name: 'Accept' })).toHaveLength(3)
+    expect(screen.getAllByRole('button', { name: 'Decline' })).toHaveLength(3)
   })
 
   it('does not show offers of another driver, answered offers or offers on cancelled rides', async () => {
@@ -188,3 +191,204 @@ describe('OfferCard', () => {
   })
 })
 
+function jsonResponse(status: number, body: unknown = {}) {
+  return Promise.resolve(new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }))
+}
+
+describe('OffersList answers', () => {
+  let fetchMock: ReturnType<typeof vi.fn>
+  const assign = vi.fn()
+
+  beforeEach(() => {
+    fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    assign.mockReset()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, assign },
+    })
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
+  it('accept: dialog copy, focus on "Not yet", nothing sent before the confirm, then one POST', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, { ok: true, assignmentId: aid(1) }))
+    render(<OffersList offers={[offer(1)]} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    const dialog = screen.getByRole('dialog', { name: 'Accept this ride?' })
+    expect(within(dialog).getByText("Today at 14:30. The passenger's name and phone appear once you accept.")).toBeInTheDocument()
+    expect(within(dialog).getByText('Your fee: 1 800 CZK.')).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Not yet' })).toHaveFocus()
+    expect(fetchMock).not.toHaveBeenCalled()
+
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Yes, accept ride' }))
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(`/api/driver/cabinet/offers/${aid(1)}/respond`)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual({ action: 'accepted' })
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull()
+    expect(screen.getByRole('status')).toHaveFocus()
+    expect(screen.getByText('Ride accepted. You can find it under Rides.')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'Open ride' })
+    expect(link.getAttribute('href')).toBe(`/driver/rides/${aid(1)}`)
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toBe('Ride accepted.')
+    expect(h.refresh).toHaveBeenCalled()
+  })
+
+  it('accept without a fee has no fee line', () => {
+    render(<OffersList offers={[offer(1, { feeLabel: null })]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    expect(screen.queryByText(/Your fee:/)).toBeNull()
+  })
+
+  it('"Not yet" and Escape close the dialog with no request', () => {
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Not yet' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('while saving both buttons are disabled, the primary says Saving and Escape does nothing', async () => {
+    let resolve: (r: Response) => void = () => {}
+    fetchMock.mockReturnValue(new Promise<Response>((r) => (resolve = r)))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, accept ride' }))
+    })
+    const dialog = screen.getByRole('dialog')
+    const buttons = within(dialog).getAllByRole('button')
+    expect(buttons).toHaveLength(2)
+    for (const b of buttons) expect(b).toBeDisabled()
+    expect(dialog).toHaveTextContent('Saving…')
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    await act(async () => {
+      resolve(new Response('{}', { status: 200 }))
+    })
+  })
+
+  it('decline: dialog copy, focus on "Keep offer", info banner and live text', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, { ok: true, assignmentId: aid(1) }))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Decline' }))
+    const dialog = screen.getByRole('dialog', { name: 'Decline this ride?' })
+    expect(
+      within(dialog).getByText(
+        'The office will be told and will offer this ride to another driver. You cannot undo this.',
+      ),
+    ).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: 'Keep offer' })).toHaveFocus()
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Yes, decline' }))
+    })
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ action: 'declined' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByText('Ride declined. The office has been told.')).toBeInTheDocument()
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toBe('Ride declined.')
+    expect(screen.queryByRole('link', { name: 'Open ride' })).toBeNull()
+  })
+
+  it('409 closes the dialog with the "no longer available" banner and refreshes', async () => {
+    fetchMock.mockReturnValue(jsonResponse(409, { error: 'not_available' }))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, accept ride' }))
+    })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getByText('This offer is no longer available. The office has changed this ride.')).toBeInTheDocument()
+    expect(h.refresh).toHaveBeenCalled()
+  })
+
+  it('429 shows the amber banner', async () => {
+    fetchMock.mockReturnValue(jsonResponse(429, {}))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Decline' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, decline' }))
+    })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    const alert = screen.getByRole('alert')
+    expect(alert).toHaveTextContent('Too many taps. Wait a moment and try again.')
+    // the card stays: the answer was not saved
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeInTheDocument()
+  })
+
+  it('a network error keeps the dialog open with an alert and "Try again"', async () => {
+    fetchMock.mockRejectedValue(new TypeError('offline'))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, accept ride' }))
+    })
+    const dialog = screen.getByRole('dialog')
+    expect(within(dialog).getByRole('alert')).toHaveTextContent(
+      'Could not save your answer. Check your connection and try again.',
+    )
+    expect(within(dialog).getByRole('button', { name: 'Try again' })).toBeEnabled()
+    // the offer is still on the page
+    expect(h.refresh).not.toHaveBeenCalled()
+  })
+
+  it('a 500 keeps the dialog open with the same alert', async () => {
+    fetchMock.mockReturnValue(jsonResponse(500, {}))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Decline' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, decline' }))
+    })
+    expect(within(screen.getByRole('dialog')).getByRole('alert')).toHaveTextContent('Could not save your answer.')
+  })
+
+  it('a 401 sends the driver to the sign-in page with ended=1', async () => {
+    fetchMock.mockReturnValue(jsonResponse(401, {}))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Accept' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, accept ride' }))
+    })
+    expect(assign).toHaveBeenCalledWith('/driver/login?next=%2Fdriver%2Foffers&ended=1')
+  })
+
+  it('ok and info banners clear after 8 seconds', async () => {
+    vi.useFakeTimers()
+    fetchMock.mockReturnValue(jsonResponse(200, { ok: true, assignmentId: aid(1) }))
+    render(<OffersList offers={[offer(1)]} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Decline' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, decline' }))
+    })
+    expect(screen.getByText('Ride declined. The office has been told.')).toBeInTheDocument()
+    await act(async () => {
+      vi.advanceTimersByTime(8100)
+    })
+    expect(screen.queryByText('Ride declined. The office has been told.')).toBeNull()
+  })
+
+  it('answering one of two offers leaves the other card in place', async () => {
+    fetchMock.mockReturnValue(jsonResponse(200, { ok: true, assignmentId: aid(1) }))
+    render(<OffersList offers={[offer(1), offer(2, { time: '16:00' })]} />)
+    expect(screen.getAllByRole('button', { name: 'Accept' })).toHaveLength(2)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Accept' })[0])
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, accept ride' }))
+    })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.getAllByRole('button', { name: 'Accept' })).toHaveLength(1)
+    expect(screen.getByText('Pickup 2')).toBeInTheDocument()
+    expect(screen.queryByText('Pickup 1')).toBeNull()
+  })
+})

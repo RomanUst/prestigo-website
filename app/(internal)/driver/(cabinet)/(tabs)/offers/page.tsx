@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { requireDriver } from '@/lib/driver-cabinet/auth'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { listLiveOffers } from '@/lib/driver-cabinet/offers'
-import OfferCard, { OffersEmptyState } from '@/components/driver/OfferCard'
+import OffersList from '@/components/driver/OffersList'
 
 // Phase 94 plan 94-11 (DCAB-07; D-08, D-11, D-12): the live offers of the signed-in driver, earliest pickup first.
 // Per request (reads the session cookie), gated by this page itself (a layout is not a gate, Pitfall 4). The service
@@ -41,11 +41,7 @@ export default async function DriverOffersPage() {
       >
         Rides the office has offered to you. Only you can see them.
       </p>
-      {offers.length === 0 ? (
-        <OffersEmptyState />
-      ) : (
-        offers.map((offer) => <OfferCard key={offer.assignmentId} offer={offer} />)
-      )}
+      <OffersList offers={offers} />
     </main>
   )
 }
