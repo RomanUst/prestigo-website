@@ -9,6 +9,7 @@ const driverCreateSchema = z.object({
   email: safeEmail(200),
   phone: safeString(200).optional(),
   vehicle_info: safeString(200).optional(),
+  vehicle_plate: safeString(16).optional().nullable(),
 })
 
 export async function GET(_request: Request) {
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
       email: parsed.data.email,
       phone: parsed.data.phone ?? '',   // NOT NULL in schema — send '' when omitted (Pitfall 5)
       vehicle_info: parsed.data.vehicle_info ?? null,
+      vehicle_plate: parsed.data.vehicle_plate?.trim() || null,
     })
     .select()
 

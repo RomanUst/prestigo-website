@@ -2516,6 +2516,90 @@ export async function sendDriverLoginCodeEmail(data: { to: string; code: string 
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// DRIVER CABINET INVITE EMAIL (Phase 94-04, D-06, DCAB-03)
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * The "your cabinet is ready" email the operator sends from the admin drivers list. It carries no code and no
+ * token: only the link to the sign-in page. The driver name is escaped before it is inlined.
+ */
+export function buildDriverCabinetInviteHtml(data: { driverName: string; loginUrl: string }): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Prestigo driver cabinet is ready — PRESTIGO</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C;">
+  <div style="background-color: #0F1D2C; padding: 0; margin: 0; font-family: 'Inter', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0F1D2C;">
+
+      <!-- Header gold gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        ${emailLogoImg(28)}
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 24px;">Your driver cabinet is ready</h1>
+
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <p style="font-size: 14px; color: #F3EEE3; font-family: 'Inter', Arial, sans-serif; margin: 0 0 12px;">Hello ${escapeHtml(data.driverName)},</p>
+        <p style="font-size: 14px; color: #F3EEE3; font-family: 'Inter', Arial, sans-serif; margin: 0;">See your rides and new offers in one place. Sign in with this email address: we send you a 6-digit code, no password needed.</p>
+      </div>
+
+      <!-- Open the cabinet -->
+      <div style="text-align: center; padding: 8px 32px 24px;">
+        <a href="${escapeHtml(data.loginUrl)}" style="display: inline-block; background-color: #BFA06A; color: #0F1D2C; padding: 16px 32px; min-height: 16px; text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">Open the cabinet</a>
+      </div>
+
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <p style="font-size: 12px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif; margin: 0;">Tip: add the page to your Home Screen to get notifications. On iPhone: tap Share, then Add to Home Screen.</p>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #BFA06A; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          ${emailLogoImg(18)}
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send the cabinet invite. Non-fatal: returns false on a Resend error or an exception, never throws. Not logged
+ * through the dedup log, so "Resend invite" always sends. Never logs the address.
+ */
+export async function sendDriverCabinetInviteEmail(data: { to: string; driverName: string }): Promise<boolean> {
+  try {
+    const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com').trim().replace(/\/+$/, '')
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.to],
+      subject: 'Your Prestigo driver cabinet is ready',
+      html: buildDriverCabinetInviteHtml({ driverName: data.driverName, loginUrl: `${base}/driver/login` }),
+    })
+    if (error) {
+      console.error('[driver-cabinet] invite email error')
+      return false
+    }
+    return true
+  } catch {
+    console.error('[driver-cabinet] invite email exception')
+    return false
+  }
+}
+
 export interface DriverDeclineNotificationData {
   bookingReference: string
   pickupDate: string

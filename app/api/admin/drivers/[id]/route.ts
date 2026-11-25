@@ -9,6 +9,7 @@ const driverPatchSchema = z.object({
   email: safeEmail(200).optional(),
   phone: safeString(200).optional().nullable(),
   vehicle_info: safeString(200).optional().nullable(),
+  vehicle_plate: safeString(16).optional().nullable(),
 })
 
 export async function PATCH(
@@ -39,6 +40,7 @@ export async function PATCH(
   if (parsed.data.email !== undefined) updateData.email = parsed.data.email
   if (parsed.data.phone !== undefined) updateData.phone = parsed.data.phone ?? ''  // NOT NULL in schema
   if (parsed.data.vehicle_info !== undefined) updateData.vehicle_info = parsed.data.vehicle_info
+  if (parsed.data.vehicle_plate !== undefined) updateData.vehicle_plate = parsed.data.vehicle_plate?.trim() || null  // '' -> null
 
   const supabase = createSupabaseServiceClient()
   const { data, error: dbError } = await supabase
