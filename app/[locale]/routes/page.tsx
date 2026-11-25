@@ -5,6 +5,7 @@ export const revalidate = 3600
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import { ROUTES, MIRROR_ROUTES } from '@/lib/routes'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
@@ -539,6 +540,7 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

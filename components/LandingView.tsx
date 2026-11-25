@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import HeroRating from '@/components/HeroRating'
@@ -296,6 +297,7 @@ export default function LandingView({
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

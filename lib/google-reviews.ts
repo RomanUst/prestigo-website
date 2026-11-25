@@ -249,6 +249,18 @@ export const getCachedAggregateRating = unstable_cache(
   },
 )
 
+/**
+ * Live Google rating for page JSON-LD and hero badges: Business Profile API →
+ * Places API → GOOGLE_RATING_VALUE/COUNT env, cached 24 h. Never throws.
+ */
+export async function getLiveAggregateRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
+  try {
+    return await getCachedAggregateRating()
+  } catch {
+    return getEnvRating()
+  }
+}
+
 // ─── Reviews ──────────────────────────────────────────────────────────────────
 
 async function fetchGoogleReviews(): Promise<GoogleReview[]> {

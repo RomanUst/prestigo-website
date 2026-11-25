@@ -9,6 +9,7 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import ReverseRouteLink from '@/components/ReverseRouteLink'
@@ -23,7 +24,7 @@ import { getPathname } from '@/i18n/routing'
 import { routeBookQuery } from '@/lib/route-match'
 import { MIRROR_ROUTES, MIRROR_ROUTES_BY_SLUG } from '@/lib/routes'
 import HeroRating from '@/components/HeroRating'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 
 type Params = Promise<{ locale: string; slug: string }>
 
@@ -102,7 +103,7 @@ export default async function MirrorRoutePage({ params }: { params: Params }) {
 
   const vehicles = content.vehicles.map((v) => ({ ...v, price: interpolate(v.price, prices) }))
 
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
 
   const pageSchema = {
     '@context': 'https://schema.org',
@@ -385,6 +386,7 @@ export default async function MirrorRoutePage({ params }: { params: Params }) {
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

@@ -4,6 +4,7 @@ export const revalidate = 3600
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
@@ -357,6 +358,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

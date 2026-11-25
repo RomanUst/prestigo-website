@@ -5,6 +5,7 @@ export const revalidate = 3600
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Divider from '@/components/Divider'
 import { setRequestLocale } from 'next-intl/server'
 import { getAllRoutes } from '@/lib/route-prices'
@@ -13,7 +14,7 @@ import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
 import HeroRating from '@/components/HeroRating'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 
 type IntercityRoutesContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -76,7 +77,7 @@ export default async function IntercityRoutesPage({ params }: { params: Promise<
   const content = getPageContent('services/intercity-routes', locale) as IntercityRoutesContent
   const allRoutes = await getAllRoutes('display_order')
   const popularRoutes = allRoutes.slice(0, 6)
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
   const businessDoc = businessNodeDoc(rating)
 
   const serviceSchema = {
@@ -248,6 +249,7 @@ export default async function IntercityRoutesPage({ params }: { params: Promise<
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

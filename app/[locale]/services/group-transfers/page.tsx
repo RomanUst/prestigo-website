@@ -5,6 +5,7 @@ export const dynamic = 'force-static'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Divider from '@/components/Divider'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
@@ -12,7 +13,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 import { localizedHref } from '@/lib/localized-href'
 import HeroRating from '@/components/HeroRating'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 
 type GroupTransfersContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -58,7 +59,7 @@ const breadcrumbSchema = {
 export default async function GroupTransfersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const content = getPageContent('services/group-transfers', locale) as GroupTransfersContent
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
   const businessDoc = businessNodeDoc(rating)
 
   const serviceSchema = {
@@ -210,6 +211,7 @@ export default async function GroupTransfersPage({ params }: { params: Promise<{
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

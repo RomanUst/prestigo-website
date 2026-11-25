@@ -4,6 +4,7 @@ export const dynamic = 'force-static'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import CorporateForm from './CorporateForm'
 import { getPageContent } from '@/lib/page-content'
@@ -325,6 +326,7 @@ export default async function CorporatePage({ params }: { params: Promise<{ loca
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )
