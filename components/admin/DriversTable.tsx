@@ -2,11 +2,13 @@
 import { useState } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { Driver } from './DriverForm'
+import { DriverCabinetCell } from './DriverCabinetCell'
 
 type DriversTableProps = {
   drivers: Driver[]
   onEdit: (driver: Driver) => void
   onDeleted: (id: string) => void
+  onDriverChanged: (id: string, patch: Partial<Driver>) => void
 }
 
 const thStyle: React.CSSProperties = {
@@ -30,7 +32,7 @@ const cellStyle: React.CSSProperties = {
   borderBottom: '1px solid var(--admin-border)',
 }
 
-export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) {
+export function DriversTable({ drivers, onEdit, onDeleted, onDriverChanged }: DriversTableProps) {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [deleteError, setDeleteError] = useState<Record<string, string>>({})
 
@@ -141,6 +143,8 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
               <th style={thStyle}>Email</th>
               <th style={thStyle}>Phone</th>
               <th style={thStyle}>Vehicle Info</th>
+              <th style={thStyle}>Plate</th>
+              <th style={thStyle}>Cabinet</th>
               <th style={thStyle}>Actions</th>
             </tr>
           </thead>
@@ -158,6 +162,17 @@ export function DriversTable({ drivers, onEdit, onDeleted }: DriversTableProps) 
                   {driver.vehicle_info || (
                     <span style={{ color: 'var(--admin-text-muted)' }}>—</span>
                   )}
+                </td>
+                <td style={cellStyle}>
+                  {driver.vehicle_plate || (
+                    <span style={{ color: 'var(--admin-text-muted)' }}>—</span>
+                  )}
+                </td>
+                <td style={{ ...cellStyle, minWidth: '160px' }}>
+                  <DriverCabinetCell
+                    driver={driver}
+                    onChanged={patch => onDriverChanged(driver.id, patch)}
+                  />
                 </td>
                 <td style={{ ...cellStyle, padding: '0 4px' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', flexDirection: 'column', gap: '4px' }}>
