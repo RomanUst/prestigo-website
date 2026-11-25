@@ -11,6 +11,15 @@ import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import {
+  AREA_SERVED,
+  BUSINESS_TYPES,
+  LIMOUSINE_ADDITIONAL_TYPE,
+  SERVICE_AREA_ADDRESS,
+  businessOfferCatalog,
+  FLEET_VEHICLE_IDS,
+  type BusinessCatalogPrices,
+} from '@/lib/jsonld'
 import { BUSINESS_PHONE_E164, BUSINESS_PHONE_SCHEMA_HYPHEN, TRIPADVISOR_URL, TRUSTPILOT_URL } from '@/lib/contact-channels'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
@@ -71,10 +80,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 // generateMetadata above) — see buildLocalBusinessSchema/buildWebsiteSchema.
 // inLanguage is BCP-47 of the active locale (zh -> zh-Hans), same map used by
 // lib/seo.ts/lib/jsonld.ts (SEO-04, D-09) — added here, no other value touched.
-function buildLocalBusinessSchema(content: HomeContent, locale: string) {
+function buildLocalBusinessSchema(content: HomeContent, locale: string, catalog: BusinessCatalogPrices) {
   return {
   '@context': 'https://schema.org',
-  '@type': ['LocalBusiness', 'TaxiService'],
+  '@type': BUSINESS_TYPES,
+  additionalType: LIMOUSINE_ADDITIONAL_TYPE,
   '@id': 'https://rideprestigo.com/#business',
   inLanguage: BCP47_TAG[locale as AppLocale] ?? locale,
   name: content.schema.name,
@@ -90,23 +100,8 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
   priceRange: '€€€',
   currenciesAccepted: 'CZK, EUR',
   paymentAccepted: 'Cash, Credit Card',
-  areaServed: [
-    { '@type': 'City', name: 'Prague', sameAs: 'https://www.wikidata.org/wiki/Q1085' },
-    { '@type': 'Country', name: 'Czech Republic', sameAs: 'https://www.wikidata.org/wiki/Q213' },
-  ],
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'Spojovací 685',
-    addressLocality: 'Vysoký Újezd',
-    postalCode: '252 16',
-    addressRegion: 'Central Bohemian Region',
-    addressCountry: 'CZ',
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 50.1008,
-    longitude: 14.2600,
-  },
+  areaServed: AREA_SERVED,
+  address: SERVICE_AREA_ADDRESS,
   image: 'https://rideprestigo.com/og-image.jpg',
   logo: {
     '@type': 'ImageObject',
@@ -125,7 +120,9 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
   },
   knowsAbout: [
     'Luxury chauffeur service',
+    'Limousine service Prague',
     'Airport transfer Prague',
+    'Václav Havel Airport Prague (PRG) transfers',
     'Corporate ground transportation',
     '5-star hotel partner transport',
     'Executive Mercedes-Benz fleet',
@@ -133,15 +130,6 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
   foundingDate: '2016',
   slogan: 'The first person in Prague who is already on your side.',
   hasMap: GOOGLE_MAPS_URL,
-  serviceArea: {
-    '@type': 'GeoCircle',
-    geoMidpoint: {
-      '@type': 'GeoCoordinates',
-      latitude: 50.1008,
-      longitude: 14.2600,
-    },
-    geoRadius: '1000000',
-  },
   sameAs: [
     GOOGLE_MAPS_URL,
     'https://www.instagram.com/rideprestigo/',
@@ -161,6 +149,8 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
       closes: '23:59',
     },
   },
+  hasOfferCatalog: businessOfferCatalog(catalog),
+  owns: FLEET_VEHICLE_IDS.map((id) => ({ '@id': id })),
   openingHours: 'Mo-Su 00:00-23:59',
   openingHoursSpecification: [
     {
@@ -227,7 +217,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       : AIRPORT_FALLBACK.regular
   const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
 
-  const localBusinessSchema = buildLocalBusinessSchema(content, locale)
+  const tourPrices = tours.map((t) => t.lowestPrice).filter((p): p is number => typeof p === 'number' && p > 0)
+  const localBusinessSchema = buildLocalBusinessSchema(content, locale, {
+    airportFrom: heroPrice,
+    intercityFrom: allRoutes.length > 0 ? cheapestIntercity : null,
+    hourlyFrom: hourlyRate['business'] ?? null,
+    dayTripFrom: tourPrices.length > 0 ? Math.min(...tourPrices) : null,
+  })
   const websiteSchema = buildWebsiteSchema(content)
 
   const schema = aggregateRating

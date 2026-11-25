@@ -15,6 +15,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getPathname } from '@/i18n/routing'
+import { businessNodeDoc } from '@/lib/jsonld'
 
 type RoutesContent = {
   hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
@@ -152,6 +153,7 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessNodeDoc()) }} />
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>

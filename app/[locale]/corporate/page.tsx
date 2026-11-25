@@ -10,6 +10,7 @@ import CorporateForm from './CorporateForm'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import { businessNodeDoc } from '@/lib/jsonld'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
@@ -137,6 +138,7 @@ export default async function CorporatePage({ params }: { params: Promise<{ loca
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(corporateSchemaGraph) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessNodeDoc()) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">

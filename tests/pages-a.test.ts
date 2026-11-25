@@ -51,7 +51,7 @@ describe("getPageContent('home')", () => {
       "Prague chauffeur service with fixed prices, flight tracking and meet & greet. Executive Mercedes, English-speaking drivers, 24/7. Book online in 60 seconds."
     );
     expect(content.schema.description).toBe(
-      "Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides."
+      "Luxury chauffeur and limousine service based in Prague, Czech Republic — serving Václav Havel Airport Prague (PRG) and Central Europe. Executive airport transfers, corporate travel, intercity routes and private day trips."
     );
   });
 });

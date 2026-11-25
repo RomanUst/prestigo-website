@@ -8,6 +8,7 @@ import Divider from '@/components/Divider'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPageContent } from '@/lib/page-content'
 import { getPathname } from '@/i18n/routing'
+import { businessNodeDoc } from '@/lib/jsonld'
 
 export const revalidate = 3600
 
@@ -232,6 +233,7 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fleetSchemaGraph) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessNodeDoc()) }} />
       <Nav />
 
       {/* Hero */}
