@@ -614,7 +614,7 @@ Plans:
   - Ride detail reuses the Phase 87 trip screen (map, bottom sheet, slide-to-advance step control).
 
 **Owner reference**: Blacklane driver app screenshots shared 2026-11-03 (layout only — Prestigo branding, light theme, no copied names or assets).
-**Plans**: 4/14 plans executed
+**Plans**: 5/14 plans executed
 Plans:
 **Wave 1**
 - [x] 94-01-PLAN.md — Tracer: email-code sign-in + 30-day driver session (auth module, request-code / verify), migration 100 live, CSRF prefix, rate limits
@@ -623,7 +623,7 @@ Plans:
 - [x] 94-02-PLAN.md — /driver/login page, requireDriver gate, safe next, light (cabinet) layout
 - [x] 94-03-PLAN.md — One accept/decline path (respondToOffer) for email link and cabinet; live offers data and label helpers
 - [x] 94-04-PLAN.md — Admin invite / disable / enable cabinet access, invite email, vehicle plate
-- [ ] 94-05-PLAN.md — web-push@3.6.7 (legitimacy checkpoint), push send with pruning, subscribe route, owner VAPID script
+- [x] 94-05-PLAN.md — web-push@3.6.7 (legitimacy checkpoint), push send with pruning, subscribe route, owner VAPID script
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 94-06-PLAN.md — Rides data (Upcoming / Past / month totals), tab bar with offers badge, Upcoming list
