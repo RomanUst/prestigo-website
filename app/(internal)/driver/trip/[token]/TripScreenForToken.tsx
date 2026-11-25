@@ -11,6 +11,7 @@ import { freeWaitUntilMs } from '@/lib/airport-pickup'
 import { pickupInstantMs } from '@/lib/prague-date'
 import { formatPragueTime } from '@/lib/prague-calendar'
 import type { DriverTripRecord } from '@/lib/driver-trip-step'
+import { driverFeeLabel } from '@/lib/driver-cabinet/format'
 import InvalidTripLinkView from './InvalidTripLinkView'
 import TripCompleted from './TripCompleted'
 import TripScreen from './TripScreen'
@@ -61,6 +62,8 @@ interface TripSheetBookingRow {
   payment_state?: string | null
   payment_amount_minor?: number | null
   payment_currency?: string | null
+  // Phase 94 (D-11): selected only for the cabinet (showDriverFee); the token page never reads it.
+  driver_price_czk?: number | null
 }
 
 interface TripSheetDriverRow {
@@ -90,6 +93,12 @@ const TRIP_SELECT =
   'landing_date, landing_time, pickup_offset_min, trip_type, hours, tour_title, tour_extra_hours, tour_description), ' +
   'drivers(name, vehicle_info)'
 
+// Phase 94 (D-11, Pitfall 6): the cabinet adds exactly one column, the driver's own fee. Without showDriverFee the
+// select is the Phase 87 string untouched, so the token page still matches neither amount_eur nor price.
+function tripSelect(showDriverFee: boolean): string {
+  return showDriverFee ? TRIP_SELECT.replace('tour_description), ', 'tour_description, driver_price_czk), ') : TRIP_SELECT
+}
+
 function coords(lat: number | null, lng: number | null): { lat: number; lng: number } | null {
   return lat !== null && lat !== undefined && lng !== null && lng !== undefined ? { lat, lng } : null
 }
@@ -101,7 +110,17 @@ function currentTimeMs(): number {
 
 // Phase 94 (D-01, D-15): the single loader of the trip screen. The token page and the driver cabinet both render it.
 // The token page stays byte-for-byte what Phase 87 shipped; the cabinet differs only by the optional props.
-export default async function TripScreenForToken({ token }: { token: string }) {
+export default async function TripScreenForToken({
+  token,
+  backHref,
+  showDriverFee = false,
+}: {
+  token: string
+  /** Set by the cabinet only: the Back link target of the header (D-01). */
+  backHref?: string
+  /** Set by the cabinet only: select and show the driver's own fee (D-11). */
+  showDriverFee?: boolean
+}) {
   // V5 input validation (anti-enumeration): reject malformed tokens before
   // ever touching Supabase — mirrors respondSchema's z.string().uuid().
   const parsedToken = z.string().uuid().safeParse(token)
@@ -116,7 +135,7 @@ export default async function TripScreenForToken({ token }: { token: string }) {
   // data, no enumeration parameter, no writes anywhere on this page.
   const { data: rawAssignment, error } = await supabase
     .from('driver_assignments')
-    .select(TRIP_SELECT)
+    .select(tripSelect(showDriverFee))
     .eq('trip_token', parsedToken.data)
     .single()
 
@@ -238,6 +257,8 @@ export default async function TripScreenForToken({ token }: { token: string }) {
       initialNote={assignment.trip_note ?? null}
       noShow={{ availableAt: noShowView.noShowAvailableAt, requestedAt: noShowView.noShowRequestedAt }}
       {...(cash ? { cash } : {})}
+      {...(backHref ? { backHref } : {})}
+      {...(showDriverFee ? { driverFee: driverFeeLabel(booking.driver_price_czk) } : {})}
     />
   )
 }

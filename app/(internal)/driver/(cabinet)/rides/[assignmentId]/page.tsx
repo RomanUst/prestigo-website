@@ -32,7 +32,9 @@ export default async function DriverRideDetailPage({ params }: PageProps) {
 
   const ride = await resolveCabinetRide(createSupabaseServiceClient(), driverId, parsedId.data)
 
-  if (ride.kind === 'trip') return <TripScreenForToken token={ride.tripToken} />
+  if (ride.kind === 'trip') {
+    return <TripScreenForToken token={ride.tripToken} backHref="/driver/rides" showDriverFee />
+  }
   if (ride.kind === 'offer') redirect('/driver/offers')
   return <InvalidTripLinkView />
 }

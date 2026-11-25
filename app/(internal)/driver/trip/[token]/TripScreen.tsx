@@ -26,6 +26,7 @@ import TripCompleted from './TripCompleted'
 import TripMap from './TripMap'
 import NoShowBlock from './NoShowBlock'
 import TripDetails from './TripDetails'
+import DriverBackLink from '@/components/driver/DriverBackLink'
 
 export interface TripScreenProps {
   token: string
@@ -65,6 +66,10 @@ export interface TripScreenProps {
   noShow: { availableAt: string | null; requestedAt: string | null }
   /** Phase 89 (D-11): present only for a cash_guarantee booking; a formatted label, never a number. */
   cash?: DriverTripCash
+  /** Phase 94 (D-01): set only by the driver cabinet; the header then gets Back, a centered wordmark and Help. */
+  backHref?: string
+  /** Phase 94 (D-11): the driver's own fee as a formatted label, cabinet only; never a number, never on the token page. */
+  driverFee?: string | null
 }
 
 type BannerKind = 'info' | 'amber' | 'danger'
@@ -124,7 +129,7 @@ interface StepResponseBody {
 
 const SWIPE_MIN_PX = 24
 
-export default function TripScreen({ token, view, trip, initialNote, noShow, cash }: TripScreenProps) {
+export default function TripScreen({ token, view, trip, initialNote, noShow, cash, backHref, driverFee }: TripScreenProps) {
   const router = useRouter()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
@@ -547,15 +552,28 @@ export default function TripScreen({ token, view, trip, initialNote, noShow, cas
           justifyContent: 'space-between',
           background: 'var(--admin-bg)',
           flexShrink: 0,
+          // Cabinet (D-01): three fixed slots, so the wordmark stays centered and Help stays right when it is hidden.
+          ...(backHref ? { display: 'grid', gridTemplateColumns: '1fr auto 1fr' } : {}),
         }}
       >
-        <span className="admin-wordmark">PRESTIGO</span>
-        {/* D-18: Help only. No Back in Phase 87 (the back slot is reserved for the Phase 94 ride list). */}
+        {/* D-18: Help only on the token page. The cabinet (Phase 94, D-01) sets backHref: Back left, wordmark centered. */}
+        {backHref ? (
+          <span style={{ gridColumn: 1, justifySelf: 'start' }}>
+            <DriverBackLink href={backHref} />
+          </span>
+        ) : null}
+        <span
+          className={backHref ? 'admin-wordmark driver-wordmark-optional' : 'admin-wordmark'}
+          style={backHref ? { gridColumn: 2 } : undefined}
+        >
+          PRESTIGO
+        </span>
         <button
           type="button"
           data-driver-focus=""
           onClick={openHelp}
           style={{
+            ...(backHref ? { gridColumn: 3, justifySelf: 'end' } : {}),
             boxSizing: 'border-box',
             minWidth: 48,
             minHeight: 48,
@@ -743,6 +761,7 @@ export default function TripScreen({ token, view, trip, initialNote, noShow, cas
             freeWaitUntil={trip.freeWaitUntil}
             stops={trip.stops}
             isCash={cash !== undefined}
+            driverFee={driverFee}
             draft={noteDraft}
             onDraftChange={setNoteDraft}
           />

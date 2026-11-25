@@ -1,12 +1,18 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { createFakeDriverCabinetDb, type FakeDriverCabinetDb } from './helpers/fake-driver-cabinet-db'
 
 // Phase 94 plan 94-07 (DCAB-05, DCAB-09; D-01, D-11, D-12, D-15): one ride of the cabinet.
 
 const h = vi.hoisted(() => ({
   db: null as unknown as { client: unknown },
+  getStartGate: vi.fn(),
+  getNoShowView: vi.fn(),
+  loadStopsSafe: vi.fn(),
+  getNoShowThresholds: vi.fn(),
   requireDriver: vi.fn(),
   redirect: vi.fn((url: string) => {
     throw new Error(`REDIRECT:${url}`)
@@ -15,7 +21,28 @@ const h = vi.hoisted(() => ({
 
 vi.mock('@/lib/supabase', () => ({ createSupabaseServiceClient: () => h.db.client }))
 vi.mock('@/lib/driver-cabinet/auth', () => ({ requireDriver: h.requireDriver }))
-vi.mock('next/navigation', () => ({ redirect: h.redirect, useRouter: () => ({ refresh: vi.fn() }) }))
+vi.mock('next/navigation', () => ({
+  redirect: h.redirect,
+  permanentRedirect: vi.fn(),
+  usePathname: () => '/',
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+}))
+// RouteMap loads Google Maps; the screen tests do not verify the map.
+vi.mock('@/components/booking/RouteMap', () => ({ default: () => null }))
+// The loader consults the start gate, the no-show view, the stops and the live no-show thresholds.
+vi.mock('@/lib/start-gate', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/start-gate')>()),
+  getStartGate: h.getStartGate,
+}))
+vi.mock('@/lib/no-show', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/no-show')>()),
+  getNoShowView: h.getNoShowView,
+}))
+vi.mock('@/lib/booking-stops', () => ({ loadStopsSafe: h.loadStopsSafe }))
+vi.mock('@/lib/no-show-wait', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/no-show-wait')>()),
+  getNoShowThresholds: h.getNoShowThresholds,
+}))
 // The loader is a marker so the props the cabinet page hands it can be read from the returned element.
 vi.mock('@/app/(internal)/driver/trip/[token]/TripScreenForToken', () => ({
   default: function TripScreenForToken() {
@@ -26,6 +53,7 @@ vi.mock('@/app/(internal)/driver/trip/[token]/TripScreenForToken', () => ({
 import { resolveCabinetRide, RIDE_DETAIL_SELECT } from '@/lib/driver-cabinet/ride-detail'
 import RideDetailPage from '@/app/(internal)/driver/(cabinet)/rides/[assignmentId]/page'
 import TripScreenForToken from '@/app/(internal)/driver/trip/[token]/TripScreenForToken'
+import TripScreen, { type TripScreenProps } from '@/app/(internal)/driver/trip/[token]/TripScreen'
 
 const DRIVER = 'd0000000-0000-4000-8000-000000000001'
 const OTHER = 'd0000000-0000-4000-8000-000000000002'
@@ -265,5 +293,203 @@ describe('token page (D-15)', () => {
       'utf8',
     )
     expect(loader).not.toMatch(/\.(update|insert|upsert|delete|rpc)\(/)
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Task 2: Back and the driver fee row
+// ---------------------------------------------------------------------------------------------------------------------
+
+function tripProps(extra: Partial<TripScreenProps> = {}): TripScreenProps {
+  return {
+    token: tok(1),
+    view: { status: 'assigned', nextStep: 'en_route', lockReason: null, unlocksAt: null },
+    trip: {
+      bookingReference: 'PRG-100',
+      pickupDate: '2026-11-27',
+      pickupTime: '10:00',
+      originAddress: 'Prague Airport',
+      destinationAddress: 'Wenceslas Square',
+      origin: { lat: 50.1, lng: 14.26 },
+      destination: { lat: 50.08, lng: 14.42 },
+      passengerName: 'Alice Smith',
+      passengerPhone: '+420123456789',
+      vehicleLabel: 'Business Class',
+      vehicleInfo: 'Black Mercedes E-Class',
+      driverName: 'John Driver',
+      flight: null,
+      clientNotes: null,
+      distanceKm: 12.4,
+      landing: null,
+      freeWaitUntil: null,
+      stops: [],
+    },
+    initialNote: null,
+    noShow: { availableAt: null, requestedAt: null },
+    ...extra,
+  }
+}
+
+describe('TripScreen header with Back (D-01)', () => {
+  it('without backHref the header is as before: wordmark and Help, no Back, no optional-wordmark class', () => {
+    const { container } = render(<TripScreen {...tripProps()} />)
+    expect(screen.getByRole('button', { name: /^Help$/ })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Rides/ })).not.toBeInTheDocument()
+    expect(container.querySelector('.driver-wordmark-optional')).toBeNull()
+  })
+
+  it('with backHref the header holds Back (Rides), the centered wordmark and Help, in that tab order', () => {
+    const { container } = render(<TripScreen {...tripProps({ backHref: '/driver/rides' })} />)
+    const back = screen.getByRole('link', { name: /Rides/ })
+    expect(back).toHaveAttribute('href', '/driver/rides')
+    expect(back.querySelector('svg')).not.toBeNull()
+    const wordmark = container.querySelector('.admin-wordmark.driver-wordmark-optional')
+    expect(wordmark).not.toBeNull()
+    const help = screen.getByRole('button', { name: /^Help$/ })
+    const header = container.querySelector('header') as HTMLElement
+    const order = Array.from(header.querySelectorAll('a, .admin-wordmark, button'))
+    expect(order[0]).toBe(back)
+    expect(order[1]).toBe(wordmark)
+    expect(order[2]).toBe(help)
+  })
+})
+
+describe('TripScreen driver fee row (D-11)', () => {
+  async function expand() {
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Show trip details' }))
+  }
+
+  it('shows Your fee right after the Booking row when driverFee is set', async () => {
+    render(<TripScreen {...tripProps({ backHref: '/driver/rides', driverFee: '2 500 Kč' })} />)
+    expect(screen.queryByText('Your fee')).not.toBeInTheDocument()
+    await expand()
+    const caption = screen.getByText('Your fee')
+    expect(screen.getByText('2 500 Kč')).toBeInTheDocument()
+    const rows = Array.from(caption.parentElement!.parentElement!.children)
+    const booking = screen.getByText('Booking').parentElement as HTMLElement
+    expect(rows.indexOf(caption.parentElement as HTMLElement)).toBe(rows.indexOf(booking) + 1)
+  })
+
+  it.each([null, undefined, ''])('shows no fee row when driverFee is %s', async (fee) => {
+    const { container } = render(<TripScreen {...tripProps({ driverFee: fee as string | null | undefined })} />)
+    await expand()
+    expect(screen.queryByText('Your fee')).not.toBeInTheDocument()
+    expect(container.textContent ?? '').not.toMatch(/fee/i)
+  })
+})
+
+describe('TripScreenForToken options', () => {
+  const selects: string[] = []
+
+  function stubRow() {
+    return {
+      id: aid(1),
+      driver_id: DRIVER,
+      status: 'accepted',
+      trip_note: null,
+      bookings: {
+        id: bid(1),
+        booking_reference: 'PRG-1',
+        booking_source: null,
+        pickup_utc: null,
+        pickup_date: '2026-11-27',
+        pickup_time: '10:30',
+        origin_address: 'Prague Airport',
+        destination_address: 'Wenceslas Square',
+        origin_lat: 50.1,
+        origin_lng: 14.26,
+        destination_lat: 50.08,
+        destination_lng: 14.42,
+        client_first_name: 'Alice',
+        client_last_name: 'Smith',
+        client_phone: '+420123456789',
+        flight_number: null,
+        flight_iata: null,
+        special_requests: null,
+        vehicle_class: 'business',
+        distance_km: 12.4,
+        completed_at: null,
+        no_show_requested_at: null,
+        status: 'assigned',
+        driver_id: DRIVER,
+        driver_price_czk: 2500,
+      },
+      drivers: { name: 'John Driver', vehicle_info: 'Black Mercedes E-Class' },
+    }
+  }
+
+  async function loader() {
+    return (await vi.importActual<typeof import('@/app/(internal)/driver/trip/[token]/TripScreenForToken')>(
+      '@/app/(internal)/driver/trip/[token]/TripScreenForToken',
+    )).default
+  }
+
+  beforeEach(() => {
+    selects.length = 0
+    h.getStartGate.mockResolvedValue({ unlocksAtMs: null, open: true })
+    h.getNoShowView.mockResolvedValue({ noShowAvailableAt: null, noShowRequestedAt: null })
+    h.loadStopsSafe.mockResolvedValue([])
+    h.getNoShowThresholds.mockResolvedValue({ airportMin: 60, cityMin: 15 })
+    h.db = {
+      client: {
+        from: () => ({
+          select: (cols: string) => {
+            selects.push(cols)
+            return { eq: () => ({ single: async () => ({ data: stubRow(), error: null }) }) }
+          },
+        }),
+      },
+    }
+  })
+
+  it('without showDriverFee the select has no price column and no driverFee / backHref reaches the screen', async () => {
+    const Loader = await loader()
+    const el = (await Loader({ token: tok(1) })) as { type: unknown; props: Record<string, unknown> }
+    expect(selects).toHaveLength(1)
+    expect(selects[0]).not.toMatch(/amount_eur|price/i)
+    expect(el.type).toBe(TripScreen)
+    expect(el.props.driverFee).toBeUndefined()
+    expect(el.props.backHref).toBeUndefined()
+  })
+
+  it('with showDriverFee only driver_price_czk is added to the bookings columns and a label is passed', async () => {
+    const Loader = await loader()
+    const plain = (await Loader({ token: tok(1) })) as unknown
+    expect(plain).toBeTruthy()
+    const el = (await Loader({ token: tok(1), backHref: '/driver/rides', showDriverFee: true })) as {
+      type: unknown
+      props: Record<string, unknown>
+    }
+    expect(selects).toHaveLength(2)
+    expect(selects[1].replace(', driver_price_czk', '')).toBe(selects[0])
+    expect(selects[1].match(/\w*price\w*/gi)).toEqual(['driver_price_czk'])
+    expect(selects[1]).not.toMatch(/amount_eur/)
+    expect(el.props.backHref).toBe('/driver/rides')
+    expect(typeof el.props.driverFee).toBe('string')
+    expect(String(el.props.driverFee)).toMatch(/2\s?500/)
+  })
+
+  it('showDriverFee on a booking without a fee passes null', async () => {
+    const row = stubRow()
+    row.bookings.driver_price_czk = 0
+    h.db = {
+      client: {
+        from: () => ({
+          select: () => ({ eq: () => ({ single: async () => ({ data: row, error: null }) }) }),
+        }),
+      },
+    }
+    const Loader = await loader()
+    const el = (await Loader({ token: tok(1), showDriverFee: true })) as { props: Record<string, unknown> }
+    expect(el.props.driverFee).toBeNull()
+  })
+
+  it('the cabinet page passes backHref /driver/rides and showDriverFee', async () => {
+    const src = fs.readFileSync(
+      path.resolve(__dirname, '../app/(internal)/driver/(cabinet)/rides/[assignmentId]/page.tsx'),
+      'utf8',
+    )
+    expect(src).toMatch(/<TripScreenForToken[^>]*backHref="\/driver\/rides"[^>]*showDriverFee/)
   })
 })

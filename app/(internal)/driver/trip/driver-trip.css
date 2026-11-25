@@ -52,6 +52,13 @@
   overflow: hidden;
 }
 
+/* Cabinet header (Phase 94, D-01): below 400px the centered wordmark is hidden so Back and Help never crowd it. */
+@media (max-width: 399px) {
+  .admin-shell.driver-shell .driver-wordmark-optional {
+    display: none;
+  }
+}
+
 /* Confirm dialog: anchored to the bottom on phones, centred from 600px. */
 .admin-shell.driver-shell .driver-dialog-scrim {
   align-items: flex-end;

@@ -30,6 +30,8 @@ export interface TripDetailsProps {
   stops: ReadonlyArray<{ position: number; address: string; waitMinutes: number }>
   /** Phase 89 (UI-SPEC 6.1): a cash_guarantee booking shows the neutral chip, never the amount. */
   isCash?: boolean
+  /** Phase 94 (D-11): the driver's own fee label (cabinet only); the row shows only when it is a non-empty string. */
+  driverFee?: string | null
   /** The draft lives in the screen so collapsing the sheet or a router.refresh() never loses it. */
   draft: string
   onDraftChange: (value: string) => void
@@ -79,6 +81,7 @@ export default function TripDetails({
   freeWaitUntil,
   stops,
   isCash = false,
+  driverFee,
   draft,
   onDraftChange,
 }: TripDetailsProps) {
@@ -127,6 +130,11 @@ export default function TripDetails({
       <DetailRow caption="Booking">
         <p style={{ ...valueStyle, fontVariantNumeric: 'tabular-nums' }}>{bookingReference}</p>
       </DetailRow>
+      {typeof driverFee === 'string' && driverFee !== '' ? (
+        <DetailRow caption="Your fee">
+          <p style={{ ...valueStyle, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{driverFee}</p>
+        </DetailRow>
+      ) : null}
       {isCash ? (
         <DetailRow caption="Payment">
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
