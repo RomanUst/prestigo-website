@@ -46,8 +46,8 @@ type PickupFields = { pickup_date: string; pickup_time: string }
 
 export interface QuoteCancelPreview {
   outcome: 'free' | 'late'
-  /** Free cancellation ends at this instant (first pickup minus the stored free hours). */
-  freeUntilMs: number
+  /** Free cancellation ends at this instant (first pickup minus the stored free hours); null while every pickup is TBC. */
+  freeUntilMs: number | null
   /** The deposit the client paid, in minor units of the quote currency. */
   depositMinor: number
   /** Already refunded of the deposit (earlier partial refunds, the Stripe Dashboard). */
@@ -111,13 +111,13 @@ export function previewQuoteCancel(
     throw new RangeError('previewQuoteCancel: the version has no deposit')
   }
   const first = firstPickupMs(lines)
-  if (first === null) throw new RangeError('previewQuoteCancel: no trip has a readable pickup')
 
   const depositMinor = num(version.deposit_minor)
   const refundedMinor = num(quote.deposit_refunded_minor ?? 0)
   const terms = termsFromSnapshot(version.cancel_policy)
-  const freeUntilMs = quoteFreeUntilMs(first, terms.freeHours)
-  const outcome = evaluateQuoteCancel({ freeUntilMs, nowMs, initiator })
+  // Migration 099: no pickup known yet (every trip TBC) is a cancel well before any trip: free.
+  const freeUntilMs = first === null ? null : quoteFreeUntilMs(first, terms.freeHours)
+  const outcome = freeUntilMs === null ? 'free' : evaluateQuoteCancel({ freeUntilMs, nowMs, initiator })
 
   const keptMinor = outcome === 'free' ? 0 : keptDepositMinor(depositMinor, terms.feePercent)
   const proposedRefundMinor = Math.max(0, depositMinor - keptMinor - refundedMinor)

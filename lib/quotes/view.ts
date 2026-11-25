@@ -25,11 +25,14 @@ export interface QuoteView {
     title: string | null
     /** The operator's client-visible text of the line (plain text, line breaks kept); null when none. */
     description: string | null
-    pickupDate: string
-    pickupTime: string
+    /** Null = to be confirmed (migration 099: a quote may be sent with TBC fields). */
+    pickupDate: string | null
+    pickupTime: string | null
     landingTime: string | null
-    origin: string
+    origin: string | null
     destination: string | null
+    /** A transfer whose destination is still to be confirmed. */
+    destinationTbc: boolean
     stops: Array<{ address: string; waitMinutes: number }>
     vehicleClass: 'business' | 'first_class' | 'business_van'
     passengers: number
@@ -41,8 +44,11 @@ export interface QuoteView {
   depositMinor: number
   remainderMinor: number
   remainderMethod: RemainderMethod
-  terms: { freeUntilMs: number | null; feePercent: number; freePassed: boolean }
+  /** freeHours: the stored free window, for the "until N hours before the first trip" wording while no pickup is known. */
+  terms: { freeUntilMs: number | null; feePercent: number; freePassed: boolean; freeHours: number; pickupKnown: boolean }
   bookingReferences: string[]
+  /** Migration 099: paid while a trip is still TBC; the booking references follow when the details are set. */
+  bookingsPending: boolean
 }
 
 export function buildQuoteView(r: ResolvedQuote, nowMs: number): QuoteView {
@@ -68,12 +74,12 @@ export function buildQuoteView(r: ResolvedQuote, nowMs: number): QuoteView {
       tripType: l.trip_type,
       title: l.trip_type === 'tour' && l.title ? l.title : null,
       description: l.description ? l.description : null,
-      // A frozen version is complete (version guard, migration 097): the fallbacks never show.
-      pickupDate: l.pickup_date ?? '',
-      pickupTime: l.pickup_time ?? '',
+      pickupDate: l.pickup_date ?? null,
+      pickupTime: l.pickup_time ?? null,
       landingTime: l.landing_time,
-      origin: l.origin_address ?? '',
+      origin: l.origin_address ?? null,
       destination: l.destination_address,
+      destinationTbc: l.trip_type === 'transfer' && !l.destination_address,
       stops: l.stops.map((s) => ({ address: s.address, waitMinutes: s.wait_minutes })),
       vehicleClass: l.vehicle_class,
       passengers: l.passengers,
@@ -86,7 +92,14 @@ export function buildQuoteView(r: ResolvedQuote, nowMs: number): QuoteView {
     remainderMinor: totalMinor - depositMinor,
     // A frozen version always has a method (quote_versions_frozen_complete); 'saved_card' is never reached in practice.
     remainderMethod: version.remainder_method ?? 'saved_card',
-    terms: { freeUntilMs, feePercent, freePassed: freeUntilMs === null ? true : nowMs > freeUntilMs },
+    terms: {
+      freeUntilMs,
+      feePercent,
+      freePassed: freeUntilMs === null ? first !== null : nowMs > freeUntilMs,
+      freeHours,
+      pickupKnown: first !== null,
+    },
     bookingReferences: r.bookings.map((b) => b.booking_reference),
+    bookingsPending: quote.bookings_pending === true,
   }
 }

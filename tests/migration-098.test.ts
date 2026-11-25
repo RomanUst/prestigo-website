@@ -30,8 +30,8 @@ describe('098 quote_convert_to_bookings', () => {
   const body = bodyIn(m098, 'quote_convert_to_bookings')
   const bodyFlat = body.replace(/\s+/g, ' ')
 
-  it('is the live definition', () => {
-    expect(latestFunctionBody('quote_convert_to_bookings')).toBe(body)
+  it('is superseded by 099 (the pending path); the live definition is the 099 one', () => {
+    expect(latestFunctionBody('quote_convert_to_bookings')).toBe(bodyIn(loadMigration('099_quote_send_tbc.sql'), 'quote_convert_to_bookings'))
   })
 
   it('keeps the deposit path: a quote with a deposit still needs its recorded deposit intent', () => {

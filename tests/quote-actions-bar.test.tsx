@@ -247,14 +247,22 @@ describe('quote actions: actions by state', () => {
 })
 
 describe('quote actions: Send (tracer, QUOTE-02)', () => {
-  it('migration 097: a saved draft with TBC fields keeps Send disabled and says what is still TBC', async () => {
+  it('migration 099: a missing price keeps Send disabled; TBC fields alone are sent and named', async () => {
     const d = detail()
     const lines = d.lines as Json[]
     lines[0] = { ...lines[0], pickup_time: null, amount_minor: null, suggested_amount_minor: null }
     await renderPage(d)
     expect(within(bar()).getByTestId('quote-action-send')).toBeDisabled()
-    expect(within(bar()).getByTestId('quote-send-hint')).toHaveTextContent('Still TBC before sending: Trip 1: pickup time, price.')
+    expect(within(bar()).getByTestId('quote-send-hint')).toHaveTextContent('Needed before sending: Trip 1: price.')
     expect(posts('send')).toHaveLength(0)
+    cleanup()
+
+    const d2 = detail()
+    const lines2 = d2.lines as Json[]
+    lines2[0] = { ...lines2[0], pickup_time: null }
+    await renderPage(d2)
+    expect(within(bar()).getByTestId('quote-action-send')).toBeEnabled()
+    expect(within(bar()).getByTestId('quote-send-hint')).toHaveTextContent('Sends with TBC (Trip 1: pickup time)')
   })
 
   it('names its effect first, then posts once, shows the URL once with Copy, and the refetch turns the badge to Sent', async () => {

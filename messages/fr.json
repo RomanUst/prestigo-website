@@ -1373,6 +1373,9 @@
     }
   },
   "Quote": {
+    "tbc": "À confirmer",
+    "tbcFree": "Annulation gratuite jusqu’à {hours} heures avant le premier trajet : l’acompte est remboursé intégralement.",
+    "pendingBody": "Votre réservation est garantie. Certains détails des trajets restent à confirmer : nous vous enverrons les références de réservation par e-mail dès qu’ils seront fixés.",
     "noDeposit": {
       "intro": "Vérifiez les trajets et les conditions ci-dessous. Pour confirmer, acceptez le devis.",
       "statusAccepted": "En attente de votre carte",
@@ -1520,6 +1523,13 @@
     }
   },
   "QuoteEmails": {
+    "received": {
+      "subject": "Nous avons reçu votre confirmation – {reference}",
+      "h1": "Votre réservation est garantie",
+      "intro": "Merci d’avoir confirmé votre devis.",
+      "introDeposit": "Nous avons reçu votre acompte de {amount}. Merci.",
+      "details": "Certains détails des trajets restent à confirmer. Nous vous enverrons les références de réservation par e-mail dès qu’ils seront fixés."
+    },
     "common": {
       "greeting": "Bonjour {name},",
       "signoff": "L'équipe Prestigo",

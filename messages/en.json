@@ -1323,6 +1323,9 @@
     }
   },
   "Quote": {
+    "tbc": "To be confirmed",
+    "tbcFree": "Free cancellation until {hours} hours before the first trip: the deposit is refunded in full.",
+    "pendingBody": "Your booking is secured. Some trip details are still to be confirmed: we will send your booking references by email as soon as they are set.",
     "noDeposit": {
       "intro": "Check the trips and the terms below. To confirm, accept the quote.",
       "statusAccepted": "Waiting for your card",
@@ -1470,6 +1473,13 @@
     }
   },
   "QuoteEmails": {
+    "received": {
+      "subject": "We received your confirmation – {reference}",
+      "h1": "Your booking is secured",
+      "intro": "Thank you for confirming your quote.",
+      "introDeposit": "We received your deposit of {amount}. Thank you.",
+      "details": "Some trip details are still to be confirmed. We will send your booking references by email as soon as they are set."
+    },
     "common": {
       "greeting": "Hello {name},",
       "signoff": "Prestigo team",

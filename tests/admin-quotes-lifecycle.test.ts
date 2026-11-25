@@ -368,28 +368,29 @@ describe('refusals before anything is written', () => {
     expect(await (await send(id2)).json()).toMatchObject({ code: 'money_invalid', reason: 'remainder_method_missing' })
   })
 
-  it('migration 097: a draft with TBC fields -> 422 incomplete naming the trips and fields, nothing frozen, no email', async () => {
+  it('migration 099: a draft with TBC fields but every price is sent; a missing price -> 422 incomplete', async () => {
     const id = await draftQuote()
     const lines = linesOf(versionsOf(id)[0].id)
     lines[0].pickup_time = null
-    lines[0].amount_minor = null
     lines[1].origin_address = null
-    const res = await send(id)
-    expect(res.status).toBe(422)
-    expect(await res.json()).toMatchObject({
-      error: 'action_not_allowed',
-      code: 'incomplete',
-      reason: `${lines[0].position}:pickup_time,amount;${lines[1].position}:origin`,
-    })
+    lines[1].amount_minor = null
+    const refused = await send(id)
+    expect(refused.status).toBe(422)
+    expect(await refused.json()).toMatchObject({ error: 'action_not_allowed', code: 'incomplete', reason: `${lines[1].position}:amount` })
     expect(versionsOf(id)[0].frozen_at).toBeNull()
-    expect(quoteRow(id).status).toBe('draft')
     expect(mockResendSend).not.toHaveBeenCalled()
+
+    lines[1].amount_minor = 18000
+    const res = await send(id)
+    expect(res.status).toBe(200)
+    expect(versionsOf(id)[0].frozen_at).not.toBeNull()
   })
 
-  it('migration 097: the database guard refuses to freeze a version with an incomplete line', async () => {
+  it('migration 099: the database guard refuses to freeze a version with a line without a price', async () => {
     const id = await draftQuote()
     const version = versionsOf(id)[0]
     linesOf(version.id)[0].pickup_date = null
+    linesOf(version.id)[0].amount_minor = null
     const { error } = await db.client.from('quote_versions').update({ frozen_at: new Date().toISOString() }).eq('id', version.id)
     expect(error?.message).toContain('quote_lines_incomplete')
   })

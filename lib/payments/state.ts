@@ -273,7 +273,8 @@ export async function claimDueHolds(
 }
 
 export type QuoteConversionResult =
-  | { converted: true; firstTime: boolean; bookingIds: string[] }
+  /** `pending` (migration 099): the payment is recorded but a line is still TBC, so no booking was made yet. */
+  | { converted: true; firstTime: boolean; bookingIds: string[]; pending?: boolean }
   | { converted: false; reason: string }
 
 /**
@@ -328,7 +329,42 @@ export async function convertQuoteToBookings(input: {
     if (typeof result.first_time !== 'boolean' || !Array.isArray(ids) || !ids.every((id) => typeof id === 'string')) {
       throw new Error('quote conversion failed')
     }
-    return { converted: true, firstTime: result.first_time, bookingIds: ids as string[] }
+    const pending = (result as { pending?: unknown }).pending === true
+    return { converted: true, firstTime: result.first_time, bookingIds: ids as string[], ...(pending ? { pending } : {}) }
   }
   return { converted: false, reason: typeof result.reason === 'string' ? result.reason : 'unknown' }
+}
+
+/**
+ * Migration 099: the bookings of a paid quote that was sent with TBC fields, once the operator filled them all. The same
+ * rows the conversion makes (one per line, the deposit ledger rows, the consent copies), in one transaction, exactly
+ * once: a second call answers the bookings that exist (firstTime false).
+ *   - `{ created: false, reason }`  not_found, closed (voided / cancelled / erased), not_pending, incomplete,
+ *     not_accepted, lines_mismatch, hold_at_missing.
+ * Throws 'quote pending bookings failed' on an RPC error or a malformed answer.
+ */
+export async function createPendingQuoteBookings(input: {
+  quoteId: string
+  lines: Array<{ position: number; bookingReference: string; holdAt: string | null }>
+  actor: LedgerActor
+}): Promise<{ created: true; firstTime: boolean; bookingIds: string[] } | { created: false; reason: string }> {
+  const { data, error } = await createSupabaseServiceClient().rpc('quote_create_pending_bookings', {
+    p_quote_id: input.quoteId,
+    p_lines: input.lines.map((l) => ({ position: l.position, booking_reference: l.bookingReference, hold_at: l.holdAt })),
+    p_actor_type: input.actor.type,
+    p_actor_id: input.actor.id,
+  })
+  const result = data as { created?: unknown; first_time?: unknown; booking_ids?: unknown; reason?: unknown } | null | undefined
+  if (error || !result || typeof result.created !== 'boolean') {
+    console.error('[quote-pending] rpc failed', { quoteId: input.quoteId, code: error?.code ?? null })
+    throw new Error('quote pending bookings failed')
+  }
+  if (result.created) {
+    const ids = result.booking_ids
+    if (typeof result.first_time !== 'boolean' || !Array.isArray(ids) || !ids.every((id) => typeof id === 'string')) {
+      throw new Error('quote pending bookings failed')
+    }
+    return { created: true, firstTime: result.first_time, bookingIds: ids as string[] }
+  }
+  return { created: false, reason: typeof result.reason === 'string' ? result.reason : 'unknown' }
 }

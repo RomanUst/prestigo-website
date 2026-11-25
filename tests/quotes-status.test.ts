@@ -132,8 +132,8 @@ describe('quoteLinkState', () => {
     expect(quoteLinkState(input({ firstPickup: pickup, now: pickup + 1 }))).toBeNull()
   })
 
-  it('D-05: a quote with no readable first pickup is not an offer', () => {
-    expect(quoteLinkState(input({ firstPickup: null }))).toBeNull()
+  it('migration 099: a quote with every pickup still TBC is an offer until the operator expiry', () => {
+    expect(quoteLinkState(input({ firstPickup: null }))).toBe('offer')
   })
 
   it('D-05 on the spring DST day (2027-03-28, Prague 02:00 -> 03:00): the pickup instant is exact', () => {

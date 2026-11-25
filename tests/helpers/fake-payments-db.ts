@@ -391,6 +391,7 @@ function quoteDefaults(table: QuoteTable, now: string): Row {
         stripe_payment_method_id: null,
         deposit_payment_intent_id: null,
         card_setup_intent_id: null,
+        bookings_pending: false,
         accepted_version_id: null,
         accepted_at: null,
         paid_at: null,
@@ -742,20 +743,9 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     const frozen = () => err('quote_version_frozen', 'P0001')
     const appendOnly = () => err('quote_log_append_only', 'P0001')
     if (table === 'quote_versions' && before && before.frozen_at != null) return frozen()
-    // Migration 097: freezing needs every line of the version complete.
+    // Migration 099 (was 097): freezing needs a price on every line; any other field may be sent as TBC.
     if (table === 'quote_versions' && op === 'update' && after && after.frozen_at != null && before && before.frozen_at == null) {
-      const incomplete = state.quote_version_lines.some(
-        (l) =>
-          l.version_id === after.id &&
-          (l.pickup_date == null ||
-            l.pickup_time == null ||
-            l.origin_address == null ||
-            l.amount_minor == null ||
-            (l.trip_type === 'transfer' && l.destination_address == null) ||
-            (l.trip_type === 'hourly' && l.hours == null) ||
-            (l.trip_type === 'daily' && l.return_date == null) ||
-            (l.trip_type === 'tour' && (l.title == null || l.hours == null))),
-      )
+      const incomplete = state.quote_version_lines.some((l) => l.version_id === after.id && l.amount_minor == null)
       if (incomplete) return err('quote_lines_incomplete', 'P0001')
     }
     if (table === 'quote_version_lines' || table === 'quote_version_line_stops') {
@@ -979,6 +969,99 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
    * The mode table is bookingModeFor (lib/quotes/money.ts), the one TypeScript source of it. Like the SQL function it is
    * one transaction: a raise (a constraint, or the missing card ids) restores every table it touched.
    */
+  /** The migration 099 notion of a line still TBC (the same expression as the SQL functions). */
+  function lineIncomplete(l: Row): boolean {
+    return (
+      l.pickup_date == null ||
+      l.pickup_time == null ||
+      l.origin_address == null ||
+      (l.trip_type === 'transfer' && l.destination_address == null) ||
+      (l.trip_type === 'hourly' && l.hours == null) ||
+      (l.trip_type === 'daily' && l.return_date == null) ||
+      (l.trip_type === 'tour' && (l.title == null || l.hours == null))
+    )
+  }
+
+  /** public.quote_fill_line_details (099): only fields that are still NULL, on the version the client has. */
+  function quoteFillLineDetails(args: Row): Row {
+    const patch = args.p_patch as Row | null
+    if (!patch || typeof patch !== 'object') return { filled: false, reason: 'invalid' }
+    const line = state.quote_version_lines.find((l) => l.id === args.p_line_id)
+    if (!line) return { filled: false, reason: 'not_found' }
+    const version = state.quote_versions.find((v) => v.id === line.version_id) as Row
+    const quote = state.quotes.find((q) => q.id === version.quote_id) as Row
+    if (quote.voided_at != null || quote.cancelled_at != null || quote.anonymised_at != null || !['sent', 'viewed', 'accepted', 'paid'].includes(quote.status as string)) {
+      return { filled: false, reason: 'closed' }
+    }
+    if (version.frozen_at == null || version.id !== (quote.accepted_version_id ?? quote.current_version_id)) {
+      return { filled: false, reason: 'not_current' }
+    }
+    const fillIfNull = (col: string, value: unknown) => {
+      if (line[col] == null && value !== undefined && value !== null) line[col] = value
+    }
+    if (line.origin_address == null && patch.origin_address != null) {
+      line.origin_lat = patch.origin_lat ?? null
+      line.origin_lng = patch.origin_lng ?? null
+    }
+    if (line.destination_address == null && patch.destination_address != null) {
+      line.destination_lat = patch.destination_lat ?? null
+      line.destination_lng = patch.destination_lng ?? null
+    }
+    for (const col of ['pickup_date', 'pickup_time', 'origin_address', 'destination_address', 'hours', 'return_date', 'title', 'flight_number', 'terminal', 'distance_km']) {
+      fillIfNull(col, patch[col])
+    }
+    const violated = checkQuoteRow('quote_version_lines', line)
+    if (violated) throw new RpcError(`new row violates check constraint "${violated}"`, '23514')
+    const complete = !state.quote_version_lines.some((l) => l.version_id === version.id && lineIncomplete(l))
+    return { filled: true, complete, bookings_pending: quote.bookings_pending === true }
+  }
+
+  /**
+   * public.quote_create_pending_bookings (099): the bookings of a paid, pending quote. The fake runs the conversion once
+   * more over the same quote (the same rows, the same checks) and puts back the paid instant.
+   */
+  function quoteCreatePendingBookings(args: Row): Row {
+    const quote = state.quotes.find((q) => q.id === args.p_quote_id)
+    if (!quote) return { created: false, reason: 'not_found' }
+    if (quote.voided_at != null || quote.cancelled_at != null || quote.anonymised_at != null) return { created: false, reason: 'closed' }
+    const existing = state.bookings.filter((b) => b.quote_id === quote.id).map((b) => b.id as string)
+    if (quote.status !== 'paid' || quote.paid_at == null || quote.bookings_pending !== true) {
+      return existing.length > 0 ? { created: true, first_time: false, booking_ids: existing } : { created: false, reason: 'not_pending' }
+    }
+    const versionId = (quote.accepted_version_id ?? quote.current_version_id) as string
+    if (state.quote_version_lines.some((l) => l.version_id === versionId && lineIncomplete(l))) return { created: false, reason: 'incomplete' }
+    const version = state.quote_versions.find((v) => v.id === versionId) as Row
+    const intent =
+      (version.deposit_minor as number) > 0
+        ? (quote.deposit_payment_intent_id as string | null)
+        : version.remainder_method === 'saved_card' || version.remainder_method === 'cash'
+          ? (quote.card_setup_intent_id as string | null)
+          : null
+    const saved = { status: quote.status, paid_at: quote.paid_at, current: quote.current_version_id }
+    quote.status = 'accepted'
+    quote.paid_at = null
+    quote.current_version_id = versionId
+    const res = quoteConvertToBookings({
+      p_quote_id: quote.id,
+      p_version_id: versionId,
+      p_payment_intent_id: intent,
+      p_customer_id: null,
+      p_payment_method_id: null,
+      p_lines: args.p_lines,
+      p_actor_type: args.p_actor_type,
+      p_actor_id: args.p_actor_id,
+    })
+    quote.current_version_id = saved.current
+    if (res.converted !== true) {
+      quote.status = saved.status
+      quote.paid_at = saved.paid_at
+      return { created: false, reason: res.reason }
+    }
+    quote.paid_at = saved.paid_at
+    quote.bookings_pending = false
+    return { created: true, first_time: true, booking_ids: res.booking_ids }
+  }
+
   function quoteConvertToBookings(args: Row): Row {
     const refuse = (reason: string): Row => ({ converted: false, reason })
     const quoteId = args.p_quote_id
@@ -1067,19 +1150,48 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     const customer = (args.p_customer_id as string | null | undefined) ?? (quote.stripe_customer_id as string | null)
     const paymentMethod = (args.p_payment_method_id as string | null | undefined) ?? (quote.stripe_payment_method_id as string | null)
 
+    // Migration 099: a line still TBC records the payment now and makes the bookings later.
+    const pending = lines.some((l) => lineIncomplete(l))
+
     // 5. Validation pass: nothing is written before it ends.
     for (const line of lines) {
       if (line.deposit_share_minor == null || line.remainder_minor == null || line.amount_eur == null || line.amount_czk == null) {
         return refuse('lines_mismatch')
       }
       const remainder = line.remainder_minor as number
-      if (remainder > 0 && method === 'saved_card') {
+      if (!pending && remainder > 0 && method === 'saved_card') {
         const entry = entries.find((e) => e.position === line.position)
         if (entry?.hold_at == null) return refuse('hold_at_missing')
       }
       if (remainder > 0 && (method === 'saved_card' || method === 'cash') && (!customer || !paymentMethod)) {
         throw new RpcError('quote_card_ids_missing', 'P0001')
       }
+    }
+
+    if (pending) {
+      quote.status = 'paid'
+      quote.paid_at = nowIso()
+      quote.bookings_pending = true
+      quote.stripe_customer_id = quote.stripe_customer_id ?? (args.p_customer_id as string | null | undefined) ?? null
+      quote.stripe_payment_method_id = quote.stripe_payment_method_id ?? (args.p_payment_method_id as string | null | undefined) ?? null
+      quote.updated_at = nowIso()
+      if (acceptance.confirmed_at == null) acceptance.confirmed_at = nowIso()
+      if (hasDeposit && !state.quote_events.some((e) => e.quote_id === quoteId && e.event_key === `deposit_paid:${intentId}`)) {
+        state.quote_events.push({
+          ...quoteDefaults('quote_events', nowIso()),
+          id: nextUuid(),
+          quote_id: quoteId,
+          event_key: `deposit_paid:${intentId}`,
+          kind: 'deposit_paid',
+          version_id: versionId,
+          stripe_object_id: intentId,
+          amount_minor: version.deposit_minor,
+          currency,
+          actor_type: actorType,
+          actor_id: actorId,
+        })
+      }
+      return { converted: true, first_time: true, booking_ids: [], pending: true }
     }
 
     // 6. One booking per line, in position order; a raise rolls everything back (the SQL function is one transaction).
@@ -1274,6 +1386,10 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
       switch (name) {
         case 'quote_convert_to_bookings':
           return { data: quoteConvertToBookings(args), error: null }
+        case 'quote_fill_line_details':
+          return { data: quoteFillLineDetails(args), error: null }
+        case 'quote_create_pending_bookings':
+          return { data: quoteCreatePendingBookings(args), error: null }
         case 'apply_payment_transition':
           return { data: applyPaymentTransition(args), error: null }
         case 'append_payment_event':

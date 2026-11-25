@@ -319,7 +319,7 @@ async function QuoteOfferView({
         {view.state === 'paid' ? (
           <section data-testid="quote-paid" style={sectionStyle}>
             <h2 style={headingStyle}>{t('paid.heading')}</h2>
-            <p style={{ ...bodyStyle, marginTop: 12 }}>{t('paid.body')}</p>
+            <p style={{ ...bodyStyle, marginTop: 12 }}>{view.bookingsPending ? t('pendingBody') : t('paid.body')}</p>
             <ul style={{ ...bodyStyle, margin: '8px 0 0', paddingInlineStart: 20 }}>
               {view.bookingReferences.map((reference) => (
                 <li key={reference}>{t('paid.booking', { reference: ltr(reference) })}</li>
@@ -356,10 +356,10 @@ async function QuoteOfferView({
                     {line.title ? <bdi dir="auto">{line.title}</bdi> : t(`lines.tripType.${line.tripType}`)}
                   </h3>
                   <DetailRow label={t('lines.date')} strong>
-                    <bdi dir="ltr">{formatLocaleDate(line.pickupDate, locale)}</bdi>
+                    {line.pickupDate ? <bdi dir="ltr">{formatLocaleDate(line.pickupDate, locale)}</bdi> : t('tbc')}
                   </DetailRow>
                   <DetailRow label={t('lines.pickupTime')} strong>
-                    <bdi dir="ltr">{line.pickupTime}</bdi>
+                    {line.pickupTime ? <bdi dir="ltr">{line.pickupTime}</bdi> : t('tbc')}
                     {line.landingTime ? (
                       <div style={{ fontSize: 12, fontWeight: 300, color: 'var(--warmgrey)' }}>
                         {t('lines.landing', { time: ltr(line.landingTime) })}
@@ -372,7 +372,7 @@ async function QuoteOfferView({
                     ) : null}
                   </DetailRow>
                   <DetailRow label={t('lines.from')}>
-                    <bdi dir="auto">{line.origin}</bdi>
+                    {line.origin ? <bdi dir="auto">{line.origin}</bdi> : t('tbc')}
                   </DetailRow>
                   {line.stops.length > 0 ? (
                     <DetailRow label={t('lines.stops')}>
@@ -395,6 +395,8 @@ async function QuoteOfferView({
                     <DetailRow label={t('lines.to')}>
                       <bdi dir="auto">{line.destination}</bdi>
                     </DetailRow>
+                  ) : line.destinationTbc ? (
+                    <DetailRow label={t('lines.to')}>{t('tbc')}</DetailRow>
                   ) : null}
                   {line.description ? (
                     <DetailRow label={t('lines.description')}>
@@ -456,7 +458,13 @@ async function QuoteOfferView({
               <p style={bodyStyle}>{t('noDeposit.terms')}</p>
             ) : (
               <>
-                <p style={bodyStyle}>{showFree ? t('terms.free', { freeUntil: ltr(freeUntil) }) : t('terms.noFree')}</p>
+                <p style={bodyStyle}>
+                  {!terms.pickupKnown
+                    ? t('tbcFree', { hours: terms.freeHours })
+                    : showFree
+                      ? t('terms.free', { freeUntil: ltr(freeUntil) })
+                      : t('terms.noFree')}
+                </p>
                 <p style={bodyStyle}>
                   {terms.feePercent >= 100
                     ? t('terms.lateAll')

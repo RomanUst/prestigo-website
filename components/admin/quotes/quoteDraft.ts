@@ -460,17 +460,26 @@ export function draftProblems(draft: QuoteDraft): string[] {
 }
 
 /**
- * What is still TBC before this draft can be sent: one sentence per trip with its missing fields, then the deposit and
- * the remainder method when they are not chosen. Empty = complete. The server checks the same on send.
+ * What must be filled before this draft can be sent (migration 099: only the price of every trip, the deposit and the
+ * remainder method; every other field may go to the client as TBC). Empty = it can be sent. The server checks the same.
  */
 export function sendBlockers(draft: QuoteDraft): string[] {
   const out: string[] = []
   draft.lines.forEach((line, i) => {
-    const missing = lineTbcFields(line, draft.currency)
-    if (missing.length > 0) out.push(`Trip ${i + 1}: ${missing.map((f) => MISSING_FIELD_LABEL[f]).join(', ')}`)
+    if (lineAmountMinor(line, draft.currency) === null) out.push(`Trip ${i + 1}: price`)
   })
   if (depositUnset(draft) || draft.deposit.kind === null) out.push('Deposit (or choose No deposit)')
   if (draft.remainder_method === null) out.push('How the remainder is paid')
+  return out
+}
+
+/** The fields the client will see as "to be confirmed" if the draft is sent as it is (one sentence per trip). */
+export function tbcFields(draft: QuoteDraft): string[] {
+  const out: string[] = []
+  draft.lines.forEach((line, i) => {
+    const missing = lineTbcFields(line, draft.currency).filter((f) => f !== 'amount')
+    if (missing.length > 0) out.push(`Trip ${i + 1}: ${missing.map((f) => MISSING_FIELD_LABEL[f]).join(', ')}`)
+  })
   return out
 }
 

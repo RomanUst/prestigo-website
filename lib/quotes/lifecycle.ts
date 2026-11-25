@@ -215,12 +215,14 @@ export async function sendQuote(quoteId: string, actor: LifecycleActor, opts: { 
   // D-02, D-05: a paid quote stays readable whatever the date; everything else must still be an open offer.
   if (quote.status !== 'paid') {
     if (lines.length === 0) return { ok: false, code: 'money_invalid', reason: 'no_lines' }
-    // Migration 097: a draft may hold TBC fields; only a complete version is sent (the version guard says the same).
+    // Migration 099: a version is sent with a price on every line; the other fields may still be TBC (the client sees them
+    // as "to be confirmed" and the bookings wait for them). The version guard says the same.
     const incomplete = incompleteLines(lines)
     if (incomplete) return { ok: false, code: 'incomplete', reason: incomplete }
     if (quote.expires_at && Date.parse(quote.expires_at) <= nowMs) return { ok: false, code: 'expired' }
-    const first = firstPickupMs(lines as unknown as Array<{ pickup_date: string; pickup_time: string }>)
-    if (first === null || first <= nowMs) return { ok: false, code: 'first_pickup_passed' }
+    // Migration 099: a quote may be sent with every pickup TBC; a pickup that is known must be in the future.
+    const first = firstPickupMs(lines as unknown as Array<{ pickup_date: string | null; pickup_time: string | null }>)
+    if (first !== null && first <= nowMs) return { ok: false, code: 'first_pickup_passed' }
   }
 
   let status: 'sent' | 'viewed' | 'accepted' | 'paid' = 'sent'
@@ -268,7 +270,8 @@ function incompleteLines(lines: Row[]): string | null {
       title: (l.title as string | null) ?? null,
       amount: numOrNull(l.amount_minor),
     })
-    if (missing.length > 0) parts.push(`${num(l.position)}:${missing.join(',')}`)
+    const blocking = missing.filter((f) => f === 'amount')
+    if (blocking.length > 0) parts.push(`${num(l.position)}:${blocking.join(',')}`)
   }
   return parts.length > 0 ? parts.join(';') : null
 }
@@ -293,7 +296,10 @@ async function freezeVersion(
   lines: Row[],
   nowMs: number,
 ): Promise<FreezeResult> {
-  if (lines.some((l) => l.trip_type === 'transfer' && !(numOrNull(l.distance_km) !== null && Number.isFinite(num(l.distance_km))))) {
+  // A transfer whose addresses and pickup are known was priced with a server distance; one with TBC fields has none yet.
+  const knownTransfer = (l: Row) =>
+    l.trip_type === 'transfer' && l.pickup_date != null && l.pickup_time != null && l.origin_address != null && l.destination_address != null
+  if (lines.some((l) => knownTransfer(l) && !(numOrNull(l.distance_km) !== null && Number.isFinite(num(l.distance_km))))) {
     return { ok: false, code: 'distance_missing' }
   }
 

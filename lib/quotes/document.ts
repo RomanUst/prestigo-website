@@ -153,11 +153,11 @@ function tripHtml(
   return `<section class="trip" data-trip="${esc(line.position)}">
 <h3>${esc(t('lines.trip', { number: String(line.position) }))} · ${heading}</h3>
 <table>
-${row(t('lines.date'), auto(formatLocaleDate(line.pickup_date ?? '', locale)))}
-${row(t('lines.pickupTime'), `${ltr(line.pickup_time ?? '')}${pickupNotes}`)}
-${row(t('lines.from'), auto(line.origin_address ?? ''))}
+${row(t('lines.date'), line.pickup_date ? auto(formatLocaleDate(line.pickup_date, locale)) : esc(t('tbc')))}
+${row(t('lines.pickupTime'), `${line.pickup_time ? ltr(line.pickup_time) : esc(t('tbc'))}${pickupNotes}`)}
+${row(t('lines.from'), line.origin_address ? auto(line.origin_address) : esc(t('tbc')))}
 ${stops}
-${line.destination_address ? row(t('lines.to'), auto(line.destination_address)) : ''}
+${line.destination_address ? row(t('lines.to'), auto(line.destination_address)) : line.trip_type === 'transfer' ? row(t('lines.to'), esc(t('tbc'))) : ''}
 ${line.description ? row(t('lines.description'), multiline(line.description)) : ''}
 ${row(t('lines.vehicle'), esc(vt(`${VEHICLE_CLASS_KEY[line.vehicle_class]}.label`)))}
 ${row(t('lines.passengers'), ltr(line.passengers))}
@@ -212,7 +212,7 @@ function termsHtml(t: Translator, input: QuoteDocumentInput, locale: AppLocale):
   }
   return `<section class="terms">
 <h2>${esc(t('terms.heading'))}</h2>
-<p>${showFree ? html(t, 'terms.free', { freeUntil }) : esc(t('terms.noFree'))}</p>
+<p>${first === null ? html(t, 'tbcFree', { hours: String(freeHours) }) : showFree ? html(t, 'terms.free', { freeUntil }) : esc(t('terms.noFree'))}</p>
 <p>${feePercent >= 100 ? esc(t('terms.lateAll')) : html(t, 'terms.latePercent', { percent: String(feePercent) })}</p>
 <p>${esc(t('terms.cap'))}</p>
 <p>${esc(t('terms.howToCancel'))}</p>

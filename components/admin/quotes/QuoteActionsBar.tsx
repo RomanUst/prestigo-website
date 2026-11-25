@@ -15,7 +15,7 @@ import { STARTED_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-stat
 import { copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
 import { remainderDueMinor } from '@/lib/quotes/money'
 import { MISSING_FIELD_LABEL, type QuoteLineRequiredField } from '@/lib/quotes/completeness'
-import { draftFromDetail, sendBlockers } from '@/components/admin/quotes/quoteDraft'
+import { draftFromDetail, sendBlockers, tbcFields } from '@/components/admin/quotes/quoteDraft'
 import type { QuoteDetail } from '@/lib/quotes/store'
 
 // The lifecycle controls of a quote (Phase 92, plan 92-25; QUOTE-01, QUOTE-02, QUOTE-06; D-02). Mounted by QuoteBuilder, which
@@ -487,6 +487,7 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
   const canSend = status === 'draft'
   // Migration 097: a draft may be saved with TBC fields; Send waits until the SAVED version is complete.
   const stillTbc = canSend ? sendBlockers(draftFromDetail(detail)) : []
+  const sentTbc = canSend ? tbcFields(draftFromDetail(detail)) : []
   const canLink = ['sent', 'viewed', 'accepted', 'expired', 'paid'].includes(status)
   const canResend = ['sent', 'viewed', 'accepted', 'expired'].includes(status)
   const canRevise = canResend
@@ -575,8 +576,10 @@ export function QuoteActionsBar({ detail, unsavedChanges = false, onChanged }: Q
               {unsavedChanges
                 ? 'You have unsaved changes. Save the quote first: Send uses the saved version.'
                 : stillTbc.length > 0
-                  ? `Still TBC before sending: ${stillTbc.join('; ')}.`
-                  : 'Freezes this version, emails the client in their language and gives you the secret link.'}
+                  ? `Needed before sending: ${stillTbc.join('; ')}.`
+                  : sentTbc.length > 0
+                    ? `Sends with TBC (${sentTbc.join('; ')}). The bookings are made once you fill these in.`
+                    : 'Freezes this version, emails the client in their language and gives you the secret link.'}
             </p>
           </div>
         )}
