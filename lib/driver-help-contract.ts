@@ -128,8 +128,10 @@ export function loadDriverHelpConfig(): DriverHelpEnabledConfig | null {
 
 /**
  * Hard navigation (full page load, never the Next router) to the tokenless help page, so the chat
- * widget never runs in a document whose address carries the trip token.
+ * widget never runs in a document whose address carries the trip token. Opened from the driver cabinet
+ * (`{ from: 'cabinet' }`) the address gains `?from=cabinet`, which only relabels the help page's history
+ * button ("Back" instead of "Back to trip"); the help page CSP is chosen by pathname.
  */
-export function openDriverHelpPage(): void {
-  window.location.assign(DRIVER_HELP_PAGE_PATH)
+export function openDriverHelpPage(options?: { from?: 'cabinet' }): void {
+  window.location.assign(options?.from === 'cabinet' ? `${DRIVER_HELP_PAGE_PATH}?from=cabinet` : DRIVER_HELP_PAGE_PATH)
 }
