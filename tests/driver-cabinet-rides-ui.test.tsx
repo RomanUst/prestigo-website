@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { createFakeDriverCabinetDb, type FakeDriverCabinetDb } from './helpers/fake-driver-cabinet-db'
 import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
+import { formatCZK } from '@/lib/currency'
+import { monthLabel as monthLabelOf } from '@/lib/driver-cabinet/rides'
 
 // Phase 94 plan 94-06 (DCAB-05, DCAB-06; D-02, D-03): bottom tab bar, Offers badge and the Upcoming list.
 
@@ -34,6 +36,9 @@ const DRIVER = 'd0000000-0000-4000-8000-000000000001'
 const OTHER = 'd0000000-0000-4000-8000-000000000002'
 const TODAY = getPragueTodayISO()
 const TOMORROW = shiftIsoDate(TODAY, 1)
+
+/** The ride rows only (the Upcoming / Past switch and the month arrows are links too). */
+const rideLinks = () => screen.queryAllByRole('link').filter((l) => /^\/driver\/rides\/[^/?]+$/.test(l.getAttribute('href') ?? ''))
 
 const bid = (n: number) => `b0000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const aid = (n: number) => `a0000000-0000-4000-8000-${String(n).padStart(12, '0')}`
@@ -96,7 +101,7 @@ describe('/driver/rides (Upcoming)', () => {
     h.requireDriver.mockImplementationOnce(async () => {
       throw new Error('REDIRECT:/driver/login?next=%2Fdriver%2Frides')
     })
-    await expect(RidesPage()).rejects.toThrow('REDIRECT:/driver/login')
+    await expect(RidesPage({})).rejects.toThrow('REDIRECT:/driver/login')
     expect(h.requireDriver).toHaveBeenCalledWith('/driver/rides')
     expect(db.calls).toHaveLength(0)
   })
@@ -110,13 +115,13 @@ describe('/driver/rides (Upcoming)', () => {
       ],
       [assignment(1, 1), assignment(2, 2), assignment(3, 3)],
     )
-    render(await RidesPage())
+    render(await RidesPage({}))
 
     expect(screen.getByRole('heading', { level: 1, name: 'Rides' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Today' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Tomorrow' })).toBeInTheDocument()
 
-    const links = screen.getAllByRole('link')
+    const links = rideLinks()
     expect(links).toHaveLength(3)
     expect(links.map((l) => l.getAttribute('href'))).toEqual([
       `/driver/rides/${aid(1)}`,
@@ -137,14 +142,14 @@ describe('/driver/rides (Upcoming)', () => {
 
   it('shows no fee and no euro sign anywhere in the list, and nothing of the client beyond the first name', async () => {
     seed([booking(1)], [assignment(1, 1)])
-    const { container } = render(await RidesPage())
+    const { container } = render(await RidesPage({}))
     expect(container.textContent).not.toMatch(/€|Kč|CZK|EUR|Novak|9999|2 ?500/)
   })
 
   it('shows Pending when the driver has no plate and As directed without a drop-off', async () => {
     seed([booking(1, { destination_address: null })], [assignment(1, 1)], null)
-    render(await RidesPage())
-    const row = screen.getByRole('link')
+    render(await RidesPage({}))
+    const row = rideLinks()[0]
     expect(row).toHaveTextContent('Pending')
     expect(row).toHaveTextContent('As directed')
   })
@@ -159,8 +164,8 @@ describe('/driver/rides (Upcoming)', () => {
       ],
       [assignment(1, 1), assignment(2, 2), assignment(3, 3), assignment(4, 4)],
     )
-    render(await RidesPage())
-    const links = screen.getAllByRole('link')
+    render(await RidesPage({}))
+    const links = rideLinks()
     expect(within(links[0]).getByText('En route')).toBeInTheDocument()
     expect(within(links[1]).getByText('On site')).toBeInTheDocument()
     expect(within(links[2]).getByText('On board')).toBeInTheDocument()
@@ -172,14 +177,14 @@ describe('/driver/rides (Upcoming)', () => {
       [booking(1), booking(2, { origin_address: 'Secret pickup' })],
       [assignment(1, 1), assignment(2, 2, { driver_id: OTHER })],
     )
-    const { container } = render(await RidesPage())
-    expect(screen.getAllByRole('link')).toHaveLength(1)
+    const { container } = render(await RidesPage({}))
+    expect(rideLinks()).toHaveLength(1)
     expect(container.textContent).not.toContain('Secret pickup')
   })
 
   it('shows the empty state without a review link when there are no live offers', async () => {
     seed([], [])
-    render(await RidesPage())
+    render(await RidesPage({}))
     expect(screen.getByText('No upcoming rides')).toBeInTheDocument()
     expect(screen.getByText('Rides you accept will appear here.')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Review/ })).not.toBeInTheDocument()
@@ -187,7 +192,7 @@ describe('/driver/rides (Upcoming)', () => {
 
   it('offers a review link to /driver/offers in the empty state: 1 offer and 2 offers', async () => {
     seed([booking(1, { pickup_date: TOMORROW })], [assignment(1, 1, { status: 'pending' })])
-    const one = render(await RidesPage())
+    const one = render(await RidesPage({}))
     const link1 = screen.getByRole('link', { name: 'Review 1 offer' })
     expect(link1.getAttribute('href')).toBe('/driver/offers')
     one.unmount()
@@ -196,8 +201,164 @@ describe('/driver/rides (Upcoming)', () => {
       [booking(1, { pickup_date: TOMORROW }), booking(2, { pickup_date: TOMORROW })],
       [assignment(1, 1, { status: 'pending' }), assignment(2, 2, { status: 'pending' })],
     )
-    render(await RidesPage())
+    render(await RidesPage({}))
     expect(screen.getByRole('link', { name: 'Review 2 offers' }).getAttribute('href')).toBe('/driver/offers')
+  })
+})
+
+// Phase 94 plan 94-10 (DCAB-06; D-03, D-11): Past rides by Prague month and the month's fee total.
+const MONTH = TODAY.slice(0, 7)
+const PREV_MONTH = shiftIsoDate(`${MONTH}-01`, -1).slice(0, 7)
+const OLDER_MONTH = shiftIsoDate(`${PREV_MONTH}-01`, -1).slice(0, 7)
+const past = (params: Record<string, string | string[] | undefined>) =>
+  RidesPage({ searchParams: Promise.resolve(params) })
+const monthHref = (m: string) => `/driver/rides?view=past&month=${m}`
+
+describe('/driver/rides (view switch)', () => {
+  it('renders a nav "Rides view" with Upcoming current by default', async () => {
+    seed([], [])
+    render(await RidesPage({}))
+    const nav = screen.getByRole('navigation', { name: 'Rides view' })
+    const links = within(nav).getAllByRole('link')
+    expect(links.map((l) => l.textContent)).toEqual(['Upcoming', 'Past'])
+    expect(links.map((l) => l.getAttribute('href'))).toEqual(['/driver/rides', '/driver/rides?view=past'])
+    expect(within(nav).getByRole('link', { name: 'Upcoming' })).toHaveAttribute('aria-current', 'page')
+    expect(within(nav).getByRole('link', { name: 'Past' })).not.toHaveAttribute('aria-current')
+    expect(h.requireDriver).toHaveBeenCalledWith('/driver/rides')
+  })
+
+  it('marks Past current on view=past and asks requireDriver for the full path with the month', async () => {
+    seed([], [])
+    render(await past({ view: 'past' }))
+    const nav = screen.getByRole('navigation', { name: 'Rides view' })
+    expect(within(nav).getByRole('link', { name: 'Past' })).toHaveAttribute('aria-current', 'page')
+    expect(within(nav).getByRole('link', { name: 'Upcoming' })).not.toHaveAttribute('aria-current')
+    expect(h.requireDriver).toHaveBeenCalledWith(`/driver/rides?view=past&month=${MONTH}`)
+  })
+
+  it('keeps the requested month in the sign-in path', async () => {
+    seed([], [])
+    render(await past({ view: 'past', month: PREV_MONTH }))
+    expect(h.requireDriver).toHaveBeenCalledWith(`/driver/rides?view=past&month=${PREV_MONTH}`)
+  })
+
+  it('ignores a month on the Upcoming view', async () => {
+    seed([], [])
+    render(await past({ month: PREV_MONTH }))
+    expect(h.requireDriver).toHaveBeenCalledWith('/driver/rides')
+    expect(screen.getByText('No upcoming rides')).toBeInTheDocument()
+  })
+})
+
+describe('/driver/rides?view=past', () => {
+  it('shows the month, the fee total of completed rides, newest first, badges and no per-row fee', async () => {
+    seed(
+      [
+        booking(1, { status: 'completed', pickup_date: `${MONTH}-01`, pickup_time: '09:00', driver_price_czk: 2500 }),
+        booking(2, { status: 'completed', pickup_date: `${MONTH}-02`, pickup_time: '11:00', driver_price_czk: 1800 }),
+        booking(3, { status: 'cancelled', pickup_date: `${MONTH}-02`, pickup_time: '15:00', driver_price_czk: 900 }),
+      ],
+      [assignment(1, 1), assignment(2, 2), assignment(3, 3)],
+    )
+    const { container } = render(await past({ view: 'past' }))
+
+    expect(screen.getByRole('heading', { level: 2, name: monthLabelOf(MONTH) })).toBeInTheDocument()
+    expect(screen.getByText('Your fees for completed rides')).toBeInTheDocument()
+    expect(container.textContent).toContain(formatCZK(4300))
+
+    const rows = rideLinks()
+    expect(rows.map((l) => l.getAttribute('href'))).toEqual([`/driver/rides/${aid(3)}`, `/driver/rides/${aid(2)}`, `/driver/rides/${aid(1)}`])
+    expect(within(rows[0]).getByText('Cancelled')).toBeInTheDocument()
+    expect(within(rows[1]).getByText('Completed')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Completed')).toBeInTheDocument()
+    for (const row of rows) expect(row.textContent).not.toMatch(/Kč|CZK|(?:2|1|4)[\s ]?(?:500|800|900|300)\b/)
+  })
+
+  it('maps a no-show ride to the No-show badge', async () => {
+    seed([booking(1, { status: 'no_show', pickup_date: `${MONTH}-01` })], [assignment(1, 1)])
+    render(await past({ view: 'past' }))
+    expect(within(rideLinks()[0]).getByText('No-show')).toBeInTheDocument()
+  })
+
+  it('renders no total card and no zero amount when only cancelled or unpriced rides exist', async () => {
+    seed(
+      [
+        booking(1, { status: 'cancelled', pickup_date: `${MONTH}-01`, driver_price_czk: 900 }),
+        booking(2, { status: 'completed', pickup_date: `${MONTH}-01`, pickup_time: '12:00', driver_price_czk: null }),
+        booking(3, { status: 'no_show', pickup_date: `${MONTH}-02`, driver_price_czk: 700 }),
+      ],
+      [assignment(1, 1), assignment(2, 2), assignment(3, 3)],
+    )
+    const { container } = render(await past({ view: 'past' }))
+    expect(rideLinks()).toHaveLength(3)
+    expect(screen.queryByText('Your fees for completed rides')).not.toBeInTheDocument()
+    expect(container.textContent).not.toMatch(/Kč|CZK/)
+  })
+
+  it('falls back to the current month for an invalid, malformed or future month', async () => {
+    const future = shiftIsoDate(`${MONTH}-01`, 40).slice(0, 7)
+    for (const month of ['2026-13', 'abc', future, ['2026-01', '2026-02'] as unknown as string]) {
+      seed([booking(1, { status: 'completed', pickup_date: `${MONTH}-01` })], [assignment(1, 1)])
+      const view = render(await past({ view: 'past', month }))
+      expect(screen.getByRole('heading', { level: 2, name: monthLabelOf(MONTH) })).toBeInTheDocument()
+      expect(h.requireDriver).toHaveBeenLastCalledWith(`/driver/rides?view=past&month=${MONTH}`)
+      view.unmount()
+    }
+  })
+
+  it('disables Next month at the current month and Previous month without earlier rides', async () => {
+    seed([booking(1, { status: 'completed', pickup_date: `${MONTH}-01` })], [assignment(1, 1)])
+    render(await past({ view: 'past' }))
+    const next = screen.getByLabelText('Next month')
+    expect(next).toHaveAttribute('aria-disabled', 'true')
+    expect(next).not.toHaveAttribute('href')
+    const prev = screen.getByLabelText('Previous month')
+    expect(prev).toHaveAttribute('aria-disabled', 'true')
+    expect(prev).not.toHaveAttribute('href')
+  })
+
+  it('links both arrows to the neighbouring months when earlier and later months exist', async () => {
+    seed(
+      [
+        booking(1, { status: 'completed', pickup_date: `${OLDER_MONTH}-05` }),
+        booking(2, { status: 'completed', pickup_date: `${PREV_MONTH}-05` }),
+      ],
+      [assignment(1, 1), assignment(2, 2)],
+    )
+    render(await past({ view: 'past', month: PREV_MONTH }))
+    const prev = screen.getByRole('link', { name: 'Previous month' })
+    const next = screen.getByRole('link', { name: 'Next month' })
+    expect(prev.getAttribute('href')).toBe(monthHref(OLDER_MONTH))
+    expect(next.getAttribute('href')).toBe(monthHref(MONTH))
+    expect(next).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('shows the empty month with the arrows hint only when an earlier month has rides', async () => {
+    seed([booking(1, { status: 'completed', pickup_date: `${PREV_MONTH}-05` })], [assignment(1, 1)])
+    const one = render(await past({ view: 'past' }))
+    expect(screen.getByText(`No past rides in ${monthLabelOf(MONTH)}`)).toBeInTheDocument()
+    expect(screen.getByText('Use the arrows to see other months.')).toBeInTheDocument()
+    expect(screen.queryByText('Your fees for completed rides')).not.toBeInTheDocument()
+    one.unmount()
+
+    seed([], [])
+    render(await past({ view: 'past' }))
+    expect(screen.getByText(`No past rides in ${monthLabelOf(MONTH)}`)).toBeInTheDocument()
+    expect(screen.queryByText('Use the arrows to see other months.')).not.toBeInTheDocument()
+  })
+
+  it('has no euro sign and no EUR text, and never lists another driver', async () => {
+    seed(
+      [
+        booking(1, { status: 'completed', pickup_date: `${MONTH}-01` }),
+        booking(2, { status: 'completed', pickup_date: `${MONTH}-01`, origin_address: 'Secret pickup' }),
+      ],
+      [assignment(1, 1), assignment(2, 2, { driver_id: OTHER })],
+    )
+    const { container } = render(await past({ view: 'past' }))
+    expect(container.textContent).not.toMatch(/€|EUR/)
+    expect(container.textContent).not.toContain('Secret pickup')
+    expect(rideLinks()).toHaveLength(1)
   })
 })
 

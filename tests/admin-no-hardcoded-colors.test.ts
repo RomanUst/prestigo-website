@@ -25,6 +25,7 @@ const SCAN_ROOTS = [
   'app/(internal)/admin',
   'app/(internal)/driver/trip',
   'app/(internal)/driver/(cabinet)',
+  'components/driver',
 ]
 const EXTENSIONS = new Set(['.ts', '.tsx'])
 /** Removed at closeout; the guard asserts it stays gone (no silent ledger fallback). */
@@ -39,6 +40,7 @@ const SCOPE_FLOOR = [
   'app/(internal)/admin/layout.tsx',
   'app/(internal)/admin/login/page.tsx',
   'app/(internal)/admin/(dashboard)/layout.tsx',
+  'components/driver/RideList.tsx',
 ]
 
 // (?<![\w&]) keeps HTML entities such as &#10003; and word-internal # out.

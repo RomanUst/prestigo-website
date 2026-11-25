@@ -1,10 +1,12 @@
 import Link from 'next/link'
-import { ArrowRight, CalendarDays, ChevronRight } from 'lucide-react'
+import { ArrowRight, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react'
 import { StatusBadge, type StatusBadgeVariant } from '@/components/admin/StatusBadge'
+import { formatCZK } from '@/lib/currency'
 import type { RideBadge, RideRowView } from '@/lib/driver-cabinet/rides'
 
-// Phase 94 plan 94-06 (D-03, UI-SPEC "Ride row", E4, E7): server components for the ride lists. No fee is printed
-// here (the fee total belongs to the Past month card, 94-10); no client data beyond the first name.
+// Phase 94 plans 94-06 / 94-10 (D-03, D-11, UI-SPEC "Ride row", "Past", E4, E5, E7): server components for the ride
+// lists. No per-row fee is printed (the only money on screen is the Past month total card, in CZK); no client data
+// beyond the first name.
 
 const BADGE_LABEL: Record<RideBadge, string> = {
   en_route: 'En route',
@@ -207,6 +209,170 @@ export function RidesEmptyState({
           {offersCount === 1 ? 'Review 1 offer' : `Review ${offersCount} offers`}
         </Link>
       )}
+    </div>
+  )
+}
+
+export type RidesView = 'upcoming' | 'past'
+
+const SWITCH_SEGMENTS: Array<{ view: RidesView; label: string; href: string }> = [
+  { view: 'upcoming', label: 'Upcoming', href: '/driver/rides' },
+  { view: 'past', label: 'Past', href: '/driver/rides?view=past' },
+]
+
+/** Neutral segmented control (UI-SPEC "Screen Contract: Rides"): the URL is the state. */
+export function RidesViewSwitch({ view }: { view: RidesView }) {
+  return (
+    <nav
+      aria-label="Rides view"
+      style={{
+        boxSizing: 'border-box',
+        display: 'flex',
+        gap: '4px',
+        height: '48px',
+        margin: '0 24px',
+        padding: '4px',
+        background: 'var(--admin-hover)',
+        border: '1px solid var(--admin-border-strong)',
+        borderRadius: 'var(--admin-radius-md)',
+        fontFamily: 'var(--font-montserrat)',
+      }}
+    >
+      {SWITCH_SEGMENTS.map((segment) => {
+        const selected = segment.view === view
+        return (
+          <Link
+            key={segment.view}
+            href={segment.href}
+            data-driver-focus
+            aria-current={selected ? 'page' : undefined}
+            style={{
+              boxSizing: 'border-box',
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: selected ? 'var(--admin-surface)' : 'transparent',
+              border: selected ? '1px solid var(--admin-border-strong)' : '1px solid transparent',
+              borderRadius: 'var(--admin-radius-md)',
+              color: selected ? 'var(--admin-text)' : 'var(--admin-text-muted)',
+              fontSize: 'var(--driver-fs-body)',
+              fontWeight: selected ? 500 : 400,
+              textDecoration: 'none',
+            }}
+          >
+            {segment.label}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+
+const arrowStyle = {
+  boxSizing: 'border-box',
+  width: '48px',
+  height: '48px',
+  flexShrink: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  border: '1px solid var(--admin-border-strong)',
+  borderRadius: 'var(--admin-radius-md)',
+  textDecoration: 'none',
+} as const
+
+function MonthArrow({ href, label, children }: { href: string | null; label: string; children: React.ReactNode }) {
+  if (href === null) {
+    // A disabled arrow is not a link: no href, announced as disabled, muted.
+    return (
+      <span aria-label={label} aria-disabled="true" style={{ ...arrowStyle, color: 'var(--admin-text-muted)' }}>
+        {children}
+      </span>
+    )
+  }
+  return (
+    <Link href={href} aria-label={label} data-driver-focus className="driver-text-link" style={{ ...arrowStyle, color: 'var(--admin-text)' }}>
+      {children}
+    </Link>
+  )
+}
+
+/** Month stepper of the Past view: previous / next arrows around the month label. A null href disables the arrow. */
+export function MonthBar({
+  monthLabel,
+  prevHref,
+  nextHref,
+}: {
+  monthLabel: string
+  prevHref: string | null
+  nextHref: string | null
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '8px',
+        margin: '16px 24px 0',
+        fontFamily: 'var(--font-montserrat)',
+      }}
+    >
+      <MonthArrow href={prevHref} label="Previous month">
+        <ChevronLeft size={24} aria-hidden="true" />
+      </MonthArrow>
+      <h2
+        style={{
+          margin: 0,
+          flex: 1,
+          minWidth: 0,
+          textAlign: 'center',
+          fontFamily: 'var(--admin-font-heading)',
+          fontSize: 'var(--driver-fs-heading)',
+          fontWeight: 500,
+          color: 'var(--admin-text)',
+        }}
+      >
+        {monthLabel}
+      </h2>
+      <MonthArrow href={nextHref} label="Next month">
+        <ChevronRight size={24} aria-hidden="true" />
+      </MonthArrow>
+    </div>
+  )
+}
+
+/** D-11: the driver's own fees for the month's completed rides. Render only when the month has a priced completed ride. */
+export function MonthTotalCard({ totalCzk }: { totalCzk: number }) {
+  return (
+    <div
+      style={{
+        boxSizing: 'border-box',
+        margin: '16px 24px 0',
+        padding: '16px',
+        background: 'var(--admin-surface)',
+        border: '1px solid var(--admin-border)',
+        borderRadius: 'var(--admin-radius-md)',
+        fontFamily: 'var(--font-montserrat)',
+      }}
+    >
+      <p style={{ margin: 0, fontSize: 'var(--driver-fs-label)', fontWeight: 500, color: 'var(--admin-text-muted)' }}>
+        Your fees for completed rides
+      </p>
+      <p
+        style={{
+          margin: '4px 0 0',
+          fontFamily: 'var(--admin-font-heading)',
+          fontSize: 'var(--driver-fs-display)',
+          fontWeight: 500,
+          fontVariantNumeric: 'tabular-nums',
+          color: 'var(--admin-text)',
+        }}
+      >
+        {formatCZK(totalCzk)}
+      </p>
     </div>
   )
 }
