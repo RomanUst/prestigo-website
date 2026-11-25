@@ -496,17 +496,19 @@ Add to `CSRF_PROTECTED_PREFIXES` (currently ends the driver block with `'/api/dr
 | A9 | `web-push` 3.6.7 works unchanged on Next 16 / Node 24 route handlers | Standard Stack | Low: library is plain Node; verify in Wave 0 with a mocked send test |
 | A10 | Offers badge count and lists refresh by `router.refresh()` every ~30 s like TripScreen's `REFRESH_MS` | Pattern 3 | UI stale between refreshes; acceptable |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does D-10 mean the cabinet offer outlives the 48 h `token_expires_at`?**
+> Resolved 2026-11-25 by the owner's answers recorded in 94-CONTEXT.md (D-16..D-18) and by the plans.
+
+1. **RESOLVED (D-17):** cabinet offer stays until reassigned or cancelled; the email link keeps its 48 h life. — **Does D-10 mean the cabinet offer outlives the 48 h `token_expires_at`?**
    - Known: live default is `token_expires_at = now() + 48 h` [VERIFIED: .planning/milestones/v4.0-phases/82-site-crm-chatwoot-sync-foundation/82-LIVE-SCHEMA.md:94 "driver_assignments | token_expires_at | timestamp with time zone | NO | (now() + '48:00:00'::interval)"], and the email says links are valid for 48 hours.
    - Unclear: D-10 says "stays in Offers until the operator reassigns or cancels it ... planner keeps the existing expiry behaviour".
    - Recommendation: cabinet ignores the token expiry (the offer stays), the email link keeps its 48 h life. Confirm with the owner.
-2. **Should the cabinet-driver offer email still carry Accept / Decline buttons?** Recommendation: one cabinet CTA only; token links remain valid for old emails and non-cabinet drivers (D-15 says "lead into the cabinet").
-3. **Disable scope.** `drivers.cabinet_enabled=false` ends cabinet access, sessions and push, but does not block assignment or existing trip/accept links. Recommendation: keep (D-15), and note the operator should not assign a departed driver. Confirm.
-4. **Is the Supabase project on Pro?** Only relevant if the owner overrides A1 (time-box sessions). The research could not query the dashboard (no Supabase MCP in this session; live schema was taken from `82-LIVE-SCHEMA.md`, dated v4.0, so `drivers` / `driver_assignments` columns should be re-confirmed live by the orchestrator before migration 100).
-5. **Do Past totals include `no_show` rides with a driver fee?** Recommendation: completed only.
-6. **Spike (only if A1 is overridden):** `auth.admin.generateLink({type:'magiclink'})` returns `properties.email_otp` and `verifyOtp({email, token, type:'email'})` accepts it, on the live project, without sending a Supabase email. Unverified here.
+2. **RESOLVED (D-18):** one "Open in cabinet" button only. — **Should the cabinet-driver offer email still carry Accept / Decline buttons?** Recommendation: one cabinet CTA only; token links remain valid for old emails and non-cabinet drivers (D-15 says "lead into the cabinet").
+3. **RESOLVED (D-18, D-15):** disable ends cabinet access, sessions and push only; assignment and token links keep working. — **Disable scope.** `drivers.cabinet_enabled=false` ends cabinet access, sessions and push, but does not block assignment or existing trip/accept links. Recommendation: keep (D-15), and note the operator should not assign a departed driver. Confirm.
+4. **RESOLVED (D-16, moot):** the owner chose the driver-only session (A1 not overridden), so the plan tier does not matter; live columns of drivers / driver_assignments were re-confirmed by the orchestrator on 2026-11-25. — **Is the Supabase project on Pro?** Only relevant if the owner overrides A1 (time-box sessions). The research could not query the dashboard (no Supabase MCP in this session; live schema was taken from `82-LIVE-SCHEMA.md`, dated v4.0, so `drivers` / `driver_assignments` columns should be re-confirmed live by the orchestrator before migration 100).
+5. **RESOLVED (plan 94-06 / 94-10):** month totals count completed rides only. — **Do Past totals include `no_show` rides with a driver fee?** Recommendation: completed only.
+6. **RESOLVED (D-16, not needed):** A1 stands, no Supabase Auth spike. — **Spike (only if A1 is overridden):** `auth.admin.generateLink({type:'magiclink'})` returns `properties.email_otp` and `verifyOtp({email, token, type:'email'})` accepts it, on the live project, without sending a Supabase email. Unverified here.
 
 ## Environment Availability
 
