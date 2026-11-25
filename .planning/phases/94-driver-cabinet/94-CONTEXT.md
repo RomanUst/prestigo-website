@@ -15,7 +15,7 @@ driver accounts in the admin. A new offer reaches the driver by email (linking i
 Out of this phase: driver ratings by clients, driver documents (licence, insurance), offering one ride to several
 drivers at once, other cabinet languages, earnings payouts / invoicing.
 
-Requirements: TBD in planning (ROADMAP §Phase 94 scope, owner 2026-11-03, plus the decisions below).
+Requirements: DCAB-01..DCAB-13 (defined in 94-RESEARCH.md §Phase Requirements, added to REQUIREMENTS.md).
 
 </domain>
 
@@ -74,9 +74,18 @@ Requirements: TBD in planning (ROADMAP §Phase 94 scope, owner 2026-11-03, plus 
   alongside the cabinet. Emails to drivers with an account lead into the cabinet; the token links keep their own rules
   (expiry, terminal statuses). — **Reversibility:** reversible.
 
+### Owner answers after research (2026-11-25)
+- **D-16:** Sign-in uses a **driver-only code and session** (own `driver_login_codes` / `driver_sessions` tables, code
+  email via Resend), not Supabase Auth: exact 30-day session, disable cuts access on the next request, no overlap with
+  customer or admin accounts, customer emails unchanged. — **Reversibility:** costly — auth tables, cookie and every
+  cabinet route depend on it.
+- **D-17:** A cabinet offer stays until the operator reassigns the booking or it is cancelled; the email link's 48 h
+  `token_expires_at` keeps applying to the email link only.
+- **D-18:** The offer email to a driver with a cabinet has one button, "Open in cabinet" (to `/driver/offers`), no
+  Accept / Decline buttons; drivers without a cabinet keep today's email unchanged. Disabling a driver's cabinet does not
+  block assigning them or their existing token links (D-15).
+
 ### Claude's Discretion
-- Auth mechanism (Supabase Auth email OTP vs a driver-only OTP table), session cookie scope and the "revoke on disable"
-  mechanism, as long as D-05..D-07 hold.
 - Web push stack (VAPID keys, service worker, subscription table, sending library) and the PWA manifest/icons.
 - Where the cabinet lives (`/driver` routes inside `app/(internal)`), navigation (bottom tabs Rides / Offers / You), empty
   and loading states, how Past paginates.

@@ -605,7 +605,7 @@ Plans:
 
 **Goal**: A driver signs in to a personal cabinet that lists all of their rides and new ride offers, instead of receiving one separate link per assignment.
 **Depends on**: Phase 87 (light-theme trip screen and status service); scheduled after Phase 93 by owner decision 2026-11-03
-**Requirements**: TBD (to be defined at discuss/plan time)
+**Requirements**: DCAB-01, DCAB-02, DCAB-03, DCAB-04, DCAB-05, DCAB-06, DCAB-07, DCAB-08, DCAB-09, DCAB-10, DCAB-11, DCAB-12, DCAB-13
 **Scope (owner, 2026-11-03)**:
   - Driver login/accounts.
   - Ride list with Upcoming / Past tabs, grouped by day (time, pickup → dropoff, passenger first name, vehicle plate or "Pending", class).

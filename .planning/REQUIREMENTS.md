@@ -95,6 +95,22 @@ Requirements for this milestone. Each maps to a roadmap phase.
 - [ ] **TRIP-06**: Visitor who finds nothing suitable can request a custom tour (destinations, date, people, wishes); the request becomes a lead in Supabase/EspoCRM/Chatwoot
 - [ ] **TRIP-07**: Operator can answer a custom-tour request with a quote from admin
 
+### Driver cabinet (DCAB)
+
+- [ ] **DCAB-01**: A driver requests a 6-digit email code and signs in with it; unknown / not-invited / disabled emails get the same generic answer and no email; code is single-use, 10 min, max 5 wrong tries, rate limited
+- [ ] **DCAB-02**: Session lasts 30 days in an httpOnly cookie, survives phone restarts, sign-out ends it everywhere on that device
+- [ ] **DCAB-03**: Operator invites / disables a driver in the admin drivers list; disable ends open sessions on the very next request and removes push subscriptions; existing 4 drivers are invited, not re-created
+- [ ] **DCAB-04**: Driver identity is isolated: no Supabase Auth session is created, no `is_admin`, `/admin` and `/account` never read the driver cookie; a driver who is also a customer/admin keeps both
+- [ ] **DCAB-05**: Every cabinet read/write is filtered by the session driver id; another driver's assignment id returns the same uniform 404; selects never name client price / payment / email columns
+- [ ] **DCAB-06**: Rides tab: Upcoming / Past, grouped by Prague day, row = time, pickup → drop-off, first name, plate or "Pending", class; Past paginated by month with the month's fee total
+- [ ] **DCAB-07**: Offers tab lists the driver's pending offers that are still the newest assignment of a live booking, showing first name, time, route, class, fee (omitted when null); accept / decline
+- [ ] **DCAB-08**: Cabinet accept/decline and `/api/driver/respond` share one function with the same effects (status, accepted-trip email, decline notice to operator); cabinet accept burns the email token
+- [ ] **DCAB-09**: Ride detail at `/driver/rides/[assignmentId]` renders the Phase 87 trip screen with a Back link to the list and the driver fee row; all steps still go through the token-gated progress route and the status service
+- [ ] **DCAB-10**: You tab: name, phone, email, vehicle, rides completed, offers accepted share, Help chat, push toggle + home-screen hint, Sign out
+- [ ] **DCAB-11**: Offer email to a cabinet driver leads into `/driver/offers`; drivers without a cabinet keep today's Accept / Decline / trip links unchanged
+- [ ] **DCAB-12**: Web push: VAPID keys, `driver_push_subscriptions`, send on assignment creation (non-fatal, 404/410 pruned), PWA manifest + `/driver/sw.js`, iOS home-screen explanation
+- [ ] **DCAB-13**: Hardening: new CSRF prefix (strict Origin), rate limits (fail-closed on auth), `enforceMaxBody`, RLS deny-all on every new table, `worker-src 'self'`, no-store on cabinet pages, `security:` commits
+
 ## Future Requirements
 
 Deferred; tracked but not in this roadmap.
@@ -175,13 +191,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRIP-05 | Phase 93 | Pending |
 | TRIP-06 | Phase 93 | Pending |
 | TRIP-07 | Phase 93 | Pending |
+| DCAB-01 | Phase 94 | Pending |
+| DCAB-02 | Phase 94 | Pending |
+| DCAB-03 | Phase 94 | Pending |
+| DCAB-04 | Phase 94 | Pending |
+| DCAB-05 | Phase 94 | Pending |
+| DCAB-06 | Phase 94 | Pending |
+| DCAB-07 | Phase 94 | Pending |
+| DCAB-08 | Phase 94 | Pending |
+| DCAB-09 | Phase 94 | Pending |
+| DCAB-10 | Phase 94 | Pending |
+| DCAB-11 | Phase 94 | Pending |
+| DCAB-12 | Phase 94 | Pending |
+| DCAB-13 | Phase 94 | Pending |
 
 **Coverage:**
-- v1 requirements: 52 total
-- Mapped to phases: 52 ✓
+- v1 requirements: 65 total
+- Mapped to phases: 65 ✓
 - Unmapped: 0
 
-**Per phase:** 86 Admin Shell (3) · 87 Status Service & Driver Step Flow (6) · 88 Card on File & Scheduled Holds (11) · 89 Cancellation Policy, Cash Guarantee & No-Show (7) · 90 Dispatch Views (5) · 91 Multi-Stop, Airport Pickup & Waiting Fees (6) · 92 Quotes (7) · 93 Day Trips & Custom Tours (7)
+**Per phase:** 86 Admin Shell (3) · 87 Status Service & Driver Step Flow (6) · 88 Card on File & Scheduled Holds (11) · 89 Cancellation Policy, Cash Guarantee & No-Show (7) · 90 Dispatch Views (5) · 91 Multi-Stop, Airport Pickup & Waiting Fees (6) · 92 Quotes (7) · 93 Day Trips & Custom Tours (7) · 94 Driver Cabinet (13)
 
 **Mapping notes:**
 - DRV-03 is owned by Phase 87 (confirmation, no amount entry, single completion event); the capture it triggers is verified in Phase 88 under HOLD-04.
