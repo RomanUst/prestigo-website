@@ -25,6 +25,7 @@ vi.mock('@/lib/driver-cabinet/auth', () => ({
 vi.mock('next/navigation', () => ({
   redirect: h.redirect,
   usePathname: () => h.pathname,
+  useRouter: () => ({ refresh: () => {} }),
 }))
 
 import RidesPage from '@/app/(internal)/driver/(cabinet)/(tabs)/rides/page'
