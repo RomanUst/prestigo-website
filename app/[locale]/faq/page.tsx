@@ -5,6 +5,7 @@ export const revalidate = 300
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { businessNodeDoc } from '@/lib/jsonld'
@@ -159,6 +160,7 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

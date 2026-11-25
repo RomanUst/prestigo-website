@@ -5,8 +5,9 @@ export const dynamic = 'force-static'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import { getAuthor, personSchemaFor } from '@/lib/authors'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { getPageContent } from '@/lib/page-content'
@@ -94,7 +95,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
   const principlesList = content.principles
   const requirementsList = content.requirements
   const aboutPageSchemaGraph = buildAboutPageSchemaGraph(content, locale)
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
   const schemaGraph = rating
     ? {
         ...aboutPageSchemaGraph,
@@ -372,6 +373,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

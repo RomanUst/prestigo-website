@@ -5,6 +5,7 @@ export const dynamic = 'force-static'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Divider from '@/components/Divider'
 import ContactForm from '@/components/ContactForm'
 import { getPageContent } from '@/lib/page-content'
@@ -227,6 +228,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

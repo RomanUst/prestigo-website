@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
@@ -495,6 +496,7 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

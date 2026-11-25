@@ -5,6 +5,7 @@ export const revalidate = 3600
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import Divider from '@/components/Divider'
 import BookingSection from '@/components/BookingSection'
 import { setRequestLocale } from 'next-intl/server'
@@ -13,7 +14,7 @@ import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
 import HeroRating from '@/components/HeroRating'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getLiveAggregateRating } from '@/lib/google-reviews'
 
 type ConciergeContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -96,7 +97,7 @@ export default async function ConciergePage({ params }: { params: Promise<{ loca
     url: 'https://rideprestigo.com/services/concierge',
   }
 
-  const rating = getStaticAggregateRating()
+  const rating = (await getLiveAggregateRating())
   const businessDoc = businessNodeDoc(rating)
 
   return (
@@ -240,6 +241,7 @@ export default async function ConciergePage({ params }: { params: Promise<{ loca
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )

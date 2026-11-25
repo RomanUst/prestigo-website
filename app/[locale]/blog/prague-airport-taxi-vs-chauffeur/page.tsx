@@ -6,6 +6,7 @@ export const revalidate = 3600
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Testimonials from '@/components/Testimonials'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
@@ -532,6 +533,7 @@ export default async function CompareAirportTaxiPage({ params }: { params: Promi
         </div>
       </section>
 
+      <Testimonials />
       <Footer />
     </main>
   )
