@@ -31,7 +31,9 @@ vi.mock('next/navigation', () => ({
 }))
 
 import YouPage from '@/app/(internal)/driver/(cabinet)/(tabs)/you/page'
+import OffersPage from '@/app/(internal)/driver/(cabinet)/(tabs)/offers/page'
 import PushToggle from '@/components/driver/PushToggle'
+import OffersNotificationHint from '@/components/driver/OffersNotificationHint'
 import { readPushState, enablePush, PUSH_HINT_DISMISSED_KEY } from '@/lib/driver-cabinet/push-client'
 
 const DRIVER = 'd0000000-0000-4000-8000-000000000001'
@@ -416,6 +418,90 @@ describe('You page Notifications section', () => {
     expect(screen.queryByRole('heading', { name: 'Notifications' })).toBeNull()
     expect(screen.queryByRole('switch')).toBeNull()
     expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+  })
+})
+
+describe('OffersNotificationHint', () => {
+  const INVITE = 'Turn on notifications to hear about new rides right away.'
+  const IOS_INVITE = 'Add Prestigo to your Home Screen to get notifications.'
+
+  it('renders nothing when push is not enabled on the server', async () => {
+    installPush()
+    const { container } = render(<OffersNotificationHint pushEnabled={false} />)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('invites the driver once: supported, permission default, no subscription, not dismissed', async () => {
+    const { requestPermission, serviceWorker } = installPush()
+    render(<OffersNotificationHint pushEnabled />)
+    expect(await screen.findByText(INVITE)).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'Set up notifications' })
+    expect(link).toHaveAttribute('href', '/driver/you#notifications')
+    expect(screen.getByRole('button', { name: 'Not now' })).toBeInTheDocument()
+    // The hint never prompts and never registers a worker.
+    expect(requestPermission).not.toHaveBeenCalled()
+    expect(serviceWorker.register).not.toHaveBeenCalled()
+  })
+
+  it('stores the dismissal and hides the banner; a later render shows nothing', async () => {
+    installPush()
+    const first = render(<OffersNotificationHint pushEnabled />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Not now' }))
+    expect(screen.queryByText(INVITE)).toBeNull()
+    expect(window.localStorage.getItem(PUSH_HINT_DISMISSED_KEY)).not.toBeNull()
+    first.unmount()
+
+    const { container } = render(<OffersNotificationHint pushEnabled />)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('shows nothing once the driver is subscribed', async () => {
+    installPush({ permission: 'granted', existing: makeSubscription() })
+    const { container } = render(<OffersNotificationHint pushEnabled />)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('shows nothing when the permission is denied', async () => {
+    installPush({ permission: 'denied' })
+    const { container } = render(<OffersNotificationHint pushEnabled />)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('shows nothing in a browser without push', async () => {
+    const { container } = render(<OffersNotificationHint pushEnabled />)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(container).toBeEmptyDOMElement()
+  })
+
+  it('on an iPhone browser tab says to add the app to the Home Screen and offers Show me how', async () => {
+    setUserAgent(IPHONE_UA)
+    render(<OffersNotificationHint pushEnabled />)
+    expect(await screen.findByText(IOS_INVITE)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Show me how' })).toHaveAttribute('href', '/driver/you#notifications')
+    expect(screen.queryByText(INVITE)).toBeNull()
+  })
+
+  it('mounts on the Offers page above the list when push is configured, and is absent otherwise', async () => {
+    installPush()
+    h.db = createFakeDriverCabinetDb({ drivers: [], driver_assignments: [], bookings: [] })
+    render(await OffersPage())
+    expect(await screen.findByText(INVITE)).toBeInTheDocument()
+    cleanup()
+
+    h.configured = false
+    h.db = createFakeDriverCabinetDb({ drivers: [], driver_assignments: [], bookings: [] })
+    render(await OffersPage())
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(screen.queryByText(INVITE)).toBeNull()
+  })
+
+  it('never calls requestPermission from its source', () => {
+    const text = readFileSync(join(process.cwd(), 'components/driver/OffersNotificationHint.tsx'), 'utf8')
+    expect(text).not.toMatch(/requestPermission/)
   })
 })
 
