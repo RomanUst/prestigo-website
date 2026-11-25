@@ -30,13 +30,15 @@ const headerLabelStyle: React.CSSProperties = {
 }
 
 type PromoCardProps = {
-  initial: { active: boolean; regularPriceEur: number; promoPriceEur: number }
+  initial: { active: boolean; regularPriceEur: number; promoPriceEur: number; sClassPriceEur: number; vClassPriceEur: number }
 }
 
 export default function PromoCard({ initial }: PromoCardProps) {
   const [active, setActive] = useState(initial.active)
   const [regular, setRegular] = useState(initial.regularPriceEur)
   const [promo, setPromo] = useState(initial.promoPriceEur)
+  const [sClass, setSClass] = useState(initial.sClassPriceEur)
+  const [vClass, setVClass] = useState(initial.vClassPriceEur)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'range-error' | 'error'>('idle')
 
   async function handleSave() {
@@ -45,7 +47,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
       const res = await fetch('/api/admin/promo', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ active, regularPriceEur: regular, promoPriceEur: promo }),
+        body: JSON.stringify({ active, regularPriceEur: regular, promoPriceEur: promo, sClassPriceEur: sClass, vClassPriceEur: vClass }),
       })
       if (res.ok) {
         setSaveStatus('saved')
@@ -62,7 +64,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
 
   return (
     <div style={cardStyle}>
-      <div style={headerLabelStyle}>Airport promo</div>
+      <div style={headerLabelStyle}>Airport prices</div>
 
       <div style={{ marginTop: '16px', marginBottom: '16px' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -95,7 +97,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
               marginBottom: '6px',
             }}
           >
-            Regular price (EUR)
+            E-Class regular price (EUR)
           </label>
           <input
             id="promo-regular"
@@ -117,7 +119,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
               marginBottom: '6px',
             }}
           >
-            Promo price (EUR)
+            E-Class promo price (EUR)
           </label>
           <input
             id="promo-promo"
@@ -131,6 +133,50 @@ export default function PromoCard({ initial }: PromoCardProps) {
               opacity: active ? 1 : 0.5,
               pointerEvents: active ? 'auto' : 'none',
             }}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="airport-s-class"
+            style={{
+              ...headerLabelStyle,
+              display: 'block',
+              marginBottom: '6px',
+            }}
+          >
+            S-Class price (EUR)
+          </label>
+          <input
+            id="airport-s-class"
+            type="number"
+            step="0.01"
+            min="0"
+            value={sClass}
+            onChange={e => setSClass(Number(e.target.value))}
+            style={inputBaseStyle}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="airport-v-class"
+            style={{
+              ...headerLabelStyle,
+              display: 'block',
+              marginBottom: '6px',
+            }}
+          >
+            V-Class price (EUR)
+          </label>
+          <input
+            id="airport-v-class"
+            type="number"
+            step="0.01"
+            min="0"
+            value={vClass}
+            onChange={e => setVClass(Number(e.target.value))}
+            style={inputBaseStyle}
           />
         </div>
       </div>
@@ -165,7 +211,7 @@ export default function PromoCard({ initial }: PromoCardProps) {
         )}
         {saveStatus === 'saved' && (
           <span style={{ color: 'var(--copper)', fontFamily: 'var(--font-montserrat)', fontSize: '12px' }}>
-            Airport promo saved — pages revalidating
+            Airport prices saved — pages revalidating
           </span>
         )}
         {saveStatus === 'error' && (

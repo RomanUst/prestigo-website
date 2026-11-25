@@ -17,6 +17,10 @@ const promoPutSchema = z.object({
   active: z.boolean(),
   regularPriceEur: z.coerce.number().positive(),
   promoPriceEur: z.coerce.number().positive(),
+  // S/V airport "from" prices (migration 101). Optional so an older admin
+  // tab that only sends the E-Class fields keeps working.
+  sClassPriceEur: z.coerce.number().positive().optional(),
+  vClassPriceEur: z.coerce.number().positive().optional(),
 })
 
 export async function GET() {
@@ -28,7 +32,7 @@ export async function GET() {
 
   const { data, error: dbError } = await supabase
     .from('pricing_globals')
-    .select('airport_promo_active, airport_regular_price_eur, airport_promo_price_eur')
+    .select('airport_promo_active, airport_regular_price_eur, airport_promo_price_eur, airport_s_class_price_eur, airport_v_class_price_eur')
     .eq('id', 1)
     .single()
 
@@ -40,6 +44,8 @@ export async function GET() {
     active: Boolean(data.airport_promo_active),
     regularPriceEur: Number(data.airport_regular_price_eur),
     promoPriceEur: Number(data.airport_promo_price_eur),
+    sClassPriceEur: Number(data.airport_s_class_price_eur),
+    vClassPriceEur: Number(data.airport_v_class_price_eur),
   })
 }
 
@@ -75,6 +81,8 @@ export async function PUT(request: Request) {
       airport_promo_active: parsed.data.active,
       airport_regular_price_eur: parsed.data.regularPriceEur,
       airport_promo_price_eur: parsed.data.promoPriceEur,
+      ...(parsed.data.sClassPriceEur !== undefined ? { airport_s_class_price_eur: parsed.data.sClassPriceEur } : {}),
+      ...(parsed.data.vClassPriceEur !== undefined ? { airport_v_class_price_eur: parsed.data.vClassPriceEur } : {}),
     })
     .eq('id', 1)
 

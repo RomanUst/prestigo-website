@@ -38,8 +38,8 @@ export const getPriceTable = cache(async (): Promise<PriceTable> => {
   return {
     airport: {
       e: pricing ? airportFromPrice(pricing) : AIRPORT_FALLBACK.regular,
-      s: AIRPORT_FALLBACK.sClass,
-      v: AIRPORT_FALLBACK.vClass,
+      s: pricing ? pricing.globals.airportSClassPriceEur : AIRPORT_FALLBACK.sClass,
+      v: pricing ? pricing.globals.airportVClassPriceEur : AIRPORT_FALLBACK.vClass,
     },
     routes: Object.fromEntries(
       routes.map((r) => [r.slug, { e: r.eClassEur, s: r.sClassEur, v: r.vClassEur }]),
