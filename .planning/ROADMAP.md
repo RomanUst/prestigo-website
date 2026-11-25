@@ -614,7 +614,7 @@ Plans:
   - Ride detail reuses the Phase 87 trip screen (map, bottom sheet, slide-to-advance step control).
 
 **Owner reference**: Blacklane driver app screenshots shared 2026-11-03 (layout only — Prestigo branding, light theme, no copied names or assets).
-**Plans**: 11/14 plans executed
+**Plans**: 12/14 plans executed
 Plans:
 **Wave 1**
 - [x] 94-01-PLAN.md — Tracer: email-code sign-in + 30-day driver session (auth module, request-code / verify), migration 100 live, CSRF prefix, rate limits
@@ -634,7 +634,7 @@ Plans:
 **Wave 4** *(blocked on Wave 3 completion)*
 - [x] 94-10-PLAN.md — Past rides by month with fee total; refresh, loading and error states
 - [x] 94-11-PLAN.md — Offers tab: offer cards, accept / decline dialogs, banners
-- [ ] 94-12-PLAN.md — You tab: profile, stats, help chat, sign out
+- [x] 94-12-PLAN.md — You tab: profile, stats, help chat, sign out
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 94-13-PLAN.md — Notifications switch, iPhone Home Screen hint, Offers notification hint
