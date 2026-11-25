@@ -217,13 +217,23 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       : AIRPORT_FALLBACK.regular
   const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
 
-  const tourPrices = tours.map((t) => t.lowestPrice).filter((p): p is number => typeof p === 'number' && p > 0)
+  // Cheapest intercity fare per class; 0 means "no live price" (ROUTE_FALLBACK).
+  const cheapestOf = (k: 'eClassEur' | 'sClassEur' | 'vClassEur') => {
+    const v = allRoutes.map((r) => r[k]).filter((x) => x > 0)
+    return v.length > 0 ? Math.min(...v) : null
+  }
   const localBusinessSchema = buildLocalBusinessSchema(content, locale, {
-    airportFrom: heroPrice,
-    intercityFrom: allRoutes.length > 0 ? cheapestIntercity : null,
-    hourlyFrom: hourlyRate['business'] ?? null,
-    dayTripFrom: tourPrices.length > 0 ? Math.min(...tourPrices) : null,
+    // S/V airport fares: same source as /services/airport-transfer.
+    airport: { e: heroPrice, s: AIRPORT_FALLBACK.sClass, v: AIRPORT_FALLBACK.vClass },
+    hourly: {
+      e: hourlyRate['business'] ?? null,
+      s: hourlyRate['first_class'] ?? null,
+      v: hourlyRate['business_van'] ?? null,
+    },
+    intercityFrom: { e: cheapestOf('eClassEur'), s: cheapestOf('sClassEur'), v: cheapestOf('vClassEur') },
+    dayTrips: tours.map((t) => ({ slug: t.slug, title: t.title, lowestPrice: t.lowestPrice })),
   })
+
   const websiteSchema = buildWebsiteSchema(content)
 
   const schema = aggregateRating
