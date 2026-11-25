@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody } from '@/lib/request-guards'
-import { readEnv } from '@/lib/env'
+import { driverHelpWidgetEnv } from '@/lib/driver-help-inbox'
 import { isTripLinkValid } from '@/lib/trip-token'
 import { buildDriverWidgetConfig } from '@/lib/chatwoot-identity'
 
@@ -69,16 +69,8 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
   }
 
-  // Inbox selection is configuration: the dedicated Drivers inbox pair when BOTH values are set,
-  // otherwise the Website inbox pair. Missing pieces make the builder answer { enabled: false }.
-  const driverToken = readEnv('CHATWOOT_DRIVER_WEBSITE_TOKEN')
-  const driverSecret = readEnv('CHATWOOT_DRIVER_WIDGET_HMAC_SECRET')
-  const useDriverInbox = Boolean(driverToken && driverSecret)
-
   const config = buildDriverWidgetConfig({
-    baseUrl: readEnv('CHATWOOT_BASE_URL'),
-    websiteToken: useDriverInbox ? driverToken : readEnv('CHATWOOT_WEBSITE_TOKEN'),
-    hmacSecret: useDriverInbox ? driverSecret : readEnv('CHATWOOT_WIDGET_HMAC_SECRET'),
+    ...driverHelpWidgetEnv(),
     driverId: row.driver_id,
     driverName: row.drivers?.name ?? null,
     bookingReference: row.bookings.booking_reference,
