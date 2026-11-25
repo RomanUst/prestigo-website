@@ -140,7 +140,11 @@ interface PlacesDetails {
 
 async function fetchPlacesDetails(): Promise<PlacesDetails | null> {
   const placeId = process.env.GOOGLE_PLACE_ID?.trim()
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.replace(/\\n$/, '').trim()
+  // Dedicated key: GOOGLE_MAPS_API_KEY lives in a project without Places access
+  // and also serves distance pricing, so it is not swapped out for this.
+  const apiKey = (process.env.GOOGLE_PLACES_API_KEY ?? process.env.GOOGLE_MAPS_API_KEY)
+    ?.replace(/\\n$/, '')
+    .trim()
   if (!placeId || !apiKey) return null
 
   try {

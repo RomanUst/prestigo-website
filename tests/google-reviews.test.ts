@@ -53,6 +53,7 @@ beforeEach(() => {
   process.env.GOOGLE_BUSINESS_LOCATION_NAME = 'accounts/111/locations/222'
   delete process.env.GOOGLE_PLACE_ID
   delete process.env.GOOGLE_MAPS_API_KEY
+  delete process.env.GOOGLE_PLACES_API_KEY
   delete process.env.GOOGLE_RATING_VALUE
   delete process.env.GOOGLE_REVIEW_COUNT
 })
@@ -355,6 +356,14 @@ describe('Places API (New) fallback', () => {
     process.env.GOOGLE_REVIEW_COUNT = '6'
     fetchMock.mockResolvedValueOnce({ ok: false, json: async () => ({}) })
     expect(await getCachedAggregateRating()).toEqual({ ratingValue: 5, reviewCount: 6 })
+  })
+
+  it('prefers GOOGLE_PLACES_API_KEY over GOOGLE_MAPS_API_KEY', async () => {
+    usePlacesOnly()
+    process.env.GOOGLE_PLACES_API_KEY = 'dedicated-key'
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => PLACES_RESPONSE })
+    await getReviews()
+    expect(fetchMock.mock.calls[0][1].headers['X-Goog-Api-Key']).toBe('dedicated-key')
   })
 
   it('makes no Places call when place id or key is missing', async () => {
