@@ -118,6 +118,78 @@ function relativeTimeFromDate(date: Date): string {
   return `${years} year${years === 1 ? '' : 's'} ago`
 }
 
+// ─── Places API (New) ─────────────────────────────────────────────────────────
+// Second source, used while Business Profile API access is not approved (its
+// quota is 0). One Place Details call returns the rating, the review count and
+// up to 5 reviews; the result is cached for 24 h, so ~30 calls a month.
+
+interface PlacesReview {
+  rating?: number
+  originalText?: { text?: string }
+  text?: { text?: string }
+  publishTime?: string
+  relativePublishTimeDescription?: string
+  authorAttribution?: { displayName?: string; photoUri?: string }
+}
+
+interface PlacesDetails {
+  rating?: number
+  userRatingCount?: number
+  reviews?: PlacesReview[]
+}
+
+async function fetchPlacesDetails(): Promise<PlacesDetails | null> {
+  const placeId = process.env.GOOGLE_PLACE_ID?.trim()
+  // Dedicated key: GOOGLE_MAPS_API_KEY lives in a project without Places access
+  // and also serves distance pricing, so it is not swapped out for this.
+  const apiKey = (process.env.GOOGLE_PLACES_API_KEY ?? process.env.GOOGLE_MAPS_API_KEY)
+    ?.replace(/\\n$/, '')
+    .trim()
+  if (!placeId || !apiKey) return null
+
+  try {
+    const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`, {
+      cache: 'no-store',
+      headers: {
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'rating,userRatingCount,reviews',
+      },
+    })
+    if (!res.ok) return null
+    return (await res.json()) as PlacesDetails
+  } catch {
+    return null
+  }
+}
+
+const getCachedPlacesDetails = unstable_cache(fetchPlacesDetails, ['google-places-details'], {
+  tags: ['google-reviews'],
+  revalidate: CACHE_TTL_SECONDS,
+})
+
+function placesRating(d: PlacesDetails | null): { ratingValue: number; reviewCount: number } | null {
+  if (!d?.rating || !d.userRatingCount) return null
+  return { ratingValue: Math.round(d.rating * 10) / 10, reviewCount: d.userRatingCount }
+}
+
+function placesReviews(d: PlacesDetails | null): GoogleReview[] {
+  return (d?.reviews ?? [])
+    .map((r) => ({ r, text: (r.originalText?.text ?? r.text?.text ?? '').trim() }))
+    .filter(({ r, text }) => (r.rating ?? 0) >= 4 && text.length > 0)
+    .map<GoogleReview>(({ r, text }) => {
+      const date = r.publishTime ? new Date(r.publishTime) : new Date()
+      return {
+        source: 'google',
+        author: r.authorAttribution?.displayName ?? 'Google reviewer',
+        rating: r.rating ?? 5,
+        text,
+        time: date.getTime() / 1000,
+        relativeTime: r.publishTime ? relativeTimeFromDate(date) : (r.relativePublishTimeDescription ?? ''),
+        profilePhotoUrl: r.authorAttribution?.photoUri,
+      }
+    })
+}
+
 // ─── Aggregate rating ─────────────────────────────────────────────────────────
 
 function getEnvRating(): { ratingValue: number; reviewCount: number } | null {
@@ -127,12 +199,12 @@ function getEnvRating(): { ratingValue: number; reviewCount: number } | null {
   return null
 }
 
-async function fetchAggregateRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
+async function fetchBusinessProfileRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
   const accessToken = await getOAuthAccessToken()
-  if (!accessToken) return getEnvRating()
+  if (!accessToken) return null
 
   const locationName = process.env.GOOGLE_BUSINESS_LOCATION_NAME?.trim()
-  if (!locationName) return getEnvRating()
+  if (!locationName) return null
 
   try {
     const res = await fetch(
@@ -142,18 +214,26 @@ async function fetchAggregateRating(): Promise<{ ratingValue: number; reviewCoun
         headers: { Authorization: `Bearer ${accessToken}` },
       },
     )
-    if (!res.ok) return getEnvRating()
+    if (!res.ok) return null
 
     const json = (await res.json()) as BizReviewsResponse
-    if (!json.averageRating || !json.totalReviewCount) return getEnvRating()
+    if (!json.averageRating || !json.totalReviewCount) return null
 
     return {
       ratingValue: Math.round(json.averageRating * 10) / 10,
       reviewCount: json.totalReviewCount,
     }
   } catch {
-    return getEnvRating()
+    return null
   }
+}
+
+async function fetchAggregateRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
+  return (
+    (await fetchBusinessProfileRating()) ??
+    placesRating(await getCachedPlacesDetails()) ??
+    getEnvRating()
+  )
 }
 
 export function getStaticAggregateRating(): { ratingValue: number; reviewCount: number } | null {
@@ -229,7 +309,8 @@ const getCachedGoogleReviews = unstable_cache(
 const MAX_GOOGLE = 5
 
 export async function getReviews(): Promise<Review[]> {
-  const googleReviews = await getCachedGoogleReviews()
+  let googleReviews = await getCachedGoogleReviews()
+  if (googleReviews.length === 0) googleReviews = placesReviews(await getCachedPlacesDetails())
   const hardcoded = googleReviews.length >= MAX_GOOGLE ? [] : HARDCODED_TESTIMONIALS
   return [...googleReviews, ...hardcoded].slice(0, MAX_POOL)
 }
