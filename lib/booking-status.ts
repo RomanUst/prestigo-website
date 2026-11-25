@@ -52,6 +52,16 @@ export const STARTED_BOOKING_STATUSES: ReadonlySet<BookingStatus> = new Set<Book
 ])
 
 /**
+ * The trip is under way on the driver's side: the car is on its way, at the pickup, or carrying the client. Phase 94:
+ * an offer in one of these can no longer be answered, and the cabinet shows the ride's live step.
+ */
+export const IN_PROGRESS_BOOKING_STATUSES: ReadonlySet<BookingStatus> = new Set<BookingStatus>([
+  'en_route',
+  'on_location',
+  'on_board',
+])
+
+/**
  * Statuses that count as revenue (stats_trips, panel_bookings, chatwoot value). `no_show` is
  * excluded until Phase 89 introduces a "charged" fact (D-11).
  */

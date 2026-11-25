@@ -11,7 +11,7 @@
 import { sendDriverDeclineNotification } from '@/lib/email'
 import { sendDriverAcceptedTripEmail } from '@/lib/driver-accept-email'
 import { newestAssignmentByBooking } from '@/lib/driver-cabinet/assignments'
-import { TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
+import { IN_PROGRESS_BOOKING_STATUSES, TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
 
 export type OfferAction = 'accepted' | 'declined'
 
@@ -28,7 +28,7 @@ export type OfferResult =
 type ServiceClient = { from: (table: string) => any }
 
 /** The car is on its way, at the pickup or carrying the client: the offer can no longer be answered. */
-const STARTED_STATUSES: ReadonlySet<string> = new Set(['en_route', 'on_location', 'on_board'])
+const STARTED_STATUSES: ReadonlySet<string> = IN_PROGRESS_BOOKING_STATUSES
 
 interface AssignmentRef {
   id: string

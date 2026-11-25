@@ -9,6 +9,7 @@ import { getPragueTodayISO, pickupInstantMs } from '@/lib/prague-date'
 import { formatVehicleLabel } from '@/lib/email'
 import { newestAssignmentByBooking } from '@/lib/driver-cabinet/assignments'
 import { dropoffText, firstNameOf, plateLabel, pragueDayLabel } from '@/lib/driver-cabinet/format'
+import { IN_PROGRESS_BOOKING_STATUSES, TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
 
 // Minimal structural type of the service client: the tests pass an in-memory stand-in.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,10 +74,10 @@ interface RideRow {
 }
 
 /** The started states of a trip: the car is on its way, at the pickup, or carrying the client. */
-const STARTED_STATUSES: ReadonlySet<string> = new Set(['en_route', 'on_location', 'on_board'])
+const STARTED_STATUSES: ReadonlySet<string> = IN_PROGRESS_BOOKING_STATUSES
 /** Bookings that still wait for the ride (accepted assignments show in Upcoming). */
-const UPCOMING_STATUSES: ReadonlySet<string> = new Set(['assigned', 'confirmed', 'en_route', 'on_location', 'on_board'])
-const TERMINAL_STATUSES: ReadonlySet<string> = new Set(['completed', 'cancelled', 'no_show'])
+const UPCOMING_STATUSES: ReadonlySet<string> = new Set<string>(['assigned', 'confirmed', ...IN_PROGRESS_BOOKING_STATUSES])
+const TERMINAL_STATUSES: ReadonlySet<string> = TERMINAL_BOOKING_STATUSES
 
 function bookingOf(row: RideRow): RideBooking | null {
   const b = Array.isArray(row.bookings) ? row.bookings[0] : row.bookings

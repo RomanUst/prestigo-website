@@ -6,7 +6,7 @@
 
 import { getPragueTodayISO, pickupInstantMs } from '@/lib/prague-date'
 import { formatVehicleLabel } from '@/lib/email'
-import { TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
+import { IN_PROGRESS_BOOKING_STATUSES, TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-status'
 import { newestAssignmentByBooking } from '@/lib/driver-cabinet/assignments'
 import { driverFeeLabel, dropoffText, firstNameOf, pragueDayLabel } from '@/lib/driver-cabinet/format'
 
@@ -55,7 +55,7 @@ export interface OfferRow {
 }
 
 /** The started states of a trip: the car is on its way, at the pickup, or carrying the client. */
-const STARTED_STATUSES: ReadonlySet<string> = new Set(['en_route', 'on_location', 'on_board'])
+const STARTED_STATUSES: ReadonlySet<string> = IN_PROGRESS_BOOKING_STATUSES
 
 function bookingOf(row: OfferRow): OfferBooking | null {
   const b = Array.isArray(row.bookings) ? row.bookings[0] : row.bookings

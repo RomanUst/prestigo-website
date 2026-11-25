@@ -10,7 +10,7 @@
 
 import { formatVehicleLabel } from '@/lib/email'
 import { formatPickupDate, formatPickupTime } from '@/lib/driver-trip-format'
-import { TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
+import { IN_PROGRESS_BOOKING_STATUSES, TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
 import { newestAssignmentByBooking } from '@/lib/driver-cabinet/assignments'
 import { driverFeeLabel, dropoffText } from '@/lib/driver-cabinet/format'
 import { isValidMonth } from '@/lib/driver-cabinet/rides'
@@ -62,7 +62,7 @@ interface DetailRow {
 }
 
 const NOT_AVAILABLE: CabinetRideResolution = { kind: 'not_available' }
-const STARTED_STATUSES: ReadonlySet<string> = new Set(['en_route', 'on_location', 'on_board'])
+const STARTED_STATUSES: ReadonlySet<string> = IN_PROGRESS_BOOKING_STATUSES
 const OFFER_STATUSES: ReadonlySet<string> = new Set(['assigned', 'confirmed'])
 
 /** Back target of a closed ride: the Past view of the ride's Prague month (deterministic, no history dependence). */
