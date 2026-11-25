@@ -448,6 +448,32 @@ describe('quote page, accept and pay (plan 92-17; QUOTE-03, QUOTE-05; D-08)', ()
 })
 
 // ---------------------------------------------------------------------------------------------------------------------
+describe('quote page, no deposit (migration 098)', () => {
+  it('invoice: no deposit row amount, no card field, a Confirm button and the no-deposit consent and terms', async () => {
+    const fx = await seed({ noDeposit: true, remainderMethod: 'invoice' })
+    const { getByTestId, queryByTestId } = await renderPage('en', fx.token)
+    expect(getByTestId('quote-deposit').textContent).toContain('None')
+    expect(getByTestId('quote-remainder-method').textContent).toBe('We send you an invoice for your trips.')
+    expect(getByTestId('quote-terms').textContent).toContain('There is no deposit: cancelling costs nothing.')
+    expect(getByTestId('quote-terms').textContent).not.toContain('the deposit is refunded')
+    const accept = getByTestId('quote-accept')
+    expect(accept.textContent).toContain('Accept the quote')
+    expect(queryByTestId('payment-element')).toBeNull()
+    const button = accept.querySelector('button[type="submit"]') as HTMLButtonElement
+    expect(button.textContent).toBe('Confirm the booking')
+    expect(getByTestId('quote-accept-consent').textContent).toContain('No deposit is charged now')
+  })
+
+  it('saved card: the card field and a Save card and confirm button', async () => {
+    const fx = await seed({ noDeposit: true, remainderMethod: 'saved_card' })
+    const { getByTestId } = await renderPage('en', fx.token)
+    const accept = getByTestId('quote-accept')
+    expect(accept.textContent).toContain('Accept the quote and save your card')
+    expect(getByTestId('payment-element')).toBeTruthy()
+    expect((accept.querySelector('button[type="submit"]') as HTMLButtonElement).textContent).toBe('Save card and confirm')
+  })
+})
+
 describe('quote page, Download PDF (plan 92-27; QUOTE-07; D-14; T-92-83, T-92-84)', () => {
   const FILE = 'Prestigo-quote-Q-20261114-ABC123-v1.pdf'
 

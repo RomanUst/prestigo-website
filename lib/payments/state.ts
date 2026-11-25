@@ -294,7 +294,8 @@ export type QuoteConversionResult =
 export async function convertQuoteToBookings(input: {
   quoteId: string
   versionId: string
-  paymentIntentId: string
+  /** Null for a quote without a deposit confirmed without a card (migration 098). */
+  paymentIntentId: string | null
   /** The intent's Stripe customer and card; null lets the database use the ones recorded on the quote. */
   customerId: string | null
   paymentMethodId: string | null

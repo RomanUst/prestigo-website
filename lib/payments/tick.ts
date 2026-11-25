@@ -44,7 +44,7 @@ import { handlePaymentFailure, type FailurePhase } from '@/lib/payments/recovery
 import { reconcileCashCharge, settleBooking } from '@/lib/payments/settle'
 import { claimDueHolds, paymentEventRecorded, type LedgerActor } from '@/lib/payments/state'
 import { getPaymentsStripe } from '@/lib/payments/stripe'
-import { applyQuoteDepositPaid } from '@/lib/quotes/convert'
+import { applyQuoteCardSaved, applyQuoteDepositPaid } from '@/lib/quotes/convert'
 import { applyQuoteRemainderPaid } from '@/lib/quotes/remainder'
 import { applyHoldNowAuthorized, applySetupSucceeded } from '@/lib/stripe-webhook/card-confirm'
 
@@ -206,7 +206,7 @@ const stepQ: TickStep = {
     // Both halves run whatever happens to the other; a failed selection is thrown after both have had their turn.
     let reconciled = 0
     let failure: unknown = null
-    for (const half of [reconcileQuoteDeposits, reconcileQuoteRemainders]) {
+    for (const half of [reconcileQuoteDeposits, reconcileQuoteCardSetups, reconcileQuoteRemainders]) {
       try {
         reconciled += await half(ctx)
       } catch (err) {
@@ -247,6 +247,44 @@ async function reconcileQuoteRemainders(ctx: TickContext): Promise<number> {
       if (result.outcome === 'paid' || result.outcome === 'orphan_refunded') reconciled += 1
     } catch {
       console.error('[payment-tick] quote remainder reconcile failed', { quoteId: row.id })
+      ctx.errors.add('Q')
+    }
+  }
+  return reconciled
+}
+
+/**
+ * Migration 098: the card setup of a quote without a deposit, same window and limit as the deposit half. A SUCCEEDED
+ * SetupIntent goes through applyQuoteCardSaved, the very function the webhook runs; anything else is left as it is.
+ */
+async function reconcileQuoteCardSetups(ctx: TickContext): Promise<number> {
+  const nowMs = ctx.now.getTime()
+  const { data, error } = await createSupabaseServiceClient()
+    .from('quotes')
+    .select('id, card_setup_intent_id, accepted_at')
+    .eq('status', 'accepted')
+    .not('card_setup_intent_id', 'is', null)
+    .is('paid_at', null)
+    .is('cancelled_at', null)
+    .is('voided_at', null)
+    .is('anonymised_at', null)
+    .lt('accepted_at', new Date(nowMs - STALE_CHECKOUT_MS).toISOString())
+    .gt('accepted_at', new Date(nowMs - CHECKOUT_RECONCILE_MAX_AGE_MS).toISOString())
+    .order('accepted_at', { ascending: true })
+    .limit(QUOTE_RECONCILE_LIMIT)
+  if (error) throw new Error('quote card setup reconcile lookup failed')
+
+  const rows = (Array.isArray(data) ? data : []) as Array<{ id: string; card_setup_intent_id?: string | null }>
+  let reconciled = 0
+  for (const row of rows) {
+    if (!row.card_setup_intent_id) continue
+    try {
+      const si = (await getPaymentsStripe().setupIntents.retrieve(row.card_setup_intent_id)) as Stripe.SetupIntent
+      if (si.status !== 'succeeded') continue
+      const result = await applyQuoteCardSaved(si, RECONCILE_ACTOR)
+      if (result.outcome === 'converted') reconciled += 1
+    } catch {
+      console.error('[payment-tick] quote card setup reconcile failed', { quoteId: row.id })
       ctx.errors.add('Q')
     }
   }

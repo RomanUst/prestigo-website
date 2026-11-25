@@ -111,7 +111,7 @@ function headerHtml(t: Translator, quote: QuoteRow, version: QuoteVersionRow, lo
 <p class="meta">${html(t, 'document.issued', {}, { date: auto(issued) })}</p>
 ${validUntil}
 <p style="margin-top: 4mm;">${html(t, 'preparedFor', {}, { name: auto(quote.client_first_name) })}</p>
-<p class="note">${joinLocaleSentences(locale, [esc(t('document.acceptOnline')), esc(t('pragueTime'))])}</p>
+<p class="note">${joinLocaleSentences(locale, [esc(t(Number(version.deposit_minor ?? 0) === 0 ? 'noDeposit.acceptOnline' : 'document.acceptOnline')), esc(t('pragueTime'))])}</p>
 </header>`
 }
 
@@ -171,6 +171,18 @@ function summaryHtml(t: Translator, version: QuoteVersionRow, money: (minor: num
   const total = Number(version.total_minor)
   const deposit = Number(version.deposit_minor ?? 0)
   const method = version.remainder_method ?? 'saved_card'
+  if (deposit === 0) {
+    // Migration 098: no deposit.
+    return `<section class="summary">
+<h2>${esc(t('summary.heading'))}</h2>
+<table>
+${row(t('summary.total'), ltr(money(total)), ' class="total"')}
+${row(t('noDeposit.deposit'), esc(t('noDeposit.none')))}
+${row(t('noDeposit.toPay'), ltr(money(total)))}
+</table>
+<p>${esc(t(`noDeposit.remainder.${method}`))}</p>
+</section>`
+  }
   return `<section class="summary">
 <h2>${esc(t('summary.heading'))}</h2>
 <table>
@@ -190,6 +202,14 @@ function termsHtml(t: Translator, input: QuoteDocumentInput, locale: AppLocale):
   const freeUntil = freeUntilMs !== null ? formatLocaleDateTime(freeUntilMs, locale) : ''
   const showFree = freeUntilMs !== null && freeUntil !== '' && issuedAtMs(input.version) <= freeUntilMs
 
+  if (Number(input.version.deposit_minor ?? 0) === 0) {
+    // Migration 098: without a deposit there is nothing to keep on a cancellation.
+    return `<section class="terms">
+<h2>${esc(t('terms.heading'))}</h2>
+<p>${esc(t('noDeposit.terms'))}</p>
+<p>${esc(t('terms.howToCancel'))}</p>
+</section>`
+  }
   return `<section class="terms">
 <h2>${esc(t('terms.heading'))}</h2>
 <p>${showFree ? html(t, 'terms.free', { freeUntil }) : esc(t('terms.noFree'))}</p>

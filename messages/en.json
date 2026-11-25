@@ -1323,6 +1323,34 @@
     }
   },
   "Quote": {
+    "noDeposit": {
+      "intro": "Check the trips and the terms below. To confirm, accept the quote.",
+      "statusAccepted": "Waiting for your card",
+      "deposit": "Deposit",
+      "none": "None",
+      "toPay": "To pay for the trips",
+      "remainder": {
+        "saved_card": "Each trip is charged to the card you save: we reserve the amount shortly before the trip and charge it after the trip.",
+        "payment_link": "You pay for your trips on this page, after you confirm and before your trips.",
+        "cash": "You pay each trip in cash to the driver. The card you save is kept as a guarantee.",
+        "invoice": "We send you an invoice for your trips."
+      },
+      "terms": "There is no deposit: cancelling costs nothing.",
+      "headingConfirm": "Accept the quote",
+      "headingCard": "Accept the quote and save your card",
+      "buttonConfirm": "Confirm the booking",
+      "buttonCard": "Save card and confirm",
+      "processing": "Confirming…",
+      "confirmingCard": "Card saved. We are confirming your trips…",
+      "errorCard": "Your card could not be saved. Please try again.",
+      "consent": {
+        "saved_card": "I accept quote {reference} (version {version}) and its cancellation terms. No deposit is charged now. I authorise Prestigo to save my card and to charge to it each trip as described above, plus waiting beyond the booked time and extras agreed during the trip.",
+        "payment_link": "I accept quote {reference} (version {version}) and its cancellation terms. No deposit is charged now; I pay for my trips on this page.",
+        "cash": "I accept quote {reference} (version {version}) and its cancellation terms. No deposit is charged now. I authorise Prestigo to save my card as a guarantee: if a trip is not paid in cash, or for waiting beyond the booked time and extras agreed during the trip, Prestigo may charge the amount due to it.",
+        "invoice": "I accept quote {reference} (version {version}) and its cancellation terms. No deposit is charged now; I pay for my trips by the invoice Prestigo sends me."
+      },
+      "acceptOnline": "Accept the quote online with the link we sent you."
+    },
     "meta": {
       "title": "Your quote"
     },
@@ -1453,6 +1481,8 @@
       "subject": "Your Prestigo quote {reference}",
       "h1": "Your quote is ready",
       "intro": "We prepared a quote for your trips. Open it to check the details and the cancellation terms, then accept it and pay the deposit to confirm.",
+      "introNoDeposit": "We prepared a quote for your trips. Open it to check the details and the cancellation terms, then accept it to confirm.",
+      "noDeposit": "No deposit is needed to confirm.",
       "total": "Total: {amount}",
       "deposit": "Deposit to confirm: {amount}",
       "validUntil": "This quote is valid until {date}.",
@@ -1463,6 +1493,7 @@
       "subject": "Your trips are booked – {reference}",
       "h1": "Your trips are booked",
       "intro": "We received your deposit of {amount}. These trips are now booked:",
+      "introNoDeposit": "Your booking is confirmed. These trips are now booked:",
       "booking": "Booking {reference}",
       "remainder": {
         "saved_card": "We charge the remainder of each trip to your card as described in the terms.",

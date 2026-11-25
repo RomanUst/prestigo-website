@@ -1373,6 +1373,34 @@
     }
   },
   "Quote": {
+    "noDeposit": {
+      "intro": "Vérifiez les trajets et les conditions ci-dessous. Pour confirmer, acceptez le devis.",
+      "statusAccepted": "En attente de votre carte",
+      "deposit": "Acompte",
+      "none": "Aucun",
+      "toPay": "À payer pour les trajets",
+      "remainder": {
+        "saved_card": "Chaque trajet est débité sur la carte que vous enregistrez : nous réservons le montant peu avant le trajet et le débitons après.",
+        "payment_link": "Vous payez vos trajets sur cette page, après avoir confirmé et avant vos trajets.",
+        "cash": "Vous payez chaque trajet en espèces au chauffeur. La carte que vous enregistrez sert de garantie.",
+        "invoice": "Nous vous envoyons une facture pour vos trajets."
+      },
+      "terms": "Il n’y a pas d’acompte : l’annulation ne coûte rien.",
+      "headingConfirm": "Accepter le devis",
+      "headingCard": "Accepter le devis et enregistrer votre carte",
+      "buttonConfirm": "Confirmer la réservation",
+      "buttonCard": "Enregistrer la carte et confirmer",
+      "processing": "Confirmation…",
+      "confirmingCard": "Carte enregistrée. Nous confirmons vos trajets…",
+      "errorCard": "Votre carte n’a pas pu être enregistrée. Veuillez réessayer.",
+      "consent": {
+        "saved_card": "J’accepte le devis {reference} (version {version}) et ses conditions d’annulation. Aucun acompte n’est débité maintenant. J’autorise Prestigo à enregistrer ma carte et à y débiter chaque trajet comme décrit ci-dessus, ainsi que l’attente au-delà de la durée réservée et les extras convenus pendant le trajet.",
+        "payment_link": "J’accepte le devis {reference} (version {version}) et ses conditions d’annulation. Aucun acompte n’est débité maintenant ; je paie mes trajets sur cette page.",
+        "cash": "J’accepte le devis {reference} (version {version}) et ses conditions d’annulation. Aucun acompte n’est débité maintenant. J’autorise Prestigo à enregistrer ma carte comme garantie : si un trajet n’est pas payé en espèces, ou pour l’attente au-delà de la durée réservée et les extras convenus pendant le trajet, Prestigo peut y débiter le montant dû.",
+        "invoice": "J’accepte le devis {reference} (version {version}) et ses conditions d’annulation. Aucun acompte n’est débité maintenant ; je paie mes trajets par la facture que Prestigo m’envoie."
+      },
+      "acceptOnline": "Acceptez le devis en ligne avec le lien que nous vous avons envoyé."
+    },
     "meta": {
       "title": "Votre devis"
     },
@@ -1503,6 +1531,8 @@
       "subject": "Votre devis Prestigo {reference}",
       "h1": "Votre devis est prêt",
       "intro": "Nous avons préparé un devis pour vos trajets. Ouvrez-le pour vérifier les détails et les conditions d'annulation, puis acceptez-le et réglez l'acompte pour confirmer.",
+      "introNoDeposit": "Nous avons préparé un devis pour vos trajets. Ouvrez-le pour vérifier les détails et les conditions d’annulation, puis acceptez-le pour confirmer.",
+      "noDeposit": "Aucun acompte n’est nécessaire pour confirmer.",
       "total": "Total : {amount}",
       "deposit": "Acompte pour confirmer : {amount}",
       "validUntil": "Ce devis est valable jusqu'au {date}.",
@@ -1513,6 +1543,7 @@
       "subject": "Vos trajets sont réservés – {reference}",
       "h1": "Vos trajets sont réservés",
       "intro": "Nous avons bien reçu votre acompte de {amount}. Ces trajets sont maintenant réservés :",
+      "introNoDeposit": "Votre réservation est confirmée. Ces trajets sont maintenant réservés :",
       "booking": "Réservation {reference}",
       "remainder": {
         "saved_card": "Nous prélevons le solde de chaque trajet sur votre carte, comme indiqué dans les conditions.",

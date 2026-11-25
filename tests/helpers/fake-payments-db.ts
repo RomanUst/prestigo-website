@@ -390,6 +390,7 @@ function quoteDefaults(table: QuoteTable, now: string): Row {
         stripe_customer_id: null,
         stripe_payment_method_id: null,
         deposit_payment_intent_id: null,
+        card_setup_intent_id: null,
         accepted_version_id: null,
         accepted_at: null,
         paid_at: null,
@@ -514,9 +515,15 @@ function checkQuoteRow(table: QuoteTable, row: Row): string | null {
       if (!inList(row.locale, locales)) return 'quote_versions_locale_check'
       if (!inList(row.currency, ['eur', 'czk'])) return 'quote_versions_currency_check'
       if (!(isInt(row.total_minor) && row.total_minor >= 0)) return 'quote_versions_total_minor_check'
-      if (!nullOr(row.deposit_kind, (v) => inList(v, ['percent', 'fixed']))) return 'quote_versions_deposit_kind_check'
+      // Migration 098: 'none' (no deposit): no value, a deposit of 0.
+      if (!nullOr(row.deposit_kind, (v) => inList(v, ['percent', 'fixed', 'none']))) return 'quote_versions_deposit_kind_check'
       if (!nullOr(row.deposit_value, (v) => isInt(v) && v > 0)) return 'quote_versions_deposit_value_check'
-      if (!nullOr(row.deposit_minor, (v) => isInt(v) && v > 0)) return 'quote_versions_deposit_minor_check'
+      if (!nullOr(row.deposit_minor, (v) => isInt(v) && (v > 0 || (row.deposit_kind === 'none' && v === 0)))) {
+        return 'quote_versions_deposit_minor_check'
+      }
+      if (row.deposit_kind === 'none' && !(row.deposit_value == null && (row.deposit_minor == null || row.deposit_minor === 0))) {
+        return 'quote_versions_deposit_none_check'
+      }
       if (!nullOr(row.remainder_method, (v) => inList(v, ['saved_card', 'payment_link', 'cash', 'invoice']))) {
         return 'quote_versions_remainder_method_check'
       }
@@ -529,7 +536,7 @@ function checkQuoteRow(table: QuoteTable, row: Row): string | null {
       if (row.frozen_at != null) {
         const complete =
           row.deposit_kind != null &&
-          row.deposit_value != null &&
+          (row.deposit_value != null || row.deposit_kind === 'none') &&
           row.deposit_minor != null &&
           row.remainder_method != null &&
           isNum(row.total_minor) &&
@@ -586,7 +593,7 @@ function checkQuoteRow(table: QuoteTable, row: Row): string | null {
       if (!nullOr(row.user_agent, (v) => lenBetween(v, 0, 300))) return 'quote_acceptances_user_agent_check'
       if (typeof row.terms_sha256 !== 'string' || !HEX64.test(row.terms_sha256)) return 'quote_acceptances_terms_sha256_check'
       if (!lenBetween(row.terms_rendered, 1, 4000)) return 'quote_acceptances_terms_rendered_check'
-      if (!(isInt(row.deposit_minor) && row.deposit_minor > 0)) return 'quote_acceptances_deposit_minor_check'
+      if (!(isInt(row.deposit_minor) && row.deposit_minor >= 0)) return 'quote_acceptances_deposit_minor_check'
       if (!inList(row.currency, ['eur', 'czk'])) return 'quote_acceptances_currency_check'
       if (!nullOr(row.hold_lead_hours, (v) => intBetween(v, 6, 96))) return 'quote_acceptances_hold_lead_hours_check'
       return null
@@ -985,7 +992,11 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
 
     // 2. Already paid: the recorded intent gets its bookings back, any other intent is not the quote's payment.
     if (quote.status === 'paid' || quote.paid_at != null) {
-      if (intentId !== null && quote.deposit_payment_intent_id === intentId) {
+      if (
+        (intentId !== null && quote.deposit_payment_intent_id === intentId) ||
+        (intentId !== null && quote.card_setup_intent_id === intentId) ||
+        (intentId === null && quote.deposit_payment_intent_id == null && quote.card_setup_intent_id == null)
+      ) {
         const lineRows = state.quote_version_lines
         const ids = state.bookings
           .filter((b) => b.quote_id === quoteId)
@@ -1002,14 +1013,26 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
     if (quote.cancelled_at != null) return refuse('cancelled')
     if (quote.status !== 'accepted') return refuse('not_accepted')
     if (quote.current_version_id !== versionId) return refuse('version_mismatch')
-    if (intentId === null || quote.deposit_payment_intent_id !== intentId) return refuse('intent_mismatch')
 
     const version = state.quote_versions.find((v) => v.id === versionId)
     if (!version || version.quote_id !== quoteId) return refuse('version_mismatch')
     if (version.frozen_at == null) return refuse('not_accepted')
 
+    // Migration 098: the deposit intent, the card setup of a no-deposit quote, or no Stripe object at all.
+    const hasDeposit = (version.deposit_minor as number) > 0
+    if (hasDeposit) {
+      if (intentId === null || quote.deposit_payment_intent_id !== intentId) return refuse('intent_mismatch')
+    } else if (version.remainder_method === 'saved_card' || version.remainder_method === 'cash') {
+      if (intentId === null || quote.card_setup_intent_id !== intentId) return refuse('intent_mismatch')
+    } else if (intentId !== null) {
+      return refuse('intent_mismatch')
+    }
+
     const acceptance = state.quote_acceptances
-      .filter((a) => a.quote_id === quoteId && a.payment_intent_id === intentId)
+      .filter((a) =>
+        a.quote_id === quoteId &&
+        (intentId !== null ? a.payment_intent_id === intentId : a.payment_intent_id == null && a.version_id === versionId),
+      )
       .sort((a, b) => compare(b.accepted_at, a.accepted_at))[0]
     if (!acceptance) return refuse('not_accepted')
 
@@ -1167,7 +1190,7 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
           })
         }
 
-        appendPaymentEvent({
+        if (hasDeposit) appendPaymentEvent({
           p_booking_id: booking.id,
           p_event: {
             key: `quote_deposit:${intentId}`,
@@ -1223,11 +1246,13 @@ export function createFakePaymentsDb(seed: FakePaymentsSeed = {}) {
           ...extra,
         })
       }
-      addEvent(`deposit_paid:${intentId}`, 'deposit_paid', {
-        stripe_object_id: intentId,
-        amount_minor: version.deposit_minor,
-        currency,
-      })
+      if (hasDeposit) {
+        addEvent(`deposit_paid:${intentId}`, 'deposit_paid', {
+          stripe_object_id: intentId,
+          amount_minor: version.deposit_minor,
+          currency,
+        })
+      }
       addEvent(`converted:${versionId}`, 'converted', {})
 
       return { converted: true, first_time: true, booking_ids: ids }

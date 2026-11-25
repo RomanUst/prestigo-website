@@ -27,6 +27,7 @@ import { handleHoldNowAuthorized, handleSetupFailed, handleSetupSucceeded } from
 import { handleCardChargeFailed, handleCardChargeSucceeded, observeQuoteRefund } from '@/lib/stripe-webhook/charge-events'
 import { handleHoldAuthorized, handleHoldCanceled, handleHoldFailed } from '@/lib/stripe-webhook/hold-events'
 import {
+  handleQuoteCardSaved,
   handleQuoteDepositPaid,
   handleQuoteDispute,
   handleQuotePaymentCanceled,
@@ -57,6 +58,7 @@ export type PaymentRoute =
   | 'dispute'
   // Phase 92 (92-31): the deposit of a quote and the failure / cancellation of a quote's payments. Never the legacy chain, never the hold handlers.
   | 'quote_deposit_paid'
+  | 'quote_card_saved'
   | 'quote_remainder_paid'
   | 'quote_payment_failed'
   | 'quote_payment_canceled'
@@ -113,6 +115,9 @@ export const ROUTES: Partial<Record<PaymentRoute, EventHandler>> = {
   // 92-23 (D-16): a remainder paid on the quote page; same rule, a throw answers 500 and Stripe redelivers.
   quote_remainder_paid: (event) =>
     handleQuoteRemainderPaid(event.data.object as Stripe.PaymentIntent, { type: 'webhook', id: event.id ?? null }),
+  // Migration 098: a quote without a deposit, its card saved; same rule, a throw answers 500 and Stripe redelivers.
+  quote_card_saved: (event) =>
+    handleQuoteCardSaved(event.data.object as Stripe.SetupIntent, { type: 'webhook', id: event.id ?? null }),
   quote_payment_failed: (event) => handleQuotePaymentFailed(event.data.object as Stripe.PaymentIntent),
   quote_payment_canceled: (event) => handleQuotePaymentCanceled(event.data.object as Stripe.PaymentIntent),
 }
@@ -142,6 +147,8 @@ export function classifyPaymentEvent(event: Stripe.Event): PaymentEventClass | n
       return make('dispute')
     case 'setup_intent.succeeded':
       if (!isCard) return null
+      // Migration 098: the card setup of a quote without a deposit.
+      if (kind === 'card_quote_setup') return make('quote_card_saved')
       return make(kind === 'card_setup' ? 'setup_succeeded' : 'unrouted')
     case 'setup_intent.setup_failed':
       if (!isCard) return null

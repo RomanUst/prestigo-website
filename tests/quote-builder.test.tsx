@@ -361,6 +361,21 @@ describe('quote settings (QUOTE-03, QUOTE-04; D-02, D-03, D-06, D-07, D-09, D-13
     expect(saveButton()).not.toBeDisabled()
   })
 
+  it('migration 098: No deposit needs no value, says what the client does, and saves kind none', async () => {
+    await renderPage(freshQuote())
+    fireEvent.change(depositKind(), { target: { value: 'none' } })
+    expect(depositValue()).toBeDisabled()
+    expect(screen.getByTestId('quote-deposit')).toHaveTextContent(formatMinor(0, 'eur'))
+    expect(screen.getByTestId('quote-remainder')).toHaveTextContent(formatMinor(50000, 'eur'))
+    expect(screen.getByTestId('quote-no-deposit-hint')).toHaveTextContent('choose how the trips are paid')
+    fireEvent.click(screen.getByLabelText(/^Invoice/))
+    expect(screen.getByTestId('quote-no-deposit-hint')).toHaveTextContent('the client only confirms')
+    expect(screen.queryByTestId('quote-tbc-list')?.textContent ?? '').not.toContain('Deposit')
+    fireEvent.click(saveButton())
+    await screen.findByText('Saved')
+    expect(lastPatch()).toMatchObject({ deposit: { kind: 'none', value: 0 }, remainder_method: 'invoice' })
+  })
+
   it('a percent above 100 and a fixed deposit above the total are refused inline', async () => {
     await renderPage(freshQuote())
     fireEvent.change(depositKind(), { target: { value: 'percent' } })

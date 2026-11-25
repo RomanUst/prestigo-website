@@ -19,6 +19,7 @@ import { ensureQuoteStripeCustomer } from '@/lib/payments/customer'
 import { classifyStripeError, getPaymentsStripe, quoteMetadata, stripeErrorCode, stripeKeys } from '@/lib/payments/stripe'
 import { renderQuoteTerms } from '@/lib/quotes/consent'
 import { appendQuoteEvent } from '@/lib/quotes/events'
+import { confirmQuoteWithoutDeposit } from '@/lib/quotes/convert'
 import { resolveQuoteToken, type ResolvedQuote } from '@/lib/quotes/resolve'
 
 const IP_MAX = 64
@@ -26,6 +27,10 @@ const USER_AGENT_MAX = 300
 
 export type AcceptQuoteResult =
   | { ok: true; clientSecret: string; amountMinor: number; currency: 'eur' | 'czk' }
+  // Migration 098, no deposit: a card to save (nothing charged) ...
+  | { ok: true; clientSecret: string; mode: 'setup'; amountMinor: 0; currency: 'eur' | 'czk' }
+  // ... or a plain confirmation: the bookings are already made.
+  | { ok: true; confirmed: true; amountMinor: 0; currency: 'eur' | 'czk' }
   | {
       ok: false
       code: 'invalid_link' | 'quote_changed' | 'already_paid' | 'already_paying' | 'busy' | 'stripe_error'
@@ -116,7 +121,9 @@ export async function acceptQuote(input: {
 
   // 2. The server is the price authority: the deposit is the frozen version's, the request only cross-checks (T-92-49).
   const depositMinor = version.deposit_minor
-  if (typeof depositMinor !== 'number' || !Number.isInteger(depositMinor) || depositMinor <= 0) return refuse('invalid_link')
+  if (typeof depositMinor !== 'number' || !Number.isInteger(depositMinor) || depositMinor < 0) return refuse('invalid_link')
+  // A deposit of 0 exists only as the operator's explicit "no deposit" (migration 098).
+  if (depositMinor === 0 && version.deposit_kind !== 'none') return refuse('invalid_link')
   if (input.displayedVersionNo !== version.version_no || input.displayedDepositMinor !== depositMinor) {
     return refuse('quote_changed')
   }
@@ -153,6 +160,17 @@ export async function acceptQuote(input: {
   // 5. The quote is accepted on this version.
   const refused = await markAccepted(resolved, nowMs)
   if (refused) return refused
+
+  // Migration 098: no deposit. A payment link or an invoice needs nothing more than this acceptance; a saved card or
+  // cash needs the card the trips are charged to or guaranteed by (a SetupIntent, nothing charged now).
+  if (depositMinor === 0) {
+    const method = version.remainder_method
+    if (method === 'payment_link' || method === 'invoice') {
+      await confirmQuoteWithoutDeposit(quote.id, version.id)
+      return { ok: true, confirmed: true, amountMinor: 0, currency: version.currency }
+    }
+    return startCardSetup(resolved, acceptanceId)
+  }
 
   // 6. Stripe. One live deposit intent per quote (T-92-50, Pitfall 8): a live stored intent of this very version and
   // amount is reused, a processing or succeeded one means the client is already paying, a canceled or vanished one is
@@ -243,6 +261,92 @@ export async function acceptQuote(input: {
   })
 
   return { ok: true, clientSecret, amountMinor: depositMinor, currency: version.currency }
+}
+
+/**
+ * Migration 098: the card setup of a quote without a deposit. One live SetupIntent per quote, the same rules as the
+ * deposit intent: a live one of this version is reused, a succeeded or processing one means the client is already done,
+ * a canceled or vanished one is replaced; the id is stored by compare-and-set on quotes.card_setup_intent_id and on the
+ * acceptance. The conversion runs when the SetupIntent succeeds (webhook setup_intent.succeeded, or the tick).
+ */
+type StoredSetup = { id: string; status: string; client_secret?: string | null; metadata?: Record<string, string> | null }
+
+async function startCardSetup(resolved: ResolvedQuote, acceptanceId: string): Promise<AcceptQuoteResult> {
+  const { quote, version } = resolved
+  const supabase = createSupabaseServiceClient()
+  const previousId = quote.card_setup_intent_id ?? null
+  let clientSecret: string
+  let setupId: string
+  try {
+    const stripe = getPaymentsStripe()
+    if (previousId) {
+      let si: StoredSetup | null = null
+      try {
+        si = (await stripe.setupIntents.retrieve(previousId)) as unknown as StoredSetup
+      } catch (err) {
+        if (!isMissingResource(err)) throw err
+      }
+      if (si && (si.status === 'succeeded' || si.status === 'processing')) {
+        await linkAcceptance(acceptanceId, si.id)
+        return refuse('already_paying')
+      }
+      if (si && LIVE_STATUSES.has(si.status) && si.metadata?.versionId === version.id && si.client_secret) {
+        await linkAcceptance(acceptanceId, si.id)
+        return { ok: true, clientSecret: si.client_secret, mode: 'setup', amountMinor: 0, currency: version.currency }
+      }
+      if (si && LIVE_STATUSES.has(si.status)) {
+        try {
+          await stripe.setupIntents.cancel(si.id, undefined, { idempotencyKey: stripeKeys.quoteCardSetupVoid(si.id) })
+        } catch (err) {
+          console.warn('[quote-accept] stale card setup not canceled', { class: classifyStripeError(err), code: stripeErrorCode(err) })
+          return refuse('busy')
+        }
+      }
+    }
+
+    const customerId = await ensureQuoteStripeCustomer(quote)
+    if (customerId !== quote.stripe_customer_id) {
+      const { error } = await supabase.from('quotes').update({ stripe_customer_id: customerId }).eq('id', quote.id)
+      if (error) throw dbFailure('customer write')
+    }
+    const si = await stripe.setupIntents.create(
+      {
+        customer: customerId,
+        payment_method_types: ['card'],
+        usage: 'off_session',
+        metadata: quoteMetadata('card_quote_setup', {
+          quoteId: quote.id,
+          versionId: version.id,
+          quoteReference: quote.reference,
+          acceptanceId,
+        }),
+      },
+      { idempotencyKey: stripeKeys.quoteCardSetup(version.id, acceptanceId) },
+    )
+    if (!si.client_secret) throw new Error('card setup intent has no client secret')
+    clientSecret = si.client_secret
+    setupId = si.id
+  } catch (err) {
+    if (err instanceof AcceptWriteError) throw err
+    console.error('[quote-accept] stripe call failed', { quoteId: quote.id, class: classifyStripeError(err), code: stripeErrorCode(err) })
+    return refuse('stripe_error')
+  }
+
+  const base = supabase.from('quotes').update({ card_setup_intent_id: setupId }).eq('id', quote.id)
+  const guarded = previousId ? base.eq('card_setup_intent_id', previousId) : base.is('card_setup_intent_id', null)
+  const { data, error } = await guarded.select('id')
+  if (error) throw dbFailure('setup write')
+  if (!Array.isArray(data) || data.length === 0) {
+    // A concurrent accept stored its own setup first: ours was never handed out; the client retries and reuses the winner.
+    try {
+      await getPaymentsStripe().setupIntents.cancel(setupId, undefined, { idempotencyKey: stripeKeys.quoteCardSetupVoid(setupId) })
+    } catch {
+      console.warn('[quote-accept] own card setup not canceled', { quoteId: quote.id })
+    }
+    return refuse('busy')
+  }
+  await linkAcceptance(acceptanceId, setupId)
+  return { ok: true, clientSecret, mode: 'setup', amountMinor: 0, currency: version.currency }
 }
 
 /** Sets payment_intent_id on the acceptance row (the log guard allows it once, from null). */

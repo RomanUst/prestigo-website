@@ -19,6 +19,8 @@ export interface QuoteRow {
   stripe_customer_id: string | null
   stripe_payment_method_id: string | null
   deposit_payment_intent_id: string | null
+  /** Migration 098: the SetupIntent of a quote without a deposit (saved card / cash). */
+  card_setup_intent_id?: string | null
   accepted_version_id: string | null
   accepted_at: string | null
   paid_at: string | null

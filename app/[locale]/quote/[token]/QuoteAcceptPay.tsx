@@ -37,8 +37,17 @@ export interface QuoteAcceptPayCopy {
   unavailable: string
 }
 
+/**
+ * How the client confirms (migration 098): 'deposit' pays the deposit (PaymentIntent); 'setup' saves a card with nothing
+ * charged (SetupIntent; no deposit, the trips are charged or guaranteed later); 'confirm' only ticks the consent and
+ * presses the button (no deposit and no card: payment link or invoice), the server creates the bookings at once.
+ */
+export type QuoteAcceptMode = 'deposit' | 'setup' | 'confirm'
+
 export interface QuoteAcceptPayProps {
   token: string
+  /** Default 'deposit'. */
+  mode?: QuoteAcceptMode
   locale: AppLocale
   /** The version number the page displayed (cross-check for the server). */
   versionNo: number
@@ -96,6 +105,8 @@ type Message = 'consentRequired' | 'declined' | 'error' | 'changed' | 'unavailab
 
 function AcceptForm(props: QuoteAcceptPayProps) {
   const { token, locale, versionNo, depositMinor, currency, consentText, copy } = props
+  const mode: QuoteAcceptMode = props.mode ?? 'deposit'
+  const withCard = mode !== 'confirm'
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
@@ -165,7 +176,7 @@ function AcceptForm(props: QuoteAcceptPayProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (busyRef.current) return
-    if (!stripe || !elements || !ready) return
+    if (withCard && (!stripe || !elements || !ready)) return
     if (!consentRef.current) {
       setMessage('consentRequired')
       checkboxRef.current?.focus()
@@ -177,11 +188,13 @@ function AcceptForm(props: QuoteAcceptPayProps) {
     setPhase('submitting')
 
     // 1. Validate the card fields in the browser (Stripe shows the inline errors itself).
-    const { error: submitError } = await elements.submit()
-    if (submitError) {
-      busyRef.current = false
-      setPhase('idle')
-      return
+    if (withCard && elements) {
+      const { error: submitError } = await elements.submit()
+      if (submitError) {
+        busyRef.current = false
+        setPhase('idle')
+        return
+      }
     }
 
     // 2. Ask the server for the deposit PaymentIntent. Cross-check values only: the server owns the amount.
@@ -228,14 +241,53 @@ function AcceptForm(props: QuoteAcceptPayProps) {
     }
 
     // The amount the client sees is the one the server holds: never confirm a different one.
-    if (data.amountMinor !== depositMinor || data.currency !== currency || typeof data.clientSecret !== 'string') {
+    if (data.amountMinor !== depositMinor || data.currency !== currency) {
       setConsent(false)
       fail('changed')
       return
     }
 
+    // No deposit and no card: the server already made the bookings; show them.
+    if (mode === 'confirm') {
+      if (data.confirmed !== true) {
+        fail('error')
+        return
+      }
+      routerRef.current.refresh()
+      setPhase('confirming')
+      return
+    }
+    if (typeof data.clientSecret !== 'string' || !stripe || !elements) {
+      fail('error')
+      return
+    }
+
     // 3. Confirm. The return URL has no token: it goes to Stripe, the bank and the browser history.
     const returnUrl = `${window.location.origin}${getPathname({ locale, href: '/quote/done' })}`
+    if (mode === 'setup') {
+      // No deposit: the card is saved for the trips, nothing is charged now.
+      if (data.mode !== 'setup') {
+        setConsent(false)
+        fail('changed')
+        return
+      }
+      const { error: setupError, setupIntent } = await stripe.confirmSetup({
+        elements,
+        clientSecret: data.clientSecret,
+        confirmParams: { return_url: returnUrl },
+        redirect: 'if_required',
+      })
+      if (setupError) {
+        fail(setupError.type === 'card_error' ? 'declined' : 'error')
+        return
+      }
+      if (setupIntent && (setupIntent.status === 'succeeded' || setupIntent.status === 'processing')) {
+        setPhase('confirming')
+        return
+      }
+      fail('error')
+      return
+    }
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       clientSecret: data.clientSecret,
@@ -262,20 +314,22 @@ function AcceptForm(props: QuoteAcceptPayProps) {
   }
 
   const submitting = phase === 'submitting'
-  const disabled = submitting || !stripe || !ready || !consent
+  const disabled = submitting || (withCard && (!stripe || !ready)) || !consent
   const consentId = 'quote-accept-consent'
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <PaymentElement
-        options={{
-          layout: 'tabs',
-          paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
-          wallets: { applePay: 'auto', googlePay: 'auto' },
-        }}
-        onReady={() => setReady(true)}
-        onLoadError={() => setMessage('error')}
-      />
+      {withCard ? (
+        <PaymentElement
+          options={{
+            layout: 'tabs',
+            paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
+            wallets: { applePay: 'auto', googlePay: 'auto' },
+          }}
+          onReady={() => setReady(true)}
+          onLoadError={() => setMessage('error')}
+        />
+      ) : null}
 
       <label
         style={{
@@ -284,7 +338,7 @@ function AcceptForm(props: QuoteAcceptPayProps) {
           gap: 16,
           minHeight: 44,
           padding: '8px 0',
-          marginTop: 24,
+          marginTop: withCard ? 24 : 0,
           cursor: 'pointer',
           ...(message === 'consentRequired' ? { border: `1px solid ${ERROR_COLOR}`, borderRadius: 4 } : {}),
         }}
@@ -340,17 +394,29 @@ export function QuoteAcceptPay(props: QuoteAcceptPayProps) {
 
   // Elements options mirror the server-side PaymentIntent (card only, saves the card for later). The amount is the
   // displayed deposit; the secret the server returns is bound to the server's amount, and a different answer is refused.
+  const mode: QuoteAcceptMode = props.mode ?? 'deposit'
   const options = useMemo(
-    () => ({
-      mode: 'payment' as const,
-      amount: depositMinor,
-      currency,
-      setupFutureUsage: 'off_session' as const,
-      paymentMethodTypes: ['card'],
-      appearance,
-      locale: STRIPE_ELEMENTS_LOCALE[locale],
-    }),
-    [depositMinor, currency, locale],
+    () =>
+      mode === 'setup'
+        ? {
+            // Migration 098: no deposit, the card is only saved (a SetupIntent for later off-session charges).
+            mode: 'setup' as const,
+            currency,
+            setupFutureUsage: 'off_session' as const,
+            paymentMethodTypes: ['card'],
+            appearance,
+            locale: STRIPE_ELEMENTS_LOCALE[locale],
+          }
+        : {
+            mode: 'payment' as const,
+            amount: depositMinor,
+            currency,
+            setupFutureUsage: 'off_session' as const,
+            paymentMethodTypes: ['card'],
+            appearance,
+            locale: STRIPE_ELEMENTS_LOCALE[locale],
+          },
+    [mode, depositMinor, currency, locale],
   )
 
   return (
@@ -381,7 +447,8 @@ export function QuoteAcceptPay(props: QuoteAcceptPayProps) {
       >
         {copy.heading}
       </h2>
-      <Elements stripe={stripePromise} options={options}>
+      {/* A plain confirmation loads no Stripe at all (the hooks get a null stripe and the form never asks them). */}
+      <Elements stripe={mode === 'confirm' ? null : stripePromise} options={mode === 'confirm' ? undefined : options}>
         <AcceptForm {...props} />
       </Elements>
     </section>

@@ -300,15 +300,21 @@ async function freezeVersion(
   const kind = (version.deposit_kind ?? null) as DepositKind | null
   const value = numOrNull(version.deposit_value)
   const method = (version.remainder_method ?? null) as RemainderMethod | null
-  if (kind === null || value === null) return { ok: false, code: 'money_invalid', reason: 'deposit_missing' }
+  if (kind === null || (value === null && kind !== 'none')) return { ok: false, code: 'money_invalid', reason: 'deposit_missing' }
   if (method === null) return { ok: false, code: 'money_invalid', reason: 'remainder_method_missing' }
 
   const currency = version.currency as QuoteCurrency
   const amounts = lines.map((l) => num(l.amount_minor))
   const total = amounts.reduce((a, b) => a + b, 0)
   const depositMinor = depositMinorFor(kind, value, total)
-  if (depositMinor === null) return { ok: false, code: 'money_invalid', reason: depositRefusal(kind, value, total) }
-  const money = validateVersionMoney({ currency, remainderMethod: method, lineAmounts: amounts, depositMinor })
+  if (depositMinor === null) return { ok: false, code: 'money_invalid', reason: depositRefusal(kind, value ?? 0, total) }
+  const money = validateVersionMoney({
+    currency,
+    remainderMethod: method,
+    lineAmounts: amounts,
+    depositMinor,
+    noDeposit: kind === 'none',
+  })
   if (!money.ok) return { ok: false, code: 'money_invalid', reason: money.reason }
 
   if (version.frozen_at) return { ok: true }
@@ -375,6 +381,27 @@ async function freezeVersion(
 }
 
 // == the deposit PaymentIntent =======================================================================================
+
+/**
+ * Migration 098: the card setup of a quote without a deposit is cancelled before a revise or a void, like a live deposit
+ * intent. 'in_flight' when the client already saved the card (the conversion is on its way): the caller stops.
+ */
+async function cancelLiveCardSetup(quote: QuoteRow): Promise<'none' | 'canceled' | 'in_flight'> {
+  const setupId = quote.card_setup_intent_id
+  if (!setupId) return 'none'
+  const stripe = getPaymentsStripe()
+  const si = await stripe.setupIntents.retrieve(setupId)
+  if (si.status === 'canceled') return 'none'
+  if (si.status === 'succeeded' || si.status === 'processing') return 'in_flight'
+  try {
+    await stripe.setupIntents.cancel(setupId, undefined, { idempotencyKey: stripeKeys.quoteCardSetupVoid(setupId) })
+  } catch {
+    const again = await stripe.setupIntents.retrieve(setupId)
+    if (again.status === 'succeeded' || again.status === 'processing') return 'in_flight'
+    if (again.status !== 'canceled') throw new Error('quote card setup not canceled')
+  }
+  return 'canceled'
+}
 
 /**
  * Cancels the live deposit PaymentIntent of a quote so no payment can land on a version that is going away.
@@ -477,6 +504,7 @@ export async function reviseQuote(quoteId: string, actor: LifecycleActor): Promi
   // Pitfall 7: nothing is edited while the client is paying.
   const deposit = await cancelLiveDepositIntent(quote, actor)
   if (deposit === 'in_flight') return { ok: false, code: 'deposit_in_flight' }
+  if ((await cancelLiveCardSetup(quote)) === 'in_flight') return { ok: false, code: 'deposit_in_flight' }
 
   let newVersionId: string
   // Only a version created by THIS call may be discarded: a reused leftover can be the winner of a concurrent revise.
@@ -574,6 +602,7 @@ export async function voidQuote(quoteId: string, actor: LifecycleActor): Promise
 
   const deposit = await cancelLiveDepositIntent(quote, actor)
   if (deposit === 'in_flight') return { ok: false, code: 'deposit_in_flight' }
+  if ((await cancelLiveCardSetup(quote)) === 'in_flight') return { ok: false, code: 'deposit_in_flight' }
 
   const nowIso = new Date().toISOString()
   const { data, error } = await supabase

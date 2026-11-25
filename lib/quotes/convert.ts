@@ -491,3 +491,136 @@ export async function runQuotePaidEffects(quoteId: string): Promise<void> {
     await appendQuoteEvent(quoteId, { key: 'reminders', kind: 'reminder_scheduled', versionId, actor: SYSTEM_ACTOR })
   })
 }
+
+// == Migration 098: quotes without a deposit ===========================================================================
+
+/** What a no-deposit conversion did. */
+export interface QuoteNoDepositOutcome {
+  outcome: 'converted' | 'replayed' | 'ignored'
+  bookingIds?: string[]
+}
+
+const SETUP_KIND = 'card_quote_setup'
+
+/**
+ * The bookings of a no-deposit quote, made by the same database function as a paid deposit (exactly once, in one
+ * transaction). `setupIntentId` is the succeeded SetupIntent of a saved-card / cash quote, null for a plain
+ * confirmation (payment link, invoice). A database refusal other than a replay is recorded and alerted once and thrown,
+ * so the caller (the accept route, the webhook, the tick) answers an error and the path is tried again; no money moved.
+ */
+async function convertWithoutDeposit(input: {
+  quote: QuoteRow
+  versionId: string
+  setupIntentId: string | null
+  customerId: string | null
+  paymentMethodId: string | null
+  actor: LedgerActor
+}): Promise<QuoteNoDepositOutcome> {
+  const { quote, versionId, setupIntentId } = input
+  const version = await readOne<QuoteVersionRow>('quote_versions', 'id', versionId)
+  const acceptance = setupIntentId ? await readAcceptance(quote.id, setupIntentId) : null
+  const lines = await readMany<QuoteLineRow>('quote_version_lines', 'version_id', versionId, 'position')
+  const leadHours = acceptance?.hold_lead_hours ?? DEFAULT_HOLD_LEAD_HOURS
+  const cardHold = version?.remainder_method === 'saved_card'
+  const references = freshReferences(lines.length)
+
+  const result = await convertQuoteToBookings({
+    quoteId: quote.id,
+    versionId,
+    paymentIntentId: setupIntentId,
+    customerId: input.customerId,
+    paymentMethodId: input.paymentMethodId,
+    lines: lines.map((line, i) => ({
+      position: line.position,
+      bookingReference: references[i],
+      holdAt: cardHold && (line.remainder_minor ?? 0) > 0 ? holdAtFor(line, leadHours) : null,
+    })),
+    actor: input.actor,
+  })
+  if (!result.converted) {
+    const key = setupIntentId ?? `confirm:${versionId}`
+    console.error('[quote-convert] no-deposit conversion refused', { quoteId: quote.id, code: result.reason })
+    try {
+      await appendQuoteEvent(quote.id, {
+        key: `convert_failed:${key}`,
+        kind: 'convert_failed',
+        versionId,
+        stripeObjectId: setupIntentId,
+        errorCode: result.reason,
+        actor: input.actor,
+      })
+      await sendQuoteOperatorAlert('quote_convert_failed', { id: quote.id, reference: quote.reference }, {
+        eventKey: `alert:quote_convert_failed:${key}`,
+        code: result.reason,
+        amountMinor: 0,
+        currency: version?.currency === 'czk' ? 'czk' : 'eur',
+      })
+    } catch {
+      console.error('[quote-convert] conversion failure not recorded', { quoteId: quote.id })
+    }
+    throw new Error(`quote conversion refused: ${result.reason}`)
+  }
+  await finishQuotePaid(quote.id)
+  return { outcome: result.firstTime ? 'converted' : 'replayed', bookingIds: result.bookingIds }
+}
+
+/**
+ * A quote without a deposit paid by a payment link or an invoice: the client's acceptance is the confirmation, so the
+ * bookings are made at once (called by acceptQuote right after the acceptance is on record).
+ */
+export async function confirmQuoteWithoutDeposit(quoteId: string, versionId: string): Promise<QuoteNoDepositOutcome> {
+  const quote = await readOne<QuoteRow>('quotes', 'id', quoteId)
+  if (!quote) return { outcome: 'ignored' }
+  return convertWithoutDeposit({
+    quote,
+    versionId,
+    setupIntentId: null,
+    customerId: null,
+    paymentMethodId: null,
+    actor: { type: 'system', id: null },
+  })
+}
+
+/**
+ * A succeeded SetupIntent of a quote without a deposit (saved card / cash): the card is on file, the bookings are made
+ * with it. Called by the webhook (setup_intent.succeeded) and by the tick reconcile. A setup the quote does not own (a
+ * superseded version, a voided or cancelled quote) moved no money: it is only logged.
+ */
+export async function applyQuoteCardSaved(si: Stripe.SetupIntent, actor: LedgerActor): Promise<QuoteNoDepositOutcome> {
+  if (si.status !== 'succeeded') return { outcome: 'ignored' }
+  const meta = si.metadata ?? {}
+  const quoteId = meta.quoteId
+  const versionId = meta.versionId
+  if (meta.kind !== SETUP_KIND || !quoteId || !UUID_RE.test(quoteId) || !versionId || !UUID_RE.test(versionId)) {
+    console.warn('[quote-convert] not a quote card setup', { stripeObjectId: si.id })
+    return { outcome: 'ignored' }
+  }
+  const quote = await readOne<QuoteRow>('quotes', 'id', quoteId)
+  if (!quote) {
+    console.error('[quote-convert] card setup for an unknown quote', { stripeObjectId: si.id, quoteId })
+    return { outcome: 'ignored' }
+  }
+  if (quote.card_setup_intent_id === si.id && quote.paid_at) {
+    const bookingIds = await bookingIdsOfQuote(quote.id)
+    await finishQuotePaid(quote.id)
+    return { outcome: 'replayed', bookingIds }
+  }
+  const owned =
+    quote.card_setup_intent_id === si.id &&
+    versionId === quote.current_version_id &&
+    !quote.voided_at &&
+    !quote.cancelled_at &&
+    quote.status === 'accepted'
+  if (!owned) {
+    console.warn('[quote-convert] card setup not owned by the live quote', { stripeObjectId: si.id, quoteId })
+    return { outcome: 'ignored' }
+  }
+  return convertWithoutDeposit({
+    quote,
+    versionId,
+    setupIntentId: si.id,
+    customerId: idOf(si.customer as string | { id?: string } | null),
+    paymentMethodId: idOf(si.payment_method as string | { id?: string } | null),
+    actor,
+  })
+}

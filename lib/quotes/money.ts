@@ -15,8 +15,11 @@ export const QUOTE_MIN_CHARGE_MINOR: Record<QuoteCurrency, number> = { eur: 50, 
  * always chooses). A percent is 1..100 and is rounded to the cent; a fixed amount is a whole number of minor units.
  * Never 0, never more than the total.
  */
-export function depositMinorFor(kind: DepositKind, value: number, totalMinor: number): number | null {
-  if (!Number.isFinite(value) || !Number.isFinite(totalMinor) || totalMinor <= 0) return null
+export function depositMinorFor(kind: DepositKind, value: number | null, totalMinor: number): number | null {
+  if (!Number.isFinite(totalMinor) || totalMinor <= 0) return null
+  // Migration 098: no deposit at all is the operator's explicit choice, not a deposit of 0.
+  if (kind === 'none') return 0
+  if (value === null || !Number.isFinite(value)) return null
   let deposit: number
   if (kind === 'percent') {
     if (value < 1 || value > 100) return null
@@ -76,16 +79,23 @@ export function validateVersionMoney(input: {
   remainderMethod: RemainderMethod
   lineAmounts: number[]
   depositMinor: number
+  /** Migration 098: the operator chose no deposit (depositMinor is then 0). */
+  noDeposit?: boolean
 }): { ok: true; shares: number[]; remainders: number[] } | { ok: false; reason: VersionMoneyRefusal } {
   const { currency, remainderMethod, lineAmounts, depositMinor } = input
+  const noDeposit = input.noDeposit === true
   if (lineAmounts.length === 0) return { ok: false, reason: 'no_lines' }
   if (lineAmounts.some((a) => !Number.isInteger(a) || a <= 0)) return { ok: false, reason: 'amount_invalid' }
-  if (!Number.isFinite(depositMinor) || depositMinor <= 0) return { ok: false, reason: 'deposit_zero' }
-  if (!Number.isInteger(depositMinor)) return { ok: false, reason: 'amount_invalid' }
-  const total = lineAmounts.reduce((a, b) => a + b, 0)
-  if (depositMinor > total) return { ok: false, reason: 'deposit_above_total' }
   const floor = QUOTE_MIN_CHARGE_MINOR[currency]
-  if (depositMinor < floor) return { ok: false, reason: 'deposit_below_minimum' }
+  if (noDeposit) {
+    if (depositMinor !== 0) return { ok: false, reason: 'amount_invalid' }
+  } else {
+    if (!Number.isFinite(depositMinor) || depositMinor <= 0) return { ok: false, reason: 'deposit_zero' }
+    if (!Number.isInteger(depositMinor)) return { ok: false, reason: 'amount_invalid' }
+    const total = lineAmounts.reduce((a, b) => a + b, 0)
+    if (depositMinor > total) return { ok: false, reason: 'deposit_above_total' }
+    if (depositMinor < floor) return { ok: false, reason: 'deposit_below_minimum' }
+  }
 
   const shares = allocateDeposit(lineAmounts, depositMinor)
   const remainders = lineAmounts.map((amount, i) => amount - shares[i])

@@ -228,3 +228,27 @@ describe('remainderDueMinor', () => {
     expect(remainderDueMinor(lines, bookings)).toBe(3000)
   })
 })
+
+describe('migration 098: no deposit', () => {
+  it('depositMinorFor answers 0 for "none" (and null without a total)', () => {
+    expect(depositMinorFor('none', null, 30000)).toBe(0)
+    expect(depositMinorFor('none', 0, 30000)).toBe(0)
+    expect(depositMinorFor('none', null, 0)).toBeNull()
+  })
+
+  it('validateVersionMoney: no deposit gives zero shares and every amount as the remainder', () => {
+    const out = validateVersionMoney({ currency: 'eur', remainderMethod: 'saved_card', lineAmounts: [12000, 18000], depositMinor: 0, noDeposit: true })
+    expect(out).toEqual({ ok: true, shares: [0, 0], remainders: [12000, 18000] })
+  })
+
+  it('without the no-deposit choice a deposit of 0 is still refused; with it a deposit above 0 is refused', () => {
+    expect(validateVersionMoney({ currency: 'eur', remainderMethod: 'invoice', lineAmounts: [12000], depositMinor: 0 })).toEqual({ ok: false, reason: 'deposit_zero' })
+    expect(validateVersionMoney({ currency: 'eur', remainderMethod: 'invoice', lineAmounts: [12000], depositMinor: 100, noDeposit: true })).toEqual({ ok: false, reason: 'amount_invalid' })
+  })
+
+  it('a card trip below the Stripe minimum is still refused without a deposit', () => {
+    expect(
+      validateVersionMoney({ currency: 'eur', remainderMethod: 'saved_card', lineAmounts: [40], depositMinor: 0, noDeposit: true }),
+    ).toEqual({ ok: false, reason: 'remainder_below_minimum' })
+  })
+})

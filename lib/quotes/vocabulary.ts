@@ -8,7 +8,8 @@ export type QuoteStatus = (typeof QUOTE_STATUSES)[number]
 export const REMAINDER_METHODS = ['saved_card', 'payment_link', 'cash', 'invoice'] as const
 export type RemainderMethod = (typeof REMAINDER_METHODS)[number]
 
-export const DEPOSIT_KINDS = ['percent', 'fixed'] as const
+/** 'none' (migration 098): no deposit; the client saves a card or only confirms, by the remainder method. */
+export const DEPOSIT_KINDS = ['percent', 'fixed', 'none'] as const
 export type DepositKind = (typeof DEPOSIT_KINDS)[number]
 
 export const QUOTE_CURRENCIES = ['eur', 'czk'] as const

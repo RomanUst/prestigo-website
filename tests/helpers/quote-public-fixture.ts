@@ -21,6 +21,8 @@ export interface PublicQuoteSeed {
   withBooking?: boolean
   cancelFreeHours?: number
   cancelFeePercent?: number
+  /** Migration 098: the operator chose no deposit (deposit_kind 'none', deposit 0, every line's remainder its amount). */
+  noDeposit?: boolean
 }
 
 export interface PublicQuoteFixture {
@@ -87,9 +89,9 @@ export async function seedPublicQuote(db: FakePaymentsDb, seed: PublicQuoteSeed 
     locale: seed.locale ?? 'en',
     currency: 'eur',
     total_minor: 30000,
-    deposit_kind: 'percent',
-    deposit_value: 30,
-    deposit_minor: 9000,
+    deposit_kind: seed.noDeposit ? 'none' : 'percent',
+    deposit_value: seed.noDeposit ? null : 30,
+    deposit_minor: seed.noDeposit ? 0 : 9000,
     remainder_method: seed.remainderMethod ?? 'saved_card',
     cancel_free_hours: seed.cancelFreeHours ?? null,
     cancel_fee_percent: seed.cancelFeePercent ?? null,
@@ -119,8 +121,10 @@ export async function seedPublicQuote(db: FakePaymentsDb, seed: PublicQuoteSeed 
         passengers: 2,
         luggage: 2,
         amount_minor: 12000,
-        deposit_share_minor: 3600,
-        remainder_minor: 8400,
+        amount_eur: 120,
+        amount_czk: 3000,
+        deposit_share_minor: seed.noDeposit ? 0 : 3600,
+        remainder_minor: seed.noDeposit ? 12000 : 8400,
         special_requests: QUOTE_SECRETS.special,
       },
       {
@@ -136,8 +140,10 @@ export async function seedPublicQuote(db: FakePaymentsDb, seed: PublicQuoteSeed 
         passengers: 4,
         luggage: 4,
         amount_minor: 18000,
-        deposit_share_minor: 5400,
-        remainder_minor: 12600,
+        amount_eur: 180,
+        amount_czk: 4500,
+        deposit_share_minor: seed.noDeposit ? 0 : 5400,
+        remainder_minor: seed.noDeposit ? 18000 : 12600,
       },
     ]),
     'lines',

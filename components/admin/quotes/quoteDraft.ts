@@ -289,7 +289,7 @@ export function pragueDay(iso: string | null | undefined): string {
 export function draftFromDetail(detail: QuoteDetail): QuoteDraft {
   const { quote, version } = detail
   const currency = version.currency
-  const hasDeposit = version.deposit_kind !== null && version.deposit_value !== null
+  const hasDeposit = version.deposit_kind !== null && (version.deposit_value !== null || version.deposit_kind === 'none')
   return {
     client: {
       first_name: quote.client_first_name,
@@ -305,9 +305,11 @@ export function draftFromDetail(detail: QuoteDetail): QuoteDraft {
       ? {
           kind: version.deposit_kind,
           valueInput:
-            version.deposit_kind === 'percent'
-              ? String(version.deposit_value)
-              : minorToInput(Number(version.deposit_value), CURRENCY_DECIMALS[currency]),
+            version.deposit_kind === 'none'
+              ? ''
+              : version.deposit_kind === 'percent'
+                ? String(version.deposit_value)
+                : minorToInput(Number(version.deposit_value), CURRENCY_DECIMALS[currency]),
         }
       : { kind: null, valueInput: '' },
     remainder_method: version.remainder_method,
@@ -335,6 +337,8 @@ export type DepositParse =
 export function parseDeposit(deposit: QuoteDraft['deposit'], currency: QuoteCurrency): DepositParse {
   const text = deposit.valueInput.trim()
   if (deposit.kind === null) return { ok: false, reason: 'kind' }
+  // Migration 098: no deposit is a choice of its own; it has no value.
+  if (deposit.kind === 'none') return { ok: true, kind: 'none', value: 0 }
   if (text === '') return { ok: false, reason: 'empty' }
   if (deposit.kind === 'percent') {
     if (!/^\d{1,3}$/.test(text)) return { ok: false, reason: 'format' }
@@ -375,6 +379,7 @@ export function draftTotals(draft: QuoteDraft): DraftTotals {
 
 /** True while the operator has not entered a deposit yet (no value typed): a draft may be saved so, not sent. */
 export function depositUnset(draft: QuoteDraft): boolean {
+  if (draft.deposit.kind === 'none') return false
   return draft.deposit.valueInput.trim() === ''
 }
 
@@ -464,7 +469,7 @@ export function sendBlockers(draft: QuoteDraft): string[] {
     const missing = lineTbcFields(line, draft.currency)
     if (missing.length > 0) out.push(`Trip ${i + 1}: ${missing.map((f) => MISSING_FIELD_LABEL[f]).join(', ')}`)
   })
-  if (depositUnset(draft) || draft.deposit.kind === null) out.push('Deposit')
+  if (depositUnset(draft) || draft.deposit.kind === null) out.push('Deposit (or choose No deposit)')
   if (draft.remainder_method === null) out.push('How the remainder is paid')
   return out
 }
@@ -484,6 +489,7 @@ export function sendWarning(draft: QuoteDraft): string | null {
     remainderMethod: draft.remainder_method,
     lineAmounts: amounts,
     depositMinor: totals.depositMinor,
+    noDeposit: draft.deposit.kind === 'none',
   })
   if (check.ok) return null
   if (check.reason === 'deposit_below_minimum') {

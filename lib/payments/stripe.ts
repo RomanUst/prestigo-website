@@ -72,6 +72,9 @@ export const stripeKeys = {
   // One deposit PaymentIntent per (quote version, acceptance): a retry of the same acceptance replays the same key.
   quoteDeposit: (versionId: string, acceptanceId: string) => `qdep:${versionId}:${acceptanceId}`,
   quoteDepositVoid: (piId: string) => `qdep_void:${piId}`,
+  /** Migration 098: the card setup of a quote without a deposit, one per acceptance. */
+  quoteCardSetup: (versionId: string, acceptanceId: string) => `qset:${versionId}:${acceptanceId}`,
+  quoteCardSetupVoid: (setupIntentId: string) => `qset_void:${setupIntentId}`,
   // The remainder charge of a quote: quote id + the attempt counter the caller persists.
   quoteRemainder: (quoteId: string, n: number) => `qrem:${quoteId}:${n}`,
   quoteRemainderVoid: (piId: string) => `qrem_void:${piId}`,
@@ -126,7 +129,7 @@ export function cardMetadata(
  * bookingId or groupBookingIds, so no booking-keyed handler can match a quote payment.
  */
 export function quoteMetadata(
-  kind: 'card_quote_deposit' | 'card_quote_remainder',
+  kind: 'card_quote_deposit' | 'card_quote_remainder' | 'card_quote_setup',
   input: {
     quoteId: string
     versionId: string
