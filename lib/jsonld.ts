@@ -112,48 +112,194 @@ export const FLEET_VEHICLE_IDS = ['e-class', 's-class', 'v-class'].map(
   (m) => `${BASE_URL}/fleet#mercedes-benz-${m}`,
 )
 
+type ClassPrices = { e: number | null; s: number | null; v: number | null }
+
 export type BusinessCatalogPrices = {
-  airportFrom: number
-  intercityFrom: number | null
-  hourlyFrom: number | null
-  dayTripFrom: number | null
+  /** Airport transfer fare per class (E / S / V). */
+  airport: ClassPrices
+  /** Hourly chauffeur rate per class (E / S / V). */
+  hourly: ClassPrices
+  /** Cheapest intercity route fare per class. */
+  intercityFrom: ClassPrices
+  /** Published day trips with their lowest price. */
+  dayTrips: Array<{ slug: string; title: string; lowestPrice: number | null }>
 }
 
-// Catalog of the main services with "from" prices for the #business entity.
-// All prices are passed in from the pricing DB (admin /admin/pricing) — no
-// hardcoded € values here.
+const VEHICLE = {
+  e: { id: `${BASE_URL}/fleet#mercedes-benz-e-class`, name: 'Mercedes-Benz E-Class', pax: 3, path: '/fleet/e-class' },
+  s: { id: `${BASE_URL}/fleet#mercedes-benz-s-class`, name: 'Mercedes-Benz S-Class', pax: 3, path: '/fleet/s-class' },
+  v: { id: `${BASE_URL}/fleet#mercedes-benz-v-class`, name: 'Mercedes-Benz V-Class', pax: 6, path: '/fleet/v-class' },
+} as const
+type Car = keyof typeof VEHICLE
+
+// Catalog of concrete, bookable services for the #business entity — one
+// Offer per thing a client can actually buy (car class × service), so
+// search engines and LLMs can answer "S-Class with driver in Prague" or
+// "V-Class for 6 passengers" with a price and a landing URL. All prices are
+// passed in from the pricing DB (admin /admin/pricing) — no hardcoded €.
 export function businessOfferCatalog(p: BusinessCatalogPrices): Record<string, unknown> {
-  const fromPrice = (price: number, unit?: string) => ({
-    '@type': unit ? 'UnitPriceSpecification' : 'PriceSpecification',
-    minPrice: String(price),
-    priceCurrency: 'EUR',
-    ...(unit ? { price: String(price), unitCode: unit, unitText: 'hour' } : {}),
-  })
-  const offer = (name: string, path: string, serviceType: string, price: number | null, unit?: string) => ({
+  const spec = (price: number | null, hourly = false) =>
+    price != null && price > 0
+      ? {
+          priceSpecification: hourly
+            ? { '@type': 'UnitPriceSpecification', price: String(price), priceCurrency: 'EUR', unitCode: 'HUR', unitText: 'hour' }
+            : { '@type': 'PriceSpecification', minPrice: String(price), priceCurrency: 'EUR' },
+        }
+      : {}
+  const offer = (o: {
+    name: string
+    description: string
+    path: string
+    serviceType: string
+    price?: number | null
+    hourly?: boolean
+    car?: Car
+  }) => ({
     '@type': 'Offer',
+    url: `${BASE_URL}${o.path}`,
     itemOffered: {
       '@type': 'Service',
-      name,
-      serviceType,
-      url: `${BASE_URL}${path}`,
+      name: o.name,
+      description: o.description,
+      serviceType: o.serviceType,
+      url: `${BASE_URL}${o.path}`,
+      areaServed: { '@type': 'City', name: 'Prague' },
       provider: { '@id': `${BASE_URL}/#business` },
+      ...(o.car ? { isRelatedTo: { '@id': VEHICLE[o.car].id } } : {}),
     },
-    ...(price != null ? { priceSpecification: fromPrice(price, unit) } : {}),
+    ...spec(o.price ?? null, o.hourly),
     availability: 'https://schema.org/InStock',
   })
-  return {
-    '@type': 'OfferCatalog',
-    name: 'PRESTIGO chauffeur services',
-    itemListElement: [
-      offer('Prague Airport Transfer', '/services/airport-transfer', 'Airport transfer', p.airportFrom),
-      offer('Intercity Private Transfers', '/routes', 'Intercity private transfer', p.intercityFrom),
-      offer('Hourly Chauffeur Hire', '/services/city-rides', 'Chauffeur hire by the hour', p.hourlyFrom, 'HUR'),
-      offer('Private Day Trips from Prague', '/services/day-trips-from-prague', 'Private day trip with chauffeur', p.dayTripFrom),
-      offer('Limousine Service Prague', '/services/limousine-prague', 'Limousine service', null),
-      offer('Corporate Chauffeur Accounts', '/corporate', 'Corporate ground transportation', null),
-      offer('VIP & Event Transport', '/services/vip-events', 'Event chauffeur service', null),
-    ],
+
+  const chauffeurHire: Record<Car, { name: string; description: string; serviceType: string }> = {
+    e: {
+      name: 'Mercedes E-Class with chauffeur in Prague',
+      description: 'Hire a Mercedes-Benz E-Class with a professional English-speaking chauffeur by the hour — up to 3 passengers.',
+      serviceType: 'Business sedan with driver',
+    },
+    s: {
+      name: 'Mercedes S-Class limousine with chauffeur in Prague',
+      description: 'Hire a Mercedes-Benz S-Class executive limousine with a professional chauffeur by the hour — up to 3 passengers.',
+      serviceType: 'Luxury limousine with driver',
+    },
+    v: {
+      name: 'Mercedes V-Class with chauffeur for up to 6 passengers',
+      description: 'Hire a Mercedes-Benz V-Class executive van with a professional chauffeur by the hour — up to 6 passengers with luggage.',
+      serviceType: 'Executive van with driver',
+    },
   }
+  const cars: Car[] = ['e', 's', 'v']
+
+  const items = [
+    ...cars.map((c) => offer({ ...chauffeurHire[c], path: VEHICLE[c].path, price: p.hourly[c], hourly: true, car: c })),
+    ...cars.map((c) =>
+      offer({
+        name: `Prague Airport (PRG) transfer — ${VEHICLE[c].name}`,
+        description: `Fixed-price private transfer between Václav Havel Airport Prague (PRG) and any Prague address in a ${VEHICLE[c].name}, up to ${VEHICLE[c].pax} passengers, meet & greet and flight tracking included.`,
+        path: '/services/airport-transfer',
+        serviceType: 'Airport transfer',
+        price: p.airport[c],
+        car: c,
+      }),
+    ),
+    offer({
+      name: 'Prague Airport meet & greet',
+      description: 'Chauffeur waiting in the PRG arrivals hall with a name sign, flight tracking and free waiting time.',
+      path: '/services/airport-meet-and-greet',
+      serviceType: 'Airport meet and greet',
+      price: p.airport.e,
+    }),
+    offer({
+      name: 'Premium Prague airport taxi alternative',
+      description: 'Pre-booked fixed-price Mercedes transfer from Prague airport instead of a taxi.',
+      path: '/services/prague-airport-taxi',
+      serviceType: 'Airport taxi',
+      price: p.airport.e,
+    }),
+    offer({
+      name: 'Private driver in Prague by the hour',
+      description: 'Private driver at your disposal in Prague for meetings, shopping or sightseeing.',
+      path: '/services/private-driver-prague',
+      serviceType: 'Private driver hire',
+      price: p.hourly.e,
+      hourly: true,
+    }),
+    offer({
+      name: 'Limousine service Prague',
+      description: 'Executive Mercedes S-Class limousine service in Prague for VIP arrivals, weddings and business.',
+      path: '/services/limousine-prague',
+      serviceType: 'Limousine service',
+      price: p.hourly.s,
+      hourly: true,
+      car: 's',
+    }),
+    offer({
+      name: 'City rides in Prague',
+      description: 'Chauffeured city rides and hourly hire around Prague.',
+      path: '/services/city-rides',
+      serviceType: 'City chauffeur service',
+      price: p.hourly.e,
+      hourly: true,
+    }),
+    ...cars.map((c) =>
+      offer({
+        name: `Intercity private transfer from Prague — ${VEHICLE[c].name}`,
+        description: `Door-to-door private transfer from Prague to Vienna, Berlin, Munich, Budapest, Kraków and 30+ cities in a ${VEHICLE[c].name}, up to ${VEHICLE[c].pax} passengers.`,
+        path: '/routes',
+        serviceType: 'Intercity private transfer',
+        price: p.intercityFrom[c],
+        car: c,
+      }),
+    ),
+    offer({
+      name: 'Group transfers in Prague',
+      description: 'Transfers for groups and families in Mercedes V-Class vans, up to 6 passengers per vehicle.',
+      path: '/services/group-transfers',
+      serviceType: 'Group transfer',
+      price: p.airport.v,
+      car: 'v',
+    }),
+    offer({
+      name: 'Private day trips from Prague',
+      description: 'Private chauffeured day trips from Prague with flexible stops.',
+      path: '/services/day-trips-from-prague',
+      serviceType: 'Private day trip with chauffeur',
+      price: minOf(p.dayTrips.map((t) => t.lowestPrice)),
+    }),
+    ...p.dayTrips.map((t) =>
+      offer({
+        name: t.title,
+        description: `${t.title} — private day trip from Prague with a chauffeur.`,
+        path: `/services/${t.slug}`,
+        serviceType: 'Private day trip with chauffeur',
+        price: t.lowestPrice,
+      }),
+    ),
+    offer({
+      name: 'Corporate chauffeur accounts',
+      description: 'Monthly invoicing, priority dispatch and a dedicated contact for companies in Prague.',
+      path: '/corporate',
+      serviceType: 'Corporate ground transportation',
+    }),
+    offer({
+      name: 'VIP & event transport',
+      description: 'Chauffeured transport for conferences, weddings and VIP events in Prague.',
+      path: '/services/vip-events',
+      serviceType: 'Event chauffeur service',
+    }),
+    offer({
+      name: 'Concierge chauffeur service',
+      description: 'Chauffeur with concierge help: reservations, errands and itinerary planning in Prague.',
+      path: '/services/concierge',
+      serviceType: 'Concierge service',
+    }),
+  ]
+  return { '@type': 'OfferCatalog', name: 'PRESTIGO chauffeur services in Prague', itemListElement: items }
+}
+
+function minOf(values: Array<number | null>): number | null {
+  const v = values.filter((x): x is number => typeof x === 'number' && x > 0)
+  return v.length > 0 ? Math.min(...v) : null
 }
 
 // /contact: ContactPage whose main entity is the #business node, with the
