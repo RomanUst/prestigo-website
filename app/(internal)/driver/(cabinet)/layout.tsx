@@ -6,8 +6,13 @@ import './driver-cabinet.css'
 // admin theme tokens with a fixed data-admin-theme="light": no cookie is read and there is no toggle.
 // This layout holds NO authentication: layouts do not re-run on client navigation (research Pitfall 4), so every
 // cabinet page gates itself. The PWA theme colour lives in the manifest (plan 94-08), not here.
+// Only the cabinet links the manifest, the Apple web-app tags and the apple-touch-icon (D-09): public pages and
+// /admin do not advertise the app.
 export const metadata = {
   robots: { index: false, follow: false },
+  manifest: '/driver/manifest.webmanifest',
+  appleWebApp: { capable: true, title: 'Prestigo', statusBarStyle: 'default' as const },
+  icons: { apple: '/driver/icons/apple-touch-icon.png' },
 }
 
 export default function DriverCabinetLayout({ children }: { children: React.ReactNode }) {
