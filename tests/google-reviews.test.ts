@@ -51,13 +51,17 @@ beforeEach(() => {
   process.env.GOOGLE_OAUTH_CLIENT_SECRET = 'test-client-secret'
   process.env.GOOGLE_OAUTH_REFRESH_TOKEN = 'test-refresh-token'
   process.env.GOOGLE_BUSINESS_LOCATION_NAME = 'accounts/111/locations/222'
+  delete process.env.GOOGLE_PLACE_ID
+  delete process.env.GOOGLE_MAPS_API_KEY
+  delete process.env.GOOGLE_RATING_VALUE
+  delete process.env.GOOGLE_REVIEW_COUNT
 })
 
 afterEach(() => {
   process.env = { ...ORIGINAL_ENV }
 })
 
-import { getReviews, HARDCODED_TESTIMONIALS, MAX_POOL } from '@/lib/google-reviews'
+import { getReviews, getCachedAggregateRating, HARDCODED_TESTIMONIALS, MAX_POOL } from '@/lib/google-reviews'
 
 // ─── GRVW-01: API call parameters ────────────────────────────────────────────
 
@@ -292,5 +296,71 @@ describe('HARDCODED_TESTIMONIALS export matches legacy Testimonials content', ()
 
   it('every hardcoded item has source === "hardcoded"', () => {
     expect(HARDCODED_TESTIMONIALS.every((t) => t.source === 'hardcoded')).toBe(true)
+  })
+})
+
+// ── Places API (New) fallback: used when Business Profile API is unavailable ──
+
+function usePlacesOnly() {
+  delete process.env.GOOGLE_OAUTH_CLIENT_ID
+  process.env.GOOGLE_PLACE_ID = 'ChIJtest\n'
+  process.env.GOOGLE_MAPS_API_KEY = 'places-key'
+}
+
+const PLACES_RESPONSE = {
+  rating: 4.96,
+  userRatingCount: 7,
+  reviews: [
+    {
+      rating: 5,
+      originalText: { text: 'Excellent driver' },
+      publishTime: '2026-11-01T10:00:00Z',
+      authorAttribution: { displayName: 'Anna K.', photoUri: 'https://lh3.googleusercontent.com/a.jpg' },
+    },
+    { rating: 3, originalText: { text: 'Okay' }, authorAttribution: { displayName: 'Low' } },
+    { rating: 5, originalText: { text: '   ' }, authorAttribution: { displayName: 'Empty' } },
+  ],
+}
+
+describe('Places API (New) fallback', () => {
+  it('requests Place Details with a trimmed place id, API key and field mask', async () => {
+    usePlacesOnly()
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => PLACES_RESPONSE })
+    await getReviews()
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://places.googleapis.com/v1/places/ChIJtest')
+    expect(init.headers['X-Goog-Api-Key']).toBe('places-key')
+    expect(init.headers['X-Goog-FieldMask']).toBe('rating,userRatingCount,reviews')
+  })
+
+  it('maps only 4-5 star reviews with text, then pads with hardcoded testimonials', async () => {
+    usePlacesOnly()
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => PLACES_RESPONSE })
+    const reviews = await getReviews()
+    const google = reviews.filter((r) => r.source === 'google')
+    expect(google).toHaveLength(1)
+    expect(google[0]).toMatchObject({ author: 'Anna K.', rating: 5, text: 'Excellent driver' })
+    expect(reviews.filter((r) => r.source === 'hardcoded')).toHaveLength(HARDCODED_TESTIMONIALS.length)
+  })
+
+  it('returns the live rating rounded to one decimal', async () => {
+    usePlacesOnly()
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => PLACES_RESPONSE })
+    expect(await getCachedAggregateRating()).toEqual({ ratingValue: 5, reviewCount: 7 })
+  })
+
+  it('falls back to the env rating when Places API fails', async () => {
+    usePlacesOnly()
+    process.env.GOOGLE_RATING_VALUE = '5.0'
+    process.env.GOOGLE_REVIEW_COUNT = '6'
+    fetchMock.mockResolvedValueOnce({ ok: false, json: async () => ({}) })
+    expect(await getCachedAggregateRating()).toEqual({ ratingValue: 5, reviewCount: 6 })
+  })
+
+  it('makes no Places call when place id or key is missing', async () => {
+    delete process.env.GOOGLE_OAUTH_CLIENT_ID
+    const reviews = await getReviews()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(reviews).toEqual(HARDCODED_TESTIMONIALS.slice(0, MAX_POOL))
   })
 })
