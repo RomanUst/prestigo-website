@@ -2317,6 +2317,143 @@ function driverTripDetailsRows(data: DriverTripDetails): string {
           ${notesRow ? `\n          ${notesRow}` : ''}`
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// DRIVER CABINET OFFER EMAIL (Phase 94-09, D-18, DCAB-11)
+// ═══════════════════════════════════════════════════════════════════════════
+// Sent instead of the token-link assignment email when the assigned driver has a cabinet. One button into the Offers
+// tab (no token, no query string), no client contact data, no booking reference, driver fee only (no EUR, D-11).
+
+export interface DriverCabinetOfferEmailData {
+  to: string
+  pickupDate: string
+  pickupTime: string
+  originAddress: string
+  destinationAddress: string | null
+  passengerFirstName: string
+  vehicleClass: string
+  driverPriceCzk: number | null
+}
+
+const OFFER_SUBJECT_DAY = new Intl.DateTimeFormat('en-GB', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  timeZone: 'UTC',
+})
+
+/** 'Fri 27 Nov' for a YYYY-MM-DD calendar date (formatted at UTC noon in UTC: never shifts with the server zone). */
+function shortPickupDay(isoDate: string): string {
+  const d = new Date(`${isoDate}T12:00:00Z`)
+  if (Number.isNaN(d.getTime())) return isoDate
+  const parts: Record<string, string> = {}
+  for (const p of OFFER_SUBJECT_DAY.formatToParts(d)) {
+    if (p.type !== 'literal') parts[p.type] = p.value
+  }
+  return `${parts.weekday} ${parts.day} ${parts.month}`
+}
+
+export function driverCabinetOfferSubject(data: Pick<DriverCabinetOfferEmailData, 'pickupDate' | 'pickupTime'>): string {
+  return `New ride offer: ${shortPickupDay(data.pickupDate)} at ${data.pickupTime}`
+}
+
+export function buildDriverCabinetOfferHtml(data: DriverCabinetOfferEmailData): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
+  const cabinetUrl = `${siteUrl}/driver/offers`
+  const firstName = data.passengerFirstName.trim()
+  // The fee only for a positive integer, formatCZK alone (no EUR conversion, D-11).
+  const fee =
+    typeof data.driverPriceCzk === 'number' && Number.isInteger(data.driverPriceCzk) && data.driverPriceCzk > 0
+      ? formatCZK(data.driverPriceCzk)
+      : null
+  const destination = (data.destinationAddress ?? '').trim() === '' ? 'As directed' : (data.destinationAddress as string)
+  const rows = [
+    driverTripRow('Pickup Date', `${escapeHtml(formatPickupDate(data.pickupDate))} at ${escapeHtml(data.pickupTime)}`),
+    driverTripRow('From', escapeHtml(data.originAddress)),
+    driverTripRow('To', escapeHtml(destination)),
+    ...(firstName !== '' ? [driverTripRow('Passenger', escapeHtml(firstName))] : []),
+    ...(data.vehicleClass ? [driverTripRow('Vehicle', escapeHtml(formatVehicleLabel(data.vehicleClass)))] : []),
+    ...(fee ? [driverTripRow('Your Fee', escapeHtml(fee), 600)] : []),
+  ]
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New ride offer — PRESTIGO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C;">
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; font-size: 1px; line-height: 1px; color: #0F1D2C;">Open Prestigo to accept or decline this ride.</div>
+  <div style="background-color: #0F1D2C; padding: 0; margin: 0; font-family: 'Inter', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0F1D2C;">
+
+      <!-- Header gold gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        ${emailLogoImg(28)}
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 32px;">You have a new ride offer</h1>
+
+      <!-- Ride details -->
+      <div style="background-color: #17293B; border-left: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">Ride details</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          ${rows.join('\n          ')}
+        </table>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align: center; padding: 8px 32px 16px;">
+        <a href="${escapeHtml(cabinetUrl)}" style="display: inline-block; background-color: #BFA06A; color: #0F1D2C; padding: 16px 32px; min-height: 16px; text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">Open in cabinet</a>
+      </div>
+
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <p style="font-size: 12px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif; margin: 0;">Accept or decline in the cabinet. If you are not signed in, we will ask for a code sent to this email.</p>
+      </div>
+
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">For any queries, contact us at ${EMAIL_CONTACT_LINE}</div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #BFA06A; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          ${emailLogoImg(18)}
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/** Send the cabinet offer email. Returns false on a send error (logged without the address); never throws. */
+export async function sendDriverCabinetOfferEmail(data: DriverCabinetOfferEmailData): Promise<boolean> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.to],
+      subject: driverCabinetOfferSubject(data),
+      html: buildDriverCabinetOfferHtml(data),
+    })
+    if (error) {
+      console.error('[driver-cabinet] offer email error:', error)
+      return false
+    }
+    return true
+  } catch (err) {
+    console.error('[driver-cabinet] offer email exception:', err)
+    return false
+  }
+}
+
 export interface DriverAcceptedEmailData {
   driverName: string
   driverEmail: string
