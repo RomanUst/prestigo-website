@@ -475,6 +475,48 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
   })
 
   // -------------------------------------------------------------------------
+  // CSP: worker-src 'self' lets /driver/sw.js register under the strict nonce policy (94-08, DCAB-13)
+  // -------------------------------------------------------------------------
+  describe("CSP: worker-src 'self' on the nonce policies (94-08, DCAB-13)", () => {
+    async function cspOf(pathname: string): Promise<string> {
+      const response = await middleware(makeRequest(pathname))
+      return response.headers.get('Content-Security-Policy')!
+    }
+
+    function directives(csp: string): string[] {
+      return csp.split('; ')
+    }
+
+    it.each(['/driver/rides', '/driver/trip/help', '/admin'])(
+      "%s nonce CSP has worker-src 'self' right after script-src",
+      async (pathname) => {
+        mockGetUser.mockResolvedValue({ data: { user: makeAdminUser() }, error: null })
+        const list = directives(await cspOf(pathname))
+        const idx = list.findIndex((d) => d.startsWith('script-src '))
+        expect(idx).toBeGreaterThanOrEqual(0)
+        expect(list[idx + 1]).toBe("worker-src 'self'")
+        expect(list.filter((d) => d.startsWith('worker-src '))).toHaveLength(1)
+      },
+    )
+
+    it('the driver help CSP still equals the driver CSP plus only the chat tokens (worker-src in the same position)', async () => {
+      const re = /'nonce-[^']+'/g
+      const help = await cspOf('/driver/trip/help')
+      const rides = await cspOf('/driver/rides')
+      const stripped = help
+        .replace(/ https:\/\/chat\.rideprestigo\.com/g, '')
+        .replace(/ wss:\/\/chat\.rideprestigo\.com/g, '')
+        .replace(re, "'nonce-X'")
+      expect(stripped).toBe(rides.replace(re, "'nonce-X'"))
+    })
+
+    it('the public static CSP does not gain worker-src', async () => {
+      const csp = await cspOf('/')
+      expect(csp).not.toContain('worker-src')
+    })
+  })
+
+  // -------------------------------------------------------------------------
   // Backstop edges — NOT asserted here by design (must_haves `edges` list,
   // verification: backstop). Per-request nonce freshness under concurrency
   // and trailing-slash/case normalization on the locale segment are not
