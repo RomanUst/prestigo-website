@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { requireDriver } from '@/lib/driver-cabinet/auth'
 import { resolveCabinetRide } from '@/lib/driver-cabinet/ride-detail'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import ClosedRideView from '@/components/driver/ClosedRideView'
 import InvalidTripLinkView from '@/app/(internal)/driver/trip/[token]/InvalidTripLinkView'
 import TripScreenForToken from '@/app/(internal)/driver/trip/[token]/TripScreenForToken'
 
@@ -28,7 +29,7 @@ export default async function DriverRideDetailPage({ params }: PageProps) {
 
   // Malformed ids never reach the database and look exactly like an unknown id.
   const parsedId = z.string().uuid().safeParse(assignmentId)
-  if (!parsedId.success) return <InvalidTripLinkView />
+  if (!parsedId.success) return <InvalidTripLinkView cabinetBackHref="/driver/rides" />
 
   const ride = await resolveCabinetRide(createSupabaseServiceClient(), driverId, parsedId.data)
 
@@ -36,5 +37,8 @@ export default async function DriverRideDetailPage({ params }: PageProps) {
     return <TripScreenForToken token={ride.tripToken} backHref="/driver/rides" showDriverFee />
   }
   if (ride.kind === 'offer') redirect('/driver/offers')
-  return <InvalidTripLinkView />
+  if (ride.kind === 'closed') {
+    return <ClosedRideView state={ride.state} backHref={ride.backHref} summary={ride.summary} />
+  }
+  return <InvalidTripLinkView cabinetBackHref="/driver/rides" />
 }

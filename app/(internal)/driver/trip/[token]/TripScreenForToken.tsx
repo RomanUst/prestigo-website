@@ -123,9 +123,12 @@ export default async function TripScreenForToken({
 }) {
   // V5 input validation (anti-enumeration): reject malformed tokens before
   // ever touching Supabase — mirrors respondSchema's z.string().uuid().
+  // Phase 94 (DCAB-05): in the cabinet a race between the list and this screen shows the same uniform view with a way back.
+  const cabinet = backHref ? { cabinetBackHref: backHref } : {}
+
   const parsedToken = z.string().uuid().safeParse(token)
   if (!parsedToken.success) {
-    return <InvalidTripLinkView />
+    return <InvalidTripLinkView {...cabinet} />
   }
 
   const supabase = createSupabaseServiceClient()
@@ -142,7 +145,7 @@ export default async function TripScreenForToken({
   const assignment = rawAssignment as unknown as TripSheetAssignmentRow | null
 
   if (error || !assignment || !assignment.bookings) {
-    return <InvalidTripLinkView />
+    return <InvalidTripLinkView {...cabinet} />
   }
 
   const booking = assignment.bookings
@@ -164,9 +167,9 @@ export default async function TripScreenForToken({
     booking.driver_id !== null && assignment.driver_id === booking.driver_id && assignment.status !== 'declined'
   if (viewState === 'ended') {
     return isCurrentDriver && booking.status === 'cancelled' ? (
-      <InvalidTripLinkView cancelledReference={booking.booking_reference} />
+      <InvalidTripLinkView cancelledReference={booking.booking_reference} {...cabinet} />
     ) : (
-      <InvalidTripLinkView />
+      <InvalidTripLinkView {...cabinet} />
     )
   }
 

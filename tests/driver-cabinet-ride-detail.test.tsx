@@ -53,6 +53,9 @@ vi.mock('@/app/(internal)/driver/trip/[token]/TripScreenForToken', () => ({
 import { resolveCabinetRide, RIDE_DETAIL_SELECT } from '@/lib/driver-cabinet/ride-detail'
 import RideDetailPage from '@/app/(internal)/driver/(cabinet)/rides/[assignmentId]/page'
 import TripScreenForToken from '@/app/(internal)/driver/trip/[token]/TripScreenForToken'
+import ClosedRideView from '@/components/driver/ClosedRideView'
+import InvalidTripLinkView from '@/app/(internal)/driver/trip/[token]/InvalidTripLinkView'
+import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
 import TripScreen, { type TripScreenProps } from '@/app/(internal)/driver/trip/[token]/TripScreen'
 
 const DRIVER = 'd0000000-0000-4000-8000-000000000001'
@@ -485,11 +488,157 @@ describe('TripScreenForToken options', () => {
     expect(el.props.driverFee).toBeNull()
   })
 
+  it('an ended link in the cabinet gets the Back to rides target; on the token page the view has no props', async () => {
+    const row = stubRow()
+    row.bookings.status = 'on_board'
+    row.bookings.driver_id = OTHER
+    h.db = {
+      client: {
+        from: () => ({
+          select: () => ({ eq: () => ({ single: async () => ({ data: row, error: null }) }) }),
+        }),
+      },
+    }
+    const Loader = await loader()
+    const cabinet = (await Loader({ token: tok(1), backHref: '/driver/rides', showDriverFee: true })) as {
+      type: unknown
+      props: Record<string, unknown>
+    }
+    expect(cabinet.type).toBe(InvalidTripLinkView)
+    expect(cabinet.props).toEqual({ cabinetBackHref: '/driver/rides' })
+    const plain = (await Loader({ token: tok(1) })) as { type: unknown; props: Record<string, unknown> }
+    expect(plain.type).toBe(InvalidTripLinkView)
+    expect(plain.props).toEqual({})
+  })
+
   it('the cabinet page passes backHref /driver/rides and showDriverFee', async () => {
     const src = fs.readFileSync(
       path.resolve(__dirname, '../app/(internal)/driver/(cabinet)/rides/[assignmentId]/page.tsx'),
       'utf8',
     )
     expect(src).toMatch(/<TripScreenForToken[^>]*backHref="\/driver\/rides"[^>]*showDriverFee/)
+  })
+})
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Task 3: closed rides and the uniform not-available view
+// ---------------------------------------------------------------------------------------------------------------------
+
+const SUMMARY = {
+  bookingReference: 'PRG-777',
+  dateLabel: 'Fri 27 Nov 2026',
+  pickupTime: '10:30',
+  pickup: 'Prague Airport',
+  dropoff: 'Hotel Alcron',
+  vehicleLabel: 'Business Van',
+  feeLabel: '2 500 Kč' as string | null,
+}
+const BACK = '/driver/rides?view=past&month=2026-11'
+
+describe('ClosedRideView', () => {
+  it('completed: Back to the Past month, ok circle, heading, body and the full summary with the fee', () => {
+    const { container } = render(<ClosedRideView state="completed" backHref={BACK} summary={SUMMARY} />)
+    expect(screen.getByRole('link', { name: /Rides/ })).toHaveAttribute('href', BACK)
+    expect(container.querySelector('.admin-wordmark.driver-wordmark-optional')).not.toBeNull()
+    expect(screen.getByRole('heading', { name: 'Trip completed' })).toBeInTheDocument()
+    expect(screen.getByText('Thank you. This trip is closed.')).toBeInTheDocument()
+    for (const caption of ['Booking', 'Date', 'Pickup time', 'Pickup', 'Drop-off', 'Vehicle class', 'Your fee']) {
+      expect(screen.getByText(caption)).toBeInTheDocument()
+    }
+    for (const value of ['PRG-777', 'Fri 27 Nov 2026', '10:30', 'Prague Airport', 'Hotel Alcron', 'Business Van', '2 500 Kč']) {
+      expect(screen.getByText(value)).toBeInTheDocument()
+    }
+    expect(container.innerHTML).toContain('--status-ok-bg')
+  })
+
+  it('completed without a fee label has no fee row', () => {
+    render(<ClosedRideView state="completed" backHref={BACK} summary={{ ...SUMMARY, feeLabel: null }} />)
+    expect(screen.queryByText('Your fee')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    ['cancelled', 'Ride cancelled'],
+    ['no_show', 'Marked as no-show'],
+  ] as const)('%s: info circle, heading "%s", body "This ride is closed." and no fee row', (state, heading) => {
+    const { container } = render(<ClosedRideView state={state} backHref={BACK} summary={SUMMARY} />)
+    expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
+    expect(screen.getByText('This ride is closed.')).toBeInTheDocument()
+    expect(container.innerHTML).toContain('--status-info-bg')
+    expect(screen.queryByText('Your fee')).not.toBeInTheDocument()
+    expect(screen.queryByText('2 500 Kč')).not.toBeInTheDocument()
+  })
+
+  it('shows no passenger, phone, flight, notes, client price or payment text', () => {
+    const { container } = render(<ClosedRideView state="completed" backHref={BACK} summary={SUMMARY} />)
+    expect(container.textContent ?? '').not.toMatch(/passenger|phone|flight|notes|payment|€|EUR/i)
+  })
+
+  it('source gate: no passenger / phone / flight field in the component', () => {
+    const src = fs.readFileSync(path.resolve(__dirname, '../components/driver/ClosedRideView.tsx'), 'utf8')
+    expect(src).not.toMatch(/client_phone|passengerPhone|flight/)
+  })
+})
+
+describe('InvalidTripLinkView in the cabinet', () => {
+  it('with cabinetBackHref: the not-available message, the office line and a Back to rides link', () => {
+    render(<InvalidTripLinkView cabinetBackHref="/driver/rides" />)
+    expect(screen.getByText('This ride is not available.')).toBeInTheDocument()
+    expect(screen.getByText('If you think this is a mistake, call the office.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to rides' })).toHaveAttribute('href', '/driver/rides')
+    expect(screen.queryByText('This trip link is no longer active.')).not.toBeInTheDocument()
+  })
+
+  it('without the prop it renders exactly as before', () => {
+    render(<InvalidTripLinkView />)
+    expect(screen.getByText('This trip link is no longer active.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Back to rides' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Call the office' })).toHaveAttribute('href', BUSINESS_TEL_URL)
+  })
+})
+
+describe('cabinet page: closed and uniform views', () => {
+  beforeEach(() => {
+    seq = 0
+    h.requireDriver.mockReset()
+    h.requireDriver.mockResolvedValue({ driverId: DRIVER, sessionId: 's1' })
+  })
+
+  async function renderId(id: string) {
+    const el = await RideDetailPage({ params: Promise.resolve({ assignmentId: id }) })
+    return render(el as React.ReactElement)
+  }
+
+  it('an unknown id, another driver id and a superseded id render identical markup', async () => {
+    const older = assignment(3, 3, { created_at: '2026-11-01T08:00:00.000Z' })
+    const newer = assignment(4, 3, { driver_id: OTHER, created_at: '2026-11-02T08:00:00.000Z' })
+    h.db = dbWith(
+      [booking(1), booking(3)],
+      [assignment(1, 1, { driver_id: OTHER }), older, newer],
+    )
+    const unknown = (await renderId(aid(99))).container.innerHTML
+    const foreign = (await renderId(aid(1))).container.innerHTML
+    const superseded = (await renderId(aid(3))).container.innerHTML
+    const malformed = (await renderId('nope')).container.innerHTML
+    expect(unknown).toContain('This ride is not available.')
+    expect(foreign).toBe(unknown)
+    expect(superseded).toBe(unknown)
+    expect(malformed).toBe(unknown)
+    expect(unknown).toContain('href="/driver/rides"')
+  })
+
+  it('a closed ride renders ClosedRideView with its Back to the Past month', async () => {
+    h.db = dbWith([booking(1, { status: 'completed' })], [assignment(1, 1)])
+    const { container } = await renderId(aid(1))
+    expect(screen.getByRole('heading', { name: 'Trip completed' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Rides/ })).toHaveAttribute('href', '/driver/rides?view=past&month=2026-11')
+    expect(container.textContent ?? '').not.toMatch(/Jan|Novak|OK123|Child seat|9999/)
+  })
+
+  it('source gate: the page renders ClosedRideView', () => {
+    const src = fs.readFileSync(
+      path.resolve(__dirname, '../app/(internal)/driver/(cabinet)/rides/[assignmentId]/page.tsx'),
+      'utf8',
+    )
+    expect(src).toMatch(/ClosedRideView/)
   })
 })
