@@ -614,7 +614,34 @@ Plans:
   - Ride detail reuses the Phase 87 trip screen (map, bottom sheet, slide-to-advance step control).
 
 **Owner reference**: Blacklane driver app screenshots shared 2026-11-03 (layout only — Prestigo branding, light theme, no copied names or assets).
-**Plans**: TBD
+**Plans**: 14 plans
+Plans:
+**Wave 1**
+- [ ] 94-01-PLAN.md — Tracer: email-code sign-in + 30-day driver session (auth module, request-code / verify), migration 100 live, CSRF prefix, rate limits
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 94-02-PLAN.md — /driver/login page, requireDriver gate, safe next, light (cabinet) layout
+- [ ] 94-03-PLAN.md — One accept/decline path (respondToOffer) for email link and cabinet; live offers data and label helpers
+- [ ] 94-04-PLAN.md — Admin invite / disable / enable cabinet access, invite email, vehicle plate
+- [ ] 94-05-PLAN.md — web-push@3.6.7 (legitimacy checkpoint), push send with pruning, subscribe route, owner VAPID script
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 94-06-PLAN.md — Rides data (Upcoming / Past / month totals), tab bar with offers badge, Upcoming list
+- [ ] 94-07-PLAN.md — Ride detail = Phase 87 trip screen with Back and driver fee; closed rides; uniform not-available
+- [ ] 94-08-PLAN.md — PWA: manifest, brand icons, service worker, worker-src CSP, sw.js headers
+- [ ] 94-09-PLAN.md — Cabinet offer email ("Open in cabinet") + push on assignment; non-cabinet email unchanged
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 94-10-PLAN.md — Past rides by month with fee total; refresh, loading and error states
+- [ ] 94-11-PLAN.md — Offers tab: offer cards, accept / decline dialogs, banners
+- [ ] 94-12-PLAN.md — You tab: profile, stats, help chat, sign out
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 94-13-PLAN.md — Notifications switch, iPhone Home Screen hint, Offers notification hint
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 94-14-PLAN.md — Isolation and security source gates; end-of-phase verification and owner device checks
+
 **UI hint**: yes
 **Security-relevant**: yes — new driver authentication and per-driver data access (commit with `security:` prefix).
 
