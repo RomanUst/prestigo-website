@@ -4,6 +4,7 @@ import { requireDriver } from '@/lib/driver-cabinet/auth'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { getDriverProfile, getDriverStats } from '@/lib/driver-cabinet/profile'
 import YouHelpSection from '@/components/driver/YouHelpSection'
+import SignOutButton from '@/components/driver/SignOutButton'
 
 // Phase 94 plan 94-12 (DCAB-10; D-13): the You tab. The driver's own details (read-only), two simple stats and Help.
 // Per request (reads the session cookie), gated by this page itself (a layout is not a gate, Pitfall 4). The service
@@ -133,7 +134,9 @@ export default async function DriverYouPage() {
 
       <YouHelpSection />
 
-      {/* Slot: Notifications (94-13) goes here, Sign out (94-12 task 3) closes the page. */}
+      {/* Slot: Notifications (94-13) goes here; Sign out closes the page. */}
+
+      <SignOutButton />
     </main>
   )
 }

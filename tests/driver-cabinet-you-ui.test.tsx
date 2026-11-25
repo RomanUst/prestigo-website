@@ -26,6 +26,7 @@ vi.mock('next/navigation', () => ({
 
 import YouPage from '@/app/(internal)/driver/(cabinet)/(tabs)/you/page'
 import YouHelpSection from '@/components/driver/YouHelpSection'
+import SignOutButton from '@/components/driver/SignOutButton'
 import DriverHelpChat from '@/app/(internal)/driver/trip/help/DriverHelpChat'
 import { openDriverHelpPage, DRIVER_HELP_STORAGE_KEY } from '@/lib/driver-help-contract'
 import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
@@ -219,6 +220,53 @@ describe('YouHelpSection', () => {
     expect(assign).not.toHaveBeenCalled()
     // The phone link stays available.
     expect(within(document.body).getByRole('link', { name: /Call the office/ })).toHaveAttribute('href', BUSINESS_TEL_URL)
+  })
+})
+
+describe('SignOutButton and page placement', () => {
+  const assign = vi.fn()
+  const fetchMock = vi.fn()
+
+  beforeEach(() => {
+    assign.mockReset()
+    fetchMock.mockReset()
+    vi.stubGlobal('fetch', fetchMock)
+    Object.defineProperty(window, 'location', { configurable: true, value: { ...window.location, assign } })
+  })
+
+  it('is the last section of the You page with the helper text under it', async () => {
+    seed([full])
+    await renderPage()
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
+    expect(screen.getByText('You will need a new email code to sign in again.')).toBeInTheDocument()
+    const main = document.querySelector('main') as HTMLElement
+    expect(main.lastElementChild).toContainElement(screen.getByRole('button', { name: 'Sign out' }))
+  })
+
+  it('posts once, shows Signing out…, clears the stored help config and goes to the sign-in page', async () => {
+    let release: (r: Response) => void = () => {}
+    fetchMock.mockReturnValue(new Promise<Response>((r) => (release = r)))
+    window.sessionStorage.setItem(DRIVER_HELP_STORAGE_KEY, JSON.stringify(CONFIG))
+    render(<SignOutButton />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    const busy = await screen.findByRole('button', { name: 'Signing out…' })
+    expect(busy).toBeDisabled()
+    fireEvent.click(busy)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/driver/cabinet/sign-out')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ method: 'POST' })
+
+    release(new Response('{"ok":true}', { status: 200 }))
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('/driver/login'))
+    expect(window.sessionStorage.getItem(DRIVER_HELP_STORAGE_KEY)).toBeNull()
+  })
+
+  it('still leaves for the sign-in page when the request fails', async () => {
+    fetchMock.mockRejectedValue(new Error('offline'))
+    render(<SignOutButton />)
+    fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('/driver/login'))
   })
 })
 
