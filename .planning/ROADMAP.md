@@ -26,7 +26,7 @@
 - [x] **Phase 91: Multi-Stop Transfers, Airport Pickup & Waiting Fees** - Stops priced server-side, per-stop waiting, airport pickup after landing, extra charge to the saved card (completed 2026-11-14)
 - [x] **Phase 92: Quotes** - Multi-trip quotes with secret link, deposit, remainder method, versions and PDF (completed 2026-11-18)
 - [ ] **Phase 93: Day Trips & Custom Tours** - Bookable day-trip catalogue in 7 locales and custom-tour request answered with a quote
-- [ ] **Phase 94: Driver Cabinet** - Driver login, ride list (upcoming/past), offers instead of email links, profile; ride detail = Phase 87 trip screen
+- [x] **Phase 94: Driver Cabinet** - Driver login, ride list (upcoming/past), offers instead of email links, profile; ride detail = Phase 87 trip screen (completed 2026-11-26)
 
 **Milestone-wide guardrails (apply to every phase):**
 - **Hold lead time is configurable, default 72 h — never "~5 days".** A hold placed with the customer absent is merchant-initiated and Visa expires it after 4 d 18 h; the saved card plus mandate is the real guarantee, the hold is a convenience (research/SUMMARY.md).
@@ -614,7 +614,7 @@ Plans:
   - Ride detail reuses the Phase 87 trip screen (map, bottom sheet, slide-to-advance step control).
 
 **Owner reference**: Blacklane driver app screenshots shared 2026-11-03 (layout only — Prestigo branding, light theme, no copied names or assets).
-**Plans**: 13/14 plans executed
+**Plans**: 14/14 plans complete
 Plans:
 **Wave 1**
 - [x] 94-01-PLAN.md — Tracer: email-code sign-in + 30-day driver session (auth module, request-code / verify), migration 100 live, CSRF prefix, rate limits
@@ -640,7 +640,7 @@ Plans:
 - [x] 94-13-PLAN.md — Notifications switch, iPhone Home Screen hint, Offers notification hint
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 94-14-PLAN.md — Isolation and security source gates; end-of-phase verification and owner device checks
+- [x] 94-14-PLAN.md — Isolation and security source gates; end-of-phase verification and owner device checks
 
 **UI hint**: yes
 **Security-relevant**: yes — new driver authentication and per-driver data access (commit with `security:` prefix).
