@@ -1,0 +1,16 @@
+{
+  "name": "Prestigo Driver",
+  "short_name": "Prestigo",
+  "description": "Your rides and new ride offers.",
+  "start_url": "/driver/rides",
+  "scope": "/driver/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EFE8DA",
+  "theme_color": "#EFE8DA",
+  "icons": [
+    { "src": "/driver/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/driver/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/driver/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

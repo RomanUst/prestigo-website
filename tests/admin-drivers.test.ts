@@ -197,6 +197,46 @@ describe('DRIVER-01: PATCH /api/admin/drivers/[id]', () => {
   })
 })
 
+describe('DCAB-03 / D-03: vehicle_plate on the driver CRUD routes', () => {
+  it('create stores a trimmed plate, empty becomes null, over 16 characters is a 400', async () => {
+    const selectFn = vi.fn().mockResolvedValue({ data: [mockDriver], error: null })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    const ok = await POST(makePostRequest({ name: 'John', email: 'john@example.com', vehicle_plate: '  1AB 2345 ' }))
+    expect(ok.status).toBe(201)
+    expect(insertFn.mock.calls[0][0].vehicle_plate).toBe('1AB 2345')
+
+    const empty = await POST(makePostRequest({ name: 'John', email: 'john@example.com', vehicle_plate: '   ' }))
+    expect(empty.status).toBe(201)
+    expect(insertFn.mock.calls[1][0].vehicle_plate).toBeNull()
+
+    const tooLong = await POST(makePostRequest({ name: 'John', email: 'john@example.com', vehicle_plate: 'X'.repeat(17) }))
+    expect(tooLong.status).toBe(400)
+    expect(insertFn).toHaveBeenCalledTimes(2)
+  })
+
+  it('patch passes the trimmed plate, an empty string clears it, over 16 characters is a 400', async () => {
+    const selectFn = vi.fn().mockResolvedValue({ data: [mockDriver], error: null })
+    const eqFn = vi.fn().mockReturnValue({ select: selectFn })
+    const updateFn = vi.fn().mockReturnValue({ eq: eqFn })
+    supabaseServiceStub.from.mockReturnValue({ update: updateFn })
+    const params = { params: Promise.resolve({ id: driverId }) }
+
+    const ok = await PATCH(makePatchRequest(driverId, { vehicle_plate: ' 2AB 3456 ' }), params)
+    expect(ok.status).toBe(200)
+    expect(updateFn.mock.calls[0][0]).toEqual({ vehicle_plate: '2AB 3456' })
+
+    const cleared = await PATCH(makePatchRequest(driverId, { vehicle_plate: '' }), params)
+    expect(cleared.status).toBe(200)
+    expect(updateFn.mock.calls[1][0]).toEqual({ vehicle_plate: null })
+
+    const tooLong = await PATCH(makePatchRequest(driverId, { vehicle_plate: 'X'.repeat(17) }), params)
+    expect(tooLong.status).toBe(400)
+    expect(updateFn).toHaveBeenCalledTimes(2)
+  })
+})
+
 describe('DRIVER-01: DELETE /api/admin/drivers/[id]', () => {
   it('Test 9: returns 401 without auth', async () => {
     supabaseAuthStub.auth.getUser.mockResolvedValue({

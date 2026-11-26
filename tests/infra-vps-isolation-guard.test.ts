@@ -112,6 +112,16 @@ const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
       'on-demand driver help identity endpoint fetched only after the driver taps "Chat with the office" on the trip page; reads env and computes an HMAC locally, makes no network call to the VPS, and never runs on page render',
   },
   {
+    path: 'app/api/driver/cabinet/help/route.ts',
+    reason:
+      'on-demand driver help identity endpoint (Phase 94 cabinet) fetched only after a signed-in driver taps "Chat with the office" on the You tab; reads env and computes an HMAC locally, makes no network call to the VPS, and never runs on page render',
+  },
+  {
+    path: 'lib/driver-help-inbox.ts',
+    reason:
+      'pure env read of the driver Help chat inbox (base URL, website token, HMAC secret); no network call to the VPS; imported only by the two on-demand driver help identity routes (trip and cabinet), never on a page render or a booking/payment/contact request path',
+  },
+  {
     path: 'lib/espocrm-client.ts',
     reason:
       'API-key EspoCRM client imported only by the QStash-invoked outbox dispatcher (lib/lead-sync.ts); runs only when Upstash calls /api/integrations/dispatch with a signed message, never on a page render or a booking/payment/contact request path',

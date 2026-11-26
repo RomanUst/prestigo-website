@@ -204,6 +204,19 @@ const nextConfig: NextConfig = {
         source: "/driver/:path*",
         headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
       },
+      // Phase 94 (D-09, DCAB-12, T-94-38/40): the cabinet service worker is never served stale (a fix ships on the
+      // next load) and has the JavaScript content type. No Service-Worker-Allowed header: the scope stays /driver/.
+      {
+        source: "/driver/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
+      {
+        source: "/driver/manifest.webmanifest",
+        headers: [{ key: "Content-Type", value: "application/manifest+json" }],
+      },
       // Phase 89 (T-89-05): the manage URL carries the guest's bearer token, so no manage page
       // sends a Referer and none is cached. Unprefixed (EN) plus each of the six locale prefixes.
       // Listed after the global entry so these values win; X-Frame-Options stays DENY.

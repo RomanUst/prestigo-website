@@ -5,6 +5,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendDriverAssignmentEmail } from '@/lib/email'
+import { notifyCabinetDriverOfOffer } from '@/lib/driver-cabinet/offer-notify'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { TERMINAL_BOOKING_STATUSES } from '@/lib/booking-status'
 import { advanceBookingStatus } from '@/lib/booking-status-service'
@@ -48,7 +49,7 @@ export async function POST(
   // 5a. Verify driver exists
   const { data: driver, error: driverError } = await supabase
     .from('drivers')
-    .select('id, name, email')
+    .select('id, name, email, cabinet_enabled')
     .eq('id', driverId)
     .single()
 
@@ -59,7 +60,7 @@ export async function POST(
   // 5b. Verify booking exists and get trip details for email (blocking — required for email)
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
-    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source, amount_eur, amount_czk, driver_price_czk, special_requests, landing_date, landing_time, pickup_offset_min')
+    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source, amount_eur, amount_czk, driver_price_czk, special_requests, landing_date, landing_time, pickup_offset_min, vehicle_class')
     .eq('id', bookingId)
     .single()
 
@@ -167,7 +168,27 @@ export async function POST(
       recipient: driver.email,
     })
 
-    if (allowed) {
+    if (allowed && driver.cabinet_enabled === true) {
+      // Phase 94 (D-18, D-09): a driver with a cabinet gets the one-button 'Open in cabinet' email and a web push.
+      // Both go through the same notification_flags switch and the same dedup as the token email below.
+      after(() =>
+        notifyCabinetDriverOfOffer({
+          supabase,
+          driverId: driver.id as string,
+          assignmentId: assignment.id as string,
+          email: {
+            to: driver.email,
+            pickupDate: booking.pickup_date,
+            pickupTime: booking.pickup_time,
+            originAddress: booking.origin_address,
+            destinationAddress: (booking.destination_address as string | null) ?? null,
+            passengerFirstName: booking.client_first_name,
+            vehicleClass: (booking.vehicle_class as string | null) ?? '',
+            driverPriceCzk: (booking.driver_price_czk as number | null) ?? null,
+          },
+        }).catch(err => console.error('[driver-assign]:', err)),
+      )
+    } else if (allowed) {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
       const acceptUrl = `${siteUrl}/driver/response?token=${assignment.token}&action=accepted`
       const declineUrl = `${siteUrl}/driver/response?token=${assignment.token}&action=declined`

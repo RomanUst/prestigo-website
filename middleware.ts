@@ -16,6 +16,8 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/calculate-price',
   '/api/driver/respond',
   '/api/driver/trip',
+  // Phase 94 (DCAB-13): cookie-authenticated driver cabinet, browser-only caller.
+  '/api/driver/cabinet',
   // Phase 84 (PANEL-02): same-origin fetch from the Dashboard App page,
   // authenticated by the operator's Chatwoot token. CSRF is defence in depth,
   // so it is deliberately NOT in CSRF_STRICT_ORIGIN_REQUIRED below.
@@ -49,6 +51,8 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
   '/api/manage',
   // Phase 92: public quote routes, browser-only caller, Origin required.
   '/api/quote',
+  // Phase 94: driver cabinet, Origin required.
+  '/api/driver/cabinet',
 ]
 
 /**
@@ -102,6 +106,9 @@ function buildCsp(nonce: string): string {
     process.env.NODE_ENV === 'development'
       ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'self' https:`
       : `script-src 'nonce-${nonce}' 'strict-dynamic' https:`,
+    // Phase 94 (DCAB-13): the driver cabinet registers /driver/sw.js. A nonce plus 'strict-dynamic' script-src does not
+    // clearly authorise a worker script, so workers are limited to same-origin files (research Pitfall 8).
+    "worker-src 'self'",
     "frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
     // GA4 Enhanced Measurement may load tracking pixels from google-analytics.com.
@@ -183,6 +190,9 @@ function buildCspDriverHelp(nonce: string): string {
     process.env.NODE_ENV === 'development'
       ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'self' https:`
       : `script-src 'nonce-${nonce}' 'strict-dynamic' https:`,
+    // Phase 94 (DCAB-13): the driver cabinet registers /driver/sw.js. A nonce plus 'strict-dynamic' script-src does not
+    // clearly authorise a worker script, so workers are limited to same-origin files (research Pitfall 8).
+    "worker-src 'self'",
     "frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://chat.rideprestigo.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
     "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms https://partners.tourist.com https://chat.rideprestigo.com",

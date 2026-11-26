@@ -605,7 +605,7 @@ Plans:
 
 **Goal**: A driver signs in to a personal cabinet that lists all of their rides and new ride offers, instead of receiving one separate link per assignment.
 **Depends on**: Phase 87 (light-theme trip screen and status service); scheduled after Phase 93 by owner decision 2026-11-03
-**Requirements**: TBD (to be defined at discuss/plan time)
+**Requirements**: DCAB-01, DCAB-02, DCAB-03, DCAB-04, DCAB-05, DCAB-06, DCAB-07, DCAB-08, DCAB-09, DCAB-10, DCAB-11, DCAB-12, DCAB-13
 **Scope (owner, 2026-11-03)**:
   - Driver login/accounts.
   - Ride list with Upcoming / Past tabs, grouped by day (time, pickup → dropoff, passenger first name, vehicle plate or "Pending", class).
@@ -614,7 +614,34 @@ Plans:
   - Ride detail reuses the Phase 87 trip screen (map, bottom sheet, slide-to-advance step control).
 
 **Owner reference**: Blacklane driver app screenshots shared 2026-11-03 (layout only — Prestigo branding, light theme, no copied names or assets).
-**Plans**: TBD
+**Plans**: 13/14 plans executed
+Plans:
+**Wave 1**
+- [x] 94-01-PLAN.md — Tracer: email-code sign-in + 30-day driver session (auth module, request-code / verify), migration 100 live, CSRF prefix, rate limits
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [x] 94-02-PLAN.md — /driver/login page, requireDriver gate, safe next, light (cabinet) layout
+- [x] 94-03-PLAN.md — One accept/decline path (respondToOffer) for email link and cabinet; live offers data and label helpers
+- [x] 94-04-PLAN.md — Admin invite / disable / enable cabinet access, invite email, vehicle plate
+- [x] 94-05-PLAN.md — web-push@3.6.7 (legitimacy checkpoint), push send with pruning, subscribe route, owner VAPID script
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [x] 94-06-PLAN.md — Rides data (Upcoming / Past / month totals), tab bar with offers badge, Upcoming list
+- [x] 94-07-PLAN.md — Ride detail = Phase 87 trip screen with Back and driver fee; closed rides; uniform not-available
+- [x] 94-08-PLAN.md — PWA: manifest, brand icons, service worker, worker-src CSP, sw.js headers
+- [x] 94-09-PLAN.md — Cabinet offer email ("Open in cabinet") + push on assignment; non-cabinet email unchanged
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [x] 94-10-PLAN.md — Past rides by month with fee total; refresh, loading and error states
+- [x] 94-11-PLAN.md — Offers tab: offer cards, accept / decline dialogs, banners
+- [x] 94-12-PLAN.md — You tab: profile, stats, help chat, sign out
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [x] 94-13-PLAN.md — Notifications switch, iPhone Home Screen hint, Offers notification hint
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 94-14-PLAN.md — Isolation and security source gates; end-of-phase verification and owner device checks
+
 **UI hint**: yes
 **Security-relevant**: yes — new driver authentication and per-driver data access (commit with `security:` prefix).
 

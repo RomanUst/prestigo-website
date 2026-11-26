@@ -41,6 +41,9 @@ export interface Driver {
   email: string
   phone: string
   vehicle_info: string | null
+  vehicle_plate: string | null
+  cabinet_enabled: boolean
+  cabinet_invited_at: string | null
   created_at: string
 }
 
@@ -55,6 +58,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
   const [email, setEmail] = useState(driver?.email ?? '')
   const [phone, setPhone] = useState(driver?.phone ?? '')
   const [vehicleInfo, setVehicleInfo] = useState(driver?.vehicle_info ?? '')
+  const [vehiclePlate, setVehiclePlate] = useState(driver?.vehicle_plate ?? '')
   const [nameError, setNameError] = useState<string | null>(null)
   const [emailError, setEmailError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
@@ -73,6 +77,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
     setEmail(driver?.email ?? '')
     setPhone(driver?.phone ?? '')
     setVehicleInfo(driver?.vehicle_info ?? '')
+    setVehiclePlate(driver?.vehicle_plate ?? '')
     setNameError(null)
     setEmailError(null)
     setFormError(null)
@@ -110,6 +115,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
       const body: Record<string, string | null> = { name: name.trim(), email: email.trim() }
       if (phone.trim() !== '' || isEdit) body.phone = phone.trim() || null
       if (vehicleInfo.trim() !== '' || isEdit) body.vehicle_info = vehicleInfo.trim() || null
+      if (vehiclePlate.trim() !== '' || isEdit) body.vehicle_plate = vehiclePlate.trim() || null
 
       const res = await fetch(url, {
         method,
@@ -143,9 +149,10 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
 
         {/* Name */}
         <div>
-          <label style={labelStyle}>Name</label>
+          <label htmlFor="driver-name" style={labelStyle}>Name</label>
           <input
             ref={nameRef}
+            id="driver-name"
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
@@ -157,8 +164,9 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
 
         {/* Email */}
         <div>
-          <label style={labelStyle}>Email</label>
+          <label htmlFor="driver-email" style={labelStyle}>Email</label>
           <input
+            id="driver-email"
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
@@ -170,8 +178,9 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
 
         {/* Phone */}
         <div>
-          <label style={labelStyle}>Phone</label>
+          <label htmlFor="driver-phone" style={labelStyle}>Phone</label>
           <input
+            id="driver-phone"
             type="tel"
             value={phone}
             onChange={e => setPhone(e.target.value)}
@@ -182,14 +191,41 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
 
         {/* Vehicle Info */}
         <div>
-          <label style={labelStyle}>Vehicle Info</label>
+          <label htmlFor="driver-vehicle-info" style={labelStyle}>Vehicle Info</label>
           <input
             type="text"
+            id="driver-vehicle-info"
             value={vehicleInfo}
             onChange={e => setVehicleInfo(e.target.value)}
             maxLength={200}
             style={inputBaseStyle}
           />
+        </div>
+
+        {/* Plate (D-03): shown to the driver on every ride in the cabinet */}
+        <div>
+          <label htmlFor="driver-plate" style={labelStyle}>Plate</label>
+          <input
+            id="driver-plate"
+            type="text"
+            value={vehiclePlate}
+            onChange={e => setVehiclePlate(e.target.value)}
+            maxLength={16}
+            autoCapitalize="characters"
+            placeholder="1AB 2345"
+            style={inputBaseStyle}
+          />
+          <div
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: 'var(--admin-fs-label)',
+              fontWeight: 400,
+              color: 'var(--admin-text-muted)',
+              marginTop: '4px',
+            }}
+          >
+            Shown to the driver on every ride. Leave empty to show Pending.
+          </div>
         </div>
 
         {/* Form-level error */}

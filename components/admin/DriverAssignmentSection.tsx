@@ -8,6 +8,7 @@ import { TERMINAL_BOOKING_STATUSES, type BookingStatus } from '@/lib/booking-sta
 interface Driver {
   id: string
   name: string
+  cabinet_enabled: boolean
 }
 
 interface Assignment {
@@ -95,7 +96,11 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             const data = await driversRes.json()
             const activeDrivers: Driver[] = (data.data ?? [])
               .filter((d: { id: string; name: string; active?: boolean }) => d.active !== false)
-              .map((d: { id: string; name: string }) => ({ id: d.id, name: d.name }))
+              .map((d: { id: string; name: string; cabinet_enabled?: boolean }) => ({
+                id: d.id,
+                name: d.name,
+                cabinet_enabled: d.cabinet_enabled === true,
+              }))
             setDrivers(activeDrivers)
           }
           setDriversLoading(false)
@@ -376,6 +381,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
   }
 
   // no-assignment, reassigning, submitting, error states — all show the select+assign UI
+  const selectedDriver = drivers.find((d) => d.id === selectedDriverId) ?? null
   return (
     <div style={{ marginTop: '16px' }}>
       <div style={sectionLabelStyle}>Driver</div>
@@ -420,6 +426,19 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
           {mode === 'submitting' ? 'Assigning...' : 'Assign'}
         </button>
       </div>
+      {selectedDriver && (
+        <div style={{
+          fontSize: 'var(--admin-fs-label)',
+          fontWeight: 400,
+          color: 'var(--admin-text-muted)',
+          marginTop: '4px',
+          fontFamily: 'var(--font-montserrat)',
+        }}>
+          {selectedDriver.cabinet_enabled
+            ? 'Cabinet driver: gets an Open in cabinet email and a notification.'
+            : 'No cabinet: gets the email with Accept and Decline buttons.'}
+        </div>
+      )}
       {mode === 'error' && (
         <div style={{
           fontSize: '11px',

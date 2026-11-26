@@ -155,3 +155,33 @@ describe('next.config.ts headers() — X-Frame-Options excluded for /embed', () 
     expect(robots).not.toMatch(/\/quote/i)
   })
 })
+
+// Phase 94 plan 94-08 (D-09, DCAB-12, T-94-38/40): the cabinet service worker is never served stale, has the
+// right content type, and its scope is never widened beyond /driver/.
+describe('next.config.ts headers(): driver service worker and manifest (94-08)', () => {
+  it('/driver/sw.js is no-store, javascript, no-referrer', async () => {
+    const hit = matching(await loadEntries(), '/driver/sw.js')
+    expect(headerOf(hit, 'Cache-Control')).toBe('no-cache, no-store, must-revalidate')
+    expect(headerOf(hit, 'Content-Type')).toBe('application/javascript; charset=utf-8')
+    expect(headerOf(hit, 'Referrer-Policy')).toBe('no-referrer')
+  })
+
+  it('/driver/manifest.webmanifest is served as application/manifest+json', async () => {
+    const hit = matching(await loadEntries(), '/driver/manifest.webmanifest')
+    expect(headerOf(hit, 'Content-Type')).toBe('application/manifest+json')
+  })
+
+  it.each(['/driver/rides', '/driver/trip/help', '/admin', '/', '/ru/fleet'])(
+    '%s gets neither the worker headers nor a manifest content type',
+    async (pathname) => {
+      const hit = matching(await loadEntries(), pathname)
+      expect(headerOf(hit, 'Content-Type')).toBeUndefined()
+    },
+  )
+
+  it('no entry sets Service-Worker-Allowed (the worker scope stays /driver/)', async () => {
+    const entries = await loadEntries()
+    const all = entries.flatMap((e) => e.headers.map((h) => h.key.toLowerCase()))
+    expect(all).not.toContain('service-worker-allowed')
+  })
+})

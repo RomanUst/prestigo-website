@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 // D-09 / D-11: one neutral view for EVERY ended reason (unknown token, malformed token, cancelled,
@@ -5,7 +6,14 @@ import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
 // bookings. The single exception (Phase 89, D-03, UI-SPEC 6.3): the page passes cancelledReference only
 // for a cancelled booking on the CURRENT driver's own link; the view then says the trip was cancelled
 // and shows the booking reference, nothing else (no passenger, address or amount).
-export default function InvalidTripLinkView({ cancelledReference }: { cancelledReference?: string } = {}) {
+//
+// Phase 94 (DCAB-05, UI-SPEC "Ride states in the cabinet"): the driver cabinet passes cabinetBackHref. The message
+// then reads "This ride is not available." and a "Back to rides" link leads to the list; unknown, foreign, declined
+// and superseded rides stay indistinguishable. Without the prop nothing changes.
+export default function InvalidTripLinkView({
+  cancelledReference,
+  cabinetBackHref,
+}: { cancelledReference?: string; cabinetBackHref?: string } = {}) {
   return (
     <main
       style={{
@@ -45,7 +53,11 @@ export default function InvalidTripLinkView({ cancelledReference }: { cancelledR
             color: 'var(--admin-text-muted)',
           }}
         >
-          {cancelledReference ? 'This trip was cancelled. You do not need to go.' : 'This trip link is no longer active.'}
+          {cancelledReference
+            ? 'This trip was cancelled. You do not need to go.'
+            : cabinetBackHref
+              ? 'This ride is not available.'
+              : 'This trip link is no longer active.'}
         </p>
         {cancelledReference ? (
           <p
@@ -72,6 +84,24 @@ export default function InvalidTripLinkView({ cancelledReference }: { cancelledR
         >
           If you think this is a mistake, call the office.
         </p>
+        {cabinetBackHref ? (
+          <Link
+            href={cabinetBackHref}
+            data-driver-focus=""
+            style={{
+              minHeight: 48,
+              marginTop: 8,
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: '0 16px',
+              fontSize: 'var(--driver-fs-body)',
+              fontWeight: 500,
+              color: 'var(--admin-accent-text)',
+            }}
+          >
+            Back to rides
+          </Link>
+        ) : null}
         <a
           href={BUSINESS_TEL_URL}
           data-driver-focus=""

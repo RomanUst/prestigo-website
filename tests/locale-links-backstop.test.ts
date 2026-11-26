@@ -23,7 +23,9 @@ import { scanTree } from '../scripts/qa/en_leak_static.mjs'
  * plan). `en_leak_allowlist.json`'s `staticIgnoreFiles` is reserved for
  * D-09/D-05/external-link exceptions (this plan's own acceptance criteria
  * forbids widening that file), so the admin-panel scope boundary is applied
- * here in the test instead of in the shared allowlist.
+ * here in the test instead of in the shared allowlist. The driver cabinet
+ * (`components/driver/**`, Phase 94) sits outside i18n scope the same way:
+ * its pages live under non-localized /driver and are English only (D-14).
  *
  * After every phase-75 fix plan has landed, the remaining, non-admin R3
  * finding count must be exactly zero — any regression (a component
@@ -37,8 +39,10 @@ describe('locale-links-backstop (D-06 R3 permanent regression guard)', () => {
     const findings = scanTree(rootDir)
     const r3Findings = findings.filter((f: { rule: string }) => f.rule === 'R3')
 
+    // components/driver/** (Phase 94, D-14) is the driver cabinet under /driver: never locale-prefixed (middleware
+    // NON_LOCALIZED_PREFIXES), English only, so plain next/link and next/navigation are correct there, as in admin.
     const nonAdminR3 = r3Findings.filter(
-      (f: { file: string }) => !f.file.startsWith('components/admin/')
+      (f: { file: string }) => !f.file.startsWith('components/admin/') && !f.file.startsWith('components/driver/')
     )
 
     if (nonAdminR3.length > 0) {

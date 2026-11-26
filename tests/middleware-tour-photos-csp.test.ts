@@ -124,6 +124,16 @@ describe('CSP img-src carries the Supabase project origin (tour photos)', () => 
     }
   })
 
+  it("worker-src 'self' is on the nonce policies only and does not depend on the env (94-08)", async () => {
+    for (const value of [undefined, SUPABASE_ORIGIN]) {
+      if (value === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL
+      else process.env.NEXT_PUBLIC_SUPABASE_URL = value
+      expect(directive(await cspOf('/admin'), 'worker-src')).toBe("worker-src 'self'")
+      expect(directive(await cspOf('/driver/trip/help'), 'worker-src')).toBe("worker-src 'self'")
+      expect(directive(await cspOf('/'), 'worker-src')).toBe('')
+    }
+  })
+
   it('the Chatwoot /embed policy is unchanged', async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = SUPABASE_ORIGIN
     expect(directive(await cspOf('/embed/chatwoot-dashboard'), 'img-src')).toBe("img-src 'self' data:")

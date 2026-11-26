@@ -66,6 +66,8 @@ const bodyText: CSSProperties = {
 export default function DriverHelpChat() {
   const [state, setState] = useState<HelpState>('checking')
   const [canGoBack, setCanGoBack] = useState(false)
+  // Opened from the driver cabinet (?from=cabinet): the history button leads back to the You tab, not to a trip.
+  const [fromCabinet, setFromCabinet] = useState(false)
   const attemptRef = useRef(0)
 
   const open = useCallback(async () => {
@@ -87,6 +89,7 @@ export default function DriverHelpChat() {
 
   useEffect(() => {
     setCanGoBack(window.history.length > 1)
+    setFromCabinet(new URLSearchParams(window.location.search).get('from') === 'cabinet')
     void open()
   }, [open])
 
@@ -183,7 +186,7 @@ export default function DriverHelpChat() {
             onClick={() => window.history.back()}
             style={secondaryButton}
           >
-            Back to trip
+            {fromCabinet ? 'Back' : 'Back to trip'}
           </button>
         ) : null}
       </div>

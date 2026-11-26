@@ -6,8 +6,11 @@ import { LoaderCircle, MessageCircle, TriangleAlert } from 'lucide-react'
 import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 export interface ConfirmStepDialogProps {
-  /** 'no-show' asks the office to try the passenger (D-15); it changes no status and charges nothing. */
-  mode: 'step' | 'help' | 'no-show' | 'cash-received'
+  /**
+   * 'no-show' asks the office to try the passenger (D-15); it changes no status and charges nothing.
+   * 'accept' / 'decline' (Phase 94, D-08) answer an offer in the cabinet; they take the `offer` prop.
+   */
+  mode: 'step' | 'help' | 'no-show' | 'cash-received' | 'accept' | 'decline'
   stepLabel?: string
   isFinal?: boolean
   submitting: boolean
@@ -21,6 +24,8 @@ export interface ConfirmStepDialogProps {
   cash?: { amountLabel: string }
   /** Help mode only (87-UAT gap 3): the primary "Chat with the office" button. */
   chat?: { state: 'idle' | 'opening' | 'error'; onOpen: () => void }
+  /** Accept / decline modes (94-11): '{day label} at {time}' and the driver's fee label (null = no fee line). */
+  offer?: { whenLabel: string; feeLabel: string | null }
 }
 
 const CHAT_ERROR = 'Chat is not available right now. Call the office instead.'
@@ -57,7 +62,7 @@ const FOCUSABLE = 'button:not([disabled]), a[href]'
  * button is pressed, and focus returns to the invoking control on close.
  */
 export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
-  const { mode, stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel, chat, cash } = props
+  const { mode, stepLabel = '', isFinal = false, submitting, error, onConfirm, onCancel, chat, cash, offer } = props
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -97,14 +102,21 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
   const isHelp = mode === 'help'
   const isNoShow = mode === 'no-show'
   const isCashReceived = mode === 'cash-received'
+  const isAccept = mode === 'accept'
+  const isDecline = mode === 'decline'
   const cashAmount = cash?.amountLabel ?? ''
   const primaryLabel = error
     ? 'Try again'
-    : isNoShow
-      ? 'Send request'
-      : isCashReceived
-        ? `Yes, I received ${cashAmount}`
-        : (CONFIRM_BUTTON[stepLabel] ?? 'Confirm')
+    : isAccept
+      ? 'Yes, accept ride'
+      : isDecline
+        ? 'Yes, decline'
+        : isNoShow
+          ? 'Send request'
+          : isCashReceived
+            ? `Yes, I received ${cashAmount}`
+            : (CONFIRM_BUTTON[stepLabel] ?? 'Confirm')
+  const secondaryLabel = isHelp ? 'Close' : isDecline ? 'Keep offer' : 'Not yet'
 
   return (
     <div
@@ -153,13 +165,46 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
             lineHeight: 1.2,
           }}
         >
-          {isHelp ? 'Need help?' : isNoShow ? 'Request a no-show' : isCashReceived ? 'Confirm cash received' : `Confirm: ${stepLabel}`}
+          {isAccept
+            ? 'Accept this ride?'
+            : isDecline
+              ? 'Decline this ride?'
+              : isHelp
+                ? 'Need help?'
+                : isNoShow
+                  ? 'Request a no-show'
+                  : isCashReceived
+                    ? 'Confirm cash received'
+                    : `Confirm: ${stepLabel}`}
         </h2>
 
         {mode === 'step' && isFinal && cash ? <CashWarning amountLabel={cash.amountLabel} /> : null}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {isHelp ? (
+          {isAccept ? (
+            <>
+              <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
+                {`${offer?.whenLabel ?? ''}. The passenger's name and phone appear once you accept.`}
+              </p>
+              {offer?.feeLabel ? (
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 'var(--driver-fs-body)',
+                    fontWeight: 400,
+                    lineHeight: 1.5,
+                    color: 'var(--admin-text-muted)',
+                  }}
+                >
+                  {`Your fee: ${offer.feeLabel}.`}
+                </p>
+              ) : null}
+            </>
+          ) : isDecline ? (
+            <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
+              The office will be told and will offer this ride to another driver. You cannot undo this.
+            </p>
+          ) : isHelp ? (
             <p style={{ margin: 0, fontSize: 'var(--driver-fs-body)', fontWeight: 400, lineHeight: 1.5 }}>
               Chat with the office or call if you cannot find the passenger, the trip details look wrong, or a
               step was tapped by mistake.
@@ -179,7 +224,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               {'?'}
             </p>
           )}
-          {!isHelp && !isNoShow && !isCashReceived && isFinal ? (
+          {mode === 'step' && isFinal ? (
             <p
               style={{
                 margin: 0,
@@ -278,9 +323,9 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               style={{
                 ...buttonBase,
                 fontWeight: 500,
-                border: '1px solid var(--admin-accent)',
-                background: 'var(--admin-accent)',
-                color: 'var(--admin-on-accent)',
+                border: isDecline ? '1px solid var(--admin-danger-solid)' : '1px solid var(--admin-accent)',
+                background: isDecline ? 'var(--admin-danger-solid)' : 'var(--admin-accent)',
+                color: isDecline ? 'var(--admin-on-danger)' : 'var(--admin-on-accent)',
                 opacity: submitting ? 0.85 : 1,
                 cursor: submitting ? 'default' : 'pointer',
               }}
@@ -310,7 +355,7 @@ export default function ConfirmStepDialog(props: ConfirmStepDialogProps) {
               cursor: submitting ? 'default' : 'pointer',
             }}
           >
-            {isHelp ? 'Close' : 'Not yet'}
+            {secondaryLabel}
           </button>
         </div>
       </div>

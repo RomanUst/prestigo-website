@@ -41,6 +41,10 @@ export default function DriversPage() {
     setDrivers(prev => prev.filter(d => d.id !== id))
   }
 
+  function handleDriverChanged(id: string, patch: Partial<Driver>) {
+    setDrivers(prev => prev.map(d => (d.id === id ? { ...d, ...patch } : d)))
+  }
+
   function handleEdit(driver: Driver) {
     setEditingDriver(driver)
     setModalOpen(true)
@@ -130,6 +134,7 @@ export default function DriversPage() {
           drivers={drivers}
           onEdit={handleEdit}
           onDeleted={handleDriverDeleted}
+          onDriverChanged={handleDriverChanged}
         />
       )}
 
