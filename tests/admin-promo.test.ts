@@ -69,6 +69,8 @@ beforeEach(() => {
               airport_promo_active: true,
               airport_regular_price_eur: 69,
               airport_promo_price_eur: 59,
+              airport_s_class_price_eur: 120,
+              airport_v_class_price_eur: 76,
             },
             error: null,
           })
@@ -114,6 +116,8 @@ describe('/api/admin/promo', () => {
       active: true,
       regularPriceEur: 69,
       promoPriceEur: 59,
+      sClassPriceEur: 120,
+      vClassPriceEur: 76,
     })
   })
 
@@ -174,5 +178,35 @@ describe('/api/admin/promo', () => {
 
     expect(revalidatePathMock).toHaveBeenCalledTimes(1)
     expect(revalidatePathMock).toHaveBeenCalledWith('/[locale]', 'layout')
+  })
+
+  it('PUT writes S-Class and V-Class airport prices when sent', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({ data: { user: adminUser }, error: null })
+    const update = vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) }))
+    supabaseServiceStub.from.mockImplementation(() => ({ update }))
+
+    const res = await PUT(makeRequest('PUT', { ...validPutBody, sClassPriceEur: 135, vClassPriceEur: 89 }))
+    expect(res.status).toBe(200)
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({
+      airport_s_class_price_eur: 135,
+      airport_v_class_price_eur: 89,
+    }))
+  })
+
+  it('PUT without S/V prices leaves those columns untouched', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({ data: { user: adminUser }, error: null })
+    const update = vi.fn(() => ({ eq: vi.fn(() => Promise.resolve({ error: null })) }))
+    supabaseServiceStub.from.mockImplementation(() => ({ update }))
+
+    await PUT(makeRequest('PUT', validPutBody))
+    const arg = (update.mock.calls[0] as unknown[])[0] as Record<string, unknown>
+    expect(arg).not.toHaveProperty('airport_s_class_price_eur')
+    expect(arg).not.toHaveProperty('airport_v_class_price_eur')
+  })
+
+  it('PUT rejects a non-positive S-Class price', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({ data: { user: adminUser }, error: null })
+    const res = await PUT(makeRequest('PUT', { ...validPutBody, sClassPriceEur: 0 }))
+    expect(res.status).toBe(400)
   })
 })

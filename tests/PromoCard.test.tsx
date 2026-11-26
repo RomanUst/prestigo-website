@@ -13,7 +13,7 @@ afterEach(() => {
   global.fetch = originalFetch
 })
 
-const defaultInitial = { active: true, regularPriceEur: 69, promoPriceEur: 59 }
+const defaultInitial = { active: true, regularPriceEur: 69, promoPriceEur: 59, sClassPriceEur: 120, vClassPriceEur: 76 }
 
 describe('PromoCard', () => {
   it('renders toggle, regular-price input, promo-price input, and Save button', () => {
@@ -47,7 +47,22 @@ describe('PromoCard', () => {
       expect(global.fetch).toHaveBeenCalledWith('/api/admin/promo', expect.objectContaining({
         method: 'PUT',
         headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ active: true, regularPriceEur: 69, promoPriceEur: 59 }),
+        body: JSON.stringify({ active: true, regularPriceEur: 69, promoPriceEur: 59, sClassPriceEur: 120, vClassPriceEur: 76 }),
+      }))
+    })
+  })
+
+  it('sends edited S-Class and V-Class airport prices', async () => {
+    ;(global.fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true, status: 200, json: async () => ({ ok: true })
+    })
+    render(<PromoCard initial={defaultInitial} />)
+    fireEvent.change(screen.getByLabelText(/s-class price/i), { target: { value: '135' } })
+    fireEvent.change(screen.getByLabelText(/v-class price/i), { target: { value: '89' } })
+    fireEvent.click(screen.getByRole('button', { name: /save/i }))
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/admin/promo', expect.objectContaining({
+        body: JSON.stringify({ active: true, regularPriceEur: 69, promoPriceEur: 59, sClassPriceEur: 135, vClassPriceEur: 89 }),
       }))
     })
   })
@@ -70,7 +85,7 @@ describe('PromoCard', () => {
     render(<PromoCard initial={defaultInitial} />)
     fireEvent.click(screen.getByRole('button', { name: /save/i }))
     await waitFor(() => {
-      expect(screen.getByText(/airport promo saved/i)).toBeTruthy()
+      expect(screen.getByText(/airport prices saved/i)).toBeTruthy()
     })
   })
 })

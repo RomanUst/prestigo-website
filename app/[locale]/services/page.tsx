@@ -120,8 +120,8 @@ export default async function ServicesPage({ params }: { params: Promise<{ local
     berlin,
     munich,
     kutnaHora,
-    sClassFallback: AIRPORT_FALLBACK.sClass,
-    vClassFallback: AIRPORT_FALLBACK.vClass,
+    sClassFallback: globals.airportSClassPriceEur,
+    vClassFallback: globals.airportVClassPriceEur,
   }
 
   const services: ServiceEntry[] = content.services.map((s) => ({

@@ -11,7 +11,6 @@ import BookingSection from '@/components/BookingSection'
 import { setRequestLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { buildAirportTransferJsonLd } from '@/lib/jsonld'
-import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import { getLiveAggregateRating } from '@/lib/google-reviews'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
@@ -80,8 +79,8 @@ export default async function AirportTransferPage({ params }: { params: Promise<
   setRequestLocale(locale)
   const content = getPageContent('services/airport-transfer', locale) as AirportTransferContent
   const { globals } = await getPricingConfig()
-  const sClassAirport = AIRPORT_FALLBACK.sClass
-  const vClassAirport = AIRPORT_FALLBACK.vClass
+  const sClassAirport = globals.airportSClassPriceEur
+  const vClassAirport = globals.airportVClassPriceEur
   const businessPrice = globals.airportPromoActive
     ? globals.airportPromoPriceEur
     : globals.airportRegularPriceEur

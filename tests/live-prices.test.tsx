@@ -9,14 +9,13 @@ vi.mock('@/lib/route-prices', () => ({
 
 vi.mock('@/lib/pricing-config', () => ({
   getPricingConfig: vi.fn(async () => ({
-    globals: { airportPromoActive: true, airportPromoPriceEur: 59, airportRegularPriceEur: 69, nightCoefficient: 1.2 },
+    globals: { airportPromoActive: true, airportPromoPriceEur: 59, airportRegularPriceEur: 69, airportSClassPriceEur: 135, airportVClassPriceEur: 89, nightCoefficient: 1.2 },
     hourlyRate: {}, ratePerKm: {}, dailyRate: {}, minFare: {},
   })),
 }))
 
 import LivePrice from '@/components/LivePrice'
 import { getFares, perPerson } from '@/lib/live-prices'
-import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 
 async function html(el: Promise<React.ReactElement | null>) {
   const resolved = await el
@@ -37,7 +36,8 @@ describe('LivePrice', () => {
 
   it('uses the active airport promo price', async () => {
     expect(await html(LivePrice({ route: 'airport' }))).toBe('<bdi>59</bdi>')
-    expect(await html(LivePrice({ route: 'airport', car: 's' }))).toBe(`<bdi>${AIRPORT_FALLBACK.sClass}</bdi>`)
+    expect(await html(LivePrice({ route: 'airport', car: 's' }))).toBe('<bdi>135</bdi>')
+    expect(await html(LivePrice({ route: 'airport', car: 'v' }))).toBe('<bdi>89</bdi>')
   })
 
   it('renders nothing for a route without a live price', async () => {

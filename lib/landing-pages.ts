@@ -10,7 +10,7 @@
  */
 
 import { getPricingConfig } from '@/lib/pricing-config'
-import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
+import { HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 
 export type LandingSection = 'services' | 'faq' | 'fleet'
 
@@ -157,8 +157,8 @@ export async function getLandingPrices(): Promise<Record<string, number>> {
   const { globals, hourlyRate } = await getPricingConfig()
   return {
     businessPrice: globals.airportPromoActive ? globals.airportPromoPriceEur : globals.airportRegularPriceEur,
-    vClassAirport: AIRPORT_FALLBACK.vClass,
-    sClassAirport: AIRPORT_FALLBACK.sClass,
+    vClassAirport: globals.airportVClassPriceEur,
+    sClassAirport: globals.airportSClassPriceEur,
     hourlyFrom: hourlyRate['business'] ?? HOURLY_FALLBACK.business,
     hourlyV: hourlyRate['business_van'] ?? HOURLY_FALLBACK.business_van,
     hourlyS: hourlyRate['first_class'] ?? HOURLY_FALLBACK.first_class,

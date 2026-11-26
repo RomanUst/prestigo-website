@@ -16,6 +16,8 @@ const PRICING_FALLBACK: PricingRates = {
     airportPromoActive: false,
     airportRegularPriceEur: AIRPORT_FALLBACK.regular,
     airportPromoPriceEur: AIRPORT_FALLBACK.promo,
+    airportSClassPriceEur: AIRPORT_FALLBACK.sClass,
+    airportVClassPriceEur: AIRPORT_FALLBACK.vClass,
     airportFee: 0, nightCoefficient: 1, holidayCoefficient: 1,
     extraChildSeat: 0, extraLuggage: 0, holidayDates: [],
     returnDiscountPercent: 0, hourlyMinHours: 1, hourlyMaxHours: 12,

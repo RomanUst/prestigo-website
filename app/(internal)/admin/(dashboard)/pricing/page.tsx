@@ -38,7 +38,7 @@ export default async function PricingPage() {
   }
 
   const pricingData = await pricingRes.json()
-  const promoData: { active: boolean; regularPriceEur: number; promoPriceEur: number } = await promoRes.json()
+  const promoData: { active: boolean; regularPriceEur: number; promoPriceEur: number; sClassPriceEur: number; vClassPriceEur: number } = await promoRes.json()
   const routesData: { routes: RoutePrice[] } = await routesRes.json()
 
   return (

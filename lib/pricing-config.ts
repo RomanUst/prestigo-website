@@ -15,6 +15,10 @@ export type PricingGlobals = {
   airportPromoActive: boolean
   airportRegularPriceEur: number
   airportPromoPriceEur: number
+  /** Airport transfer "from" price for S-Class (first_class). Display price, no promo. */
+  airportSClassPriceEur: number
+  /** Airport transfer "from" price for V-Class (business_van). Display price, no promo. */
+  airportVClassPriceEur: number
 }
 
 export type PricingRates = {
@@ -55,6 +59,8 @@ const PRICING_FALLBACK: PricingRates = {
     airportPromoActive: false,
     airportRegularPriceEur: AIRPORT_FALLBACK.regular,
     airportPromoPriceEur: AIRPORT_FALLBACK.promo,
+    airportSClassPriceEur: AIRPORT_FALLBACK.sClass,
+    airportVClassPriceEur: AIRPORT_FALLBACK.vClass,
   },
 }
 
@@ -79,7 +85,7 @@ export async function getPricingConfig(): Promise<PricingRates> {
       .select('vehicle_class, rate_per_km, hourly_rate, daily_rate, min_fare, waiting_rate_per_15min'),
     supabase
       .from('pricing_globals')
-      .select('airport_fee, night_coefficient, holiday_coefficient, extra_child_seat, extra_luggage, holiday_dates, return_discount_percent, hourly_min_hours, hourly_max_hours, notification_flags, airport_promo_active, airport_regular_price_eur, airport_promo_price_eur')
+      .select('airport_fee, night_coefficient, holiday_coefficient, extra_child_seat, extra_luggage, holiday_dates, return_discount_percent, hourly_min_hours, hourly_max_hours, notification_flags, airport_promo_active, airport_regular_price_eur, airport_promo_price_eur, airport_s_class_price_eur, airport_v_class_price_eur')
       .eq('id', 1)
       .single(),
   ])
@@ -121,6 +127,8 @@ export async function getPricingConfig(): Promise<PricingRates> {
       airportPromoActive:     Boolean(globals.airport_promo_active ?? false),
       airportRegularPriceEur: Number(globals.airport_regular_price_eur ?? 69),
       airportPromoPriceEur:   Number(globals.airport_promo_price_eur ?? 59),
+      airportSClassPriceEur:  Number(globals.airport_s_class_price_eur ?? AIRPORT_FALLBACK.sClass),
+      airportVClassPriceEur:  Number(globals.airport_v_class_price_eur ?? AIRPORT_FALLBACK.vClass),
     },
   }
 }

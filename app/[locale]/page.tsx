@@ -183,6 +183,8 @@ const DEV_PRICING_FALLBACK = {
     airportPromoActive: false,
     airportRegularPriceEur: AIRPORT_FALLBACK.regular,
     airportPromoPriceEur: AIRPORT_FALLBACK.promo,
+    airportSClassPriceEur: AIRPORT_FALLBACK.sClass,
+    airportVClassPriceEur: AIRPORT_FALLBACK.vClass,
     airportFee: 0, nightCoefficient: 1, holidayCoefficient: 1,
     extraChildSeat: 0, extraLuggage: 0, holidayDates: [] as string[],
     returnDiscountPercent: 0, hourlyMinHours: 1, hourlyMaxHours: 12,
@@ -223,8 +225,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
     return v.length > 0 ? Math.min(...v) : null
   }
   const localBusinessSchema = buildLocalBusinessSchema(content, locale, {
-    // S/V airport fares: same source as /services/airport-transfer.
-    airport: { e: heroPrice, s: AIRPORT_FALLBACK.sClass, v: AIRPORT_FALLBACK.vClass },
+    airport: { e: heroPrice, s: globals.airportSClassPriceEur, v: globals.airportVClassPriceEur },
     hourly: {
       e: hourlyRate['business'] ?? null,
       s: hourlyRate['first_class'] ?? null,
