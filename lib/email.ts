@@ -1795,7 +1795,8 @@ function buildStatusEmailHtml(
 </html>`
 }
 
-export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Promise<void> {
+/** Returns whether Resend accepted the email (callers that report to the operator use it; others ignore it). */
+export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Promise<boolean> {
   try {
     // Phase 91: stops, waiting and landing / pickup of the booking; no rows (and a byte-identical email) without them.
     const route = await loadEmailTripRoute({
@@ -1818,9 +1819,14 @@ export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Pro
         tripRouteRowsHtml(route, 'client'),
       ),
     })
-    if (error) console.error('[booking-notify] confirmed email error:', error)
+    if (error) {
+      console.error('[booking-notify] confirmed email error:', error)
+      return false
+    }
+    return true
   } catch (err) {
     console.error('[booking-notify] confirmed email failed:', err)
+    return false
   }
 }
 

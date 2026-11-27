@@ -7,6 +7,7 @@ import { NoShowBanner, hasOpenNoShowRequest } from './NoShowBanner'
 import { STATUS_CONFLICT_STYLE } from './statusConflict'
 import { FlightStatusBlock } from './FlightStatusBlock'
 import { BookingChangeHistory } from './BookingChangeHistory'
+import { ResendConfirmationSection } from './ResendConfirmationSection'
 import { DetailField } from './DetailField'
 import { TripEditPanel } from './TripEditPanel'
 import { TripRouteSection } from './TripRouteSection'
@@ -111,6 +112,7 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
 
   // Phase 88-07: a trip edit can change the payment (price, pickup); an open PaymentPanel refetches.
   const [paymentBump, setPaymentBump] = useState(0)
+  const [historyBump, setHistoryBump] = useState(0)
 
   // The latest callback, readable from the unmount flush without re-running the effect.
   const onPatchedRef = useRef(onPatched)
@@ -554,9 +556,17 @@ export function BookingDetailPanel({ booking, moves, onPatched, onSearchReferenc
       {/* Trip-edit mode (Phase 63 Plan 05) */}
       <TripEditPanel booking={booking} patchBooking={patchBooking} onUpdated={handleTripUpdated} onEditOpenChange={setTripEditOpen} />
 
+      {/* Send the confirmation again with the current details (after a date/time change at the client's request) */}
+      <ResendConfirmationSection
+        bookingId={booking.id}
+        status={booking.status}
+        clientEmail={booking.client_email}
+        onSent={() => setHistoryBump(n => n + 1)}
+      />
+
       {/* Change history (D-11, FOLLOW-02) */}
       <div style={{ marginTop: '16px' }} onClick={(e) => e.stopPropagation()}>
-        <BookingChangeHistory bookingId={booking.id} />
+        <BookingChangeHistory bookingId={booking.id} refreshKey={historyBump} />
       </div>
 
       {/* Cancel Booking button — only for cancellable statuses */}
