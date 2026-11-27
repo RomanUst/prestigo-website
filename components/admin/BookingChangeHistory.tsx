@@ -15,6 +15,8 @@ interface AuditRow {
 
 interface BookingChangeHistoryProps {
   bookingId: string
+  /** Bumped by the parent after something changed the rows (e.g. a resent confirmation marked them notified). */
+  refreshKey?: number
 }
 
 type FetchState = 'idle' | 'loading' | 'loaded' | 'error'
@@ -78,7 +80,7 @@ function groupRows(rows: AuditRow[]): HistoryGroup[] {
   return groups
 }
 
-export function BookingChangeHistory({ bookingId }: BookingChangeHistoryProps) {
+export function BookingChangeHistory({ bookingId, refreshKey = 0 }: BookingChangeHistoryProps) {
   const [status, setStatus] = useState<FetchState>('idle')
   const [rows, setRows] = useState<AuditRow[]>([])
   const hasFetchedRef = useRef(false)
@@ -104,6 +106,14 @@ export function BookingChangeHistory({ bookingId }: BookingChangeHistoryProps) {
     hasFetchedRef.current = true
     fetchHistory()
   }, [fetchHistory])
+
+  // Refetch when the parent signals a change (never on the initial mount: the effect above covers that).
+  const lastRefreshKeyRef = useRef(refreshKey)
+  useEffect(() => {
+    if (lastRefreshKeyRef.current === refreshKey) return
+    lastRefreshKeyRef.current = refreshKey
+    fetchHistory()
+  }, [refreshKey, fetchHistory])
 
   const handleRetry = useCallback(() => {
     fetchHistory()

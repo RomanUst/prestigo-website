@@ -469,7 +469,7 @@ describe('the legacy builders: the block is purely additive (no stored policy = 
     ...over,
   })
 
-  async function sent(run: () => Promise<void>): Promise<string> {
+  async function sent(run: () => Promise<unknown>): Promise<string> {
     mockResendSend.mockClear()
     await run()
     return mockResendSend.mock.calls[0][0].html as string
