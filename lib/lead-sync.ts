@@ -26,6 +26,7 @@ import { deliverChatwootSync } from '@/lib/chatwoot-sync'
 import { deliverErasure, type ErasureStripe } from '@/lib/erasure'
 import { deliverNoShowAlert, type NoShowAlertDeps } from '@/lib/noshow-alert'
 import { deliverCustomTourAlert, type CustomTourAlertDeps } from '@/lib/custom-tour-alert'
+import { deliverContactInquiryToChatwoot, type ContactInquiryChatwootDeps } from '@/lib/contact-inquiry-chatwoot'
 import type { ErasureStore } from '@/lib/erasure-store'
 import {
   buildLeadFromBooking,
@@ -70,6 +71,7 @@ export interface DispatchDeps {
   noShowAlert?: NoShowAlertDeps
   /** Phase 93 (plan 93-30): custom-tour alert store and operations conversation; undefined = Supabase / env. */
   customTourAlert?: CustomTourAlertDeps
+  contactInquiry?: ContactInquiryChatwootDeps
 }
 
 const LEASE_SECONDS = 120
@@ -102,6 +104,7 @@ function resolveDeps(deps: Partial<DispatchDeps>): DispatchDeps {
     chat: deps.chat,
     noShowAlert: deps.noShowAlert,
     customTourAlert: deps.customTourAlert,
+    contactInquiry: deps.contactInquiry,
   }
 }
 
@@ -219,6 +222,17 @@ async function handleClaimed(row: OutboxRow, d: DispatchDeps): Promise<DispatchR
     if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
     try {
       return await deliverCustomTourAlert(row, d, d.customTourAlert)
+    } catch (err) {
+      return handleFailure(row, err, d)
+    }
+  }
+
+  // Contact-form inquiry -> a conversation in the Chatwoot email inbox (private note, nothing sent to the
+  // client). Same gate as the other alerts: Chatwoot only, inside this QStash-invoked dispatcher.
+  if (row.event_type === 'alert.contact_inquiry') {
+    if (!d.chatwootConfig || !d.chatwoot) return breaker(row, 'chatwoot_unconfigured', d)
+    try {
+      return await deliverContactInquiryToChatwoot(row, d, d.contactInquiry)
     } catch (err) {
       return handleFailure(row, err, d)
     }
