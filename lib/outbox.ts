@@ -22,6 +22,7 @@ export type OutboxEventType =
   | 'hook.espo_contact'
   | 'alert.no_show'
   | 'alert.custom_tour'
+  | 'alert.contact_inquiry'
 export type OutboxLeadStatus = 'new' | 'in_process' | 'converted' | 'dead'
 
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
@@ -42,6 +43,8 @@ const HOOK_KEY = new RegExp(
 const ALERT_NO_SHOW_KEY = new RegExp(`^alert\\.no_show:(${UUID}):(r\\d{9,12})$`)
 // Phase 93 (D-18, D-19): 'alert.custom_tour:<inquiryId>'. One row per request, so the key has no tag.
 const ALERT_CUSTOM_TOUR_KEY = new RegExp(`^alert\\.custom_tour:(${UUID})$`)
+// 'alert.contact_inquiry:<inquiryId>': a contact-form inquiry -> a Chatwoot conversation. One row per inquiry.
+const ALERT_CONTACT_INQUIRY_KEY = new RegExp(`^alert\\.contact_inquiry:(${UUID})$`)
 
 const MAX_DELAY_SECONDS = 604_800 // QStash free plan max delay: 7 days
 
@@ -77,12 +80,19 @@ export function parseOutboxKey(key: string): ParsedOutboxKey | null {
   if (m) return { eventType: 'alert.no_show', aggregateId: m[1], leadStatus: null, tag: m[2] }
   m = ALERT_CUSTOM_TOUR_KEY.exec(key)
   if (m) return { eventType: 'alert.custom_tour', aggregateId: m[1], leadStatus: null }
+  m = ALERT_CONTACT_INQUIRY_KEY.exec(key)
+  if (m) return { eventType: 'alert.contact_inquiry', aggregateId: m[1], leadStatus: null }
   return null
 }
 
 /** The single builder of the custom-tour alert outbox key (the parser above is its only reader). */
 export function customTourAlertKey(inquiryId: string): string {
   return `alert.custom_tour:${inquiryId}`
+}
+
+/** The single builder of the contact-inquiry Chatwoot outbox key (the parser above is its only reader). */
+export function contactInquiryChatwootKey(inquiryId: string): string {
+  return `alert.contact_inquiry:${inquiryId}`
 }
 
 /** The single builder of the no-show alert outbox key (the parser above is its only reader). */

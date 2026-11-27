@@ -5,6 +5,7 @@ import { sendContactInquiry } from '@/lib/email'
 import { enforceMaxBody, safeEmail, safeString } from '@/lib/request-guards'
 import { storeInquiry } from '@/lib/inquiries'
 import { dispatchAfterResponse, inquiryOutboxKey } from '@/lib/outbox'
+import { enqueueContactInquiryChatwoot } from '@/lib/contact-inquiry-enqueue'
 
 // All user-facing string fields use safeString / safeEmail which reject
 // embedded \r\n to prevent header injection downstream (email subjects,
@@ -67,7 +68,11 @@ export async function POST(req: Request) {
     await sendContactInquiry({ name, email, phone, service, message })
 
     const inquiryId = await stored
-    if (inquiryId) dispatchAfterResponse(inquiryOutboxKey(inquiryId))
+    if (inquiryId) {
+      // lead.inquiry (EspoCRM) and alert.contact_inquiry (Chatwoot conversation); both armed after the response.
+      dispatchAfterResponse(inquiryOutboxKey(inquiryId))
+      await enqueueContactInquiryChatwoot(inquiryId)
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {

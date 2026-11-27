@@ -29,6 +29,8 @@ export function outboxEventLabel(eventType: string): string {
       return 'No-show alert'
     case 'alert.custom_tour':
       return 'Custom tour alert'
+    case 'alert.contact_inquiry':
+      return 'Contact form to Chatwoot'
     default:
       return eventType
   }
