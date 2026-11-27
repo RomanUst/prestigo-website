@@ -181,17 +181,17 @@
     {
       "number": "89",
       "name": "Cancellation Policy, Cash Guarantee & No-Show",
-      "status": "pending"
+      "status": "complete"
     },
     {
       "number": "90",
       "name": "Dispatch Views",
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "number": "91",
       "name": "Multi-Stop Transfers, Airport Pickup & Waiting Fees",
-      "status": "pending"
+      "status": "in_progress"
     },
     {
       "number": "92",
@@ -201,13 +201,13 @@
     {
       "number": "93",
       "name": "Day Trips & Custom Tours",
-      "status": "pending"
+      "status": "in_progress"
     }
   ],
   "next": {
     "command": "/gsd:progress --next",
-    "label": "Advance to the next step",
-    "reason": "Phase 89 of 9 · 0% · executing"
+    "label": "Advance to the next step (plan phase 93)",
+    "reason": "Phase 93 of 9 — needs a plan"
   },
-  "updated_at": "2026-11-06T19:37:17.201Z"
+  "updated_at": "2026-11-26T19:59:06.275Z"
 }
